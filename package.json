@@ -1,0 +1,21 @@
+{
+  "name": "saxonberg",
+  "private": true,
+  "scripts": {
+    "install": "pnpm install",
+    "build": "pnpm -r build",
+    "lint": "eslint . --ext .ts,.tsx --cache",
+    "dev:server": "pnpm --filter @saxonberg/server dev",
+    "dev:client": "pnpm --filter @saxonberg/client dev",
+    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "typescript": "^5.4.0"
+  }
+}
