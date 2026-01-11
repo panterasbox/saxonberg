@@ -25,9 +25,9 @@
  * ```
  */
 
-import { Idea } from './Idea.js';
-import { PersistenceManager, Collections } from '../../../backend/PersistenceManager.js';
-import { MixinApi } from '../../api/mixin.js';
+import { Idea } from './Idea';
+import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Interface for persistent constructors.

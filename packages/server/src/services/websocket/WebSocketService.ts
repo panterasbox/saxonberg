@@ -12,7 +12,7 @@ import type { Server as HttpServer } from 'http';
 import type { IncomingMessage } from 'http';
 import type { Socket } from 'net';
 import type { RequestHandler } from 'express';
-import type { Backend } from '../../backend/Backend.js';
+import type { Backend } from '../../backend/Backend';
 
 /**
  * WebSocketService - Manages WebSocket server.

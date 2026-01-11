@@ -14,7 +14,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds name properties.

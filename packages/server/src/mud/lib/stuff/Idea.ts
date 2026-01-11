@@ -11,7 +11,7 @@
  * and locations.
  */
 
-import { Stuff } from './Stuff.js';
+import { Stuff } from './Stuff';
 
 /**
  * Abstract base class for conceptual game objects.

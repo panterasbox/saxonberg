@@ -15,7 +15,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds description properties for visible objects.

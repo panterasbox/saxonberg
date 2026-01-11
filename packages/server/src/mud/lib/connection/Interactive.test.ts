@@ -11,11 +11,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { Interactive } from './Interactive.js';
-import { Player } from '../identity/Player.js';
-import { Avatar } from '../../obj/Avatar.js';
-import { StuffApi } from '../../api/stuff.js';
-import { PlayerApi } from '../../api/player.js';
+import { Interactive } from './Interactive';
+import { Player } from '../identity/Player';
+import { Avatar } from '../../obj/Avatar';
+import { StuffApi } from '../../api/stuff';
+import { PlayerApi } from '../../api/player';
 
 describe('Interactive', () => {
   let interactive: Interactive;

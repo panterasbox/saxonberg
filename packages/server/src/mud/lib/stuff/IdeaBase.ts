@@ -6,7 +6,7 @@
  * due to TypeScript limitations.
  */
 
-import { Idea } from './Idea.js';
+import { Idea } from './Idea';
 
 /**
  * Concrete base class for ideas (for mixin composition).

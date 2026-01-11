@@ -10,9 +10,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Avatar } from './Avatar.js';
-import { Interactive } from '../lib/connection/Interactive.js';
-import { Character } from '../lib/stuff/Character.js';
+import { Avatar } from './Avatar';
+import { Interactive } from '../lib/connection/Interactive';
+import { Character } from '../lib/stuff/Character';
 
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {

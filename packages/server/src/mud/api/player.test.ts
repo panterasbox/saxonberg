@@ -9,8 +9,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PlayerApi } from './player.js';
-import type { Avatar } from '../obj/Avatar.js';
+import { PlayerApi } from './player';
+import type { Avatar } from '../obj/Avatar';
 
 // Mock Avatar objects for testing
 const createMockAvatar = (playerId: string): Avatar => {

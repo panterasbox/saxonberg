@@ -15,7 +15,7 @@
  * Full implementation will be done in Phase 3 when we implement the message system.
  */
 
-import type { MixinConstructor } from '../mixins/types.js';
+import type { MixinConstructor } from '../mixins/types';
 
 /**
  * Mixin that adds message sending capabilities (STUB).

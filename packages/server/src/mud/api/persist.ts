@@ -20,7 +20,7 @@
  * ```
  */
 
-import { MixinApi } from './mixin.js';
+import { MixinApi } from './mixin';
 
 /**
  * Persistence handler for complex types.

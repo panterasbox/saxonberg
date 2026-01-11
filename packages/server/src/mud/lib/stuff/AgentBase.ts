@@ -7,7 +7,7 @@
  * This is the same pattern as IdeaBase for Player.
  */
 
-import { Agent } from './Agent.js';
+import { Agent } from './Agent';
 
 /**
  * Concrete Agent base class for mixin composition.

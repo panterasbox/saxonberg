@@ -24,7 +24,7 @@
  */
 
 import { nanoid } from 'nanoid';
-import { StuffApi } from '../../api/stuff.js';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * Metadata for destroyed objects (used for debugging).

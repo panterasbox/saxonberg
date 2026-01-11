@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { VisibleMixin } from './VisibleMixin.js';
-import { Stuff } from '../stuff/Stuff.js';
+import { VisibleMixin } from './VisibleMixin';
+import { Stuff } from '../stuff/Stuff';
 
 // Test class that uses VisibleMixin
 class TestVisible extends VisibleMixin(Stuff) {

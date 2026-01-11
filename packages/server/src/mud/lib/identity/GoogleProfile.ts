@@ -7,7 +7,7 @@
  * Persistence: Saved to MongoDB 'google_profiles' collection
  */
 
-import { Persistent } from '../stuff/Persistent.js';
+import { Persistent } from '../stuff/Persistent';
 import type { GoogleProfile as IGoogleProfile } from '@saxonberg/types';
 
 /**

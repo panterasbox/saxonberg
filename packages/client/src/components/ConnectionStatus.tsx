@@ -10,7 +10,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { useStore } from '../store/index.js';
+import { useStore } from '../store/index';
 
 const Container = styled.div`
   padding: 20px;

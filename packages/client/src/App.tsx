@@ -9,8 +9,8 @@
 
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useStore } from './store/index.js';
-import { websocketClient } from './services/websocket.js';
+import { useStore } from './store/index';
+import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus.tsx';
 
 const Container = styled.div`

@@ -10,7 +10,7 @@
  * ```
  */
 
-import { Application } from './Application.js';
+import { Application } from './Application';
 
 /**
  * Singleton accessor for Application.

@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { User } from './User.js';
+import { User } from './User';
 
 describe('User', () => {
   describe('collectionName', () => {

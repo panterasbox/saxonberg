@@ -17,12 +17,12 @@
  * Runtime-only class (no MongoDB collection).
  */
 
-import { Agent } from './Agent.js';
-import { NamedMixin } from '../mixins/NamedMixin.js';
-import { GenderedMixin } from '../mixins/GenderedMixin.js';
-import { MortalMixin } from '../mixins/MortalMixin.js';
-import { SensorMixin } from '../message/SensorMixin.js';
-import { VocalMixin } from '../message/VocalMixin.js';
+import { Agent } from './Agent';
+import { NamedMixin } from '../mixins/NamedMixin';
+import { GenderedMixin } from '../mixins/GenderedMixin';
+import { MortalMixin } from '../mixins/MortalMixin';
+import { SensorMixin } from '../message/SensorMixin';
+import { VocalMixin } from '../message/VocalMixin';
 
 // Compose mixins: Named + Gendered + Mortal + Sensor + Vocal + Agent
 const CharacterBase = VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent)))));

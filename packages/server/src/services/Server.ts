@@ -15,11 +15,11 @@ import session from 'express-session';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { Backend } from '../backend/Backend.js';
-import { Application } from '../backend/Application.js';
-import { PassportConfig } from './auth/PassportConfig.js';
-import { AuthRoutes } from './auth/AuthRoutes.js';
-import { WebSocketService } from './websocket/WebSocketService.js';
+import { Backend } from '../backend/Backend';
+import { Application } from '../backend/Application';
+import { PassportConfig } from './auth/PassportConfig';
+import { AuthRoutes } from './auth/AuthRoutes';
+import { WebSocketService } from './websocket/WebSocketService';
 
 /**
  * Server - Main application server.
@@ -125,8 +125,8 @@ export class Server {
 
     // Server stats (for development)
     this.app.get('/stats', (req, res) => {
-      const { ConnectionApi } = require('../mud/api/connection.js');
-      const { StuffApi } = require('../mud/api/stuff.js');
+      const { ConnectionApi } = require('../mud/api/connection');
+      const { StuffApi } = require('../mud/api/stuff');
 
       res.json({
         connections: ConnectionApi.getConnectionCount(),

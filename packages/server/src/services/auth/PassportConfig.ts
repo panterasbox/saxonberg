@@ -11,7 +11,7 @@
 
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import type { Backend } from '../../backend/Backend.js';
+import type { Backend } from '../../backend/Backend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
 
 /**

@@ -10,8 +10,9 @@ export { Pronouns } from '@saxonberg/types';
 /**
  * Mixin constructor type.
  * A mixin is a function that takes a base class and returns an extended class.
+ * Supports both concrete and abstract constructors.
  */
-export type MixinConstructor<T = object> = new (...args: any[]) => T;
+export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstract new (...args: any[]) => T);
 
 /**
  * Mixin function type.

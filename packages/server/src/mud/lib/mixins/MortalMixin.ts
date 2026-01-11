@@ -22,7 +22,7 @@
  * - Works for both living and undead (undead can still be "destroyed")
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds health/hitpoint properties and methods.

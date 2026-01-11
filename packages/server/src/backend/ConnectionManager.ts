@@ -12,8 +12,8 @@
  * This is a Manager (privileged) - has state and business logic.
  */
 
-import { Interactive } from '../mud/lib/connection/Interactive.js';
-import { StuffApi } from '../mud/api/stuff.js';
+import { Interactive } from '../mud/lib/connection/Interactive';
+import { StuffApi } from '../mud/api/stuff';
 
 /**
  * ConnectionManager - Singleton for connection state management.

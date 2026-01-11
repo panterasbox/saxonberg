@@ -3,8 +3,15 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ContainableMixin } from './ContainableMixin.js';
-import { Stuff } from '../stuff/Stuff.js';
+import { ContainableMixin } from './ContainableMixin';
+import { Stuff } from '../stuff/Stuff';
+
+// Concrete test base class
+class ConcreteStuff extends Stuff {
+  constructor() {
+    super();
+  }
+}
 
 // Test class that uses ContainableMixin
 class TestContainable extends ContainableMixin(Stuff) {
@@ -15,13 +22,13 @@ class TestContainable extends ContainableMixin(Stuff) {
 
 describe('ContainableMixin', () => {
   let containable: TestContainable;
-  let environment1: Stuff;
-  let environment2: Stuff;
+  let environment1: ConcreteStuff;
+  let environment2: ConcreteStuff;
 
   beforeEach(() => {
     containable = new TestContainable();
-    environment1 = new Stuff();
-    environment2 = new Stuff();
+    environment1 = new ConcreteStuff();
+    environment2 = new ConcreteStuff();
   });
 
   describe('initialization', () => {

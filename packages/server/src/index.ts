@@ -11,8 +11,8 @@
  */
 
 import 'dotenv/config';
-import { PersistenceManager } from './backend/PersistenceManager.js';
-import { Server } from './services/Server.js';
+import { PersistenceManager } from './backend/PersistenceManager';
+import { Server } from './services/Server';
 
 /**
  * Main server initialization function.
@@ -88,16 +88,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 // Export for testing
-export { Server } from './services/Server.js';
-export { Application } from './backend/Application.js';
-export { Backend } from './backend/Backend.js';
-export { PersistenceManager } from './backend/PersistenceManager.js';
-export { ConnectionManager } from './backend/ConnectionManager.js';
-export { ConnectionApi } from './mud/api/connection.js';
-export { MixinApi, Mixins } from './mud/api/mixin.js';
-export { Avatar } from './mud/obj/Avatar.js';
-export { Interactive } from './mud/lib/connection/Interactive.js';
-export { Agent } from './mud/lib/stuff/Agent.js';
-export { AgentBase } from './mud/lib/stuff/AgentBase.js';
-export { Persistent } from './mud/lib/stuff/Persistent.js';
-export { PersistentBase } from './mud/lib/stuff/PersistentBase.js';
+export { Server } from './services/Server';
+export { Application } from './backend/Application';
+export { Backend } from './backend/Backend';
+export { PersistenceManager } from './backend/PersistenceManager';
+export { ConnectionManager } from './backend/ConnectionManager';
+export { ConnectionApi } from './mud/api/connection';
+export { MixinApi, Mixins } from './mud/api/mixin';
+export { Avatar } from './mud/obj/Avatar';
+export { Interactive } from './mud/lib/connection/Interactive';
+export { Agent } from './mud/lib/stuff/Agent';
+export { AgentBase } from './mud/lib/stuff/AgentBase';
+export { Persistent } from './mud/lib/stuff/Persistent';
+export { PersistentBase } from './mud/lib/stuff/PersistentBase';

@@ -13,7 +13,7 @@
  * Persistence: NOT persisted - runtime only
  */
 
-import { Idea } from './Idea.js';
+import { Idea } from './Idea';
 
 /**
  * Agent - Base class for runtime active objects.

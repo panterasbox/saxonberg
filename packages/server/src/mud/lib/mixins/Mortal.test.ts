@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MortalMixin } from './MortalMixin.js';
-import { Stuff } from '../stuff/Stuff.js';
+import { MortalMixin } from './MortalMixin';
+import { Stuff } from '../stuff/Stuff';
 
 // Test class that uses MortalMixin
 class TestMortal extends MortalMixin(Stuff) {

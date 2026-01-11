@@ -8,7 +8,7 @@
  * This is separate from StuffApi because it's domain-specific functionality.
  */
 
-import type { Avatar } from '../obj/Avatar.js';
+import type { Avatar } from '../obj/Avatar';
 
 /**
  * Static API for Player/Avatar management.

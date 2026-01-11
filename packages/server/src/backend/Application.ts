@@ -16,17 +16,17 @@
  * This is a singleton - only one instance exists per application.
  */
 
-import type { IBackend } from './IBackend.js';
+import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile, WebSocketMessage, MessageType } from '@saxonberg/types';
 import { Pronouns } from '@saxonberg/types';
-import { PersistenceManager, Collections } from './PersistenceManager.js';
-import { ConnectionManager } from './ConnectionManager.js';
-import type { Interactive } from '../mud/lib/connection/Interactive.js';
-import { Avatar } from '../mud/obj/Avatar.js';
-import { User } from '../mud/lib/identity/User.js';
-import { Player } from '../mud/lib/identity/Player.js';
-import { GoogleProfile } from '../mud/lib/identity/GoogleProfile.js';
-import { StuffApi } from '../mud/api/stuff.js';
+import { PersistenceManager, Collections } from './PersistenceManager';
+import { ConnectionManager } from './ConnectionManager';
+import type { Interactive } from '../mud/lib/connection/Interactive';
+import { Avatar } from '../mud/obj/Avatar';
+import { User } from '../mud/lib/identity/User';
+import { Player } from '../mud/lib/identity/Player';
+import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
+import { StuffApi } from '../mud/api/stuff';
 
 /**
  * Application - Singleton for game logic coordination.
@@ -115,7 +115,10 @@ export class Application {
         throw new Error(`No players found for user ${userId}`);
       } else if (interactive.availableAvatars.size === 1) {
         // Single player - auto-select
-        const [playerId] = interactive.availableAvatars.keys();
+        const playerId = Array.from(interactive.availableAvatars.keys())[0];
+        if (!playerId) {
+          throw new Error('Unexpected: availableAvatars has size 1 but no keys');
+        }
         await interactive.switchAvatar(playerId);
 
         const avatar = interactive.currentAvatar!;

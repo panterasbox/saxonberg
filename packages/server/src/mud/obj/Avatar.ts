@@ -16,12 +16,12 @@
  * Location: /mud/obj/ because it's an instantiable game object (not a library class)
  */
 
-import { Character } from '../lib/stuff/Character.js';
-import { PlayerApi } from '../api/player.js';
-import { PersistApi } from '../api/persist.js';
-import { Player } from '../lib/identity/Player.js';
-import type { Interactive } from '../lib/connection/Interactive.js';
-import { PersistenceManager, Collections } from '../../backend/PersistenceManager.js';
+import { Character } from '../lib/stuff/Character';
+import { PlayerApi } from '../api/player';
+import { PersistApi } from '../api/persist';
+import { Player } from '../lib/identity/Player';
+import type { Interactive } from '../lib/connection/Interactive';
+import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 
 /**
  * Template data for Avatar (from domain collection).

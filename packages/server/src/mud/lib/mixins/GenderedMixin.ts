@@ -13,7 +13,7 @@
  */
 
 import { Pronouns } from '@saxonberg/types';
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds pronoun properties.

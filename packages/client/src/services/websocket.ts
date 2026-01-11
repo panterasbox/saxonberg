@@ -16,7 +16,7 @@ import type {
   EchoPayload,
   ErrorPayload,
 } from '@saxonberg/types';
-import { useStore } from '../store/index.js';
+import { useStore } from '../store/index';
 
 /**
  * Message handler function type.

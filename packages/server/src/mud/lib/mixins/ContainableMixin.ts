@@ -18,7 +18,7 @@
  * - Must declare custom persistenceHandler in class
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds environment/containment properties and methods.

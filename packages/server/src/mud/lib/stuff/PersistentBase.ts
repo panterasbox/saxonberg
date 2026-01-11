@@ -7,7 +7,7 @@
  * This is the same pattern as IdeaBase and AgentBase.
  */
 
-import { Persistent } from './Persistent.js';
+import { Persistent } from './Persistent';
 
 /**
  * Concrete Persistent base class for mixin composition.

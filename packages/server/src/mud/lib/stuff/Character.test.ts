@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Character } from './Character.js';
+import { Character } from './Character';
 
 // Concrete test class that extends Character
 class TestCharacter extends Character {

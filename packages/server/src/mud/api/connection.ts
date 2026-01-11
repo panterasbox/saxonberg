@@ -10,8 +10,8 @@
  * This is an Api (public) - stateless interface to privileged Manager.
  */
 
-import { ConnectionManager } from '../../backend/ConnectionManager.js';
-import type { Interactive } from '../lib/connection/Interactive.js';
+import { ConnectionManager } from '../../backend/ConnectionManager';
+import type { Interactive } from '../lib/connection/Interactive';
 
 /**
  * Static API for connection queries (public interface for mudlib).

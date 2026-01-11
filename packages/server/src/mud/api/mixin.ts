@@ -11,7 +11,7 @@
  *
  * Usage:
  * ```typescript
- * import { Mixins } from '../lib/mixins/types.js';
+ * import { Mixins } from '../lib/mixins/types';
  *
  * if (MixinApi.hasMixin(Player, Mixins.Named)) {
  *   // Player has NamedMixin
@@ -19,10 +19,10 @@
  * ```
  */
 
-import type { MixinConstructor, MixinName } from '../lib/mixins/types.js';
+import type { MixinConstructor, MixinName } from '../lib/mixins/types';
 
 // Re-export Mixins constants for convenience
-export { Mixins } from '../lib/mixins/types.js';
+export { Mixins } from '../lib/mixins/types';
 
 /**
  * Static API for mixin management and introspection.
@@ -84,7 +84,7 @@ export class MixinApi {
    *
    * Usage:
    * ```typescript
-   * import { Mixins } from './mixin.js';
+   * import { Mixins } from './mixin';
    *
    * if (MixinApi.hasMixin(Player, Mixins.Named)) {
    *   // Player has NamedMixin

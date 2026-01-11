@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { StuffApi } from './stuff.js';
-import { Stuff } from '../lib/stuff/Stuff.js';
+import { StuffApi } from './stuff';
+import { Stuff } from '../lib/stuff/Stuff';
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {

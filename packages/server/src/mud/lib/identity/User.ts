@@ -7,7 +7,7 @@
  * Persistence: Saved to MongoDB 'users' collection
  */
 
-import { Persistent } from '../stuff/Persistent.js';
+import { Persistent } from '../stuff/Persistent';
 import type { User as IUser } from '@saxonberg/types';
 
 /**

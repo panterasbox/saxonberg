@@ -13,8 +13,8 @@
  */
 
 import { nanoid } from 'nanoid';
-import type { Stuff, DestroyedObjectMetadata } from '../lib/stuff/Stuff.js';
-import { PersistenceManager, Collections } from '../../backend/PersistenceManager.js';
+import type { Stuff, DestroyedObjectMetadata } from '../lib/stuff/Stuff';
+import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 
 /**
  * Domain template from CMS.
@@ -127,7 +127,7 @@ export class StuffApi {
     const classPath = this.validateClassPath(template.class);
 
     // 3. Dynamically import the module
-    // Convert "/obj/Avatar" to "../obj/Avatar.js"
+    // Convert "/obj/Avatar" to "../obj/Avatar"
     const modulePath = `..${classPath}.js`;
     const className = classPath.split('/').pop()!; // "Avatar" from "/obj/Avatar"
 

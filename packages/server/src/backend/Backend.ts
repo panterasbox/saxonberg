@@ -16,9 +16,9 @@
  */
 
 import type { WebSocket } from 'ws';
-import type { IBackend } from './IBackend.js';
+import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
-import { Application } from './Application.js';
+import { Application } from './Application';
 
 /**
  * Backend - Singleton for I/O operations.
