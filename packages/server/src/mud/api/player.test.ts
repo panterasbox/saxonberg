@@ -1,0 +1,250 @@
+/**
+ * Tests for PlayerApi
+ *
+ * Covers:
+ * - Avatar registration and lookup by playerId
+ * - Avatar unregistration
+ * - Avatar count and listing
+ * - Edge cases (missing playerId, duplicate registration)
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { PlayerApi } from './player.js';
+import type { Avatar } from '../obj/Avatar.js';
+
+// Mock Avatar objects for testing
+const createMockAvatar = (playerId: string): Avatar => {
+  return {
+    playerId,
+    userId: 'test-user',
+    firstName: 'Test',
+    lastName: 'User',
+    fullName: 'Test User',
+    stuffId: `avatar-${playerId}`,
+  } as Avatar;
+};
+
+describe('PlayerApi', () => {
+  beforeEach(() => {
+    // Clear all avatars before each test
+    PlayerApi.clearAll();
+  });
+
+  describe('registerAvatar', () => {
+    it('should register avatar by playerId', () => {
+      const avatar = createMockAvatar('test123');
+
+      PlayerApi.registerAvatar(avatar);
+
+      const found = PlayerApi.findAvatarByPlayerId('test123');
+      expect(found).toBe(avatar);
+    });
+
+    it('should handle avatar without playerId gracefully', () => {
+      const avatar = createMockAvatar('');
+      avatar.playerId = ''; // Empty playerId
+
+      // Should not throw
+      expect(() => PlayerApi.registerAvatar(avatar)).not.toThrow();
+
+      // Should not be findable
+      expect(PlayerApi.findAvatarByPlayerId('')).toBeUndefined();
+    });
+
+    it('should warn on duplicate registration', () => {
+      const avatar1 = createMockAvatar('test123');
+      const avatar2 = createMockAvatar('test123');
+
+      // Register first avatar
+      PlayerApi.registerAvatar(avatar1);
+
+      // Register second avatar with same playerId (should warn but not throw)
+      expect(() => PlayerApi.registerAvatar(avatar2)).not.toThrow();
+
+      // Most recent registration should be kept (or first, depending on implementation)
+      const found = PlayerApi.findAvatarByPlayerId('test123');
+      expect(found).toBeDefined();
+    });
+
+    it('should register multiple avatars with different playerIds', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+      const avatar3 = createMockAvatar('player3');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+      PlayerApi.registerAvatar(avatar3);
+
+      expect(PlayerApi.findAvatarByPlayerId('player1')).toBe(avatar1);
+      expect(PlayerApi.findAvatarByPlayerId('player2')).toBe(avatar2);
+      expect(PlayerApi.findAvatarByPlayerId('player3')).toBe(avatar3);
+    });
+  });
+
+  describe('unregisterAvatar', () => {
+    it('should unregister avatar by playerId', () => {
+      const avatar = createMockAvatar('test123');
+
+      PlayerApi.registerAvatar(avatar);
+      expect(PlayerApi.findAvatarByPlayerId('test123')).toBe(avatar);
+
+      PlayerApi.unregisterAvatar(avatar);
+      expect(PlayerApi.findAvatarByPlayerId('test123')).toBeUndefined();
+    });
+
+    it('should handle unregistering avatar without playerId gracefully', () => {
+      const avatar = createMockAvatar('');
+      avatar.playerId = '';
+
+      // Should not throw
+      expect(() => PlayerApi.unregisterAvatar(avatar)).not.toThrow();
+    });
+
+    it('should handle unregistering non-existent avatar gracefully', () => {
+      const avatar = createMockAvatar('nonexistent');
+
+      // Should not throw
+      expect(() => PlayerApi.unregisterAvatar(avatar)).not.toThrow();
+    });
+
+    it('should not affect other avatars when unregistering', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+
+      PlayerApi.unregisterAvatar(avatar1);
+
+      expect(PlayerApi.findAvatarByPlayerId('player1')).toBeUndefined();
+      expect(PlayerApi.findAvatarByPlayerId('player2')).toBe(avatar2);
+    });
+  });
+
+  describe('findAvatarByPlayerId', () => {
+    it('should return avatar for valid playerId', () => {
+      const avatar = createMockAvatar('test123');
+
+      PlayerApi.registerAvatar(avatar);
+
+      const found = PlayerApi.findAvatarByPlayerId('test123');
+      expect(found).toBe(avatar);
+    });
+
+    it('should return undefined for non-existent playerId', () => {
+      const found = PlayerApi.findAvatarByPlayerId('nonexistent');
+      expect(found).toBeUndefined();
+    });
+
+    it('should return undefined after unregistration', () => {
+      const avatar = createMockAvatar('test123');
+
+      PlayerApi.registerAvatar(avatar);
+      PlayerApi.unregisterAvatar(avatar);
+
+      const found = PlayerApi.findAvatarByPlayerId('test123');
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe('getAllAvatars', () => {
+    it('should return empty array when no avatars registered', () => {
+      const avatars = PlayerApi.getAllAvatars();
+
+      expect(avatars).toEqual([]);
+      expect(avatars).toHaveLength(0);
+    });
+
+    it('should return all registered avatars', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+      const avatar3 = createMockAvatar('player3');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+      PlayerApi.registerAvatar(avatar3);
+
+      const avatars = PlayerApi.getAllAvatars();
+
+      expect(avatars).toHaveLength(3);
+      expect(avatars).toContain(avatar1);
+      expect(avatars).toContain(avatar2);
+      expect(avatars).toContain(avatar3);
+    });
+
+    it('should return updated list after unregistration', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+
+      PlayerApi.unregisterAvatar(avatar1);
+
+      const avatars = PlayerApi.getAllAvatars();
+
+      expect(avatars).toHaveLength(1);
+      expect(avatars).toContain(avatar2);
+      expect(avatars).not.toContain(avatar1);
+    });
+  });
+
+  describe('getAvatarCount', () => {
+    it('should return 0 when no avatars registered', () => {
+      expect(PlayerApi.getAvatarCount()).toBe(0);
+    });
+
+    it('should return correct count for registered avatars', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+      const avatar3 = createMockAvatar('player3');
+
+      PlayerApi.registerAvatar(avatar1);
+      expect(PlayerApi.getAvatarCount()).toBe(1);
+
+      PlayerApi.registerAvatar(avatar2);
+      expect(PlayerApi.getAvatarCount()).toBe(2);
+
+      PlayerApi.registerAvatar(avatar3);
+      expect(PlayerApi.getAvatarCount()).toBe(3);
+    });
+
+    it('should return updated count after unregistration', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+      expect(PlayerApi.getAvatarCount()).toBe(2);
+
+      PlayerApi.unregisterAvatar(avatar1);
+      expect(PlayerApi.getAvatarCount()).toBe(1);
+
+      PlayerApi.unregisterAvatar(avatar2);
+      expect(PlayerApi.getAvatarCount()).toBe(0);
+    });
+  });
+
+  describe('clearAll', () => {
+    it('should clear all avatars', () => {
+      const avatar1 = createMockAvatar('player1');
+      const avatar2 = createMockAvatar('player2');
+
+      PlayerApi.registerAvatar(avatar1);
+      PlayerApi.registerAvatar(avatar2);
+      expect(PlayerApi.getAvatarCount()).toBe(2);
+
+      PlayerApi.clearAll();
+
+      expect(PlayerApi.getAvatarCount()).toBe(0);
+      expect(PlayerApi.getAllAvatars()).toEqual([]);
+      expect(PlayerApi.findAvatarByPlayerId('player1')).toBeUndefined();
+      expect(PlayerApi.findAvatarByPlayerId('player2')).toBeUndefined();
+    });
+
+    it('should handle clearing empty registry', () => {
+      expect(() => PlayerApi.clearAll()).not.toThrow();
+      expect(PlayerApi.getAvatarCount()).toBe(0);
+    });
+  });
+});

@@ -52,6 +52,22 @@ pnpm lint             # Run ESLint across all packages
 pnpm format           # Format code with Prettier
 ```
 
+### Testing
+```bash
+pnpm test             # Run all tests across all packages
+cd packages/server && pnpm test  # Run server tests only
+cd packages/client && pnpm test  # Run client tests only
+```
+
+**Test Framework**: Vitest
+
+**Test Coverage Areas**:
+- StuffApi: Class path validation (security), object creation lifecycle, registration
+- PlayerApi: Avatar registry operations, lookups, edge cases
+- Avatar: Template path construction and conventions
+- User: Persistent fields configuration, relationship verification
+- Integration tests for core flows (future)
+
 ### Documentation
 ```bash
 pnpm docs:all         # Generate all API documentation
@@ -103,7 +119,8 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
 
 #### Mudlib Layer (`packages/server/src/mud/`)
 - **API Layer** (`api/`): Static utility classes
-  - `StuffApi`: ID generation and object utilities
+  - `StuffApi`: Object registry, ID generation, template cloning with dynamic imports
+  - `PlayerApi`: Avatar registry and player-specific lookups
   - `MixinApi`: Mixin registration, querying, composition
   - `PersistApi`: CRUD operations, synchronization utilities
 
@@ -111,7 +128,7 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
   ```
   Stuff (base with runtime ID)
     └── Idea (abstract base)
-         ├── User (account with googleProfile, players)
+         ├── User (account with googleProfile reference)
          ├── Player (character with name, gender, persistent)
          ├── Interactive (runtime connection state)
          ├── GoogleProfile (OAuth data)
@@ -162,6 +179,89 @@ interface IBackend {
 }
 ```
 
+#### 6. CMS Template Pattern
+Objects are created by cloning templates stored in the `domain` MongoDB collection:
+
+```typescript
+// PRIMARY: Clone from CMS template
+const avatar = await StuffApi.clone<Avatar>('/avatar/player/abc123');
+
+// What happens:
+// 1. Load template from 'domain' collection by path
+// 2. Validate class path (security: must be /obj/ or /lib/, no ..)
+// 3. Dynamic import: await import('../obj/Avatar.js')
+// 4. Construct: new Avatar(template.data)
+// 5. Initialize: await avatar.initialize() (if method exists)
+// 6. Register: StuffApi.register(avatar)
+// 7. Return fully initialized object
+
+// FALLBACK: Direct creation (testing/special cases)
+const obj = await StuffApi.create(() => new SomeClass());
+```
+
+**Template Structure** (in `domain` collection):
+```typescript
+{
+  path: "/avatar/player/abc123",  // Unique template identifier
+  class: "/obj/Avatar",            // Class path (relative to /mud/)
+  data: {                          // Template initialization data
+    playerId: "507f1f77..."        // Passed to constructor
+  }
+}
+```
+
+**Avatar Template Convention**:
+- Path pattern: `/avatar/player/<playerId>`
+- Helper: `Avatar.getTemplatePath(playerId)` constructs path
+- Created automatically when Player is created
+- See `CMS_TEMPLATE_PATTERN.md` for full documentation
+
+**Benefits**:
+- No manual class registration (dynamic imports)
+- Templates stored in database (CMS-ready)
+- Secure path validation (prevents code injection)
+- Async initialization supported
+- Consistent object creation pattern
+
+#### 7. Async Initialization Pattern
+Objects with async setup use the `initialize()` method:
+
+```typescript
+class Avatar extends Agent {
+  constructor(templateData: AvatarTemplateData) {
+    super();
+    this.playerId = templateData.playerId; // Sync setup
+  }
+
+  async initialize(): Promise<void> {
+    // Async setup: load from database, etc.
+    const player = await loadPlayer(this.playerId);
+    this.syncFromPlayer(player);
+  }
+}
+```
+
+`StuffApi.create()` and `StuffApi.clone()` automatically call `initialize()` before registration.
+
+#### 8. Protected Destruction Pattern
+Objects override `prepareDestroy()` hook, NOT `destroy()`:
+
+```typescript
+class Avatar extends Agent {
+  protected prepareDestroy(): void {
+    // Cleanup logic here
+    if (this.interactive) {
+      this.unlinkInteractive();
+    }
+  }
+}
+
+// Usage
+avatar.destroy(); // Calls prepareDestroy() → marks destroyed → unregisters
+```
+
+**Why**: `destroy()` is FINAL to guarantee `StuffApi.unregister()` always happens (prevents memory leaks).
+
 ### Connection Lifecycle
 
 ```
@@ -174,11 +274,16 @@ interface IBackend {
    - Store WebSocket reference
    - Call Application.handleUserConnect()
 6. Application.handleUserConnect(userId, sessionId, socketId)
-   - Find/Create User
-   - Find/Create Player
-   - Create Interactive (stores socketId)
-   - Create Avatar (runtime state)
-   - Link Avatar ↔ Interactive
+   - Load User from database
+   - Load Player(s) for User
+   - Create Interactive (runtime connection object)
+   - Ensure avatar template exists (create if missing for backward compatibility)
+   - Clone Avatar from template: StuffApi.clone(Avatar.getTemplatePath(playerId))
+     - Loads template from 'domain' collection
+     - Constructs Avatar with playerId
+     - Calls avatar.initialize() to load/sync Player
+     - Registers with StuffApi and PlayerApi
+   - Link Avatar ↔ Interactive (bidirectional)
    - Send connection_established message
 7. Client receives message, updates auth state
 ```
@@ -201,26 +306,29 @@ interface WebSocketMessage {
 
 ### Persistence Flow
 
+Application and privileged core infrastructure access PersistenceManager directly:
+
 ```
-Game Object (Player) → save()
+Privileged Code (Application, Backend, etc.)
   ↓
-PersistApi.save(collection, doc)
-  ↓
-ApplicationInstance.get() → Application
-  ↓
-Application.saveObject()
-  ↓
-Backend.saveDocument()
-  ↓
-PersistenceManager.save()
+PersistenceManager.save(collection, document)
   ↓
 MongoDB (insert/update)
+
+Privileged Code
+  ↓
+PersistenceManager.find(collection, query)
+  ↓
+MongoDB (query)
 ```
+
+**Design Principle**: Backend handles I/O only (WebSocket messaging), NOT database operations. Application and other privileged core infrastructure access PersistenceManager directly. This avoids unnecessary delegation and keeps Backend focused on its single responsibility.
 
 **MongoDB Collections**:
 - `users`: User accounts
 - `players`: Player characters
 - `google_profiles`: OAuth profile data
+- `domain`: Object templates for CMS (Avatar, Room, etc.)
 
 ### Authentication Flow
 
@@ -229,7 +337,10 @@ MongoDB (insert/update)
 3. Passport strategy validates with Google
 4. Backend.handleAuthenticationSuccess(profile)
 5. Application.findOrCreateUserFromGoogle(profile)
-   - Create/update User, GoogleProfile, Player
+   - Create/update GoogleProfile (OAuth data)
+   - Create/update User (links to GoogleProfile)
+   - Create default Player for new User
+   - Create Avatar template in 'domain' collection at `/avatar/player/<playerId>`
    - Return userId
 6. Passport serializes `{ id: userId }` into session
 7. Client redirects with `auth=success` parameter
@@ -266,9 +377,10 @@ MongoDB (insert/update)
 **Shared**:
 - @saxonberg/types package for shared types
 
-**Code Quality**:
+**Code Quality & Testing**:
 - ESLint with TypeScript and React plugins
 - Prettier for code formatting
+- Vitest for unit testing
 - Husky for git hooks (if configured)
 
 ### TypeScript Configuration
@@ -288,13 +400,13 @@ Server requires `.env` file in `packages/server/`:
 MONGODB_URI=mongodb://...
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
-GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:2010/auth/google/callback
 SESSION_SECRET=...
 ```
 
 #### Port Configuration
 - Client dev server: `http://localhost:5173` (Vite default)
-- Server: `http://localhost:3001`
+- Server: `http://localhost:2010`
 
 #### CORS Configuration
 Backend configures CORS for development to allow client origin.
@@ -333,14 +445,47 @@ The architecture anticipates:
 
 ### Critical Architectural Principles
 
-1. **Separation of Concerns**: Backend (I/O) vs Application (logic) vs Mudlib (domain)
+1. **Separation of Concerns**: Backend (I/O only) vs Application (logic) vs Mudlib (domain)
+   - Backend does NOT delegate to PersistenceManager - privileged code accesses it directly
+   - Application uses PersistenceManager directly for database operations
+
 2. **Type Safety**: Full TypeScript throughout, no `any` without justification
+
 3. **Mixin Composition**: Prefer mixins over deep inheritance hierarchies
-4. **Interface Contracts**: Use interfaces to decouple layers
+
+4. **Interface Contracts**: Use interfaces to decouple layers (e.g., IBackend)
+
 5. **Synchronization Pattern**: Explicit sync between runtime and persistent state
-6. **Singleton Pattern**: PersistenceManager, ApplicationInstance (controlled global state)
-7. **Factory Methods**: Static methods for object creation/retrieval
-8. **Find-or-Create**: Common pattern for persistent objects
+   - Avatar ↔ Player via syncToPlayer() / syncFromPlayer()
+
+6. **Template-Based Creation**: Objects cloned from CMS templates via StuffApi.clone()
+   - No manual class registration (dynamic imports with security validation)
+   - Templates stored in `domain` collection
+   - Async initialization supported via initialize() method
+
+7. **Singleton Pattern**: PersistenceManager, ConnectionManager (controlled global state)
+   - StuffApi, PlayerApi, MixinApi are static utility classes
+
+8. **Protected Hooks**: Use prepareDestroy() hook, never override destroy()
+   - Guarantees proper cleanup and unregistration
+
+9. **Find-or-Create**: Common pattern for persistent objects
+
+10. **Unidirectional Relationships**: Avoid bidirectional arrays
+    - Player has userId (reference to User)
+    - User does NOT have playerIds array
+    - Query when needed: find(Collections.Players, { userId })
+
+### Key Reference Documents
+
+For detailed architectural patterns and implementation guidelines, see:
+
+- **`ARCHITECTURE_PATTERNS.md`** - Manager vs Api naming, layer separation, avatar/interactive architecture, object lifecycle patterns
+- **`CMS_TEMPLATE_PATTERN.md`** - Complete documentation of template-based object creation system
+- **`PLAN.md`** - Overall project roadmap and phase planning
+- **`PHASE_1_FEED.md`** - Phase 1 implementation details (authentication, persistence, WebSocket)
+- **`CONSISTENCY_REVIEW.md`** - Architecture consistency checks and validation
+- **`IMPLEMENTATION_GUIDE.md`** - Practical implementation patterns and examples
 
 ### Development Notes
 
@@ -348,4 +493,7 @@ The architecture anticipates:
 - The Standard Model, mixin system, and Backend/Application separation are core architectural elements
 - MongoDB persistence with runtime/persistent synchronization is a key pattern
 - WebSocket-based real-time communication is central to the system
-- Additional planning and design documents are available in the repository to guide development
+- Template-based object creation via CMS (domain collection) is the standard pattern
+- Dynamic imports with security validation eliminate manual class registration
+- Always use prepareDestroy() hook instead of overriding destroy()
+- Avoid bidirectional array relationships (query instead)

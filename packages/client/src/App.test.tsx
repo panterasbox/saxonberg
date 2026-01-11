@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import App from "./App";
+import App from "./App.js";
 
 describe("App", () => {
-  it("should render hello message", () => {
+  it("should render app title", () => {
     render(<App />);
-    expect(screen.getByText("Hello from client")).toBeInTheDocument();
+    expect(screen.getByText("Saxonberg 2.0")).toBeDefined();
   });
 });
