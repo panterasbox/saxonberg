@@ -102,73 +102,62 @@ export class Application {
       // 1. Create Interactive object (delegate to ConnectionManager)
       const interactive = await ConnectionManager.get().createInteractive(
         socketId,
-        sessionId
+        sessionId,
+        userId
       );
 
-      // 2. Load User from database
-      const userDoc = await PersistenceManager.get().findById(Collections.Users, userId);
+      // 2. Load available Avatars for this user
+      await interactive.loadAvailableAvatars();
 
-      if (!userDoc) {
-        throw new Error(`User ${userId} not found in database`);
-      }
-
-      // 3. Load Player(s) for User
-      const playerDocs = await PersistenceManager.get().find(Collections.Players, {
-        userId: userId,
-      });
-
-      if (playerDocs.length === 0) {
+      // 3. Handle character selection based on number of players
+      if (interactive.availableAvatars.size === 0) {
+        // No players - this shouldn't happen as users should have at least one
         throw new Error(`No players found for user ${userId}`);
-      }
+      } else if (interactive.availableAvatars.size === 1) {
+        // Single player - auto-select
+        const [playerId] = interactive.availableAvatars.keys();
+        await interactive.switchAvatar(playerId);
 
-      // For Phase 1, use the first player
-      const playerDoc = playerDocs[0];
+        const avatar = interactive.currentAvatar!;
+        console.log(`Application: User connected with single character - ${avatar.fullName}`);
 
-      // 4. Ensure avatar template exists (create if missing)
-      const avatarPath = Avatar.getTemplatePath(playerDoc._id);
-      const existingTemplates = await PersistenceManager.get().find(Collections.Domain, {
-        path: avatarPath,
-      });
-
-      if (existingTemplates.length === 0) {
-        // Template doesn't exist - create it (for existing players created before template system)
-        const avatarTemplate = {
-          path: avatarPath,
-          class: '/obj/Avatar',
-          data: {
-            playerId: playerDoc._id,
+        // Send connection_established message
+        this.backend.sendMessageToSocket(socketId, {
+          type: 'connection_established',
+          payload: {
+            userId: userId,
+            socketId: socketId,
+            sessionId: sessionId,
+            player: {
+              _id: avatar.playerId,
+              firstName: avatar.firstName,
+              lastName: avatar.lastName,
+              pronouns: avatar.pronouns,
+            },
+            message: `Welcome back, ${avatar.fullName}!`,
           },
-        };
-        await PersistenceManager.get().save(Collections.Domain, avatarTemplate);
-        console.log(`Application: Created missing avatar template at ${avatarPath}`);
-      }
+        });
+      } else {
+        // Multiple players - show character select screen
+        const characterList = Array.from(interactive.availableAvatars.values()).map(
+          (avatar) => ({
+            playerId: avatar.playerId,
+            name: avatar.fullName,
+            // Future: add level, class, location, etc.
+          })
+        );
 
-      // 5. Clone Avatar from template in domain collection
-      // StuffApi.clone() loads template, constructs Avatar, calls initialize(), registers
-      const avatar = await StuffApi.clone<Avatar>(avatarPath);
+        console.log(
+          `Application: User connected - showing character select (${characterList.length} characters)`
+        );
 
-      // 5. Link Avatar ↔ Interactive (bidirectional)
-      avatar.setInteractive(interactive);
-      interactive.linkAvatar(avatar);
-
-      console.log(`Application: User connected successfully - ${avatar.fullName}`);
-
-      // 6. Send connection_established message
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'connection_established',
-        payload: {
-          userId: userId,
-          socketId: socketId,
-          sessionId: sessionId,
-          player: {
-            _id: avatar.playerId,
-            firstName: avatar.firstName,
-            lastName: avatar.lastName,
-            pronouns: avatar.pronouns,
+        this.backend.sendMessageToSocket(socketId, {
+          type: 'character_select',
+          payload: {
+            characters: characterList,
           },
-          message: `Welcome, ${avatar.fullName}!`,
-        },
-      });
+        });
+      }
     } catch (error) {
       console.error('Application: Error in handleUserConnect:', error);
 
@@ -234,6 +223,10 @@ export class Application {
         this.handlePingMessage(socketId, message);
         break;
 
+      case 'select_character':
+        this.handleSelectCharacter(socketId, message);
+        break;
+
       case 'command':
         this.handleCommandMessage(socketId, message);
         break;
@@ -275,6 +268,86 @@ export class Application {
         timestamp: Date.now(),
       },
     });
+  }
+
+  /**
+   * Handle character selection (multiplexing support).
+   */
+  private async handleSelectCharacter(
+    socketId: string,
+    message: WebSocketMessage
+  ): Promise<void> {
+    if (!this.backend) return;
+
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+
+    if (!interactive) {
+      console.warn(`Application: No Interactive found for socket ${socketId}`);
+      return;
+    }
+
+    const { playerId } = message.payload as { playerId: string };
+
+    if (!playerId) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'error',
+        payload: {
+          message: 'No playerId provided in select_character message',
+        },
+      });
+      return;
+    }
+
+    try {
+      // Switch to the selected character
+      await interactive.switchAvatar(playerId);
+
+      const avatar = interactive.currentAvatar!;
+
+      console.log(
+        `Application: Character selected - ${avatar.fullName} (playerId: ${playerId})`
+      );
+
+      // Send avatar_switched confirmation with character info
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'avatar_switched',
+        payload: {
+          playerId: avatar.playerId,
+          name: avatar.fullName,
+          firstName: avatar.firstName,
+          lastName: avatar.lastName,
+          pronouns: avatar.pronouns,
+          message: `You are now ${avatar.fullName}`,
+        },
+      });
+
+      // Send connection_established to match single-character flow
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'connection_established',
+        payload: {
+          userId: interactive.userId,
+          socketId: socketId,
+          sessionId: interactive.sessionId,
+          player: {
+            _id: avatar.playerId,
+            firstName: avatar.firstName,
+            lastName: avatar.lastName,
+            pronouns: avatar.pronouns,
+          },
+          message: `Welcome back, ${avatar.fullName}!`,
+        },
+      });
+    } catch (error) {
+      console.error('Application: Error in handleSelectCharacter:', error);
+
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'error',
+        payload: {
+          message: 'Failed to select character',
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+    }
   }
 
   /**

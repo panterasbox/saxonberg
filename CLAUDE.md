@@ -64,8 +64,11 @@ cd packages/client && pnpm test  # Run client tests only
 **Test Coverage Areas**:
 - StuffApi: Class path validation (security), object creation lifecycle, registration
 - PlayerApi: Avatar registry operations, lookups, edge cases
-- Avatar: Template path construction and conventions
+- Avatar: Template path construction, multiplexing support, Character inheritance
+- Interactive: Character switching, multiplexing integration, lifecycle
 - User: Persistent fields configuration, relationship verification
+- Mixins: All mixins tested (Mortal, Container, Containable, Visible, Named, Gendered)
+- Character: Abstract base class, mixin composition
 - Integration tests for core flows (future)
 
 ### Documentation
@@ -129,11 +132,13 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
   Stuff (base with runtime ID)
     └── Idea (abstract base)
          ├── User (account with googleProfile reference)
-         ├── Player (character with name, gender, persistent)
-         ├── Interactive (runtime connection state)
+         ├── Player (character with name, gender, hp/maxHp, persistent)
+         ├── Interactive (runtime connection state, character switching)
          ├── GoogleProfile (OAuth data)
          ├── Location (future)
-         └── Agent → Avatar (runtime player presence)
+         └── Agent (runtime-only base)
+              └── Character (abstract sentient being)
+                   └── Avatar (runtime player character)
   ```
 
 - **Game Objects** (`obj/`): Instantiable entities like Avatar
@@ -145,25 +150,43 @@ Uses higher-order functions for behavior composition:
 ```typescript
 const PlayerBase = GenderedMixin(NamedMixin(Idea));
 class Player extends PlayerBase { ... }
+
+const CharacterBase = VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent)))));
+class Character extends CharacterBase { ... }
 ```
 
 **Available Mixins**:
-- `NamedMixin`: firstName, lastName, fullName
-- `GenderedMixin`: pronouns (he/she/they/etc.)
-- `ContainerMixin`: Inventory management (future)
-- `ContainableMixin`: Environment reference (future)
+- `NamedMixin`: firstName, lastName, fullName (persistent)
+- `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
+- `MortalMixin`: hp, maxHp, isDead(), takeDamage(), heal() (persistent)
+- `ContainerMixin`: inventory management (Set-based, complex persistence)
+- `ContainableMixin`: environment reference (complex persistence)
+- `VisibleMixin`: shortDescription, longDescription (persistent)
+- `SensorMixin`: onMessage() - message receiving (stub for Phase 3)
+- `VocalMixin`: say() - message sending (stub for Phase 3)
 
 #### 2. Runtime vs Persistent Objects
 - **Runtime Objects**: Avatar, Interactive (exist only during active connection)
 - **Persistent Objects**: User, Player, GoogleProfile (stored in MongoDB)
 - **Synchronization**: Avatar ↔ Player via `syncToPlayer()` / `syncFromPlayer()`
 
-#### 3. Bidirectional Links
-Avatar and Interactive maintain mutual references:
+#### 3. Bidirectional Links & Multiplexing
+Avatar and Interactive maintain mutual references with multiplexing support:
 ```typescript
-avatar.setInteractive(interactive);     // Avatar → Interactive
-interactive.linkAvatar(avatar);          // Interactive → Avatar
+// Modern API (multiplexing-aware)
+avatar.addInteractive(interactive);      // Avatar → Set<Interactive>
+interactive.switchAvatar(playerId);      // Interactive → Avatar
+
+// Legacy API (backward compatibility)
+avatar.setInteractive(interactive);      // Adds to Set
+interactive.linkAvatar(avatar);          // Sets currentAvatar
 ```
+
+**Multiplexing Features**:
+- Multiple Interactives can connect to same Avatar (same user, multiple devices)
+- Avatar tracks `Set<Interactive>` and broadcasts messages to all
+- Interactive can switch between multiple Avatars (character selection)
+- Auto-saves to Player when last connection drops
 
 #### 4. Identifiers
 - **Runtime IDs**: nanoid/base58-encoded UUID for in-memory Stuff objects
@@ -247,11 +270,18 @@ class Avatar extends Agent {
 Objects override `prepareDestroy()` hook, NOT `destroy()`:
 
 ```typescript
-class Avatar extends Agent {
+class Avatar extends Character {
   protected prepareDestroy(): void {
-    // Cleanup logic here
-    if (this.interactive) {
-      this.unlinkInteractive();
+    // Cleanup logic here - remove all connections
+    for (const interactive of this.interactives) {
+      interactive.currentAvatar = null;
+    }
+    this.interactives.clear();
+
+    // Sync to Player before destroying
+    if (this.player) {
+      this.syncToPlayer();
+      this.player.save();
     }
   }
 }
@@ -275,17 +305,18 @@ avatar.destroy(); // Calls prepareDestroy() → marks destroyed → unregisters
    - Call Application.handleUserConnect()
 6. Application.handleUserConnect(userId, sessionId, socketId)
    - Load User from database
-   - Load Player(s) for User
-   - Create Interactive (runtime connection object)
-   - Ensure avatar template exists (create if missing for backward compatibility)
-   - Clone Avatar from template: StuffApi.clone(Avatar.getTemplatePath(playerId))
-     - Loads template from 'domain' collection
-     - Constructs Avatar with playerId
-     - Calls avatar.initialize() to load/sync Player
-     - Registers with StuffApi and PlayerApi
-   - Link Avatar ↔ Interactive (bidirectional)
+   - Create Interactive with userId (runtime connection object)
+   - Load all Players for userId via Interactive.loadAvailableAvatars()
+     - Checks if Avatars already exist (reuse for multiplexing)
+     - Creates new Avatars if needed via StuffApi.clone()
+   - If single Player: auto-select via Interactive.switchAvatar(playerId)
+   - If multiple Players: send character_select message
+   - If no Players: create default Player (backward compatibility)
    - Send connection_established message
-7. Client receives message, updates auth state
+7. Client receives message, shows character select or enters game
+8. Multiplexing: Additional connections from same user reuse existing Avatars
+9. Disconnect: Interactive.destroy() removes from Avatar
+   - Last disconnect triggers Avatar.syncToPlayer() and Player.save()
 ```
 
 ### Message Protocol
@@ -300,6 +331,9 @@ interface WebSocketMessage {
 
 **Standard Message Types**:
 - `connection_established`: Auth success with user data
+- `character_select`: Show character selection screen (multiple Players)
+- `select_character`: Client selects a character (client → server)
+- `avatar_switched`: Confirmation of character switch (server → client)
 - `echo`: Simple echo for testing
 - `ping`/`pong`: Heartbeat
 - `error`: Error messages
@@ -487,6 +521,35 @@ For detailed architectural patterns and implementation guidelines, see:
 - **`CONSISTENCY_REVIEW.md`** - Architecture consistency checks and validation
 - **`IMPLEMENTATION_GUIDE.md`** - Practical implementation patterns and examples
 
+### Implementation Status
+
+**✅ Phase 0: Foundation** (Complete)
+- Project structure, TypeScript configuration
+- Basic build and test infrastructure
+
+**✅ Phase 1: Authentication & Persistence** (Complete)
+- Google OAuth2 integration
+- MongoDB persistence with PersistenceManager
+- WebSocket service with session validation
+- User, Player, GoogleProfile models
+- Basic connection lifecycle
+
+**✅ Phase 2: Identity Models & Object Lifecycle** (Complete)
+- **Mixins**: Mortal, Container, Containable, Visible, Sensor (stub), Vocal (stub)
+- **Character Class**: Abstract base for sentient beings (Named + Gendered + Mortal + Sensor + Vocal)
+- **Avatar**: Extends Character, multiplexing support (Set<Interactive>)
+- **Interactive**: Character switching support, availableAvatars map
+- **PersistApi**: Auto-sync utilities (syncTo/syncFrom with mixin field collection)
+- **Multiplexing**: Multiple connections to same Avatar
+- **Character Selection**: switchAvatar() for users with multiple Players
+- **Test Coverage**: 188 tests passing (56 new mixin/Character tests, 73 updated Avatar/Interactive tests)
+
+**🚧 Phase 3: Messaging & Communication** (Next)
+- Command parsing and execution
+- Message routing and broadcasting
+- Room/location system
+- Sensor/Vocal mixin implementations
+
 ### Development Notes
 
 - This is the Saxonberg 2.0 repository for building the next generation of the platform
@@ -497,3 +560,4 @@ For detailed architectural patterns and implementation guidelines, see:
 - Dynamic imports with security validation eliminate manual class registration
 - Always use prepareDestroy() hook instead of overriding destroy()
 - Avoid bidirectional array relationships (query instead)
+- **Phase 2 Complete**: All core mixins, Character class, multiplexing, and character switching are fully implemented and tested

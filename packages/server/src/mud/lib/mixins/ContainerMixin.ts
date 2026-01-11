@@ -1,0 +1,69 @@
+/**
+ * ContainerMixin - Adds inventory management
+ *
+ * Provides:
+ * - inventory: Set<any> (items contained)
+ * - addToInventory(item): void
+ * - removeFromInventory(item): void
+ * - hasInInventory(item): boolean
+ * - getInventoryContents(): any[]
+ *
+ * Usage:
+ * ```typescript
+ * class MyClass extends ContainerMixin(BaseClass) {
+ *   // ...
+ * }
+ * ```
+ *
+ * Persistence:
+ * - NOT auto-persisted (complex type)
+ * - Must declare custom persistenceHandler in class
+ */
+
+import type { MixinConstructor } from './types.js';
+
+/**
+ * Mixin that adds container/inventory properties and methods.
+ */
+export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class ContainerMixin extends Base {
+    /**
+     * Note: inventory is a complex type (Set of references).
+     * It is NOT included in persistentFields - instead, classes using
+     * this mixin must declare a custom persistenceHandler.
+     */
+    inventory: Set<any> = new Set();
+
+    /**
+     * Add an item to the inventory.
+     * @param item - Item to add
+     */
+    addToInventory(item: any): void {
+      this.inventory.add(item);
+    }
+
+    /**
+     * Remove an item from the inventory.
+     * @param item - Item to remove
+     * @returns True if item was found and removed
+     */
+    removeFromInventory(item: any): boolean {
+      return this.inventory.delete(item);
+    }
+
+    /**
+     * Check if inventory contains an item.
+     * @param item - Item to check for
+     */
+    hasInInventory(item: any): boolean {
+      return this.inventory.has(item);
+    }
+
+    /**
+     * Get all items in inventory as an array.
+     */
+    getInventoryContents(): any[] {
+      return Array.from(this.inventory);
+    }
+  };
+}

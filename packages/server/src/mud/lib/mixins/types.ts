@@ -38,12 +38,73 @@ export interface Gendered {
 }
 
 /**
+ * Mortal interface - provides health/hitpoints.
+ */
+export interface Mortal {
+  hp: number;
+  maxHp: number;
+  isDead(): boolean;
+  takeDamage(amount: number): void;
+  heal(amount: number): void;
+}
+
+/**
+ * Container interface - provides inventory management.
+ */
+export interface Container {
+  inventory: Set<any>;
+  addToInventory(item: any): void;
+  removeFromInventory(item: any): boolean;
+  hasInInventory(item: any): boolean;
+  getInventoryContents(): any[];
+}
+
+/**
+ * Containable interface - provides environment reference.
+ */
+export interface Containable {
+  environment: any | null;
+  setEnvironment(container: any | null): void;
+  getEnvironment(): any | null;
+}
+
+/**
+ * Visible interface - provides descriptions.
+ */
+export interface Visible {
+  shortDescription: string;
+  longDescription: string;
+  getShort(): string;
+  getLong(): string;
+}
+
+/**
+ * Sensor interface - message receiving (stub for Phase 2).
+ */
+export interface Sensor {
+  onMessage(message: any): void;
+}
+
+/**
+ * Vocal interface - message sending (stub for Phase 2).
+ */
+export interface Vocal {
+  say(text: string): void;
+}
+
+/**
  * Mixin name constants.
  * Use these constants instead of string literals when checking for mixins.
  */
 export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
+  Mortal: 'MortalMixin',
+  Container: 'ContainerMixin',
+  Containable: 'ContainableMixin',
+  Visible: 'VisibleMixin',
+  Sensor: 'SensorMixin',
+  Vocal: 'VocalMixin',
 } as const;
 
 /**

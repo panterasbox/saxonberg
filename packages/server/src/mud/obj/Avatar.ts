@@ -1,21 +1,24 @@
 /**
- * Avatar - Runtime player presence in the game world
+ * Avatar - Runtime player character presence in the game world
  *
  * Represents a Player's active presence when connected.
- * Uses NamedMixin and GenderedMixin (same as Player) for runtime state.
- * Syncs with Player (persistent) via syncToPlayer()/syncFromPlayer().
+ * Extends Character (which provides: Named, Gendered, Mortal, Sensor, Vocal mixins).
+ * Syncs with Player (persistent) via PersistApi.
  *
- * This is a RUNTIME object - it is NOT persisted to the database.
- * Lifetime: Created when player connects, destroyed when player disconnects.
+ * Key Features:
+ * - Extends Character abstract class
+ * - Supports multiplexing (multiple connections via Set<Interactive>)
+ * - Auto-syncs all mixin fields via PersistApi
+ * - Runtime-only (NOT persisted to database)
+ *
+ * Lifetime: Created when player connects, destroyed when last connection drops.
  *
  * Location: /mud/obj/ because it's an instantiable game object (not a library class)
  */
 
-import { AgentBase } from '../lib/stuff/AgentBase.js';
-import { NamedMixin } from '../lib/mixins/NamedMixin.js';
-import { GenderedMixin } from '../lib/mixins/GenderedMixin.js';
-import { MixinApi } from '../api/mixin.js';
+import { Character } from '../lib/stuff/Character.js';
 import { PlayerApi } from '../api/player.js';
+import { PersistApi } from '../api/persist.js';
 import { Player } from '../lib/identity/Player.js';
 import type { Interactive } from '../lib/connection/Interactive.js';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager.js';
@@ -28,14 +31,10 @@ export interface AvatarTemplateData {
 }
 
 /**
- * Compose Avatar base class with mixins (same as Player).
+ * Avatar - Runtime player character (extends Character).
+ * All mixin fields (Named, Gendered, Mortal, Sensor, Vocal) are provided by Character.
  */
-const AvatarBase = GenderedMixin(NamedMixin(AgentBase));
-
-/**
- * Avatar - Runtime player presence (runtime only).
- */
-export class Avatar extends AvatarBase {
+export class Avatar extends Character {
   /**
    * Template path prefix for avatars in domain collection.
    * Avatar templates are stored at: /avatar/player/<playerId>
@@ -68,9 +67,10 @@ export class Avatar extends AvatarBase {
   player?: Player;
 
   /**
-   * Reference to the Interactive connection object.
+   * Set of connected Interactive objects (supports multiplexing).
+   * Multiple connections (laptop + phone) can control the same Avatar.
    */
-  interactive?: Interactive;
+  interactives: Set<Interactive> = new Set();
 
   /**
    * Constructor - accepts template data from domain collection.
@@ -111,11 +111,13 @@ export class Avatar extends AvatarBase {
     player.firstName = playerDoc.firstName;
     player.lastName = playerDoc.lastName;
     player.pronouns = playerDoc.pronouns;
+    player.hp = playerDoc.hp || 100;
+    player.maxHp = playerDoc.maxHp || 100;
     player.createdAt = playerDoc.createdAt;
     player.updatedAt = playerDoc.updatedAt;
 
     // Sync from Player (sets mixin fields and userId)
-    this.syncFromPlayer(player);
+    await this.syncFromPlayer(player);
 
     // Register with PlayerApi for playerId lookup
     PlayerApi.registerAvatar(this);
@@ -124,25 +126,83 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * Set the Interactive connection reference.
-   * Creates bidirectional link between Avatar and Interactive.
+   * Add an Interactive connection (multiplexing support).
+   * Adds to the set of connected Interactives.
    *
-   * @param interactive - The Interactive object
+   * @param interactive - The Interactive object to add
+   */
+  public addInteractive(interactive: Interactive): void {
+    this.interactives.add(interactive);
+    console.log(`Avatar.addInteractive(): Added connection for ${this.fullName} (${this.interactives.size} total)`);
+  }
+
+  /**
+   * Remove an Interactive connection.
+   * If this is the last connection, syncs to Player and saves.
+   *
+   * @param interactive - The Interactive object to remove
+   */
+  public removeInteractive(interactive: Interactive): void {
+    this.interactives.delete(interactive);
+    console.log(`Avatar.removeInteractive(): Removed connection for ${this.fullName} (${this.interactives.size} remaining)`);
+
+    // If no more connections, sync to Player and save
+    if (this.interactives.size === 0 && this.player) {
+      this.syncToPlayer();
+      this.player.save().catch((err) => {
+        console.error(`Avatar.removeInteractive(): Failed to save Player: ${err.message}`);
+      });
+    }
+  }
+
+  /**
+   * Check if any Interactive is connected.
+   */
+  public isConnected(): boolean {
+    return this.interactives.size > 0;
+  }
+
+  /**
+   * Check if Avatar is linkdead (PC with no connections).
+   */
+  public isLinkdead(): boolean {
+    return !this.isConnected();
+  }
+
+  /**
+   * Send a message to all connected Interactives (broadcast).
+   *
+   * @param message - The message to send
+   */
+  public sendMessage(message: any): void {
+    for (const interactive of this.interactives) {
+      interactive.send(message);
+    }
+  }
+
+  /**
+   * Legacy method for backward compatibility.
+   * @deprecated Use addInteractive instead
    */
   public setInteractive(interactive: Interactive): void {
-    this.interactive = interactive;
+    this.addInteractive(interactive);
   }
 
   /**
-   * Unlink the Interactive connection.
+   * Legacy method for backward compatibility.
+   * @deprecated Use removeInteractive instead
    */
   public unlinkInteractive(): void {
-    this.interactive = undefined;
+    // Remove all interactives
+    for (const interactive of Array.from(this.interactives)) {
+      this.removeInteractive(interactive);
+    }
   }
 
   /**
-   * Sync runtime state TO persistent Player object.
-   * Copies mixin fields (firstName, lastName, pronouns) to Player.
+   * Sync runtime state TO persistent Player object (save).
+   * Uses PersistApi for automatic field collection from mixins.
+   * Copies all mixin fields (firstName, lastName, pronouns, hp, maxHp).
    */
   public syncToPlayer(): void {
     if (!this.player) {
@@ -150,60 +210,48 @@ export class Avatar extends AvatarBase {
       return;
     }
 
-    // Get all persistent fields from mixins
-    const mixinFields = MixinApi.getMixinFields(Avatar);
-
-    // Copy fields to player
-    for (const field of mixinFields) {
-      if (field in this) {
-        (this.player as any)[field] = (this as any)[field];
-      }
-    }
+    // Use PersistApi for automatic sync
+    PersistApi.syncTo(this, this.player);
 
     // Update timestamp
     this.player.updatedAt = new Date();
 
-    console.log(`Avatar.syncToPlayer(): Synced ${mixinFields.length} fields to Player ${this.playerId}`);
+    console.log(`Avatar.syncToPlayer(): Auto-synced all fields to Player ${this.playerId}`);
   }
 
   /**
-   * Sync persistent Player state FROM persistent Player object.
-   * Copies mixin fields (firstName, lastName, pronouns) from Player.
+   * Sync persistent Player state FROM persistent Player object (load).
+   * Uses PersistApi for automatic field collection from mixins.
+   * Copies all mixin fields (firstName, lastName, pronouns, hp, maxHp).
    *
    * @param player - The Player object to sync from
    */
-  public syncFromPlayer(player: Player): void {
+  public async syncFromPlayer(player: Player): Promise<void> {
     this.player = player;
 
-    // Get all persistent fields from mixins
-    const mixinFields = MixinApi.getMixinFields(Avatar);
-
-    // Copy fields from player
-    for (const field of mixinFields) {
-      if (field in player) {
-        (this as any)[field] = (player as any)[field];
-      }
-    }
+    // Use PersistApi for automatic sync
+    await PersistApi.syncFrom(player, this);
 
     // Copy identity fields
     this.userId = player.userId;
     this.playerId = player._id || '';
 
-    console.log(`Avatar.syncFromPlayer(): Synced ${mixinFields.length} fields from Player ${this.playerId}`);
+    console.log(`Avatar.syncFromPlayer(): Auto-synced all fields from Player ${this.playerId}`);
   }
 
   /**
-   * Cleanup hook (called on disconnect).
-   * Unlinks interactive reference and unregisters from PlayerApi.
+   * Cleanup hook (called on disconnect/destruction).
+   * Removes all interactive connections and unregisters from PlayerApi.
    */
   protected prepareDestroy(): void {
     // Unregister from PlayerApi
     PlayerApi.unregisterAvatar(this);
 
-    // Unlink interactive if present
-    if (this.interactive) {
-      this.unlinkInteractive();
+    // Remove all interactive connections
+    for (const interactive of Array.from(this.interactives)) {
+      this.interactives.delete(interactive);
     }
+    this.interactives.clear();
   }
 
   /**

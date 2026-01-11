@@ -47,9 +47,14 @@ export class ConnectionManager {
    *
    * @param socketId - WebSocket socket ID
    * @param sessionId - Express session ID
+   * @param userId - User's MongoDB _id
    * @returns The created Interactive object
    */
-  public async createInteractive(socketId: string, sessionId: string): Promise<Interactive> {
+  public async createInteractive(
+    socketId: string,
+    sessionId: string,
+    userId: string
+  ): Promise<Interactive> {
     // Check if already exists
     if (this.interactivesBySocketId.has(socketId)) {
       console.warn(
@@ -59,12 +64,16 @@ export class ConnectionManager {
     }
 
     // Create new Interactive (with registration)
-    const interactive = await StuffApi.create(() => new Interactive(socketId, sessionId));
+    const interactive = await StuffApi.create(
+      () => new Interactive(socketId, sessionId, userId)
+    );
 
     // Store in map
     this.interactivesBySocketId.set(socketId, interactive);
 
-    console.log(`ConnectionManager: Created Interactive for socket ${socketId}`);
+    console.log(
+      `ConnectionManager: Created Interactive for socket ${socketId}, user ${userId}`
+    );
 
     return interactive;
   }

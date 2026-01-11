@@ -5,10 +5,14 @@
  * - Template path construction
  * - Template path prefix constant
  * - Path consistency for different player IDs
+ * - Multiplexing (multiple Interactive connections)
+ * - Character inheritance
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Avatar } from './Avatar.js';
+import { Interactive } from '../lib/connection/Interactive.js';
+import { Character } from '../lib/stuff/Character.js';
 
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {
@@ -120,6 +124,212 @@ describe('Avatar', () => {
       const extractedId = templatePath.replace(Avatar.TEMPLATE_PATH_PREFIX, '');
 
       expect(extractedId).toBe(playerId);
+    });
+  });
+
+  describe('Character inheritance', () => {
+    let avatar: Avatar;
+
+    beforeEach(() => {
+      avatar = new Avatar({ playerId: 'test123' });
+    });
+
+    it('should be instance of Character', () => {
+      expect(avatar instanceof Character).toBe(true);
+    });
+
+    it('should have all Character mixin properties', () => {
+      expect(avatar).toHaveProperty('firstName');
+      expect(avatar).toHaveProperty('lastName');
+      expect(avatar).toHaveProperty('pronouns');
+      expect(avatar).toHaveProperty('hp');
+      expect(avatar).toHaveProperty('maxHp');
+    });
+
+    it('should have Named mixin fullName getter', () => {
+      avatar.firstName = 'Jane';
+      avatar.lastName = 'Smith';
+      expect(avatar.fullName).toBe('Jane Smith');
+    });
+
+    it('should have Mortal mixin methods', () => {
+      expect(typeof avatar.isDead).toBe('function');
+      expect(typeof avatar.takeDamage).toBe('function');
+      expect(typeof avatar.heal).toBe('function');
+    });
+  });
+
+  describe('multiplexing support', () => {
+    let avatar: Avatar;
+    let interactive1: Interactive;
+    let interactive2: Interactive;
+    let interactive3: Interactive;
+
+    beforeEach(() => {
+      avatar = new Avatar({ playerId: 'test123' });
+      interactive1 = new Interactive('socket1', 'session1', 'user1');
+      interactive2 = new Interactive('socket2', 'session2', 'user1');
+      interactive3 = new Interactive('socket3', 'session3', 'user1');
+    });
+
+    describe('addInteractive', () => {
+      it('should add single interactive', () => {
+        avatar.addInteractive(interactive1);
+        expect(avatar.interactives.size).toBe(1);
+        expect(avatar.interactives.has(interactive1)).toBe(true);
+      });
+
+      it('should add multiple interactives', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+        avatar.addInteractive(interactive3);
+
+        expect(avatar.interactives.size).toBe(3);
+        expect(avatar.interactives.has(interactive1)).toBe(true);
+        expect(avatar.interactives.has(interactive2)).toBe(true);
+        expect(avatar.interactives.has(interactive3)).toBe(true);
+      });
+
+      it('should not add duplicate interactive (Set behavior)', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive1);
+
+        expect(avatar.interactives.size).toBe(1);
+      });
+    });
+
+    describe('removeInteractive', () => {
+      beforeEach(() => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+      });
+
+      it('should remove interactive', () => {
+        avatar.removeInteractive(interactive1);
+
+        expect(avatar.interactives.size).toBe(1);
+        expect(avatar.interactives.has(interactive1)).toBe(false);
+        expect(avatar.interactives.has(interactive2)).toBe(true);
+      });
+
+      it('should handle removing non-existent interactive', () => {
+        avatar.removeInteractive(interactive3);
+
+        expect(avatar.interactives.size).toBe(2);
+      });
+
+      it('should handle removing all interactives', () => {
+        avatar.removeInteractive(interactive1);
+        avatar.removeInteractive(interactive2);
+
+        expect(avatar.interactives.size).toBe(0);
+      });
+    });
+
+    describe('isConnected', () => {
+      it('should return false when no interactives', () => {
+        expect(avatar.isConnected()).toBe(false);
+      });
+
+      it('should return true when at least one interactive', () => {
+        avatar.addInteractive(interactive1);
+        expect(avatar.isConnected()).toBe(true);
+      });
+
+      it('should return true when multiple interactives', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+        expect(avatar.isConnected()).toBe(true);
+      });
+
+      it('should return false after removing last interactive', () => {
+        avatar.addInteractive(interactive1);
+        avatar.removeInteractive(interactive1);
+        expect(avatar.isConnected()).toBe(false);
+      });
+    });
+
+    describe('isLinkdead', () => {
+      it('should return true when no interactives', () => {
+        expect(avatar.isLinkdead()).toBe(true);
+      });
+
+      it('should return false when connected', () => {
+        avatar.addInteractive(interactive1);
+        expect(avatar.isLinkdead()).toBe(false);
+      });
+
+      it('should return true after disconnect', () => {
+        avatar.addInteractive(interactive1);
+        avatar.removeInteractive(interactive1);
+        expect(avatar.isLinkdead()).toBe(true);
+      });
+    });
+
+    describe('sendMessage', () => {
+      beforeEach(() => {
+        // Mock the send method on interactives
+        interactive1.send = vi.fn();
+        interactive2.send = vi.fn();
+        interactive3.send = vi.fn();
+      });
+
+      it('should send to single interactive', () => {
+        avatar.addInteractive(interactive1);
+
+        const message = { type: 'test', payload: { data: 'hello' } };
+        avatar.sendMessage(message);
+
+        expect(interactive1.send).toHaveBeenCalledWith(message);
+        expect(interactive1.send).toHaveBeenCalledTimes(1);
+      });
+
+      it('should broadcast to multiple interactives', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+        avatar.addInteractive(interactive3);
+
+        const message = { type: 'test', payload: { data: 'broadcast' } };
+        avatar.sendMessage(message);
+
+        expect(interactive1.send).toHaveBeenCalledWith(message);
+        expect(interactive2.send).toHaveBeenCalledWith(message);
+        expect(interactive3.send).toHaveBeenCalledWith(message);
+      });
+
+      it('should not fail when no interactives', () => {
+        expect(() => {
+          avatar.sendMessage({ type: 'test' });
+        }).not.toThrow();
+      });
+
+      it('should only send to remaining interactives after removal', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+        avatar.removeInteractive(interactive1);
+
+        const message = { type: 'test' };
+        avatar.sendMessage(message);
+
+        expect(interactive1.send).not.toHaveBeenCalled();
+        expect(interactive2.send).toHaveBeenCalledWith(message);
+      });
+    });
+
+    describe('legacy methods', () => {
+      it('setInteractive should add to interactives set', () => {
+        avatar.setInteractive(interactive1);
+        expect(avatar.interactives.has(interactive1)).toBe(true);
+      });
+
+      it('unlinkInteractive should remove all interactives', () => {
+        avatar.addInteractive(interactive1);
+        avatar.addInteractive(interactive2);
+
+        avatar.unlinkInteractive();
+
+        expect(avatar.interactives.size).toBe(0);
+      });
     });
   });
 });

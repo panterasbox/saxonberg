@@ -5,17 +5,24 @@
  * This is a RUNTIME object - it is NOT persisted to the database.
  *
  * Responsibilities:
- * - Track WebSocket connection (socketId, sessionId)
- * - Link to Avatar (the player's game presence)
+ * - Track WebSocket connection (socketId, sessionId, userId)
+ * - Track available Avatars for this user (multiple Players)
+ * - Track current active Avatar (character switching support)
+ * - Send messages to client via Backend
  * - Connection lifecycle management
  *
- * Does NOT:
- * - Store user/player data (that's Avatar's job)
+ * Key Features:
+ * - Supports multiple Players per User (availableAvatars map)
+ * - Supports character switching via switchAvatar()
+ * - Multiplexing: Multiple Interactives can control same Avatar
  *
  * Lifetime: Created when user connects, destroyed when user disconnects.
  */
 
 import { Idea } from '../stuff/Idea.js';
+import { StuffApi } from '../../api/stuff.js';
+import { Player } from '../identity/Player.js';
+import { PlayerApi } from '../../api/player.js';
 import type { Avatar } from '../../obj/Avatar.js';
 
 /**
@@ -33,45 +40,127 @@ export class Interactive extends Idea {
   sessionId: string;
 
   /**
+   * User ID (from authentication).
+   */
+  userId: string;
+
+  /**
    * Connection timestamp.
    */
   connectedAt: Date;
 
   /**
-   * Reference to the Avatar object.
-   * Avatar holds user/player data and game state.
+   * Currently active Avatar (which character they're controlling).
    */
-  avatar?: Avatar;
+  currentAvatar: Avatar | null = null;
+
+  /**
+   * Available Avatars for this user (playerId → Avatar).
+   * Maps all of the user's Players to their runtime Avatars.
+   */
+  availableAvatars: Map<string, Avatar> = new Map();
 
   /**
    * Constructor.
    *
    * @param socketId - WebSocket socket ID
    * @param sessionId - Express session ID
+   * @param userId - User's MongoDB _id
    */
-  constructor(socketId: string, sessionId: string) {
-    super(); // Auto-registers with StuffApi
+  constructor(socketId: string, sessionId: string, userId: string) {
+    super(); // Generates stuffId
 
     this.socketId = socketId;
     this.sessionId = sessionId;
+    this.userId = userId;
     this.connectedAt = new Date();
   }
 
   /**
-   * Link this Interactive to an Avatar object.
-   * Creates bidirectional link between Interactive and Avatar.
-   *
-   * @param avatar - The Avatar object
+   * Load all available Avatars for this user's Players.
+   * Checks if Avatars already exist (from other connections), otherwise creates them.
    */
-  public linkAvatar(avatar: Avatar): void {
-    this.avatar = avatar;
+  public async loadAvailableAvatars(): Promise<void> {
+    // Load all Players for this userId
+    const players = await Player.find({ userId: this.userId });
+
+    for (const player of players) {
+      const playerId = player._id!;
+
+      // Check if Avatar already exists (another Interactive might have loaded it)
+      let avatar = PlayerApi.findAvatarByPlayerId(playerId);
+
+      // Create if not exists
+      if (!avatar) {
+        const Avatar = (await import('../../obj/Avatar.js')).Avatar;
+        avatar = await StuffApi.clone<Avatar>(Avatar.getTemplatePath(playerId));
+      }
+
+      this.availableAvatars.set(playerId, avatar);
+    }
+
+    console.log(`Interactive.loadAvailableAvatars(): Loaded ${this.availableAvatars.size} avatars for user ${this.userId}`);
   }
 
   /**
-   * Unlink the Avatar.
+   * Switch to a different Avatar (character switching).
+   * Removes Interactive from old Avatar, adds to new Avatar.
+   *
+   * @param playerId - Player ID to switch to
+   */
+  public async switchAvatar(playerId: string): Promise<void> {
+    // Remove from old avatar
+    if (this.currentAvatar) {
+      this.currentAvatar.removeInteractive(this);
+    }
+
+    // Get new avatar
+    const newAvatar = this.availableAvatars.get(playerId);
+    if (!newAvatar) {
+      throw new Error(`Interactive.switchAvatar(): Avatar not found for playerId: ${playerId}`);
+    }
+
+    // Add to new avatar
+    newAvatar.addInteractive(this);
+    this.currentAvatar = newAvatar;
+
+    console.log(`Interactive.switchAvatar(): Switched to avatar ${newAvatar.fullName}`);
+
+    // Send confirmation (Backend will handle sending)
+    // Note: Backend.sendMessageToSocket() should be called by Application, not here
+  }
+
+  /**
+   * Send a message to the client.
+   * This is a stub - actual sending is done via Backend.sendMessageToSocket().
+   * Application layer calls this method.
+   *
+   * @param message - Message to send
+   */
+  public send(message: any): void {
+    // This is a stub for now - Backend handles actual sending
+    // Application will call Backend.sendMessageToSocket(this.socketId, message)
+    console.log(`Interactive.send(): Message to ${this.socketId}:`, message);
+  }
+
+  /**
+   * Legacy method for backward compatibility.
+   * @deprecated Use switchAvatar instead
+   */
+  public linkAvatar(avatar: Avatar): void {
+    this.currentAvatar = avatar;
+    avatar.addInteractive(this);
+  }
+
+  /**
+   * Legacy method for backward compatibility.
+   * @deprecated Use switchAvatar or removeInteractive instead
    */
   public unlinkAvatar(): void {
-    this.avatar = undefined;
+    if (this.currentAvatar) {
+      this.currentAvatar.removeInteractive(this);
+      this.currentAvatar = null;
+    }
   }
 
   /**
@@ -83,20 +172,36 @@ export class Interactive extends Idea {
 
   /**
    * Cleanup hook (called on disconnect).
-   * Unlinks avatar reference.
+   * Removes from current Avatar and clears available avatars.
    */
   protected prepareDestroy(): void {
-    // Unlink avatar if present
-    if (this.avatar) {
-      this.unlinkAvatar();
+    // Remove from current avatar
+    if (this.currentAvatar) {
+      this.currentAvatar.removeInteractive(this);
+      this.currentAvatar = null;
     }
+
+    // Clear available avatars
+    this.availableAvatars.clear();
   }
 
   /**
    * String representation.
    */
   public toString(): string {
-    const avatarInfo = this.avatar ? ` avatar=${this.avatar.fullName}` : '';
-    return `[Interactive socketId=${this.socketId}${avatarInfo}]`;
+    const avatarInfo = this.currentAvatar ? ` avatar=${this.currentAvatar.fullName}` : '';
+    return `[Interactive socketId=${this.socketId} userId=${this.userId}${avatarInfo}]`;
+  }
+
+  /**
+   * Legacy property for backward compatibility.
+   * @deprecated Use currentAvatar instead
+   */
+  get avatar(): Avatar | undefined {
+    return this.currentAvatar || undefined;
+  }
+
+  set avatar(value: Avatar | undefined) {
+    this.currentAvatar = value || null;
   }
 }
