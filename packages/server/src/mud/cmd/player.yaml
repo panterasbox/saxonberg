@@ -1,0 +1,26 @@
+verbs: [player, me]
+controller: PlayerController
+description: "Manage your player character settings"
+subcommands:
+  name:
+    description: "Set your character name"
+    pattern: "<firstName> [lastName]"
+    fields:
+      firstName:
+        type: string
+        required: true
+      lastName:
+        type: string
+        required: false
+
+  pronouns:
+    description: "Set your pronouns"
+    pattern: "<pronouns>"
+    fields:
+      pronouns:
+        type: string
+        required: true
+
+  show:
+    description: "Show your current player settings"
+    pattern: ""

@@ -1,0 +1,6 @@
+verbs: [ping]
+controller: PingController
+description: "Test command - responds with pong"
+syntax:
+  - pattern: ""
+    description: "Ping the server"

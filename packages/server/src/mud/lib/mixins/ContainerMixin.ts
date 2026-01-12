@@ -24,9 +24,25 @@ import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds container/inventory properties and methods.
+ *
+ * Also provides inventory management commands (inventory, get, drop)
+ * as "self" commands for any object with ContainerMixin.
  */
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ContainerMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'ContainerMixin';
+
+    /**
+     * Command provider for inventory management commands
+     */
+    static commandProvider = {
+      self: ['inventory.yaml', 'get.yaml', 'drop.yaml'],
+      environment: [],
+      inventory: [],
+      colocated: [],
+    };
+
     /**
      * Note: inventory is a complex type (Set of references).
      * It is NOT included in persistentFields - instead, classes using
@@ -64,6 +80,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getInventoryContents(): any[] {
       return Array.from(this.inventory);
+    }
+
+    /**
+     * Alias for getInventoryContents() for consistency with ContainmentApi
+     */
+    getContents(): any[] {
+      return this.getInventoryContents();
     }
   };
 }

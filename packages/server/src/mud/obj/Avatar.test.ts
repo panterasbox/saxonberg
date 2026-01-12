@@ -9,7 +9,7 @@
  * - Character inheritance
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Avatar } from './Avatar';
 import { Interactive } from '../lib/connection/Interactive';
 import { Character } from '../lib/stuff/Character';
@@ -348,15 +348,16 @@ describe('Avatar', () => {
         sendMessageToInteractive: vi.fn(),
       };
 
-      // Mock ApplicationInstance to return our mock app
-      vi.doMock('../../backend/ApplicationInstance', () => ({
-        ApplicationInstance: {
-          get: () => mockApp,
-        },
-      }));
+      // Spy on Avatar.getApplicationInstance to return our mock app
+      vi.spyOn(Avatar as any, 'getApplicationInstance').mockReturnValue(mockApp);
 
       interactive1 = new Interactive('socket-1', 'session-1', 'user-1');
       interactive2 = new Interactive('socket-2', 'session-2', 'user-1');
+    });
+
+    afterEach(() => {
+      // Restore the spy after each test
+      vi.restoreAllMocks();
     });
 
     it('should send message to all connected Interactives', () => {

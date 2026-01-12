@@ -29,6 +29,9 @@ import type { MixinConstructor } from './types';
  */
 export function MortalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MortalMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'MortalMixin';
+
     /**
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.

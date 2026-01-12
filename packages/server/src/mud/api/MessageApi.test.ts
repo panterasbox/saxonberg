@@ -32,11 +32,14 @@ class MobileSensor extends MobileSensorBase {
   lastMessage?: unknown;
 }
 
+// Create a simple non-sensor object for testing
+class NonSensor extends Stuff {}
+
 describe('MessageApi', () => {
   let location: Location;
   let sensor1: TestSensor;
   let sensor2: TestSensor;
-  let nonSensor: Stuff;
+  let nonSensor: NonSensor;
 
   beforeEach(() => {
     location = new Location();
@@ -49,7 +52,7 @@ describe('MessageApi', () => {
     sensor2 = new TestSensor();
     StuffApi.register(sensor2);
 
-    nonSensor = new Stuff();
+    nonSensor = new NonSensor();
     StuffApi.register(nonSensor);
   });
 
@@ -81,7 +84,7 @@ describe('MessageApi', () => {
     });
 
     it('should return empty array for non-container', () => {
-      const notContainer = new Stuff();
+      const notContainer = new NonSensor();
       StuffApi.register(notContainer);
       const sensors = MessageApi.getSensors(notContainer);
       expect(sensors).toHaveLength(0);
@@ -108,7 +111,7 @@ describe('MessageApi', () => {
 
       // Create a mobile sensor to be the source
       const source = new MobileSensor(); StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       const message = { type: 'test', payload: { text: 'Hello' } };
 
@@ -124,7 +127,7 @@ describe('MessageApi', () => {
       location.addToInventory(nonSensor);
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       const message = { type: 'test' };
 
@@ -139,7 +142,7 @@ describe('MessageApi', () => {
     it('should warn if source has no environment', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      const source = new Stuff(); StuffApi.register(source);
+      const source = new NonSensor(); StuffApi.register(source);
       MessageApi.messageContainer(source, { type: 'test' });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -165,7 +168,7 @@ describe('MessageApi', () => {
 
     it('should handle empty container', () => {
       const source = new MobileSensor(); StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       // Should not throw error
       expect(() => {
@@ -177,7 +180,7 @@ describe('MessageApi', () => {
       location.addToInventory(sensor1);
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       const message1 = { type: 'output', payload: { text: 'Test' } };
       const message2 = 'string message';
@@ -203,7 +206,7 @@ describe('MessageApi', () => {
       sensors.forEach((s) => location.addToInventory(s));
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       const message = { type: 'broadcast', text: 'To all' };
 
@@ -225,7 +228,7 @@ describe('MessageApi', () => {
       // Speaker enters and speaks
       const speaker = new MobileSensor();
       StuffApi.register(speaker);
-      speaker.move(location);
+      speaker.travel(location);
 
       const sayMessage = {
         type: 'output',
@@ -256,7 +259,7 @@ describe('MessageApi', () => {
 
       const source = new MobileSensor();
       StuffApi.register(source);
-      source.move(location);
+      source.travel(location);
 
       const message = { type: 'test', text: 'Room 1 only' };
 

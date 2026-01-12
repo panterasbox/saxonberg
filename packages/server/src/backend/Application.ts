@@ -29,6 +29,8 @@ import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { Location } from '../mud/lib/location/Location';
 import { StuffApi } from '../mud/api/stuff';
 import { DEFAULT_STARTING_ROOM_PATH } from '../mud/config/constants';
+import type { CommandContext } from '../mud/lib/command/models';
+import { nanoid } from 'nanoid';
 
 /**
  * Application - Singleton for game logic coordination.
@@ -69,6 +71,25 @@ export class Application {
   public initialize(backend: IBackend): void {
     this.backend = backend;
     console.log('Application: Initialized with Backend');
+
+    // Initialize command system
+    this.initializeCommands();
+  }
+
+  /**
+   * Initialize command system
+   *
+   * Note: Commands are now discovered via CommandProvider pattern on mixins.
+   * No manual registration needed - CommandGiverMixin discovers commands from:
+   * - self: Commands from mixins on the avatar (e.g., DiagnosticsMixin provides "ping")
+   * - inventory: Commands from objects in avatar's inventory
+   * - environment: Commands from objects in avatar's location
+   * - colocated: Commands from other characters in avatar's location
+   *
+   * CommandApi serves only as a performance cache, not a source of truth.
+   */
+  private initializeCommands(): void {
+    console.log('Application: Command system initialized (discovery via CommandProvider pattern)');
   }
 
   /**
@@ -145,7 +166,7 @@ export class Application {
         const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
 
         // Move avatar to starting room (using MobileMixin)
-        avatar.move(startingRoom);
+        avatar.travel(startingRoom);
         console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
 
         // Send connection_established message
@@ -258,7 +279,16 @@ export class Application {
         break;
 
       case 'command':
-        this.handleCommandMessage(socketId, message);
+        // Handle async command execution (don't await to avoid blocking)
+        this.handleCommandMessage(socketId, message).catch((error) => {
+          console.error(`Application: Command error for socket ${socketId}:`, error);
+          if (this.backend) {
+            this.backend.sendMessageToSocket(socketId, {
+              type: 'error',
+              payload: { message: 'Command execution failed' },
+            });
+          }
+        });
         break;
 
       default:
@@ -343,7 +373,7 @@ export class Application {
       const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
 
       // Move avatar to starting room (using MobileMixin)
-      avatar.move(startingRoom);
+      avatar.travel(startingRoom);
       console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
 
       // Send avatar_switched confirmation with character info
@@ -432,7 +462,7 @@ export class Application {
    * Handle command message (Phase 3 - lightweight stubs).
    * Full command framework will be implemented in Phase 4.
    */
-  private handleCommandMessage(socketId: string, message: WebSocketMessage): void {
+  private async handleCommandMessage(socketId: string, message: WebSocketMessage): Promise<void> {
     if (!this.backend) return;
 
     const interactive = ConnectionManager.get().getInteractive(socketId);
@@ -448,35 +478,39 @@ export class Application {
     if (!commandText) return;
 
     const avatar = interactive.currentAvatar;
+    const location = avatar.getEnvironment() as Location;
 
-    // STUB: Simple command parsing - Phase 4 will replace with full framework
-    const [verb, ...args] = commandText.split(/\s+/);
+    if (!location) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'error',
+        payload: { message: 'Avatar has no location' },
+      });
+      return;
+    }
 
-    if (!verb) return; // Safety check
+    // Build command context
+    const context: CommandContext = {
+      avatar,
+      interactive,
+      location,
+      commandText,
+      executionId: nanoid(),
+    };
 
-    switch (verb.toLowerCase()) {
-      case 'look':
-      case 'l':
-        // Inline stub - no separate LookCommand class needed
-        this.sendLookDescription(avatar, socketId);
-        break;
+    // Execute command via CommandGiverMixin
+    const result = await avatar.executeCommand(commandText, context);
 
-      case 'say':
-      case "'":
-        // Inline stub using VocalMixin
-        const text = args.join(' ');
-        if (text) {
-          avatar.say(text);
-        }
-        break;
-
-      default:
-        this.backend.sendMessageToSocket(socketId, {
-          type: 'output',
-          payload: {
-            text: `Unknown command: ${verb}\n(Phase 4 will add full command framework)`,
-          },
-        });
+    // Send result
+    if (result.success && result.output) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'output',
+        payload: result.output,
+      });
+    } else if (!result.success && result.error) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'error',
+        payload: { message: result.error },
+      });
     }
   }
 

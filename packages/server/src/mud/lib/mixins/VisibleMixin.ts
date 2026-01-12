@@ -6,6 +6,7 @@
  * - longDescription: string (detailed description)
  * - getShort(): string
  * - getLong(): string
+ * - look command for examining objects
  *
  * Usage:
  * ```typescript
@@ -19,9 +20,30 @@ import type { MixinConstructor } from './types';
 
 /**
  * Mixin that adds description properties for visible objects.
+ *
+ * Provides the "look" command for examining this visible object:
+ * - When in someone's environment (they can look at it in the room)
+ * - When in someone's inventory (they can look at what they're carrying)
+ * - When colocated with someone (they can look at it in the same location)
+ * - On self (you can look at yourself)
  */
 export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VisibleMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'VisibleMixin';
+
+    /**
+     * Command provider for visibility-related commands
+     *
+     * When an object is visible, others can "look" at it.
+     */
+    static commandProvider = {
+      self: ['look.yaml'],        // Can look at yourself
+      environment: ['look.yaml'], // Others can look at you in their environment
+      inventory: ['look.yaml'],   // Others can look at you in their inventory
+      colocated: ['look.yaml'],   // Others can look at you when colocated
+    };
+
     /**
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.

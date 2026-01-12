@@ -20,6 +20,9 @@ import type { MixinConstructor } from './types';
  */
 export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class GenderedMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'GenderedMixin';
+
     /**
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.

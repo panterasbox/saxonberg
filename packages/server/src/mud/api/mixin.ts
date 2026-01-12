@@ -20,6 +20,7 @@
  */
 
 import type { MixinConstructor, MixinName } from '../lib/mixins/types';
+import type { Stuff } from '../lib/stuff/Stuff';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixins/types';
@@ -41,11 +42,8 @@ export class MixinApi {
 
     // Walk up the prototype chain
     while (current && current !== Object && current.prototype) {
-      // Check if this level declares persistentFields (indicating it's a mixin)
-      if (
-        current.hasOwnProperty('persistentFields') &&
-        Array.isArray(current.persistentFields)
-      ) {
+      // Check if this level is a mixin (has _mixinName marker)
+      if (current.hasOwnProperty('_mixinName') && typeof current._mixinName === 'string') {
         mixins.push(current);
       }
 
@@ -97,7 +95,11 @@ export class MixinApi {
    */
   public static hasMixin(constructor: any, mixinName: MixinName): boolean {
     const mixins = this.queryMixins(constructor);
-    return mixins.some((mixin) => mixin.name === mixinName);
+    return mixins.some((mixin) => {
+      // Check _mixinName property first (preferred), then fall back to name property
+      const name = mixin._mixinName || mixin.name;
+      return name === mixinName;
+    });
   }
 
   /**
@@ -120,4 +122,6 @@ export class MixinApi {
     // Combine and remove duplicates
     return Array.from(new Set([...mixinFields, ...ownFields]));
   }
+
 }
+

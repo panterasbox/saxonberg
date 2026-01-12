@@ -23,6 +23,9 @@ import type { MixinConstructor } from '../mixins/types.js';
  */
 export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SensorMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'SensorMixin';
+
     /**
      * Notification hook called when a message is sent to this sensor's container.
      *

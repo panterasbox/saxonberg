@@ -32,9 +32,37 @@ export interface AvatarTemplateData {
 
 /**
  * Avatar - Runtime player character (extends Character).
- * All mixin fields (Named, Gendered, Mortal, Sensor, Vocal) are provided by Character.
+ *
+ * Inherits from Character which provides:
+ * - Named, Gendered, Mortal mixins (stats and identity)
+ * - Sensor, Vocal mixins (messaging)
+ * - Container, Containable mixins (inventory management)
+ * - Visible mixin (descriptions)
+ * - Mobile mixin (movement)
+ * - CommandGiver mixin (command execution)
+ *
+ * Also provides diagnostic/system commands: ping, help, player
  */
 export class Avatar extends Character {
+  /**
+   * Command provider for Avatar-specific commands (diagnostic/system)
+   */
+  static commandProvider = {
+    self: ['ping.yaml', 'help.yaml', 'player.yaml'],
+    environment: [],
+    inventory: [],
+    colocated: [],
+  };
+
+  /**
+   * Get ApplicationInstance (can be overridden for testing)
+   * @internal
+   */
+  private static getApplicationInstance(): any {
+    const { ApplicationInstance } = require('../../backend/ApplicationInstance');
+    return ApplicationInstance.get();
+  }
+
   /**
    * Template path prefix for avatars in domain collection.
    * Avatar templates are stored at: /avatar/player/<playerId>
@@ -189,9 +217,8 @@ export class Avatar extends Character {
    * @param message - The message to receive
    */
   public onMessage(message: unknown): void {
-    // Import ApplicationInstance here to avoid circular dependencies
-    const { ApplicationInstance } = require('../../backend/ApplicationInstance.js');
-    const app = ApplicationInstance.get();
+    // Get Application instance (uses dynamic require to avoid circular dependencies)
+    const app = Avatar.getApplicationInstance();
 
     // Send to all connected Interactives (multiplexing support)
     for (const interactive of this.interactives) {

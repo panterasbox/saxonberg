@@ -154,7 +154,15 @@ Uses higher-order functions for behavior composition:
 const PlayerBase = GenderedMixin(NamedMixin(Idea));
 class Player extends PlayerBase { ... }
 
-const CharacterBase = VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent)))));
+const CharacterBase = CommandGiverMixin(
+  MobileMixin(
+    ContainerMixin(
+      ContainableMixin(
+        VisibleMixin(VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent))))))
+      )
+    )
+  )
+);
 class Character extends CharacterBase { ... }
 ```
 
@@ -162,11 +170,14 @@ class Character extends CharacterBase { ... }
 - `NamedMixin`: firstName, lastName, fullName (persistent)
 - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
 - `MortalMixin`: hp, maxHp, isDead(), takeDamage(), heal() (persistent)
-- `ContainerMixin`: inventory management (Set-based, complex persistence)
+- `ContainerMixin`: inventory management (Set-based, complex persistence), provides commands: inventory, get, drop
 - `ContainableMixin`: environment reference (complex persistence)
-- `VisibleMixin`: shortDescription, longDescription (persistent)
-- `SensorMixin`: onMessage() - message receiving (stub for Phase 3)
-- `VocalMixin`: say() - message sending (stub for Phase 3)
+- `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
+- `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
+- `SensorMixin`: onMessage() - message receiving (Phase 3)
+- `VocalMixin`: say() - message sending (Phase 3)
+- `MobileMixin`: travel() - movement between locations (Phase 3)
+- `CommandGiverMixin`: executeCommand(), getAvailableCommands() - command execution (Phase 4)
 
 #### 2. Runtime vs Persistent Objects
 - **Runtime Objects**: Avatar, Interactive (exist only during active connection)
@@ -490,25 +501,33 @@ The architecture anticipates:
 
 3. **Mixin Composition**: Prefer mixins over deep inheritance hierarchies
 
-4. **Interface Contracts**: Use interfaces to decouple layers (e.g., IBackend)
+4. **No Duck Typing with Mixins**: ALWAYS use proper API layers instead of `typeof obj.method === 'function'`
+   - Use `MixinApi.hasMixin()` for explicit mixin checks
+   - Use `ContainmentApi.move()` for ALL object movement (never call setEnvironment/addToInventory directly)
+   - Use `MixinApi.getContents()` for safe container access
+   - Use `travel()` (MobileMixin) for creature/vehicle locomotion
+   - See **ANTIPATTERNS.md** for detailed examples and movement hierarchy
+   - Duck typing only acceptable for display-only fallback patterns (getObjectName, etc.)
 
-5. **Synchronization Pattern**: Explicit sync between runtime and persistent state
+5. **Interface Contracts**: Use interfaces to decouple layers (e.g., IBackend)
+
+6. **Synchronization Pattern**: Explicit sync between runtime and persistent state
    - Avatar ↔ Player via syncToPlayer() / syncFromPlayer()
 
-6. **Template-Based Creation**: Objects cloned from CMS templates via StuffApi.clone()
+7. **Template-Based Creation**: Objects cloned from CMS templates via StuffApi.clone()
    - No manual class registration (dynamic imports with security validation)
    - Templates stored in `domain` collection
    - Async initialization supported via initialize() method
 
-7. **Singleton Pattern**: PersistenceManager, ConnectionManager (controlled global state)
+8. **Singleton Pattern**: PersistenceManager, ConnectionManager (controlled global state)
    - StuffApi, PlayerApi, MixinApi are static utility classes
 
-8. **Protected Hooks**: Use prepareDestroy() hook, never override destroy()
+9. **Protected Hooks**: Use prepareDestroy() hook, never override destroy()
    - Guarantees proper cleanup and unregistration
 
-9. **Find-or-Create**: Common pattern for persistent objects
+10. **Find-or-Create**: Common pattern for persistent objects
 
-10. **Unidirectional Relationships**: Avoid bidirectional arrays
+11. **Unidirectional Relationships**: Avoid bidirectional arrays
     - Player has userId (reference to User)
     - User does NOT have playerIds array
     - Query when needed: find(Collections.Players, { userId })
@@ -518,6 +537,7 @@ The architecture anticipates:
 For detailed architectural patterns and implementation guidelines, see:
 
 - **`ARCHITECTURE_PATTERNS.md`** - Manager vs Api naming, layer separation, avatar/interactive architecture, object lifecycle patterns
+- **`ANTIPATTERNS.md`** - Coding patterns to avoid (duck typing, etc.) with correct alternatives
 - **`CMS_TEMPLATE_PATTERN.md`** - Complete documentation of template-based object creation system
 - **`PLAN.md`** - Overall project roadmap and phase planning
 - **`PHASE_1_FEED.md`** - Phase 1 implementation details (authentication, persistence, WebSocket)
@@ -538,8 +558,8 @@ For detailed architectural patterns and implementation guidelines, see:
 - Basic connection lifecycle
 
 **✅ Phase 2: Identity Models & Object Lifecycle** (Complete)
-- **Mixins**: Mortal, Container, Containable, Visible, Sensor (stub), Vocal (stub)
-- **Character Class**: Abstract base for sentient beings (Named + Gendered + Mortal + Sensor + Vocal)
+- **Mixins**: Mortal, Container, Containable, Visible, Sensor, Vocal
+- **Character Class**: Abstract base for sentient beings (CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Mortal + Gendered + Named)
 - **Avatar**: Extends Character, multiplexing support (Set<Interactive>)
 - **Interactive**: Character switching support, availableAvatars map
 - **PersistApi**: Auto-sync utilities (syncTo/syncFrom with mixin field collection)
@@ -555,10 +575,22 @@ For detailed architectural patterns and implementation guidelines, see:
 - **Sensor/Vocal Mixins**: Full implementations (notification hooks + MML formatting)
 - **Avatar.onMessage()**: Override for Interactive multiplexing, client message delivery
 - **Application.sendMessageToInteractive()**: Sole gateway for game objects → clients
-- **Command Stubs**: Lightweight `look`/`say` commands (Phase 4 will add full framework)
 - **Terminal UI**: React components (Terminal, CommandBar) with auto-scroll
 - **MML Support**: Mud Markup Language for formatted output (`<location>`, `<name>`, `<speech>`)
 - **Test Coverage**: 226+ tests passing (Location, MobileMixin, MessageApi tests added)
+
+**✅ Phase 4: Command Framework** (Complete)
+- **CommandLineApi**: UNIX-style command parser (quotes, escapes, options)
+- **CommandApi**: Command caching, lazy loading, verb matching
+- **CommandDefinition**: YAML-based command views (MVC pattern)
+- **CommandController**: Abstract base class for command execution logic
+- **CommandGiverMixin**: Command execution and discovery via provider pattern
+- **MqlApi**: Object resolution with keyword matching (simplified for Phase 4)
+- **Validators**: Field-level validation system (mustBeVisible, canReach, etc.)
+- **ContainmentApi**: Simplified move() API (automatic source detection)
+- **Command Providers**: Declarative YAML filename registration in mixins
+- **Implemented Commands**: ping, help, player (with subcommands), look, inventory, get, drop
+- **Test Coverage**: 304 tests passing (45 new tests for CommandApi, ContainmentApi, 28 new tests for PerceptibleMixin accessor methods)
 
 ### Messaging Architecture (Phase 3)
 
@@ -602,6 +634,64 @@ For detailed architectural patterns and implementation guidelines, see:
 - Application is sole gateway to Backend (maintains separation)
 - Sensor routing is generic and reusable
 
+### Command Framework Architecture (Phase 4)
+
+**MVC Pattern**: View (YAML) → Model (CommandModel) → Controller (execution)
+
+**Pipeline**: Parse → Discover → Match → Resolve → Validate → Execute
+
+**Key Components**:
+- **CommandView (YAML files)**: Declarative command definitions
+  - Stored in `/mud/cmd/*.yaml`
+  - Define verbs, controller, syntax patterns, field types, validators
+  - Support subcommands for complex commands (e.g., `player name`, `player pronouns`)
+
+- **CommandLineApi**: Tokenization and parsing
+  - UNIX-style parsing with quotes, escapes, options
+  - `parse(input)` → `{ verb, args, options }`
+  - Handles `-o`, `--option` flags
+
+- **CommandApi**: Command cache and loading
+  - Lazy-loads YAML files via `getCommand(filename)`
+  - Caches CommandDefinition objects
+  - `matchVerb(verb)` for quick lookup by verb/alias
+
+- **CommandGiverMixin**: Discovery and execution
+  - `getAvailableCommands()` discovers commands from providers
+  - Checks self, inventory, environment, colocated objects
+  - `executeCommand(text, context)` runs full pipeline
+
+- **Command Providers**: Declarative registration
+  - Mixins declare commands via static `commandProvider` property
+  - Four contexts: self, environment, inventory, colocated
+  - ContainerMixin provides: inventory, get, drop (self context)
+  - VisibleMixin provides: look (all contexts)
+
+- **MqlApi**: Object resolution
+  - `resolve(query, context)` returns first match
+  - `resolveMany(query, context)` returns all matches
+  - Keyword matching with scoring algorithm
+  - Search order: inventory → location
+
+- **Validators**: Field validation
+  - `mustBeVisible`, `canReach`, `notEmpty`, etc.
+  - Run after field resolution, before controller execution
+  - Return error strings for failed validation
+
+- **ContainmentApi**: Movement operations
+  - `move(item, destination)` handles all containment logic
+  - Automatically removes from current container
+  - Updates environment references
+  - Used by GetController, DropController, MobileMixin
+
+**Architectural Principles**:
+- CommandView (YAML) separates declaration from logic
+- Controllers are ephemeral (new instance per execution)
+- Lazy loading keeps startup fast
+- Provider pattern enables contextual command discovery
+- Type-safe generics: `CommandController<Input, Output>`
+- Accessor methods over direct property access (e.g., `getKeywords()` instead of `keywords` array)
+
 ### Development Notes
 
 - This is the Saxonberg 2.0 repository for building the next generation of the platform
@@ -612,4 +702,4 @@ For detailed architectural patterns and implementation guidelines, see:
 - Dynamic imports with security validation eliminate manual class registration
 - Always use prepareDestroy() hook instead of overriding destroy()
 - Avoid bidirectional array relationships (query instead)
-- **Phase 3 Complete**: Location system, messaging infrastructure, Terminal UI, and MML support fully implemented
+- **Phase 3 & 4 Complete**: Location system, messaging infrastructure, Terminal UI, MML support, and complete command framework fully implemented

@@ -1,0 +1,6 @@
+verbs: [inventory, inv, i]
+controller: InventoryController
+description: "List items you are carrying"
+syntax:
+  - pattern: ""
+    description: "Show your inventory"

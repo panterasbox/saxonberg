@@ -24,6 +24,9 @@ import { MessageApi } from '../../api/MessageApi.js';
  */
 export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VocalMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'VocalMixin';
+
     /**
      * Say something. Broadcasts to all sensors in the same container.
      *

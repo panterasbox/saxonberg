@@ -1,8 +1,8 @@
 /**
- * MobileMixin - Adds movement capability with hook execution
+ * MobileMixin - Adds locomotion capability for creatures and vehicles
  *
  * Provides:
- * - move(destination: Location): void - Move to new location with full hook execution
+ * - travel(destination: Location, mode?: string): void - High-level locomotion with mode
  *
  * Usage:
  * ```typescript
@@ -10,62 +10,64 @@
  *   // ...
  * }
  *
- * avatar.move(targetLocation); // Proper movement with hooks
+ * avatar.travel(targetLocation, 'walk');  // Walk to location
+ * avatar.travel(targetLocation, 'run');   // Run to location
+ * avatar.travel(targetLocation);          // Default mode
  * ```
  *
- * The move() method handles:
- * - Removing from current location
- * - Adding to new location
- * - Updating environment reference
- * - Future: beforeLeave, beforeEnter, afterLeave, afterEnter events
+ * The travel() method is for mobile entities (creatures, vehicles).
+ * It delegates to ContainmentApi.move() which handles the actual movement.
  *
- * This is preferred over manual setEnvironment() calls because it ensures
- * proper hook execution and maintains consistency.
+ * Hierarchy:
+ * - travel() - High level (creatures, vehicles) with mode
+ * - ContainmentApi.move() - Mid level (any containable) with hooks
+ * - setEnvironment()/addToInventory() - Low level (called by move() only)
  */
 
 import type { MixinConstructor } from './types.js';
 import type { Location } from '../location/Location.js';
 import type { Stuff } from '../stuff/Stuff.js';
+import { ContainmentApi } from '../../api/containment.js';
 
 /**
- * Mixin that adds movement capability with proper hook execution.
+ * Mixin that adds locomotion capability for mobile entities.
  */
 export function MobileMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MobileMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'MobileMixin';
+
     /**
-     * Move this object to a new location with full hook execution.
+     * Travel to a new location with specified mode.
      *
-     * This method handles:
-     * 1. Removing from current location (if any)
-     * 2. Adding to destination location
-     * 3. Updating environment reference
-     * 4. Future: Event hooks (beforeLeave, beforeEnter, afterLeave, afterEnter)
+     * This is a high-level method for mobile entities (creatures, vehicles).
+     * The mode parameter indicates how travel occurs (walk, run, drive, fly, etc.).
      *
-     * This is the preferred method for movement as it ensures proper
-     * hook execution and maintains consistency.
+     * Delegates to ContainmentApi.move() for actual containment management.
      *
-     * @param destination - Target location to move to
+     * Future enhancements:
+     * - Stamina/energy costs based on mode
+     * - Different movement speeds
+     * - Terrain restrictions by mode
+     * - Observer messages ("Alice walks north", "Bob runs south")
+     *
+     * @param destination - Target location to travel to
+     * @param mode - Mode of travel (walk, run, drive, fly, etc.) - default: 'walk'
      */
-    move(destination: Location): void {
-      // Get current location (if any)
-      // Check if this object has getEnvironment() method (from ContainableMixin)
-      const currentLocation =
-        'getEnvironment' in this ? (this as any).getEnvironment() : null;
+    travel(destination: Location, mode: string = 'walk'): void {
+      // Future: Check if mode is valid (can creature fly? is there a vehicle?)
+      // Future: Calculate stamina/energy cost based on mode
+      // Future: Check terrain restrictions (can't fly in low ceiling, etc.)
 
-      // Execute departure hooks (future: beforeLeave events)
-      if (currentLocation) {
-        currentLocation.removeFromInventory(this as unknown as Stuff);
-      }
+      // Future: Send observer messages based on mode
+      // MessageApi.messageContainer(this, `${this.name} ${mode}s away`);
 
-      // Execute arrival hooks (future: beforeEnter events)
-      destination.addToInventory(this as unknown as Stuff);
+      // Delegate to ContainmentApi for actual movement
+      // ContainmentApi.move() will automatically get current location from item's environment
+      ContainmentApi.move(this as unknown as Stuff, destination);
 
-      // Update environment reference (requires setEnvironment from ContainableMixin)
-      if ('setEnvironment' in this) {
-        (this as any).setEnvironment(destination);
-      }
-
-      // Execute post-movement hooks (future: afterEnter/afterLeave events)
+      // Future: Send observer messages at destination
+      // MessageApi.messageContainer(this, `${this.name} ${mode}s in`);
     }
   };
 }

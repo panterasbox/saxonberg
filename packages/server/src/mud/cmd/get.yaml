@@ -1,0 +1,20 @@
+verbs: [get, take]
+controller: GetController
+description: "Pick up objects from your location"
+syntax:
+  - pattern: "<target>"
+    description: "Pick up a single object"
+    fields:
+      target:
+        type: object
+        required: true
+        validators: [mustBeVisible, canReach]
+
+  - pattern: "<targets...>"
+    description: "Pick up multiple objects"
+    fields:
+      targets:
+        type: object
+        required: true
+        multiple: true
+        validators: [mustBeVisible, canReach]

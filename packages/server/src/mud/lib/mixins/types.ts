@@ -94,6 +94,17 @@ export interface Vocal {
 }
 
 /**
+ * Perceptible interface - provides keywords for MQL identification.
+ */
+export interface Perceptible {
+  getKeywords(): string[];
+  addKeyword(keyword: string): void;
+  removeKeyword(keyword: string): boolean;
+  hasKeyword(keyword: string): boolean;
+  setKeywords(keywords: string[]): void;
+}
+
+/**
  * Mixin name constants.
  * Use these constants instead of string literals when checking for mixins.
  */
@@ -106,6 +117,7 @@ export const Mixins = {
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
+  Perceptible: 'PerceptibleMixin',
 } as const;
 
 /**

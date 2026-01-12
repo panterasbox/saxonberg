@@ -25,6 +25,9 @@ import type { MixinConstructor } from './types';
  */
 export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ContainableMixin extends Base {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'ContainableMixin';
+
     /**
      * Note: environment is a complex type (reference to another object).
      * It is NOT included in persistentFields - instead, classes using
