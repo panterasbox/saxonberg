@@ -64,11 +64,14 @@ cd packages/client && pnpm test  # Run client tests only
 **Test Coverage Areas**:
 - StuffApi: Class path validation (security), object creation lifecycle, registration
 - PlayerApi: Avatar registry operations, lookups, edge cases
-- Avatar: Template path construction, multiplexing support, Character inheritance
+- Avatar: Template path construction, multiplexing support, Character inheritance, onMessage() override
 - Interactive: Character switching, multiplexing integration, lifecycle
 - User: Persistent fields configuration, relationship verification
-- Mixins: All mixins tested (Mortal, Container, Containable, Visible, Named, Gendered)
+- Mixins: All mixins tested (Mortal, Container, Containable, Visible, Named, Gendered, Mobile)
 - Character: Abstract base class, mixin composition
+- Location: ContainerMixin + VisibleMixin integration, getContents()
+- MobileMixin: move() method, environment management, hook execution readiness
+- MessageApi: getSensors(), messageContainer(), container isolation
 - Integration tests for core flows (future)
 
 ### Documentation
@@ -544,11 +547,60 @@ For detailed architectural patterns and implementation guidelines, see:
 - **Character Selection**: switchAvatar() for users with multiple Players
 - **Test Coverage**: 188 tests passing (56 new mixin/Character tests, 73 updated Avatar/Interactive tests)
 
-**🚧 Phase 3: Messaging & Communication** (Next)
-- Command parsing and execution
-- Message routing and broadcasting
-- Room/location system
-- Sensor/Vocal mixin implementations
+**✅ Phase 3: Location System & Terminal UI** (Complete)
+- **Location Class**: ContainerMixin + VisibleMixin composition, room/space representation
+- **MobileMixin**: Movement with `move()` method, hook execution for future event system
+- **Starting Room System**: Template-based (`/domain/void`), Player.startingRoomPath support
+- **MessageApi**: High-level sensor routing (`getSensors()`, `messageContainer()`)
+- **Sensor/Vocal Mixins**: Full implementations (notification hooks + MML formatting)
+- **Avatar.onMessage()**: Override for Interactive multiplexing, client message delivery
+- **Application.sendMessageToInteractive()**: Sole gateway for game objects → clients
+- **Command Stubs**: Lightweight `look`/`say` commands (Phase 4 will add full framework)
+- **Terminal UI**: React components (Terminal, CommandBar) with auto-scroll
+- **MML Support**: Mud Markup Language for formatted output (`<location>`, `<name>`, `<speech>`)
+- **Test Coverage**: 226+ tests passing (Location, MobileMixin, MessageApi tests added)
+
+### Messaging Architecture (Phase 3)
+
+**Flow**: Game Objects → MessageApi → Sensors → Application → Backend → Clients
+
+**Key Components**:
+- **MessageApi**: Pure sensor routing layer
+  - `getSensors(container)` - Find all objects with onMessage() in container
+  - `messageContainer(source, message)` - Notify all sensors in source's environment
+  - No knowledge of Interactives, sockets, or clients
+  - Works with any Container (Location, inventory, etc.)
+
+- **SensorMixin**: Notification hook
+  - Default: no-op (subclasses override for custom behavior)
+  - Avatar overrides to send to connected Interactives
+
+- **VocalMixin**: Message creation
+  - `say(text)` - Creates MML-formatted messages
+  - Delegates to `MessageApi.messageContainer()`
+
+- **Avatar.onMessage()**: Client delivery
+  - Overrides SensorMixin.onMessage()
+  - Handles multiplexing (sends to all connected Interactives)
+  - Only place that calls `Application.sendMessageToInteractive()`
+
+- **Application.sendMessageToInteractive()**: Gateway to Backend
+  - Public API for game objects to send messages
+  - Sole access point to Backend communication
+  - Takes Interactive object (not raw socketId)
+
+**MML (Mud Markup Language)**: Simple markup for game output
+- `<location>` - Location/room names
+- `<name>` - Character names
+- `<speech>` - Spoken dialog
+- Phase 3: Plain text rendering
+- Phase 4+: Rich formatting, styling, client-side parsing
+
+**Architectural Principles**:
+- MessageApi deals with Sensors, not sockets (high-level abstraction)
+- Only Avatar.onMessage() touches Application messaging
+- Application is sole gateway to Backend (maintains separation)
+- Sensor routing is generic and reusable
 
 ### Development Notes
 
@@ -560,4 +612,4 @@ For detailed architectural patterns and implementation guidelines, see:
 - Dynamic imports with security validation eliminate manual class registration
 - Always use prepareDestroy() hook instead of overriding destroy()
 - Avoid bidirectional array relationships (query instead)
-- **Phase 2 Complete**: All core mixins, Character class, multiplexing, and character switching are fully implemented and tested
+- **Phase 3 Complete**: Location system, messaging infrastructure, Terminal UI, and MML support fully implemented

@@ -181,6 +181,25 @@ export class Avatar extends Character {
   }
 
   /**
+   * Override SensorMixin.onMessage() to handle message delivery to connected clients.
+   *
+   * When MessageApi calls this (via messageContainer), we send the message
+   * to all connected Interactives (multiplexing support).
+   *
+   * @param message - The message to receive
+   */
+  public onMessage(message: unknown): void {
+    // Import ApplicationInstance here to avoid circular dependencies
+    const { ApplicationInstance } = require('../../backend/ApplicationInstance.js');
+    const app = ApplicationInstance.get();
+
+    // Send to all connected Interactives (multiplexing support)
+    for (const interactive of this.interactives) {
+      app.sendMessageToInteractive(interactive, message);
+    }
+  }
+
+  /**
    * Legacy method for backward compatibility.
    * @deprecated Use addInteractive instead
    */

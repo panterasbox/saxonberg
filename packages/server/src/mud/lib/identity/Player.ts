@@ -31,12 +31,18 @@ export class Player extends PlayerBase implements IPlayer {
   /**
    * Persistent fields for auto-sync (class fields only - mixin fields auto-collected).
    */
-  static persistentFields = ['userId'];
+  static persistentFields = ['userId', 'startingRoomPath'];
 
   /**
    * User ID that owns this player.
    */
   userId: string = '';
+
+  /**
+   * Starting room path for this player.
+   * If not set, defaults to DEFAULT_STARTING_ROOM_PATH (/domain/void).
+   */
+  startingRoomPath?: string;
 
   /**
    * Constructor.

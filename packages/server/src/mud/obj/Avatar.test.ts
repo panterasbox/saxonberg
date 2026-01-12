@@ -332,4 +332,118 @@ describe('Avatar', () => {
       });
     });
   });
+
+  describe('onMessage (SensorMixin override)', () => {
+    let avatar: Avatar;
+    let mockApp: any;
+    let interactive1: Interactive;
+    let interactive2: Interactive;
+
+    beforeEach(() => {
+      // Create a simple avatar for testing
+      avatar = new Avatar({ playerId: 'test-player-123' });
+
+      // Mock Application.sendMessageToInteractive
+      mockApp = {
+        sendMessageToInteractive: vi.fn(),
+      };
+
+      // Mock ApplicationInstance to return our mock app
+      vi.doMock('../../backend/ApplicationInstance', () => ({
+        ApplicationInstance: {
+          get: () => mockApp,
+        },
+      }));
+
+      interactive1 = new Interactive('socket-1', 'session-1', 'user-1');
+      interactive2 = new Interactive('socket-2', 'session-2', 'user-1');
+    });
+
+    it('should send message to all connected Interactives', () => {
+      avatar.addInteractive(interactive1);
+      avatar.addInteractive(interactive2);
+
+      const message = {
+        type: 'output',
+        payload: { text: 'Test message' },
+      };
+
+      avatar.onMessage(message);
+
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledTimes(2);
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        interactive1,
+        message
+      );
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        interactive2,
+        message
+      );
+    });
+
+    it('should handle single Interactive', () => {
+      avatar.addInteractive(interactive1);
+
+      const message = { type: 'test' };
+
+      avatar.onMessage(message);
+
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledTimes(1);
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        interactive1,
+        message
+      );
+    });
+
+    it('should handle no Interactives gracefully', () => {
+      const message = { type: 'test' };
+
+      // Should not throw
+      expect(() => avatar.onMessage(message)).not.toThrow();
+
+      expect(mockApp.sendMessageToInteractive).not.toHaveBeenCalled();
+    });
+
+    it('should support multiplexing (same user, multiple devices)', () => {
+      // Simulate same user on laptop and phone
+      const laptop = new Interactive('socket-laptop', 'session-1', 'user-1');
+      const phone = new Interactive('socket-phone', 'session-2', 'user-1');
+
+      avatar.addInteractive(laptop);
+      avatar.addInteractive(phone);
+
+      const message = { type: 'output', payload: { text: 'Hello' } };
+
+      avatar.onMessage(message);
+
+      // Both devices receive the message
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        laptop,
+        message
+      );
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        phone,
+        message
+      );
+    });
+
+    it('should work with different message types', () => {
+      avatar.addInteractive(interactive1);
+
+      const outputMsg = { type: 'output', payload: { text: 'Text' } };
+      const errorMsg = { type: 'error', payload: { message: 'Error' } };
+
+      avatar.onMessage(outputMsg);
+      avatar.onMessage(errorMsg);
+
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        interactive1,
+        outputMsg
+      );
+      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+        interactive1,
+        errorMsg
+      );
+    });
+  });
 });

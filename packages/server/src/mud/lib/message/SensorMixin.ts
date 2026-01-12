@@ -11,26 +11,33 @@
  * }
  * ```
  *
- * NOTE: This is a STUB implementation for Phase 2.
- * Full implementation will be done in Phase 3 when we implement the message system.
+ * Phase 3 Implementation:
+ * Provides a hook for objects to be notified when messages are sent to their container.
+ * MessageApi handles the actual routing to clients.
  */
 
-import type { MixinConstructor } from '../mixins/types';
+import type { MixinConstructor } from '../mixins/types.js';
 
 /**
- * Mixin that adds message receiving capabilities (STUB).
- * To be fully implemented in Phase 3.
+ * Mixin that adds message receiving capabilities.
  */
 export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SensorMixin extends Base {
     /**
-     * Receive a message (stub).
-     * To be implemented in Phase 3.
-     * @param message - The message to receive
+     * Notification hook called when a message is sent to this sensor's container.
+     *
+     * Default implementation does nothing.
+     * Subclasses can override to add custom processing (logging, filtering, etc.).
+     *
+     * MessageApi handles the actual delivery to connected clients.
+     *
+     * @param message - The message being sent (typically WebSocketMessage)
      */
-    onMessage(message: any): void {
-      // Stub - implement in Phase 3
-      console.log('Message received:', message);
+    onMessage(message: unknown): void {
+      // Default: no-op
+      // MessageApi handles socket delivery to connected Interactives
+      // Subclasses can override for custom processing
     }
   };
 }
+

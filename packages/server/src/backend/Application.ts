@@ -26,7 +26,9 @@ import { Avatar } from '../mud/obj/Avatar';
 import { User } from '../mud/lib/identity/User';
 import { Player } from '../mud/lib/identity/Player';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
+import { Location } from '../mud/lib/location/Location';
 import { StuffApi } from '../mud/api/stuff';
+import { DEFAULT_STARTING_ROOM_PATH } from '../mud/config/constants';
 
 /**
  * Application - Singleton for game logic coordination.
@@ -67,6 +69,20 @@ export class Application {
   public initialize(backend: IBackend): void {
     this.backend = backend;
     console.log('Application: Initialized with Backend');
+  }
+
+  /**
+   * Send a message to a specific Interactive's client.
+   * This is the public API for game objects to send messages to clients.
+   * Application maintains sole responsibility for Backend communication.
+   *
+   * @param interactive - Interactive to send to
+   * @param message - Message to send
+   */
+  public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
+    if (this.backend && interactive.socketId) {
+      this.backend.sendMessageToSocket(interactive.socketId, message);
+    }
   }
 
   /**
@@ -124,6 +140,14 @@ export class Application {
         const avatar = interactive.currentAvatar!;
         console.log(`Application: User connected with single character - ${avatar.fullName}`);
 
+        // Load starting room from Player data or use default
+        const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
+        const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
+
+        // Move avatar to starting room (using MobileMixin)
+        avatar.move(startingRoom);
+        console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
+
         // Send connection_established message
         this.backend.sendMessageToSocket(socketId, {
           type: 'connection_established',
@@ -140,6 +164,9 @@ export class Application {
             message: `Welcome back, ${avatar.fullName}!`,
           },
         });
+
+        // Send look description automatically
+        this.sendLookDescription(avatar, socketId);
       } else {
         // Multiple players - show character select screen
         const characterList = Array.from(interactive.availableAvatars.values()).map(
@@ -311,6 +338,14 @@ export class Application {
         `Application: Character selected - ${avatar.fullName} (playerId: ${playerId})`
       );
 
+      // Load starting room from Player data or use default
+      const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
+      const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
+
+      // Move avatar to starting room (using MobileMixin)
+      avatar.move(startingRoom);
+      console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
+
       // Send avatar_switched confirmation with character info
       this.backend.sendMessageToSocket(socketId, {
         type: 'avatar_switched',
@@ -340,6 +375,9 @@ export class Application {
           message: `Welcome back, ${avatar.fullName}!`,
         },
       });
+
+      // Send look description automatically
+      this.sendLookDescription(avatar, socketId);
     } catch (error) {
       console.error('Application: Error in handleSelectCharacter:', error);
 
@@ -354,18 +392,92 @@ export class Application {
   }
 
   /**
-   * Handle command message (future - Phase 2).
+   * Send look description for avatar's current location.
+   * Lightweight stub for Phase 3 - full command framework in Phase 4.
+   *
+   * @param avatar - Avatar to get location description for
+   * @param socketId - Socket ID to send to
+   */
+  private sendLookDescription(avatar: Avatar, socketId: string): void {
+    if (!this.backend) return;
+
+    const location = avatar.getEnvironment() as Location;
+
+    if (!location) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'output',
+        payload: {
+          text: 'You are nowhere.',
+        },
+      });
+      return;
+    }
+
+    // Simple stub output using MML (Mud Markup Language)
+    // Full command framework in Phase 4
+    const output = [
+      `<location>${location.name}</location>`,
+      '',
+      location.description,
+      '',
+    ].join('\n');
+
+    this.backend.sendMessageToSocket(socketId, {
+      type: 'output',
+      payload: { text: output },
+    });
+  }
+
+  /**
+   * Handle command message (Phase 3 - lightweight stubs).
+   * Full command framework will be implemented in Phase 4.
    */
   private handleCommandMessage(socketId: string, message: WebSocketMessage): void {
     if (!this.backend) return;
 
-    // Phase 2 will implement command processing
-    this.backend.sendMessageToSocket(socketId, {
-      type: 'output',
-      payload: {
-        message: 'Command system not yet implemented (Phase 2)',
-      },
-    });
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive || !interactive.currentAvatar) {
+      this.backend.sendMessageToSocket(socketId, {
+        type: 'error',
+        payload: { message: 'No active character' },
+      });
+      return;
+    }
+
+    const commandText = (message.payload as { text: string }).text?.trim();
+    if (!commandText) return;
+
+    const avatar = interactive.currentAvatar;
+
+    // STUB: Simple command parsing - Phase 4 will replace with full framework
+    const [verb, ...args] = commandText.split(/\s+/);
+
+    if (!verb) return; // Safety check
+
+    switch (verb.toLowerCase()) {
+      case 'look':
+      case 'l':
+        // Inline stub - no separate LookCommand class needed
+        this.sendLookDescription(avatar, socketId);
+        break;
+
+      case 'say':
+      case "'":
+        // Inline stub using VocalMixin
+        const text = args.join(' ');
+        if (text) {
+          avatar.say(text);
+        }
+        break;
+
+      default:
+        this.backend.sendMessageToSocket(socketId, {
+          type: 'output',
+          payload: {
+            text: `Unknown command: ${verb}\n(Phase 4 will add full command framework)`,
+          },
+        });
+    }
   }
 
   /**

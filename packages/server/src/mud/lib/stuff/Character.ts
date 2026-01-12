@@ -5,14 +5,16 @@
  * and non-player characters (NPCs), enforcing consistent interface while allowing
  * different implementations for progression logic.
  *
- * Composition: NamedMixin + GenderedMixin + MortalMixin + SensorMixin + VocalMixin + Agent
+ * Composition: MobileMixin + ContainableMixin + VocalMixin + SensorMixin + MortalMixin + GenderedMixin + NamedMixin + Agent
  *
  * Key Design Points:
  * - NO stat fields in Character itself (xp, level are PC-specific, deferred)
  * - hp/maxHp come from MortalMixin
  * - firstName/lastName/fullName come from NamedMixin
  * - pronouns come from GenderedMixin
- * - Message capabilities from Sensor/Vocal mixins (stubs for Phase 2)
+ * - Message capabilities from Sensor/Vocal mixins
+ * - Movement capability from MobileMixin (move())
+ * - Container placement from ContainableMixin (setEnvironment/getEnvironment)
  *
  * Runtime-only class (no MongoDB collection).
  */
@@ -21,11 +23,16 @@ import { Agent } from './Agent';
 import { NamedMixin } from '../mixins/NamedMixin';
 import { GenderedMixin } from '../mixins/GenderedMixin';
 import { MortalMixin } from '../mixins/MortalMixin';
+import { ContainableMixin } from '../mixins/ContainableMixin';
+import { MobileMixin } from '../mixins/MobileMixin';
 import { SensorMixin } from '../message/SensorMixin';
 import { VocalMixin } from '../message/VocalMixin';
 
-// Compose mixins: Named + Gendered + Mortal + Sensor + Vocal + Agent
-const CharacterBase = VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent)))));
+// Compose mixins: Mobile + Containable + Vocal + Sensor + Mortal + Gendered + Named + Agent
+// Order matters: ContainableMixin before MobileMixin (MobileMixin uses setEnvironment/getEnvironment)
+const CharacterBase = MobileMixin(
+  ContainableMixin(VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent))))))
+);
 
 /**
  * Character abstract class - base for all sentient beings.

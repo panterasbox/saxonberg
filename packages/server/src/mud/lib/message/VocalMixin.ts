@@ -11,27 +11,46 @@
  * }
  * ```
  *
- * NOTE: This is a STUB implementation for Phase 2.
- * Full implementation will be done in Phase 3 when we implement the message system.
+ * Phase 3 Implementation:
+ * Broadcasts messages using MML (Mud Markup Language) formatting.
+ * Delegates to MessageApi for distribution to all sensors in the container.
  */
 
-import type { MixinConstructor } from '../mixins/types';
+import type { MixinConstructor } from '../mixins/types.js';
+import { MessageApi } from '../../api/MessageApi.js';
 
 /**
- * Mixin that adds message sending capabilities (STUB).
- * To be fully implemented in Phase 3.
+ * Mixin that adds message sending capabilities.
  */
 export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VocalMixin extends Base {
     /**
-     * Say something (stub).
-     * To be implemented in Phase 3.
+     * Say something. Broadcasts to all sensors in the same container.
+     *
+     * Applied to objects that can speak (e.g., Avatar/Character).
+     * Delegates to MessageApi for distribution to all sensors in environment.
+     *
+     * Uses MML (Mud Markup Language) tags:
+     * - <name> - Character names
+     * - <speech> - Spoken text
+     *
      * @param text - The text to say
      */
     say(text: string): void {
-      // Stub - implement in Phase 3
-      // Will need fullName from NamedMixin in the future
-      console.log(`[STUB] ${text}`);
+      // Get the speaker's full name (from NamedMixin)
+      const fullName = 'fullName' in this ? (this as any).fullName : 'Someone';
+
+      // Create MML-formatted message
+      const message = {
+        type: 'output',
+        payload: {
+          text: `<name>${fullName}</name> says, <speech>"${text}"</speech>`,
+        },
+      };
+
+      // Delegate to API layer for message distribution
+      MessageApi.messageContainer(this, message);
     }
   };
 }
+
