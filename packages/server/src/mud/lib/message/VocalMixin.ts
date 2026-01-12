@@ -27,6 +27,14 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'VocalMixin';
 
+    // Command provider (Phase 5)
+    static commandProvider = {
+      self: ['say.yaml', 'tell.yaml'],
+      environment: [],
+      inventory: [],
+      colocated: [],
+    };
+
     /**
      * Say something. Broadcasts to all sensors in the same container.
      *

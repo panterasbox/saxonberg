@@ -1,0 +1,10 @@
+verbs: [say, "'"]
+controller: SayController
+description: "Say something to everyone in the room"
+syntax:
+  - pattern: "<message...>"
+    description: "Broadcast message to room"
+    fields:
+      message:
+        type: text
+        required: true

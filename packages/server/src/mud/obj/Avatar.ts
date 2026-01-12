@@ -22,6 +22,7 @@ import { PersistApi } from '../api/persist';
 import { Player } from '../lib/identity/Player';
 import type { Interactive } from '../lib/connection/Interactive';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
+import { ApplicationInstance } from '../../backend/ApplicationInstance';
 
 /**
  * Template data for Avatar (from domain collection).
@@ -59,7 +60,6 @@ export class Avatar extends Character {
    * @internal
    */
   private static getApplicationInstance(): any {
-    const { ApplicationInstance } = require('../../backend/ApplicationInstance');
     return ApplicationInstance.get();
   }
 
