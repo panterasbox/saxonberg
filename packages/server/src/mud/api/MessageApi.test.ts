@@ -3,13 +3,13 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MessageApi } from './MessageApi.js';
-import { Location } from '../lib/location/Location.js';
-import { MobileMixin } from '../lib/mixins/MobileMixin.js';
-import { ContainableMixin } from '../lib/mixins/ContainableMixin.js';
-import { SensorMixin } from '../lib/message/SensorMixin.js';
-import { Stuff } from '../lib/stuff/Stuff.js';
-import { StuffApi } from './stuff.js';
+import { MessageApi } from './MessageApi';
+import { Location } from '../lib/location/Location';
+import { MobileMixin } from '../lib/mixins/MobileMixin';
+import { ContainableMixin } from '../lib/mixins/ContainableMixin';
+import { SensorMixin } from '../lib/message/SensorMixin';
+import { Stuff } from '../lib/stuff/Stuff';
+import { StuffApi } from './stuff';
 
 // Create a test sensor class
 const SensorBase = SensorMixin(ContainableMixin(Stuff));

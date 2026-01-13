@@ -3,11 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MobileMixin } from './MobileMixin.js';
-import { ContainableMixin } from './ContainableMixin.js';
-import { Stuff } from '../stuff/Stuff.js';
-import { Location } from '../location/Location.js';
-import { StuffApi } from '../../api/stuff.js';
+import { MobileMixin } from './MobileMixin';
+import { ContainableMixin } from './ContainableMixin';
+import { Stuff } from '../stuff/Stuff';
+import { Location } from '../location/Location';
+import { StuffApi } from '../../api/stuff';
 
 // Create a test class with both ContainableMixin and MobileMixin
 const MobileObjectBase = MobileMixin(ContainableMixin(Stuff));

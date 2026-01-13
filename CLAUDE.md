@@ -491,6 +491,24 @@ The architecture anticipates:
 - TypeScript recommended rules
 - React and React Hooks recommended rules
 
+**Import Statement Style**:
+- **NEVER use `.js` extensions in import statements** - This is an anti-pattern
+  - TypeScript with `NodeNext` module resolution handles extensions automatically
+  - Adding `.js` extensions manually creates maintenance burden and inconsistency
+  - Violates the principle of letting the build system handle module resolution
+  - Example of INCORRECT usage:
+    ```typescript
+    import { Stuff } from '../stuff/Stuff.js';        // ❌ WRONG
+    import { Location } from './Location.js';          // ❌ WRONG
+    ```
+  - Example of CORRECT usage:
+    ```typescript
+    import { Stuff } from '../stuff/Stuff';            // ✅ CORRECT
+    import { Location } from './Location';             // ✅ CORRECT
+    ```
+- Use extension-free imports for all TypeScript files (`.ts`, `.tsx`)
+- Let the TypeScript compiler and build system handle module resolution
+
 **File Naming Conventions**:
 - **Mixin files**: `Propertied.ts`, `Detailed.ts`, `Visible.ts` (NO "Mixin" suffix in filename)
   - The exported function is still named `PropertiedMixin()`, `DetailedMixin()`, etc.

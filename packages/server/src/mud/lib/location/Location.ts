@@ -32,9 +32,9 @@
  * not Location methods.
  */
 
-import { Stuff } from '../stuff/Stuff.js';
-import { VisibleMixin } from '../mixins/VisibleMixin.js';
-import { ContainerMixin } from '../mixins/ContainerMixin.js';
+import { Stuff } from '../stuff/Stuff';
+import { VisibleMixin } from '../mixins/VisibleMixin';
+import { ContainerMixin } from '../mixins/ContainerMixin';
 
 // Compose Location base class with mixins
 const LocationBase = ContainerMixin(VisibleMixin(Stuff));

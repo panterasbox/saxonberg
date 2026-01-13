@@ -33,9 +33,9 @@
  * behaviors (containers, wearable, etc.), compose additional mixins or extend Thing.
  */
 
-import { Stuff } from './Stuff.js';
-import { VisibleMixin } from '../mixins/VisibleMixin.js';
-import { ContainableMixin } from '../mixins/ContainableMixin.js';
+import { Stuff } from './Stuff';
+import { VisibleMixin } from '../mixins/VisibleMixin';
+import { ContainableMixin } from '../mixins/ContainableMixin';
 
 // Compose Thing base class with mixins
 const ThingBase = ContainableMixin(VisibleMixin(Stuff));

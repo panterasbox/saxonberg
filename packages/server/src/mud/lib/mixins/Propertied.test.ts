@@ -9,10 +9,10 @@ import {
   PropOperations,
   type PropAccessCheck,
   type PropValueMask,
-} from './Propertied.js';
-import { Stuff } from '../stuff/Stuff.js';
-import { StuffApi } from '../../api/stuff.js';
-import { MixinApi } from '../../api/mixin.js';
+} from './Propertied';
+import { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 
 // Test class with PropertiedMixin
 class PropertiedThing extends PropertiedMixin(Stuff) {

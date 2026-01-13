@@ -108,19 +108,19 @@ export interface Perceptible {
  * Detailed interface - provides hierarchical detail system.
  * Re-exported from Detailed for type checking.
  */
-export type { Detailed } from './Detailed.js';
+export type { Detailed } from './Detailed';
 
 /**
  * Propertied interface - provides controlled dynamic properties.
  * Re-exported from Propertied for type checking.
  */
-export type { Propertied } from './Propertied.js';
+export type { Propertied } from './Propertied';
 
 /**
  * CartesianCoordinates interface - provides 3D grid positioning.
  * TODO: Re-export from CartesianCoordinates.ts when implemented
  */
-// export type { CartesianCoordinates } from './CartesianCoordinates.js';
+// export type { CartesianCoordinates } from './CartesianCoordinates';
 
 /**
  * Mixin name constants.

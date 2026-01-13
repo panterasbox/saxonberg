@@ -24,7 +24,7 @@
  * - Individual sensors (e.g., Avatar) handle their own delivery mechanisms
  */
 
-import type { Stuff } from '../lib/stuff/Stuff.js';
+import type { Stuff } from '../lib/stuff/Stuff';
 
 /**
  * Interface for objects that can receive messages (have SensorMixin).

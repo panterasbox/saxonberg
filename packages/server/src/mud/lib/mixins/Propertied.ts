@@ -49,7 +49,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 import { nanoid } from 'nanoid';
 
 /**

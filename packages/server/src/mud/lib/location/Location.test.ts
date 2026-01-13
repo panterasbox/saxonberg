@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Location } from './Location.js';
-import { StuffApi } from '../../api/stuff.js';
+import { Location } from './Location';
+import { StuffApi } from '../../api/stuff';
 
 describe('Location', () => {
   let location: Location;

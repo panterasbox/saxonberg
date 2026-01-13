@@ -31,7 +31,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types.js';
+import type { MixinConstructor } from './types';
 
 export const PATH_DELIM = '.';
 

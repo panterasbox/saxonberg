@@ -3,10 +3,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DetailedMixin } from './Detailed.js';
-import { Stuff } from '../stuff/Stuff.js';
-import { StuffApi } from '../../api/stuff.js';
-import { MixinApi } from '../../api/mixin.js';
+import { DetailedMixin } from './Detailed';
+import { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 
 // Test class with DetailedMixin
 class DetailedThing extends DetailedMixin(Stuff) {

@@ -24,10 +24,10 @@
  * - setEnvironment()/addToInventory() - Low level (called by move() only)
  */
 
-import type { MixinConstructor } from './types.js';
-import type { Location } from '../location/Location.js';
-import type { Stuff } from '../stuff/Stuff.js';
-import { ContainmentApi } from '../../api/containment.js';
+import type { MixinConstructor } from './types';
+import type { Location } from '../location/Location';
+import type { Stuff } from '../stuff/Stuff';
+import { ContainmentApi } from '../../api/containment';
 
 /**
  * Mixin that adds locomotion capability for mobile entities.
