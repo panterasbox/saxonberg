@@ -1,0 +1,297 @@
+/**
+ * DetailedMixin - Provides hierarchical detail system for objects
+ *
+ * Allows objects to have examinable sub-parts with full hierarchical recursion.
+ * Supports multiple IDs (aliases) per detail and nested parent/child relationships.
+ *
+ * Features:
+ * - Hierarchical Map<DetailId, Detail> structure
+ * - Multiple IDs per detail (alias support via Set<DetailId>)
+ * - Parent/child relationships with nested details
+ * - Dot notation support for path resolution
+ * - Recursive queries via getDeepDetailIds()
+ *
+ * Usage:
+ * ```typescript
+ * // Add top-level detail with alias
+ * door.setDetail(["handle", "doorknob"], "A brass handle, tarnished with age.");
+ *
+ * // Add nested detail (child of "handle")
+ * door.setDetail(["lock", "keyhole"], "A small keyhole beneath the handle.", "handle");
+ *
+ * // Get details
+ * door.getDetail("handle");          // → "A brass handle..."
+ * door.getDetail("lock", "handle");  // → "A small keyhole..."
+ *
+ * // Get all IDs at top level
+ * door.getDetailIds();               // → ["handle", "doorknob"]
+ *
+ * // Get all IDs recursively from "handle"
+ * door.getDeepDetailIds("handle");   // → ["lock", "keyhole"]
+ * ```
+ */
+
+import type { MixinConstructor } from './types.js';
+
+export const PATH_DELIM = '.';
+
+export type DetailId = string;
+export type DetailMap = Map<DetailId, Detail>;
+
+/**
+ * Detail entry with hierarchical structure.
+ */
+export interface Detail {
+  /** Multiple IDs (aliases) for same detail */
+  ids: Set<DetailId>;
+  /** Description text */
+  description: string;
+  /** Nested child details (optional) */
+  details: Map<DetailId, Detail> | undefined;
+}
+
+/**
+ * Interface for objects with hierarchical details.
+ */
+export interface Detailed {
+  /** Persistent hierarchical detail map */
+  details: Map<DetailId, Detail>;
+
+  /** Get single detail description */
+  getDetail(id: DetailId, parent?: DetailId): string | null;
+
+  /** Get all detail IDs at level */
+  getDetailIds(parent?: DetailId): DetailId[] | null;
+
+  /** Get all detail IDs recursively */
+  getDeepDetailIds(parent?: DetailId): string[] | null;
+
+  /** Set detail(s) - supports multiple IDs (aliases) */
+  setDetail(ids: DetailId[], description: string, parent?: DetailId): number;
+
+  /** Remove detail(s) */
+  removeDetail(ids: DetailId[], parent?: DetailId): number;
+}
+
+/**
+ * Mixin that adds hierarchical detail system to objects.
+ */
+export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class DetailedMixin extends Base implements Detailed {
+    // Mixin marker for detection by MixinApi
+    static _mixinName = 'DetailedMixin';
+
+    /**
+     * Persistent fields declared by this mixin.
+     * Used by PersistApi for automatic synchronization.
+     */
+    static persistentFields = ['details'];
+
+    /**
+     * Hierarchical detail map.
+     */
+    details: DetailMap = new Map();
+
+    /**
+     * Get single detail description.
+     */
+    getDetail(id: DetailId, parent?: DetailId): string | null {
+      const resolved = this.resolveParent(parent, id);
+      if (!resolved) {
+        return null;
+      }
+      const [details, resolvedId] = resolved;
+      if (!resolvedId || !details?.has(resolvedId)) {
+        return null;
+      }
+      const detail = details.get(resolvedId);
+      return detail?.description ?? null;
+    }
+
+    /**
+     * Get all detail IDs at level.
+     */
+    getDetailIds(parent?: DetailId): DetailId[] | null {
+      const resolved = this.resolveParent(parent);
+      if (!resolved) {
+        return null;
+      }
+      const [details] = resolved;
+      if (!details) {
+        return null;
+      }
+      return Array.from(details.keys());
+    }
+
+    /**
+     * Get all detail IDs recursively.
+     */
+    getDeepDetailIds(parent?: DetailId): string[] | null {
+      const resolved = this.resolveParent(parent);
+      if (!resolved) {
+        return null;
+      }
+      const [details] = resolved;
+      if (!details) {
+        return null;
+      }
+      return this.resolveChildIds(details, '');
+    }
+
+    /**
+     * Set detail(s) - supports multiple IDs (aliases).
+     */
+    setDetail(ids: DetailId[], description: string, parent?: DetailId): number {
+      let result = 0;
+      const detail = this.newOrExistingDetail(description);
+
+      for (const id of ids) {
+        const resolved = this.resolveParent(parent, id);
+        if (!resolved) {
+          continue;
+        }
+        const [details, resolvedId] = resolved;
+        if (!resolvedId || !details || details.has(resolvedId)) {
+          continue;
+        }
+
+        detail.ids.add(resolvedId);
+        details.set(resolvedId, detail);
+        result++;
+      }
+
+      return result;
+    }
+
+    /**
+     * Remove detail(s).
+     */
+    removeDetail(ids: DetailId[], parent?: DetailId): number {
+      let result = 0;
+
+      for (const id of ids) {
+        const resolved = this.resolveParent(parent, id);
+        if (!resolved) {
+          continue;
+        }
+        const [details, resolvedId] = resolved;
+        if (!resolvedId || !details?.has(resolvedId)) {
+          continue;
+        }
+
+        const detail = details.get(resolvedId);
+        detail?.ids.delete(resolvedId);
+        details.delete(resolvedId);
+        result++;
+      }
+
+      return result;
+    }
+
+    /**
+     * Internal: Get parent details by path.
+     * Returns the Map that CONTAINS the last element of the path.
+     * For example, getParentDetails(["a", "b"]) returns the details Map
+     * inside "a", which contains "b".
+     */
+    private getParentDetails(path: DetailId[]): DetailMap | undefined {
+      let details: DetailMap | undefined = this.details;
+      // Navigate to path.length - 1 (the parent of the last element)
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!details || !details.has(path[i])) {
+          return undefined;
+        }
+        const detail = details.get(path[i]);
+        if (!detail) {
+          return undefined;
+        }
+        // Initialize details Map if not present
+        if (!detail.details) {
+          detail.details = new Map();
+        }
+        details = detail.details;
+      }
+      return details;
+    }
+
+    /**
+     * Internal: Resolve parent context and ID.
+     * Supports dot notation: "parent.child" → parent="parent", id="child"
+     */
+    private resolveParent(
+      parent?: DetailId,
+      id?: DetailId,
+    ): [DetailMap?, DetailId?] | undefined {
+      let details: DetailMap | undefined = this.details;
+
+      if (id) {
+        const pos = id.lastIndexOf(PATH_DELIM);
+        if (pos >= 0) {
+          if (parent && parent.length) {
+            parent = parent + PATH_DELIM + id.substring(0, pos);
+          } else {
+            parent = id.substring(0, pos);
+          }
+          id = id.substring(pos + 1);
+        }
+      }
+
+      if (parent && parent.length) {
+        const path = parent.split(PATH_DELIM);
+        details = this.getParentDetails(path);
+        if (!details) {
+          return undefined;
+        }
+
+        // Get parent detail and ensure it has a details Map
+        const parentDetail = details.get(path[path.length - 1]);
+        if (!parentDetail) {
+          return undefined;
+        }
+
+        // Initialize details Map if not present
+        if (!parentDetail.details) {
+          parentDetail.details = new Map();
+        }
+
+        details = parentDetail.details;
+      }
+
+      return [details, id];
+    }
+
+    /**
+     * Internal: Recursively collect all child IDs.
+     */
+    private resolveChildIds(details: DetailMap, parent: DetailId): DetailId[] {
+      const result: string[] = [];
+
+      details.forEach((detail, id) => {
+        result.push(id);
+        const path = parent + (parent.length ? PATH_DELIM : '') + id;
+        if (detail.details) {
+          result.push(...this.resolveChildIds(detail.details, path));
+        }
+      });
+
+      return result;
+    }
+
+    /**
+     * Internal: Get or create detail with description.
+     * Allows detail reuse when multiple IDs share same description.
+     */
+    private newOrExistingDetail(description: string): Detail {
+      for (const [, detail] of this.details.entries()) {
+        if (detail.description === description) {
+          return detail;
+        }
+      }
+      return {
+        ids: new Set(),
+        description,
+        details: undefined,
+      };
+    }
+  };
+}

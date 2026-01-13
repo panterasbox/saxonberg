@@ -491,6 +491,27 @@ The architecture anticipates:
 - TypeScript recommended rules
 - React and React Hooks recommended rules
 
+**File Naming Conventions**:
+- **Mixin files**: `Propertied.ts`, `Detailed.ts`, `Visible.ts` (NO "Mixin" suffix in filename)
+  - The exported function is still named `PropertiedMixin()`, `DetailedMixin()`, etc.
+  - The internal class name marker is still `_mixinName = 'PropertiedMixin'`
+  - Test files: `Propertied.test.ts`, `Detailed.test.ts` (matching the source filename)
+  - Example:
+    ```typescript
+    // File: src/mud/lib/mixins/Propertied.ts
+    export function PropertiedMixin<TBase>(Base: TBase) {
+      return class PropertiedMixin extends Base {
+        static _mixinName = 'PropertiedMixin';
+        // ...
+      }
+    }
+
+    // File: src/mud/lib/mixins/Propertied.test.ts
+    import { PropertiedMixin } from './Propertied.js';
+    ```
+- **Class files**: Match the class name (e.g., `Avatar.ts`, `Player.ts`, `Thing.ts`)
+- **API files**: Lowercase with .ts extension (e.g., `stuff.ts`, `player.ts`, `mixin.ts`)
+
 ### Critical Architectural Principles
 
 1. **Separation of Concerns**: Backend (I/O only) vs Application (logic) vs Mudlib (domain)

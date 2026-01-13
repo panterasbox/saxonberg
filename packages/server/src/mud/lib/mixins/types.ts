@@ -105,6 +105,24 @@ export interface Perceptible {
 }
 
 /**
+ * Detailed interface - provides hierarchical detail system.
+ * Re-exported from Detailed for type checking.
+ */
+export type { Detailed } from './Detailed.js';
+
+/**
+ * Propertied interface - provides controlled dynamic properties.
+ * Re-exported from Propertied for type checking.
+ */
+export type { Propertied } from './Propertied.js';
+
+/**
+ * CartesianCoordinates interface - provides 3D grid positioning.
+ * TODO: Re-export from CartesianCoordinates.ts when implemented
+ */
+// export type { CartesianCoordinates } from './CartesianCoordinates.js';
+
+/**
  * Mixin name constants.
  * Use these constants instead of string literals when checking for mixins.
  */
@@ -118,6 +136,9 @@ export const Mixins = {
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
   Perceptible: 'PerceptibleMixin',
+  Detailed: 'DetailedMixin',
+  Propertied: 'PropertiedMixin',
+  CartesianCoordinates: 'CartesianCoordinatesMixin',
 } as const;
 
 /**
