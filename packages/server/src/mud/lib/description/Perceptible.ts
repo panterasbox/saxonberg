@@ -35,6 +35,17 @@ import type { MixinConstructor } from '../mixin-types';
 /**
  * Mixin that adds perceptibility (keywords for identification)
  */
+/**
+ * Public shape provided by PerceptibleMixin.
+ */
+export interface Perceptible {
+  getKeywords(): string[];
+  addKeyword(keyword: string): void;
+  removeKeyword(keyword: string): boolean;
+  hasKeyword(keyword: string): boolean;
+  setKeywords(keywords: string[]): void;
+}
+
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PerceptibleMixin extends Base {
     // Mixin marker for detection by MixinApi

@@ -28,6 +28,17 @@ import type { MixinConstructor } from '../mixin-types';
  * Also provides inventory management commands (inventory, get, drop)
  * as "self" commands for any object with ContainerMixin.
  */
+/**
+ * Public shape provided by ContainerMixin.
+ */
+export interface Container {
+  inventory: Set<any>;
+  addToInventory(item: any): void;
+  removeFromInventory(item: any): boolean;
+  hasInInventory(item: any): boolean;
+  getInventoryContents(): any[];
+}
+
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi

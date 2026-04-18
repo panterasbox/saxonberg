@@ -23,6 +23,15 @@ import type { MixinConstructor } from '../mixin-types';
 /**
  * Mixin that adds environment/containment properties and methods.
  */
+/**
+ * Public shape provided by ContainableMixin.
+ */
+export interface Containable {
+  environment: any | null;
+  setEnvironment(container: any | null): void;
+  getEnvironment(): any | null;
+}
+
 export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ContainableMixin extends Base {
     // Mixin marker for detection by MixinApi

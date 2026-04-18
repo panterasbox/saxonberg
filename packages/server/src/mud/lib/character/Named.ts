@@ -19,6 +19,15 @@ import type { MixinConstructor } from '../mixin-types';
 /**
  * Mixin that adds name properties.
  */
+/**
+ * Public shape provided by NamedMixin.
+ */
+export interface Named {
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
 export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class NamedMixin extends Base {
     // Mixin marker for detection by MixinApi

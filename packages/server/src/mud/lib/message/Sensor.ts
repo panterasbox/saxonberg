@@ -21,6 +21,13 @@ import type { MixinConstructor } from '../mixin-types';
 /**
  * Mixin that adds message receiving capabilities.
  */
+/**
+ * Public shape provided by SensorMixin.
+ */
+export interface Sensor {
+  onMessage(message: any): void;
+}
+
 export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SensorMixin extends Base {
     // Mixin marker for detection by MixinApi

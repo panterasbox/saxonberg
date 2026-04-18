@@ -27,6 +27,16 @@ import type { MixinConstructor } from '../mixin-types';
  * - When colocated with someone (they can look at it in the same location)
  * - On self (you can look at yourself)
  */
+/**
+ * Public shape provided by VisibleMixin.
+ */
+export interface Visible {
+  shortDescription: string;
+  longDescription: string;
+  getShort(): string;
+  getLong(): string;
+}
+
 export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VisibleMixin extends Base {
     // Mixin marker for detection by MixinApi

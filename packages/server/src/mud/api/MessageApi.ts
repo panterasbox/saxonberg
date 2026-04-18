@@ -25,13 +25,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-
-/**
- * Interface for objects that can receive messages (have SensorMixin).
- */
-interface Sensor {
-  onMessage: (msg: unknown) => void;
-}
+import type { Sensor } from '../lib/message/Sensor';
 
 /**
  * Message distribution and routing API.

@@ -22,6 +22,13 @@ import { MessageApi } from '../../api/MessageApi';
 /**
  * Mixin that adds message sending capabilities.
  */
+/**
+ * Public shape provided by VocalMixin.
+ */
+export interface Vocal {
+  say(text: string): void;
+}
+
 export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class VocalMixin extends Base {
     // Mixin marker for detection by MixinApi
