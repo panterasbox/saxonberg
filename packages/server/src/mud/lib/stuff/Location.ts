@@ -19,7 +19,7 @@
  * are also available for uses that want the standard Visible shape.
  */
 
-import { Place } from '../stuff/Place';
+import { Place } from './Place';
 import { VisibleMixin } from '../description/Visible';
 
 const LocationBase = VisibleMixin(Place);

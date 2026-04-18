@@ -27,7 +27,7 @@ import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
 import { Player } from '../mud/lib/identity/Player';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
-import { Location } from '../mud/lib/spatial/Location';
+import { Location } from '../mud/lib/stuff/Location';
 import type { CommandContext } from '../mud/lib/command/models';
 import { nanoid } from 'nanoid';
 

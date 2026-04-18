@@ -25,7 +25,7 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
-import type { Location } from './Location';
+import type { Location } from '../stuff/Location';
 import type { Stuff } from '../stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 

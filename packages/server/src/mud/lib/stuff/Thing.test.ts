@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Thing } from './Thing';
 import { StuffApi } from '../../api/stuff';
-import { Location } from '../spatial/Location';
+import { Location } from './Location';
 import { ContainmentApi } from '../../api/containment';
 
 describe('Thing', () => {

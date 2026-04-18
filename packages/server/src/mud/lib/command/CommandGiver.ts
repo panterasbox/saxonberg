@@ -12,7 +12,7 @@
 
 import type { MixinConstructor } from '../mixin-types';
 import type { Avatar } from '../../obj/Avatar';
-import type { Location } from '../spatial/Location';
+import type { Location } from '../stuff/Location';
 import { CommandLineApi } from '../../api/command-line';
 import { CommandApi } from '../../api/command';
 import { MqlApi } from '../../api/mql';

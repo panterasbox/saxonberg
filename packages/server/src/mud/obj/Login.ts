@@ -12,7 +12,7 @@
  */
 
 import { Idea } from '../lib/stuff/Idea';
-import { Location } from '../lib/spatial/Location';
+import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
