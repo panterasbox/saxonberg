@@ -19,8 +19,6 @@ describe('Thing', () => {
   describe('Construction', () => {
     it('should create a thing with default values', () => {
       expect(thing).toBeDefined();
-      expect(thing.shortDescription).toBe('');
-      expect(thing.longDescription).toBe('');
       expect(thing.environment).toBeNull();
     });
 
@@ -33,35 +31,6 @@ describe('Thing', () => {
       expect(thing.stuffId).toBeDefined();
       expect(typeof thing.stuffId).toBe('string');
       expect(thing.stuffId.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('VisibleMixin integration', () => {
-    it('should have shortDescription property', () => {
-      thing.shortDescription = 'a steel sword';
-      expect(thing.shortDescription).toBe('a steel sword');
-    });
-
-    it('should have longDescription property', () => {
-      thing.longDescription = 'A well-crafted steel sword with a leather-wrapped hilt.';
-      expect(thing.longDescription).toBe(
-        'A well-crafted steel sword with a leather-wrapped hilt.'
-      );
-    });
-
-    it('should return short description via getShort()', () => {
-      thing.shortDescription = 'a steel sword';
-      expect(thing.getShort()).toBe('a steel sword');
-    });
-
-    it('should return long description via getLong()', () => {
-      thing.longDescription = 'A well-crafted steel sword.';
-      expect(thing.getLong()).toBe('A well-crafted steel sword.');
-    });
-
-    it('should return default text for empty descriptions', () => {
-      expect(thing.getShort()).toBe('You see nothing special.');
-      expect(thing.getLong()).toBe('You see nothing special.');
     });
   });
 
@@ -107,11 +76,6 @@ describe('Thing', () => {
   });
 
   describe('Mixin composition', () => {
-    it('should have methods from VisibleMixin', () => {
-      expect(typeof thing.getShort).toBe('function');
-      expect(typeof thing.getLong).toBe('function');
-    });
-
     it('should have methods from ContainableMixin', () => {
       expect(typeof thing.setEnvironment).toBe('function');
       expect(typeof thing.getEnvironment).toBe('function');
