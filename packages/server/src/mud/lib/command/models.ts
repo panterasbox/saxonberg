@@ -11,7 +11,7 @@
 
 import type { Avatar } from '../../obj/Avatar';
 import type { Interactive } from '../connection/Interactive';
-import type { Location } from '../location/Location';
+import type { Location } from '../spatial/Location';
 import type { Stuff } from '../stuff/Stuff';
 
 /**

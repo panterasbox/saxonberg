@@ -142,8 +142,6 @@ describe('Avatar', () => {
       expect(avatar).toHaveProperty('firstName');
       expect(avatar).toHaveProperty('lastName');
       expect(avatar).toHaveProperty('pronouns');
-      expect(avatar).toHaveProperty('hp');
-      expect(avatar).toHaveProperty('maxHp');
     });
 
     it('should have Named mixin fullName getter', () => {
@@ -152,11 +150,6 @@ describe('Avatar', () => {
       expect(avatar.fullName).toBe('Jane Smith');
     });
 
-    it('should have Mortal mixin methods', () => {
-      expect(typeof avatar.isDead).toBe('function');
-      expect(typeof avatar.takeDamage).toBe('function');
-      expect(typeof avatar.heal).toBe('function');
-    });
   });
 
   describe('multiplexing support', () => {

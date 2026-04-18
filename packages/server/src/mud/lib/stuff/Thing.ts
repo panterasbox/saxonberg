@@ -34,8 +34,8 @@
  */
 
 import { Stuff } from './Stuff';
-import { VisibleMixin } from '../mixins/VisibleMixin';
-import { ContainableMixin } from '../mixins/ContainableMixin';
+import { VisibleMixin } from '../description/Visible';
+import { ContainableMixin } from '../containment/Containable';
 
 // Compose Thing base class with mixins
 const ThingBase = ContainableMixin(VisibleMixin(Stuff));

@@ -39,17 +39,6 @@ export interface Gendered {
 }
 
 /**
- * Mortal interface - provides health/hitpoints.
- */
-export interface Mortal {
-  hp: number;
-  maxHp: number;
-  isDead(): boolean;
-  takeDamage(amount: number): void;
-  heal(amount: number): void;
-}
-
-/**
  * Container interface - provides inventory management.
  */
 export interface Container {
@@ -108,13 +97,13 @@ export interface Perceptible {
  * Detailed interface - provides hierarchical detail system.
  * Re-exported from Detailed for type checking.
  */
-export type { Detailed } from './Detailed';
+export type { Detailed } from './description/Detailed';
 
 /**
  * Propertied interface - provides controlled dynamic properties.
  * Re-exported from Propertied for type checking.
  */
-export type { Propertied } from './Propertied';
+export type { Propertied } from './stuff/Propertied';
 
 /**
  * CartesianCoordinates interface - provides 3D grid positioning.
@@ -129,7 +118,6 @@ export type { Propertied } from './Propertied';
 export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
-  Mortal: 'MortalMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
   Visible: 'VisibleMixin',

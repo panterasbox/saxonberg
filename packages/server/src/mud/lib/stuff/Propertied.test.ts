@@ -11,7 +11,7 @@ import {
   type PropOperation,
   type PropValueMask,
 } from './Propertied';
-import { Stuff } from '../stuff/Stuff';
+import { Stuff } from './Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 

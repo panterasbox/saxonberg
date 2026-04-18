@@ -16,7 +16,7 @@
  * MessageApi handles the actual routing to clients.
  */
 
-import type { MixinConstructor } from '../mixins/types';
+import type { MixinConstructor } from '../mixin-types';
 
 /**
  * Mixin that adds message receiving capabilities.

@@ -25,7 +25,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/saxonb
  */
 const startingRoomTemplate = {
   path: '/domain/void',
-  class: '/lib/location/Location',
+  class: '/lib/spatial/Location',
   data: {
     name: 'The Void',
     description:

@@ -30,7 +30,7 @@
  * - keywords: Array (auto-persisted)
  */
 
-import type { MixinConstructor } from './types';
+import type { MixinConstructor } from '../mixin-types';
 
 /**
  * Mixin that adds perceptibility (keywords for identification)

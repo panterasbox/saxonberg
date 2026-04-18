@@ -272,8 +272,9 @@ packages/server/src/
 │   │   ├── api/
 │   │   │   ├── StuffApi.test.ts
 │   │   │   └── MessageApi.test.ts
-│   │   ├── mixins/
-│   │   │   ├── Named.test.ts
+│   │   ├── description/
+│   │   │   └── Named.test.ts
+│   │   ├── containment/
 │   │   │   └── Container.test.ts
 │   │   └── stuff/
 │   │       └── Stuff.test.ts

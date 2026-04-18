@@ -30,14 +30,6 @@ describe('Character', () => {
       expect(character).toHaveProperty('pronouns');
     });
 
-    it('should have Mortal mixin properties', () => {
-      expect(character).toHaveProperty('hp');
-      expect(character).toHaveProperty('maxHp');
-      expect(typeof character.isDead).toBe('function');
-      expect(typeof character.takeDamage).toBe('function');
-      expect(typeof character.heal).toBe('function');
-    });
-
     it('should have Sensor mixin methods (stub)', () => {
       expect(typeof character.onMessage).toBe('function');
     });
@@ -56,31 +48,6 @@ describe('Character', () => {
 
     it('should handle empty names', () => {
       expect(character.fullName).toBe('Unnamed');
-    });
-  });
-
-  describe('Mortal mixin integration', () => {
-    it('should start with 100 hp', () => {
-      expect(character.hp).toBe(100);
-      expect(character.maxHp).toBe(100);
-      expect(character.isDead()).toBe(false);
-    });
-
-    it('should take damage correctly', () => {
-      character.takeDamage(30);
-      expect(character.hp).toBe(70);
-      expect(character.isDead()).toBe(false);
-    });
-
-    it('should die when hp reaches 0', () => {
-      character.takeDamage(100);
-      expect(character.isDead()).toBe(true);
-    });
-
-    it('should heal correctly', () => {
-      character.hp = 50;
-      character.heal(20);
-      expect(character.hp).toBe(70);
     });
   });
 

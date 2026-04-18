@@ -2,7 +2,7 @@
  * Avatar - Runtime player character presence in the game world
  *
  * Represents a Player's active presence when connected.
- * Extends Character (which provides: Named, Gendered, Mortal, Sensor, Vocal mixins).
+ * Extends Character (which provides: Named, Gendered, Sensor, Vocal mixins).
  * Syncs with Player (persistent) via PersistApi.
  *
  * Key Features:
@@ -35,7 +35,7 @@ export interface AvatarTemplateData {
  * Avatar - Runtime player character (extends Character).
  *
  * Inherits from Character which provides:
- * - Named, Gendered, Mortal mixins (stats and identity)
+ * - Named, Gendered mixins (identity)
  * - Sensor, Vocal mixins (messaging)
  * - Container, Containable mixins (inventory management)
  * - Visible mixin (descriptions)
@@ -139,8 +139,6 @@ export class Avatar extends Character {
     player.firstName = playerDoc.firstName;
     player.lastName = playerDoc.lastName;
     player.pronouns = playerDoc.pronouns;
-    player.hp = playerDoc.hp || 100;
-    player.maxHp = playerDoc.maxHp || 100;
     player.createdAt = playerDoc.createdAt;
     player.updatedAt = playerDoc.updatedAt;
 
@@ -248,7 +246,7 @@ export class Avatar extends Character {
   /**
    * Sync runtime state TO persistent Player object (save).
    * Uses PersistApi for automatic field collection from mixins.
-   * Copies all mixin fields (firstName, lastName, pronouns, hp, maxHp).
+   * Copies all mixin fields (firstName, lastName, pronouns).
    */
   public syncToPlayer(): void {
     if (!this.player) {
@@ -268,7 +266,7 @@ export class Avatar extends Character {
   /**
    * Sync persistent Player state FROM persistent Player object (load).
    * Uses PersistApi for automatic field collection from mixins.
-   * Copies all mixin fields (firstName, lastName, pronouns, hp, maxHp).
+   * Copies all mixin fields (firstName, lastName, pronouns).
    *
    * @param player - The Player object to sync from
    */

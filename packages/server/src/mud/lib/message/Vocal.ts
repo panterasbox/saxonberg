@@ -16,7 +16,7 @@
  * Delegates to MessageApi for distribution to all sensors in the container.
  */
 
-import type { MixinConstructor } from '../mixins/types';
+import type { MixinConstructor } from '../mixin-types';
 import { MessageApi } from '../../api/MessageApi';
 
 /**

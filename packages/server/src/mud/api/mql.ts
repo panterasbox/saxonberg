@@ -16,7 +16,7 @@
  */
 
 import type { Avatar } from '../obj/Avatar';
-import type { Location } from '../lib/location/Location';
+import type { Location } from '../lib/spatial/Location';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { MqlContext, MqlMatch } from '../lib/command/models';
 import { ContainmentApi } from './containment';

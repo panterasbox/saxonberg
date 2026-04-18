@@ -14,7 +14,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types';
+import type { MixinConstructor } from '../mixin-types';
 
 /**
  * Mixin that adds name properties.

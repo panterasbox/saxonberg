@@ -4,10 +4,10 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MessageApi } from './MessageApi';
-import { Location } from '../lib/location/Location';
-import { MobileMixin } from '../lib/mixins/MobileMixin';
-import { ContainableMixin } from '../lib/mixins/ContainableMixin';
-import { SensorMixin } from '../lib/message/SensorMixin';
+import { Location } from '../lib/spatial/Location';
+import { MobileMixin } from '../lib/spatial/Mobile';
+import { ContainableMixin } from '../lib/containment/Containable';
+import { SensorMixin } from '../lib/message/Sensor';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 

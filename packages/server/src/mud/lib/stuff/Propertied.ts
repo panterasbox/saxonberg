@@ -49,7 +49,7 @@
  * ```
  */
 
-import type { MixinConstructor } from './types';
+import type { MixinConstructor } from '../mixin-types';
 import { nanoid } from 'nanoid';
 
 /**

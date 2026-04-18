@@ -11,7 +11,7 @@
  * Template structure in domain collection:
  * {
  *   path: "/domain/void",
- *   class: "/lib/location/Location",
+ *   class: "/lib/spatial/Location",
  *   data: {
  *     name: "The Void",
  *     description: "You find yourself in a featureless void..."

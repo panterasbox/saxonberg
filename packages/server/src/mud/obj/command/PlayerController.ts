@@ -143,14 +143,8 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
       '',
       `  Name:     ${avatar.fullName}`,
       `  Pronouns: ${avatar.pronouns}`,
+      '',
     ];
-
-    // Add HP if available (from MortalMixin)
-    if (typeof avatar.hp === 'number' && typeof avatar.maxHp === 'number') {
-      lines.push(`  HP:       ${avatar.hp}/${avatar.maxHp}`);
-    }
-
-    lines.push('');
 
     return {
       success: true,

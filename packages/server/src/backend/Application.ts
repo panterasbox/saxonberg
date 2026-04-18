@@ -26,7 +26,7 @@ import { Avatar } from '../mud/obj/Avatar';
 import { User } from '../mud/lib/identity/User';
 import { Player } from '../mud/lib/identity/Player';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
-import { Location } from '../mud/lib/location/Location';
+import { Location } from '../mud/lib/spatial/Location';
 import { StuffApi } from '../mud/api/stuff';
 import { DEFAULT_STARTING_ROOM_PATH } from '../mud/config/constants';
 import type { CommandContext } from '../mud/lib/command/models';

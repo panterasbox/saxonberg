@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PerceptibleMixin } from './PerceptibleMixin';
+import { PerceptibleMixin } from './Perceptible';
 import { Stuff } from '../stuff/Stuff';
 
 // Test class with PerceptibleMixin

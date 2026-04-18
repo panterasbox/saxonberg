@@ -510,7 +510,8 @@ if (MixinApi.hasMixin(Player, 'NamedMixin')) {
 **Adding New Mixins**:
 1. Create the mixin function (e.g., `ContainerMixin`)
 2. Ensure returned class is named to match the constant (e.g., `class ContainerMixin extends Base`)
-3. Add to `Mixins` constants in `mixins/types.ts`:
+3. Place the mixin in the appropriate `lib/<subsystem>/` folder (not in a `lib/mixins/` folder — that grouping is prohibited; see CLAUDE.md)
+4. Add to `Mixins` constants in `lib/mixin-types.ts`:
    ```typescript
    export const Mixins = {
      Named: 'NamedMixin',

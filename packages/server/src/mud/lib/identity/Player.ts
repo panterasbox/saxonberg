@@ -8,16 +8,15 @@
  */
 
 import { PersistentBase } from '../stuff/PersistentBase';
-import { NamedMixin } from '../mixins/NamedMixin';
-import { GenderedMixin } from '../mixins/GenderedMixin';
-import { MortalMixin } from '../mixins/MortalMixin';
+import { NamedMixin } from '../description/Named';
+import { GenderedMixin } from '../description/Gendered';
 import { MixinApi } from '../../api/mixin';
 import type { Player as IPlayer, Pronouns } from '@saxonberg/types';
 
 /**
  * Compose Player base class with mixins.
  */
-const PlayerBase = MortalMixin(GenderedMixin(NamedMixin(PersistentBase)));
+const PlayerBase = GenderedMixin(NamedMixin(PersistentBase));
 
 /**
  * Player character (persistent).

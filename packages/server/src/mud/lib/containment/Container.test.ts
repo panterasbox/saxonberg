@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ContainerMixin } from './ContainerMixin';
+import { ContainerMixin } from './Container';
 import { Stuff } from '../stuff/Stuff';
 
 // Concrete test base class

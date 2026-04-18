@@ -24,8 +24,8 @@
  * - setEnvironment()/addToInventory() - Low level (called by move() only)
  */
 
-import type { MixinConstructor } from './types';
-import type { Location } from '../location/Location';
+import type { MixinConstructor } from '../mixin-types';
+import type { Location } from './Location';
 import type { Stuff } from '../stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 

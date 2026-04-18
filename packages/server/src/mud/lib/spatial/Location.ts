@@ -33,8 +33,8 @@
  */
 
 import { Stuff } from '../stuff/Stuff';
-import { VisibleMixin } from '../mixins/VisibleMixin';
-import { ContainerMixin } from '../mixins/ContainerMixin';
+import { VisibleMixin } from '../description/Visible';
+import { ContainerMixin } from '../containment/Container';
 
 // Compose Location base class with mixins
 const LocationBase = ContainerMixin(VisibleMixin(Stuff));

@@ -67,7 +67,7 @@ cd packages/client && pnpm test  # Run client tests only
 - Avatar: Template path construction, multiplexing support, Character inheritance, onMessage() override
 - Interactive: Character switching, multiplexing integration, lifecycle
 - User: Persistent fields configuration, relationship verification
-- Mixins: All mixins tested (Mortal, Container, Containable, Visible, Named, Gendered, Mobile)
+- Mixins: All mixins tested (Container, Containable, Visible, Perceptible, Detailed, Propertied, Named, Gendered, Mobile)
 - Character: Abstract base class, mixin composition
 - Location: ContainerMixin + VisibleMixin integration, getContents()
 - MobileMixin: move() method, environment management, hook execution readiness
@@ -135,10 +135,10 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
   Stuff (base with runtime ID)
     └── Idea (abstract base)
          ├── User (account with googleProfile reference)
-         ├── Player (character with name, gender, hp/maxHp, persistent)
+         ├── Player (character with name, gender, persistent)
          ├── Interactive (runtime connection state, character switching)
          ├── GoogleProfile (OAuth data)
-         ├── Location (future)
+         ├── Location (spatial room/space, Container + Visible)
          └── Agent (runtime-only base)
               └── Character (abstract sentient being)
                    └── Avatar (runtime player character)
@@ -158,7 +158,7 @@ const CharacterBase = CommandGiverMixin(
   MobileMixin(
     ContainerMixin(
       ContainableMixin(
-        VisibleMixin(VocalMixin(SensorMixin(MortalMixin(GenderedMixin(NamedMixin(Agent))))))
+        VisibleMixin(VocalMixin(SensorMixin(GenderedMixin(NamedMixin(Agent)))))
       )
     )
   )
@@ -166,18 +166,28 @@ const CharacterBase = CommandGiverMixin(
 class Character extends CharacterBase { ... }
 ```
 
-**Available Mixins**:
-- `NamedMixin`: firstName, lastName, fullName (persistent)
-- `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
-- `MortalMixin`: hp, maxHp, isDead(), takeDamage(), heal() (persistent)
-- `ContainerMixin`: inventory management (Set-based, complex persistence), provides commands: inventory, get, drop
-- `ContainableMixin`: environment reference (complex persistence)
-- `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
-- `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
-- `SensorMixin`: onMessage() - message receiving (Phase 3)
-- `VocalMixin`: say() - message sending (Phase 3)
-- `MobileMixin`: travel() - movement between locations (Phase 3)
-- `CommandGiverMixin`: executeCommand(), getAvailableCommands() - command execution (Phase 4)
+**Mixin Organization**: Mixins live in subsystem folders under `lib/` alongside the classes they support. There is NO `lib/mixins/` folder — that grouping is explicitly prohibited (see File Naming Conventions below). Shared mixin infrastructure (MixinConstructor type, Mixins name registry) lives in `lib/mixin-types.ts`.
+
+**Available Mixins** (by subsystem folder):
+- `lib/description/` — identity and appearance:
+  - `NamedMixin`: firstName, lastName, fullName (persistent)
+  - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
+  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
+  - `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
+  - `DetailedMixin`: hierarchical detail management (persistent)
+- `lib/containment/` — inventory and environment:
+  - `ContainerMixin`: inventory management (Set-based, complex persistence), provides commands: inventory, get, drop
+  - `ContainableMixin`: environment reference (complex persistence)
+- `lib/message/` — messaging (Phase 3):
+  - `SensorMixin`: onMessage() - message receiving
+  - `VocalMixin`: say() - message sending
+- `lib/spatial/` — location and movement (Phase 3):
+  - `MobileMixin`: travel() - movement between locations
+  - (also contains `Location` class)
+- `lib/command/` — command execution (Phase 4):
+  - `CommandGiverMixin`: executeCommand(), getAvailableCommands()
+- `lib/stuff/` — base object machinery:
+  - `PropertiedMixin`: controlled dynamic property bag (persistent)
 
 #### 2. Runtime vs Persistent Objects
 - **Runtime Objects**: Avatar, Interactive (exist only during active connection)
@@ -516,7 +526,7 @@ The architecture anticipates:
   - Test files: `Propertied.test.ts`, `Detailed.test.ts` (matching the source filename)
   - Example:
     ```typescript
-    // File: src/mud/lib/mixins/Propertied.ts
+    // File: src/mud/lib/stuff/Propertied.ts
     export function PropertiedMixin<TBase>(Base: TBase) {
       return class PropertiedMixin extends Base {
         static _mixinName = 'PropertiedMixin';
@@ -524,9 +534,10 @@ The architecture anticipates:
       }
     }
 
-    // File: src/mud/lib/mixins/Propertied.test.ts
-    import { PropertiedMixin } from './Propertied.js';
+    // File: src/mud/lib/stuff/Propertied.test.ts
+    import { PropertiedMixin } from './Propertied';
     ```
+- **Mixin placement**: Mixins live in the `lib/<subsystem>/` folder that owns the concern they model, alongside any related classes. **DO NOT create a `lib/mixins/` folder** — "mixin" is an implementation technique, not a subsystem. If a new mixin doesn't fit an existing subsystem folder, introduce (or propose) a new subsystem folder for it rather than grouping by "mixin-ness". Shared mixin infrastructure (types, name registry) lives in `lib/mixin-types.ts`, not in a folder.
 - **Class files**: Match the class name (e.g., `Avatar.ts`, `Player.ts`, `Thing.ts`)
 - **API files**: Lowercase with .ts extension (e.g., `stuff.ts`, `player.ts`, `mixin.ts`)
 
@@ -597,8 +608,8 @@ For detailed architectural patterns and implementation guidelines, see:
 - Basic connection lifecycle
 
 **✅ Phase 2: Identity Models & Object Lifecycle** (Complete)
-- **Mixins**: Mortal, Container, Containable, Visible, Sensor, Vocal
-- **Character Class**: Abstract base for sentient beings (CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Mortal + Gendered + Named)
+- **Mixins**: Container, Containable, Visible, Sensor, Vocal
+- **Character Class**: Abstract base for sentient beings (CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Gendered + Named)
 - **Avatar**: Extends Character, multiplexing support (Set<Interactive>)
 - **Interactive**: Character switching support, availableAvatars map
 - **PersistApi**: Auto-sync utilities (syncTo/syncFrom with mixin field collection)
