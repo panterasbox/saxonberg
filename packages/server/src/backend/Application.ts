@@ -21,14 +21,13 @@ import type { PassportGoogleProfile, WebSocketMessage, MessageType } from '@saxo
 import { Pronouns } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
-import type { Interactive } from '../mud/lib/connection/Interactive';
+import type { Interactive } from '../mud/obj/Interactive';
 import { Avatar } from '../mud/obj/Avatar';
+import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
 import { Player } from '../mud/lib/identity/Player';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { Location } from '../mud/lib/spatial/Location';
-import { StuffApi } from '../mud/api/stuff';
-import { DEFAULT_STARTING_ROOM_PATH } from '../mud/config/constants';
 import type { CommandContext } from '../mud/lib/command/models';
 import { nanoid } from 'nanoid';
 
@@ -71,25 +70,6 @@ export class Application {
   public initialize(backend: IBackend): void {
     this.backend = backend;
     console.log('Application: Initialized with Backend');
-
-    // Initialize command system
-    this.initializeCommands();
-  }
-
-  /**
-   * Initialize command system
-   *
-   * Note: Commands are now discovered via CommandProvider pattern on mixins.
-   * No manual registration needed - CommandGiverMixin discovers commands from:
-   * - self: Commands from mixins on the avatar (e.g., DiagnosticsMixin provides "ping")
-   * - inventory: Commands from objects in avatar's inventory
-   * - environment: Commands from objects in avatar's location
-   * - colocated: Commands from other characters in avatar's location
-   *
-   * CommandApi serves only as a performance cache, not a source of truth.
-   */
-  private initializeCommands(): void {
-    console.log('Application: Command system initialized (discovery via CommandProvider pattern)');
   }
 
   /**
@@ -110,14 +90,10 @@ export class Application {
    * Handle user connection.
    * Called by Backend when WebSocket connection is established.
    *
-   * Flow:
-   * 1. Create Interactive object
-   * 2. Load User from database
-   * 3. Load Player(s) for User
-   * 4. Create Avatar (runtime player presence)
-   * 5. Sync Avatar from Player
-   * 6. Link Avatar ↔ Interactive
-   * 7. Send connection_established message
+   * Creates the Interactive for this connection, then hands off to a
+   * Login instance to run the mudlib-side entry procedure (avatar
+   * loading, character selection, starting-room placement, welcome
+   * messages).
    *
    * @param userId - User's MongoDB _id
    * @param sessionId - Session ID
@@ -136,83 +112,16 @@ export class Application {
     try {
       console.log(`Application: User connecting - userId=${userId}, socketId=${socketId}`);
 
-      // 1. Create Interactive object (delegate to ConnectionManager)
       const interactive = await ConnectionManager.get().createInteractive(
         socketId,
         sessionId,
         userId
       );
 
-      // 2. Load available Avatars for this user
-      await interactive.loadAvailableAvatars();
-
-      // 3. Handle character selection based on number of players
-      if (interactive.availableAvatars.size === 0) {
-        // No players - this shouldn't happen as users should have at least one
-        throw new Error(`No players found for user ${userId}`);
-      } else if (interactive.availableAvatars.size === 1) {
-        // Single player - auto-select
-        const playerId = Array.from(interactive.availableAvatars.keys())[0];
-        if (!playerId) {
-          throw new Error('Unexpected: availableAvatars has size 1 but no keys');
-        }
-        await interactive.switchAvatar(playerId);
-
-        const avatar = interactive.currentAvatar!;
-        console.log(`Application: User connected with single character - ${avatar.fullName}`);
-
-        // Load starting room from Player data or use default
-        const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
-        const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
-
-        // Move avatar to starting room (using MobileMixin)
-        avatar.travel(startingRoom);
-        console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
-
-        // Send connection_established message
-        this.backend.sendMessageToSocket(socketId, {
-          type: 'connection_established',
-          payload: {
-            userId: userId,
-            socketId: socketId,
-            sessionId: sessionId,
-            player: {
-              _id: avatar.playerId,
-              firstName: avatar.firstName,
-              lastName: avatar.lastName,
-              pronouns: avatar.pronouns,
-            },
-            message: `Welcome back, ${avatar.fullName}!`,
-          },
-        });
-
-        // Send look description automatically
-        this.sendLookDescription(avatar, socketId);
-      } else {
-        // Multiple players - show character select screen
-        const characterList = Array.from(interactive.availableAvatars.values()).map(
-          (avatar) => ({
-            playerId: avatar.playerId,
-            name: avatar.fullName,
-            // Future: add level, class, location, etc.
-          })
-        );
-
-        console.log(
-          `Application: User connected - showing character select (${characterList.length} characters)`
-        );
-
-        this.backend.sendMessageToSocket(socketId, {
-          type: 'character_select',
-          payload: {
-            characters: characterList,
-          },
-        });
-      }
+      await new Login(interactive).enter();
     } catch (error) {
       console.error('Application: Error in handleUserConnect:', error);
 
-      // Send error message
       if (this.backend) {
         this.backend.sendMessageToSocket(socketId, {
           type: 'error',
@@ -274,10 +183,6 @@ export class Application {
         this.handlePingMessage(socketId, message);
         break;
 
-      case 'select_character':
-        this.handleSelectCharacter(socketId, message);
-        break;
-
       case 'command':
         // Handle async command execution (don't await to avoid blocking)
         this.handleCommandMessage(socketId, message).catch((error) => {
@@ -327,134 +232,6 @@ export class Application {
       payload: {
         timestamp: Date.now(),
       },
-    });
-  }
-
-  /**
-   * Handle character selection (multiplexing support).
-   */
-  private async handleSelectCharacter(
-    socketId: string,
-    message: WebSocketMessage
-  ): Promise<void> {
-    if (!this.backend) return;
-
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-
-    if (!interactive) {
-      console.warn(`Application: No Interactive found for socket ${socketId}`);
-      return;
-    }
-
-    const { playerId } = message.payload as { playerId: string };
-
-    if (!playerId) {
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'error',
-        payload: {
-          message: 'No playerId provided in select_character message',
-        },
-      });
-      return;
-    }
-
-    try {
-      // Switch to the selected character
-      await interactive.switchAvatar(playerId);
-
-      const avatar = interactive.currentAvatar!;
-
-      console.log(
-        `Application: Character selected - ${avatar.fullName} (playerId: ${playerId})`
-      );
-
-      // Load starting room from Player data or use default
-      const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
-      const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
-
-      // Move avatar to starting room (using MobileMixin)
-      avatar.travel(startingRoom);
-      console.log(`Application: Placed ${avatar.fullName} in ${startingRoom.name}`);
-
-      // Send avatar_switched confirmation with character info
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'avatar_switched',
-        payload: {
-          playerId: avatar.playerId,
-          name: avatar.fullName,
-          firstName: avatar.firstName,
-          lastName: avatar.lastName,
-          pronouns: avatar.pronouns,
-          message: `You are now ${avatar.fullName}`,
-        },
-      });
-
-      // Send connection_established to match single-character flow
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'connection_established',
-        payload: {
-          userId: interactive.userId,
-          socketId: socketId,
-          sessionId: interactive.sessionId,
-          player: {
-            _id: avatar.playerId,
-            firstName: avatar.firstName,
-            lastName: avatar.lastName,
-            pronouns: avatar.pronouns,
-          },
-          message: `Welcome back, ${avatar.fullName}!`,
-        },
-      });
-
-      // Send look description automatically
-      this.sendLookDescription(avatar, socketId);
-    } catch (error) {
-      console.error('Application: Error in handleSelectCharacter:', error);
-
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'error',
-        payload: {
-          message: 'Failed to select character',
-          error: error instanceof Error ? error.message : String(error),
-        },
-      });
-    }
-  }
-
-  /**
-   * Send look description for avatar's current location.
-   * Lightweight stub for Phase 3 - full command framework in Phase 4.
-   *
-   * @param avatar - Avatar to get location description for
-   * @param socketId - Socket ID to send to
-   */
-  private sendLookDescription(avatar: Avatar, socketId: string): void {
-    if (!this.backend) return;
-
-    const location = avatar.getEnvironment() as Location;
-
-    if (!location) {
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'output',
-        payload: {
-          text: 'You are nowhere.',
-        },
-      });
-      return;
-    }
-
-    // Simple stub output using MML (Mud Markup Language)
-    // Full command framework in Phase 4
-    const output = [
-      `<location>${location.name}</location>`,
-      '',
-      location.description,
-      '',
-    ].join('\n');
-
-    this.backend.sendMessageToSocket(socketId, {
-      type: 'output',
-      payload: { text: output },
     });
   }
 

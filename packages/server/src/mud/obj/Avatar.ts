@@ -20,7 +20,7 @@ import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
 import { PersistApi } from '../api/persist';
 import { Player } from '../lib/identity/Player';
-import type { Interactive } from '../lib/connection/Interactive';
+import type { Interactive } from './Interactive';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 

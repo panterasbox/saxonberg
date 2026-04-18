@@ -12,10 +12,10 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Interactive } from './Interactive';
-import { Player } from '../identity/Player';
-import { Avatar } from '../../obj/Avatar';
-import { StuffApi } from '../../api/stuff';
-import { PlayerApi } from '../../api/player';
+import { Player } from '../lib/identity/Player';
+import { Avatar } from './Avatar';
+import { StuffApi } from '../api/stuff';
+import { PlayerApi } from '../api/player';
 
 describe('Interactive', () => {
   let interactive: Interactive;

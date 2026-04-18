@@ -10,7 +10,7 @@
  */
 
 import type { Avatar } from '../../obj/Avatar';
-import type { Interactive } from '../connection/Interactive';
+import type { Interactive } from '../../obj/Interactive';
 import type { Location } from '../spatial/Location';
 import type { Stuff } from '../stuff/Stuff';
 

@@ -19,11 +19,11 @@
  * Lifetime: Created when user connects, destroyed when user disconnects.
  */
 
-import { Idea } from '../stuff/Idea';
-import { StuffApi } from '../../api/stuff';
-import { Player } from '../identity/Player';
-import { PlayerApi } from '../../api/player';
-import type { Avatar } from '../../obj/Avatar';
+import { Idea } from '../lib/stuff/Idea';
+import { StuffApi } from '../api/stuff';
+import { Player } from '../lib/identity/Player';
+import { PlayerApi } from '../api/player';
+import type { Avatar } from './Avatar';
 
 /**
  * Interactive connection state (runtime only).
@@ -92,7 +92,7 @@ export class Interactive extends Idea {
 
       // Create if not exists
       if (!avatar) {
-        const AvatarClass = (await import('../../obj/Avatar')).Avatar;
+        const AvatarClass = (await import('./Avatar')).Avatar;
         avatar = await StuffApi.clone<Avatar>(AvatarClass.getTemplatePath(playerId));
       }
 

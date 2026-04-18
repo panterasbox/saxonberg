@@ -11,7 +11,7 @@
  */
 
 import { ConnectionManager } from '../../backend/ConnectionManager';
-import type { Interactive } from '../lib/connection/Interactive';
+import type { Interactive } from '../obj/Interactive';
 
 /**
  * Static API for connection queries (public interface for mudlib).

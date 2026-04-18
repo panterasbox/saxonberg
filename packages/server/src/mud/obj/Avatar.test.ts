@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Avatar } from './Avatar';
-import { Interactive } from '../lib/connection/Interactive';
+import { Interactive } from './Interactive';
 import { Character } from '../lib/character/Character';
 
 describe('Avatar', () => {
