@@ -7,8 +7,8 @@
  * loading available avatars, resolving character selection, placing the
  * chosen avatar into a starting room, and notifying the client.
  *
- * Lifetime: constructed once per login; destroy() is called when the
- * entry is complete (or handed off to character selection).
+ * Lifetime: constructed once per login; destructed when the entry is
+ * complete (or handed off to character selection).
  */
 
 import { Idea } from '../lib/stuff/Idea';
@@ -80,7 +80,7 @@ export class Login extends Idea {
 
     this.sendLookDescription(avatar);
 
-    this.destroy();
+    StuffApi.destruct(this);
   }
 
   private sendLookDescription(avatar: Avatar): void {

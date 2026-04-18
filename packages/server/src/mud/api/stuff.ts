@@ -205,8 +205,25 @@ export class StuffApi {
   }
 
   /**
+   * Destroy an object.
+   *
+   * This is the canonical destruction entry point — always destroy objects
+   * through this API. Currently a thin wrapper over Stuff.destroy(); when
+   * the call security framework lands, direct Stuff.destroy() calls will be
+   * locked down so only this Api layer can invoke them.
+   *
+   * @param object - The object to destroy
+   */
+  public static destruct(object: Stuff): void {
+    if (!object) {
+      throw new Error('StuffApi.destruct(): Invalid object');
+    }
+    object.destroy();
+  }
+
+  /**
    * Unregister an object from the registry.
-   * Should be called when an object is destroyed.
+   * Called by destruct() — not typically invoked directly.
    *
    * @param object - The object to unregister
    */

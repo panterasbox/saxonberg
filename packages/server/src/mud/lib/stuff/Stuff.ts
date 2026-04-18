@@ -16,11 +16,14 @@
  * - This ensures objects are properly registered for tracking
  * - Direct 'new' calls will work but object won't be tracked
  *
- * 2. Protected Destruction:
- * - destroy() is FINAL - DO NOT override it
- * - Override prepareDestroy() instead for cleanup logic
- * - This ensures StuffApi.unregister() ALWAYS happens (essential for GC)
- * - Prevents memory leaks from forgotten unregistration
+ * 2. Object Destruction:
+ * - Call StuffApi.destruct(obj) to destroy objects — it is the canonical
+ *   destruction entry point. Direct obj.destroy() calls still work today
+ *   but will eventually be locked down by the call security framework so
+ *   only the Api layer can invoke them.
+ * - Override prepareDestroy() in subclasses for cleanup logic.
+ * - destroy() is FINAL — DO NOT override it. This ensures StuffApi.unregister()
+ *   ALWAYS happens (essential for GC) and prevents memory leaks.
  */
 
 import { nanoid } from 'nanoid';
@@ -91,6 +94,10 @@ export abstract class Stuff {
   /**
    * Destroy this object (FINAL - DO NOT OVERRIDE).
    *
+   * Prefer StuffApi.destruct(obj) — this method is the low-level primitive
+   * it delegates to, and will eventually be locked down by call security so
+   * only the Api layer can invoke it.
+   *
    * This method performs critical housekeeping for garbage collection:
    * 1. Calls prepareDestroy() hook for subclass cleanup
    * 2. Marks object as destroyed
@@ -98,9 +105,6 @@ export abstract class Stuff {
    *
    * WARNING: DO NOT OVERRIDE THIS METHOD.
    * Override prepareDestroy() instead for cleanup logic.
-   *
-   * This ensures the object is always properly unregistered and marked
-   * as destroyed, which is essential for garbage collection.
    */
   public destroy(): void {
     if (this._isDestroyed) {

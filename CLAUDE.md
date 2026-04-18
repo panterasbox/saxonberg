@@ -291,7 +291,8 @@ class Avatar extends Agent {
 `StuffApi.create()` and `StuffApi.clone()` automatically call `initialize()` before registration.
 
 #### 8. Protected Destruction Pattern
-Objects override `prepareDestroy()` hook, NOT `destroy()`:
+Destroy objects via `StuffApi.destruct(obj)`. Subclasses add cleanup by
+overriding the `prepareDestroy()` hook — never override `destroy()`:
 
 ```typescript
 class Avatar extends Character {
@@ -311,10 +312,18 @@ class Avatar extends Character {
 }
 
 // Usage
-avatar.destroy(); // Calls prepareDestroy() → marks destroyed → unregisters
+StuffApi.destruct(avatar); // Calls prepareDestroy() → marks destroyed → unregisters
 ```
 
-**Why**: `destroy()` is FINAL to guarantee `StuffApi.unregister()` always happens (prevents memory leaks).
+**Why `StuffApi.destruct()`**: Symmetry with `StuffApi.create()` / `clone()` and
+consistency with the broader "go through the Api layer" convention (same reason
+`ContainmentApi.move()` exists instead of direct `setEnvironment` calls).
+`StuffApi.destruct()` currently delegates to `Stuff.destroy()`; when the call
+security framework lands, direct `destroy()` calls will be locked down so only
+the Api layer can invoke them.
+
+**Why the `prepareDestroy` hook**: `destroy()` is FINAL to guarantee
+`StuffApi.unregister()` always happens (prevents memory leaks).
 
 ### Connection Lifecycle
 
@@ -572,7 +581,7 @@ The architecture anticipates:
 8. **Singleton Pattern**: PersistenceManager, ConnectionManager (controlled global state)
    - StuffApi, PlayerApi, MixinApi are static utility classes
 
-9. **Protected Hooks**: Use prepareDestroy() hook, never override destroy()
+9. **Protected Hooks**: Destroy objects via StuffApi.destruct(obj); use the prepareDestroy() hook for cleanup, never override destroy()
    - Guarantees proper cleanup and unregistration
 
 10. **Find-or-Create**: Common pattern for persistent objects
@@ -750,6 +759,6 @@ For detailed architectural patterns and implementation guidelines, see:
 - WebSocket-based real-time communication is central to the system
 - Template-based object creation via CMS (domain collection) is the standard pattern
 - Dynamic imports with security validation eliminate manual class registration
-- Always use prepareDestroy() hook instead of overriding destroy()
+- Destroy objects via StuffApi.destruct(obj); use prepareDestroy() hook for cleanup, never override destroy()
 - Avoid bidirectional array relationships (query instead)
 - **Phase 3 & 4 Complete**: Location system, messaging infrastructure, Terminal UI, MML support, and complete command framework fully implemented

@@ -28,6 +28,7 @@
 import { Idea } from './Idea';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * Interface for persistable constructors.
@@ -227,7 +228,7 @@ export class Persistable extends Idea {
     await PersistenceManager.get().delete(collection, this._id);
 
     // Mark as destroyed (triggers prepareDestroy + unregister)
-    this.destroy();
+    StuffApi.destruct(this);
   }
 
   /**

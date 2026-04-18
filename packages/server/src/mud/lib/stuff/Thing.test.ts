@@ -83,8 +83,8 @@ describe('Thing', () => {
   });
 
   describe('Lifecycle', () => {
-    it('should be destroyed via destroy()', () => {
-      thing.destroy();
+    it('should be destroyed via StuffApi.destruct()', () => {
+      StuffApi.destruct(thing);
       expect(thing.isDestroyed()).toBe(true);
 
       // Should be unregistered

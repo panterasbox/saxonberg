@@ -95,7 +95,7 @@ export class ConnectionManager {
     }
 
     // Destroy the Interactive (cleans up Avatar, etc.)
-    interactive.destroy();
+    StuffApi.destruct(interactive);
 
     // Remove from map
     this.interactivesBySocketId.delete(socketId);
@@ -160,7 +160,7 @@ export class ConnectionManager {
   public clearAll(): void {
     // Destroy all Interactives
     for (const interactive of this.interactivesBySocketId.values()) {
-      interactive.destroy();
+      StuffApi.destruct(interactive);
     }
 
     this.interactivesBySocketId.clear();

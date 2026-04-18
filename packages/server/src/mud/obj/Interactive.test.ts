@@ -31,7 +31,7 @@ describe('Interactive', () => {
   afterEach(() => {
     // Clean up registered objects
     if (interactive && !interactive.isDestroyed) {
-      interactive.destroy();
+      StuffApi.destruct(interactive);
     }
   });
 
@@ -242,7 +242,7 @@ describe('Interactive', () => {
 
     afterEach(() => {
       if (interactive2 && !interactive2.isDestroyed) {
-        interactive2.destroy();
+        StuffApi.destruct(interactive2);
       }
     });
 
@@ -340,7 +340,7 @@ describe('Interactive', () => {
     it('should remove from currentAvatar on destroy', async () => {
       await interactive.switchAvatar('player1');
 
-      interactive.destroy();
+      StuffApi.destruct(interactive);
 
       expect(mockAvatar.interactives.has(interactive)).toBe(false);
     });
@@ -348,7 +348,7 @@ describe('Interactive', () => {
     it('should clear currentAvatar on destroy', async () => {
       await interactive.switchAvatar('player1');
 
-      interactive.destroy();
+      StuffApi.destruct(interactive);
 
       expect(interactive.currentAvatar).toBeNull();
     });
@@ -356,21 +356,21 @@ describe('Interactive', () => {
     it('should clear availableAvatars on destroy', async () => {
       await interactive.switchAvatar('player1');
 
-      interactive.destroy();
+      StuffApi.destruct(interactive);
 
       expect(interactive.availableAvatars.size).toBe(0);
     });
 
     it('should handle destroy with null currentAvatar', () => {
       expect(() => {
-        interactive.destroy();
+        StuffApi.destruct(interactive);
       }).not.toThrow();
     });
 
     it('should mark object as destroyed', () => {
       expect(interactive.isDestroyed()).toBe(false);
 
-      interactive.destroy();
+      StuffApi.destruct(interactive);
 
       expect(interactive.isDestroyed()).toBe(true);
     });
