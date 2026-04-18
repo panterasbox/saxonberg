@@ -9,3 +9,4 @@ coverage/
 .turbo/
 .next/
 out/
+*.tsbuildinfo

@@ -17,6 +17,10 @@ class TestItem extends ContainableBase {}
 const ContainerBase = ContainerMixin(ContainableMixin(Stuff));
 class TestContainer extends ContainerBase {}
 
+// Concrete Stuff subclass with no containment mixins — used to exercise
+// the negative paths in ContainmentApi (missing Container/Containable).
+class PlainStuff extends Stuff {}
+
 describe('ContainmentApi', () => {
   let item: TestItem;
   let container1: TestContainer;
@@ -95,7 +99,7 @@ describe('ContainmentApi', () => {
     });
 
     it('should return false if item does not have ContainableMixin', () => {
-      const nonContainable = new Stuff();
+      const nonContainable = new PlainStuff();
       StuffApi.register(nonContainable);
 
       const success = ContainmentApi.move(nonContainable, container1);
@@ -104,7 +108,7 @@ describe('ContainmentApi', () => {
     });
 
     it('should return false if destination does not have ContainerMixin', () => {
-      const nonContainer = new Stuff();
+      const nonContainer = new PlainStuff();
       StuffApi.register(nonContainer);
 
       const success = ContainmentApi.move(item, nonContainer as any);
@@ -141,7 +145,7 @@ describe('ContainmentApi', () => {
     });
 
     it('should return false if container does not have ContainerMixin', () => {
-      const nonContainer = new Stuff();
+      const nonContainer = new PlainStuff();
       StuffApi.register(nonContainer);
 
       expect(ContainmentApi.isContainedIn(item, nonContainer as any)).toBe(false);
@@ -160,7 +164,7 @@ describe('ContainmentApi', () => {
     });
 
     it('should return null if item does not have ContainableMixin', () => {
-      const nonContainable = new Stuff();
+      const nonContainable = new PlainStuff();
       StuffApi.register(nonContainable);
 
       expect(ContainmentApi.getContainer(nonContainable)).toBeNull();
@@ -192,7 +196,7 @@ describe('ContainmentApi', () => {
     });
 
     it('should return empty array if object does not have ContainerMixin', () => {
-      const nonContainer = new Stuff();
+      const nonContainer = new PlainStuff();
       StuffApi.register(nonContainer);
 
       const contents = ContainmentApi.getContents(nonContainer);

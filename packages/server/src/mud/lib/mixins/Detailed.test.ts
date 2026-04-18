@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DetailedMixin } from './Detailed';
+import { DetailedMixin, type DetailMap } from './Detailed';
 import { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -11,6 +11,28 @@ import { MixinApi } from '../../api/mixin';
 // Test class with DetailedMixin
 class DetailedThing extends DetailedMixin(Stuff) {
   static persistentFields: string[] = [];
+}
+
+/**
+ * Canonical serialization of a DetailMap — used to compare structural
+ * equality regardless of order or whether inner Maps are undefined vs empty.
+ */
+type SerializedDetail = {
+  description: string;
+  children: Record<string, SerializedDetail> | null;
+};
+function serialize(map: DetailMap): Record<string, SerializedDetail> {
+  const out: Record<string, SerializedDetail> = {};
+  for (const [id, detail] of map.entries()) {
+    out[id] = {
+      description: detail.description,
+      children:
+        detail.details && detail.details.size > 0
+          ? serialize(detail.details)
+          : null,
+    };
+  }
+  return out;
 }
 
 describe('DetailedMixin', () => {
@@ -263,25 +285,29 @@ describe('DetailedMixin', () => {
   });
 
   describe('Detail sharing (multiple IDs, same description)', () => {
-    it('should reuse Detail object for same description', () => {
+    it('should share one Detail object across all aliases in a single call', () => {
+      obj.setDetail(['x', 'y', 'z'], 'Shared description.');
+
+      const dx = obj.details.get('x');
+      const dy = obj.details.get('y');
+      const dz = obj.details.get('z');
+      expect(dx).toBeDefined();
+      expect(dx).toBe(dy);
+      expect(dy).toBe(dz);
+    });
+
+    it('should NOT share Detail objects across separate setDetail calls', () => {
+      // Each setDetail call produces a fresh Detail, even when descriptions
+      // match. Cross-call reuse previously caused a self-reference cycle
+      // when a nested description matched a top-level one.
       obj.setDetail(['a'], 'Same description.');
       obj.setDetail(['b'], 'Same description.');
 
-      // Both IDs should point to the same Detail object
       const detailA = obj.details.get('a');
       const detailB = obj.details.get('b');
 
-      expect(detailA).toBe(detailB);
-    });
-
-    it('should track all IDs in Detail.ids Set', () => {
-      obj.setDetail(['x', 'y', 'z'], 'Shared description.');
-
-      const detail = obj.details.get('x');
-      expect(detail).toBeDefined();
-      expect(detail!.ids.has('x')).toBe(true);
-      expect(detail!.ids.has('y')).toBe(true);
-      expect(detail!.ids.has('z')).toBe(true);
+      expect(detailA).not.toBe(detailB);
+      expect(detailA!.description).toBe(detailB!.description);
     });
   });
 
@@ -405,16 +431,12 @@ describe('DetailedMixin', () => {
 
       // 'b' should be gone
       expect(obj.getDetail('b')).toBeNull();
+      expect(obj.details.has('b')).toBe(false);
 
-      // 'a' and 'c' should still work
+      // 'a' and 'c' should still work and still share the same Detail object
       expect(obj.getDetail('a')).toBe('Shared detail.');
       expect(obj.getDetail('c')).toBe('Shared detail.');
-
-      // The Detail object should still have all IDs tracked
-      const detail = obj.details.get('a');
-      expect(detail?.ids.has('a')).toBe(true);
-      expect(detail?.ids.has('b')).toBe(false); // Removed from Set
-      expect(detail?.ids.has('c')).toBe(true);
+      expect(obj.details.get('a')).toBe(obj.details.get('c'));
     });
 
     it('should remove detail completely when all aliases are removed', () => {
@@ -507,7 +529,6 @@ describe('DetailedMixin', () => {
         return Array.from(details.entries()).map(([key, detail]) => [
           key,
           {
-            ids: Array.from(detail.ids),
             description: detail.description,
             details: detail.details ? serialize(detail.details) : undefined,
           },
@@ -519,7 +540,6 @@ describe('DetailedMixin', () => {
           data.map(([key, detail]: [string, any]) => [
             key,
             {
-              ids: new Set(detail.ids),
               description: detail.description,
               details: detail.details ? deserialize(detail.details) : undefined,
             },
@@ -560,6 +580,183 @@ describe('DetailedMixin', () => {
       const ids = obj.getDeepDetailIds('a.b');
       expect(ids).not.toBeNull();
       expect(ids!.sort()).toEqual(['c', 'd']);
+    });
+  });
+
+  describe('Path form equivalence', () => {
+    // Every (ids, parent) pair in `forms` addresses the same logical path a.b.c.d.
+    // All four forms should produce structurally identical state, and every
+    // query should return the same answer regardless of which form was used
+    // to set it up or to query.
+    const forms: Array<{ label: string; ids: string[]; parent?: string }> = [
+      { label: 'all in id',       ids: ['a.b.c.d']              },
+      { label: 'split at leaf',   ids: ['d'],        parent: 'a.b.c' },
+      { label: 'split mid',       ids: ['c.d'],      parent: 'a.b'   },
+      { label: 'split early',     ids: ['b.c.d'],    parent: 'a'     },
+    ];
+
+    function makeBaseHierarchy(): DetailedThing {
+      const o = new DetailedThing();
+      StuffApi.register(o);
+      o.setDetail(['a'], 'A');
+      o.setDetail(['b'], 'B', 'a');
+      o.setDetail(['c'], 'C', 'a.b');
+      return o;
+    }
+
+    // Reference state: use the canonical "split at leaf" form as the truth.
+    function makeReferenceState(): Record<string, SerializedDetail> {
+      const ref = makeBaseHierarchy();
+      ref.setDetail(['d'], 'D', 'a.b.c');
+      return serialize(ref.details);
+    }
+
+    it.each(forms)(
+      'setDetail via $label produces the same structural state',
+      ({ ids, parent }) => {
+        const o = makeBaseHierarchy();
+        const count = o.setDetail(ids, 'D', parent);
+        expect(count).toBe(1);
+        expect(serialize(o.details)).toEqual(makeReferenceState());
+      },
+    );
+
+    it.each(forms)(
+      'getDetail via $label returns the value regardless of insertion form',
+      ({ ids, parent }) => {
+        // Insert via each form in turn, query via "split at leaf".
+        const o = makeBaseHierarchy();
+        o.setDetail(ids, 'D', parent);
+        expect(o.getDetail('d', 'a.b.c')).toBe('D');
+      },
+    );
+
+    it.each(forms)(
+      'getDetail queried via $label finds the value',
+      ({ ids: queryIds, parent: queryParent }) => {
+        const o = makeBaseHierarchy();
+        o.setDetail(['d'], 'D', 'a.b.c'); // canonical insertion
+
+        // Query forms take a single id string, not an array.
+        const queryId = queryIds[0]!;
+        expect(o.getDetail(queryId, queryParent)).toBe('D');
+      },
+    );
+
+    it.each(forms)(
+      'removeDetail via $label removes the detail',
+      ({ ids, parent }) => {
+        const o = makeBaseHierarchy();
+        o.setDetail(['d'], 'D', 'a.b.c');
+
+        const count = o.removeDetail(ids, parent);
+        expect(count).toBe(1);
+        expect(o.getDetail('d', 'a.b.c')).toBeNull();
+      },
+    );
+
+    it('getDetailIds at a.b.c is consistent across parent forms', () => {
+      const o = makeBaseHierarchy();
+      o.setDetail(['d'], 'D', 'a.b.c');
+      o.setDetail(['e'], 'E', 'a.b.c');
+
+      // getDetailIds accepts only a parent (no split id arg), so test its
+      // single path form — but its result should match what the other forms
+      // would observe at that level.
+      const viaParent = o.getDetailIds('a.b.c')!.sort();
+      expect(viaParent).toEqual(['d', 'e']);
+    });
+
+    it('getDeepDetailIds at a yields the full subtree regardless of how it was built', () => {
+      const viaFull = makeBaseHierarchy();
+      viaFull.setDetail(['a.b.c.d'], 'D');
+
+      const viaSplit = makeBaseHierarchy();
+      viaSplit.setDetail(['d'], 'D', 'a.b.c');
+
+      expect(viaFull.getDeepDetailIds('a')!.sort()).toEqual(
+        viaSplit.getDeepDetailIds('a')!.sort(),
+      );
+    });
+  });
+
+  describe('Malformed paths', () => {
+    // These tests pin down current behavior on inputs that are probably user
+    // mistakes. If any of these is wrong for your mental model, change the
+    // assertion and the algo together.
+    it('trailing dot in id is a no-op (returns 0)', () => {
+      obj.setDetail(['foo'], 'Foo.');
+      const count = obj.setDetail(['foo.'], 'Bar.');
+      expect(count).toBe(0);
+    });
+
+    it('leading dot in id is treated as top-level id without the dot', () => {
+      const count = obj.setDetail(['.foo'], 'Foo.');
+      // Parent resolves to '' (length 0) → falls through to top-level.
+      // id becomes 'foo' after split.
+      expect(count).toBe(1);
+      expect(obj.getDetail('foo')).toBe('Foo.');
+    });
+
+    it('double dot in id fails cleanly (returns 0)', () => {
+      obj.setDetail(['a'], 'A');
+      const count = obj.setDetail(['a..b'], 'B');
+      expect(count).toBe(0);
+    });
+
+    it('empty-string id returns 0 (not stored)', () => {
+      const count = obj.setDetail([''], 'Empty.');
+      expect(count).toBe(0);
+    });
+
+    it('empty-string parent is equivalent to no parent', () => {
+      obj.setDetail(['top'], 'Top.');
+      expect(obj.getDetail('top', '')).toBe('Top.');
+    });
+
+    it('non-existent parent in setDetail returns 0', () => {
+      const count = obj.setDetail(['child'], 'Child.', 'nonexistent');
+      expect(count).toBe(0);
+    });
+
+    it('non-existent parent in getDetail returns null', () => {
+      expect(obj.getDetail('child', 'nonexistent')).toBeNull();
+    });
+  });
+
+  describe('Detail sharing scope (same-description reuse)', () => {
+    // newOrExistingDetail reuses a Detail object when the description matches
+    // an existing one. The existing top-level search has a failure mode:
+    // when adding a NESTED detail whose description happens to match a
+    // top-level detail, the nested insertion shares the top-level Detail
+    // object and writes a self-reference into its children Map.
+    it('does not create a self-referential detail when a nested description matches a top-level one', () => {
+      obj.setDetail(['handle'], 'A brass fitting.');
+      obj.setDetail(['knob'], 'A brass fitting.', 'handle');
+
+      const handle = obj.details.get('handle');
+      expect(handle).toBeDefined();
+
+      const knob = handle!.details?.get('knob');
+      expect(knob).toBeDefined();
+
+      // The nested detail must NOT be the same object as its parent —
+      // that would create a cycle (knob.details === handle.details,
+      // handle.details.get('knob') === handle, ad infinitum).
+      expect(knob).not.toBe(handle);
+
+      // Walking the subtree must terminate.
+      expect(obj.getDeepDetailIds()!.sort()).toEqual(['handle', 'knob']);
+    });
+
+    it('reuses detail correctly when adding aliases (same level, one call)', () => {
+      // This is the intended use of reuse: one setDetail call with multiple ids.
+      obj.setDetail(['a', 'b', 'c'], 'Shared.');
+      const a = obj.details.get('a');
+      const b = obj.details.get('b');
+      const c = obj.details.get('c');
+      expect(a).toBe(b);
+      expect(b).toBe(c);
     });
   });
 });

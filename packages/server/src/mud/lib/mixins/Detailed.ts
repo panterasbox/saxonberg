@@ -40,10 +40,13 @@ export type DetailMap = Map<DetailId, Detail>;
 
 /**
  * Detail entry with hierarchical structure.
+ *
+ * Aliases (multiple IDs for the same description, e.g. `['handle', 'doorknob']`)
+ * are represented by multiple keys in the containing Map pointing to the same
+ * `Detail` object. To enumerate aliases for a given Detail, walk the parent
+ * Map and filter by identity — there is no per-Detail alias list.
  */
 export interface Detail {
-  /** Multiple IDs (aliases) for same detail */
-  ids: Set<DetailId>;
   /** Description text */
   description: string;
   /** Nested child details (optional) */
@@ -55,7 +58,7 @@ export interface Detail {
  */
 export interface Detailed {
   /** Persistent hierarchical detail map */
-  details: Map<DetailId, Detail>;
+  details: DetailMap;
 
   /** Get single detail description */
   getDetail(id: DetailId, parent?: DetailId): string | null;
@@ -140,10 +143,14 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Set detail(s) - supports multiple IDs (aliases).
+     *
+     * All IDs in a single call share one Detail object (alias semantics).
+     * Separate calls always produce separate Detail objects, even when
+     * descriptions match.
      */
     setDetail(ids: DetailId[], description: string, parent?: DetailId): number {
       let result = 0;
-      const detail = this.newOrExistingDetail(description);
+      const detail: Detail = { description, details: undefined };
 
       for (const id of ids) {
         const resolved = this.resolveParent(parent, id);
@@ -155,7 +162,6 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           continue;
         }
 
-        detail.ids.add(resolvedId);
         details.set(resolvedId, detail);
         result++;
       }
@@ -179,8 +185,6 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           continue;
         }
 
-        const detail = details.get(resolvedId);
-        detail?.ids.delete(resolvedId);
         details.delete(resolvedId);
         result++;
       }
@@ -198,14 +202,14 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       let details: DetailMap | undefined = this.details;
       // Navigate to path.length - 1 (the parent of the last element)
       for (let i = 0; i < path.length - 1; i++) {
-        if (!details || !details.has(path[i])) {
+        const segment = path[i];
+        if (!details || !segment) {
           return undefined;
         }
-        const detail = details.get(path[i]);
+        const detail = details.get(segment);
         if (!detail) {
           return undefined;
         }
-        // Initialize details Map if not present
         if (!detail.details) {
           detail.details = new Map();
         }
@@ -243,13 +247,15 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           return undefined;
         }
 
-        // Get parent detail and ensure it has a details Map
-        const parentDetail = details.get(path[path.length - 1]);
+        const lastSegment = path[path.length - 1];
+        if (!lastSegment) {
+          return undefined;
+        }
+        const parentDetail = details.get(lastSegment);
         if (!parentDetail) {
           return undefined;
         }
 
-        // Initialize details Map if not present
         if (!parentDetail.details) {
           parentDetail.details = new Map();
         }
@@ -275,23 +281,6 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       });
 
       return result;
-    }
-
-    /**
-     * Internal: Get or create detail with description.
-     * Allows detail reuse when multiple IDs share same description.
-     */
-    private newOrExistingDetail(description: string): Detail {
-      for (const [, detail] of this.details.entries()) {
-        if (detail.description === description) {
-          return detail;
-        }
-      }
-      return {
-        ids: new Set(),
-        description,
-        details: undefined,
-      };
     }
   };
 }

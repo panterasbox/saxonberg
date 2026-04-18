@@ -8,6 +8,7 @@ import {
   Property,
   PropOperations,
   type PropAccessCheck,
+  type PropOperation,
   type PropValueMask,
 } from './Propertied';
 import { Stuff } from '../stuff/Stuff';
@@ -417,8 +418,8 @@ describe('PropertiedMixin', () => {
 
     it('should return false for non-existent property', () => {
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      expect(obj.maskProp(new Property('nonexistent'), mask)).toBe(false);
-      expect(obj.unmaskProp(new Property('nonexistent'), mask)).toBe(false);
+      expect(obj.maskProp(new Property<number>('nonexistent'), mask)).toBe(false);
+      expect(obj.unmaskProp(new Property<number>('nonexistent'), mask)).toBe(false);
     });
 
     it('should default owner to mask function if not provided', () => {
@@ -722,8 +723,8 @@ describe('PropertiedMixin', () => {
       const retrieved = obj.getProp(new Property('inventory')) as typeof inventory;
 
       expect(retrieved).toEqual(inventory);
-      expect(retrieved[0].name).toBe('sword');
-      expect(retrieved[1].defense).toBe(15);
+      expect(retrieved[0]!.name).toBe('sword');
+      expect(retrieved[1]!.defense).toBe(15);
     });
 
     it('should preserve object references (not deep copy)', () => {

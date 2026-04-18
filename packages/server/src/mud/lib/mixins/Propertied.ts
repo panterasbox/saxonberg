@@ -149,18 +149,6 @@ interface MaskEntry<T extends PropValue> {
 }
 
 /**
- * Internal property configuration with masks.
- */
-interface InternalPropOptions<T extends PropValue> extends PropOptions<T> {
-  /**
-   * Array of value transformation masks.
-   * Applied in order during getProp() to transform the returned value.
-   * Invalid masks are automatically filtered out.
-   */
-  masks: MaskEntry<T>[];
-}
-
-/**
  * Interface for objects with dynamic properties.
  */
 export interface Propertied {
@@ -304,7 +292,14 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Property configuration (transient/saved, access control).
      * Not persisted - reconstructed on load.
      */
-    private propOptions: Record<string, InternalPropOptions<PropValue>> = {};
+    private propOptions: Record<string, PropOptions<PropValue>> = {};
+
+    /**
+     * Per-property value transformation masks.
+     * Applied in order during getProp() to transform the returned value.
+     * Not persisted - reconstructed on load.
+     */
+    private propMasks: Record<string, MaskEntry<PropValue>[]> = {};
 
     /**
      * Read-only view combining saved + transient properties.
@@ -328,16 +323,13 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // Create configuration
-      const config: InternalPropOptions<T> = {
+      this.propOptions[propName] = {
         transient: options?.transient ?? true,
         checkAccess:
-          (options?.checkAccess as PropAccessCheck<T>) ??
-          ((p: Property<T>, op: PropOperation, special: any) =>
-            this.defaultPropAccess(p as Property<PropValue>, op, special)),
-        masks: [],
+          (options?.checkAccess as PropAccessCheck<PropValue>) ??
+          ((p, op, special) => this.defaultPropAccess(p, op, special)),
       };
-
-      this.propOptions[propName] = config as InternalPropOptions<PropValue>;
+      this.propMasks[propName] = [];
       return true;
     }
 
@@ -404,15 +396,13 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.initProp(prop);
       }
 
-      const config = this.propOptions[propName];
-
       // Check access for Set operation
       if (!this.checkAccess(prop, PropOperations.Set, null)) {
         return false;
       }
 
-      // Store in appropriate location
-      if (config.transient) {
+      // Store in appropriate location (initProp above guarantees config exists)
+      if (this.propOptions[propName]!.transient) {
         this.transientProps[propName] = value;
       } else {
         this.savedProps![propName] = value;
@@ -441,25 +431,23 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
       let value = (this.getPropValue(propName) as T) ?? null;
 
       // Apply masks in order, filtering out invalid ones
+      const masks = this.propMasks[propName] ?? [];
       const validMasks: MaskEntry<PropValue>[] = [];
 
-      for (const maskEntry of config.masks) {
+      for (const maskEntry of masks) {
         try {
-          // Apply mask transformation
-          value = (maskEntry.mask as PropValueMask<T>)(
+          value = (maskEntry.mask as unknown as PropValueMask<T>)(
             prop,
             value!,
             ...maskEntry.extra,
           );
           validMasks.push(maskEntry);
-        } catch (error) {
-          // Mask failed (e.g., owner destroyed), skip and don't include in validMasks
-          // This auto-cleans invalid masks
+        } catch {
+          // Mask failed (e.g., owner destroyed), drop it.
         }
       }
 
-      // Update masks array with only valid masks
-      config.masks = validMasks;
+      this.propMasks[propName] = validMasks;
 
       return value;
     }
@@ -483,6 +471,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
       delete this.transientProps[propName];
       delete this.savedProps![propName];
       delete this.propOptions[propName];
+      delete this.propMasks[propName];
 
       return true;
     }
@@ -493,20 +482,19 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     maskProp<T extends PropValue>(
       prop: Property<T>,
       mask: PropValueMask<T>,
-      owner?: any,
-      ...extra: any[]
+      owner?: unknown,
+      ...extra: unknown[]
     ): boolean {
       const propName = prop.toString();
-      const config = this.propOptions[propName];
-
-      if (!config) {
+      if (!this.propOptions[propName]) {
         return false;
       }
 
       const maskOwner = owner || mask;
+      const masks = (this.propMasks[propName] ??= []);
 
       // Only one mask per owner
-      if (config.masks.some((entry) => entry.owner === maskOwner)) {
+      if (masks.some((entry) => entry.owner === maskOwner)) {
         return false;
       }
 
@@ -515,9 +503,9 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
-      config.masks.push({
+      masks.push({
         owner: maskOwner,
-        mask: mask as PropValueMask<PropValue>,
+        mask: mask as unknown as PropValueMask<PropValue>,
         extra: extra,
       });
       return true;
@@ -526,11 +514,9 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Remove value transformation masks by owner.
      */
-    unmaskProp<T extends PropValue>(prop: Property<T>, owner: any): boolean {
+    unmaskProp<T extends PropValue>(prop: Property<T>, owner: unknown): boolean {
       const propName = prop.toString();
-      const config = this.propOptions[propName];
-
-      if (!config) {
+      if (!this.propOptions[propName]) {
         return false;
       }
 
@@ -539,25 +525,29 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
-      // Remove all masks owned by owner
-      const originalLength = config.masks.length;
-      config.masks = config.masks.filter((entry) => entry.owner !== owner);
+      const masks = this.propMasks[propName] ?? [];
+      const originalLength = masks.length;
+      this.propMasks[propName] = masks.filter(
+        (entry) => entry.owner !== owner,
+      );
 
-      return config.masks.length !== originalLength;
+      return this.propMasks[propName]!.length !== originalLength;
     }
 
     /**
      * Check if owner has any masks on property.
      */
-    isMaskingProp<T extends PropValue>(prop: Property<T>, owner: any): boolean {
+    isMaskingProp<T extends PropValue>(
+      prop: Property<T>,
+      owner: unknown,
+    ): boolean {
       const propName = prop.toString();
-      const config = this.propOptions[propName];
-
-      if (!config) {
+      if (!this.propOptions[propName]) {
         return false;
       }
 
-      return config.masks.some((entry) => entry.owner === owner);
+      const masks = this.propMasks[propName] ?? [];
+      return masks.some((entry) => entry.owner === owner);
     }
 
     /**
@@ -609,9 +599,9 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Default implementation allows all operations.
      */
     defaultPropAccess(
-      property: Property<PropValue>,
-      op: PropOperation,
-      special: any,
+      _property: Property<PropValue>,
+      _op: PropOperation,
+      _special: unknown,
     ): boolean {
       return true;
     }
@@ -622,7 +612,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     private checkAccess<T extends PropValue>(
       prop: Property<T>,
       op: PropOperation,
-      special: any,
+      special: unknown,
     ): boolean {
       const propName = prop.toString();
       const config = this.propOptions[propName];
@@ -641,12 +631,12 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     private getPropValue(propName: string): PropValue | null {
       // Check transient first (takes precedence)
       if (propName in this.transientProps) {
-        return this.transientProps[propName];
+        return this.transientProps[propName]!;
       }
 
       // Check saved
       if (this.savedProps && propName in this.savedProps) {
-        return this.savedProps[propName];
+        return this.savedProps[propName]!;
       }
 
       return null;
