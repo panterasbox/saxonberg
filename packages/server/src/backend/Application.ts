@@ -370,7 +370,11 @@ export class Application {
     });
     console.log(`Application: Created new User ${userId}`);
 
-    const playerId = await this.createDefaultPlayer(userId, profile);
+    const playerId = await this.createDefaultPlayer(
+      userId,
+      profile.name?.givenName || 'Unnamed',
+      profile.name?.familyName || 'Player'
+    );
     await this.createAvatarTemplate(playerId);
 
     return userId;
@@ -378,12 +382,13 @@ export class Application {
 
   private async createDefaultPlayer(
     userId: string,
-    profile: PassportGoogleProfile
+    firstName: string,
+    lastName: string
   ): Promise<string> {
     const playerId = await PersistenceManager.get().save(Collections.Players, {
       userId,
-      firstName: profile.name?.givenName || 'Unnamed',
-      lastName: profile.name?.familyName || 'Player',
+      firstName,
+      lastName,
       pronouns: Pronouns.They,
       createdAt: new Date(),
       updatedAt: new Date(),
