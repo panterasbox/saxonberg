@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MobileMixin } from './Mobile';
-import { ContainableMixin } from '../containment/Containable';
+import { ContainableMixin } from './Containable';
 import { Stuff } from '../stuff/Stuff';
 import { Location } from './Location';
 import { StuffApi } from '../../api/stuff';

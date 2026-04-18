@@ -29,8 +29,8 @@
 import { Agent } from '../stuff/Agent';
 import { NamedMixin } from './Named';
 import { GenderedMixin } from './Gendered';
-import { ContainableMixin } from '../containment/Containable';
-import { ContainerMixin } from '../containment/Container';
+import { ContainableMixin } from '../spatial/Containable';
+import { ContainerMixin } from '../spatial/Container';
 import { VisibleMixin } from '../description/Visible';
 import { MobileMixin } from '../spatial/Mobile';
 import { SensorMixin } from '../message/Sensor';

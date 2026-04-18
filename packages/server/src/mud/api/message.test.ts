@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MessageApi } from './message';
 import { Location } from '../lib/spatial/Location';
 import { MobileMixin } from '../lib/spatial/Mobile';
-import { ContainableMixin } from '../lib/containment/Containable';
+import { ContainableMixin } from '../lib/spatial/Containable';
 import { SensorMixin } from '../lib/message/Sensor';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';

@@ -5,8 +5,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainmentApi } from './containment';
 import { Location } from '../lib/spatial/Location';
-import { ContainerMixin } from '../lib/containment/Container';
-import { ContainableMixin } from '../lib/containment/Containable';
+import { ContainerMixin } from '../lib/spatial/Container';
+import { ContainableMixin } from '../lib/spatial/Containable';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 

@@ -35,7 +35,7 @@
 
 import { Stuff } from './Stuff';
 import { VisibleMixin } from '../description/Visible';
-import { ContainableMixin } from '../containment/Containable';
+import { ContainableMixin } from '../spatial/Containable';
 
 // Compose Thing base class with mixins
 const ThingBase = ContainableMixin(VisibleMixin(Stuff));
