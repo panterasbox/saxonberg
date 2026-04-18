@@ -8,7 +8,7 @@
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../lib/command/models';
-import { MessageApi } from '../../api/MessageApi';
+import { MessageApi } from '../../api/message';
 import { PlayerApi } from '../../api/player';
 import type { Avatar } from '../Avatar';
 

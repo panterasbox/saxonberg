@@ -17,7 +17,7 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
-import { MessageApi } from '../../api/MessageApi';
+import { MessageApi } from '../../api/message';
 
 /**
  * Mixin that adds message sending capabilities.

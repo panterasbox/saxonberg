@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MessageApi } from './MessageApi';
+import { MessageApi } from './message';
 import { Location } from '../lib/spatial/Location';
 import { MobileMixin } from '../lib/spatial/Mobile';
 import { ContainableMixin } from '../lib/containment/Containable';
