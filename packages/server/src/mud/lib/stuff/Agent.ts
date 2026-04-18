@@ -18,7 +18,7 @@ import { Idea } from './Idea';
 /**
  * Agent - Base class for runtime active objects.
  */
-export abstract class Agent extends Idea {
+export class Agent extends Idea {
   /**
    * Constructor.
    * Subclasses should call super() and then register with StuffApi.

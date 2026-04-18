@@ -64,7 +64,7 @@ describe('User', () => {
       expect(typeof user.stuffId).toBe('string');
     });
 
-    it('should have _id field from Persistent base class', () => {
+    it('should have _id field from Persistable base class', () => {
       const user = new User();
 
       expect(user).toHaveProperty('_id');

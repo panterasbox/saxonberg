@@ -26,9 +26,9 @@
  * Runtime-only class (no MongoDB collection).
  */
 
-import { Agent } from './Agent';
-import { NamedMixin } from '../description/Named';
-import { GenderedMixin } from '../description/Gendered';
+import { Agent } from '../stuff/Agent';
+import { NamedMixin } from './Named';
+import { GenderedMixin } from './Gendered';
 import { ContainableMixin } from '../containment/Containable';
 import { ContainerMixin } from '../containment/Container';
 import { VisibleMixin } from '../description/Visible';

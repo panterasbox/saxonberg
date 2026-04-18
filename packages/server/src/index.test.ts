@@ -58,9 +58,4 @@ describe("Server", () => {
     const { Agent } = await import("./index");
     expect(Agent).toBeDefined();
   });
-
-  it("should export AgentBase class", async () => {
-    const { AgentBase } = await import("./index");
-    expect(AgentBase).toBeDefined();
-  });
 });

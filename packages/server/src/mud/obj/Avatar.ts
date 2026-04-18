@@ -16,7 +16,7 @@
  * Location: /mud/obj/ because it's an instantiable game object (not a library class)
  */
 
-import { Character } from '../lib/stuff/Character';
+import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
 import { PersistApi } from '../api/persist';
 import { Player } from '../lib/identity/Player';

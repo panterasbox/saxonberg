@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Avatar } from './Avatar';
 import { Interactive } from '../lib/connection/Interactive';
-import { Character } from '../lib/stuff/Character';
+import { Character } from '../lib/character/Character';
 
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {

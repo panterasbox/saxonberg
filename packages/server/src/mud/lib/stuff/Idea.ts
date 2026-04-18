@@ -14,10 +14,10 @@
 import { Stuff } from './Stuff';
 
 /**
- * Abstract base class for conceptual game objects.
+ * Base class for conceptual game objects.
  * All persistent objects (User, Player, Location, etc.) extend Idea.
  */
-export abstract class Idea extends Stuff {
+export class Idea extends Stuff {
   /**
    * Constructor - calls parent Stuff constructor.
    */

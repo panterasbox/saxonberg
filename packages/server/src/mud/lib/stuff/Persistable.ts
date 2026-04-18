@@ -1,5 +1,5 @@
 /**
- * Persistent - Base class for persistent game objects
+ * Persistable - Base class for objects that can be saved to MongoDB
  *
  * Provides generic CRUD operations for objects that persist to MongoDB.
  * Subclasses must declare:
@@ -7,11 +7,11 @@
  * - static persistentFields: string[]
  *
  * This eliminates boilerplate - no need to implement save/delete/findById/find
- * in every persistent class.
+ * in every persistable class.
  *
  * Example:
  * ```typescript
- * class User extends Persistent {
+ * class User extends Persistable {
  *   static collectionName = 'users';
  *   static persistentFields = ['googleProfileId'];
  *   // ... properties ...
@@ -30,20 +30,20 @@ import { PersistenceManager, Collections } from '../../../backend/PersistenceMan
 import { MixinApi } from '../../api/mixin';
 
 /**
- * Interface for persistent constructors.
+ * Interface for persistable constructors.
  * Ensures subclasses have required static properties.
  */
-export interface PersistentConstructor {
+export interface PersistableConstructor {
   collectionName: string;
   persistentFields?: string[];
   getAllPersistentFields?(): string[];
-  new (...args: any[]): Persistent;
+  new (...args: any[]): Persistable;
 }
 
 /**
- * Base class for persistent objects with generic CRUD operations.
+ * Base class for persistable objects with generic CRUD operations.
  */
-export abstract class Persistent extends Idea {
+export class Persistable extends Idea {
   /**
    * MongoDB ObjectId (undefined until saved).
    */
@@ -78,7 +78,7 @@ export abstract class Persistent extends Idea {
    * @throws Error if collectionName not defined in subclass
    */
   protected getCollectionName(): string {
-    const constructor = this.constructor as typeof Persistent;
+    const constructor = this.constructor as typeof Persistable;
     if (!constructor.collectionName) {
       throw new Error(
         `${constructor.name}.collectionName not defined - must be set in subclass`
@@ -192,8 +192,8 @@ export abstract class Persistent extends Idea {
    * Find a document by MongoDB _id.
    * Returns null if not found.
    */
-  public static async findById<T extends Persistent>(
-    this: PersistentConstructor & { new (): T },
+  public static async findById<T extends Persistable>(
+    this: PersistableConstructor & { new (): T },
     id: string
   ): Promise<T | null> {
     if (!this.collectionName) {
@@ -219,8 +219,8 @@ export abstract class Persistent extends Idea {
    * Find documents matching a query.
    * Returns empty array if none found.
    */
-  public static async find<T extends Persistent>(
-    this: PersistentConstructor & { new (): T },
+  public static async find<T extends Persistable>(
+    this: PersistableConstructor & { new (): T },
     query: Record<string, unknown>
   ): Promise<T[]> {
     if (!this.collectionName) {

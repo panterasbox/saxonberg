@@ -98,6 +98,4 @@ export { MixinApi, Mixins } from './mud/api/mixin';
 export { Avatar } from './mud/obj/Avatar';
 export { Interactive } from './mud/lib/connection/Interactive';
 export { Agent } from './mud/lib/stuff/Agent';
-export { AgentBase } from './mud/lib/stuff/AgentBase';
-export { Persistent } from './mud/lib/stuff/Persistent';
-export { PersistentBase } from './mud/lib/stuff/PersistentBase';
+export { Persistable } from './mud/lib/stuff/Persistable';

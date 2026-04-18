@@ -7,16 +7,16 @@
  * Persistence: Saved to MongoDB 'players' collection
  */
 
-import { PersistentBase } from '../stuff/PersistentBase';
-import { NamedMixin } from '../description/Named';
-import { GenderedMixin } from '../description/Gendered';
+import { Persistable } from '../stuff/Persistable';
+import { NamedMixin } from '../character/Named';
+import { GenderedMixin } from '../character/Gendered';
 import { MixinApi } from '../../api/mixin';
 import type { Player as IPlayer, Pronouns } from '@saxonberg/types';
 
 /**
  * Compose Player base class with mixins.
  */
-const PlayerBase = GenderedMixin(NamedMixin(PersistentBase));
+const PlayerBase = GenderedMixin(NamedMixin(Persistable));
 
 /**
  * Player character (persistent).
@@ -60,7 +60,7 @@ export class Player extends PlayerBase implements IPlayer {
 
   /**
    * Get all persistent fields (mixin fields + class fields).
-   * This is called by Persistent base class during save/load.
+   * This is called by Persistable base class during save/load.
    */
   public static getAllPersistentFields(): string[] {
     return MixinApi.getAllPersistentFields(this);

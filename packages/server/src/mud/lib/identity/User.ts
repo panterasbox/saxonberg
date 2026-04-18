@@ -7,13 +7,13 @@
  * Persistence: Saved to MongoDB 'users' collection
  */
 
-import { Persistent } from '../stuff/Persistent';
+import { Persistable } from '../stuff/Persistable';
 import type { User as IUser } from '@saxonberg/types';
 
 /**
  * User account (persistent).
  */
-export class User extends Persistent implements IUser {
+export class User extends Persistable implements IUser {
   /**
    * MongoDB collection name.
    */
