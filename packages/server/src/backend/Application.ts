@@ -26,6 +26,7 @@ import { Avatar } from '../mud/obj/Avatar';
 import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
 import { Player } from '../mud/lib/identity/Player';
+import { CharacterSheet } from '../mud/lib/identity/CharacterSheet';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { Location } from '../mud/lib/stuff/Location';
 import type { CommandContext } from '../mud/lib/command/models';
@@ -385,16 +386,21 @@ export class Application {
     firstName: string,
     lastName: string
   ): Promise<string> {
-    const playerId = await PersistenceManager.get().save(Collections.Players, {
-      userId,
-      firstName,
-      lastName,
-      pronouns: Pronouns.They,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    console.log(`Application: Created default Player ${playerId} for User ${userId}`);
-    return playerId;
+    const sheet = new CharacterSheet();
+    sheet.firstName = firstName;
+    sheet.lastName = lastName;
+    sheet.pronouns = Pronouns.They;
+    await sheet.save();
+
+    const player = new Player();
+    player.userId = userId;
+    player.characterSheetId = sheet._id!;
+    await player.save();
+
+    console.log(
+      `Application: Created default Player ${player._id} (sheet=${sheet._id}) for User ${userId}`
+    );
+    return player._id!;
   }
 
   private async createAvatarTemplate(playerId: string): Promise<void> {

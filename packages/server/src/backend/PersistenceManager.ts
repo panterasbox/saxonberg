@@ -19,6 +19,7 @@ import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 export enum Collections {
   Users = 'users',
   Players = 'players',
+  CharacterSheets = 'character_sheets',
   GoogleProfiles = 'google_profiles',
   Domain = 'domain',
 }

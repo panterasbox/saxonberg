@@ -144,26 +144,6 @@ export class Interactive extends Idea {
   }
 
   /**
-   * Legacy method for backward compatibility.
-   * @deprecated Use switchAvatar instead
-   */
-  public linkAvatar(avatar: Avatar): void {
-    this.currentAvatar = avatar;
-    avatar.addInteractive(this);
-  }
-
-  /**
-   * Legacy method for backward compatibility.
-   * @deprecated Use switchAvatar or removeInteractive instead
-   */
-  public unlinkAvatar(): void {
-    if (this.currentAvatar) {
-      this.currentAvatar.removeInteractive(this);
-      this.currentAvatar = null;
-    }
-  }
-
-  /**
    * Get connection duration in milliseconds.
    */
   public getConnectionDuration(): number {
@@ -191,17 +171,5 @@ export class Interactive extends Idea {
   public toString(): string {
     const avatarInfo = this.currentAvatar ? ` avatar=${this.currentAvatar.fullName}` : '';
     return `[Interactive socketId=${this.socketId} userId=${this.userId}${avatarInfo}]`;
-  }
-
-  /**
-   * Legacy property for backward compatibility.
-   * @deprecated Use currentAvatar instead
-   */
-  get avatar(): Avatar | undefined {
-    return this.currentAvatar || undefined;
-  }
-
-  set avatar(value: Avatar | undefined) {
-    this.currentAvatar = value || null;
   }
 }

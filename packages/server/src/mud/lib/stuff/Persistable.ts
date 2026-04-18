@@ -171,6 +171,48 @@ export class Persistable extends Idea {
   }
 
   /**
+   * Push my persistent fields into a runtime object (load direction).
+   * Uses mixin + class field declarations to determine what to copy.
+   *
+   * Optional hook: if `runtime.onSyncedFromPersistable(this)` exists, it is
+   * invoked after fields are copied so the runtime can do any extra work
+   * (e.g. caching identity references).
+   */
+  public syncTo(runtime: object): void {
+    const fields = this.getAllFields();
+    for (const field of fields) {
+      if (field in this) {
+        (runtime as any)[field] = (this as any)[field];
+      }
+    }
+    const hook = (runtime as any).onSyncedFromPersistable;
+    if (typeof hook === 'function') {
+      hook.call(runtime, this);
+    }
+  }
+
+  /**
+   * Pull a runtime object's values into my persistent fields (save direction).
+   * Uses mixin + class field declarations to determine what to copy.
+   *
+   * Optional hook: if `runtime.onSyncedToPersistable(this)` exists, it is
+   * invoked after fields are copied.
+   */
+  public syncFrom(runtime: object): void {
+    const fields = this.getAllFields();
+    for (const field of fields) {
+      if (field in runtime) {
+        (this as any)[field] = (runtime as any)[field];
+      }
+    }
+    this.updatedAt = new Date();
+    const hook = (runtime as any).onSyncedToPersistable;
+    if (typeof hook === 'function') {
+      hook.call(runtime, this);
+    }
+  }
+
+  /**
    * Delete this object from MongoDB.
    * Marks as destroyed after deletion.
    */

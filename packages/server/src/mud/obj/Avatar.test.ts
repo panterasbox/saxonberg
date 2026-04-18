@@ -309,21 +309,6 @@ describe('Avatar', () => {
       });
     });
 
-    describe('legacy methods', () => {
-      it('setInteractive should add to interactives set', () => {
-        avatar.setInteractive(interactive1);
-        expect(avatar.interactives.has(interactive1)).toBe(true);
-      });
-
-      it('unlinkInteractive should remove all interactives', () => {
-        avatar.addInteractive(interactive1);
-        avatar.addInteractive(interactive2);
-
-        avatar.unlinkInteractive();
-
-        expect(avatar.interactives.size).toBe(0);
-      });
-    });
   });
 
   describe('onMessage (SensorMixin override)', () => {

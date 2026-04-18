@@ -75,16 +75,16 @@ describe('Interactive', () => {
     beforeEach(() => {
       interactive = new Interactive(testSocketId, testSessionId, testUserId);
 
-      // Create mock players
+      // Create mock players (identity pointers only; character data lives on CharacterSheet)
       mockPlayer1 = new Player();
       mockPlayer1._id = 'player1';
       mockPlayer1.userId = testUserId;
-      mockPlayer1.firstName = 'Alice';
+      mockPlayer1.characterSheetId = 'sheet1';
 
       mockPlayer2 = new Player();
       mockPlayer2._id = 'player2';
       mockPlayer2.userId = testUserId;
-      mockPlayer2.firstName = 'Bob';
+      mockPlayer2.characterSheetId = 'sheet2';
 
       // Create mock avatars
       mockAvatar1 = new Avatar({ playerId: 'player1' });
@@ -299,60 +299,6 @@ describe('Interactive', () => {
       interactive.send({ type: 'test', payload: { foo: 'bar' } });
       interactive.send('string message');
       interactive.send(123);
-    });
-  });
-
-  describe('legacy methods', () => {
-    let mockAvatar: Avatar;
-
-    beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, testUserId);
-      mockAvatar = new Avatar({ playerId: 'player1' });
-    });
-
-    it('linkAvatar should set currentAvatar and add to Avatar', () => {
-      interactive.linkAvatar(mockAvatar);
-
-      expect(interactive.currentAvatar).toBe(mockAvatar);
-      expect(mockAvatar.interactives.has(interactive)).toBe(true);
-    });
-
-    it('unlinkAvatar should clear currentAvatar and remove from Avatar', () => {
-      interactive.linkAvatar(mockAvatar);
-      interactive.unlinkAvatar();
-
-      expect(interactive.currentAvatar).toBeNull();
-      expect(mockAvatar.interactives.has(interactive)).toBe(false);
-    });
-
-    it('unlinkAvatar should handle null currentAvatar', () => {
-      expect(() => {
-        interactive.unlinkAvatar();
-      }).not.toThrow();
-    });
-
-    it('avatar getter should return currentAvatar', () => {
-      interactive.currentAvatar = mockAvatar;
-
-      expect(interactive.avatar).toBe(mockAvatar);
-    });
-
-    it('avatar getter should return undefined when null', () => {
-      interactive.currentAvatar = null;
-
-      expect(interactive.avatar).toBeUndefined();
-    });
-
-    it('avatar setter should set currentAvatar', () => {
-      interactive.avatar = mockAvatar;
-
-      expect(interactive.currentAvatar).toBe(mockAvatar);
-    });
-
-    it('avatar setter should handle undefined', () => {
-      interactive.avatar = undefined;
-
-      expect(interactive.currentAvatar).toBeNull();
     });
   });
 

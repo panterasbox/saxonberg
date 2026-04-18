@@ -63,10 +63,10 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
     context.avatar.firstName = input.firstName;
     context.avatar.lastName = input.lastName || '';
 
-    // Sync to Player and save
-    context.avatar.syncToPlayer();
-    if (context.avatar.player) {
-      context.avatar.player.save();
+    // Capture into CharacterSheet and save
+    if (context.avatar.sheet) {
+      context.avatar.sheet.syncFrom(context.avatar);
+      context.avatar.sheet.save();
     }
 
     const fullName = context.avatar.fullName;
@@ -117,10 +117,10 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
     // Update avatar pronouns
     context.avatar.pronouns = pronouns;
 
-    // Sync to Player and save
-    context.avatar.syncToPlayer();
-    if (context.avatar.player) {
-      context.avatar.player.save();
+    // Capture into CharacterSheet and save
+    if (context.avatar.sheet) {
+      context.avatar.sheet.syncFrom(context.avatar);
+      context.avatar.sheet.save();
     }
 
     return {

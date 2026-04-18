@@ -1,27 +1,20 @@
 /**
  * Avatar - Runtime player character presence in the game world
  *
- * Represents a Player's active presence when connected.
- * Extends Character (which provides: Named, Gendered, Sensor, Vocal mixins).
- * Syncs with Player (persistent) via PersistApi.
+ * Represents a Player's active presence when connected. Extends Character
+ * (Named, Gendered, Sensor, Vocal, Container, Containable, Visible, Mobile,
+ * CommandGiver mixins). Projects a persistent CharacterSheet into the world;
+ * state is captured back to the sheet on disconnect.
  *
- * Key Features:
- * - Extends Character abstract class
- * - Supports multiplexing (multiple connections via Set<Interactive>)
- * - Auto-syncs all mixin fields via PersistApi
- * - Runtime-only (NOT persisted to database)
- *
- * Lifetime: Created when player connects, destroyed when last connection drops.
- *
- * Location: /mud/obj/ because it's an instantiable game object (not a library class)
+ * Lifetime: created when a player connects, destroyed when the last
+ * connection drops.
  */
 
 import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
-import { PersistApi } from '../api/persist';
 import { Player } from '../lib/identity/Player';
+import { CharacterSheet } from '../lib/identity/CharacterSheet';
 import type { Interactive } from './Interactive';
-import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 
 /**
@@ -90,9 +83,15 @@ export class Avatar extends Character {
   playerId: string = '';
 
   /**
-   * Reference to the persistent Player object.
+   * Reference to the persistent Player record (userId + characterSheetId).
    */
   player?: Player;
+
+  /**
+   * Reference to the persistent CharacterSheet (name, pronouns, ...).
+   * This is the persistable this Avatar projects into the world.
+   */
+  sheet?: CharacterSheet;
 
   /**
    * Set of connected Interactive objects (supports multiplexing).
@@ -114,7 +113,7 @@ export class Avatar extends Character {
   }
 
   /**
-   * Async initialization - loads Player and syncs state.
+   * Async initialization - loads Player + CharacterSheet and syncs state.
    * Called automatically by StuffApi.clone().
    */
   public async initialize(): Promise<void> {
@@ -122,30 +121,22 @@ export class Avatar extends Character {
       throw new Error('Avatar.initialize(): No playerId');
     }
 
-    // Load Player from database
-    const playerDoc = await PersistenceManager.get().findById(
-      Collections.Players,
-      this.playerId
-    );
-
-    if (!playerDoc) {
+    const player = await Player.findById(this.playerId);
+    if (!player) {
       throw new Error(`Avatar.initialize(): Player not found: ${this.playerId}`);
     }
+    this.player = player;
+    this.userId = player.userId;
 
-    // Create Player runtime object
-    const player = new Player();
-    player._id = playerDoc._id;
-    player.userId = playerDoc.userId;
-    player.firstName = playerDoc.firstName;
-    player.lastName = playerDoc.lastName;
-    player.pronouns = playerDoc.pronouns;
-    player.createdAt = playerDoc.createdAt;
-    player.updatedAt = playerDoc.updatedAt;
+    const sheet = await CharacterSheet.findById(player.characterSheetId);
+    if (!sheet) {
+      throw new Error(
+        `Avatar.initialize(): CharacterSheet not found: ${player.characterSheetId}`
+      );
+    }
+    this.sheet = sheet;
+    sheet.syncTo(this);
 
-    // Sync from Player (sets mixin fields and userId)
-    await this.syncFromPlayer(player);
-
-    // Register with PlayerApi for playerId lookup
     PlayerApi.registerAvatar(this);
 
     console.log(`Avatar.initialize(): Initialized for player ${this.playerId}`);
@@ -172,11 +163,11 @@ export class Avatar extends Character {
     this.interactives.delete(interactive);
     console.log(`Avatar.removeInteractive(): Removed connection for ${this.fullName} (${this.interactives.size} remaining)`);
 
-    // If no more connections, sync to Player and save
-    if (this.interactives.size === 0 && this.player) {
-      this.syncToPlayer();
-      this.player.save().catch((err) => {
-        console.error(`Avatar.removeInteractive(): Failed to save Player: ${err.message}`);
+    // If no more connections, capture state into the CharacterSheet and save.
+    if (this.interactives.size === 0 && this.sheet) {
+      this.sheet.syncFrom(this);
+      this.sheet.save().catch((err) => {
+        console.error(`Avatar.removeInteractive(): Failed to save CharacterSheet: ${err.message}`);
       });
     }
   }
@@ -222,65 +213,6 @@ export class Avatar extends Character {
     for (const interactive of this.interactives) {
       app.sendMessageToInteractive(interactive, message);
     }
-  }
-
-  /**
-   * Legacy method for backward compatibility.
-   * @deprecated Use addInteractive instead
-   */
-  public setInteractive(interactive: Interactive): void {
-    this.addInteractive(interactive);
-  }
-
-  /**
-   * Legacy method for backward compatibility.
-   * @deprecated Use removeInteractive instead
-   */
-  public unlinkInteractive(): void {
-    // Remove all interactives
-    for (const interactive of Array.from(this.interactives)) {
-      this.removeInteractive(interactive);
-    }
-  }
-
-  /**
-   * Sync runtime state TO persistent Player object (save).
-   * Uses PersistApi for automatic field collection from mixins.
-   * Copies all mixin fields (firstName, lastName, pronouns).
-   */
-  public syncToPlayer(): void {
-    if (!this.player) {
-      console.warn('Avatar.syncToPlayer(): No player reference');
-      return;
-    }
-
-    // Use PersistApi for automatic sync
-    PersistApi.syncTo(this, this.player);
-
-    // Update timestamp
-    this.player.updatedAt = new Date();
-
-    console.log(`Avatar.syncToPlayer(): Auto-synced all fields to Player ${this.playerId}`);
-  }
-
-  /**
-   * Sync persistent Player state FROM persistent Player object (load).
-   * Uses PersistApi for automatic field collection from mixins.
-   * Copies all mixin fields (firstName, lastName, pronouns).
-   *
-   * @param player - The Player object to sync from
-   */
-  public async syncFromPlayer(player: Player): Promise<void> {
-    this.player = player;
-
-    // Use PersistApi for automatic sync
-    await PersistApi.syncFrom(player, this);
-
-    // Copy identity fields
-    this.userId = player.userId;
-    this.playerId = player._id || '';
-
-    console.log(`Avatar.syncFromPlayer(): Auto-synced all fields from Player ${this.playerId}`);
   }
 
   /**

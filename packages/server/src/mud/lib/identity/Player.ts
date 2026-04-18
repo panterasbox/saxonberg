@@ -1,41 +1,25 @@
 /**
- * Player - Persistent player character object
+ * Player - Persistent record linking a User to a CharacterSheet
  *
- * Represents a character that can enter the game world.
- * Uses NamedMixin and GenderedMixin for character properties.
+ * A Player is a "character slot" owned by a User. It carries no character
+ * data itself — the firstName, pronouns, etc. live on a CharacterSheet
+ * referenced by characterSheetId.
  *
- * Persistence: Saved to MongoDB 'players' collection
+ * Persistence: Saved to MongoDB 'players' collection.
  */
 
 import { Persistable } from '../stuff/Persistable';
-import { NamedMixin } from '../character/Named';
-import { GenderedMixin } from '../character/Gendered';
-import { MixinApi } from '../../api/mixin';
-import type { Player as IPlayer, Pronouns } from '@saxonberg/types';
 
-/**
- * Compose Player base class with mixins.
- */
-const PlayerBase = GenderedMixin(NamedMixin(Persistable));
-
-/**
- * Player character (persistent).
- */
-export class Player extends PlayerBase implements IPlayer {
-  /**
-   * MongoDB collection name.
-   */
+export class Player extends Persistable {
   static collectionName = 'players';
 
-  /**
-   * Persistent fields for auto-sync (class fields only - mixin fields auto-collected).
-   */
-  static persistentFields = ['userId', 'startingRoomPath'];
+  static persistentFields = ['userId', 'characterSheetId', 'startingRoomPath'];
 
-  /**
-   * User ID that owns this player.
-   */
+  /** User ID that owns this player slot. */
   userId: string = '';
+
+  /** CharacterSheet ID holding the character data for this player. */
+  characterSheetId: string = '';
 
   /**
    * Starting room path for this player.
@@ -43,33 +27,7 @@ export class Player extends PlayerBase implements IPlayer {
    */
   startingRoomPath?: string;
 
-  /**
-   * Constructor.
-   *
-   * @param firstName - Optional first name
-   * @param lastName - Optional last name
-   * @param pronouns - Optional pronouns (defaults to They)
-   */
-  constructor(firstName?: string, lastName?: string, pronouns?: Pronouns) {
-    super(); // Auto-registers with StuffApi
-
-    if (firstName) this.firstName = firstName;
-    if (lastName) this.lastName = lastName;
-    if (pronouns) this.pronouns = pronouns;
-  }
-
-  /**
-   * Get all persistent fields (mixin fields + class fields).
-   * This is called by Persistable base class during save/load.
-   */
-  public static getAllPersistentFields(): string[] {
-    return MixinApi.getAllPersistentFields(this);
-  }
-
-  /**
-   * String representation.
-   */
   public toString(): string {
-    return `[Player ${this.fullName} (${this._id || this.stuffId})]`;
+    return `[Player userId=${this.userId} sheet=${this.characterSheetId} (${this._id || this.stuffId})]`;
   }
 }

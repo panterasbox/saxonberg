@@ -116,21 +116,41 @@ export interface User {
 }
 
 /**
- * Player character (persistent).
- * Represents a character that can enter the game world.
+ * Player character slot (persistent).
+ * A Player record links a User to a CharacterSheet. Character data
+ * (name, pronouns) lives on the CharacterSheet, not here.
  */
 export interface Player {
   /** MongoDB ObjectId */
   _id?: string;
-  /** User ID that owns this player */
+  /** User ID that owns this player slot */
   userId: string;
+  /** CharacterSheet ID holding the character data */
+  characterSheetId: string;
+  /** Optional starting room path override */
+  startingRoomPath?: string;
+  /** Character creation timestamp */
+  createdAt: Date;
+  /** Last updated timestamp */
+  updatedAt: Date;
+}
+
+/**
+ * Character sheet (persistent).
+ * Holds mixin-based character data (name, pronouns, etc.) projected by
+ * a runtime Avatar or NPC. Shared shape between PC sheets (owned via a
+ * Player record) and future NPC sheets.
+ */
+export interface CharacterSheet {
+  /** MongoDB ObjectId */
+  _id?: string;
   /** First name */
   firstName: string;
   /** Last name */
   lastName: string;
   /** Pronouns */
   pronouns: Pronouns;
-  /** Character creation timestamp */
+  /** Created timestamp */
   createdAt: Date;
   /** Last updated timestamp */
   updatedAt: Date;
