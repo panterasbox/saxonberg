@@ -302,112 +302,103 @@ export class Application {
     profile: PassportGoogleProfile
   ): Promise<string> {
     try {
-      // 1. Find or create GoogleProfile
-      let googleProfileDocs = await PersistenceManager.get().find(
-        Collections.GoogleProfiles,
-        { googleId: profile.id }
-      );
-
-      let googleProfileId: string;
-
-      if (googleProfileDocs.length === 0) {
-        // Create new GoogleProfile
-        const newProfile = {
-          googleId: profile.id,
-          email: profile.emails?.[0]?.value || '',
-          displayName: profile.displayName,
-          givenName: profile.name?.givenName,
-          familyName: profile.name?.familyName,
-          photoUrl: profile.photos?.[0]?.value,
-          rawProfile: profile._json,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        googleProfileId = await PersistenceManager.get().save(
-          Collections.GoogleProfiles,
-          newProfile
-        );
-
-        console.log(`Application: Created new GoogleProfile ${googleProfileId}`);
-      } else {
-        googleProfileId = googleProfileDocs[0]._id;
-
-        // Update existing profile
-        const updateProfile = {
-          _id: googleProfileId,
-          googleId: profile.id,
-          email: profile.emails?.[0]?.value || '',
-          displayName: profile.displayName,
-          givenName: profile.name?.givenName,
-          familyName: profile.name?.familyName,
-          photoUrl: profile.photos?.[0]?.value,
-          rawProfile: profile._json,
-          updatedAt: new Date(),
-          createdAt: googleProfileDocs[0].createdAt,
-        };
-
-        await PersistenceManager.get().save(Collections.GoogleProfiles, updateProfile);
-
-        console.log(`Application: Updated GoogleProfile ${googleProfileId}`);
-      }
-
-      // 2. Find or create User
-      let userDocs = await PersistenceManager.get().find(Collections.Users, {
-        googleProfileId: googleProfileId,
-      });
-
-      let userId: string;
-
-      if (userDocs.length === 0) {
-        // Create new User
-        const newUser = {
-          googleProfileId: googleProfileId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        userId = await PersistenceManager.get().save(Collections.Users, newUser);
-
-        console.log(`Application: Created new User ${userId}`);
-
-        // 3. Create default Player for new User
-        const newPlayer = {
-          userId: userId,
-          firstName: profile.name?.givenName || 'Unnamed',
-          lastName: profile.name?.familyName || 'Player',
-          pronouns: Pronouns.They,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        const playerId = await PersistenceManager.get().save(
-          Collections.Players,
-          newPlayer
-        );
-
-        console.log(`Application: Created default Player ${playerId} for User ${userId}`);
-
-        // 4. Create avatar template in domain collection
-        const avatarTemplate = {
-          path: Avatar.getTemplatePath(playerId),
-          class: '/obj/Avatar',
-          data: {
-            playerId: playerId,
-          },
-        };
-
-        await PersistenceManager.get().save(Collections.Domain, avatarTemplate);
-        console.log(`Application: Created avatar template at ${avatarTemplate.path}`);
-      } else {
-        userId = userDocs[0]._id;
-        console.log(`Application: Found existing User ${userId}`);
-      }
-
+      const googleProfileId = await this.findOrCreateGoogleProfile(profile);
+      const userId = await this.findOrCreateUser(googleProfileId, profile);
       return userId;
     } catch (error) {
       console.error('Application: Error in findOrCreateUserFromGoogle:', error);
       throw error;
     }
+  }
+
+  private async findOrCreateGoogleProfile(
+    profile: PassportGoogleProfile
+  ): Promise<string> {
+    const existing = await PersistenceManager.get().find(
+      Collections.GoogleProfiles,
+      { googleId: profile.id }
+    );
+
+    const fields = {
+      googleId: profile.id,
+      email: profile.emails?.[0]?.value || '',
+      displayName: profile.displayName,
+      givenName: profile.name?.givenName,
+      familyName: profile.name?.familyName,
+      photoUrl: profile.photos?.[0]?.value,
+      rawProfile: profile._json,
+      updatedAt: new Date(),
+    };
+
+    if (existing.length === 0) {
+      const id = await PersistenceManager.get().save(Collections.GoogleProfiles, {
+        ...fields,
+        createdAt: new Date(),
+      });
+      console.log(`Application: Created new GoogleProfile ${id}`);
+      return id;
+    }
+
+    const id = existing[0]._id;
+    await PersistenceManager.get().save(Collections.GoogleProfiles, {
+      ...fields,
+      _id: id,
+      createdAt: existing[0].createdAt,
+    });
+    console.log(`Application: Updated GoogleProfile ${id}`);
+    return id;
+  }
+
+  private async findOrCreateUser(
+    googleProfileId: string,
+    profile: PassportGoogleProfile
+  ): Promise<string> {
+    const existing = await PersistenceManager.get().find(Collections.Users, {
+      googleProfileId,
+    });
+
+    if (existing.length > 0) {
+      const userId = existing[0]._id;
+      console.log(`Application: Found existing User ${userId}`);
+      return userId;
+    }
+
+    const userId = await PersistenceManager.get().save(Collections.Users, {
+      googleProfileId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    console.log(`Application: Created new User ${userId}`);
+
+    const playerId = await this.createDefaultPlayer(userId, profile);
+    await this.createAvatarTemplate(playerId);
+
+    return userId;
+  }
+
+  private async createDefaultPlayer(
+    userId: string,
+    profile: PassportGoogleProfile
+  ): Promise<string> {
+    const playerId = await PersistenceManager.get().save(Collections.Players, {
+      userId,
+      firstName: profile.name?.givenName || 'Unnamed',
+      lastName: profile.name?.familyName || 'Player',
+      pronouns: Pronouns.They,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    console.log(`Application: Created default Player ${playerId} for User ${userId}`);
+    return playerId;
+  }
+
+  private async createAvatarTemplate(playerId: string): Promise<void> {
+    const template = {
+      path: Avatar.getTemplatePath(playerId),
+      class: '/obj/Avatar',
+      data: { playerId },
+    };
+    await PersistenceManager.get().save(Collections.Domain, template);
+    console.log(`Application: Created avatar template at ${template.path}`);
   }
 }
