@@ -632,7 +632,6 @@ For detailed architectural patterns and implementation guidelines, see:
 - **`PHASE_1_FEED.md`** - Phase 1 implementation details (authentication, persistence, WebSocket)
 - **`CONSISTENCY_REVIEW.md`** - Architecture consistency checks and validation
 - **`IMPLEMENTATION_GUIDE.md`** - Practical implementation patterns and examples
-- **`PHASE_7_NAVIGATION.md`** - Phase 7 navigation plan (exits, doors, zones, vessels); canonical reference for the spatial subsystem shape
 
 ### Implementation Status
 
