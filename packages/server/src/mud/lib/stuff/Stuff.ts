@@ -28,6 +28,7 @@
 
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
+import type { Zone } from '../spatial/Zone';
 
 /**
  * Metadata for destroyed objects (used for debugging).
@@ -46,6 +47,17 @@ export abstract class Stuff {
    * This is NOT the MongoDB _id - it's a runtime identifier.
    */
   public readonly stuffId: string;
+
+  /**
+   * Zone this object belongs to. Universal subdivision of the MUD domain.
+   *
+   * Stamped at clone-time from the template path (see ZoneApi), or on first
+   * placement via ContainmentApi.move() when null. Runtime-only for now: Zone
+   * references are not auto-persisted (mirrors how `inventory`/`environment`
+   * are handled — they are runtime references, and the authoritative source
+   * for zone membership is the `domain` template path at clone time).
+   */
+  public zone: Zone | null = null;
 
   /**
    * Flag indicating whether this object has been destroyed.

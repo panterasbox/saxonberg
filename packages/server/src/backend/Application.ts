@@ -29,7 +29,7 @@ import { Player } from '../mud/lib/identity/Player';
 import { CharacterSheet } from '../mud/lib/identity/CharacterSheet';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { Location } from '../mud/lib/stuff/Location';
-import type { CommandContext } from '../mud/lib/command/models';
+import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 
 /**
@@ -268,7 +268,7 @@ export class Application {
 
     // Build command context
     const context: CommandContext = {
-      avatar,
+      commandGiver: avatar,
       interactive,
       location,
       commandText,

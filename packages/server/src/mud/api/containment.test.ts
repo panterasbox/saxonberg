@@ -36,11 +36,11 @@ describe('ContainmentApi', () => {
 
     location1 = new Location();
     StuffApi.register(location1);
-    location1.name = 'Room 1';
+    location1.shortDescription = 'Room 1';
 
     location2 = new Location();
     StuffApi.register(location2);
-    location2.name = 'Room 2';
+    location2.shortDescription = 'Room 2';
   });
 
   describe('move()', () => {

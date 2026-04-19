@@ -7,7 +7,7 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
@@ -82,10 +82,19 @@ export class DropController extends CommandController<DropInput, DropOutput> {
       );
     }
 
+    // drop requires an inventory — the giver must compose ContainerMixin.
+    // This is a contract narrow; YAML validators catch the user-facing cases.
+    const giver = context.commandGiver;
+    if (!MixinApi.isContainer(giver)) {
+      throw new Error(
+        `DropController: commandGiver ${giver.stuffId} is not a Container`
+      );
+    }
+
     const targetName = DescribeApi.getDisplayName(target, 'something');
 
     // Check if object is in inventory
-    const inventory = ContainmentApi.getContents(context.avatar);
+    const inventory = ContainmentApi.getContents(giver);
     if (!inventory.some((item) => item.stuffId === target.stuffId)) {
       return {
         success: false,

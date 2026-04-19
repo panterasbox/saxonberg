@@ -32,8 +32,7 @@ import type {
   CommandView,
   SyntaxDefinition,
   SubcommandDefinition,
-  FieldDefinition,
-} from './models';
+} from '../../api/command';
 
 /**
  * Parsed command definition

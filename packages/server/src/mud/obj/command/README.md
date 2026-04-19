@@ -20,7 +20,7 @@ Command controllers are executable classes that implement game command logic. Ea
 
 ```typescript
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 
 interface ExampleInput {
   field1: string;
@@ -47,7 +47,9 @@ export class ExampleController extends CommandController<ExampleInput, ExampleOu
 
 - New instance created for each command execution
 - No state persisted between executions
-- Use `context.avatar`, `context.location`, etc. for game state
+- Use `context.commandGiver`, `context.location`, etc. for game state; narrow
+  `commandGiver` with `MixinApi.isX()` predicates (or cast to `Character` /
+  `Avatar`) when a subclass-specific surface is needed
 
 ## Subcommand Pattern
 

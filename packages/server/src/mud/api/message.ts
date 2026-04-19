@@ -36,6 +36,15 @@ import { MixinApi } from './mixin';
 type SensorStuff = Stuff & Sensor;
 
 /**
+ * Options for message broadcast helpers — lets callers filter out a specific
+ * participant (typically the mover in exit traversal or the actor in an
+ * open/close broadcast) without hand-iterating sensors.
+ */
+export interface MessageBroadcastOptions {
+  exclude?: Stuff | null;
+}
+
+/**
  * Message distribution and routing API.
  */
 export class MessageApi {
@@ -60,9 +69,16 @@ export class MessageApi {
    *
    * @param container - Container whose sensor contents should receive the message
    * @param message - The message to send
+   * @param opts - Broadcast options: `exclude` to skip a specific Stuff (by identity)
    */
-  static messageContents(container: Stuff & Container, message: unknown): void {
+  static messageContents(
+    container: Stuff & Container,
+    message: unknown,
+    opts: MessageBroadcastOptions = {}
+  ): void {
+    const exclude = opts.exclude ?? null;
     for (const sensor of this.getSensors(container)) {
+      if (exclude && (sensor as Stuff) === exclude) continue;
       sensor.onMessage(message);
     }
   }
@@ -80,13 +96,18 @@ export class MessageApi {
    *
    * @param source - Containable object sending the message
    * @param message - The message to send
+   * @param opts - Broadcast options: `exclude` to skip a specific Stuff (by identity)
    */
-  static messageContainer(source: Stuff & Containable, message: unknown): void {
+  static messageContainer(
+    source: Stuff & Containable,
+    message: unknown,
+    opts: MessageBroadcastOptions = {}
+  ): void {
     const container = source.getEnvironment();
     if (!container) {
       console.warn('MessageApi.messageContainer: Source not in a container');
       return;
     }
-    this.messageContents(container, message);
+    this.messageContents(container, message, opts);
   }
 }

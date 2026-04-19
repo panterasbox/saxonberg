@@ -133,7 +133,8 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
   - `ContainmentApi`: Object movement (`move()` — see ANTIPATTERNS.md for contract)
   - `MessageApi`: Sensor routing (`getSensors`, `messageContents`, `messageContainer`)
   - `MqlApi`: Object resolution from keyword queries
-  - `CommandApi` / `CommandLineApi`: Command parsing and cache
+  - `CommandApi`: Command framework types (`CommandContext`, `CommandResult`, `CommandView`, field/validator types) + parsed CommandDefinition cache
+  - `CommandLineApi`: UNIX-style command-line tokenization/parsing
 
 - **Standard Model** (`lib/`): Object-oriented class hierarchy
   ```
@@ -631,6 +632,7 @@ For detailed architectural patterns and implementation guidelines, see:
 - **`PHASE_1_FEED.md`** - Phase 1 implementation details (authentication, persistence, WebSocket)
 - **`CONSISTENCY_REVIEW.md`** - Architecture consistency checks and validation
 - **`IMPLEMENTATION_GUIDE.md`** - Practical implementation patterns and examples
+- **`PHASE_7_NAVIGATION.md`** - Phase 7 navigation plan (exits, doors, zones, vessels); canonical reference for the spatial subsystem shape
 
 ### Implementation Status
 
@@ -679,6 +681,24 @@ For detailed architectural patterns and implementation guidelines, see:
 - **Command Providers**: Declarative YAML filename registration in mixins
 - **Implemented Commands**: ping, help, player (with subcommands), look, inventory, get, drop
 - **Test Coverage**: 304 tests passing (45 new tests for CommandApi, ContainmentApi, 28 new tests for PerceptibleMixin accessor methods)
+
+**✅ Phase 7: Navigation, Exits, Doors, Coordinate Systems & Exitable Vessels** (Complete)
+- **Exit class**: First-class traversal object with `canTraverse()` guard + `traverse()` emitter; interpolates `{mover}` at emit time; arrival message degrades to "arrives." when no inverse direction
+- **Door class**: `Idea` subclass (not Thing, not contained anywhere) shared by both sides of a paired exit; open/closed state; no locks this phase
+- **ExitableMixin**: Unified exit host (`addExit`, `removeExit`, `getExit`, `getObviousExits`, `addBidirectionalExit`); `getExit()` checks explicit map first, then falls back to `deriveExit(direction)` (zone hook)
+- **CartesianCoordinatesMixin / SphericalCoordinatesMixin**: Position carriers `[x,y,z]` / `{rho,theta,phi,radius}`
+- **Zone hierarchy**: Abstract `Zone` + `CartesianZone` (10-way grid derivation, `cellSize` informational) + `SphericalZone` (semantic exits only, no derivation); zone caches derived exits and invalidates on room add/remove
+- **Concrete locations**: `CartesianLocation = ExitableMixin(CartesianCoordinatesMixin(Location))`, `SphericalLocation = ExitableMixin(SphericalCoordinatesMixin(Location))` — no `Room` class
+- **ExitableVessel**: Portable enterable (wardrobe, cart); synthesizes `'out'` exit to its environment (cached, invalidates on env change); only lives inside other Exitables
+- **Zones as universal subdivision**: `zone: Zone | null` on base `Stuff`; path-derived at clone time (nearest-ancestor wins); runtime-fallback stamp on first placement via `ContainmentApi.move()`
+- **Folder/leaf invariant**: `domain` collection paths are either Zone folders or non-Zone leaves; enforced by `TemplateApi.saveTemplate()`
+- **ZoneApi**: `resolveZoneForPath()` walks ancestors to find nearest Zone template; caches clones; `resolveById()` lookup
+- **ContainmentApi**: Exitable-containment constraint (Exitables only inside other Exitables); zone-crossing prevention for Exitables; runtime-fallback zone stamp
+- **MessageApi**: `messageContents()` gains `{ exclude }` option to skip the mover during departure/arrival broadcasts
+- **MqlApi**: Extended to include doors referenced by current location's exits (by-name door targeting)
+- **Commands**: `go` (direction / vessel-keyword / `out`), `open`, `close` — all on `MobileMixin` (self context); YAML views in `mud/cmd/`
+- **LookController**: Renders obvious exits line with inline door state
+- **Test Coverage**: 573 tests passing (new tests across Exit, Exitable, CartesianZone, SphericalZone, ExitableVessel, TemplateApi, ZoneApi, Door, GoController, OpenController)
 
 ### Messaging Architecture (Phase 3)
 
@@ -797,4 +817,4 @@ For detailed architectural patterns and implementation guidelines, see:
 - Dynamic imports with security validation eliminate manual class registration
 - Destroy objects via StuffApi.destruct(obj); use prepareDestroy() hook for cleanup, never override destroy()
 - Avoid bidirectional array relationships (query instead)
-- **Phase 3 & 4 Complete**: Location system, messaging infrastructure, Terminal UI, MML support, and complete command framework fully implemented
+- **Phase 7 Complete**: Navigation, exits, doors, Cartesian/Spherical zones, and ExitableVessels are implemented on top of the Phase 3 location system and Phase 4 command framework; `go`/`open`/`close` commands, zone-aware `ContainmentApi.move()`, and folder/leaf-invariant template saves are live

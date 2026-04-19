@@ -5,7 +5,7 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 
 /**
  * Input model for ping command (no fields)

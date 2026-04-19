@@ -44,7 +44,7 @@ describe('MessageApi', () => {
   beforeEach(() => {
     location = new Location();
     StuffApi.register(location);
-    location.name = 'Test Room';
+    location.shortDescription = 'Test Room';
 
     sensor1 = new TestSensor();
     StuffApi.register(sensor1);
@@ -133,7 +133,7 @@ describe('MessageApi', () => {
 
       // Create a mobile sensor to be the source
       const source = new MobileSensor(); StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       const message = { type: 'test', payload: { text: 'Hello' } };
 
@@ -149,7 +149,7 @@ describe('MessageApi', () => {
       location.addToInventory(nonSensor);
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       const message = { type: 'test' };
 
@@ -177,7 +177,7 @@ describe('MessageApi', () => {
 
     it('should handle empty container', () => {
       const source = new MobileSensor(); StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       // Should not throw error
       expect(() => {
@@ -189,7 +189,7 @@ describe('MessageApi', () => {
       location.addToInventory(sensor1);
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       const message1 = { type: 'output', payload: { text: 'Test' } };
       const message2 = 'string message';
@@ -215,7 +215,7 @@ describe('MessageApi', () => {
       sensors.forEach((s) => location.addToInventory(s));
 
       const source = new MobileSensor(); StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       const message = { type: 'broadcast', text: 'To all' };
 
@@ -237,7 +237,7 @@ describe('MessageApi', () => {
       // Speaker enters and speaks
       const speaker = new MobileSensor();
       StuffApi.register(speaker);
-      speaker.travel(location);
+      speaker.teleport(location);
 
       const sayMessage = {
         type: 'output',
@@ -256,7 +256,7 @@ describe('MessageApi', () => {
     it('should isolate messages to container', () => {
       const location2 = new Location();
       StuffApi.register(location2);
-      location2.name = 'Other Room';
+      location2.shortDescription = 'Other Room';
 
       const sensorInRoom1 = new TestSensor();
       StuffApi.register(sensorInRoom1);
@@ -268,7 +268,7 @@ describe('MessageApi', () => {
 
       const source = new MobileSensor();
       StuffApi.register(source);
-      source.travel(location);
+      source.teleport(location);
 
       const message = { type: 'test', text: 'Room 1 only' };
 

@@ -1,0 +1,230 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { GoController } from './GoController';
+import { CartesianZone } from '../../lib/spatial/CartesianZone';
+import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
+import { SphericalZone } from '../../lib/spatial/SphericalZone';
+import { SphericalLocation } from '../../lib/spatial/SphericalLocation';
+import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
+import { Exit } from '../../lib/spatial/Exit';
+import { Door } from '../../lib/spatial/Door';
+import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
+import { Stuff } from '../../lib/stuff/Stuff';
+import { SensorMixin } from '../../lib/message/Sensor';
+import { ContainableMixin } from '../../lib/spatial/Containable';
+import { NamedMixin } from '../../lib/character/Named';
+import { MobileMixin } from '../../lib/spatial/Mobile';
+import type { Interactive } from '../Interactive';
+import type { Location } from '../../lib/stuff/Location';
+import type { CommandContext } from '../../api/command';
+
+const FakeAvatarBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
+class FakeAvatar extends FakeAvatarBase {
+  received: unknown[] = [];
+  onMessage(msg: unknown): void {
+    super.onMessage(msg);
+    this.received.push(msg);
+  }
+}
+
+class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Stuff))) {
+  received: unknown[] = [];
+  onMessage(msg: unknown): void {
+    super.onMessage(msg);
+    this.received.push(msg);
+  }
+}
+
+function makeContext(
+  avatar: FakeAvatar,
+  location: Location,
+  commandText: string
+): CommandContext {
+  return {
+    commandGiver: avatar as unknown as CommandContext['commandGiver'],
+    interactive: {} as Interactive,
+    location,
+    commandText,
+    executionId: 'test-execution',
+  };
+}
+
+describe('GoController', () => {
+  let zone: CartesianZone;
+  let roomA: CartesianLocation;
+  let roomB: CartesianLocation;
+  let avatar: FakeAvatar;
+  let peerInA: PeerSensor;
+  let peerInB: PeerSensor;
+  let controller: GoController;
+
+  beforeEach(() => {
+    zone = new CartesianZone();
+    StuffApi.register(zone);
+
+    roomA = new CartesianLocation();
+    StuffApi.register(roomA);
+    roomA.shortDescription = 'Room A';
+    roomB = new CartesianLocation();
+    StuffApi.register(roomB);
+    roomB.shortDescription = 'Room B';
+    zone.addRoom(roomA, 0, 0, 0);
+    zone.addRoom(roomB, 0, 1, 0);
+
+    avatar = new FakeAvatar();
+    StuffApi.register(avatar);
+    avatar.firstName = 'Alice';
+    ContainmentApi.move(avatar, roomA);
+
+    peerInA = new PeerSensor();
+    StuffApi.register(peerInA);
+    peerInA.firstName = 'BobA';
+    ContainmentApi.move(peerInA, roomA);
+
+    peerInB = new PeerSensor();
+    StuffApi.register(peerInB);
+    peerInB.firstName = 'BobB';
+    ContainmentApi.move(peerInB, roomB);
+
+    controller = new GoController();
+  });
+
+  describe('golden path (cartesian)', () => {
+    it('go north moves the avatar and emits departure/arrival messages', () => {
+      const result = controller.execute(
+        { target: 'north' },
+        makeContext(avatar, roomA, 'go north')
+      );
+      expect(result.success).toBe(true);
+      expect(avatar.getEnvironment()).toBe(roomB);
+      const output = (result.output as { text: string }).text;
+      expect(output).toContain('Room B');
+
+      const depText = JSON.stringify(peerInA.received);
+      expect(depText).toContain('leaves to the');
+      expect(depText).toContain('north');
+      const arrText = JSON.stringify(peerInB.received);
+      expect(arrText).toContain('arrives from the');
+      expect(arrText).toContain('south');
+    });
+
+    it('round trip with south returns avatar to room A', () => {
+      controller.execute({ target: 'north' }, makeContext(avatar, roomA, 'go north'));
+      const back = controller.execute(
+        { target: 'south' },
+        makeContext(avatar, roomB, 'go south')
+      );
+      expect(back.success).toBe(true);
+      expect(avatar.getEnvironment()).toBe(roomA);
+    });
+
+    it('mover is excluded from broadcasts', () => {
+      const priorCount = avatar.received.length;
+      controller.execute(
+        { target: 'north' },
+        makeContext(avatar, roomA, 'go north')
+      );
+      // The mover should not have received the peer-broadcast messages.
+      expect(avatar.received.length).toBe(priorCount);
+    });
+  });
+
+  describe('guards and errors', () => {
+    it('returns an error when no direction is given', () => {
+      const result = controller.execute({}, makeContext(avatar, roomA, ''));
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/where/i);
+    });
+
+    it("returns 'can't go that way' for unmatched directions", () => {
+      const result = controller.execute(
+        { target: 'south' },
+        makeContext(avatar, roomA, 'go south')
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/can't go that way/i);
+    });
+
+    it('blocks traversal through a closed door', () => {
+      const door = new Door({ shortDescription: 'oak door' });
+      roomA.addExit(
+        new Exit({ direction: 'east', source: roomA, destination: roomB, door })
+      );
+      const result = controller.execute(
+        { target: 'east' },
+        makeContext(avatar, roomA, 'go east')
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/closed/i);
+      expect(avatar.getEnvironment()).toBe(roomA);
+    });
+  });
+
+  describe('spherical zone with semantic exits', () => {
+    it('traverses explicit semantic exit and arrival degrades to "arrives"', () => {
+      const sphZone = new SphericalZone();
+      StuffApi.register(sphZone);
+      const plaza = new SphericalLocation();
+      StuffApi.register(plaza);
+      plaza.shortDescription = 'Plaza';
+      const office = new SphericalLocation();
+      StuffApi.register(office);
+      office.shortDescription = 'Office';
+      sphZone.addRoom(plaza);
+      sphZone.addRoom(office);
+      plaza.addExit(new Exit({ direction: 'office', source: plaza, destination: office }));
+
+      const visitor = new FakeAvatar();
+      StuffApi.register(visitor);
+      visitor.firstName = 'Carol';
+      ContainmentApi.move(visitor, plaza);
+
+      const spherePeer = new PeerSensor();
+      StuffApi.register(spherePeer);
+      ContainmentApi.move(spherePeer, office);
+
+      const result = controller.execute(
+        { target: 'office' },
+        makeContext(visitor, plaza, 'go office')
+      );
+      expect(result.success).toBe(true);
+      expect(visitor.getEnvironment()).toBe(office);
+
+      const arrText = JSON.stringify(spherePeer.received);
+      expect(arrText).toContain('arrives');
+      expect(arrText).not.toContain('from the');
+    });
+  });
+
+  describe('vessel entry and exit', () => {
+    it('go <vessel-keyword> enters a sibling ExitableVessel', () => {
+      const wardrobe = new ExitableVessel();
+      StuffApi.register(wardrobe);
+      wardrobe.name = 'wardrobe';
+      ContainmentApi.move(wardrobe, roomA);
+
+      const result = controller.execute(
+        { target: 'wardrobe' },
+        makeContext(avatar, roomA, 'go wardrobe')
+      );
+      expect(result.success).toBe(true);
+      expect(avatar.getEnvironment()).toBe(wardrobe);
+    });
+
+    it('go out from inside a vessel returns to the environment', () => {
+      const wardrobe = new ExitableVessel();
+      StuffApi.register(wardrobe);
+      wardrobe.name = 'wardrobe';
+      ContainmentApi.move(wardrobe, roomA);
+      ContainmentApi.move(avatar, wardrobe);
+
+      const result = controller.execute(
+        { target: 'out' },
+        makeContext(avatar, wardrobe as unknown as Location, 'go out')
+      );
+      expect(result.success).toBe(true);
+      expect(avatar.getEnvironment()).toBe(roomA);
+    });
+
+  });
+});

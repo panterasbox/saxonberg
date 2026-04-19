@@ -24,7 +24,9 @@
  *
  * class SayController extends CommandController<SayInput, SayOutput> {
  *   execute(input: SayInput, context: CommandContext): CommandResult<SayOutput> {
- *     context.avatar.say(input.message);
+ *     const speaker = context.commandGiver;
+ *     if (!MixinApi.isVocal(speaker)) return { success: false, error: 'You cannot speak.' };
+ *     speaker.say(input.message);
  *     return {
  *       success: true,
  *       output: { text: `You say, '${input.message}'` }
@@ -34,7 +36,7 @@
  * ```
  */
 
-import type { CommandContext, CommandResult } from './models';
+import type { CommandContext, CommandResult } from '../../api/command';
 
 /**
  * Abstract base class for command controllers

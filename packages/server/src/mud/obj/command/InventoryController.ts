@@ -6,9 +6,10 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Input model for inventory command (no parameters)
@@ -27,7 +28,11 @@ export interface InventoryOutput {
  */
 export class InventoryController extends CommandController<InventoryInput, InventoryOutput> {
   execute(input: InventoryInput, context: CommandContext): CommandResult<InventoryOutput> {
-    const contents = ContainmentApi.getContents(context.avatar);
+    const giver = context.commandGiver;
+    if (!MixinApi.isContainer(giver)) {
+      return { success: false, error: 'You have no inventory.' };
+    }
+    const contents = ContainmentApi.getContents(giver);
 
     if (contents.length === 0) {
       return {

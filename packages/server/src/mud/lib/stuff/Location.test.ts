@@ -22,8 +22,8 @@ describe('Location', () => {
   describe('Construction', () => {
     it('should create a location with default values', () => {
       expect(location).toBeDefined();
-      expect(location.name).toBe('');
-      expect(location.description).toBe('');
+      expect(location.shortDescription).toBe('');
+      expect(location.longDescription).toBe('');
       expect(location.inventory).toBeInstanceOf(Set);
       expect(location.inventory.size).toBe(0);
     });
@@ -100,33 +100,21 @@ describe('Location', () => {
     });
   });
 
-  describe('Properties', () => {
-    it('should set and get name', () => {
-      location.name = 'The Void';
-      expect(location.name).toBe('The Void');
-    });
-
-    it('should set and get description', () => {
-      location.description = 'A dark empty space.';
-      expect(location.description).toBe('A dark empty space.');
-    });
-  });
-
   describe('Typical usage', () => {
     it('should work as a container for multiple objects', () => {
-      location.name = 'Town Square';
-      location.description = 'A bustling town square.';
+      location.shortDescription = 'Town Square';
+      location.longDescription = 'A bustling town square.';
 
-      const npc1 = new TestItem(); // Mock NPC
+      const npc1 = new TestItem();
       StuffApi.register(npc1);
-      const npc2 = new TestItem(); // Mock NPC
+      const npc2 = new TestItem();
       StuffApi.register(npc2);
 
       location.addToInventory(npc1);
       location.addToInventory(npc2);
 
       expect(location.getContents()).toHaveLength(2);
-      expect(location.name).toBe('Town Square');
+      expect(location.shortDescription).toBe('Town Square');
     });
   });
 });

@@ -1,0 +1,10 @@
+verbs: [go]
+controller: GoController
+description: "Move to a named exit or into a named vessel"
+syntax:
+  - pattern: "<target>"
+    description: "Move through an exit by direction/label, or into a named vessel"
+    fields:
+      target:
+        type: string
+        required: true

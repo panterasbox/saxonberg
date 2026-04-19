@@ -7,7 +7,7 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 
 /**
@@ -29,15 +29,15 @@ export interface SayOutput {
  */
 export class SayController extends CommandController<SayInput, SayOutput> {
   execute(input: SayInput, context: CommandContext): CommandResult<SayOutput> {
-    const avatar = context.avatar;
+    const speaker = context.commandGiver;
 
     // Character always composes VocalMixin; this guards against a future
     // speaker that lacks it and narrows the type so .say() compiles cleanly.
-    if (!MixinApi.isVocal(avatar)) {
+    if (!MixinApi.isVocal(speaker)) {
       return { success: false, error: 'You cannot speak.' };
     }
 
-    avatar.say(input.message);
+    speaker.say(input.message);
 
     return {
       success: true,

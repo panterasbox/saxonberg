@@ -7,10 +7,11 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
+import { DescribeApi } from '../../api/describe';
 import type { Avatar } from '../Avatar';
 
 /**
@@ -33,7 +34,7 @@ export interface TellOutput {
  */
 export class TellController extends CommandController<TellInput, TellOutput> {
   execute(input: TellInput, context: CommandContext): CommandResult<TellOutput> {
-    const avatar = context.avatar;
+    const speaker = context.commandGiver;
     const targetName = input.target;
     const message = input.message;
 
@@ -49,11 +50,13 @@ export class TellController extends CommandController<TellInput, TellOutput> {
       };
     }
 
+    const speakerName = DescribeApi.getDisplayName(speaker, 'Someone');
+
     // Send to target (with MML formatting)
     const targetMessage = {
       type: 'output',
       payload: {
-        text: `<name>${avatar.fullName}</name> tells you, <speech>"${message}"</speech>`,
+        text: `<name>${speakerName}</name> tells you, <speech>"${message}"</speech>`,
         messageType: 'tell',
       },
     };

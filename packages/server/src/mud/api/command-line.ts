@@ -13,7 +13,19 @@
  * ```
  */
 
-import type { ParsedCommand } from '../lib/command/models';
+/**
+ * Parsed command from tokenization.
+ *
+ * Result of `CommandLineApi.parse()`:
+ * - `verb`: first token (command name)
+ * - `args`: remaining positional arguments
+ * - `options`: extracted boolean flags (`-v`, `--verbose`)
+ */
+export interface ParsedCommand {
+  verb: string;
+  args: string[];
+  options: Map<string, boolean>;
+}
 
 /**
  * CommandLineApi - Static utility class for command line parsing

@@ -14,6 +14,7 @@
 import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
+import { DescribeApi } from '../api/describe';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
@@ -58,8 +59,10 @@ export class Login extends Idea {
 
     const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
     const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
-    avatar.travel(startingRoom);
-    console.log(`Login: Placed ${avatar.fullName} in ${startingRoom.name}`);
+    avatar.teleport(startingRoom);
+    console.log(
+      `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
+    );
 
     const app = ApplicationInstance.get();
     app.sendMessageToInteractive(interactive, {
@@ -96,9 +99,9 @@ export class Login extends Idea {
     }
 
     const output = [
-      `<location>${location.name}</location>`,
+      `<location>${DescribeApi.getDisplayName(location, 'Somewhere')}</location>`,
       '',
-      location.description,
+      location.getLong(),
       '',
     ].join('\n');
 

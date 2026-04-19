@@ -8,8 +8,9 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import type { Pronouns } from '@saxonberg/types';
+import { Avatar } from '../Avatar';
 
 /**
  * Input model for player command
@@ -33,13 +34,22 @@ export interface PlayerOutput {
  */
 export class PlayerController extends CommandController<PlayerInput, PlayerOutput> {
   execute(input: PlayerInput, context: CommandContext): CommandResult<PlayerOutput> {
+    // The `player` command only makes sense for a player-character Avatar —
+    // it writes the CharacterSheet. Narrow here so every subcommand gets an
+    // Avatar without casting, and non-Avatar givers (e.g. a future NPC)
+    // get a clean error rather than a type crash.
+    const avatar = context.commandGiver;
+    if (!(avatar instanceof Avatar)) {
+      return { success: false, error: 'Only a player character can use the player command.' };
+    }
+
     switch (input.subcommand) {
       case 'name':
-        return this.executeName(input, context);
+        return this.executeName(input, avatar);
       case 'pronouns':
-        return this.executePronouns(input, context);
+        return this.executePronouns(input, avatar);
       case 'show':
-        return this.executeShow(input, context);
+        return this.executeShow(avatar);
       default:
         return {
           success: false,
@@ -51,7 +61,7 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
   /**
    * Set character name
    */
-  private executeName(input: PlayerInput, context: CommandContext): CommandResult<PlayerOutput> {
+  private executeName(input: PlayerInput, avatar: Avatar): CommandResult<PlayerOutput> {
     if (!input.firstName) {
       return {
         success: false,
@@ -59,22 +69,18 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
       };
     }
 
-    // Update avatar name
-    context.avatar.firstName = input.firstName;
-    context.avatar.lastName = input.lastName || '';
+    avatar.firstName = input.firstName;
+    avatar.lastName = input.lastName || '';
 
-    // Capture into CharacterSheet and save
-    if (context.avatar.sheet) {
-      context.avatar.sheet.syncFrom(context.avatar);
-      context.avatar.sheet.save();
+    if (avatar.sheet) {
+      avatar.sheet.syncFrom(avatar);
+      avatar.sheet.save();
     }
-
-    const fullName = context.avatar.fullName;
 
     return {
       success: true,
       output: {
-        text: `\nYour name is now ${fullName}.\n`,
+        text: `\nYour name is now ${avatar.fullName}.\n`,
       },
     };
   }
@@ -84,7 +90,7 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
    */
   private executePronouns(
     input: PlayerInput,
-    context: CommandContext
+    avatar: Avatar
   ): CommandResult<PlayerOutput> {
     if (!input.pronouns) {
       return {
@@ -114,13 +120,11 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
 
     const pronouns = pronounsLower as Pronouns;
 
-    // Update avatar pronouns
-    context.avatar.pronouns = pronouns;
+    avatar.pronouns = pronouns;
 
-    // Capture into CharacterSheet and save
-    if (context.avatar.sheet) {
-      context.avatar.sheet.syncFrom(context.avatar);
-      context.avatar.sheet.save();
+    if (avatar.sheet) {
+      avatar.sheet.syncFrom(avatar);
+      avatar.sheet.save();
     }
 
     return {
@@ -134,9 +138,7 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
   /**
    * Show current player settings
    */
-  private executeShow(input: PlayerInput, context: CommandContext): CommandResult<PlayerOutput> {
-    const avatar = context.avatar;
-
+  private executeShow(avatar: Avatar): CommandResult<PlayerOutput> {
     const lines = [
       '',
       'Player Character Settings:',

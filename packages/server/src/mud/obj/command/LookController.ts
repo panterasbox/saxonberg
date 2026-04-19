@@ -7,10 +7,11 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
+import type { Exit } from '../../lib/spatial/Exit';
 
 /**
  * Input model for look command
@@ -50,25 +51,33 @@ export class LookController extends CommandController<LookInput, LookOutput> {
     const locationName = DescribeApi.getDisplayName(location, 'Something');
     const description = this.getObjectDescription(location);
 
-    // Format output with MML tags
-    const text = [
+    const lines: string[] = [
       '',
       `<location>${locationName}</location>`,
       '',
       description,
-      '',
-    ].join('\n');
+    ];
+
+    if (MixinApi.isExitable(location)) {
+      const exitsLine = this.formatExits(location.getObviousExits());
+      if (exitsLine) {
+        lines.push('');
+        lines.push(exitsLine);
+      }
+    }
+
+    lines.push('');
 
     return {
       success: true,
-      output: { text },
+      output: { text: lines.join('\n') },
     };
   }
 
   /**
    * Look at specific target object
    */
-  private lookAtTarget(target: Stuff, context: CommandContext): CommandResult<LookOutput> {
+  private lookAtTarget(target: Stuff, _context: CommandContext): CommandResult<LookOutput> {
     const targetName = DescribeApi.getDisplayName(target, 'Something');
     const description = this.getObjectDescription(target);
 
@@ -89,5 +98,24 @@ export class LookController extends CommandController<LookInput, LookOutput> {
   private getObjectDescription(obj: Stuff): string {
     if (MixinApi.isVisible(obj)) return obj.getLong();
     return 'You see nothing special.';
+  }
+
+  /**
+   * Format the "Obvious exits" line. Each exit renders as its direction,
+   * optionally followed by ` (<door name>, open|closed)` when it has a door.
+   *
+   * Returns `''` when there are no obvious exits — caller suppresses the
+   * blank section in that case.
+   */
+  private formatExits(exits: Exit[]): string {
+    if (exits.length === 0) return '';
+    const parts = exits.map((exit) => {
+      const dir = `<direction>${exit.direction}</direction>`;
+      if (!exit.door) return dir;
+      const state = exit.door.isOpen ? 'open' : 'closed';
+      const doorName = DescribeApi.getDisplayName(exit.door, 'door');
+      return `${dir} (${doorName}, ${state})`;
+    });
+    return `<exits>Obvious exits: ${parts.join(', ')}.</exits>`;
   }
 }

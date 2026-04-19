@@ -14,7 +14,7 @@
  * ```
  */
 
-import type { FieldValidator } from './models';
+import type { FieldValidator } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
@@ -84,9 +84,12 @@ export const canReach: FieldValidator = (obj, field, context) => {
 
   const stuff = obj as Stuff;
 
-  const inventory = ContainmentApi.getContents(context.avatar);
-  if (inventory.some((item) => item.stuffId === stuff.stuffId)) {
-    return undefined;
+  const giver = context.commandGiver;
+  if (MixinApi.isContainer(giver)) {
+    const inventory = ContainmentApi.getContents(giver);
+    if (inventory.some((item) => item.stuffId === stuff.stuffId)) {
+      return undefined;
+    }
   }
 
   const contents = ContainmentApi.getContents(context.location);

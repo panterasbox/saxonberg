@@ -19,7 +19,7 @@
  * - shortDescription/longDescription come from VisibleMixin
  * - inventory management from ContainerMixin
  * - Message capabilities from Sensor/Vocal mixins
- * - Movement capability from MobileMixin (travel())
+ * - Movement capability from MobileMixin (traverse(), teleport())
  * - Container placement from ContainableMixin (setEnvironment/getEnvironment)
  * - Command execution from CommandGiverMixin (executeCommand, getAvailableCommands)
  *

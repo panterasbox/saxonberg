@@ -30,7 +30,11 @@ export const Mixins = {
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
   CommandGiver: 'CommandGiverMixin',
+  Mobile: 'MobileMixin',
   CartesianCoordinates: 'CartesianCoordinatesMixin',
+  SphericalCoordinates: 'SphericalCoordinatesMixin',
+  Exitable: 'ExitableMixin',
+  Sealable: 'SealableMixin',
 } as const;
 
 /**

@@ -7,7 +7,7 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../lib/command/models';
+import type { CommandContext, CommandResult } from '../../api/command';
 
 /**
  * Input model for help command
@@ -42,7 +42,7 @@ export class HelpController extends CommandController<HelpInput, HelpOutput> {
    */
   private listCommands(context: CommandContext): CommandResult<HelpOutput> {
     // Get available commands from CommandGiverMixin
-    const commands = context.avatar.getAvailableCommands();
+    const commands = context.commandGiver.getAvailableCommands();
 
     if (commands.length === 0) {
       return {
@@ -86,7 +86,7 @@ export class HelpController extends CommandController<HelpInput, HelpOutput> {
    */
   private showCommandHelp(commandName: string, context: CommandContext): CommandResult<HelpOutput> {
     // Get available commands
-    const commands = context.avatar.getAvailableCommands();
+    const commands = context.commandGiver.getAvailableCommands();
 
     // Find command by verb or alias
     const command = commands.find((cmd) => {

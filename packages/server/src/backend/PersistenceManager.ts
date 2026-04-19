@@ -129,6 +129,25 @@ export class PersistenceManager {
    * @returns MongoDB _id (as string)
    */
   public async save(collectionName: string, document: any): Promise<string> {
+    // Domain-collection saves enforce the folder/leaf invariant
+    // (Phase 7 Decision 12). Route through TemplateApi, which wraps this
+    // method via the `path`/`class`/`data` contract and re-enters `save`
+    // for the normalized insert/update below.
+    if (
+      collectionName === Collections.Domain &&
+      !document.__bypassTemplateCheck &&
+      typeof document.path === 'string' &&
+      typeof document.class === 'string'
+    ) {
+      const { TemplateApi } = await import('../mud/api/template');
+      return TemplateApi.saveTemplate(
+        document.path,
+        document.class,
+        (document.data ?? {}) as Record<string, unknown>
+      );
+    }
+    if ('__bypassTemplateCheck' in document) delete document.__bypassTemplateCheck;
+
     const collection = this.getCollection(collectionName);
 
     try {

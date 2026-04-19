@@ -150,8 +150,18 @@ export class StuffApi {
       );
     }
 
-    // 5. Use create() to instantiate, initialize, and register
-    return await this.create(() => new ClassConstructor(template.data));
+    // 5. Resolve the template's zone from its path. Done before initialize()
+    //    so subclasses that rely on `this.zone` during async setup see the
+    //    correct value. `ZoneApi.resolveZoneForPath` returns null when the
+    //    template is itself a Zone (a zone isn't inside itself).
+    const { ZoneApi } = await import('./zone');
+    const zone = await ZoneApi.resolveZoneForPath(templatePath);
+
+    return await this.create(() => {
+      const obj = new ClassConstructor(template.data);
+      if (zone) obj.zone = zone;
+      return obj;
+    });
   }
 
   /**

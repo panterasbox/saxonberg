@@ -24,6 +24,7 @@ import { Mixins } from '../lib/mixin-types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
 import type { Named } from '../lib/character/Named';
@@ -33,6 +34,10 @@ import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
 import type { Propertied } from '../lib/stuff/Propertied';
 import type { CommandGiver } from '../lib/command/CommandGiver';
+import type { Exitable } from '../lib/spatial/Exitable';
+import type { Sealable } from '../lib/spatial/Sealable';
+import type { CartesianCoordinates } from '../lib/spatial/CartesianCoordinates';
+import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin-types';
@@ -135,21 +140,33 @@ export class MixinApi {
   }
 
   /**
-   * Get all persistent fields (both from mixins and class itself).
-   * Combines mixin fields with class-declared fields.
+   * Get all persistent fields (from mixins and every class in the chain).
+   *
+   * Walks the prototype chain and collects `persistentFields` declared at
+   * every level — mixins carry them as static arrays, and concrete classes
+   * do too. Since a subclass that declares its own `persistentFields` shadows
+   * the parent's static in JS, we need `hasOwnProperty` at each level to
+   * pick up contributions from the whole ancestry (Stuff → Idea → Place → …).
    *
    * @param constructor - The class constructor to inspect
-   * @returns Array of all persistent field names
+   * @returns Array of all persistent field names (deduplicated)
    */
   public static getAllPersistentFields(constructor: AnyConstructor): string[] {
-    // Get fields from mixins
-    const mixinFields = this.getMixinFields(constructor);
+    const fields: string[] = [];
+    let current: unknown = constructor;
 
-    // Get fields from the class itself
-    const ownFields = (constructor as MixinClass).persistentFields ?? [];
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass;
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
+        Array.isArray(c.persistentFields)
+      ) {
+        fields.push(...c.persistentFields);
+      }
+      current = Object.getPrototypeOf(current);
+    }
 
-    // Combine and remove duplicates
-    return Array.from(new Set([...mixinFields, ...ownFields]));
+    return Array.from(new Set(fields));
   }
 
   /**
@@ -175,6 +192,10 @@ export class MixinApi {
 
   public static isContainable(obj: Stuff): obj is Stuff & Containable {
     return this.hasMixin(obj.constructor, Mixins.Containable);
+  }
+
+  public static isMobile(obj: Stuff): obj is Stuff & Mobile {
+    return this.hasMixin(obj.constructor, Mixins.Mobile);
   }
 
   public static isSensor(obj: Stuff): obj is Stuff & Sensor {
@@ -211,6 +232,22 @@ export class MixinApi {
 
   public static isCommandGiver(obj: Stuff): obj is Stuff & CommandGiver {
     return this.hasMixin(obj.constructor, Mixins.CommandGiver);
+  }
+
+  public static isExitable(obj: Stuff): obj is Stuff & Exitable {
+    return this.hasMixin(obj.constructor, Mixins.Exitable);
+  }
+
+  public static isSealable(obj: Stuff): obj is Stuff & Sealable {
+    return this.hasMixin(obj.constructor, Mixins.Sealable);
+  }
+
+  public static isCartesianCoordinates(obj: Stuff): obj is Stuff & CartesianCoordinates {
+    return this.hasMixin(obj.constructor, Mixins.CartesianCoordinates);
+  }
+
+  public static isSphericalCoordinates(obj: Stuff): obj is Stuff & SphericalCoordinates {
+    return this.hasMixin(obj.constructor, Mixins.SphericalCoordinates);
   }
 }
 

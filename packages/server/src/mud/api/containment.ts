@@ -6,8 +6,9 @@
  * - Hook execution for movement events (future)
  * - Proper cleanup of containment relationships
  *
- * This is the correct abstraction layer for object movement. Higher-level travel()
- * is in MobileMixin for creatures/vehicles. Lower-level setEnvironment()/addToInventory()
+ * This is the correct abstraction layer for object movement. Higher-level traverse()
+ * and teleport() live in MobileMixin for creatures/vehicles. Lower-level
+ * setEnvironment()/addToInventory()
  * should ONLY be called from this API.
  *
  * Usage:
@@ -22,9 +23,24 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import { MixinApi } from './mixin';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
+
+/**
+ * Programmatic-contract violation thrown by `ContainmentApi.move()`.
+ *
+ * These are NOT user-input failures — user-facing commands (`go`, `get`,
+ * `drop`) should validate and produce friendly messages before calling
+ * `move()`. `ContainmentError` exists to catch seeder/test/scripted bugs.
+ */
+export class ContainmentError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ContainmentError';
+  }
+}
 
 /**
  * Static API for containment and movement operations
@@ -40,10 +56,37 @@ export class ContainmentApi {
    * - Updates item's environment reference
    * - Executes movement hooks (future: beforeMove, afterMove)
    *
+   * Invariants enforced (Phase 7):
+   *   1. Exitables may only be contained by Exitables (closes the "pick up
+   *      a chest with someone inside" exploit — Avatars aren't Exitable).
+   *   2. Exitables cannot cross zones via containment — the only legitimate
+   *      cross-zone traversal is an explicit inter-zone Exit.
+   *   3. Runtime-fallback zone stamp — `item.zone` is set to `to.zone` on
+   *      first placement when both sides agree (harmless when already
+   *      stamped at clone-time).
+   *
    * Lower-level methods (setEnvironment, addToInventory) should NEVER
    * be called directly - always use this method.
+   *
+   * @throws ContainmentError on invariant violations.
    */
   public static move(item: ContainableStuff, to: ContainerStuff): void {
+    // PRE-FLIGHT (1): Exitables may only land in Exitables.
+    if (MixinApi.isExitable(item) && !MixinApi.isExitable(to)) {
+      throw new ContainmentError(
+        'Exitables can only be placed inside other exitables.'
+      );
+    }
+
+    // PRE-FLIGHT (2): Exitables cannot cross zones via containment. An
+    // Exitable whose zone has not yet been stamped (null) is allowed — first
+    // placement will stamp it below.
+    if (MixinApi.isExitable(item) && item.zone && item.zone !== to.zone) {
+      throw new ContainmentError(
+        'Cannot move an exitable into a different zone.'
+      );
+    }
+
     // Future: Execute beforeMove hooks
 
     const from = item.getEnvironment();
@@ -53,6 +96,12 @@ export class ContainmentApi {
 
     to.addToInventory(item);
     item.setEnvironment(to);
+
+    // POST-WRITE (3): Runtime-fallback zone stamp. Idempotent; applies to
+    // any Stuff, not just Exitables (crafted items, admin spawns, etc.).
+    if (item.zone === null && to.zone !== null) {
+      item.zone = to.zone;
+    }
 
     // Future: Execute afterMove hooks
   }

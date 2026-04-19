@@ -1,0 +1,10 @@
+verbs: [close]
+controller: CloseController
+description: "Close a door (by direction or by name)"
+syntax:
+  - pattern: "<target>"
+    description: "Close the door in the named direction, or the named door"
+    fields:
+      target:
+        type: string
+        required: true

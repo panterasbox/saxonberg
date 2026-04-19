@@ -11,20 +11,19 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
-import type { Avatar } from '../../obj/Avatar';
 import type { Stuff } from '../stuff/Stuff';
 import { CommandLineApi } from '../../api/command-line';
-import { CommandApi } from '../../api/command';
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandResult,
+  type FieldDefinition,
+} from '../../api/command';
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
-import type {
-  CommandContext,
-  CommandResult,
-  FieldDefinition,
-} from './models';
 import { getValidator } from './validators';
 
 type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
@@ -369,7 +368,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           if (fieldDef.multiple) {
             // Resolve multiple objects
             const objects = MqlApi.resolveMany(query, {
-              avatar: context.avatar as Avatar,
+              commandGiver: context.commandGiver,
               location: context.location,
             });
 
@@ -384,7 +383,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           } else {
             // Resolve single object
             const obj = MqlApi.resolve(query, {
-              avatar: context.avatar as Avatar,
+              commandGiver: context.commandGiver,
               location: context.location,
             });
 

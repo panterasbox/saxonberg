@@ -1,0 +1,10 @@
+verbs: [open]
+controller: OpenController
+description: "Open a door (by direction or by name)"
+syntax:
+  - pattern: "<target>"
+    description: "Open the door in the named direction, or the named door"
+    fields:
+      target:
+        type: string
+        required: true

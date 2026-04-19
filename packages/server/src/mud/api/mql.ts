@@ -15,13 +15,36 @@
  * ```
  */
 
-import type { Avatar } from '../obj/Avatar';
 import type { Location } from '../lib/stuff/Location';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { MqlContext, MqlMatch } from '../lib/command/models';
+import type { CommandGiver } from '../lib/command/CommandGiver';
 import { ContainmentApi } from './containment';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
+
+/**
+ * MQL (MUD Query Language) context.
+ *
+ * - `commandGiver`: the thing whose perspective drives the query (inventory
+ *   search, "you" in error messages). Narrower than Stuff because MQL is
+ *   always run on behalf of a command-issuing actor.
+ * - `location`: the giver's current environment — searched after inventory.
+ * - `searchOrder`: order of contexts to search; defaults to
+ *   `['inventory', 'location']`.
+ */
+export interface MqlContext {
+  commandGiver: Stuff & CommandGiver;
+  location: Location;
+  searchOrder?: string[];
+}
+
+/**
+ * Internal match result with score — higher score = better match.
+ */
+export interface MqlMatch {
+  object: Stuff;
+  score: number;
+}
 
 /**
  * MqlApi - Static utility class for object resolution
@@ -128,7 +151,7 @@ export class MqlApi {
   private static getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
     switch (contextName) {
       case 'inventory':
-        return this.getInventoryObjects(context.avatar);
+        return this.getInventoryObjects(context.commandGiver);
       case 'location':
         return this.getLocationObjects(context.location);
       default:
@@ -137,23 +160,39 @@ export class MqlApi {
   }
 
   /**
-   * Get objects in avatar's inventory
+   * Get objects in the command giver's inventory.
    *
-   * @param avatar - Avatar to search
-   * @returns Array of objects in inventory
+   * A giver without a Container mixin (no inventory) contributes nothing —
+   * this path is a no-op in that case rather than a type error.
    */
-  private static getInventoryObjects(avatar: Avatar): Stuff[] {
-    return ContainmentApi.getContents(avatar);
+  private static getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
+    if (!MixinApi.isContainer(giver)) return [];
+    return ContainmentApi.getContents(giver);
   }
 
   /**
-   * Get objects in location
+   * Get objects in location.
+   *
+   * Includes the location's normal contents PLUS any doors referenced by
+   * its obvious exits (when the location is Exitable). Doors are not
+   * "contents" — they don't live inside the room — but they are
+   * player-targetable by name (`open the oak door`), so they participate
+   * in MQL resolution on the location.
    *
    * @param location - Location to search
-   * @returns Array of objects in location
+   * @returns Array of objects in location (contents ∪ exit doors)
    */
   private static getLocationObjects(location: Location): Stuff[] {
-    return ContainmentApi.getContents(location);
+    const objects: Stuff[] = ContainmentApi.getContents(location);
+    if (MixinApi.isExitable(location)) {
+      const seen = new Set<string>();
+      for (const door of location.getExitDoors()) {
+        if (seen.has(door.stuffId)) continue;
+        seen.add(door.stuffId);
+        objects.push(door);
+      }
+    }
+    return objects;
   }
 
   /**
@@ -176,12 +215,11 @@ export class MqlApi {
     const nameLower = name.toLowerCase();
     const nameWords = nameLower.split(/\s+/);
 
-    // Get object keywords (from PerceptibleMixin if present)
     const objKeywords: string[] = [];
     if (MixinApi.isPerceptible(obj)) {
       const keywords = obj.getKeywords();
       if (Array.isArray(keywords)) {
-        objKeywords.push(...keywords); // Already normalized to lowercase
+        objKeywords.push(...keywords);
       }
     }
 
