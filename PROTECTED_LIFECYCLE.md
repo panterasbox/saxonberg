@@ -13,11 +13,11 @@ If developers forget either step, the system breaks:
 - Forgot registration → Object not tracked, can't be found via StuffApi
 - Forgot unregistration → Memory leak, objects never collected
 
-## The Solution: API-Layer Creation + Protected Destruction
+## The Solution: API-Layer Creation + API-Layer Destruction
 
 ### Factory Pattern for Creation
 
-**Pattern**: Registration happens in StuffApi.create(), not in constructors.
+**Pattern**: Registration happens in StuffApi.create() / StuffApi.clone(), not in constructors.
 
 ```typescript
 // StuffApi.create() - Ensures registration
@@ -32,19 +32,22 @@ export class StuffApi {
 // Usage - Pass a factory function
 const user = StuffApi.create(() => new User());
 const player = StuffApi.create(() => new Player('Alice', 'Smith', Pronouns.She));
-const avatar = StuffApi.create(() => new Avatar(userId, playerId));
+const avatar = StuffApi.create(() => new Avatar({ playerId }));
 ```
 
-**Benefits**:
-- ✅ Registration happens in ONE place (StuffApi)
-- ✅ Can't override or bypass registration logic
-- ✅ Clear API for object creation
-- ✅ Constructors stay simple (just field initialization)
+> For template-driven creation (the production path) use
+> `StuffApi.clone<T>('/path/to/template')`. `StuffApi.create()` is the
+> fallback for tests and special cases. Either way, registration happens
+> inside the API layer.
 
-### Protected Destruction
+### API-Layer Destruction (`StuffApi.destruct`)
+
+Destroy objects via `StuffApi.destruct(obj)` — symmetric with
+`StuffApi.create()` / `StuffApi.clone()` and consistent with the
+broader "go through the Api layer" convention.
 
 ```typescript
-// Stuff.destroy() - FINAL
+// Stuff.destroy() - FINAL, delegated to by StuffApi.destruct()
 public destroy(): void {
   if (this._isDestroyed) return;
 
@@ -62,7 +65,15 @@ public destroy(): void {
 protected prepareDestroy(): void {
   // Override this for cleanup
 }
+
+// Usage - always through the API layer
+StuffApi.destruct(avatar);
 ```
+
+`StuffApi.destruct()` currently delegates to `Stuff.destroy()`. When the
+call-security framework lands, direct `destroy()` calls will be locked
+down so only the Api layer can invoke them — the wrapper exists now so
+every call site already looks right.
 
 ## Developer Experience
 
@@ -133,7 +144,7 @@ const player = StuffApi.create(() => {
 ### Classes with Complex Cleanup
 
 ```typescript
-// If you need cleanup logic:
+// If you need cleanup logic, override prepareDestroy() — NEVER destroy().
 class Interactive extends Idea {
   protected prepareDestroy(): void {
     // Runs before unregistration
@@ -142,6 +153,9 @@ class Interactive extends Idea {
     }
   }
 }
+
+// Call sites destroy via the API layer:
+StuffApi.destruct(interactive);
 ```
 
 ## Construction and Registration Flow
@@ -379,18 +393,19 @@ class Connection extends Idea {
 
 The creation and lifecycle pattern ensures objects are properly tracked and cleaned up:
 
-**Creation Pattern**: API-layer factory (StuffApi.create)
-**Destruction Pattern**: Protected hook (prepareDestroy)
+**Creation Pattern**: API-layer factory (StuffApi.clone / StuffApi.create)
+**Destruction Pattern**: API-layer destruct (StuffApi.destruct) + protected hook (prepareDestroy)
 
 **Benefits**:
-1. Registration happens in ONE place (StuffApi.create)
-2. Can't override or bypass registration logic
-3. Impossible to forget unregistration (automatic in destroy())
-4. No boilerplate in subclasses
-5. Clear extension point for cleanup (prepareDestroy)
-6. Normal OOP constructors (no forced factory pattern)
+1. Registration happens in ONE place (StuffApi.clone / StuffApi.create)
+2. Destruction happens in ONE place (StuffApi.destruct)
+3. Can't override or bypass registration logic
+4. Impossible to forget unregistration (automatic in destroy())
+5. No boilerplate in subclasses
+6. Clear extension point for cleanup (prepareDestroy)
+7. Normal OOP constructors (no forced factory pattern)
 
 **Developer Experience**:
-- Create: `StuffApi.create(() => new MyClass())`
-- Cleanup: Override `prepareDestroy()` if needed
-- Destroy: Just call `destroy()` - unregistration is automatic
+- Create: `StuffApi.clone<T>(path)` (production) or `StuffApi.create(() => new MyClass())` (tests)
+- Cleanup: Override `prepareDestroy()` if needed — NEVER override `destroy()`
+- Destroy: `StuffApi.destruct(obj)` — unregistration is automatic

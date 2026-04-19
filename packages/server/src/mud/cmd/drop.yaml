@@ -9,6 +9,7 @@ syntax:
         type: object
         required: true
         searchOrder: [inventory]
+        validators: [mustBeContainable]
 
   - pattern: "<targets...>"
     description: "Drop multiple objects"
@@ -18,3 +19,4 @@ syntax:
         required: true
         multiple: true
         searchOrder: [inventory]
+        validators: [mustBeContainable]

@@ -19,11 +19,39 @@
  * ```
  */
 
-import type { MixinConstructor, MixinName } from '../lib/mixin-types';
+import type { MixinName } from '../lib/mixin-types';
+import { Mixins } from '../lib/mixin-types';
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
+import type { Containable } from '../lib/spatial/Containable';
+import type { Sensor } from '../lib/message/Sensor';
+import type { Vocal } from '../lib/message/Vocal';
+import type { Named } from '../lib/character/Named';
+import type { Gendered } from '../lib/character/Gendered';
+import type { Visible } from '../lib/description/Visible';
+import type { Perceptible } from '../lib/description/Perceptible';
+import type { Detailed } from '../lib/description/Detailed';
+import type { Propertied } from '../lib/stuff/Propertied';
+import type { CommandGiver } from '../lib/command/CommandGiver';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin-types';
+
+/**
+ * Any class-like constructor MixinApi may be asked to inspect.
+ * Intentionally loose: mixin-decorated classes carry additional static markers
+ * (_mixinName, persistentFields, commandProvider) that are checked via
+ * property access rather than declared on this type.
+ */
+type AnyConstructor = Function & { prototype: unknown };
+
+/** Shape of a mixin constructor — what queryMixins() returns elements of. */
+interface MixinClass {
+  _mixinName?: string;
+  name?: string;
+  persistentFields?: string[];
+  prototype: unknown;
+}
 
 /**
  * Static API for mixin management and introspection.
@@ -36,15 +64,19 @@ export class MixinApi {
    * @param constructor - The class constructor to inspect
    * @returns Array of mixin constructors
    */
-  public static queryMixins(constructor: any): any[] {
-    const mixins: any[] = [];
-    let current = constructor;
+  public static queryMixins(constructor: AnyConstructor): MixinClass[] {
+    const mixins: MixinClass[] = [];
+    let current: unknown = constructor;
 
     // Walk up the prototype chain
-    while (current && current !== Object && current.prototype) {
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass;
       // Check if this level is a mixin (has _mixinName marker)
-      if (current.hasOwnProperty('_mixinName') && typeof current._mixinName === 'string') {
-        mixins.push(current);
+      if (
+        Object.prototype.hasOwnProperty.call(c, '_mixinName') &&
+        typeof c._mixinName === 'string'
+      ) {
+        mixins.push(c);
       }
 
       current = Object.getPrototypeOf(current);
@@ -63,7 +95,7 @@ export class MixinApi {
    * @param constructor - The class constructor to inspect
    * @returns Array of persistent field names
    */
-  public static getMixinFields(constructor: any): string[] {
+  public static getMixinFields(constructor: AnyConstructor): string[] {
     const mixins = this.queryMixins(constructor);
     const fields: string[] = [];
 
@@ -93,7 +125,7 @@ export class MixinApi {
    * @param mixinName - The name of the mixin to look for (use Mixins constants)
    * @returns True if the mixin is applied
    */
-  public static hasMixin(constructor: any, mixinName: MixinName): boolean {
+  public static hasMixin(constructor: AnyConstructor, mixinName: MixinName): boolean {
     const mixins = this.queryMixins(constructor);
     return mixins.some((mixin) => {
       // Check _mixinName property first (preferred), then fall back to name property
@@ -109,19 +141,76 @@ export class MixinApi {
    * @param constructor - The class constructor to inspect
    * @returns Array of all persistent field names
    */
-  public static getAllPersistentFields(constructor: any): string[] {
+  public static getAllPersistentFields(constructor: AnyConstructor): string[] {
     // Get fields from mixins
     const mixinFields = this.getMixinFields(constructor);
 
     // Get fields from the class itself
-    const ownFields =
-      constructor.persistentFields && Array.isArray(constructor.persistentFields)
-        ? constructor.persistentFields
-        : [];
+    const ownFields = (constructor as MixinClass).persistentFields ?? [];
 
     // Combine and remove duplicates
     return Array.from(new Set([...mixinFields, ...ownFields]));
   }
 
+  /**
+   * Type-predicate narrowing helpers.
+   *
+   * Each predicate performs a runtime mixin check and threads the matching
+   * interface into TypeScript's control-flow narrowing:
+   *
+   * ```ts
+   * if (MixinApi.isContainer(obj)) {
+   *   obj.getContents(); // obj is Stuff & Container here
+   * }
+   * ```
+   *
+   * Prefer these over `hasMixin(obj.constructor, Mixins.X)` + cast when the
+   * goal is to call interface methods on the narrowed object. `hasMixin`
+   * remains the primitive for dynamic introspection (iterating queryMixins).
+   */
+
+  public static isContainer(obj: Stuff): obj is Stuff & Container {
+    return this.hasMixin(obj.constructor, Mixins.Container);
+  }
+
+  public static isContainable(obj: Stuff): obj is Stuff & Containable {
+    return this.hasMixin(obj.constructor, Mixins.Containable);
+  }
+
+  public static isSensor(obj: Stuff): obj is Stuff & Sensor {
+    return this.hasMixin(obj.constructor, Mixins.Sensor);
+  }
+
+  public static isVocal(obj: Stuff): obj is Stuff & Vocal {
+    return this.hasMixin(obj.constructor, Mixins.Vocal);
+  }
+
+  public static isNamed(obj: Stuff): obj is Stuff & Named {
+    return this.hasMixin(obj.constructor, Mixins.Named);
+  }
+
+  public static isGendered(obj: Stuff): obj is Stuff & Gendered {
+    return this.hasMixin(obj.constructor, Mixins.Gendered);
+  }
+
+  public static isVisible(obj: Stuff): obj is Stuff & Visible {
+    return this.hasMixin(obj.constructor, Mixins.Visible);
+  }
+
+  public static isPerceptible(obj: Stuff): obj is Stuff & Perceptible {
+    return this.hasMixin(obj.constructor, Mixins.Perceptible);
+  }
+
+  public static isDetailed(obj: Stuff): obj is Stuff & Detailed {
+    return this.hasMixin(obj.constructor, Mixins.Detailed);
+  }
+
+  public static isPropertied(obj: Stuff): obj is Stuff & Propertied {
+    return this.hasMixin(obj.constructor, Mixins.Propertied);
+  }
+
+  public static isCommandGiver(obj: Stuff): obj is Stuff & CommandGiver {
+    return this.hasMixin(obj.constructor, Mixins.CommandGiver);
+  }
 }
 

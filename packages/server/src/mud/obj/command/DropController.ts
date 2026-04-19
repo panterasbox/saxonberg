@@ -9,8 +9,9 @@
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../lib/command/models';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Input model for drop command
@@ -71,24 +72,28 @@ export class DropController extends CommandController<DropInput, DropOutput> {
     target: Stuff,
     context: CommandContext
   ): { success: boolean; message: string } {
-    const targetName = this.getObjectName(target);
+    // Precondition: the mustBeContainable validator should have rejected
+    // non-Containable targets before we get here. The narrow is a contract,
+    // not a user-facing check — programmatic callers that bypass validation
+    // own the exception.
+    if (!MixinApi.isContainable(target)) {
+      throw new Error(
+        `DropController: target ${target.stuffId} is not Containable`
+      );
+    }
+
+    const targetName = DescribeApi.getDisplayName(target, 'something');
 
     // Check if object is in inventory
     const inventory = ContainmentApi.getContents(context.avatar);
-    if (!inventory.some((item: any) => item.stuffId === target.stuffId)) {
+    if (!inventory.some((item) => item.stuffId === target.stuffId)) {
       return {
         success: false,
         message: `You are not carrying ${targetName}.`,
       };
     }
 
-    // Move object from avatar inventory to location
-    if (!ContainmentApi.move(target, context.location)) {
-      return {
-        success: false,
-        message: `Failed to drop ${targetName}.`,
-      };
-    }
+    ContainmentApi.move(target, context.location);
 
     return {
       success: true,
@@ -96,13 +101,4 @@ export class DropController extends CommandController<DropInput, DropOutput> {
     };
   }
 
-  /**
-   * Get object name (try multiple property names)
-   */
-  private getObjectName(obj: any): string {
-    if (typeof obj.fullName === 'string') return obj.fullName;
-    if (typeof obj.name === 'string') return obj.name;
-    if (typeof obj.shortDescription === 'string') return obj.shortDescription;
-    return 'something';
-  }
 }

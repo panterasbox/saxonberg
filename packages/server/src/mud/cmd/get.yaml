@@ -8,7 +8,7 @@ syntax:
       target:
         type: object
         required: true
-        validators: [mustBeVisible, canReach]
+        validators: [mustBeVisible, canReach, mustBeContainable]
 
   - pattern: "<targets...>"
     description: "Pick up multiple objects"
@@ -17,4 +17,4 @@ syntax:
         type: object
         required: true
         multiple: true
-        validators: [mustBeVisible, canReach]
+        validators: [mustBeVisible, canReach, mustBeContainable]

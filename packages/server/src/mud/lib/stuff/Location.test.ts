@@ -5,6 +5,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Location } from './Location';
 import { StuffApi } from '../../api/stuff';
+import { ContainableMixin } from '../spatial/Containable';
+import { Stuff } from './Stuff';
+
+// Minimal containable item class for container tests
+class TestItem extends ContainableMixin(Stuff) {}
 
 describe('Location', () => {
   let location: Location;
@@ -31,7 +36,7 @@ describe('Location', () => {
 
   describe('ContainerMixin integration', () => {
     it('should add items to inventory', () => {
-      const item = new Location();
+      const item = new TestItem();
       StuffApi.register(item);
       location.addToInventory(item);
       expect(location.hasInInventory(item)).toBe(true);
@@ -39,7 +44,7 @@ describe('Location', () => {
     });
 
     it('should remove items from inventory', () => {
-      const item = new Location();
+      const item = new TestItem();
       StuffApi.register(item);
       location.addToInventory(item);
       const removed = location.removeFromInventory(item);
@@ -49,9 +54,9 @@ describe('Location', () => {
     });
 
     it('should return all contents via getContents()', () => {
-      const item1 = new Location();
+      const item1 = new TestItem();
       StuffApi.register(item1);
-      const item2 = new Location();
+      const item2 = new TestItem();
       StuffApi.register(item2);
       location.addToInventory(item1);
       location.addToInventory(item2);
@@ -63,7 +68,7 @@ describe('Location', () => {
     });
 
     it('should return inventory contents via getInventoryContents()', () => {
-      const item1 = new Location();
+      const item1 = new TestItem();
       StuffApi.register(item1);
       location.addToInventory(item1);
 
@@ -112,9 +117,9 @@ describe('Location', () => {
       location.name = 'Town Square';
       location.description = 'A bustling town square.';
 
-      const npc1 = new Location(); // Mock NPC
+      const npc1 = new TestItem(); // Mock NPC
       StuffApi.register(npc1);
-      const npc2 = new Location(); // Mock NPC
+      const npc2 = new TestItem(); // Mock NPC
       StuffApi.register(npc2);
 
       location.addToInventory(npc1);

@@ -4,10 +4,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from './Container';
+import { ContainableMixin } from './Containable';
 import { Stuff } from '../stuff/Stuff';
 
-// Concrete test base class
-class ConcreteStuff extends Stuff {
+// Concrete test item class — needs ContainableMixin to live in a Container
+class ConcreteStuff extends ContainableMixin(Stuff) {
   constructor() {
     super();
   }

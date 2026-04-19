@@ -42,7 +42,7 @@ import type { CommandContext, CommandResult } from './models';
  * @template I Input model type (command-specific)
  * @template O Output data type (command-specific)
  */
-export abstract class CommandController<I = any, O = any> {
+export abstract class CommandController<I = unknown, O = unknown> {
   /**
    * Execute command with validated, resolved input
    *

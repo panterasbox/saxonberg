@@ -14,9 +14,11 @@
  * ```
  */
 
-import type { FieldValidator, CommandContext } from './models';
+import type { FieldValidator } from './models';
 import type { Stuff } from '../stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
+import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Validator: Object must be visible to avatar
@@ -29,7 +31,7 @@ import { ContainmentApi } from '../../api/containment';
  * @param context - Command context
  * @returns Error message or undefined
  */
-export const mustBeVisible: FieldValidator = (obj: any, field: string, context: CommandContext) => {
+export const mustBeVisible: FieldValidator = (obj, field, _context) => {
   if (!(obj && typeof obj === 'object' && 'stuffId' in obj)) {
     return `${field} must be an object`;
   }
@@ -50,27 +52,49 @@ export const mustBeVisible: FieldValidator = (obj: any, field: string, context: 
  * @param context - Command context
  * @returns Error message or undefined
  */
-export const canReach: FieldValidator = (obj: any, field: string, context: CommandContext) => {
+/**
+ * Validator: Object must be Containable (movable between containers).
+ *
+ * MQL only resolves objects that currently live in a container, but structurally
+ * some Stuff may lack ContainableMixin (e.g. a Location). Getting/dropping such
+ * an object is a category error. This validator surfaces that as a friendly
+ * command-path error before controllers run.
+ *
+ * @param obj - Object to validate
+ * @param field - Field name
+ * @param _context - Command context
+ * @returns Error message or undefined
+ */
+export const mustBeContainable: FieldValidator = (obj, field, _context) => {
+  if (!(obj && typeof obj === 'object' && 'stuffId' in obj)) {
+    return `${field} must be an object`;
+  }
+
+  if (!MixinApi.isContainable(obj as Stuff)) {
+    return `You cannot pick that up.`;
+  }
+
+  return undefined;
+};
+
+export const canReach: FieldValidator = (obj, field, context) => {
   if (!(obj && typeof obj === 'object' && 'stuffId' in obj)) {
     return `${field} must be an object`;
   }
 
   const stuff = obj as Stuff;
 
-  // Check if object is in avatar's inventory
   const inventory = ContainmentApi.getContents(context.avatar);
   if (inventory.some((item) => item.stuffId === stuff.stuffId)) {
-    return undefined; // In inventory = reachable
+    return undefined;
   }
 
-  // Check if object is in avatar's location
   const contents = ContainmentApi.getContents(context.location);
   if (contents.some((item) => item.stuffId === stuff.stuffId)) {
-    return undefined; // In same location = reachable
+    return undefined;
   }
 
-  // Not reachable
-  return `You cannot reach the ${getObjectName(stuff)}`;
+  return `You cannot reach the ${DescribeApi.getDisplayName(stuff, 'object')}`;
 };
 
 /**
@@ -80,7 +104,7 @@ export const canReach: FieldValidator = (obj: any, field: string, context: Comma
  * @param field - Field name
  * @returns Error message or undefined
  */
-export const mustBeNumber: FieldValidator = (value: any, field: string) => {
+export const mustBeNumber: FieldValidator = (value, field) => {
   if (typeof value !== 'number') {
     return `${field} must be a number`;
   }
@@ -99,7 +123,7 @@ export const mustBeNumber: FieldValidator = (value: any, field: string) => {
  * @param field - Field name
  * @returns Error message or undefined
  */
-export const notEmpty: FieldValidator = (value: any, field: string) => {
+export const notEmpty: FieldValidator = (value, field) => {
   if (value === undefined || value === null) {
     return `${field} is required`;
   }
@@ -122,7 +146,7 @@ export const notEmpty: FieldValidator = (value: any, field: string) => {
  * @returns Validator function
  */
 export function minLength(minLength: number): FieldValidator {
-  return (value: any, field: string) => {
+  return (value, field) => {
     if (typeof value !== 'string') {
       return `${field} must be a string`;
     }
@@ -142,7 +166,7 @@ export function minLength(minLength: number): FieldValidator {
  * @returns Validator function
  */
 export function maxLength(maxLength: number): FieldValidator {
-  return (value: any, field: string) => {
+  return (value, field) => {
     if (typeof value !== 'string') {
       return `${field} must be a string`;
     }
@@ -163,7 +187,7 @@ export function maxLength(maxLength: number): FieldValidator {
  * @returns Validator function
  */
 export function inRange(min: number, max: number): FieldValidator {
-  return (value: any, field: string) => {
+  return (value, field) => {
     if (typeof value !== 'number') {
       return `${field} must be a number`;
     }
@@ -181,6 +205,7 @@ export function inRange(min: number, max: number): FieldValidator {
  */
 export const ValidatorRegistry: Record<string, FieldValidator> = {
   mustBeVisible,
+  mustBeContainable,
   canReach,
   mustBeNumber,
   notEmpty,
@@ -196,12 +221,3 @@ export function getValidator(name: string): FieldValidator | undefined {
   return ValidatorRegistry[name];
 }
 
-/**
- * Helper: Get object name for error messages
- */
-function getObjectName(obj: any): string {
-  if (typeof obj.fullName === 'string') return obj.fullName;
-  if (typeof obj.name === 'string') return obj.name;
-  if (typeof obj.shortDescription === 'string') return obj.shortDescription;
-  return 'object';
-}

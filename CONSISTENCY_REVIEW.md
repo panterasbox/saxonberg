@@ -1,5 +1,26 @@
 # PLAN.md Comprehensive Consistency Review
 
+> **⚠️ HISTORICAL SNAPSHOT — SUPERSEDED**
+>
+> This document is a pre-refactor review of PLAN.md dated 2026-01-10 and
+> is retained for historical context only. Multiple sections below no
+> longer reflect the current codebase:
+>
+> - `CommandController<TModel>` has been replaced by
+>   `CommandController<I = unknown, O = unknown>`.
+> - Mixin naming/placement conventions have tightened (filenames without
+>   the `Mixin` suffix; colocated public-shape interfaces; no
+>   `lib/mixins/` folder).
+> - `Mixins.CommandGiver` is now in the registry; the "CommandGiver
+>   inconsistency" open issue has been resolved.
+> - Duck-typed display-name fallbacks are no longer permitted — see
+>   `DescribeApi` and [ANTIPATTERNS.md](./ANTIPATTERNS.md).
+> - Mixin composition constraints are now encoded via
+>   `MixinConstructor<T>` base-class generics, not comments.
+>
+> For current conventions see **CLAUDE.md**, **ANTIPATTERNS.md**,
+> **ARCHITECTURE_PATTERNS.md**, and **PROTECTED_LIFECYCLE.md**.
+
 Generated: 2026-01-10
 Document Size: 10,272 lines
 

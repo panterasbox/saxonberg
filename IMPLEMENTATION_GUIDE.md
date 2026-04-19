@@ -139,67 +139,75 @@ src/
 │
 ├── mud/                        # Mudlib Layer (game logic)
 │   ├── api/                    # API Layer (utility functions)
-│   │   ├── index.ts            # Main API aggregator
-│   │   ├── stuff.ts            # StuffApi
-│   │   ├── message.ts          # MessageApi
-│   │   ├── event.ts            # EventApi
-│   │   ├── mixin.ts            # MixinApi
-│   │   ├── persist.ts          # PersistApi
-│   │   ├── string.ts           # StringApi
-│   │   ├── grammar.ts          # GrammarApi
-│   │   ├── mql.ts              # MqlApi
-│   │   └── shadow.ts           # ShadowApi
+│   │   ├── stuff.ts            # StuffApi — registry, clone(), destruct()
+│   │   ├── mixin.ts            # MixinApi — hasMixin() + isX() predicates
+│   │   ├── describe.ts         # DescribeApi — getDisplayName()
+│   │   ├── containment.ts      # ContainmentApi — move()
+│   │   ├── message.ts          # MessageApi — sensor routing
+│   │   ├── mql.ts              # MqlApi — object resolution
+│   │   ├── command.ts          # CommandApi — YAML cache & verb lookup
+│   │   ├── command-line.ts     # CommandLineApi — parser (boolean opts)
+│   │   ├── persist.ts          # PersistApi — sync/serialize
+│   │   └── player.ts           # PlayerApi — avatar registry
 │   │
 │   ├── lib/                    # Standard Model & Frameworks
-│   │   ├── stuff/              # Base object model
+│   │   ├── mixin-types.ts      # MixinConstructor<T>, Mixins registry
+│   │   │
+│   │   ├── stuff/              # Base object machinery
 │   │   │   ├── Stuff.ts        # Base class
 │   │   │   ├── Idea.ts         # Abstract base
-│   │   │   ├── Agent.ts        # Mobile entities
-│   │   │   ├── Thing.ts        # Portable items
-│   │   │   ├── Named.ts        # NamedMixin
-│   │   │   ├── Gendered.ts     # GenderedMixin
-│   │   │   ├── Container.ts    # ContainerMixin
-│   │   │   ├── Containable.ts  # ContainableMixin
-│   │   │   ├── Visible.ts      # VisibleMixin
-│   │   │   ├── Detailed.ts     # DetailedMixin
-│   │   │   ├── Propertied.ts   # PropertiedMixin
-│   │   │   └── Globbed.ts      # GlobbedMixin
+│   │   │   ├── Agent.ts        # Runtime-only base
+│   │   │   ├── Thing.ts        # Portable item base
+│   │   │   ├── Location.ts     # Rooms/spaces
+│   │   │   ├── Place.ts        # Place helpers
+│   │   │   ├── Persistable.ts  # Persistable mixin/base
+│   │   │   └── Propertied.ts   # PropertiedMixin + interface
 │   │   │
-│   │   ├── identity/           # User/Player/Avatar
+│   │   ├── character/          # Identity mixins + Character
+│   │   │   ├── Character.ts
+│   │   │   ├── Named.ts        # NamedMixin + Named interface
+│   │   │   └── Gendered.ts     # GenderedMixin + Gendered interface
+│   │   │
+│   │   ├── description/        # Appearance and detail
+│   │   │   ├── Visible.ts      # VisibleMixin + Visible interface
+│   │   │   ├── Perceptible.ts  # PerceptibleMixin + Perceptible interface
+│   │   │   └── Detailed.ts     # DetailedMixin + Detailed interface
+│   │   │
+│   │   ├── spatial/            # Containment, movement, space
+│   │   │   ├── Container.ts    # ContainerMixin + Container interface
+│   │   │   ├── Containable.ts  # ContainableMixin + Containable interface
+│   │   │   ├── Mobile.ts       # MobileMixin (requires Containable base)
+│   │   │   └── Vessel.ts       # Vehicle/container hybrids
+│   │   │
+│   │   ├── identity/           # Persistent identity models
 │   │   │   ├── User.ts
 │   │   │   ├── Player.ts
-│   │   │   ├── GoogleProfile.ts
-│   │   │   ├── Interactive.ts
-│   │   │   └── Avatar.ts
+│   │   │   ├── CharacterSheet.ts
+│   │   │   └── GoogleProfile.ts
 │   │   │
-│   │   ├── character/          # Character models
-│   │   │   └── Character.ts
+│   │   ├── message/            # Messaging
+│   │   │   ├── Sensor.ts       # SensorMixin + Sensor interface
+│   │   │   └── Vocal.ts        # VocalMixin + Vocal interface
 │   │   │
-│   │   ├── location/           # Location types
-│   │   │   ├── Location.ts
-│   │   │   ├── Exitable.ts     # ExitableMixin
-│   │   │   ├── Exit.ts
-│   │   │   └── Door.ts
-│   │   │
-│   │   ├── command/            # Command framework
-│   │   │   ├── CommandDefinition.ts
-│   │   │   ├── CommandController.ts
-│   │   │   ├── CommandGiverMixin.ts
-│   │   │   ├── CommandShell.ts
-│   │   │   ├── models.ts       # Command model interfaces
-│   │   │   ├── validators.ts   # Common validators
-│   │   │   └── commands/       # Built-in commands
-│   │   │       ├── SayController.ts
-│   │   │       ├── LookController.ts
-│   │   │       ├── HelpController.ts
-│   │   │       └── PlayerController.ts
-│   │   │
-│   │   └── message/            # Message system
-│   │       ├── Sensor.ts       # SensorMixin
-│   │       └── Vocal.ts        # VocalMixin
+│   │   └── command/            # Command framework
+│   │       ├── CommandDefinition.ts
+│   │       ├── CommandController.ts  # CommandController<I,O>
+│   │       ├── CommandGiver.ts       # CommandGiverMixin + CommandGiver interface
+│   │       ├── ICommandProvider.ts
+│   │       ├── models.ts
+│   │       └── validators.ts         # mustBeVisible, mustBeContainable, …
 │   │
+│   ├── cmd/                    # YAML command views (look.yaml, get.yaml, …)
 │   └── obj/                    # Instantiable game objects
-│       └── Avatar.ts           # Player avatar (extends Character)
+│       ├── Avatar.ts           # Player avatar (extends Character)
+│       ├── Interactive.ts      # Connection-state object
+│       └── command/            # Concrete controllers
+│           ├── GetController.ts
+│           ├── DropController.ts
+│           ├── LookController.ts
+│           ├── InventoryController.ts
+│           ├── SayController.ts
+│           └── TellController.ts
 │
 └── plugins/                    # Domain plugin system (Phase 9+)
     └── PluginBase.ts
@@ -248,8 +256,10 @@ src/
 - kebab-case for multi-word utilities: `command-history.ts`
 
 **Mixins**:
-- Always suffix with `Mixin`: `NamedMixin`, `ContainerMixin`
-- File name matches: `Named.ts` exports `NamedMixin`
+- Function name always suffixed with `Mixin`: `NamedMixin`, `ContainerMixin`
+- File name DROPS the `Mixin` suffix: `Named.ts` exports `NamedMixin`, `Container.ts` exports `ContainerMixin`, etc.
+- Each mixin file also exports a **public-shape interface** with the same name as the mixin (`Named`, `Container`, `Vocal`, …). These interfaces live beside the implementation — never in a central type barrel (memory: "Colocate mixin interfaces").
+- **Base-class constraints go in the generic**, not in a comment. If a mixin requires another mixin, encode it as `<TBase extends MixinConstructor<Stuff & OtherMixin>>` so composition errors surface at compile time (memory: "Enforce mixin composition constraints").
 
 **Interfaces**:
 - Prefix with `I` for contracts: `IBackend`, `ICommand`
@@ -265,29 +275,41 @@ src/
 
 ### Test Organization
 
+Unit tests are **colocated** with the source they cover — `Container.test.ts`
+lives next to `Container.ts` in `lib/spatial/`, `describe.test.ts` lives next
+to `describe.ts` in `api/`, and so on. Do NOT relocate tests into a
+centralized `__tests__/` tree.
+
 ```
-packages/server/src/
-├── __tests__/                  # Test directory
-│   ├── unit/                   # Unit tests
-│   │   ├── api/
-│   │   │   ├── StuffApi.test.ts
-│   │   │   └── MessageApi.test.ts
-│   │   ├── description/
-│   │   │   └── Named.test.ts
-│   │   ├── containment/
-│   │   │   └── Container.test.ts
-│   │   └── stuff/
-│   │       └── Stuff.test.ts
-│   │
-│   ├── integration/            # Integration tests
-│   │   ├── auth.test.ts
-│   │   ├── websocket.test.ts
-│   │   └── persistence.test.ts
-│   │
-│   └── e2e/                    # End-to-end tests
-│       ├── user-flow.test.ts
-│       └── command-execution.test.ts
+packages/server/src/mud/
+├── api/
+│   ├── describe.ts
+│   ├── describe.test.ts            # Colocated
+│   ├── mixin.ts
+│   ├── mixin.test.ts
+│   ├── message.ts
+│   ├── message.test.ts
+│   ├── containment.ts
+│   └── containment.test.ts
+├── lib/
+│   ├── spatial/
+│   │   ├── Container.ts
+│   │   ├── Container.test.ts       # Colocated
+│   │   ├── Containable.ts
+│   │   └── Containable.test.ts
+│   ├── stuff/
+│   │   ├── Location.ts
+│   │   ├── Location.test.ts
+│   │   ├── Propertied.ts
+│   │   └── Propertied.test.ts
+│   └── …
+└── obj/
+    └── command/
+        └── …                      # Future: colocated controller tests
 ```
+
+Integration and e2e suites (when needed) still live in
+`packages/server/src/__tests__/`; colocation is a unit-test convention only.
 
 ### Testing Strategy by Phase
 
@@ -593,7 +615,7 @@ function legacyIntegration(data: any) { // eslint-disable-line @typescript-eslin
 // ✅ Interface for object shape
 interface CommandModel {
   verb: string;
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
 }
 
 // ✅ Type for union
@@ -638,11 +660,11 @@ async function loadUser(id: string) {
 /**
  * Clone a game object from its template.
  *
- * @param templateKey - Template identifier (e.g., "/items/sword")
- * @returns New instance of the object with unique stuffId
+ * @param path - Template path (e.g., "/items/sword", "/avatar/player/<playerId>")
+ * @returns New instance of the object with unique stuffId, typed to T
  * @throws {PersistenceError} If template not found in CMS
  */
-static async clone(templateKey: string): Promise<Stuff> {
+static async clone<T extends Stuff = Stuff>(path: string): Promise<T> {
   // ...
 }
 ```
@@ -851,7 +873,22 @@ Follow same pattern for remaining phases.
 
 - ❌ Don't apply mixins in wrong order (order matters!)
 - ✅ Apply from base to specific: Named(Gendered(Container(Base)))
-- ✅ Register all mixins with MixinApi
+- ✅ Register all mixins with MixinApi (add an entry to `Mixins` in `lib/mixin-types.ts` and the matching `MixinApi.isX()` predicate in `api/mixin.ts`)
+- ✅ Encode required base composition in the generic (`<TBase extends MixinConstructor<Stuff & OtherMixin>>`), not in comments
+- ✅ Export a public-shape interface alongside the mixin function — never in a central barrel
+
+### Narrowing and Display
+
+- ✅ `MixinApi.isX(obj)` to narrow and call interface methods
+- ✅ `MixinApi.hasMixin(ctor, Mixins.X)` only for dynamic introspection
+- ✅ `DescribeApi.getDisplayName(obj, fallback)` for human-readable names
+- ❌ Don't reintroduce ad-hoc `getObjectName()` duck-typing helpers
+
+### Movement and Destruction
+
+- ✅ `ContainmentApi.move(item, to)` for all object movement. Parameters are `Stuff & Containable` / `Stuff & Container`; narrow with `MixinApi.isX()` first. Returns `void`; throws on programmatic contract violations.
+- ✅ `StuffApi.destruct(obj)` to destroy — never call `destroy()` directly, never override it.
+- ✅ Override `prepareDestroy()` for subclass cleanup.
 
 ### Persistence
 
@@ -859,6 +896,7 @@ Follow same pattern for remaining phases.
 - ❌ Don't persist transient state (Interactive, runtime buffs)
 - ✅ Use PersistApi.syncTo/syncFrom for automatic field collection
 - ✅ Declare persistentFields on all mixins
+- ⚠️ `PropertiedMixin.maskProp()` now requires an explicit `Stuff` owner — see PERSISTENT_PATTERN.md.
 
 ### WebSocket
 

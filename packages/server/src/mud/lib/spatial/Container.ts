@@ -2,11 +2,11 @@
  * ContainerMixin - Adds inventory management
  *
  * Provides:
- * - inventory: Set<any> (items contained)
+ * - inventory: Set<Stuff & Containable> (items contained)
  * - addToInventory(item): void
- * - removeFromInventory(item): void
+ * - removeFromInventory(item): boolean
  * - hasInInventory(item): boolean
- * - getInventoryContents(): any[]
+ * - getInventoryContents(): (Stuff & Containable)[]
  *
  * Usage:
  * ```typescript
@@ -21,6 +21,8 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
+import type { Stuff } from '../stuff/Stuff';
+import type { Containable } from './Containable';
 
 /**
  * Mixin that adds container/inventory properties and methods.
@@ -32,11 +34,12 @@ import type { MixinConstructor } from '../mixin-types';
  * Public shape provided by ContainerMixin.
  */
 export interface Container {
-  inventory: Set<any>;
-  addToInventory(item: any): void;
-  removeFromInventory(item: any): boolean;
-  hasInInventory(item: any): boolean;
-  getInventoryContents(): any[];
+  inventory: Set<Stuff & Containable>;
+  addToInventory(item: Stuff & Containable): void;
+  removeFromInventory(item: Stuff & Containable): boolean;
+  hasInInventory(item: Stuff & Containable): boolean;
+  getInventoryContents(): (Stuff & Containable)[];
+  getContents(): (Stuff & Containable)[];
 }
 
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -59,13 +62,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * It is NOT included in persistentFields - instead, classes using
      * this mixin must declare a custom persistenceHandler.
      */
-    inventory: Set<any> = new Set();
+    inventory: Set<Stuff & Containable> = new Set();
 
     /**
      * Add an item to the inventory.
      * @param item - Item to add
      */
-    addToInventory(item: any): void {
+    addToInventory(item: Stuff & Containable): void {
       this.inventory.add(item);
     }
 
@@ -74,7 +77,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @param item - Item to remove
      * @returns True if item was found and removed
      */
-    removeFromInventory(item: any): boolean {
+    removeFromInventory(item: Stuff & Containable): boolean {
       return this.inventory.delete(item);
     }
 
@@ -82,21 +85,21 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Check if inventory contains an item.
      * @param item - Item to check for
      */
-    hasInInventory(item: any): boolean {
+    hasInInventory(item: Stuff & Containable): boolean {
       return this.inventory.has(item);
     }
 
     /**
      * Get all items in inventory as an array.
      */
-    getInventoryContents(): any[] {
+    getInventoryContents(): (Stuff & Containable)[] {
       return Array.from(this.inventory);
     }
 
     /**
      * Alias for getInventoryContents() for consistency with ContainmentApi
      */
-    getContents(): any[] {
+    getContents(): (Stuff & Containable)[] {
       return this.getInventoryContents();
     }
   };

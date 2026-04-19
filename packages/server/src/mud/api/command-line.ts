@@ -241,17 +241,16 @@ export class CommandLineApi {
    * - Short options: -v → { v: true }
    * - Long options: --verbose → { verbose: true }
    * - Combined short options: -abc → { a: true, b: true, c: true }
-   * - Options with values: -o file → { o: 'file' }
    * - Stop marker: -- stops option processing
    *
    * @param tokens - Array of tokens
    * @returns Object with options map and remaining args
    */
   private static extractOptions(tokens: string[]): {
-    options: Map<string, any>;
+    options: Map<string, boolean>;
     args: string[];
   } {
-    const options = new Map<string, any>();
+    const options = new Map<string, boolean>();
     const args: string[] = [];
     let i = 0;
     let stopOptions = false;

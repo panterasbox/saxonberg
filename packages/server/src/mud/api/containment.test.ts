@@ -17,10 +17,6 @@ class TestItem extends ContainableBase {}
 const ContainerBase = ContainerMixin(ContainableMixin(Stuff));
 class TestContainer extends ContainerBase {}
 
-// Concrete Stuff subclass with no containment mixins — used to exercise
-// the negative paths in ContainmentApi (missing Container/Containable).
-class PlainStuff extends Stuff {}
-
 describe('ContainmentApi', () => {
   let item: TestItem;
   let container1: TestContainer;
@@ -49,19 +45,16 @@ describe('ContainmentApi', () => {
 
   describe('move()', () => {
     it('should move item to container', () => {
-      const success = ContainmentApi.move(item, container1);
+      ContainmentApi.move(item, container1);
 
-      expect(success).toBe(true);
       expect(item.getEnvironment()).toBe(container1);
       expect(container1.hasInInventory(item)).toBe(true);
     });
 
     it('should automatically remove from previous container', () => {
-      // First place item in container1
       ContainmentApi.move(item, container1);
       expect(container1.hasInInventory(item)).toBe(true);
 
-      // Then move to container2
       ContainmentApi.move(item, container2);
 
       expect(container1.hasInInventory(item)).toBe(false);
@@ -72,17 +65,15 @@ describe('ContainmentApi', () => {
     it('should work when item has no current environment', () => {
       expect(item.getEnvironment()).toBeNull();
 
-      const success = ContainmentApi.move(item, container1);
+      ContainmentApi.move(item, container1);
 
-      expect(success).toBe(true);
       expect(item.getEnvironment()).toBe(container1);
       expect(container1.hasInInventory(item)).toBe(true);
     });
 
     it('should work with Location as container', () => {
-      const success = ContainmentApi.move(item, location1);
+      ContainmentApi.move(item, location1);
 
-      expect(success).toBe(true);
       expect(item.getEnvironment()).toBe(location1);
       expect(location1.hasInInventory(item)).toBe(true);
     });
@@ -96,34 +87,6 @@ describe('ContainmentApi', () => {
       expect(location1.hasInInventory(item)).toBe(false);
       expect(location2.hasInInventory(item)).toBe(true);
       expect(item.getEnvironment()).toBe(location2);
-    });
-
-    it('should return false if item does not have ContainableMixin', () => {
-      const nonContainable = new PlainStuff();
-      StuffApi.register(nonContainable);
-
-      const success = ContainmentApi.move(nonContainable, container1);
-
-      expect(success).toBe(false);
-    });
-
-    it('should return false if destination does not have ContainerMixin', () => {
-      const nonContainer = new PlainStuff();
-      StuffApi.register(nonContainer);
-
-      const success = ContainmentApi.move(item, nonContainer as any);
-
-      expect(success).toBe(false);
-    });
-
-    it('should return false if item is null', () => {
-      const success = ContainmentApi.move(null as any, container1);
-      expect(success).toBe(false);
-    });
-
-    it('should return false if destination is null', () => {
-      const success = ContainmentApi.move(item, null as any);
-      expect(success).toBe(false);
     });
   });
 
@@ -143,13 +106,6 @@ describe('ContainmentApi', () => {
     it('should return false when item has no environment', () => {
       expect(ContainmentApi.isContainedIn(item, container1)).toBe(false);
     });
-
-    it('should return false if container does not have ContainerMixin', () => {
-      const nonContainer = new PlainStuff();
-      StuffApi.register(nonContainer);
-
-      expect(ContainmentApi.isContainedIn(item, nonContainer as any)).toBe(false);
-    });
   });
 
   describe('getContainer()', () => {
@@ -161,13 +117,6 @@ describe('ContainmentApi', () => {
 
     it('should return null when item has no environment', () => {
       expect(ContainmentApi.getContainer(item)).toBeNull();
-    });
-
-    it('should return null if item does not have ContainableMixin', () => {
-      const nonContainable = new PlainStuff();
-      StuffApi.register(nonContainable);
-
-      expect(ContainmentApi.getContainer(nonContainable)).toBeNull();
     });
 
     it('should update when item moves between containers', () => {
@@ -191,15 +140,6 @@ describe('ContainmentApi', () => {
 
     it('should return empty array for empty container', () => {
       const contents = ContainmentApi.getContents(container1);
-
-      expect(contents).toHaveLength(0);
-    });
-
-    it('should return empty array if object does not have ContainerMixin', () => {
-      const nonContainer = new PlainStuff();
-      StuffApi.register(nonContainer);
-
-      const contents = ContainmentApi.getContents(nonContainer);
 
       expect(contents).toHaveLength(0);
     });

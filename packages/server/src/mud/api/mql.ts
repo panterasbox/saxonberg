@@ -20,6 +20,7 @@ import type { Location } from '../lib/stuff/Location';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { MqlContext, MqlMatch } from '../lib/command/models';
 import { ContainmentApi } from './containment';
+import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 
 /**
@@ -168,9 +169,8 @@ export class MqlApi {
    * @param keywords - Query keywords
    * @returns Score (0 = no match, higher = better match)
    */
-  private static scoreMatch(obj: any, keywords: string[]): number {
-    // Get object name (try multiple property names)
-    const name = this.getObjectName(obj);
+  private static scoreMatch(obj: Stuff, keywords: string[]): number {
+    const name = DescribeApi.getDisplayName(obj);
     if (!name) return 0;
 
     const nameLower = name.toLowerCase();
@@ -178,8 +178,8 @@ export class MqlApi {
 
     // Get object keywords (from PerceptibleMixin if present)
     const objKeywords: string[] = [];
-    if (MixinApi.hasMixin(obj.constructor, 'PerceptibleMixin')) {
-      const keywords = (obj as any).getKeywords?.();
+    if (MixinApi.isPerceptible(obj)) {
+      const keywords = obj.getKeywords();
       if (Array.isArray(keywords)) {
         objKeywords.push(...keywords); // Already normalized to lowercase
       }
@@ -225,21 +225,4 @@ export class MqlApi {
     return 0;
   }
 
-  /**
-   * Get object name from various possible properties
-   *
-   * Tries in order:
-   * 1. fullName (from NamedMixin)
-   * 2. name
-   * 3. shortDescription (from VisibleMixin)
-   *
-   * @param obj - Object to get name from
-   * @returns Name string or empty string
-   */
-  private static getObjectName(obj: any): string {
-    if (typeof obj.fullName === 'string') return obj.fullName;
-    if (typeof obj.name === 'string') return obj.name;
-    if (typeof obj.shortDescription === 'string') return obj.shortDescription;
-    return '';
-  }
 }

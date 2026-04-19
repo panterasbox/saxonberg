@@ -9,6 +9,7 @@
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../lib/command/models';
 import { MessageApi } from '../../api/message';
+import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
 import type { Avatar } from '../Avatar';
 
@@ -81,9 +82,9 @@ export class TellController extends CommandController<TellInput, TellOutput> {
     const location = context.location;
     const sensors = MessageApi.getSensors(location);
     for (const sensor of sensors) {
-      const fullName = (sensor as any).fullName || '';
-      if (fullName.toLowerCase() === nameLower) {
-        return sensor as Avatar;
+      if (!MixinApi.isNamed(sensor)) continue;
+      if (sensor.fullName.toLowerCase() === nameLower) {
+        return sensor as unknown as Avatar;
       }
     }
 

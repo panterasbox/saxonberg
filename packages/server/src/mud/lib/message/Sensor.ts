@@ -25,7 +25,7 @@ import type { MixinConstructor } from '../mixin-types';
  * Public shape provided by SensorMixin.
  */
 export interface Sensor {
-  onMessage(message: any): void;
+  onMessage(message: unknown): void;
 }
 
 export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {

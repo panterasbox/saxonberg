@@ -32,8 +32,8 @@ class MobileSensor extends MobileSensorBase {
   lastMessage?: unknown;
 }
 
-// Create a simple non-sensor object for testing
-class NonSensor extends Stuff {}
+// Create a simple non-sensor object for testing — containable so it can live in a Location
+class NonSensor extends ContainableMixin(Stuff) {}
 
 describe('MessageApi', () => {
   let location: Location;
@@ -83,23 +83,45 @@ describe('MessageApi', () => {
       expect(sensors).toHaveLength(0);
     });
 
-    it('should return empty array for non-container', () => {
-      const notContainer = new NonSensor();
-      StuffApi.register(notContainer);
-      const sensors = MessageApi.getSensors(notContainer);
-      expect(sensors).toHaveLength(0);
+    it('should detect sensors by SensorMixin marker, not duck-typed onMessage', () => {
+      // An object with an onMessage method but no SensorMixin must not match —
+      // detection is via the mixin marker, not method presence.
+      const ducked = { onMessage: vi.fn() } as unknown as TestSensor;
+      location.inventory.add(ducked);
+
+      expect(MessageApi.getSensors(location)).toHaveLength(0);
+
+      // Real SensorMixin-based sensors are detected.
+      location.addToInventory(sensor1);
+      expect(MessageApi.getSensors(location)).toHaveLength(1);
+    });
+  });
+
+  describe('messageContents()', () => {
+    it('sends the message to every sensor inside the container', () => {
+      location.addToInventory(sensor1);
+      location.addToInventory(sensor2);
+
+      const message = { type: 'test', payload: { text: 'hello' } };
+      MessageApi.messageContents(location, message);
+
+      expect(sensor1.lastMessage).toEqual(message);
+      expect(sensor2.lastMessage).toEqual(message);
     });
 
-    it('should detect sensors by onMessage method', () => {
-      const hasOnMessage = {
-        onMessage: vi.fn(),
-      };
+    it('skips non-sensors', () => {
+      location.addToInventory(sensor1);
+      location.addToInventory(nonSensor);
 
-      // Manually add to inventory (bypassing type checking)
-      location.inventory.add(hasOnMessage as any);
+      const message = { type: 'test' };
+      expect(() => MessageApi.messageContents(location, message)).not.toThrow();
+      expect(sensor1.lastMessage).toEqual(message);
+    });
 
-      const sensors = MessageApi.getSensors(location);
-      expect(sensors).toHaveLength(1);
+    it('is a no-op for empty containers', () => {
+      expect(() =>
+        MessageApi.messageContents(location, { type: 'test' })
+      ).not.toThrow();
     });
   });
 
@@ -137,19 +159,6 @@ describe('MessageApi', () => {
       }).not.toThrow();
 
       expect(sensor1.lastMessage).toEqual(message);
-    });
-
-    it('should warn if source has no environment', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-      const source = new NonSensor(); StuffApi.register(source);
-      MessageApi.messageContainer(source, { type: 'test' });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Source has no environment')
-      );
-
-      consoleSpy.mockRestore();
     });
 
     it('should warn if source environment is null', () => {

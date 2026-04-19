@@ -16,6 +16,7 @@ import { Player } from '../lib/identity/Player';
 import { CharacterSheet } from '../lib/identity/CharacterSheet';
 import type { Interactive } from './Interactive';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
+import type { Application } from '../../backend/Application';
 
 /**
  * Template data for Avatar (from domain collection).
@@ -52,7 +53,7 @@ export class Avatar extends Character {
    * Get ApplicationInstance (can be overridden for testing)
    * @internal
    */
-  private static getApplicationInstance(): any {
+  private static getApplicationInstance(): Application {
     return ApplicationInstance.get();
   }
 
@@ -191,7 +192,7 @@ export class Avatar extends Character {
    *
    * @param message - The message to send
    */
-  public sendMessage(message: any): void {
+  public sendMessage(message: unknown): void {
     for (const interactive of this.interactives) {
       interactive.send(message);
     }

@@ -12,27 +12,45 @@
 
 import type { MixinConstructor } from '../mixin-types';
 import type { Avatar } from '../../obj/Avatar';
-import type { Location } from '../stuff/Location';
+import type { Stuff } from '../stuff/Stuff';
 import { CommandLineApi } from '../../api/command-line';
 import { CommandApi } from '../../api/command';
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { CommandDefinition } from './CommandDefinition';
-import type { ICommandProvider } from './ICommandProvider';
+import type { CommandProviderRegistry } from './ICommandProvider';
 import type {
   CommandContext,
-  CommandModel,
   CommandResult,
   FieldDefinition,
 } from './models';
 import { getValidator } from './validators';
-import { nanoid } from 'nanoid';
+
+type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
+
+/** Extract the `commandProvider` static off any class-like value, if present. */
+const getProvider = (cls: unknown): CommandProviderRegistry | undefined =>
+  (cls as CommandProviderHolder).commandProvider;
 
 /**
- * Mixin that adds command execution capabilities
+ * Public shape provided by CommandGiverMixin.
  */
-export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
+export interface CommandGiver {
+  getAvailableCommands(): CommandDefinition[];
+  executeCommand(commandText: string, context: CommandContext): Promise<CommandResult>;
+}
+
+/**
+ * Mixin that adds command execution capabilities.
+ *
+ * Constraint rationale: Base must be Stuff (we need `.constructor` for mixin
+ * introspection and `stuffId` identity), but deliberately NOT Container or
+ * Containable — mixin composition should stay flexible. A disembodied command
+ * executor with no inventory and no environment is a coherent future case.
+ * Inventory / environment / colocated branches narrow at runtime instead.
+ */
+export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class CommandGiver extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'CommandGiverMixin';
@@ -70,59 +88,47 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       };
 
-      // 1. Commands from mixins on SELF
-      const selfMixins = MixinApi.queryMixins(this.constructor);
+      // Base is constrained to MixinConstructor<Stuff>, so at runtime `this`
+      // is always a Stuff. TypeScript can't derive that through the generic
+      // mixin pattern (`this` is typed as the mixin class alone), so we
+      // assert it once for the type-predicate calls below.
+      const self = this as this & Stuff;
+
+      // 1. Commands from mixins on SELF (always applicable)
+      const selfMixins = MixinApi.queryMixins(self.constructor);
       for (const mixin of selfMixins) {
-        const provider = (mixin as any).commandProvider;
-        if (provider?.self) {
-          provider.self.forEach(addCommand);
-        }
+        getProvider(mixin)?.self?.forEach(addCommand);
       }
+      // Class itself may carry a commandProvider (e.g. Avatar)
+      getProvider(self.constructor)?.self?.forEach(addCommand);
 
-      // Check if this class itself has a commandProvider (like Avatar)
-      const thisProvider = (this.constructor as any).commandProvider;
-      if (thisProvider?.self) {
-        thisProvider.self.forEach(addCommand);
-      }
-
-      // 2. Commands from objects in INVENTORY
-      const inventory = ContainmentApi.getContents(this as any);
-      for (const obj of inventory) {
-        const objMixins = MixinApi.queryMixins(obj.constructor);
-        for (const mixin of objMixins) {
-          const provider = (mixin as any).commandProvider;
-          if (provider?.inventory) {
-            provider.inventory.forEach(addCommand);
+      // 2. Commands from objects in INVENTORY — only if this giver has one
+      if (MixinApi.isContainer(self)) {
+        const inventory = ContainmentApi.getContents(self);
+        for (const obj of inventory) {
+          for (const mixin of MixinApi.queryMixins(obj.constructor)) {
+            getProvider(mixin)?.inventory?.forEach(addCommand);
           }
         }
       }
 
-      // 3. Commands from objects in ENVIRONMENT
-      const environment = (this as any).getEnvironment?.();
-      if (environment) {
-        const envContents = ContainmentApi.getContents(environment);
-        for (const obj of envContents) {
-          if (obj === (this as any)) continue; // Skip self
-          const objMixins = MixinApi.queryMixins(obj.constructor);
-          for (const mixin of objMixins) {
-            const provider = (mixin as any).commandProvider;
-            if (provider?.environment) {
-              provider.environment.forEach(addCommand);
+      // 3 + 4. Commands from ENVIRONMENT and COLOCATED objects — only if
+      // this giver is placed somewhere
+      if (MixinApi.isContainable(self)) {
+        const environment = self.getEnvironment();
+        if (environment) {
+          const envContents = ContainmentApi.getContents(environment);
+          for (const obj of envContents) {
+            if (obj === self) continue;
+            for (const mixin of MixinApi.queryMixins(obj.constructor)) {
+              getProvider(mixin)?.environment?.forEach(addCommand);
             }
           }
-        }
-
-        // 4. Commands from COLOCATED objects (other characters)
-        for (const obj of envContents) {
-          if (obj === (this as any)) continue; // Skip self
-          // Only consider objects that can give commands (have CommandGiverMixin)
-          if ('getAvailableCommands' in obj) {
-            const objMixins = MixinApi.queryMixins(obj.constructor);
-            for (const mixin of objMixins) {
-              const provider = (mixin as any).commandProvider;
-              if (provider?.colocated) {
-                provider.colocated.forEach(addCommand);
-              }
+          for (const obj of envContents) {
+            if (obj === self) continue;
+            if (!MixinApi.isCommandGiver(obj)) continue;
+            for (const mixin of MixinApi.queryMixins(obj.constructor)) {
+              getProvider(mixin)?.colocated?.forEach(addCommand);
             }
           }
         }
@@ -172,10 +178,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         } else {
           return await this.executeSyntax(command, parsed.args, parsed.options, context);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message || 'Command execution failed',
+          error: error instanceof Error ? error.message : 'Command execution failed',
         };
       }
     }
@@ -186,7 +192,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     private async executeSubcommand(
       command: CommandDefinition,
       args: string[],
-      options: Map<string, any>,
+      options: Map<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
       // First arg is subcommand name
@@ -236,7 +242,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     private async executeSyntax(
       command: CommandDefinition,
       args: string[],
-      options: Map<string, any>,
+      options: Map<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
       // Try each syntax pattern in order
@@ -273,8 +279,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       pattern: string,
       args: string[],
       fieldDefs: Record<string, FieldDefinition>
-    ): Record<string, any> | null {
-      const fields: Record<string, any> = {};
+    ): Record<string, unknown> | null {
+      const fields: Record<string, unknown> = {};
 
       // Empty pattern matches empty args
       if (!pattern || pattern.trim() === '') {
@@ -338,8 +344,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private async resolveValidateExecute(
       command: CommandDefinition,
-      fields: Record<string, any>,
-      options: Map<string, any>,
+      fields: Record<string, unknown>,
+      options: Map<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
       // Get field definitions (from syntax or subcommand)
@@ -356,8 +362,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Resolve object fields using MQL
       for (const [fieldName, fieldDef] of Object.entries(fieldDefs)) {
-        if (fieldDef.type === 'object' && fields[fieldName]) {
-          const query = fields[fieldName];
+        const raw = fields[fieldName];
+        if (fieldDef.type === 'object' && typeof raw === 'string' && raw.length > 0) {
+          const query = raw;
 
           if (fieldDef.multiple) {
             // Resolve multiple objects
@@ -412,7 +419,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // Convert options Map to plain object
-      const optionsObj: Record<string, any> = {};
+      const optionsObj: Record<string, boolean> = {};
       options.forEach((value, key) => {
         optionsObj[key] = value;
       });
@@ -426,8 +433,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private async executeController(
       command: CommandDefinition,
-      fields: Record<string, any>,
-      options: Record<string, any>,
+      fields: Record<string, unknown>,
+      options: Record<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
       try {
@@ -447,10 +454,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         const result = controller.execute(fields, context);
 
         return result;
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          error: `Failed to execute command: ${error.message}`,
+          error: `Failed to execute command: ${message}`,
         };
       }
     }

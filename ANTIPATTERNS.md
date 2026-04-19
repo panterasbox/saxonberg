@@ -31,18 +31,37 @@ if (typeof target.setEnvironment === 'function') {
 ### ✅ GOOD (Proper API Layers)
 
 ```typescript
-// Use MixinApi.hasMixin() for explicit mixin checks
+// PREFERRED: Type-predicate narrowing when you need to call interface methods
+if (MixinApi.isContainer(obj)) {
+  obj.addToInventory(item); // obj is narrowed to Stuff & Container
+}
+
+// Use MixinApi.hasMixin() for dynamic introspection (no narrowing needed)
 if (MixinApi.hasMixin(obj.constructor, Mixins.Container)) {
-  obj.addToInventory(item);
+  // e.g., iterating capabilities, reporting — not calling interface methods
 }
 
 // Use ContainmentApi for movement operations
-ContainmentApi.move(sword, location, avatar); // pick up
-ContainmentApi.move(sword, avatar, location); // drop
+ContainmentApi.move(sword, avatar);    // pick up (source inferred)
+ContainmentApi.move(sword, location);  // drop (source inferred)
 
 // Use MixinApi.getContents() for safe container access
 const items = MixinApi.getContents(container);
 ```
+
+### Narrowing Predicates vs. `hasMixin()`
+
+`MixinApi` exposes a `isX()` predicate for every registered mixin
+(`isContainer`, `isContainable`, `isSensor`, `isVocal`, `isNamed`,
+`isGendered`, `isVisible`, `isPerceptible`, `isDetailed`, `isPropertied`,
+`isCommandGiver`). Each returns `obj is Stuff & <Interface>` and threads
+the mixin's public interface into TypeScript's control-flow narrowing.
+
+- **Use `MixinApi.isX(obj)`** when you want to check presence *and* call
+  interface methods on the narrowed object. This is the dominant case.
+- **Use `MixinApi.hasMixin(obj.constructor, Mixins.X)`** only when you're
+  introspecting dynamically (e.g., walking a constructor's mixin chain,
+  collecting persistent fields) and don't need to narrow `obj`.
 
 ### Why Duck Typing is Bad
 
@@ -97,6 +116,18 @@ ContainmentApi.move(avatar, newRoom);
 **When to use**: Inventory commands (get, drop), object manipulation, teleportation
 
 **Note**: `move()` automatically determines the current container from `item.getEnvironment()`, so you only need to specify the destination.
+
+**Contract**:
+- Parameters are typed `Stuff & Containable` (item) and `Stuff & Container` (to).
+  Callers must narrow first — typically with `MixinApi.isContainable(x)` /
+  `MixinApi.isContainer(y)`.
+- Returns `void`. Programmatic contract violations (e.g., passing an item that
+  isn't containable at runtime) throw; there are no boolean "success" flags.
+- **User-input validation is separate**: YAML command definitions declare
+  validators like `mustBeContainable` that run before the controller. The
+  runtime narrowing inside a controller is a contract assertion for
+  programmatic bypass callers, not a user-facing check — they are NOT
+  redundant.
 
 ### Level 3: setEnvironment() / addToInventory() - Low Level (NEVER CALL DIRECTLY)
 
@@ -187,14 +218,17 @@ if (MixinApi.hasMixin(obj.constructor, Mixins.Container)) {
 const items = MixinApi.getContents(obj); // Returns [] if not a container
 ```
 
-## Exceptions
+## Display Names — Use DescribeApi
 
-There are valid use cases for checking properties that are NOT antipatterns:
-
-### Display Name/Description Fallbacks
+Ad-hoc `getObjectName()` helpers that duck-type through `fullName` /
+`name` / `shortDescription` are **no longer allowed**. The display-name
+fallback chain is centralized in `DescribeApi`:
 
 ```typescript
-// ✅ OK - Graceful degradation for display purposes
+// ✅ CORRECT - Single source of truth for human-readable names
+const name = DescribeApi.getDisplayName(obj, 'something');
+
+// ❌ NOT ALLOWED - Ad-hoc fallback chains in controllers/API code
 function getObjectName(obj: any): string {
   if (typeof obj.fullName === 'string') return obj.fullName;
   if (typeof obj.name === 'string') return obj.name;
@@ -203,19 +237,25 @@ function getObjectName(obj: any): string {
 }
 ```
 
-This is acceptable because:
-- It's a display-only helper, not game logic
-- Falls back gracefully through multiple properties
-- Doesn't assume mixin presence affects behavior
-- Used for user-facing text, not system operations
+`DescribeApi.getDisplayName()` uses `MixinApi.isNamed()` / `isVisible()`
+internally (not duck typing) and falls back in this order:
+1. `NamedMixin.fullName`
+2. A plain `name` string (Location and similar carry this directly)
+3. `VisibleMixin.shortDescription`
+4. Caller-supplied fallback
+
+This is the seed of a broader presentation layer. Any future
+description/short/long/article/list-formatting helpers belong in
+`DescribeApi`, not sprinkled across controllers.
 
 ### Rule of Thumb
 
 - **Movement Operations** (pick up, drop, teleport): Use ContainmentApi.move() ✅
 - **Locomotion** (walk, run, fly): Use travel() from MobileMixin ✅
 - **Container Access** (get contents): Use MixinApi.getContents() ✅
-- **Mixin Checks** (does X have Y mixin?): Use MixinApi.hasMixin() ✅
-- **Display Text** (getting names/descriptions): Fallback pattern OK ✅
+- **Narrow and call**: Use MixinApi.isX(obj) type predicates ✅
+- **Introspection only**: Use MixinApi.hasMixin(ctor, Mixins.X) ✅
+- **Display Text** (getting names/descriptions): Use DescribeApi ✅
 
 ## Summary
 
@@ -226,4 +266,6 @@ This is acceptable because:
 - `ContainmentApi.move()` for all other object movement (mid level)
 - `setEnvironment()/addToInventory()` only called by ContainmentApi (low level)
 
-**Duck typing is only acceptable for display-only fallback patterns where the code gracefully degrades if properties don't exist.**
+**Never duck-type mixins, even for display.** Display-name lookup lives in
+`DescribeApi.getDisplayName()`; mixin presence checks use `MixinApi.isX()`
+predicates (preferred) or `MixinApi.hasMixin()` (for introspection only).

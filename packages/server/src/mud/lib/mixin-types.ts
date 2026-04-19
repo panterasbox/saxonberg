@@ -29,6 +29,7 @@ export const Mixins = {
   Perceptible: 'PerceptibleMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
+  CommandGiver: 'CommandGiverMixin',
   CartesianCoordinates: 'CartesianCoordinatesMixin',
 } as const;
 

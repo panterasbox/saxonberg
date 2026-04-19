@@ -43,7 +43,7 @@ export interface CommandContext {
 export interface ParsedCommand {
   verb: string;
   args: string[];
-  options: Map<string, unknown>;
+  options: Map<string, boolean>;
 }
 
 /**
@@ -84,7 +84,7 @@ export type ModelData = Record<string, unknown>;
 export interface CommandModel {
   verb: string;
   fields: ModelData;
-  options: Record<string, unknown>;
+  options: Record<string, boolean>;
   subcommand?: string;
   raw: string;
 }
@@ -97,7 +97,7 @@ export interface CommandModel {
  * - output: Command-specific output data (if successful)
  * - error: Error message (if failed)
  */
-export interface CommandResult<T = any> {
+export interface CommandResult<T = unknown> {
   success: boolean;
   output?: T;
   error?: string;

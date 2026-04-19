@@ -17,7 +17,10 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
+import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
+import { MixinApi } from '../../api/mixin';
+import { DescribeApi } from '../../api/describe';
 
 /**
  * Mixin that adds message sending capabilities.
@@ -43,22 +46,30 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
-     * Say something. Broadcasts to all sensors in the same container.
+     * Say something. Broadcasts to all sensors in the speaker's scope.
      *
-     * Applied to objects that can speak (e.g., Avatar/Character).
-     * Delegates to MessageApi for distribution to all sensors in environment.
+     * Scope is inferred from what the speaker is:
+     * - A Containable speaker (Character in a room) addresses its peers —
+     *   every sensor in the speaker's environment, including itself.
+     * - A pure-Container speaker (a haunted room talking to its occupants)
+     *   addresses its own contents.
+     * - A speaker that is both (rare — a walking house) defers to the
+     *   peers-mode Containable path; "say" semantically targets equals.
+     *
+     * Throws at runtime if the composer omitted both mixins — Vocal has
+     * nowhere to broadcast otherwise. This is a composition error, not a
+     * user-input error.
      *
      * Uses MML (Mud Markup Language) tags:
-     * - <name> - Character names
+     * - <name> - Speaker name
      * - <speech> - Spoken text
      *
      * @param text - The text to say
      */
     say(text: string): void {
-      // Get the speaker's full name (from NamedMixin)
-      const fullName = 'fullName' in this ? (this as any).fullName : 'Someone';
+      const self = this as unknown as Stuff;
+      const fullName = DescribeApi.getDisplayName(self, 'Someone');
 
-      // Create MML-formatted message
       const message = {
         type: 'output',
         payload: {
@@ -66,8 +77,15 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
         },
       };
 
-      // Delegate to API layer for message distribution
-      MessageApi.messageContainer(this, message);
+      if (MixinApi.isContainable(self)) {
+        MessageApi.messageContainer(self, message);
+      } else if (MixinApi.isContainer(self)) {
+        MessageApi.messageContents(self, message);
+      } else {
+        throw new Error(
+          'VocalMixin requires composition with Container or Containable'
+        );
+      }
     }
   };
 }

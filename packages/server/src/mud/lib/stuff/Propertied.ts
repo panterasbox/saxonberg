@@ -50,6 +50,7 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
+import type { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
 
 /**
@@ -94,13 +95,19 @@ export type PropOperation =
  *
  * @param prop - Property being accessed
  * @param op - Operation being performed
- * @param special - Context object (e.g., the actor performing the operation)
+ * @param special - Operation-specific extra context. Semantics depend on
+ *   `op`:
+ *   - Set: the incoming value (T)
+ *   - Configure: the Partial<PropOptions<T>> being applied
+ *   - Mask / Unmask: the owning Stuff
+ *   - Get / Remove: null
+ *   Each operation defines what it passes; the type is intentionally open.
  * @returns true if access is allowed, false otherwise
  */
 export type PropAccessCheck<T extends PropValue> = (
   prop: Property<T>,
   op: PropOperation,
-  special: any,
+  special: unknown,
 ) => boolean;
 
 /**
@@ -116,7 +123,7 @@ export type PropAccessCheck<T extends PropValue> = (
 export type PropValueMask<T extends PropValue> = (
   prop: Property<T>,
   value: T,
-  ...extra: any[]
+  ...extra: unknown[]
 ) => T;
 
 /**
@@ -143,9 +150,9 @@ export interface PropOptions<T extends PropValue> {
  * Masks transform property values during getProp() (e.g., stat bonuses, modifiers).
  */
 interface MaskEntry<T extends PropValue> {
-  owner: any; // Object that owns this mask (for removal)
+  owner: Stuff; // The in-world Stuff this mask belongs to (the ring, potion, curse, etc.). Identity key for removal.
   mask: PropValueMask<T>; // Transformation function
-  extra: any[]; // Extra arguments to pass to mask
+  extra: unknown[]; // Extra arguments to pass to mask
 }
 
 /**
@@ -200,36 +207,46 @@ export interface Propertied {
    * Add value transformation mask (e.g., stat modifiers, equipment bonuses).
    * Masks are applied during getProp() to transform the returned value.
    *
+   * The owner is the in-world Stuff this mask belongs to — the ring that
+   * grants the bonus, the potion that doubles it, the curse that halves
+   * it. The caller retains the reference so it can later call
+   * unmaskProp(prop, owner) to remove *its own* masks without touching
+   * others'. Owner is also passed to access control as `special`.
+   *
+   * Once the call-security framework lands, owner will become optional
+   * and default to the nearest Stuff on the call stack; until then, the
+   * caller must name it explicitly.
+   *
    * @param prop - Property to mask
    * @param mask - Value transformation function
-   * @param owner - Owner of the mask (for later removal), defaults to mask function itself
+   * @param owner - The Stuff this mask belongs to
    * @param extra - Additional arguments to pass to mask when executed
    * @returns true if successful, false if property doesn't exist or owner already has a mask
    */
   maskProp<T extends PropValue>(
     prop: Property<T>,
     mask: PropValueMask<T>,
-    owner?: any,
-    ...extra: any[]
+    owner: Stuff,
+    ...extra: unknown[]
   ): boolean;
 
   /**
-   * Remove access masks by owner.
+   * Remove masks by owner.
    *
    * @param prop - Property to unmask
-   * @param owner - The owner whose masks should be removed
+   * @param owner - The Stuff whose masks should be removed
    * @returns true if any masks were removed, false otherwise
    */
-  unmaskProp<T extends PropValue>(prop: Property<T>, owner: any): boolean;
+  unmaskProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean;
 
   /**
    * Check if owner has any masks on property.
    *
    * @param prop - Property to check
-   * @param owner - Owner to check for
+   * @param owner - The Stuff to check for
    * @returns true if owner has masks on this property
    */
-  isMaskingProp<T extends PropValue>(prop: Property<T>, owner: any): boolean;
+  isMaskingProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean;
 
   /**
    * Check if property exists and get its options.
@@ -259,7 +276,7 @@ export interface Propertied {
   defaultPropAccess(
     property: Property<PropValue>,
     op: PropOperation,
-    special: any,
+    special: unknown,
   ): boolean;
 }
 
@@ -348,7 +365,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // Check access for Configure operation
-      if (!this.checkAccess(prop, PropOperations.Configure, null)) {
+      if (!this.checkAccess(prop, PropOperations.Configure, options)) {
         return false;
       }
 
@@ -397,7 +414,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // Check access for Set operation
-      if (!this.checkAccess(prop, PropOperations.Set, null)) {
+      if (!this.checkAccess(prop, PropOperations.Set, value)) {
         return false;
       }
 
@@ -482,7 +499,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     maskProp<T extends PropValue>(
       prop: Property<T>,
       mask: PropValueMask<T>,
-      owner?: unknown,
+      owner: Stuff,
       ...extra: unknown[]
     ): boolean {
       const propName = prop.toString();
@@ -490,21 +507,20 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
-      const maskOwner = owner || mask;
       const masks = (this.propMasks[propName] ??= []);
 
       // Only one mask per owner
-      if (masks.some((entry) => entry.owner === maskOwner)) {
+      if (masks.some((entry) => entry.owner === owner)) {
         return false;
       }
 
       // Check access for Mask operation
-      if (!this.checkAccess(prop, PropOperations.Mask, maskOwner)) {
+      if (!this.checkAccess(prop, PropOperations.Mask, owner)) {
         return false;
       }
 
       masks.push({
-        owner: maskOwner,
+        owner,
         mask: mask as unknown as PropValueMask<PropValue>,
         extra: extra,
       });
@@ -514,7 +530,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Remove value transformation masks by owner.
      */
-    unmaskProp<T extends PropValue>(prop: Property<T>, owner: unknown): boolean {
+    unmaskProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean {
       const propName = prop.toString();
       if (!this.propOptions[propName]) {
         return false;
@@ -539,7 +555,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     isMaskingProp<T extends PropValue>(
       prop: Property<T>,
-      owner: unknown,
+      owner: Stuff,
     ): boolean {
       const propName = prop.toString();
       if (!this.propOptions[propName]) {

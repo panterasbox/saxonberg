@@ -407,6 +407,31 @@ export class Room extends Persistent {
 }
 ```
 
+## Related: PropertiedMixin.maskProp() — Breaking Change
+
+`PropertiedMixin` exposes a controlled property bag whose slots can be
+"masked" (shadowed with a computed value). The mask signature changed:
+
+```typescript
+// BEFORE — owner was optional; defaulted to the mask function itself.
+obj.maskProp('hp', () => computed, /* owner? */);
+
+// AFTER — owner is REQUIRED and typed `Stuff`.
+obj.maskProp('hp', () => computed, this /* must be a Stuff */);
+```
+
+**Why**: The mask owner is how the engine answers "who gets to remove
+this mask?" Making it a function was never meaningful — ownership is a
+Stuff identity, not a closure. Once the call-security framework lands,
+`owner` will default to the nearest `Stuff` on the call stack and this
+parameter will become implicit again.
+
+**Migration**: every existing `maskProp()` call must now pass an owning
+`Stuff`. `unmaskProp(prop, owner)` only removes masks belonging to that
+owner (returns `false` if none match) — a caller cannot remove another
+owner's mask by accident. This is a compile-time breaking change for
+`maskProp()`: the type system will flag every call site.
+
 ## Testing
 
 The `Persistent` base class is tested via the concrete implementations (User, Player, GoogleProfile). All CRUD operations work as expected.

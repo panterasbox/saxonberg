@@ -101,7 +101,7 @@ const instance = new Avatar(templateData);
 **Security validation**:
 - Path must start with `/`
 - No directory traversal (`..` not allowed)
-- Must be in `/obj/` or `/lib/` directories
+- Must resolve under `/obj/` or `/lib/` (no other roots are accepted)
 - Class name extracted from path must exist as named export
 
 **Benefits**:
@@ -210,10 +210,16 @@ public async initialize(): Promise<void> {
 
 3. **Use Avatar**:
    ```typescript
-   avatar.setInteractive(interactive);
-   interactive.linkAvatar(avatar);
-   // Avatar is now active in game world
+   // Multiplexing-aware API (preferred):
+   avatar.addInteractive(interactive);      // Avatar tracks Set<Interactive>
+   interactive.switchAvatar(avatar.playerId); // Interactive points at current Avatar
+   // Avatar is now active in game world and will broadcast onMessage() to
+   // every connected Interactive.
    ```
+
+   The legacy single-link helpers (`setInteractive()` / `linkAvatar()`)
+   still work for backward compatibility but funnel through the same
+   `Set<Interactive>` — prefer the multiplexing API in new code.
 
 ## Avatar Template Path Convention
 
@@ -248,6 +254,15 @@ When locations are implemented, they'll work the same way:
 // Clone room
 const room = await StuffApi.clone<Room>('/home/bobalu/workroom');
 ```
+
+## Presentation Defaults
+
+Cloned objects inherit the project's standard presentation layer
+(`DescribeApi.getDisplayName()`) automatically — no per-template code is
+needed for names. If a template composes `NamedMixin` or `VisibleMixin`,
+those fields are picked up by `DescribeApi` at render time. See
+[ANTIPATTERNS.md](./ANTIPATTERNS.md#display-names--use-describeapi) for
+the rule against ad-hoc name-fallback helpers.
 
 ## Benefits of Template Pattern
 

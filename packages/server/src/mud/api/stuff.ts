@@ -131,9 +131,11 @@ export class StuffApi {
     const modulePath = `..${classPath}.js`;
     const className = classPath.split('/').pop()!; // "Avatar" from "/obj/Avatar"
 
-    let module: any;
+    // Dynamic import result is an opaque module namespace object; we fish the
+    // class constructor out of it by string name below.
+    let module: Record<string, unknown>;
     try {
-      module = await import(modulePath);
+      module = (await import(modulePath)) as Record<string, unknown>;
     } catch (error) {
       throw new Error(
         `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
@@ -141,7 +143,7 @@ export class StuffApi {
     }
 
     // 4. Get the class constructor from the module
-    const ClassConstructor = module[className] as StuffConstructor<T>;
+    const ClassConstructor = module[className] as StuffConstructor<T> | undefined;
     if (!ClassConstructor) {
       throw new Error(
         `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
@@ -172,11 +174,11 @@ export class StuffApi {
     const obj = factory();
 
     // Call initialize if it exists
-    if (
-      'initialize' in obj &&
-      typeof (obj as any).initialize === 'function'
-    ) {
-      await (obj as any).initialize();
+    if ('initialize' in obj) {
+      const init = (obj as Stuff & { initialize?: () => Promise<void> | void }).initialize;
+      if (typeof init === 'function') {
+        await init.call(obj);
+      }
     }
 
     this.register(obj);

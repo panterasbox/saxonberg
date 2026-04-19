@@ -27,12 +27,19 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Location } from '../stuff/Location';
 import type { Stuff } from '../stuff/Stuff';
+import type { Containable } from './Containable';
 import { ContainmentApi } from '../../api/containment';
 
 /**
  * Mixin that adds locomotion capability for mobile entities.
+ *
+ * Base-class constraint: the Base must already produce `Stuff & Containable`
+ * instances. A mobile thing that cannot be contained is nonsensical — there
+ * is nothing for ContainmentApi.move() to update. Composing MobileMixin
+ * onto a Base that hasn't already been through ContainableMixin is a
+ * compile error.
  */
-export function MobileMixin<TBase extends MixinConstructor>(Base: TBase) {
+export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>(Base: TBase) {
   return class MobileMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'MobileMixin';
@@ -62,9 +69,12 @@ export function MobileMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Future: Send observer messages based on mode
       // MessageApi.messageContainer(this, `${this.name} ${mode}s away`);
 
-      // Delegate to ContainmentApi for actual movement
-      // ContainmentApi.move() will automatically get current location from item's environment
-      ContainmentApi.move(this as unknown as Stuff, destination);
+      // Delegate to ContainmentApi for actual movement.
+      // The Base constraint enforced by MobileMixin's signature guarantees
+      // `this` is Stuff & Containable at every real call site; TypeScript's
+      // `this` type inside a mixin body just can't express it, so the cast
+      // still needs an `unknown` hop. It's provably safe, not a waiver.
+      ContainmentApi.move(this as unknown as Stuff & Containable, destination);
 
       // Future: Send observer messages at destination
       // MessageApi.messageContainer(this, `${this.name} ${mode}s in`);

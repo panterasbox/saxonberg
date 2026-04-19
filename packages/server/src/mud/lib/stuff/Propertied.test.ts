@@ -20,6 +20,15 @@ class PropertiedThing extends PropertiedMixin(Stuff) {
   static persistentFields: string[] = [];
 }
 
+// Minimal Stuff subclass for use as a mask owner in tests.
+class OwnerStuff extends Stuff {}
+
+function makeOwner(): OwnerStuff {
+  const owner = new OwnerStuff();
+  StuffApi.register(owner);
+  return owner;
+}
+
 describe('PropertiedMixin', () => {
   let obj: PropertiedThing;
 
@@ -341,8 +350,9 @@ describe('PropertiedMixin', () => {
     });
 
     it('should transform value with mask', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      const success = obj.maskProp(new Property<number>('strength'), mask);
+      const success = obj.maskProp(new Property<number>('strength'), mask, owner);
       expect(success).toBe(true);
 
       // Base value is 10, mask adds 5
@@ -350,8 +360,8 @@ describe('PropertiedMixin', () => {
     });
 
     it('should apply multiple masks in order', () => {
-      const owner1 = { name: 'ring' };
-      const owner2 = { name: 'potion' };
+      const owner1 = makeOwner();
+      const owner2 = makeOwner();
       const mask1: PropValueMask<number> = (prop, value) => value + 5; // +5 from ring
       const mask2: PropValueMask<number> = (prop, value) => value * 2; // Double from potion
 
@@ -363,7 +373,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should remove mask and restore calculation', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
 
       obj.maskProp(new Property<number>('strength'), mask, owner);
@@ -377,8 +387,9 @@ describe('PropertiedMixin', () => {
     });
 
     it('should support extra arguments to mask', () => {
-      const mask: PropValueMask<number> = (prop, value, bonus: number) => value + bonus;
-      obj.maskProp(new Property<number>('strength'), mask, undefined, 7);
+      const owner = makeOwner();
+      const mask: PropValueMask<number> = (prop, value, ...extra) => value + (extra[0] as number);
+      obj.maskProp(new Property<number>('strength'), mask, owner, 7);
 
       // Base 10 + 7 from extra arg
       expect(obj.getProp(new Property<number>('strength'))).toBe(17);
@@ -390,8 +401,8 @@ describe('PropertiedMixin', () => {
       };
       const workingMask: PropValueMask<number> = (prop, value) => value + 5;
 
-      obj.maskProp(new Property<number>('strength'), failingMask, { name: 'bad' });
-      obj.maskProp(new Property<number>('strength'), workingMask, { name: 'good' });
+      obj.maskProp(new Property<number>('strength'), failingMask, makeOwner());
+      obj.maskProp(new Property<number>('strength'), workingMask, makeOwner());
 
       // Should skip failing mask and only apply working mask
       expect(obj.getProp(new Property<number>('strength'))).toBe(15);
@@ -401,7 +412,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should prevent multiple masks from same owner', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
       const mask1: PropValueMask<number> = (prop, value) => value + 5;
       const mask2: PropValueMask<number> = (prop, value) => value + 10;
 
@@ -417,27 +428,16 @@ describe('PropertiedMixin', () => {
     });
 
     it('should return false for non-existent property', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      expect(obj.maskProp(new Property<number>('nonexistent'), mask)).toBe(false);
-      expect(obj.unmaskProp(new Property<number>('nonexistent'), mask)).toBe(false);
-    });
-
-    it('should default owner to mask function if not provided', () => {
-      const mask: PropValueMask<number> = (prop, value) => value + 5;
-
-      obj.maskProp(new Property<number>('strength'), mask); // No explicit owner
-
-      // Remove using mask as owner
-      const success = obj.unmaskProp(new Property<number>('strength'), mask);
-      expect(success).toBe(true);
-
-      // Mask removed
-      expect(obj.getProp(new Property<number>('strength'))).toBe(10);
+      expect(obj.maskProp(new Property<number>('nonexistent'), mask, owner)).toBe(false);
+      expect(obj.unmaskProp(new Property<number>('nonexistent'), owner)).toBe(false);
     });
 
     it('should not affect setProp (only transforms getProp)', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      obj.maskProp(new Property<number>('strength'), mask);
+      obj.maskProp(new Property<number>('strength'), mask, owner);
 
       // Setting a new value should set the base value
       obj.setProp(new Property<number>('strength'), 20);
@@ -447,15 +447,16 @@ describe('PropertiedMixin', () => {
     });
 
     it('should return true if masks were removed', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      obj.maskProp(new Property<number>('strength'), mask);
+      obj.maskProp(new Property<number>('strength'), mask, owner);
 
-      const success = obj.unmaskProp(new Property<number>('strength'), mask);
+      const success = obj.unmaskProp(new Property<number>('strength'), owner);
       expect(success).toBe(true);
     });
 
     it('should return false if no masks were removed', () => {
-      const owner = { name: 'other' };
+      const owner = makeOwner();
       const success = obj.unmaskProp(new Property<number>('strength'), owner);
       expect(success).toBe(false);
     });
@@ -468,7 +469,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should return true if owner has masks on property', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
 
       obj.maskProp(new Property<number>('strength'), mask, owner);
@@ -477,14 +478,14 @@ describe('PropertiedMixin', () => {
     });
 
     it('should return false if owner has no masks on property', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
 
       expect(obj.isMaskingProp(new Property<number>('strength'), owner)).toBe(false);
     });
 
     it('should return false for different owner', () => {
-      const owner1 = { name: 'ring' };
-      const owner2 = { name: 'amulet' };
+      const owner1 = makeOwner();
+      const owner2 = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
 
       obj.maskProp(new Property<number>('strength'), mask, owner1);
@@ -494,12 +495,12 @@ describe('PropertiedMixin', () => {
     });
 
     it('should return false for non-existent property', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
       expect(obj.isMaskingProp(new Property('nonexistent'), owner)).toBe(false);
     });
 
     it('should return false after mask is removed', () => {
-      const owner = { name: 'ring' };
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
 
       obj.maskProp(new Property<number>('strength'), mask, owner);
@@ -507,14 +508,6 @@ describe('PropertiedMixin', () => {
 
       obj.unmaskProp(new Property<number>('strength'), owner);
       expect(obj.isMaskingProp(new Property<number>('strength'), owner)).toBe(false);
-    });
-
-    it('should work with mask function as default owner', () => {
-      const mask: PropValueMask<number> = (prop, value) => value + 5;
-
-      obj.maskProp(new Property<number>('strength'), mask); // No explicit owner
-
-      expect(obj.isMaskingProp(new Property<number>('strength'), mask)).toBe(true);
     });
   });
 
@@ -583,7 +576,7 @@ describe('PropertiedMixin', () => {
 
     it('can be overridden in subclass', () => {
       class RestrictedPropertied extends PropertiedMixin(Stuff) {
-        defaultPropAccess(property: Property, op: PropOperation, special: any): boolean {
+        defaultPropAccess(property: Property, op: PropOperation, special: unknown): boolean {
           return op === PropOperations.Get; // Only allow Get
         }
       }
@@ -637,8 +630,9 @@ describe('PropertiedMixin', () => {
       });
       obj.setProp(new Property<number>('strength'), 10);
 
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      const success = obj.maskProp(new Property<number>('strength'), mask);
+      const success = obj.maskProp(new Property<number>('strength'), mask, owner);
 
       expect(success).toBe(false);
       expect(obj.getProp(new Property<number>('strength'))).toBe(10); // No mask applied
@@ -658,11 +652,12 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property<number>('strength'), 10);
 
       // Add mask (Mask operation allowed)
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => value + 5;
-      obj.maskProp(new Property<number>('strength'), mask);
+      obj.maskProp(new Property<number>('strength'), mask, owner);
 
       // Try to remove (should fail)
-      const success = obj.unmaskProp(new Property<number>('strength'), mask);
+      const success = obj.unmaskProp(new Property<number>('strength'), owner);
       expect(success).toBe(false);
 
       // Mask should still be active
@@ -864,45 +859,51 @@ describe('PropertiedMixin', () => {
     });
 
     it('should handle masks with multiple extra arguments', () => {
-      const mask: PropValueMask<number> = (prop, value, mult: number, add: number) => {
+      const owner = makeOwner();
+      const mask: PropValueMask<number> = (prop, value, ...extra) => {
+        const mult = extra[0] as number;
+        const add = extra[1] as number;
         return value * mult + add;
       };
 
-      obj.maskProp(new Property<number>('stat'), mask, undefined, 2, 5);
+      obj.maskProp(new Property<number>('stat'), mask, owner, 2, 5);
 
       // 10 * 2 + 5 = 25
       expect(obj.getProp(new Property<number>('stat'))).toBe(25);
     });
 
     it('should handle mask that returns null', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => null as any;
-      obj.maskProp(new Property<number>('stat'), mask);
+      obj.maskProp(new Property<number>('stat'), mask, owner);
 
       expect(obj.getProp(new Property<number>('stat'))).toBeNull();
     });
 
     it('should handle mask that returns undefined', () => {
+      const owner = makeOwner();
       const mask: PropValueMask<number> = (prop, value) => undefined as any;
-      obj.maskProp(new Property<number>('stat'), mask);
+      obj.maskProp(new Property<number>('stat'), mask, owner);
 
       expect(obj.getProp(new Property<number>('stat'))).toBeUndefined();
     });
 
     it('should handle masks on null property values', () => {
+      const owner = makeOwner();
       obj.setProp(new Property<number>('nullable'), null);
 
       const mask: PropValueMask<number> = (prop, value) => {
         return value === null ? 0 : value + 10;
       };
 
-      obj.maskProp(new Property<number>('nullable'), mask);
+      obj.maskProp(new Property<number>('nullable'), mask, owner);
       expect(obj.getProp(new Property<number>('nullable'))).toBe(0);
     });
 
     it('should handle mask order correctly when adding dynamically', () => {
-      const owner1 = { name: 'first' };
-      const owner2 = { name: 'second' };
-      const owner3 = { name: 'third' };
+      const owner1 = makeOwner();
+      const owner2 = makeOwner();
+      const owner3 = makeOwner();
 
       const mask1: PropValueMask<number> = (prop, value) => value + 1;
       const mask2: PropValueMask<number> = (prop, value) => value * 2;
@@ -923,6 +924,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should handle mask that modifies complex object values', () => {
+      const owner = makeOwner();
       const position = { x: 10, y: 20 };
       obj.setProp(new Property('position'), position);
 
@@ -932,7 +934,7 @@ describe('PropertiedMixin', () => {
         y: value.y + 5
       });
 
-      obj.maskProp(new Property('position'), mask);
+      obj.maskProp(new Property('position'), mask, owner);
 
       const result = obj.getProp(new Property('position'));
       expect(result).toEqual({ x: 15, y: 25 });
@@ -1012,7 +1014,7 @@ describe('PropertiedMixin', () => {
 
       // Add mask
       const mask: PropValueMask<number> = (prop, value) => value + 50;
-      obj.maskProp(new Property<number>('secret'), mask);
+      obj.maskProp(new Property<number>('secret'), mask, makeOwner());
 
       // getProp should fail due to access control
       expect(obj.getProp(new Property<number>('secret'))).toBeNull();
@@ -1031,7 +1033,7 @@ describe('PropertiedMixin', () => {
       obj.transientProps['stat'] = 10;
 
       const mask: PropValueMask<number> = (prop, value) => value * 2;
-      obj.maskProp(new Property<number>('stat'), mask);
+      obj.maskProp(new Property<number>('stat'), mask, makeOwner());
 
       expect(obj.getProp(new Property<number>('stat'))).toBe(20);
     });

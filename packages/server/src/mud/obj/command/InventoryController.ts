@@ -8,6 +8,7 @@
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../lib/command/models';
 import { ContainmentApi } from '../../api/containment';
+import { DescribeApi } from '../../api/describe';
 
 /**
  * Input model for inventory command (no parameters)
@@ -26,7 +27,6 @@ export interface InventoryOutput {
  */
 export class InventoryController extends CommandController<InventoryInput, InventoryOutput> {
   execute(input: InventoryInput, context: CommandContext): CommandResult<InventoryOutput> {
-    // Get inventory contents using MixinApi
     const contents = ContainmentApi.getContents(context.avatar);
 
     if (contents.length === 0) {
@@ -42,8 +42,7 @@ export class InventoryController extends CommandController<InventoryInput, Inven
     const lines = ['', 'You are carrying:'];
 
     for (const item of contents) {
-      const itemName = this.getObjectName(item);
-      lines.push(`  ${itemName}`);
+      lines.push(`  ${DescribeApi.getDisplayName(item, 'Something')}`);
     }
 
     lines.push('');
@@ -54,15 +53,5 @@ export class InventoryController extends CommandController<InventoryInput, Inven
         text: lines.join('\n'),
       },
     };
-  }
-
-  /**
-   * Get object name (try multiple property names)
-   */
-  private getObjectName(obj: any): string {
-    if (typeof obj.fullName === 'string') return obj.fullName;
-    if (typeof obj.name === 'string') return obj.name;
-    if (typeof obj.shortDescription === 'string') return obj.shortDescription;
-    return 'Something';
   }
 }

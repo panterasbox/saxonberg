@@ -137,7 +137,7 @@ export class Interactive extends Idea {
    *
    * @param message - Message to send
    */
-  public send(message: any): void {
+  public send(message: unknown): void {
     // This is a stub for now - Backend handles actual sending
     // Application will call Backend.sendMessageToSocket(this.socketId, message)
     console.log(`Interactive.send(): Message to ${this.socketId}:`, message);

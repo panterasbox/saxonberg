@@ -26,13 +26,21 @@
  */
 
 import { Idea } from './Idea';
+import type { Stuff } from './Stuff';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 
+type Indexable = Record<string, unknown>;
+type MaybeSyncedFrom = { onSyncedFromPersistable?: (p: Persistable) => void };
+type MaybeSyncedTo = { onSyncedToPersistable?: (p: Persistable) => void };
+
 /**
  * Interface for persistable constructors.
  * Ensures subclasses have required static properties.
+ *
+ * Note: `...args: any[]` is the standard constructor-type pattern and must be
+ * preserved for mixin composition compatibility.
  */
 export interface PersistableConstructor {
   collectionName: string;
@@ -93,7 +101,9 @@ export class Persistable extends Idea {
    * Includes mixin fields + class-declared fields.
    */
   protected getAllFields(): string[] {
-    const constructor = this.constructor as any;
+    const constructor = this.constructor as typeof Persistable & {
+      getAllPersistentFields?: () => string[];
+    };
 
     // Try static method first (for classes with mixins)
     if (typeof constructor.getAllPersistentFields === 'function') {
@@ -108,8 +118,9 @@ export class Persistable extends Idea {
    * Convert this object to a plain document for MongoDB.
    * Includes _id, all persistent fields, and timestamps.
    */
-  protected toDocument(): Record<string, any> {
-    const doc: Record<string, any> = {};
+  protected toDocument(): Record<string, unknown> {
+    const doc: Record<string, unknown> = {};
+    const self = this as unknown as Indexable;
 
     // Include _id if present
     if (this._id) {
@@ -120,7 +131,7 @@ export class Persistable extends Idea {
     const fields = this.getAllFields();
     for (const field of fields) {
       if (field in this) {
-        doc[field] = (this as any)[field];
+        doc[field] = self[field];
       }
     }
 
@@ -134,23 +145,25 @@ export class Persistable extends Idea {
   /**
    * Load data from a MongoDB document into this object.
    */
-  protected fromDocument(doc: Record<string, any>): void {
+  protected fromDocument(doc: Record<string, unknown>): void {
+    const self = this as unknown as Indexable;
+
     // Load _id
     if (doc._id) {
-      this._id = doc._id;
+      this._id = doc._id as string;
     }
 
     // Load all persistent fields
     const fields = this.getAllFields();
     for (const field of fields) {
       if (field in doc) {
-        (this as any)[field] = doc[field];
+        self[field] = doc[field];
       }
     }
 
     // Load timestamps
-    if (doc.createdAt) this.createdAt = doc.createdAt;
-    if (doc.updatedAt) this.updatedAt = doc.updatedAt;
+    if (doc.createdAt) this.createdAt = doc.createdAt as Date;
+    if (doc.updatedAt) this.updatedAt = doc.updatedAt as Date;
   }
 
   /**
@@ -179,14 +192,16 @@ export class Persistable extends Idea {
    * invoked after fields are copied so the runtime can do any extra work
    * (e.g. caching identity references).
    */
-  public syncTo(runtime: object): void {
+  public syncTo(runtime: Stuff): void {
     const fields = this.getAllFields();
+    const self = this as unknown as Indexable;
+    const target = runtime as unknown as Indexable;
     for (const field of fields) {
       if (field in this) {
-        (runtime as any)[field] = (this as any)[field];
+        target[field] = self[field];
       }
     }
-    const hook = (runtime as any).onSyncedFromPersistable;
+    const hook = (runtime as Stuff & MaybeSyncedFrom).onSyncedFromPersistable;
     if (typeof hook === 'function') {
       hook.call(runtime, this);
     }
@@ -199,15 +214,17 @@ export class Persistable extends Idea {
    * Optional hook: if `runtime.onSyncedToPersistable(this)` exists, it is
    * invoked after fields are copied.
    */
-  public syncFrom(runtime: object): void {
+  public syncFrom(runtime: Stuff): void {
     const fields = this.getAllFields();
+    const self = this as unknown as Indexable;
+    const source = runtime as unknown as Indexable;
     for (const field of fields) {
       if (field in runtime) {
-        (this as any)[field] = (runtime as any)[field];
+        self[field] = source[field];
       }
     }
     this.updatedAt = new Date();
-    const hook = (runtime as any).onSyncedToPersistable;
+    const hook = (runtime as Stuff & MaybeSyncedTo).onSyncedToPersistable;
     if (typeof hook === 'function') {
       hook.call(runtime, this);
     }

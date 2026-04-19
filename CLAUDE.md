@@ -125,10 +125,15 @@ Client (React) ←→ WebSocket ←→ Backend ←→ Application ←→ Mudlib
 
 #### Mudlib Layer (`packages/server/src/mud/`)
 - **API Layer** (`api/`): Static utility classes
-  - `StuffApi`: Object registry, ID generation, template cloning with dynamic imports
+  - `StuffApi`: Object registry, ID generation, template cloning with dynamic imports, `destruct()`
   - `PlayerApi`: Avatar registry and player-specific lookups
-  - `MixinApi`: Mixin registration, querying, composition
+  - `MixinApi`: Mixin registration, querying, composition; exposes `isX()` type-predicate narrowers for every registered mixin
   - `PersistApi`: CRUD operations, synchronization utilities
+  - `DescribeApi`: Presentation-layer utilities (`getDisplayName()` — canonical source for human-readable object names)
+  - `ContainmentApi`: Object movement (`move()` — see ANTIPATTERNS.md for contract)
+  - `MessageApi`: Sensor routing (`getSensors`, `messageContents`, `messageContainer`)
+  - `MqlApi`: Object resolution from keyword queries
+  - `CommandApi` / `CommandLineApi`: Command parsing and cache
 
 - **Standard Model** (`lib/`): Object-oriented class hierarchy
   ```
@@ -168,26 +173,49 @@ class Character extends CharacterBase { ... }
 
 **Mixin Organization**: Mixins live in subsystem folders under `lib/` alongside the classes they support. There is NO `lib/mixins/` folder — that grouping is explicitly prohibited (see File Naming Conventions below). Shared mixin infrastructure (MixinConstructor type, Mixins name registry) lives in `lib/mixin-types.ts`.
 
+**Public-shape interfaces are colocated with their mixin**: every mixin file
+exports an interface with the same name as the mixin (e.g., `Container`,
+`Containable`, `Sensor`, `Vocal`, `CommandGiver`) describing the public
+surface the mixin adds. These interfaces are what `MixinApi.isX()` narrows to
+— they MUST live next to the mixin implementation, never in a central type
+barrel. See memory: "Colocate mixin interfaces".
+
+**Base-class constraints via `MixinConstructor<T>` generics**: where a mixin
+only makes sense on top of another, encode it in the generic bound rather
+than in a comment. Example:
+```typescript
+// MobileMixin requires a Containable base — compile error otherwise.
+export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>(Base: TBase) { ... }
+```
+"Always composed with X" comments should always be upgraded to compile-time
+bounds when safe to do so (matches memory: "Enforce mixin composition
+constraints"). When a constraint is intentionally relaxed (e.g.,
+`CommandGiverMixin` is NOT bound to Container/Containable so loose objects
+can still expose commands), leave a comment explaining why.
+
 **Available Mixins** (by subsystem folder):
-- `lib/description/` — identity and appearance:
+- `lib/character/` — identity:
   - `NamedMixin`: firstName, lastName, fullName (persistent)
   - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
+- `lib/description/` — appearance and detail:
   - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
   - `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
   - `DetailedMixin`: hierarchical detail management (persistent)
-- `lib/containment/` — inventory and environment:
+- `lib/spatial/` — containment, movement, space:
   - `ContainerMixin`: inventory management (Set-based, complex persistence), provides commands: inventory, get, drop
   - `ContainableMixin`: environment reference (complex persistence)
-- `lib/message/` — messaging (Phase 3):
-  - `SensorMixin`: onMessage() - message receiving
-  - `VocalMixin`: say() - message sending
-- `lib/spatial/` — location and movement (Phase 3):
-  - `MobileMixin`: travel() - movement between locations
-  - (also contains `Location` class)
-- `lib/command/` — command execution (Phase 4):
+  - `MobileMixin`: travel() — movement between locations (requires Containable base)
+- `lib/message/` — messaging:
+  - `SensorMixin`: onMessage() — message receiving
+  - `VocalMixin`: say() — scope-aware broadcast (Containable → peers; pure Container → own contents; both → Containable path; neither → throw)
+- `lib/command/` — command execution:
   - `CommandGiverMixin`: executeCommand(), getAvailableCommands()
-- `lib/stuff/` — base object machinery:
+- `lib/stuff/` — base object machinery (also hosts `Location`, `Place`, `Thing`, `Agent`, `Idea`, `Stuff`, `Persistable`):
   - `PropertiedMixin`: controlled dynamic property bag (persistent)
+
+**`Mixins` registry** in `lib/mixin-types.ts` lists every registered mixin by
+name — including `CommandGiver`. Always use `Mixins.X` constants instead of
+string literals when calling `MixinApi.hasMixin()`.
 
 #### 2. Runtime vs Persistent Objects
 - **Runtime Objects**: Avatar, Interactive (exist only during active connection)
@@ -561,12 +589,13 @@ The architecture anticipates:
 3. **Mixin Composition**: Prefer mixins over deep inheritance hierarchies
 
 4. **No Duck Typing with Mixins**: ALWAYS use proper API layers instead of `typeof obj.method === 'function'`
-   - Use `MixinApi.hasMixin()` for explicit mixin checks
-   - Use `ContainmentApi.move()` for ALL object movement (never call setEnvironment/addToInventory directly)
-   - Use `MixinApi.getContents()` for safe container access
-   - Use `travel()` (MobileMixin) for creature/vehicle locomotion
-   - See **ANTIPATTERNS.md** for detailed examples and movement hierarchy
-   - Duck typing only acceptable for display-only fallback patterns (getObjectName, etc.)
+   - Use `MixinApi.isX(obj)` type predicates (e.g. `isContainer`, `isContainable`, `isSensor`, `isVocal`, `isNamed`, `isVisible`, `isCommandGiver`, …) when you need to narrow and call interface methods. These thread the mixin's public interface into TypeScript's control-flow narrowing.
+   - Use `MixinApi.hasMixin(ctor, Mixins.X)` only for dynamic introspection (no narrowing needed).
+   - Use `ContainmentApi.move()` for ALL object movement (never call setEnvironment/addToInventory directly). `move()` takes narrowed `Stuff & Containable` / `Stuff & Container` parameters, returns `void`, and throws on programmatic contract violations.
+   - Use `MixinApi.getContents()` for safe container access.
+   - Use `travel()` (MobileMixin) for creature/vehicle locomotion.
+   - Use `DescribeApi.getDisplayName(obj, fallback)` for all human-readable object names. **Ad-hoc `getObjectName()` duck-typing helpers are NOT permitted** — even for display. DescribeApi is the single source of truth.
+   - See **ANTIPATTERNS.md** for detailed examples and movement hierarchy.
 
 5. **Interface Contracts**: Use interfaces to decouple layers (e.g., IBackend)
 
@@ -657,8 +686,9 @@ For detailed architectural patterns and implementation guidelines, see:
 
 **Key Components**:
 - **MessageApi**: Pure sensor routing layer
-  - `getSensors(container)` - Find all objects with onMessage() in container
-  - `messageContainer(source, message)` - Notify all sensors in source's environment
+  - `getSensors(container)` - Find all objects with `SensorMixin` in container (detected via `MixinApi.isSensor()` — NOT by duck-typing `onMessage`; an object with an `onMessage` method but no SensorMixin is explicitly not a sensor)
+  - `messageContents(container, message)` - Low-level: deliver to every sensor inside the given container (caller chose the container)
+  - `messageContainer(source, message)` - Convenience: deliver to sensors in a Containable `source`'s environment (i.e. peers)
   - No knowledge of Interactives, sockets, or clients
   - Works with any Container (Location, inventory, etc.)
 
@@ -666,9 +696,12 @@ For detailed architectural patterns and implementation guidelines, see:
   - Default: no-op (subclasses override for custom behavior)
   - Avatar overrides to send to connected Interactives
 
-- **VocalMixin**: Message creation
-  - `say(text)` - Creates MML-formatted messages
-  - Delegates to `MessageApi.messageContainer()`
+- **VocalMixin**: Scope-aware message broadcast
+  - `say(text)` — composes MML and infers broadcast scope from the speaker's composition:
+    - Speaker is **Containable** → broadcast to peers in its environment (`messageContainer`).
+    - Speaker is a **pure Container** (e.g., haunted room) → broadcast to its own contents (`messageContents`).
+    - Speaker is **both** (rare — a walking house) → Containable path; "say" targets equals.
+    - Speaker is **neither** → throws. Composition error, not user-input error.
 
 - **Avatar.onMessage()**: Client delivery
   - Overrides SensorMixin.onMessage()
@@ -708,7 +741,7 @@ For detailed architectural patterns and implementation guidelines, see:
 - **CommandLineApi**: Tokenization and parsing
   - UNIX-style parsing with quotes, escapes, options
   - `parse(input)` → `{ verb, args, options }`
-  - Handles `-o`, `--option` flags
+  - Short (`-o`) and long (`--option`) flags. Options are **boolean-only** — the parser exposes `options` as `Map<string, boolean>`; there is no `-o value` form.
 
 - **CommandApi**: Command cache and loading
   - Lazy-loads YAML files via `getCommand(filename)`
@@ -733,12 +766,14 @@ For detailed architectural patterns and implementation guidelines, see:
   - Search order: inventory → location
 
 - **Validators**: Field validation
-  - `mustBeVisible`, `canReach`, `notEmpty`, etc.
+  - `mustBeVisible`, `mustBeContainable`, `canReach`, `notEmpty`, etc.
   - Run after field resolution, before controller execution
   - Return error strings for failed validation
+  - **Contract**: YAML validators handle *user-input* failures. Controllers may still contain a runtime narrow (e.g., `if (!MixinApi.isContainable(target)) throw …`) as a contract assertion for programmatic-bypass callers. The two are NOT redundant — one produces user messages, the other guards the controller's type contract.
 
 - **ContainmentApi**: Movement operations
-  - `move(item, destination)` handles all containment logic
+  - `move(item, destination)` — typed `Stuff & Containable` / `Stuff & Container`; callers narrow with `MixinApi.isX()` before calling
+  - Returns `void`. Programmatic violations throw; there are no boolean success flags.
   - Automatically removes from current container
   - Updates environment references
   - Used by GetController, DropController, MobileMixin
@@ -748,7 +783,8 @@ For detailed architectural patterns and implementation guidelines, see:
 - Controllers are ephemeral (new instance per execution)
 - Lazy loading keeps startup fast
 - Provider pattern enables contextual command discovery
-- Type-safe generics: `CommandController<Input, Output>`
+- Type-safe generics: `CommandController<I = unknown, O = unknown>` — use narrower types per command, never `any`
+- Controllers must not reimplement display-name fallbacks — use `DescribeApi.getDisplayName()`
 - Accessor methods over direct property access (e.g., `getKeywords()` instead of `keywords` array)
 
 ### Development Notes

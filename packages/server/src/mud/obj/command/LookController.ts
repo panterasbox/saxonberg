@@ -9,6 +9,8 @@
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../lib/command/models';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+import { DescribeApi } from '../../api/describe';
 
 /**
  * Input model for look command
@@ -45,7 +47,7 @@ export class LookController extends CommandController<LookInput, LookOutput> {
     const location = context.location;
 
     // Get location name and description
-    const locationName = this.getObjectName(location);
+    const locationName = DescribeApi.getDisplayName(location, 'Something');
     const description = this.getObjectDescription(location);
 
     // Format output with MML tags
@@ -67,7 +69,7 @@ export class LookController extends CommandController<LookInput, LookOutput> {
    * Look at specific target object
    */
   private lookAtTarget(target: Stuff, context: CommandContext): CommandResult<LookOutput> {
-    const targetName = this.getObjectName(target);
+    const targetName = DescribeApi.getDisplayName(target, 'Something');
     const description = this.getObjectDescription(target);
 
     const text = [
@@ -84,31 +86,8 @@ export class LookController extends CommandController<LookInput, LookOutput> {
     };
   }
 
-  /**
-   * Get object name (try multiple property names)
-   */
-  private getObjectName(obj: any): string {
-    if (typeof obj.fullName === 'string') return obj.fullName;
-    if (typeof obj.name === 'string') return obj.name;
-    if (typeof obj.shortDescription === 'string') return obj.shortDescription;
-    return 'Something';
-  }
-
-  /**
-   * Get object description (use getLong() if available, else longDescription)
-   */
-  private getObjectDescription(obj: any): string {
-    // Try getLong() method (from VisibleMixin)
-    if (typeof obj.getLong === 'function') {
-      return obj.getLong();
-    }
-
-    // Fallback to longDescription property
-    if (typeof obj.longDescription === 'string' && obj.longDescription) {
-      return obj.longDescription;
-    }
-
-    // Default fallback
+  private getObjectDescription(obj: Stuff): string {
+    if (MixinApi.isVisible(obj)) return obj.getLong();
     return 'You see nothing special.';
   }
 }
