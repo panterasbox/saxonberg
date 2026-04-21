@@ -17,45 +17,26 @@
  */
 
 import type { IBackend } from './IBackend';
-import type { PassportGoogleProfile, WebSocketMessage, MessageType } from '@saxonberg/types';
+import type { PassportGoogleProfile, WebSocketMessage } from '@saxonberg/types';
 import { Pronouns } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
-import { Avatar } from '../mud/obj/Avatar';
 import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
-import { Player } from '../mud/lib/identity/Player';
-import { CharacterSheet } from '../mud/lib/identity/CharacterSheet';
-import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
+import { TemplateApi } from '../mud/api/template';
+import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
 import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 
-/**
- * Application - Singleton for game logic coordination.
- */
 export class Application {
   private static instance: Application;
 
-  /**
-   * Reference to Backend (for I/O operations).
-   */
   private backend: IBackend | null = null;
 
-  /**
-   * Starting room/location for new connections (future).
-   */
-  private startingRoom: any = null;
-
-  /**
-   * Private constructor (singleton pattern).
-   */
   private constructor() {}
 
-  /**
-   * Get the singleton instance.
-   */
   public static get(): Application {
     if (!this.instance) {
       this.instance = new Application();
@@ -63,23 +44,14 @@ export class Application {
     return this.instance;
   }
 
-  /**
-   * Initialize Application with Backend reference.
-   *
-   * @param backend - Backend instance (implements IBackend)
-   */
   public initialize(backend: IBackend): void {
     this.backend = backend;
     console.log('Application: Initialized with Backend');
   }
 
   /**
-   * Send a message to a specific Interactive's client.
-   * This is the public API for game objects to send messages to clients.
-   * Application maintains sole responsibility for Backend communication.
-   *
-   * @param interactive - Interactive to send to
-   * @param message - Message to send
+   * Send a message to a specific Interactive's client. Sole gateway for
+   * game objects to reach Backend — Application owns Backend communication.
    */
   public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
     if (this.backend && interactive.socketId) {
@@ -88,17 +60,8 @@ export class Application {
   }
 
   /**
-   * Handle user connection.
-   * Called by Backend when WebSocket connection is established.
-   *
-   * Creates the Interactive for this connection, then hands off to a
-   * Login instance to run the mudlib-side entry procedure (avatar
-   * loading, character selection, starting-room placement, welcome
-   * messages).
-   *
-   * @param userId - User's MongoDB _id
-   * @param sessionId - Session ID
-   * @param socketId - Socket ID
+   * Handle user connection. Loads the authenticated User, spins up an
+   * Interactive, and hands off to Login to run the entry procedure.
    */
   public async handleUserConnect(
     userId: string,
@@ -113,10 +76,15 @@ export class Application {
     try {
       console.log(`Application: User connecting - userId=${userId}, socketId=${socketId}`);
 
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error(`Application: User ${userId} not found`);
+      }
+
       const interactive = await ConnectionManager.get().createInteractive(
         socketId,
         sessionId,
-        userId
+        user
       );
 
       await new Login(interactive).enter();
@@ -135,16 +103,9 @@ export class Application {
     }
   }
 
-  /**
-   * Handle user disconnection.
-   * Called by Backend when WebSocket connection closes.
-   *
-   * @param socketId - Socket ID
-   */
   public handleUserDisconnect(socketId: string): void {
     console.log(`Application: User disconnecting - socketId=${socketId}`);
 
-    // Delegate to ConnectionManager (handles destroy and removal)
     const removed = ConnectionManager.get().removeInteractive(socketId);
 
     if (removed) {
@@ -154,13 +115,6 @@ export class Application {
     }
   }
 
-  /**
-   * Process a message from the client.
-   * Routes message to appropriate handler based on type.
-   *
-   * @param socketId - Socket ID
-   * @param message - Message object
-   */
   public processUserMessage(socketId: string, message: WebSocketMessage): void {
     const interactive = ConnectionManager.get().getInteractive(socketId);
 
@@ -174,7 +128,6 @@ export class Application {
       return;
     }
 
-    // Route by message type
     switch (message.type) {
       case 'echo':
         this.handleEchoMessage(socketId, message);
@@ -185,7 +138,6 @@ export class Application {
         break;
 
       case 'command':
-        // Handle async command execution (don't await to avoid blocking)
         this.handleCommandMessage(socketId, message).catch((error) => {
           console.error(`Application: Command error for socket ${socketId}:`, error);
           if (this.backend) {
@@ -208,13 +160,8 @@ export class Application {
     }
   }
 
-  /**
-   * Handle echo message (test).
-   */
   private handleEchoMessage(socketId: string, message: WebSocketMessage): void {
     if (!this.backend) return;
-
-    console.log(`Application: Echo message from ${socketId}`);
 
     this.backend.sendMessageToSocket(socketId, {
       type: 'echo',
@@ -222,10 +169,7 @@ export class Application {
     });
   }
 
-  /**
-   * Handle ping message (heartbeat).
-   */
-  private handlePingMessage(socketId: string, message: WebSocketMessage): void {
+  private handlePingMessage(socketId: string, _message: WebSocketMessage): void {
     if (!this.backend) return;
 
     this.backend.sendMessageToSocket(socketId, {
@@ -236,10 +180,6 @@ export class Application {
     });
   }
 
-  /**
-   * Handle command message (Phase 3 - lightweight stubs).
-   * Full command framework will be implemented in Phase 4.
-   */
   private async handleCommandMessage(socketId: string, message: WebSocketMessage): Promise<void> {
     if (!this.backend) return;
 
@@ -266,7 +206,6 @@ export class Application {
       return;
     }
 
-    // Build command context
     const context: CommandContext = {
       commandGiver: avatar,
       interactive,
@@ -275,10 +214,8 @@ export class Application {
       executionId: nanoid(),
     };
 
-    // Execute command via CommandGiverMixin
     const result = await avatar.executeCommand(commandText, context);
 
-    // Send result
     if (result.success && result.output) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'output',
@@ -293,11 +230,9 @@ export class Application {
   }
 
   /**
-   * Find or create User, GoogleProfile, and Player from Google OAuth profile.
-   * Called during authentication flow.
-   *
-   * @param profile - Google profile from Passport
-   * @returns User ID (MongoDB _id)
+   * Find or create User + GoogleProfile from a Google OAuth profile. For
+   * new users, seed a default avatar template and append its playerId to
+   * `user.playerIds`.
    */
   public async findOrCreateUserFromGoogle(
     profile: PassportGoogleProfile
@@ -354,62 +289,48 @@ export class Application {
     googleProfileId: string,
     profile: PassportGoogleProfile
   ): Promise<string> {
-    const existing = await PersistenceManager.get().find(Collections.Users, {
-      googleProfileId,
-    });
+    const existing = await User.find({ googleProfileId });
 
     if (existing.length > 0) {
-      const userId = existing[0]._id;
-      console.log(`Application: Found existing User ${userId}`);
-      return userId;
+      const user = existing[0]!;
+      console.log(`Application: Found existing User ${user._id}`);
+      return user._id!;
     }
 
-    const userId = await PersistenceManager.get().save(Collections.Users, {
-      googleProfileId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    console.log(`Application: Created new User ${userId}`);
+    const user = new User();
+    user.googleProfileId = googleProfileId;
+    await user.save();
+    console.log(`Application: Created new User ${user._id}`);
 
-    const playerId = await this.createDefaultPlayer(
-      userId,
+    const playerId = await this.createDefaultAvatarTemplate(
       profile.name?.givenName || 'Unnamed',
       profile.name?.familyName || 'Player'
     );
-    await this.createAvatarTemplate(playerId);
+    user.playerIds.push(playerId);
+    await user.save();
 
-    return userId;
+    return user._id!;
   }
 
-  private async createDefaultPlayer(
-    userId: string,
+  /**
+   * Seed a default avatar template for a new user. Self-contained under
+   * the unified state model — no Player/CharacterSheet indirection, no
+   * hydratorClass (the default Hydrator's mixin-field copy suffices).
+   *
+   * @returns the generated playerId (template path: `/avatar/<playerId>`)
+   */
+  private async createDefaultAvatarTemplate(
     firstName: string,
     lastName: string
   ): Promise<string> {
-    const sheet = new CharacterSheet();
-    sheet.firstName = firstName;
-    sheet.lastName = lastName;
-    sheet.pronouns = Pronouns.They;
-    await sheet.save();
-
-    const player = new Player();
-    player.userId = userId;
-    player.characterSheetId = sheet._id!;
-    await player.save();
-
-    console.log(
-      `Application: Created default Player ${player._id} (sheet=${sheet._id}) for User ${userId}`
-    );
-    return player._id!;
-  }
-
-  private async createAvatarTemplate(playerId: string): Promise<void> {
-    const template = {
-      path: Avatar.getTemplatePath(playerId),
-      class: '/obj/Avatar',
-      data: { playerId },
-    };
-    await PersistenceManager.get().save(Collections.Domain, template);
-    console.log(`Application: Created avatar template at ${template.path}`);
+    const playerId = nanoid();
+    const path = Avatar.getTemplatePath(playerId);
+    await TemplateApi.saveTemplate(path, '/obj/Avatar', {
+      firstName,
+      lastName,
+      pronouns: Pronouns.They,
+    });
+    console.log(`Application: Created avatar template at ${path}`);
+    return playerId;
   }
 }

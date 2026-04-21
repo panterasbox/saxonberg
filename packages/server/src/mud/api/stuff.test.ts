@@ -122,20 +122,37 @@ describe('StuffApi', () => {
       expect(found).toBe(obj);
     });
 
-    it('should register object in correct order (initialize → register)', async () => {
+    it('should register object in correct order (register → initialize)', async () => {
       let registeredDuringInit = false;
 
       class OrderTestStuff extends Stuff {
         async initialize() {
-          // Check if we're registered yet (should not be)
+          // Registration happens before initialize() so recursive resolvers
+          // (e.g. exit hydration that points back to this object) can see
+          // the in-flight instance.
           registeredDuringInit = !!StuffApi.findById(this.stuffId);
         }
       }
 
       const obj = await StuffApi.create(() => new OrderTestStuff());
 
-      expect(registeredDuringInit).toBe(false); // Not registered during init
-      expect(StuffApi.findById(obj.stuffId)).toBe(obj); // But registered after
+      expect(registeredDuringInit).toBe(true);
+      expect(StuffApi.findById(obj.stuffId)).toBe(obj);
+    });
+
+    it('should unregister the object if initialize() throws', async () => {
+      class FailingInitStuff extends Stuff {
+        async initialize() {
+          throw new Error('init failed');
+        }
+      }
+
+      const obj = new FailingInitStuff();
+      await expect(
+        StuffApi.create(() => obj)
+      ).rejects.toThrow('init failed');
+
+      expect(StuffApi.findById(obj.stuffId)).toBeUndefined();
     });
 
     it('should generate unique stuffId for each object', async () => {
@@ -143,6 +160,35 @@ describe('StuffApi', () => {
       const obj2 = await StuffApi.create(() => new SimpleStuff());
 
       expect(obj1.stuffId).not.toBe(obj2.stuffId);
+    });
+
+    it('should thread context into initialize(context)', async () => {
+      class ContextStuff extends Stuff {
+        received: unknown = undefined;
+
+        async initialize(context?: unknown) {
+          this.received = context;
+        }
+      }
+
+      const payload = { user: { _id: 'u1' }, playerId: 'p1' };
+      const obj = await StuffApi.create(() => new ContextStuff(), payload);
+
+      expect(obj.received).toBe(payload);
+    });
+
+    it('should pass undefined when no context is supplied', async () => {
+      class ContextStuff extends Stuff {
+        received: unknown = 'sentinel';
+
+        async initialize(context?: unknown) {
+          this.received = context;
+        }
+      }
+
+      const obj = await StuffApi.create(() => new ContextStuff());
+
+      expect(obj.received).toBeUndefined();
     });
   });
 

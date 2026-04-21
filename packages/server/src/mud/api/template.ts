@@ -37,15 +37,21 @@ export class TemplateApi {
    *   2. Any save under a non-Zone ancestor — "Ancestor `A` is a leaf
    *      template, not a zone folder."
    *
+   * Zone classification uses the runtime `class` field (matched against
+   * `ZONE_CLASS_PATHS`); `hydratorClass` is orthogonal to zonehood.
+   *
    * @param path - Template path (e.g. `/narnia/castle/foyer`)
-   * @param classPath - Class the template clones (e.g. `/lib/spatial/CartesianLocation`)
-   * @param data - Template-specific initialization data
+   * @param classPath - Runtime backing class (e.g. `/lib/spatial/CartesianLocation`)
+   * @param data - Raw hydration payload
+   * @param hydratorClassPath - Optional Hydrator class (omit for default
+   *   mixin-field copy via the base `Hydrator`)
    * @returns The saved template's MongoDB `_id`.
    */
   public static async saveTemplate(
     path: string,
     classPath: string,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
+    hydratorClassPath?: string
   ): Promise<string> {
     if (!path.startsWith('/')) {
       throw new TemplateError(`Template path must start with '/': ${path}`);
@@ -81,6 +87,7 @@ export class TemplateApi {
       data,
       __bypassTemplateCheck: true,
     };
+    if (hydratorClassPath) doc.hydratorClass = hydratorClassPath;
     if (existing?._id) doc._id = existing._id;
 
     return PersistenceManager.get().save(Collections.Domain, doc);

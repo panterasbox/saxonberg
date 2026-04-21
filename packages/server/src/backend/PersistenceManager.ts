@@ -18,8 +18,6 @@ import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
  */
 export enum Collections {
   Users = 'users',
-  Players = 'players',
-  CharacterSheets = 'character_sheets',
   GoogleProfiles = 'google_profiles',
   Domain = 'domain',
 }
@@ -131,8 +129,8 @@ export class PersistenceManager {
   public async save(collectionName: string, document: any): Promise<string> {
     // Domain-collection saves enforce the folder/leaf invariant
     // (Phase 7 Decision 12). Route through TemplateApi, which wraps this
-    // method via the `path`/`class`/`data` contract and re-enters `save`
-    // for the normalized insert/update below.
+    // method via the `path`/`class`/`hydratorClass`/`data` contract and
+    // re-enters `save` for the normalized insert/update below.
     if (
       collectionName === Collections.Domain &&
       !document.__bypassTemplateCheck &&
@@ -143,7 +141,8 @@ export class PersistenceManager {
       return TemplateApi.saveTemplate(
         document.path,
         document.class,
-        (document.data ?? {}) as Record<string, unknown>
+        (document.data ?? {}) as Record<string, unknown>,
+        typeof document.hydratorClass === 'string' ? document.hydratorClass : undefined
       );
     }
     if ('__bypassTemplateCheck' in document) delete document.__bypassTemplateCheck;
@@ -270,11 +269,6 @@ export class PersistenceManager {
       // Users: index on googleProfileId
       await this.getCollection(Collections.Users).createIndex(
         { googleProfileId: 1 }
-      );
-
-      // Players: index on userId
-      await this.getCollection(Collections.Players).createIndex(
-        { userId: 1 }
       );
 
       console.log('PersistenceManager: Indexes created successfully');

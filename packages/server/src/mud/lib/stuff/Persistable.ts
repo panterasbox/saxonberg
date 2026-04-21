@@ -1,58 +1,54 @@
 /**
- * Persistable - Base class for objects that can be saved to MongoDB
+ * Persistable - Base class for records that save to MongoDB
  *
- * Provides generic CRUD operations for objects that persist to MongoDB.
+ * Persistable is intentionally **not** part of the `Stuff` hierarchy.
+ * It represents records that exist in MongoDB but do not live in the
+ * game filesystem (no path, no zone, no clone pipeline). Its current
+ * inhabitants are auth/meta-game records: `User`, `GoogleProfile`.
+ *
+ * Game-world objects (rooms, doors, props, avatars, NPCs) are Stuff and
+ * persist through the clone/hydrate/save-template pipeline instead.
+ *
  * Subclasses must declare:
  * - static collectionName: string
- * - static persistentFields: string[]
- *
- * This eliminates boilerplate - no need to implement save/delete/findById/find
- * in every persistable class.
+ * - static persistentFields: string[]  (fields copied to/from the doc)
  *
  * Example:
  * ```typescript
  * class User extends Persistable {
  *   static collectionName = 'users';
- *   static persistentFields = ['googleProfileId'];
- *   // ... properties ...
+ *   static persistentFields = ['googleProfileId', 'playerIds'];
+ *   googleProfileId = '';
+ *   playerIds: string[] = [];
  * }
  *
- * // Usage:
  * await user.save();
- * await user.delete();
  * const found = await User.findById(id);
- * const results = await User.find({ googleProfileId: 'xyz' });
+ * const matches = await User.find({ googleProfileId: 'xyz' });
  * ```
  */
 
-import { Idea } from './Idea';
-import type { Stuff } from './Stuff';
-import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
+import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
 
 type Indexable = Record<string, unknown>;
-type MaybeSyncedFrom = { onSyncedFromPersistable?: (p: Persistable) => void };
-type MaybeSyncedTo = { onSyncedToPersistable?: (p: Persistable) => void };
 
 /**
  * Interface for persistable constructors.
  * Ensures subclasses have required static properties.
- *
- * Note: `...args: any[]` is the standard constructor-type pattern and must be
- * preserved for mixin composition compatibility.
  */
 export interface PersistableConstructor {
   collectionName: string;
   persistentFields?: string[];
   getAllPersistentFields?(): string[];
-  new (...args: any[]): Persistable;
+  new (...args: unknown[]): Persistable;
 }
 
 /**
- * Base class for persistable objects with generic CRUD operations.
+ * Base class for MongoDB-backed records that live outside the Stuff
+ * filesystem (auth/meta-game only).
  */
-export class Persistable extends Idea {
+export class Persistable {
   /**
    * MongoDB ObjectId (undefined until saved).
    */
@@ -73,11 +69,7 @@ export class Persistable extends Idea {
    */
   static collectionName: string;
 
-  /**
-   * Constructor - initializes timestamps.
-   */
   constructor() {
-    super();
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
@@ -97,45 +89,32 @@ export class Persistable extends Idea {
   }
 
   /**
-   * Get all persistent fields for this class.
-   * Includes mixin fields + class-declared fields.
+   * Get all persistent fields for this class (mixin + own declarations).
    */
   protected getAllFields(): string[] {
     const constructor = this.constructor as typeof Persistable & {
       getAllPersistentFields?: () => string[];
     };
-
-    // Try static method first (for classes with mixins)
     if (typeof constructor.getAllPersistentFields === 'function') {
       return constructor.getAllPersistentFields();
     }
-
-    // Fallback to MixinApi
     return MixinApi.getAllPersistentFields(constructor);
   }
 
   /**
    * Convert this object to a plain document for MongoDB.
-   * Includes _id, all persistent fields, and timestamps.
    */
   protected toDocument(): Record<string, unknown> {
     const doc: Record<string, unknown> = {};
     const self = this as unknown as Indexable;
 
-    // Include _id if present
-    if (this._id) {
-      doc._id = this._id;
-    }
+    if (this._id) doc._id = this._id;
 
-    // Include all persistent fields
     const fields = this.getAllFields();
     for (const field of fields) {
-      if (field in this) {
-        doc[field] = self[field];
-      }
+      if (field in this) doc[field] = self[field];
     }
 
-    // Always include timestamps (might not be in persistentFields)
     doc.createdAt = this.createdAt;
     doc.updatedAt = this.updatedAt;
 
@@ -148,91 +127,30 @@ export class Persistable extends Idea {
   protected fromDocument(doc: Record<string, unknown>): void {
     const self = this as unknown as Indexable;
 
-    // Load _id
-    if (doc._id) {
-      this._id = doc._id as string;
-    }
+    if (doc._id) this._id = doc._id as string;
 
-    // Load all persistent fields
     const fields = this.getAllFields();
     for (const field of fields) {
-      if (field in doc) {
-        self[field] = doc[field];
-      }
+      if (field in doc) self[field] = doc[field];
     }
 
-    // Load timestamps
     if (doc.createdAt) this.createdAt = doc.createdAt as Date;
     if (doc.updatedAt) this.updatedAt = doc.updatedAt as Date;
   }
 
   /**
-   * Save this object to MongoDB.
-   * Updates updatedAt timestamp automatically.
+   * Save this object to MongoDB. Updates `updatedAt` automatically.
    */
   public async save(): Promise<void> {
     this.updatedAt = new Date();
-
     const collection = this.getCollectionName();
     const doc = this.toDocument();
-
     const savedId = await PersistenceManager.get().save(collection, doc);
-
-    // Update _id if this was a new document
-    if (!this._id) {
-      this._id = savedId;
-    }
-  }
-
-  /**
-   * Push my persistent fields into a runtime object (load direction).
-   * Uses mixin + class field declarations to determine what to copy.
-   *
-   * Optional hook: if `runtime.onSyncedFromPersistable(this)` exists, it is
-   * invoked after fields are copied so the runtime can do any extra work
-   * (e.g. caching identity references).
-   */
-  public syncTo(runtime: Stuff): void {
-    const fields = this.getAllFields();
-    const self = this as unknown as Indexable;
-    const target = runtime as unknown as Indexable;
-    for (const field of fields) {
-      if (field in this) {
-        target[field] = self[field];
-      }
-    }
-    const hook = (runtime as Stuff & MaybeSyncedFrom).onSyncedFromPersistable;
-    if (typeof hook === 'function') {
-      hook.call(runtime, this);
-    }
-  }
-
-  /**
-   * Pull a runtime object's values into my persistent fields (save direction).
-   * Uses mixin + class field declarations to determine what to copy.
-   *
-   * Optional hook: if `runtime.onSyncedToPersistable(this)` exists, it is
-   * invoked after fields are copied.
-   */
-  public syncFrom(runtime: Stuff): void {
-    const fields = this.getAllFields();
-    const self = this as unknown as Indexable;
-    const source = runtime as unknown as Indexable;
-    for (const field of fields) {
-      if (field in runtime) {
-        self[field] = source[field];
-      }
-    }
-    this.updatedAt = new Date();
-    const hook = (runtime as Stuff & MaybeSyncedTo).onSyncedToPersistable;
-    if (typeof hook === 'function') {
-      hook.call(runtime, this);
-    }
+    if (!this._id) this._id = savedId;
   }
 
   /**
    * Delete this object from MongoDB.
-   * Marks as destroyed after deletion.
    */
   public async delete(): Promise<void> {
     if (!this._id) {
@@ -240,17 +158,12 @@ export class Persistable extends Idea {
         `${this.constructor.name}.delete(): Cannot delete unsaved object (no _id)`
       );
     }
-
     const collection = this.getCollectionName();
     await PersistenceManager.get().delete(collection, this._id);
-
-    // Mark as destroyed (triggers prepareDestroy + unregister)
-    StuffApi.destruct(this);
   }
 
   /**
-   * Find a document by MongoDB _id.
-   * Returns null if not found.
+   * Find a document by MongoDB _id. Returns null if not found.
    */
   public static async findById<T extends Persistable>(
     this: PersistableConstructor & { new (): T },
@@ -261,23 +174,15 @@ export class Persistable extends Idea {
         `${this.name}.collectionName not defined - must be set in subclass`
       );
     }
-
     const doc = await PersistenceManager.get().findById(this.collectionName, id);
-
-    if (!doc) {
-      return null;
-    }
-
-    // Create instance and load data
-    const instance = new this();
+    if (!doc) return null;
+    const instance = new this() as T;
     instance.fromDocument(doc);
-
     return instance;
   }
 
   /**
    * Find documents matching a query.
-   * Returns empty array if none found.
    */
   public static async find<T extends Persistable>(
     this: PersistableConstructor & { new (): T },
@@ -288,21 +193,15 @@ export class Persistable extends Idea {
         `${this.name}.collectionName not defined - must be set in subclass`
       );
     }
-
     const docs = await PersistenceManager.get().find(this.collectionName, query);
-
-    // Create instances and load data
     return docs.map((doc) => {
-      const instance = new this();
+      const instance = new this() as T;
       instance.fromDocument(doc);
       return instance;
     });
   }
 
-  /**
-   * String representation.
-   */
   public toString(): string {
-    return `[${this.constructor.name} ${this._id || this.stuffId}]`;
+    return `[${this.constructor.name} ${this._id ?? '(unsaved)'}]`;
   }
 }

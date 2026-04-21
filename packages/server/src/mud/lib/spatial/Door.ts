@@ -18,12 +18,13 @@
  *   - `VisibleMixin`: short/long descriptions, so `look door` and
  *     `DescribeApi.getDisplayName()` both work uniformly.
  *
- * Template-loadable: like `Avatar`, `Door` is cloned from a `domain`
- * template via `StuffApi.clone()` — the template's `class` field is
- * `/lib/spatial/Door` and its `data` is a `DoorTemplateData` payload. The
- * class constructor accepts both the typed shape and the raw
- * `Record<string, unknown>` that comes off the database so either path
- * works.
+ * Template-loadable: `Door` is cloned from a `domain` template via
+ * `StuffApi.clone()`. Domain docs are `{ path, class, hydratorClass?, data }`;
+ * the base `Hydrator`'s default mixin-field copy is sufficient here, and
+ * Door-specific fixups (keyword normalization, `isOpen` strict-boolean
+ * coercion) run in the `initialize()` hook that clone awaits after hydrate.
+ * The constructor also accepts a raw `Record<string, unknown>` for
+ * ad-hoc/test construction; that path applies the same fixups inline.
  *
  * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
  * (MqlApi scans those in addition to the room's contents), so a door is
@@ -37,37 +38,51 @@ import { Idea } from '../stuff/Idea';
 import { SealableMixin } from './Sealable';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
-
-/**
- * Template data for Door (from the `domain` collection).
- *
- * Every field is optional so that minimal templates (just a
- * `shortDescription`) still produce a usable door.
- */
-export interface DoorTemplateData {
-  shortDescription?: string;
-  longDescription?: string;
-  keywords?: string[];
-  isOpen?: boolean;
-}
+import { MixinApi } from '../../api/mixin';
 
 const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Idea)));
 
 export class Door extends DoorBase {
   /**
-   * Constructor — accepts template data from the `domain` collection.
-   * Shape matches `DoorTemplateData`; `Record<string, unknown>` is accepted
-   * so `StuffApi.clone()` can pass DB data straight through.
+   * Constructor — no-arg for the clone pipeline (`Hydrator.hydrate()` fills
+   * state after construction), or with a raw data blob for direct
+   * test/ad-hoc construction. The raw-data path mirrors the default
+   * `Hydrator` field-copy and then applies Door's normalization fixups.
    */
-  constructor(templateData: DoorTemplateData | Record<string, unknown> = {}) {
+  constructor(data?: Record<string, unknown>) {
     super();
-    const data = templateData as DoorTemplateData;
-    this.shortDescription = typeof data.shortDescription === 'string' ? data.shortDescription : '';
-    this.longDescription = typeof data.longDescription === 'string' ? data.longDescription : '';
-    if (Array.isArray(data.keywords) && data.keywords.length > 0) {
-      this.setKeywords(data.keywords);
+    if (data) {
+      const fields = MixinApi.getAllPersistentFields(
+        this.constructor as new (...args: unknown[]) => Idea
+      );
+      const target = this as unknown as Record<string, unknown>;
+      for (const field of fields) {
+        if (field in data) target[field] = data[field];
+      }
+      this.#normalize();
     }
-    this.isOpen = data.isOpen === true;
+  }
+
+  /**
+   * Post-hydration fixup hook invoked by `StuffApi.clone()` after the
+   * hydrator finishes. Normalizes keywords (lowercase/trim/dedupe via the
+   * mixin setter) and coerces `isOpen` to a strict boolean. Idempotent —
+   * safe to call again after direct-construction's inline normalize.
+   */
+  public async initialize(): Promise<void> {
+    this.#normalize();
+  }
+
+  #normalize(): void {
+    // Use `super.getKeywords()` to grab ONLY the raw PerceptibleMixin list —
+    // Door's override also merges in `shortDescription` tokens, which would
+    // otherwise turn every name token into a permanent explicit keyword.
+    const kw = super.getKeywords();
+    if (kw.length > 0) {
+      this.setKeywords([]);
+      for (const k of kw) this.addKeyword(k);
+    }
+    this.isOpen = this.isOpen === true;
   }
 
   /**

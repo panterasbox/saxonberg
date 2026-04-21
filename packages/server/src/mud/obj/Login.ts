@@ -1,11 +1,11 @@
 /**
  * Login - Per-instance Idea representing a user's entry into the mud.
  *
- * Created by Application after an Interactive has been established, and
- * lives only as long as the entry procedure takes. Orchestrates the
+ * Constructed by Application after an Interactive has been established,
+ * and lives only as long as the entry procedure takes. Orchestrates the
  * mudlib-side work of putting a connected user into the game world:
- * loading available avatars, resolving character selection, placing the
- * chosen avatar into a starting room, and notifying the client.
+ * reading the user's owned character slots, resolving character selection,
+ * placing the chosen avatar into a starting room, and notifying the client.
  *
  * Lifetime: constructed once per login; destructed when the entry is
  * complete (or handed off to character selection).
@@ -31,13 +31,9 @@ export class Login extends Idea {
   /**
    * Run the entry procedure for this Login's Interactive.
    *
-   * Auto-selects the user's one Player, places their Avatar in a
-   * starting room, and sends the welcome + look description. Destroys
-   * this Login on completion.
-   *
    * Users with zero or multiple Players are not supported yet — player
-   * management (including choosing between multiple Players) is a
-   * future feature with its own first-class representation.
+   * management (including choosing between multiple Players) is a future
+   * feature with its own first-class representation.
    */
   public async enter(): Promise<void> {
     const { interactive } = this;
@@ -57,7 +53,7 @@ export class Login extends Idea {
 
     console.log(`Login: User connected - ${avatar.fullName}`);
 
-    const startingRoomPath = avatar.player?.startingRoomPath || DEFAULT_STARTING_ROOM_PATH;
+    const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
     const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
     avatar.teleport(startingRoom);
     console.log(

@@ -34,10 +34,10 @@ export interface PlayerOutput {
  */
 export class PlayerController extends CommandController<PlayerInput, PlayerOutput> {
   execute(input: PlayerInput, context: CommandContext): CommandResult<PlayerOutput> {
-    // The `player` command only makes sense for a player-character Avatar —
-    // it writes the CharacterSheet. Narrow here so every subcommand gets an
-    // Avatar without casting, and non-Avatar givers (e.g. a future NPC)
-    // get a clean error rather than a type crash.
+    // The `player` command only makes sense for a player-character Avatar.
+    // Narrow here so every subcommand gets an Avatar without casting, and
+    // non-Avatar givers (e.g. a future NPC) get a clean error rather than
+    // a type crash.
     const avatar = context.commandGiver;
     if (!(avatar instanceof Avatar)) {
       return { success: false, error: 'Only a player character can use the player command.' };
@@ -72,10 +72,8 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
     avatar.firstName = input.firstName;
     avatar.lastName = input.lastName || '';
 
-    if (avatar.sheet) {
-      avatar.sheet.syncFrom(avatar);
-      avatar.sheet.save();
-    }
+    // Persist-back to the avatar template is deferred to the persist
+    // direction of the unified state model (Phase 8 follow-on).
 
     return {
       success: true,
@@ -122,10 +120,7 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
 
     avatar.pronouns = pronouns;
 
-    if (avatar.sheet) {
-      avatar.sheet.syncFrom(avatar);
-      avatar.sheet.save();
-    }
+    // Persist-back deferred (see executeName).
 
     return {
       success: true,

@@ -68,13 +68,6 @@ export class GoogleProfile extends Persistable implements IGoogleProfile {
   rawProfile: Record<string, unknown> = {};
 
   /**
-   * Constructor.
-   */
-  constructor() {
-    super(); // Auto-registers with StuffApi
-  }
-
-  /**
    * Find profile by Google ID.
    * Convenience method for common query.
    */
@@ -85,10 +78,7 @@ export class GoogleProfile extends Persistable implements IGoogleProfile {
     return results.length > 0 && results[0] ? results[0] : null;
   }
 
-  /**
-   * String representation.
-   */
   public toString(): string {
-    return `[GoogleProfile ${this.displayName} (${this._id || this.stuffId})]`;
+    return `[GoogleProfile ${this.displayName} (${this._id ?? '(unsaved)'})]`;
   }
 }

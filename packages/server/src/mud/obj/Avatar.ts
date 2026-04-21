@@ -1,43 +1,34 @@
 /**
- * Avatar - Runtime player character presence in the game world
+ * Avatar - Runtime player character presence in the game world.
  *
- * Represents a Player's active presence when connected. Extends Character
- * (Named, Gendered, Sensor, Vocal, Container, Containable, Visible, Mobile,
- * CommandGiver mixins). Projects a persistent CharacterSheet into the world;
- * state is captured back to the sheet on disconnect.
+ * Extends Character (Named, Gendered, Sensor, Vocal, Container,
+ * Containable, Visible, Mobile, CommandGiver). Self-contained under the
+ * unified state model: the template at `/avatar/<playerId>` carries every
+ * persistent field directly, no Player or CharacterSheet indirection.
  *
- * Lifetime: created when a player connects, destroyed when the last
+ * Lifetime: cloned when a player connects, destroyed when the last
  * connection drops.
  */
 
 import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
-import { Player } from '../lib/identity/Player';
-import { CharacterSheet } from '../lib/identity/CharacterSheet';
 import type { Interactive } from './Interactive';
+import type { User } from '../lib/identity/User';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 import type { Application } from '../../backend/Application';
 
 /**
- * Template data for Avatar (from domain collection).
+ * Context passed to Avatar.initialize() by Login when cloning.
+ *
+ * Threaded through the clone pipeline from `StuffApi.clone(path, context)`
+ * so these runtime pointers are set synchronously before PlayerApi
+ * registration or any post-init logic sees the avatar.
  */
-export interface AvatarTemplateData {
-  playerId: string; // MongoDB _id of Player
+export interface AvatarInitContext {
+  user?: User;
+  playerId?: string;
 }
 
-/**
- * Avatar - Runtime player character (extends Character).
- *
- * Inherits from Character which provides:
- * - Named, Gendered mixins (identity)
- * - Sensor, Vocal mixins (messaging)
- * - Container, Containable mixins (inventory management)
- * - Visible mixin (descriptions)
- * - Mobile mixin (movement)
- * - CommandGiver mixin (command execution)
- *
- * Also provides diagnostic/system commands: ping, help, player
- */
 export class Avatar extends Character {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
@@ -50,49 +41,28 @@ export class Avatar extends Character {
   };
 
   /**
-   * Get ApplicationInstance (can be overridden for testing)
-   * @internal
-   */
-  private static getApplicationInstance(): Application {
-    return ApplicationInstance.get();
-  }
-
-  /**
    * Template path prefix for avatars in domain collection.
-   * Avatar templates are stored at: /avatar/player/<playerId>
+   * Avatar templates are stored at: /avatar/<playerId>
    */
-  static readonly TEMPLATE_PATH_PREFIX = '/avatar/player/';
+  static readonly TEMPLATE_PATH_PREFIX = '/avatar/';
 
-  /**
-   * Get the template path for a given playerId.
-   *
-   * @param playerId - Player's MongoDB _id
-   * @returns Template path (e.g., "/avatar/player/abc123")
-   */
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
   }
 
   /**
-   * User ID (MongoDB _id).
+   * Runtime-only pointer to the owning User. Stamped by `initialize` from
+   * the clone context; NOT persisted. Ownership lives on `User.playerIds`.
    */
-  userId: string = '';
+  user?: User;
 
   /**
-   * Player ID (MongoDB _id).
+   * Character slot id (key under `/avatar/...` and in `User.playerIds`).
+   * Runtime-only: the template path encodes it, so it does not need to be
+   * mirrored into the doc. Stamped by `initialize` from clone context, or
+   * seeded by the test/direct-construction data blob.
    */
   playerId: string = '';
-
-  /**
-   * Reference to the persistent Player record (userId + characterSheetId).
-   */
-  player?: Player;
-
-  /**
-   * Reference to the persistent CharacterSheet (name, pronouns, ...).
-   * This is the persistable this Avatar projects into the world.
-   */
-  sheet?: CharacterSheet;
 
   /**
    * Set of connected Interactive objects (supports multiplexing).
@@ -101,96 +71,58 @@ export class Avatar extends Character {
   interactives: Set<Interactive> = new Set();
 
   /**
-   * Constructor - accepts template data from domain collection.
-   *
-   * @param templateData - Template data with playerId
+   * Optional raw-data seed for direct test construction. The clone
+   * pipeline does not pass anything here — hydration + `initialize`
+   * populate the avatar post-construction.
    */
-  constructor(templateData: AvatarTemplateData | Record<string, unknown>) {
+  constructor(data?: { playerId?: string } | Record<string, unknown>) {
     super();
-
-    // Extract playerId from template data
-    const data = templateData as AvatarTemplateData;
-    this.playerId = data.playerId || '';
+    if (data && typeof data === 'object') {
+      const pid = (data as { playerId?: unknown }).playerId;
+      if (typeof pid === 'string') this.playerId = pid;
+    }
   }
 
   /**
-   * Async initialization - loads Player + CharacterSheet and syncs state.
-   * Called automatically by StuffApi.clone().
+   * Post-hydration setup called by the clone pipeline.
+   *
+   * Stamps runtime-only references (user, playerId) from the caller-
+   * supplied context, then registers with PlayerApi so later lookups by
+   * playerId resolve to this instance.
    */
-  public async initialize(): Promise<void> {
-    if (!this.playerId) {
-      throw new Error('Avatar.initialize(): No playerId');
+  public async initialize(context?: AvatarInitContext): Promise<void> {
+    if (context?.user) this.user = context.user;
+    if (context?.playerId) this.playerId = context.playerId;
+
+    if (this.playerId) {
+      PlayerApi.registerAvatar(this);
     }
-
-    const player = await Player.findById(this.playerId);
-    if (!player) {
-      throw new Error(`Avatar.initialize(): Player not found: ${this.playerId}`);
-    }
-    this.player = player;
-    this.userId = player.userId;
-
-    const sheet = await CharacterSheet.findById(player.characterSheetId);
-    if (!sheet) {
-      throw new Error(
-        `Avatar.initialize(): CharacterSheet not found: ${player.characterSheetId}`
-      );
-    }
-    this.sheet = sheet;
-    sheet.syncTo(this);
-
-    PlayerApi.registerAvatar(this);
-
-    console.log(`Avatar.initialize(): Initialized for player ${this.playerId}`);
   }
 
   /**
    * Add an Interactive connection (multiplexing support).
-   * Adds to the set of connected Interactives.
-   *
-   * @param interactive - The Interactive object to add
    */
   public addInteractive(interactive: Interactive): void {
     this.interactives.add(interactive);
-    console.log(`Avatar.addInteractive(): Added connection for ${this.fullName} (${this.interactives.size} total)`);
   }
 
   /**
    * Remove an Interactive connection.
-   * If this is the last connection, syncs to Player and saves.
-   *
-   * @param interactive - The Interactive object to remove
    */
   public removeInteractive(interactive: Interactive): void {
     this.interactives.delete(interactive);
-    console.log(`Avatar.removeInteractive(): Removed connection for ${this.fullName} (${this.interactives.size} remaining)`);
-
-    // If no more connections, capture state into the CharacterSheet and save.
-    if (this.interactives.size === 0 && this.sheet) {
-      this.sheet.syncFrom(this);
-      this.sheet.save().catch((err) => {
-        console.error(`Avatar.removeInteractive(): Failed to save CharacterSheet: ${err.message}`);
-      });
-    }
   }
 
-  /**
-   * Check if any Interactive is connected.
-   */
   public isConnected(): boolean {
     return this.interactives.size > 0;
   }
 
-  /**
-   * Check if Avatar is linkdead (PC with no connections).
-   */
   public isLinkdead(): boolean {
     return !this.isConnected();
   }
 
   /**
    * Send a message to all connected Interactives (broadcast).
-   *
-   * @param message - The message to send
    */
   public sendMessage(message: unknown): void {
     for (const interactive of this.interactives) {
@@ -199,42 +131,32 @@ export class Avatar extends Character {
   }
 
   /**
-   * Override SensorMixin.onMessage() to handle message delivery to connected clients.
-   *
-   * When MessageApi calls this (via messageContainer), we send the message
-   * to all connected Interactives (multiplexing support).
-   *
-   * @param message - The message to receive
+   * SensorMixin.onMessage() override — deliver to every connected
+   * Interactive (multiplexing).
    */
   public onMessage(message: unknown): void {
-    // Get Application instance (uses dynamic require to avoid circular dependencies)
     const app = Avatar.getApplicationInstance();
-
-    // Send to all connected Interactives (multiplexing support)
     for (const interactive of this.interactives) {
       app.sendMessageToInteractive(interactive, message);
     }
   }
 
   /**
-   * Cleanup hook (called on disconnect/destruction).
-   * Removes all interactive connections and unregisters from PlayerApi.
+   * Cleanup hook. Unregisters from PlayerApi and drops all connections.
+   * Persist-back to the avatar template is deferred to the persist
+   * direction of the unified model (not implemented this phase).
    */
   protected prepareDestroy(): void {
-    // Unregister from PlayerApi
     PlayerApi.unregisterAvatar(this);
-
-    // Remove all interactive connections
-    for (const interactive of Array.from(this.interactives)) {
-      this.interactives.delete(interactive);
-    }
     this.interactives.clear();
   }
 
-  /**
-   * String representation.
-   */
   public toString(): string {
-    return `[Avatar ${this.fullName} userId=${this.userId} playerId=${this.playerId}]`;
+    return `[Avatar ${this.fullName} playerId=${this.playerId}]`;
+  }
+
+  /** @internal — overridable for tests. */
+  private static getApplicationInstance(): Application {
+    return ApplicationInstance.get();
   }
 }

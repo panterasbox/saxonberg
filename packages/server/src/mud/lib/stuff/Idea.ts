@@ -15,7 +15,7 @@ import { Stuff } from './Stuff';
 
 /**
  * Base class for conceptual game objects.
- * All persistent objects (User, Player, Location, etc.) extend Idea.
+ * Game-world persistent objects (Location, props, NPCs, etc.) extend Idea.
  */
 export class Idea extends Stuff {
   /**
