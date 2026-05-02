@@ -12,13 +12,14 @@
 
 import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
+import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { Interactive } from './Interactive';
 import type { User } from '../lib/identity/User';
 import { ApplicationInstance } from '../../backend/ApplicationInstance';
 import type { Application } from '../../backend/Application';
 
 /**
- * Context passed to Avatar.initialize() by Login when cloning.
+ * Context passed to Avatar.postRegister() by Login when cloning.
  *
  * Threaded through the clone pipeline from `StuffApi.clone(path, context)`
  * so these runtime pointers are set synchronously before PlayerApi
@@ -29,7 +30,9 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-export class Avatar extends Character {
+const AvatarBase = PostRegistrationMixin(Character);
+
+export class Avatar extends AvatarBase {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
@@ -51,16 +54,17 @@ export class Avatar extends Character {
   }
 
   /**
-   * Runtime-only pointer to the owning User. Stamped by `initialize` from
-   * the clone context; NOT persisted. Ownership lives on `User.playerIds`.
+   * Runtime-only pointer to the owning User. Stamped by `postRegister`
+   * from the clone context; NOT persisted. Ownership lives on
+   * `User.playerIds`.
    */
   user?: User;
 
   /**
    * Character slot id (key under `/avatar/...` and in `User.playerIds`).
    * Runtime-only: the template path encodes it, so it does not need to be
-   * mirrored into the doc. Stamped by `initialize` from clone context, or
-   * seeded by the test/direct-construction data blob.
+   * mirrored into the doc. Stamped by `postRegister` from the clone
+   * context, or seeded by the test/direct-construction data blob.
    */
   playerId: string = '';
 
@@ -71,26 +75,12 @@ export class Avatar extends Character {
   interactives: Set<Interactive> = new Set();
 
   /**
-   * Optional raw-data seed for direct test construction. The clone
-   * pipeline does not pass anything here — hydration + `initialize`
-   * populate the avatar post-construction.
+   * Post-registration setup called by the clone pipeline (Spring
+   * `@PostConstruct`-style). Stamps runtime-only references (user,
+   * playerId) from the caller-supplied context, then registers with
+   * PlayerApi so later lookups by playerId resolve to this instance.
    */
-  constructor(data?: { playerId?: string } | Record<string, unknown>) {
-    super();
-    if (data && typeof data === 'object') {
-      const pid = (data as { playerId?: unknown }).playerId;
-      if (typeof pid === 'string') this.playerId = pid;
-    }
-  }
-
-  /**
-   * Post-hydration setup called by the clone pipeline.
-   *
-   * Stamps runtime-only references (user, playerId) from the caller-
-   * supplied context, then registers with PlayerApi so later lookups by
-   * playerId resolve to this instance.
-   */
-  public async initialize(context?: AvatarInitContext): Promise<void> {
+  public override async postRegister(context?: AvatarInitContext): Promise<void> {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
 

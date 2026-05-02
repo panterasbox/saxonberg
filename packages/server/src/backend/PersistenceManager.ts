@@ -1,5 +1,5 @@
 /**
- * PersistenceManager - MongoDB singleton
+ * PersistenceManager - MongoDB singleton with collection-level hook system.
  *
  * Responsibilities:
  * - MongoDB connection management
@@ -7,11 +7,22 @@
  * - Collection management
  * - Error handling and retry logic
  * - Connection pooling
+ * - Hook registry: middleware-style around-save / around-delete chains
+ *   bound to specific (collection, operation) slots, registered by an
+ *   administrative manifest at boot.
+ *
+ * PM is collection-agnostic: it ships with no hooks baked in. Validations
+ * and side-effects (e.g. the folder/leaf invariant for `Collections.Domain`,
+ * Phase 7 Decision 12) attach via `registerHook`. See PHASE_9_PERSISTENCE_HOOKS.md.
  *
  * This is a singleton - only one instance exists per application.
  */
 
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join, isAbsolute } from 'path';
+import YAML from 'yaml';
 
 /**
  * MongoDB collections enum.
@@ -20,6 +31,59 @@ export enum Collections {
   Users = 'users',
   GoogleProfiles = 'google_profiles',
   Domain = 'domain',
+}
+
+/**
+ * Operations a hook can wrap.
+ */
+export type HookOperation = 'save' | 'delete';
+
+/**
+ * Around-save hook signature. The hook receives the doc plus a `next`
+ * callback that performs (or further dispatches) the actual write.
+ */
+export type AroundSaveFn = (
+  collection: string,
+  doc: Record<string, unknown>,
+  next: (doc: Record<string, unknown>) => Promise<string>
+) => Promise<string>;
+
+/**
+ * Around-delete hook signature. The hook receives the doc id plus a `next`
+ * callback that performs (or further dispatches) the actual delete.
+ */
+export type AroundDeleteFn = (
+  collection: string,
+  id: string,
+  next: (id: string) => Promise<void>
+) => Promise<void>;
+
+/**
+ * Thrown when a hook (or anything called from a hook) re-enters a PM
+ * operation against the same `(collection, operation)` slot it is currently
+ * executing. Loud failure beats a silent loop.
+ */
+export class HookReentryError extends Error {
+  constructor(collection: string, operation: HookOperation) {
+    super(
+      `PersistenceManager: hook re-entry detected on (${collection}, ${operation}). ` +
+        `A hook attempted a ${operation} against ${collection} from inside its own dispatch.`
+    );
+    this.name = 'HookReentryError';
+  }
+}
+
+/**
+ * Shape of an entry in `hooks.yaml`.
+ */
+interface HookManifestEntry {
+  collection: string;
+  operation: HookOperation;
+  template: string;
+}
+
+interface HookManifest {
+  hooks: HookManifestEntry[];
 }
 
 /**
@@ -32,6 +96,18 @@ export class PersistenceManager {
   private db: Db | null = null;
   private connectionUri: string = '';
   private databaseName: string = 'saxonberg';
+
+  /**
+   * Hook registry keyed by `${collection}:${operation}`.
+   */
+  private saveHooks: Map<string, AroundSaveFn[]> = new Map();
+  private deleteHooks: Map<string, AroundDeleteFn[]> = new Map();
+
+  /**
+   * Active dispatch slots — for re-entry detection. Tracks which
+   * `(collection, operation)` slots are currently executing.
+   */
+  private activeSlots: Set<string> = new Set();
 
   /**
    * Private constructor (singleton pattern).
@@ -119,60 +195,67 @@ export class PersistenceManager {
   }
 
   /**
+   * Register an around-save or around-delete hook against a
+   * `(collection, operation)` slot.
+   *
+   * Multiple hooks may register against the same slot — they execute in
+   * registration order, each receiving `next` to invoke the rest of the
+   * chain (terminating in the actual MongoDB write).
+   *
+   * Today this is privileged only by convention (CODEOWNERS on the
+   * manifest file). When the call security framework lands it becomes
+   * formally privileged.
+   */
+  public registerHook(
+    collection: string,
+    operation: 'save',
+    hook: AroundSaveFn
+  ): void;
+  public registerHook(
+    collection: string,
+    operation: 'delete',
+    hook: AroundDeleteFn
+  ): void;
+  public registerHook(
+    collection: string,
+    operation: HookOperation,
+    hook: AroundSaveFn | AroundDeleteFn
+  ): void {
+    const key = `${collection}:${operation}`;
+    if (operation === 'save') {
+      const list = this.saveHooks.get(key) ?? [];
+      list.push(hook as AroundSaveFn);
+      this.saveHooks.set(key, list);
+    } else {
+      const list = this.deleteHooks.get(key) ?? [];
+      list.push(hook as AroundDeleteFn);
+      this.deleteHooks.set(key, list);
+    }
+  }
+
+  /**
+   * Drop all registered hooks (for testing).
+   */
+  public clearHooks(): void {
+    this.saveHooks.clear();
+    this.deleteHooks.clear();
+    this.activeSlots.clear();
+  }
+
+  /**
    * Save a document (insert or update).
    * If document has _id, updates it; otherwise inserts new document.
+   *
+   * Dispatches through any registered around-save hooks for this
+   * collection. Hooks may transform the doc, short-circuit, or wrap the
+   * operation. The terminal `next` performs the MongoDB upsert.
    *
    * @param collectionName - Collection name
    * @param document - Document to save
    * @returns MongoDB _id (as string)
    */
   public async save(collectionName: string, document: any): Promise<string> {
-    // Domain-collection saves enforce the folder/leaf invariant
-    // (Phase 7 Decision 12). Route through TemplateApi, which wraps this
-    // method via the `path`/`class`/`hydratorClass`/`data` contract and
-    // re-enters `save` for the normalized insert/update below.
-    if (
-      collectionName === Collections.Domain &&
-      !document.__bypassTemplateCheck &&
-      typeof document.path === 'string' &&
-      typeof document.class === 'string'
-    ) {
-      const { TemplateApi } = await import('../mud/api/template');
-      return TemplateApi.saveTemplate(
-        document.path,
-        document.class,
-        (document.data ?? {}) as Record<string, unknown>,
-        typeof document.hydratorClass === 'string' ? document.hydratorClass : undefined
-      );
-    }
-    if ('__bypassTemplateCheck' in document) delete document.__bypassTemplateCheck;
-
-    const collection = this.getCollection(collectionName);
-
-    try {
-      if (document._id) {
-        // Update existing document
-        const id = typeof document._id === 'string'
-          ? new ObjectId(document._id)
-          : document._id;
-
-        const { _id, ...updateDoc } = document;
-
-        await collection.updateOne(
-          { _id: id },
-          { $set: updateDoc }
-        );
-
-        return document._id;
-      } else {
-        // Insert new document
-        const result = await collection.insertOne(document);
-        return result.insertedId.toString();
-      }
-    } catch (error) {
-      console.error(`PersistenceManager: Error saving document to ${collectionName}:`, error);
-      throw error;
-    }
+    return this.dispatchSave(collectionName, document);
   }
 
   /**
@@ -234,17 +317,196 @@ export class PersistenceManager {
   /**
    * Delete a document by MongoDB _id.
    *
+   * Dispatches through any registered around-delete hooks for this
+   * collection. The terminal `next` performs the MongoDB delete.
+   *
    * @param collectionName - Collection name
    * @param id - MongoDB _id (string or ObjectId)
    */
   public async delete(collectionName: string, id: string): Promise<void> {
+    return this.dispatchDelete(collectionName, id);
+  }
+
+  /**
+   * Load and register hooks from a manifest YAML file.
+   *
+   * Each entry clones the named template via `StuffApi.clone()`, narrows
+   * with `MixinApi.isAroundSaveHook` / `isAroundDeleteHook`, and registers
+   * the resulting hook against the named `(collection, operation)` slot.
+   *
+   * Fails loudly on missing template, malformed YAML, or a template whose
+   * cloned object doesn't compose the required hook capability.
+   *
+   * @param yamlPath - Optional override; defaults to
+   *   `<src>/mud/obj/hooks/hooks.yaml`.
+   */
+  public async loadHooks(yamlPath?: string): Promise<void> {
+    const path = yamlPath ?? this.defaultHookManifestPath();
+    const raw = readFileSync(path, 'utf-8');
+    const manifest = YAML.parse(raw) as HookManifest;
+    if (!manifest || !Array.isArray(manifest.hooks)) {
+      throw new Error(
+        `PersistenceManager.loadHooks: malformed manifest at ${path}`
+      );
+    }
+
+    const { StuffApi } = await import('../mud/api/stuff');
+    const { MixinApi } = await import('../mud/api/mixin');
+    const { Stuff } = await import('../mud/lib/stuff/Stuff');
+
+    for (const entry of manifest.hooks) {
+      if (!entry.collection || !entry.operation || !entry.template) {
+        throw new Error(
+          `PersistenceManager.loadHooks: malformed entry in ${path}: ${JSON.stringify(entry)}`
+        );
+      }
+
+      const hook = (await StuffApi.clone(entry.template)) as InstanceType<typeof Stuff>;
+
+      if (entry.operation === 'save') {
+        if (!MixinApi.isAroundSaveHook(hook)) {
+          throw new Error(
+            `PersistenceManager.loadHooks: template ${entry.template} does not compose AroundSaveHookMixin`
+          );
+        }
+        this.registerHook(entry.collection, 'save', (c, doc, next) =>
+          hook.aroundSave(c, doc, next)
+        );
+      } else if (entry.operation === 'delete') {
+        if (!MixinApi.isAroundDeleteHook(hook)) {
+          throw new Error(
+            `PersistenceManager.loadHooks: template ${entry.template} does not compose AroundDeleteHookMixin`
+          );
+        }
+        this.registerHook(entry.collection, 'delete', (c, id, next) =>
+          hook.aroundDelete(c, id, next)
+        );
+      } else {
+        throw new Error(
+          `PersistenceManager.loadHooks: unknown operation '${entry.operation}' in ${path}`
+        );
+      }
+    }
+    console.log(
+      `PersistenceManager: Loaded ${manifest.hooks.length} hook binding(s) from ${path}`
+    );
+  }
+
+  /**
+   * Resolve the default hooks.yaml location relative to this module.
+   * `src/backend/PersistenceManager.ts` → `src/mud/obj/hooks/hooks.yaml`.
+   * Works in both ts-source (tsx) and built-dist layouts.
+   */
+  private defaultHookManifestPath(): string {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const candidate = join(here, '../mud/obj/hooks/hooks.yaml');
+    return isAbsolute(candidate) ? candidate : join(process.cwd(), candidate);
+  }
+
+  /**
+   * Walk the registered save hooks for `collectionName`, then perform the
+   * MongoDB upsert. Re-entry into the same slot throws.
+   */
+  private async dispatchSave(
+    collectionName: string,
+    document: Record<string, unknown>
+  ): Promise<string> {
+    const slot = `${collectionName}:save`;
+    if (this.activeSlots.has(slot)) {
+      throw new HookReentryError(collectionName, 'save');
+    }
+    this.activeSlots.add(slot);
+    try {
+      const hooks = this.saveHooks.get(slot) ?? [];
+      const terminal = (doc: Record<string, unknown>): Promise<string> =>
+        this.persistSave(collectionName, doc);
+      let next = terminal;
+      for (let i = hooks.length - 1; i >= 0; i--) {
+        const hook = hooks[i]!;
+        const continuation = next;
+        next = (doc) => hook(collectionName, doc, continuation);
+      }
+      return await next(document);
+    } finally {
+      this.activeSlots.delete(slot);
+    }
+  }
+
+  /**
+   * Walk the registered delete hooks for `collectionName`, then perform
+   * the MongoDB delete. Re-entry into the same slot throws.
+   */
+  private async dispatchDelete(collectionName: string, id: string): Promise<void> {
+    const slot = `${collectionName}:delete`;
+    if (this.activeSlots.has(slot)) {
+      throw new HookReentryError(collectionName, 'delete');
+    }
+    this.activeSlots.add(slot);
+    try {
+      const hooks = this.deleteHooks.get(slot) ?? [];
+      const terminal = (idArg: string): Promise<void> =>
+        this.persistDelete(collectionName, idArg);
+      let next = terminal;
+      for (let i = hooks.length - 1; i >= 0; i--) {
+        const hook = hooks[i]!;
+        const continuation = next;
+        next = (idArg) => hook(collectionName, idArg, continuation);
+      }
+      await next(id);
+    } finally {
+      this.activeSlots.delete(slot);
+    }
+  }
+
+  /**
+   * Terminal save: the actual MongoDB upsert.
+   */
+  private async persistSave(
+    collectionName: string,
+    document: Record<string, unknown> & { _id?: unknown }
+  ): Promise<string> {
     const collection = this.getCollection(collectionName);
 
+    try {
+      if (document._id) {
+        const id =
+          typeof document._id === 'string'
+            ? new ObjectId(document._id)
+            : (document._id as ObjectId);
+
+        // Strip _id before $set — MongoDB rejects updates that touch it.
+        const updateDoc: Record<string, unknown> = { ...document };
+        delete updateDoc._id;
+
+        await collection.updateOne({ _id: id }, { $set: updateDoc });
+
+        return String(document._id);
+      } else {
+        const result = await collection.insertOne(document as Parameters<typeof collection.insertOne>[0]);
+        return result.insertedId.toString();
+      }
+    } catch (error) {
+      console.error(
+        `PersistenceManager: Error saving document to ${collectionName}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Terminal delete: the actual MongoDB deletion.
+   */
+  private async persistDelete(collectionName: string, id: string): Promise<void> {
+    const collection = this.getCollection(collectionName);
     try {
       const objectId = new ObjectId(id);
       await collection.deleteOne({ _id: objectId });
     } catch (error) {
-      console.error(`PersistenceManager: Error deleting document from ${collectionName}:`, error);
+      console.error(
+        `PersistenceManager: Error deleting document from ${collectionName}:`,
+        error
+      );
       throw error;
     }
   }

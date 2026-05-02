@@ -13,18 +13,17 @@
  *
  * Mixin responsibilities:
  *   - `SealableMixin`: open/closed state (shared with chests, trapdoors, …).
+ *     The `isOpen` setter rejects non-boolean assignments.
  *   - `PerceptibleMixin`: MQL keywords so the player can type
- *     `open the oak door` and have it resolve.
+ *     `open the oak door` and have it resolve. The `keywords` setter
+ *     normalizes (lowercase / trim / dedupe).
  *   - `VisibleMixin`: short/long descriptions, so `look door` and
  *     `DescribeApi.getDisplayName()` both work uniformly.
  *
  * Template-loadable: `Door` is cloned from a `domain` template via
- * `StuffApi.clone()`. Domain docs are `{ path, class, hydratorClass?, data }`;
- * the base `Hydrator`'s default mixin-field copy is sufficient here, and
- * Door-specific fixups (keyword normalization, `isOpen` strict-boolean
- * coercion) run in the `initialize()` hook that clone awaits after hydrate.
- * The constructor also accepts a raw `Record<string, unknown>` for
- * ad-hoc/test construction; that path applies the same fixups inline.
+ * `StuffApi.clone()`. Templates set `hydratorClass: '/lib/stuff/Hydrator'`
+ * to opt into the generic mixin-field copy; the field setters above
+ * enforce shape on the way in, so no post-hydrate fixup is needed.
  *
  * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
  * (MqlApi scans those in addition to the room's contents), so a door is
@@ -38,53 +37,10 @@ import { Idea } from '../stuff/Idea';
 import { SealableMixin } from './Sealable';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
-import { MixinApi } from '../../api/mixin';
 
 const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Idea)));
 
 export class Door extends DoorBase {
-  /**
-   * Constructor — no-arg for the clone pipeline (`Hydrator.hydrate()` fills
-   * state after construction), or with a raw data blob for direct
-   * test/ad-hoc construction. The raw-data path mirrors the default
-   * `Hydrator` field-copy and then applies Door's normalization fixups.
-   */
-  constructor(data?: Record<string, unknown>) {
-    super();
-    if (data) {
-      const fields = MixinApi.getAllPersistentFields(
-        this.constructor as new (...args: unknown[]) => Idea
-      );
-      const target = this as unknown as Record<string, unknown>;
-      for (const field of fields) {
-        if (field in data) target[field] = data[field];
-      }
-      this.#normalize();
-    }
-  }
-
-  /**
-   * Post-hydration fixup hook invoked by `StuffApi.clone()` after the
-   * hydrator finishes. Normalizes keywords (lowercase/trim/dedupe via the
-   * mixin setter) and coerces `isOpen` to a strict boolean. Idempotent —
-   * safe to call again after direct-construction's inline normalize.
-   */
-  public async initialize(): Promise<void> {
-    this.#normalize();
-  }
-
-  #normalize(): void {
-    // Use `super.getKeywords()` to grab ONLY the raw PerceptibleMixin list —
-    // Door's override also merges in `shortDescription` tokens, which would
-    // otherwise turn every name token into a permanent explicit keyword.
-    const kw = super.getKeywords();
-    if (kw.length > 0) {
-      this.setKeywords([]);
-      for (const k of kw) this.addKeyword(k);
-    }
-    this.isOpen = this.isOpen === true;
-  }
-
   /**
    * Union of the PerceptibleMixin keyword list with the tokens of the
    * door's shortDescription. A door constructed with only `shortDescription:

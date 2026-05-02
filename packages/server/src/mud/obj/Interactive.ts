@@ -7,7 +7,7 @@
  * Holds a reference to the authenticated User (stamped by Application
  * before handoff to Login). Avatar loading iterates `user.playerIds` and
  * threads `{ user, playerId }` into `StuffApi.clone` as context so each
- * Avatar.initialize() sees its owning user synchronously.
+ * Avatar.postRegister() sees its owning user synchronously.
  *
  * Lifetime: created when a user connects, destroyed when the connection
  * drops.

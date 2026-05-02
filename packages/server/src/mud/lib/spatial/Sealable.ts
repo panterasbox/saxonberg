@@ -26,17 +26,38 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['isOpen'];
 
-    /** Current state. `false` = closed. Default closed. */
-    isOpen: boolean = false;
+    /** Backing storage; access via the `isOpen` accessor pair below. */
+    private _isOpen: boolean = false;
+
+    /**
+     * Current state. `false` = closed. Default closed.
+     *
+     * The setter rejects non-boolean assignments with `TypeError`. Hydrator's
+     * bracket-assign goes through this setter, so a malformed template
+     * (`isOpen: 1`) crashes loudly at hydrate time rather than being silently
+     * coerced at runtime.
+     */
+    get isOpen(): boolean {
+      return this._isOpen;
+    }
+
+    set isOpen(value: boolean) {
+      if (typeof value !== 'boolean') {
+        throw new TypeError(
+          `Sealable.isOpen must be a boolean, got ${typeof value}`
+        );
+      }
+      this._isOpen = value;
+    }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {
-      this.isOpen = true;
+      this._isOpen = true;
     }
 
     /** Close the sealable. Idempotent — closing an already-closed one is a no-op. */
     close(): void {
-      this.isOpen = false;
+      this._isOpen = false;
     }
   };
 }

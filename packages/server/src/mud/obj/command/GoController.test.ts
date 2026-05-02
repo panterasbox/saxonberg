@@ -146,7 +146,8 @@ describe('GoController', () => {
     });
 
     it('blocks traversal through a closed door', () => {
-      const door = new Door({ shortDescription: 'oak door' });
+      const door = new Door();
+      door.shortDescription = 'oak door';
       roomA.addExit(
         new Exit({ direction: 'east', source: roomA, destination: roomB, door })
       );

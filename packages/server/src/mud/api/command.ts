@@ -158,10 +158,10 @@ const CMD_DIR = join(__dirname, '../cmd');
  */
 export class CommandApi {
   /** Cached command definitions by filename (performance) */
-  private static commands: Map<string, CommandDefinition> = new Map();
+  static #commands: Map<string, CommandDefinition> = new Map();
 
   /** Verb → CommandDefinition lookup map (performance) */
-  private static verbMap: Map<string, CommandDefinition> = new Map();
+  static #verbMap: Map<string, CommandDefinition> = new Map();
 
   /**
    * Get a command definition by filename, loading it if not cached
@@ -171,8 +171,8 @@ export class CommandApi {
    */
   static getCommand(filename: string): CommandDefinition | null {
     // Check cache first
-    if (this.commands.has(filename)) {
-      return this.commands.get(filename)!;
+    if (this.#commands.has(filename)) {
+      return this.#commands.get(filename)!;
     }
 
     // Load from disk
@@ -181,7 +181,7 @@ export class CommandApi {
       const command = CommandDefinition.fromFile(filePath);
 
       // Cache it
-      this.commands.set(filename, command);
+      this.#commands.set(filename, command);
 
       // Register verbs for fast lookup
       for (const verb of command.verbs) {
@@ -195,10 +195,10 @@ export class CommandApi {
         }
 
         const lowerVerb = verb.toLowerCase();
-        if (this.verbMap.has(lowerVerb)) {
+        if (this.#verbMap.has(lowerVerb)) {
           console.warn(`CommandApi: Verb '${verb}' from ${filename} is already registered`);
         }
-        this.verbMap.set(lowerVerb, command);
+        this.#verbMap.set(lowerVerb, command);
       }
 
       return command;
@@ -215,7 +215,7 @@ export class CommandApi {
    * @returns CommandDefinition or null if not found in cache
    */
   static matchVerb(verb: string): CommandDefinition | null {
-    return this.verbMap.get(verb.toLowerCase()) || null;
+    return this.#verbMap.get(verb.toLowerCase()) || null;
   }
 
   /**
@@ -225,14 +225,14 @@ export class CommandApi {
    * use CommandGiver.getAvailableCommands() which queries CommandProviders.
    */
   static getAllCommands(): CommandDefinition[] {
-    return Array.from(this.commands.values());
+    return Array.from(this.#commands.values());
   }
 
   /**
    * Clear cache (useful for testing/reloading)
    */
   static clearCache(): void {
-    this.commands.clear();
-    this.verbMap.clear();
+    this.#commands.clear();
+    this.#verbMap.clear();
   }
 }

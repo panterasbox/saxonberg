@@ -2,6 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { Door } from './Door';
 import { MixinApi } from '../../api/mixin';
 
+/**
+ * Door has a no-arg constructor — fields are populated either by the
+ * clone-pipeline hydrator (via the mixin setters) or, in unit tests, by
+ * direct property assignment after construction. The setters on
+ * `SealableMixin.isOpen` and `PerceptibleMixin.keywords` enforce the
+ * shape of those fields regardless of the entry path.
+ */
+
 describe('Door', () => {
   it('constructs with sensible defaults', () => {
     const door = new Door();
@@ -11,33 +19,54 @@ describe('Door', () => {
     expect(door.isOpen).toBe(false);
   });
 
-  it('accepts template-shaped options', () => {
-    const door = new Door({
-      shortDescription: 'heavy oak door',
-      longDescription: 'An iron-banded slab of oak.',
-      keywords: ['portal'],
-      isOpen: true,
-    });
+  it('accepts post-construction field assignment', () => {
+    const door = new Door();
+    door.shortDescription = 'heavy oak door';
+    door.longDescription = 'An iron-banded slab of oak.';
+    door.keywords = ['portal'];
+    door.isOpen = true;
+
     expect(door.shortDescription).toBe('heavy oak door');
     expect(door.longDescription).toBe('An iron-banded slab of oak.');
     expect(door.isOpen).toBe(true);
     expect(door.getKeywords()).toContain('portal');
   });
 
-  it('normalizes explicit keywords to lowercase and drops empties', () => {
-    const door = new Door({
-      shortDescription: 'heavy oak door',
-      keywords: ['Oak', '  ', 'OLD'],
-    });
+  it('normalizes keywords assigned via the setter (lowercase, trim, dedupe)', () => {
+    const door = new Door();
+    door.shortDescription = 'heavy oak door';
+    door.keywords = ['Oak', '  ', 'OLD', 'oak'];
+
     const kw = door.getKeywords();
     expect(kw).toContain('oak');
     expect(kw).toContain('old');
     expect(kw).not.toContain('');
     expect(kw).not.toContain('  ');
+    // Dedupe: the duplicate 'Oak'/'oak' results in a single entry.
+    expect(kw.filter((k) => k === 'oak')).toHaveLength(1);
+  });
+
+  it('isOpen setter rejects non-boolean values with TypeError', () => {
+    const door = new Door();
+    expect(() => {
+      (door as unknown as { isOpen: unknown }).isOpen = 1;
+    }).toThrow(TypeError);
+    expect(() => {
+      (door as unknown as { isOpen: unknown }).isOpen = 'true';
+    }).toThrow(TypeError);
+    expect(door.isOpen).toBe(false);
+  });
+
+  it('keywords setter rejects non-arrays with TypeError', () => {
+    const door = new Door();
+    expect(() => {
+      (door as unknown as { keywords: unknown }).keywords = 'oak';
+    }).toThrow(TypeError);
   });
 
   it('open() and close() flip state idempotently', () => {
-    const door = new Door({ shortDescription: 'gate' });
+    const door = new Door();
+    door.shortDescription = 'gate';
     door.open();
     expect(door.isOpen).toBe(true);
     door.open();
@@ -49,10 +78,10 @@ describe('Door', () => {
   });
 
   it('getKeywords() merges explicit keywords with shortDescription tokens', () => {
-    const door = new Door({
-      shortDescription: 'Heavy Oak Door',
-      keywords: ['portal'],
-    });
+    const door = new Door();
+    door.shortDescription = 'Heavy Oak Door';
+    door.keywords = ['portal'];
+
     const kw = door.getKeywords();
     expect(kw).toContain('portal');
     expect(kw).toContain('heavy');
@@ -61,7 +90,8 @@ describe('Door', () => {
   });
 
   it('composes the expected mixins', () => {
-    const door = new Door({ shortDescription: 'gate' });
+    const door = new Door();
+    door.shortDescription = 'gate';
     expect(MixinApi.isSealable(door)).toBe(true);
     expect(MixinApi.isPerceptible(door)).toBe(true);
     expect(MixinApi.isVisible(door)).toBe(true);

@@ -278,13 +278,20 @@ const obj = await StuffApi.create(() => new SomeClass());
 **Template Structure** (in `domain` collection):
 ```typescript
 {
-  path: "/avatar/player/abc123",  // Unique template identifier
-  class: "/obj/Avatar",            // Class path (relative to /mud/)
-  data: {                          // Template initialization data
-    playerId: "507f1f77..."        // Passed to constructor
+  path: "/avatar/player/abc123",   // Unique template identifier
+  class: "/obj/Avatar",             // Backing class (relative to /mud/)
+  hydratorClass: "/lib/stuff/Hydrator", // Optional Hydrator subclass
+  data: {                           // Hydration payload
+    firstName: "Alice"
   }
 }
 ```
+
+**`hydratorClass` is opt-in.** When absent, the clone pipeline runs no
+hydrator at all and `data` is ignored. Templates that want generic
+mixin-field copy must set `hydratorClass: '/lib/stuff/Hydrator'`. Templates
+whose runtime state is fully populated by `postRegister`/context (no
+data-driven persistent fields) leave it absent.
 
 **Avatar Template Convention**:
 - Path pattern: `/avatar/player/<playerId>`
@@ -579,6 +586,28 @@ The architecture anticipates:
 - **Class files**: Match the class name (e.g., `Avatar.ts`, `Player.ts`, `Thing.ts`)
 - **API files**: Lowercase with .ts extension (e.g., `stuff.ts`, `player.ts`, `mixin.ts`)
 
+**Member Privacy (`#` vs TypeScript modifiers)**:
+
+The repo uses two privacy mechanisms with different threat-model semantics:
+
+- TypeScript modifiers (`private`, `protected`, `public`) — compile-time only. The fields are public properties at runtime: reachable via bracket access, reflection (`Object.keys`, `Reflect.ownKeys`), `JSON.stringify`, Proxy `get`/`set` traps, and subclasses that override-and-super.
+- ECMAScript hard-private (`#name`) — runtime-enforced. Cannot be reached by bracket access, reflection, Proxy traps, subclasses, or replaced prototype methods. Lexically bound to the class body.
+
+The two are NOT interchangeable. The convention is layer-based:
+
+- **Mediator/trusted-surface code** — `packages/server/src/backend/` and `packages/server/src/mud/api/` — defaults to `#` for private members. These layers mediate access for everything else, will be wrapped by the future Proxy-based call-security framework, and benefit from the stronger runtime guarantee. `#` ensures that internal slots are invisible to a wrapping Proxy, so trusted method bodies operate on their own state without being mediated by the very framework they implement.
+- **Domain code** — `packages/server/src/mud/lib/`, `packages/server/src/mud/obj/`, `packages/server/src/mud/cmd/` — defaults to TypeScript modifiers (`private`, `protected`, `public`). Domain code carries persistent fields that the `Hydrator` reflects into; those fields MUST be public. Use `protected` for subclass extension points (e.g., `prepareDestroy()`-style hooks), `private` for class-internal helpers and caches.
+
+**Special circumstances** where `#` is appropriate inside `/mud/lib/` or `/mud/obj/`:
+
+1. A reentry guard or invariant-critical flag where a malicious subclass overriding a method could corrupt state by flipping the flag.
+2. An internal slot that must be deliberately shielded from the Proxy-based permissions framework — i.e., the trusted method body must bypass mediation when touching its own state.
+3. A field whose only legitimate access is the class itself, where forcing tests to use a deliberate observation seam (rather than `(obj as any).field`) is the desired outcome.
+
+Caches, helpers, and ordinary internal state do NOT qualify. When introducing `#` in domain code, leave a one-line comment explaining which of the above applies.
+
+**Hard constraint**: Persistent fields (anything in `persistentFields` or contributed by a mixin's persistent field set) cannot be `#` — the `Hydrator` reflects into them and `#` slots are unreachable from outside the class body. This constraint and the layer rule above are mutually reinforcing: persistent fields live in `lib/`, where TS modifiers are already the default.
+
 ### Critical Architectural Principles
 
 1. **Separation of Concerns**: Backend (I/O only) vs Application (logic) vs Mudlib (domain)
@@ -805,6 +834,7 @@ For detailed architectural patterns and implementation guidelines, see:
 - Type-safe generics: `CommandController<I = unknown, O = unknown>` — use narrower types per command, never `any`
 - Controllers must not reimplement display-name fallbacks — use `DescribeApi.getDisplayName()`
 - Accessor methods over direct property access (e.g., `getKeywords()` instead of `keywords` array)
+  - Exception: `Hydrator` and its subclasses bracket-assign onto persistent fields by design — that path invokes setters and is the canonical entry point for bulk field population from template `data`. Field-shape invariants ("must be boolean", "lowercase / trim / dedupe") belong on the setter; hydration then enforces them automatically. Don't add `normalize()`-style post-hydrate fixups for per-field rules — those are the antipattern this exception exists to prevent.
 
 ### Development Notes
 

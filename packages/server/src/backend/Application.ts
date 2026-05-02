@@ -314,8 +314,11 @@ export class Application {
 
   /**
    * Seed a default avatar template for a new user. Self-contained under
-   * the unified state model — no Player/CharacterSheet indirection, no
-   * hydratorClass (the default Hydrator's mixin-field copy suffices).
+   * the unified state model — no Player/CharacterSheet indirection. Opts
+   * into the base `Hydrator` so the generic mixin-field copy applies the
+   * persistent fields (firstName/lastName/pronouns) at clone time;
+   * runtime-only fields (`user`, `playerId`) are stamped by Avatar's
+   * `postRegister` from the clone context.
    *
    * @returns the generated playerId (template path: `/avatar/<playerId>`)
    */
@@ -325,11 +328,16 @@ export class Application {
   ): Promise<string> {
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
-    await TemplateApi.saveTemplate(path, '/obj/Avatar', {
-      firstName,
-      lastName,
-      pronouns: Pronouns.They,
-    });
+    await TemplateApi.saveTemplate(
+      path,
+      '/obj/Avatar',
+      {
+        firstName,
+        lastName,
+        pronouns: Pronouns.They,
+      },
+      '/lib/stuff/Hydrator'
+    );
     console.log(`Application: Created avatar template at ${path}`);
     return playerId;
   }

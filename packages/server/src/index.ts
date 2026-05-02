@@ -53,6 +53,9 @@ async function main() {
 
     console.log('MongoDB connection successful\n');
 
+    // 1a. Load PM hooks (folder/leaf invariant on Collections.Domain, etc.)
+    await PersistenceManager.get().loadHooks();
+
     // 2. Create and start Server
     const port = parseInt(process.env.PORT || '2010', 10);
     const server = new Server(port);

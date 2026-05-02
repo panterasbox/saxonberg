@@ -21,6 +21,12 @@ function makeUser(id: string): User {
   return user;
 }
 
+function makeAvatar(playerId: string): Avatar {
+  const a = new Avatar();
+  a.playerId = playerId;
+  return a;
+}
+
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {
     it('should have correct template path prefix', () => {
@@ -138,7 +144,7 @@ describe('Avatar', () => {
     let avatar: Avatar;
 
     beforeEach(() => {
-      avatar = new Avatar({ playerId: 'test123' });
+      avatar = makeAvatar('test123');
     });
 
     it('should be instance of Character', () => {
@@ -166,7 +172,7 @@ describe('Avatar', () => {
     let interactive3: Interactive;
 
     beforeEach(() => {
-      avatar = new Avatar({ playerId: 'test123' });
+      avatar = makeAvatar('test123');
       interactive1 = new Interactive('socket1', 'session1', makeUser('user1'));
       interactive2 = new Interactive('socket2', 'session2', makeUser('user1'));
       interactive3 = new Interactive('socket3', 'session3', makeUser('user1'));
@@ -326,7 +332,7 @@ describe('Avatar', () => {
 
     beforeEach(() => {
       // Create a simple avatar for testing
-      avatar = new Avatar({ playerId: 'test-player-123' });
+      avatar = makeAvatar('test-player-123');
 
       // Mock Application.sendMessageToInteractive
       mockApp = {

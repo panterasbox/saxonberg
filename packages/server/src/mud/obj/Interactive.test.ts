@@ -23,6 +23,12 @@ function makeUser(id: string, playerIds: string[] = []): User {
   return user;
 }
 
+function makeAvatar(playerId: string): Avatar {
+  const a = new Avatar();
+  a.playerId = playerId;
+  return a;
+}
+
 describe('Interactive', () => {
   let interactive: Interactive;
   const testSocketId = 'socket123';
@@ -76,9 +82,9 @@ describe('Interactive', () => {
     let mockAvatar2: Avatar;
 
     beforeEach(() => {
-      mockAvatar1 = new Avatar({ playerId: 'player1' });
+      mockAvatar1 = makeAvatar('player1');
       mockAvatar1.firstName = 'Alice';
-      mockAvatar2 = new Avatar({ playerId: 'player2' });
+      mockAvatar2 = makeAvatar('player2');
       mockAvatar2.firstName = 'Bob';
     });
 
@@ -173,9 +179,9 @@ describe('Interactive', () => {
     beforeEach(() => {
       interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
 
-      mockAvatar1 = new Avatar({ playerId: 'player1' });
+      mockAvatar1 = makeAvatar('player1');
       mockAvatar1.firstName = 'Alice';
-      mockAvatar2 = new Avatar({ playerId: 'player2' });
+      mockAvatar2 = makeAvatar('player2');
       mockAvatar2.firstName = 'Bob';
 
       interactive.availableAvatars.set('player1', mockAvatar1);
@@ -222,7 +228,7 @@ describe('Interactive', () => {
       interactive1 = new Interactive('socket1', 'session1', makeUser(testUserId));
       interactive2 = new Interactive('socket2', 'session2', makeUser(testUserId));
 
-      mockAvatar = new Avatar({ playerId: 'player1' });
+      mockAvatar = makeAvatar('player1');
       mockAvatar.firstName = 'Alice';
 
       interactive1.availableAvatars.set('player1', mockAvatar);
@@ -293,7 +299,7 @@ describe('Interactive', () => {
 
     beforeEach(() => {
       interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
-      mockAvatar = new Avatar({ playerId: 'player1' });
+      mockAvatar = makeAvatar('player1');
       interactive.availableAvatars.set('player1', mockAvatar);
     });
 
@@ -343,7 +349,7 @@ describe('Interactive', () => {
     });
 
     it('should include avatar name when connected', async () => {
-      const mockAvatar = new Avatar({ playerId: 'player1' });
+      const mockAvatar = makeAvatar('player1');
       mockAvatar.firstName = 'Alice';
       mockAvatar.lastName = 'Smith';
       interactive.availableAvatars.set('player1', mockAvatar);

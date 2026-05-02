@@ -38,6 +38,9 @@ import type { Exitable } from '../lib/spatial/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
 import type { CartesianCoordinates } from '../lib/spatial/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
+import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
+import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
+import type { PostRegistration } from '../lib/stuff/PostRegistration';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin-types';
@@ -248,6 +251,18 @@ export class MixinApi {
 
   public static isSphericalCoordinates(obj: Stuff): obj is Stuff & SphericalCoordinates {
     return this.hasMixin(obj.constructor, Mixins.SphericalCoordinates);
+  }
+
+  public static isAroundSaveHook(obj: Stuff): obj is Stuff & AroundSaveHook {
+    return this.hasMixin(obj.constructor, Mixins.AroundSaveHook);
+  }
+
+  public static isAroundDeleteHook(obj: Stuff): obj is Stuff & AroundDeleteHook {
+    return this.hasMixin(obj.constructor, Mixins.AroundDeleteHook);
+  }
+
+  public static isPostRegistration(obj: Stuff): obj is Stuff & PostRegistration {
+    return this.hasMixin(obj.constructor, Mixins.PostRegistration);
   }
 }
 

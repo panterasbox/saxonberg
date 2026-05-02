@@ -18,7 +18,6 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
   const save = vi.fn(async (_collection: string, doc: Doc) => {
     const copy = { ...doc };
-    delete (copy as Record<string, unknown>).__bypassTemplateCheck;
     if (copy._id) {
       const idx = store.findIndex((d) => d._id === copy._id);
       if (idx >= 0) store[idx] = copy;

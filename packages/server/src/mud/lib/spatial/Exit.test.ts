@@ -67,7 +67,8 @@ describe('Exit', () => {
     });
 
     it('returns not ok when door is closed', () => {
-      const door = new Door({ shortDescription: 'oak door' });
+      const door = new Door();
+      door.shortDescription = 'oak door';
       const exit = new Exit({ direction: 'north', source: roomA, destination: roomB, door });
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
@@ -76,7 +77,8 @@ describe('Exit', () => {
     });
 
     it('returns ok when door is open', () => {
-      const door = new Door({ shortDescription: 'oak door' });
+      const door = new Door();
+      door.shortDescription = 'oak door';
       door.open();
       const exit = new Exit({ direction: 'north', source: roomA, destination: roomB, door });
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
