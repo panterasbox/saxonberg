@@ -27,6 +27,7 @@ import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
+import { PersistentHydrator } from '../mud/lib/persistence/PersistentHydrator';
 import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 
@@ -315,7 +316,7 @@ export class Application {
   /**
    * Seed a default avatar template for a new user. Self-contained under
    * the unified state model — no Player/CharacterSheet indirection. Opts
-   * into the base `Hydrator` so the generic mixin-field copy applies the
+   * into `PersistentHydrator` so the generic mixin-field copy applies the
    * persistent fields (firstName/lastName/pronouns) at clone time;
    * runtime-only fields (`user`, `playerId`) are stamped by Avatar's
    * `postRegister` from the clone context.
@@ -336,7 +337,7 @@ export class Application {
         lastName,
         pronouns: Pronouns.They,
       },
-      '/lib/stuff/Hydrator'
+      PersistentHydrator.templatePath
     );
     console.log(`Application: Created avatar template at ${path}`);
     return playerId;

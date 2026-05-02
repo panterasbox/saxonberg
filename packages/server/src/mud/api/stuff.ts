@@ -14,7 +14,7 @@
 
 import { nanoid } from 'nanoid';
 import type { Stuff, DestroyedObjectMetadata } from '../lib/stuff/Stuff';
-import { Hydrator } from '../lib/stuff/Hydrator';
+import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
 
@@ -23,16 +23,16 @@ import { MixinApi } from './mixin';
  *
  * Two class paths sit at the top level, independently:
  *   - `class`         — the runtime backing class (what gets instantiated)
- *   - `hydratorClass` — the `Hydrator` subclass that knows how to translate
- *                       `data` into live state on the backing. Optional:
- *                       when ABSENT, no hydrator runs at all and `data` is
- *                       ignored. Templates that want the generic mixin-field
- *                       copy must opt in by setting
- *                       `hydratorClass: '/lib/stuff/Hydrator'`. Multiple
- *                       backing classes may share one hydrator (e.g. a
- *                       `CreatureHydrator` serving both a Guard and a
- *                       GuardDog), and one backing class may be decorated by
- *                       many domain-specific hydrators.
+ *   - `hydratorClass` — a class implementing the `Hydrator` interface that
+ *                       knows how to translate `data` into live state on the
+ *                       backing. Optional: when ABSENT, no hydrator runs at
+ *                       all and `data` is ignored. Templates that want the
+ *                       generic mixin-field copy must opt in by setting
+ *                       `hydratorClass: '/lib/persistence/PersistentHydrator'`.
+ *                       Multiple backing classes may share one hydrator
+ *                       (e.g. a `CreatureHydrator` serving both a Guard and
+ *                       a GuardDog), and one backing class may be decorated
+ *                       by many domain-specific hydrators.
  *
  * `data` is pure hydration payload — never carries class paths itself.
  */
@@ -40,7 +40,7 @@ export interface DomainTemplate {
   _id?: string;
   path: string; // e.g., "/avatar/player/abc", "/home/bobalu/workroom"
   class: string; // runtime backing class, e.g. "/obj/Avatar"
-  hydratorClass?: string; // optional Hydrator subclass, e.g. "/lib/identity/AvatarHydrator"
+  hydratorClass?: string; // optional Hydrator class, e.g. "/lib/persistence/PersistentHydrator"
   data: Record<string, unknown>;
 }
 
@@ -125,7 +125,8 @@ export class StuffApi {
    *   5. If the template names a `hydratorClass`, resolve it and
    *      `await hydrator.hydrate(backing, doc.data)`. When absent, no
    *      hydration step runs — templates that want generic mixin-field
-   *      copy must opt in by naming `'/lib/stuff/Hydrator'`.
+   *      copy must opt in by naming
+   *      `'/lib/persistence/PersistentHydrator'`.
    *   6. If the backing composes `PostRegistrationMixin`, await
    *      `postRegister(context)`, forwarding the caller-supplied context.
    *
@@ -200,25 +201,15 @@ export class StuffApi {
     //    want generic mixin-field copy must opt in.
     const hydrator = await this.#resolveHydrator(template.hydratorClass);
 
-    // 7. Construct, register, optionally hydrate, then initialize.
+    // 7. Construct, stamp zone, then run the shared register / hydrate /
+    //    postRegister sequence. The hydrator captures `template.data`.
     const obj = new ClassConstructor();
     if (zone) obj.zone = zone;
-    this.register(obj);
-
-    try {
-      if (hydrator) {
-        await hydrator.hydrate(obj, template.data ?? {});
-      }
-
-      if (MixinApi.isPostRegistration(obj)) {
-        await obj.postRegister(context);
-      }
-    } catch (error) {
-      this.unregister(obj);
-      throw error;
-    }
-
-    return obj;
+    return this.#registerAndInit(
+      obj,
+      hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
+      context
+    );
   }
 
   /**
@@ -255,17 +246,22 @@ export class StuffApi {
   }
 
   /**
-   * Create and register a Stuff object.
-   * This is the preferred way to create game objects.
+   * Create and register a Stuff object via a caller-supplied factory.
    *
-   * The factory function should construct the object without side effects.
-   * Registration happens BEFORE `postRegister()` is awaited so that recursive
-   * resolution during setup (e.g. a room whose exits resolve back to itself)
-   * can observe the in-flight instance rather than triggering a re-clone.
-   * If `postRegister()` throws, the object is unregistered before the error
+   * Sister of `clone()`: same register / postRegister tail, no hydration
+   * step (the factory IS the construction). Use this for runtime-only
+   * objects whose construction needs explicit arguments and which don't
+   * round-trip through the CMS template pattern (Interactive being the
+   * canonical example — `socketId`, `sessionId`, `user` all flow through
+   * the closure).
+   *
+   * Registration happens BEFORE `postRegister()` so that recursive
+   * resolution during setup (e.g. a room whose exits resolve back to
+   * itself via the registry) can observe the in-flight instance. If
+   * `postRegister()` throws, the object is unregistered before the error
    * propagates.
    *
-   * @param factory - Function that creates the object
+   * @param factory - Function that constructs the object
    * @param context - Optional runtime context passed to `postRegister`
    * @returns The created and registered object
    *
@@ -276,16 +272,36 @@ export class StuffApi {
     factory: () => T,
     context?: unknown
   ): Promise<T> {
-    const obj = factory();
+    return this.#registerAndInit(factory(), null, context);
+  }
+
+  /**
+   * Shared register / hydrate / postRegister sequence used by both
+   * `clone()` and `create()`. `hydrate` is `null` for the create path
+   * (no template, no hydrator); `clone()` passes a closure that captures
+   * the resolved hydrator and template data.
+   *
+   * Order is load-bearing: register fires first so anything resolving the
+   * in-flight object by `stuffId` during hydrate or `postRegister` (e.g.,
+   * a self-referencing exit hydrator) finds it. If hydrate or
+   * `postRegister` throws, we unregister before propagating so a partial
+   * object never lingers in the registry.
+   */
+  static async #registerAndInit<T extends Stuff>(
+    obj: T,
+    hydrate: ((obj: T) => Promise<void>) | null,
+    context: unknown
+  ): Promise<T> {
     this.register(obj);
 
-    if (MixinApi.isPostRegistration(obj)) {
-      try {
+    try {
+      if (hydrate) await hydrate(obj);
+      if (MixinApi.isPostRegistration(obj)) {
         await obj.postRegister(context);
-      } catch (error) {
-        this.unregister(obj);
-        throw error;
       }
+    } catch (error) {
+      this.unregister(obj);
+      throw error;
     }
 
     return obj;

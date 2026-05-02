@@ -39,8 +39,9 @@ export class TemplateApi {
    * @param path - Template path (e.g. `/narnia/castle/foyer`)
    * @param classPath - Runtime backing class (e.g. `/lib/spatial/CartesianLocation`)
    * @param data - Raw hydration payload
-   * @param hydratorClassPath - Optional Hydrator class (omit for default
-   *   mixin-field copy via the base `Hydrator`)
+   * @param hydratorClassPath - Optional `Hydrator` class path (omit to
+   *   skip hydration; pass `'/lib/persistence/PersistentHydrator'` for
+   *   generic mixin-field copy)
    * @returns The saved template's MongoDB `_id`.
    */
   public static async saveTemplate(

@@ -21,9 +21,10 @@
  *     `DescribeApi.getDisplayName()` both work uniformly.
  *
  * Template-loadable: `Door` is cloned from a `domain` template via
- * `StuffApi.clone()`. Templates set `hydratorClass: '/lib/stuff/Hydrator'`
- * to opt into the generic mixin-field copy; the field setters above
- * enforce shape on the way in, so no post-hydrate fixup is needed.
+ * `StuffApi.clone()`. Templates set
+ * `hydratorClass: '/lib/persistence/PersistentHydrator'` to opt into the
+ * generic mixin-field copy; the field setters above enforce shape on the
+ * way in, so no post-hydrate fixup is needed.
  *
  * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
  * (MqlApi scans those in addition to the room's contents), so a door is

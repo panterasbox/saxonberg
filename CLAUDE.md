@@ -280,7 +280,7 @@ const obj = await StuffApi.create(() => new SomeClass());
 {
   path: "/avatar/player/abc123",   // Unique template identifier
   class: "/obj/Avatar",             // Backing class (relative to /mud/)
-  hydratorClass: "/lib/stuff/Hydrator", // Optional Hydrator subclass
+  hydratorClass: "/lib/persistence/PersistentHydrator", // Optional Hydrator
   data: {                           // Hydration payload
     firstName: "Alice"
   }
@@ -289,9 +289,11 @@ const obj = await StuffApi.create(() => new SomeClass());
 
 **`hydratorClass` is opt-in.** When absent, the clone pipeline runs no
 hydrator at all and `data` is ignored. Templates that want generic
-mixin-field copy must set `hydratorClass: '/lib/stuff/Hydrator'`. Templates
-whose runtime state is fully populated by `postRegister`/context (no
-data-driven persistent fields) leave it absent.
+mixin-field copy must set
+`hydratorClass: '/lib/persistence/PersistentHydrator'` (the standard
+`Hydrator` implementation). Templates whose runtime state is fully
+populated by `postRegister`/context (no data-driven persistent fields)
+leave it absent.
 
 **Avatar Template Convention**:
 - Path pattern: `/avatar/player/<playerId>`
