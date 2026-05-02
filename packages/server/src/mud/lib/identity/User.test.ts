@@ -1,10 +1,10 @@
 /**
- * Tests for User
+ * Tests for User (pure Persistable, not a Stuff).
  *
  * Covers:
- * - Persistent fields configuration
- * - Verification that playerIds was removed (no bidirectional relationship)
+ * - Persistent fields configuration (includes playerIds ownership list)
  * - Collection name configuration
+ * - User is NOT a Stuff (no stuffId)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -22,75 +22,48 @@ describe('User', () => {
       expect(User.persistentFields).toContain('googleProfileId');
     });
 
-    it('should NOT include playerIds (removed bidirectional relationship)', () => {
-      expect(User.persistentFields).not.toContain('playerIds');
+    it('should include playerIds (authoritative character-ownership list)', () => {
+      expect(User.persistentFields).toContain('playerIds');
     });
 
-    it('should be an array', () => {
-      expect(Array.isArray(User.persistentFields)).toBe(true);
-    });
-
-    it('should only contain expected fields', () => {
-      // User has no mixins, so persistentFields should only have class fields
-      expect(User.persistentFields).toEqual(['googleProfileId']);
-    });
-
-    it('should have correct number of persistent fields', () => {
-      // Should only have googleProfileId after playerIds removal
-      expect(User.persistentFields.length).toBe(1);
+    it('should be exactly [googleProfileId, playerIds]', () => {
+      expect(User.persistentFields).toEqual(['googleProfileId', 'playerIds']);
     });
   });
 
   describe('User instance', () => {
-    it('should create user with googleProfileId field', () => {
+    it('should initialize googleProfileId to empty string', () => {
       const user = new User();
-
-      expect(user).toHaveProperty('googleProfileId');
       expect(user.googleProfileId).toBe('');
     });
 
-    it('should NOT have playerIds field', () => {
+    it('should initialize playerIds to an empty array', () => {
       const user = new User();
-
-      // Verify playerIds was removed
-      expect(user).not.toHaveProperty('playerIds');
+      expect(Array.isArray(user.playerIds)).toBe(true);
+      expect(user.playerIds).toEqual([]);
     });
 
-    it('should have stuffId from Stuff base class', () => {
+    it('should have _id field (undefined until saved)', () => {
       const user = new User();
-
-      expect(user).toHaveProperty('stuffId');
-      expect(user.stuffId).toBeDefined();
-      expect(typeof user.stuffId).toBe('string');
-    });
-
-    it('should have _id field from Persistable base class', () => {
-      const user = new User();
-
       expect(user).toHaveProperty('_id');
+      expect(user._id).toBeUndefined();
     });
 
-    it('should be able to set googleProfileId', () => {
+    it('should NOT be a Stuff (no stuffId)', () => {
       const user = new User();
-      const testProfileId = '507f1f77bcf86cd799439011';
-
-      user.googleProfileId = testProfileId;
-
-      expect(user.googleProfileId).toBe(testProfileId);
+      expect(user).not.toHaveProperty('stuffId');
     });
-  });
 
-  describe('User relationship to Player', () => {
-    it('should NOT maintain bidirectional relationship via playerIds array', () => {
-      // This test documents the architectural decision to remove User.playerIds
-      // Players reference User via userId, but User does NOT store playerIds
-      // To find a User's players, query: PersistenceManager.find(Collections.Players, { userId })
-
+    it('should initialize createdAt and updatedAt timestamps', () => {
       const user = new User();
+      expect(user.createdAt).toBeInstanceOf(Date);
+      expect(user.updatedAt).toBeInstanceOf(Date);
+    });
 
-      // Verify the bidirectional relationship was removed
-      expect('playerIds' in user).toBe(false);
-      expect(User.persistentFields.includes('playerIds')).toBe(false);
+    it('should allow appending to playerIds', () => {
+      const user = new User();
+      user.playerIds.push('slot-1', 'slot-2');
+      expect(user.playerIds).toEqual(['slot-1', 'slot-2']);
     });
   });
 });

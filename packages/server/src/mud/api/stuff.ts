@@ -14,25 +14,43 @@
 
 import { nanoid } from 'nanoid';
 import type { Stuff, DestroyedObjectMetadata } from '../lib/stuff/Stuff';
+import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
+import { MixinApi } from './mixin';
 
 /**
- * Domain template from CMS.
- * Templates define how to create objects from paths.
+ * Domain template document from the CMS.
+ *
+ * Two class paths sit at the top level, independently:
+ *   - `class`         — the runtime backing class (what gets instantiated)
+ *   - `hydratorClass` — a class implementing the `Hydrator` interface that
+ *                       knows how to translate `data` into live state on the
+ *                       backing. Optional: when ABSENT, no hydrator runs at
+ *                       all and `data` is ignored. Templates that want the
+ *                       generic mixin-field copy must opt in by setting
+ *                       `hydratorClass: '/lib/persistence/PersistentHydrator'`.
+ *                       Multiple backing classes may share one hydrator
+ *                       (e.g. a `CreatureHydrator` serving both a Guard and
+ *                       a GuardDog), and one backing class may be decorated
+ *                       by many domain-specific hydrators.
+ *
+ * `data` is pure hydration payload — never carries class paths itself.
  */
 export interface DomainTemplate {
   _id?: string;
   path: string; // e.g., "/avatar/player/abc", "/home/bobalu/workroom"
-  class: string; // e.g., "/obj/Avatar" (relative to /mud/)
-  data: Record<string, unknown>; // template-specific initialization data
+  class: string; // runtime backing class, e.g. "/obj/Avatar"
+  hydratorClass?: string; // optional Hydrator class, e.g. "/lib/persistence/PersistentHydrator"
+  data: Record<string, unknown>;
 }
 
 /**
- * Constructor type for Stuff classes.
+ * Constructor type for Stuff classes. Clone instantiates backings with no
+ * argument; hydration happens in a separate `Hydrator.hydrate()` step.
+ * Classes may still define a raw-data constructor for direct test
+ * construction — that's a class-local convenience, not a clone contract.
  */
-export type StuffConstructor<T extends Stuff = Stuff> = new (
-  templateData: Record<string, unknown>
-) => T;
+export type StuffConstructor<T extends Stuff = Stuff> = new () => T;
 
 /**
  * Static API for object management and registry.
@@ -41,13 +59,13 @@ export class StuffApi {
   /**
    * Registry of all active objects by stuffId.
    */
-  private static objectsById: Map<string, Stuff> = new Map();
+  static #objectsById: Map<string, Stuff> = new Map();
 
   /**
    * WeakMap tracking destroyed objects for debugging.
    * Objects are automatically garbage collected once no other references exist.
    */
-  private static destroyedObjects: WeakMap<Stuff, DestroyedObjectMetadata> =
+  static #destroyedObjects: WeakMap<Stuff, DestroyedObjectMetadata> =
     new WeakMap();
 
   /**
@@ -62,11 +80,15 @@ export class StuffApi {
    * Validate and normalize a class path.
    * Ensures path is safe and doesn't attempt directory traversal.
    *
+   * Hard-private: class-path validation gates dynamic-import targets, so the
+   * function must be invocable only from within this class — wrapping
+   * `clone()` with a Proxy must not be able to redirect or short-circuit it.
+   *
    * @param classPath - Class path relative to /mud/ (e.g., "/obj/Avatar")
    * @returns Normalized path
    * @throws Error if path is invalid
    */
-  private static validateClassPath(classPath: string): string {
+  static #validateClassPath(classPath: string): string {
     // Must start with /
     if (!classPath.startsWith('/')) {
       throw new Error(`Class path must start with /: ${classPath}`);
@@ -94,23 +116,40 @@ export class StuffApi {
   /**
    * Clone an object from a template in the domain collection.
    *
-   * This is the primary way to create game objects:
-   * 1. Loads template from 'domain' collection by path
-   * 2. Dynamically imports the class module
-   * 3. Instantiates the class with template data
-   * 4. Calls async initialize() if present
-   * 5. Registers the object
-   * 6. Returns the instance
+   * Pipeline:
+   *   1. Load the template doc by path.
+   *   2. Dynamic-import the backing `class` module.
+   *   3. Construct an empty backing (no-arg ctor) and stamp its zone.
+   *   4. Register the instance so recursive resolution during hydrate /
+   *      initialize can observe the in-flight object.
+   *   5. If the template names a `hydratorClass`, resolve it and
+   *      `await hydrator.hydrate(backing, doc.data)`. When absent, no
+   *      hydration step runs — templates that want generic mixin-field
+   *      copy must opt in by naming
+   *      `'/lib/persistence/PersistentHydrator'`.
+   *   6. If the backing composes `PostRegistrationMixin`, await
+   *      `postRegister(context)`, forwarding the caller-supplied context.
    *
-   * @param templatePath - Path to the template (e.g., "/avatar/player/abc")
+   * If hydration or `postRegister` throws, the object is unregistered
+   * before the error propagates.
+   *
+   * The optional `context` is a caller-supplied bag threaded through to
+   * `postRegister`. It carries runtime setup that cannot come from the
+   * template's `data` — e.g., an authenticated `User` for an avatar.
+   * Objects that don't care ignore it; objects that do (Avatar) declare a
+   * narrower context type locally and read what they need.
+   *
+   * @param templatePath - Path to the template (e.g., "/avatar/<playerId>")
+   * @param context - Optional runtime context passed to `postRegister`
    * @returns The cloned and registered object
    *
    * @example
-   * const avatar = await StuffApi.clone('/avatar/player/abc');
+   * const avatar = await StuffApi.clone<Avatar>('/avatar/abc', { user });
    * const room = await StuffApi.clone('/home/bobalu/workroom');
    */
   public static async clone<T extends Stuff>(
-    templatePath: string
+    templatePath: string,
+    context?: unknown
   ): Promise<T> {
     // 1. Load template from domain collection
     const templates = await PersistenceManager.get().find(Collections.Domain, {
@@ -124,7 +163,7 @@ export class StuffApi {
     const template = templates[0] as unknown as DomainTemplate;
 
     // 2. Validate and resolve class path
-    const classPath = this.validateClassPath(template.class);
+    const classPath = this.#validateClassPath(template.class);
 
     // 3. Dynamically import the module
     // Convert "/obj/Avatar" to "../obj/Avatar"
@@ -150,48 +189,121 @@ export class StuffApi {
       );
     }
 
-    // 5. Resolve the template's zone from its path. Done before initialize()
-    //    so subclasses that rely on `this.zone` during async setup see the
-    //    correct value. `ZoneApi.resolveZoneForPath` returns null when the
-    //    template is itself a Zone (a zone isn't inside itself).
+    // 5. Resolve the template's zone from its path. Stamped before hydrate /
+    //    initialize so hooks that rely on `this.zone` see the correct value.
+    //    `ZoneApi.resolveZoneForPath` returns null when the template is
+    //    itself a Zone (a zone isn't inside itself).
     const { ZoneApi } = await import('./zone');
     const zone = await ZoneApi.resolveZoneForPath(templatePath);
 
-    return await this.create(() => {
-      const obj = new ClassConstructor(template.data);
-      if (zone) obj.zone = zone;
-      return obj;
-    });
+    // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
+    //    hydration step runs at all — `data` is ignored. Templates that
+    //    want generic mixin-field copy must opt in.
+    const hydrator = await this.#resolveHydrator(template.hydratorClass);
+
+    // 7. Construct, stamp zone, then run the shared register / hydrate /
+    //    postRegister sequence. The hydrator captures `template.data`.
+    const obj = new ClassConstructor();
+    if (zone) obj.zone = zone;
+    return this.#registerAndInit(
+      obj,
+      hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
+      context
+    );
   }
 
   /**
-   * Create and register a Stuff object.
-   * This is the preferred way to create game objects.
+   * Resolve a `hydratorClass` path into a `Hydrator` instance. Returns
+   * `null` when no `hydratorClass` is configured — clone() then skips the
+   * hydrate step entirely. Hydrator modules follow the same
+   * last-segment-as-export-name convention as backing classes.
+   */
+  static async #resolveHydrator(
+    hydratorClassPath: string | undefined
+  ): Promise<Hydrator | null> {
+    if (!hydratorClassPath) return null;
+
+    const normalized = this.#validateClassPath(hydratorClassPath);
+    const modulePath = `..${normalized}.js`;
+    const className = normalized.split('/').pop()!;
+
+    let module: Record<string, unknown>;
+    try {
+      module = (await import(modulePath)) as Record<string, unknown>;
+    } catch (error) {
+      throw new Error(
+        `Failed to import hydrator ${hydratorClassPath}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    const Ctor = module[className] as (new () => Hydrator) | undefined;
+    if (!Ctor) {
+      throw new Error(
+        `Hydrator ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
+      );
+    }
+    return new Ctor();
+  }
+
+  /**
+   * Create and register a Stuff object via a caller-supplied factory.
    *
-   * The factory function should construct the object without side effects.
-   * If the object has an async initialize() method, it will be called before registration.
-   * Registration happens automatically after initialization.
+   * Sister of `clone()`: same register / postRegister tail, no hydration
+   * step (the factory IS the construction). Use this for runtime-only
+   * objects whose construction needs explicit arguments and which don't
+   * round-trip through the CMS template pattern (Interactive being the
+   * canonical example — `socketId`, `sessionId`, `user` all flow through
+   * the closure).
    *
-   * @param factory - Function that creates the object
+   * Registration happens BEFORE `postRegister()` so that recursive
+   * resolution during setup (e.g. a room whose exits resolve back to
+   * itself via the registry) can observe the in-flight instance. If
+   * `postRegister()` throws, the object is unregistered before the error
+   * propagates.
+   *
+   * @param factory - Function that constructs the object
+   * @param context - Optional runtime context passed to `postRegister`
    * @returns The created and registered object
    *
    * @example
    * const user = await StuffApi.create(() => new User());
-   * const player = await StuffApi.create(() => new Player('Alice', 'Smith', Pronouns.She));
-   * const avatar = await StuffApi.create(() => new Avatar({ playerId: '...' }));
    */
-  public static async create<T extends Stuff>(factory: () => T): Promise<T> {
-    const obj = factory();
+  public static async create<T extends Stuff>(
+    factory: () => T,
+    context?: unknown
+  ): Promise<T> {
+    return this.#registerAndInit(factory(), null, context);
+  }
 
-    // Call initialize if it exists
-    if ('initialize' in obj) {
-      const init = (obj as Stuff & { initialize?: () => Promise<void> | void }).initialize;
-      if (typeof init === 'function') {
-        await init.call(obj);
+  /**
+   * Shared register / hydrate / postRegister sequence used by both
+   * `clone()` and `create()`. `hydrate` is `null` for the create path
+   * (no template, no hydrator); `clone()` passes a closure that captures
+   * the resolved hydrator and template data.
+   *
+   * Order is load-bearing: register fires first so anything resolving the
+   * in-flight object by `stuffId` during hydrate or `postRegister` (e.g.,
+   * a self-referencing exit hydrator) finds it. If hydrate or
+   * `postRegister` throws, we unregister before propagating so a partial
+   * object never lingers in the registry.
+   */
+  static async #registerAndInit<T extends Stuff>(
+    obj: T,
+    hydrate: ((obj: T) => Promise<void>) | null,
+    context: unknown
+  ): Promise<T> {
+    this.register(obj);
+
+    try {
+      if (hydrate) await hydrate(obj);
+      if (MixinApi.isPostRegistration(obj)) {
+        await obj.postRegister(context);
       }
+    } catch (error) {
+      this.unregister(obj);
+      throw error;
     }
 
-    this.register(obj);
     return obj;
   }
 
@@ -206,14 +318,14 @@ export class StuffApi {
       throw new Error('StuffApi.register(): Invalid object');
     }
 
-    if (this.objectsById.has(object.stuffId)) {
+    if (this.#objectsById.has(object.stuffId)) {
       console.warn(
         `StuffApi.register(): Object ${object.stuffId} already registered`
       );
       return;
     }
 
-    this.objectsById.set(object.stuffId, object);
+    this.#objectsById.set(object.stuffId, object);
   }
 
   /**
@@ -244,10 +356,10 @@ export class StuffApi {
       throw new Error('StuffApi.unregister(): Invalid object');
     }
 
-    this.objectsById.delete(object.stuffId);
+    this.#objectsById.delete(object.stuffId);
 
     // Track for debugging
-    this.destroyedObjects.set(object, {
+    this.#destroyedObjects.set(object, {
       stuffId: object.stuffId,
       destroyedAt: new Date(),
     });
@@ -261,11 +373,11 @@ export class StuffApi {
    * @returns The object, or undefined if not found
    */
   public static findById(stuffId: string): Stuff | undefined {
-    const obj = this.objectsById.get(stuffId);
+    const obj = this.#objectsById.get(stuffId);
 
     // If object is destroyed, remove it from registry
     if (obj?.isDestroyed()) {
-      this.objectsById.delete(stuffId);
+      this.#objectsById.delete(stuffId);
       return undefined;
     }
 
@@ -281,12 +393,12 @@ export class StuffApi {
   public static getAllObjects(): Stuff[] {
     const objects: Stuff[] = [];
 
-    for (const obj of this.objectsById.values()) {
+    for (const obj of this.#objectsById.values()) {
       if (!obj.isDestroyed()) {
         objects.push(obj);
       } else {
         // Clean up destroyed objects
-        this.objectsById.delete(obj.stuffId);
+        this.#objectsById.delete(obj.stuffId);
       }
     }
 
@@ -297,7 +409,7 @@ export class StuffApi {
    * Get count of active objects.
    */
   public static getObjectCount(): number {
-    return this.objectsById.size;
+    return this.#objectsById.size;
   }
 
   /**
@@ -306,14 +418,14 @@ export class StuffApi {
    * Only use for testing or shutdown.
    */
   public static clearAll(): void {
-    this.objectsById.clear();
+    this.#objectsById.clear();
   }
 
   /**
    * Check if a destroyed object is tracked (for debugging).
    */
   public static isTrackedAsDestroyed(object: Stuff): boolean {
-    return this.destroyedObjects.has(object);
+    return this.#destroyedObjects.has(object);
   }
 
   /**
@@ -322,6 +434,15 @@ export class StuffApi {
   public static getDestroyedMetadata(
     object: Stuff
   ): DestroyedObjectMetadata | undefined {
-    return this.destroyedObjects.get(object);
+    return this.#destroyedObjects.get(object);
+  }
+
+  /**
+   * Deliberate observation seam for unit-testing `#validateClassPath`. NOT
+   * part of the public API — the leading underscore signals "test-only".
+   * @internal
+   */
+  public static _validateClassPath(classPath: string): string {
+    return this.#validateClassPath(classPath);
   }
 }

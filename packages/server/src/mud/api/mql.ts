@@ -64,7 +64,7 @@ export class MqlApi {
    * @returns First matching object or null
    */
   static resolve(query: string, context: MqlContext): Stuff | null {
-    const matches = this.findMatches(query, context);
+    const matches = this.#findMatches(query, context);
 
     if (matches.length === 0) {
       return null;
@@ -88,7 +88,7 @@ export class MqlApi {
    * @returns Array of matching objects (empty if no matches)
    */
   static resolveMany(query: string, context: MqlContext): Stuff[] {
-    const matches = this.findMatches(query, context);
+    const matches = this.#findMatches(query, context);
     return matches.map((m) => m.object);
   }
 
@@ -99,8 +99,8 @@ export class MqlApi {
    * @param context - MQL context
    * @returns Array of matches sorted by score (highest first)
    */
-  private static findMatches(query: string, context: MqlContext): MqlMatch[] {
-    const keywords = this.tokenizeQuery(query);
+  static #findMatches(query: string, context: MqlContext): MqlMatch[] {
+    const keywords = this.#tokenizeQuery(query);
     if (keywords.length === 0) {
       return [];
     }
@@ -111,10 +111,10 @@ export class MqlApi {
     const searchOrder = context.searchOrder || ['inventory', 'location'];
 
     for (const contextName of searchOrder) {
-      const objects = this.getObjectsInContext(contextName, context);
+      const objects = this.#getObjectsInContext(contextName, context);
 
       for (const obj of objects) {
-        const score = this.scoreMatch(obj, keywords);
+        const score = this.#scoreMatch(obj, keywords);
         if (score > 0) {
           matches.push({ object: obj, score });
         }
@@ -133,7 +133,7 @@ export class MqlApi {
    * @param query - Query string
    * @returns Array of lowercase keywords
    */
-  private static tokenizeQuery(query: string): string[] {
+  static #tokenizeQuery(query: string): string[] {
     return query
       .trim()
       .toLowerCase()
@@ -148,12 +148,12 @@ export class MqlApi {
    * @param context - MQL context
    * @returns Array of objects in that context
    */
-  private static getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
+  static #getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
     switch (contextName) {
       case 'inventory':
-        return this.getInventoryObjects(context.commandGiver);
+        return this.#getInventoryObjects(context.commandGiver);
       case 'location':
-        return this.getLocationObjects(context.location);
+        return this.#getLocationObjects(context.location);
       default:
         return [];
     }
@@ -165,7 +165,7 @@ export class MqlApi {
    * A giver without a Container mixin (no inventory) contributes nothing —
    * this path is a no-op in that case rather than a type error.
    */
-  private static getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
+  static #getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
     if (!MixinApi.isContainer(giver)) return [];
     return ContainmentApi.getContents(giver);
   }
@@ -182,7 +182,7 @@ export class MqlApi {
    * @param location - Location to search
    * @returns Array of objects in location (contents ∪ exit doors)
    */
-  private static getLocationObjects(location: Location): Stuff[] {
+  static #getLocationObjects(location: Location): Stuff[] {
     const objects: Stuff[] = ContainmentApi.getContents(location);
     if (MixinApi.isExitable(location)) {
       const seen = new Set<string>();
@@ -208,7 +208,7 @@ export class MqlApi {
    * @param keywords - Query keywords
    * @returns Score (0 = no match, higher = better match)
    */
-  private static scoreMatch(obj: Stuff, keywords: string[]): number {
+  static #scoreMatch(obj: Stuff, keywords: string[]): number {
     const name = DescribeApi.getDisplayName(obj);
     if (!name) return 0;
 

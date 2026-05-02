@@ -32,17 +32,17 @@ const ExitableVesselBase = ExitableMixin(Vessel);
 export class ExitableVessel extends ExitableVesselBase {
   /**
    * Cached synthesized `'out'` exit. Keyed implicitly by the current
-   * environment; invalidated via `#outCacheEnvId` when it changes.
+   * environment; invalidated via `outCacheEnvId` when it changes.
    */
-  #outCache: Exit | null = null;
-  #outCacheEnvId: string | null = null;
+  private outCache: Exit | null = null;
+  private outCacheEnvId: string | null = null;
 
   /**
    * Cached synthesized entry exit (env → vessel). Same keying/invalidation
    * pattern as the `'out'` cache.
    */
-  #entryCache: Exit | null = null;
-  #entryCacheEnvId: string | null = null;
+  private entryCache: Exit | null = null;
+  private entryCacheEnvId: string | null = null;
 
   /**
    * Optional display name used by the default vessel messages. Subclasses
@@ -54,14 +54,14 @@ export class ExitableVessel extends ExitableVesselBase {
     const explicit = this.exits.get(direction);
     if (explicit) return explicit;
 
-    if (direction === 'out') return this.#getOrSynthesizeOutExit();
+    if (direction === 'out') return this.getOrSynthesizeOutExit();
 
     return super.getExit(direction);
   }
 
   public override getObviousExits(): Exit[] {
     const base = super.getObviousExits();
-    const out = this.#getOrSynthesizeOutExit();
+    const out = this.getOrSynthesizeOutExit();
     if (out && !out.hidden) base.push(out);
     return base;
   }
@@ -73,10 +73,10 @@ export class ExitableVessel extends ExitableVesselBase {
    */
   public override setEnvironment(container: (Stuff & Container) | null): void {
     super.setEnvironment(container);
-    this.#outCache = null;
-    this.#outCacheEnvId = null;
-    this.#entryCache = null;
-    this.#entryCacheEnvId = null;
+    this.outCache = null;
+    this.outCacheEnvId = null;
+    this.entryCache = null;
+    this.entryCacheEnvId = null;
   }
 
   /**
@@ -89,8 +89,8 @@ export class ExitableVessel extends ExitableVesselBase {
     const env = this.environment;
     if (!env) return undefined;
 
-    if (this.#entryCache && this.#entryCacheEnvId === env.stuffId) {
-      return this.#entryCache;
+    if (this.entryCache && this.entryCacheEnvId === env.stuffId) {
+      return this.entryCache;
     }
 
     const vesselName = this.name;
@@ -101,17 +101,17 @@ export class ExitableVessel extends ExitableVesselBase {
       messageOut: `<name>{mover}</name> enters the <name>${vesselName}</name>.`,
       messageIn: `<name>{mover}</name> enters from outside.`,
     });
-    this.#entryCache = exit;
-    this.#entryCacheEnvId = env.stuffId;
+    this.entryCache = exit;
+    this.entryCacheEnvId = env.stuffId;
     return exit;
   }
 
-  #getOrSynthesizeOutExit(): Exit | undefined {
+  private getOrSynthesizeOutExit(): Exit | undefined {
     const env = this.environment;
     if (!env) return undefined;
 
-    if (this.#outCache && this.#outCacheEnvId === env.stuffId) {
-      return this.#outCache;
+    if (this.outCache && this.outCacheEnvId === env.stuffId) {
+      return this.outCache;
     }
 
     const vesselName = this.name;
@@ -122,8 +122,8 @@ export class ExitableVessel extends ExitableVesselBase {
       messageOut: `<name>{mover}</name> leaves the <name>${vesselName}</name>.`,
       messageIn: `<name>{mover}</name> emerges from the <name>${vesselName}</name>.`,
     });
-    this.#outCache = exit;
-    this.#outCacheEnvId = env.stuffId;
+    this.outCache = exit;
+    this.outCacheEnvId = env.stuffId;
     return exit;
   }
 }

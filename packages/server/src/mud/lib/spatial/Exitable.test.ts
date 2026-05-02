@@ -98,8 +98,10 @@ describe('ExitableMixin', () => {
   });
 
   it('getExitDoors collects doors from obvious exits', () => {
-    const oak = new Door({ shortDescription: 'oak door' });
-    const iron = new Door({ shortDescription: 'iron gate' });
+    const oak = new Door();
+    oak.shortDescription = 'oak door';
+    const iron = new Door();
+    iron.shortDescription = 'iron gate';
     const withDoor = new Exit({
       direction: 'up',
       source: roomA,
@@ -137,7 +139,8 @@ describe('ExitableMixin', () => {
   });
 
   it('addBidirectionalExit infers the opposite direction for cardinals', () => {
-    const door = new Door({ shortDescription: 'heavy gate' });
+    const door = new Door();
+    door.shortDescription = 'heavy gate';
     roomA.addBidirectionalExit(roomC, 'up', { door });
 
     const forward = roomA.getExit('up');

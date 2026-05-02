@@ -14,6 +14,7 @@
 
 import { Interactive } from '../mud/obj/Interactive';
 import { StuffApi } from '../mud/api/stuff';
+import type { User } from '../mud/lib/identity/User';
 
 /**
  * ConnectionManager - Singleton for connection state management.
@@ -47,15 +48,14 @@ export class ConnectionManager {
    *
    * @param socketId - WebSocket socket ID
    * @param sessionId - Express session ID
-   * @param userId - User's MongoDB _id
+   * @param user - Authenticated User (already loaded by Application)
    * @returns The created Interactive object
    */
   public async createInteractive(
     socketId: string,
     sessionId: string,
-    userId: string
+    user: User
   ): Promise<Interactive> {
-    // Check if already exists
     if (this.interactivesBySocketId.has(socketId)) {
       console.warn(
         `ConnectionManager: Interactive already exists for socket ${socketId}`
@@ -63,16 +63,14 @@ export class ConnectionManager {
       return this.interactivesBySocketId.get(socketId)!;
     }
 
-    // Create new Interactive (with registration)
     const interactive = await StuffApi.create(
-      () => new Interactive(socketId, sessionId, userId)
+      () => new Interactive(socketId, sessionId, user)
     );
 
-    // Store in map
     this.interactivesBySocketId.set(socketId, interactive);
 
     console.log(
-      `ConnectionManager: Created Interactive for socket ${socketId}, user ${userId}`
+      `ConnectionManager: Created Interactive for socket ${socketId}, user ${user._id}`
     );
 
     return interactive;

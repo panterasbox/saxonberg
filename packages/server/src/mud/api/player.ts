@@ -18,7 +18,7 @@ export class PlayerApi {
    * Registry of avatars by player ID.
    * This is a specialized index for quick avatar lookup.
    */
-  private static avatarsByPlayerId: Map<string, Avatar> = new Map();
+  static #avatarsByPlayerId: Map<string, Avatar> = new Map();
 
   /**
    * Register an avatar by playerId.
@@ -32,14 +32,14 @@ export class PlayerApi {
       return;
     }
 
-    if (this.avatarsByPlayerId.has(avatar.playerId)) {
+    if (this.#avatarsByPlayerId.has(avatar.playerId)) {
       console.warn(
         `PlayerApi.registerAvatar(): Avatar already registered for playerId ${avatar.playerId}`
       );
       return;
     }
 
-    this.avatarsByPlayerId.set(avatar.playerId, avatar);
+    this.#avatarsByPlayerId.set(avatar.playerId, avatar);
   }
 
   /**
@@ -53,7 +53,7 @@ export class PlayerApi {
       return;
     }
 
-    this.avatarsByPlayerId.delete(avatar.playerId);
+    this.#avatarsByPlayerId.delete(avatar.playerId);
   }
 
   /**
@@ -63,7 +63,7 @@ export class PlayerApi {
    * @returns The avatar, or undefined if not found
    */
   public static findAvatarByPlayerId(playerId: string): Avatar | undefined {
-    return this.avatarsByPlayerId.get(playerId);
+    return this.#avatarsByPlayerId.get(playerId);
   }
 
   /**
@@ -72,14 +72,14 @@ export class PlayerApi {
    * @returns Array of all active avatars
    */
   public static getAllAvatars(): Avatar[] {
-    return Array.from(this.avatarsByPlayerId.values());
+    return Array.from(this.#avatarsByPlayerId.values());
   }
 
   /**
    * Get count of active avatars.
    */
   public static getAvatarCount(): number {
-    return this.avatarsByPlayerId.size;
+    return this.#avatarsByPlayerId.size;
   }
 
   /**
@@ -88,6 +88,6 @@ export class PlayerApi {
    * Only use for testing or shutdown.
    */
   public static clearAll(): void {
-    this.avatarsByPlayerId.clear();
+    this.#avatarsByPlayerId.clear();
   }
 }

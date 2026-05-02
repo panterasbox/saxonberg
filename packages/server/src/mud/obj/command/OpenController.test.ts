@@ -69,7 +69,9 @@ describe('OpenController / CloseController / doors integration', () => {
     zone.addRoom(roomA, 0, 0, 0);
     zone.addRoom(roomB, 0, 1, 0);
 
-    door = new Door({ shortDescription: 'heavy oak door', keywords: ['oak'] });
+    door = new Door();
+    door.shortDescription = 'heavy oak door';
+    door.keywords = ['oak'];
     roomA.addBidirectionalExit(roomB, 'north', { door });
 
     avatar = new FakeAvatar();

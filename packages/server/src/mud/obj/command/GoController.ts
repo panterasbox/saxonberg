@@ -58,7 +58,7 @@ export class GoController extends CommandController<GoInput, GoOutput> {
 
     const namedExit = location.getExit(target);
     if (namedExit) {
-      return this.#traverse(namedExit, mover);
+      return this.traverse(namedExit, mover);
     }
 
     const resolved = MqlApi.resolve(target, {
@@ -68,13 +68,13 @@ export class GoController extends CommandController<GoInput, GoOutput> {
     });
     if (resolved instanceof ExitableVessel) {
       const entry = resolved.getEntryExit();
-      if (entry) return this.#traverse(entry, mover);
+      if (entry) return this.traverse(entry, mover);
     }
 
     return { success: false, error: "You can't go that way." };
   }
 
-  #traverse(
+  private traverse(
     exit: Exit,
     mover: Stuff & Containable & Mobile
   ): CommandResult<GoOutput> {

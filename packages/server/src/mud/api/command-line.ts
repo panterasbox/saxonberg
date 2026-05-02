@@ -45,7 +45,7 @@ export class CommandLineApi {
    */
   static parse(input: string): ParsedCommand {
     // Tokenize respecting quotes
-    const tokens = this.tokenize(input);
+    const tokens = this.#tokenize(input);
 
     if (tokens.length === 0) {
       return {
@@ -60,7 +60,7 @@ export class CommandLineApi {
     const remaining = tokens.slice(1);
 
     // Extract options
-    const { options, args } = this.extractOptions(remaining);
+    const { options, args } = this.#extractOptions(remaining);
 
     return { verb, args, options };
   }
@@ -78,24 +78,24 @@ export class CommandLineApi {
    * @param input - Input string
    * @returns Array of tokens
    */
-  private static tokenize(input: string): string[] {
+  static #tokenize(input: string): string[] {
     const tokens: string[] = [];
     let pos = 0;
 
     while (pos < input.length) {
       // Skip whitespace
-      pos = this.findNonWhitespace(input, pos);
+      pos = this.#findNonWhitespace(input, pos);
       if (pos >= input.length) break;
 
       // Find end of token (respecting quotes)
-      const end = this.matchQuote(input, pos);
+      const end = this.#matchQuote(input, pos);
 
       // Extract token
       let token = input.substring(pos, end);
 
       // Remove surrounding quotes and process escapes
-      token = this.unquote(token);
-      token = this.unescape(token);
+      token = this.#unquote(token);
+      token = this.#unescape(token);
 
       tokens.push(token);
       pos = end;
@@ -111,7 +111,7 @@ export class CommandLineApi {
    * @param pos - Starting position
    * @returns End position (exclusive)
    */
-  private static matchQuote(str: string, pos: number): number {
+  static #matchQuote(str: string, pos: number): number {
     if (pos >= str.length) return pos;
     const char = str[pos];
 
@@ -140,7 +140,7 @@ export class CommandLineApi {
     let i = pos;
     while (i < str.length) {
       const char = str[i];
-      if (this.isWhitespace(char)) break;
+      if (this.#isWhitespace(char)) break;
 
       if (char === '\\') {
         // Skip escaped character
@@ -159,7 +159,7 @@ export class CommandLineApi {
    * @param token - Token string
    * @returns Token without surrounding quotes
    */
-  private static unquote(token: string): string {
+  static #unquote(token: string): string {
     if (token.length < 2) return token;
 
     const first = token[0];
@@ -185,7 +185,7 @@ export class CommandLineApi {
    * @param token - Token string
    * @returns Token with escape sequences processed
    */
-  private static unescape(token: string): string {
+  static #unescape(token: string): string {
     let result = '';
     let i = 0;
 
@@ -228,8 +228,8 @@ export class CommandLineApi {
    * @param pos - Starting position
    * @returns Next non-whitespace position (or end of string)
    */
-  private static findNonWhitespace(str: string, pos: number): number {
-    while (pos < str.length && this.isWhitespace(str[pos])) {
+  static #findNonWhitespace(str: string, pos: number): number {
+    while (pos < str.length && this.#isWhitespace(str[pos])) {
       pos++;
     }
     return pos;
@@ -241,7 +241,7 @@ export class CommandLineApi {
    * @param char - Character to check
    * @returns True if whitespace
    */
-  private static isWhitespace(char: string | undefined): boolean {
+  static #isWhitespace(char: string | undefined): boolean {
     if (!char) return false;
     return char === ' ' || char === '\t' || char === '\n' || char === '\r';
   }
@@ -258,7 +258,7 @@ export class CommandLineApi {
    * @param tokens - Array of tokens
    * @returns Object with options map and remaining args
    */
-  private static extractOptions(tokens: string[]): {
+  static #extractOptions(tokens: string[]): {
     options: Map<string, boolean>;
     args: string[];
   } {

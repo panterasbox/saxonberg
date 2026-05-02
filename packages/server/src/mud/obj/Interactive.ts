@@ -1,175 +1,118 @@
 /**
- * Interactive - Runtime connection state object
+ * Interactive - Runtime connection state object.
  *
- * Represents an active WebSocket connection.
- * This is a RUNTIME object - it is NOT persisted to the database.
+ * Represents an active WebSocket connection. This is a RUNTIME object —
+ * not persisted to the database.
  *
- * Responsibilities:
- * - Track WebSocket connection (socketId, sessionId, userId)
- * - Track available Avatars for this user (multiple Players)
- * - Track current active Avatar (character switching support)
- * - Send messages to client via Backend
- * - Connection lifecycle management
+ * Holds a reference to the authenticated User (stamped by Application
+ * before handoff to Login). Avatar loading iterates `user.playerIds` and
+ * threads `{ user, playerId }` into `StuffApi.clone` as context so each
+ * Avatar.postRegister() sees its owning user synchronously.
  *
- * Key Features:
- * - Supports multiple Players per User (availableAvatars map)
- * - Supports character switching via switchAvatar()
- * - Multiplexing: Multiple Interactives can control same Avatar
- *
- * Lifetime: Created when user connects, destroyed when user disconnects.
+ * Lifetime: created when a user connects, destroyed when the connection
+ * drops.
  */
 
 import { Idea } from '../lib/stuff/Idea';
 import { StuffApi } from '../api/stuff';
-import { Player } from '../lib/identity/Player';
 import { PlayerApi } from '../api/player';
+import type { User } from '../lib/identity/User';
 import type { Avatar } from './Avatar';
 
-/**
- * Interactive connection state (runtime only).
- */
 export class Interactive extends Idea {
-  /**
-   * Socket ID for this connection (from WebSocket).
-   */
   socketId: string;
-
-  /**
-   * Session ID (from express-session).
-   */
   sessionId: string;
-
-  /**
-   * User ID (from authentication).
-   */
-  userId: string;
-
-  /**
-   * Connection timestamp.
-   */
+  user: User;
   connectedAt: Date;
 
-  /**
-   * Currently active Avatar (which character they're controlling).
-   */
   currentAvatar: Avatar | null = null;
 
   /**
-   * Available Avatars for this user (playerId → Avatar).
-   * Maps all of the user's Players to their runtime Avatars.
+   * Available Avatars for this user's characters (playerId → Avatar).
    */
   availableAvatars: Map<string, Avatar> = new Map();
 
-  /**
-   * Constructor.
-   *
-   * @param socketId - WebSocket socket ID
-   * @param sessionId - Express session ID
-   * @param userId - User's MongoDB _id
-   */
-  constructor(socketId: string, sessionId: string, userId: string) {
-    super(); // Generates stuffId
+  constructor(socketId: string, sessionId: string, user: User) {
+    super();
 
     this.socketId = socketId;
     this.sessionId = sessionId;
-    this.userId = userId;
+    this.user = user;
     this.connectedAt = new Date();
   }
 
   /**
-   * Load all available Avatars for this user's Players.
-   * Checks if Avatars already exist (from other connections), otherwise creates them.
+   * Convenience: owning user's `_id`. May be undefined for an unsaved
+   * User (primarily relevant in tests).
+   */
+  get userId(): string | undefined {
+    return this.user._id;
+  }
+
+  /**
+   * Clone each of the user's avatar templates into runtime Avatars
+   * (reusing any that another connection already loaded for multiplexing).
    */
   public async loadAvailableAvatars(): Promise<void> {
-    // Load all Players for this userId
-    const players = await Player.find({ userId: this.userId });
+    const { Avatar: AvatarClass } = await import('./Avatar');
 
-    for (const player of players) {
-      const playerId = player._id!;
-
-      // Check if Avatar already exists (another Interactive might have loaded it)
+    for (const playerId of this.user.playerIds) {
       let avatar = PlayerApi.findAvatarByPlayerId(playerId);
 
-      // Create if not exists
       if (!avatar) {
-        const AvatarClass = (await import('./Avatar')).Avatar;
-        avatar = await StuffApi.clone<Avatar>(AvatarClass.getTemplatePath(playerId));
+        avatar = await StuffApi.clone<Avatar>(
+          AvatarClass.getTemplatePath(playerId),
+          { user: this.user, playerId }
+        );
       }
 
       this.availableAvatars.set(playerId, avatar);
     }
-
-    console.log(`Interactive.loadAvailableAvatars(): Loaded ${this.availableAvatars.size} avatars for user ${this.userId}`);
   }
 
   /**
    * Switch to a different Avatar (character switching).
-   * Removes Interactive from old Avatar, adds to new Avatar.
-   *
-   * @param playerId - Player ID to switch to
    */
   public async switchAvatar(playerId: string): Promise<void> {
-    // Remove from old avatar
     if (this.currentAvatar) {
       this.currentAvatar.removeInteractive(this);
     }
 
-    // Get new avatar
     const newAvatar = this.availableAvatars.get(playerId);
     if (!newAvatar) {
-      throw new Error(`Interactive.switchAvatar(): Avatar not found for playerId: ${playerId}`);
+      throw new Error(
+        `Interactive.switchAvatar(): Avatar not found for playerId: ${playerId}`
+      );
     }
 
-    // Add to new avatar
     newAvatar.addInteractive(this);
     this.currentAvatar = newAvatar;
-
-    console.log(`Interactive.switchAvatar(): Switched to avatar ${newAvatar.fullName}`);
-
-    // Send confirmation (Backend will handle sending)
-    // Note: Backend.sendMessageToSocket() should be called by Application, not here
   }
 
   /**
-   * Send a message to the client.
-   * This is a stub - actual sending is done via Backend.sendMessageToSocket().
-   * Application layer calls this method.
-   *
-   * @param message - Message to send
+   * Stub for client messaging. Actual delivery runs through
+   * Application.sendMessageToInteractive().
    */
   public send(message: unknown): void {
-    // This is a stub for now - Backend handles actual sending
-    // Application will call Backend.sendMessageToSocket(this.socketId, message)
     console.log(`Interactive.send(): Message to ${this.socketId}:`, message);
   }
 
-  /**
-   * Get connection duration in milliseconds.
-   */
   public getConnectionDuration(): number {
     return Date.now() - this.connectedAt.getTime();
   }
 
-  /**
-   * Cleanup hook (called on disconnect).
-   * Removes from current Avatar and clears available avatars.
-   */
   protected prepareDestroy(): void {
-    // Remove from current avatar
     if (this.currentAvatar) {
       this.currentAvatar.removeInteractive(this);
       this.currentAvatar = null;
     }
-
-    // Clear available avatars
     this.availableAvatars.clear();
   }
 
-  /**
-   * String representation.
-   */
   public toString(): string {
-    const avatarInfo = this.currentAvatar ? ` avatar=${this.currentAvatar.fullName}` : '';
-    return `[Interactive socketId=${this.socketId} userId=${this.userId}${avatarInfo}]`;
+    const avatarInfo = this.currentAvatar
+      ? ` avatar=${this.currentAvatar.fullName}`
+      : '';
+    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${avatarInfo}]`;
   }
 }

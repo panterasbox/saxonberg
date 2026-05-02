@@ -49,7 +49,7 @@ export class CartesianZone extends Zone {
    * Lazy cache of derived exits keyed by `"<fromStuffId>:<direction>"`.
    * Invalidated wholesale when the grid changes — cheap to rebuild.
    */
-  #derivedCache: Map<string, Exit> = new Map();
+  private derivedCache: Map<string, Exit> = new Map();
 
   static persistentFields = ['name', 'cellSize'];
 
@@ -69,7 +69,7 @@ export class CartesianZone extends Zone {
     }
     coordHolder.coordinates = [x, y, z];
     this.grid.set(gridKey(x, y, z), room);
-    this.#derivedCache.clear();
+    this.derivedCache.clear();
     super.addRoom(room);
   }
 
@@ -85,7 +85,7 @@ export class CartesianZone extends Zone {
         this.grid.delete(key);
       }
     }
-    this.#derivedCache.clear();
+    this.derivedCache.clear();
     return super.removeRoom(room);
   }
 
@@ -115,7 +115,7 @@ export class CartesianZone extends Zone {
     if (!this.rooms.has(from)) return undefined;
 
     const cacheKey = `${(from as unknown as Stuff).stuffId}:${canonical}`;
-    const cached = this.#derivedCache.get(cacheKey);
+    const cached = this.derivedCache.get(cacheKey);
     if (cached) return cached;
 
     const neighbor = this.getNeighbor(from, canonical);
@@ -129,7 +129,7 @@ export class CartesianZone extends Zone {
       source: from as unknown as Stuff & Container,
       destination: neighbor as unknown as Stuff & Container,
     });
-    this.#derivedCache.set(cacheKey, exit);
+    this.derivedCache.set(cacheKey, exit);
     return exit;
   }
 }

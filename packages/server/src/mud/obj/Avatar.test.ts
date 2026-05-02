@@ -13,11 +13,24 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Avatar } from './Avatar';
 import { Interactive } from './Interactive';
 import { Character } from '../lib/character/Character';
+import { User } from '../lib/identity/User';
+
+function makeUser(id: string): User {
+  const user = new User();
+  user._id = id;
+  return user;
+}
+
+function makeAvatar(playerId: string): Avatar {
+  const a = new Avatar();
+  a.playerId = playerId;
+  return a;
+}
 
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {
     it('should have correct template path prefix', () => {
-      expect(Avatar.TEMPLATE_PATH_PREFIX).toBe('/avatar/player/');
+      expect(Avatar.TEMPLATE_PATH_PREFIX).toBe('/avatar/');
     });
 
     it('should be a string constant', () => {
@@ -30,7 +43,7 @@ describe('Avatar', () => {
       const playerId = '6963f6ef384c0c4830a80638';
       const path = Avatar.getTemplatePath(playerId);
 
-      expect(path).toBe('/avatar/player/6963f6ef384c0c4830a80638');
+      expect(path).toBe('/avatar/6963f6ef384c0c4830a80638');
     });
 
     it('should use the TEMPLATE_PATH_PREFIX constant', () => {
@@ -44,24 +57,24 @@ describe('Avatar', () => {
       // MongoDB ObjectId format
       const objectId = '507f1f77bcf86cd799439011';
       expect(Avatar.getTemplatePath(objectId)).toBe(
-        '/avatar/player/507f1f77bcf86cd799439011'
+        '/avatar/507f1f77bcf86cd799439011'
       );
 
       // Short ID
       const shortId = 'abc123';
-      expect(Avatar.getTemplatePath(shortId)).toBe('/avatar/player/abc123');
+      expect(Avatar.getTemplatePath(shortId)).toBe('/avatar/abc123');
 
       // UUID format
       const uuid = '550e8400-e29b-41d4-a716-446655440000';
       expect(Avatar.getTemplatePath(uuid)).toBe(
-        '/avatar/player/550e8400-e29b-41d4-a716-446655440000'
+        '/avatar/550e8400-e29b-41d4-a716-446655440000'
       );
     });
 
     it('should handle empty string playerId', () => {
       const path = Avatar.getTemplatePath('');
 
-      expect(path).toBe('/avatar/player/');
+      expect(path).toBe('/avatar/');
     });
 
     it('should generate unique paths for different playerIds', () => {
@@ -73,9 +86,9 @@ describe('Avatar', () => {
       expect(path2).not.toBe(path3);
       expect(path1).not.toBe(path3);
 
-      expect(path1).toBe('/avatar/player/player1');
-      expect(path2).toBe('/avatar/player/player2');
-      expect(path3).toBe('/avatar/player/player3');
+      expect(path1).toBe('/avatar/player1');
+      expect(path2).toBe('/avatar/player2');
+      expect(path3).toBe('/avatar/player3');
     });
 
     it('should always start with forward slash', () => {
@@ -97,7 +110,7 @@ describe('Avatar', () => {
       const path = Avatar.getTemplatePath(playerId);
 
       // Should match the expected pattern
-      expect(path).toMatch(/^\/avatar\/player\/.+$/);
+      expect(path).toMatch(/^\/avatar\/.+$/);
     });
   });
 
@@ -112,7 +125,7 @@ describe('Avatar', () => {
       expect(templatePath.length).toBeGreaterThan(Avatar.TEMPLATE_PATH_PREFIX.length);
 
       // Verify path structure for CMS lookup
-      expect(templatePath.includes('/avatar/player/')).toBe(true);
+      expect(templatePath.includes('/avatar/')).toBe(true);
       expect(templatePath.endsWith(playerId)).toBe(true);
     });
 
@@ -131,7 +144,7 @@ describe('Avatar', () => {
     let avatar: Avatar;
 
     beforeEach(() => {
-      avatar = new Avatar({ playerId: 'test123' });
+      avatar = makeAvatar('test123');
     });
 
     it('should be instance of Character', () => {
@@ -159,10 +172,10 @@ describe('Avatar', () => {
     let interactive3: Interactive;
 
     beforeEach(() => {
-      avatar = new Avatar({ playerId: 'test123' });
-      interactive1 = new Interactive('socket1', 'session1', 'user1');
-      interactive2 = new Interactive('socket2', 'session2', 'user1');
-      interactive3 = new Interactive('socket3', 'session3', 'user1');
+      avatar = makeAvatar('test123');
+      interactive1 = new Interactive('socket1', 'session1', makeUser('user1'));
+      interactive2 = new Interactive('socket2', 'session2', makeUser('user1'));
+      interactive3 = new Interactive('socket3', 'session3', makeUser('user1'));
     });
 
     describe('addInteractive', () => {
@@ -319,7 +332,7 @@ describe('Avatar', () => {
 
     beforeEach(() => {
       // Create a simple avatar for testing
-      avatar = new Avatar({ playerId: 'test-player-123' });
+      avatar = makeAvatar('test-player-123');
 
       // Mock Application.sendMessageToInteractive
       mockApp = {
@@ -329,8 +342,8 @@ describe('Avatar', () => {
       // Spy on Avatar.getApplicationInstance to return our mock app
       vi.spyOn(Avatar as any, 'getApplicationInstance').mockReturnValue(mockApp);
 
-      interactive1 = new Interactive('socket-1', 'session-1', 'user-1');
-      interactive2 = new Interactive('socket-2', 'session-2', 'user-1');
+      interactive1 = new Interactive('socket-1', 'session-1', makeUser('user-1'));
+      interactive2 = new Interactive('socket-2', 'session-2', makeUser('user-1'));
     });
 
     afterEach(() => {
@@ -385,8 +398,8 @@ describe('Avatar', () => {
 
     it('should support multiplexing (same user, multiple devices)', () => {
       // Simulate same user on laptop and phone
-      const laptop = new Interactive('socket-laptop', 'session-1', 'user-1');
-      const phone = new Interactive('socket-phone', 'session-2', 'user-1');
+      const laptop = new Interactive('socket-laptop', 'session-1', makeUser('user-1'));
+      const phone = new Interactive('socket-phone', 'session-2', makeUser('user-1'));
 
       avatar.addInteractive(laptop);
       avatar.addInteractive(phone);

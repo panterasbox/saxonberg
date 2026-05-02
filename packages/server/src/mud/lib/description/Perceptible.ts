@@ -2,10 +2,12 @@
  * PerceptibleMixin - Objects that can be perceived/identified
  *
  * Provides:
- * - getKeywords(): Get keywords for MQL identification
- * - addKeyword(keyword): Add a keyword
+ * - keywords (getter/setter — see "Setter-normalized" below)
+ * - getKeywords(): Get keywords for MQL identification (returns a copy)
+ * - addKeyword(keyword): Add a keyword (normalized)
  * - removeKeyword(keyword): Remove a keyword
  * - hasKeyword(keyword): Check if keyword exists
+ * - setKeywords(keywords): Replace the keyword list (normalized)
  *
  * Objects with this mixin can be found via MQL queries using keywords.
  * For example, a "pink rose" might have keywords: ["flower", "plant", "rose"]
@@ -13,6 +15,14 @@
  *
  * Note: The term "identify" is reserved for Nethack-like identification
  * of unknown objects (scrolls of identification, etc.)
+ *
+ * Setter-normalized: `keywords` is the persistent field exposed as a
+ * property. The setter routes every entry through `addKeyword()`, so the
+ * incremental API and bulk-assign (`obj.keywords = [...]`) share a single
+ * normalization path (lowercase / trim / dedupe). `Hydrator`'s
+ * `target[field] = data[field]` is bracket-assign — it goes through this
+ * setter, so a template that lists keywords lands normalized without any
+ * post-hydrate fixup.
  *
  * Usage:
  * ```typescript
@@ -27,18 +37,16 @@
  * ```
  *
  * Persistence:
- * - keywords: Array (auto-persisted)
+ * - keywords: string[] (auto-persisted via setter)
  */
 
 import type { MixinConstructor } from '../mixin-types';
 
 /**
- * Mixin that adds perceptibility (keywords for identification)
- */
-/**
  * Public shape provided by PerceptibleMixin.
  */
 export interface Perceptible {
+  keywords: string[];
   getKeywords(): string[];
   addKeyword(keyword: string): void;
   removeKeyword(keyword: string): boolean;
@@ -48,78 +56,71 @@ export interface Perceptible {
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PerceptibleMixin extends Base {
-    // Mixin marker for detection by MixinApi
     static _mixinName = 'PerceptibleMixin';
 
     /**
-     * Persistent field: keywords for MQL identification
+     * Persistent field: keywords for MQL identification.
+     * Hydrated through the `keywords` setter below.
      */
     static persistentFields = ['keywords'];
 
-    /**
-     * Keywords for MQL matching (internal storage)
-     *
-     * Access via getKeywords(), addKeyword(), removeKeyword()
-     */
-    private keywords: string[] = [];
+    /** Backing storage; access via the `keywords` accessor pair. */
+    private _keywords: string[] = [];
 
     /**
-     * Get all keywords for MQL matching
-     *
-     * @returns Copy of keywords array
+     * Read the keyword list. Returns a defensive copy so callers can't
+     * mutate the internal array through the getter.
      */
-    getKeywords(): string[] {
-      return [...this.keywords];
+    get keywords(): string[] {
+      return [...this._keywords];
     }
 
     /**
-     * Add a keyword for MQL matching
-     *
-     * Normalizes to lowercase and prevents duplicates.
-     *
-     * @param keyword - Keyword to add
+     * Replace the keyword list, normalizing every entry through
+     * `addKeyword()`. Throws when given a non-array. This is the canonical
+     * bulk-assign entry point; the hydrator's `target.keywords = data.keywords`
+     * routes through it.
      */
+    set keywords(value: string[]) {
+      if (!Array.isArray(value)) {
+        throw new TypeError('Perceptible.keywords must be a string[]');
+      }
+      this._keywords = [];
+      for (const k of value) this.addKeyword(k);
+    }
+
+    getKeywords(): string[] {
+      return [...this._keywords];
+    }
+
     addKeyword(keyword: string): void {
       const normalized = keyword.toLowerCase().trim();
-      if (normalized && !this.keywords.includes(normalized)) {
-        this.keywords.push(normalized);
+      if (normalized && !this._keywords.includes(normalized)) {
+        this._keywords.push(normalized);
       }
     }
 
-    /**
-     * Remove a keyword
-     *
-     * @param keyword - Keyword to remove
-     * @returns True if keyword was removed, false if not found
-     */
     removeKeyword(keyword: string): boolean {
       const normalized = keyword.toLowerCase().trim();
-      const index = this.keywords.indexOf(normalized);
+      const index = this._keywords.indexOf(normalized);
       if (index !== -1) {
-        this.keywords.splice(index, 1);
+        this._keywords.splice(index, 1);
         return true;
       }
       return false;
     }
 
-    /**
-     * Check if a keyword exists
-     *
-     * @param keyword - Keyword to check
-     * @returns True if keyword exists
-     */
     hasKeyword(keyword: string): boolean {
       const normalized = keyword.toLowerCase().trim();
-      return this.keywords.includes(normalized);
+      return this._keywords.includes(normalized);
     }
 
     /**
-     * Set all keywords at once (mainly for deserialization)
-     *
-     * @param keywords - Array of keywords
+     * Replace the keyword list. Equivalent to `this.keywords = keywords`,
+     * kept for symmetry with the addKeyword/removeKeyword API.
      */
     setKeywords(keywords: string[]): void {
-      this.keywords = keywords.map((k) => k.toLowerCase().trim()).filter((k) => k.length > 0);
+      this.keywords = keywords;
     }
   };
 }

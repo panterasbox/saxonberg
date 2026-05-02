@@ -10,12 +10,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from './stuff';
 import { Stuff } from '../lib/stuff/Stuff';
+import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {
-    // Access private method for testing using bracket notation
-    const validateClassPath = (path: string) =>
-      (StuffApi as any).validateClassPath(path);
+    // Deliberate test seam — see StuffApi._validateClassPath().
+    const validateClassPath = (path: string) => StuffApi._validateClassPath(path);
 
     it('should accept valid /obj/ paths', () => {
       expect(() => validateClassPath('/obj/Avatar')).not.toThrow();
@@ -65,24 +65,22 @@ describe('StuffApi', () => {
   });
 
   describe('create', () => {
-    // Test class without initialize
+    // Test class without PostRegistrationMixin (no postRegister hook)
     class SimpleStuff extends Stuff {}
 
-    // Test class with synchronous initialize
-    class InitializableStuff extends Stuff {
+    // Test class composing PostRegistrationMixin
+    class InitializableStuff extends PostRegistrationMixin(Stuff) {
       initializeCalled = false;
 
-      async initialize() {
+      override async postRegister() {
         this.initializeCalled = true;
       }
     }
 
-    // Test class with async initialize that takes time
-    class AsyncStuff extends Stuff {
+    class AsyncStuff extends PostRegistrationMixin(Stuff) {
       loadedData: string = '';
 
-      async initialize() {
-        // Simulate async operation
+      override async postRegister() {
         await new Promise((resolve) => setTimeout(resolve, 10));
         this.loadedData = 'loaded';
       }
@@ -90,11 +88,10 @@ describe('StuffApi', () => {
 
     beforeEach(() => {
       // Clear the registry before each test
-      const objectsById = (StuffApi as any).objectsById as Map<string, Stuff>;
-      objectsById.clear();
+      StuffApi.clearAll();
     });
 
-    it('should create object without initialize method', async () => {
+    it('should create object without postRegister hook', async () => {
       const obj = await StuffApi.create(() => new SimpleStuff());
 
       expect(obj).toBeInstanceOf(SimpleStuff);
@@ -102,40 +99,54 @@ describe('StuffApi', () => {
       expect(obj.isDestroyed()).toBe(false);
     });
 
-    it('should call initialize if method exists', async () => {
+    it('should call postRegister when PostRegistrationMixin is composed', async () => {
       const obj = await StuffApi.create(() => new InitializableStuff());
 
       expect(obj.initializeCalled).toBe(true);
     });
 
-    it('should wait for async initialize to complete', async () => {
+    it('should wait for async postRegister to complete', async () => {
       const obj = await StuffApi.create(() => new AsyncStuff());
 
       expect(obj.loadedData).toBe('loaded');
     });
 
-    it('should register object after initialization', async () => {
+    it('should register object after postRegister', async () => {
       const obj = await StuffApi.create(() => new InitializableStuff());
 
-      // Verify object is registered
       const found = StuffApi.findById(obj.stuffId);
       expect(found).toBe(obj);
     });
 
-    it('should register object in correct order (initialize → register)', async () => {
+    it('should register object in correct order (register → postRegister)', async () => {
       let registeredDuringInit = false;
 
-      class OrderTestStuff extends Stuff {
-        async initialize() {
-          // Check if we're registered yet (should not be)
+      class OrderTestStuff extends PostRegistrationMixin(Stuff) {
+        override async postRegister() {
+          // Registration happens before postRegister() so recursive resolvers
+          // (e.g. exit hydration that points back to this object) can see
+          // the in-flight instance.
           registeredDuringInit = !!StuffApi.findById(this.stuffId);
         }
       }
 
       const obj = await StuffApi.create(() => new OrderTestStuff());
 
-      expect(registeredDuringInit).toBe(false); // Not registered during init
-      expect(StuffApi.findById(obj.stuffId)).toBe(obj); // But registered after
+      expect(registeredDuringInit).toBe(true);
+      expect(StuffApi.findById(obj.stuffId)).toBe(obj);
+    });
+
+    it('should unregister the object if postRegister() throws', async () => {
+      class FailingInitStuff extends PostRegistrationMixin(Stuff) {
+        override async postRegister() {
+          throw new Error('init failed');
+        }
+      }
+
+      const obj = new FailingInitStuff();
+      await expect(StuffApi.create(() => obj)).rejects.toThrow('init failed');
+
+      expect(StuffApi.findById(obj.stuffId)).toBeUndefined();
     });
 
     it('should generate unique stuffId for each object', async () => {
@@ -144,14 +155,42 @@ describe('StuffApi', () => {
 
       expect(obj1.stuffId).not.toBe(obj2.stuffId);
     });
+
+    it('should thread context into postRegister(context)', async () => {
+      class ContextStuff extends PostRegistrationMixin(Stuff) {
+        received: unknown = undefined;
+
+        override async postRegister(context?: unknown) {
+          this.received = context;
+        }
+      }
+
+      const payload = { user: { _id: 'u1' }, playerId: 'p1' };
+      const obj = await StuffApi.create(() => new ContextStuff(), payload);
+
+      expect(obj.received).toBe(payload);
+    });
+
+    it('should pass undefined when no context is supplied', async () => {
+      class ContextStuff extends PostRegistrationMixin(Stuff) {
+        received: unknown = 'sentinel';
+
+        override async postRegister(context?: unknown) {
+          this.received = context;
+        }
+      }
+
+      const obj = await StuffApi.create(() => new ContextStuff());
+
+      expect(obj.received).toBeUndefined();
+    });
   });
 
   describe('register and findById', () => {
     class TestStuff extends Stuff {}
 
     beforeEach(() => {
-      const objectsById = (StuffApi as any).objectsById as Map<string, Stuff>;
-      objectsById.clear();
+      StuffApi.clearAll();
     });
 
     it('should find object by stuffId after registration', async () => {

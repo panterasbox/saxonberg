@@ -13,17 +13,18 @@
  *
  * Mixin responsibilities:
  *   - `SealableMixin`: open/closed state (shared with chests, trapdoors, …).
+ *     The `isOpen` setter rejects non-boolean assignments.
  *   - `PerceptibleMixin`: MQL keywords so the player can type
- *     `open the oak door` and have it resolve.
+ *     `open the oak door` and have it resolve. The `keywords` setter
+ *     normalizes (lowercase / trim / dedupe).
  *   - `VisibleMixin`: short/long descriptions, so `look door` and
  *     `DescribeApi.getDisplayName()` both work uniformly.
  *
- * Template-loadable: like `Avatar`, `Door` is cloned from a `domain`
- * template via `StuffApi.clone()` — the template's `class` field is
- * `/lib/spatial/Door` and its `data` is a `DoorTemplateData` payload. The
- * class constructor accepts both the typed shape and the raw
- * `Record<string, unknown>` that comes off the database so either path
- * works.
+ * Template-loadable: `Door` is cloned from a `domain` template via
+ * `StuffApi.clone()`. Templates set
+ * `hydratorClass: '/lib/persistence/PersistentHydrator'` to opt into the
+ * generic mixin-field copy; the field setters above enforce shape on the
+ * way in, so no post-hydrate fixup is needed.
  *
  * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
  * (MqlApi scans those in addition to the room's contents), so a door is
@@ -38,38 +39,9 @@ import { SealableMixin } from './Sealable';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 
-/**
- * Template data for Door (from the `domain` collection).
- *
- * Every field is optional so that minimal templates (just a
- * `shortDescription`) still produce a usable door.
- */
-export interface DoorTemplateData {
-  shortDescription?: string;
-  longDescription?: string;
-  keywords?: string[];
-  isOpen?: boolean;
-}
-
 const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Idea)));
 
 export class Door extends DoorBase {
-  /**
-   * Constructor — accepts template data from the `domain` collection.
-   * Shape matches `DoorTemplateData`; `Record<string, unknown>` is accepted
-   * so `StuffApi.clone()` can pass DB data straight through.
-   */
-  constructor(templateData: DoorTemplateData | Record<string, unknown> = {}) {
-    super();
-    const data = templateData as DoorTemplateData;
-    this.shortDescription = typeof data.shortDescription === 'string' ? data.shortDescription : '';
-    this.longDescription = typeof data.longDescription === 'string' ? data.longDescription : '';
-    if (Array.isArray(data.keywords) && data.keywords.length > 0) {
-      this.setKeywords(data.keywords);
-    }
-    this.isOpen = data.isOpen === true;
-  }
-
   /**
    * Union of the PerceptibleMixin keyword list with the tokens of the
    * door's shortDescription. A door constructed with only `shortDescription:

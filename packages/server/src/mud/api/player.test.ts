@@ -16,12 +16,11 @@ import type { Avatar } from '../obj/Avatar';
 const createMockAvatar = (playerId: string): Avatar => {
   return {
     playerId,
-    userId: 'test-user',
     firstName: 'Test',
     lastName: 'User',
     fullName: 'Test User',
     stuffId: `avatar-${playerId}`,
-  } as Avatar;
+  } as unknown as Avatar;
 };
 
 describe('PlayerApi', () => {

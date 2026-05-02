@@ -35,6 +35,9 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  AroundSaveHook: 'AroundSaveHookMixin',
+  AroundDeleteHook: 'AroundDeleteHookMixin',
+  PostRegistration: 'PostRegistrationMixin',
 } as const;
 
 /**

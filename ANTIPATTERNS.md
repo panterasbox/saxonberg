@@ -269,3 +269,89 @@ description/short/long/article/list-formatting helpers belong in
 **Never duck-type mixins, even for display.** Display-name lookup lives in
 `DescribeApi.getDisplayName()`; mixin presence checks use `MixinApi.isX()`
 predicates (preferred) or `MixinApi.hasMixin()` (for introspection only).
+
+## Per-Field Invariants Belong on Setters, Not in `normalize()` Hooks
+
+**ANTIPATTERN**: A `#normalize()` private method called after hydration to
+fix up shapes — coerce a boolean, lowercase a string, dedupe a list — is
+re-implementing what setters already do, except in a place where the
+language can't enforce it. Templates can be loaded by paths the original
+author never anticipated; `Hydrator` subclasses can change; tests can
+construct objects in ways that skip the hook. Setters can't be skipped.
+
+### ❌ BAD (post-hydrate fixup)
+
+```typescript
+export class Door extends DoorBase {
+  constructor(data?: Record<string, unknown>) {
+    super();
+    if (data) {
+      // Manual hydration in the constructor.
+      const fields = MixinApi.getAllPersistentFields(this.constructor);
+      const target = this as unknown as Record<string, unknown>;
+      for (const field of fields) {
+        if (field in data) target[field] = data[field];
+      }
+      this.#normalize();
+    }
+  }
+
+  public async initialize(): Promise<void> {
+    // …and again here, after the clone-time hydrator runs.
+    this.#normalize();
+  }
+
+  #normalize(): void {
+    // Lowercase / trim / dedupe keywords, coerce isOpen to boolean.
+    const kw = super.getKeywords();
+    if (kw.length > 0) {
+      this.setKeywords([]);
+      for (const k of kw) this.addKeyword(k);
+    }
+    this.isOpen = this.isOpen === true;
+  }
+}
+```
+
+The mixin's bulk `setKeywords()` ran a different code path than the
+incremental `addKeyword()`. Mixed templates (some pre-normalized, some
+not) silently diverge. The `isOpen === true` coercion silently absorbs
+malformed templates instead of failing loudly.
+
+### ✅ GOOD (setter-enforced invariant)
+
+```typescript
+// SealableMixin
+get isOpen(): boolean { return this._isOpen; }
+set isOpen(value: boolean) {
+  if (typeof value !== 'boolean') {
+    throw new TypeError(`isOpen must be a boolean, got ${typeof value}`);
+  }
+  this._isOpen = value;
+}
+
+// PerceptibleMixin
+get keywords(): string[] { return this._keywords; }
+set keywords(value: string[]) {
+  if (!Array.isArray(value)) throw new TypeError('keywords must be string[]');
+  this._keywords = [];
+  for (const k of value) this.addKeyword(k);
+}
+addKeyword(k: string): void {
+  const norm = k.trim().toLowerCase();
+  if (norm && !this._keywords.includes(norm)) this._keywords.push(norm);
+}
+```
+
+`Hydrator`'s `target[field] = data[field]` goes through these setters
+because bracket-assign invokes them. One normalization path, exercised
+both by templates and by incremental callers (`door.addKeyword('oak')`).
+A malformed template (`isOpen: 1`) fails loudly at hydrate time. The
+class's `#normalize()` and constructor data-blob both go away.
+
+### When a `Hydrator` Subclass IS the Right Answer
+
+Setter-on-field handles per-field shape invariants. Cross-field rules
+("if `isLocked` is true, `lockKey` must reference a real key") cannot
+live on a single setter — that's the real use case for a `Hydrator`
+subclass with overridden `hydrate()`.
