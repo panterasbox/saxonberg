@@ -15,7 +15,7 @@ import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { DescribeApi } from '../api/describe';
-import { ApplicationInstance } from '../../backend/ApplicationInstance';
+import { Application } from '../../backend/Application';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
@@ -60,7 +60,7 @@ export class Login extends Idea {
       `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
     );
 
-    const app = ApplicationInstance.get();
+    const app = Application.get();
     app.sendMessageToInteractive(interactive, {
       type: 'connection_established',
       payload: {
@@ -84,7 +84,7 @@ export class Login extends Idea {
 
   private sendLookDescription(avatar: Avatar): void {
     const location = avatar.getEnvironment() as Location | null;
-    const app = ApplicationInstance.get();
+    const app = Application.get();
 
     if (!location) {
       app.sendMessageToInteractive(this.interactive, {

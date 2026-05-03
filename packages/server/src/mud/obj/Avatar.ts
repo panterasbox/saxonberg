@@ -15,8 +15,7 @@ import { PlayerApi } from '../api/player';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { Interactive } from './Interactive';
 import type { User } from '../lib/identity/User';
-import { ApplicationInstance } from '../../backend/ApplicationInstance';
-import type { Application } from '../../backend/Application';
+import { Application } from '../../backend/Application';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -147,6 +146,6 @@ export class Avatar extends AvatarBase {
 
   /** @internal — overridable for tests. */
   private static getApplicationInstance(): Application {
-    return ApplicationInstance.get();
+    return Application.get();
   }
 }
