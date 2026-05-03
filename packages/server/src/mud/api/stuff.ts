@@ -17,7 +17,11 @@ import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
-import { wrapInProxy } from '../lib/security/proxy';
+import { ProxyApi } from './proxy';
+// Side-effect import: registers the security interceptor with ProxyApi at boot time.
+// StuffApi.create / clone wrap raw instances in proxies that consult the interceptor
+// pipeline; the security interceptor MUST be in place before the first wrap.
+import '../lib/security/security-interceptor';
 import { ExecutionContextApi, FrameKind } from './execution-context';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
@@ -332,7 +336,7 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction();
     }
-    const proxy = wrapInProxy(raw);
+    const proxy = ProxyApi.wrap(raw);
     if (MixinApi.isPostRegistration(proxy)) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
@@ -367,7 +371,7 @@ export class StuffApi {
     // the object by `stuffId` (including hydration's own self-resolving
     // hooks) sees the proxy. Holding the raw in the registry would
     // bypass interception for those callers — the decision is forced.
-    const proxy = wrapInProxy(raw);
+    const proxy = ProxyApi.wrap(raw);
     this.register(proxy);
 
     try {

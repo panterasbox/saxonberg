@@ -23,9 +23,14 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import { Stuff as StuffClass } from '../stuff/Stuff';
-import { wrapInProxy } from './proxy';
+import { ProxyApi } from '../../api/proxy';
 import { StuffApi } from '../../api/stuff';
 import { ExecutionContextApi } from '../../api/execution-context';
+// Importing security-interceptor for its registration side effect.
+// Tests that exercise the proxy need the security interceptor in
+// place; without this import a fresh test-only ProxyApi reset
+// could leave the pipeline empty.
+import './security-interceptor';
 
 /**
  * Synchronously construct, wrap, and register a Stuff. Mirrors the
@@ -42,7 +47,7 @@ export function makeStuff<T extends Stuff>(factory: () => T): T {
   } finally {
     StuffClass._endConstruction();
   }
-  const proxy = wrapInProxy(raw);
+  const proxy = ProxyApi.wrap(raw);
   StuffApi.register(proxy);
   return proxy;
 }
