@@ -101,21 +101,100 @@ export abstract class Stuff {
    * without immediately running construction in the same synchronous
    * scope, or a parallel call could observe it set and bypass.
    *
+   * Locked down by stack-walk allowlist: only callers from `mud/api/`
+   * (StuffApi's create/clone/createSync), `mud/lib/security/test-setup`
+   * (the `makeStuff` helper), or test files may flip the sentinel.
+   * Anything else throws — closes the "replicate StuffApi's flow
+   * without registering" attack the MR review flagged.
+   *
    * The leading underscore signals "framework-internal"; matches the
    * existing convention (see `StuffApi._validateClassPath` test seam).
    * @internal
    */
   public static _beginConstruction(): void {
+    Stuff.#assertConstructionGateAllowed('_beginConstruction');
     Stuff.#expectingConstruction = true;
   }
 
   /**
    * Companion to `_beginConstruction`. Called by `StuffApi`'s finally-
-   * block to clear the sentinel even if construction throws.
+   * block to clear the sentinel even if construction throws. Same
+   * stack-walk allowlist applies.
    * @internal
    */
   public static _endConstruction(): void {
+    Stuff.#assertConstructionGateAllowed('_endConstruction');
     Stuff.#expectingConstruction = false;
+  }
+
+  /**
+   * File-URL patterns whose code may flip the construction sentinel.
+   * Same shape as `ExecutionContextApi`'s frame-mutator allowlist —
+   * different method, different allowlist, but identical mechanism.
+   */
+  static #constructionGateAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/api\//,                                  // StuffApi.create / clone / createSync
+    /\/mud\/lib\/security\/test-setup\.(ts|js)$/,    // `makeStuff` test seam
+    /\.test\.(ts|js)$/,                              // direct test usage
+  ];
+
+  static #constructionGateCache: Map<string, boolean> = new Map();
+
+  /**
+   * Throw if the immediate caller of `_beginConstruction` /
+   * `_endConstruction` isn't on the allowlist. Per-URL cached, so the
+   * cost is one stack walk per file ever; after warmup it's a Map
+   * lookup. New legitimate callers must be added here with a one-line
+   * justification — keep the list narrow.
+   */
+  static #assertConstructionGateAllowed(op: string): void {
+    const url = Stuff.#findImmediateCallerUrl();
+    if (url === null) {
+      throw new Error(
+        `Stuff.${op}() refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#constructionGateCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
+          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `*.test.ts files may flip the construction sentinel`
+      );
+    }
+    const allowed = Stuff.#constructionGateAllowlist.some((re) => re.test(url));
+    Stuff.#constructionGateCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
+          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `*.test.ts files may flip the construction sentinel`
+      );
+    }
+  }
+
+  /**
+   * Walk `Error.stack` to the first frame outside this module and
+   * return its file URL, or `null`.
+   */
+  static #findImmediateCallerUrl(): string | null {
+    const err = new Error();
+    const lines = (err.stack ?? '').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('at ')) continue;
+      const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
+      const bare = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+      const m = parens ?? bare;
+      if (!m) continue;
+      const url = m[1];
+      if (!url) continue;
+      // Skip frames inside this module file (Stuff.ts/js).
+      if (/\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/.test(url)) continue;
+      return url;
+    }
+    return null;
   }
 
   /**
