@@ -9,7 +9,7 @@
  */
 
 import type { Avatar } from '../obj/Avatar';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 /**
  * Static API for Player/Avatar management.
@@ -99,4 +99,4 @@ export class PlayerApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(PlayerApi);
+SecurityApi.decorateApiClass(PlayerApi);

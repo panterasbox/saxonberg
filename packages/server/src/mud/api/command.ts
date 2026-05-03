@@ -19,7 +19,7 @@ import type { Interactive } from '../obj/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 /**
  * Command execution context - read-only reference holder.
@@ -244,4 +244,4 @@ export class CommandApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(CommandApi);
+SecurityApi.decorateApiClass(CommandApi);

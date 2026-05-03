@@ -19,7 +19,7 @@ import { PersistenceManager, Collections } from '../../backend/PersistenceManage
 import { MixinApi } from './mixin';
 import { wrapInProxy } from '../lib/security/proxy';
 import { ExecutionContextApi, FrameKind } from './execution-context';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
 /**
@@ -561,4 +561,4 @@ export class StuffApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(StuffApi);
+SecurityApi.decorateApiClass(StuffApi);

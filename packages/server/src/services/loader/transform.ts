@@ -79,8 +79,11 @@ export function shouldTransform(fileUrl: string): boolean {
   if (filePath.includes('/mud/lib/security/')) return false;
   // The framework's own Api files — auto-stamping them would form a
   // load-time cycle since the auto-injected `ModuleApi.stamp(...)`
-  // imports back into module.ts.
-  if (/\/mud\/api\/(execution-context|module)\.ts$/.test(filePath)) return false;
+  // imports back into module.ts. SecurityApi is in the same boat —
+  // module.ts imports SecurityApi.getFinalMethods, so stamping
+  // security.ts would push its module.ts import into a tighter cycle
+  // and leave `ModuleApi` undefined when the stamp call fires.
+  if (/\/mud\/api\/(execution-context|module|security)\.ts$/.test(filePath)) return false;
   // Only transform files inside the mud tree. The backend layer can
   // be added later if it needs class-identity matching; today it
   // doesn't, and skipping it avoids over-instrumenting auth/HTTP

@@ -38,11 +38,7 @@ import {
   SecurityError,
 } from '../lib/security/errors';
 import { ExecutionContextApi } from './execution-context';
-import {
-  isMethodUnshadowable,
-  resolveShadowSecurity,
-} from '../lib/security/decorators';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 const EMPTY_METHODS: ReadonlySet<string> = new Set();
@@ -100,13 +96,13 @@ export class ShadowApi {
 
     // Validate @Unshadowable + @ShadowSecurity(attach) BEFORE any mutation.
     for (const m of intercept) {
-      if (isMethodUnshadowable(host, m)) {
+      if (SecurityApi.isMethodUnshadowable(host, m)) {
         throw new ShadowError(
           `host method ${m} is marked @Unshadowable`,
           { shadowId: shadow.stuffId, hostId: host.stuffId, methodName: m }
         );
       }
-      const secs = resolveShadowSecurity(host, m);
+      const secs = SecurityApi.resolveShadowSecurity(host, m);
       if (secs?.attach) {
         const caller = ExecutionContextApi.getCurrentTarget();
         if (!secs.attach.allows(caller, host, m)) {
@@ -150,7 +146,7 @@ export class ShadowApi {
     const methods = this.#shadowMethods.get(shadow) ?? EMPTY_METHODS;
 
     for (const m of methods) {
-      const secs = resolveShadowSecurity(host, m);
+      const secs = SecurityApi.resolveShadowSecurity(host, m);
       if (secs?.detach) {
         const caller = ExecutionContextApi.getCurrentTarget();
         if (!secs.detach.allows(caller, host, m)) {
@@ -543,4 +539,4 @@ export class ShadowApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(ShadowApi);
+SecurityApi.decorateApiClass(ShadowApi);

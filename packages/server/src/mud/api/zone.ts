@@ -16,7 +16,7 @@ import { PersistenceManager, Collections } from '../../backend/PersistenceManage
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/spatial/Zone';
 import type { DomainTemplate } from './stuff';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 /**
  * Class paths (as stored in `domain.class`) whose templates should be
@@ -118,4 +118,4 @@ export class ZoneApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(ZoneApi);
+SecurityApi.decorateApiClass(ZoneApi);

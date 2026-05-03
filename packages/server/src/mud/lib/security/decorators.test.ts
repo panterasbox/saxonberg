@@ -3,23 +3,17 @@
  *
  * Covers polymorphic @CallSecurity (method/static/class), polymorphic
  * @Unshadowable (method/class), the @Final stamping (validator runs in
- * Stage 2), and the resolution order:
+ * `ModuleApi.stamp`), and the resolution order:
  *   per-method @CallSecurity > class-form @CallSecurity > Public.
+ *
+ * Decorators are thin wrappers around `SecurityApi`; tests poke
+ * `SecurityApi._*ForTest` seams to inspect what each decorator stamped.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  CallSecurity,
-  Unshadowable,
-  Final,
-  resolveCallPolicy,
-  resolveStaticCallPolicy,
-  isMethodUnshadowable,
-  getFinalMethods,
-  decorateApiClass,
-  _decoratorInternals,
-} from './decorators';
+import { describe, it, expect } from 'vitest';
+import { CallSecurity, Unshadowable, Final } from './decorators';
 import { SecurityPolicies } from './SecurityPolicies';
+import { SecurityApi } from '../../api/security';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { SecurityError } from './errors';
 
@@ -29,13 +23,13 @@ describe('@CallSecurity (polymorphic)', () => {
       @CallSecurity(SecurityPolicies.SelfOnly)
       m(): void {}
     }
-    expect(_decoratorInternals.methodPolicy(Foo, 'm')?.name).toBe('SelfOnly');
+    expect(SecurityApi._methodPolicyForTest(Foo, 'm')?.name).toBe('SelfOnly');
   });
 
   it('class form stamps the default policy', () => {
     @CallSecurity(SecurityPolicies.SystemRoot)
     class Bar {}
-    expect(_decoratorInternals.classDefaultPolicy(Bar)?.name).toBe('SystemRoot');
+    expect(SecurityApi._classDefaultPolicyForTest(Bar)?.name).toBe('SystemRoot');
   });
 
   it('resolves per-method policy when present', () => {
@@ -45,8 +39,8 @@ describe('@CallSecurity (polymorphic)', () => {
       n(): void {}
     }
     const inst = Object.create(Foo.prototype);
-    expect(resolveCallPolicy(inst, 'm').name).toBe('SystemRoot');
-    expect(resolveCallPolicy(inst, 'n').name).toBe('Public');
+    expect(SecurityApi.resolveCallPolicy(inst, 'm').name).toBe('SystemRoot');
+    expect(SecurityApi.resolveCallPolicy(inst, 'n').name).toBe('Public');
   });
 
   it('falls back to class-form policy for unannotated methods', () => {
@@ -55,7 +49,7 @@ describe('@CallSecurity (polymorphic)', () => {
       m(): void {}
     }
     const inst = Object.create(Foo.prototype);
-    expect(resolveCallPolicy(inst, 'm').name).toBe('SelfOnly');
+    expect(SecurityApi.resolveCallPolicy(inst, 'm').name).toBe('SelfOnly');
   });
 
   it('method-form wins over class-form', () => {
@@ -65,7 +59,7 @@ describe('@CallSecurity (polymorphic)', () => {
       m(): void {}
     }
     const inst = Object.create(Foo.prototype);
-    expect(resolveCallPolicy(inst, 'm').name).toBe('Public');
+    expect(SecurityApi.resolveCallPolicy(inst, 'm').name).toBe('Public');
   });
 
   it('walks the prototype chain (subclass inherits parent annotation)', () => {
@@ -75,7 +69,7 @@ describe('@CallSecurity (polymorphic)', () => {
     }
     class Child extends Parent {}
     const inst = Object.create(Child.prototype);
-    expect(resolveCallPolicy(inst, 'm').name).toBe('SystemRoot');
+    expect(SecurityApi.resolveCallPolicy(inst, 'm').name).toBe('SystemRoot');
   });
 });
 
@@ -101,7 +95,7 @@ describe('@CallSecurity on static methods', () => {
     expect(() => StuffApi.doIt()).toThrow(SecurityError);
   });
 
-  it('class-form decorator wraps every static method', () => {
+  it('decorateApiClass wraps every static method', () => {
     class StuffApi {
       static recorded = '';
       static helper(): void {
@@ -110,7 +104,7 @@ describe('@CallSecurity on static methods', () => {
           : 'none';
       }
     }
-    decorateApiClass(StuffApi);
+    SecurityApi.decorateApiClass(StuffApi);
     StuffApi.helper();
     // The helper sees the class itself as the current target (set by
     // the wrapper via ExecutionContextApi.run(caller, cls, ...)).
@@ -118,12 +112,12 @@ describe('@CallSecurity on static methods', () => {
   });
 });
 
-describe('resolveStaticCallPolicy', () => {
+describe('SecurityApi.resolveStaticCallPolicy', () => {
   it('returns Public when nothing is decorated', () => {
     class Plain {
       static m(): void {}
     }
-    expect(resolveStaticCallPolicy(Plain, 'm').name).toBe('Public');
+    expect(SecurityApi.resolveStaticCallPolicy(Plain, 'm').name).toBe('Public');
   });
 
   it('returns the per-method static policy', () => {
@@ -131,7 +125,7 @@ describe('resolveStaticCallPolicy', () => {
       @CallSecurity(SecurityPolicies.SystemRoot)
       static m(): void {}
     }
-    expect(resolveStaticCallPolicy(Foo, 'm').name).toBe('SystemRoot');
+    expect(SecurityApi.resolveStaticCallPolicy(Foo, 'm').name).toBe('SystemRoot');
   });
 });
 
@@ -142,8 +136,8 @@ describe('@Unshadowable (polymorphic)', () => {
       m(): void {}
     }
     const inst = Object.create(Foo.prototype);
-    expect(isMethodUnshadowable(inst, 'm')).toBe(true);
-    expect(isMethodUnshadowable(inst, 'n')).toBe(false);
+    expect(SecurityApi.isMethodUnshadowable(inst, 'm')).toBe(true);
+    expect(SecurityApi.isMethodUnshadowable(inst, 'n')).toBe(false);
   });
 
   it('class form makes every method unshadowable', () => {
@@ -153,8 +147,8 @@ describe('@Unshadowable (polymorphic)', () => {
       n(): void {}
     }
     const inst = Object.create(Foo.prototype);
-    expect(isMethodUnshadowable(inst, 'm')).toBe(true);
-    expect(isMethodUnshadowable(inst, 'n')).toBe(true);
+    expect(SecurityApi.isMethodUnshadowable(inst, 'm')).toBe(true);
+    expect(SecurityApi.isMethodUnshadowable(inst, 'n')).toBe(true);
   });
 
   it('walks the prototype chain', () => {
@@ -162,23 +156,19 @@ describe('@Unshadowable (polymorphic)', () => {
     class Parent {}
     class Child extends Parent {}
     const inst = Object.create(Child.prototype);
-    expect(isMethodUnshadowable(inst, 'anything')).toBe(true);
+    expect(SecurityApi.isMethodUnshadowable(inst, 'anything')).toBe(true);
   });
 });
 
 describe('@Final', () => {
-  beforeEach(() => {
-    // Decorator side-effects persist; nothing to clear here.
-  });
-
   it('stamps method names per class', () => {
     class Foo {
       @Final
       m(): void {}
     }
-    expect(getFinalMethods(Foo)?.has('m')).toBe(true);
+    expect(SecurityApi.getFinalMethods(Foo)?.has('m')).toBe(true);
   });
 
   // Validator behavior (subclass throw at import) is exercised in
-  // Stage 2 once the loader hook runs.
+  // module.test.ts via `ModuleApi._validateNoFinalOverridesForTest`.
 });

@@ -1,4 +1,4 @@
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 /**
  * CommandLineApi - UNIX-style command line parsing
  *
@@ -318,4 +318,4 @@ export class CommandLineApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(CommandLineApi);
+SecurityApi.decorateApiClass(CommandLineApi);

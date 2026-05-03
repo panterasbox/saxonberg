@@ -21,7 +21,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import { ContainmentApi } from './containment';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 /**
  * MQL (MUD Query Language) context.
@@ -272,4 +272,4 @@ export class MqlApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(MqlApi);
+SecurityApi.decorateApiClass(MqlApi);

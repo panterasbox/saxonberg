@@ -13,11 +13,7 @@
  * policy decisions outside of a regular call (testing, audit hooks).
  */
 
-import {
-  resolveCallPolicy,
-  resolveStaticCallPolicy,
-  isMethodUnshadowable,
-} from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 export { ExecutionContextApi, FrameKind } from './execution-context';
 export type {
@@ -55,7 +51,7 @@ export class CallSecurityApi {
    * decorator resolver.
    */
   public static resolvePolicyFor(instance: object, methodName: string) {
-    return resolveCallPolicy(instance, methodName);
+    return SecurityApi.resolveCallPolicy(instance, methodName);
   }
 
   /**
@@ -66,7 +62,7 @@ export class CallSecurityApi {
     cls: abstract new (...args: any[]) => unknown,
     methodName: string
   ) {
-    return resolveStaticCallPolicy(cls, methodName);
+    return SecurityApi.resolveStaticCallPolicy(cls, methodName);
   }
 
   /**
@@ -75,6 +71,6 @@ export class CallSecurityApi {
    * stamp. Useful for guarding against bad calls in advance.
    */
   public static isUnshadowable(host: object, methodName: string): boolean {
-    return isMethodUnshadowable(host, methodName);
+    return SecurityApi.isMethodUnshadowable(host, methodName);
   }
 }

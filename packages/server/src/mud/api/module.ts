@@ -35,10 +35,10 @@
  */
 
 import { FinalViolationError } from '../lib/security/errors';
-import { getFinalMethods } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 // Like ExecutionContextApi, ModuleApi deliberately does NOT call
-// `decorateApiClass(...)`. It's framework infrastructure called by
+// `SecurityApi.decorateApiClass(...)`. It's framework infrastructure called by
 // the loader transform during module evaluation; wrapping its
 // methods in policy/frame-push plumbing would (a) form a bootstrap
 // cycle with `decorators.ts`, and (b) push noise frames for every
@@ -252,7 +252,7 @@ export class ModuleApi {
       if (!ancestor || ancestor === Object.prototype) break;
       const ancestorCtor = ancestor.constructor;
       if (typeof ancestorCtor === 'function') {
-        const finals = getFinalMethods(ancestorCtor as object);
+        const finals = SecurityApi.getFinalMethods(ancestorCtor as object);
         if (finals) {
           for (const name of finals) {
             // Walk every layer between cls.prototype and ancestor; if

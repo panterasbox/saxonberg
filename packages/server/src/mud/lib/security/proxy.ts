@@ -24,7 +24,7 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import { ExecutionContextApi } from '../../api/execution-context';
-import { resolveCallPolicy } from './decorators';
+import { SecurityApi } from '../../api/security';
 import { DestroyedObjectError, SecurityError } from './errors';
 import { ShadowApi } from '../../api/shadow';
 
@@ -228,7 +228,7 @@ function runWithMediation(
     throw new DestroyedObjectError(target.stuffId, methodName);
   }
   // 2. entry policy
-  const policy = resolveCallPolicy(target, methodName);
+  const policy = SecurityApi.resolveCallPolicy(target, methodName);
   const caller = ExecutionContextApi.getCurrentTarget();
   if (!policy.allows(caller, proxyRef, methodName)) {
     throw new SecurityError(

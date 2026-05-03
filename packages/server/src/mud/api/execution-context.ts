@@ -33,7 +33,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { SecurityError } from '../lib/security/errors';
 
 // NOTE: ExecutionContextApi deliberately does NOT call
-// `decorateApiClass(...)` at module load — unlike StuffApi, MqlApi,
+// `SecurityApi.decorateApiClass(...)` at module load — unlike StuffApi, MqlApi,
 // and the other Apis. Two reasons:
 //
 //   1. Circularity. `decorators.ts` imports ExecutionContextApi for

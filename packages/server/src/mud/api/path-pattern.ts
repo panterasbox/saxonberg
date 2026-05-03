@@ -16,7 +16,7 @@
  *   PathPatternApi.matches('mud/lib/stuff/Thing#Thing', 'mud/api/**') === false
  */
 
-import { decorateApiClass } from '../lib/security/decorators';
+import { SecurityApi } from './security';
 
 export class PathPatternApi {
   private constructor() {}
@@ -76,4 +76,4 @@ export class PathPatternApi {
 // TS legacy class decorators are incompatible with that combination
 // (TS18036). Same Public default policy + same static-method wrapping;
 // just no syntax-sugared decorator above the class declaration.
-decorateApiClass(PathPatternApi);
+SecurityApi.decorateApiClass(PathPatternApi);
