@@ -187,6 +187,48 @@ describe('StuffApi', () => {
     });
   });
 
+  describe('createSync', () => {
+    class SimpleStuff extends Stuff {}
+
+    class NeedsAsyncSetup extends PostRegistrationMixin(Stuff) {
+      override async postRegister() {
+        // would never run via createSync — guardrail should catch it
+      }
+    }
+
+    beforeEach(() => {
+      StuffApi.clearAll();
+    });
+
+    it('constructs and registers a Stuff with no async setup', () => {
+      const obj = StuffApi.createSync(() => new SimpleStuff());
+      expect(obj.stuffId).toBeDefined();
+      expect(StuffApi.findById(obj.stuffId)).toBe(obj);
+    });
+
+    it('throws when given a Stuff that composes PostRegistrationMixin', () => {
+      expect(() => StuffApi.createSync(() => new NeedsAsyncSetup())).toThrow(
+        /composes PostRegistrationMixin and needs async setup/
+      );
+    });
+
+    it('does NOT register the object when the guardrail rejects', () => {
+      let captured: NeedsAsyncSetup | null = null;
+      try {
+        StuffApi.createSync(() => {
+          captured = new NeedsAsyncSetup();
+          return captured;
+        });
+      } catch {
+        // expected
+      }
+      // The half-initialised object never reached the registry.
+      if (captured) {
+        expect(StuffApi.findById((captured as NeedsAsyncSetup).stuffId)).toBeUndefined();
+      }
+    });
+  });
+
   describe('register and findById', () => {
     class TestStuff extends Stuff {}
 

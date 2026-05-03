@@ -317,6 +317,12 @@ export class StuffApi {
    *
    * Reach for `create()` whenever async hydration or post-registration
    * matters; `createSync()` is the narrow-use sister.
+   *
+   * Guardrail: throws if the constructed Stuff composes
+   * `PostRegistrationMixin`. The point of `createSync` is "this Stuff
+   * has no async setup" — silently skipping `postRegister()` would
+   * yield a half-initialised object. The throw forces such classes
+   * to use the async `create()` path instead.
    */
   public static createSync<T extends Stuff>(factory: () => T): T {
     Stuff._beginConstruction();
@@ -327,6 +333,15 @@ export class StuffApi {
       Stuff._endConstruction();
     }
     const proxy = wrapInProxy(raw);
+    if (MixinApi.isPostRegistration(proxy)) {
+      // Don't even register — fail before the half-initialised object
+      // can leak into the registry.
+      throw new Error(
+        `StuffApi.createSync(): ${(proxy as object).constructor.name} ` +
+          `composes PostRegistrationMixin and needs async setup. ` +
+          `Use 'await StuffApi.create(...)' instead.`
+      );
+    }
     this.register(proxy);
     return proxy;
   }
