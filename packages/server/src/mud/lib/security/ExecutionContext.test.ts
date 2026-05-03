@@ -110,6 +110,89 @@ describe('ExecutionContext', () => {
     });
   });
 
+  describe('frame-mutator allowlist', () => {
+    it('allows mud/lib/security/ files', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'run',
+          'file:///proj/packages/server/src/mud/lib/security/proxy.ts'
+        )
+      ).not.toThrow();
+    });
+
+    it('allows any mud/api/ file', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'run',
+          'file:///proj/packages/server/src/mud/api/stuff.ts'
+        )
+      ).not.toThrow();
+    });
+
+    it('allows backend/ files (Backend.runRoot)', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'runRoot',
+          'file:///proj/packages/server/src/backend/Backend.ts'
+        )
+      ).not.toThrow();
+    });
+
+    it('allows the CommandGiver mixin specifically', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'tagCurrentFrame',
+          'file:///proj/packages/server/src/mud/lib/command/CommandGiver.ts'
+        )
+      ).not.toThrow();
+    });
+
+    it('allows test files', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'run',
+          'file:///proj/packages/server/src/mud/api/whatever.test.ts'
+        )
+      ).not.toThrow();
+    });
+
+    it('denies a domain file outside the allowlist', () => {
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'run',
+          'file:///proj/packages/server/src/mud/domain/evil.ts'
+        )
+      ).toThrow(SecurityError);
+    });
+
+    it('denies a different mixin outside the allowlist (eg. mud/lib/character/)', () => {
+      // Drives home that "mud/lib" alone isn't trusted — only
+      // specific files in it are. CommandGiver is in by name; a
+      // hypothetical NamedMixin.ts is not.
+      expect(() =>
+        ExecutionContext._checkAllowlistForTest(
+          'run',
+          'file:///proj/packages/server/src/mud/lib/character/Named.ts'
+        )
+      ).toThrow(SecurityError);
+    });
+
+    it('error message names the offender and the operation', () => {
+      try {
+        ExecutionContext._checkAllowlistForTest(
+          'tagCurrentFrame',
+          'file:///proj/packages/server/src/mud/domain/evil.ts'
+        );
+        expect.fail('should have thrown');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SecurityError);
+        const err = e as SecurityError;
+        expect(err.message).toContain('tagCurrentFrame');
+        expect(err.message).toContain('mud/domain/evil.ts');
+      }
+    });
+  });
+
   describe('frame kinds + tagging', () => {
     it('tagCurrentFrame stamps the top frame in place', () => {
       const target = new Target();

@@ -91,6 +91,110 @@ export interface RunFrameOpts {
 /** ALS-backed storage. Mutating operations replace the array immutably. */
 const _als = new AsyncLocalStorage<CallFrame[]>();
 
+/* ────────────────── Caller authorisation ──────────────────
+ *
+ * `run`, `runRoot`, and `tagCurrentFrame` mutate the call stack — the
+ * core trust surface every policy keys off. Forging a frame is the
+ * same threat model as forging a module-id (see `ModuleRegistry`):
+ * an attacker who can plant a frame whose `target` is an admin
+ * Avatar, or whose `kind` is `Root`, sidesteps every policy.
+ *
+ * Defence: stack-walk the immediate caller's file URL on entry,
+ * reject if the URL doesn't match the framework allowlist below.
+ * Same mechanism `ModuleRegistry.stamp` uses, same trust boundary.
+ *
+ * Per-URL cached so the cost is one stack walk per file ever; after
+ * warmup it's a Map lookup. New framework files that legitimately
+ * need to push frames must be added here with a one-line note in
+ * code review — keep the list narrow.
+ */
+
+/**
+ * File-URL patterns whose code may push, root, or tag frames.
+ * Order doesn't matter — any match passes.
+ */
+const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
+  /\/mud\/lib\/security\//,                      // the framework itself
+  /\/mud\/api\//,                                // every Api class (proxy / shadow / stuff push frames)
+  /\/backend\//,                                 // Backend's runRoot at the network → Application boundary
+  /\/mud\/lib\/command\/CommandGiver\.(ts|js)$/, // CommandGiverMixin tags the command frame
+  /\.test\.(ts|js)$/,                            // tests need the seam — they can't fake production identity
+];
+
+const _allowlistCache: Map<string, boolean> = new Map();
+
+/**
+ * Walk `Error.stack` to the first frame outside this module and
+ * return its file URL, or `null` if we can't extract one.
+ *
+ * Frames inside this module are skipped by URL match (e.g.
+ * `/ExecutionContext.ts:42:5` or `/ExecutionContext.js:42:5`),
+ * NOT by substring on the full line — that would also skip frames
+ * from `ExecutionContext.test.ts` and any other file whose name
+ * happens to contain "ExecutionContext".
+ */
+function _findImmediateCallerUrl(): string | null {
+  const err = new Error();
+  const lines = (err.stack ?? '').split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('at ')) continue;
+    const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
+    const bare = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+    const m = parens ?? bare;
+    if (!m) continue;
+    const url = m[1];
+    if (!url) continue;
+    // Skip frames inside this module file specifically — the
+    // `_findImmediateCallerUrl`, `_assertFrameMutatorAllowed`,
+    // `run`, `runRoot`, and `tagCurrentFrame` frames all live in
+    // `ExecutionContext.ts` (or its compiled `.js`).
+    if (/\/ExecutionContext\.(ts|js)(\?|$|:)/.test(url)) continue;
+    return url;
+  }
+  return null;
+}
+
+/**
+ * Throw `SecurityError` if the immediate caller isn't in the
+ * framework allowlist. Result cached per file URL so the second
+ * call from the same site is a Map lookup.
+ *
+ * `op` is the frame-mutator name (`'run'`, `'runRoot'`,
+ * `'tagCurrentFrame'`) used in the error message so the offender
+ * sees exactly which API was misused.
+ */
+function _assertFrameMutatorAllowed(op: string): void {
+  const url = _findImmediateCallerUrl();
+  if (url === null) {
+    // Couldn't extract a caller URL. Fail closed — better to break
+    // the call than silently allow a forge.
+    throw new SecurityError(
+      `ExecutionContext.${op}() refused: caller URL could not be determined`
+    );
+  }
+  const cached = _allowlistCache.get(url);
+  if (cached === true) return;
+  if (cached === false) {
+    throw new SecurityError(
+      `ExecutionContext.${op}() refused from ${url}: ` +
+        `only framework files (mud/lib/security/**, mud/api/**, ` +
+        `backend/**, mud/lib/command/CommandGiver, *.test.ts) ` +
+        `may push or tag call frames`
+    );
+  }
+  const allowed = _frameMutatorAllowlist.some((re) => re.test(url));
+  _allowlistCache.set(url, allowed);
+  if (!allowed) {
+    throw new SecurityError(
+      `ExecutionContext.${op}() refused from ${url}: ` +
+        `only framework files (mud/lib/security/**, mud/api/**, ` +
+        `backend/**, mud/lib/command/CommandGiver, *.test.ts) ` +
+        `may push or tag call frames`
+    );
+  }
+}
+
 /**
  * Static-class style API. All methods are static so callers don't need to
  * instantiate or import a singleton.
@@ -160,6 +264,7 @@ export class ExecutionContext {
    * multiple roles.
    */
   public static tagCurrentFrame(kind: FrameKind): void {
+    _assertFrameMutatorAllowed('tagCurrentFrame');
     const stack = _als.getStore();
     if (!stack || stack.length === 0) {
       throw new SecurityError(
@@ -243,6 +348,7 @@ export class ExecutionContext {
     opts: RunFrameOpts | undefined,
     fn: () => T
   ): T {
+    _assertFrameMutatorAllowed('run');
     const frame: CallFrame = {
       caller,
       target,
@@ -272,6 +378,7 @@ export class ExecutionContext {
     method: string,
     fn: () => T
   ): T {
+    _assertFrameMutatorAllowed('runRoot');
     const root: CallFrame = {
       caller: null,
       target,
@@ -289,6 +396,35 @@ export class ExecutionContext {
    */
   public static _clearForTesting(): void {
     _als.enterWith(undefined as unknown as CallFrame[]);
+  }
+
+  /**
+   * Test seam — invoke the allowlist gate against a *specific*
+   * source URL, bypassing the real Error.stack walk. Lets tests
+   * cover both the allow and deny code paths without staging real
+   * source files outside the test allowlist. @internal
+   */
+  public static _checkAllowlistForTest(op: string, url: string): void {
+    const cached = _allowlistCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new SecurityError(
+        `ExecutionContext.${op}() refused from ${url}: ` +
+          `only framework files (mud/lib/security/**, mud/api/**, ` +
+          `backend/**, mud/lib/command/CommandGiver, *.test.ts) ` +
+          `may push or tag call frames`
+      );
+    }
+    const allowed = _frameMutatorAllowlist.some((re) => re.test(url));
+    _allowlistCache.set(url, allowed);
+    if (!allowed) {
+      throw new SecurityError(
+        `ExecutionContext.${op}() refused from ${url}: ` +
+          `only framework files (mud/lib/security/**, mud/api/**, ` +
+          `backend/**, mud/lib/command/CommandGiver, *.test.ts) ` +
+          `may push or tag call frames`
+      );
+    }
   }
 
   static #nameOf(obj: unknown): string {
