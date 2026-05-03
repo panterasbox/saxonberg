@@ -24,6 +24,7 @@ import { ExitableMixin } from './Exitable';
 import { Exit } from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import { StuffApi } from '../../api/stuff';
 
 // Vessel already = ContainerMixin(Thing), and Thing = ContainableMixin(Stuff),
 // so ExitableVessel is Container + Containable + Exitable without further churn.
@@ -94,13 +95,13 @@ export class ExitableVessel extends ExitableVesselBase {
     }
 
     const vesselName = this.name;
-    const exit = new Exit({
+    const exit = StuffApi.createSync(() => new Exit({
       direction: 'in',
       source: env,
       destination: this as unknown as Stuff & Container,
       messageOut: `<name>{mover}</name> enters the <name>${vesselName}</name>.`,
       messageIn: `<name>{mover}</name> enters from outside.`,
-    });
+    }));
     this.entryCache = exit;
     this.entryCacheEnvId = env.stuffId;
     return exit;
@@ -115,13 +116,13 @@ export class ExitableVessel extends ExitableVesselBase {
     }
 
     const vesselName = this.name;
-    const exit = new Exit({
+    const exit = StuffApi.createSync(() => new Exit({
       direction: 'out',
       source: this as unknown as Stuff & Container,
       destination: env,
       messageOut: `<name>{mover}</name> leaves the <name>${vesselName}</name>.`,
       messageIn: `<name>{mover}</name> emerges from the <name>${vesselName}</name>.`,
-    });
+    }));
     this.outCache = exit;
     this.outCacheEnvId = env.stuffId;
     return exit;

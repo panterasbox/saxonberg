@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptibleMixin } from './Perceptible';
 import { Stuff } from '../stuff/Stuff';
+import { makeStuff } from '../security/test-setup';
 
 // Test class with PerceptibleMixin
 const PerceptibleBase = PerceptibleMixin(Stuff);
@@ -14,7 +15,7 @@ describe('PerceptibleMixin', () => {
   let obj: TestObject;
 
   beforeEach(() => {
-    obj = new TestObject();
+    obj = makeStuff(() => new TestObject());
   });
 
   describe('getKeywords()', () => {

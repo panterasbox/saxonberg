@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from './stuff';
 import { Stuff } from '../lib/stuff/Stuff';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { makeStuff } from '../lib/security/test-setup';
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {
@@ -143,7 +144,7 @@ describe('StuffApi', () => {
         }
       }
 
-      const obj = new FailingInitStuff();
+      const obj = makeStuff(() => new FailingInitStuff());
       await expect(StuffApi.create(() => obj)).rejects.toThrow('init failed');
 
       expect(StuffApi.findById(obj.stuffId)).toBeUndefined();

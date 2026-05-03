@@ -19,6 +19,7 @@ import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
 import { Application } from './Application';
+import { ExecutionContext } from '../mud/lib/security/ExecutionContext';
 
 /**
  * Backend - Singleton for I/O operations.
@@ -121,9 +122,14 @@ export class Backend implements IBackend {
       this.handleWebSocketError(socketId, error);
     });
 
-    // Notify Application of new connection
+    // Notify Application of new connection. Plant the call-security
+    // root frame around the call so the call stack has a well-defined
+    // bottom — Backend at the network → Application boundary.
     if (this.application) {
-      this.application.handleUserConnect(userId, sessionId, socketId);
+      const app = this.application;
+      ExecutionContext.runRoot(Backend, 'handleUserConnect', () =>
+        app.handleUserConnect(userId, sessionId, socketId)
+      );
     }
   }
 
@@ -137,9 +143,13 @@ export class Backend implements IBackend {
     try {
       const message = JSON.parse(data.toString());
 
-      // Delegate to Application for processing
+      // Delegate to Application for processing. Root frame on the
+      // boundary so the message-driven call stack is rooted at Backend.
       if (this.application) {
-        this.application.processUserMessage(socketId, message);
+        const app = this.application;
+        ExecutionContext.runRoot(Backend, 'processUserMessage', () =>
+          app.processUserMessage(socketId, message)
+        );
       }
     } catch (error) {
       console.error(`Backend: Error parsing WebSocket message:`, error);
@@ -165,9 +175,12 @@ export class Backend implements IBackend {
     // Remove from registry
     this.socketsBySocketId.delete(socketId);
 
-    // Notify Application of disconnection
+    // Notify Application of disconnection. Root frame on the boundary.
     if (this.application) {
-      this.application.handleUserDisconnect(socketId);
+      const app = this.application;
+      ExecutionContext.runRoot(Backend, 'handleUserDisconnect', () =>
+        app.handleUserDisconnect(socketId)
+      );
     }
   }
 
@@ -201,7 +214,14 @@ export class Backend implements IBackend {
         throw new Error('Backend: Application not initialized');
       }
 
-      const userId = await this.application.findOrCreateUserFromGoogle(profile);
+      // OAuth callback path also enters Application from the network
+      // boundary, so plant the same root frame here.
+      const app = this.application;
+      const userId = await ExecutionContext.runRoot(
+        Backend,
+        'findOrCreateUserFromGoogle',
+        () => app.findOrCreateUserFromGoogle(profile)
+      );
 
       // Return user object for session serialization
       done(null, { id: userId });

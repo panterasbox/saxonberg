@@ -41,6 +41,7 @@ import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
+import { decorateApiClass } from '../lib/security/decorators';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin-types';
@@ -266,3 +267,5 @@ export class MixinApi {
   }
 }
 
+
+decorateApiClass(MixinApi);

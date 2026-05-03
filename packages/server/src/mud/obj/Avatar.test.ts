@@ -14,6 +14,7 @@ import { Avatar } from './Avatar';
 import { Interactive } from './Interactive';
 import { Character } from '../lib/character/Character';
 import { User } from '../lib/identity/User';
+import { makeStuff } from '../lib/security/test-setup';
 
 function makeUser(id: string): User {
   const user = new User();
@@ -22,7 +23,7 @@ function makeUser(id: string): User {
 }
 
 function makeAvatar(playerId: string): Avatar {
-  const a = new Avatar();
+  const a = makeStuff(() => new Avatar());
   a.playerId = playerId;
   return a;
 }
@@ -173,9 +174,9 @@ describe('Avatar', () => {
 
     beforeEach(() => {
       avatar = makeAvatar('test123');
-      interactive1 = new Interactive('socket1', 'session1', makeUser('user1'));
-      interactive2 = new Interactive('socket2', 'session2', makeUser('user1'));
-      interactive3 = new Interactive('socket3', 'session3', makeUser('user1'));
+      interactive1 = makeStuff(() => new Interactive('socket1', 'session1', makeUser('user1')));
+      interactive2 = makeStuff(() => new Interactive('socket2', 'session2', makeUser('user1')));
+      interactive3 = makeStuff(() => new Interactive('socket3', 'session3', makeUser('user1')));
     });
 
     describe('addInteractive', () => {
@@ -342,8 +343,8 @@ describe('Avatar', () => {
       // Spy on Avatar.getApplicationInstance to return our mock app
       vi.spyOn(Avatar as any, 'getApplicationInstance').mockReturnValue(mockApp);
 
-      interactive1 = new Interactive('socket-1', 'session-1', makeUser('user-1'));
-      interactive2 = new Interactive('socket-2', 'session-2', makeUser('user-1'));
+      interactive1 = makeStuff(() => new Interactive('socket-1', 'session-1', makeUser('user-1')));
+      interactive2 = makeStuff(() => new Interactive('socket-2', 'session-2', makeUser('user-1')));
     });
 
     afterEach(() => {
@@ -398,8 +399,8 @@ describe('Avatar', () => {
 
     it('should support multiplexing (same user, multiple devices)', () => {
       // Simulate same user on laptop and phone
-      const laptop = new Interactive('socket-laptop', 'session-1', makeUser('user-1'));
-      const phone = new Interactive('socket-phone', 'session-2', makeUser('user-1'));
+      const laptop = makeStuff(() => new Interactive('socket-laptop', 'session-1', makeUser('user-1')));
+      const phone = makeStuff(() => new Interactive('socket-phone', 'session-2', makeUser('user-1')));
 
       avatar.addInteractive(laptop);
       avatar.addInteractive(phone);

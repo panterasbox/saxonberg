@@ -12,6 +12,7 @@
 
 import { ConnectionManager } from '../../backend/ConnectionManager';
 import type { Interactive } from '../obj/Interactive';
+import { decorateApiClass } from '../lib/security/decorators';
 
 /**
  * Static API for connection queries (public interface for mudlib).
@@ -72,3 +73,5 @@ export class ConnectionApi {
   // Note: createInteractive and removeInteractive are NOT exposed here.
   // Those are privileged operations that only Application/Backend should perform.
 }
+
+decorateApiClass(ConnectionApi);

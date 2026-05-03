@@ -8,6 +8,7 @@ import { ContainableMixin } from './Containable';
 import { Stuff } from '../stuff/Stuff';
 import { Location } from '../stuff/Location';
 import { StuffApi } from '../../api/stuff';
+import { makeStuff } from '../security/test-setup';
 
 // Create a test class with both ContainableMixin and MobileMixin
 const MobileObjectBase = MobileMixin(ContainableMixin(Stuff));
@@ -19,15 +20,12 @@ describe('MobileMixin', () => {
   let location2: Location;
 
   beforeEach(() => {
-    mobileObj = new MobileObject();
-    StuffApi.register(mobileObj);
+    mobileObj = makeStuff(() => new MobileObject());
 
-    location1 = new Location();
-    StuffApi.register(location1);
+    location1 = makeStuff(() => new Location());
     location1.shortDescription = 'Room 1';
 
-    location2 = new Location();
-    StuffApi.register(location2);
+    location2 = makeStuff(() => new Location());
     location2.shortDescription = 'Room 2';
   });
 
@@ -79,10 +77,8 @@ describe('MobileMixin', () => {
     });
 
     it('should handle multiple objects moving to same location', () => {
-      const obj1 = new MobileObject();
-      StuffApi.register(obj1);
-      const obj2 = new MobileObject();
-      StuffApi.register(obj2);
+      const obj1 = makeStuff(() => new MobileObject());
+      const obj2 = makeStuff(() => new MobileObject());
 
       obj1.teleport(location1);
       obj2.teleport(location1);

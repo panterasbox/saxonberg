@@ -10,6 +10,20 @@
  * 4. Setup graceful shutdown handlers
  */
 
+// Register the call-security loader hook BEFORE any game-code import.
+// The hook intercepts every `mud/**` module load and appends a
+// ModuleRegistry.stamp(...) call so every exported class gets a
+// tamper-resistant module-id. Imports below this line participate.
+//
+// Skipped under Vitest: Vitest uses Vite's plugin pipeline (see
+// vitest.config.ts → callSecPlugin), which does the same source
+// transform without going through Node's loader hooks at all. Both
+// pathways produce identical instrumentation.
+import { register } from 'node:module';
+if (!process.env.VITEST) {
+  register('./mud/lib/security/loader-hook.js', import.meta.url);
+}
+
 import 'dotenv/config';
 import { PersistenceManager } from './backend/PersistenceManager';
 import { Server } from './services/Server';

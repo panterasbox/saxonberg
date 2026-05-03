@@ -1,3 +1,4 @@
+import { decorateApiClass } from '../lib/security/decorators';
 /**
  * CommandLineApi - UNIX-style command line parsing
  *
@@ -310,3 +311,5 @@ export class CommandLineApi {
     return { options, args };
   }
 }
+
+decorateApiClass(CommandLineApi);

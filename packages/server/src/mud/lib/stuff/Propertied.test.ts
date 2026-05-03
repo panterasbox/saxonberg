@@ -14,6 +14,7 @@ import {
 import { Stuff } from './Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { makeStuff } from '../security/test-setup';
 
 // Test class with PropertiedMixin
 class PropertiedThing extends PropertiedMixin(Stuff) {
@@ -24,8 +25,7 @@ class PropertiedThing extends PropertiedMixin(Stuff) {
 class OwnerStuff extends Stuff {}
 
 function makeOwner(): OwnerStuff {
-  const owner = new OwnerStuff();
-  StuffApi.register(owner);
+  const owner = makeStuff(() => new OwnerStuff());
   return owner;
 }
 
@@ -33,8 +33,7 @@ describe('PropertiedMixin', () => {
   let obj: PropertiedThing;
 
   beforeEach(() => {
-    obj = new PropertiedThing();
-    StuffApi.register(obj);
+    obj = makeStuff(() => new PropertiedThing());
   });
 
   describe('Construction', () => {
@@ -581,8 +580,7 @@ describe('PropertiedMixin', () => {
         }
       }
 
-      const restricted = new RestrictedPropertied();
-      StuffApi.register(restricted);
+      const restricted = makeStuff(() => new RestrictedPropertied());
 
       // setProp should fail (uses defaultPropAccess)
       const success = restricted.setProp(new Property('test'), 'value');

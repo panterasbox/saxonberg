@@ -15,6 +15,7 @@ import { Avatar } from './Avatar';
 import { User } from '../lib/identity/User';
 import { StuffApi } from '../api/stuff';
 import { PlayerApi } from '../api/player';
+import { makeStuff } from '../lib/security/test-setup';
 
 function makeUser(id: string, playerIds: string[] = []): User {
   const user = new User();
@@ -24,7 +25,7 @@ function makeUser(id: string, playerIds: string[] = []): User {
 }
 
 function makeAvatar(playerId: string): Avatar {
-  const a = new Avatar();
+  const a = makeStuff(() => new Avatar());
   a.playerId = playerId;
   return a;
 }
@@ -49,7 +50,7 @@ describe('Interactive', () => {
   describe('constructor', () => {
     it('should create Interactive with basic properties', () => {
       const user = makeUser(testUserId);
-      interactive = new Interactive(testSocketId, testSessionId, user);
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, user));
 
       expect(interactive.socketId).toBe(testSocketId);
       expect(interactive.sessionId).toBe(testSessionId);
@@ -59,17 +60,17 @@ describe('Interactive', () => {
     });
 
     it('should initialize with null currentAvatar', () => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
       expect(interactive.currentAvatar).toBeNull();
     });
 
     it('should initialize with empty availableAvatars', () => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
       expect(interactive.availableAvatars.size).toBe(0);
     });
 
     it('should have unique stuffId', () => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
 
       expect(interactive.stuffId).toBeTruthy();
       expect(typeof interactive.stuffId).toBe('string');
@@ -89,11 +90,11 @@ describe('Interactive', () => {
     });
 
     it('should clone one avatar per playerId from user.playerIds', async () => {
-      interactive = new Interactive(
+      interactive = makeStuff(() => new Interactive(
         testSocketId,
         testSessionId,
         makeUser(testUserId, ['player1', 'player2'])
-      );
+      ));
       const cloneSpy = vi
         .spyOn(StuffApi, 'clone')
         .mockResolvedValueOnce(mockAvatar1)
@@ -111,11 +112,11 @@ describe('Interactive', () => {
     });
 
     it('should pass { user, playerId } context to clone', async () => {
-      interactive = new Interactive(
+      interactive = makeStuff(() => new Interactive(
         testSocketId,
         testSessionId,
         makeUser(testUserId, ['player1'])
-      );
+      ));
       const cloneSpy = vi.spyOn(StuffApi, 'clone').mockResolvedValue(mockAvatar1);
 
       await interactive.loadAvailableAvatars();
@@ -127,11 +128,11 @@ describe('Interactive', () => {
     });
 
     it('should reuse Avatars already registered (multiplexing)', async () => {
-      interactive = new Interactive(
+      interactive = makeStuff(() => new Interactive(
         testSocketId,
         testSessionId,
         makeUser(testUserId, ['player1'])
-      );
+      ));
       mockAvatar1.playerId = 'player1';
       PlayerApi.registerAvatar(mockAvatar1);
 
@@ -144,11 +145,11 @@ describe('Interactive', () => {
     });
 
     it('should populate availableAvatars map with playerId keys', async () => {
-      interactive = new Interactive(
+      interactive = makeStuff(() => new Interactive(
         testSocketId,
         testSessionId,
         makeUser(testUserId, ['player1', 'player2'])
-      );
+      ));
       vi.spyOn(StuffApi, 'clone')
         .mockResolvedValueOnce(mockAvatar1)
         .mockResolvedValueOnce(mockAvatar2);
@@ -160,11 +161,11 @@ describe('Interactive', () => {
     });
 
     it('should handle user with no playerIds', async () => {
-      interactive = new Interactive(
+      interactive = makeStuff(() => new Interactive(
         testSocketId,
         testSessionId,
         makeUser(testUserId)
-      );
+      ));
 
       await interactive.loadAvailableAvatars();
 
@@ -177,7 +178,7 @@ describe('Interactive', () => {
     let mockAvatar2: Avatar;
 
     beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
 
       mockAvatar1 = makeAvatar('player1');
       mockAvatar1.firstName = 'Alice';
@@ -225,8 +226,8 @@ describe('Interactive', () => {
     let mockAvatar: Avatar;
 
     beforeEach(() => {
-      interactive1 = new Interactive('socket1', 'session1', makeUser(testUserId));
-      interactive2 = new Interactive('socket2', 'session2', makeUser(testUserId));
+      interactive1 = makeStuff(() => new Interactive('socket1', 'session1', makeUser(testUserId)));
+      interactive2 = makeStuff(() => new Interactive('socket2', 'session2', makeUser(testUserId)));
 
       mockAvatar = makeAvatar('player1');
       mockAvatar.firstName = 'Alice';
@@ -264,7 +265,7 @@ describe('Interactive', () => {
 
   describe('send', () => {
     beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
     });
 
     it('should have send method', () => {
@@ -280,7 +281,7 @@ describe('Interactive', () => {
 
   describe('getConnectionDuration', () => {
     beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
     });
 
     it('should return elapsed time in milliseconds', async () => {
@@ -298,7 +299,7 @@ describe('Interactive', () => {
     let mockAvatar: Avatar;
 
     beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
       mockAvatar = makeAvatar('player1');
       interactive.availableAvatars.set('player1', mockAvatar);
     });
@@ -338,7 +339,7 @@ describe('Interactive', () => {
 
   describe('toString', () => {
     beforeEach(() => {
-      interactive = new Interactive(testSocketId, testSessionId, makeUser(testUserId));
+      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
     });
 
     it('should include socketId and userId', () => {

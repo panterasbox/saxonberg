@@ -16,6 +16,7 @@ import { PersistenceManager, Collections } from '../../backend/PersistenceManage
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/spatial/Zone';
 import type { DomainTemplate } from './stuff';
+import { decorateApiClass } from '../lib/security/decorators';
 
 /**
  * Class paths (as stored in `domain.class`) whose templates should be
@@ -110,3 +111,5 @@ export class ZoneApi {
     return ancestors;
   }
 }
+
+decorateApiClass(ZoneApi);

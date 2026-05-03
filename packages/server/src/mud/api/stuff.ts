@@ -13,10 +13,14 @@
  */
 
 import { nanoid } from 'nanoid';
-import type { Stuff, DestroyedObjectMetadata } from '../lib/stuff/Stuff';
+import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
+import { wrapInProxy } from '../lib/security/proxy';
+import { ExecutionContext } from '../lib/security/ExecutionContext';
+import { decorateApiClass } from '../lib/security/decorators';
+import { ShadowApi } from './shadow';
 
 /**
  * Domain template document from the CMS.
@@ -203,8 +207,22 @@ export class StuffApi {
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
     //    postRegister sequence. The hydrator captures `template.data`.
-    const obj = new ClassConstructor();
+    //    The construction sentinel must be flipped immediately around
+    //    `new` with no intervening async — otherwise a parallel call
+    //    could observe it set and bypass.
+    Stuff._beginConstruction();
+    let obj: T;
+    try {
+      obj = new ClassConstructor();
+    } finally {
+      Stuff._endConstruction();
+    }
     if (zone) obj.zone = zone;
+    // Stamp the template path onto the instance so identity-keyed
+    // policies (`FromTemplate`, etc.) can match against it. The
+    // proxy reads `templatePath` directly via the get-trap; we use
+    // a plain property so test code can also see it.
+    (obj as unknown as { templatePath?: string }).templatePath = templatePath;
     return this.#registerAndInit(
       obj,
       hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
@@ -272,7 +290,45 @@ export class StuffApi {
     factory: () => T,
     context?: unknown
   ): Promise<T> {
-    return this.#registerAndInit(factory(), null, context);
+    // Sentinel must be set immediately around the factory invocation
+    // with no intervening async — see clone() for the rationale.
+    Stuff._beginConstruction();
+    let raw: T;
+    try {
+      raw = factory();
+    } finally {
+      Stuff._endConstruction();
+    }
+    return this.#registerAndInit(raw, null, context);
+  }
+
+  /**
+   * Synchronous variant of `create()` for runtime objects whose
+   * construction is purely synchronous — no `Hydrator.hydrate()` step
+   * (the factory does the work) and no `postRegister()` (the class
+   * does not compose `PostRegistrationMixin`).
+   *
+   * Same sentinel-flip + Proxy-wrap + register guarantees as the
+   * async path, so the result is interception-mediated and tracked
+   * in the registry just like any other Stuff. Use this from inside
+   * sync helpers (e.g. `Exitable.addBidirectionalExit`'s `new
+   * Exit(...)` calls) where awaiting `create()` would force the
+   * caller — and its callers — to become async too.
+   *
+   * Reach for `create()` whenever async hydration or post-registration
+   * matters; `createSync()` is the narrow-use sister.
+   */
+  public static createSync<T extends Stuff>(factory: () => T): T {
+    Stuff._beginConstruction();
+    let raw: T;
+    try {
+      raw = factory();
+    } finally {
+      Stuff._endConstruction();
+    }
+    const proxy = wrapInProxy(raw);
+    this.register(proxy);
+    return proxy;
   }
 
   /**
@@ -288,23 +344,41 @@ export class StuffApi {
    * object never lingers in the registry.
    */
   static async #registerAndInit<T extends Stuff>(
-    obj: T,
+    raw: T,
     hydrate: ((obj: T) => Promise<void>) | null,
     context: unknown
   ): Promise<T> {
-    this.register(obj);
+    // Wrap before registry insertion so every consumer that resolves
+    // the object by `stuffId` (including hydration's own self-resolving
+    // hooks) sees the proxy. Holding the raw in the registry would
+    // bypass interception for those callers — the decision is forced.
+    const proxy = wrapInProxy(raw);
+    this.register(proxy);
 
     try {
-      if (hydrate) await hydrate(obj);
-      if (MixinApi.isPostRegistration(obj)) {
-        await obj.postRegister(context);
-      }
+      // Synthetic constructor frame around hydrate + postRegister so
+      // anything those steps invoke has `caller = StuffApi` and
+      // `target = <new instance>`. Inner `this.foo()` calls then
+      // appear as self-calls, which is the natural reading of
+      // construction-time self-initialization.
+      await ExecutionContext.run(
+        StuffApi,
+        proxy,
+        'constructor',
+        { kind: 'constructor' },
+        async () => {
+          if (hydrate) await hydrate(proxy);
+          if (MixinApi.isPostRegistration(proxy)) {
+            await proxy.postRegister(context);
+          }
+        }
+      );
     } catch (error) {
-      this.unregister(obj);
+      this.unregister(proxy);
       throw error;
     }
 
-    return obj;
+    return proxy;
   }
 
   /**
@@ -331,10 +405,17 @@ export class StuffApi {
   /**
    * Destroy an object.
    *
-   * This is the canonical destruction entry point — always destroy objects
-   * through this API. Currently a thin wrapper over Stuff.destroy(); when
-   * the call security framework lands, direct Stuff.destroy() calls will be
-   * locked down so only this Api layer can invoke them.
+   * This is the canonical destruction entry point — `Stuff.destroy()`
+   * is now `@CallSecurity(ApiOnly)` and rejects calls from outside
+   * the Api layer. Lifecycle ordering matches §3.10 of the spec:
+   *
+   *   1. `prepareDestroy()` runs through any installed shadow chain.
+   *      Shadows can wrap, observe, or replace cleanup logic.
+   *   2. Privileged shadow detach removes every shadow from the host.
+   *      Bypasses `@ShadowSecurity({ detach })` because host
+   *      destruction is unconditional.
+   *   3. `destroy()` runs (FINAL, unshadowable) — marks
+   *      `_isDestroyed`, unregisters from `StuffApi`.
    *
    * @param object - The object to destroy
    */
@@ -342,6 +423,18 @@ export class StuffApi {
     if (!object) {
       throw new Error('StuffApi.destruct(): Invalid object');
     }
+    // Fire-and-forget the prepare hook through the proxy so any
+    // shadow chain observes it. Cast for direct invocation; the
+    // proxy mediates the call regardless.
+    const prep = (object as unknown as { prepareDestroy?: () => void })
+      .prepareDestroy;
+    if (typeof prep === 'function') {
+      prep.call(object);
+    }
+    // Privileged detach bypasses @ShadowSecurity per spec — destruction
+    // is non-negotiable.
+    ShadowApi._detachAllForHost(object);
+    // Now shadow-free — destroy() runs straight to the original body.
     object.destroy();
   }
 
@@ -446,3 +539,5 @@ export class StuffApi {
     return this.#validateClassPath(classPath);
   }
 }
+
+decorateApiClass(StuffApi);

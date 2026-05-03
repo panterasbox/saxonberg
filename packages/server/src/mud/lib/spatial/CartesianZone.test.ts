@@ -2,16 +2,15 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { CartesianZone } from './CartesianZone';
 import { CartesianLocation } from './CartesianLocation';
 import { StuffApi } from '../../api/stuff';
+import { makeStuff } from '../security/test-setup';
 
 describe('CartesianZone', () => {
   let zone: CartesianZone;
   let center: CartesianLocation;
 
   beforeEach(() => {
-    zone = new CartesianZone();
-    StuffApi.register(zone);
-    center = new CartesianLocation();
-    StuffApi.register(center);
+    zone = makeStuff(() => new CartesianZone());
+    center = makeStuff(() => new CartesianLocation());
     zone.addRoom(center, 0, 0, 0);
   });
 
@@ -37,8 +36,7 @@ describe('CartesianZone', () => {
 
     const neighbors: Record<string, CartesianLocation> = {};
     for (const [dir, x, y, z] of dirs) {
-      const room = new CartesianLocation();
-      StuffApi.register(room);
+      const room = makeStuff(() => new CartesianLocation());
       zone.addRoom(room, x, y, z);
       neighbors[dir] = room;
     }
@@ -53,8 +51,7 @@ describe('CartesianZone', () => {
   });
 
   it('direction aliases resolve via normalizeDirection', () => {
-    const north = new CartesianLocation();
-    StuffApi.register(north);
+    const north = makeStuff(() => new CartesianLocation());
     zone.addRoom(north, 0, 1, 0);
 
     const viaAlias = zone.deriveExit(center, 'n');
@@ -72,14 +69,12 @@ describe('CartesianZone', () => {
   });
 
   it('source not in zone returns undefined', () => {
-    const orphan = new CartesianLocation();
-    StuffApi.register(orphan);
+    const orphan = makeStuff(() => new CartesianLocation());
     expect(zone.deriveExit(orphan, 'north')).toBeUndefined();
   });
 
   it('caches derived exits across calls', () => {
-    const north = new CartesianLocation();
-    StuffApi.register(north);
+    const north = makeStuff(() => new CartesianLocation());
     zone.addRoom(north, 0, 1, 0);
 
     const first = zone.deriveExit(center, 'north');
@@ -88,15 +83,13 @@ describe('CartesianZone', () => {
   });
 
   it('invalidates cache on addRoom', () => {
-    const a = new CartesianLocation();
-    StuffApi.register(a);
+    const a = makeStuff(() => new CartesianLocation());
     zone.addRoom(a, 0, 1, 0);
     const cachedA = zone.deriveExit(center, 'north');
 
     // Replace the neighbor cell with a new room.
     zone.removeRoom(a);
-    const b = new CartesianLocation();
-    StuffApi.register(b);
+    const b = makeStuff(() => new CartesianLocation());
     zone.addRoom(b, 0, 1, 0);
 
     const fresh = zone.deriveExit(center, 'north');
@@ -105,8 +98,7 @@ describe('CartesianZone', () => {
   });
 
   it('invalidates cache on removeRoom', () => {
-    const a = new CartesianLocation();
-    StuffApi.register(a);
+    const a = makeStuff(() => new CartesianLocation());
     zone.addRoom(a, 0, 1, 0);
     expect(zone.deriveExit(center, 'north')).toBeDefined();
 
@@ -115,8 +107,7 @@ describe('CartesianZone', () => {
   });
 
   it('getNeighbor returns the room at the offset cell', () => {
-    const a = new CartesianLocation();
-    StuffApi.register(a);
+    const a = makeStuff(() => new CartesianLocation());
     zone.addRoom(a, 1, 0, 0);
     expect(zone.getNeighbor(center, 'east')).toBe(a);
     expect(zone.getNeighbor(center, 'west')).toBeUndefined();

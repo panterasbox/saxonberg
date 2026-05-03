@@ -11,6 +11,7 @@ import { SensorMixin } from '../message/Sensor';
 import { ContainableMixin } from './Containable';
 import { MobileMixin } from './Mobile';
 import { NamedMixin } from '../character/Named';
+import { makeStuff } from '../security/test-setup';
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
 class TestMover extends SensorBase {
@@ -28,48 +29,44 @@ describe('Exit', () => {
   let mover: TestMover;
 
   beforeEach(() => {
-    zone = new CartesianZone();
-    StuffApi.register(zone);
+    zone = makeStuff(() => new CartesianZone());
 
-    roomA = new CartesianLocation();
-    StuffApi.register(roomA);
+    roomA = makeStuff(() => new CartesianLocation());
     roomA.shortDescription = 'Room A';
 
-    roomB = new CartesianLocation();
-    StuffApi.register(roomB);
+    roomB = makeStuff(() => new CartesianLocation());
     roomB.shortDescription = 'Room B';
 
     zone.addRoom(roomA, 0, 0, 0);
     zone.addRoom(roomB, 0, 1, 0);
 
-    mover = new TestMover();
-    StuffApi.register(mover);
+    mover = makeStuff(() => new TestMover());
     mover.firstName = 'Alice';
     ContainmentApi.move(mover, roomA);
   });
 
   describe('canTraverse', () => {
     it('returns ok in the normal case', () => {
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
     });
 
     it('returns not ok when blocked', () => {
-      const exit = new Exit({
+      const exit = makeStuff(() => new Exit({
         direction: 'north',
         source: roomA,
         destination: roomB,
         blocked: true,
-      });
+      }));
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/blocked/i);
     });
 
     it('returns not ok when door is closed', () => {
-      const door = new Door();
+      const door = makeStuff(() => new Door());
       door.shortDescription = 'oak door';
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB, door });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB, door }));
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/closed/i);
@@ -77,24 +74,24 @@ describe('Exit', () => {
     });
 
     it('returns ok when door is open', () => {
-      const door = new Door();
+      const door = makeStuff(() => new Door());
       door.shortDescription = 'oak door';
       door.open();
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB, door });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB, door }));
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
     });
   });
 
   describe('traverse', () => {
     it('moves the mover to the destination', () => {
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       mover.traverse(exit);
       expect(mover.getEnvironment()).toBe(roomB);
     });
 
     it('broadcasts departure to source peers excluding the mover', () => {
       const spy = vi.spyOn(MessageApi, 'messageContents');
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       mover.traverse(exit);
 
       const [firstCall, secondCall] = spy.mock.calls;
@@ -115,13 +112,13 @@ describe('Exit', () => {
 
     it('uses custom messageIn/messageOut when provided', () => {
       const spy = vi.spyOn(MessageApi, 'messageContents');
-      const exit = new Exit({
+      const exit = makeStuff(() => new Exit({
         direction: 'north',
         source: roomA,
         destination: roomB,
         messageOut: 'custom departure',
         messageIn: 'custom arrival',
-      });
+      }));
       mover.traverse(exit);
 
       expect(
@@ -135,13 +132,13 @@ describe('Exit', () => {
 
     it('interpolates {mover} in custom messages', () => {
       const spy = vi.spyOn(MessageApi, 'messageContents');
-      const exit = new Exit({
+      const exit = makeStuff(() => new Exit({
         direction: 'out',
         source: roomA,
         destination: roomB,
         messageOut: '{mover} leaves the wardrobe.',
         messageIn: '{mover} emerges from the wardrobe.',
-      });
+      }));
       mover.traverse(exit);
 
       expect(
@@ -155,7 +152,7 @@ describe('Exit', () => {
 
     it('degrades arrival message when direction has no inverse', () => {
       const spy = vi.spyOn(MessageApi, 'messageContents');
-      const exit = new Exit({ direction: 'office', source: roomA, destination: roomB });
+      const exit = makeStuff(() => new Exit({ direction: 'office', source: roomA, destination: roomB }));
       mover.traverse(exit);
       const arrText = (spy.mock.calls[1]?.[1] as { payload: { text: string } }).payload.text;
       expect(arrText).toContain('arrives');
@@ -165,7 +162,7 @@ describe('Exit', () => {
 
     it('invokes ContainmentApi.move between broadcasts', () => {
       const moveSpy = vi.spyOn(ContainmentApi, 'move');
-      const exit = new Exit({ direction: 'north', source: roomA, destination: roomB });
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       mover.traverse(exit);
       expect(moveSpy).toHaveBeenCalledWith(mover, roomB);
       moveSpy.mockRestore();

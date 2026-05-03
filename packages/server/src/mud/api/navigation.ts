@@ -1,3 +1,4 @@
+import { decorateApiClass } from '../lib/security/decorators';
 /**
  * NavigationApi — canonical direction table, aliases, and cartesian offsets.
  *
@@ -143,3 +144,5 @@ export class NavigationApi {
     return CARDINALS;
   }
 }
+
+decorateApiClass(NavigationApi);

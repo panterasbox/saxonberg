@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Character } from './Character';
+import { makeStuff } from '../security/test-setup';
 
 // Concrete test class that extends Character
 class TestCharacter extends Character {
@@ -16,7 +17,7 @@ describe('Character', () => {
   let character: TestCharacter;
 
   beforeEach(() => {
-    character = new TestCharacter();
+    character = makeStuff(() => new TestCharacter());
   });
 
   describe('mixin composition', () => {

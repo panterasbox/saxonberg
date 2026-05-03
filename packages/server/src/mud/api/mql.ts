@@ -21,6 +21,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import { ContainmentApi } from './containment';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
+import { decorateApiClass } from '../lib/security/decorators';
 
 /**
  * MQL (MUD Query Language) context.
@@ -264,3 +265,5 @@ export class MqlApi {
   }
 
 }
+
+decorateApiClass(MqlApi);

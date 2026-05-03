@@ -3,6 +3,7 @@ import { SphericalZone } from './SphericalZone';
 import { SphericalLocation } from './SphericalLocation';
 import { Exit } from './Exit';
 import { StuffApi } from '../../api/stuff';
+import { makeStuff } from '../security/test-setup';
 
 describe('SphericalZone', () => {
   let zone: SphericalZone;
@@ -10,14 +11,11 @@ describe('SphericalZone', () => {
   let office: SphericalLocation;
 
   beforeEach(() => {
-    zone = new SphericalZone();
-    StuffApi.register(zone);
-    plaza = new SphericalLocation();
-    StuffApi.register(plaza);
+    zone = makeStuff(() => new SphericalZone());
+    plaza = makeStuff(() => new SphericalLocation());
     plaza.coordinates = [0, 0, 0];
     plaza.radius = 5;
-    office = new SphericalLocation();
-    StuffApi.register(office);
+    office = makeStuff(() => new SphericalLocation());
     office.coordinates = [10, 1.23, -2.5];
     office.radius = 2;
     zone.addRoom(plaza);
@@ -37,11 +35,11 @@ describe('SphericalZone', () => {
   });
 
   it('explicit exits on spherical rooms still work', () => {
-    const toOffice = new Exit({
+    const toOffice = makeStuff(() => new Exit({
       direction: 'office',
       source: plaza,
       destination: office,
-    });
+    }));
     plaza.addExit(toOffice);
     expect(plaza.getExit('office')).toBe(toOffice);
   });

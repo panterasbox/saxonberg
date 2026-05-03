@@ -5,6 +5,7 @@ import { ContainmentApi } from './containment';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { CartesianLocation } from '../lib/spatial/CartesianLocation';
 import { Thing } from '../lib/stuff/Thing';
+import { makeStuff } from '../lib/security/test-setup';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -151,10 +152,8 @@ describe('Runtime-fallback zone stamp', () => {
   });
 
   it('stamps a newly-created Thing on first placement and stays put after', async () => {
-    const park = new CartesianLocation();
-    StuffApi.register(park);
-    const park2 = new CartesianLocation();
-    StuffApi.register(park2);
+    const park = makeStuff(() => new CartesianLocation());
+    const park2 = makeStuff(() => new CartesianLocation());
 
     // Manually stamp a zone on both rooms (simulating clone-time stamping).
     const zoneRef = { stuffId: 'zone-123' } as unknown as import('../lib/spatial/Zone').Zone;

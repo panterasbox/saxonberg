@@ -9,6 +9,7 @@
  */
 
 import type { Avatar } from '../obj/Avatar';
+import { decorateApiClass } from '../lib/security/decorators';
 
 /**
  * Static API for Player/Avatar management.
@@ -91,3 +92,5 @@ export class PlayerApi {
     this.#avatarsByPlayerId.clear();
   }
 }
+
+decorateApiClass(PlayerApi);

@@ -9,6 +9,7 @@ import { ContainerMixin } from '../lib/spatial/Container';
 import { ContainableMixin } from '../lib/spatial/Containable';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
+import { makeStuff } from '../lib/security/test-setup';
 
 // Create test classes
 const ContainableBase = ContainableMixin(Stuff);
@@ -25,21 +26,16 @@ describe('ContainmentApi', () => {
   let location2: Location;
 
   beforeEach(() => {
-    item = new TestItem();
-    StuffApi.register(item);
+    item = makeStuff(() => new TestItem());
 
-    container1 = new TestContainer();
-    StuffApi.register(container1);
+    container1 = makeStuff(() => new TestContainer());
 
-    container2 = new TestContainer();
-    StuffApi.register(container2);
+    container2 = makeStuff(() => new TestContainer());
 
-    location1 = new Location();
-    StuffApi.register(location1);
+    location1 = makeStuff(() => new Location());
     location1.shortDescription = 'Room 1';
 
-    location2 = new Location();
-    StuffApi.register(location2);
+    location2 = makeStuff(() => new Location());
     location2.shortDescription = 'Room 2';
   });
 
@@ -145,10 +141,8 @@ describe('ContainmentApi', () => {
     });
 
     it('should return all items in container', () => {
-      const item2 = new TestItem();
-      StuffApi.register(item2);
-      const item3 = new TestItem();
-      StuffApi.register(item3);
+      const item2 = makeStuff(() => new TestItem());
+      const item3 = makeStuff(() => new TestItem());
 
       ContainmentApi.move(item, container1);
       ContainmentApi.move(item2, container1);
