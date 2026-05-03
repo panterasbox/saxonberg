@@ -26,11 +26,12 @@ import { Stuff as StuffClass } from '../stuff/Stuff';
 import { ProxyApi } from '../../api/proxy';
 import { StuffApi } from '../../api/stuff';
 import { ExecutionContextApi } from '../../api/execution-context';
-// Importing security-interceptor for its registration side effect.
-// Tests that exercise the proxy need the security interceptor in
-// place; without this import a fresh test-only ProxyApi reset
-// could leave the pipeline empty.
-import './security-interceptor';
+// SecurityApi installs its proxy interceptor in a static initializer
+// at module-load time. We import it here so tests that reach for the
+// proxy via `ProxyApi.wrap` (through `makeStuff`) always have the
+// security gate in place — no side-effect-import gymnastics needed.
+import { SecurityApi } from '../../api/security';
+void SecurityApi; // referenced only for the static-init side effect
 
 /**
  * Synchronously construct, wrap, and register a Stuff. Mirrors the

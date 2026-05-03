@@ -18,11 +18,11 @@ import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
 import { ProxyApi } from './proxy';
-// Side-effect import: registers the security interceptor with ProxyApi at boot time.
-// StuffApi.create / clone wrap raw instances in proxies that consult the interceptor
-// pipeline; the security interceptor MUST be in place before the first wrap.
-import '../lib/security/security-interceptor';
 import { ExecutionContextApi, FrameKind } from './execution-context';
+// SecurityApi installs its proxy interceptor in a static initializer
+// at module-load time, so simply importing it (which we do for several
+// other uses below) guarantees the security gate is in place before
+// the first `ProxyApi.wrap` in `create` / `clone` / `createSync`.
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 

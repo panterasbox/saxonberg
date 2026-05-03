@@ -4,8 +4,9 @@
  * Owns the get-trap mechanics: descriptor lookup, wrapper caching,
  * mock-spy passthrough, the `RAW_TARGET` introspection seam. Doesn't
  * know anything about security policies, shadows, or destroyed-object
- * guards — those concerns live in `mud/lib/security/security-interceptor.ts`,
- * which registers itself with this Api as an `Interceptor`.
+ * guards — those concerns live in `SecurityApi` (see
+ * `mud/api/security.ts`), which registers a `#`-private interceptor
+ * with this Api at module-load time via a static initializer.
  *
  * The interceptor pipeline is the extension point. Each registered
  * interceptor receives an `InterceptionContext` and a `next()` callback;

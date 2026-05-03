@@ -1,7 +1,7 @@
 /**
  * ProxyApi tests — covers the proxy mechanics (descriptor lookup,
  * wrapper caching, mock-spy passthrough, raw-target unwrap) AND the
- * security-interceptor end-to-end behaviour against a wrapped Stuff.
+ * SecurityApi's interceptor end-to-end behaviour against a wrapped Stuff.
  *
  * The security interceptor registers itself on import; we don't need
  * to touch it here. `makeStuff` from test-setup ensures it's loaded.

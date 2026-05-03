@@ -29,7 +29,36 @@
 
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 import { ExecutionContextApi } from './execution-context';
-import { SecurityError } from '../lib/security/errors';
+import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
+import {
+  SecurityError,
+  DestroyedObjectError,
+} from '../lib/security/errors';
+
+/**
+ * Late-binding handle to ShadowApi. We deliberately do NOT
+ * `import { ShadowApi }` at the top of this file: shadow.ts imports
+ * `SecurityApi` and runs `SecurityApi.decorateApiClass(ShadowApi)` at
+ * module-bottom, which would crash mid-cycle if `security.ts` were
+ * ALSO depending on `shadow.ts` to load first.
+ *
+ * Instead, ShadowApi calls `SecurityApi._registerShadowApi(ShadowApi)`
+ * once at its own module-load time (see the bottom of `shadow.ts`).
+ * The interceptor dereferences this slot at runtime only, by which
+ * point all imports have resolved.
+ */
+interface ShadowApiLike {
+  _consumeBypass(): boolean;
+  _shadowsFor(host: object, methodName: string): ReadonlyArray<object> | null;
+  _withDispatch<T>(
+    host: object,
+    methodName: string,
+    shadows: ReadonlyArray<object>,
+    args: unknown[],
+    fn: () => T
+  ): T;
+  _invokeOnShadow(shadow: object, hostMethodName: string, args: unknown[]): unknown;
+}
 
 /**
  * Class-constructor-shaped key. Function with a `prototype`; matches both
@@ -417,6 +446,156 @@ export class SecurityApi {
           `Production code must not reach methods named *ForTest / *ForTesting.`
       );
     }
+  }
+
+  /* ─────────────────────────── Runtime gate ─────────────────────────── */
+  /*
+   * The interceptor is the security framework's plug-in into ProxyApi.
+   * Installed via the static initializer below at module-load time, so
+   * anyone who imports `SecurityApi` (which everyone does) automatically
+   * wires up the runtime gate. `installInterceptor()` is idempotent —
+   * calling it again is a no-op — so tests that reset ProxyApi can
+   * re-install without duplicating.
+   *
+   * Runtime responsibilities (in order, per dispatch):
+   *
+   *   (a) Honour `ShadowApi`'s bypass marker — `Shadow.callBypass()`
+   *       and `callDown()` at the bottom of the chain set it to mean
+   *       "this single onward read/invocation should run raw,
+   *       skipping every check below."
+   *   1.  Destroyed-object guard. `isDestroyed` and `toString` exempt.
+   *   2.  Resolve and run the entry policy. Caller = previous frame's
+   *       target (the spec's "caller = previous target" invariant).
+   *   3.  If shadows are attached for this method, dispatch through
+   *       them with per-shadow CallFrames. Each shadow runs as its
+   *       own target so onward calls show the shadow's identity.
+   *   4.  No shadows → push the host's frame and call `next()`, which
+   *       runs the raw operation (or the next interceptor when more
+   *       are registered).
+   */
+
+  /** Tracks whether the interceptor has been installed yet. Set true
+   *  by `installInterceptor()`; lets the call be idempotent. */
+  static #interceptorInstalled = false;
+
+  /**
+   * Late-bound ShadowApi reference. ShadowApi calls
+   * `SecurityApi._registerShadowApi(ShadowApi)` at its module-bottom.
+   * The interceptor reads this slot at runtime only, so the
+   * security-shadow load cycle stays acyclic at module-eval time.
+   */
+  static #shadowApi: ShadowApiLike | null = null;
+
+  /**
+   * Slot for `ShadowApi` to register itself with the security gate.
+   * Called once at `shadow.ts`'s module-bottom; idempotent.
+   * @internal
+   */
+  public static _registerShadowApi(impl: ShadowApiLike): void {
+    SecurityApi.#shadowApi = impl;
+  }
+
+  /**
+   * Register the security gate as a `ProxyApi` interceptor. Called
+   * automatically by the static initializer at module-load time;
+   * idempotent — safe for tests that reset ProxyApi to call again.
+   */
+  public static installInterceptor(): void {
+    if (SecurityApi.#interceptorInstalled) return;
+    ProxyApi.registerInterceptor(SecurityApi.#securityGate);
+    SecurityApi.#interceptorInstalled = true;
+  }
+
+  /**
+   * The interceptor function itself. Defined as a static `#`-private
+   * arrow-bound method so it can be passed by reference to
+   * `ProxyApi.registerInterceptor` without losing the `SecurityApi`
+   * binding it closes over.
+   */
+  static #securityGate: Interceptor = (
+    ctx: InterceptionContext,
+    next: () => unknown
+  ): unknown => {
+    const shadowApi = SecurityApi.#shadowApi;
+
+    // (a) bypass marker — single-shot, consumed atomically. Skips the
+    // check entirely if ShadowApi hasn't registered yet (only happens
+    // during boot before any Stuff exists, so no shadows are possible).
+    if (shadowApi?._consumeBypass()) {
+      return next();
+    }
+
+    // 1. destroyed-object guard
+    if (
+      ctx.prop !== 'isDestroyed' &&
+      ctx.prop !== 'toString' &&
+      ctx.target.isDestroyed()
+    ) {
+      throw new DestroyedObjectError(ctx.target.stuffId, ctx.prop);
+    }
+
+    // 2. entry policy
+    const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
+    const caller = ExecutionContextApi.getCurrentTarget();
+    if (!policy.allows(caller, ctx.proxy, ctx.prop)) {
+      throw new SecurityError(
+        `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,
+        {
+          stuffId: ctx.target.stuffId,
+          methodName: ctx.prop,
+          policyName: policy.name,
+        }
+      );
+    }
+
+    // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
+    // stored the proxy, so lookup must use the same identity. When
+    // shadows fire, the chain is a complete replacement for the raw
+    // call — we don't call next() in this branch.
+    const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop) ?? null;
+    if (shadows && shadows.length > 0) {
+      return shadowApi!._withDispatch(
+        ctx.proxy,
+        ctx.prop,
+        shadows,
+        ctx.args as unknown[],
+        () => {
+          const top = shadows[shadows.length - 1]!;
+          return ExecutionContextApi.run(
+            caller,
+            top,
+            ctx.prop,
+            undefined,
+            () =>
+              shadowApi!._invokeOnShadow(
+                top,
+                ctx.prop,
+                ctx.isGetter ? [] : (ctx.args as unknown[])
+              )
+          );
+        }
+      );
+    }
+
+    // 4. no shadows — push the host's frame and continue the pipeline.
+    return ExecutionContextApi.run(
+      caller,
+      ctx.proxy,
+      ctx.prop,
+      undefined,
+      () => next()
+    );
+  };
+
+  /**
+   * Static initializer: registers the security gate with `ProxyApi`
+   * automatically when this module evaluates. Anyone who imports
+   * `SecurityApi` — `StuffApi`, `ShadowApi`, `ProxyApi` consumers,
+   * the test seam — implicitly triggers this. No side-effect imports
+   * required at the call sites.
+   */
+  static {
+    SecurityApi.installInterceptor();
   }
 
   /* ─────────────────────────── Test seams ─────────────────────────── */
