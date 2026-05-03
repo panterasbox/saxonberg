@@ -36,6 +36,8 @@
 
 import { FinalViolationError } from '../lib/security/errors';
 import { SecurityApi } from './security';
+// SecurityApi is also used at runtime by `_*ForTest` test seams to
+// gate against production callers (`SecurityApi.assertTestOnly`).
 
 // Like ExecutionContextApi, ModuleApi deliberately does NOT call
 // `SecurityApi.decorateApiClass(...)`. It's framework infrastructure called by
@@ -148,6 +150,7 @@ export class ModuleApi {
    * @internal
    */
   public static _stampForTest(cls: object, moduleId: ModuleId): void {
+    SecurityApi.assertTestOnly('_stampForTest');
     ModuleApi.#classModuleIds.set(cls, moduleId);
   }
 
@@ -158,6 +161,7 @@ export class ModuleApi {
    * @internal
    */
   public static _forgetForTest(cls: object): void {
+    SecurityApi.assertTestOnly('_forgetForTest');
     ModuleApi.#classModuleIds.delete(cls);
   }
 
@@ -169,6 +173,7 @@ export class ModuleApi {
    * @internal
    */
   public static _validateNoFinalOverridesForTest(cls: object): void {
+    SecurityApi.assertTestOnly('_validateNoFinalOverridesForTest');
     ModuleApi.#validateNoFinalOverrides(cls);
   }
 

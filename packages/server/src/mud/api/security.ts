@@ -355,12 +355,77 @@ export class SecurityApi {
     }
   }
 
+  /* ───────────────────── Test-seam enforcement ─────────────────────
+   *
+   * Every `_*ForTest` / `_*ForTesting` method on every Api class
+   * starts with a call to `SecurityApi.assertTestOnly(op)`. The check
+   * walks `Error.stack` and looks for a `.test.{ts,js}` frame anywhere
+   * in the call chain. Production code that accidentally (or
+   * deliberately) reaches a test seam fails loudly at the call site
+   * instead of quietly bypassing framework invariants.
+   *
+   * Cached per-URL: first call from any source file does the stack
+   * walk + cache; subsequent calls from the same site are a Map
+   * lookup. The cost is negligible after warmup.
+   *
+   * The allowlist is "any frame anywhere in the stack is in a test
+   * file" — looser than `ExecutionContextApi`'s "immediate caller
+   * must match," but right for test seams. Tests legitimately call
+   * framework code which might call further framework code; what
+   * matters is that some test is at the bottom of the chain, not
+   * that every frame between is a test.
+   */
+  static #testCallerCache: Map<string, boolean> = new Map();
+
+  /**
+   * Throw `SecurityError` unless some frame on the current call stack
+   * is in a `.test.ts` / `.test.js` file. Call from the top of every
+   * `_*ForTest` / `_*ForTesting` method to guarantee production code
+   * can't reach the seam.
+   *
+   * `op` is the seam name; included in the error message so the
+   * offender sees exactly which seam was misused.
+   */
+  public static assertTestOnly(op: string): void {
+    const stack = new Error().stack ?? '';
+    const lines = stack.split('\n');
+    let inTest = false;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('at ')) continue;
+      const m =
+        trimmed.match(/\((.+):\d+:\d+\)$/) ??
+        trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+      const url = m?.[1];
+      if (!url) continue;
+      const cached = SecurityApi.#testCallerCache.get(url);
+      if (cached === true) {
+        inTest = true;
+        break;
+      }
+      if (cached === false) continue;
+      const isTest = /\.test\.(ts|js)(\?|$|:)/.test(url);
+      SecurityApi.#testCallerCache.set(url, isTest);
+      if (isTest) {
+        inTest = true;
+        break;
+      }
+    }
+    if (!inTest) {
+      throw new SecurityError(
+        `${op}: test-only seam called from non-test code. ` +
+          `Production code must not reach methods named *ForTest / *ForTesting.`
+      );
+    }
+  }
+
   /* ─────────────────────────── Test seams ─────────────────────────── */
 
   /** @internal */
   public static _classDefaultPolicyForTest(
     cls: object
   ): SecurityPolicy | undefined {
+    SecurityApi.assertTestOnly('_classDefaultPolicyForTest');
     return SecurityApi.#classDefaultPolicies.get(cls as ClassKey);
   }
 
@@ -369,11 +434,13 @@ export class SecurityApi {
     cls: object,
     methodName: string
   ): SecurityPolicy | undefined {
+    SecurityApi.assertTestOnly('_methodPolicyForTest');
     return SecurityApi.#methodPolicies.get(cls as ClassKey)?.get(methodName);
   }
 
   /** @internal */
   public static _hasClassUnshadowableForTest(cls: object): boolean {
+    SecurityApi.assertTestOnly('_hasClassUnshadowableForTest');
     return SecurityApi.#classUnshadowable.has(cls as ClassKey);
   }
 
@@ -381,6 +448,7 @@ export class SecurityApi {
   public static _methodUnshadowableForTest(
     cls: object
   ): ReadonlySet<string> | undefined {
+    SecurityApi.assertTestOnly('_methodUnshadowableForTest');
     return SecurityApi.#methodUnshadowable.get(cls as ClassKey);
   }
 }

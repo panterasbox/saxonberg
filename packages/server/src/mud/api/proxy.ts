@@ -26,6 +26,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import { SecurityApi } from './security';
 
 /**
  * Per-invocation context handed to every interceptor.
@@ -227,6 +228,7 @@ export class ProxyApi {
 
   /** Test seam: drop every registered interceptor. @internal */
   public static _resetInterceptorsForTest(): void {
+    SecurityApi.assertTestOnly('_resetInterceptorsForTest');
     ProxyApi.#interceptors = [];
   }
 

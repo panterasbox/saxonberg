@@ -551,10 +551,11 @@ export class StuffApi {
 
   /**
    * Deliberate observation seam for unit-testing `#validateClassPath`. NOT
-   * part of the public API — the leading underscore signals "test-only".
+   * part of the public API — gated by `SecurityApi.assertTestOnly`.
    * @internal
    */
   public static _validateClassPath(classPath: string): string {
+    SecurityApi.assertTestOnly('_validateClassPath');
     return this.#validateClassPath(classPath);
   }
 }

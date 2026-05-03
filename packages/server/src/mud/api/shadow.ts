@@ -400,6 +400,7 @@ export class ShadowApi {
 
   /** Test seam — wipe all shadow state. @internal */
   public static _clearAllForTesting(): void {
+    SecurityApi.assertTestOnly('_clearAllForTesting');
     this.#hostShadows = new WeakMap();
     this.#shadowHost = new WeakMap();
     this.#shadowMethods = new WeakMap();

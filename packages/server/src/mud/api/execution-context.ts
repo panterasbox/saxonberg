@@ -31,6 +31,7 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { SecurityError } from '../lib/security/errors';
+import { SecurityApi } from './security';
 
 // NOTE: ExecutionContextApi deliberately does NOT call
 // `SecurityApi.decorateApiClass(...)` at module load — unlike StuffApi, MqlApi,
@@ -411,10 +412,11 @@ export class ExecutionContextApi {
 
   /**
    * Test-only seam: clear any in-flight ALS context. Intended only for
-   * Vitest cleanup; production code should never call this.
+   * Vitest cleanup; production code is gated by `SecurityApi.assertTestOnly`.
    * @internal
    */
   public static _clearForTesting(): void {
+    SecurityApi.assertTestOnly('_clearForTesting');
     _als.enterWith(undefined as unknown as CallFrame[]);
   }
 
@@ -425,6 +427,7 @@ export class ExecutionContextApi {
    * source files outside the test allowlist. @internal
    */
   public static _checkAllowlistForTest(op: string, url: string): void {
+    SecurityApi.assertTestOnly('_checkAllowlistForTest');
     const cached = _allowlistCache.get(url);
     if (cached === true) return;
     if (cached === false) {
