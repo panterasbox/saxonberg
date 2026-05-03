@@ -21,7 +21,7 @@
 // pathways produce identical instrumentation.
 import { register } from 'node:module';
 if (!process.env.VITEST) {
-  register('./mud/lib/security/loader-hook.js', import.meta.url);
+  register('./services/loader/loader-hook.js', import.meta.url);
 }
 
 import 'dotenv/config';

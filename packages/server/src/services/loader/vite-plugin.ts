@@ -4,7 +4,7 @@
  *
  * Usage in `vitest.config.ts`:
  *
- *     import { callSecPlugin } from './src/mud/lib/security/vite-plugin-callsec';
+ *     import { callSecPlugin } from './src/services/loader/vite-plugin';
  *     export default defineConfig({
  *       plugins: [callSecPlugin()],
  *       test: { ... }
