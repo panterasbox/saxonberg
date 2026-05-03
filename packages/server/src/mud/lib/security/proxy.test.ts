@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../api/stuff';
 import { Thing } from '../stuff/Thing';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContext, FrameKind } from './ExecutionContext';
 import { DestroyedObjectError, SecurityError } from './errors';
 import { makeStuff } from './test-setup';
 
@@ -104,7 +104,7 @@ describe('command frame plumbing', () => {
         null,
         issuer,
         'executeCommand',
-        { kind: 'command' },
+        { kind: FrameKind.Command },
         () => {
           observed = ExecutionContext.getCurrentCommandGiver();
         }

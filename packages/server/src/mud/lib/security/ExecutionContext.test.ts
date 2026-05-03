@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ExecutionContext, COMMAND_FRAME_KIND } from './ExecutionContext';
+import { ExecutionContext, FrameKind } from './ExecutionContext';
 import { SecurityError } from './errors';
 
 class Caller {}
@@ -80,7 +80,7 @@ describe('ExecutionContext', () => {
         null,
         player,
         'executeCommand',
-        { kind: COMMAND_FRAME_KIND },
+        { kind: FrameKind.Command },
         () => {
           ExecutionContext.run(player, middle, 'inner', undefined, () => {
             expect(ExecutionContext.getCurrentCommandGiver()).toBe(player);
@@ -106,6 +106,46 @@ describe('ExecutionContext', () => {
         const dump = ExecutionContext.dumpCallStack();
         expect(dump).toContain('outer');
         expect(dump).toContain('inner');
+      });
+    });
+  });
+
+  describe('frame kinds + tagging', () => {
+    it('tagCurrentFrame stamps the top frame in place', () => {
+      const target = new Target();
+      ExecutionContext.runRoot(target, 'outer', () => {
+        ExecutionContext.run(null, target, 'm', undefined, () => {
+          expect(ExecutionContext.findFrame(FrameKind.Command)).toBeNull();
+          ExecutionContext.tagCurrentFrame(FrameKind.Command);
+          const frame = ExecutionContext.findFrame(FrameKind.Command);
+          expect(frame?.target).toBe(target);
+          expect(frame?.method).toBe('m');
+        });
+      });
+    });
+
+    it('tagCurrentFrame throws outside any frame context', () => {
+      expect(() => ExecutionContext.tagCurrentFrame(FrameKind.Command))
+        .toThrow(SecurityError);
+    });
+
+    it('findFrame returns the most recent (topmost) tagged frame', () => {
+      const a = { kind: 'a' };
+      const b = { kind: 'b' };
+      ExecutionContext.runRoot(null, 'r', () => {
+        ExecutionContext.run(null, a, 'm', { kind: FrameKind.Command }, () => {
+          ExecutionContext.run(null, b, 'm', { kind: FrameKind.Command }, () => {
+            expect(ExecutionContext.findFrame(FrameKind.Command)?.target).toBe(b);
+          });
+        });
+      });
+    });
+
+    it('runRoot stamps the synthetic frame with FrameKind.Root', () => {
+      ExecutionContext.runRoot(null, 'r', () => {
+        const root = ExecutionContext.findFrame(FrameKind.Root);
+        expect(root).not.toBeNull();
+        expect(root?.method).toBe('r');
       });
     });
   });

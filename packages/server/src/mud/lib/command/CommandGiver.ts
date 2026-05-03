@@ -25,7 +25,7 @@ import { ContainmentApi } from '../../api/containment';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
 import { getValidator } from './validators';
-import { ExecutionContext, COMMAND_FRAME_KIND } from '../security/ExecutionContext';
+import { ExecutionContext, FrameKind } from '../security/ExecutionContext';
 
 type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
 
@@ -147,57 +147,49 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * @returns Command result
      */
     async executeCommand(commandText: string, context: CommandContext): Promise<CommandResult> {
-      // Push a "command" frame so any guarded call inside the command
-      // pipeline sees this CommandGiver (Avatar or NPC) as the current
-      // target — and via `getCurrentCommandGiver()`, anywhere in the
-      // call stack as the immediate command issuer. The frame is
-      // tagged `kind: 'command'` so stack walks can skip non-command
-      // frames cheaply.
-      return ExecutionContext.run(
-        ExecutionContext.getCurrentTarget(),
-        this,
-        'executeCommand',
-        { kind: COMMAND_FRAME_KIND },
-        async (): Promise<CommandResult> => {
-          try {
-            // 1. Parse command text
-            const parsed = CommandLineApi.parse(commandText);
+      // The proxy already pushed a frame for this call when
+      // `executeCommand` was invoked. Tag it as the command-issuer
+      // frame so `ExecutionContext.getCurrentCommandGiver()` can find
+      // it without string-matching method names.
+      ExecutionContext.tagCurrentFrame(FrameKind.Command);
 
-            if (!parsed.verb) {
-              return {
-                success: false,
-                error: 'No command entered',
-              };
-            }
+      try {
+        // 1. Parse command text
+        const parsed = CommandLineApi.parse(commandText);
 
-            // 2. Ensure commands are loaded (populates cache)
-            // This discovers and loads all available commands from providers
-            this.getAvailableCommands();
-
-            // 3. Match verb to command definition
-            const command = CommandApi.matchVerb(parsed.verb);
-
-            if (!command) {
-              return {
-                success: false,
-                error: `Unknown command: ${parsed.verb}`,
-              };
-            }
-
-            // 4. Handle subcommands or regular syntax
-            if (command.hasSubcommands()) {
-              return await this.executeSubcommand(command, parsed.args, parsed.options, context);
-            } else {
-              return await this.executeSyntax(command, parsed.args, parsed.options, context);
-            }
-          } catch (error: unknown) {
-            return {
-              success: false,
-              error: error instanceof Error ? error.message : 'Command execution failed',
-            };
-          }
+        if (!parsed.verb) {
+          return {
+            success: false,
+            error: 'No command entered',
+          };
         }
-      );
+
+        // 2. Ensure commands are loaded (populates cache)
+        // This discovers and loads all available commands from providers
+        this.getAvailableCommands();
+
+        // 3. Match verb to command definition
+        const command = CommandApi.matchVerb(parsed.verb);
+
+        if (!command) {
+          return {
+            success: false,
+            error: `Unknown command: ${parsed.verb}`,
+          };
+        }
+
+        // 4. Handle subcommands or regular syntax
+        if (command.hasSubcommands()) {
+          return await this.executeSubcommand(command, parsed.args, parsed.options, context);
+        } else {
+          return await this.executeSyntax(command, parsed.args, parsed.options, context);
+        }
+      } catch (error: unknown) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Command execution failed',
+        };
+      }
     }
 
     /**

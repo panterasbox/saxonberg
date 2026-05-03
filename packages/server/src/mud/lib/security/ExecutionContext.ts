@@ -6,19 +6,47 @@
  * AsyncLocalStorage, so any guarded method body can ask "who called me?"
  * without threading a context parameter through every signature.
  *
- * Frames are pushed by the Proxy on entry to a guarded method and popped on
- * exit. Backend wraps each Application entry point in `runRoot()` to plant
- * a synthetic root frame whose `caller` is `null`. `StuffApi.create` and
- * `StuffApi.clone` push a synthetic constructor frame around hydrate +
- * postRegister.
+ * Frames are pushed by the Proxy on entry to a guarded method and popped
+ * on exit. The framework recognises a small vocabulary of *frame kinds*
+ * — `Root`, `Constructor`, `Command` and so on — that mark the meaning
+ * of specific frames so stack walkers can find them without
+ * string-matching method names. Most frames carry no kind; only the
+ * ones that participate in a known cross-frame contract do.
  *
- * The CallFrame and CallStack types live alongside this class — they are
- * narrowly tied to ExecutionContext's machinery and have no other
- * consumer worth exporting them through a separate barrel.
+ * Tagging a frame as a particular kind happens one of two ways:
+ *
+ *   1. Synthetic frames the framework itself plants (`runRoot`,
+ *      `StuffApi.#registerAndInit`'s constructor wrap) get their kind
+ *      set at push time via the `kind` option to `run` / `runRoot`.
+ *   2. Frames the proxy already pushed for a real method invocation
+ *      can be tagged after the fact via `tagCurrentFrame(kind)` from
+ *      inside that method's body. This is what
+ *      `CommandGiverMixin.executeCommand` does — the proxy already
+ *      pushed an `executeCommand` frame, the body just labels it.
+ *
+ * `findFrame(kind)` is the generic walk that all kind-specific
+ * helpers (`getCurrentCommandGiver`, etc.) wrap — keep them thin so
+ * adding a new kind is a one-line helper plus a `FrameKind` entry.
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { SecurityError } from './errors';
+
+/**
+ * Recognised frame-kind labels. Each value tags a frame whose role
+ * is known to a stack walker somewhere in the framework. New kinds:
+ * add a const entry, write the helper that walks for it, and update
+ * the doc comment.
+ */
+export const FrameKind = {
+  /** Synthetic frame planted by `runRoot` at a network → Application boundary. caller = null. */
+  Root: 'root',
+  /** Synthetic frame planted by `StuffApi.create` / `clone` around hydrate + postRegister. */
+  Constructor: 'constructor',
+  /** Tagged by `CommandGiverMixin.executeCommand` so `getCurrentCommandGiver` can find it. */
+  Command: 'command',
+} as const;
+export type FrameKind = (typeof FrameKind)[keyof typeof FrameKind];
 
 /**
  * One frame on the call stack.
@@ -26,12 +54,22 @@ import { SecurityError } from './errors';
  * `caller`/`target` are `unknown` rather than `Stuff` to avoid an import
  * cycle; the framework treats them as opaque object identities for stack
  * walking. Consumers that need the real type cast at the boundary.
+ *
+ * `kind` is set either at push time (synthetic frames) or after the
+ * fact via `tagCurrentFrame` (proxy-pushed frames whose method bodies
+ * declare their role). Most frames have no kind.
+ *
+ * `metadata` is the open bag for any one-off attached data (e.g. a
+ * future `transaction` frame might carry a transaction id). Don't
+ * reach into `metadata` for kind detection — that's what `kind` is
+ * for.
  */
 export interface CallFrame {
   caller: unknown | null;
   target: unknown | null;
   method: string;
   timestamp: number;
+  kind?: FrameKind;
   metadata?: Record<string, unknown>;
 }
 
@@ -40,11 +78,18 @@ export interface CallFrame {
  */
 export type CallStack = readonly CallFrame[];
 
+/**
+ * Opts for `run()`. Both fields optional. Separated from positional
+ * arguments so the call site reads naturally and adding more options
+ * later is non-breaking.
+ */
+export interface RunFrameOpts {
+  kind?: FrameKind;
+  metadata?: Record<string, unknown>;
+}
+
 /** ALS-backed storage. Mutating operations replace the array immutably. */
 const _als = new AsyncLocalStorage<CallFrame[]>();
-
-/** Symbol marker for the "command" frame kind, exposed for stack walking. */
-export const COMMAND_FRAME_KIND = 'command';
 
 /**
  * Static-class style API. All methods are static so callers don't need to
@@ -85,25 +130,56 @@ export class ExecutionContext {
   }
 
   /**
-   * Walk the call stack from top to bottom looking for a frame whose
-   * target is the immediate `CommandGiver` (the most recent
-   * `executeCommand` push). Returns `null` if no command frame is on
-   * the stack.
+   * Walk the stack top-to-bottom looking for the most recent frame
+   * tagged with `kind`. Returns `null` when no such frame exists.
+   *
+   * Generic primitive that all kind-specific helpers wrap; reach for
+   * this directly when you want a custom walk (e.g., "find the
+   * topmost Command frame whose target is admin-flagged").
+   */
+  public static findFrame(kind: FrameKind): CallFrame | null {
+    const stack = _als.getStore();
+    if (!stack) return null;
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const frame = stack[i]!;
+      if (frame.kind === kind) return frame;
+    }
+    return null;
+  }
+
+  /**
+   * Stamp the top-of-stack frame with `kind`. Used by method bodies
+   * that want to declare "this frame, the one the proxy already
+   * pushed for me, has a recognised role." Throws `SecurityError`
+   * when called outside any frame context — tagging nothing is
+   * almost certainly a bug, fail loud.
+   *
+   * Idempotent for the same kind. Re-tagging with a different kind
+   * overwrites; the framework doesn't enforce single-tag uniqueness
+   * because we don't yet have a use case for one frame carrying
+   * multiple roles.
+   */
+  public static tagCurrentFrame(kind: FrameKind): void {
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) {
+      throw new SecurityError(
+        `tagCurrentFrame(${kind}): no frame on the stack to tag`
+      );
+    }
+    stack[stack.length - 1]!.kind = kind;
+  }
+
+  /**
+   * The most recent CommandGiver on the stack — the actor whose
+   * `executeCommand` body is currently running. Returns `null`
+   * outside any command pipeline.
    *
    * Cross-pause caveat: command frames live inside the synchronous
    * call chain. After a prompt resume / scheduled tick / cross-actor
    * message, the chain rebuilds fresh and this returns null.
    */
   public static getCurrentCommandGiver(): unknown | null {
-    const stack = _als.getStore();
-    if (!stack) return null;
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const frame = stack[i]!;
-      if (frame.metadata?.kind === COMMAND_FRAME_KIND) {
-        return frame.target;
-      }
-    }
-    return null;
+    return ExecutionContext.findFrame(FrameKind.Command)?.target ?? null;
   }
 
   /**
@@ -117,7 +193,8 @@ export class ExecutionContext {
       .map((f, i) => {
         const callerName = ExecutionContext.#nameOf(f.caller);
         const targetName = ExecutionContext.#nameOf(f.target);
-        return `  #${i} ${callerName} → ${targetName}.${f.method}`;
+        const kindTag = f.kind ? ` [${f.kind}]` : '';
+        return `  #${i}${kindTag} ${callerName} → ${targetName}.${f.method}`;
       })
       .join('\n');
   }
@@ -149,15 +226,21 @@ export class ExecutionContext {
    * the intent is explicit.
    *
    * Used by:
-   *   - the Proxy, when intercepting a method call;
-   *   - `CommandGiverMixin.executeCommand` to push the command frame;
-   *   - `StuffApi.#registerAndInit` for the synthetic constructor frame.
+   *   - the Proxy, when intercepting a method call (no opts);
+   *   - `StuffApi.#registerAndInit` for the synthetic constructor
+   *     frame (`{ kind: FrameKind.Constructor }`).
+   *
+   * Body-side tagging (e.g., `CommandGiver.executeCommand` declaring
+   * "this frame is a command frame") goes through
+   * `tagCurrentFrame(FrameKind.Command)` instead — it mutates the
+   * proxy-pushed frame in place rather than stacking a redundant
+   * second frame.
    */
   public static run<T>(
     caller: unknown | null,
     target: unknown | null,
     method: string,
-    metadata: Record<string, unknown> | undefined,
+    opts: RunFrameOpts | undefined,
     fn: () => T
   ): T {
     const frame: CallFrame = {
@@ -165,7 +248,8 @@ export class ExecutionContext {
       target,
       method,
       timestamp: Date.now(),
-      metadata,
+      kind: opts?.kind,
+      metadata: opts?.metadata,
     };
     const parent = _als.getStore() ?? [];
     const next = [...parent, frame];
@@ -193,7 +277,7 @@ export class ExecutionContext {
       target,
       method,
       timestamp: Date.now(),
-      metadata: { kind: 'root' },
+      kind: FrameKind.Root,
     };
     return _als.run([root], fn);
   }

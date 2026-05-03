@@ -18,7 +18,7 @@ import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
 import { wrapInProxy } from '../lib/security/proxy';
-import { ExecutionContext } from '../lib/security/ExecutionContext';
+import { ExecutionContext, FrameKind } from '../lib/security/ExecutionContext';
 import { decorateApiClass } from '../lib/security/decorators';
 import { ShadowApi } from './shadow';
 
@@ -365,7 +365,7 @@ export class StuffApi {
         StuffApi,
         proxy,
         'constructor',
-        { kind: 'constructor' },
+        { kind: FrameKind.Constructor },
         async () => {
           if (hydrate) await hydrate(proxy);
           if (MixinApi.isPostRegistration(proxy)) {
