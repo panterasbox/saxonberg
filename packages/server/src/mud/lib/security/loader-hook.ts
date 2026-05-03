@@ -14,7 +14,7 @@
  *     // ...all subsequent game-code imports happen here.
  *
  * The hook intercepts every `.ts` / `.js` file under `mud/`,
- * appending the same `__callSecModuleRegistry.stamp(...)` snippet the
+ * appending the same `__callSecModuleApi.stamp(...)` snippet the
  * Vite plugin appends in tests. Files outside the mud tree pass
  * through unchanged.
  *

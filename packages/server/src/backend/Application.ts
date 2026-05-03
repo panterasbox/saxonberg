@@ -348,7 +348,7 @@ export class Application {
 
 // Sets the class-default policy for Application's instance methods to
 // `Public`. Backend wraps every entry call site in
-// `ExecutionContext.runRoot(Backend, ...)`, so the live frame at
+// `ExecutionContextApi.runRoot(Backend, ...)`, so the live frame at
 // Application's top is the network → Application root frame; this
 // decorator is a forward-compatible declaration of intent rather than
 // a runtime intercept (instance methods on Application aren't

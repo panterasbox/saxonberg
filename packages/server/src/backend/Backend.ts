@@ -19,7 +19,7 @@ import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
 import { Application } from './Application';
-import { ExecutionContext } from '../mud/lib/security/ExecutionContext';
+import { ExecutionContextApi } from '../mud/api/execution-context';
 
 /**
  * Backend - Singleton for I/O operations.
@@ -127,7 +127,7 @@ export class Backend implements IBackend {
     // bottom — Backend at the network → Application boundary.
     if (this.application) {
       const app = this.application;
-      ExecutionContext.runRoot(Backend, 'handleUserConnect', () =>
+      ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
         app.handleUserConnect(userId, sessionId, socketId)
       );
     }
@@ -147,7 +147,7 @@ export class Backend implements IBackend {
       // boundary so the message-driven call stack is rooted at Backend.
       if (this.application) {
         const app = this.application;
-        ExecutionContext.runRoot(Backend, 'processUserMessage', () =>
+        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () =>
           app.processUserMessage(socketId, message)
         );
       }
@@ -178,7 +178,7 @@ export class Backend implements IBackend {
     // Notify Application of disconnection. Root frame on the boundary.
     if (this.application) {
       const app = this.application;
-      ExecutionContext.runRoot(Backend, 'handleUserDisconnect', () =>
+      ExecutionContextApi.runRoot(Backend, 'handleUserDisconnect', () =>
         app.handleUserDisconnect(socketId)
       );
     }
@@ -217,7 +217,7 @@ export class Backend implements IBackend {
       // OAuth callback path also enters Application from the network
       // boundary, so plant the same root frame here.
       const app = this.application;
-      const userId = await ExecutionContext.runRoot(
+      const userId = await ExecutionContextApi.runRoot(
         Backend,
         'findOrCreateUserFromGoogle',
         () => app.findOrCreateUserFromGoogle(profile)

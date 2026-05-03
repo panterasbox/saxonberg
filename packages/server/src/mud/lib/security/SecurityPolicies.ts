@@ -16,8 +16,8 @@
  * is no other consumer worth extracting it through a separate types file.
  */
 
-import { ExecutionContext } from './ExecutionContext';
-import { ModuleRegistry } from './ModuleRegistry';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { ModuleApi } from '../../api/module';
 import { PathPatternApi } from '../../api/path-pattern';
 import { audit } from './audit';
 
@@ -78,13 +78,13 @@ function resolveCallerPath(caller: unknown | null): string | null {
     }
     // (2a) Caller is an instance — look up its class.
     if (obj.constructor) {
-      const id = ModuleRegistry.lookup(obj.constructor as object);
+      const id = ModuleApi.lookup(obj.constructor as object);
       if (id) return id;
     }
   }
   // (2b) Caller is a class itself (static-method synthesised frame).
   if (typeof caller === 'function') {
-    const id = ModuleRegistry.lookup(caller as object);
+    const id = ModuleApi.lookup(caller as object);
     if (id) return id;
   }
   return null;
@@ -152,7 +152,7 @@ function FromModule(
               (caller as { constructor?: unknown }).constructor ?? caller
             );
       while (proto && proto !== Function.prototype && proto !== Object.prototype) {
-        const id = ModuleRegistry.lookup(proto as object);
+        const id = ModuleApi.lookup(proto as object);
         if (id && PathPatternApi.matches(id, glob)) return true;
         proto = Object.getPrototypeOf(proto);
       }
@@ -258,5 +258,5 @@ export const SecurityPolicies = {
 } as const;
 
 // Re-export ExecutionContext so consumers that pull SecurityPolicies in
-// can also reach `ExecutionContext.getCallStack()` from the same import.
-export { ExecutionContext };
+// can also reach `ExecutionContextApi.getCallStack()` from the same import.
+export { ExecutionContextApi };

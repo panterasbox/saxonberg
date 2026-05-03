@@ -4,7 +4,7 @@
  * Single ergonomic import for the four authoring concerns:
  *   - decorators (`@CallSecurity`, `@Unshadowable`, `@Final`)
  *   - policies (`SecurityPolicies.Public`, `.ApiOnly`, etc.)
- *   - context (`ExecutionContext.getCaller()`, `getCurrentTarget()`, …)
+ *   - context (`ExecutionContextApi.getCaller()`, `getCurrentTarget()`, …)
  *   - errors (`SecurityError`, `DestroyedObjectError`, …)
  *
  * Re-exports rather than wraps — there's nothing for an Api class to
@@ -19,11 +19,13 @@ import {
   isMethodUnshadowable,
 } from '../lib/security/decorators';
 
-export { ExecutionContext } from '../lib/security/ExecutionContext';
+export { ExecutionContextApi, FrameKind } from './execution-context';
 export type {
   CallFrame,
   CallStack,
-} from '../lib/security/ExecutionContext';
+  RunFrameOpts,
+} from './execution-context';
+export { ModuleApi } from './module';
 export { SecurityPolicies } from '../lib/security/SecurityPolicies';
 export type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 export {

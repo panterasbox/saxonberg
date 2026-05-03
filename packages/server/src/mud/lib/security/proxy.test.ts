@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../api/stuff';
 import { Thing } from '../stuff/Thing';
-import { ExecutionContext, FrameKind } from './ExecutionContext';
+import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { DestroyedObjectError, SecurityError } from './errors';
 import { makeStuff } from './test-setup';
 
@@ -71,14 +71,14 @@ describe('frame-push invariants', () => {
     const captured = StuffApi.findById(t.stuffId);
     // getEnvironment is undecorated and Public-by-default. Confirm
     // that calling it pushes a frame whose target is the instance.
-    ExecutionContext.runRoot(null, 'test', () => {
+    ExecutionContextApi.runRoot(null, 'test', () => {
       const wrapped = (captured as Thing).getEnvironment;
       // Call through the proxy, then ask "did the framework see us?"
       // by snooping current target inside a synthetic inner method.
       Object.defineProperty(captured as object, 'snoop', {
         configurable: true,
         value: function () {
-          observedTarget = ExecutionContext.getCurrentTarget();
+          observedTarget = ExecutionContextApi.getCurrentTarget();
         },
       });
       (captured as unknown as { snoop: () => void }).snoop();
@@ -99,14 +99,14 @@ describe('command frame plumbing', () => {
     // just need the synthetic frame.)
     const issuer = { name: 'tester' };
     let observed: unknown = 'unset';
-    await ExecutionContext.runRoot(null, 'root', () =>
-      ExecutionContext.run(
+    await ExecutionContextApi.runRoot(null, 'root', () =>
+      ExecutionContextApi.run(
         null,
         issuer,
         'executeCommand',
         { kind: FrameKind.Command },
         () => {
-          observed = ExecutionContext.getCurrentCommandGiver();
+          observed = ExecutionContextApi.getCurrentCommandGiver();
         }
       )
     );

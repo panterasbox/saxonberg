@@ -1,5 +1,5 @@
 /**
- * ModuleRegistry tests — covers stamping, lookup, the stack-based
+ * ModuleApi tests — covers stamping, lookup, the stack-based
  * caller verification, the @Final validator, and the test seams.
  *
  * The end-to-end "transform-applied stamps" path is covered indirectly
@@ -8,40 +8,40 @@
  * test seams.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ModuleRegistry, validateNoFinalOverrides } from './ModuleRegistry';
-import { Final } from './decorators';
-import { FinalViolationError } from './errors';
+import { describe, it, expect } from 'vitest';
+import { ModuleApi } from './module';
+import { Final } from '../lib/security/decorators';
+import { FinalViolationError } from '../lib/security/errors';
 
-describe('ModuleRegistry', () => {
+describe('ModuleApi', () => {
   it('returns null for a class with no stamp', () => {
     class Unstamped {}
-    expect(ModuleRegistry.lookup(Unstamped)).toBeNull();
+    expect(ModuleApi.lookup(Unstamped)).toBeNull();
   });
 
   it('returns null for null caller', () => {
-    expect(ModuleRegistry.lookup(null)).toBeNull();
+    expect(ModuleApi.lookup(null)).toBeNull();
   });
 
   it('_stampForTest sets the module-id', () => {
     class Foo {}
-    ModuleRegistry._stampForTest(Foo, 'mud/lib/Foo#Foo');
-    expect(ModuleRegistry.lookup(Foo)).toBe('mud/lib/Foo#Foo');
-    ModuleRegistry._forgetForTest(Foo);
+    ModuleApi._stampForTest(Foo, 'mud/lib/Foo#Foo');
+    expect(ModuleApi.lookup(Foo)).toBe('mud/lib/Foo#Foo');
+    ModuleApi._forgetForTest(Foo);
   });
 
   it('first-stamp-wins for a given class', () => {
     class Foo {}
-    ModuleRegistry._stampForTest(Foo, 'first/path#Foo');
+    ModuleApi._stampForTest(Foo, 'first/path#Foo');
     // Second call via stamp() should be ignored — but stamp() goes
     // through caller verification. Use _stampForTest directly to
     // confirm WeakMap semantics.
-    ModuleRegistry._stampForTest(Foo, 'second/path#Foo');
+    ModuleApi._stampForTest(Foo, 'second/path#Foo');
     // Direct WeakMap.set semantics replace; but stamp() guards
     // against this with `has()` check. The seam exists for tests
     // that need a clean slate — verify it overwrites.
-    expect(ModuleRegistry.lookup(Foo)).toBe('second/path#Foo');
-    ModuleRegistry._forgetForTest(Foo);
+    expect(ModuleApi.lookup(Foo)).toBe('second/path#Foo');
+    ModuleApi._forgetForTest(Foo);
   });
 });
 
@@ -53,7 +53,7 @@ describe('@Final validator', () => {
     class B extends A {
       m() {}
     }
-    expect(() => validateNoFinalOverrides(B)).not.toThrow();
+    expect(() => ModuleApi._validateNoFinalOverridesForTest(B)).not.toThrow();
   });
 
   it('passes for a sibling that does NOT override @Final', () => {
@@ -62,7 +62,7 @@ describe('@Final validator', () => {
       m() {}
     }
     class B extends A {}
-    expect(() => validateNoFinalOverrides(B)).not.toThrow();
+    expect(() => ModuleApi._validateNoFinalOverridesForTest(B)).not.toThrow();
   });
 
   it('throws when a subclass overrides an ancestor @Final method', () => {
@@ -73,7 +73,7 @@ describe('@Final validator', () => {
     class B extends A {
       override m() {}
     }
-    expect(() => validateNoFinalOverrides(B)).toThrow(FinalViolationError);
+    expect(() => ModuleApi._validateNoFinalOverridesForTest(B)).toThrow(FinalViolationError);
   });
 
   it('walks multi-level chains (A→B→C, only C overrides)', () => {
@@ -85,8 +85,8 @@ describe('@Final validator', () => {
     class C extends B {
       override m() {}
     }
-    expect(() => validateNoFinalOverrides(B)).not.toThrow();
-    expect(() => validateNoFinalOverrides(C)).toThrow(FinalViolationError);
+    expect(() => ModuleApi._validateNoFinalOverridesForTest(B)).not.toThrow();
+    expect(() => ModuleApi._validateNoFinalOverridesForTest(C)).toThrow(FinalViolationError);
   });
 
   it('FinalViolationError carries class + qualified-method names', () => {
@@ -98,7 +98,7 @@ describe('@Final validator', () => {
       override m() {}
     }
     try {
-      validateNoFinalOverrides(B);
+      ModuleApi._validateNoFinalOverridesForTest(B);
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(FinalViolationError);

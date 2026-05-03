@@ -12,7 +12,7 @@
 
 // Register the call-security loader hook BEFORE any game-code import.
 // The hook intercepts every `mud/**` module load and appends a
-// ModuleRegistry.stamp(...) call so every exported class gets a
+// ModuleApi.stamp(...) call so every exported class gets a
 // tamper-resistant module-id. Imports below this line participate.
 //
 // Skipped under Vitest: Vitest uses Vite's plugin pipeline (see

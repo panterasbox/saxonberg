@@ -25,7 +25,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { Stuff as StuffClass } from '../stuff/Stuff';
 import { wrapInProxy } from './proxy';
 import { StuffApi } from '../../api/stuff';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContextApi } from '../../api/execution-context';
 
 /**
  * Synchronously construct, wrap, and register a Stuff. Mirrors the
@@ -55,5 +55,5 @@ export function makeStuff<T extends Stuff>(factory: () => T): T {
  * @internal
  */
 export function withRootContext<T>(target: unknown, method: string, fn: () => T): T {
-  return ExecutionContext.runRoot(target, method, fn);
+  return ExecutionContextApi.runRoot(target, method, fn);
 }

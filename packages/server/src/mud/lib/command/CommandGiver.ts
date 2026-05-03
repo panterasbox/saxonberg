@@ -25,7 +25,7 @@ import { ContainmentApi } from '../../api/containment';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
 import { getValidator } from './validators';
-import { ExecutionContext, FrameKind } from '../security/ExecutionContext';
+import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 
 type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
 
@@ -149,9 +149,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     async executeCommand(commandText: string, context: CommandContext): Promise<CommandResult> {
       // The proxy already pushed a frame for this call when
       // `executeCommand` was invoked. Tag it as the command-issuer
-      // frame so `ExecutionContext.getCurrentCommandGiver()` can find
+      // frame so `ExecutionContextApi.getCurrentCommandGiver()` can find
       // it without string-matching method names.
-      ExecutionContext.tagCurrentFrame(FrameKind.Command);
+      ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
       try {
         // 1. Parse command text

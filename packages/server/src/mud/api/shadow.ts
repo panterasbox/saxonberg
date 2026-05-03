@@ -37,7 +37,7 @@ import {
   DestroyedObjectError,
   SecurityError,
 } from '../lib/security/errors';
-import { ExecutionContext } from '../lib/security/ExecutionContext';
+import { ExecutionContextApi } from './execution-context';
 import {
   isMethodUnshadowable,
   resolveShadowSecurity,
@@ -109,7 +109,7 @@ export class ShadowApi {
       }
       const secs = resolveShadowSecurity(host, m);
       if (secs?.attach) {
-        const caller = ExecutionContext.getCurrentTarget();
+        const caller = ExecutionContextApi.getCurrentTarget();
         if (!secs.attach.allows(caller, host, m)) {
           throw new SecurityError(
             `@ShadowSecurity({ attach }) denied attach of ${m} on ${host.stuffId}`,
@@ -163,7 +163,7 @@ export class ShadowApi {
     for (const m of methods) {
       const secs = resolveShadowSecurity(host, m);
       if (secs?.detach) {
-        const caller = ExecutionContext.getCurrentTarget();
+        const caller = ExecutionContextApi.getCurrentTarget();
         if (!secs.detach.allows(caller, host, m)) {
           throw new SecurityError(
             `@ShadowSecurity({ detach }) denied detach of ${m} on ${host.stuffId}`,
@@ -313,7 +313,7 @@ export class ShadowApi {
     if (idx > 0) {
       // Next shadow down.
       const next = state.shadows[idx - 1]!;
-      return ExecutionContext.run(
+      return ExecutionContextApi.run(
         callingShadow,
         next,
         state.methodName,
@@ -329,7 +329,7 @@ export class ShadowApi {
     // a value directly. Detect which form by walking the host's
     // descriptor.
     state.bypassNext = true;
-    return ExecutionContext.run(
+    return ExecutionContextApi.run(
       callingShadow,
       state.host,
       state.methodName,
@@ -404,7 +404,7 @@ export class ShadowApi {
         bypassNext: true,
       },
       () =>
-        ExecutionContext.run(shadow, host, method, undefined, () => {
+        ExecutionContextApi.run(shadow, host, method, undefined, () => {
           const fn = (host as unknown as Record<string, unknown>)[method];
           if (typeof fn !== 'function') {
             throw new ShadowError(`host has no method ${method}`, {

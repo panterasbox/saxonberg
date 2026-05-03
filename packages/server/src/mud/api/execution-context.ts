@@ -1,5 +1,5 @@
 /**
- * ExecutionContext — async-safe call stack.
+ * ExecutionContextApi — async-safe call stack.
  *
  * Pillar 1 of the call-security framework. Carries a stack of `CallFrame`s
  * through `await`, `setTimeout`, and `Promise.then` boundaries via
@@ -30,7 +30,27 @@
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { SecurityError } from './errors';
+import { SecurityError } from '../lib/security/errors';
+
+// NOTE: ExecutionContextApi deliberately does NOT call
+// `decorateApiClass(...)` at module load — unlike StuffApi, MqlApi,
+// and the other Apis. Two reasons:
+//
+//   1. Circularity. `decorators.ts` imports ExecutionContextApi for
+//      its static-method wrapper (the wrapper pushes a frame via
+//      `ExecutionContextApi.run`). If we then asked decorators to
+//      wrap THIS class's methods, the wrapping itself would call
+//      `ExecutionContextApi.run` to push a frame for the wrapper —
+//      a bootstrap loop, and at module-load time the import binding
+//      for `decorateApiClass` is still undefined.
+//
+//   2. Semantics. The framework's own primitives shouldn't show up
+//      in the call stack as separate frames; `ExecutionContextApi.run`
+//      itself is the frame-pusher. Wrapping it would mean every
+//      `run()` call pushes a frame for `run()` before the body
+//      pushes the frame the caller actually asked for. Noise.
+//
+// The same reasoning applies to `ModuleApi`.
 
 /**
  * Recognised frame-kind labels. Each value tags a frame whose role
@@ -95,13 +115,13 @@ const _als = new AsyncLocalStorage<CallFrame[]>();
  *
  * `run`, `runRoot`, and `tagCurrentFrame` mutate the call stack — the
  * core trust surface every policy keys off. Forging a frame is the
- * same threat model as forging a module-id (see `ModuleRegistry`):
- * an attacker who can plant a frame whose `target` is an admin
- * Avatar, or whose `kind` is `Root`, sidesteps every policy.
+ * same threat model as forging a module-id (see `ModuleApi`): an
+ * attacker who can plant a frame whose `target` is an admin Avatar,
+ * or whose `kind` is `Root`, sidesteps every policy.
  *
  * Defence: stack-walk the immediate caller's file URL on entry,
  * reject if the URL doesn't match the framework allowlist below.
- * Same mechanism `ModuleRegistry.stamp` uses, same trust boundary.
+ * Same mechanism `ModuleApi.stamp` uses, same trust boundary.
  *
  * Per-URL cached so the cost is one stack walk per file ever; after
  * warmup it's a Map lookup. New framework files that legitimately
@@ -128,10 +148,10 @@ const _allowlistCache: Map<string, boolean> = new Map();
  * return its file URL, or `null` if we can't extract one.
  *
  * Frames inside this module are skipped by URL match (e.g.
- * `/ExecutionContext.ts:42:5` or `/ExecutionContext.js:42:5`),
+ * `/execution-context.ts:42:5` or `/execution-context.js:42:5`),
  * NOT by substring on the full line — that would also skip frames
- * from `ExecutionContext.test.ts` and any other file whose name
- * happens to contain "ExecutionContext".
+ * from `execution-context.test.ts` and any other file whose name
+ * happens to contain the module name.
  */
 function _findImmediateCallerUrl(): string | null {
   const err = new Error();
@@ -148,8 +168,8 @@ function _findImmediateCallerUrl(): string | null {
     // Skip frames inside this module file specifically — the
     // `_findImmediateCallerUrl`, `_assertFrameMutatorAllowed`,
     // `run`, `runRoot`, and `tagCurrentFrame` frames all live in
-    // `ExecutionContext.ts` (or its compiled `.js`).
-    if (/\/ExecutionContext\.(ts|js)(\?|$|:)/.test(url)) continue;
+    // `execution-context.ts` (or its compiled `.js`).
+    if (/\/execution-context\.(ts|js)(\?|$|:)/.test(url)) continue;
     return url;
   }
   return null;
@@ -199,7 +219,7 @@ function _assertFrameMutatorAllowed(op: string): void {
  * Static-class style API. All methods are static so callers don't need to
  * instantiate or import a singleton.
  */
-export class ExecutionContext {
+export class ExecutionContextApi {
   private constructor() {}
 
   /**
@@ -284,7 +304,7 @@ export class ExecutionContext {
    * message, the chain rebuilds fresh and this returns null.
    */
   public static getCurrentCommandGiver(): unknown | null {
-    return ExecutionContext.findFrame(FrameKind.Command)?.target ?? null;
+    return ExecutionContextApi.findFrame(FrameKind.Command)?.target ?? null;
   }
 
   /**
@@ -296,8 +316,8 @@ export class ExecutionContext {
     if (stack.length === 0) return '<empty call stack>';
     return stack
       .map((f, i) => {
-        const callerName = ExecutionContext.#nameOf(f.caller);
-        const targetName = ExecutionContext.#nameOf(f.target);
+        const callerName = ExecutionContextApi.#nameOf(f.caller);
+        const targetName = ExecutionContextApi.#nameOf(f.target);
         const kindTag = f.kind ? ` [${f.kind}]` : '';
         return `  #${i}${kindTag} ${callerName} → ${targetName}.${f.method}`;
       })
@@ -310,13 +330,13 @@ export class ExecutionContext {
    * sensitive method bodies that already carry `@CallSecurity`.
    */
   public static assertCaller(expected: Function): void {
-    const caller = ExecutionContext.getCaller();
+    const caller = ExecutionContextApi.getCaller();
     if (
       caller === null ||
       typeof caller !== 'object' ||
       !(caller instanceof (expected as new (...a: unknown[]) => object))
     ) {
-      const callerName = ExecutionContext.#nameOf(caller);
+      const callerName = ExecutionContextApi.#nameOf(caller);
       throw new SecurityError(
         `Expected caller to be ${expected.name}, got ${callerName}`
       );

@@ -20,7 +20,7 @@ import {
   _decoratorInternals,
 } from './decorators';
 import { SecurityPolicies } from './SecurityPolicies';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { SecurityError } from './errors';
 
 describe('@CallSecurity (polymorphic)', () => {
@@ -105,15 +105,15 @@ describe('@CallSecurity on static methods', () => {
     class StuffApi {
       static recorded = '';
       static helper(): void {
-        StuffApi.recorded = ExecutionContext.getCurrentTarget()?.constructor
-          ? (ExecutionContext.getCurrentTarget() as Function).name
+        StuffApi.recorded = ExecutionContextApi.getCurrentTarget()?.constructor
+          ? (ExecutionContextApi.getCurrentTarget() as Function).name
           : 'none';
       }
     }
     decorateApiClass(StuffApi);
     StuffApi.helper();
     // The helper sees the class itself as the current target (set by
-    // the wrapper via ExecutionContext.run(caller, cls, ...)).
+    // the wrapper via ExecutionContextApi.run(caller, cls, ...)).
     expect(StuffApi.recorded).toBe('StuffApi');
   });
 });

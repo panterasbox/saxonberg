@@ -23,7 +23,7 @@
  */
 
 import type { SecurityPolicy } from './SecurityPolicies';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { SecurityError } from './errors';
 
 /**
@@ -173,14 +173,14 @@ function _wrapStaticDescriptor(
   const wrapped = function (this: unknown, ...args: unknown[]): unknown {
     const policy = resolveStaticCallPolicy(cls, methodName);
     // Caller = previous target; falls back to null at the root.
-    const caller = ExecutionContext.getCurrentTarget();
+    const caller = ExecutionContextApi.getCurrentTarget();
     if (!policy.allows(caller, cls, methodName)) {
       throw new SecurityError(
         `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
         { methodName, policyName: policy.name }
       );
     }
-    return ExecutionContext.run(caller, cls, methodName, undefined, () =>
+    return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
       original.apply(this, args)
     );
   };

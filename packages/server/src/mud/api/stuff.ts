@@ -18,7 +18,7 @@ import type { Hydrator } from '../lib/stuff/Hydrator';
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
 import { wrapInProxy } from '../lib/security/proxy';
-import { ExecutionContext, FrameKind } from '../lib/security/ExecutionContext';
+import { ExecutionContextApi, FrameKind } from './execution-context';
 import { decorateApiClass } from '../lib/security/decorators';
 import { ShadowApi } from './shadow';
 
@@ -361,7 +361,7 @@ export class StuffApi {
       // `target = <new instance>`. Inner `this.foo()` calls then
       // appear as self-calls, which is the natural reading of
       // construction-time self-initialization.
-      await ExecutionContext.run(
+      await ExecutionContextApi.run(
         StuffApi,
         proxy,
         'constructor',

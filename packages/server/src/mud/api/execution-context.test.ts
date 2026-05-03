@@ -1,5 +1,5 @@
 /**
- * ExecutionContext tests.
+ * ExecutionContextApi tests.
  *
  * Verifies the call-stack invariants from Stage 1 §Verification:
  *   - ALS push/pop survives `await`, `setTimeout`, `Promise.then`.
@@ -10,80 +10,80 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ExecutionContext, FrameKind } from './ExecutionContext';
-import { SecurityError } from './errors';
+import { ExecutionContextApi, FrameKind } from './execution-context';
+import { SecurityError } from '../lib/security/errors';
 
 class Caller {}
 class Target {}
 
-describe('ExecutionContext', () => {
+describe('ExecutionContextApi', () => {
   it('returns null caller/target outside any wrapper', () => {
-    expect(ExecutionContext.getCaller()).toBeNull();
-    expect(ExecutionContext.getCurrentTarget()).toBeNull();
-    expect(ExecutionContext.getCallStack()).toEqual([]);
+    expect(ExecutionContextApi.getCaller()).toBeNull();
+    expect(ExecutionContextApi.getCurrentTarget()).toBeNull();
+    expect(ExecutionContextApi.getCallStack()).toEqual([]);
   });
 
   it('runRoot plants a synthetic root frame with caller=null', () => {
     const target = new Target();
-    ExecutionContext.runRoot(target, 'entry', () => {
-      expect(ExecutionContext.getCaller()).toBeNull();
-      expect(ExecutionContext.getCurrentTarget()).toBe(target);
-      expect(ExecutionContext.getCallStack()).toHaveLength(1);
+    ExecutionContextApi.runRoot(target, 'entry', () => {
+      expect(ExecutionContextApi.getCaller()).toBeNull();
+      expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
+      expect(ExecutionContextApi.getCallStack()).toHaveLength(1);
     });
   });
 
   it('run pushes a frame on top of the stack', () => {
     const a = new Caller();
     const b = new Target();
-    ExecutionContext.runRoot(a, 'outer', () => {
-      ExecutionContext.run(a, b, 'inner', undefined, () => {
-        const stack = ExecutionContext.getCallStack();
+    ExecutionContextApi.runRoot(a, 'outer', () => {
+      ExecutionContextApi.run(a, b, 'inner', undefined, () => {
+        const stack = ExecutionContextApi.getCallStack();
         expect(stack).toHaveLength(2);
         expect(stack[1]!.method).toBe('inner');
         expect(stack[1]!.target).toBe(b);
-        expect(ExecutionContext.getCurrentTarget()).toBe(b);
+        expect(ExecutionContextApi.getCurrentTarget()).toBe(b);
       });
     });
   });
 
   it('survives await boundary', async () => {
     const target = new Target();
-    await ExecutionContext.runRoot(target, 'asyncEntry', async () => {
-      expect(ExecutionContext.getCurrentTarget()).toBe(target);
+    await ExecutionContextApi.runRoot(target, 'asyncEntry', async () => {
+      expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
       await new Promise((r) => setTimeout(r, 5));
-      expect(ExecutionContext.getCurrentTarget()).toBe(target);
+      expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
     });
   });
 
   it('survives Promise.then', async () => {
     const target = new Target();
-    await ExecutionContext.runRoot(target, 'thenEntry', () =>
+    await ExecutionContextApi.runRoot(target, 'thenEntry', () =>
       Promise.resolve().then(() => {
-        expect(ExecutionContext.getCurrentTarget()).toBe(target);
+        expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
       })
     );
   });
 
   it('pops the frame on synchronous return', () => {
     const target = new Target();
-    ExecutionContext.runRoot(target, 'tmp', () => {
-      expect(ExecutionContext.getCallStack()).toHaveLength(1);
+    ExecutionContextApi.runRoot(target, 'tmp', () => {
+      expect(ExecutionContextApi.getCallStack()).toHaveLength(1);
     });
-    expect(ExecutionContext.getCallStack()).toEqual([]);
+    expect(ExecutionContextApi.getCallStack()).toEqual([]);
   });
 
   it('getCurrentCommandGiver finds the nearest command-tagged frame', () => {
     const player = { name: 'player' };
     const middle = { name: 'middle' };
-    ExecutionContext.runRoot(null, 'root', () => {
-      ExecutionContext.run(
+    ExecutionContextApi.runRoot(null, 'root', () => {
+      ExecutionContextApi.run(
         null,
         player,
         'executeCommand',
         { kind: FrameKind.Command },
         () => {
-          ExecutionContext.run(player, middle, 'inner', undefined, () => {
-            expect(ExecutionContext.getCurrentCommandGiver()).toBe(player);
+          ExecutionContextApi.run(player, middle, 'inner', undefined, () => {
+            expect(ExecutionContextApi.getCurrentCommandGiver()).toBe(player);
           });
         }
       );
@@ -91,9 +91,9 @@ describe('ExecutionContext', () => {
   });
 
   it('getCurrentCommandGiver returns null with no command frame', () => {
-    ExecutionContext.runRoot(null, 'root', () => {
-      ExecutionContext.run(null, new Target(), 'inner', undefined, () => {
-        expect(ExecutionContext.getCurrentCommandGiver()).toBeNull();
+    ExecutionContextApi.runRoot(null, 'root', () => {
+      ExecutionContextApi.run(null, new Target(), 'inner', undefined, () => {
+        expect(ExecutionContextApi.getCurrentCommandGiver()).toBeNull();
       });
     });
   });
@@ -101,9 +101,9 @@ describe('ExecutionContext', () => {
   it('dumpCallStack renders human-readable frames', () => {
     const c = new Caller();
     const t = new Target();
-    ExecutionContext.runRoot(t, 'outer', () => {
-      ExecutionContext.run(c, t, 'inner', undefined, () => {
-        const dump = ExecutionContext.dumpCallStack();
+    ExecutionContextApi.runRoot(t, 'outer', () => {
+      ExecutionContextApi.run(c, t, 'inner', undefined, () => {
+        const dump = ExecutionContextApi.dumpCallStack();
         expect(dump).toContain('outer');
         expect(dump).toContain('inner');
       });
@@ -113,7 +113,7 @@ describe('ExecutionContext', () => {
   describe('frame-mutator allowlist', () => {
     it('allows mud/lib/security/ files', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'run',
           'file:///proj/packages/server/src/mud/lib/security/proxy.ts'
         )
@@ -122,7 +122,7 @@ describe('ExecutionContext', () => {
 
     it('allows any mud/api/ file', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'run',
           'file:///proj/packages/server/src/mud/api/stuff.ts'
         )
@@ -131,7 +131,7 @@ describe('ExecutionContext', () => {
 
     it('allows backend/ files (Backend.runRoot)', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'runRoot',
           'file:///proj/packages/server/src/backend/Backend.ts'
         )
@@ -140,7 +140,7 @@ describe('ExecutionContext', () => {
 
     it('allows the CommandGiver mixin specifically', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'tagCurrentFrame',
           'file:///proj/packages/server/src/mud/lib/command/CommandGiver.ts'
         )
@@ -149,7 +149,7 @@ describe('ExecutionContext', () => {
 
     it('allows test files', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'run',
           'file:///proj/packages/server/src/mud/api/whatever.test.ts'
         )
@@ -158,7 +158,7 @@ describe('ExecutionContext', () => {
 
     it('denies a domain file outside the allowlist', () => {
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'run',
           'file:///proj/packages/server/src/mud/domain/evil.ts'
         )
@@ -170,7 +170,7 @@ describe('ExecutionContext', () => {
       // specific files in it are. CommandGiver is in by name; a
       // hypothetical NamedMixin.ts is not.
       expect(() =>
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'run',
           'file:///proj/packages/server/src/mud/lib/character/Named.ts'
         )
@@ -179,7 +179,7 @@ describe('ExecutionContext', () => {
 
     it('error message names the offender and the operation', () => {
       try {
-        ExecutionContext._checkAllowlistForTest(
+        ExecutionContextApi._checkAllowlistForTest(
           'tagCurrentFrame',
           'file:///proj/packages/server/src/mud/domain/evil.ts'
         );
@@ -196,11 +196,11 @@ describe('ExecutionContext', () => {
   describe('frame kinds + tagging', () => {
     it('tagCurrentFrame stamps the top frame in place', () => {
       const target = new Target();
-      ExecutionContext.runRoot(target, 'outer', () => {
-        ExecutionContext.run(null, target, 'm', undefined, () => {
-          expect(ExecutionContext.findFrame(FrameKind.Command)).toBeNull();
-          ExecutionContext.tagCurrentFrame(FrameKind.Command);
-          const frame = ExecutionContext.findFrame(FrameKind.Command);
+      ExecutionContextApi.runRoot(target, 'outer', () => {
+        ExecutionContextApi.run(null, target, 'm', undefined, () => {
+          expect(ExecutionContextApi.findFrame(FrameKind.Command)).toBeNull();
+          ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
+          const frame = ExecutionContextApi.findFrame(FrameKind.Command);
           expect(frame?.target).toBe(target);
           expect(frame?.method).toBe('m');
         });
@@ -208,25 +208,25 @@ describe('ExecutionContext', () => {
     });
 
     it('tagCurrentFrame throws outside any frame context', () => {
-      expect(() => ExecutionContext.tagCurrentFrame(FrameKind.Command))
+      expect(() => ExecutionContextApi.tagCurrentFrame(FrameKind.Command))
         .toThrow(SecurityError);
     });
 
     it('findFrame returns the most recent (topmost) tagged frame', () => {
       const a = { kind: 'a' };
       const b = { kind: 'b' };
-      ExecutionContext.runRoot(null, 'r', () => {
-        ExecutionContext.run(null, a, 'm', { kind: FrameKind.Command }, () => {
-          ExecutionContext.run(null, b, 'm', { kind: FrameKind.Command }, () => {
-            expect(ExecutionContext.findFrame(FrameKind.Command)?.target).toBe(b);
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        ExecutionContextApi.run(null, a, 'm', { kind: FrameKind.Command }, () => {
+          ExecutionContextApi.run(null, b, 'm', { kind: FrameKind.Command }, () => {
+            expect(ExecutionContextApi.findFrame(FrameKind.Command)?.target).toBe(b);
           });
         });
       });
     });
 
     it('runRoot stamps the synthetic frame with FrameKind.Root', () => {
-      ExecutionContext.runRoot(null, 'r', () => {
-        const root = ExecutionContext.findFrame(FrameKind.Root);
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        const root = ExecutionContextApi.findFrame(FrameKind.Root);
         expect(root).not.toBeNull();
         expect(root?.method).toBe('r');
       });
@@ -236,9 +236,9 @@ describe('ExecutionContext', () => {
   it('assertCaller throws when the immediate caller is the wrong class', () => {
     const c = new Caller();
     const t = new Target();
-    ExecutionContext.runRoot(t, 'outer', () => {
-      ExecutionContext.run(c, t, 'inner', undefined, () => {
-        expect(() => ExecutionContext.assertCaller(Target)).toThrow(SecurityError);
+    ExecutionContextApi.runRoot(t, 'outer', () => {
+      ExecutionContextApi.run(c, t, 'inner', undefined, () => {
+        expect(() => ExecutionContextApi.assertCaller(Target)).toThrow(SecurityError);
       });
     });
   });

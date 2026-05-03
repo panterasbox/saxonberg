@@ -7,21 +7,21 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SecurityPolicies } from './SecurityPolicies';
-import { ModuleRegistry } from './ModuleRegistry';
+import { ModuleApi } from '../../api/module';
 import { StuffApi } from '../../api/stuff';
 import { Thing } from '../stuff/Thing';
 import { ContainmentApi } from '../../api/containment';
 
 describe('FromModule (real, plugin-stamped)', () => {
   it('stamps Api classes under mud/api/**', () => {
-    expect(ModuleRegistry.lookup(StuffApi)).toBe('mud/api/stuff#StuffApi');
-    expect(ModuleRegistry.lookup(ContainmentApi)).toBe(
+    expect(ModuleApi.lookup(StuffApi)).toBe('mud/api/stuff#StuffApi');
+    expect(ModuleApi.lookup(ContainmentApi)).toBe(
       'mud/api/containment#ContainmentApi'
     );
   });
 
   it('stamps Stuff classes under mud/lib/stuff/**', () => {
-    expect(ModuleRegistry.lookup(Thing)).toBe('mud/lib/stuff/Thing#Thing');
+    expect(ModuleApi.lookup(Thing)).toBe('mud/lib/stuff/Thing#Thing');
   });
 
   it('matches a stamped class against its module-id glob', () => {

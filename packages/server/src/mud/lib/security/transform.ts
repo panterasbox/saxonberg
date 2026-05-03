@@ -1,5 +1,5 @@
 /**
- * Source-level transform that appends a `ModuleRegistry.stamp(...)`
+ * Source-level transform that appends a `ModuleApi.stamp(...)`
  * call to the bottom of every TS module in the codebase. Shared
  * between the Vitest plugin (`vite-plugin-callsec.ts`) and the Node
  * loader hook (`loader-hook.ts`) so production and test paths produce
@@ -9,8 +9,8 @@
  *   1. Parse the source with the TypeScript compiler API.
  *   2. Walk the top-level statements for class exports.
  *   3. If any are found, append:
- *        import { stamp as __callSecStamp } from '<rel>/ModuleRegistry';
- *        __callSecStamp(import.meta.url, { Foo, Bar });
+ *        import { ModuleApi as __callSecModuleApi } from '<rel>/api/module';
+ *        __callSecModuleApi.stamp(import.meta.url, { Foo, Bar });
  *
  * Skipped:
  *   - Re-exports (`export { Foo } from './x'` / `export * from './x'`)
@@ -35,27 +35,27 @@ import * as path from 'node:path';
 
 /**
  * Compute the source-relative path used in the appended `import` to
- * reach `<src>/mud/lib/security/ModuleRegistry`. We can't bake an
- * absolute path or a bare specifier — both break either tsx or
- * Vitest. Relative path computed from `fileUrl`.
+ * reach `<src>/mud/api/module`. We can't bake an absolute path or
+ * a bare specifier — both break either tsx or Vitest. Relative path
+ * computed from `fileUrl`.
  */
 export function computeRegistryImportPath(fileUrl: string): string {
   const filePath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
-  // Locate the source root anywhere in the path. `mud/lib/security/`
-  // is just under `<srcRoot>/mud/lib/security/`. Build a relative
-  // path from the importing file's directory to the registry module.
+  // Locate the source root anywhere in the path. `ModuleApi` lives
+  // at `<srcRoot>/mud/api/module`. Build a relative path from the
+  // importing file's directory to that module.
   const fileDir = path.dirname(filePath);
   const srcRootIdx = filePath.indexOf('/mud/');
   if (srcRootIdx < 0) {
     // Outside the mud tree (shouldn't happen — we filter earlier).
     // Return a best-effort relative path; the stamp won't resolve
     // and the import will throw, surfacing the bad include rule.
-    return './ModuleRegistry';
+    return './ModuleApi';
   }
   const srcRoot = filePath.slice(0, srcRootIdx);
-  const registryPath = path.join(srcRoot, 'mud/lib/security/ModuleRegistry');
+  const registryPath = path.join(srcRoot, 'mud/api/module');
   let rel = path.relative(fileDir, registryPath);
   if (!rel.startsWith('.')) rel = './' + rel;
   return rel;
@@ -63,8 +63,11 @@ export function computeRegistryImportPath(fileUrl: string): string {
 
 /**
  * Decide whether `fileUrl` should be transformed. Files inside the
- * security framework itself, declaration files, and node_modules are
- * skipped.
+ * security framework itself (mud/lib/security/) and the framework's
+ * own Api modules (ExecutionContextApi, ModuleApi) are skipped because
+ * they bootstrap the registry — wrapping them would mean a module
+ * stamping itself before its own `ModuleApi` import has finished
+ * loading. Declaration files and node_modules are also skipped.
  */
 export function shouldTransform(fileUrl: string): boolean {
   const filePath = fileUrl.startsWith('file://')
@@ -74,6 +77,10 @@ export function shouldTransform(fileUrl: string): boolean {
   if (filePath.endsWith('.d.ts')) return false;
   if (filePath.includes('/node_modules/')) return false;
   if (filePath.includes('/mud/lib/security/')) return false;
+  // The framework's own Api files — auto-stamping them would form a
+  // load-time cycle since the auto-injected `ModuleApi.stamp(...)`
+  // imports back into module.ts.
+  if (/\/mud\/api\/(execution-context|module)\.ts$/.test(filePath)) return false;
   // Only transform files inside the mud tree. The backend layer can
   // be added later if it needs class-identity matching; today it
   // doesn't, and skipping it avoids over-instrumenting auth/HTTP
@@ -199,10 +206,10 @@ export function transformSource(source: string, fileUrl: string): string {
   // import at the top, the stamp call at the bottom (where every
   // class binding it references is guaranteed to exist).
   const importLine =
-    `import { ModuleRegistry as __callSecModuleRegistry } from '${registryPath}';\n`;
+    `import { ModuleApi as __callSecModuleApi } from '${registryPath}';\n`;
   const stampLine =
     `\n\n// === call-security: auto-injected stamp call ===\n` +
-    `__callSecModuleRegistry.stamp(import.meta.url, { ${fields.join(', ')} });\n`;
+    `__callSecModuleApi.stamp(import.meta.url, { ${fields.join(', ')} });\n`;
   return importLine + source + stampLine;
 }
 

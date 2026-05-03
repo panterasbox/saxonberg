@@ -23,7 +23,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { resolveCallPolicy } from './decorators';
 import { DestroyedObjectError, SecurityError } from './errors';
 import { ShadowApi } from '../../api/shadow';
@@ -229,7 +229,7 @@ function runWithMediation(
   }
   // 2. entry policy
   const policy = resolveCallPolicy(target, methodName);
-  const caller = ExecutionContext.getCurrentTarget();
+  const caller = ExecutionContextApi.getCurrentTarget();
   if (!policy.allows(caller, proxyRef, methodName)) {
     throw new SecurityError(
       `Policy ${policy.name} denied ${methodName}() on Stuff ${target.stuffId}`,
@@ -242,13 +242,13 @@ function runWithMediation(
   if (shadows && shadows.length > 0) {
     return ShadowApi._withDispatch(proxyRef, methodName, shadows, args, () => {
       const top = shadows[shadows.length - 1]!;
-      return ExecutionContext.run(caller, top, methodName, undefined, () =>
+      return ExecutionContextApi.run(caller, top, methodName, undefined, () =>
         ShadowApi._invokeOnShadow(top, methodName, isGetter ? [] : args)
       );
     });
   }
   // 4. no shadows
-  return ExecutionContext.run(caller, proxyRef, methodName, undefined, () =>
+  return ExecutionContextApi.run(caller, proxyRef, methodName, undefined, () =>
     invokeRaw()
   );
 }

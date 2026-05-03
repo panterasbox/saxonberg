@@ -36,7 +36,7 @@ describe('SecurityPolicies', () => {
   });
 
   describe('ApiOnly (Stage-2 — real, FromModule-backed)', () => {
-    // Detailed coverage lives in ModuleRegistry.test.ts and
+    // Detailed coverage lives in ModuleApi.test.ts and
     // FromModule.test.ts; here we just confirm null / unstamped
     // callers fail closed.
     it('denies null caller (no module-id)', () => {
@@ -91,7 +91,7 @@ describe('SecurityPolicies', () => {
 
   describe('FromTemplate / FromModule (Stage-2 — real)', () => {
     // Detailed glob behaviour lives in PathPatternApi.test.ts;
-    // module-id stamping in ModuleRegistry.test.ts. Here we just
+    // module-id stamping in ModuleApi.test.ts. Here we just
     // assert the fail-closed contract for null callers.
     it('FromTemplate denies null caller', () => {
       expect(SecurityPolicies.FromTemplate('/x/**').allows(null, null, 'm')).toBe(false);
