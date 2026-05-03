@@ -10,10 +10,17 @@
  *       test: { ... }
  *     });
  *
- * The plugin runs `enforce: 'post'` so TypeScript transpilation has
- * already happened by the time we see the source — but the appended
- * snippet still uses `import.meta.url` and the import statement,
- * which Vite handles natively for ESM modules.
+ * The plugin runs `enforce: 'pre'` so it sees raw TypeScript source
+ * BEFORE Vite's TypeScript transform has its way with it. That matters
+ * for class decorators: TS legacy decorator emission rewrites
+ * `@CallSecurity export class Foo {}` into `let Foo = class Foo {};
+ * Foo = __decorate(...); export { Foo };`, which the AST walker
+ * wouldn't recognise as a class export (it'd see a variable decl
+ * holding a class expression). Running pre lets the walker see the
+ * untransformed `export class Foo {}` shape directly.
+ *
+ * The appended snippet uses `import.meta.url` and a regular import
+ * statement; both pass through the downstream TS transform unchanged.
  *
  * The plugin's `transform` hook is the only entry point. Call-shape
  * matches Vite's plugin interface; no Vite-specific types imported,
@@ -36,7 +43,7 @@ interface ViteLikePlugin {
 export function callSecPlugin(): ViteLikePlugin {
   return {
     name: 'callsec-stamp',
-    enforce: 'post',
+    enforce: 'pre',
     transform(code: string, id: string): string | null | undefined {
       if (!shouldTransform(id)) return null;
       const result = transformSource(code, id);

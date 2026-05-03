@@ -41,7 +41,8 @@ import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin-types';
@@ -65,6 +66,7 @@ interface MixinClass {
 /**
  * Static API for mixin management and introspection.
  */
+@CallSecurity(SecurityPolicies.Public)
 export class MixinApi {
   /**
    * Get all mixins applied to a class by walking the prototype chain.
@@ -268,4 +270,3 @@ export class MixinApi {
 }
 
 
-decorateApiClass(MixinApi);

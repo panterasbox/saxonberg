@@ -17,7 +17,8 @@
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { ZONE_CLASS_PATHS } from './zone';
 import type { DomainTemplate } from './stuff';
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Thrown when a domain-collection write would violate the folder/leaf
@@ -30,6 +31,7 @@ export class TemplateError extends Error {
   }
 }
 
+@CallSecurity(SecurityPolicies.Public)
 export class TemplateApi {
   /**
    * Save a domain template via the typed convenience signature. Builds the
@@ -169,4 +171,3 @@ export class TemplateApi {
   }
 }
 
-decorateApiClass(TemplateApi);

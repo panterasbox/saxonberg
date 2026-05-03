@@ -24,7 +24,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import { MixinApi } from './mixin';
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -46,6 +47,7 @@ export class ContainmentError extends Error {
 /**
  * Static API for containment and movement operations
  */
+@CallSecurity(SecurityPolicies.Public)
 export class ContainmentApi {
   /**
    * Move an object from one container to another.
@@ -135,4 +137,3 @@ export class ContainmentApi {
   }
 }
 
-decorateApiClass(ContainmentApi);

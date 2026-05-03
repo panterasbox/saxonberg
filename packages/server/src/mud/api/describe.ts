@@ -14,11 +14,13 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import { MixinApi } from './mixin';
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Presentation-layer API for describing objects.
  */
+@CallSecurity(SecurityPolicies.Public)
 export class DescribeApi {
   /**
    * Resolve a human-readable name for an object.
@@ -45,4 +47,3 @@ export class DescribeApi {
   }
 }
 
-decorateApiClass(DescribeApi);

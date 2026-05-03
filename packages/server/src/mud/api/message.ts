@@ -32,7 +32,8 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import { MixinApi } from './mixin';
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 type SensorStuff = Stuff & Sensor;
 
@@ -48,6 +49,7 @@ export interface MessageBroadcastOptions {
 /**
  * Message distribution and routing API.
  */
+@CallSecurity(SecurityPolicies.Public)
 export class MessageApi {
   /**
    * Get all sensors (objects with SensorMixin) inside a container.
@@ -113,4 +115,3 @@ export class MessageApi {
   }
 }
 
-decorateApiClass(MessageApi);

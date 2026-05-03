@@ -1,4 +1,5 @@
-import { decorateApiClass } from '../lib/security/decorators';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 /**
  * NavigationApi — canonical direction table, aliases, and cartesian offsets.
  *
@@ -98,6 +99,7 @@ const CARDINALS: readonly CardinalDirection[] = [
   'down',
 ];
 
+@CallSecurity(SecurityPolicies.Public)
 export class NavigationApi {
   /**
    * Normalize a direction string (or alias) to its canonical long-form name.
@@ -145,4 +147,3 @@ export class NavigationApi {
   }
 }
 
-decorateApiClass(NavigationApi);

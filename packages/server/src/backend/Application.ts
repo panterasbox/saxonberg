@@ -33,6 +33,17 @@ import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
 
+/**
+ * Sets the class-default policy for Application's instance methods to
+ * `Public`. Backend wraps every entry call site in
+ * `ExecutionContextApi.runRoot(Backend, ...)`, so the live frame at
+ * Application's top is the network → Application root frame; this
+ * decorator is a forward-compatible declaration of intent rather than
+ * a runtime intercept (instance methods on Application aren't
+ * proxy-mediated). Per-method `@CallSecurity(...)` on any specific
+ * Application method would override.
+ */
+@CallSecurity(SecurityPolicies.Public)
 export class Application {
   private static instance: Application;
 
@@ -346,12 +357,3 @@ export class Application {
   }
 }
 
-// Sets the class-default policy for Application's instance methods to
-// `Public`. Backend wraps every entry call site in
-// `ExecutionContextApi.runRoot(Backend, ...)`, so the live frame at
-// Application's top is the network → Application root frame; this
-// decorator is a forward-compatible declaration of intent rather than
-// a runtime intercept (instance methods on Application aren't
-// proxy-mediated). Per-method `@CallSecurity(...)` on any specific
-// Application method would override.
-CallSecurity(SecurityPolicies.Public)(Application);
