@@ -42,7 +42,6 @@ import {
   isMethodUnshadowable,
   resolveShadowSecurity,
 } from '../lib/security/decorators';
-import { audit } from '../lib/security/audit';
 import { decorateApiClass } from '../lib/security/decorators';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
@@ -137,16 +136,6 @@ export class ShadowApi {
     }
     this.#shadowHost.set(shadow, host);
     this.#shadowMethods.set(shadow, Object.freeze(new Set(intercept)));
-
-    audit.emit({
-      kind: 'shadow_attached',
-      message: `shadow ${shadow.stuffId} attached to ${host.stuffId}`,
-      details: {
-        shadowId: shadow.stuffId,
-        hostId: host.stuffId,
-        methods: [...intercept],
-      },
-    });
   }
 
   /**
@@ -174,41 +163,6 @@ export class ShadowApi {
     }
 
     ShadowApi.#removeAtomic(shadow, host, methods);
-    audit.emit({
-      kind: 'shadow_detached',
-      message: `shadow ${shadow.stuffId} detached from ${host.stuffId}`,
-      details: { shadowId: shadow.stuffId, hostId: host.stuffId },
-    });
-  }
-
-  /**
-   * Admin-gated host-wide clear. Removes every shadow on `host` (or
-   * just the shadows on `methodName` if specified). Bypasses
-   * `@ShadowSecurity({ detach })` checks because it's a sweeping
-   * action. Default authority: caller from `mud/api/**` (any Api),
-   * which in practice means called from inside the framework. Tests
-   * use the `_clearAllForTesting()` seam instead.
-   */
-  public static clear(host: Stuff, methodName?: string): void {
-    const methodMap = this.#hostShadows.get(host);
-    if (!methodMap) return;
-    const targets: Set<Shadow> = new Set();
-    if (methodName !== undefined) {
-      for (const s of methodMap.get(methodName) ?? []) targets.add(s);
-    } else {
-      for (const arr of methodMap.values()) {
-        for (const s of arr) targets.add(s);
-      }
-    }
-    for (const shadow of targets) {
-      const methods = this.#shadowMethods.get(shadow) ?? EMPTY_METHODS;
-      ShadowApi.#removeAtomic(shadow, host, methods);
-    }
-    audit.emit({
-      kind: 'shadow_cleared',
-      message: `shadows cleared from ${host.stuffId}`,
-      details: { hostId: host.stuffId, methodName },
-    });
   }
 
   /** Read-only snapshot of shadows attached to `host` for `methodName`. */

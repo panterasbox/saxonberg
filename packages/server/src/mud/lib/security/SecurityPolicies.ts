@@ -19,7 +19,6 @@
 import { ExecutionContextApi } from '../../api/execution-context';
 import { ModuleApi } from '../../api/module';
 import { PathPatternApi } from '../../api/path-pattern';
-import { audit } from './audit';
 
 /**
  * One policy. `allows()` returns `true` to permit the call, `false` to
@@ -173,18 +172,7 @@ const ApiOnlyPolicy: SecurityPolicy = (() => {
   const fm = FromModule('mud/api/**', { includeSubclasses: true });
   return {
     name: 'ApiOnly',
-    allows(caller, target, method) {
-      if (fm.allows(caller, target, method)) return true;
-      audit.emit({
-        kind: 'security_deny',
-        message: `ApiOnly denied non-Api caller`,
-        details: {
-          method,
-          callerPath: resolveCallerPath(caller),
-        },
-      });
-      return false;
-    },
+    allows: fm.allows.bind(fm),
   };
 })();
 
