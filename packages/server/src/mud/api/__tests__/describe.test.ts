@@ -7,7 +7,7 @@ import { DescribeApi } from '../describe';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/character/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class Plain extends Stuff {}
 

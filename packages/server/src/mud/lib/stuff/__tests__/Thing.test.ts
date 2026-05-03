@@ -7,7 +7,7 @@ import { Thing } from '../Thing';
 import { StuffApi } from '../../../api/stuff';
 import { Location } from '../Location';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('Thing', () => {
   let thing: Thing;

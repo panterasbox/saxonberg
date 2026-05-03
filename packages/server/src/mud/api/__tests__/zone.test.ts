@@ -5,7 +5,7 @@ import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
 import { Thing } from '../../lib/stuff/Thing';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 type Doc = Record<string, unknown> & {
   _id?: string;

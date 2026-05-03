@@ -11,7 +11,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../Containable';
 import { MobileMixin } from '../Mobile';
 import { NamedMixin } from '../../character/Named';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
 class TestMover extends SensorBase {

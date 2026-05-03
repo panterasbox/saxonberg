@@ -21,16 +21,16 @@
  * file is just the `makeStuff` helper.
  */
 
-import type { Stuff } from '../stuff/Stuff';
-import { Stuff as StuffClass } from '../stuff/Stuff';
-import { ProxyApi } from '../../api/proxy';
-import { StuffApi } from '../../api/stuff';
-import { ExecutionContextApi } from '../../api/execution-context';
+import type { Stuff } from '../../stuff/Stuff';
+import { Stuff as StuffClass } from '../../stuff/Stuff';
+import { ProxyApi } from '../../../api/proxy';
+import { StuffApi } from '../../../api/stuff';
+import { ExecutionContextApi } from '../../../api/execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer
 // at module-load time. We import it here so tests that reach for the
 // proxy via `ProxyApi.wrap` (through `makeStuff`) always have the
 // security gate in place — no side-effect-import gymnastics needed.
-import { SecurityApi } from '../../api/security';
+import { SecurityApi } from '../../../api/security';
 void SecurityApi; // referenced only for the static-init side effect
 
 /**

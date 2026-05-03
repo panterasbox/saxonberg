@@ -7,7 +7,7 @@ import { Exit } from '../Exit';
 import { Door } from '../Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('ExitableMixin', () => {
   let zone: CartesianZone;

@@ -14,7 +14,7 @@ import { Avatar } from '../Avatar';
 import { Interactive } from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(id: string): User {
   const user = new User();

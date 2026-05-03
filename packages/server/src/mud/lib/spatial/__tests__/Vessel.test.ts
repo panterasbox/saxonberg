@@ -4,7 +4,7 @@ import { Thing } from '../../stuff/Thing';
 import { Location } from '../../stuff/Location';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('Vessel', () => {
   let vessel: Vessel;

@@ -8,7 +8,7 @@ import { ContainableMixin } from '../Containable';
 import { Stuff } from '../../stuff/Stuff';
 import { Location } from '../../stuff/Location';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Create a test class with both ContainableMixin and MobileMixin
 const MobileObjectBase = MobileMixin(ContainableMixin(Stuff));

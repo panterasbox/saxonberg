@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
 import { Stuff } from '../../stuff/Stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Concrete test environment class — needs ContainerMixin to be an environment
 class ConcreteStuff extends ContainerMixin(Stuff) {

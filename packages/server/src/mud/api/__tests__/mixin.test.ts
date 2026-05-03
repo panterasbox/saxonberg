@@ -20,7 +20,7 @@ import { SensorMixin } from '../../lib/message/Sensor';
 import { VocalMixin } from '../../lib/message/Vocal';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // Plain Stuff — has no mixins (negative-case fixture)
 class Plain extends Stuff {}

@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VisibleMixin } from '../Visible';
 import { Stuff } from '../../stuff/Stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Test class that uses VisibleMixin
 class TestVisible extends VisibleMixin(Stuff) {

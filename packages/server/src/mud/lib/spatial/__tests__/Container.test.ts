@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';
 import { Stuff } from '../../stuff/Stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Concrete test item class — needs ContainableMixin to live in a Container
 class ConcreteStuff extends ContainableMixin(Stuff) {

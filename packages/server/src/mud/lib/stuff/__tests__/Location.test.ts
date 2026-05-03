@@ -7,7 +7,7 @@ import { Location } from '../Location';
 import { StuffApi } from '../../../api/stuff';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../Stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Minimal containable item class for container tests
 class TestItem extends ContainableMixin(Stuff) {}

@@ -10,7 +10,7 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // Create a test sensor class
 const SensorBase = SensorMixin(ContainableMixin(Stuff));

@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {

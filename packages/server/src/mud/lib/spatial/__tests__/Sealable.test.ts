@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { SealableMixin } from '../Sealable';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 class TestSealable extends SealableMixin(Idea) {}
 

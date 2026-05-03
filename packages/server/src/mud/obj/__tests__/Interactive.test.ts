@@ -15,7 +15,7 @@ import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(id: string, playerIds: string[] = []): User {
   const user = new User();

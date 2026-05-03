@@ -102,8 +102,9 @@ export abstract class Stuff {
    * scope, or a parallel call could observe it set and bypass.
    *
    * Locked down by stack-walk allowlist: only callers from `mud/api/`
-   * (StuffApi's create/clone/createSync), `mud/lib/security/test-setup`
-   * (the `makeStuff` helper), or test files may flip the sentinel.
+   * (StuffApi's create/clone/createSync),
+   * `mud/lib/security/__tests__/test-setup` (the `makeStuff` helper),
+   * or test files may flip the sentinel.
    * Anything else throws — closes the "replicate StuffApi's flow
    * without registering" attack the MR review flagged.
    *
@@ -134,7 +135,7 @@ export abstract class Stuff {
    */
   static #constructionGateAllowlist: ReadonlyArray<RegExp> = [
     /\/mud\/api\//,                                  // StuffApi.create / clone / createSync
-    /\/mud\/lib\/security\/test-setup\.(ts|js)$/,    // `makeStuff` test seam
+    /\/mud\/lib\/security\/__tests__\/test-setup\.(ts|js)$/, // `makeStuff` test seam
     /\.test\.(ts|js)$/,                              // direct test usage
   ];
 
@@ -159,7 +160,7 @@ export abstract class Stuff {
     if (cached === false) {
       throw new Error(
         `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
-          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `the test-setup helper (mud/lib/security/__tests__/test-setup), and ` +
           `*.test.ts files may flip the construction sentinel`
       );
     }
@@ -168,7 +169,7 @@ export abstract class Stuff {
     if (!allowed) {
       throw new Error(
         `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
-          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `the test-setup helper (mud/lib/security/__tests__/test-setup), and ` +
           `*.test.ts files may flip the construction sentinel`
       );
     }

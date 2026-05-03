@@ -14,7 +14,7 @@ import {
 import { Stuff } from '../Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Test class with PropertiedMixin
 class PropertiedThing extends PropertiedMixin(Stuff) {

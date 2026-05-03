@@ -3,7 +3,7 @@ import { SphericalZone } from '../SphericalZone';
 import { SphericalLocation } from '../SphericalLocation';
 import { Exit } from '../Exit';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('SphericalZone', () => {
   let zone: SphericalZone;

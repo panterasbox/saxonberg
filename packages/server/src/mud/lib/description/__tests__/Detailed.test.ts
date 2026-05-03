@@ -7,7 +7,7 @@ import { DetailedMixin, type DetailMap } from '../Detailed';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Test class with DetailedMixin
 class DetailedThing extends DetailedMixin(Stuff) {

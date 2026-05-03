@@ -16,7 +16,7 @@ import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import type { CommandContext } from '../../../api/command';
-import { makeStuff } from '../../../lib/security/test-setup';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 const FakeAvatarBase = NamedMixin(
   MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Stuff))))

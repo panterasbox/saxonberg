@@ -20,7 +20,7 @@ import { NamedMixin } from '../../lib/character/Named';
 import { Shadowing, ShadowSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ShadowError, SecurityError } from '../../lib/security/errors';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // A Stuff host carrying NamedMixin (firstName/lastName/fullName).
 class NamedHost extends NamedMixin(Stuff) {}

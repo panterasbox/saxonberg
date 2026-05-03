@@ -8,7 +8,7 @@ import { ContainableMixin } from '../Containable';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 class PlainItem extends ContainableMixin(Stuff) {}
 class PlainContainer extends ContainerMixin(ContainableMixin(Stuff)) {}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Door } from '../Door';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/test-setup';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 /**
  * Door has a no-arg constructor — fields are populated either by the

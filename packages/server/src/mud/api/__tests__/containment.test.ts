@@ -9,7 +9,7 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/test-setup';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // Create test classes
 const ContainableBase = ContainableMixin(Stuff);
