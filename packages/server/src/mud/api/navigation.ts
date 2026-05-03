@@ -1,3 +1,4 @@
+import { SecurityApi } from './security';
 /**
  * NavigationApi — canonical direction table, aliases, and cartesian offsets.
  *
@@ -143,3 +144,6 @@ export class NavigationApi {
     return CARDINALS;
   }
 }
+
+
+SecurityApi.decorateApiClass(NavigationApi);

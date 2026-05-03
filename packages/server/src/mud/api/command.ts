@@ -19,6 +19,7 @@ import type { Interactive } from '../obj/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { SecurityApi } from './security';
 
 /**
  * Command execution context - read-only reference holder.
@@ -236,3 +237,5 @@ export class CommandApi {
     this.#verbMap.clear();
   }
 }
+
+SecurityApi.decorateApiClass(CommandApi);

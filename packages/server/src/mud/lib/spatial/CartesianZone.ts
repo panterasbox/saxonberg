@@ -23,6 +23,7 @@ import type { Container } from './Container';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../mixin-types';
+import { StuffApi } from '../../api/stuff';
 
 /** Compose a grid key from integer cell coordinates. */
 function gridKey(x: number, y: number, z: number): string {
@@ -124,11 +125,11 @@ export class CartesianZone extends Zone {
     if (!MixinApi.hasMixin(from.constructor as never, Mixins.Container)) return undefined;
     if (!MixinApi.hasMixin(neighbor.constructor as never, Mixins.Container)) return undefined;
 
-    const exit = new Exit({
+    const exit = StuffApi.createSync(() => new Exit({
       direction: canonical,
       source: from as unknown as Stuff & Container,
       destination: neighbor as unknown as Stuff & Container,
-    });
+    }));
     this.derivedCache.set(cacheKey, exit);
     return exit;
   }

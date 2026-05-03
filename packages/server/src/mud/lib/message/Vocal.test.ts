@@ -17,6 +17,7 @@ import { NamedMixin } from '../character/Named';
 import { Location } from '../stuff/Location';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
+import { makeStuff } from '../security/test-setup';
 
 // A character-shaped speaker: Named + Vocal + Sensor + Containable
 class CharacterSpeaker extends VocalMixin(
@@ -47,16 +48,13 @@ class DisembodiedVoice extends VocalMixin(NamedMixin(Stuff)) {}
 describe('VocalMixin.say()', () => {
   describe('Containable speaker (peers mode)', () => {
     it('broadcasts to every sensor in its environment', () => {
-      const room = new Location();
-      StuffApi.register(room);
+      const room = makeStuff(() => new Location());
 
-      const alice = new CharacterSpeaker();
-      StuffApi.register(alice);
+      const alice = makeStuff(() => new CharacterSpeaker());
       alice.firstName = 'Alice';
       ContainmentApi.move(alice, room);
 
-      const bob = new Listener();
-      StuffApi.register(bob);
+      const bob = makeStuff(() => new Listener());
       ContainmentApi.move(bob, room);
 
       alice.say('hello');
@@ -74,13 +72,11 @@ describe('VocalMixin.say()', () => {
 
   describe('pure-Container speaker (contents mode)', () => {
     it('broadcasts to its own occupants', () => {
-      const house = new TalkingRoom();
-      StuffApi.register(house);
+      const house = makeStuff(() => new TalkingRoom());
       house.firstName = 'Haunted';
       house.lastName = 'House';
 
-      const occupant = new Listener();
-      StuffApi.register(occupant);
+      const occupant = makeStuff(() => new Listener());
       ContainmentApi.move(occupant, house);
 
       house.say('get out');
@@ -96,8 +92,7 @@ describe('VocalMixin.say()', () => {
 
   describe('neither Container nor Containable', () => {
     it('throws a composition error', () => {
-      const ghost = new DisembodiedVoice();
-      StuffApi.register(ghost);
+      const ghost = makeStuff(() => new DisembodiedVoice());
       expect(() => ghost.say('boo')).toThrow(/Container or Containable/);
     });
   });

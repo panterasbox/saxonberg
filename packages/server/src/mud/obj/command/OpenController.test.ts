@@ -16,6 +16,7 @@ import { MobileMixin } from '../../lib/spatial/Mobile';
 import type { Interactive } from '../Interactive';
 import type { Location } from '../../lib/stuff/Location';
 import type { CommandContext } from '../../api/command';
+import { makeStuff } from '../../lib/security/test-setup';
 
 const FakeAvatarBase = NamedMixin(
   MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Stuff))))
@@ -58,29 +59,24 @@ describe('OpenController / CloseController / doors integration', () => {
   let door: Door;
 
   beforeEach(() => {
-    zone = new CartesianZone();
-    StuffApi.register(zone);
-    roomA = new CartesianLocation();
-    StuffApi.register(roomA);
+    zone = makeStuff(() => new CartesianZone());
+    roomA = makeStuff(() => new CartesianLocation());
     roomA.shortDescription = 'Room A';
-    roomB = new CartesianLocation();
-    StuffApi.register(roomB);
+    roomB = makeStuff(() => new CartesianLocation());
     roomB.shortDescription = 'Room B';
     zone.addRoom(roomA, 0, 0, 0);
     zone.addRoom(roomB, 0, 1, 0);
 
-    door = new Door();
+    door = makeStuff(() => new Door());
     door.shortDescription = 'heavy oak door';
     door.keywords = ['oak'];
     roomA.addBidirectionalExit(roomB, 'north', { door });
 
-    avatar = new FakeAvatar();
-    StuffApi.register(avatar);
+    avatar = makeStuff(() => new FakeAvatar());
     avatar.firstName = 'Alice';
     ContainmentApi.move(avatar, roomA);
 
-    peerInA = new PeerSensor();
-    StuffApi.register(peerInA);
+    peerInA = makeStuff(() => new PeerSensor());
     peerInA.firstName = 'Bob';
     ContainmentApi.move(peerInA, roomA);
   });

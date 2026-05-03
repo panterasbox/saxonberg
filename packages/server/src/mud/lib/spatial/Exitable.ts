@@ -24,6 +24,7 @@ import { CartesianZone } from './CartesianZone';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { NavigationApi } from '../../api/navigation';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * Public shape added by ExitableMixin.
@@ -194,7 +195,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           `addBidirectionalExit: cannot infer the opposite of '${direction}'; pass opts.opposite explicitly.`
         );
       }
-      const forward = new Exit({
+      const forward = StuffApi.createSync(() => new Exit({
         direction,
         source: this as unknown as Stuff & Container,
         destination: other,
@@ -205,8 +206,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         noFollow: opts.noFollow,
         messageIn: opts.messageInForward ?? null,
         messageOut: opts.messageOutForward ?? null,
-      });
-      const back = new Exit({
+      }));
+      const back = StuffApi.createSync(() => new Exit({
         direction: opposite,
         source: other,
         destination: this as unknown as Stuff & Container,
@@ -217,7 +218,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         noFollow: opts.noFollow,
         messageIn: opts.messageInBack ?? null,
         messageOut: opts.messageOutBack ?? null,
-      });
+      }));
       this.addExit(forward);
       other.addExit(back);
     }

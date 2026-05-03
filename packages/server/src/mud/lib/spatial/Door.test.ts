@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Door } from './Door';
 import { MixinApi } from '../../api/mixin';
+import { makeStuff } from '../security/test-setup';
 
 /**
  * Door has a no-arg constructor — fields are populated either by the
@@ -12,7 +13,7 @@ import { MixinApi } from '../../api/mixin';
 
 describe('Door', () => {
   it('constructs with sensible defaults', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     expect(door.shortDescription).toBe('');
     expect(door.longDescription).toBe('');
     expect(door.getKeywords()).toEqual([]);
@@ -20,7 +21,7 @@ describe('Door', () => {
   });
 
   it('accepts post-construction field assignment', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     door.shortDescription = 'heavy oak door';
     door.longDescription = 'An iron-banded slab of oak.';
     door.keywords = ['portal'];
@@ -33,7 +34,7 @@ describe('Door', () => {
   });
 
   it('normalizes keywords assigned via the setter (lowercase, trim, dedupe)', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     door.shortDescription = 'heavy oak door';
     door.keywords = ['Oak', '  ', 'OLD', 'oak'];
 
@@ -47,7 +48,7 @@ describe('Door', () => {
   });
 
   it('isOpen setter rejects non-boolean values with TypeError', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     expect(() => {
       (door as unknown as { isOpen: unknown }).isOpen = 1;
     }).toThrow(TypeError);
@@ -58,14 +59,14 @@ describe('Door', () => {
   });
 
   it('keywords setter rejects non-arrays with TypeError', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     expect(() => {
       (door as unknown as { keywords: unknown }).keywords = 'oak';
     }).toThrow(TypeError);
   });
 
   it('open() and close() flip state idempotently', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     door.shortDescription = 'gate';
     door.open();
     expect(door.isOpen).toBe(true);
@@ -78,7 +79,7 @@ describe('Door', () => {
   });
 
   it('getKeywords() merges explicit keywords with shortDescription tokens', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     door.shortDescription = 'Heavy Oak Door';
     door.keywords = ['portal'];
 
@@ -90,7 +91,7 @@ describe('Door', () => {
   });
 
   it('composes the expected mixins', () => {
-    const door = new Door();
+    const door = makeStuff(() => new Door());
     door.shortDescription = 'gate';
     expect(MixinApi.isSealable(door)).toBe(true);
     expect(MixinApi.isPerceptible(door)).toBe(true);

@@ -8,6 +8,7 @@ import { ContainableMixin } from './Containable';
 import { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { makeStuff } from '../security/test-setup';
 
 class PlainItem extends ContainableMixin(Stuff) {}
 class PlainContainer extends ContainerMixin(ContainableMixin(Stuff)) {}
@@ -19,21 +20,17 @@ describe('ExitableVessel', () => {
   let wardrobe: ExitableVessel;
 
   beforeEach(() => {
-    zone = new CartesianZone();
-    StuffApi.register(zone);
+    zone = makeStuff(() => new CartesianZone());
 
-    park = new CartesianLocation();
-    StuffApi.register(park);
+    park = makeStuff(() => new CartesianLocation());
     park.shortDescription = 'Park';
     zone.addRoom(park, 0, 0, 0);
 
-    park2 = new CartesianLocation();
-    StuffApi.register(park2);
+    park2 = makeStuff(() => new CartesianLocation());
     park2.shortDescription = 'Park 2';
     zone.addRoom(park2, 1, 0, 0);
 
-    wardrobe = new ExitableVessel();
-    StuffApi.register(wardrobe);
+    wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.name = 'wardrobe';
   });
 
@@ -78,8 +75,7 @@ describe('ExitableVessel', () => {
     // Explicit exits win — install an 'out' named explicit exit.
     // The synthesized exit should be shadowed by the explicit entry.
     // (This is a contract edge case — normally no one installs explicit 'out'.)
-    const other = new ExitableVessel();
-    StuffApi.register(other);
+    const other = makeStuff(() => new ExitableVessel());
     other.name = 'pocket';
     ContainmentApi.move(other, park);
     wardrobe.addBidirectionalExit(other, 'pocket-dim', { opposite: 'back' });
@@ -126,8 +122,7 @@ describe('ExitableVessel', () => {
 
   describe('containment constraint (ContainmentApi)', () => {
     it('cannot be placed in a non-Exitable container', () => {
-      const box = new PlainContainer();
-      StuffApi.register(box);
+      const box = makeStuff(() => new PlainContainer());
       expect(() => ContainmentApi.move(wardrobe, box)).toThrow(ContainmentError);
     });
 
@@ -141,10 +136,8 @@ describe('ExitableVessel', () => {
     });
 
     it('cannot move between Exitables in different zones', () => {
-      const otherZone = new CartesianZone();
-      StuffApi.register(otherZone);
-      const otherPark = new CartesianLocation();
-      StuffApi.register(otherPark);
+      const otherZone = makeStuff(() => new CartesianZone());
+      const otherPark = makeStuff(() => new CartesianLocation());
       otherZone.addRoom(otherPark, 0, 0, 0);
 
       ContainmentApi.move(wardrobe, park);
@@ -153,8 +146,7 @@ describe('ExitableVessel', () => {
 
     it('nested vessels inherit the outer location’s zone on first placement', () => {
       ContainmentApi.move(wardrobe, park);
-      const pocket = new ExitableVessel();
-      StuffApi.register(pocket);
+      const pocket = makeStuff(() => new ExitableVessel());
       pocket.name = 'pocket';
       ContainmentApi.move(pocket, wardrobe);
       expect(pocket.zone).toBe(zone);
@@ -163,8 +155,7 @@ describe('ExitableVessel', () => {
 
   describe('runtime-fallback zone stamp for non-Exitables', () => {
     it('stamps a plain item on first placement and leaves it alone afterward', () => {
-      const sword = new PlainItem();
-      StuffApi.register(sword);
+      const sword = makeStuff(() => new PlainItem());
       expect(sword.zone).toBeNull();
 
       ContainmentApi.move(sword, park);

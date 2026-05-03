@@ -7,13 +7,13 @@ import { Thing } from './Thing';
 import { StuffApi } from '../../api/stuff';
 import { Location } from './Location';
 import { ContainmentApi } from '../../api/containment';
+import { makeStuff } from '../security/test-setup';
 
 describe('Thing', () => {
   let thing: Thing;
 
   beforeEach(() => {
-    thing = new Thing();
-    StuffApi.register(thing);
+    thing = makeStuff(() => new Thing());
   });
 
   describe('Construction', () => {
@@ -40,16 +40,14 @@ describe('Thing', () => {
     });
 
     it('should set environment', () => {
-      const location = new Location();
-      StuffApi.register(location);
+      const location = makeStuff(() => new Location());
 
       thing.setEnvironment(location);
       expect(thing.getEnvironment()).toBe(location);
     });
 
     it('should be added to container via ContainmentApi', () => {
-      const location = new Location();
-      StuffApi.register(location);
+      const location = makeStuff(() => new Location());
 
       ContainmentApi.move(thing, location);
 
@@ -58,10 +56,8 @@ describe('Thing', () => {
     });
 
     it('should be removed from old container when moved', () => {
-      const location1 = new Location();
-      const location2 = new Location();
-      StuffApi.register(location1);
-      StuffApi.register(location2);
+      const location1 = makeStuff(() => new Location());
+      const location2 = makeStuff(() => new Location());
 
       // Add to first location
       ContainmentApi.move(thing, location1);

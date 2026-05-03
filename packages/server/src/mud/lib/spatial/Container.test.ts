@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from './Container';
 import { ContainableMixin } from './Containable';
 import { Stuff } from '../stuff/Stuff';
+import { makeStuff } from '../security/test-setup';
 
 // Concrete test item class — needs ContainableMixin to live in a Container
 class ConcreteStuff extends ContainableMixin(Stuff) {
@@ -28,10 +29,10 @@ describe('ContainerMixin', () => {
   let item3: ConcreteStuff;
 
   beforeEach(() => {
-    container = new TestContainer();
-    item1 = new ConcreteStuff();
-    item2 = new ConcreteStuff();
-    item3 = new ConcreteStuff();
+    container = makeStuff(() => new TestContainer());
+    item1 = makeStuff(() => new ConcreteStuff());
+    item2 = makeStuff(() => new ConcreteStuff());
+    item3 = makeStuff(() => new ConcreteStuff());
   });
 
   describe('initialization', () => {

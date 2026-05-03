@@ -17,6 +17,7 @@
 import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { ZONE_CLASS_PATHS } from './zone';
 import type { DomainTemplate } from './stuff';
+import { SecurityApi } from './security';
 
 /**
  * Thrown when a domain-collection write would violate the folder/leaf
@@ -167,3 +168,6 @@ export class TemplateApi {
     return ancestors;
   }
 }
+
+
+SecurityApi.decorateApiClass(TemplateApi);

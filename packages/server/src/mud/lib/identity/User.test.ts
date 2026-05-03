@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { User } from './User';
+import { makeStuff } from '../security/test-setup';
 
 describe('User', () => {
   describe('collectionName', () => {

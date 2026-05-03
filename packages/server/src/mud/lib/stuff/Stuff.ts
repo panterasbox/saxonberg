@@ -18,17 +18,21 @@
  *
  * 2. Object Destruction:
  * - Call StuffApi.destruct(obj) to destroy objects — it is the canonical
- *   destruction entry point. Direct obj.destroy() calls still work today
- *   but will eventually be locked down by the call security framework so
- *   only the Api layer can invoke them.
+ *   destruction entry point. The call-security framework's `ApiOnly`
+ *   policy now enforces this at runtime; direct obj.destroy() throws
+ *   `SecurityError`.
  * - Override prepareDestroy() in subclasses for cleanup logic.
- * - destroy() is FINAL — DO NOT override it. This ensures StuffApi.unregister()
- *   ALWAYS happens (essential for GC) and prevents memory leaks.
+ * - destroy() carries `@Final @Unshadowable @CallSecurity(ApiOnly)`.
+ *   Subclass overrides throw `FinalViolationError` at import time;
+ *   shadows attempting to attach throw `ShadowError`. Together these
+ *   guarantee `StuffApi.unregister()` always runs (essential for GC).
  */
 
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
 import type { Zone } from '../spatial/Zone';
+import { CallSecurity, Unshadowable, Final } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 
 /**
  * Metadata for destroyed objects (used for debugging).
@@ -49,6 +53,18 @@ export abstract class Stuff {
   public readonly stuffId: string;
 
   /**
+   * CMS template path this object was cloned from, or null when the
+   * object was constructed directly via `StuffApi.create`. Stamped at
+   * clone time by `StuffApi.clone()`. Identity-keyed security policies
+   * (notably `FromTemplate`) match against this string.
+   *
+   * Public so the security framework's policy resolver can read it
+   * through the Proxy. Treated as immutable post-stamp; do not write
+   * after the constructor frame closes.
+   */
+  public templatePath: string | null = null;
+
+  /**
    * Zone this object belongs to. Universal subdivision of the MUD domain.
    *
    * Stamped at clone-time from the template path (see ZoneApi), or on first
@@ -66,21 +82,159 @@ export abstract class Stuff {
   private _isDestroyed: boolean = false;
 
   /**
+   * Construction sentinel. Set to `true` immediately before
+   * `StuffApi.#registerAndInit` invokes a factory or `new
+   * ClassConstructor()`, then reset by the constructor when it consumes
+   * the flag. Raw `new SomeStuff()` from outside `StuffApi` finds the
+   * flag false and throws — the only legitimate construction path is
+   * via `StuffApi.create` / `StuffApi.clone`.
+   *
+   * Hard-private: a wrapping Proxy must not be able to flip the flag,
+   * and a malicious subclass field with the same name must not collide.
+   */
+  static #expectingConstruction: boolean = false;
+
+  /**
+   * Internal helper called by `StuffApi.#registerAndInit` immediately
+   * before invoking the factory or `new ClassConstructor()`. The sentinel
+   * MUST be paired with the constructor's consumption — never set it
+   * without immediately running construction in the same synchronous
+   * scope, or a parallel call could observe it set and bypass.
+   *
+   * Locked down by stack-walk allowlist: only callers from `mud/api/`
+   * (StuffApi's create/clone/createSync), `mud/lib/security/test-setup`
+   * (the `makeStuff` helper), or test files may flip the sentinel.
+   * Anything else throws — closes the "replicate StuffApi's flow
+   * without registering" attack the MR review flagged.
+   *
+   * The leading underscore signals "framework-internal"; matches the
+   * existing convention (see `StuffApi._validateClassPath` test seam).
+   * @internal
+   */
+  public static _beginConstruction(): void {
+    Stuff.#assertConstructionGateAllowed('_beginConstruction');
+    Stuff.#expectingConstruction = true;
+  }
+
+  /**
+   * Companion to `_beginConstruction`. Called by `StuffApi`'s finally-
+   * block to clear the sentinel even if construction throws. Same
+   * stack-walk allowlist applies.
+   * @internal
+   */
+  public static _endConstruction(): void {
+    Stuff.#assertConstructionGateAllowed('_endConstruction');
+    Stuff.#expectingConstruction = false;
+  }
+
+  /**
+   * File-URL patterns whose code may flip the construction sentinel.
+   * Same shape as `ExecutionContextApi`'s frame-mutator allowlist —
+   * different method, different allowlist, but identical mechanism.
+   */
+  static #constructionGateAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/api\//,                                  // StuffApi.create / clone / createSync
+    /\/mud\/lib\/security\/test-setup\.(ts|js)$/,    // `makeStuff` test seam
+    /\.test\.(ts|js)$/,                              // direct test usage
+  ];
+
+  static #constructionGateCache: Map<string, boolean> = new Map();
+
+  /**
+   * Throw if the immediate caller of `_beginConstruction` /
+   * `_endConstruction` isn't on the allowlist. Per-URL cached, so the
+   * cost is one stack walk per file ever; after warmup it's a Map
+   * lookup. New legitimate callers must be added here with a one-line
+   * justification — keep the list narrow.
+   */
+  static #assertConstructionGateAllowed(op: string): void {
+    const url = Stuff.#findImmediateCallerUrl();
+    if (url === null) {
+      throw new Error(
+        `Stuff.${op}() refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#constructionGateCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
+          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `*.test.ts files may flip the construction sentinel`
+      );
+    }
+    const allowed = Stuff.#constructionGateAllowlist.some((re) => re.test(url));
+    Stuff.#constructionGateCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff.${op}() refused from ${url}: only StuffApi (mud/api/**), ` +
+          `the test-setup helper (mud/lib/security/test-setup), and ` +
+          `*.test.ts files may flip the construction sentinel`
+      );
+    }
+  }
+
+  /**
+   * Walk `Error.stack` to the first frame outside this module and
+   * return its file URL, or `null`.
+   */
+  static #findImmediateCallerUrl(): string | null {
+    const err = new Error();
+    const lines = (err.stack ?? '').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('at ')) continue;
+      const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
+      const bare = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+      const m = parens ?? bare;
+      if (!m) continue;
+      const url = m[1];
+      if (!url) continue;
+      // Skip frames inside this module file (Stuff.ts/js).
+      if (/\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/.test(url)) continue;
+      return url;
+    }
+    return null;
+  }
+
+  /**
    * Constructor - generates unique runtime ID.
    *
-   * Subclass constructors should call super() and then initialize their fields.
-   * Use field initializers for default values where possible.
+   * Subclass constructors should call super() and then initialize their
+   * fields. Use field initializers for default values where possible.
    *
-   * IMPORTANT: Objects created with 'new' are NOT automatically registered.
-   * Use StuffApi.create(() => new YourClass()) to ensure registration.
+   * IMPORTANT: Direct `new SomeStuff()` is rejected — every Stuff must
+   * be created via `StuffApi.create(() => new YourClass())` or
+   * `StuffApi.clone(...)`. The construction sentinel above guarantees
+   * this; raw `new` outside the Api layer throws here.
+   *
+   * Constructor-body method calls bypass the Proxy (the Proxy is
+   * installed AFTER the constructor returns). Initialize fields here;
+   * do NOT invoke methods that carry @CallSecurity from inside a
+   * constructor body.
    */
   constructor() {
+    if (!Stuff.#expectingConstruction) {
+      throw new Error(
+        `Direct 'new' on a Stuff subclass is not allowed. ` +
+          `Use StuffApi.create(() => new YourClass()) or StuffApi.clone(path).`
+      );
+    }
+    Stuff.#expectingConstruction = false;
     this.stuffId = nanoid();
   }
 
   /**
    * Check if this object has been destroyed.
+   *
+   * `@Unshadowable`: the destroyed-state read is a framework invariant —
+   * any shadow that lied about it would let consumers touch a torn-down
+   * Stuff. `@Final`: subclasses overriding this would defeat the same
+   * invariant; the loader hook throws `FinalViolationError` at import
+   * time on any subclass that redefines it.
    */
+  @Final
+  @Unshadowable
   public isDestroyed(): boolean {
     return this._isDestroyed;
   }
@@ -104,20 +258,21 @@ export abstract class Stuff {
   }
 
   /**
-   * Destroy this object (FINAL - DO NOT OVERRIDE).
+   * Destroy this object.
    *
-   * Prefer StuffApi.destruct(obj) — this method is the low-level primitive
-   * it delegates to, and will eventually be locked down by call security so
-   * only the Api layer can invoke it.
+   * Locked down by `@CallSecurity(ApiOnly)` — only callers under
+   * `mud/api/` (in practice, `StuffApi.destruct`) may invoke it.
+   * `@Unshadowable` because the unregistration path must always run;
+   * a shadow that intercepts and skips it would leak the object into
+   * the registry forever. `@Final` because subclass overrides would
+   * defeat the same invariant — the loader hook throws
+   * `FinalViolationError` at import time on any subclass redefinition.
    *
-   * This method performs critical housekeeping for garbage collection:
-   * 1. Calls prepareDestroy() hook for subclass cleanup
-   * 2. Marks object as destroyed
-   * 3. Unregisters from StuffApi
-   *
-   * WARNING: DO NOT OVERRIDE THIS METHOD.
-   * Override prepareDestroy() instead for cleanup logic.
+   * Cleanup logic belongs in `prepareDestroy()`, not here.
    */
+  @Final
+  @Unshadowable
+  @CallSecurity(SecurityPolicies.ApiOnly)
   public destroy(): void {
     if (this._isDestroyed) {
       console.warn(`Stuff.destroy(): Object ${this.stuffId} already destroyed`);

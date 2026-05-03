@@ -32,6 +32,7 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import { MixinApi } from './mixin';
+import { SecurityApi } from './security';
 
 type SensorStuff = Stuff & Sensor;
 
@@ -111,3 +112,6 @@ export class MessageApi {
     this.messageContents(container, message, opts);
   }
 }
+
+
+SecurityApi.decorateApiClass(MessageApi);

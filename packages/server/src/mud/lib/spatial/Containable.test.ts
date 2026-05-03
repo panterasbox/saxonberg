@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainableMixin } from './Containable';
 import { ContainerMixin } from './Container';
 import { Stuff } from '../stuff/Stuff';
+import { makeStuff } from '../security/test-setup';
 
 // Concrete test environment class — needs ContainerMixin to be an environment
 class ConcreteStuff extends ContainerMixin(Stuff) {
@@ -27,9 +28,9 @@ describe('ContainableMixin', () => {
   let environment2: ConcreteStuff;
 
   beforeEach(() => {
-    containable = new TestContainable();
-    environment1 = new ConcreteStuff();
-    environment2 = new ConcreteStuff();
+    containable = makeStuff(() => new TestContainable());
+    environment1 = makeStuff(() => new ConcreteStuff());
+    environment2 = makeStuff(() => new ConcreteStuff());
   });
 
   describe('initialization', () => {

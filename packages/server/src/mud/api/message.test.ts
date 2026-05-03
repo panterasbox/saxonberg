@@ -10,6 +10,7 @@ import { ContainableMixin } from '../lib/spatial/Containable';
 import { SensorMixin } from '../lib/message/Sensor';
 import { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
+import { makeStuff } from '../lib/security/test-setup';
 
 // Create a test sensor class
 const SensorBase = SensorMixin(ContainableMixin(Stuff));
@@ -42,18 +43,14 @@ describe('MessageApi', () => {
   let nonSensor: NonSensor;
 
   beforeEach(() => {
-    location = new Location();
-    StuffApi.register(location);
+    location = makeStuff(() => new Location());
     location.shortDescription = 'Test Room';
 
-    sensor1 = new TestSensor();
-    StuffApi.register(sensor1);
+    sensor1 = makeStuff(() => new TestSensor());
 
-    sensor2 = new TestSensor();
-    StuffApi.register(sensor2);
+    sensor2 = makeStuff(() => new TestSensor());
 
-    nonSensor = new NonSensor();
-    StuffApi.register(nonSensor);
+    nonSensor = makeStuff(() => new NonSensor());
   });
 
   describe('getSensors()', () => {
@@ -132,7 +129,7 @@ describe('MessageApi', () => {
       location.addToInventory(sensor2);
 
       // Create a mobile sensor to be the source
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       const message = { type: 'test', payload: { text: 'Hello' } };
@@ -148,7 +145,7 @@ describe('MessageApi', () => {
       location.addToInventory(sensor1);
       location.addToInventory(nonSensor);
 
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       const message = { type: 'test' };
@@ -164,7 +161,7 @@ describe('MessageApi', () => {
     it('should warn if source environment is null', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       // source has getEnvironment but it returns null
       MessageApi.messageContainer(source, { type: 'test' });
 
@@ -176,7 +173,7 @@ describe('MessageApi', () => {
     });
 
     it('should handle empty container', () => {
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       // Should not throw error
@@ -188,7 +185,7 @@ describe('MessageApi', () => {
     it('should work with any message type', () => {
       location.addToInventory(sensor1);
 
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       const message1 = { type: 'output', payload: { text: 'Test' } };
@@ -207,14 +204,13 @@ describe('MessageApi', () => {
 
     it('should handle multiple sensors receiving same message', () => {
       const sensors = Array.from({ length: 5 }, () => {
-        const sensor = new TestSensor();
-        StuffApi.register(sensor);
+        const sensor = makeStuff(() => new TestSensor());
         return sensor;
       });
 
       sensors.forEach((s) => location.addToInventory(s));
 
-      const source = new MobileSensor(); StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       const message = { type: 'broadcast', text: 'To all' };
@@ -235,8 +231,7 @@ describe('MessageApi', () => {
       location.addToInventory(sensor2);
 
       // Speaker enters and speaks
-      const speaker = new MobileSensor();
-      StuffApi.register(speaker);
+      const speaker = makeStuff(() => new MobileSensor());
       speaker.teleport(location);
 
       const sayMessage = {
@@ -254,20 +249,16 @@ describe('MessageApi', () => {
     });
 
     it('should isolate messages to container', () => {
-      const location2 = new Location();
-      StuffApi.register(location2);
+      const location2 = makeStuff(() => new Location());
       location2.shortDescription = 'Other Room';
 
-      const sensorInRoom1 = new TestSensor();
-      StuffApi.register(sensorInRoom1);
-      const sensorInRoom2 = new TestSensor();
-      StuffApi.register(sensorInRoom2);
+      const sensorInRoom1 = makeStuff(() => new TestSensor());
+      const sensorInRoom2 = makeStuff(() => new TestSensor());
 
       location.addToInventory(sensorInRoom1);
       location2.addToInventory(sensorInRoom2);
 
-      const source = new MobileSensor();
-      StuffApi.register(source);
+      const source = makeStuff(() => new MobileSensor());
       source.teleport(location);
 
       const message = { type: 'test', text: 'Room 1 only' };

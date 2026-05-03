@@ -20,6 +20,7 @@ import { SensorMixin } from '../lib/message/Sensor';
 import { VocalMixin } from '../lib/message/Vocal';
 import { PropertiedMixin } from '../lib/stuff/Propertied';
 import { CommandGiverMixin } from '../lib/command/CommandGiver';
+import { makeStuff } from '../lib/security/test-setup';
 
 // Plain Stuff — has no mixins (negative-case fixture)
 class Plain extends Stuff {}
@@ -56,8 +57,8 @@ describe('MixinApi.hasMixin', () => {
 });
 
 describe('MixinApi type predicates', () => {
-  const composite = new Composite();
-  const plain = new Plain();
+  const composite = makeStuff(() => new Composite());
+  const plain = makeStuff(() => new Plain());
 
   const cases: Array<[string, (obj: Stuff) => boolean]> = [
     ['isContainer', (o) => MixinApi.isContainer(o)],

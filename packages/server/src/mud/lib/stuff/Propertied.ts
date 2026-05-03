@@ -52,6 +52,7 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
+import { Unshadowable } from '../security/decorators';
 
 /**
  * Property wrapper for type safety.
@@ -282,9 +283,18 @@ export interface Propertied {
 
 /**
  * Mixin that adds controlled dynamic properties to objects.
+ *
+ * The returned class is marked class-form `@Unshadowable`: every method
+ * on a PropertiedMixin layer is unshadowable. Reason: `queryProp` is
+ * hot-path-called everywhere; `setProp` carries field-shape invariants;
+ * shadowing them would undermine `maskProp`, which is the legitimate
+ * per-property override mechanism. If you find a real need (admin debug
+ * tracing, perhaps) downgrade specific methods to "shadowable but only
+ * by Admin."
  */
 export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class PropertiedMixin extends Base implements Propertied {
+  @Unshadowable
+  class PropertiedMixin extends Base implements Propertied {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'PropertiedMixin';
 
@@ -657,5 +667,6 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       return null;
     }
-  };
+  }
+  return PropertiedMixin;
 }

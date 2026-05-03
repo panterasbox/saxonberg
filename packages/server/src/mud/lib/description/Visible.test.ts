@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VisibleMixin } from './Visible';
 import { Stuff } from '../stuff/Stuff';
+import { makeStuff } from '../security/test-setup';
 
 // Test class that uses VisibleMixin
 class TestVisible extends VisibleMixin(Stuff) {
@@ -17,7 +18,7 @@ describe('VisibleMixin', () => {
   let visible: TestVisible;
 
   beforeEach(() => {
-    visible = new TestVisible();
+    visible = makeStuff(() => new TestVisible());
   });
 
   describe('initialization', () => {

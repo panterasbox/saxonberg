@@ -14,6 +14,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import { MixinApi } from './mixin';
+import { SecurityApi } from './security';
 
 /**
  * Presentation-layer API for describing objects.
@@ -43,3 +44,6 @@ export class DescribeApi {
     return fallback;
   }
 }
+
+
+SecurityApi.decorateApiClass(DescribeApi);

@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from './stuff';
 import { Stuff } from '../lib/stuff/Stuff';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { makeStuff } from '../lib/security/test-setup';
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {
@@ -143,7 +144,7 @@ describe('StuffApi', () => {
         }
       }
 
-      const obj = new FailingInitStuff();
+      const obj = makeStuff(() => new FailingInitStuff());
       await expect(StuffApi.create(() => obj)).rejects.toThrow('init failed');
 
       expect(StuffApi.findById(obj.stuffId)).toBeUndefined();
@@ -183,6 +184,48 @@ describe('StuffApi', () => {
       const obj = await StuffApi.create(() => new ContextStuff());
 
       expect(obj.received).toBeUndefined();
+    });
+  });
+
+  describe('createSync', () => {
+    class SimpleStuff extends Stuff {}
+
+    class NeedsAsyncSetup extends PostRegistrationMixin(Stuff) {
+      override async postRegister() {
+        // would never run via createSync — guardrail should catch it
+      }
+    }
+
+    beforeEach(() => {
+      StuffApi.clearAll();
+    });
+
+    it('constructs and registers a Stuff with no async setup', () => {
+      const obj = StuffApi.createSync(() => new SimpleStuff());
+      expect(obj.stuffId).toBeDefined();
+      expect(StuffApi.findById(obj.stuffId)).toBe(obj);
+    });
+
+    it('throws when given a Stuff that composes PostRegistrationMixin', () => {
+      expect(() => StuffApi.createSync(() => new NeedsAsyncSetup())).toThrow(
+        /composes PostRegistrationMixin and needs async setup/
+      );
+    });
+
+    it('does NOT register the object when the guardrail rejects', () => {
+      let captured: NeedsAsyncSetup | null = null;
+      try {
+        StuffApi.createSync(() => {
+          captured = new NeedsAsyncSetup();
+          return captured;
+        });
+      } catch {
+        // expected
+      }
+      // The half-initialised object never reached the registry.
+      if (captured) {
+        expect(StuffApi.findById((captured as NeedsAsyncSetup).stuffId)).toBeUndefined();
+      }
     });
   });
 

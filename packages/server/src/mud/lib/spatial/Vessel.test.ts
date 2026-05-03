@@ -4,13 +4,13 @@ import { Thing } from '../stuff/Thing';
 import { Location } from '../stuff/Location';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
+import { makeStuff } from '../security/test-setup';
 
 describe('Vessel', () => {
   let vessel: Vessel;
 
   beforeEach(() => {
-    vessel = new Vessel();
-    StuffApi.register(vessel);
+    vessel = makeStuff(() => new Vessel());
   });
 
   describe('Container side', () => {
@@ -20,8 +20,7 @@ describe('Vessel', () => {
     });
 
     it('holds Things via ContainmentApi', () => {
-      const item = new Thing();
-      StuffApi.register(item);
+      const item = makeStuff(() => new Thing());
 
       ContainmentApi.move(item, vessel);
 
@@ -36,8 +35,7 @@ describe('Vessel', () => {
     });
 
     it('can be placed inside a Location', () => {
-      const room = new Location();
-      StuffApi.register(room);
+      const room = makeStuff(() => new Location());
 
       ContainmentApi.move(vessel, room);
 
@@ -46,8 +44,7 @@ describe('Vessel', () => {
     });
 
     it('can itself be placed inside another Vessel', () => {
-      const outer = new Vessel();
-      StuffApi.register(outer);
+      const outer = makeStuff(() => new Vessel());
 
       ContainmentApi.move(vessel, outer);
 
@@ -58,10 +55,8 @@ describe('Vessel', () => {
 
   describe('Both sides together', () => {
     it('holds items while itself sitting in a room', () => {
-      const room = new Location();
-      const coin = new Thing();
-      StuffApi.register(room);
-      StuffApi.register(coin);
+      const room = makeStuff(() => new Location());
+      const coin = makeStuff(() => new Thing());
 
       ContainmentApi.move(vessel, room);
       ContainmentApi.move(coin, vessel);

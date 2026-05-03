@@ -7,6 +7,7 @@ import { DetailedMixin, type DetailMap } from './Detailed';
 import { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { makeStuff } from '../security/test-setup';
 
 // Test class with DetailedMixin
 class DetailedThing extends DetailedMixin(Stuff) {
@@ -39,8 +40,7 @@ describe('DetailedMixin', () => {
   let obj: DetailedThing;
 
   beforeEach(() => {
-    obj = new DetailedThing();
-    StuffApi.register(obj);
+    obj = makeStuff(() => new DetailedThing());
   });
 
   describe('Construction', () => {
@@ -512,8 +512,7 @@ describe('DetailedMixin', () => {
       const serialized = JSON.stringify(Array.from(obj.details.entries()));
 
       // Deserialize into new object
-      const obj2 = new DetailedThing();
-      StuffApi.register(obj2);
+      const obj2 = makeStuff(() => new DetailedThing());
       obj2.details = new Map(JSON.parse(serialized));
 
       expect(obj2.getDetail('test')).toBe('Test description.');
@@ -550,8 +549,7 @@ describe('DetailedMixin', () => {
       const serialized = JSON.stringify(serialize(obj.details));
 
       // Deserialize into new object
-      const obj2 = new DetailedThing();
-      StuffApi.register(obj2);
+      const obj2 = makeStuff(() => new DetailedThing());
       obj2.details = deserialize(JSON.parse(serialized));
 
       expect(obj2.getDetail('parent')).toBe('Parent.');
@@ -596,8 +594,7 @@ describe('DetailedMixin', () => {
     ];
 
     function makeBaseHierarchy(): DetailedThing {
-      const o = new DetailedThing();
-      StuffApi.register(o);
+      const o = makeStuff(() => new DetailedThing());
       o.setDetail(['a'], 'A');
       o.setDetail(['b'], 'B', 'a');
       o.setDetail(['c'], 'C', 'a.b');
