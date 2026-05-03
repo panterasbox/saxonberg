@@ -12,13 +12,11 @@
 
 import { ConnectionManager } from '../../backend/ConnectionManager';
 import type { Interactive } from '../obj/Interactive';
-import { CallSecurity } from '../lib/security/decorators';
-import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { SecurityApi } from './security';
 
 /**
  * Static API for connection queries (public interface for mudlib).
  */
-@CallSecurity(SecurityPolicies.Public)
 export class ConnectionApi {
   /**
    * Get an Interactive by socket ID.
@@ -76,3 +74,5 @@ export class ConnectionApi {
   // Those are privileged operations that only Application/Backend should perform.
 }
 
+
+SecurityApi.decorateApiClass(ConnectionApi);

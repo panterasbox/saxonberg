@@ -266,10 +266,4 @@ export class MqlApi {
 
 }
 
-
-// Imperative form (rather than the `@CallSecurity(...)` class decorator)
-// is required because this class uses `static #private` identifiers.
-// TS legacy class decorators are incompatible with that combination
-// (TS18036). Same Public default policy + same static-method wrapping;
-// just no syntax-sugared decorator above the class declaration.
 SecurityApi.decorateApiClass(MqlApi);
