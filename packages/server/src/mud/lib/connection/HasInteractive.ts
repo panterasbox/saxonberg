@@ -36,6 +36,9 @@ export interface HasInteractive {
 
   /** True iff at least one Interactive is connected. */
   isConnected(): boolean;
+
+  /** True iff no Interactives are connected. MUD-style alias for `!isConnected()`. */
+  isLinkdead(): boolean;
 }
 
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -64,6 +67,10 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
 
     public isConnected(): boolean {
       return this.interactives.size > 0;
+    }
+
+    public isLinkdead(): boolean {
+      return !this.isConnected();
     }
   };
 }

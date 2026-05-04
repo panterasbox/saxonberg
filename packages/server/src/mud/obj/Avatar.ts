@@ -89,11 +89,6 @@ export class Avatar extends AvatarBase {
     }
   }
 
-  /** Avatar-specific term for "no Interactives connected." */
-  public isLinkdead(): boolean {
-    return !this.isConnected();
-  }
-
   /**
    * Send a message to all connected Interactives (broadcast).
    */
