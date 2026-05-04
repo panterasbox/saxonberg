@@ -1,25 +1,35 @@
 # Persistence
 
-Saxonberg persistence runs on **two tracks**:
+Saxonberg persistence runs on **two tracks**, both rooted in `Idea`:
 
-1. **`Persistable`** — auth/meta records (User, GoogleProfile). Plain
-   MongoDB documents with explicit `save`/`delete`/`findById`/`find`. Not
-   part of the `Stuff` hierarchy.
+1. **`Persistable`** — auth/meta records (`User`, `GoogleProfile`) and
+   CMS assets (`Template`). An Idea-rooted base that adds an explicit
+   `save`/`delete`/`findById`/`find` CRUD surface over MongoDB.
+   Construction goes through `StuffApi.create(() => new T())` like any
+   other Stuff; loaded instances register in `StuffApi` and live until
+   `instance.delete()` (which cascades to `StuffApi.destruct`) or
+   explicit `StuffApi.destruct(instance)`.
 2. **Templates → Stuff** — every game-world object (rooms, doors, props,
-   avatars, NPCs). Stored as templates in the `domain` collection, cloned
-   into runtime `Stuff` instances by the clone/hydrate/save-template
-   pipeline. Documented in [templates.md](./templates.md); not repeated
-   here.
+   avatars, NPCs). Stored as `Template` records in the `domain`
+   collection, cloned into runtime `Stuff` instances by the
+   clone/hydrate/save-template pipeline. Documented in
+   [templates.md](./templates.md); not repeated here.
 
-The dichotomy is intentional. Auth records have no game-filesystem path
-or zone, no command surface, no proxy mediation — they're records, full
-stop. Stuff has all of that, and the template pipeline carries the
-machinery.
+The split is about *how state arrives*, not about hierarchy. Persistable
+records are loaded as records and you read them via `findById`/`find`.
+Game-world Stuff is cloned from a Template (which itself is a
+Persistable record) and gets a Hydrator-driven setup pass. Both produce
+fully-registered Stuff at the end.
 
 This doc covers the `Persistable` track and the cross-cutting machinery
 (`PersistenceManager`, around-hooks, `Collections` enum) used by both.
 
 ## `Persistable`
+
+`Persistable` lives at `lib/persistence/Persistable.ts` and extends
+`Idea`. It adds the CRUD surface; everything else (registry, proxy
+wrap, security gate, `prepareDestroy`/`destroy` lifecycle) is inherited
+from `Stuff`.
 
 ```typescript
 class User extends Persistable {
@@ -30,9 +40,13 @@ class User extends Persistable {
   playerIds: string[] = [];
 }
 
+const user = await StuffApi.create(() => new User());
+user.googleProfileId = '...';
 await user.save();
+
 const found = await User.findById(id);
 const matches = await User.find({ googleProfileId: 'xyz' });
+await user.delete(); // cascades to StuffApi.destruct(user)
 ```
 
 Subclass contract:
@@ -47,11 +61,14 @@ Provided by the base class:
 - `save()` — sets `updatedAt`, builds the doc via `toDocument()`,
   delegates to `PersistenceManager.save(collection, doc)`, sets `_id`
   on first save.
-- `delete()` — throws if `_id` is missing; calls
-  `PersistenceManager.delete(collection, _id)`. Does NOT call
-  `destroy()` — `Persistable` is not a `Stuff` and has no destroy
-  lifecycle.
-- `findById(id)` / `find(query)` — static. Construct a fresh instance,
+- `delete()` — throws if `_id` is missing; deletes via
+  `PersistenceManager`, then calls `StuffApi.destruct(this)` to
+  unregister the runtime instance. Subclasses that need to keep the
+  instance alive past the DB delete (rare) override `delete()` with
+  their own ordering.
+- `findById(id)` / `find(query)` — static. Construct fresh instances
+  via `StuffApi.create<T>(() => new this())` (so loaded instances are
+  registered + proxy-wrapped just like a fresh `await StuffApi.create`),
   populate via `fromDocument`. Return `null` / `[]` when nothing
   matches.
 - `toDocument()` / `fromDocument()` — copy persistent fields plus
@@ -60,8 +77,10 @@ Provided by the base class:
 - `createdAt` / `updatedAt` — auto-managed. Set in constructor;
   `updatedAt` refreshed on every `save()`.
 
-The current inhabitants of `Persistable` are `User` and `GoogleProfile`.
-That's deliberate — anything in the game world goes through templates.
+Current inhabitants of `Persistable`: `User`, `GoogleProfile`, and
+`Template`. The first two are auth/meta records; `Template` is a CMS
+asset (the doc you clone game-world objects from — see
+[templates.md](./templates.md)).
 
 ## Field Aggregation
 
@@ -205,23 +224,26 @@ chosen for:
 (The codebase DOES use decorators elsewhere — `@Final`, `@CallSecurity`,
 etc. for the security framework. Persistence didn't need that machinery.)
 
-### Why does `Persistable.delete()` not call `destroy()`?
+### Why does `Persistable.delete()` cascade to `StuffApi.destruct`?
 
-Because `Persistable` isn't a `Stuff`. There's no registry to remove
-from, no `prepareDestroy` hook, no shadow chain to detach. The doc just
-goes away. Stuff destruction is its own thing — see
-[lifecycle.md](./lifecycle.md).
+Because Persistable instances are registered like any other Stuff —
+leaving a live registered instance after its DB record is gone is a
+footgun. The cascade is the safe default. Subclasses that want
+different ordering override `delete()`.
 
-### Why isn't `Persistable` part of the Stuff hierarchy?
+### Why is `Persistable` an Idea?
 
-Auth records carry no game identity, no zone, no command surface, no
-proxy mediation, no template path. Mixing them into Stuff would force
-dead machinery onto every `User` and break the cleanly bounded threat
-model of "Stuff goes through the security gate; meta records don't."
+Earlier designs kept `Persistable` outside the Stuff hierarchy —
+"records" felt different from "game-world entities." That split forced
+two parallel hierarchies, two persistence stories, and made it
+genuinely awkward to explain why `User` wasn't an `Idea` like
+everything else.
 
-The two tracks share field aggregation (`MixinApi.getAllPersistentFields`)
-and the same `PersistenceManager`, which is enough cohesion. They differ
-on construction, identity, and lifecycle, which is enough separation.
+Folding `Persistable` into the Idea tree resolves all of that. The
+cost is small: `User` carries a `stuffId` (useful — `StuffApi.findById`
+is universal lookup), goes through the security gate (mediated like any
+Stuff), and lives in the registry until `delete`/`destruct`. The win:
+one hierarchy, one set of conventions, one mental model.
 
 ## Collections
 
@@ -253,5 +275,5 @@ Index creation is best-effort (logs and continues on failure).
   `Persistable.delete` doesn't call `destroy`.
 - [antipatterns.md § Per-Field Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks)
   — setter contract that hydration rides on.
-- [state-model.md](./state-model.md) — User-not-Stuff design rationale,
-  Avatar self-contained model, why Player class is gone.
+- [state-model.md](./state-model.md) — Persistable in the Idea
+  hierarchy, Avatar self-contained model, why Player class is gone.

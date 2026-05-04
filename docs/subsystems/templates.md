@@ -11,19 +11,31 @@ GoogleProfile) extend `Persistable` and live as plain MongoDB documents;
 those are covered in [persistence.md](./persistence.md). Templates cover
 everything in the game world.
 
-## Template Shape
+## The Template Class
 
-A `domain` template document:
+Templates are modelled as a `Persistable` subclass — like `User` and
+`GoogleProfile`, a Template is a record, not a game-world entity. The
+class lives at `lib/stuff/Template.ts`:
 
 ```typescript
-interface DomainTemplate {
-  _id?: string;
-  path: string;            // e.g. "/avatar/abc123", "/narnia/castle/foyer"
-  class: string;           // runtime backing class, e.g. "/obj/Avatar"
-  hydratorClass?: string;  // optional Hydrator class
-  data: Record<string, unknown>; // hydration payload
+class Template extends Persistable {
+  static collectionName = 'domain';
+  static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
+
+  path: string = '';
+  class: string = '';
+  hydratorClass?: string;
+  data: Record<string, unknown> = {};
+
+  static findByPath(path: string): Promise<Template | null>;
+  static findDescendants(basePath: string): Promise<Template[]>;
+  static ancestorPaths(path: string): string[];
 }
 ```
+
+CRUD goes through the inherited `Persistable` surface
+(`save`/`delete`/`findById`/`find`) plus the helpers above. See
+[persistence.md](./persistence.md) for the `Persistable` contract.
 
 - `path` is the canonical identifier — clones happen by path. Folder/leaf
   invariants (below) constrain paths.

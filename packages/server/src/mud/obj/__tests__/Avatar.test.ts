@@ -18,7 +18,7 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
 function makeUser(id: string): User {
-  const user = new User();
+  const user = makeStuff(() => new User());
   user._id = id;
   return user;
 }

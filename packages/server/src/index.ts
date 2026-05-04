@@ -115,4 +115,4 @@ export { MixinApi, Mixins } from './mud/api/mixin';
 export { Avatar } from './mud/obj/Avatar';
 export { Interactive } from './mud/obj/Interactive';
 export { Agent } from './mud/lib/stuff/Agent';
-export { Persistable } from './mud/lib/stuff/Persistable';
+export { Persistable } from './mud/lib/persistence/Persistable';

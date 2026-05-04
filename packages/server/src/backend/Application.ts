@@ -35,6 +35,7 @@ import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
+import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
 import { PersistentHydrator } from '../mud/lib/persistence/PersistentHydrator';
@@ -317,7 +318,7 @@ export class Application {
       return user._id!;
     }
 
-    const user = new User();
+    const user = await StuffApi.create(() => new User());
     user.googleProfileId = googleProfileId;
     await user.save();
     console.log(`Application: Created new User ${user._id}`);

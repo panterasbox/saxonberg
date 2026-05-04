@@ -18,7 +18,7 @@ import { PlayerApi } from '../../api/player';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(id: string, playerIds: string[] = []): User {
-  const user = new User();
+  const user = makeStuff(() => new User());
   user._id = id;
   user.playerIds = [...playerIds];
   return user;

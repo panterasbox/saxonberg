@@ -122,22 +122,22 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Idea (abstract)
   │    ├── Location           (rooms / spatial containers)
   │    ├── Interactive        (runtime connection state)
-  │    ├── GoogleProfile      (OAuth data — but see note)
+  │    ├── Persistable        (records: User, GoogleProfile, Template)
+  │    │    ├── User          (auth/meta record)
+  │    │    ├── GoogleProfile (OAuth profile record)
+  │    │    └── Template      (CMS asset — describes how to clone Stuff)
   │    └── Agent (abstract — runtime active beings)
   │         └── Character (abstract — sentient)
   │              └── Avatar  (runtime player presence)
   └── Shadow                  (function-shadowing host — see call-security.md)
-
-Persistable (separate base — NOT a Stuff)
-  ├── User                    (auth/meta record)
-  └── GoogleProfile           (auth/meta record)
 ```
 
-`Persistable` is intentionally NOT in the Stuff hierarchy. It exists
-for auth/meta records that have MongoDB documents but no game-world
-identity (no path, no zone, no proxy mediation, no command surface).
-See [subsystems/persistence.md](./subsystems/persistence.md) for the
-full rationale.
+`Persistable` adds an explicit `save`/`delete`/`findById`/`find` CRUD
+surface over MongoDB. Records under it (User, GoogleProfile, Template)
+are loaded as records — no template/clone/hydrate pipeline. Otherwise
+they're Stuff like anything else: registered in `StuffApi`, proxy-
+mediated, destroyed via `StuffApi.destruct` (which `Persistable.delete`
+cascades to). See [subsystems/persistence.md](./subsystems/persistence.md).
 
 ## Mixin Organization
 
@@ -367,7 +367,7 @@ say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
   - [lifecycle.md](./subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./subsystems/state-model.md) — what gets
-    persisted, User-not-Stuff, Avatar self-contained
+    persisted, Avatar self-contained, Persistable in the Idea hierarchy
   - [messaging.md](./subsystems/messaging.md) — MML, Scene composer,
     sensor routing, Phrasebook
   - [call-security.md](./subsystems/call-security.md) — proxy

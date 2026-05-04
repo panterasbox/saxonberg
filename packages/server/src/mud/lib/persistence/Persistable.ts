@@ -1,19 +1,19 @@
 /**
- * Persistable - Base class for records that save to MongoDB
+ * Persistable - Idea base class for records that save to MongoDB.
  *
- * Persistable is intentionally **not** part of the `Stuff` hierarchy.
- * It represents records that exist in MongoDB but do not live in the
- * game filesystem (no path, no zone, no clone pipeline). Its current
- * inhabitants are auth/meta-game records: `User`, `GoogleProfile`.
- *
- * Game-world objects (rooms, doors, props, avatars, NPCs) are Stuff and
- * persist through the clone/hydrate/save-template pipeline instead.
+ * Persistable composes a CRUD surface (`save`/`delete`/`findById`/`find`)
+ * onto the Idea hierarchy. Concrete subclasses are records — auth/meta
+ * data (`User`, `GoogleProfile`) and CMS assets (`Template`). They are
+ * Stuff in every other respect: they carry a `stuffId`, register with
+ * `StuffApi`, flow through the call-security gate, and are destroyed
+ * via `StuffApi.destruct`.
  *
  * Subclasses must declare:
- * - static collectionName: string
- * - static persistentFields: string[]  (fields copied to/from the doc)
+ *   - `static collectionName: string`
+ *   - `static persistentFields: string[]`  (fields copied to/from the doc)
  *
- * Example:
+ * Construction goes through `StuffApi.create` like any other Stuff:
+ *
  * ```typescript
  * class User extends Persistable {
  *   static collectionName = 'users';
@@ -22,20 +22,32 @@
  *   playerIds: string[] = [];
  * }
  *
+ * const user = await StuffApi.create(() => new User());
+ * user.googleProfileId = '...';
  * await user.save();
+ *
  * const found = await User.findById(id);
  * const matches = await User.find({ googleProfileId: 'xyz' });
  * ```
+ *
+ * `findById`/`find` route construction through `StuffApi.create`, so
+ * loaded instances are registered + proxy-wrapped just like a fresh
+ * `await StuffApi.create(() => new User())`. They live in the registry
+ * until `instance.delete()` (which cascades to `StuffApi.destruct`) or
+ * an explicit `StuffApi.destruct(instance)`.
  */
 
+import { Idea } from '../stuff/Idea';
+import { StuffApi } from '../../api/stuff';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
 
 type Indexable = Record<string, unknown>;
 
 /**
- * Interface for persistable constructors.
- * Ensures subclasses have required static properties.
+ * Interface for persistable constructors. Used by the static `findById` /
+ * `find` `this`-bound generics so the inferred subclass type carries
+ * through.
  */
 export interface PersistableConstructor {
   collectionName: string;
@@ -45,10 +57,9 @@ export interface PersistableConstructor {
 }
 
 /**
- * Base class for MongoDB-backed records that live outside the Stuff
- * filesystem (auth/meta-game only).
+ * Idea-rooted base for MongoDB-backed records.
  */
-export class Persistable {
+export class Persistable extends Idea {
   /**
    * MongoDB ObjectId (undefined until saved).
    */
@@ -70,6 +81,7 @@ export class Persistable {
   static collectionName: string;
 
   constructor() {
+    super();
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
@@ -150,7 +162,13 @@ export class Persistable {
   }
 
   /**
-   * Delete this object from MongoDB.
+   * Delete this object from MongoDB and destruct the runtime instance.
+   *
+   * The cascade to `StuffApi.destruct` matters because Persistables are
+   * registered like any other Stuff — leaving a live registered instance
+   * after its DB record is gone is a footgun. Subclasses that need to
+   * keep the runtime instance alive past the DB delete (rare) should
+   * override `delete()` with their own ordering.
    */
   public async delete(): Promise<void> {
     if (!this._id) {
@@ -160,10 +178,15 @@ export class Persistable {
     }
     const collection = this.getCollectionName();
     await PersistenceManager.get().delete(collection, this._id);
+    StuffApi.destruct(this);
   }
 
   /**
    * Find a document by MongoDB _id. Returns null if not found.
+   *
+   * Construction routes through `StuffApi.create` so the loaded instance
+   * is registered + proxy-wrapped — same lifecycle as a fresh
+   * `await StuffApi.create(() => new T())`.
    */
   public static async findById<T extends Persistable>(
     this: PersistableConstructor & { new (): T },
@@ -176,13 +199,14 @@ export class Persistable {
     }
     const doc = await PersistenceManager.get().findById(this.collectionName, id);
     if (!doc) return null;
-    const instance = new this() as T;
+    const Ctor = this;
+    const instance = await StuffApi.create<T>(() => new Ctor() as T);
     instance.fromDocument(doc);
     return instance;
   }
 
   /**
-   * Find documents matching a query.
+   * Find documents matching a query. Same construction story as findById.
    */
   public static async find<T extends Persistable>(
     this: PersistableConstructor & { new (): T },
@@ -194,11 +218,16 @@ export class Persistable {
       );
     }
     const docs = await PersistenceManager.get().find(this.collectionName, query);
-    return docs.map((doc) => {
-      const instance = new this() as T;
-      instance.fromDocument(doc);
-      return instance;
-    });
+    const Ctor = this;
+    const instances = await Promise.all(
+      docs.map((doc) =>
+        StuffApi.create<T>(() => new Ctor() as T).then((instance) => {
+          instance.fromDocument(doc);
+          return instance;
+        })
+      )
+    );
+    return instances;
   }
 
   public toString(): string {

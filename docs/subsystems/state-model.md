@@ -50,17 +50,22 @@ for that escape hatch.
 
 ## The Data Model
 
-### User is NOT a Stuff
+### User is a Persistable (Idea-rooted, but not cloned)
 
-User is **meta-game**, not game-world. It's auth-layer: identity,
-authentication, session context. It doesn't live in a zone, doesn't
-have a path, doesn't get cloned, doesn't hydrate, doesn't participate
-in the Stuff filesystem.
+User is **meta-game**, not game-world: it's auth-layer (identity,
+authentication, session context). It doesn't live in a zone, doesn't
+have a `templatePath`, doesn't get cloned, doesn't hydrate, doesn't
+participate in the Stuff filesystem.
 
-User extends `Persistable` directly (not `Idea`, not `Stuff`). It's
-the rare exception to "everything's a Stuff." Looked up by `_id` or
-`googleProfileId`. See [persistence.md](./persistence.md) for the
-`Persistable` track in detail.
+But it IS in the Idea hierarchy. `User extends Persistable extends Idea`.
+That gives User a `stuffId`, lifecycle (`StuffApi.destruct` for
+cleanup), and the call-security gate. Construction goes through
+`await StuffApi.create(() => new User())`; loading via
+`User.findById(...)` does the same internally. Lookup by Mongo `_id` or
+`googleProfileId` via the inherited `find`/`findById` statics.
+
+See [persistence.md](./persistence.md) for the `Persistable` contract
+in detail.
 
 ### User owns its list of characters
 
@@ -206,7 +211,10 @@ non-Zone templates may not. Enforced by `DomainHook` against the PM
 chokepoint. See [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant).
 
 `users` and `google_profiles` stay as their own collections — they're
-not Stuff.
+Persistable records, not templates. Their `Persistable` lifecycle
+(`StuffApi.create` to construct, `findById`/`find` to load,
+`save`/`delete` for the DB round-trip) is independent of the
+template/clone pipeline.
 
 ## Stamped-on-Stuff Fields
 

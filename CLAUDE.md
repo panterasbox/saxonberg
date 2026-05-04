@@ -31,7 +31,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
-    persisted, User-not-Stuff, Avatar self-contained
+    persisted, Avatar self-contained, Persistable in the Idea hierarchy
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
     composer, sensor routing, Phrasebook, MudlogApi
   - [call-security.md](./docs/subsystems/call-security.md) — proxy
