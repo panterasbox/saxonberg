@@ -180,6 +180,7 @@ registry) lives in `lib/mixin-types.ts`.
 | `lib/stuff/` | `PostRegistrationMixin` | opt-in `postRegister(context?)` lifecycle hook |
 | `lib/persistence/` | `AroundSaveHookMixin` | middleware-style PM save hook |
 | `lib/persistence/` | `AroundDeleteHookMixin` | middleware-style PM delete hook |
+| `lib/connection/` | `HasInteractiveMixin` | "this Stuff has connected `Interactive`s" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`. Composed by `Avatar` (multiplexing) and `Login` (singleton). |
 
 ### Mixin Composition Constraints
 

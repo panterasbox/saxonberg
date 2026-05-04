@@ -233,17 +233,10 @@ which guarantees the full sequence (prepareDestroy → shadow-detach → destroy
 the housekeeping and can do anything a subclass needs:
 
 ```typescript
-class Avatar extends Character {
+class Avatar extends AvatarBase {
   protected override prepareDestroy(): void {
-    for (const interactive of this.interactives) {
-      interactive.currentAvatar = null;
-    }
+    PlayerApi.unregisterAvatar(this);
     this.interactives.clear();
-
-    if (this.player) {
-      this.syncToPlayer();
-      this.player.save();
-    }
   }
 }
 ```

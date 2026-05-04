@@ -238,7 +238,12 @@ exist on every Stuff regardless of mixins.
 ## Things the Model MUST NOT Regress
 
 - **Multiplexing**: multiple Interactives can connect to the same
-  Avatar.
+  Avatar. Routing is via `ConnectionApi.transfer(interactive, target)`
+  / `detach(interactive)`; the connection storage lives on
+  `HasInteractiveMixin` (composed by both `Avatar` and `Login`).
+  Interactive itself knows nothing about Avatars — see
+  [architecture.md](../architecture.md) for the HasInteractive vs Avatar
+  distinction.
 - **Character selection**: multi-character flow is structurally
   supported via `user.playerIds`.
 - **PlayerApi registration**: still happens, just from `postRegister`

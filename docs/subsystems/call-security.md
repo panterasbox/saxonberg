@@ -132,8 +132,12 @@ that don't have wiring yet:
 
 **Terminology.** "CommandGiver" = the *immediate* issuer of the
 currently-running command (might be an NPC). "Driving player" usually
-means an Avatar with a connected Interactive — see the
-`HasInteractive` interface for the typed handle.
+means an Avatar with a connected Interactive — narrow with
+`MixinApi.isHasInteractive(obj)` (`HasInteractive` is the connection
+abstraction — `Avatar` and `Login` both compose `HasInteractiveMixin`).
+Note that "HasInteractive" is the broad set, not the in-world set:
+operations targeting an avatar specifically should narrow with
+`instanceof Avatar` (or via Character if NPCs need to be in scope).
 
 ## Caller Identity
 
