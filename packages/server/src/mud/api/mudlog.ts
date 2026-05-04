@@ -22,6 +22,7 @@ import type { LogLevel, MessageFrame } from '@saxonberg/types';
 import { nanoid } from 'nanoid';
 import { ExecutionContextApi } from './execution-context';
 import { SecurityApi } from './security';
+import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { Mml } from './mml';
 
@@ -92,7 +93,7 @@ function emit(
       meta: { ...meta },
     };
     if (opts?.payload !== undefined) frame.payload = opts.payload;
-    recipient.onMessage(frame);
+    MessageApi.sendMessage(recipient, frame);
   }
 }
 

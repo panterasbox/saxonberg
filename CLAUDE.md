@@ -800,12 +800,12 @@ For detailed architectural patterns and implementation guidelines, see:
 
 - **CommandGiverMixin**: Discovery and execution
   - `getAvailableCommands()` discovers commands from providers
-  - Checks self, inventory, environment, colocated objects
+  - Checks self, inventory, environment, peers
   - `executeCommand(text, context)` runs full pipeline
 
 - **Command Providers**: Declarative registration
   - Mixins declare commands via static `commandProvider` property
-  - Four contexts: self, environment, inventory, colocated
+  - Four contexts: self, environment, inventory, peers
   - ContainerMixin provides: inventory, get, drop (self context)
   - VisibleMixin provides: look (all contexts)
 

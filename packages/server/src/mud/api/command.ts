@@ -5,7 +5,7 @@
  * Controller) and caches parsed CommandDefinitions. The static methods are a
  * plain verb/filename cache — all commands come from CommandProviders
  * (mixins, objects) in various contexts (self, environment, inventory,
- * colocated), there is no "global" command registry.
+ * peers), there is no "global" command registry.
  *
  * Type surface lives here deliberately: controllers and MQL consumers
  * depend on this file to get `CommandContext`, `CommandResult`, etc., and

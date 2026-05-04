@@ -40,7 +40,7 @@ export class Avatar extends AvatarBase {
     self: ['ping.yaml', 'help.yaml', 'player.yaml'],
     environment: [],
     inventory: [],
-    colocated: [],
+    peers: [],
   };
 
   /**

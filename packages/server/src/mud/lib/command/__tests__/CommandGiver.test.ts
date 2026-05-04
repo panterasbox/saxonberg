@@ -35,7 +35,7 @@ class TestGiver extends TestGiverBase {
     self: ['ping.yaml'],
     environment: [],
     inventory: [],
-    colocated: [],
+    peers: [],
   };
 
   public received: MessageFrame[] = [];

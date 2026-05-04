@@ -24,7 +24,7 @@ import type { MixinConstructor } from '../mixin-types';
  * Provides the "look" command for examining this visible object:
  * - When in someone's environment (they can look at it in the room)
  * - When in someone's inventory (they can look at what they're carrying)
- * - When colocated with someone (they can look at it in the same location)
+ * - When the looker is one of this object's peers (same environment)
  * - On self (you can look at yourself)
  */
 /**
@@ -51,7 +51,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       self: ['look.yaml'],        // Can look at yourself
       environment: ['look.yaml'], // Others can look at you in their environment
       inventory: ['look.yaml'],   // Others can look at you in their inventory
-      colocated: ['look.yaml'],   // Others can look at you when colocated
+      peers: ['look.yaml'],       // Peers in the same environment can look at you
     };
 
     /**

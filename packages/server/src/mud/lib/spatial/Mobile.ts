@@ -100,7 +100,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       self: ['go.yaml', 'open.yaml', 'close.yaml'],
       environment: [],
       inventory: [],
-      colocated: [],
+      peers: [],
     };
 
     /**

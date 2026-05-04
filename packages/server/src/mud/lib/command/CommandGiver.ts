@@ -53,7 +53,7 @@ export interface CommandGiver {
  * introspection and `stuffId` identity), but deliberately NOT Container or
  * Containable — mixin composition should stay flexible. A disembodied command
  * executor with no inventory and no environment is a coherent future case.
- * Inventory / environment / colocated branches narrow at runtime instead.
+ * Inventory / environment / peers branches narrow at runtime instead.
  */
 export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class CommandGiver extends Base {
@@ -117,7 +117,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         }
       }
 
-      // 3 + 4. Commands from ENVIRONMENT and COLOCATED objects — only if
+      // 3 + 4. Commands from ENVIRONMENT and PEER objects — only if
       // this giver is placed somewhere
       if (MixinApi.isContainable(self)) {
         const environment = self.getEnvironment();
@@ -133,7 +133,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (obj === self) continue;
             if (!MixinApi.isCommandGiver(obj)) continue;
             for (const mixin of MixinApi.queryMixins(obj.constructor)) {
-              getProvider(mixin)?.colocated?.forEach(addCommand);
+              getProvider(mixin)?.peers?.forEach(addCommand);
             }
           }
         }

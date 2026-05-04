@@ -31,7 +31,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       self: ['say.yaml', 'tell.yaml'],
       environment: [],
       inventory: [],
-      colocated: [],
+      peers: [],
     };
 
     say(text: string): void {

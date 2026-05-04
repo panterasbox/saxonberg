@@ -227,10 +227,10 @@ export class Scene {
       switch (af.recipientKind) {
         case 'self':
           // af.target is the actor (must be a Sensor — checked at toSelf).
-          af.target!.onMessage(frame);
+          MessageApi.sendMessage(af.target!, frame);
           break;
         case 'target':
-          af.target!.onMessage(frame);
+          MessageApi.sendMessage(af.target!, frame);
           break;
         case 'peers': {
           if (!actorAsContainable) break;
@@ -240,7 +240,7 @@ export class Scene {
           if (explicitTarget) skip.add(explicitTarget);
           for (const sensor of MessageApi.getSensors(env)) {
             if (skip.has(sensor as Stuff)) continue;
-            sensor.onMessage(frame);
+            MessageApi.sendMessage(sensor, frame);
           }
           break;
         }
@@ -352,6 +352,18 @@ export class MessageApi {
   }
 
   /**
+   * Lone delivery chokepoint — every routing helper here, every
+   * Scene.send dispatch, and every MudlogApi emit goes through this
+   * function. Non-MessageApi code MUST NOT call `sensor.onMessage`
+   * directly: the chokepoint is where future cross-cutting concerns
+   * (audit trail, debug logging, bus-level taps per §10.5, wire-
+   * level filters, etc.) hook in exactly once.
+   */
+  static sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
+    recipient.onMessage(frame);
+  }
+
+  /**
    * Send a message to every sensor inside a container.
    *
    * Low-level primitive — caller has already chosen the container.
@@ -366,7 +378,7 @@ export class MessageApi {
     const exclude = opts.exclude ?? null;
     for (const sensor of this.getSensors(container)) {
       if (exclude && (sensor as Stuff) === exclude) continue;
-      sensor.onMessage(frame);
+      this.sendMessage(sensor, frame);
     }
   }
 
