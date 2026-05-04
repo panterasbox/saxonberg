@@ -19,26 +19,22 @@ import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
+import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
-import type { HasInteractive } from './HasInteractive';
 import type { Avatar } from './Avatar';
 
-export class Login extends Idea implements HasInteractive {
+const LoginBase = HasInteractiveMixin(Idea);
+
+export class Login extends LoginBase {
   public readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {
     super();
     this.interactive = interactive;
-  }
-
-  /**
-   * `HasInteractive` — Login carries exactly one Interactive (it's
-   * the bridge between a fresh connection and the entry procedure).
-   * Returns a freshly-allocated singleton set; Login is short-lived
-   * so the allocation is rare.
-   */
-  public getInteractives(): ReadonlySet<Interactive> {
-    return new Set([this.interactive]);
+    // Seed the singleton set so MixinApi.isHasInteractive(login)
+    // works the same way it does for Avatar. Login multiplexing
+    // never actually happens — it's just consistency with the mixin.
+    this.addInteractive(interactive);
   }
 
   /**
@@ -51,6 +47,11 @@ export class Login extends Idea implements HasInteractive {
   public async enter(): Promise<void> {
     const { interactive } = this;
 
+    // Take ownership of the connection for the duration of entry.
+    // switchAvatar (below) will hand the holder slot to the chosen
+    // Avatar before we destruct.
+    interactive.holder = this;
+
     await interactive.loadAvailableAvatars();
 
     if (interactive.availableAvatars.size !== 1) {
@@ -61,8 +62,7 @@ export class Login extends Idea implements HasInteractive {
     }
 
     const playerId = Array.from(interactive.availableAvatars.keys())[0]!;
-    await interactive.switchAvatar(playerId);
-    const avatar = interactive.currentAvatar!;
+    const avatar = await interactive.switchAvatar(playerId);
 
     console.log(`Login: User connected - ${avatar.fullName}`);
 

@@ -897,7 +897,7 @@ Stuff
       └── …
 ```
 
-Buffs/debuffs are clonable game objects, not throwaway closures. A
+Buffs/debuffs are cloneable game objects, not throwaway closures. A
 shadow can be inspected via `MqlApi`, listed in admin tools, etc.
 
 ### Class shape

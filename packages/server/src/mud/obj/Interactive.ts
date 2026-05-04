@@ -9,6 +9,14 @@
  * threads `{ user, playerId }` into `StuffApi.clone` as context so each
  * Avatar.postRegister() sees its owning user synchronously.
  *
+ * The back-reference to whoever currently owns the connection is the
+ * generic `holder: HasInteractive | null`. During the entry procedure,
+ * the `Login` is the holder; after `switchAvatar` runs, the chosen
+ * `Avatar` is the holder. Consumers that need an Avatar specifically
+ * should narrow with `instanceof Avatar` (Avatar's the only HasInteractive
+ * besides Login today, but adding a third — a Bot or a Spirit — is the
+ * whole point of this abstraction).
+ *
  * Lifetime: created when a user connects, destroyed when the connection
  * drops.
  */
@@ -16,8 +24,11 @@
 import { Idea } from '../lib/stuff/Idea';
 import { StuffApi } from '../api/stuff';
 import { PlayerApi } from '../api/player';
+import { DescribeApi } from '../api/describe';
+import type { Stuff } from '../lib/stuff/Stuff';
 import type { User } from '../lib/identity/User';
 import type { Avatar } from './Avatar';
+import type { HasInteractive } from '../lib/connection/HasInteractive';
 
 export class Interactive extends Idea {
   socketId: string;
@@ -25,10 +36,18 @@ export class Interactive extends Idea {
   user: User;
   connectedAt: Date;
 
-  currentAvatar: Avatar | null = null;
+  /**
+   * Whoever currently owns this connection. Set to a `Login` for the
+   * entry procedure, then to the chosen `Avatar` after `switchAvatar`
+   * runs. Always a Stuff at runtime — `HasInteractiveMixin` only
+   * composes onto Stuff — so the typed intersection captures that.
+   */
+  holder: (HasInteractive & Stuff) | null = null;
 
   /**
    * Available Avatars for this user's characters (playerId → Avatar).
+   * Forward-typed because `availableAvatars` is the concrete avatar
+   * registry, not the back-reference.
    */
   availableAvatars: Map<string, Avatar> = new Map();
 
@@ -71,11 +90,13 @@ export class Interactive extends Idea {
   }
 
   /**
-   * Switch to a different Avatar (character switching).
+   * Switch to a different Avatar (character switching). Replaces the
+   * current `holder` (which may be a `Login` during entry, an existing
+   * `Avatar` after a previous switch, or null on first switch).
    */
-  public async switchAvatar(playerId: string): Promise<void> {
-    if (this.currentAvatar) {
-      this.currentAvatar.removeInteractive(this);
+  public async switchAvatar(playerId: string): Promise<Avatar> {
+    if (this.holder) {
+      this.holder.removeInteractive(this);
     }
 
     const newAvatar = this.availableAvatars.get(playerId);
@@ -86,7 +107,8 @@ export class Interactive extends Idea {
     }
 
     newAvatar.addInteractive(this);
-    this.currentAvatar = newAvatar;
+    this.holder = newAvatar;
+    return newAvatar;
   }
 
   /**
@@ -102,17 +124,17 @@ export class Interactive extends Idea {
   }
 
   protected prepareDestroy(): void {
-    if (this.currentAvatar) {
-      this.currentAvatar.removeInteractive(this);
-      this.currentAvatar = null;
+    if (this.holder) {
+      this.holder.removeInteractive(this);
+      this.holder = null;
     }
     this.availableAvatars.clear();
   }
 
   public toString(): string {
-    const avatarInfo = this.currentAvatar
-      ? ` avatar=${this.currentAvatar.fullName}`
+    const holderInfo = this.holder
+      ? ` holder=${DescribeApi.getDisplayName(this.holder, '?')}`
       : '';
-    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${avatarInfo}]`;
+    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${holderInfo}]`;
   }
 }

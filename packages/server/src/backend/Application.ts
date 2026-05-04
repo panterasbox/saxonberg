@@ -112,7 +112,8 @@ export class Application {
         user
       );
 
-      await new Login(interactive).enter();
+      const login = await StuffApi.create(() => new Login(interactive));
+      await login.enter();
     } catch (error) {
       console.error('Application: Error in handleUserConnect:', error);
 
@@ -209,7 +210,7 @@ export class Application {
     if (!this.backend) return;
 
     const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive || !interactive.currentAvatar) {
+    if (!interactive || !(interactive.holder instanceof Avatar)) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',
         payload: { message: 'No active character' },
@@ -220,7 +221,7 @@ export class Application {
     const commandText = (message.payload as { text: string }).text?.trim();
     if (!commandText) return;
 
-    const avatar = interactive.currentAvatar;
+    const avatar = interactive.holder;
     const location = avatar.getEnvironment() as Location;
 
     if (!location) {

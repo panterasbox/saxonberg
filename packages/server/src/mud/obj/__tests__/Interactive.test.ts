@@ -59,9 +59,9 @@ describe('Interactive', () => {
       expect(interactive.connectedAt).toBeInstanceOf(Date);
     });
 
-    it('should initialize with null currentAvatar', () => {
+    it('should initialize with null holder', () => {
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
-      expect(interactive.currentAvatar).toBeNull();
+      expect(interactive.holder).toBeNull();
     });
 
     it('should initialize with empty availableAvatars', () => {
@@ -192,7 +192,7 @@ describe('Interactive', () => {
     it('should switch to new Avatar', async () => {
       await interactive.switchAvatar('player1');
 
-      expect(interactive.currentAvatar).toBe(mockAvatar1);
+      expect(interactive.holder).toBe(mockAvatar1);
       expect(mockAvatar1.interactives.has(interactive)).toBe(true);
     });
 
@@ -202,7 +202,7 @@ describe('Interactive', () => {
 
       expect(mockAvatar1.interactives.has(interactive)).toBe(false);
       expect(mockAvatar2.interactives.has(interactive)).toBe(true);
-      expect(interactive.currentAvatar).toBe(mockAvatar2);
+      expect(interactive.holder).toBe(mockAvatar2);
     });
 
     it('should throw if playerId not found', async () => {
@@ -211,12 +211,12 @@ describe('Interactive', () => {
       );
     });
 
-    it('should handle switching from null currentAvatar', async () => {
-      expect(interactive.currentAvatar).toBeNull();
+    it('should handle switching from null holder', async () => {
+      expect(interactive.holder).toBeNull();
 
       await interactive.switchAvatar('player1');
 
-      expect(interactive.currentAvatar).toBe(mockAvatar1);
+      expect(interactive.holder).toBe(mockAvatar1);
     });
   });
 
@@ -258,8 +258,8 @@ describe('Interactive', () => {
       await interactive1.switchAvatar('player1');
       await interactive2.switchAvatar('player1');
 
-      expect(interactive1.currentAvatar).toBe(mockAvatar);
-      expect(interactive2.currentAvatar).toBe(mockAvatar);
+      expect(interactive1.holder).toBe(mockAvatar);
+      expect(interactive2.holder).toBe(mockAvatar);
     });
   });
 
@@ -304,7 +304,7 @@ describe('Interactive', () => {
       interactive.availableAvatars.set('player1', mockAvatar);
     });
 
-    it('should remove from currentAvatar on destroy', async () => {
+    it('should remove from holder on destroy', async () => {
       await interactive.switchAvatar('player1');
 
       StuffApi.destruct(interactive);
@@ -312,12 +312,12 @@ describe('Interactive', () => {
       expect(mockAvatar.interactives.has(interactive)).toBe(false);
     });
 
-    it('should clear currentAvatar on destroy', async () => {
+    it('should clear holder on destroy', async () => {
       await interactive.switchAvatar('player1');
 
       StuffApi.destruct(interactive);
 
-      expect(interactive.currentAvatar).toBeNull();
+      expect(interactive.holder).toBeNull();
     });
 
     it('should clear availableAvatars on destroy', async () => {
@@ -358,7 +358,9 @@ describe('Interactive', () => {
       await interactive.switchAvatar('player1');
       const str = interactive.toString();
 
-      expect(str).toContain('Alice Smith');
+      // toString uses DescribeApi.getDisplayName (casual register),
+      // which returns Named.name, not the fullName form.
+      expect(str).toContain('Alice');
     });
   });
 });
