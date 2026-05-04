@@ -483,34 +483,105 @@ descriptor wrapping).
 
 ## Why Some Api Files Don't Self-Decorate
 
-Four Api classes deliberately skip self-decoration:
+Four Api classes deliberately skip `SecurityApi.decorateApiClass` on
+themselves: `ExecutionContextApi`, `ModuleApi`, `SecurityApi`, and
+`ProxyApi`. Each has class-specific reasons rather than one shared
+rule. Per-method `@CallSecurity` is a possible future granularity (the
+audit below identifies one candidate) but isn't done today — the
+bootstrap timing for individual decorators on these four classes is
+non-trivial.
 
-- **`ExecutionContextApi`**
-- **`ModuleApi`**
-- **`SecurityApi`**
-- **`ProxyApi`**
+### `ExecutionContextApi`
 
-Two reasons, both load-bearing:
+Every method on this class either reads or modifies the call stack via
+`AsyncLocalStorage`. Wrapping any of them creates **stack pollution**:
+the wrapper's own `ExecutionContextApi.run(…)` call pushes a frame, so
+when the original method body inspects the stack it sees that synthetic
+frame — `getCurrentTarget` returns `ExecutionContextApi` instead of the
+true current target, `getCallStack` includes itself, and so on.
+`run`/`runRoot` additionally cannot be wrapped without recursion (the
+wrapper IS what calls `run`).
 
-1. **Bootstrap cycle.** `decorators.ts` imports
-   `ExecutionContextApi` for its static-method wrapper (the wrapper
-   pushes a frame via `ExecutionContextApi.run`). If
-   `ExecutionContextApi` were itself wrapped, the wrapping function
-   would call `ExecutionContextApi.run` to push a frame for the wrapper
-   — a bootstrap loop, and at module-load time the import binding for
-   `decorateApiClass` is still undefined. Same applies to `ModuleApi`
-   (called by the loader transform during module evaluation) and to
-   `SecurityApi` (whose own resolvers would re-enter the wrapper to
-   decide whether to allow). `ProxyApi`'s `wrap` would need a Proxy to
-   mediate the wrapping function.
+Verdict: **none of its methods can be decorated.**
 
-2. **Semantics.** The framework's own primitives shouldn't show up in
-   the call stack as separate frames; `ExecutionContextApi.run` itself
-   is the frame-pusher. Wrapping it would mean every `run()` call
-   pushes a frame for `run()` before the body pushes the frame the
-   caller actually asked for. Noise.
+### `ModuleApi`
 
-These four classes ARE the framework. Everyone else is a consumer.
+- `lookup(cls)` — called by every policy that uses `FromModule` /
+  `FromTemplate` / `ApiOnly` to determine the caller's module ID.
+  Wrapping causes recursion: policy resolution → calls `lookup` →
+  wrapper resolves a policy for `lookup` → calls `lookup` again.
+- `stamp(cls, moduleId)` — called by the loader transform during
+  module evaluation. Decoration would push a frame at every module
+  load. Possible in principle but adds boot-time overhead and there's
+  no useful policy today (the loader transform lives in
+  `services/loader/`, outside the `mud/api/**` scope `ApiOnly` covers).
+  Future: a "loader-only" policy could justify wrapping `stamp`, but
+  that policy doesn't exist yet.
+- `_*ForTest` methods — gated by `assertTestOnly` already; wrapping
+  adds a Public-default policy check and a frame push, neither of
+  which adds value.
+
+Verdict: **all undecorated for now**, but `stamp` is a candidate when
+a "loader-only" policy is introduced.
+
+### `SecurityApi`
+
+This class IS the wrapping engine. Its methods fall into three roles
+all incompatible with self-wrapping:
+
+- **Wrapping infrastructure** (`decorateApiClass`, `_wrapStaticMethods`,
+  `_wrapStaticDescriptor`). The wrappers themselves call these — loop.
+- **Resolvers** called by every wrapped method on every Api class
+  (`resolveCallPolicy`, `resolveStaticCallPolicy`,
+  `isMethodUnshadowable`, `resolveShadowSecurity`, `getFinalMethods`).
+  Wrapping creates a loop on every guarded call.
+- **Decorator-stampers** (`_setMethodPolicy`, `_setClassDefaultPolicy`,
+  `_markMethodUnshadowable`, etc.) called during decorator evaluation
+  at class-definition time. At that point `decorateApiClass` may not
+  even be reachable yet, depending on import order.
+
+`assertTestOnly` and `_*ForTest` could in principle be wrapped (they
+aren't called by the framework itself), but wrapping a test seam to
+add a Public-default policy + a frame push has no upside.
+
+Verdict: **all undecorated.**
+
+### `ProxyApi`
+
+- `wrap(stuff)` — called by `StuffApi.create`/`clone`/`createSync`
+  during construction to install the proxy. Wrapping the install
+  function with the same proxy machinery it's installing is a
+  conceptual recursion; even if it didn't loop, it would need a proxy
+  to mediate the wrapping function.
+- `unwrap`, `_resetInterceptorsForTest` — narrow utility / test seams.
+  Wrapping adds nothing.
+- **`registerInterceptor(interceptor)`** — only called from
+  `SecurityApi.#securityGate`'s own installation block. A real
+  candidate for individual `@CallSecurity` (e.g.,
+  `FromModule('mud/api/security')`) — anything else registering an
+  interceptor can bypass the entire security gate. Held off because
+  the bootstrap timing is fiddly: `proxy.ts` and `security.ts` import
+  each other and resolve via late binding; adding a decorator that
+  calls `SecurityApi._setMethodPolicy` at proxy.ts class-definition
+  time risks the binding not being usable yet.
+
+Verdict: **`wrap`, `unwrap`, `_resetInterceptorsForTest` undecorated**;
+**`registerInterceptor` should be locked down** but is deferred until
+the bootstrap timing is verified safe.
+
+### Summary
+
+These four classes are deliberately bare today. The audit confirms
+they're warranted. Per-method decoration is a future option for two
+specific cases:
+
+- `ModuleApi.stamp` — needs a "loader-only" policy first.
+- `ProxyApi.registerInterceptor` — needs verified-safe bootstrap
+  timing first; ideally a `FromModule('mud/api/security')` policy.
+
+Everything else stays bare on principle: framework primitives that
+mediate calls cannot themselves be mediated without recursion or stack
+pollution.
 
 ## Test Seams
 
