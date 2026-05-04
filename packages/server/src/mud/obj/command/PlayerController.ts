@@ -1,20 +1,18 @@
 /**
- * PlayerController - Manage player character settings
+ * PlayerController — manage player character settings.
  *
- * Subcommands:
- * - player name <firstName> [lastName]  - Set character name
- * - player pronouns <pronouns>          - Set pronouns
- * - player show                          - Show current settings
+ * Subcommands: name, pronouns, show. Self-only Scenes at
+ * `world.perception.look` carry confirmation prose; the auto-emit
+ * surfaces the change to the actor independently.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import type { Pronouns } from '@saxonberg/types';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { Avatar } from '../Avatar';
 
-/**
- * Input model for player command
- */
 export interface PlayerInput {
   subcommand: string;
   firstName?: string;
@@ -22,82 +20,58 @@ export interface PlayerInput {
   pronouns?: string;
 }
 
-/**
- * Output model for player command
- */
-export interface PlayerOutput {
-  text: string;
-}
-
-/**
- * PlayerController - Handles player settings management
- */
-export class PlayerController extends CommandController<PlayerInput, PlayerOutput> {
-  execute(input: PlayerInput, context: CommandContext): CommandResult<PlayerOutput> {
-    // The `player` command only makes sense for a player-character Avatar.
-    // Narrow here so every subcommand gets an Avatar without casting, and
-    // non-Avatar givers (e.g. a future NPC) get a clean error rather than
-    // a type crash.
+export class PlayerController extends CommandController<PlayerInput> {
+  execute(input: PlayerInput, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!(avatar instanceof Avatar)) {
-      return { success: false, error: 'Only a player character can use the player command.' };
+      return {
+        success: false,
+        summary: 'only a player character can use the player command',
+      };
     }
 
     switch (input.subcommand) {
       case 'name':
-        return this.executeName(input, avatar);
+        return this.executeName(input, avatar, context);
       case 'pronouns':
-        return this.executePronouns(input, avatar);
+        return this.executePronouns(input, avatar, context);
       case 'show':
-        return this.executeShow(avatar);
+        return this.executeShow(avatar, context);
       default:
         return {
           success: false,
-          error: `Unknown subcommand: ${input.subcommand}`,
+          summary: `unknown subcommand: ${input.subcommand}`,
         };
     }
   }
 
-  /**
-   * Set character name
-   */
-  private executeName(input: PlayerInput, avatar: Avatar): CommandResult<PlayerOutput> {
+  private executeName(
+    input: PlayerInput,
+    avatar: Avatar,
+    context: CommandContext
+  ): CommandResult {
     if (!input.firstName) {
-      return {
-        success: false,
-        error: 'First name is required.',
-      };
+      return { success: false, summary: 'first name required' };
     }
-
     avatar.firstName = input.firstName;
     avatar.lastName = input.lastName || '';
 
-    // Persist-back to the avatar template is deferred to the persist
-    // direction of the unified state model (Phase 8 follow-on).
-
-    return {
-      success: true,
-      output: {
-        text: `\nYour name is now ${avatar.fullName}.\n`,
-      },
-    };
+    this.send(
+      context,
+      Mml.compose`\nYour name is now ${Mml.name(avatar)}.\n`
+    );
+    return { success: true, summary: `name set to ${avatar.fullName}` };
   }
 
-  /**
-   * Set pronouns
-   */
   private executePronouns(
     input: PlayerInput,
-    avatar: Avatar
-  ): CommandResult<PlayerOutput> {
+    avatar: Avatar,
+    context: CommandContext
+  ): CommandResult {
     if (!input.pronouns) {
-      return {
-        success: false,
-        error: 'Pronouns are required.',
-      };
+      return { success: false, summary: 'pronouns required' };
     }
 
-    // Validate pronouns
     const validPronouns: string[] = [
       'he/him',
       'she/her',
@@ -108,46 +82,43 @@ export class PlayerController extends CommandController<PlayerInput, PlayerOutpu
     ];
 
     const pronounsLower = input.pronouns.toLowerCase();
-
     if (!validPronouns.includes(pronounsLower)) {
       return {
         success: false,
-        error: `Invalid pronouns. Valid options: ${validPronouns.join(', ')}`,
+        summary: `invalid pronouns. valid: ${validPronouns.join(', ')}`,
       };
     }
 
-    const pronouns = pronounsLower as Pronouns;
+    avatar.pronouns = pronounsLower as Pronouns;
+    this.send(
+      context,
+      Mml.compose`\nYour pronouns are now ${avatar.pronouns}.\n`
+    );
+    return { success: true, summary: `pronouns set to ${avatar.pronouns}` };
+  }
 
-    avatar.pronouns = pronouns;
-
-    // Persist-back deferred (see executeName).
-
+  private executeShow(avatar: Avatar, context: CommandContext): CommandResult {
+    const body = Mml.fromMarkup(
+      [
+        '',
+        'Player Character Settings:',
+        '',
+        `  Name:     ${avatar.fullName}`,
+        `  Pronouns: ${avatar.pronouns}`,
+        '',
+      ].join('\n')
+    );
+    this.send(context, body);
     return {
       success: true,
-      output: {
-        text: `\nYour pronouns are now ${pronouns}.\n`,
-      },
+      summary: `${avatar.fullName} (${avatar.pronouns})`,
     };
   }
 
-  /**
-   * Show current player settings
-   */
-  private executeShow(avatar: Avatar): CommandResult<PlayerOutput> {
-    const lines = [
-      '',
-      'Player Character Settings:',
-      '',
-      `  Name:     ${avatar.fullName}`,
-      `  Pronouns: ${avatar.pronouns}`,
-      '',
-    ];
-
-    return {
-      success: true,
-      output: {
-        text: lines.join('\n'),
-      },
-    };
+  private send(context: CommandContext, body: Mml): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
   }
 }

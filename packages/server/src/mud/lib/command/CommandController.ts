@@ -1,61 +1,40 @@
 /**
- * CommandController - Abstract base class for command execution logic (MVC)
+ * CommandController — abstract base class for command execution logic.
  *
- * The Controller in MVC: executes business logic with validated CommandModel data.
- *
- * Controllers are ephemeral (new instance per execution) and type-safe:
- * - Generic `CommandController<Input, Output>` pattern
- * - Input: Command-specific input model (from CommandModel.fields)
- * - Output: Command-specific output data
+ * The Controller in MVC: executes business logic with validated
+ * CommandModel data. Controllers are ephemeral (new instance per
+ * execution).
  *
  * Pipeline: CommandView (YAML) → CommandModel (data) → Controller (execution)
  *
- * Controllers receive validated, resolved data and execute business logic.
- *
- * Example:
- * ```typescript
- * interface SayInput {
- *   message: string;
- * }
- *
- * interface SayOutput {
- *   text: string;
- * }
- *
- * class SayController extends CommandController<SayInput, SayOutput> {
- *   execute(input: SayInput, context: CommandContext): CommandResult<SayOutput> {
- *     const speaker = context.commandGiver;
- *     if (!MixinApi.isVocal(speaker)) return { success: false, error: 'You cannot speak.' };
- *     speaker.say(input.message);
- *     return {
- *       success: true,
- *       output: { text: `You say, '${input.message}'` }
- *     };
- *   }
- * }
- * ```
+ * Messaging is the controller's responsibility — fire all prose via
+ * `MessageApi.scene(...)`. The returned `CommandResult` is purely
+ * semantic: `success` answers "did the command achieve its goal?",
+ * and the optional `summary` decorates the auto-emitted MudlogApi
+ * command-outcome entry (§9.4).
  */
 
 import type { CommandContext, CommandResult } from '../../api/command';
 
 /**
- * Abstract base class for command controllers
+ * Abstract base class for command controllers.
  *
  * @template I Input model type (command-specific)
- * @template O Output data type (command-specific)
  */
-export abstract class CommandController<I = unknown, O = unknown> {
+export abstract class CommandController<I = unknown> {
   /**
-   * Execute command with validated, resolved input
+   * Execute command with validated, resolved input.
    *
    * Controllers should:
-   * 1. Perform business logic (modify game state, send messages, etc.)
-   * 2. Return success result with output data
-   * 3. Return error result if execution fails
-   *
-   * @param input - Validated and resolved input model
-   * @param context - Command execution context (avatar, location, etc.)
-   * @returns Command result with success/error and optional output
+   *   1. Fire any prose via `MessageApi.scene(...)` or mixin sugar.
+   *   2. Return `{ success: true }` (with optional `summary` to
+   *      override the auto-emit's default `'ok'` tail) when the
+   *      command achieved its goal.
+   *   3. Return `{ success: false, summary }` on failure — the
+   *      summary feeds the auto-emit's body.
    */
-  abstract execute(input: I, context: CommandContext): CommandResult<O>;
+  abstract execute(
+    input: I,
+    context: CommandContext
+  ): CommandResult | Promise<CommandResult>;
 }

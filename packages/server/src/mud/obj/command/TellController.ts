@@ -1,9 +1,10 @@
 /**
- * TellController - Send private message to another player
+ * TellController — send a private message to another player.
  *
- * Syntax:
- * - tell <target> <message>   - Send private message
- * - whisper <target> <message> - Alias for tell
+ * Composes a Scene at `world.speech.tell` with a self frame ("You
+ * tell <name>X</name>, ...") and a target frame ("<name>X</name>
+ * tells you, ..."). Cross-actor delivery flows through the same
+ * pipeline as everything else — no direct envelope construction.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -11,77 +12,52 @@ import type { CommandContext, CommandResult } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
-import { DescribeApi } from '../../api/describe';
+import { Mml } from '../../api/mml';
 import type { Avatar } from '../Avatar';
 
-/**
- * Input model for tell command
- */
 export interface TellInput {
-  target: string; // Target name (text - we search manually)
+  target: string;
   message: string;
 }
 
-/**
- * Output model for tell command
- */
-export interface TellOutput {
-  text: string;
-}
-
-/**
- * TellController - Handles private messaging between players
- */
-export class TellController extends CommandController<TellInput, TellOutput> {
-  execute(input: TellInput, context: CommandContext): CommandResult<TellOutput> {
+export class TellController extends CommandController<TellInput> {
+  execute(input: TellInput, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
     const targetName = input.target;
     const message = input.message;
 
-    // Find target avatar by name (search location first, then all online avatars)
     const target = this.findAvatarByName(targetName, context);
-
     if (!target) {
       return {
         success: false,
-        output: {
-          text: `No one named '${targetName}' is available to receive tells.`,
-        },
+        summary: `no one named '${targetName}' available`,
       };
     }
 
-    const speakerName = DescribeApi.getDisplayName(speaker, 'Someone');
+    const speechFragment = Mml.speech(message);
+    MessageApi.scene(speaker)
+      .topic(MessageApi.Topics.world.speech.tell)
+      .toSelf(Mml.compose`You tell ${Mml.name(target)}, ${speechFragment}`)
+      .toTarget(
+        target,
+        Mml.compose`${Mml.name(speaker)} tells you, ${speechFragment}`
+      )
+      .payload({
+        speaker: MessageApi.refOf(speaker),
+        target: MessageApi.refOf(target),
+        text: message,
+      })
+      .send();
 
-    // Send to target (with MML formatting)
-    const targetMessage = {
-      type: 'output',
-      payload: {
-        text: `<name>${speakerName}</name> tells you, <speech>"${message}"</speech>`,
-        messageType: 'tell',
-      },
-    };
-    target.onMessage(targetMessage);
-
-    // Confirmation to sender
-    return {
-      success: true,
-      output: {
-        text: `You tell <name>${target.fullName}</name>, <speech>"${message}"</speech>`,
-      },
-    };
+    return { success: true, summary: `told ${target.fullName}` };
   }
 
-  /**
-   * Find avatar by name (search location first, then all online avatars)
-   *
-   * @param name - Name to search for
-   * @param context - Command context
-   * @returns Avatar if found, null otherwise
-   */
-  private findAvatarByName(name: string, context: CommandContext): Avatar | null {
+  private findAvatarByName(
+    name: string,
+    context: CommandContext
+  ): Avatar | null {
     const nameLower = name.toLowerCase();
 
-    // 1. Check current location first (prioritize people in same room)
     const location = context.location;
     const sensors = MessageApi.getSensors(location);
     for (const sensor of sensors) {
@@ -91,7 +67,6 @@ export class TellController extends CommandController<TellInput, TellOutput> {
       }
     }
 
-    // 2. Check all online avatars (for tells to people in other rooms)
     const allAvatars = PlayerApi.getAllAvatars();
     for (const avatar of allAvatars) {
       const fullName = avatar.fullName || '';
@@ -99,7 +74,6 @@ export class TellController extends CommandController<TellInput, TellOutput> {
         return avatar;
       }
     }
-
     return null;
   }
 }

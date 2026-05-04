@@ -242,4 +242,118 @@ describe('ExecutionContextApi', () => {
       });
     });
   });
+
+  describe('command-attribution accessors', () => {
+    it('getCurrentCommandContext returns null outside any command frame', () => {
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        expect(ExecutionContextApi.getCurrentCommandContext()).toBeNull();
+      });
+    });
+
+    it('getCurrentCommandContext reads commandContext off the Command frame metadata', () => {
+      const giver = { kind: 'giver' };
+      const fakeCtx = {
+        commandGiver: giver,
+        commandText: 'look',
+        executionId: 'x',
+        commandId: 'cmd-1',
+      };
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        ExecutionContextApi.run(
+          null,
+          giver,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { commandContext: fakeCtx },
+          },
+          () => {
+            // Walk through a deeper non-Command frame and still find it.
+            ExecutionContextApi.run(giver, {}, 'inner', undefined, () => {
+              expect(ExecutionContextApi.getCurrentCommandContext()).toBe(
+                fakeCtx
+              );
+            });
+          }
+        );
+      });
+    });
+
+    it('getCurrentCausingCommandId walks top-down for the first metadata hit', () => {
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        ExecutionContextApi.run(
+          null,
+          {},
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { causingCommandId: 'cmd-outer' },
+          },
+          () => {
+            ExecutionContextApi.run(
+              null,
+              {},
+              'inner',
+              { metadata: { causingCommandId: 'cmd-inner' } },
+              () => {
+                // Top-down walk picks the most recent one.
+                expect(
+                  ExecutionContextApi.getCurrentCausingCommandId()
+                ).toBe('cmd-inner');
+              }
+            );
+            // Back in outer frame.
+            expect(
+              ExecutionContextApi.getCurrentCausingCommandId()
+            ).toBe('cmd-outer');
+          }
+        );
+      });
+    });
+
+    it('getCurrentCausingCommandId returns null when no frame carries the metadata', () => {
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        ExecutionContextApi.run(null, {}, 'inner', undefined, () => {
+          expect(
+            ExecutionContextApi.getCurrentCausingCommandId()
+          ).toBeNull();
+        });
+      });
+    });
+
+    it('updateCurrentFrameMetadata merges into the top frame', () => {
+      ExecutionContextApi.runRoot(null, 'r', () => {
+        ExecutionContextApi.run(null, {}, 'm', undefined, () => {
+          ExecutionContextApi.updateCurrentFrameMetadata({
+            causingCommandId: 'abc',
+          });
+          expect(
+            ExecutionContextApi.getCurrentCausingCommandId()
+          ).toBe('abc');
+          // Subsequent merge augments rather than replaces.
+          ExecutionContextApi.updateCurrentFrameMetadata({ extra: 1 });
+          expect(
+            ExecutionContextApi.getCurrentCausingCommandId()
+          ).toBe('abc');
+        });
+      });
+    });
+
+    it('updateCurrentFrameMetadata throws outside any frame context', () => {
+      expect(() =>
+        ExecutionContextApi.updateCurrentFrameMetadata({ x: 1 })
+      ).toThrow(SecurityError);
+    });
+
+    it('updateCurrentFrameMetadata is gated by the frame-mutator allowlist', () => {
+      // Sanity: the allowlist gate covers updateCurrentFrameMetadata
+      // alongside run/runRoot/tagCurrentFrame.
+      expect(() =>
+        ExecutionContextApi._checkAllowlistForTest(
+          'updateCurrentFrameMetadata',
+          'file:///proj/packages/server/src/mud/domain/evil.ts'
+        )
+      ).toThrow(SecurityError);
+    });
+  });
 });

@@ -1,89 +1,55 @@
 /**
- * DropController - Drop objects from inventory to location
+ * DropController — drop objects from inventory to location.
  *
- * Syntax:
- * - drop <target>    - Drop a single object
- * - drop <targets...> - Drop multiple objects (all matching)
+ * Per item dropped, fires a Scene at `world.perception.inventory`
+ * with self ("You drop X.") and peers ("<name>Alice</name> drops
+ * X.") frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
 
-/**
- * Input model for drop command
- */
 export interface DropInput {
-  target?: Stuff;     // Single object
-  targets?: Stuff[];  // Multiple objects
+  target?: Stuff;
+  targets?: Stuff[];
 }
 
-/**
- * Output model for drop command
- */
-export interface DropOutput {
-  text: string;
-}
-
-/**
- * DropController - Handles dropping objects
- */
-export class DropController extends CommandController<DropInput, DropOutput> {
-  execute(input: DropInput, context: CommandContext): CommandResult<DropOutput> {
-    // Determine if single or multiple targets
-    const targets: Stuff[] = input.targets || (input.target ? [input.target] : []);
+export class DropController extends CommandController<DropInput> {
+  execute(input: DropInput, context: CommandContext): CommandResult {
+    const targets: Stuff[] =
+      input.targets || (input.target ? [input.target] : []);
 
     if (targets.length === 0) {
-      return {
-        success: false,
-        error: 'Nothing to drop.',
-      };
+      return { success: false, summary: 'nothing to drop' };
     }
 
-    const results: string[] = [];
     let successCount = 0;
-
+    const lastNames: string[] = [];
     for (const target of targets) {
-      const result = this.dropObject(target, context);
-      if (result.success) {
+      if (this.dropObject(target, context)) {
         successCount++;
+        lastNames.push(DescribeApi.getDisplayName(target, 'something'));
       }
-      results.push(result.message);
     }
 
-    // Build output
-    const lines = ['', ...results, ''];
-
-    return {
-      success: successCount > 0,
-      output: {
-        text: lines.join('\n'),
-      },
-    };
+    if (successCount === 0) {
+      return { success: false, summary: 'nothing dropped' };
+    }
+    return { success: true, summary: lastNames.join(', ') };
   }
 
-  /**
-   * Drop a single object
-   */
-  private dropObject(
-    target: Stuff,
-    context: CommandContext
-  ): { success: boolean; message: string } {
-    // Precondition: the mustBeContainable validator should have rejected
-    // non-Containable targets before we get here. The narrow is a contract,
-    // not a user-facing check — programmatic callers that bypass validation
-    // own the exception.
+  private dropObject(target: Stuff, context: CommandContext): boolean {
     if (!MixinApi.isContainable(target)) {
       throw new Error(
         `DropController: target ${target.stuffId} is not Containable`
       );
     }
-
-    // drop requires an inventory — the giver must compose ContainerMixin.
-    // This is a contract narrow; YAML validators catch the user-facing cases.
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
       throw new Error(
@@ -91,23 +57,18 @@ export class DropController extends CommandController<DropInput, DropOutput> {
       );
     }
 
-    const targetName = DescribeApi.getDisplayName(target, 'something');
-
-    // Check if object is in inventory
     const inventory = ContainmentApi.getContents(giver);
     if (!inventory.some((item) => item.stuffId === target.stuffId)) {
-      return {
-        success: false,
-        message: `You are not carrying ${targetName}.`,
-      };
+      return false;
     }
-
     ContainmentApi.move(target, context.location);
 
-    return {
-      success: true,
-      message: `You drop ${targetName}.`,
-    };
-  }
+    MessageApi.scene(giver)
+      .topic(MessageApi.Topics.world.perception.inventory)
+      .toSelf(Mml.compose`You drop ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} drops ${Mml.item(target)}.`)
+      .send();
 
+    return true;
+  }
 }

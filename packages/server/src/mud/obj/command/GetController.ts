@@ -1,89 +1,56 @@
 /**
- * GetController - Pick up objects from location
+ * GetController — pick up objects from the location.
  *
- * Syntax:
- * - get <target>    - Pick up a single object
- * - get <targets...> - Pick up multiple objects (all matching)
+ * Per item picked up, fires a Scene at `world.perception.inventory`
+ * with self ("You pick up X.") and peers ("<name>Alice</name> picks
+ * up X.") frames. Failure cases are reported via summary; the
+ * auto-emitted MudlogApi entry surfaces them on the actor.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
 
-/**
- * Input model for get command
- */
 export interface GetInput {
-  target?: Stuff;     // Single object
-  targets?: Stuff[];  // Multiple objects
+  target?: Stuff;
+  targets?: Stuff[];
 }
 
-/**
- * Output model for get command
- */
-export interface GetOutput {
-  text: string;
-}
-
-/**
- * GetController - Handles picking up objects
- */
-export class GetController extends CommandController<GetInput, GetOutput> {
-  execute(input: GetInput, context: CommandContext): CommandResult<GetOutput> {
-    // Determine if single or multiple targets
-    const targets: Stuff[] = input.targets || (input.target ? [input.target] : []);
+export class GetController extends CommandController<GetInput> {
+  execute(input: GetInput, context: CommandContext): CommandResult {
+    const targets: Stuff[] =
+      input.targets || (input.target ? [input.target] : []);
 
     if (targets.length === 0) {
-      return {
-        success: false,
-        error: 'Nothing to get.',
-      };
+      return { success: false, summary: 'nothing to get' };
     }
 
-    const results: string[] = [];
     let successCount = 0;
-
+    const lastNames: string[] = [];
     for (const target of targets) {
-      const result = this.pickUpObject(target, context);
-      if (result.success) {
+      if (this.pickUpObject(target, context)) {
         successCount++;
+        lastNames.push(DescribeApi.getDisplayName(target, 'something'));
       }
-      results.push(result.message);
     }
 
-    // Build output
-    const lines = ['', ...results, ''];
-
-    return {
-      success: successCount > 0,
-      output: {
-        text: lines.join('\n'),
-      },
-    };
+    if (successCount === 0) {
+      return { success: false, summary: 'nothing picked up' };
+    }
+    return { success: true, summary: lastNames.join(', ') };
   }
 
-  /**
-   * Pick up a single object
-   */
-  private pickUpObject(
-    target: Stuff,
-    context: CommandContext
-  ): { success: boolean; message: string } {
-    // Precondition: the mustBeContainable validator should have rejected
-    // non-Containable targets before we get here. The narrow is a contract,
-    // not a user-facing check — programmatic callers that bypass validation
-    // own the exception.
+  private pickUpObject(target: Stuff, context: CommandContext): boolean {
     if (!MixinApi.isContainable(target)) {
       throw new Error(
         `GetController: target ${target.stuffId} is not Containable`
       );
     }
-
-    // get requires an inventory — the giver must compose ContainerMixin.
-    // This is a contract narrow; YAML validators catch the user-facing cases.
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
       throw new Error(
@@ -91,32 +58,22 @@ export class GetController extends CommandController<GetInput, GetOutput> {
       );
     }
 
-    const targetName = DescribeApi.getDisplayName(target, 'something');
-
-    // Check if object is already in inventory
     const inventory = ContainmentApi.getContents(giver);
     if (inventory.some((item) => item.stuffId === target.stuffId)) {
-      return {
-        success: false,
-        message: `You are already carrying ${targetName}.`,
-      };
+      return false;
     }
-
-    // Check if object is in location
     const locationContents = ContainmentApi.getContents(context.location);
     if (!locationContents.some((item) => item.stuffId === target.stuffId)) {
-      return {
-        success: false,
-        message: `${targetName} is not here.`,
-      };
+      return false;
     }
-
     ContainmentApi.move(target, giver);
 
-    return {
-      success: true,
-      message: `You pick up ${targetName}.`,
-    };
-  }
+    MessageApi.scene(giver)
+      .topic(MessageApi.Topics.world.perception.inventory)
+      .toSelf(Mml.compose`You pick up ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(target)}.`)
+      .send();
 
+    return true;
+  }
 }

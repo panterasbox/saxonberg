@@ -15,7 +15,8 @@ import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { DescribeApi } from '../api/describe';
-import { Application } from '../../backend/Application';
+import { MessageApi } from '../api/message';
+import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
@@ -55,15 +56,20 @@ export class Login extends Idea {
 
     const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
     const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
-    avatar.teleport(startingRoom);
+    // Silent spawn: a freshly-cloned avatar shouldn't be announced as
+    // "vanishing" from somewhere or "appearing out of thin air"
+    // before the player has even seen the room.
+    avatar.teleport(startingRoom, { silent: true });
     console.log(
       `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
     );
 
-    const app = Application.get();
-    app.sendMessageToInteractive(interactive, {
-      type: 'connection_established',
-      payload: {
+    // Welcome scene: actor frame at system.connection.established
+    // carries the bootstrap payload the client needs.
+    MessageApi.scene(avatar)
+      .topic(MessageApi.Topics.system.connection.established)
+      .toSelf(Mml.compose`Welcome back, ${Mml.name(avatar)}!`)
+      .payload({
         userId: interactive.userId,
         socketId: interactive.socketId,
         sessionId: interactive.sessionId,
@@ -73,9 +79,8 @@ export class Login extends Idea {
           lastName: avatar.lastName,
           pronouns: avatar.pronouns,
         },
-        message: `Welcome back, ${avatar.fullName}!`,
-      },
-    });
+      })
+      .send();
 
     this.sendLookDescription(avatar);
 
@@ -84,26 +89,19 @@ export class Login extends Idea {
 
   private sendLookDescription(avatar: Avatar): void {
     const location = avatar.getEnvironment() as Location | null;
-    const app = Application.get();
 
     if (!location) {
-      app.sendMessageToInteractive(this.interactive, {
-        type: 'output',
-        payload: { text: 'You are nowhere.' },
-      });
+      MessageApi.scene(avatar)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You are nowhere.`)
+        .send();
       return;
     }
 
-    const output = [
-      `<location>${DescribeApi.getDisplayName(location, 'Somewhere')}</location>`,
-      '',
-      location.getLong(),
-      '',
-    ].join('\n');
-
-    app.sendMessageToInteractive(this.interactive, {
-      type: 'output',
-      payload: { text: output },
-    });
+    const body = Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(location.getLong())}\n`;
+    MessageApi.scene(avatar)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
   }
 }

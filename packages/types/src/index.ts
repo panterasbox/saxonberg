@@ -5,84 +5,46 @@
  */
 
 // ============================================================================
-// Message Protocol (Framework 2)
+// Message Frame (outbound wire envelope)
 // ============================================================================
 
 /**
- * Base structure for all WebSocket messages exchanged between client and server.
+ * Reference to a Stuff object suitable for transmission over the wire.
+ * Display names are pre-resolved server-side at compose time.
  */
-export interface WebSocketMessage {
-  /** Message type identifier (e.g., 'connection_established', 'echo', 'ping') */
-  type: string;
-  /** Message-specific data */
-  payload?: unknown;
-  /** Optional message ID for request/response pairing */
-  id?: string;
-  /** Optional error message if the message represents an error */
-  error?: string;
+export interface StuffRef {
+  stuffId: string;
+  displayName?: string;
 }
 
 /**
- * Message types for WebSocket communication.
+ * MudlogApi log level.
  */
-export enum MessageType {
-  /** Server → Client: Connection successfully established */
-  ConnectionEstablished = 'connection_established',
-  /** Bidirectional: Echo test message */
-  Echo = 'echo',
-  /** Client → Server: Heartbeat ping */
-  Ping = 'ping',
-  /** Server → Client: Heartbeat response */
-  Pong = 'pong',
-  /** Server → Client: Error notification */
-  Error = 'error',
-  /** Client → Server: User command input */
-  Command = 'command',
-  /** Server → Client: Command response/game output */
-  Output = 'output',
-}
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 /**
- * Payload for connection_established message.
+ * Outbound wire envelope. One per audience.
+ *
+ * - `topic` is mandatory and intrinsic ("what kind of message is this?").
+ * - `tags` are orthogonal flat properties (e.g. `audience:witness`).
+ * - `body` is always present (MML markup string).
+ * - `payload` is optional and typed per topic.
+ * - `meta.commandId` is set IFF the frame was composed during the
+ *   synchronous span of `executeCommand`.
+ * - `meta.causingCommandId` is set IFF the frame was composed inside
+ *   work descended from a command (sync or async-via-ScheduleApi).
  */
-export interface ConnectionEstablishedPayload {
-  /** User ID from database */
-  userId: string;
-  /** Socket ID for this connection */
-  socketId: string;
-  /** Session ID */
-  sessionId: string;
-  /** Player information */
-  player: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    pronouns: Pronouns;
+export interface MessageFrame<T = unknown> {
+  id: string;
+  topic: string;
+  tags?: string[];
+  body: string;
+  payload?: T;
+  meta: {
+    timestamp: number;
+    commandId?: string;
+    causingCommandId?: string;
   };
-  /** Welcome message */
-  message: string;
-}
-
-/**
- * Payload for echo message (test).
- */
-export interface EchoPayload {
-  /** The message to echo back */
-  message: string;
-  /** Timestamp when echo was sent */
-  timestamp: number;
-}
-
-/**
- * Payload for error message.
- */
-export interface ErrorPayload {
-  /** Error message */
-  message: string;
-  /** Error code (optional) */
-  code?: string;
-  /** Stack trace (development only) */
-  stack?: string;
 }
 
 // ============================================================================

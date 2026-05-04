@@ -11,8 +11,20 @@ import { create } from 'zustand';
 import type {
   AuthState,
   ConnectionState,
-  ConnectionEstablishedPayload,
+  Pronouns,
 } from '@saxonberg/types';
+
+interface ConnectionEstablishedPayload {
+  userId: string;
+  socketId: string;
+  sessionId: string;
+  player: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    pronouns: Pronouns;
+  };
+}
 
 /**
  * Combined store state.

@@ -1,97 +1,72 @@
 /**
- * LookController - Examine surroundings or specific objects
+ * LookController — examine surroundings or a specific object.
  *
- * Syntax:
- * - look          - Examine current location
- * - look <target> - Examine specific object (MQL resolution)
+ * Fires a Scene at `world.perception.look` with a single self frame
+ * carrying the location/target description body. No peer broadcast —
+ * looking is a private observation.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
+import { Mml } from '../../api/mml';
 import type { Exit } from '../../lib/spatial/Exit';
 
-/**
- * Input model for look command
- */
 export interface LookInput {
-  target?: Stuff; // Optional target object (resolved via MQL)
+  target?: Stuff;
 }
 
-/**
- * Output model for look command
- */
-export interface LookOutput {
-  text: string;
-}
-
-/**
- * LookController - Handles looking at location or objects
- */
-export class LookController extends CommandController<LookInput, LookOutput> {
-  execute(input: LookInput, context: CommandContext): CommandResult<LookOutput> {
+export class LookController extends CommandController<LookInput> {
+  execute(input: LookInput, context: CommandContext): CommandResult {
     if (input.target) {
-      // Look at specific target
       return this.lookAtTarget(input.target, context);
-    } else {
-      // Look at current location
-      return this.lookAtLocation(context);
     }
+    return this.lookAtLocation(context);
   }
 
-  /**
-   * Look at current location
-   */
-  private lookAtLocation(context: CommandContext): CommandResult<LookOutput> {
+  private lookAtLocation(context: CommandContext): CommandResult {
+    const actor = context.commandGiver;
     const location = context.location;
-
-    // Get location name and description
-    const locationName = DescribeApi.getDisplayName(location, 'Something');
     const description = this.getObjectDescription(location);
 
-    const lines: string[] = [
-      '',
-      `<location>${locationName}</location>`,
-      '',
-      description,
-    ];
+    let body = Mml.compose`\n${Mml.location(location)}\n\n${Mml.fromMarkup(description)}`;
 
     if (MixinApi.isExitable(location)) {
       const exitsLine = this.formatExits(location.getObviousExits());
       if (exitsLine) {
-        lines.push('');
-        lines.push(exitsLine);
+        body = Mml.compose`${body}\n\n${exitsLine}`;
       }
     }
 
-    lines.push('');
+    body = Mml.compose`${body}\n`;
+
+    MessageApi.scene(actor)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
 
     return {
       success: true,
-      output: { text: lines.join('\n') },
+      summary: `examined ${DescribeApi.getDisplayName(location, 'somewhere')}`,
     };
   }
 
-  /**
-   * Look at specific target object
-   */
-  private lookAtTarget(target: Stuff, _context: CommandContext): CommandResult<LookOutput> {
-    const targetName = DescribeApi.getDisplayName(target, 'Something');
+  private lookAtTarget(target: Stuff, context: CommandContext): CommandResult {
+    const actor = context.commandGiver;
     const description = this.getObjectDescription(target);
+    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(description)}\n`;
 
-    const text = [
-      '',
-      `<name>${targetName}</name>`,
-      '',
-      description,
-      '',
-    ].join('\n');
+    MessageApi.scene(actor)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
 
     return {
       success: true,
-      output: { text },
+      summary: `examined ${DescribeApi.getDisplayName(target, 'something')}`,
     };
   }
 
@@ -101,21 +76,21 @@ export class LookController extends CommandController<LookInput, LookOutput> {
   }
 
   /**
-   * Format the "Obvious exits" line. Each exit renders as its direction,
-   * optionally followed by ` (<door name>, open|closed)` when it has a door.
-   *
-   * Returns `''` when there are no obvious exits — caller suppresses the
-   * blank section in that case.
+   * Format the "Obvious exits" line as a single Mml fragment. Each
+   * exit renders as its direction, optionally followed by ` (<door
+   * name>, open|closed)` when it has a door. Returns null when there
+   * are no obvious exits.
    */
-  private formatExits(exits: Exit[]): string {
-    if (exits.length === 0) return '';
+  private formatExits(exits: Exit[]): Mml | null {
+    if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
-      const dir = `<direction>${exit.direction}</direction>`;
+      const dir = Mml.direction(exit.direction);
       if (!exit.door) return dir;
       const state = exit.door.isOpen ? 'open' : 'closed';
       const doorName = DescribeApi.getDisplayName(exit.door, 'door');
-      return `${dir} (${doorName}, ${state})`;
+      return Mml.compose`${dir} (${doorName}, ${state})`;
     });
-    return `<exits>Obvious exits: ${parts.join(', ')}.</exits>`;
+    const joined = Mml.list(parts);
+    return Mml.fromMarkup(`<exits>Obvious exits: ${joined.toString()}.</exits>`);
   }
 }

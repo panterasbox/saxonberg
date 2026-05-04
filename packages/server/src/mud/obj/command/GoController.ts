@@ -1,19 +1,9 @@
 /**
  * GoController — locomotion: traverse a named exit or enter a sibling vessel.
  *
- * Resolution order on the avatar's current location (`context.location`):
- *   1. As an exit name. `location.getExit(target)` covers the explicit map
- *      (named cardinals, semantic labels, vessel-synthesized `'out'`) and
- *      zone-derived cartesian exits.
- *   2. As an object keyword. Hand `target` to `MqlApi.resolve()` — same path
- *      as any other object-targeting command. If the resolved object is an
- *      `ExitableVessel`, enter it via `getEntryExit()`.
- *   3. Otherwise → "You can't go that way."
- *
- * Direction aliases (`n` → `north`, etc.) are intentionally NOT handled here.
- * Verb-level aliasing will be a separate subsystem. Likewise, multi-match
- * "which one do you mean?" disambiguation will be a command-framework
- * concern shared by every MQL-using controller — NOT local to this one.
+ * Stage 7a: shape-only update. Mover.traverse / announceArrival /
+ * announceDeparture handle prose in Stage 9; the controller just
+ * narrows + dispatches and returns the semantic outcome.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -31,29 +21,22 @@ export interface GoInput {
   target?: string;
 }
 
-export interface GoOutput {
-  text: string;
-}
-
-export class GoController extends CommandController<GoInput, GoOutput> {
-  execute(input: GoInput, context: CommandContext): CommandResult<GoOutput> {
+export class GoController extends CommandController<GoInput> {
+  execute(input: GoInput, context: CommandContext): CommandResult {
     const { location } = context;
 
     const target = input.target?.trim().toLowerCase();
     if (!target) {
-      return { success: false, error: 'Go where?' };
+      return { success: false, summary: 'go where?' };
     }
 
-    // Locomotion requires a Containable + Mobile mover. Narrow the giver up
-    // front so the traversal path is type-safe and we reject disembodied /
-    // non-mobile givers cleanly.
     const mover = context.commandGiver;
     if (!MixinApi.isContainable(mover) || !MixinApi.isMobile(mover)) {
-      return { success: false, error: "You can't move." };
+      return { success: false, summary: "can't move" };
     }
 
     if (!MixinApi.isExitable(location)) {
-      return { success: false, error: "You can't go anywhere from here." };
+      return { success: false, summary: "can't go anywhere from here" };
     }
 
     const namedExit = location.getExit(target);
@@ -71,24 +54,24 @@ export class GoController extends CommandController<GoInput, GoOutput> {
       if (entry) return this.traverse(entry, mover);
     }
 
-    return { success: false, error: "You can't go that way." };
+    return { success: false, summary: "can't go that way" };
   }
 
   private traverse(
     exit: Exit,
     mover: Stuff & Containable & Mobile
-  ): CommandResult<GoOutput> {
+  ): CommandResult {
     const guard = exit.canTraverse(mover);
     if (!guard.ok) {
-      return { success: false, error: guard.reason ?? "You can't go that way." };
+      return {
+        success: false,
+        summary: guard.reason ?? "can't go that way",
+      };
     }
 
     mover.traverse(exit);
 
     const destName = DescribeApi.getDisplayName(exit.destination, 'somewhere new');
-    return {
-      success: true,
-      output: { text: `<location>${destName}</location>` },
-    };
+    return { success: true, summary: `to ${destName}` };
   }
 }

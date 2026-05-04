@@ -23,15 +23,13 @@ const FakeAvatarBase = NamedMixin(
 );
 class FakeAvatar extends FakeAvatarBase {
   received: unknown[] = [];
-  onMessage(msg: unknown): void {
-    super.onMessage(msg);
+  protected override handleMessage(msg: unknown): void {
     this.received.push(msg);
   }
 }
 class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Stuff))) {
   received: unknown[] = [];
-  onMessage(msg: unknown): void {
-    super.onMessage(msg);
+  protected override handleMessage(msg: unknown): void {
     this.received.push(msg);
   }
 }
@@ -47,6 +45,7 @@ function makeContext(
     location,
     commandText,
     executionId: 'test-execution',
+    commandId: 'test-command-id',
   };
 }
 
@@ -88,8 +87,8 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomA, 'go north')
     );
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/closed/i);
-    expect(result.error).toContain('heavy oak door');
+    expect(result.summary).toMatch(/closed/i);
+    expect(result.summary).toContain('heavy oak door');
   });
 
   it('open <keyword> resolves via MQL and opens the door', () => {
@@ -100,14 +99,18 @@ describe('OpenController / CloseController / doors integration', () => {
     );
     expect(result.success).toBe(true);
     expect(door.isOpen).toBe(true);
-    expect((result.output as { text: string }).text).toContain('open the heavy oak door');
+    expect(result.summary).toContain('heavy oak door');
 
     const peerText = JSON.stringify(peerInA.received);
     expect(peerText).toContain('Alice');
-    expect(peerText).toContain('opens the heavy oak door');
+    expect(peerText).toContain('opens');
+    expect(peerText).toContain('heavy oak door');
 
-    // Mover is excluded.
-    expect(avatar.received.length).toBe(0);
+    // Mover gets a self frame ("You open ..."), not the peer broadcast
+    // (which names the mover).
+    const moverFrames = avatar.received as Array<{ body?: string }>;
+    expect(moverFrames.length).toBe(1);
+    expect(moverFrames[0]!.body).toContain('You open');
   });
 
   it('already-open door returns a friendly error', () => {
@@ -118,7 +121,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomA, 'open the oak door')
     );
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/already open/i);
+    expect(result.summary).toMatch(/already open/i);
   });
 
   it('no sealable matching the name: clear error', () => {
@@ -128,7 +131,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomA, 'open bathtub')
     );
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/don't see/i);
+    expect(result.summary).toMatch(/don't see/i);
   });
 
   it('go north succeeds after opening; close from destination closes same door', () => {
@@ -156,7 +159,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomB, 'go south')
     );
     expect(goBack.success).toBe(false);
-    expect(goBack.error).toMatch(/closed|way/i);
+    expect(goBack.summary).toMatch(/closed|way/i);
   });
 
   it('already-closed door on close returns friendly error', () => {
@@ -166,6 +169,6 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomA, 'close the oak door')
     );
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/already closed/i);
+    expect(result.summary).toMatch(/already closed/i);
   });
 });

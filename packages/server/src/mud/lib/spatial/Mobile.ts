@@ -1,25 +1,33 @@
 /**
- * MobileMixin - Locomotion for creatures and vehicles.
+ * MobileMixin — locomotion for creatures and vehicles.
  *
- * Provides two locomotion primitives:
+ * Mobile owns movement messaging. The mover composes the Scene at
+ * `world.narration.movement` (when an Exit is in hand) or
+ * `world.narration.teleport` (no exit). Scene.send() auto-stamps
+ * `commandId` / `causingCommandId` from the active ExecutionContext,
+ * so a `go north` command and any aftermath the mover triggers all
+ * carry the same attribution.
  *
- * - `traverse(exit)` — movement THROUGH an `Exit`. Announces departure at
- *   the exit's source, calls `ContainmentApi.move()` to update containment,
- *   announces arrival at the destination. This is the path `go` takes.
- *   Contract: the caller has already validated the traversal with
- *   `exit.canTraverse(this)` — `traverse()` does not re-check. That matches
- *   how `Exit.canTraverse()` is documented: scripted / inter-server / admin
- *   movement can bypass the gate on purpose.
+ * Optional override hooks let game content tailor the message bodies
+ * without rewriting the full announcement:
  *
- * - `teleport(destination)` — silent instant movement to a container.
- *   No exit, no messaging. Used for login spawning, admin placement, and
- *   anything else that needs to put the mover somewhere without narrating
- *   it.
+ *   - `Exit.messageOut` / `Exit.messageIn` (string with `{mover}` sub) —
+ *     simplest path, preserves Phase 7's custom-message strings.
+ *   - `Exitable.getDepartureMessage?(mover, exit)` /
+ *     `Exitable.getArrivalMessage?(mover, exit)` returning
+ *     `{ self?, peers? }` — fine-grained, per-room overrides.
+ *   - `Container.getTeleportOutMessage?(mover)` /
+ *     `Container.getTeleportInMessage?(mover)` returning
+ *     `{ self?, peers? }` — used when there is no Exit (teleport, admin
+ *     placement).
  *
- * Base-class constraint: the Base must already produce `Stuff & Containable`
- * instances. A mobile thing that cannot be contained is nonsensical — there
- * is nothing for `ContainmentApi.move()` to update. Composing MobileMixin
- * onto a Base that hasn't been through ContainableMixin is a compile error.
+ * Resolution precedence: messageOut/messageIn → room hook → Mobile
+ * defaults. Anything missing in a hook's return falls back to Mobile's
+ * default for that audience.
+ *
+ * Base-class constraint: the Base must already produce
+ * `Stuff & Containable` instances. A mobile thing that cannot be
+ * contained is nonsensical.
  */
 
 import type { MixinConstructor } from '../mixin-types';
@@ -30,48 +38,63 @@ import type { Exit } from './Exit';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
-import { DescribeApi } from '../../api/describe';
 import { NavigationApi } from '../../api/navigation';
+import { Mml } from '../../api/mml';
 
 /**
  * Public shape provided by MobileMixin.
  */
 export interface Mobile {
   traverse(exit: Exit): void;
-  teleport(destination: Stuff & Container): void;
+  teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
+  announceDeparture(from: Stuff & Container, exit?: Exit): void;
+  announceArrival(to: Stuff & Container, exit?: Exit): void;
 }
 
 /**
- * Fallback broadcast for traversals whose endpoint isn't an `Exitable` —
- * covered for completeness; in practice every Exit endpoint is Exitable.
+ * Options for `teleport`. Default is to narrate; pass `silent: true`
+ * for paths that intentionally suppress narration (login spawn, admin
+ * placement).
  */
-function broadcastRawMovement(
-  mover: Stuff & Containable,
-  container: Stuff & Container,
-  customMessage: string | null,
-  fallbackTail: () => string
-): void {
-  const moverName = DescribeApi.getDisplayName(mover, 'Someone');
-  const text =
-    customMessage !== null
-      ? customMessage.replace(/\{mover\}/g, moverName)
-      : `<name>${moverName}</name> ${fallbackTail()}`;
-  MessageApi.messageContents(
-    container,
-    { type: 'output', payload: { text } },
-    { exclude: mover }
-  );
+export interface TeleportOptions {
+  silent?: boolean;
+}
+
+/**
+ * Bodies returned by movement-message resolution. Either or both may
+ * be absent — Mobile fills in defaults for any audience the resolver
+ * skipped.
+ */
+export interface MovementBodies {
+  self?: Mml;
+  peers?: Mml;
+}
+
+/**
+ * Optional hook on a source/destination room. Implementations decide
+ * how to render movement for that specific space. Anything they don't
+ * supply gets Mobile's default.
+ */
+export interface MovementHookProvider {
+  getDepartureMessage?(mover: Stuff, exit: Exit): MovementBodies;
+  getArrivalMessage?(mover: Stuff, exit: Exit): MovementBodies;
+  getTeleportOutMessage?(mover: Stuff): MovementBodies;
+  getTeleportInMessage?(mover: Stuff): MovementBodies;
+}
+
+function applyMoverSubstitution(template: string, moverName: string): string {
+  return template.replace(/\{mover\}/g, moverName);
 }
 
 export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>(Base: TBase) {
   return class MobileMixin extends Base {
-    // Mixin marker for detection by MixinApi
     static _mixinName = 'MobileMixin';
 
     /**
-     * Commands the mover itself supplies — locomotion and door interaction.
-     * Anything with MobileMixin (Avatar today; NPCs, vehicles in future)
-     * automatically gains `go`, `open`, and `close`.
+     * Commands the mover itself supplies — locomotion and door
+     * interaction. Anything with MobileMixin (Avatar today; NPCs,
+     * vehicles in future) automatically gains `go`, `open`, and
+     * `close`.
      */
     static commandProvider = {
       self: ['go.yaml', 'open.yaml', 'close.yaml'],
@@ -81,55 +104,227 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     };
 
     /**
-     * Traverse an `Exit`: announce departure at source, move, announce
-     * arrival at destination. Mover is excluded from both broadcasts.
+     * Traverse an `Exit`. Announce departure at source (mover still
+     * there), move, announce arrival at destination (mover now there).
      *
-     * By construction every `Exit` endpoint is an `Exitable` (rooms and
-     * vessels), so announce/arrive always flow through `ExitableMixin`'s
-     * helpers. If a caller ever hands us a non-Exitable endpoint we fall
-     * through to raw `MessageApi.messageContents()` with the exit's
-     * `messageOut`/`messageIn` rather than dropping the broadcast.
-     *
-     * The `this: Stuff & Containable` parameter turns the mixin's base
-     * constraint into in-body narrowing — no `as unknown as` hop is needed
-     * to hand `this` to APIs that want a Containable mover.
+     * The contract from Phase 7 stands: the caller has already
+     * validated traversal via `exit.canTraverse(this)` — `traverse()`
+     * does not re-check.
      */
-    traverse(this: Stuff & Containable, exit: Exit): void {
-      if (MixinApi.isExitable(exit.source)) {
-        exit.source.announceDeparture(this, {
-          direction: exit.direction,
-          message: exit.messageOut,
-        });
-      } else {
-        broadcastRawMovement(this, exit.source, exit.messageOut, () =>
-          `leaves to the <direction>${exit.direction}</direction>.`
-        );
+    traverse(exit: Exit): void {
+      this.announceDeparture(exit.source, exit);
+      ContainmentApi.move(this as unknown as Stuff & Containable, exit.destination);
+      this.announceArrival(exit.destination, exit);
+    }
+
+    /**
+     * Instantly move to a container. Default: narrate departure (if
+     * the mover had a previous environment) and arrival. Pass
+     * `{ silent: true }` to suppress both.
+     *
+     * `silent: true` is what Login spawning uses — newly-cloned
+     * avatars shouldn't be announced as "vanishing" from nowhere or
+     * "appearing out of thin air" before a player has even seen the
+     * room.
+     */
+    teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
+      const silent = opts?.silent ?? false;
+      const previous = (this as unknown as Containable).getEnvironment();
+      if (!silent && previous) {
+        this.announceDeparture(previous, undefined);
       }
-
-      ContainmentApi.move(this, exit.destination);
-
-      const fromDirection = NavigationApi.invertDirection(exit.direction);
-      if (MixinApi.isExitable(exit.destination)) {
-        exit.destination.announceArrival(this, {
-          direction: fromDirection,
-          message: exit.messageIn,
-        });
-      } else {
-        broadcastRawMovement(this, exit.destination, exit.messageIn, () =>
-          fromDirection
-            ? `arrives from the <direction>${fromDirection}</direction>.`
-            : `arrives.`
-        );
+      ContainmentApi.move(this as unknown as Stuff & Containable, destination);
+      if (!silent) {
+        this.announceArrival(destination, undefined);
       }
     }
 
     /**
-     * Instantly move to a container. No exit, no messaging. Used for
-     * login spawning, admin placement, and anything else that should not
-     * be narrated.
+     * Compose and dispatch the departure scene. Mover is the Scene
+     * actor; `from` is mover's current environment for the duration
+     * of this call.
      */
-    teleport(this: Stuff & Containable, destination: Stuff & Container): void {
-      ContainmentApi.move(this, destination);
+    announceDeparture(from: Stuff & Container, exit?: Exit): void {
+      const bodies = this.resolveDepartureMessage(from, exit);
+      this.dispatchMovementScene(bodies, exit);
+    }
+
+    /**
+     * Compose and dispatch the arrival scene. Mover has just been
+     * moved into `to` — its environment is now `to`.
+     */
+    announceArrival(to: Stuff & Container, exit?: Exit): void {
+      const bodies = this.resolveArrivalMessage(to, exit);
+      this.dispatchMovementScene(bodies, exit);
+    }
+
+    /**
+     * Departure-message resolver. Override in subclasses to change
+     * the precedence chain or inject defaults; per-room overrides
+     * should go on the room via `getDepartureMessage`.
+     */
+    protected resolveDepartureMessage(
+      from: Stuff & Container,
+      exit?: Exit
+    ): MovementBodies {
+      const self = this as unknown as Stuff;
+      const moverName = MessageApi.refOf(self).displayName ?? 'Someone';
+
+      // 1. Custom messageOut on the Exit.
+      if (exit?.messageOut) {
+        const text = applyMoverSubstitution(exit.messageOut, moverName);
+        const fragment = Mml.fromMarkup(text);
+        return { self: fragment, peers: fragment };
+      }
+
+      // 2. Per-room hook with an Exit in hand.
+      const fromHook = (from as MovementHookProvider).getDepartureMessage;
+      if (exit && typeof fromHook === 'function') {
+        const result = fromHook.call(from, self, exit);
+        return {
+          self: result.self ?? this.defaultDepartureSelf(exit),
+          peers: result.peers ?? this.defaultDeparturePeers(exit),
+        };
+      }
+
+      // 3. Per-room hook for a teleport-out (no Exit).
+      const teleportHook = (from as MovementHookProvider).getTeleportOutMessage;
+      if (!exit && typeof teleportHook === 'function') {
+        const result = teleportHook.call(from, self);
+        return {
+          self: result.self ?? this.defaultTeleportOutSelf(),
+          peers: result.peers ?? this.defaultTeleportOutPeers(),
+        };
+      }
+
+      // 4. Mobile defaults.
+      return {
+        self: exit
+          ? this.defaultDepartureSelf(exit)
+          : this.defaultTeleportOutSelf(),
+        peers: exit
+          ? this.defaultDeparturePeers(exit)
+          : this.defaultTeleportOutPeers(),
+      };
+    }
+
+    /**
+     * Arrival-message resolver. Mirrors `resolveDepartureMessage`.
+     */
+    protected resolveArrivalMessage(
+      to: Stuff & Container,
+      exit?: Exit
+    ): MovementBodies {
+      const self = this as unknown as Stuff;
+      const moverName = MessageApi.refOf(self).displayName ?? 'Someone';
+
+      if (exit?.messageIn) {
+        const text = applyMoverSubstitution(exit.messageIn, moverName);
+        const fragment = Mml.fromMarkup(text);
+        return { self: fragment, peers: fragment };
+      }
+
+      const toHook = (to as MovementHookProvider).getArrivalMessage;
+      if (exit && typeof toHook === 'function') {
+        const result = toHook.call(to, self, exit);
+        return {
+          self: result.self ?? this.defaultArrivalSelf(exit),
+          peers: result.peers ?? this.defaultArrivalPeers(exit),
+        };
+      }
+
+      const teleportHook = (to as MovementHookProvider).getTeleportInMessage;
+      if (!exit && typeof teleportHook === 'function') {
+        const result = teleportHook.call(to, self);
+        return {
+          self: result.self ?? this.defaultTeleportInSelf(),
+          peers: result.peers ?? this.defaultTeleportInPeers(),
+        };
+      }
+
+      return {
+        self: exit
+          ? this.defaultArrivalSelf(exit)
+          : this.defaultTeleportInSelf(),
+        peers: exit
+          ? this.defaultArrivalPeers(exit)
+          : this.defaultTeleportInPeers(),
+      };
+    }
+
+    /**
+     * Build the Scene at the right topic and dispatch self + peers
+     * frames. Mobile is constrained to Containable bases, so toPeers
+     * is always the right broadcast scope (see Vessel rule §7.3 —
+     * Containable wins).
+     */
+    protected dispatchMovementScene(
+      bodies: MovementBodies,
+      exit?: Exit
+    ): void {
+      const self = this as unknown as Stuff;
+      const topic = exit
+        ? MessageApi.Topics.world.narration.movement
+        : MessageApi.Topics.world.narration.teleport;
+      const scene = MessageApi.scene(self).topic(topic);
+
+      // toSelf only when the mover is actually a Sensor — a future
+      // vehicle that carries passengers might not be.
+      if (MixinApi.isSensor(self) && bodies.self) {
+        scene.toSelf(bodies.self);
+      }
+      if (bodies.peers) {
+        scene.toPeers(bodies.peers);
+      }
+      scene.send();
+    }
+
+    // ───────── Default body factories ─────────
+
+    protected defaultDepartureSelf(exit: Exit): Mml {
+      return Mml.compose`You leave to the ${Mml.direction(exit.direction)}.`;
+    }
+
+    protected defaultDeparturePeers(exit: Exit): Mml {
+      const self = this as unknown as Stuff;
+      return Mml.compose`${Mml.name(self)} leaves to the ${Mml.direction(exit.direction)}.`;
+    }
+
+    protected defaultArrivalSelf(exit: Exit): Mml {
+      const fromDir =
+        exit.inverse?.direction ?? NavigationApi.invertDirection(exit.direction);
+      if (fromDir) {
+        return Mml.compose`You arrive from the ${Mml.direction(fromDir)}.`;
+      }
+      return Mml.compose`You arrive.`;
+    }
+
+    protected defaultArrivalPeers(exit: Exit): Mml {
+      const self = this as unknown as Stuff;
+      const fromDir =
+        exit.inverse?.direction ?? NavigationApi.invertDirection(exit.direction);
+      if (fromDir) {
+        return Mml.compose`${Mml.name(self)} arrives from the ${Mml.direction(fromDir)}.`;
+      }
+      return Mml.compose`${Mml.name(self)} arrives.`;
+    }
+
+    protected defaultTeleportOutSelf(): Mml {
+      return Mml.compose`The world dissolves around you.`;
+    }
+
+    protected defaultTeleportOutPeers(): Mml {
+      const self = this as unknown as Stuff;
+      return Mml.compose`${Mml.name(self)} vanishes.`;
+    }
+
+    protected defaultTeleportInSelf(): Mml {
+      return Mml.compose`You materialize.`;
+    }
+
+    protected defaultTeleportInPeers(): Mml {
+      const self = this as unknown as Stuff;
+      return Mml.compose`${Mml.name(self)} appears out of nowhere.`;
     }
   };
 }

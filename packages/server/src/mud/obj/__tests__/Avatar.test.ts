@@ -15,6 +15,7 @@ import { Interactive } from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import type { MessageFrame } from '@saxonberg/types';
 
 function makeUser(id: string): User {
   const user = new User();
@@ -26,6 +27,15 @@ function makeAvatar(playerId: string): Avatar {
   const a = makeStuff(() => new Avatar());
   a.playerId = playerId;
   return a;
+}
+
+function makeFrame(topic: string, body: string = ''): MessageFrame {
+  return {
+    id: 'test-id',
+    topic,
+    body,
+    meta: { timestamp: Date.now() },
+  };
 }
 
 describe('Avatar', () => {
@@ -356,10 +366,7 @@ describe('Avatar', () => {
       avatar.addInteractive(interactive1);
       avatar.addInteractive(interactive2);
 
-      const message = {
-        type: 'output',
-        payload: { text: 'Test message' },
-      };
+      const message = makeFrame('world.perception.look', 'Test message');
 
       avatar.onMessage(message);
 
@@ -377,7 +384,7 @@ describe('Avatar', () => {
     it('should handle single Interactive', () => {
       avatar.addInteractive(interactive1);
 
-      const message = { type: 'test' };
+      const message = makeFrame('test');
 
       avatar.onMessage(message);
 
@@ -389,7 +396,7 @@ describe('Avatar', () => {
     });
 
     it('should handle no Interactives gracefully', () => {
-      const message = { type: 'test' };
+      const message = makeFrame('test');
 
       // Should not throw
       expect(() => avatar.onMessage(message)).not.toThrow();
@@ -405,7 +412,7 @@ describe('Avatar', () => {
       avatar.addInteractive(laptop);
       avatar.addInteractive(phone);
 
-      const message = { type: 'output', payload: { text: 'Hello' } };
+      const message = makeFrame('world.perception.look', 'Hello');
 
       avatar.onMessage(message);
 
@@ -423,8 +430,8 @@ describe('Avatar', () => {
     it('should work with different message types', () => {
       avatar.addInteractive(interactive1);
 
-      const outputMsg = { type: 'output', payload: { text: 'Text' } };
-      const errorMsg = { type: 'error', payload: { message: 'Error' } };
+      const outputMsg = makeFrame('world.perception.look', 'Text');
+      const errorMsg = makeFrame('system.log.command.warn', 'Error');
 
       avatar.onMessage(outputMsg);
       avatar.onMessage(errorMsg);

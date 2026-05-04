@@ -1,62 +1,44 @@
 /**
- * InventoryController - List items in avatar's inventory
+ * InventoryController — list items the giver is carrying.
  *
- * Syntax:
- * - inventory - Show all items being carried
+ * Fires a Scene at `world.perception.inventory` with a single self
+ * frame.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import { ContainmentApi } from '../../api/containment';
-import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
-/**
- * Input model for inventory command (no parameters)
- */
 export interface InventoryInput {}
 
-/**
- * Output model for inventory command
- */
-export interface InventoryOutput {
-  text: string;
-}
-
-/**
- * InventoryController - Handles inventory listing
- */
-export class InventoryController extends CommandController<InventoryInput, InventoryOutput> {
-  execute(input: InventoryInput, context: CommandContext): CommandResult<InventoryOutput> {
-    const giver = context.commandGiver;
-    if (!MixinApi.isContainer(giver)) {
-      return { success: false, error: 'You have no inventory.' };
+export class InventoryController extends CommandController<InventoryInput> {
+  execute(_input: InventoryInput, context: CommandContext): CommandResult {
+    const actor = context.commandGiver;
+    if (!MixinApi.isContainer(actor)) {
+      return { success: false, summary: 'no inventory' };
     }
-    const contents = ContainmentApi.getContents(giver);
+    const contents = ContainmentApi.getContents(actor);
 
+    let body: Mml;
     if (contents.length === 0) {
-      return {
-        success: true,
-        output: {
-          text: '\nYou are not carrying anything.\n',
-        },
-      };
+      body = Mml.compose`\nYou are not carrying anything.\n`;
+    } else {
+      const items = contents.map((item) => Mml.item(item));
+      const list = Mml.list(items);
+      body = Mml.compose`\nYou are carrying: ${list}.\n`;
     }
 
-    // Build inventory list
-    const lines = ['', 'You are carrying:'];
-
-    for (const item of contents) {
-      lines.push(`  ${DescribeApi.getDisplayName(item, 'Something')}`);
-    }
-
-    lines.push('');
+    MessageApi.scene(actor)
+      .topic(MessageApi.Topics.world.perception.inventory)
+      .toSelf(body)
+      .send();
 
     return {
       success: true,
-      output: {
-        text: lines.join('\n'),
-      },
+      summary: `carrying ${contents.length} items`,
     };
   }
 }

@@ -19,10 +19,9 @@ import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Door } from './Door';
+import type { MovementBodies } from './Mobile';
 import { Exit } from './Exit';
 import { CartesianZone } from './CartesianZone';
-import { MessageApi } from '../../api/message';
-import { DescribeApi } from '../../api/describe';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 
@@ -31,6 +30,11 @@ import { StuffApi } from '../../api/stuff';
  *
  * `zone` is NOT declared here — it lives on `Stuff` base universally.
  * Exitable just reads `this.zone` when deriving cartesian exits.
+ *
+ * Movement messaging now lives on MobileMixin (the mover composes the
+ * Scene). Exitable provides OPTIONAL hook methods that a specific
+ * room may implement to override the bodies; default impls are
+ * absent. See MobileMixin's `MovementHookProvider` for the shape.
  */
 export interface Exitable {
   exits: Map<string, Exit>;
@@ -45,25 +49,20 @@ export interface Exitable {
     direction: string,
     opts?: BidirectionalExitOptions
   ): void;
-  announceDeparture(mover: Stuff, opts?: MovementAnnouncement): void;
-  announceArrival(mover: Stuff, opts?: MovementAnnouncement): void;
-}
 
-/**
- * Options for `announceArrival` / `announceDeparture`.
- *
- * `direction` is the direction the mover went (for departures) or came
- * from (for arrivals) — normalized cardinals render as `"leaves to the
- * <direction>"` / `"arrives from the <direction>"`; non-cardinals and
- * `undefined` degrade gracefully.
- *
- * `message` lets a caller (typically an `Exit` with custom `messageIn`/
- * `messageOut`) supply the raw broadcast text, bypassing default formatting.
- * `{mover}` is interpolated to the mover's display name.
- */
-export interface MovementAnnouncement {
-  direction?: string;
-  message?: string | null;
+  /**
+   * Optional override for the bodies a Mover broadcasts when leaving
+   * this room through `exit`. Anything the implementation omits falls
+   * back to MobileMixin's default for that audience.
+   */
+  getDepartureMessage?(mover: Stuff, exit: Exit): MovementBodies;
+
+  /**
+   * Optional override for the bodies a Mover broadcasts when arriving
+   * in this room through `exit`. Anything the implementation omits
+   * falls back to MobileMixin's default.
+   */
+  getArrivalMessage?(mover: Stuff, exit: Exit): MovementBodies;
 }
 
 /**
@@ -219,68 +218,16 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageIn: opts.messageInBack ?? null,
         messageOut: opts.messageOutBack ?? null,
       }));
+      // Wire each side's `inverse` pointer to the other so MobileMixin
+      // can reach `exit.inverse?.direction` when announcing arrival
+      // without a separate cross-room lookup. One-way exits (a single
+      // `addExit`) leave inverse undefined; vessel-synthesized `'out'`
+      // exits also leave it undefined.
+      forward.inverse = back;
+      back.inverse = forward;
+
       this.addExit(forward);
       other.addExit(back);
-    }
-
-    /**
-     * Announce that `mover` has just left this Exitable. Broadcasts to every
-     * sensor inside EXCEPT the mover.
-     *
-     * `MobileMixin.traverse()` calls this after a successful `canTraverse()`.
-     * Teleport-style departures (no Exit, e.g. admin commands) may call it
-     * directly with a synthesized message.
-     */
-    announceDeparture(
-      this: Stuff & Container,
-      mover: Stuff,
-      opts: MovementAnnouncement = {}
-    ): void {
-      const moverName = DescribeApi.getDisplayName(mover, 'Someone');
-      const text =
-        opts.message != null
-          ? opts.message.replace(/\{mover\}/g, moverName)
-          : !opts.direction
-            ? `<name>${moverName}</name> leaves.`
-            : `<name>${moverName}</name> leaves to the <direction>${opts.direction}</direction>.`;
-      MessageApi.messageContents(
-        this,
-        { type: 'output', payload: { text } },
-        { exclude: mover }
-      );
-    }
-
-    /**
-     * Announce that `mover` has just arrived in this Exitable. Broadcasts to
-     * every sensor inside EXCEPT the mover.
-     *
-     * `opts.direction` is the direction the mover *came from* (i.e., the
-     * inverse of the exit they traversed). When it isn't a recognizable
-     * cardinal, the message degrades to "Alice arrives." — used for
-     * teleports and non-cardinal semantic exits.
-     */
-    announceArrival(
-      this: Stuff & Container,
-      mover: Stuff,
-      opts: MovementAnnouncement = {}
-    ): void {
-      const moverName = DescribeApi.getDisplayName(mover, 'Someone');
-      let text: string;
-      if (opts.message != null) {
-        text = opts.message.replace(/\{mover\}/g, moverName);
-      } else {
-        const cardinal = opts.direction
-          ? NavigationApi.normalizeDirection(opts.direction)
-          : undefined;
-        text = cardinal
-          ? `<name>${moverName}</name> arrives from the <direction>${cardinal}</direction>.`
-          : `<name>${moverName}</name> arrives.`;
-      }
-      MessageApi.messageContents(
-        this,
-        { type: 'output', payload: { text } },
-        { exclude: mover }
-      );
     }
   };
 }
