@@ -29,6 +29,32 @@ function makeOwner(): OwnerStuff {
   return owner;
 }
 
+// Stuff that invokes mask operations on another Stuff. Used to exercise
+// the call-stack-based owner default — the proxy frame pushed for these
+// methods makes `caller` resolve to the MaskApplier instance.
+class MaskApplier extends Stuff {
+  applyAddFive(target: PropertiedThing): boolean {
+    return target.maskProp(
+      new Property<number>('strength'),
+      (_p, v) => (v ?? 0) + 5,
+    );
+  }
+  applyWithExtras(target: PropertiedThing, n: number): boolean {
+    return target.maskProp(
+      new Property<number>('strength'),
+      (_p, v, ...e) => (v ?? 0) + (e[0] as number),
+      undefined,
+      n,
+    );
+  }
+  remove(target: PropertiedThing): boolean {
+    return target.unmaskProp(new Property<number>('strength'));
+  }
+  isMasking(target: PropertiedThing): boolean {
+    return target.isMaskingProp(new Property<number>('strength'));
+  }
+}
+
 describe('PropertiedMixin', () => {
   let obj: PropertiedThing;
 
@@ -1034,6 +1060,85 @@ describe('PropertiedMixin', () => {
       obj.maskProp(new Property<number>('stat'), mask, makeOwner());
 
       expect(obj.getProp(new Property<number>('stat'))).toBe(20);
+    });
+  });
+
+  describe('Mask owner defaults to nearest Stuff caller', () => {
+    beforeEach(() => {
+      obj.initProp(new Property<number>('strength'));
+      obj.setProp(new Property<number>('strength'), 10);
+    });
+
+    it('attributes mask to the calling Stuff when owner is omitted', () => {
+      const applier = makeStuff(() => new MaskApplier());
+      const success = applier.applyAddFive(obj);
+
+      expect(success).toBe(true);
+      expect(obj.getProp(new Property<number>('strength'))).toBe(15);
+      // Identity check: the mask is owned by the applier, not by obj or some sentinel
+      expect(obj.isMaskingProp(new Property<number>('strength'), applier)).toBe(
+        true,
+      );
+    });
+
+    it('symmetric unmask works without explicit owner', () => {
+      const applier = makeStuff(() => new MaskApplier());
+      applier.applyAddFive(obj);
+      expect(obj.getProp(new Property<number>('strength'))).toBe(15);
+
+      const removed = applier.remove(obj);
+      expect(removed).toBe(true);
+      expect(obj.getProp(new Property<number>('strength'))).toBe(10);
+    });
+
+    it('isMaskingProp without owner reports the calling Stuff', () => {
+      const applier = makeStuff(() => new MaskApplier());
+      expect(applier.isMasking(obj)).toBe(false);
+
+      applier.applyAddFive(obj);
+      expect(applier.isMasking(obj)).toBe(true);
+    });
+
+    it('keeps masks from different callers separate', () => {
+      const a = makeStuff(() => new MaskApplier());
+      const b = makeStuff(() => new MaskApplier());
+
+      a.applyAddFive(obj);
+      b.applyAddFive(obj);
+
+      // Two distinct masks both registered (each owner contributes +5)
+      expect(obj.getProp(new Property<number>('strength'))).toBe(20);
+
+      // a removes only its own
+      a.remove(obj);
+      expect(obj.getProp(new Property<number>('strength'))).toBe(15);
+      expect(obj.isMaskingProp(new Property<number>('strength'), a)).toBe(
+        false,
+      );
+      expect(obj.isMaskingProp(new Property<number>('strength'), b)).toBe(true);
+    });
+
+    it('forwards extra arguments through the auto-resolved call', () => {
+      const applier = makeStuff(() => new MaskApplier());
+      applier.applyWithExtras(obj, 7);
+
+      expect(obj.getProp(new Property<number>('strength'))).toBe(17);
+    });
+
+    it('throws when called from outside any Stuff method', () => {
+      // Calling maskProp directly from the test (no Stuff caller in the
+      // proxy-pushed frame's `caller` slot) should fail loud.
+      expect(() =>
+        obj.maskProp(new Property<number>('strength'), (_p, v) => (v ?? 0) + 1),
+      ).toThrow(/owner omitted and no Stuff is on the call stack/);
+
+      expect(() =>
+        obj.unmaskProp(new Property<number>('strength')),
+      ).toThrow(/owner omitted and no Stuff is on the call stack/);
+
+      expect(() =>
+        obj.isMaskingProp(new Property<number>('strength')),
+      ).toThrow(/owner omitted and no Stuff is on the call stack/);
     });
   });
 

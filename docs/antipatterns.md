@@ -352,6 +352,59 @@ Setter-on-field handles per-field shape invariants. Cross-field rules
 live on a single setter — that's the real use case for a `Hydrator`
 subclass with overridden `hydrate()`.
 
+## Use props, not direct field assignment
+
+**ANTIPATTERN**: Stuffing dynamic, instance-specific state onto a
+`Stuff` via direct property assignment.
+
+### BAD (direct assignment)
+
+```typescript
+avatar.questStarted = true;
+avatar.gold = 100;
+avatar.activeBuffs = [...];
+location.occupancy = location.occupancy + 1;
+```
+
+The new "fields" exist as untyped, runtime-only public properties.
+They are invisible to access control, mask transformation, the
+persistence pipeline, and `getAllPropNames()` enumeration. Any code
+holding a reference can read or overwrite them; nothing audits the
+mutations; saving/loading doesn't round-trip them. A `for…in` over a
+Stuff sees them, but only by luck of being enumerable.
+
+### GOOD (PropertiedMixin API)
+
+```typescript
+avatar.setProp(Property.of<boolean>('quest_started'), true);
+
+avatar.initProp(Property.of<number>('gold'), {
+  transient: false,                         // saved across reload
+  checkAccess: (_p, op) =>
+    op !== PropOperations.Set ||             // only owner can write
+    ExecutionContextApi.getCaller() === avatar,
+});
+avatar.setProp(Property.of<number>('gold'), 100);
+```
+
+Now: `gold` round-trips through the persistence pipeline (saved
+because `savedProps` is on `PropertiedMixin.persistentFields`); writes
+go through `checkAccess`; the property is enumerable via
+`getAllPropNames`; introspectable via `checkProp`.
+
+### When a class field IS the right answer
+
+Structural state — what a `Door` *is* — stays a class field
+(`isOpen`, `lockKey`, `keywords`). Persistent fields a class needs at
+all times, with shape that's part of the type, are still declared as
+fields and listed in `static persistentFields`.
+
+Props handle the dynamic, per-instance, possibly-protected,
+possibly-transient state on top of that — quest flags, capabilities,
+counters, configuration overrides, anonymous buff slots.
+
+Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
+
 ## Summary
 
 - Never call `setEnvironment()` or `addToInventory()` directly — always
@@ -365,3 +418,6 @@ subclass with overridden `hydrate()`.
   (introspection only).
 - Per-field invariants go on setters. Cross-field invariants go in a
   `Hydrator` subclass.
+- Dynamic, per-instance state goes through `PropertiedMixin`'s
+  `setProp` / `getProp` / `initProp`, never via direct field
+  assignment.

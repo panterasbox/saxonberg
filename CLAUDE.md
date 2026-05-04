@@ -36,6 +36,9 @@ behavior. Read the relevant doc before editing in its area.
     composer, sensor routing, Phrasebook, MudlogApi
   - [call-security.md](./docs/subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows, FrameKind
+  - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,
+    Property<T>, transient vs saved storage, access control patterns,
+    masks (the unshadowable mixin's per-property override mechanism)
 
 ## Development Commands
 
@@ -219,6 +222,7 @@ bypass it. Common cases:
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
+| `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 

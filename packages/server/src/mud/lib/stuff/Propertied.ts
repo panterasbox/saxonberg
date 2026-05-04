@@ -22,11 +22,12 @@
  * Usage:
  * ```typescript
  * // Simple flag (auto-initializes as transient)
- * avatar.setProp("quest_started", true);
- * avatar.getProp("quest_started"); // true
+ * avatar.setProp(Property.of<boolean>("quest_started"), true);
+ * avatar.getProp(Property.of<boolean>("quest_started")); // true
  *
  * // Persistent property with access control
- * avatar.initProp("gold", {
+ * const gold = Property.of<number>("gold");
+ * avatar.initProp(gold, {
  *   transient: false,  // Persists to DB
  *   checkAccess: (prop, op, special) => {
  *     if (op === PropOperations.Set && special !== avatar) {
@@ -35,13 +36,18 @@
  *     return true;
  *   }
  * });
- * avatar.setProp("gold", 100);
+ * avatar.setProp(gold, 100);
  *
- * // Value transformation masks (e.g., equipment bonus)
- * const magicRing = { name: 'Ring of Strength' };
- * avatar.maskProp("strength", (prop, value) => value + 5, magicRing);
- * avatar.setProp("strength", 10);
- * avatar.getProp("strength");  // 15 (base 10 + 5 from ring)
+ * // Value transformation masks (e.g., equipment bonus). When called
+ * // from inside the ring's own method, owner defaults to the ring.
+ * class MagicRing extends SomeStuff {
+ *   activate(target: Avatar) {
+ *     target.maskProp(Property.of<number>("strength"), (p, v) => v + 5);
+ *   }
+ *   deactivate(target: Avatar) {
+ *     target.unmaskProp(Property.of<number>("strength"));
+ *   }
+ * }
  *
  * // Generate unique anonymous property
  * const buffProp = avatar.generateUniquePropName("buff");  // "buff.abc123xyz"
@@ -50,17 +56,32 @@
  */
 
 import type { MixinConstructor } from '../mixin-types';
-import type { Stuff } from './Stuff';
+import { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
 import { Unshadowable } from '../security/decorators';
+import { ExecutionContextApi } from '../../api/execution-context';
 
 /**
  * Property wrapper for type safety.
  * Extends String to allow using strings as Property<T> but with type checking.
+ *
+ * Prefer the `Property.of<T>(name)` factory over `new Property<T>(name)` —
+ * shorter at the call site and keeps room for future interning.
  */
 export class Property<T extends PropValue = PropValue> extends String {
   constructor(name: string) {
     super(name);
+  }
+
+  /**
+   * Canonical factory. Reads as "a Property of T called name".
+   *
+   * ```typescript
+   * avatar.setProp(Property.of<number>('gold'), 100);
+   * ```
+   */
+  static of<T extends PropValue = PropValue>(name: string): Property<T> {
+    return new Property<T>(name);
   }
 }
 
@@ -214,40 +235,45 @@ export interface Propertied {
    * unmaskProp(prop, owner) to remove *its own* masks without touching
    * others'. Owner is also passed to access control as `special`.
    *
-   * Once the call-security framework lands, owner will become optional
-   * and default to the nearest Stuff on the call stack; until then, the
-   * caller must name it explicitly.
+   * If `owner` is omitted, it defaults to the nearest Stuff on the call
+   * stack (the caller of this method, walking down past Api frames).
+   * The common case — Stuff A reaches into Stuff B and adds a mask —
+   * needs no explicit owner. Throws if no Stuff is reachable on the
+   * stack.
    *
    * @param prop - Property to mask
    * @param mask - Value transformation function
-   * @param owner - The Stuff this mask belongs to
+   * @param owner - The Stuff this mask belongs to (defaults to nearest Stuff caller)
    * @param extra - Additional arguments to pass to mask when executed
    * @returns true if successful, false if property doesn't exist or owner already has a mask
    */
   maskProp<T extends PropValue>(
     prop: Property<T>,
     mask: PropValueMask<T>,
-    owner: Stuff,
+    owner?: Stuff,
     ...extra: unknown[]
   ): boolean;
 
   /**
-   * Remove masks by owner.
+   * Remove masks by owner. Owner defaults to the nearest Stuff on the
+   * call stack — the same resolution rule as `maskProp`, so symmetric
+   * pairs need no explicit owner.
    *
    * @param prop - Property to unmask
-   * @param owner - The Stuff whose masks should be removed
+   * @param owner - The Stuff whose masks should be removed (defaults to nearest Stuff caller)
    * @returns true if any masks were removed, false otherwise
    */
-  unmaskProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean;
+  unmaskProp<T extends PropValue>(prop: Property<T>, owner?: Stuff): boolean;
 
   /**
-   * Check if owner has any masks on property.
+   * Check if owner has any masks on property. Owner defaults to the
+   * nearest Stuff on the call stack.
    *
    * @param prop - Property to check
-   * @param owner - The Stuff to check for
+   * @param owner - The Stuff to check for (defaults to nearest Stuff caller)
    * @returns true if owner has masks on this property
    */
-  isMaskingProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean;
+  isMaskingProp<T extends PropValue>(prop: Property<T>, owner?: Stuff): boolean;
 
   /**
    * Check if property exists and get its options.
@@ -279,6 +305,32 @@ export interface Propertied {
     op: PropOperation,
     special: unknown,
   ): boolean;
+}
+
+/**
+ * Resolve a mask `owner` from explicit argument or call-stack walk.
+ *
+ * When `explicit` is provided, returns it. Otherwise walks the
+ * `ExecutionContextApi` stack top-down looking for the most recent
+ * frame whose `caller` is a `Stuff`. That's the immediate caller for
+ * direct invocations and the nearest Stuff above any intermediate Api
+ * frames otherwise.
+ *
+ * Throws when no Stuff can be found — calling these methods without an
+ * owner from a context that can't supply one (raw test code, framework
+ * bootstrap) is a bug, fail loud rather than silently misattributing.
+ */
+function resolveMaskOwner(explicit: Stuff | undefined, op: string): Stuff {
+  if (explicit !== undefined) return explicit;
+  const stack = ExecutionContextApi.getCallStack();
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const caller = stack[i]!.caller;
+    if (caller instanceof Stuff) return caller;
+  }
+  throw new Error(
+    `Propertied.${op}: owner omitted and no Stuff is on the call stack — ` +
+      `pass owner explicitly when calling from outside a Stuff method`,
+  );
 }
 
 /**
@@ -509,7 +561,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     maskProp<T extends PropValue>(
       prop: Property<T>,
       mask: PropValueMask<T>,
-      owner: Stuff,
+      owner?: Stuff,
       ...extra: unknown[]
     ): boolean {
       const propName = prop.toString();
@@ -517,20 +569,22 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
+      const resolvedOwner = resolveMaskOwner(owner, 'maskProp');
+
       const masks = (this.propMasks[propName] ??= []);
 
       // Only one mask per owner
-      if (masks.some((entry) => entry.owner === owner)) {
+      if (masks.some((entry) => entry.owner === resolvedOwner)) {
         return false;
       }
 
       // Check access for Mask operation
-      if (!this.checkAccess(prop, PropOperations.Mask, owner)) {
+      if (!this.checkAccess(prop, PropOperations.Mask, resolvedOwner)) {
         return false;
       }
 
       masks.push({
-        owner,
+        owner: resolvedOwner,
         mask: mask as unknown as PropValueMask<PropValue>,
         extra: extra,
       });
@@ -540,21 +594,23 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Remove value transformation masks by owner.
      */
-    unmaskProp<T extends PropValue>(prop: Property<T>, owner: Stuff): boolean {
+    unmaskProp<T extends PropValue>(prop: Property<T>, owner?: Stuff): boolean {
       const propName = prop.toString();
       if (!this.propOptions[propName]) {
         return false;
       }
 
+      const resolvedOwner = resolveMaskOwner(owner, 'unmaskProp');
+
       // Check access for Unmask operation
-      if (!this.checkAccess(prop, PropOperations.Unmask, owner)) {
+      if (!this.checkAccess(prop, PropOperations.Unmask, resolvedOwner)) {
         return false;
       }
 
       const masks = this.propMasks[propName] ?? [];
       const originalLength = masks.length;
       this.propMasks[propName] = masks.filter(
-        (entry) => entry.owner !== owner,
+        (entry) => entry.owner !== resolvedOwner,
       );
 
       return this.propMasks[propName]!.length !== originalLength;
@@ -565,15 +621,17 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     isMaskingProp<T extends PropValue>(
       prop: Property<T>,
-      owner: Stuff,
+      owner?: Stuff,
     ): boolean {
       const propName = prop.toString();
       if (!this.propOptions[propName]) {
         return false;
       }
 
+      const resolvedOwner = resolveMaskOwner(owner, 'isMaskingProp');
+
       const masks = this.propMasks[propName] ?? [];
-      return masks.some((entry) => entry.owner === owner);
+      return masks.some((entry) => entry.owner === resolvedOwner);
     }
 
     /**
@@ -598,9 +656,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Get all property names.
      */
     getAllPropNames(): Property<PropValue>[] {
-      return Object.keys(this.propOptions).map(
-        (name) => new Property<PropValue>(name),
-      );
+      return Object.keys(this.propOptions).map((name) => Property.of(name));
     }
 
     /**
@@ -615,7 +671,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         name = `${prefix}.${nanoid(8)}`;
       } while (this.propOptions[name]);
 
-      return new Property<T>(name);
+      return Property.of<T>(name);
     }
 
     /**
