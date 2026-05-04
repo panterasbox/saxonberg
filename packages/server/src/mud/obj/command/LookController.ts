@@ -1,9 +1,10 @@
 /**
  * LookController — examine surroundings or a specific object.
  *
- * Fires a Scene at `world.perception.look` with a single self frame
- * carrying the location/target description body. No peer broadcast —
- * looking is a private observation.
+ * Fires a Scene at `world.perception.look` with a single self frame.
+ * Prose comes from the central Phrasebook; the controller assembles
+ * structured pieces (location vs target, with/without exits) and
+ * hands them to the right phrasebook entry.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -13,6 +14,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
+import { Phrasebook } from '../../lib/Phrasebook';
 import type { Exit } from '../../lib/spatial/Exit';
 
 export interface LookInput {
@@ -31,21 +33,13 @@ export class LookController extends CommandController<LookInput> {
     const actor = context.commandGiver;
     const location = context.location;
     const description = this.getObjectDescription(location);
-
-    let body = Mml.compose`\n${Mml.location(location)}\n\n${Mml.fromMarkup(description)}`;
-
-    if (MixinApi.isExitable(location)) {
-      const exitsLine = this.formatExits(location.getObviousExits());
-      if (exitsLine) {
-        body = Mml.compose`${body}\n\n${exitsLine}`;
-      }
-    }
-
-    body = Mml.compose`${body}\n`;
+    const exitsLine = MixinApi.isExitable(location)
+      ? this.formatExits(location.getObviousExits())
+      : null;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)
-      .toSelf(body)
+      .toSelf(Phrasebook.perception.location(location, description, exitsLine))
       .send();
 
     return {
@@ -57,11 +51,10 @@ export class LookController extends CommandController<LookInput> {
   private lookAtTarget(target: Stuff, context: CommandContext): CommandResult {
     const actor = context.commandGiver;
     const description = this.getObjectDescription(target);
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(description)}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)
-      .toSelf(body)
+      .toSelf(Phrasebook.perception.target(target, description))
       .send();
 
     return {
@@ -72,14 +65,14 @@ export class LookController extends CommandController<LookInput> {
 
   private getObjectDescription(obj: Stuff): string {
     if (MixinApi.isVisible(obj)) return obj.getLong();
-    return 'You see nothing special.';
+    return Phrasebook.perception.nothingSpecial();
   }
 
   /**
-   * Format the "Obvious exits" line as a single Mml fragment. Each
-   * exit renders as its direction, optionally followed by ` (<door
-   * name>, open|closed)` when it has a door. Returns null when there
-   * are no obvious exits.
+   * Build the obvious-exits line as an Mml fragment, or `null` when
+   * the room has no obvious exits. Each exit renders as its
+   * direction, optionally annotated with `(<door name>, open|closed)`
+   * when there's a door.
    */
   private formatExits(exits: Exit[]): Mml | null {
     if (exits.length === 0) return null;
@@ -90,7 +83,6 @@ export class LookController extends CommandController<LookInput> {
       const doorName = DescribeApi.getDisplayName(exit.door, 'door');
       return Mml.compose`${dir} (${doorName}, ${state})`;
     });
-    const joined = Mml.list(parts);
-    return Mml.fromMarkup(`<exits>Obvious exits: ${joined.toString()}.</exits>`);
+    return Phrasebook.perception.exitsLine(parts);
   }
 }

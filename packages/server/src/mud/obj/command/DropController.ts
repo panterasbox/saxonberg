@@ -13,7 +13,7 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
-import { Mml } from '../../api/mml';
+import { Phrasebook } from '../../lib/Phrasebook';
 
 export interface DropInput {
   target?: Stuff;
@@ -65,8 +65,8 @@ export class DropController extends CommandController<DropInput> {
 
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
-      .toSelf(Mml.compose`You drop ${Mml.item(target)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} drops ${Mml.item(target)}.`)
+      .toSelf(Phrasebook.inventory.dropSelf(target))
+      .toPeers(Phrasebook.inventory.dropPeers(giver, target))
       .send();
 
     return true;

@@ -8,7 +8,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
-import { Mml } from '../../api/mml';
+import { Phrasebook } from '../../lib/Phrasebook';
 
 export interface CloseInput {
   target: string;
@@ -39,8 +39,8 @@ export class CloseController extends CommandController<CloseInput> {
 
     MessageApi.scene(commandGiver)
       .topic(MessageApi.Topics.world.narration.movement)
-      .toSelf(Mml.compose`You close ${Mml.object(hit)}.`)
-      .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(hit)}.`)
+      .toSelf(Phrasebook.sealable.closeSelf(hit))
+      .toPeers(Phrasebook.sealable.closePeers(commandGiver, hit))
       .send();
 
     return {

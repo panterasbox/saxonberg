@@ -11,6 +11,7 @@ import type { CommandContext, CommandResult } from '../../api/command';
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { Phrasebook } from '../../lib/Phrasebook';
 import { Avatar } from '../Avatar';
 
 export interface PlayerInput {
@@ -26,7 +27,7 @@ export class PlayerController extends CommandController<PlayerInput> {
     if (!(avatar instanceof Avatar)) {
       return {
         success: false,
-        summary: 'only a player character can use the player command',
+        summary: Phrasebook.player.notAPlayer(),
       };
     }
 
@@ -56,10 +57,7 @@ export class PlayerController extends CommandController<PlayerInput> {
     avatar.firstName = input.firstName;
     avatar.lastName = input.lastName || '';
 
-    this.send(
-      context,
-      Mml.compose`\nYour name is now ${Mml.name(avatar)}.\n`
-    );
+    this.send(context, Phrasebook.player.nameSet(avatar));
     return { success: true, summary: `name set to ${avatar.fullName}` };
   }
 
@@ -85,30 +83,17 @@ export class PlayerController extends CommandController<PlayerInput> {
     if (!validPronouns.includes(pronounsLower)) {
       return {
         success: false,
-        summary: `invalid pronouns. valid: ${validPronouns.join(', ')}`,
+        summary: Phrasebook.player.invalidPronouns(validPronouns),
       };
     }
 
     avatar.pronouns = pronounsLower as Pronouns;
-    this.send(
-      context,
-      Mml.compose`\nYour pronouns are now ${avatar.pronouns}.\n`
-    );
+    this.send(context, Phrasebook.player.pronounsSet(avatar.pronouns));
     return { success: true, summary: `pronouns set to ${avatar.pronouns}` };
   }
 
   private executeShow(avatar: Avatar, context: CommandContext): CommandResult {
-    const body = Mml.fromMarkup(
-      [
-        '',
-        'Player Character Settings:',
-        '',
-        `  Name:     ${avatar.fullName}`,
-        `  Pronouns: ${avatar.pronouns}`,
-        '',
-      ].join('\n')
-    );
-    this.send(context, body);
+    this.send(context, Phrasebook.player.settingsBlock(avatar));
     return {
       success: true,
       summary: `${avatar.fullName} (${avatar.pronouns})`,

@@ -135,6 +135,17 @@ export class Mml {
   }
 
   /**
+   * Escape the five reserved characters (`<`, `>`, `&`, `"`, `'`) so
+   * a raw string can be embedded inside MML markup without being
+   * parsed as tag/attribute structure. Same rule `Mml.compose`
+   * applies to interpolated raw values; exposed publicly so other
+   * markup-producers (e.g. `PhrasebookApi.format`) can reuse it.
+   */
+  static escape(text: string): string {
+    return escapeText(text);
+  }
+
+  /**
    * Strip MML tags from a markup body, decoding the five built-in
    * entities. Used by clients/log capture that need a plain-text
    * projection. State-machine parser; tolerates unclosed tags by

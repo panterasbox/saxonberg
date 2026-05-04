@@ -17,7 +17,7 @@ import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { Mml } from '../../api/mml';
+import { Phrasebook } from '../Phrasebook';
 
 export interface Vocal {
   say(text: string): void;
@@ -36,18 +36,15 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     say(text: string): void {
       const speaker = this as unknown as Stuff;
-      const speechFragment = Mml.speech(text);
-      const selfBody = Mml.compose`You say, ${speechFragment}`;
-      const peersBody = Mml.compose`${Mml.name(speaker)} says, ${speechFragment}`;
-
       const scene = MessageApi.scene(speaker)
         .topic(MessageApi.Topics.world.speech.say)
-        .toSelf(selfBody)
+        .toSelf(Phrasebook.speech.saySelf(text))
         .payload({
           speaker: MessageApi.refOf(speaker),
           text,
         });
 
+      const peersBody = Phrasebook.speech.sayPeers(speaker, text);
       if (MixinApi.isContainable(speaker)) {
         scene.toPeers(peersBody);
       } else if (MixinApi.isContainer(speaker)) {

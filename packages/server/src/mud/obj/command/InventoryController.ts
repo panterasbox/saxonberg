@@ -2,7 +2,7 @@
  * InventoryController — list items the giver is carrying.
  *
  * Fires a Scene at `world.perception.inventory` with a single self
- * frame.
+ * frame. Prose comes from the central Phrasebook.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -11,6 +11,7 @@ import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { Phrasebook } from '../../lib/Phrasebook';
 
 export interface InventoryInput {}
 
@@ -22,14 +23,10 @@ export class InventoryController extends CommandController<InventoryInput> {
     }
     const contents = ContainmentApi.getContents(actor);
 
-    let body: Mml;
-    if (contents.length === 0) {
-      body = Mml.compose`\nYou are not carrying anything.\n`;
-    } else {
-      const items = contents.map((item) => Mml.item(item));
-      const list = Mml.list(items);
-      body = Mml.compose`\nYou are carrying: ${list}.\n`;
-    }
+    const body =
+      contents.length === 0
+        ? Phrasebook.inventory.listEmpty()
+        : Phrasebook.inventory.listSome(contents.map((item) => Mml.item(item)));
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.inventory)

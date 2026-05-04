@@ -38,8 +38,8 @@ import type { Exit } from './Exit';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
-import { NavigationApi } from '../../api/navigation';
 import { Mml } from '../../api/mml';
+import { Phrasebook } from '../Phrasebook';
 
 /**
  * Public shape provided by MobileMixin.
@@ -282,49 +282,35 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     // ───────── Default body factories ─────────
 
     protected defaultDepartureSelf(exit: Exit): Mml {
-      return Mml.compose`You leave to the ${Mml.direction(exit.direction)}.`;
+      return Phrasebook.movement.departSelf(this as unknown as Stuff, exit);
     }
 
     protected defaultDeparturePeers(exit: Exit): Mml {
-      const self = this as unknown as Stuff;
-      return Mml.compose`${Mml.name(self)} leaves to the ${Mml.direction(exit.direction)}.`;
+      return Phrasebook.movement.departPeers(this as unknown as Stuff, exit);
     }
 
     protected defaultArrivalSelf(exit: Exit): Mml {
-      const fromDir =
-        exit.inverse?.direction ?? NavigationApi.invertDirection(exit.direction);
-      if (fromDir) {
-        return Mml.compose`You arrive from the ${Mml.direction(fromDir)}.`;
-      }
-      return Mml.compose`You arrive.`;
+      return Phrasebook.movement.arriveSelf(this as unknown as Stuff, exit);
     }
 
     protected defaultArrivalPeers(exit: Exit): Mml {
-      const self = this as unknown as Stuff;
-      const fromDir =
-        exit.inverse?.direction ?? NavigationApi.invertDirection(exit.direction);
-      if (fromDir) {
-        return Mml.compose`${Mml.name(self)} arrives from the ${Mml.direction(fromDir)}.`;
-      }
-      return Mml.compose`${Mml.name(self)} arrives.`;
+      return Phrasebook.movement.arrivePeers(this as unknown as Stuff, exit);
     }
 
     protected defaultTeleportOutSelf(): Mml {
-      return Mml.compose`The world dissolves around you.`;
+      return Phrasebook.movement.teleportOutSelf(this as unknown as Stuff);
     }
 
     protected defaultTeleportOutPeers(): Mml {
-      const self = this as unknown as Stuff;
-      return Mml.compose`${Mml.name(self)} vanishes.`;
+      return Phrasebook.movement.teleportOutPeers(this as unknown as Stuff);
     }
 
     protected defaultTeleportInSelf(): Mml {
-      return Mml.compose`You materialize.`;
+      return Phrasebook.movement.teleportInSelf();
     }
 
     protected defaultTeleportInPeers(): Mml {
-      const self = this as unknown as Stuff;
-      return Mml.compose`${Mml.name(self)} appears out of nowhere.`;
+      return Phrasebook.movement.teleportInPeers(this as unknown as Stuff);
     }
   };
 }
