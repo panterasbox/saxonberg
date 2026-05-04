@@ -68,7 +68,7 @@ describe('VocalMixin.say()', () => {
 
       expect(bob.received).toHaveLength(1);
       expect(bob.received[0]!.body).toBe(
-        '<name>Alice</name> says, <speech>"hello"</speech>'
+        `<name stuff-id="${alice.stuffId}">Alice</name> says, <speech>"hello"</speech>`
       );
       // Speaker hears its own self frame: "You say, ..."
       expect(alice.received).toHaveLength(1);
@@ -91,7 +91,7 @@ describe('VocalMixin.say()', () => {
 
       expect(occupant.received).toHaveLength(1);
       expect(occupant.received[0]!.body).toBe(
-        '<name>Haunted House</name> says, <speech>"get out"</speech>'
+        `<name stuff-id="${house.stuffId}">Haunted House</name> says, <speech>"get out"</speech>`
       );
     });
   });

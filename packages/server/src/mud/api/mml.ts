@@ -86,10 +86,19 @@ export class Mml {
     return new Mml(raw);
   }
 
-  /** Render the human-readable name of a Stuff inside `<name>` tags. */
+  /**
+   * Render an entity reference inside `<name stuff-id="...">` tags.
+   * The `stuff-id` attribute carries the runtime identity through to
+   * the wire — server-side disambiguation walks bodies for these
+   * tokens to pick the minimal-distinguishing form per recipient,
+   * and client-side features (right-click → tell, social-graph
+   * rendering, identity overlays) read the id directly.
+   */
   static name(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'something');
-    return new Mml(`<name>${escapeText(display)}</name>`);
+    return new Mml(
+      `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
+    );
   }
 
   /** Wrap text in `<speech>"..."</speech>`, escaping the inner text. */
@@ -97,10 +106,15 @@ export class Mml {
     return new Mml(`<speech>"${escapeText(text)}"</speech>`);
   }
 
-  /** Render a location's display name inside `<location>` tags. */
+  /**
+   * Render a location's display name inside `<location stuff-id="...">`
+   * tags. Same identity-tagging rationale as `name`.
+   */
   static location(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'somewhere');
-    return new Mml(`<location>${escapeText(display)}</location>`);
+    return new Mml(
+      `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
+    );
   }
 
   /** Render a direction (e.g., 'north') inside `<direction>` tags. */
@@ -108,16 +122,27 @@ export class Mml {
     return new Mml(`<direction>${escapeText(d)}</direction>`);
   }
 
-  /** Render a generic object's display name inside `<object>` tags. */
+  /**
+   * Render a generic object's display name inside
+   * `<object stuff-id="...">` tags. Same identity-tagging rationale
+   * as `name`.
+   */
   static object(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'something');
-    return new Mml(`<object>${escapeText(display)}</object>`);
+    return new Mml(
+      `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
+    );
   }
 
-  /** Render an item's display name inside `<item>` tags. */
+  /**
+   * Render an item's display name inside `<item stuff-id="...">`
+   * tags. Same identity-tagging rationale as `name`.
+   */
   static item(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'an item');
-    return new Mml(`<item>${escapeText(display)}</item>`);
+    return new Mml(
+      `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
+    );
   }
 
   /**

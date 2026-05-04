@@ -65,24 +65,42 @@ describe('Mml.fromMarkup', () => {
 });
 
 describe('Mml vocabulary helpers', () => {
-  it('Mml.name uses DescribeApi.getDisplayName', () => {
+  it('Mml.name uses DescribeApi.getDisplayName and stamps stuff-id', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.firstName = 'Alice';
     obj.lastName = 'Smith';
-    expect(Mml.name(obj).toString()).toBe('<name>Alice Smith</name>');
+    expect(Mml.name(obj).toString()).toBe(
+      `<name stuff-id="${obj.stuffId}">Alice Smith</name>`
+    );
   });
 
   it('Mml.name escapes chars in the resolved display name', () => {
     const obj = makeStuff(() => new VisibleThing());
     obj.shortDescription = 'a "quoted" sword';
     expect(Mml.name(obj).toString()).toBe(
-      '<name>a &quot;quoted&quot; sword</name>'
+      `<name stuff-id="${obj.stuffId}">a &quot;quoted&quot; sword</name>`
     );
   });
 
   it('Mml.name falls back to "something"', () => {
     const obj = makeStuff(() => new Plain());
-    expect(Mml.name(obj).toString()).toBe('<name>something</name>');
+    expect(Mml.name(obj).toString()).toBe(
+      `<name stuff-id="${obj.stuffId}">something</name>`
+    );
+  });
+
+  it('Mml.object / Mml.item / Mml.location all stamp stuff-id', () => {
+    const obj = makeStuff(() => new VisibleThing());
+    obj.shortDescription = 'rusty sword';
+    expect(Mml.object(obj).toString()).toBe(
+      `<object stuff-id="${obj.stuffId}">rusty sword</object>`
+    );
+    expect(Mml.item(obj).toString()).toBe(
+      `<item stuff-id="${obj.stuffId}">rusty sword</item>`
+    );
+    expect(Mml.location(obj).toString()).toBe(
+      `<location stuff-id="${obj.stuffId}">rusty sword</location>`
+    );
   });
 
   it('Mml.speech wraps text in quoted speech tags and escapes', () => {
@@ -160,6 +178,17 @@ describe('Mml.stripTags', () => {
 
   it('handles plain text unchanged', () => {
     expect(Mml.stripTags('plain text')).toBe('plain text');
+  });
+
+  it('strips tags with attributes (e.g. stuff-id)', () => {
+    expect(
+      Mml.stripTags('<name stuff-id="abc123">Alice</name>')
+    ).toBe('Alice');
+    expect(
+      Mml.stripTags(
+        'hi <name stuff-id="x">A</name> meet <name stuff-id="y">B</name>'
+      )
+    ).toBe('hi A meet B');
   });
 });
 
