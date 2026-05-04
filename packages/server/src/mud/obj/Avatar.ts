@@ -14,6 +14,7 @@ import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { Interactive } from './Interactive';
+import type { HasInteractive } from './HasInteractive';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
@@ -32,7 +33,7 @@ export interface AvatarInitContext {
 
 const AvatarBase = PostRegistrationMixin(Character);
 
-export class Avatar extends AvatarBase {
+export class Avatar extends AvatarBase implements HasInteractive {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
@@ -87,6 +88,14 @@ export class Avatar extends AvatarBase {
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
+  }
+
+  /**
+   * `HasInteractive` — return the set of connected Interactives.
+   * Read-only handle; mutate via `addInteractive` / `removeInteractive`.
+   */
+  public getInteractives(): ReadonlySet<Interactive> {
+    return this.interactives;
   }
 
   /**

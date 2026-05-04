@@ -20,14 +20,25 @@ import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
+import type { HasInteractive } from './HasInteractive';
 import type { Avatar } from './Avatar';
 
-export class Login extends Idea {
+export class Login extends Idea implements HasInteractive {
   public readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {
     super();
     this.interactive = interactive;
+  }
+
+  /**
+   * `HasInteractive` — Login carries exactly one Interactive (it's
+   * the bridge between a fresh connection and the entry procedure).
+   * Returns a freshly-allocated singleton set; Login is short-lived
+   * so the allocation is rare.
+   */
+  public getInteractives(): ReadonlySet<Interactive> {
+    return new Set([this.interactive]);
   }
 
   /**
