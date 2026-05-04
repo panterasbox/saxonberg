@@ -52,24 +52,32 @@ The framework's job is to peek at all three (plus the rest of the call
 stack), decide whether the call is allowed, run any installed shadows,
 then either invoke the original method or throw.
 
-**`null` caller = the Backend → Application boundary.** Code that runs
-outside of any guarded call has no caller. In practice this is narrow
-and well-defined: it's the first call from `Backend` into `Application`
-for any given message-handling cycle —
-`handleWebSocketConnect`, `handleAuthenticationSuccess`,
-`handleClientMessage`, the scheduler tick entry, the bootstrap script.
-**Application is the root of the stack**, not Backend.
+**`null` caller = the root of the stack.** Every frame chain has a
+bottom; the bottom frame's caller is `null` because there's nothing
+calling into it from the runtime — it's an entry point. The framework
+has two root-frame creators:
 
-Backend *can* appear on the stack later — Application calls into
+- **Backend** plants the root frame for inbound network/auth events
+  via `Backend.handleClientMessage`, `handleAuthenticationSuccess`,
+  `handleWebSocketConnect`, and the bootstrap script. Each calls into
+  `Application` through `runRoot(Application, methodName, fn)`, so the
+  root frame's `target` is the Application method and its `caller` is
+  `null`.
+- **`ScheduleApi`** plants its own root frames when a scheduled
+  callback fires. The original synchronous chain is gone, so the
+  callback runs under a fresh Root frame; the originating
+  `causingCommandId` is re-planted onto that frame's metadata (see
+  "Command Attribution" below).
+
+Backend can also appear higher up the stack — Application calls into
 Backend regularly (e.g., to send messages). Those calls push normal
-frames for Backend methods. The architectural property that matters is
-that Backend frames are **leaves**: Backend never calls back into
-Application from inside one of those calls, so a Backend frame always
-has nothing further called from inside it that does game-logic work.
-Stack shape:
+frames for Backend methods, which behave as **leaves**: Backend never
+calls back into Application from inside one of those calls, so a
+Backend frame never has game-logic work nested under it. Stack shape
+under Backend's runRoot:
 
 ```
-[bottom] Application.handleClientMessage     ← frame 0, caller = null
+[bottom] Application.handleClientMessage     ← root frame, caller = null
          …game logic, mixin methods, command dispatch…
          Application.someMethod calls backend.sendMessageToSocket
 [top]    Backend.sendMessageToSocket          ← appears as a leaf
@@ -79,7 +87,8 @@ Stack shape:
 Hydrator is itself a `Stuff` and pushes its own frames (see
 "Hydrator is not an exception" below). Policies decide whether `null`
 is privileged or anonymous; the answer is usually "privileged at the
-Backend → Application boundary, denied everywhere else."
+Backend → Application boundary or scheduler tick, denied everywhere
+else."
 
 ## Responsibility on the Call Stack (Design Rationale)
 
@@ -88,53 +97,43 @@ The call stack ("who called whom right now, in JS function terms")
 the vast majority of gameplay. The framework deliberately leans on
 this: caller identity is exactly the immediate previous frame's target.
 
-Two helpers on `ExecutionContextApi` (one shipped, others deferred)
-walk the frames to extract human-driven Avatars:
+The framework exposes one stack walker:
 
-- **`getCurrentCommandGiver()` (shipped)** — the most recent
-  `CommandGiver` (Avatar or NPC) whose `executeCommand` body is
-  currently running. Returns `null` outside a command pipeline.
+- **`getCurrentCommandGiver()`** — the most recent `CommandGiver`
+  (Avatar or NPC) whose `executeCommand` body is currently running.
+  Returns `null` outside a command pipeline.
 
-- **`getActingAvatar()` / `getResponsibleAvatar()` (deferred)** —
-  designs sketched, not implemented. The intent is the most-recent vs
-  the bottom-most human-driven Avatar in the chain. Their consuming
-  policies (`Admin`, `ByCommandGiver`, `ByActingAvatar`,
-  `ByResponsibleAvatar`) are also deferred.
+Earlier sketches included `getActingAvatar()` / `getResponsibleAvatar()`
+("most-recent vs bottom-most human-driven Avatar in the chain") and
+matching policies (`Admin`, `ByCommandGiver`, `ByActingAvatar`,
+`ByResponsibleAvatar`). Those aren't on the roadmap. The synchronous
+chain is what `getCurrentCommandGiver` and frame walking give you;
+anything beyond that lives outside this framework.
 
-**What the call stack covers cleanly (synchronous chains):**
+**Synchronous chains.** Everything in a single command pipeline —
+reactive triggers (room fires `monster.kill`), force commands, stacked
+force, NPC chains nested inside human commands — is reachable via
+`getCurrentCommandGiver` and frame inspection. The most recent command
+issuer is exactly what `getCurrentCommandGiver` returns.
 
-- **Reactive triggers.** I `north`, room triggers monster's `kill`.
-  Acting = monster (NPC, so null at the human-filter step → walk
-  past); responsible = me.
-- **Force commands.** Admin `force benji say hi`. Acting = benji;
-  responsible = admin.
-- **Stacked force.** `force a force b force c say hi`. Acting = c;
-  responsible = a (or admin, whoever's at the bottom).
-- **NPC chains nested inside human commands.** Walk past the NPC
-  frames; human frame is still on the stack below them.
-
-**What the call stack does NOT cover** (deferred to a future
-command-stack framework):
+**Cross-cycle attribution.** Work that happens outside the synchronous
+chain that issued the command needs explicit propagation. `ScheduleApi`
+handles delayed effects (banana peel dropped now → NPC slips next tick)
+by re-planting `causingCommandId` from the originating frame onto the
+Root frame of the callback, so `getCurrentCausingCommandId()` still
+surfaces the originating id (see "Command Attribution" below). Cases
+that don't have wiring yet:
 
 - **Prompts.** Command pauses for user input, JS function returns,
   call stack unwinds. When the response arrives, the command resumes
-  on a fresh stack.
-- **Scheduled / delayed effects.** Player drops a banana peel now;
-  NPC slips on it next tick. Player's responsibility for the slip
-  exists morally but no JS frame ties them at slip-time.
+  on a fresh stack — no propagation is wired up.
 - **Cross-actor messaging.** A sends a message; B's handler runs
   later. B's stack doesn't include A.
 
-`ScheduleApi` re-plants `causingCommandId` on the synthetic Root frame
-when a propagating callback fires (see "Command Attribution" below) —
-that's a partial mitigation for delayed effects, but the responsible-
-Avatar walk still won't find a frame.
-
 **Terminology.** "CommandGiver" = the *immediate* issuer of the
-currently-running command (might be an NPC). "Acting Avatar" /
-"Responsible Avatar" = the human-driven Avatars walked from the call
-stack — when implemented. When people say "Interactive" or "the
-driving player," they generally mean the responsible Avatar.
+currently-running command (might be an NPC). "Driving player" usually
+means an Avatar with a connected Interactive — see the
+`HasInteractive` interface for the typed handle.
 
 ## Caller Identity
 
@@ -1105,20 +1104,36 @@ explicitly calls `StuffApi.destruct(shadow)`.
 
 ### Persistence
 
-Because `Shadow extends Stuff`, persistence falls out automatically
-through the existing `Hydrator` pipeline (see
-[templates.md](./templates.md)). A shadow class that composes mixins
-with persistent fields (e.g. `PropertiedMixin(Shadow)` for a buff with
-stored `duration`, `magnitude`) gets those fields persisted with no
-shadow-specific machinery.
+Shadow is a sibling of Idea (not under it), so it doesn't get the
+`Persistable` CRUD surface (`save`/`find`/`findById`/`delete`).
+Persistence happens through the **template/clone pipeline only** (see
+[templates.md](./templates.md)).
+
+A shadow class that composes mixins with persistent fields (e.g.
+`PropertiedMixin(Shadow)` for a buff with stored `duration`,
+`magnitude`) can be backed by a template:
+
+```yaml
+path: /system/buffs/regeneration
+class: /lib/some/Regeneration   # extends Shadow
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  duration: 30
+  magnitude: 5
+```
+
+Cloning the template via `StuffApi.clone('/system/buffs/regeneration')`
+hydrates the shadow's persistent fields the same way it would for any
+Stuff. There is no `save()` for a Shadow — to update its persistent
+template, edit the template doc directly via `TemplateApi.saveTemplate`.
 
 What is **NOT** included: **attachment records** — i.e., persisting
-"shadow X is attached to host Y." On server restart, runtime-only
-shadows are gone; hosts come up shadow-free. Shadows that need to
-survive restart must be re-attached by whatever process attached them
-originally (e.g., a buff manager that loads buff records and re-attaches
-on bootstrap). Shadows themselves persist; the *attachment relationship*
-does not.
+"shadow X is attached to host Y." On server restart, runtime shadow
+instances are gone; hosts come up shadow-free. Re-attaching after
+restart is the responsibility of whatever subsystem owns the
+buff/shadow (e.g., a buff manager that loads buff records from its own
+collection and re-attaches on bootstrap). The *attachment relationship*
+is not persisted by the shadow framework itself.
 
 ## Command Attribution
 
@@ -1127,8 +1142,12 @@ identity through the synchronous chain:
 
 - **`commandContext: CommandContext`** — the live `CommandContext`
   object stamped onto the frame's metadata.
-- **`causingCommandId: string`** — a fresh per-execution id stamped
-  alongside.
+- **`causingCommandId: string`** — the originating command's id. For
+  a directly-issued command this is the same as `commandId` (the
+  command is its own cause). For a scheduled/delayed callback,
+  `ScheduleApi` re-plants the originating frame's `causingCommandId`
+  onto the callback's Root frame, so it points back to the command
+  that scheduled the work — even though the synchronous chain is gone.
 
 `CommandGiverMixin.executeCommand`:
 

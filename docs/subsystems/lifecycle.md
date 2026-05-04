@@ -285,6 +285,32 @@ Its file URL is on the construction-sentinel allowlist. Use it for
 test setup; do NOT replicate its code elsewhere — that would just
 re-open the bypass the sentinel exists to close.
 
+## Open Design — Idle Eviction
+
+Today, lifecycle is fully manual: every `Stuff` lives in `StuffApi`'s
+registry until something explicitly calls `StuffApi.destruct(obj)`. For
+long-running processes — especially after the Persistable refactor,
+where loaded `User`s, `Template`s, and `GoogleProfile`s now register
+and stay alive — this can grow the registry indefinitely.
+
+We want a mechanism by which Stuff can clean themselves up if they
+haven't been accessed in a while. Open questions before this can be
+designed:
+
+- **Triggering.** TTL on `Stuff` (per-instance), per-class default,
+  global LRU on the registry, or hooks into proxy access?
+- **Granularity.** Opt-in via mixin or opt-out via decorator? Some
+  Stuff (game-world objects loaded into a live zone) should never
+  expire; some (admin loaded a User to look at) should.
+- **Ordering vs `prepareDestroy`.** Idle eviction needs to fire the
+  same cleanup path as explicit destruct, including shadow detach.
+- **Visibility.** Destroyed objects look the same to consumers
+  whether destruct was explicit or auto. Does "destroyed" need a
+  sub-reason for debugging?
+
+Deferred — needs design discussion before implementing. See also
+[roadmap.md](../roadmap.md).
+
 ## Cross-References
 
 - [templates.md](./templates.md) — clone pipeline, `Hydrator`,

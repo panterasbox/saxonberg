@@ -156,6 +156,22 @@ organized by area.
 - **Dependencies**: Phase 10 hardening; can run in parallel with sandbox
   work.
 
+### Idle eviction for Stuff lifecycle
+
+- **What**: A mechanism for Stuff to clean themselves up if not
+  accessed in a while. Triggering options (TTL on instance, per-class
+  default, global LRU on registry, proxy-access hooks), granularity
+  options (opt-in mixin vs opt-out decorator), interaction with
+  `prepareDestroy` and shadow detach all open.
+- **Why**: Today the registry is forever-growing. Acutely visible
+  after the Persistable refactor — loaded `User`/`Template`/`GoogleProfile`
+  instances stick around until explicit `StuffApi.destruct`.
+- **Size**: medium — design pass first, then probably small to
+  implement.
+- **Dependencies**: needs design discussion.
+
+See `subsystems/lifecycle.md § Open Design` for the open questions.
+
 ### Client UX enhancements
 
 - **What**: Scroll-to-bottom button, message filtering, timestamps,
