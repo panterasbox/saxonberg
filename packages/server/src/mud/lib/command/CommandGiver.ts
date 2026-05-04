@@ -230,10 +230,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return { success: false, summary: 'No command entered' };
       }
 
-      // Ensure commands are loaded (populates cache).
-      this.getAvailableCommands();
-
-      const command = CommandApi.matchVerb(parsed.verb);
+      // Discovery is the dispatch gate: the verb must be in this
+      // giver's contextual command set (self + inventory + environment
+      // + peers), NOT just somewhere in the global YAML cache. A verb
+      // declared on a keycard's `inventory:` bucket disappears when the
+      // keycard is dropped; an NPC giver with a narrower mixin set
+      // never sees verbs it shouldn't. See docs/subsystems/commands.md.
+      const available = this.getAvailableCommands();
+      const command = available.find((cmd) => cmd.hasVerb(parsed.verb));
       if (!command) {
         return {
           success: false,
