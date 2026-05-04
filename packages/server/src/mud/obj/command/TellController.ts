@@ -12,7 +12,7 @@ import type { CommandContext, CommandResult } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
-import { Phrasebook } from '../../lib/Phrasebook';
+import { Mml } from '../../api/mml';
 import type { Avatar } from '../Avatar';
 
 export interface TellInput {
@@ -34,10 +34,14 @@ export class TellController extends CommandController<TellInput> {
       };
     }
 
+    const speechFragment = Mml.speech(message);
     MessageApi.scene(speaker)
       .topic(MessageApi.Topics.world.speech.tell)
-      .toSelf(Phrasebook.speech.tellSelf(target, message))
-      .toTarget(target, Phrasebook.speech.tellTarget(speaker, message))
+      .toSelf(Mml.compose`You tell ${Mml.name(target)}, ${speechFragment}`)
+      .toTarget(
+        target,
+        Mml.compose`${Mml.name(speaker)} tells you, ${speechFragment}`
+      )
       .payload({
         speaker: MessageApi.refOf(speaker),
         target: MessageApi.refOf(target),

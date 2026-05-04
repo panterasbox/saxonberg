@@ -14,7 +14,7 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
-import { Phrasebook } from '../../lib/Phrasebook';
+import { Mml } from '../../api/mml';
 
 export interface GetInput {
   target?: Stuff;
@@ -70,8 +70,8 @@ export class GetController extends CommandController<GetInput> {
 
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
-      .toSelf(Phrasebook.inventory.pickUpSelf(target))
-      .toPeers(Phrasebook.inventory.pickUpPeers(giver, target))
+      .toSelf(Mml.compose`You pick up ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(target)}.`)
       .send();
 
     return true;

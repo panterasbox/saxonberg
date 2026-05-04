@@ -16,7 +16,7 @@ import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
-import { Phrasebook } from '../lib/Phrasebook';
+import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
@@ -68,7 +68,7 @@ export class Login extends Idea {
     // carries the bootstrap payload the client needs.
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.system.connection.established)
-      .toSelf(Phrasebook.connection.welcome(avatar))
+      .toSelf(Mml.compose`Welcome back, ${Mml.name(avatar)}!`)
       .payload({
         userId: interactive.userId,
         socketId: interactive.socketId,
@@ -93,14 +93,15 @@ export class Login extends Idea {
     if (!location) {
       MessageApi.scene(avatar)
         .topic(MessageApi.Topics.world.perception.look)
-        .toSelf(Phrasebook.connection.nowhere())
+        .toSelf(Mml.compose`You are nowhere.`)
         .send();
       return;
     }
 
+    const body = Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(location.getLong())}\n`;
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.world.perception.look)
-      .toSelf(Phrasebook.perception.location(location, location.getLong(), null))
+      .toSelf(body)
       .send();
   }
 }

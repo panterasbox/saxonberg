@@ -139,10 +139,63 @@ export class Mml {
    * a raw string can be embedded inside MML markup without being
    * parsed as tag/attribute structure. Same rule `Mml.compose`
    * applies to interpolated raw values; exposed publicly so other
-   * markup-producers (e.g. `PhrasebookApi.format`) can reuse it.
+   * markup-producers can reuse it.
    */
   static escape(text: string): string {
     return escapeText(text);
+  }
+
+  /**
+   * Compose from a string template with `{name}` placeholders and a
+   * `vars` map. Useful for prose that lives outside the source —
+   * stored in a config object, eventually loaded from a database or
+   * user settings — where the developer can't reach for a tagged
+   * template literal.
+   *
+   * Substitution rules match `Mml.compose`'s interpolation rules:
+   *
+   *   - `Mml` fragments emit verbatim (already-escaped).
+   *   - Strings, numbers, booleans are escaped.
+   *   - `null`/`undefined` (including unrecognised names) → empty.
+   *   - Objects with `toMml()` get unwrapped, escaping a non-`Mml`
+   *     return.
+   *
+   * Unclosed `{` is treated as literal text — markup the author
+   * intended.
+   */
+  static format(template: string, vars: Record<string, unknown>): Mml {
+    const parts: string[] = [];
+    const values: unknown[] = [];
+    let cursor = 0;
+
+    while (cursor < template.length) {
+      const open = template.indexOf('{', cursor);
+      if (open === -1) {
+        parts.push(template.slice(cursor));
+        cursor = template.length;
+        break;
+      }
+      const close = template.indexOf('}', open);
+      if (close === -1) {
+        parts.push(template.slice(cursor));
+        cursor = template.length;
+        break;
+      }
+      parts.push(template.slice(cursor, open));
+      const name = template.slice(open + 1, close);
+      values.push(vars[name]);
+      cursor = close + 1;
+    }
+    // `Mml.compose`'s tagged-template signature expects parts.length
+    // to be values.length + 1 (one segment between/around each
+    // interpolation). Pad the trailing segment when the template
+    // ended on a placeholder.
+    if (parts.length === values.length) parts.push('');
+
+    return Mml.compose(
+      parts as unknown as TemplateStringsArray,
+      ...values
+    );
   }
 
   /**

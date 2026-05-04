@@ -13,7 +13,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
-import { Phrasebook } from '../../lib/Phrasebook';
+import { Mml } from '../../api/mml';
 
 export interface OpenInput {
   target: string;
@@ -44,8 +44,8 @@ export class OpenController extends CommandController<OpenInput> {
 
     MessageApi.scene(commandGiver)
       .topic(MessageApi.Topics.world.narration.movement)
-      .toSelf(Phrasebook.sealable.openSelf(hit))
-      .toPeers(Phrasebook.sealable.openPeers(commandGiver, hit))
+      .toSelf(Mml.compose`You open ${Mml.object(hit)}.`)
+      .toPeers(Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(hit)}.`)
       .send();
 
     return {
