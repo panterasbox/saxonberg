@@ -210,6 +210,10 @@ export class Application {
     if (!this.backend) return;
 
     const interactive = ConnectionManager.get().getInteractive(socketId);
+    // Avatar-specific dispatch path: builds a location-bound
+    // CommandContext. When Login (or any other HasInteractive) starts
+    // running commands of its own, that's a separate dispatch path —
+    // its CommandContext won't have a location.
     if (!interactive || !(interactive.holder instanceof Avatar)) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',

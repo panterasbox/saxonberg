@@ -1,0 +1,95 @@
+/**
+ * Tests for ConnectionApi.transfer / detach.
+ *
+ * Routing semantics: transfer moves an Interactive between holders;
+ * detach removes it from any holder. Connection lifecycle (the
+ * Interactive itself going up or down) is tested in Interactive.test.ts.
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ConnectionApi } from '../connection';
+import { Interactive } from '../../obj/Interactive';
+import { Avatar } from '../../obj/Avatar';
+import { User } from '../../lib/identity/User';
+import { StuffApi } from '../stuff';
+import { PlayerApi } from '../player';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
+
+function makeUser(): User {
+  return makeStuff(() => new User());
+}
+
+function makeAvatar(playerId: string): Avatar {
+  const a = makeStuff(() => new Avatar());
+  a.playerId = playerId;
+  return a;
+}
+
+function makeInteractive(socketId: string): Interactive {
+  return makeStuff(() => new Interactive(socketId, `${socketId}-session`, makeUser()));
+}
+
+describe('ConnectionApi', () => {
+  let interactive: Interactive;
+  let avatarA: Avatar;
+  let avatarB: Avatar;
+
+  beforeEach(() => {
+    PlayerApi.clearAll();
+    interactive = makeInteractive('s1');
+    avatarA = makeAvatar('player-a');
+    avatarB = makeAvatar('player-b');
+  });
+
+  afterEach(() => {
+    if (!interactive.isDestroyed()) StuffApi.destruct(interactive);
+  });
+
+  describe('transfer', () => {
+    it('attaches an unowned Interactive to a holder', () => {
+      expect(interactive.holder).toBeNull();
+
+      ConnectionApi.transfer(interactive, avatarA);
+
+      expect(interactive.holder).toBe(avatarA);
+      expect(avatarA.interactives.has(interactive)).toBe(true);
+    });
+
+    it('moves an Interactive from one holder to another', () => {
+      ConnectionApi.transfer(interactive, avatarA);
+      ConnectionApi.transfer(interactive, avatarB);
+
+      expect(interactive.holder).toBe(avatarB);
+      expect(avatarA.interactives.has(interactive)).toBe(false);
+      expect(avatarB.interactives.has(interactive)).toBe(true);
+    });
+
+    it('is idempotent on the same target', () => {
+      ConnectionApi.transfer(interactive, avatarA);
+      ConnectionApi.transfer(interactive, avatarA);
+
+      expect(interactive.holder).toBe(avatarA);
+      expect(avatarA.interactives.size).toBe(1);
+      expect(avatarA.interactives.has(interactive)).toBe(true);
+    });
+  });
+
+  describe('detach', () => {
+    it('removes an Interactive from its current holder', () => {
+      ConnectionApi.transfer(interactive, avatarA);
+
+      ConnectionApi.detach(interactive);
+
+      expect(interactive.holder).toBeNull();
+      expect(avatarA.interactives.has(interactive)).toBe(false);
+    });
+
+    it('is a no-op when there is no current holder', () => {
+      expect(interactive.holder).toBeNull();
+
+      expect(() => ConnectionApi.detach(interactive)).not.toThrow();
+
+      expect(interactive.holder).toBeNull();
+    });
+  });
+});

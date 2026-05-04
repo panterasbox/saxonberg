@@ -8,9 +8,12 @@
  * - Edge cases (missing playerId, duplicate registration)
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlayerApi } from '../player';
-import type { Avatar } from '../../obj/Avatar';
+import { StuffApi } from '../stuff';
+import { Avatar } from '../../obj/Avatar';
+import { User } from '../../lib/identity/User';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // Mock Avatar objects for testing
 const createMockAvatar = (playerId: string): Avatar => {
@@ -221,6 +224,81 @@ describe('PlayerApi', () => {
 
       PlayerApi.unregisterAvatar(avatar2);
       expect(PlayerApi.getAvatarCount()).toBe(0);
+    });
+  });
+
+  describe('loadAvatarsForUser', () => {
+    let mockAvatar1: Avatar;
+    let mockAvatar2: Avatar;
+
+    function makeUser(id: string, playerIds: string[] = []): User {
+      const user = makeStuff(() => new User());
+      user._id = id;
+      user.playerIds = [...playerIds];
+      return user;
+    }
+
+    beforeEach(() => {
+      mockAvatar1 = makeStuff(() => new Avatar());
+      mockAvatar1.playerId = 'player1';
+      mockAvatar1.name = 'Alice';
+      mockAvatar2 = makeStuff(() => new Avatar());
+      mockAvatar2.playerId = 'player2';
+      mockAvatar2.name = 'Bob';
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('clones one avatar per playerId on the user', async () => {
+      const user = makeUser('user1', ['player1', 'player2']);
+      const cloneSpy = vi
+        .spyOn(StuffApi, 'clone')
+        .mockResolvedValueOnce(mockAvatar1)
+        .mockResolvedValueOnce(mockAvatar2);
+
+      const avatars = await PlayerApi.loadAvatarsForUser(user);
+
+      expect(cloneSpy).toHaveBeenCalledTimes(2);
+      expect(avatars).toHaveLength(2);
+      expect(avatars[0]).toBe(mockAvatar1);
+      expect(avatars[1]).toBe(mockAvatar2);
+    });
+
+    it('threads { user, playerId } context into clone', async () => {
+      const user = makeUser('user1', ['player1']);
+      const cloneSpy = vi.spyOn(StuffApi, 'clone').mockResolvedValue(mockAvatar1);
+
+      await PlayerApi.loadAvatarsForUser(user);
+
+      expect(cloneSpy).toHaveBeenCalledWith(Avatar.getTemplatePath('player1'), {
+        user,
+        playerId: 'player1',
+      });
+    });
+
+    it('reuses Avatars already registered (multiplexing)', async () => {
+      const user = makeUser('user1', ['player1']);
+      PlayerApi.registerAvatar(mockAvatar1);
+
+      const cloneSpy = vi.spyOn(StuffApi, 'clone');
+
+      const avatars = await PlayerApi.loadAvatarsForUser(user);
+
+      expect(cloneSpy).not.toHaveBeenCalled();
+      expect(avatars).toHaveLength(1);
+      expect(avatars[0]).toBe(mockAvatar1);
+    });
+
+    it('handles a user with no playerIds', async () => {
+      const user = makeUser('user1');
+      const cloneSpy = vi.spyOn(StuffApi, 'clone');
+
+      const avatars = await PlayerApi.loadAvatarsForUser(user);
+
+      expect(cloneSpy).not.toHaveBeenCalled();
+      expect(avatars).toEqual([]);
     });
   });
 

@@ -1,19 +1,20 @@
 /**
  * Tests for Interactive
  *
- * Covers:
- * - Basic connection properties
- * - Loading available avatars via user.playerIds
- * - Character switching
- * - Multiplexing integration
- * - Connection lifecycle
+ * Interactive is now a thin connection-state object: it holds the
+ * authenticated User, the current `holder` (a HasInteractive — Login
+ * during entry, Avatar during play), socketId/sessionId/connectedAt,
+ * and a `send` stub. Avatar loading and connection routing live in
+ * `PlayerApi.loadAvatarsForUser` and `ConnectionApi.transfer/detach`
+ * respectively — those have their own tests.
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Interactive } from '../Interactive';
 import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
+import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
@@ -37,7 +38,6 @@ describe('Interactive', () => {
   const testUserId = 'user789';
 
   beforeEach(() => {
-    vi.clearAllMocks();
     PlayerApi.clearAll();
   });
 
@@ -64,159 +64,12 @@ describe('Interactive', () => {
       expect(interactive.holder).toBeNull();
     });
 
-    it('should initialize with empty availableAvatars', () => {
-      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
-      expect(interactive.availableAvatars.size).toBe(0);
-    });
-
     it('should have unique stuffId', () => {
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
 
       expect(interactive.stuffId).toBeTruthy();
       expect(typeof interactive.stuffId).toBe('string');
       expect(interactive.stuffId.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('loadAvailableAvatars', () => {
-    let mockAvatar1: Avatar;
-    let mockAvatar2: Avatar;
-
-    beforeEach(() => {
-      mockAvatar1 = makeAvatar('player1');
-      mockAvatar1.name = 'Alice';
-      mockAvatar2 = makeAvatar('player2');
-      mockAvatar2.name = 'Bob';
-    });
-
-    it('should clone one avatar per playerId from user.playerIds', async () => {
-      interactive = makeStuff(() => new Interactive(
-        testSocketId,
-        testSessionId,
-        makeUser(testUserId, ['player1', 'player2'])
-      ));
-      const cloneSpy = vi
-        .spyOn(StuffApi, 'clone')
-        .mockResolvedValueOnce(mockAvatar1)
-        .mockResolvedValueOnce(mockAvatar2);
-
-      await interactive.loadAvailableAvatars();
-
-      expect(cloneSpy).toHaveBeenCalledTimes(2);
-      expect(cloneSpy).toHaveBeenNthCalledWith(
-        1,
-        Avatar.getTemplatePath('player1'),
-        { user: interactive.user, playerId: 'player1' }
-      );
-      expect(interactive.availableAvatars.size).toBe(2);
-    });
-
-    it('should pass { user, playerId } context to clone', async () => {
-      interactive = makeStuff(() => new Interactive(
-        testSocketId,
-        testSessionId,
-        makeUser(testUserId, ['player1'])
-      ));
-      const cloneSpy = vi.spyOn(StuffApi, 'clone').mockResolvedValue(mockAvatar1);
-
-      await interactive.loadAvailableAvatars();
-
-      expect(cloneSpy).toHaveBeenCalledWith(Avatar.getTemplatePath('player1'), {
-        user: interactive.user,
-        playerId: 'player1',
-      });
-    });
-
-    it('should reuse Avatars already registered (multiplexing)', async () => {
-      interactive = makeStuff(() => new Interactive(
-        testSocketId,
-        testSessionId,
-        makeUser(testUserId, ['player1'])
-      ));
-      mockAvatar1.playerId = 'player1';
-      PlayerApi.registerAvatar(mockAvatar1);
-
-      const cloneSpy = vi.spyOn(StuffApi, 'clone');
-
-      await interactive.loadAvailableAvatars();
-
-      expect(cloneSpy).not.toHaveBeenCalled();
-      expect(interactive.availableAvatars.get('player1')).toBe(mockAvatar1);
-    });
-
-    it('should populate availableAvatars map with playerId keys', async () => {
-      interactive = makeStuff(() => new Interactive(
-        testSocketId,
-        testSessionId,
-        makeUser(testUserId, ['player1', 'player2'])
-      ));
-      vi.spyOn(StuffApi, 'clone')
-        .mockResolvedValueOnce(mockAvatar1)
-        .mockResolvedValueOnce(mockAvatar2);
-
-      await interactive.loadAvailableAvatars();
-
-      expect(interactive.availableAvatars.get('player1')).toBe(mockAvatar1);
-      expect(interactive.availableAvatars.get('player2')).toBe(mockAvatar2);
-    });
-
-    it('should handle user with no playerIds', async () => {
-      interactive = makeStuff(() => new Interactive(
-        testSocketId,
-        testSessionId,
-        makeUser(testUserId)
-      ));
-
-      await interactive.loadAvailableAvatars();
-
-      expect(interactive.availableAvatars.size).toBe(0);
-    });
-  });
-
-  describe('switchAvatar', () => {
-    let mockAvatar1: Avatar;
-    let mockAvatar2: Avatar;
-
-    beforeEach(() => {
-      interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
-
-      mockAvatar1 = makeAvatar('player1');
-      mockAvatar1.name = 'Alice';
-      mockAvatar2 = makeAvatar('player2');
-      mockAvatar2.name = 'Bob';
-
-      interactive.availableAvatars.set('player1', mockAvatar1);
-      interactive.availableAvatars.set('player2', mockAvatar2);
-    });
-
-    it('should switch to new Avatar', async () => {
-      await interactive.switchAvatar('player1');
-
-      expect(interactive.holder).toBe(mockAvatar1);
-      expect(mockAvatar1.interactives.has(interactive)).toBe(true);
-    });
-
-    it('should remove from old Avatar when switching', async () => {
-      await interactive.switchAvatar('player1');
-      await interactive.switchAvatar('player2');
-
-      expect(mockAvatar1.interactives.has(interactive)).toBe(false);
-      expect(mockAvatar2.interactives.has(interactive)).toBe(true);
-      expect(interactive.holder).toBe(mockAvatar2);
-    });
-
-    it('should throw if playerId not found', async () => {
-      await expect(interactive.switchAvatar('nonexistent')).rejects.toThrow(
-        'Interactive.switchAvatar(): Avatar not found for playerId: nonexistent'
-      );
-    });
-
-    it('should handle switching from null holder', async () => {
-      expect(interactive.holder).toBeNull();
-
-      await interactive.switchAvatar('player1');
-
-      expect(interactive.holder).toBe(mockAvatar1);
     });
   });
 
@@ -228,12 +81,8 @@ describe('Interactive', () => {
     beforeEach(() => {
       interactive1 = makeStuff(() => new Interactive('socket1', 'session1', makeUser(testUserId)));
       interactive2 = makeStuff(() => new Interactive('socket2', 'session2', makeUser(testUserId)));
-
       mockAvatar = makeAvatar('player1');
       mockAvatar.name = 'Alice';
-
-      interactive1.availableAvatars.set('player1', mockAvatar);
-      interactive2.availableAvatars.set('player1', mockAvatar);
     });
 
     afterEach(() => {
@@ -245,18 +94,18 @@ describe('Interactive', () => {
       }
     });
 
-    it('should support multiple Interactives on same Avatar', async () => {
-      await interactive1.switchAvatar('player1');
-      await interactive2.switchAvatar('player1');
+    it('should support multiple Interactives on same Avatar', () => {
+      ConnectionApi.transfer(interactive1, mockAvatar);
+      ConnectionApi.transfer(interactive2, mockAvatar);
 
       expect(mockAvatar.interactives.size).toBe(2);
       expect(mockAvatar.interactives.has(interactive1)).toBe(true);
       expect(mockAvatar.interactives.has(interactive2)).toBe(true);
     });
 
-    it('should both Interactives reference same Avatar', async () => {
-      await interactive1.switchAvatar('player1');
-      await interactive2.switchAvatar('player1');
+    it('should both Interactives reference same Avatar via holder', () => {
+      ConnectionApi.transfer(interactive1, mockAvatar);
+      ConnectionApi.transfer(interactive2, mockAvatar);
 
       expect(interactive1.holder).toBe(mockAvatar);
       expect(interactive2.holder).toBe(mockAvatar);
@@ -301,31 +150,22 @@ describe('Interactive', () => {
     beforeEach(() => {
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
       mockAvatar = makeAvatar('player1');
-      interactive.availableAvatars.set('player1', mockAvatar);
     });
 
-    it('should remove from holder on destroy', async () => {
-      await interactive.switchAvatar('player1');
+    it('should remove from holder on destroy', () => {
+      ConnectionApi.transfer(interactive, mockAvatar);
 
       StuffApi.destruct(interactive);
 
       expect(mockAvatar.interactives.has(interactive)).toBe(false);
     });
 
-    it('should clear holder on destroy', async () => {
-      await interactive.switchAvatar('player1');
+    it('should clear holder on destroy', () => {
+      ConnectionApi.transfer(interactive, mockAvatar);
 
       StuffApi.destruct(interactive);
 
       expect(interactive.holder).toBeNull();
-    });
-
-    it('should clear availableAvatars on destroy', async () => {
-      await interactive.switchAvatar('player1');
-
-      StuffApi.destruct(interactive);
-
-      expect(interactive.availableAvatars.size).toBe(0);
     });
 
     it('should mark object as destroyed', () => {
@@ -333,6 +173,12 @@ describe('Interactive', () => {
 
       StuffApi.destruct(interactive);
 
+      expect(interactive.isDestroyed()).toBe(true);
+    });
+
+    it('should handle destroy with no holder', () => {
+      expect(interactive.holder).toBeNull();
+      expect(() => StuffApi.destruct(interactive)).not.toThrow();
       expect(interactive.isDestroyed()).toBe(true);
     });
   });
@@ -349,13 +195,12 @@ describe('Interactive', () => {
       expect(str).toContain(testUserId);
     });
 
-    it('should include avatar name when connected', async () => {
+    it('should include holder name when connected', () => {
       const mockAvatar = makeAvatar('player1');
       mockAvatar.name = 'Alice';
       mockAvatar.surname = 'Smith';
-      interactive.availableAvatars.set('player1', mockAvatar);
 
-      await interactive.switchAvatar('player1');
+      ConnectionApi.transfer(interactive, mockAvatar);
       const str = interactive.toString();
 
       // toString uses DescribeApi.getDisplayName (casual register),

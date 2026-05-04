@@ -9,6 +9,8 @@
  */
 
 import type { Avatar } from '../obj/Avatar';
+import type { User } from '../lib/identity/User';
+import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 
 /**
@@ -81,6 +83,32 @@ export class PlayerApi {
    */
   public static getAvatarCount(): number {
     return this.#avatarsByPlayerId.size;
+  }
+
+  /**
+   * Load every Avatar this user owns into the runtime, returning the
+   * full set. Reuses any Avatars already registered (multiplexing — a
+   * second connection for the same user finds the existing Avatars,
+   * doesn't re-clone). Otherwise clones from the user's avatar
+   * templates and registers via PostRegistration.
+   *
+   * Threads the user reference and playerId into the clone context so
+   * each Avatar's `postRegister` sees its owning user synchronously.
+   */
+  public static async loadAvatarsForUser(user: User): Promise<Avatar[]> {
+    const { Avatar: AvatarClass } = await import('../obj/Avatar');
+    const avatars: Avatar[] = [];
+    for (const playerId of user.playerIds) {
+      let avatar = this.findAvatarByPlayerId(playerId);
+      if (!avatar) {
+        avatar = await StuffApi.clone<Avatar>(
+          AvatarClass.getTemplatePath(playerId),
+          { user, playerId }
+        );
+      }
+      avatars.push(avatar);
+    }
+    return avatars;
   }
 
   /**

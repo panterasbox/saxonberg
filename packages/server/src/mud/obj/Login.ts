@@ -14,6 +14,8 @@
 import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
+import { ConnectionApi } from '../api/connection';
+import { PlayerApi } from '../api/player';
 import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
@@ -48,21 +50,20 @@ export class Login extends LoginBase {
     const { interactive } = this;
 
     // Take ownership of the connection for the duration of entry.
-    // switchAvatar (below) will hand the holder slot to the chosen
+    // ConnectionApi.transfer below hands the holder slot to the chosen
     // Avatar before we destruct.
-    interactive.holder = this;
+    ConnectionApi.transfer(interactive, this);
 
-    await interactive.loadAvailableAvatars();
-
-    if (interactive.availableAvatars.size !== 1) {
+    const avatars = await PlayerApi.loadAvatarsForUser(interactive.user);
+    if (avatars.length !== 1) {
       throw new Error(
         `Login: expected exactly 1 player for user ${interactive.userId}, ` +
-          `found ${interactive.availableAvatars.size}`
+          `found ${avatars.length}`
       );
     }
 
-    const playerId = Array.from(interactive.availableAvatars.keys())[0]!;
-    const avatar = await interactive.switchAvatar(playerId);
+    const avatar = avatars[0]!;
+    ConnectionApi.transfer(interactive, avatar);
 
     console.log(`Login: User connected - ${avatar.fullName}`);
 
