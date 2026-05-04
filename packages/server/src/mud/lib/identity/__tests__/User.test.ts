@@ -1,10 +1,10 @@
 /**
- * Tests for User (pure Persistable, not a Stuff).
+ * Tests for User (a Persistable, Idea-rooted).
  *
  * Covers:
  * - Persistent fields configuration (includes playerIds ownership list)
  * - Collection name configuration
- * - User is NOT a Stuff (no stuffId)
+ * - User IS a Stuff (has stuffId, registered with StuffApi)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -34,35 +34,36 @@ describe('User', () => {
 
   describe('User instance', () => {
     it('should initialize googleProfileId to empty string', () => {
-      const user = new User();
+      const user = makeStuff(() => new User());
       expect(user.googleProfileId).toBe('');
     });
 
     it('should initialize playerIds to an empty array', () => {
-      const user = new User();
+      const user = makeStuff(() => new User());
       expect(Array.isArray(user.playerIds)).toBe(true);
       expect(user.playerIds).toEqual([]);
     });
 
     it('should have _id field (undefined until saved)', () => {
-      const user = new User();
+      const user = makeStuff(() => new User());
       expect(user).toHaveProperty('_id');
       expect(user._id).toBeUndefined();
     });
 
-    it('should NOT be a Stuff (no stuffId)', () => {
-      const user = new User();
-      expect(user).not.toHaveProperty('stuffId');
+    it('should be a Stuff (has stuffId)', () => {
+      const user = makeStuff(() => new User());
+      expect(typeof user.stuffId).toBe('string');
+      expect(user.stuffId.length).toBeGreaterThan(0);
     });
 
     it('should initialize createdAt and updatedAt timestamps', () => {
-      const user = new User();
+      const user = makeStuff(() => new User());
       expect(user.createdAt).toBeInstanceOf(Date);
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
     it('should allow appending to playerIds', () => {
-      const user = new User();
+      const user = makeStuff(() => new User());
       user.playerIds.push('slot-1', 'slot-2');
       expect(user.playerIds).toEqual(['slot-1', 'slot-2']);
     });

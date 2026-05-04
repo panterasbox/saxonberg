@@ -13,7 +13,7 @@
 import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import type { Interactive } from './Interactive';
+import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
@@ -30,7 +30,7 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = PostRegistrationMixin(Character);
+const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(Character));
 
 export class Avatar extends AvatarBase {
   /**
@@ -69,10 +69,10 @@ export class Avatar extends AvatarBase {
   playerId: string = '';
 
   /**
-   * Set of connected Interactive objects (supports multiplexing).
-   * Multiple connections (laptop + phone) can control the same Avatar.
+   * Multiplexing storage (`interactives: Set<Interactive>`),
+   * `addInteractive` / `removeInteractive` / `getInteractives` /
+   * `isConnected` are all provided by `HasInteractiveMixin`.
    */
-  interactives: Set<Interactive> = new Set();
 
   /**
    * Post-registration setup called by the clone pipeline (Spring
@@ -87,28 +87,6 @@ export class Avatar extends AvatarBase {
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
-  }
-
-  /**
-   * Add an Interactive connection (multiplexing support).
-   */
-  public addInteractive(interactive: Interactive): void {
-    this.interactives.add(interactive);
-  }
-
-  /**
-   * Remove an Interactive connection.
-   */
-  public removeInteractive(interactive: Interactive): void {
-    this.interactives.delete(interactive);
-  }
-
-  public isConnected(): boolean {
-    return this.interactives.size > 0;
-  }
-
-  public isLinkdead(): boolean {
-    return !this.isConnected();
   }
 
   /**

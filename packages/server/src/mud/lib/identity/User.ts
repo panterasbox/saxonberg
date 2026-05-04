@@ -4,11 +4,14 @@
  * Auth-layer record linked to an OAuth provider. Owns one or more
  * character slots via `playerIds`. Lives in MongoDB `users` collection.
  *
- * User is NOT a Stuff — it's meta-game (auth/identity), not game-world.
- * Extends `Persistable` directly. No path, no zone, no clone pipeline.
+ * User is a Persistable (Idea-rooted). It carries a `stuffId`, registers
+ * with `StuffApi`, and is destroyed via `StuffApi.destruct` (which
+ * `Persistable.delete` cascades to). Construct with
+ * `await StuffApi.create(() => new User())`. No template, no zone, no
+ * clone pipeline.
  */
 
-import { Persistable } from '../stuff/Persistable';
+import { Persistable } from '../persistence/Persistable';
 import type { User as IUser } from '@saxonberg/types';
 
 export class User extends Persistable implements IUser {

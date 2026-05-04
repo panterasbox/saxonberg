@@ -12,10 +12,9 @@
  * every template lookup.
  */
 
-import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { StuffApi } from './stuff';
+import { Template } from '../lib/stuff/Template';
 import type { Zone } from '../lib/spatial/Zone';
-import type { DomainTemplate } from './stuff';
 import { SecurityApi } from './security';
 
 /**
@@ -53,14 +52,13 @@ export class ZoneApi {
    * @param templatePath - e.g. `/narnia/castle/foyer`
    */
   public static async resolveZoneForPath(templatePath: string): Promise<Zone | null> {
-    const selfTemplate = await this.#loadTemplate(templatePath);
+    const selfTemplate = await Template.findByPath(templatePath);
     if (selfTemplate && ZONE_CLASS_PATHS.has(selfTemplate.class)) {
       return null;
     }
 
-    const ancestors = this.#ancestorPaths(templatePath);
-    for (const ancestor of ancestors) {
-      const ancestorTpl = await this.#loadTemplate(ancestor);
+    for (const ancestor of Template.ancestorPaths(templatePath)) {
+      const ancestorTpl = await Template.findByPath(ancestor);
       if (!ancestorTpl) continue;
       if (!ZONE_CLASS_PATHS.has(ancestorTpl.class)) continue;
 
@@ -92,24 +90,6 @@ export class ZoneApi {
     zoneByStuffId.clear();
   }
 
-  static async #loadTemplate(path: string): Promise<DomainTemplate | null> {
-    const templates = await PersistenceManager.get().find(Collections.Domain, { path });
-    if (templates.length === 0) return null;
-    return templates[0] as unknown as DomainTemplate;
-  }
-
-  /**
-   * Generate ancestor paths, nearest first: `/a/b/c` → `['/a/b', '/a']`.
-   * The root `/` is excluded. Empty string handled defensively.
-   */
-  static #ancestorPaths(path: string): string[] {
-    const segments = path.split('/').filter((s) => s.length > 0);
-    const ancestors: string[] = [];
-    for (let i = segments.length - 1; i > 0; i--) {
-      ancestors.push('/' + segments.slice(0, i).join('/'));
-    }
-    return ancestors;
-  }
 }
 
 SecurityApi.decorateApiClass(ZoneApi);

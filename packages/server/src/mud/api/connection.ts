@@ -12,6 +12,8 @@
 
 import { ConnectionManager } from '../../backend/ConnectionManager';
 import type { Interactive } from '../obj/Interactive';
+import type { Stuff } from '../lib/stuff/Stuff';
+import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { SecurityApi } from './security';
 
 /**
@@ -72,6 +74,45 @@ export class ConnectionApi {
 
   // Note: createInteractive and removeInteractive are NOT exposed here.
   // Those are privileged operations that only Application/Backend should perform.
+
+  /**
+   * Route an Interactive to a new holder. Idempotent on the same target.
+   *
+   * This is **connection routing**, not character control or
+   * "operate on this avatar" — `target` is intentionally the broad
+   * `HasInteractive` set (Login during entry, Avatar during play, any
+   * future Bot/Spirit). Code that needs to act on an avatar
+   * specifically should narrow with `instanceof Avatar` (or
+   * `MixinApi.isCommandGiver` for command dispatch).
+   *
+   * Mechanics: removes `interactive` from its previous holder (if any),
+   * adds it to `target` via the `HasInteractiveMixin` primitives, and
+   * updates `interactive.holder`.
+   */
+  public static transfer(
+    interactive: Interactive,
+    target: HasInteractive & Stuff
+  ): void {
+    const previous = interactive.holder;
+    if (previous === target) return;
+    if (previous) previous.removeInteractive(interactive);
+    target.addInteractive(interactive);
+    interactive.holder = target;
+  }
+
+  /**
+   * Detach an Interactive from its current holder. After detach,
+   * `interactive.holder` is null. Used at disconnect / cleanup
+   * (`Interactive.prepareDestroy` calls this).
+   *
+   * No-op when there's no current holder.
+   */
+  public static detach(interactive: Interactive): void {
+    const previous = interactive.holder;
+    if (!previous) return;
+    previous.removeInteractive(interactive);
+    interactive.holder = null;
+  }
 }
 
 

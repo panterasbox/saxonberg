@@ -14,20 +14,29 @@
 import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
+import { ConnectionApi } from '../api/connection';
+import { PlayerApi } from '../api/player';
 import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
+import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
 
-export class Login extends Idea {
+const LoginBase = HasInteractiveMixin(Idea);
+
+export class Login extends LoginBase {
   public readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {
     super();
     this.interactive = interactive;
+    // Seed the singleton set so MixinApi.isHasInteractive(login)
+    // works the same way it does for Avatar. Login multiplexing
+    // never actually happens — it's just consistency with the mixin.
+    this.addInteractive(interactive);
   }
 
   /**
@@ -40,18 +49,21 @@ export class Login extends Idea {
   public async enter(): Promise<void> {
     const { interactive } = this;
 
-    await interactive.loadAvailableAvatars();
+    // Take ownership of the connection for the duration of entry.
+    // ConnectionApi.transfer below hands the holder slot to the chosen
+    // Avatar before we destruct.
+    ConnectionApi.transfer(interactive, this);
 
-    if (interactive.availableAvatars.size !== 1) {
+    const avatars = await PlayerApi.loadAvatarsForUser(interactive.user);
+    if (avatars.length !== 1) {
       throw new Error(
         `Login: expected exactly 1 player for user ${interactive.userId}, ` +
-          `found ${interactive.availableAvatars.size}`
+          `found ${avatars.length}`
       );
     }
 
-    const playerId = Array.from(interactive.availableAvatars.keys())[0]!;
-    await interactive.switchAvatar(playerId);
-    const avatar = interactive.currentAvatar!;
+    const avatar = avatars[0]!;
+    ConnectionApi.transfer(interactive, avatar);
 
     console.log(`Login: User connected - ${avatar.fullName}`);
 

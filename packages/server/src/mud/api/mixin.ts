@@ -41,6 +41,7 @@ import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
+import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { SecurityApi } from './security';
 
 // Re-export Mixins constants for convenience
@@ -264,6 +265,10 @@ export class MixinApi {
 
   public static isPostRegistration(obj: Stuff): obj is Stuff & PostRegistration {
     return this.hasMixin(obj.constructor, Mixins.PostRegistration);
+  }
+
+  public static isHasInteractive(obj: Stuff): obj is Stuff & HasInteractive {
+    return this.hasMixin(obj.constructor, Mixins.HasInteractive);
   }
 }
 

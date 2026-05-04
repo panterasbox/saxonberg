@@ -41,12 +41,12 @@ void SecurityApi; // referenced only for the static-init side effect
  * @internal — do not import from production code.
  */
 export function makeStuff<T extends Stuff>(factory: () => T): T {
-  StuffClass._beginConstruction();
+  const prevSentinel = StuffClass._beginConstruction();
   let raw: T;
   try {
     raw = factory();
   } finally {
-    StuffClass._endConstruction();
+    StuffClass._endConstruction(prevSentinel);
   }
   const proxy = ProxyApi.wrap(raw);
   StuffApi.register(proxy);

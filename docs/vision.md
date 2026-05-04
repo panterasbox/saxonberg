@@ -263,16 +263,16 @@ Saxonberg's technical foundation is built using TypeScript across the stack with
 - **Client Framework:** **React** (TypeScript) - Enables building the responsive, component-based multi-panel user interface.
 - **Real-time Communication:** **WebSockets** (using the standard `ws` library) - Provides the persistent, low-latency channel for game state updates, chat, and interaction, supporting a custom markup-based messaging protocol with sensory and topic tagging.
 - **Client State Management:** **Zustand** - Manages complex client-side state efficiently with a simple API.
-- **Client Styling:** **CSS-in-JS** (e.g., Styled Components/Emotion) - Facilitates dynamic styling and theming required for the desired "storybook" aesthetic.
+- **Client Styling:** **styled-components** (CSS-in-JS) - Facilitates dynamic styling and theming required for the desired "storybook" aesthetic.
 - **Database:** **MongoDB** - Persists core data like User and Player records, leveraging its document model flexibility.
 - **Authentication:** **Google OAuth2** - Provides secure user login and session management.
 
 **Key Architectural Pillars:**
 
 - **Standard Model & Mixins:** An object-oriented hierarchy (`Stuff`, `Agent`, etc.) forms the basis for all in-game entities, extended with functionality via mixins. Object instantiation uses a template-based system.
-- **Persistence Layer:** A custom persistence layer manages synchronization between runtime objects (`Avatar`) and persistent documents (`Player` in MongoDB), using decorators to define persistable properties.
-- **State Isolation:** The entire game state and logic run within an **`isolated-vm`** sandbox, enhancing security and stability by protecting the main Node.js process.
-- **Call Security Framework:** A proxy/decorator-based system intercepts calls between game objects, validating interactions based on a custom call stack to ensure integrity, especially important for future modding support.
+- **Persistence Layer:** Mixins contribute persistent field sets that a `Hydrator` reflects into during template instantiation. Game-world objects flow through a clone/hydrate/save-template pipeline; auth/meta records (User, GoogleProfile) extend a separate `Persistable` base.
+- **Call Security Framework:** A proxy- and decorator-based system intercepts calls between game objects, validating interactions against a custom call stack to ensure integrity. Foundational to safely supporting future user-authored content.
+- **State Isolation (planned):** A future hardening pass will run game state and logic within an **`isolated-vm`** sandbox, protecting the main Node.js process before user-authored mods land.
 - **Learning Platform Integration:** A defined interface (likely a REST API) facilitates communication with the external adaptive learning platform.
 - **Extensibility:** The architecture (templates, mixins, isolated execution) is designed with future modding, CMS capabilities, and content packaging in mind.
 
@@ -314,13 +314,15 @@ The development of Saxonberg is planned in phases, focusing on building a solid 
 - **Goal:** Establish the core technical architecture and essential gameplay mechanics.
 - **Key Deliverables:**
   - Core technology stack setup (Node.js/Express server, React/Zustand client, `ws` communication, MongoDB persistence, TypeScript, pnpm monorepo).
-  - Implementation of the basic Standard Model, template instantiation, and persistence layer.
-  - Core command parser and messaging protocol (including basic markup).
-  - `isolated-vm` sandbox for game state security.
+  - Implementation of the Standard Model, template instantiation, and persistence layer.
+  - Core command parser and messaging protocol (including MML markup).
+  - Call Security framework (proxy + decorators + execution context).
   - Google OAuth2 authentication and basic session management.
   - Initial client UI shell with functional console and panel structure.
-  - Basic player/avatar creation, login, movement, and interaction within a test environment.
+  - Player/avatar creation, login, movement (including exits, doors, zones), and interaction.
   - Stubbed integration points for the Adaptive Learning Platform API.
+
+> **Status:** Phase 1 is largely delivered (Phases 0–4 and 7 of the engineering roadmap). The `isolated-vm` sandbox has been moved to a later hardening pass, ahead of the modding framework. See `roadmap.md` for the engineering view.
 
 **Phase 2: Minimum Viable Product (MVP) - Academic Integration & Campus Core**
 

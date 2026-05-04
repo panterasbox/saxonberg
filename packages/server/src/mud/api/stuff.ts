@@ -15,7 +15,6 @@
 import { nanoid } from 'nanoid';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
-import { PersistenceManager, Collections } from '../../backend/PersistenceManager';
 import { MixinApi } from './mixin';
 import { ProxyApi } from './proxy';
 import { ExecutionContextApi, FrameKind } from './execution-context';
@@ -25,32 +24,6 @@ import { ExecutionContextApi, FrameKind } from './execution-context';
 // the first `ProxyApi.wrap` in `create` / `clone` / `createSync`.
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
-
-/**
- * Domain template document from the CMS.
- *
- * Two class paths sit at the top level, independently:
- *   - `class`         — the runtime backing class (what gets instantiated)
- *   - `hydratorClass` — a class implementing the `Hydrator` interface that
- *                       knows how to translate `data` into live state on the
- *                       backing. Optional: when ABSENT, no hydrator runs at
- *                       all and `data` is ignored. Templates that want the
- *                       generic mixin-field copy must opt in by setting
- *                       `hydratorClass: '/lib/persistence/PersistentHydrator'`.
- *                       Multiple backing classes may share one hydrator
- *                       (e.g. a `CreatureHydrator` serving both a Guard and
- *                       a GuardDog), and one backing class may be decorated
- *                       by many domain-specific hydrators.
- *
- * `data` is pure hydration payload — never carries class paths itself.
- */
-export interface DomainTemplate {
-  _id?: string;
-  path: string; // e.g., "/avatar/player/abc", "/home/bobalu/workroom"
-  class: string; // runtime backing class, e.g. "/obj/Avatar"
-  hydratorClass?: string; // optional Hydrator class, e.g. "/lib/persistence/PersistentHydrator"
-  data: Record<string, unknown>;
-}
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -159,16 +132,14 @@ export class StuffApi {
     templatePath: string,
     context?: unknown
   ): Promise<T> {
-    // 1. Load template from domain collection
-    const templates = await PersistenceManager.get().find(Collections.Domain, {
-      path: templatePath,
-    });
-
-    if (templates.length === 0) {
+    // 1. Load Template from domain collection. Lazy-import to avoid the
+    //    Template → Persistable → Idea → Stuff → StuffApi cycle at module
+    //    init time.
+    const { Template } = await import('../lib/stuff/Template');
+    const template = await Template.findByPath(templatePath);
+    if (!template) {
       throw new Error(`Template not found: ${templatePath}`);
     }
-
-    const template = templates[0] as unknown as DomainTemplate;
 
     // 2. Validate and resolve class path
     const classPath = this.#validateClassPath(template.class);
@@ -214,12 +185,12 @@ export class StuffApi {
     //    The construction sentinel must be flipped immediately around
     //    `new` with no intervening async — otherwise a parallel call
     //    could observe it set and bypass.
-    Stuff._beginConstruction();
+    const prevSentinel = Stuff._beginConstruction();
     let obj: T;
     try {
       obj = new ClassConstructor();
     } finally {
-      Stuff._endConstruction();
+      Stuff._endConstruction(prevSentinel);
     }
     if (zone) obj.zone = zone;
     // Stamp the template path onto the instance so identity-keyed
@@ -296,12 +267,12 @@ export class StuffApi {
   ): Promise<T> {
     // Sentinel must be set immediately around the factory invocation
     // with no intervening async — see clone() for the rationale.
-    Stuff._beginConstruction();
+    const prevSentinel = Stuff._beginConstruction();
     let raw: T;
     try {
       raw = factory();
     } finally {
-      Stuff._endConstruction();
+      Stuff._endConstruction(prevSentinel);
     }
     return this.#registerAndInit(raw, null, context);
   }
@@ -329,12 +300,12 @@ export class StuffApi {
    * to use the async `create()` path instead.
    */
   public static createSync<T extends Stuff>(factory: () => T): T {
-    Stuff._beginConstruction();
+    const prevSentinel = Stuff._beginConstruction();
     let raw: T;
     try {
       raw = factory();
     } finally {
-      Stuff._endConstruction();
+      Stuff._endConstruction(prevSentinel);
     }
     const proxy = ProxyApi.wrap(raw);
     if (MixinApi.isPostRegistration(proxy)) {

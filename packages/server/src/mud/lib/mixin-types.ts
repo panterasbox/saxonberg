@@ -38,6 +38,7 @@ export const Mixins = {
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
+  HasInteractive: 'HasInteractiveMixin',
 } as const;
 
 /**

@@ -35,6 +35,7 @@ import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
+import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
 import { PersistentHydrator } from '../mud/lib/persistence/PersistentHydrator';
@@ -111,7 +112,8 @@ export class Application {
         user
       );
 
-      await new Login(interactive).enter();
+      const login = await StuffApi.create(() => new Login(interactive));
+      await login.enter();
     } catch (error) {
       console.error('Application: Error in handleUserConnect:', error);
 
@@ -208,7 +210,11 @@ export class Application {
     if (!this.backend) return;
 
     const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive || !interactive.currentAvatar) {
+    // Avatar-specific dispatch path: builds a location-bound
+    // CommandContext. When Login (or any other HasInteractive) starts
+    // running commands of its own, that's a separate dispatch path —
+    // its CommandContext won't have a location.
+    if (!interactive || !(interactive.holder instanceof Avatar)) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',
         payload: { message: 'No active character' },
@@ -219,7 +225,7 @@ export class Application {
     const commandText = (message.payload as { text: string }).text?.trim();
     if (!commandText) return;
 
-    const avatar = interactive.currentAvatar;
+    const avatar = interactive.holder;
     const location = avatar.getEnvironment() as Location;
 
     if (!location) {
@@ -317,7 +323,7 @@ export class Application {
       return user._id!;
     }
 
-    const user = new User();
+    const user = await StuffApi.create(() => new User());
     user.googleProfileId = googleProfileId;
     await user.save();
     console.log(`Application: Created new User ${user._id}`);

@@ -112,20 +112,24 @@ export abstract class Stuff {
    * existing convention (see `StuffApi._validateClassPath` test seam).
    * @internal
    */
-  public static _beginConstruction(): void {
+  public static _beginConstruction(): boolean {
     Stuff.#assertConstructionGateAllowed('_beginConstruction');
+    const prev = Stuff.#expectingConstruction;
     Stuff.#expectingConstruction = true;
+    return prev;
   }
 
   /**
    * Companion to `_beginConstruction`. Called by `StuffApi`'s finally-
-   * block to clear the sentinel even if construction throws. Same
-   * stack-walk allowlist applies.
+   * block to restore the sentinel even if construction throws. Pass the
+   * value returned from the matching `_beginConstruction` to enable
+   * nested begin/end pairs (otherwise pass `false`). Same stack-walk
+   * allowlist applies.
    * @internal
    */
-  public static _endConstruction(): void {
+  public static _endConstruction(prev: boolean = false): void {
     Stuff.#assertConstructionGateAllowed('_endConstruction');
-    Stuff.#expectingConstruction = false;
+    Stuff.#expectingConstruction = prev;
   }
 
   /**

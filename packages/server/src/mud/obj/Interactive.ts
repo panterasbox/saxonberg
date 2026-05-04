@@ -1,23 +1,32 @@
 /**
  * Interactive - Runtime connection state object.
  *
- * Represents an active WebSocket connection. This is a RUNTIME object —
- * not persisted to the database.
+ * Represents an active WebSocket connection. Runtime-only — not
+ * persisted. Holds:
+ *   - The authenticated `User` (stamped by Application before handoff
+ *     to Login).
+ *   - The `holder`: whoever currently owns this connection — a `Login`
+ *     during entry, an `Avatar` (or another `HasInteractive`) after the
+ *     entry handoff. Routing is done through `ConnectionApi.transfer`
+ *     and `ConnectionApi.detach`; this class doesn't perform the
+ *     routing itself.
  *
- * Holds a reference to the authenticated User (stamped by Application
- * before handoff to Login). Avatar loading iterates `user.playerIds` and
- * threads `{ user, playerId }` into `StuffApi.clone` as context so each
- * Avatar.postRegister() sees its owning user synchronously.
+ * Interactive deliberately knows nothing about Avatars. Avatars are an
+ * in-world concept; Interactive is a connection concept. Code that
+ * needs to load, look up, or operate on a user's Avatars goes through
+ * `PlayerApi`.
  *
  * Lifetime: created when a user connects, destroyed when the connection
- * drops.
+ * drops. `prepareDestroy` detaches from the current holder via
+ * `ConnectionApi.detach`.
  */
 
 import { Idea } from '../lib/stuff/Idea';
-import { StuffApi } from '../api/stuff';
-import { PlayerApi } from '../api/player';
+import { ConnectionApi } from '../api/connection';
+import { DescribeApi } from '../api/describe';
+import type { Stuff } from '../lib/stuff/Stuff';
 import type { User } from '../lib/identity/User';
-import type { Avatar } from './Avatar';
+import type { HasInteractive } from '../lib/connection/HasInteractive';
 
 export class Interactive extends Idea {
   socketId: string;
@@ -25,12 +34,14 @@ export class Interactive extends Idea {
   user: User;
   connectedAt: Date;
 
-  currentAvatar: Avatar | null = null;
-
   /**
-   * Available Avatars for this user's characters (playerId → Avatar).
+   * Whoever currently owns this connection. Set via
+   * `ConnectionApi.transfer`; cleared via `ConnectionApi.detach`. Always
+   * a Stuff at runtime — `HasInteractiveMixin` only composes onto Stuff
+   * — so the typed intersection captures that. Mutation goes through
+   * the Api, not direct assignment.
    */
-  availableAvatars: Map<string, Avatar> = new Map();
+  holder: (HasInteractive & Stuff) | null = null;
 
   constructor(socketId: string, sessionId: string, user: User) {
     super();
@@ -50,46 +61,6 @@ export class Interactive extends Idea {
   }
 
   /**
-   * Clone each of the user's avatar templates into runtime Avatars
-   * (reusing any that another connection already loaded for multiplexing).
-   */
-  public async loadAvailableAvatars(): Promise<void> {
-    const { Avatar: AvatarClass } = await import('./Avatar');
-
-    for (const playerId of this.user.playerIds) {
-      let avatar = PlayerApi.findAvatarByPlayerId(playerId);
-
-      if (!avatar) {
-        avatar = await StuffApi.clone<Avatar>(
-          AvatarClass.getTemplatePath(playerId),
-          { user: this.user, playerId }
-        );
-      }
-
-      this.availableAvatars.set(playerId, avatar);
-    }
-  }
-
-  /**
-   * Switch to a different Avatar (character switching).
-   */
-  public async switchAvatar(playerId: string): Promise<void> {
-    if (this.currentAvatar) {
-      this.currentAvatar.removeInteractive(this);
-    }
-
-    const newAvatar = this.availableAvatars.get(playerId);
-    if (!newAvatar) {
-      throw new Error(
-        `Interactive.switchAvatar(): Avatar not found for playerId: ${playerId}`
-      );
-    }
-
-    newAvatar.addInteractive(this);
-    this.currentAvatar = newAvatar;
-  }
-
-  /**
    * Stub for client messaging. Actual delivery runs through
    * Application.sendMessageToInteractive().
    */
@@ -102,17 +73,13 @@ export class Interactive extends Idea {
   }
 
   protected prepareDestroy(): void {
-    if (this.currentAvatar) {
-      this.currentAvatar.removeInteractive(this);
-      this.currentAvatar = null;
-    }
-    this.availableAvatars.clear();
+    ConnectionApi.detach(this);
   }
 
   public toString(): string {
-    const avatarInfo = this.currentAvatar
-      ? ` avatar=${this.currentAvatar.fullName}`
+    const holderInfo = this.holder
+      ? ` holder=${DescribeApi.getDisplayName(this.holder, '?')}`
       : '';
-    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${avatarInfo}]`;
+    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${holderInfo}]`;
   }
 }
