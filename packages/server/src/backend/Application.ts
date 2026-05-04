@@ -324,7 +324,7 @@ export class Application {
 
     const playerId = await this.createDefaultAvatarTemplate(
       profile.name?.givenName || 'Unnamed',
-      profile.name?.familyName || 'Player'
+      profile.name?.familyName
     );
     user.playerIds.push(playerId);
     await user.save();
@@ -336,26 +336,27 @@ export class Application {
    * Seed a default avatar template for a new user. Self-contained under
    * the unified state model — no Player/CharacterSheet indirection. Opts
    * into `PersistentHydrator` so the generic mixin-field copy applies the
-   * persistent fields (firstName/lastName/pronouns) at clone time;
-   * runtime-only fields (`user`, `playerId`) are stamped by Avatar's
-   * `postRegister` from the clone context.
+   * persistent fields (name/surname/pronouns) at clone time; runtime-only
+   * fields (`user`, `playerId`) are stamped by Avatar's `postRegister`
+   * from the clone context.
    *
    * @returns the generated playerId (template path: `/avatar/<playerId>`)
    */
   private async createDefaultAvatarTemplate(
-    firstName: string,
-    lastName: string
+    name: string,
+    surname?: string
   ): Promise<string> {
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
+    const data: Record<string, unknown> = {
+      name,
+      pronouns: Pronouns.They,
+    };
+    if (surname) data.surname = surname;
     await TemplateApi.saveTemplate(
       path,
       '/obj/Avatar',
-      {
-        firstName,
-        lastName,
-        pronouns: Pronouns.They,
-      },
+      data,
       PersistentHydrator.templatePath
     );
     console.log(`Application: Created avatar template at ${path}`);

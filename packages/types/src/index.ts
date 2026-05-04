@@ -98,18 +98,40 @@ export interface Player {
 }
 
 /**
+ * Categories for `AlternateName.kind` — see NamedMixin.
+ */
+export type NameKind =
+  | 'nickname'
+  | 'title'
+  | 'credential'
+  | 'middle'
+  | 'maiden'
+  | 'alias';
+
+export interface AlternateName {
+  kind: NameKind;
+  value: string;
+}
+
+/**
  * Character sheet (persistent).
  * Holds mixin-based character data (name, pronouns, etc.) projected by
  * a runtime Avatar or NPC. Shared shape between PC sheets (owned via a
- * Player record) and future NPC sheets.
+ * Player record) and future NPC sheets. Mirrors the NamedMixin shape.
  */
 export interface CharacterSheet {
   /** MongoDB ObjectId */
   _id?: string;
-  /** First name */
-  firstName: string;
-  /** Last name */
-  lastName: string;
+  /** Formal address prefix ("Dr.", "Sir") */
+  honorific?: string;
+  /** Casual register — what 95% of prose displays */
+  name: string;
+  /** Family / second name */
+  surname?: string;
+  /** Post-nominal ("Jr.", "III", "Esq.") */
+  suffix?: string;
+  /** Typed extras (nicknames, credentials, …) */
+  alternateNames?: AlternateName[];
   /** Pronouns */
   pronouns: Pronouns;
   /** Created timestamp */
@@ -227,8 +249,11 @@ export interface AuthStatusResponse {
   };
   player?: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    suffix?: string;
+    alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
 }
@@ -249,8 +274,11 @@ export interface AuthState {
   } | null;
   player: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    suffix?: string;
+    alternateNames?: AlternateName[];
     pronouns: Pronouns;
   } | null;
 }

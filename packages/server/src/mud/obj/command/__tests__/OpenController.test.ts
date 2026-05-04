@@ -11,7 +11,7 @@ import { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
-import { NamedMixin } from '../../../lib/character/Named';
+import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
@@ -72,11 +72,11 @@ describe('OpenController / CloseController / doors integration', () => {
     roomA.addBidirectionalExit(roomB, 'north', { door });
 
     avatar = makeStuff(() => new FakeAvatar());
-    avatar.firstName = 'Alice';
+    avatar.name = 'Alice';
     ContainmentApi.move(avatar, roomA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.firstName = 'Bob';
+    peerInA.name = 'Bob';
     ContainmentApi.move(peerInA, roomA);
   });
 

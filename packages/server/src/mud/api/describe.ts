@@ -21,26 +21,33 @@ import { SecurityApi } from './security';
  */
 export class DescribeApi {
   /**
-   * Resolve a human-readable name for an object.
+   * Resolve a human-readable display string for an object — the
+   * casual register, what 95% of prose wants. Two-step resolution:
    *
-   * Checks in order:
-   * 1. NamedMixin.fullName
-   * 2. A string `name` property (Location and similar carry this directly)
-   * 3. VisibleMixin.shortDescription
-   * 4. The caller-supplied fallback
+   *   1. **`Named.name`** if present and non-empty — the object's
+   *      *proper name* ("Alice", "Excalibur", "Town Square"). Most
+   *      things don't have one.
+   *   2. **`Visible.shortDescription`** if present and non-empty —
+   *      the object's *visual identity* ("a heavy oak door", "a
+   *      rusty sword"). Most things have one of these.
+   *   3. The caller-supplied fallback.
    *
-   * Callers that only care whether a name exists (e.g. MqlApi scoring) should
-   * pass `''` and test for empty. Display callers should pass a sensible
-   * fallback like `'something'` or `'Someone'`.
+   * Named takes precedence so a Named-with-description renders by
+   * its proper name in casual prose. Code that needs the formal
+   * register reaches for `obj.fullName` directly when typed as
+   * Named. Future registers (`getAddressForm`, social-graph-aware
+   * variants) will be added as siblings here rather than overloading
+   * this function.
    *
-   * @param obj - Object to name
-   * @param fallback - Returned when no name source is available (default: '')
+   * @param obj - Object to render
+   * @param fallback - Returned when neither Named.name nor
+   *   Visible.shortDescription is available (default: `''`)
    */
   static getDisplayName(obj: Stuff, fallback: string = ''): string {
-    if (MixinApi.isNamed(obj)) return obj.fullName;
-    const withName = obj as Stuff & { name?: unknown };
-    if (typeof withName.name === 'string' && withName.name) return withName.name;
-    if (MixinApi.isVisible(obj) && obj.shortDescription) return obj.shortDescription;
+    if (MixinApi.isNamed(obj) && obj.name) return obj.name;
+    if (MixinApi.isVisible(obj) && obj.shortDescription) {
+      return obj.shortDescription;
+    }
     return fallback;
   }
 }

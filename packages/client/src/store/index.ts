@@ -12,6 +12,7 @@ import type {
   AuthState,
   ConnectionState,
   Pronouns,
+  AlternateName,
 } from '@saxonberg/types';
 
 interface ConnectionEstablishedPayload {
@@ -20,8 +21,11 @@ interface ConnectionEstablishedPayload {
   sessionId: string;
   player: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    suffix?: string;
+    alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
 }
@@ -99,7 +103,15 @@ export const useStore = create<StoreState>((set) => ({
         user: {
           id: payload.userId,
           email: '',
-          displayName: `${payload.player.firstName} ${payload.player.lastName}`,
+          displayName: [
+            payload.player.honorific,
+            payload.player.name,
+            payload.player.surname,
+            payload.player.suffix,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .trim(),
         },
         player: payload.player,
       },

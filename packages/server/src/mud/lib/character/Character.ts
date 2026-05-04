@@ -14,7 +14,7 @@
  *
  * Key Design Points:
  * - NO stat fields in Character itself (xp, level are PC-specific, deferred)
- * - firstName/lastName/fullName come from NamedMixin
+ * - honorific/name/surname/suffix/alternateNames/fullName come from NamedMixin
  * - pronouns come from GenderedMixin
  * - shortDescription/longDescription come from VisibleMixin
  * - inventory management from ContainerMixin
@@ -27,7 +27,7 @@
  */
 
 import { Agent } from '../stuff/Agent';
-import { NamedMixin } from './Named';
+import { NamedMixin } from '../description/Named';
 import { GenderedMixin } from './Gendered';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';

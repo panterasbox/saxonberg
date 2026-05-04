@@ -12,7 +12,7 @@ import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
-import { NamedMixin } from '../../../lib/character/Named';
+import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
@@ -69,15 +69,15 @@ describe('GoController', () => {
     zone.addRoom(roomB, 0, 1, 0);
 
     avatar = makeStuff(() => new FakeAvatar());
-    avatar.firstName = 'Alice';
+    avatar.name = 'Alice';
     ContainmentApi.move(avatar, roomA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.firstName = 'BobA';
+    peerInA.name = 'BobA';
     ContainmentApi.move(peerInA, roomA);
 
     peerInB = makeStuff(() => new PeerSensor());
-    peerInB.firstName = 'BobB';
+    peerInB.name = 'BobB';
     ContainmentApi.move(peerInB, roomB);
 
     controller = new GoController();
@@ -182,7 +182,7 @@ describe('GoController', () => {
       plaza.addExit(makeStuff(() => new Exit({ direction: 'office', source: plaza, destination: office })));
 
       const visitor = makeStuff(() => new FakeAvatar());
-      visitor.firstName = 'Carol';
+      visitor.name = 'Carol';
       ContainmentApi.move(visitor, plaza);
 
       const spherePeer = makeStuff(() => new PeerSensor());
@@ -204,7 +204,7 @@ describe('GoController', () => {
   describe('vessel entry and exit', () => {
     it('go <vessel-keyword> enters a sibling ExitableVessel', () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
-      wardrobe.name = 'wardrobe';
+      wardrobe.shortDescription = 'wardrobe';
       ContainmentApi.move(wardrobe, roomA);
 
       const result = controller.execute(
@@ -217,7 +217,7 @@ describe('GoController', () => {
 
     it('go out from inside a vessel returns to the environment', () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
-      wardrobe.name = 'wardrobe';
+      wardrobe.shortDescription = 'wardrobe';
       ContainmentApi.move(wardrobe, roomA);
       ContainmentApi.move(avatar, wardrobe);
 

@@ -163,14 +163,14 @@ describe('Avatar', () => {
     });
 
     it('should have all Character mixin properties', () => {
-      expect(avatar).toHaveProperty('firstName');
-      expect(avatar).toHaveProperty('lastName');
+      expect(avatar).toHaveProperty('name');
+      expect(avatar).toHaveProperty('surname');
       expect(avatar).toHaveProperty('pronouns');
     });
 
     it('should have Named mixin fullName getter', () => {
-      avatar.firstName = 'Jane';
-      avatar.lastName = 'Smith';
+      avatar.name = 'Jane';
+      avatar.surname = 'Smith';
       expect(avatar.fullName).toBe('Jane Smith');
     });
 

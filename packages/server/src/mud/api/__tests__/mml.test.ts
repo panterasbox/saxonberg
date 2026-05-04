@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { NamedMixin } from '../../lib/character/Named';
+import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
@@ -65,33 +65,35 @@ describe('Mml.fromMarkup', () => {
 });
 
 describe('Mml vocabulary helpers', () => {
-  it('Mml.name uses DescribeApi.getDisplayName and stamps stuff-id', () => {
+  it('Mml.name returns the casual register (just `name`) and stamps stuff-id', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.firstName = 'Alice';
-    obj.lastName = 'Smith';
+    obj.name = 'Alice';
+    obj.surname = 'Smith';
+    // Casual register — surname not included. Reach for `obj.fullName`
+    // explicitly when you need the formal form.
     expect(Mml.name(obj).toString()).toBe(
-      `<name stuff-id="${obj.stuffId}">Alice Smith</name>`
+      `<name stuff-id="${obj.stuffId}">Alice</name>`
     );
   });
 
-  it('Mml.name escapes chars in the resolved display name', () => {
-    const obj = makeStuff(() => new VisibleThing());
-    obj.shortDescription = 'a "quoted" sword';
+  it('Mml.name escapes chars in the casual name', () => {
+    const obj = makeStuff(() => new NamedThing());
+    obj.name = 'a "quoted" name';
     expect(Mml.name(obj).toString()).toBe(
-      `<name stuff-id="${obj.stuffId}">a &quot;quoted&quot; sword</name>`
+      `<name stuff-id="${obj.stuffId}">a &quot;quoted&quot; name</name>`
     );
   });
 
-  it('Mml.name falls back to "something"', () => {
+  it('Mml.name falls back to "something" when no name set', () => {
     const obj = makeStuff(() => new Plain());
     expect(Mml.name(obj).toString()).toBe(
       `<name stuff-id="${obj.stuffId}">something</name>`
     );
   });
 
-  it('Mml.object / Mml.item / Mml.location all stamp stuff-id', () => {
-    const obj = makeStuff(() => new VisibleThing());
-    obj.shortDescription = 'rusty sword';
+  it('Mml.object / Mml.item / Mml.location stamp stuff-id and use the casual `name`', () => {
+    const obj = makeStuff(() => new NamedThing());
+    obj.name = 'rusty sword';
     expect(Mml.object(obj).toString()).toBe(
       `<object stuff-id="${obj.stuffId}">rusty sword</object>`
     );

@@ -172,7 +172,7 @@ describe('ExecutionContextApi', () => {
       expect(() =>
         ExecutionContextApi._checkAllowlistForTest(
           'run',
-          'file:///proj/packages/server/src/mud/lib/character/Named.ts'
+          'file:///proj/packages/server/src/mud/lib/description/Named.ts'
         )
       ).toThrow(SecurityError);
     });

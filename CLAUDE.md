@@ -195,11 +195,11 @@ constraints"). When a constraint is intentionally relaxed (e.g.,
 can still expose commands), leave a comment explaining why.
 
 **Available Mixins** (by subsystem folder):
-- `lib/character/` — identity:
-  - `NamedMixin`: firstName, lastName, fullName (persistent)
+- `lib/character/` — identity (PC/NPC-specific):
   - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
-- `lib/description/` — appearance and detail:
-  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
+- `lib/description/` — how a thing presents itself to observers:
+  - `NamedMixin`: honorific?, name, surname?, suffix?, alternateNames, fullName (persistent). For things with PROPER NAMES — characters, ships, named places. Most prose reads `obj.name` (casual register); `fullName` is the formal canonical form for introductions/disambiguation.
+  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look. The visual identity of a thing — "a heavy oak door" — for things without proper names.
   - `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
   - `DetailedMixin`: hierarchical detail management (persistent)
 - `lib/spatial/` — containment, movement, space:

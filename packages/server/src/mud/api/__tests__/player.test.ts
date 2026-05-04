@@ -16,8 +16,8 @@ import type { Avatar } from '../../obj/Avatar';
 const createMockAvatar = (playerId: string): Avatar => {
   return {
     playerId,
-    firstName: 'Test',
-    lastName: 'User',
+    name: 'Test',
+    surname: 'User',
     fullName: 'Test User',
     stuffId: `avatar-${playerId}`,
   } as unknown as Avatar;

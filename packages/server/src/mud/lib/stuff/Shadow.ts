@@ -16,10 +16,10 @@
  * ```ts
  * class RenamedShadow extends NamedMixin(Shadow) {}
  * // Intercepts every NamedMixin method on the host. Defaults run
- * // against the shadow's own state (firstName, lastName, fullName).
+ * // against the shadow's own state (name, surname, fullName).
  *
  * class LiarShadow extends NamedMixin(Shadow) {
- *   override get firstName() { return 'Bob'; }
+ *   override get name() { return 'Bob'; }
  * }
  *
  * class TraceShadow extends Shadow {

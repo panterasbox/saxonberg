@@ -18,7 +18,10 @@
  *     `open the oak door` and have it resolve. The `keywords` setter
  *     normalizes (lowercase / trim / dedupe).
  *   - `VisibleMixin`: short/long descriptions, so `look door` and
- *     `DescribeApi.getDisplayName()` both work uniformly.
+ *     `DescribeApi.getDisplayName()` both work uniformly. A door's
+ *     identity is its visual description ("a heavy oak door") — not
+ *     a proper name. NamedMixin is for things that take proper
+ *     names (characters, ships, named places).
  *
  * Template-loadable: `Door` is cloned from a `domain` template via
  * `StuffApi.clone()`. Templates set

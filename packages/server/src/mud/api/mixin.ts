@@ -27,7 +27,7 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
-import type { Named } from '../lib/character/Named';
+import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';

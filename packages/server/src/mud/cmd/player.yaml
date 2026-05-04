@@ -4,12 +4,12 @@ description: "Manage your player character settings"
 subcommands:
   name:
     description: "Set your character name"
-    pattern: "<firstName> [lastName]"
+    pattern: "<name> [surname]"
     fields:
-      firstName:
+      name:
         type: string
         required: true
-      lastName:
+      surname:
         type: string
         required: false
 

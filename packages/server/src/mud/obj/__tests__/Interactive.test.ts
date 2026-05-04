@@ -84,9 +84,9 @@ describe('Interactive', () => {
 
     beforeEach(() => {
       mockAvatar1 = makeAvatar('player1');
-      mockAvatar1.firstName = 'Alice';
+      mockAvatar1.name = 'Alice';
       mockAvatar2 = makeAvatar('player2');
-      mockAvatar2.firstName = 'Bob';
+      mockAvatar2.name = 'Bob';
     });
 
     it('should clone one avatar per playerId from user.playerIds', async () => {
@@ -181,9 +181,9 @@ describe('Interactive', () => {
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
 
       mockAvatar1 = makeAvatar('player1');
-      mockAvatar1.firstName = 'Alice';
+      mockAvatar1.name = 'Alice';
       mockAvatar2 = makeAvatar('player2');
-      mockAvatar2.firstName = 'Bob';
+      mockAvatar2.name = 'Bob';
 
       interactive.availableAvatars.set('player1', mockAvatar1);
       interactive.availableAvatars.set('player2', mockAvatar2);
@@ -230,7 +230,7 @@ describe('Interactive', () => {
       interactive2 = makeStuff(() => new Interactive('socket2', 'session2', makeUser(testUserId)));
 
       mockAvatar = makeAvatar('player1');
-      mockAvatar.firstName = 'Alice';
+      mockAvatar.name = 'Alice';
 
       interactive1.availableAvatars.set('player1', mockAvatar);
       interactive2.availableAvatars.set('player1', mockAvatar);
@@ -351,8 +351,8 @@ describe('Interactive', () => {
 
     it('should include avatar name when connected', async () => {
       const mockAvatar = makeAvatar('player1');
-      mockAvatar.firstName = 'Alice';
-      mockAvatar.lastName = 'Smith';
+      mockAvatar.name = 'Alice';
+      mockAvatar.surname = 'Smith';
       interactive.availableAvatars.set('player1', mockAvatar);
 
       await interactive.switchAvatar('player1');

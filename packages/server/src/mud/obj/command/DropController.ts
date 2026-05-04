@@ -30,18 +30,18 @@ export class DropController extends CommandController<DropInput> {
     }
 
     let successCount = 0;
-    const lastNames: string[] = [];
+    const droppedNames: string[] = [];
     for (const target of targets) {
       if (this.dropObject(target, context)) {
         successCount++;
-        lastNames.push(DescribeApi.getDisplayName(target, 'something'));
+        droppedNames.push(DescribeApi.getDisplayName(target, 'something'));
       }
     }
 
     if (successCount === 0) {
       return { success: false, summary: 'nothing dropped' };
     }
-    return { success: true, summary: lastNames.join(', ') };
+    return { success: true, summary: droppedNames.join(', ') };
   }
 
   private dropObject(target: Stuff, context: CommandContext): boolean {

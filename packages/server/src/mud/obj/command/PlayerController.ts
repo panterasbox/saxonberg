@@ -15,8 +15,8 @@ import { Avatar } from '../Avatar';
 
 export interface PlayerInput {
   subcommand: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
+  surname?: string;
   pronouns?: string;
 }
 
@@ -50,15 +50,15 @@ export class PlayerController extends CommandController<PlayerInput> {
     avatar: Avatar,
     context: CommandContext
   ): CommandResult {
-    if (!input.firstName) {
-      return { success: false, summary: 'first name required' };
+    if (!input.name) {
+      return { success: false, summary: 'name required' };
     }
-    avatar.firstName = input.firstName;
-    avatar.lastName = input.lastName || '';
+    avatar.name = input.name;
+    avatar.surname = input.surname || undefined;
 
     this.send(
       context,
-      Mml.compose`\nYour name is now ${Mml.name(avatar)}.\n`
+      Mml.compose`\nYour name is now ${avatar.fullName}.\n`
     );
     return { success: true, summary: `name set to ${avatar.fullName}` };
   }

@@ -66,17 +66,22 @@ export class Login extends Idea {
 
     // Welcome scene: actor frame at system.connection.established
     // carries the bootstrap payload the client needs.
+    // Welcome is the introductory moment — explicitly the formal
+    // register, so reach for fullName.
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.system.connection.established)
-      .toSelf(Mml.compose`Welcome back, ${Mml.name(avatar)}!`)
+      .toSelf(Mml.compose`Welcome back, ${avatar.fullName}!`)
       .payload({
         userId: interactive.userId,
         socketId: interactive.socketId,
         sessionId: interactive.sessionId,
         player: {
           _id: avatar.playerId,
-          firstName: avatar.firstName,
-          lastName: avatar.lastName,
+          honorific: avatar.honorific,
+          name: avatar.name,
+          surname: avatar.surname,
+          suffix: avatar.suffix,
+          alternateNames: avatar.alternateNames,
           pronouns: avatar.pronouns,
         },
       })

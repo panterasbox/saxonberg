@@ -9,7 +9,7 @@ import { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../Containable';
 import { MobileMixin } from '../Mobile';
-import { NamedMixin } from '../../character/Named';
+import { NamedMixin } from '../../description/Named';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
@@ -49,15 +49,15 @@ describe('Exit', () => {
     zone.addRoom(roomB, 0, 1, 0);
 
     mover = makeStuff(() => new TestMover());
-    mover.firstName = 'Alice';
+    mover.name = 'Alice';
     ContainmentApi.move(mover, roomA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.firstName = 'PeerA';
+    peerInA.name = 'PeerA';
     ContainmentApi.move(peerInA, roomA);
 
     peerInB = makeStuff(() => new PeerSensor());
-    peerInB.firstName = 'PeerB';
+    peerInB.name = 'PeerB';
     ContainmentApi.move(peerInB, roomB);
   });
 

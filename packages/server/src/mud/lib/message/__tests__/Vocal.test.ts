@@ -16,7 +16,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../Sensor';
 import { VocalMixin } from '../Vocal';
-import { NamedMixin } from '../../character/Named';
+import { NamedMixin } from '../../description/Named';
 import { Location } from '../../stuff/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -58,7 +58,7 @@ describe('VocalMixin.say()', () => {
       const room = makeStuff(() => new Location());
 
       const alice = makeStuff(() => new CharacterSpeaker());
-      alice.firstName = 'Alice';
+      alice.name = 'Alice';
       ContainmentApi.move(alice, room);
 
       const bob = makeStuff(() => new Listener());
@@ -81,8 +81,8 @@ describe('VocalMixin.say()', () => {
   describe('pure-Container speaker (contents mode)', () => {
     it('broadcasts to its own occupants', () => {
       const house = makeStuff(() => new TalkingRoom());
-      house.firstName = 'Haunted';
-      house.lastName = 'House';
+      house.name = 'Haunted';
+      house.surname = 'House';
 
       const occupant = makeStuff(() => new Listener());
       ContainmentApi.move(occupant, house);
@@ -90,8 +90,10 @@ describe('VocalMixin.say()', () => {
       house.say('get out');
 
       expect(occupant.received).toHaveLength(1);
+      // Casual register — surname not included; use `obj.fullName` to
+      // get "Haunted House".
       expect(occupant.received[0]!.body).toBe(
-        `<name stuff-id="${house.stuffId}">Haunted House</name> says, <speech>"get out"</speech>`
+        `<name stuff-id="${house.stuffId}">Haunted</name> says, <speech>"get out"</speech>`
       );
     });
   });

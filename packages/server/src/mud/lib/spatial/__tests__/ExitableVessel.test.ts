@@ -31,7 +31,7 @@ describe('ExitableVessel', () => {
     zone.addRoom(park2, 1, 0, 0);
 
     wardrobe = makeStuff(() => new ExitableVessel());
-    wardrobe.name = 'wardrobe';
+    wardrobe.shortDescription = 'wardrobe';
   });
 
   it('is flagged as Exitable by MixinApi', () => {
@@ -76,7 +76,7 @@ describe('ExitableVessel', () => {
     // The synthesized exit should be shadowed by the explicit entry.
     // (This is a contract edge case — normally no one installs explicit 'out'.)
     const other = makeStuff(() => new ExitableVessel());
-    other.name = 'pocket';
+    other.shortDescription = 'pocket';
     ContainmentApi.move(other, park);
     wardrobe.addBidirectionalExit(other, 'pocket-dim', { opposite: 'back' });
     const got = wardrobe.getExit('pocket-dim');
@@ -147,7 +147,7 @@ describe('ExitableVessel', () => {
     it('nested vessels inherit the outer location’s zone on first placement', () => {
       ContainmentApi.move(wardrobe, park);
       const pocket = makeStuff(() => new ExitableVessel());
-      pocket.name = 'pocket';
+      pocket.shortDescription = 'pocket';
       ContainmentApi.move(pocket, wardrobe);
       expect(pocket.zone).toBe(zone);
     });

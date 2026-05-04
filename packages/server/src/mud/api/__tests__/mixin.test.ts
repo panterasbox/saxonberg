@@ -9,7 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { MixinApi, Mixins } from '../mixin';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { NamedMixin } from '../../lib/character/Named';
+import { NamedMixin } from '../../lib/description/Named';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';

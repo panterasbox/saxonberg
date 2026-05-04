@@ -22,8 +22,8 @@ describe('Character', () => {
 
   describe('mixin composition', () => {
     it('should have Named mixin properties', () => {
-      expect(character).toHaveProperty('firstName');
-      expect(character).toHaveProperty('lastName');
+      expect(character).toHaveProperty('name');
+      expect(character).toHaveProperty('surname');
       expect(character).toHaveProperty('fullName');
     });
 
@@ -41,14 +41,22 @@ describe('Character', () => {
   });
 
   describe('Named mixin integration', () => {
-    it('should compute fullName from firstName and lastName', () => {
-      character.firstName = 'John';
-      character.lastName = 'Doe';
+    it('should compute fullName from name and surname', () => {
+      character.name = 'John';
+      character.surname = 'Doe';
       expect(character.fullName).toBe('John Doe');
     });
 
-    it('should handle empty names', () => {
-      expect(character.fullName).toBe('Unnamed');
+    it('returns empty string when no names set (no fallback)', () => {
+      expect(character.fullName).toBe('');
+    });
+
+    it('synthesizes honorific + name + surname + suffix', () => {
+      character.honorific = 'Dr.';
+      character.name = 'John';
+      character.surname = 'Doe';
+      character.suffix = 'PhD';
+      expect(character.fullName).toBe('Dr. John Doe PhD');
     });
   });
 

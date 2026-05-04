@@ -31,18 +31,18 @@ export class GetController extends CommandController<GetInput> {
     }
 
     let successCount = 0;
-    const lastNames: string[] = [];
+    const pickedNames: string[] = [];
     for (const target of targets) {
       if (this.pickUpObject(target, context)) {
         successCount++;
-        lastNames.push(DescribeApi.getDisplayName(target, 'something'));
+        pickedNames.push(DescribeApi.getDisplayName(target, 'something'));
       }
     }
 
     if (successCount === 0) {
       return { success: false, summary: 'nothing picked up' };
     }
-    return { success: true, summary: lastNames.join(', ') };
+    return { success: true, summary: pickedNames.join(', ') };
   }
 
   private pickUpObject(target: Stuff, context: CommandContext): boolean {

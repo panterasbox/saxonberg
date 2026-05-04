@@ -10,7 +10,7 @@ import { Location } from '../../lib/stuff/Location';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
-import { NamedMixin } from '../../lib/character/Named';
+import { NamedMixin } from '../../lib/description/Named';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi, FrameKind } from '../execution-context';
 import { ContainmentApi } from '../containment';
@@ -62,11 +62,13 @@ describe('MessageApi.Topics / Tags', () => {
 describe('MessageApi.refOf', () => {
   it('produces a wire-safe StuffRef with display name when available', () => {
     const obj = makeStuff(() => new CapSensor());
-    obj.firstName = 'Alice';
-    obj.lastName = 'A';
+    obj.name = 'Alice';
+    obj.surname = 'A';
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
-    expect(ref.displayName).toBe('Alice A');
+    // refOf carries the casual register; clients render the formal
+    // form themselves when needed.
+    expect(ref.displayName).toBe('Alice');
   });
 
   it('omits displayName when no name is resolvable', () => {
@@ -146,11 +148,11 @@ describe('Scene multi-audience dispatch', () => {
   beforeEach(() => {
     location = makeStuff(() => new Location());
     alice = makeStuff(() => new CapSensor());
-    alice.firstName = 'Alice';
+    alice.name = 'Alice';
     bob = makeStuff(() => new CapSensor());
-    bob.firstName = 'Bob';
+    bob.name = 'Bob';
     carol = makeStuff(() => new CapSensor());
-    carol.firstName = 'Carol';
+    carol.name = 'Carol';
     ContainmentApi.move(alice, location);
     ContainmentApi.move(bob, location);
     ContainmentApi.move(carol, location);

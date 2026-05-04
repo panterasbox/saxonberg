@@ -144,7 +144,7 @@ export const ConnectionStatus: React.FC = () => {
           <StatusRow>
             <StatusLabel>Character:</StatusLabel>
             <StatusValue $status="success">
-              {auth.player.firstName} {auth.player.lastName}
+              {auth.player.name}{auth.player.surname ? ` ${auth.player.surname}` : ''}
             </StatusValue>
           </StatusRow>
 

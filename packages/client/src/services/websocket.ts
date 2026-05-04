@@ -12,7 +12,11 @@
  * — the inbound protocol redesign is out of scope (§1.2).
  */
 
-import type { MessageFrame, Pronouns } from '@saxonberg/types';
+import type {
+  MessageFrame,
+  Pronouns,
+  AlternateName,
+} from '@saxonberg/types';
 import { useStore } from '../store/index';
 
 interface ConnectionEstablishedPayload {
@@ -21,8 +25,11 @@ interface ConnectionEstablishedPayload {
   sessionId: string;
   player: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    suffix?: string;
+    alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
 }
