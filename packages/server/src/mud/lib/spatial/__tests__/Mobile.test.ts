@@ -23,10 +23,8 @@ describe('MobileMixin', () => {
     mobileObj = makeStuff(() => new MobileObject());
 
     location1 = makeStuff(() => new Location());
-    location1.shortDescription = 'Room 1';
 
     location2 = makeStuff(() => new Location());
-    location2.shortDescription = 'Room 2';
   });
 
   describe('teleport()', () => {

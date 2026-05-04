@@ -2,7 +2,7 @@
  * CartesianLocation — a Location that lives at `[x,y,z]` inside a
  * `CartesianZone`, with a full Exitable map.
  *
- * Composition: `ExitableMixin(CartesianCoordinatesMixin(Location))`
+ * Composition: `ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))`
  *
  * Rooms are positioned by integer grid coordinates in a zone's grid. Cardinal
  * exits are derived on demand from grid adjacency (see `CartesianZone.deriveExit`)
@@ -20,10 +20,13 @@
 import { Location } from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from './Exitable';
+import { VisibleMixin } from '../description/Visible';
 import { NavigationApi } from '../../api/navigation';
 import type { Exit } from './Exit';
 
-const CartesianLocationBase = ExitableMixin(CartesianCoordinatesMixin(Location));
+const CartesianLocationBase = ExitableMixin(
+  CartesianCoordinatesMixin(VisibleMixin(Location))
+);
 
 export class CartesianLocation extends CartesianLocationBase {
   public override addExit(exit: Exit): boolean {

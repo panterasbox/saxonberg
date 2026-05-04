@@ -51,7 +51,6 @@ describe('MessageApi', () => {
 
   beforeEach(() => {
     location = makeStuff(() => new Location());
-    location.shortDescription = 'Test Room';
 
     sensor1 = makeStuff(() => new TestSensor());
 
@@ -255,7 +254,6 @@ describe('MessageApi', () => {
 
     it('should isolate messages to container', () => {
       const location2 = makeStuff(() => new Location());
-      location2.shortDescription = 'Other Room';
 
       const sensorInRoom1 = makeStuff(() => new TestSensor());
       const sensorInRoom2 = makeStuff(() => new TestSensor());

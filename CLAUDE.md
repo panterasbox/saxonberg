@@ -211,7 +211,7 @@ can still expose commands), leave a comment explaining why.
   - `VocalMixin`: say() — scope-aware broadcast (Containable → peers; pure Container → own contents; both → Containable path; neither → throw)
 - `lib/command/` — command execution:
   - `CommandGiverMixin`: executeCommand(), getAvailableCommands()
-- `lib/stuff/` — base object machinery (also hosts `Location`, `Place`, `Thing`, `Agent`, `Idea`, `Stuff`, `Persistable`):
+- `lib/stuff/` — base object machinery (also hosts `Location`, `Thing`, `Agent`, `Idea`, `Stuff`, `Persistable`):
   - `PropertiedMixin`: controlled dynamic property bag (persistent)
 
 **`Mixins` registry** in `lib/mixin-types.ts` lists every registered mixin by

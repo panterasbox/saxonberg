@@ -16,6 +16,7 @@ import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
+import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
 import type { Interactive } from './Interactive';
@@ -103,7 +104,15 @@ export class Login extends Idea {
       return;
     }
 
-    const body = Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(location.getLong())}\n`;
+    // Concrete locations (CartesianLocation, SphericalLocation)
+    // compose VisibleMixin and have getLong(); a bare Location does
+    // not. Narrow before reaching for the description.
+    const description = MixinApi.isVisible(location)
+      ? location.getLong()
+      : '';
+    const body = description
+      ? Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(description)}\n`
+      : Mml.compose`${Mml.location(location)}\n`;
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.world.perception.look)
       .toSelf(body)
