@@ -51,11 +51,11 @@ describe('Character', () => {
       expect(character.fullName).toBe('');
     });
 
-    it('synthesizes honorific + name + surname + suffix', () => {
+    it('synthesizes honorific + name + surname + nameSuffix', () => {
       character.honorific = 'Dr.';
       character.name = 'John';
       character.surname = 'Doe';
-      character.suffix = 'PhD';
+      character.nameSuffix = 'PhD';
       expect(character.fullName).toBe('Dr. John Doe PhD');
     });
   });

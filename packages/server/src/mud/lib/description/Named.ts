@@ -11,16 +11,20 @@
  *   honorific?      // "Dr.", "Sir", "Captain" — formal address prefix
  *   name            // casual register; the field 95% of callers want
  *   surname?        // family / second name
- *   suffix?         // "Jr.", "III", "Esq." — post-nominal
+ *   nameSuffix?     // "Jr.", "III", "Esq." — post-nominal
  *   alternateNames  // typed extras (nicknames, titles, credentials, …)
  *
  *   fullName        // synthetic — the formal canonical form
  *
+ * `nameSuffix` is named with the `name` prefix because plain `suffix`
+ * is too generic — many other things (URLs, paths, file types) use
+ * "suffix" with different semantics, so we want this collision-free.
+ *
  * Most code reads `obj.name` directly. `fullName` is the formal /
  * introductory register: synthesized as
- * `[honorific, name, surname, suffix].filter(Boolean).join(' ')`. No
- * "Unnamed" fallback — when nothing is set, `fullName` returns `''`
- * and `DescribeApi.getDisplayName(obj, fallback)` provides the
+ * `[honorific, name, surname, nameSuffix].filter(Boolean).join(' ')`.
+ * No "Unnamed" fallback — when nothing is set, `fullName` returns
+ * `''` and `DescribeApi.getDisplayName(obj, fallback)` provides the
  * caller's fallback string.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)
@@ -55,7 +59,7 @@ export interface Named {
   honorific?: string;
   name: string;
   surname?: string;
-  suffix?: string;
+  nameSuffix?: string;
   alternateNames: AlternateName[];
 
   readonly fullName: string;
@@ -78,24 +82,24 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       'honorific',
       'name',
       'surname',
-      'suffix',
+      'nameSuffix',
       'alternateNames',
     ];
 
     honorific?: string;
     name: string = '';
     surname?: string;
-    suffix?: string;
+    nameSuffix?: string;
     alternateNames: AlternateName[] = [];
 
     /**
-     * Formal canonical form: honorific + name + surname + suffix.
+     * Formal canonical form: honorific + name + surname + nameSuffix.
      * Used at introductions, character info screens, disambiguation
      * — not the default for everyday prose. Most callers should
      * read `obj.name` directly.
      */
     get fullName(): string {
-      return [this.honorific, this.name, this.surname, this.suffix]
+      return [this.honorific, this.name, this.surname, this.nameSuffix]
         .filter(Boolean)
         .join(' ')
         .trim();

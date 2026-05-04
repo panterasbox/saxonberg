@@ -198,8 +198,8 @@ can still expose commands), leave a comment explaining why.
 - `lib/character/` — identity (PC/NPC-specific):
   - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
 - `lib/description/` — how a thing presents itself to observers:
-  - `NamedMixin`: honorific?, name, surname?, suffix?, alternateNames, fullName (persistent). For things with PROPER NAMES — characters, ships, named places. Most prose reads `obj.name` (casual register); `fullName` is the formal canonical form for introductions/disambiguation.
-  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look. The visual identity of a thing — "a heavy oak door" — for things without proper names.
+  - `NamedMixin`: honorific?, name, surname?, nameSuffix?, alternateNames, fullName (persistent). For things with PROPER NAMES — characters, ships, named places, specific buildings. Most prose reads `obj.name` (casual register); `fullName` is the formal canonical form for introductions/disambiguation. Generic things (a door, a sword, a wardrobe) do NOT compose this — their identity is a description, not a name. Mix it in only when the thing actually carries a proper name.
+  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look. The visual identity of a thing — "a heavy oak door" — for things without proper names. The default for generic objects.
   - `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
   - `DetailedMixin`: hierarchical detail management (persistent)
 - `lib/spatial/` — containment, movement, space:

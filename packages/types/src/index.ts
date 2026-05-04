@@ -78,26 +78,6 @@ export interface User {
 }
 
 /**
- * Player character slot (persistent).
- * A Player record links a User to a CharacterSheet. Character data
- * (name, pronouns) lives on the CharacterSheet, not here.
- */
-export interface Player {
-  /** MongoDB ObjectId */
-  _id?: string;
-  /** User ID that owns this player slot */
-  userId: string;
-  /** CharacterSheet ID holding the character data */
-  characterSheetId: string;
-  /** Optional starting room path override */
-  startingRoomPath?: string;
-  /** Character creation timestamp */
-  createdAt: Date;
-  /** Last updated timestamp */
-  updatedAt: Date;
-}
-
-/**
  * Categories for `AlternateName.kind` — see NamedMixin.
  */
 export type NameKind =
@@ -111,33 +91,6 @@ export type NameKind =
 export interface AlternateName {
   kind: NameKind;
   value: string;
-}
-
-/**
- * Character sheet (persistent).
- * Holds mixin-based character data (name, pronouns, etc.) projected by
- * a runtime Avatar or NPC. Shared shape between PC sheets (owned via a
- * Player record) and future NPC sheets. Mirrors the NamedMixin shape.
- */
-export interface CharacterSheet {
-  /** MongoDB ObjectId */
-  _id?: string;
-  /** Formal address prefix ("Dr.", "Sir") */
-  honorific?: string;
-  /** Casual register — what 95% of prose displays */
-  name: string;
-  /** Family / second name */
-  surname?: string;
-  /** Post-nominal ("Jr.", "III", "Esq.") */
-  suffix?: string;
-  /** Typed extras (nicknames, credentials, …) */
-  alternateNames?: AlternateName[];
-  /** Pronouns */
-  pronouns: Pronouns;
-  /** Created timestamp */
-  createdAt: Date;
-  /** Last updated timestamp */
-  updatedAt: Date;
 }
 
 /**
@@ -252,7 +205,7 @@ export interface AuthStatusResponse {
     honorific?: string;
     name: string;
     surname?: string;
-    suffix?: string;
+    nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
@@ -277,7 +230,7 @@ export interface AuthState {
     honorific?: string;
     name: string;
     surname?: string;
-    suffix?: string;
+    nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
   } | null;

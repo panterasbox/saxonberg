@@ -28,7 +28,7 @@ interface ConnectionEstablishedPayload {
     honorific?: string;
     name: string;
     surname?: string;
-    suffix?: string;
+    nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };

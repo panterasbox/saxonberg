@@ -24,7 +24,7 @@ interface ConnectionEstablishedPayload {
     honorific?: string;
     name: string;
     surname?: string;
-    suffix?: string;
+    nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
@@ -107,7 +107,7 @@ export const useStore = create<StoreState>((set) => ({
             payload.player.honorific,
             payload.player.name,
             payload.player.surname,
-            payload.player.suffix,
+            payload.player.nameSuffix,
           ]
             .filter(Boolean)
             .join(' ')

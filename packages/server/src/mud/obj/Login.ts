@@ -80,7 +80,7 @@ export class Login extends Idea {
           honorific: avatar.honorific,
           name: avatar.name,
           surname: avatar.surname,
-          suffix: avatar.suffix,
+          nameSuffix: avatar.nameSuffix,
           alternateNames: avatar.alternateNames,
           pronouns: avatar.pronouns,
         },
