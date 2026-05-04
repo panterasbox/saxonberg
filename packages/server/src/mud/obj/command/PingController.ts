@@ -1,34 +1,17 @@
 /**
- * PingController - Simple echo test command
- *
- * Responds with "pong" to verify command framework is working.
+ * PingController — health check. The auto-emit at
+ * `system.log.command.info` is the visible output; no separate prose
+ * scene is needed (kept intentionally bland to match its diagnostic
+ * purpose).
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 
-/**
- * Input model for ping command (no fields)
- */
-export interface PingInput {
-  // No fields - ping takes no arguments
-}
+export interface PingInput {}
 
-/**
- * Output model for ping command
- */
-export interface PingOutput {
-  text: string;
-}
-
-/**
- * PingController - Echo test command
- */
-export class PingController extends CommandController<PingInput, PingOutput> {
-  execute(input: PingInput, context: CommandContext): CommandResult<PingOutput> {
-    return {
-      success: true,
-      output: { text: 'pong' },
-    };
+export class PingController extends CommandController<PingInput> {
+  execute(_input: PingInput, _context: CommandContext): CommandResult {
+    return { success: true, summary: 'pong' };
   }
 }

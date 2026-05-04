@@ -87,6 +87,17 @@ export class Exit extends Idea {
   /** Custom departure text (source peers). `null` → use default. */
   public messageOut: string | null;
 
+  /**
+   * Counterpart Exit on the destination side, when this exit is part
+   * of a bidirectional pair. `undefined` for one-way exits, vessel-
+   * synthesized `'out'` exits, or pairs that haven't been wired (lazy-
+   * load case).
+   *
+   * Wired up by `Exitable.addBidirectionalExit()` after both forward
+   * and back exits exist. Readers must tolerate `undefined`.
+   */
+  public inverse?: Exit;
+
   constructor(opts: ExitOptions) {
     super();
     this.direction = opts.direction;

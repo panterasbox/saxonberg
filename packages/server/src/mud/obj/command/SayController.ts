@@ -1,47 +1,26 @@
 /**
- * SayController - Broadcast message to everyone in the room
+ * SayController — broadcast a message to everyone in the room.
  *
- * Syntax:
- * - say <message>   - Broadcast message to all in location
- * - '<message>      - Shortcut alias for say
+ * Delegates to VocalMixin.say which fires a Scene at
+ * `world.speech.say`. The controller's job is just composition-narrowing
+ * and reporting the semantic outcome; prose lives in the mixin sugar.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandResult } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 
-/**
- * Input model for say command
- */
 export interface SayInput {
   message: string;
 }
 
-/**
- * Output model for say command
- */
-export interface SayOutput {
-  text: string;
-}
-
-/**
- * SayController - Handles broadcasting messages to room
- */
-export class SayController extends CommandController<SayInput, SayOutput> {
-  execute(input: SayInput, context: CommandContext): CommandResult<SayOutput> {
+export class SayController extends CommandController<SayInput> {
+  execute(input: SayInput, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
-
-    // Character always composes VocalMixin; this guards against a future
-    // speaker that lacks it and narrows the type so .say() compiles cleanly.
     if (!MixinApi.isVocal(speaker)) {
-      return { success: false, error: 'You cannot speak.' };
+      return { success: false, summary: 'You cannot speak.' };
     }
-
     speaker.say(input.message);
-
-    return {
-      success: true,
-      output: { text: '' },
-    };
+    return { success: true };
   }
 }

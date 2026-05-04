@@ -5,7 +5,8 @@
  * - self: Commands when the object IS the command giver
  * - environment: Commands when the object is IN the giver's environment
  * - inventory: Commands when the object is IN the giver's inventory
- * - colocated: Commands when the object is IN the same location as the giver
+ * - peers: Commands when the object is one of the giver's peers
+ *   (another command-giver in the same environment)
  *
  * Mixins use static registry pattern for declaration with YAML filenames:
  * ```typescript
@@ -15,7 +16,7 @@
  *       self: ['look.yaml'],  // Just the filename
  *       environment: [],
  *       inventory: [],
- *       colocated: []
+ *       peers: []
  *     };
  *   };
  * }
@@ -40,8 +41,11 @@ export interface CommandProviderRegistry {
   /** Commands provided when object is IN giver's inventory */
   inventory: string[];
 
-  /** Commands provided when object is CO-LOCATED with giver */
-  colocated: string[];
+  /**
+   * Commands provided when object is one of the giver's peers
+   * (another command-giver in the same environment).
+   */
+  peers: string[];
 }
 
 /**

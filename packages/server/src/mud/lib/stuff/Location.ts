@@ -1,22 +1,26 @@
 /**
- * Location - Described, player-facing spatial container.
+ * Location — root for spatial containers in the world.
  *
- * Location is the standard concrete Place for the world: a room, clearing,
- * deck, plaza, or whatever else a player can be "in" and look at. It just
- * layers Visible onto Place so the location carries a short/long
- * description — everything else (exits, announcements, movement) lives on
- * the `Exitable` composition (`CartesianLocation`, `SphericalLocation`).
+ * Pure structural role: a Location is any Stuff that can hold other
+ * Stuff but doesn't itself live inside something. Concrete kinds of
+ * Location (`CartesianLocation`, `SphericalLocation`, …) extend this
+ * class and layer on Visible (for descriptions), Exitable (for
+ * navigation), coordinate mixins, NamedMixin (for places with proper
+ * names like "Town Square"), and whatever else they need.
  *
- * Composition: VisibleMixin(Place)
+ * Composition: `ContainerMixin(Stuff)`
  *
  * Provides:
- * - inventory + getContents() — inherited from Place/Container
- * - shortDescription, longDescription, getShort(), getLong() — from Visible
+ * - inventory: Set<Stuff>
+ * - addToInventory(), removeFromInventory(), hasInInventory()
+ * - getInventoryContents(), getContents()
  */
 
-import { Place } from './Place';
-import { VisibleMixin } from '../description/Visible';
+import { Stuff } from './Stuff';
+import { ContainerMixin } from '../spatial/Container';
 
-const LocationBase = VisibleMixin(Place);
+const LocationBase = ContainerMixin(Stuff);
 
-export class Location extends LocationBase {}
+export class Location extends LocationBase {
+  static persistentFields: string[] = [];
+}

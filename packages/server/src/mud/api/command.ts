@@ -5,7 +5,7 @@
  * Controller) and caches parsed CommandDefinitions. The static methods are a
  * plain verb/filename cache — all commands come from CommandProviders
  * (mixins, objects) in various contexts (self, environment, inventory,
- * colocated), there is no "global" command registry.
+ * peers), there is no "global" command registry.
  *
  * Type surface lives here deliberately: controllers and MQL consumers
  * depend on this file to get `CommandContext`, `CommandResult`, etc., and
@@ -20,6 +20,7 @@ import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { SecurityApi } from './security';
+import type { Mml } from './mml';
 
 /**
  * Command execution context - read-only reference holder.
@@ -38,21 +39,28 @@ export interface CommandContext {
   interactive: Interactive;
   location: Location;
   commandText: string;
+  /** Per-execution security id (call-stack tracking). */
   executionId: string;
+  /**
+   * Command-attribution id stamped onto every frame composed during
+   * the synchronous span of `executeCommand`. Set by `CommandGiverMixin`
+   * before invoking the controller; carried through ExecutionContext.
+   */
+  commandId: string;
 }
 
 /**
  * Command execution result.
  *
- * Generic result type with typed output:
- * - success: Whether command completed successfully
- * - output: Command-specific output data (if successful)
- * - error: Error message (if failed)
+ * Purely semantic — `success` answers "did the command achieve its
+ * goal?" without coupling to messaging. All prose is fired via Scene
+ * inside the controller body. `summary`, when present, decorates the
+ * auto-emitted MudlogApi command-outcome entry (see §9.4) — the
+ * default tail is `'ok'` (success) or `'failed'` (failure).
  */
-export interface CommandResult<T = unknown> {
+export interface CommandResult {
   success: boolean;
-  output?: T;
-  error?: string;
+  summary?: Mml | string;
 }
 
 /**

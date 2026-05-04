@@ -195,11 +195,11 @@ constraints"). When a constraint is intentionally relaxed (e.g.,
 can still expose commands), leave a comment explaining why.
 
 **Available Mixins** (by subsystem folder):
-- `lib/character/` — identity:
-  - `NamedMixin`: firstName, lastName, fullName (persistent)
+- `lib/character/` — identity (PC/NPC-specific):
   - `GenderedMixin`: pronouns (he/she/they/etc.) (persistent)
-- `lib/description/` — appearance and detail:
-  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look
+- `lib/description/` — how a thing presents itself to observers:
+  - `NamedMixin`: honorific?, name, surname?, nameSuffix?, alternateNames, fullName (persistent). For things with PROPER NAMES — characters, ships, named places, specific buildings. Most prose reads `obj.name` (casual register); `fullName` is the formal canonical form for introductions/disambiguation. Generic things (a door, a sword, a wardrobe) do NOT compose this — their identity is a description, not a name. Mix it in only when the thing actually carries a proper name.
+  - `VisibleMixin`: shortDescription, longDescription (persistent), provides command: look. The visual identity of a thing — "a heavy oak door" — for things without proper names. The default for generic objects.
   - `PerceptibleMixin`: getKeywords(), addKeyword(), removeKeyword() - MQL keyword management (persistent)
   - `DetailedMixin`: hierarchical detail management (persistent)
 - `lib/spatial/` — containment, movement, space:
@@ -211,7 +211,7 @@ can still expose commands), leave a comment explaining why.
   - `VocalMixin`: say() — scope-aware broadcast (Containable → peers; pure Container → own contents; both → Containable path; neither → throw)
 - `lib/command/` — command execution:
   - `CommandGiverMixin`: executeCommand(), getAvailableCommands()
-- `lib/stuff/` — base object machinery (also hosts `Location`, `Place`, `Thing`, `Agent`, `Idea`, `Stuff`, `Persistable`):
+- `lib/stuff/` — base object machinery (also hosts `Location`, `Thing`, `Agent`, `Idea`, `Stuff`, `Persistable`):
   - `PropertiedMixin`: controlled dynamic property bag (persistent)
 
 **`Mixins` registry** in `lib/mixin-types.ts` lists every registered mixin by
@@ -800,12 +800,12 @@ For detailed architectural patterns and implementation guidelines, see:
 
 - **CommandGiverMixin**: Discovery and execution
   - `getAvailableCommands()` discovers commands from providers
-  - Checks self, inventory, environment, colocated objects
+  - Checks self, inventory, environment, peers
   - `executeCommand(text, context)` runs full pipeline
 
 - **Command Providers**: Declarative registration
   - Mixins declare commands via static `commandProvider` property
-  - Four contexts: self, environment, inventory, colocated
+  - Four contexts: self, environment, inventory, peers
   - ContainerMixin provides: inventory, get, drop (self context)
   - VisibleMixin provides: look (all contexts)
 

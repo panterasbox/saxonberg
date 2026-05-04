@@ -1,10 +1,13 @@
 /**
- * Tests for VocalMixin
+ * VocalMixin tests.
  *
  * Covers the two dispatch modes of say():
- * - Containable speaker → addresses peers in environment
- * - Pure-Container speaker → addresses its own contents
- * - Neither → throws (composition error)
+ *   - Containable speaker → addresses peers in environment
+ *   - Pure-Container speaker → addresses its own contents
+ *   - Neither → throws (composition error). Because Scene's first
+ *     compositional check (toSelf) requires a Sensor, the
+ *     "DisembodiedVoice" test case has to opt in to Sensor; otherwise
+ *     it fails earlier than VocalMixin's intended throw.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -13,37 +16,41 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../Sensor';
 import { VocalMixin } from '../Vocal';
-import { NamedMixin } from '../../character/Named';
+import { NamedMixin } from '../../description/Named';
 import { Location } from '../../stuff/Location';
-import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { MessageFrame } from '@saxonberg/types';
 
 // A character-shaped speaker: Named + Vocal + Sensor + Containable
 class CharacterSpeaker extends VocalMixin(
   SensorMixin(ContainableMixin(NamedMixin(Stuff)))
 ) {
-  lastMessage?: unknown;
-  onMessage(message: unknown): void {
-    super.onMessage(message);
-    this.lastMessage = message;
+  public received: MessageFrame[] = [];
+  protected override handleMessage(frame: unknown): void {
+    this.received.push(frame as MessageFrame);
   }
 }
 
 // A sensor that just records what it hears
-class Listener extends SensorMixin(ContainableMixin(Stuff)) {
-  lastMessage?: unknown;
-  onMessage(message: unknown): void {
-    super.onMessage(message);
-    this.lastMessage = message;
+class Listener extends SensorMixin(ContainableMixin(NamedMixin(Stuff))) {
+  public received: MessageFrame[] = [];
+  protected override handleMessage(frame: unknown): void {
+    this.received.push(frame as MessageFrame);
   }
 }
 
-// A haunted-room-shaped speaker: Container + Vocal (NOT Containable)
-class TalkingRoom extends VocalMixin(ContainerMixin(NamedMixin(Stuff))) {}
+// A haunted-room-shaped speaker: Sensor + Container + Vocal (NOT Containable).
+// Sensor is required because Scene.toSelf needs it (the speaker hears
+// its own self frame).
+class TalkingRoom extends VocalMixin(
+  SensorMixin(ContainerMixin(NamedMixin(Stuff)))
+) {}
 
-// A speaker with no container relationship at all
-class DisembodiedVoice extends VocalMixin(NamedMixin(Stuff)) {}
+// Speaker with no container relationship — Sensor only, so the
+// composition-error throw fires (rather than a Sensor check failing
+// first).
+class DisembodiedVoice extends VocalMixin(SensorMixin(NamedMixin(Stuff))) {}
 
 describe('VocalMixin.say()', () => {
   describe('Containable speaker (peers mode)', () => {
@@ -51,7 +58,7 @@ describe('VocalMixin.say()', () => {
       const room = makeStuff(() => new Location());
 
       const alice = makeStuff(() => new CharacterSpeaker());
-      alice.firstName = 'Alice';
+      alice.name = 'Alice';
       ContainmentApi.move(alice, room);
 
       const bob = makeStuff(() => new Listener());
@@ -59,34 +66,35 @@ describe('VocalMixin.say()', () => {
 
       alice.say('hello');
 
-      expect(bob.lastMessage).toMatchObject({
-        type: 'output',
-        payload: {
-          text: '<name>Alice</name> says, <speech>"hello"</speech>',
-        },
-      });
-      // Speaker is also a sensor in the same container — hears itself.
-      expect(alice.lastMessage).toEqual(bob.lastMessage);
+      expect(bob.received).toHaveLength(1);
+      expect(bob.received[0]!.body).toBe(
+        `<name stuff-id="${alice.stuffId}">Alice</name> says, <speech>"hello"</speech>`
+      );
+      // Speaker hears its own self frame: "You say, ..."
+      expect(alice.received).toHaveLength(1);
+      expect(alice.received[0]!.body).toBe(
+        'You say, <speech>"hello"</speech>'
+      );
     });
   });
 
   describe('pure-Container speaker (contents mode)', () => {
     it('broadcasts to its own occupants', () => {
       const house = makeStuff(() => new TalkingRoom());
-      house.firstName = 'Haunted';
-      house.lastName = 'House';
+      house.name = 'Haunted';
+      house.surname = 'House';
 
       const occupant = makeStuff(() => new Listener());
       ContainmentApi.move(occupant, house);
 
       house.say('get out');
 
-      expect(occupant.lastMessage).toMatchObject({
-        type: 'output',
-        payload: {
-          text: '<name>Haunted House</name> says, <speech>"get out"</speech>',
-        },
-      });
+      expect(occupant.received).toHaveLength(1);
+      // Casual register — surname not included; use `obj.fullName` to
+      // get "Haunted House".
+      expect(occupant.received[0]!.body).toBe(
+        `<name stuff-id="${house.stuffId}">Haunted</name> says, <speech>"get out"</speech>`
+      );
     });
   });
 

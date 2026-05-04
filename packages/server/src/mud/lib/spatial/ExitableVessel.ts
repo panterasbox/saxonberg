@@ -21,14 +21,19 @@
 
 import { Vessel } from './Vessel';
 import { ExitableMixin } from './Exitable';
+import { VisibleMixin } from '../description/Visible';
 import { Exit } from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import { StuffApi } from '../../api/stuff';
+import { DescribeApi } from '../../api/describe';
 
 // Vessel already = ContainerMixin(Thing), and Thing = ContainableMixin(Stuff),
-// so ExitableVessel is Container + Containable + Exitable without further churn.
-const ExitableVesselBase = ExitableMixin(Vessel);
+// so ExitableVessel is Container + Containable + Exitable + Visible. Visible
+// gives the vessel a description ("a wardrobe", "an old cart") for the
+// synthesized entry/exit messages and for `look`. Vessels that take a
+// proper name ("the Narnia wardrobe") opt into NamedMixin separately.
+const ExitableVesselBase = ExitableMixin(VisibleMixin(Vessel));
 
 export class ExitableVessel extends ExitableVesselBase {
   /**
@@ -44,12 +49,6 @@ export class ExitableVessel extends ExitableVesselBase {
    */
   private entryCache: Exit | null = null;
   private entryCacheEnvId: string | null = null;
-
-  /**
-   * Optional display name used by the default vessel messages. Subclasses
-   * (or seeders) are expected to set this; defaults to "vessel".
-   */
-  public name: string = 'vessel';
 
   public override getExit(direction: string): Exit | undefined {
     const explicit = this.exits.get(direction);
@@ -94,7 +93,7 @@ export class ExitableVessel extends ExitableVesselBase {
       return this.entryCache;
     }
 
-    const vesselName = this.name;
+    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'in',
       source: env,
@@ -115,7 +114,7 @@ export class ExitableVessel extends ExitableVesselBase {
       return this.outCache;
     }
 
-    const vesselName = this.name;
+    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'out',
       source: this as unknown as Stuff & Container,

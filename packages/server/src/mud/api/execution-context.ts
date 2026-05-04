@@ -32,6 +32,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { SecurityError } from '../lib/security/errors';
 import { SecurityApi } from './security';
+import type { CommandContext } from './command';
 
 // NOTE: ExecutionContextApi deliberately does NOT call
 // `SecurityApi.decorateApiClass(...)` at module load — unlike StuffApi, MqlApi,
@@ -306,6 +307,62 @@ export class ExecutionContextApi {
    */
   public static getCurrentCommandGiver(): unknown | null {
     return ExecutionContextApi.findFrame(FrameKind.Command)?.target ?? null;
+  }
+
+  /**
+   * The active CommandContext stamped onto the current Command frame's
+   * metadata, or `null` outside a command's synchronous span.
+   * Read by `Scene.send()` / `MudlogApi` to stamp `meta.commandId` and
+   * default the recipient to the command giver.
+   */
+  public static getCurrentCommandContext(): CommandContext | null {
+    const frame = ExecutionContextApi.findFrame(FrameKind.Command);
+    const ctx = frame?.metadata?.commandContext;
+    return (ctx as CommandContext | undefined) ?? null;
+  }
+
+  /**
+   * Walk the call stack top-down and return the first
+   * `metadata.causingCommandId` we hit. Set on the Command frame by
+   * `CommandGiverMixin.executeCommand`, and re-planted on a fresh
+   * Root frame by `ScheduleApi` when a propagating callback fires —
+   * either way, the live "originating command id" surfaces here.
+   */
+  public static getCurrentCausingCommandId(): string | null {
+    const stack = _als.getStore();
+    if (!stack) return null;
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const id = stack[i]!.metadata?.causingCommandId;
+      if (typeof id === 'string') return id;
+    }
+    return null;
+  }
+
+  /**
+   * Merge `patch` into the top-of-stack frame's `metadata`. Allocates
+   * a `metadata` object if one isn't already present. Used by the
+   * command lifecycle in `CommandGiverMixin` to stamp commandContext
+   * and causingCommandId onto its own (proxy-pushed) frame, and by
+   * `ScheduleApi` to plant attribution onto the Root frame it just
+   * created.
+   *
+   * Gated by the same allowlist as `tagCurrentFrame` — only framework
+   * files may mutate frame metadata. Throws when called outside any
+   * frame context (mutating "no frame" is almost certainly a bug).
+   */
+  public static updateCurrentFrameMetadata(
+    patch: Record<string, unknown>
+  ): void {
+    _assertFrameMutatorAllowed('updateCurrentFrameMetadata');
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) {
+      throw new SecurityError(
+        'updateCurrentFrameMetadata: no frame on the stack to update'
+      );
+    }
+    const top = stack[stack.length - 1]!;
+    if (!top.metadata) top.metadata = {};
+    Object.assign(top.metadata, patch);
   }
 
   /**

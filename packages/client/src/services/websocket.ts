@@ -1,44 +1,54 @@
 /**
  * WebSocket Client Service
  *
- * Manages WebSocket connection to the server.
+ * Inbound messages from the server are now `MessageFrame<T>` objects
+ * with a `topic` (e.g. `world.speech.say`, `system.connection.established`)
+ * and a rendered MML `body`. We dispatch by topic prefix to the
+ * built-in handlers and to caller-registered listeners. MML parsing
+ * is deferred — the body renders as plain text with literal tags
+ * visible (per §14 of the messaging requirements).
  *
- * Features:
- * - Auto-connect/reconnect
- * - Message type routing
- * - State management integration
+ * Outbound messages still use the simple `{ type, payload }` envelope
+ * — the inbound protocol redesign is out of scope (§1.2).
  */
 
 import type {
-  WebSocketMessage,
-  MessageType,
-  ConnectionEstablishedPayload,
-  EchoPayload,
-  ErrorPayload,
+  MessageFrame,
+  Pronouns,
+  AlternateName,
 } from '@saxonberg/types';
 import { useStore } from '../store/index';
 
-/**
- * Message handler function type.
- */
-type MessageHandler = (payload: any) => void;
+interface ConnectionEstablishedPayload {
+  userId: string;
+  socketId: string;
+  sessionId: string;
+  player: {
+    _id: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    nameSuffix?: string;
+    alternateNames?: AlternateName[];
+    pronouns: Pronouns;
+  };
+}
 
-/**
- * WebSocket client singleton.
- */
+interface OutboundClientMessage {
+  type: string;
+  payload?: unknown;
+}
+
+type FrameHandler = (frame: MessageFrame) => void;
+
 class WebSocketClient {
   private ws: WebSocket | null = null;
   private url: string = '';
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 2000;
-  private messageHandlers: Map<string, MessageHandler[]> = new Map();
+  private topicHandlers: Map<string, FrameHandler[]> = new Map();
 
-  /**
-   * Connect to WebSocket server.
-   *
-   * @param url - WebSocket URL (e.g., ws://localhost:2010)
-   */
   public connect(url: string): void {
     this.url = url;
 
@@ -67,7 +77,6 @@ class WebSocketClient {
 
         useStore.getState().setDisconnected();
 
-        // Attempt reconnection
         this.attemptReconnect();
       };
 
@@ -81,9 +90,6 @@ class WebSocketClient {
     }
   }
 
-  /**
-   * Disconnect from WebSocket server.
-   */
   public disconnect(): void {
     if (this.ws) {
       this.ws.close();
@@ -91,12 +97,7 @@ class WebSocketClient {
     }
   }
 
-  /**
-   * Send a message to the server.
-   *
-   * @param message - Message object
-   */
-  public send(message: WebSocketMessage): void {
+  public send(message: OutboundClientMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.error('WebSocketClient: Cannot send - not connected');
       return;
@@ -109,104 +110,61 @@ class WebSocketClient {
     }
   }
 
-  /**
-   * Send echo message (for testing).
-   *
-   * @param message - Message to echo
-   */
   public sendEcho(message: string): void {
     this.send({
       type: 'echo',
-      payload: {
-        message,
-        timestamp: Date.now(),
-      },
+      payload: { message, timestamp: Date.now() },
     });
   }
 
-  /**
-   * Send ping message (heartbeat).
-   */
   public sendPing(): void {
     this.send({
       type: 'ping',
-      payload: {
-        timestamp: Date.now(),
-      },
+      payload: { timestamp: Date.now() },
     });
   }
 
   /**
-   * Register a message handler for a specific message type.
-   *
-   * @param type - Message type
-   * @param handler - Handler function
+   * Register a handler for a specific topic. The handler fires for
+   * every frame whose `topic` matches exactly. (Prefix matching can
+   * be added later if a use case demands it.)
    */
-  public on(type: string, handler: MessageHandler): void {
-    if (!this.messageHandlers.has(type)) {
-      this.messageHandlers.set(type, []);
+  public onTopic(topic: string, handler: FrameHandler): void {
+    if (!this.topicHandlers.has(topic)) {
+      this.topicHandlers.set(topic, []);
     }
-
-    this.messageHandlers.get(type)!.push(handler);
+    this.topicHandlers.get(topic)!.push(handler);
   }
 
-  /**
-   * Unregister a message handler.
-   *
-   * @param type - Message type
-   * @param handler - Handler function
-   */
-  public off(type: string, handler: MessageHandler): void {
-    const handlers = this.messageHandlers.get(type);
+  public offTopic(topic: string, handler: FrameHandler): void {
+    const handlers = this.topicHandlers.get(topic);
     if (!handlers) return;
-
     const index = handlers.indexOf(handler);
-    if (index !== -1) {
-      handlers.splice(index, 1);
-    }
+    if (index !== -1) handlers.splice(index, 1);
   }
 
-  /**
-   * Handle incoming message from server.
-   *
-   * @param data - Raw message data
-   */
   private handleMessage(data: string): void {
     try {
-      const message: WebSocketMessage = JSON.parse(data);
+      const frame: MessageFrame = JSON.parse(data);
+      console.log(
+        `WebSocketClient: Received frame topic='${frame.topic}'`
+      );
 
-      console.log(`WebSocketClient: Received message type '${message.type}'`);
-
-      // Built-in handlers
-      switch (message.type) {
-        case 'connection_established':
+      // Built-in routing by topic.
+      switch (frame.topic) {
+        case 'system.connection.established':
           this.handleConnectionEstablished(
-            message.payload as ConnectionEstablishedPayload
+            frame.payload as ConnectionEstablishedPayload
           );
           break;
-
-        case 'error':
-          this.handleError(message.payload as ErrorPayload);
-          break;
-
-        case 'echo':
-          console.log('WebSocketClient: Echo response:', message.payload);
-          break;
-
-        case 'pong':
-          console.log('WebSocketClient: Pong response:', message.payload);
-          break;
-
         default:
-          // No default handler
           break;
       }
 
-      // Call registered handlers
-      const handlers = this.messageHandlers.get(message.type);
+      const handlers = this.topicHandlers.get(frame.topic);
       if (handlers) {
         for (const handler of handlers) {
-          handler(message.payload);
+          handler(frame);
         }
       }
     } catch (error) {
@@ -214,9 +172,6 @@ class WebSocketClient {
     }
   }
 
-  /**
-   * Handle connection_established message.
-   */
   private handleConnectionEstablished(
     payload: ConnectionEstablishedPayload
   ): void {
@@ -224,46 +179,26 @@ class WebSocketClient {
     useStore.getState().setConnected(payload);
   }
 
-  /**
-   * Handle error message.
-   */
-  private handleError(payload: ErrorPayload): void {
-    console.error('WebSocketClient: Server error:', payload);
-    useStore.getState().setConnection({ error: payload.message });
-  }
-
-  /**
-   * Attempt to reconnect after connection loss.
-   */
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(
-        'WebSocketClient: Max reconnection attempts reached'
-      );
+      console.error('WebSocketClient: Max reconnection attempts reached');
       useStore
         .getState()
         .setDisconnected('Max reconnection attempts reached');
       return;
     }
-
     this.reconnectAttempts++;
-
     console.log(
       `WebSocketClient: Reconnecting in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
     );
-
     setTimeout(() => {
       this.connect(this.url);
     }, this.reconnectDelay);
   }
 
-  /**
-   * Check if connected.
-   */
   public isConnected(): boolean {
     return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
   }
 }
 
-// Export singleton instance
 export const websocketClient = new WebSocketClient();

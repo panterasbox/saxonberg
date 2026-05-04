@@ -27,7 +27,7 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
-import type { Named } from '../lib/character/Named';
+import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
@@ -150,7 +150,7 @@ export class MixinApi {
    * every level — mixins carry them as static arrays, and concrete classes
    * do too. Since a subclass that declares its own `persistentFields` shadows
    * the parent's static in JS, we need `hasOwnProperty` at each level to
-   * pick up contributions from the whole ancestry (Stuff → Idea → Place → …).
+   * pick up contributions from the whole ancestry (Stuff → Idea → Location → …).
    *
    * @param constructor - The class constructor to inspect
    * @returns Array of all persistent field names (deduplicated)

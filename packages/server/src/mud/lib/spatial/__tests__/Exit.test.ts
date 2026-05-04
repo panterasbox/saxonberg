@@ -4,20 +4,26 @@ import { Door } from '../Door';
 import { CartesianLocation } from '../CartesianLocation';
 import { CartesianZone } from '../CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
-import { MessageApi } from '../../../api/message';
 import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../Containable';
 import { MobileMixin } from '../Mobile';
-import { NamedMixin } from '../../character/Named';
+import { NamedMixin } from '../../description/Named';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
 class TestMover extends SensorBase {
   received: unknown[] = [];
-  onMessage(msg: unknown): void {
-    super.onMessage(msg);
+  protected override handleMessage(msg: unknown): void {
+    this.received.push(msg);
+  }
+}
+
+const PeerBase = NamedMixin(SensorMixin(ContainableMixin(Stuff)));
+class PeerSensor extends PeerBase {
+  received: unknown[] = [];
+  protected override handleMessage(msg: unknown): void {
     this.received.push(msg);
   }
 }
@@ -27,6 +33,8 @@ describe('Exit', () => {
   let roomA: CartesianLocation;
   let roomB: CartesianLocation;
   let mover: TestMover;
+  let peerInA: PeerSensor;
+  let peerInB: PeerSensor;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
@@ -41,9 +49,21 @@ describe('Exit', () => {
     zone.addRoom(roomB, 0, 1, 0);
 
     mover = makeStuff(() => new TestMover());
-    mover.firstName = 'Alice';
+    mover.name = 'Alice';
     ContainmentApi.move(mover, roomA);
+
+    peerInA = makeStuff(() => new PeerSensor());
+    peerInA.name = 'PeerA';
+    ContainmentApi.move(peerInA, roomA);
+
+    peerInB = makeStuff(() => new PeerSensor());
+    peerInB.name = 'PeerB';
+    ContainmentApi.move(peerInB, roomB);
   });
+
+  function bodiesOf(frames: unknown[]): string[] {
+    return frames.map((f) => (f as { body: string }).body);
+  }
 
   describe('canTraverse', () => {
     it('returns ok in the normal case', () => {
@@ -90,28 +110,21 @@ describe('Exit', () => {
     });
 
     it('broadcasts departure to source peers excluding the mover', () => {
-      const spy = vi.spyOn(MessageApi, 'messageContents');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       mover.traverse(exit);
 
-      const [firstCall, secondCall] = spy.mock.calls;
-      expect(firstCall?.[0]).toBe(roomA);
-      expect(firstCall?.[2]).toEqual({ exclude: mover });
-      const depText = (firstCall?.[1] as { payload: { text: string } }).payload.text;
-      expect(depText).toContain('leaves to the');
-      expect(depText).toContain('north');
+      const peerATexts = bodiesOf(peerInA.received);
+      expect(peerATexts.length).toBe(1);
+      expect(peerATexts[0]).toContain('leaves to the');
+      expect(peerATexts[0]).toContain('north');
 
-      expect(secondCall?.[0]).toBe(roomB);
-      expect(secondCall?.[2]).toEqual({ exclude: mover });
-      const arrText = (secondCall?.[1] as { payload: { text: string } }).payload.text;
-      expect(arrText).toContain('arrives from the');
-      expect(arrText).toContain('south');
-
-      spy.mockRestore();
+      const peerBTexts = bodiesOf(peerInB.received);
+      expect(peerBTexts.length).toBe(1);
+      expect(peerBTexts[0]).toContain('arrives from the');
+      expect(peerBTexts[0]).toContain('south');
     });
 
     it('uses custom messageIn/messageOut when provided', () => {
-      const spy = vi.spyOn(MessageApi, 'messageContents');
       const exit = makeStuff(() => new Exit({
         direction: 'north',
         source: roomA,
@@ -120,18 +133,11 @@ describe('Exit', () => {
         messageIn: 'custom arrival',
       }));
       mover.traverse(exit);
-
-      expect(
-        (spy.mock.calls[0]?.[1] as { payload: { text: string } }).payload.text
-      ).toBe('custom departure');
-      expect(
-        (spy.mock.calls[1]?.[1] as { payload: { text: string } }).payload.text
-      ).toBe('custom arrival');
-      spy.mockRestore();
+      expect(bodiesOf(peerInA.received)).toEqual(['custom departure']);
+      expect(bodiesOf(peerInB.received)).toEqual(['custom arrival']);
     });
 
     it('interpolates {mover} in custom messages', () => {
-      const spy = vi.spyOn(MessageApi, 'messageContents');
       const exit = makeStuff(() => new Exit({
         direction: 'out',
         source: roomA,
@@ -140,24 +146,16 @@ describe('Exit', () => {
         messageIn: '{mover} emerges from the wardrobe.',
       }));
       mover.traverse(exit);
-
-      expect(
-        (spy.mock.calls[0]?.[1] as { payload: { text: string } }).payload.text
-      ).toBe('Alice leaves the wardrobe.');
-      expect(
-        (spy.mock.calls[1]?.[1] as { payload: { text: string } }).payload.text
-      ).toBe('Alice emerges from the wardrobe.');
-      spy.mockRestore();
+      expect(bodiesOf(peerInA.received)).toEqual(['Alice leaves the wardrobe.']);
+      expect(bodiesOf(peerInB.received)).toEqual(['Alice emerges from the wardrobe.']);
     });
 
     it('degrades arrival message when direction has no inverse', () => {
-      const spy = vi.spyOn(MessageApi, 'messageContents');
       const exit = makeStuff(() => new Exit({ direction: 'office', source: roomA, destination: roomB }));
       mover.traverse(exit);
-      const arrText = (spy.mock.calls[1]?.[1] as { payload: { text: string } }).payload.text;
+      const arrText = bodiesOf(peerInB.received)[0]!;
       expect(arrText).toContain('arrives');
       expect(arrText).not.toContain('from the');
-      spy.mockRestore();
     });
 
     it('invokes ContainmentApi.move between broadcasts', () => {
@@ -166,6 +164,35 @@ describe('Exit', () => {
       mover.traverse(exit);
       expect(moveSpy).toHaveBeenCalledWith(mover, roomB);
       moveSpy.mockRestore();
+    });
+  });
+
+  describe('inverse back-pointer', () => {
+    it('is undefined on a freshly-constructed Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      expect(exit.inverse).toBeUndefined();
+    });
+
+    it('addBidirectionalExit wires both inverse pointers', () => {
+      roomA.addBidirectionalExit(roomB, 'north');
+      const forward = roomA.getExit('north');
+      const back = roomB.getExit('south');
+      expect(forward).toBeDefined();
+      expect(back).toBeDefined();
+      expect(forward!.inverse).toBe(back);
+      expect(back!.inverse).toBe(forward);
+    });
+
+    it('inverse?.direction returns the opposite cardinal', () => {
+      roomA.addBidirectionalExit(roomB, 'north');
+      const forward = roomA.getExit('north')!;
+      expect(forward.inverse?.direction).toBe('south');
+    });
+
+    it('one-way addExit leaves inverse undefined', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      roomA.addExit(exit);
+      expect(exit.inverse).toBeUndefined();
     });
   });
 });

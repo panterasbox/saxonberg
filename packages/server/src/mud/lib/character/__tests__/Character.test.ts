@@ -22,8 +22,8 @@ describe('Character', () => {
 
   describe('mixin composition', () => {
     it('should have Named mixin properties', () => {
-      expect(character).toHaveProperty('firstName');
-      expect(character).toHaveProperty('lastName');
+      expect(character).toHaveProperty('name');
+      expect(character).toHaveProperty('surname');
       expect(character).toHaveProperty('fullName');
     });
 
@@ -41,14 +41,34 @@ describe('Character', () => {
   });
 
   describe('Named mixin integration', () => {
-    it('should compute fullName from firstName and lastName', () => {
-      character.firstName = 'John';
-      character.lastName = 'Doe';
+    it('should compute fullName from name and surname', () => {
+      character.name = 'John';
+      character.surname = 'Doe';
       expect(character.fullName).toBe('John Doe');
     });
 
-    it('should handle empty names', () => {
-      expect(character.fullName).toBe('Unnamed');
+    it('returns empty string when no names set (no fallback)', () => {
+      expect(character.fullName).toBe('');
+    });
+
+    it('synthesizes honorific + name + surname + nameSuffix with a comma before the suffix', () => {
+      character.honorific = 'Dr.';
+      character.name = 'John';
+      character.surname = 'Doe';
+      character.nameSuffix = 'PhD';
+      expect(character.fullName).toBe('Dr. John Doe, PhD');
+    });
+
+    it('renders generational suffixes with the older-style comma', () => {
+      character.name = 'John';
+      character.surname = 'Smith';
+      character.nameSuffix = 'Jr.';
+      expect(character.fullName).toBe('John Smith, Jr.');
+    });
+
+    it('omits the comma when there is no preceding head', () => {
+      character.nameSuffix = 'Esq.';
+      expect(character.fullName).toBe('Esq.');
     });
   });
 

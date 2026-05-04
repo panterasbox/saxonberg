@@ -91,18 +91,30 @@ function App() {
   }, [auth.isAuthenticated, connection.isConnected]);
 
   useEffect(() => {
-    // Register handler for output messages
-    const handleOutput = (payload: any) => {
-      if (payload.text) {
-        setMessages((prev) => [...prev, payload.text]);
-      }
+    // Render every frame body the server sends. MML tags appear as
+    // literal text for now (parsing deferred per §14). We listen on
+    // the topics the v1 server actually emits to the terminal.
+    const renderTopics = [
+      'world.speech.say',
+      'world.speech.tell',
+      'world.perception.look',
+      'world.perception.inventory',
+      'world.narration.movement',
+      'world.narration.teleport',
+      'system.log.command.info',
+      'system.log.command.warn',
+      'system.connection.established',
+    ];
+    const handle = (frame: { body: string }) => {
+      if (frame.body) setMessages((prev) => [...prev, frame.body]);
     };
-
-    websocketClient.on('output', handleOutput);
-
-    // Cleanup on unmount
+    for (const topic of renderTopics) {
+      websocketClient.onTopic(topic, handle);
+    }
     return () => {
-      websocketClient.off('output', handleOutput);
+      for (const topic of renderTopics) {
+        websocketClient.offTopic(topic, handle);
+      }
     };
   }, []);
 

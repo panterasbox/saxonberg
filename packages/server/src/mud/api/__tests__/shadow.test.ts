@@ -16,13 +16,13 @@ import { ShadowApi } from '../shadow';
 import { Shadow } from '../../lib/stuff/Shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
-import { NamedMixin } from '../../lib/character/Named';
+import { NamedMixin } from '../../lib/description/Named';
 import { Shadowing, ShadowSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ShadowError, SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
-// A Stuff host carrying NamedMixin (firstName/lastName/fullName).
+// A Stuff host carrying NamedMixin (name/surname/fullName).
 class NamedHost extends NamedMixin(Stuff) {}
 
 // Plain shadow that re-implements NamedMixin's surface; the mixin's
@@ -30,7 +30,7 @@ class NamedHost extends NamedMixin(Stuff) {}
 class RenameShadow extends NamedMixin(Shadow) {}
 
 // Shadow that overrides the `fullName` getter (NamedMixin's only
-// real method on the prototype). `firstName`/`lastName` are field
+// real method on the prototype). `name`/`surname` are field
 // initializers, not prototype methods, so they're not part of the
 // inferred surface — only `fullName` (a getter) is.
 class LiarShadow extends NamedMixin(Shadow) {
@@ -95,12 +95,17 @@ describe('ShadowApi.attach / detach', () => {
     const sh = makeStuff(() => new RenameShadow());
     ShadowApi.attach(host, sh);
     expect(sh.host).toBe(host);
-    expect([...sh.interceptedMethods].sort()).toEqual(['fullName']);
-    // (Note: NamedMixin's `firstName`/`lastName` are field initializers,
-    // not own properties on the prototype, so the prototype-walk
-    // intercept set captures `fullName` only. That's the documented
-    // behaviour: the inferred surface is "every property defined on
-    // the mixin's prototype layer" — methods, getters, setters.)
+    // NamedMixin's prototype-layer surface: the `fullName` getter
+    // and the alternate-name accessors. Field initializers
+    // (`name`/`surname`/`honorific`/`suffix`/`alternateNames`) are
+    // own properties on the instance, not the prototype, so the
+    // intercept-walk doesn't pick them up.
+    expect([...sh.interceptedMethods].sort()).toEqual([
+      'addAlternateName',
+      'fullName',
+      'getAlternateNames',
+      'removeAlternateName',
+    ]);
   });
 
   it('rejects re-attach without intervening detach', () => {
@@ -151,8 +156,8 @@ describe('ShadowApi dispatch (proxy invocation)', () => {
 
   it('a shadow that overrides without callDown fully replaces', () => {
     const host = makeStuff(() => new NamedHost());
-    host.firstName = 'Alice';
-    host.lastName = 'A';
+    host.name = 'Alice';
+    host.surname = 'A';
     const sh = makeStuff(() => new LiarShadow());
     ShadowApi.attach(host, sh);
     // LiarShadow overrides `fullName` to always return 'LIAR' with
@@ -162,13 +167,13 @@ describe('ShadowApi dispatch (proxy invocation)', () => {
 
   it('a shadow that calls down chains through to the host original', () => {
     const host = makeStuff(() => new NamedHost());
-    host.firstName = 'Bob';
-    host.lastName = 'B';
+    host.name = 'Bob';
+    host.surname = 'B';
     const sh = makeStuff(() => new CountShadow());
     ShadowApi.attach(host, sh);
     // CountShadow's fullName getter increments and calls down. Since
     // it's the only shadow, callDown lands at the host's original
-    // fullName getter (which composes firstName + lastName).
+    // fullName getter (which composes name + surname).
     expect(host.fullName).toBe('Bob B');
     expect(sh.count).toBe(1);
   });

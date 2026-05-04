@@ -12,6 +12,7 @@
 
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
+import { nanoid } from 'nanoid';
 import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
@@ -26,6 +27,10 @@ import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
 import { getValidator } from './validators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
+import { MudlogApi } from '../../api/mudlog';
+import { Mml } from '../../api/mml';
+import type { Sensor } from '../message/Sensor';
+import type { LogLevel } from '@saxonberg/types';
 
 type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
 
@@ -48,7 +53,7 @@ export interface CommandGiver {
  * introspection and `stuffId` identity), but deliberately NOT Container or
  * Containable — mixin composition should stay flexible. A disembodied command
  * executor with no inventory and no environment is a coherent future case.
- * Inventory / environment / colocated branches narrow at runtime instead.
+ * Inventory / environment / peers branches narrow at runtime instead.
  */
 export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class CommandGiver extends Base {
@@ -112,7 +117,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         }
       }
 
-      // 3 + 4. Commands from ENVIRONMENT and COLOCATED objects — only if
+      // 3 + 4. Commands from ENVIRONMENT and PEER objects — only if
       // this giver is placed somewhere
       if (MixinApi.isContainable(self)) {
         const environment = self.getEnvironment();
@@ -128,7 +133,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (obj === self) continue;
             if (!MixinApi.isCommandGiver(obj)) continue;
             for (const mixin of MixinApi.queryMixins(obj.constructor)) {
-              getProvider(mixin)?.colocated?.forEach(addCommand);
+              getProvider(mixin)?.peers?.forEach(addCommand);
             }
           }
         }
@@ -149,47 +154,107 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     async executeCommand(commandText: string, context: CommandContext): Promise<CommandResult> {
       // The proxy already pushed a frame for this call when
       // `executeCommand` was invoked. Tag it as the command-issuer
-      // frame so `ExecutionContextApi.getCurrentCommandGiver()` can find
-      // it without string-matching method names.
+      // frame so `ExecutionContextApi.getCurrentCommandGiver()` can
+      // find it without string-matching method names.
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
+      // Generate a fresh per-execution attribution id and stamp it
+      // onto both the CommandContext (for explicit downstream lookup)
+      // and the current frame's metadata (so Scene.send() and
+      // MudlogApi calls find it via ExecutionContextApi).
+      const commandId = nanoid();
+      context.commandId = commandId;
+      ExecutionContextApi.updateCurrentFrameMetadata({
+        commandContext: context,
+        causingCommandId: commandId,
+      });
+
+      const parsed = CommandLineApi.parse(commandText);
+      const verb = parsed.verb || '';
+
+      let result: CommandResult;
       try {
-        // 1. Parse command text
-        const parsed = CommandLineApi.parse(commandText);
-
-        if (!parsed.verb) {
-          return {
-            success: false,
-            error: 'No command entered',
-          };
-        }
-
-        // 2. Ensure commands are loaded (populates cache)
-        // This discovers and loads all available commands from providers
-        this.getAvailableCommands();
-
-        // 3. Match verb to command definition
-        const command = CommandApi.matchVerb(parsed.verb);
-
-        if (!command) {
-          return {
-            success: false,
-            error: `Unknown command: ${parsed.verb}`,
-          };
-        }
-
-        // 4. Handle subcommands or regular syntax
-        if (command.hasSubcommands()) {
-          return await this.executeSubcommand(command, parsed.args, parsed.options, context);
-        } else {
-          return await this.executeSyntax(command, parsed.args, parsed.options, context);
-        }
+        result = await this.runPipeline(parsed, context);
       } catch (error: unknown) {
-        return {
+        result = {
           success: false,
-          error: error instanceof Error ? error.message : 'Command execution failed',
+          summary:
+            error instanceof Error
+              ? error.message
+              : 'Command execution failed',
         };
       }
+
+      // Auto-emit the bland command-outcome MudlogApi entry per §9.4.
+      // Recipient defaults to the command giver — but only if it's a
+      // Sensor (an Avatar is; a future disembodied executor might not
+      // be). Fall back to skipping the emit when there's no obvious
+      // recipient rather than throwing inside the lifecycle.
+      const giver = context.commandGiver as unknown as Stuff;
+      if (MixinApi.isSensor(giver)) {
+        const tail =
+          result.summary !== undefined && result.summary !== ''
+            ? result.summary
+            : result.success
+              ? 'ok'
+              : 'failed';
+        const level: LogLevel = result.success ? 'info' : 'warn';
+        MudlogApi[level](
+          'command',
+          Mml.compose`${verb}: ${tail}`,
+          {
+            to: giver as Stuff & Sensor,
+            payload: {
+              verb,
+              success: result.success,
+              commandText,
+              executionId: context.executionId,
+            },
+          }
+        );
+      }
+
+      return result;
+    }
+
+    /**
+     * The parse/match/dispatch pipeline. Split out so executeCommand
+     * keeps a single try/catch boundary and the auto-emit always
+     * fires regardless of where in the pipeline things failed.
+     */
+    private async runPipeline(
+      parsed: ReturnType<typeof CommandLineApi.parse>,
+      context: CommandContext
+    ): Promise<CommandResult> {
+      if (!parsed.verb) {
+        return { success: false, summary: 'No command entered' };
+      }
+
+      // Ensure commands are loaded (populates cache).
+      this.getAvailableCommands();
+
+      const command = CommandApi.matchVerb(parsed.verb);
+      if (!command) {
+        return {
+          success: false,
+          summary: `Unknown command: ${parsed.verb}`,
+        };
+      }
+
+      if (command.hasSubcommands()) {
+        return await this.executeSubcommand(
+          command,
+          parsed.args,
+          parsed.options,
+          context
+        );
+      }
+      return await this.executeSyntax(
+        command,
+        parsed.args,
+        parsed.options,
+        context
+      );
     }
 
     /**
@@ -205,7 +270,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (args.length === 0) {
         return {
           success: false,
-          error: `${command.getPrimaryVerb()} requires a subcommand. Use: ${command.getUsage()}`,
+          summary: `${command.getPrimaryVerb()} requires a subcommand. Use: ${command.getUsage()}`,
         };
       }
 
@@ -217,7 +282,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const available = command.getSubcommandNames().join(', ');
         return {
           success: false,
-          error: `Unknown subcommand '${subcommandName}'. Available: ${available}`,
+          summary: `Unknown subcommand '${subcommandName}'. Available: ${available}`,
         };
       }
 
@@ -231,7 +296,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (!fields) {
         return {
           success: false,
-          error: `Invalid syntax. Use: ${command.getPrimaryVerb()} ${subcommandName} ${subcommand.pattern}`,
+          summary: `Invalid syntax. Use: ${command.getPrimaryVerb()} ${subcommandName} ${subcommand.pattern}`,
         };
       }
 
@@ -264,7 +329,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // No syntax matched
       return {
         success: false,
-        error: `Invalid syntax. Use: ${command.getUsage()}`,
+        summary: `Invalid syntax. Use: ${command.getUsage()}`,
       };
     }
 
@@ -382,7 +447,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (objects.length === 0) {
               return {
                 success: false,
-                error: `You don't see any '${query}' here`,
+                summary: `You don't see any '${query}' here`,
               };
             }
 
@@ -397,7 +462,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (!obj) {
               return {
                 success: false,
-                error: `You don't see any '${query}' here`,
+                summary: `You don't see any '${query}' here`,
               };
             }
 
@@ -416,7 +481,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               if (error) {
                 return {
                   success: false,
-                  error,
+                  summary: error,
                 };
               }
             }
@@ -464,7 +529,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const message = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          error: `Failed to execute command: ${message}`,
+          summary: `Failed to execute command: ${message}`,
         };
       }
     }

@@ -17,8 +17,18 @@
  */
 
 import type { IBackend } from './IBackend';
-import type { PassportGoogleProfile, WebSocketMessage } from '@saxonberg/types';
+import type { PassportGoogleProfile } from '@saxonberg/types';
 import { Pronouns } from '@saxonberg/types';
+
+/**
+ * Local minimal type for inbound client → server messages. Kept simple
+ * — the inbound protocol isn't part of the messaging redesign (§1).
+ */
+interface InboundClientMessage {
+  type: string;
+  payload?: unknown;
+  id?: string;
+}
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
@@ -129,7 +139,7 @@ export class Application {
     }
   }
 
-  public processUserMessage(socketId: string, message: WebSocketMessage): void {
+  public processUserMessage(socketId: string, message: InboundClientMessage): void {
     const interactive = ConnectionManager.get().getInteractive(socketId);
 
     if (!interactive) {
@@ -174,7 +184,7 @@ export class Application {
     }
   }
 
-  private handleEchoMessage(socketId: string, message: WebSocketMessage): void {
+  private handleEchoMessage(socketId: string, message: InboundClientMessage): void {
     if (!this.backend) return;
 
     this.backend.sendMessageToSocket(socketId, {
@@ -183,7 +193,7 @@ export class Application {
     });
   }
 
-  private handlePingMessage(socketId: string, _message: WebSocketMessage): void {
+  private handlePingMessage(socketId: string, _message: InboundClientMessage): void {
     if (!this.backend) return;
 
     this.backend.sendMessageToSocket(socketId, {
@@ -194,7 +204,7 @@ export class Application {
     });
   }
 
-  private async handleCommandMessage(socketId: string, message: WebSocketMessage): Promise<void> {
+  private async handleCommandMessage(socketId: string, message: InboundClientMessage): Promise<void> {
     if (!this.backend) return;
 
     const interactive = ConnectionManager.get().getInteractive(socketId);
@@ -226,21 +236,17 @@ export class Application {
       location,
       commandText,
       executionId: nanoid(),
+      // Placeholder — `CommandGiverMixin.executeCommand` overwrites this
+      // with a fresh per-execution attribution id before invoking the
+      // controller.
+      commandId: '',
     };
 
-    const result = await avatar.executeCommand(commandText, context);
-
-    if (result.success && result.output) {
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'output',
-        payload: result.output,
-      });
-    } else if (!result.success && result.error) {
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'error',
-        payload: { message: result.error },
-      });
-    }
+    // Discard the result; CommandResult is purely semantic now. Any
+    // prose the controller wanted the actor to see is fired via Scene
+    // inside the controller body, and the auto-emitted MudlogApi
+    // command-outcome entry surfaces success/failure with `summary`.
+    await avatar.executeCommand(commandText, context);
   }
 
   /**
@@ -318,7 +324,7 @@ export class Application {
 
     const playerId = await this.createDefaultAvatarTemplate(
       profile.name?.givenName || 'Unnamed',
-      profile.name?.familyName || 'Player'
+      profile.name?.familyName
     );
     user.playerIds.push(playerId);
     await user.save();
@@ -330,26 +336,27 @@ export class Application {
    * Seed a default avatar template for a new user. Self-contained under
    * the unified state model — no Player/CharacterSheet indirection. Opts
    * into `PersistentHydrator` so the generic mixin-field copy applies the
-   * persistent fields (firstName/lastName/pronouns) at clone time;
-   * runtime-only fields (`user`, `playerId`) are stamped by Avatar's
-   * `postRegister` from the clone context.
+   * persistent fields (name/surname/pronouns) at clone time; runtime-only
+   * fields (`user`, `playerId`) are stamped by Avatar's `postRegister`
+   * from the clone context.
    *
    * @returns the generated playerId (template path: `/avatar/<playerId>`)
    */
   private async createDefaultAvatarTemplate(
-    firstName: string,
-    lastName: string
+    name: string,
+    surname?: string
   ): Promise<string> {
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
+    const data: Record<string, unknown> = {
+      name,
+      pronouns: Pronouns.They,
+    };
+    if (surname) data.surname = surname;
     await TemplateApi.saveTemplate(
       path,
       '/obj/Avatar',
-      {
-        firstName,
-        lastName,
-        pronouns: Pronouns.They,
-      },
+      data,
       PersistentHydrator.templatePath
     );
     console.log(`Application: Created avatar template at ${path}`);

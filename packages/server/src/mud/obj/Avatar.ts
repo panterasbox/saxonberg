@@ -15,6 +15,7 @@ import { PlayerApi } from '../api/player';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { Interactive } from './Interactive';
 import type { User } from '../lib/identity/User';
+import type { MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
 
 /**
@@ -39,7 +40,7 @@ export class Avatar extends AvatarBase {
     self: ['ping.yaml', 'help.yaml', 'player.yaml'],
     environment: [],
     inventory: [],
-    colocated: [],
+    peers: [],
   };
 
   /**
@@ -120,13 +121,14 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * SensorMixin.onMessage() override — deliver to every connected
-   * Interactive (multiplexing).
+   * SensorMixin.handleMessage override — deliver to every connected
+   * Interactive (multiplexing). Reached after `filterMessage` (the
+   * shadowable extension point on SensorMixin) has had its say.
    */
-  public onMessage(message: unknown): void {
+  protected override handleMessage(frame: MessageFrame): void {
     const app = Avatar.getApplicationInstance();
     for (const interactive of this.interactives) {
-      app.sendMessageToInteractive(interactive, message);
+      app.sendMessageToInteractive(interactive, frame);
     }
   }
 

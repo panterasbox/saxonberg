@@ -11,8 +11,24 @@ import { create } from 'zustand';
 import type {
   AuthState,
   ConnectionState,
-  ConnectionEstablishedPayload,
+  Pronouns,
+  AlternateName,
 } from '@saxonberg/types';
+
+interface ConnectionEstablishedPayload {
+  userId: string;
+  socketId: string;
+  sessionId: string;
+  player: {
+    _id: string;
+    honorific?: string;
+    name: string;
+    surname?: string;
+    nameSuffix?: string;
+    alternateNames?: AlternateName[];
+    pronouns: Pronouns;
+  };
+}
 
 /**
  * Combined store state.
@@ -87,7 +103,15 @@ export const useStore = create<StoreState>((set) => ({
         user: {
           id: payload.userId,
           email: '',
-          displayName: `${payload.player.firstName} ${payload.player.lastName}`,
+          displayName: [
+            payload.player.honorific,
+            payload.player.name,
+            payload.player.surname,
+            payload.player.nameSuffix,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .trim(),
         },
         player: payload.player,
       },

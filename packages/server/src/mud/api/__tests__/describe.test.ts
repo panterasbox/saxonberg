@@ -1,61 +1,74 @@
 /**
- * Tests for DescribeApi
+ * Tests for DescribeApi.getDisplayName.
+ *
+ * Two-step resolution (post-Named-refactor):
+ *   1. Named.name — proper name, when set
+ *   2. Visible.shortDescription — visual identity, the common case
+ *      for things that don't have proper names
+ *   3. Fallback string
+ *
+ * The earlier bare-`.name`-string-property branch retired when
+ * Location adopted NamedMixin.
  */
 
 import { describe, it, expect } from 'vitest';
 import { DescribeApi } from '../describe';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { NamedMixin } from '../../lib/character/Named';
+import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class Plain extends Stuff {}
-
 class NamedThing extends NamedMixin(Stuff) {}
-
 class VisibleThing extends VisibleMixin(Stuff) {}
-
-class WithNameProp extends Stuff {
-  name: string = '';
-}
+class NamedAndVisible extends NamedMixin(VisibleMixin(Stuff)) {}
 
 describe('DescribeApi.getDisplayName', () => {
-  it('prefers NamedMixin.fullName', () => {
+  it('returns Named.name (casual register) when set', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.firstName = 'Jane';
-    obj.lastName = 'Doe';
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Jane Doe');
+    obj.name = 'Alice';
+    obj.surname = 'Smith';
+    // Casual — surname is NOT included. Reach for `obj.fullName` for
+    // the formal form.
+    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Alice');
   });
 
-  it('falls back to a string `name` property when Named is absent', () => {
-    const obj = makeStuff(() => new WithNameProp());
-    obj.name = 'Town Square';
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Town Square');
+  it('falls back to Visible.shortDescription when Named.name is empty', () => {
+    const obj = makeStuff(() => new NamedAndVisible());
+    obj.shortDescription = 'a heavy oak door';
+    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe(
+      'a heavy oak door'
+    );
   });
 
-  it('skips empty `name` strings', () => {
-    const obj = makeStuff(() => new WithNameProp());
-    obj.name = '';
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('fallback');
+  it('Named.name takes precedence over Visible.shortDescription', () => {
+    const obj = makeStuff(() => new NamedAndVisible());
+    obj.name = 'Excalibur';
+    obj.shortDescription = 'a gleaming silver sword';
+    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Excalibur');
   });
 
-  it('falls back to VisibleMixin.shortDescription when name is missing', () => {
+  it('uses Visible.shortDescription on a non-Named object', () => {
     const obj = makeStuff(() => new VisibleThing());
     obj.shortDescription = 'a rusty key';
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('a rusty key');
   });
 
-  it('skips empty shortDescription', () => {
+  it('skips empty Visible.shortDescription', () => {
     const obj = makeStuff(() => new VisibleThing());
     obj.shortDescription = '';
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('fallback');
   });
 
-  it('returns the fallback when no name source is available', () => {
-    expect(DescribeApi.getDisplayName(makeStuff(() => new Plain()), 'something')).toBe('something');
+  it('returns the fallback when neither Named nor Visible applies', () => {
+    expect(
+      DescribeApi.getDisplayName(makeStuff(() => new Plain()), 'something')
+    ).toBe('something');
   });
 
   it('defaults the fallback to empty string', () => {
-    expect(DescribeApi.getDisplayName(makeStuff(() => new Plain()))).toBe('');
+    expect(
+      DescribeApi.getDisplayName(makeStuff(() => new Plain()))
+    ).toBe('');
   });
 });

@@ -1,13 +1,10 @@
 /**
  * OpenController — open any Sealable the player can reach.
  *
- * Scope is intentionally narrow: resolve `target` via MQL, verify it is a
- * Sealable, call `open()`, broadcast. The controller does NOT know about
- * exits or doors specifically — doors are just one kind of Sealable, and
- * they surface to MQL via `ExitableMixin.getExitDoors()` (see MqlApi).
- *
- * If the future introduces chests or trapdoors, they compose SealableMixin
- * and this controller handles them uniformly.
+ * Fires a Scene at `world.narration.movement` (the closest topic for
+ * "physical interaction with the room state") with self ("You open
+ * the door.") and peers ("<name>Alice</name> opens the door.")
+ * frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -16,46 +13,44 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
+import { Mml } from '../../api/mml';
 
 export interface OpenInput {
   target: string;
 }
 
-export interface OpenOutput {
-  text: string;
-}
-
-export class OpenController extends CommandController<OpenInput, OpenOutput> {
-  execute(input: OpenInput, context: CommandContext): CommandResult<OpenOutput> {
+export class OpenController extends CommandController<OpenInput> {
+  execute(input: OpenInput, context: CommandContext): CommandResult {
     const { commandGiver, location } = context;
     const target = (input.target ?? '').trim();
-    if (!target) return { success: false, error: 'Open what?' };
+    if (!target) return { success: false, summary: 'open what?' };
 
     const hit = MqlApi.resolve(target, { commandGiver, location });
     if (!hit) {
-      return { success: false, error: `You don't see any ${target} here.` };
+      return {
+        success: false,
+        summary: `you don't see any ${target} here`,
+      };
     }
     if (!MixinApi.isSealable(hit)) {
-      return { success: false, error: "You can't open that." };
+      return { success: false, summary: "can't open that" };
     }
 
     if (hit.isOpen) {
-      return { success: false, error: "It's already open." };
+      return { success: false, summary: 'already open' };
     }
 
     hit.open();
 
-    const targetName = DescribeApi.getDisplayName(hit, 'it');
-    const moverName = DescribeApi.getDisplayName(commandGiver, 'Someone');
-    MessageApi.messageContents(
-      location,
-      {
-        type: 'output',
-        payload: { text: `<name>${moverName}</name> opens the ${targetName}.` },
-      },
-      { exclude: commandGiver }
-    );
+    MessageApi.scene(commandGiver)
+      .topic(MessageApi.Topics.world.narration.movement)
+      .toSelf(Mml.compose`You open ${Mml.object(hit)}.`)
+      .toPeers(Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(hit)}.`)
+      .send();
 
-    return { success: true, output: { text: `You open the ${targetName}.` } };
+    return {
+      success: true,
+      summary: `opened ${DescribeApi.getDisplayName(hit, 'it')}`,
+    };
   }
 }
