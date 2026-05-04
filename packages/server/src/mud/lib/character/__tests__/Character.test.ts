@@ -51,12 +51,24 @@ describe('Character', () => {
       expect(character.fullName).toBe('');
     });
 
-    it('synthesizes honorific + name + surname + nameSuffix', () => {
+    it('synthesizes honorific + name + surname + nameSuffix with a comma before the suffix', () => {
       character.honorific = 'Dr.';
       character.name = 'John';
       character.surname = 'Doe';
       character.nameSuffix = 'PhD';
-      expect(character.fullName).toBe('Dr. John Doe PhD');
+      expect(character.fullName).toBe('Dr. John Doe, PhD');
+    });
+
+    it('renders generational suffixes with the older-style comma', () => {
+      character.name = 'John';
+      character.surname = 'Smith';
+      character.nameSuffix = 'Jr.';
+      expect(character.fullName).toBe('John Smith, Jr.');
+    });
+
+    it('omits the comma when there is no preceding head', () => {
+      character.nameSuffix = 'Esq.';
+      expect(character.fullName).toBe('Esq.');
     });
   });
 

@@ -93,16 +93,31 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
     alternateNames: AlternateName[] = [];
 
     /**
-     * Formal canonical form: honorific + name + surname + nameSuffix.
-     * Used at introductions, character info screens, disambiguation
-     * — not the default for everyday prose. Most callers should
-     * read `obj.name` directly.
+     * Formal canonical form. Used at introductions, character info
+     * screens, disambiguation — not the default for everyday prose.
+     * Most callers should read `obj.name` directly.
+     *
+     * Layout:
+     *
+     *   `[honorific] [name] [surname][, nameSuffix]`
+     *
+     * The comma before `nameSuffix` is universal for credentials
+     * ("John Smith, MD", "John Smith, PhD", "John Smith, Esq.") and
+     * a defensible older-style for generational suffixes ("John
+     * Smith, Jr.") — common in legal documents and personal
+     * signatures even where AP/Chicago have dropped it. Regnal
+     * numerals ("Henry VIII") would render incorrectly here, but
+     * those aren't a v1 use case; if they become one, model them
+     * via `alternateNames` rather than `nameSuffix`.
      */
     get fullName(): string {
-      return [this.honorific, this.name, this.surname, this.nameSuffix]
+      const head = [this.honorific, this.name, this.surname]
         .filter(Boolean)
         .join(' ')
         .trim();
+      if (!this.nameSuffix) return head;
+      if (!head) return this.nameSuffix;
+      return `${head}, ${this.nameSuffix}`;
     }
 
     /**
