@@ -171,12 +171,12 @@ export class StuffApi {
    * Objects that don't care ignore it; objects that do (Avatar) declare a
    * narrower context type locally and read what they need.
    *
-   * @param templatePath - Path to the template (e.g., "/avatar/<playerId>")
+   * @param templatePath - Path to the template (e.g., "/obj/Avatar/<playerId>")
    * @param context - Optional runtime context passed to `postRegister`
    * @returns The cloned and registered object
    *
    * @example
-   * const avatar = await StuffApi.clone<Avatar>('/avatar/abc', { user });
+   * const avatar = await StuffApi.clone<Avatar>('/obj/Avatar/abc', { user });
    * const room = await StuffApi.clone('/home/bobalu/workroom');
    */
   public static async clone<T extends Stuff>(

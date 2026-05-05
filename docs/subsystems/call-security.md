@@ -159,7 +159,7 @@ exposes — a small bundle of identity facets:
 | ------------------ | --------------------------------------------------- | ---------------------------------------- |
 | **stuffId**        | runtime nanoid, on every `Stuff`                    | `aB7…`                                   |
 | **module URL**     | the file the class was actually imported from, captured by the loader transform | `mud/api/stuff#StuffApi`, `mud/domain/narnia/NarniaLocation#NarniaLocation` |
-| **template path**  | the CMS template path (only if cloned)              | `/avatar/abc123`, `/domain/narnia/cair-paravel` |
+| **template path**  | the CMS template path (only if cloned)              | `/obj/Avatar/abc123`, `/domain/narnia/cair-paravel` |
 
 **Module URL is captured by the import machinery, not declared by the
 class.** A class that says `static __isApi = true` or sets a

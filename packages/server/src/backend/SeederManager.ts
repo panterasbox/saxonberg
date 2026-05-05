@@ -12,7 +12,7 @@
  * Why under `src/mud/`: seeds are mudlib data, not infrastructure.
  * Most are static (engine baseline, ship-once); some are blueprints
  * lower-level developers tune over time (e.g.
- * `mud/seeds/avatar/default.yaml`). Co-located with the rest of the
+ * `mud/seeds/obj/Avatar/seed.yaml`). Co-located with the rest of the
  * mudlib so authoring lives in one tree.
  *
  * Insert-only by design. Schema migrations on already-seeded

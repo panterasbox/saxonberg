@@ -3,7 +3,7 @@
  *
  * Extends Character (Named, Gendered, Sensor, Vocal, Container,
  * Containable, Visible, Mobile, CommandGiver). Self-contained under the
- * unified state model: the template at `/avatar/<playerId>` carries every
+ * unified state model: the template at `/obj/Avatar/<playerId>` carries every
  * persistent field directly, no Player or CharacterSheet indirection.
  *
  * Lifetime: cloned when a player connects, destroyed when the last
@@ -46,10 +46,27 @@ export class Avatar extends AvatarBase {
   };
 
   /**
-   * Template path prefix for avatars in domain collection.
-   * Avatar templates are stored at: /avatar/<playerId>
+   * Template path prefix for avatars in the domain collection.
+   * Avatar templates live at `/obj/Avatar/<playerId>` — instances
+   * of a class share the same `/obj/<ClassName>` namespace as
+   * singleton templates of that class (`/obj/EventRegistry`),
+   * with a per-instance suffix.
    */
-  static readonly TEMPLATE_PATH_PREFIX = '/avatar/';
+  static readonly TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
+
+  /**
+   * Reserved playerId for the seed avatar at
+   * `/obj/Avatar/seed` — the orphan template every new user's
+   * avatar is forked from. 4 chars; nanoids are 21, so it can't
+   * collide with a real playerId.
+   */
+  static readonly SEED_PLAYER_ID = 'seed';
+
+  /**
+   * Convenience: the seed avatar's template path.
+   */
+  static readonly SEED_TEMPLATE_PATH =
+    Avatar.TEMPLATE_PATH_PREFIX + Avatar.SEED_PLAYER_ID;
 
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
@@ -63,7 +80,7 @@ export class Avatar extends AvatarBase {
   user?: User;
 
   /**
-   * Character slot id (key under `/avatar/...` and in `User.playerIds`).
+   * Character slot id (key under `/obj/Avatar/<playerId>` and in `User.playerIds`).
    * Runtime-only: the template path encodes it, so it does not need to be
    * mirrored into the doc. Stamped by `postRegister` from the clone
    * context, or seeded by the test/direct-construction data blob.

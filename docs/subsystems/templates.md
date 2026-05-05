@@ -253,7 +253,7 @@ runtime `class` field only.
 
 ```typescript
 class Avatar {
-  static readonly TEMPLATE_PATH_PREFIX = '/avatar/';
+  static readonly TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
 
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
@@ -261,7 +261,7 @@ class Avatar {
 }
 ```
 
-Avatar templates are stored at `/avatar/<playerId>` and created
+Avatar templates are stored at `/obj/Avatar/<playerId>` and created
 automatically when a Player is added to a User. Cloning happens at user
 connect (see `Application.handleUserConnect`).
 

@@ -338,43 +338,42 @@ export class Application {
   }
 
   /**
-   * Fork a per-user avatar template from the default-avatar
-   * blueprint at `/avatar/default` (seeded from
-   * `seeds/avatar/default.yaml`). Class, hydratorClass, and starting
-   * data come from the blueprint; the user's name/surname overlay
-   * on top. Runtime-only fields (`user`, `playerId`) are stamped
-   * later by Avatar's `postRegister` from the clone context.
+   * Fork a per-user avatar template from the seed avatar at
+   * `Avatar.SEED_TEMPLATE_PATH` (initial doc seeded from
+   * `seeds/obj/Avatar/seed.yaml`; thereafter the live Mongo doc is
+   * source of truth). Class, hydratorClass, and starting data come
+   * from the seed; the user's name/surname overlay on top.
+   * Runtime-only fields (`user`, `playerId`) are stamped later by
+   * `Avatar.postRegister` from the clone context.
    *
-   * Lower-level developers tune the starting shape every new player
-   * gets by editing the seed YAML — no TS change required.
-   *
-   * @returns the generated playerId (template path: `/avatar/<playerId>`)
+   * @returns the generated playerId (template path:
+   * `/obj/Avatar/<playerId>`)
    */
   private async createDefaultAvatarTemplate(
     name: string,
     surname?: string
   ): Promise<string> {
-    const blueprint = await Template.findByPath('/avatar/default');
-    if (!blueprint) {
+    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    if (!seed) {
       throw new Error(
-        "Application.createDefaultAvatarTemplate: no blueprint at " +
-          "'/avatar/default'. Did SeederManager run?"
+        `Application.createDefaultAvatarTemplate: no seed at ` +
+          `'${Avatar.SEED_TEMPLATE_PATH}'. Did SeederManager run?`
       );
     }
 
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
-      ...blueprint.data,
+      ...seed.data,
       name,
     };
     if (surname) data.surname = surname;
 
     await TemplateApi.saveTemplate(
       path,
-      blueprint.class,
+      seed.class,
       data,
-      blueprint.hydratorClass
+      seed.hydratorClass
     );
     console.log(`Application: Created avatar template at ${path}`);
     return playerId;

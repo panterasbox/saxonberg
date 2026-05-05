@@ -102,13 +102,13 @@ pointers to other records. Its responsibilities dissolve into:
 
 The id is **still called `playerId`**. It represents "one of a user's
 owned character slots" — that meaning survives the class's death.
-Paths use `/avatar/<playerId>`.
+Paths use `/obj/Avatar/<playerId>`.
 
 ### No CharacterSheet class
 
 `CharacterSheet` existed to hold persistent character state across
 clones. Under the unified model, Avatar's own template doc at
-`/avatar/<playerId>` holds that state directly. The sheet would be
+`/obj/Avatar/<playerId>` holds that state directly. The sheet would be
 indirection for a problem the unified model already solves.
 
 ### Avatar is self-contained
@@ -119,7 +119,7 @@ Avatar's template doc carries every mixin-declared persistent field as
 
 ```js
 {
-  path: "/avatar/<playerId>",
+  path: "/obj/Avatar/<playerId>",
   class: "/obj/Avatar",
   hydratorClass: "/lib/persistence/PersistentHydrator",
   data: {
@@ -202,7 +202,7 @@ their concrete type locally rather than threading a generic through
 
 Single `domain` collection, path-namespaced:
 
-- `/avatar/<playerId>` — user-owned character templates + save state
+- `/obj/Avatar/<playerId>` — user-owned character templates + save state
 - `/domain/...` — content (rooms, doors, props, NPCs)
 - `/system/...` — system fixtures (e.g. hooks at `/system/hooks/...`)
 

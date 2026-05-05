@@ -250,7 +250,7 @@ Some specific reminders worth keeping in front of mind:
 Google OAuth2 via Passport. Sequence: `/auth/google` → Google →
 `/auth/google/callback` → `Backend.handleAuthenticationSuccess` →
 `Application.findOrCreateUserFromGoogle` (creates/updates
-`GoogleProfile`, `User`, default Avatar template at `/avatar/<playerId>`)
+`GoogleProfile`, `User`, default Avatar template at `/obj/Avatar/<playerId>`)
 → session cookie → client redirected with `auth=success`. WebSocket
 upgrade reuses the express-session middleware.
 

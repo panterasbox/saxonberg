@@ -50,8 +50,8 @@ lower-level developers, not infrastructure.
 packages/server/src/mud/seeds/
   obj/
     EventRegistry.yaml
-  avatar/
-    default.yaml
+    Avatar/
+      seed.yaml
   domain/
     void.yaml
   system/
@@ -65,7 +65,7 @@ The file path determines the template path: relative path from
 | File | Template path |
 |---|---|
 | `seeds/obj/EventRegistry.yaml` | `/obj/EventRegistry` |
-| `seeds/avatar/default.yaml` | `/avatar/default` |
+| `seeds/obj/Avatar/seed.yaml` | `/obj/Avatar/seed` |
 | `seeds/domain/void.yaml` | `/domain/void` |
 
 ### Why YAML on disk
@@ -107,34 +107,52 @@ class SeederManager {
 - **No deletion.** If a YAML is removed from disk, the corresponding
   doc stays in Mongo (orphaned templates are a developer cleanup
   task, not the seeder's problem).
-- **Dev workflow** for "I changed the seed YAML and want it to take
-  effect": delete the doc in Mongo manually, restart server.
+- **YAML is initial-population only.** After first boot, the live
+  Mongo doc is the source of truth. Edit the doc in Mongo (or via
+  developer tooling) to change a template going forward; editing
+  the YAML against an already-seeded database does nothing. The
+  reset pattern for development is to delete the doc and restart,
+  but that's a one-time wipe, not the regular maintenance flow.
 
 A future migration story (versioned seeds, automatic schema upgrades)
 is acknowledged as a real future need but explicitly NOT part of the
 initial seeder design.
 
-### Blueprint seeds (forked at runtime)
+### Path conventions
+
+Singletons live at `/obj/<ClassName>` — `/obj/EventRegistry`,
+future `/obj/ModuleRegistry`, etc. Multi-instance classes extend
+the same namespace with a per-instance suffix:
+`/obj/Avatar/<playerId>`. The `/obj/Avatar` segment is implicit
+(no template at it); the validator's folder/leaf rules treat path
+segments as opaque tokens, so this works without a separator
+distinct from `/`.
+
+### Orphan templates (forked at runtime)
 
 Most seeds are end-state singletons — `seeds/obj/EventRegistry.yaml`
 ships at `/obj/EventRegistry`, and that's it. Some seeds are
-*blueprints*: a template that consumer code reads, copies, and
-customises per-instance. The default-avatar flow is the worked
-example:
+**orphans** — templates that live in the same namespace as their
+class's instances but with a reserved id no real instance can
+collide with. The seed avatar is the worked example:
 
-- `seeds/avatar/default.yaml` lands at `/avatar/default` —
-  shape every new player starts from (class, hydrator,
-  default `pronouns`, etc.).
+- `seeds/obj/Avatar/seed.yaml` lands at `/obj/Avatar/seed`. It's
+  mechanically just an avatar template; the `seed` playerId is
+  reserved (`Avatar.SEED_PLAYER_ID`) — 4 chars, nanoids are 21,
+  no collision with a real player.
 - `Application.createDefaultAvatarTemplate(name, surname)` (called
-  on first login of a new user) reads the blueprint, overlays
-  `name` / `surname`, and saves the result at
-  `/avatar/<playerId>`. The user gets a per-user template
-  forked from the engine-shipped defaults.
+  on first login of a new user) reads `Avatar.SEED_TEMPLATE_PATH`,
+  copies its `class` / `hydratorClass` / `data`, overlays the
+  user's `name` / `surname`, and saves at
+  `/obj/Avatar/<playerId>`. The user gets a per-user template
+  forked from whatever the seed currently holds.
 
-The blueprint pattern isn't a new seeder feature — it's just
-"seed lands at a known path, somebody else reads it." Lower-level
-developers edit `seeds/avatar/default.yaml` to tune the starting
-shape every new player gets, no TS change required.
+To change the defaults going forward, edit the `/obj/Avatar/seed`
+doc directly in Mongo, or use developer tooling to clone an avatar
+from it, mutate, and persist back. The pattern isn't a new seeder
+feature — it's just "seed lands at a known path with a reserved
+id, consumer code forks." Existing players are unaffected by either
+path; their per-user templates were forked at signup.
 
 ---
 
