@@ -36,14 +36,14 @@ describe('Thing', () => {
 
   describe('ContainableMixin integration', () => {
     it('should start with null environment', () => {
-      expect(thing.getEnvironment()).toBeNull();
+      expect(thing.getContainer()).toBeNull();
     });
 
     it('should set environment via ContainmentApi.move', () => {
       const location = makeStuff(() => new Location());
 
       ContainmentApi.move(thing, location);
-      expect(thing.getEnvironment()).toBe(location);
+      expect(thing.getContainer()).toBe(location);
     });
 
     it('should be added to container via ContainmentApi', () => {
@@ -51,7 +51,7 @@ describe('Thing', () => {
 
       ContainmentApi.move(thing, location);
 
-      expect(thing.getEnvironment()).toBe(location);
+      expect(thing.getContainer()).toBe(location);
       expect(location.hasContainable(thing)).toBe(true);
     });
 
@@ -67,14 +67,14 @@ describe('Thing', () => {
       ContainmentApi.move(thing, location2);
       expect(location1.hasContainable(thing)).toBe(false);
       expect(location2.hasContainable(thing)).toBe(true);
-      expect(thing.getEnvironment()).toBe(location2);
+      expect(thing.getContainer()).toBe(location2);
     });
   });
 
   describe('Mixin composition', () => {
     it('should have methods from ContainableMixin', () => {
-      expect(typeof thing.setEnvironment).toBe('function');
-      expect(typeof thing.getEnvironment).toBe('function');
+      expect(typeof thing.setContainer).toBe('function');
+      expect(typeof thing.getContainer).toBe('function');
     });
   });
 

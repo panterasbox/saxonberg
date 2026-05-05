@@ -3,7 +3,7 @@
  * `ContainmentApi.move` (the public path). Direct calls to
  * `addContainable` / `removeContainable` are blocked by the
  * `@CallSecurity` lockdown introduced in Phase 5; only
- * `Containable.setEnvironment` (itself reachable only from
+ * `Containable.setContainer` (itself reachable only from
  * ContainmentApi) may invoke them.
  */
 
@@ -78,7 +78,7 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
     it('detaches an item back to no-environment', () => {
       ContainmentApi.move(item1, null);
       expect(container.hasContainable(item1)).toBe(false);
-      expect(item1.getEnvironment()).toBeNull();
+      expect(item1.getContainer()).toBeNull();
       expect(container.inventory.size).toBe(1);
     });
 

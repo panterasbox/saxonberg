@@ -234,7 +234,7 @@ export class Scene {
           break;
         case 'peers': {
           if (!actorAsContainable) break;
-          const env = actorAsContainable.getEnvironment();
+          const env = actorAsContainable.getContainer();
           if (!env) break;
           const skip = new Set<Stuff>([this.#actor]);
           if (explicitTarget) skip.add(explicitTarget);
@@ -394,7 +394,7 @@ export class MessageApi {
     frame: MessageFrame,
     opts: MessageBroadcastOptions = {}
   ): void {
-    const container = source.getEnvironment();
+    const container = source.getContainer();
     if (!container) {
       console.warn('MessageApi.messageContainer: Source not in a container');
       return;

@@ -144,7 +144,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, roomA, 'go north')
     );
     expect(go.success).toBe(true);
-    expect(avatar.getEnvironment()).toBe(roomB);
+    expect(avatar.getContainer()).toBe(roomB);
 
     const close = new CloseController().execute(
       { target: 'oak' },

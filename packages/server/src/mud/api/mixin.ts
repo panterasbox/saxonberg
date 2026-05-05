@@ -42,6 +42,7 @@ import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
+import type { Environment } from '../lib/shell/Environment';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -315,6 +316,10 @@ export class MixinApi {
 
   public static isHasInteractive(obj: Stuff): obj is Stuff & HasInteractive {
     return this.hasMixin(obj, Mixins.HasInteractive);
+  }
+
+  public static isEnvironment(obj: Stuff): obj is Stuff & Environment {
+    return this.hasMixin(obj, Mixins.Environment);
   }
 }
 

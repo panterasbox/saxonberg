@@ -1,0 +1,39 @@
+verbs: [settings]
+controller: SettingsController
+description: "Manage your declared settings"
+subcommands:
+  list:
+    description: "List declared settings, grouped by source mixin"
+    pattern: ""
+  get:
+    description: "Show a setting's current value"
+    pattern: "<key>"
+    fields:
+      key:
+        type: string
+        required: true
+  set:
+    description: "Set a setting's value"
+    pattern: "<key> <value>"
+    fields:
+      key:
+        type: string
+        required: true
+      value:
+        type: string
+        required: true
+        remaining: true
+  unset:
+    description: "Clear an override; the schema default applies"
+    pattern: "<key>"
+    fields:
+      key:
+        type: string
+        required: true
+  describe:
+    description: "Show a setting's schema entry"
+    pattern: "<key>"
+    fields:
+      key:
+        type: string
+        required: true

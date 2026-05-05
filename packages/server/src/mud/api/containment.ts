@@ -1,24 +1,24 @@
 /**
  * ContainmentApi — public surface for object movement and the policy
- * layer above the `Containable.setEnvironment` chokepoint.
+ * layer above the `Containable.setContainer` chokepoint.
  *
  * Layering (Phase 5):
  *
  *   - `Containable.addContainable` / `removeContainable` are
  *     `@Final @Unshadowable` state-mutation primitives reachable
- *     ONLY from `Containable.setEnvironment`.
- *   - `Containable.setEnvironment` is the atomic chokepoint —
+ *     ONLY from `Containable.setContainer`.
+ *   - `Containable.setContainer` is the atomic chokepoint —
  *     reachable ONLY from this Api. It orchestrates the three
  *     cross-object updates (remove from old, add to new, set field)
  *     in one call.
  *   - `ContainmentApi.move` is the public surface. It runs invariants
- *     and Witness `can*` vetoes, calls `setEnvironment` once, then
+ *     and Witness `can*` vetoes, calls `setContainer` once, then
  *     fires the post-move `on*` hooks. NO direct
  *     `removeContainable` / `addContainable` calls happen here —
- *     `setEnvironment` does the state mutation.
+ *     `setContainer` does the state mutation.
  *
  * Detach: `ContainmentApi.move(item, null)`. A direct
- * `setEnvironment(null)` is rejected by the policy.
+ * `setContainer(null)` is rejected by the policy.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -58,7 +58,7 @@ export class ContainmentApi {
    * Pipeline:
    *   1. Pre-flight invariants (Exitable layering, zone crossing).
    *   2. `can*` Witness hooks — short-circuit on the first veto.
-   *   3. `item.setEnvironment(to)` — atomic state mutation.
+   *   3. `item.setContainer(to)` — atomic state mutation.
    *   4. `on*` Witness hooks (post-mutation, never veto).
    *
    * Zone is NOT restamped on move — it should reflect whichever
@@ -89,7 +89,7 @@ export class ContainmentApi {
       }
     }
 
-    const from = item.getEnvironment();
+    const from = item.getContainer();
     if (from === to) return;
 
     // VETO HOOKS (in declaration-of-care order: item, source, dest).
@@ -107,9 +107,9 @@ export class ContainmentApi {
       );
     }
 
-    // STATE MUTATION through the chokepoint. setEnvironment handles
+    // STATE MUTATION through the chokepoint. setContainer handles
     // the three cross-object updates atomically.
-    item.setEnvironment(to);
+    item.setContainer(to);
 
     // NOTIFICATION HOOKS. Single onMoved per item; per-container
     // hooks for source and destination separately.
@@ -129,7 +129,7 @@ export class ContainmentApi {
    * Get the container that holds an item
    */
   public static getContainer(item: ContainableStuff): ContainerStuff | null {
-    return item.getEnvironment();
+    return item.getContainer();
   }
 
   /**

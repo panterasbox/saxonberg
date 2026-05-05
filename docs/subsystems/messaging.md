@@ -241,10 +241,11 @@ fragments explicitly. Pass-through is not a feature; it's the bug
 surface this design closes.
 
 `Mml.format` exists for prose stored outside the source — config
-objects, eventually user preference docs — where a tagged template
-literal isn't reachable. Substitution rules match `Mml.compose`'s
-interpolation rules; unknown placeholders resolve to empty strings.
-`Phrasebook` is the canonical user. Example:
+objects, schema-declared settings, eventually user preference docs —
+where a tagged template literal isn't reachable. Substitution rules
+match `Mml.compose`'s interpolation rules; unknown placeholders
+resolve to empty strings. The movement-message defaults declared on
+`MobileMixin.settings` are the canonical user. Example:
 
 ```typescript
 Mml.format('You leave to the {direction}.', {
@@ -531,14 +532,16 @@ share the same `commandId` (auto-stamped from `ExecutionContextApi`). UI
 can correlate, group, filter, route to different panels — whatever it
 wants.
 
-## Phrasebook — user-configurable defaults
+## Movement-message defaults — `MobileMixin.settings`
 
-`Phrasebook` (`mud/lib/Phrasebook.ts`) supplies the default
-movement/teleport prose used by `MobileMixin` when nothing higher
-overrides. It lives at the top of `mud/lib/` rather than in a subsystem
-folder because it's a placeholder for future user-settings work — when
-players configure their own departure/arrival prose, the configured
-strings will load through this module.
+Default movement / teleport prose lives as schema-declared settings
+on `MobileMixin` (`messages.movement.*`). Avatars compose
+`EnvironmentMixin` and players override individual templates through
+the `settings` command; NPCs and other Mobile hosts that don't
+compose `EnvironmentMixin` render at the schema default via
+`resolveSetting`'s non-Environment fallback. See
+[shell-environment.md](./shell-environment.md) for the broader
+settings subsystem.
 
 The override hierarchy `MobileMixin` consults (highest priority first):
 
@@ -550,41 +553,17 @@ The override hierarchy `MobileMixin` consults (highest priority first):
    `getTeleportOutMessage(mover)`, `getTeleportInMessage(mover)` —
    each returns `{ self?, peers? }` and Mobile fills in defaults for
    any audience the resolver skipped.
-3. **`Phrasebook` accessors** — the configurable defaults.
+3. **`messages.movement.*` settings** — schema-defaulted, player-overridable.
 
-Today's templates are static strings shaped for `Mml.format`:
-
-```typescript
-{
-  movement: {
-    departSelf:        'You leave to the {direction}.',
-    departPeers:       '{mover} leaves to the {direction}.',
-    arriveSelf:        'You arrive from the {direction}.',
-    arrivePeers:       '{mover} arrives from the {direction}.',
-    arriveSelfBland:   'You arrive.',
-    arrivePeersBland:  '{mover} arrives.',
-    teleportOutSelf:   'The world dissolves around you.',
-    teleportOutPeers:  '{mover} vanishes.',
-    teleportInSelf:    'You materialize.',
-    teleportInPeers:   '{mover} appears out of nowhere.',
-  },
-}
-```
-
-Each accessor consumes that template via `Mml.format`, substituting
+Each schema entry's default is consumed via `Mml.format`, substituting
 `Mml.name(mover)` and `Mml.direction(...)` where appropriate so the
-output is valid MML with proper escaping.
+output is valid MML with proper escaping. Arrival prose picks between
+the `.directional` and `.bland` keys based on whether
+`Exit.inverse?.direction` or `NavigationApi.invertDirection(...)`
+resolves; the bland fallbacks render `"You arrive."` /
+`"<mover> arrives."`.
 
-Arrival prose uses `Exit.inverse?.direction` when available, falling
-back to `NavigationApi.invertDirection(exit.direction)`. When neither
-yields a direction, the `arriveSelfBland` / `arrivePeersBland`
-templates render `"You arrive."` / `"<mover> arrives."`.
-
-Tomorrow the templates become the user's preference, looked up by
-viewer/actor identity. The accessor signatures stay the same; only the
-file's internals change.
-
-Out of scope for `Phrasebook`: prose for one-shot controller output
+Out of scope for these settings: prose for one-shot controller output
 (look, inventory, get/drop, open/close, etc.) lives where the controller
 composes it. Most controller prose has no use for configuration —
 inline `Mml.compose` is fine.

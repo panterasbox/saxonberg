@@ -225,7 +225,7 @@ export class Application {
     if (!commandText) return;
 
     const avatar = interactive.holder;
-    const location = avatar.getEnvironment() as Location;
+    const location = avatar.getContainer() as Location;
 
     if (!location) {
       this.backend.sendMessageToSocket(socketId, {

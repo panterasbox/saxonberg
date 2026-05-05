@@ -25,13 +25,13 @@ describe('Vessel', () => {
       ContainmentApi.move(item, vessel);
 
       expect(vessel.hasContainable(item)).toBe(true);
-      expect(item.getEnvironment()).toBe(vessel);
+      expect(item.getContainer()).toBe(vessel);
     });
   });
 
   describe('Containable side', () => {
     it('starts with null environment', () => {
-      expect(vessel.getEnvironment()).toBeNull();
+      expect(vessel.getContainer()).toBeNull();
     });
 
     it('can be placed inside a Location', () => {
@@ -39,7 +39,7 @@ describe('Vessel', () => {
 
       ContainmentApi.move(vessel, room);
 
-      expect(vessel.getEnvironment()).toBe(room);
+      expect(vessel.getContainer()).toBe(room);
       expect(room.hasContainable(vessel)).toBe(true);
     });
 
@@ -48,7 +48,7 @@ describe('Vessel', () => {
 
       ContainmentApi.move(vessel, outer);
 
-      expect(vessel.getEnvironment()).toBe(outer);
+      expect(vessel.getContainer()).toBe(outer);
       expect(outer.hasContainable(vessel)).toBe(true);
     });
   });
@@ -61,8 +61,8 @@ describe('Vessel', () => {
       ContainmentApi.move(vessel, room);
       ContainmentApi.move(coin, vessel);
 
-      expect(vessel.getEnvironment()).toBe(room);
-      expect(coin.getEnvironment()).toBe(vessel);
+      expect(vessel.getContainer()).toBe(room);
+      expect(coin.getContainer()).toBe(vessel);
       expect(vessel.hasContainable(coin)).toBe(true);
       expect(room.hasContainable(vessel)).toBe(true);
       expect(room.hasContainable(coin)).toBe(false);

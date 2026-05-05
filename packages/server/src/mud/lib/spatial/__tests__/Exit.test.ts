@@ -106,7 +106,7 @@ describe('Exit', () => {
     it('moves the mover to the destination', () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
       mover.traverse(exit);
-      expect(mover.getEnvironment()).toBe(roomB);
+      expect(mover.getContainer()).toBe(roomB);
     });
 
     it('broadcasts departure to source peers excluding the mover', () => {

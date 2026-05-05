@@ -39,6 +39,7 @@ export const Mixins = {
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
   HasInteractive: 'HasInteractiveMixin',
+  Environment: 'EnvironmentMixin',
 } as const;
 
 /**
