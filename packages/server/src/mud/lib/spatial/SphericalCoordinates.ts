@@ -1,10 +1,10 @@
 /**
  * SphericalCoordinatesMixin — `[rho, theta, phi]` focus + `radius`.
  *
- * A spherical room is a sphere of given radius positioned by focus in
- * spherical coordinates inside a `SphericalZone`. Angles between spheres
- * are arbitrary, so exits in a spherical zone are semantic labels authored
- * by hand — this mixin doesn't derive adjacency.
+ * A spherical location is a sphere of given radius positioned by focus
+ * in spherical coordinates inside a `SphericalZone`. Angles between
+ * spheres are arbitrary, so exits in a spherical zone are semantic
+ * labels authored by hand — this mixin doesn't derive adjacency.
  *
  * Persistence: `coordinates` and `radius` are auto-persisted.
  */

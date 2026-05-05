@@ -4,10 +4,11 @@
  *
  * Composition: `ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))`
  *
- * Rooms are positioned by integer grid coordinates in a zone's grid. Cardinal
- * exits are derived on demand from grid adjacency (see `CartesianZone.deriveExit`)
- * unless an explicit exit is authored. Flat zones leave `z = 0` and have no
- * `up`/`down` neighbors; vertical zones fill them in.
+ * Locations are positioned by integer grid coordinates in a zone's grid.
+ * Cardinal exits are derived on demand from grid adjacency (see
+ * `CartesianZone.deriveExit`) unless an explicit exit is authored. Flat
+ * zones leave `z = 0` and have no `up`/`down` neighbors; vertical zones
+ * fill them in.
  *
  * Direction discipline: CartesianLocations only accept exits in one of the
  * 10 canonical cardinal directions (`n`/`s`/`e`/`w`/diagonals/`up`/`down`).
@@ -34,7 +35,7 @@ export class CartesianLocation extends CartesianLocationBase {
     if (!NavigationApi.isCardinalDirection(exit.direction)) {
       throw new Error(
         `CartesianLocation.addExit: direction '${exit.direction}' is not a cardinal direction. ` +
-          `Cartesian rooms only accept n/s/e/w/diagonals/up/down exits.`
+          `Cartesian locations only accept n/s/e/w/diagonals/up/down exits.`
       );
     }
     return super.addExit(exit);

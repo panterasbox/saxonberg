@@ -51,40 +51,40 @@ function makeContext(
 
 describe('OpenController / CloseController / doors integration', () => {
   let zone: CartesianZone;
-  let roomA: CartesianLocation;
-  let roomB: CartesianLocation;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
   let avatar: FakeAvatar;
   let peerInA: PeerSensor;
   let door: Door;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    roomA = makeStuff(() => new CartesianLocation());
-    roomA.shortDescription = 'Room A';
-    roomB = makeStuff(() => new CartesianLocation());
-    roomB.shortDescription = 'Room B';
-    zone.addRoom(roomA, 0, 0, 0);
-    zone.addRoom(roomB, 0, 1, 0);
+    locA = makeStuff(() => new CartesianLocation());
+    locA.shortDescription = 'Room A';
+    locB = makeStuff(() => new CartesianLocation());
+    locB.shortDescription = 'Room B';
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
 
     door = makeStuff(() => new Door());
     door.shortDescription = 'heavy oak door';
     door.keywords = ['oak'];
-    roomA.addBidirectionalExit(roomB, 'north', { door });
+    locA.addBidirectionalExit(locB, 'north', { door });
 
     avatar = makeStuff(() => new FakeAvatar());
     avatar.name = 'Alice';
-    ContainmentApi.move(avatar, roomA);
+    ContainmentApi.move(avatar, locA);
 
     peerInA = makeStuff(() => new PeerSensor());
     peerInA.name = 'Bob';
-    ContainmentApi.move(peerInA, roomA);
+    ContainmentApi.move(peerInA, locA);
   });
 
   it('go north fails while door is closed', async () => {
     const go = new GoController();
     const result = await go.execute(
       { target: 'north' },
-      makeContext(avatar, roomA, 'go north')
+      makeContext(avatar, locA, 'go north')
     );
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/closed/i);
@@ -95,7 +95,7 @@ describe('OpenController / CloseController / doors integration', () => {
     const open = new OpenController();
     const result = open.execute(
       { target: 'oak' },
-      makeContext(avatar, roomA, 'open the oak door')
+      makeContext(avatar, locA, 'open the oak door')
     );
     expect(result.success).toBe(true);
     expect(door.isOpen).toBe(true);
@@ -118,7 +118,7 @@ describe('OpenController / CloseController / doors integration', () => {
     const open = new OpenController();
     const result = open.execute(
       { target: 'oak' },
-      makeContext(avatar, roomA, 'open the oak door')
+      makeContext(avatar, locA, 'open the oak door')
     );
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/already open/i);
@@ -128,7 +128,7 @@ describe('OpenController / CloseController / doors integration', () => {
     const open = new OpenController();
     const result = open.execute(
       { target: 'bathtub' },
-      makeContext(avatar, roomA, 'open bathtub')
+      makeContext(avatar, locA, 'open bathtub')
     );
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/don't see/i);
@@ -137,18 +137,18 @@ describe('OpenController / CloseController / doors integration', () => {
   it('go north succeeds after opening; close from destination closes same door', async () => {
     new OpenController().execute(
       { target: 'oak' },
-      makeContext(avatar, roomA, 'open the oak door')
+      makeContext(avatar, locA, 'open the oak door')
     );
     const go = await new GoController().execute(
       { target: 'north' },
-      makeContext(avatar, roomA, 'go north')
+      makeContext(avatar, locA, 'go north')
     );
     expect(go.success).toBe(true);
-    expect(avatar.getContainer()).toBe(roomB);
+    expect(avatar.getContainer()).toBe(locB);
 
     const close = new CloseController().execute(
       { target: 'oak' },
-      makeContext(avatar, roomB, 'close the oak door')
+      makeContext(avatar, locB, 'close the oak door')
     );
     expect(close.success).toBe(true);
     expect(door.isOpen).toBe(false);
@@ -156,7 +156,7 @@ describe('OpenController / CloseController / doors integration', () => {
     // Both sides share the same Door instance — going south is now blocked.
     const goBack = await new GoController().execute(
       { target: 'south' },
-      makeContext(avatar, roomB, 'go south')
+      makeContext(avatar, locB, 'go south')
     );
     expect(goBack.success).toBe(false);
     expect(goBack.summary).toMatch(/closed|way/i);
@@ -166,7 +166,7 @@ describe('OpenController / CloseController / doors integration', () => {
     const close = new CloseController();
     const result = close.execute(
       { target: 'oak' },
-      makeContext(avatar, roomA, 'close the oak door')
+      makeContext(avatar, locA, 'close the oak door')
     );
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/already closed/i);

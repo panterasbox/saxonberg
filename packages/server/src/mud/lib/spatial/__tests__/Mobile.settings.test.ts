@@ -42,28 +42,28 @@ class AvatarLike extends AvatarLikeBase {
 
 describe('Mobile movement-message settings (Phase E)', () => {
   let zone: CartesianZone;
-  let roomA: CartesianLocation;
-  let roomB: CartesianLocation;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    roomA = makeStuff(() => new CartesianLocation());
-    roomA.shortDescription = 'A';
-    roomB = makeStuff(() => new CartesianLocation());
-    roomB.shortDescription = 'B';
-    zone.addRoom(roomA, 0, 0, 0);
-    zone.addRoom(roomB, 0, 1, 0);
+    locA = makeStuff(() => new CartesianLocation());
+    locA.shortDescription = 'A';
+    locB = makeStuff(() => new CartesianLocation());
+    locB.shortDescription = 'B';
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
   });
 
   it('NPC (no EnvironmentMixin) renders the schema default', () => {
     const npc = makeStuff(() => new Npc());
     npc.name = 'Goblin';
-    ContainmentApi.move(npc, roomA);
+    ContainmentApi.move(npc, locA);
 
     // Teleport: arrival is rendered at schema default for the bland
     // case (no exit, no inverse direction). The render must not
     // throw, and the produced text must reflect the schema default.
-    npc.teleport(roomB);
+    npc.teleport(locB);
 
     const arrivalSelf = npc.received
       .map((f) => f.body ?? '')
@@ -74,7 +74,7 @@ describe('Mobile movement-message settings (Phase E)', () => {
   it('Avatar override changes the self-perspective message', () => {
     const avatar = makeStuff(() => new AvatarLike());
     avatar.name = 'Hero';
-    ContainmentApi.move(avatar, roomA);
+    ContainmentApi.move(avatar, locA);
 
     avatar.setSetting<string>(
       'messages.movement.teleportInSelf',
@@ -83,7 +83,7 @@ describe('Mobile movement-message settings (Phase E)', () => {
     );
     avatar.received = [];
 
-    avatar.teleport(roomB);
+    avatar.teleport(locB);
 
     const selfFrames = avatar.received
       .map((f) => f.body ?? '')
@@ -94,11 +94,11 @@ describe('Mobile movement-message settings (Phase E)', () => {
   it('Avatar override does NOT bleed into peer messages', () => {
     const avatar = makeStuff(() => new AvatarLike());
     avatar.name = 'Hero';
-    ContainmentApi.move(avatar, roomA);
+    ContainmentApi.move(avatar, locA);
 
     const peer = makeStuff(() => new Npc());
     peer.name = 'Bystander';
-    ContainmentApi.move(peer, roomB);
+    ContainmentApi.move(peer, locB);
 
     avatar.setSetting<string>(
       'messages.movement.teleportInSelf',
@@ -107,7 +107,7 @@ describe('Mobile movement-message settings (Phase E)', () => {
     );
     peer.received = [];
 
-    avatar.teleport(roomB);
+    avatar.teleport(locB);
 
     // Peer sees the avatar's *peer* message, not the self message.
     const peerBodies = peer.received.map((f) => f.body ?? '');

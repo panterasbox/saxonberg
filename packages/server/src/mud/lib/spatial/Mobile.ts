@@ -15,13 +15,13 @@
  *     `{{ mover }}` available) — simplest path, applies to a single exit.
  *   - `Exitable.getDepartureMessage?(mover, exit)` /
  *     `Exitable.getArrivalMessage?(mover, exit)` returning
- *     `{ self?, peers? }` — fine-grained, per-room overrides.
+ *     `{ self?, peers? }` — fine-grained, per-location overrides.
  *   - `Container.getTeleportOutMessage?(mover)` /
  *     `Container.getTeleportInMessage?(mover)` returning
  *     `{ self?, peers? }` — used when there is no Exit (teleport, admin
  *     placement).
  *
- * Resolution precedence: messageOut/messageIn → room hook → Mobile
+ * Resolution precedence: messageOut/messageIn → location hook → Mobile
  * defaults. Anything missing in a hook's return falls back to Mobile's
  * default for that audience.
  *
@@ -89,9 +89,9 @@ export interface MovementBodies {
 }
 
 /**
- * Optional hook on a source/destination room. Implementations decide
- * how to render movement for that specific space. Anything they don't
- * supply gets Mobile's default.
+ * Optional hook on a source/destination location. Implementations
+ * decide how to render movement for that specific space. Anything
+ * they don't supply gets Mobile's default.
  */
 export interface MovementHookProvider {
   getDepartureMessage?(mover: Stuff, exit: Exit): MovementBodies;
@@ -181,8 +181,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * Traverse an `Exit`. Two-layer hook dispatch:
      *
      *   - Traversal layer (this method): `canTraverse` on the mover,
-     *     `canExit` on the source room, `canEnter` on the
-     *     destination room — all fire before announcement and the
+     *     `canExit` on the source location, `canEnter` on the
+     *     destination location — all fire before announcement and the
      *     containment move. After the move: `onTraversed` (mover),
      *     `onExited` (source), `onEntered` (destination).
      *   - Containment layer: fires from inside `ContainmentApi.move`.
@@ -206,11 +206,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // needed.
       const destination = await exit.getDestination();
 
-      // Traversal-time fallback for the mutual-exit invariant. Catches
-      // pairs whose verification couldn't fire at load time because the
-      // destination hadn't loaded yet. Idempotent — already-wired exits
-      // short-circuit. Source must be Exitable for this to make sense.
-      if (MixinApi.isExitable(source)) {
+      // Traversal-time fallback for the mutual-exit invariant. Fires
+      // only when the source has at least one exit still awaiting
+      // verification — typically a neighbor that hadn't loaded when
+      // the source's postRegister verifier ran. Settled exits are
+      // tracked individually and don't trigger this re-check.
+      if (MixinApi.isExitable(source) && source.hasPendingVerification) {
         source.verifyOutboundExits();
       }
 
@@ -251,7 +252,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `silent: true` is what Login spawning uses — newly-cloned
      * avatars shouldn't be announced as "vanishing" from nowhere or
      * "appearing out of thin air" before a player has even seen the
-     * room.
+     * location.
      */
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
@@ -286,8 +287,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
 
     /**
      * Departure-message resolver. Override in subclasses to change
-     * the precedence chain or inject defaults; per-room overrides
-     * should go on the room via `getDepartureMessage`.
+     * the precedence chain or inject defaults; per-location overrides
+     * should go on the location via `getDepartureMessage`.
      */
     protected resolveDepartureMessage(
       from: Stuff & Container,
@@ -303,7 +304,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         return { self: fragment, peers: fragment };
       }
 
-      // 2. Per-room hook with an Exit in hand.
+      // 2. Per-location hook with an Exit in hand.
       const fromHook = (from as MovementHookProvider).getDepartureMessage;
       if (exit && typeof fromHook === 'function') {
         const result = fromHook.call(from, self, exit);
@@ -313,7 +314,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         };
       }
 
-      // 3. Per-room hook for a teleport-out (no Exit).
+      // 3. Per-location hook for a teleport-out (no Exit).
       const teleportHook = (from as MovementHookProvider).getTeleportOutMessage;
       if (!exit && typeof teleportHook === 'function') {
         const result = teleportHook.call(from, self);

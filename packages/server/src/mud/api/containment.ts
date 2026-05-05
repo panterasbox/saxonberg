@@ -138,7 +138,7 @@ export class ContainmentApi {
    * Usage:
    * ```typescript
    * const inventory = ContainmentApi.getContents(avatar);
-   * const roomContents = ContainmentApi.getContents(location);
+   * const locationContents = ContainmentApi.getContents(location);
    * ```
    */
   public static getContents(container: ContainerStuff): ContainableStuff[] {

@@ -32,83 +32,83 @@ function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
 
 describe('ExitableMixin', () => {
   let zone: CartesianZone;
-  let roomA: CartesianLocation;
-  let roomB: CartesianLocation;
-  let roomC: CartesianLocation;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
+  let locC: CartesianLocation;
 
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
-    roomA = makeStuff(() => new CartesianLocation());
-    roomB = makeStuff(() => new CartesianLocation());
-    roomC = makeStuff(() => new CartesianLocation());
-    zone.addRoom(roomA, 0, 0, 0);
-    zone.addRoom(roomB, 0, 1, 0);
-    zone.addRoom(roomC, 0, 2, 0);
+    locA = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new CartesianLocation());
+    locC = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    zone.addLocation(locC, 0, 2, 0);
   });
 
   it('addExit installs an explicit exit; duplicate addExit returns false', () => {
-    const exit = makeStuff(() => new Exit({ direction: 'up', source: roomA, destination: roomC }));
-    expect(roomA.addExit(exit)).toBe(true);
-    expect(roomA.addExit(exit)).toBe(false);
-    expect(roomA.getExits().size).toBe(1);
+    const exit = makeStuff(() => new Exit({ direction: 'up', source: locA, destination: locC }));
+    expect(locA.addExit(exit)).toBe(true);
+    expect(locA.addExit(exit)).toBe(false);
+    expect(locA.getExits().size).toBe(1);
   });
 
   it('removeExit deletes by direction', () => {
-    const exit = makeStuff(() => new Exit({ direction: 'up', source: roomA, destination: roomC }));
-    roomA.addExit(exit);
-    expect(roomA.removeExit('up')).toBe(true);
-    expect(roomA.removeExit('up')).toBe(false);
-    expect(roomA.getExits().size).toBe(0);
+    const exit = makeStuff(() => new Exit({ direction: 'up', source: locA, destination: locC }));
+    locA.addExit(exit);
+    expect(locA.removeExit('up')).toBe(true);
+    expect(locA.removeExit('up')).toBe(false);
+    expect(locA.getExits().size).toBe(0);
   });
 
   it('CartesianLocation rejects non-cardinal directions', () => {
-    const exit = makeStuff(() => new Exit({ direction: 'portal', source: roomA, destination: roomC }));
-    expect(() => roomA.addExit(exit)).toThrow(/not a cardinal direction/);
+    const exit = makeStuff(() => new Exit({ direction: 'portal', source: locA, destination: locC }));
+    expect(() => locA.addExit(exit)).toThrow(/not a cardinal direction/);
   });
 
   it('explicit exit wins over zone-derived lookup in the same direction', () => {
-    const explicit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomC }));
-    roomA.addExit(explicit);
-    const exit = roomA.getExit('north');
+    const explicit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locC }));
+    locA.addExit(explicit);
+    const exit = locA.getExit('north');
     expect(exit).toBe(explicit);
-    expect(exit!.destination).toBe(roomC);
+    expect(exit!.destination).toBe(locC);
   });
 
   it('returns undefined for an unknown non-cardinal lookup (no portal installed)', () => {
-    expect(roomA.getExit('portal')).toBeUndefined();
+    expect(locA.getExit('portal')).toBeUndefined();
   });
 
   it('zone-derived exit returned when no explicit entry exists', () => {
-    const exit = roomA.getExit('north');
+    const exit = locA.getExit('north');
     expect(exit).toBeDefined();
-    expect(exit!.destination).toBe(roomB);
+    expect(exit!.destination).toBe(locB);
   });
 
   it('getExit for a direction without neighbor returns undefined', () => {
-    expect(roomA.getExit('east')).toBeUndefined();
-    expect(roomA.getExit('south')).toBeUndefined();
+    expect(locA.getExit('east')).toBeUndefined();
+    expect(locA.getExit('south')).toBeUndefined();
   });
 
   it('returns undefined for a non-cardinal when zone has no explicit exit', () => {
-    expect(roomA.getExit('office')).toBeUndefined();
+    expect(locA.getExit('office')).toBeUndefined();
   });
 
   it('getObviousExits merges explicit and derived, filters hidden', () => {
     const hidden = makeStuff(() => new Exit({
       direction: 'up',
-      source: roomA,
-      destination: roomC,
+      source: locA,
+      destination: locC,
       hidden: true,
     }));
     const visible = makeStuff(() => new Exit({
       direction: 'down',
-      source: roomA,
-      destination: roomC,
+      source: locA,
+      destination: locC,
     }));
-    roomA.addExit(hidden);
-    roomA.addExit(visible);
+    locA.addExit(hidden);
+    locA.addExit(visible);
 
-    const obvious = roomA.getObviousExits();
+    const obvious = locA.getObviousExits();
     const directions = obvious.map((e) => e.direction);
     expect(directions).toContain('down');
     expect(directions).toContain('north');
@@ -122,45 +122,45 @@ describe('ExitableMixin', () => {
     iron.shortDescription = 'iron gate';
     const withDoor = makeStuff(() => new Exit({
       direction: 'up',
-      source: roomA,
-      destination: roomC,
+      source: locA,
+      destination: locC,
       door: oak,
     }));
-    roomA.addExit(withDoor);
+    locA.addExit(withDoor);
 
     // Attach an iron door to the zone-derived north exit: doing that
     // realistically requires creating an explicit exit (derived exits are
     // doorless). Validate that doored explicit exits are picked up.
     const explicitNorth = makeStuff(() => new Exit({
       direction: 'north',
-      source: roomA,
-      destination: roomB,
+      source: locA,
+      destination: locB,
       door: iron,
     }));
-    roomA.addExit(explicitNorth);
+    locA.addExit(explicitNorth);
 
-    const doors = roomA.getExitDoors();
+    const doors = locA.getExitDoors();
     expect(doors).toContain(oak);
     expect(doors).toContain(iron);
     expect(doors).toHaveLength(2);
   });
 
-  it('spherical-zoned rooms receive no derived exits', () => {
+  it('spherical-zoned locations receive no derived exits', () => {
     const sphZone = makeStuff(() => new SphericalZone());
-    const room = makeStuff(() => new SphericalLocation());
-    sphZone.addRoom(room);
+    const loc = makeStuff(() => new SphericalLocation());
+    sphZone.addLocation(loc);
 
-    expect(room.getExit('north')).toBeUndefined();
-    expect(room.getObviousExits()).toHaveLength(0);
+    expect(loc.getExit('north')).toBeUndefined();
+    expect(loc.getObviousExits()).toHaveLength(0);
   });
 
   it('addBidirectionalExit infers the opposite direction for cardinals', () => {
     const door = makeStuff(() => new Door());
     door.shortDescription = 'heavy gate';
-    roomA.addBidirectionalExit(roomC, 'up', { door });
+    locA.addBidirectionalExit(locC, 'up', { door });
 
-    const forward = roomA.getExit('up');
-    const back = roomC.getExit('down');
+    const forward = locA.getExit('up');
+    const back = locC.getExit('down');
     expect(forward).toBeDefined();
     expect(back).toBeDefined();
     expect(forward!.door).toBe(door);
@@ -176,8 +176,8 @@ describe('ExitableMixin', () => {
     const sphZone = makeStuff(() => new SphericalZone());
     const plaza = makeStuff(() => new SphericalLocation());
     const office = makeStuff(() => new SphericalLocation());
-    sphZone.addRoom(plaza);
-    sphZone.addRoom(office);
+    sphZone.addLocation(plaza);
+    sphZone.addLocation(office);
 
     expect(() => plaza.addBidirectionalExit(office, 'office')).toThrow(/opposite/);
     plaza.addBidirectionalExit(office, 'office', { opposite: 'plaza' });
@@ -186,7 +186,7 @@ describe('ExitableMixin', () => {
   });
 
   it('MixinApi.isExitable narrows to Exitable', () => {
-    expect(MixinApi.isExitable(roomA)).toBe(true);
+    expect(MixinApi.isExitable(locA)).toBe(true);
     expect(MixinApi.isExitable(zone)).toBe(false);
   });
 });
@@ -208,8 +208,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const east = makeStuff(() => new Exit({
       direction: 'east',
@@ -254,8 +254,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 5, 5, 5);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 5, 5, 5);
 
     const east = makeStuff(() => new Exit({
       direction: 'east',
@@ -275,9 +275,9 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
     const c = makeStuffAtPath(() => new CartesianLocation(), '/zone/c');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 5, 5, 5);
-    zone.addRoom(c, 9, 9, 9);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 5, 5, 5);
+    zone.addLocation(c, 9, 9, 9);
 
     const east = makeStuff(() => new Exit({
       direction: 'east',
@@ -302,8 +302,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 5, 5, 5);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 5, 5, 5);
 
     const east = makeStuff(() => new Exit({
       direction: 'east',
@@ -324,8 +324,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     a.addBidirectionalExit(b, 'east');
     const east = a.exits.get('east')!;
@@ -368,8 +368,8 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     a.addBidirectionalExit(b, 'north');
     const aNorth = a.exits.get('north')!;
@@ -383,23 +383,23 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     expect(zone.contains(a)).toBe(false);
   });
 
-  it('Zone destruct refuses while rooms are live', () => {
+  it('Zone destruct refuses while locations are live', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    zone.addRoom(room, 0, 0, 0);
+    const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    zone.addLocation(loc, 0, 0, 0);
 
     expect(() => StuffApi.destruct(zone as unknown as Stuff)).toThrow(
-      /live room/,
+      /live location/,
     );
   });
 
-  it('Zone destruct succeeds after rooms are drained', () => {
+  it('Zone destruct succeeds after locations are drained', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    zone.addRoom(room, 0, 0, 0);
+    const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    zone.addLocation(loc, 0, 0, 0);
 
-    StuffApi.destruct(room as unknown as Stuff);
-    expect(zone.rooms.size).toBe(0);
+    StuffApi.destruct(loc as unknown as Stuff);
+    expect(zone.locations.size).toBe(0);
 
     expect(() => StuffApi.destruct(zone as unknown as Stuff)).not.toThrow();
     expect((zone as unknown as Stuff).isDestroyed()).toBe(true);

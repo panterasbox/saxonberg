@@ -7,8 +7,8 @@
  * each side (and, optionally, the same shared `Door` reference).
  *
  * An Exit is an `Idea` — it has identity but no physical presence in a
- * room's inventory. Exits are referenced from `Exitable.exits` and, for
- * zone-derived cartesian exits, synthesized lazily by `CartesianZone`.
+ * location's inventory. Exits are referenced from `Exitable.exits` and,
+ * for zone-derived cartesian exits, synthesized lazily by `CartesianZone`.
  *
  * An Exit carries *data* (endpoints, direction label, door, flags, custom
  * messages) and a single guard method — `canTraverse()`. The actual work

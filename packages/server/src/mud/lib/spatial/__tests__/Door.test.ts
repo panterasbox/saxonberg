@@ -118,8 +118,8 @@ describe('Door attachedTo back-reference + break/install', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
     door.shortDescription = 'oak door';
@@ -135,8 +135,8 @@ describe('Door attachedTo back-reference + break/install', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
     door.shortDescription = 'oak door';
@@ -156,8 +156,8 @@ describe('Door attachedTo back-reference + break/install', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
     door.shortDescription = 'oak door';
@@ -175,9 +175,9 @@ describe('Door attachedTo back-reference + break/install', () => {
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     const c = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
-    zone.addRoom(c, 1, 0, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
+    zone.addLocation(c, 1, 0, 0);
 
     const door = makeStuff(() => new Door());
     door.shortDescription = 'oak door';
@@ -198,8 +198,8 @@ describe('Door attachedTo back-reference + break/install', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 0, 0);
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
     door.shortDescription = 'oak door';

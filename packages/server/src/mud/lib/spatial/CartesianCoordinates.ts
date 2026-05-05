@@ -1,9 +1,10 @@
 /**
  * CartesianCoordinatesMixin — `[x, y, z]` data carrier.
  *
- * Used by `CartesianLocation` to place a room inside a `CartesianZone`'s
- * grid. Flat zones leave `z = 0`. This mixin carries only the coordinate
- * triple — grid registration and neighbor lookups live on `CartesianZone`.
+ * Used by `CartesianLocation` to place a location inside a
+ * `CartesianZone`'s grid. Flat zones leave `z = 0`. This mixin carries
+ * only the coordinate triple — grid registration and neighbor lookups
+ * live on `CartesianZone`.
  *
  * Persistence: `coordinates` is auto-persisted via `persistentFields`.
  */

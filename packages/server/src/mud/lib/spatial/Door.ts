@@ -3,7 +3,7 @@
  *
  * One `Door` instance represents one physical door. Both sides of a
  * bidirectional exit pair reference the SAME instance so that opening the
- * door from room A is immediately visible from room B.
+ * door from one side is immediately visible from the other.
  * `ExitableMixin.addBidirectionalExit()` wires this up in a single call.
  *
  * Composition: `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`.
@@ -39,9 +39,9 @@
  * generic mixin-field copy; the field setters above enforce shape on the
  * way in, so no post-hydrate fixup is needed.
  *
- * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
- * (MqlApi scans those in addition to the room's contents), so a door is
- * player-targetable by name even though it doesn't live in anyone's
+ * MQL surfaces a door on its location via `ExitableMixin.getExitDoors()`
+ * (MqlApi scans those in addition to the location's contents), so a door
+ * is player-targetable by name even though it doesn't live in anyone's
  * inventory while attached.
  *
  * Phase 7 scope: open/closed only. No locks, no keys, no `unlock` command.

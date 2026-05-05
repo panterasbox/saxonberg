@@ -25,7 +25,7 @@ export class Location extends LocationBase {
   static persistentFields: string[] = [];
 
   /**
-   * Detach from the owning Zone on destruct. Clears `rooms`
+   * Detach from the owning Zone on destruct. Clears `locations`
    * membership and any coordinate-keyed indexes the zone maintains
    * (CartesianZone grid, SphericalZone focus index).
    *
@@ -34,7 +34,7 @@ export class Location extends LocationBase {
    */
   protected override prepareDestroy(): void {
     if (this.zone) {
-      this.zone.removeRoom(this);
+      this.zone.removeLocation(this);
     }
   }
 }

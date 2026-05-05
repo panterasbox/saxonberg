@@ -1,14 +1,14 @@
 /**
- * SphericalZone — spherical rooms positioned by focus, no implicit adjacency.
+ * SphericalZone — spherical locations positioned by focus, no implicit adjacency.
  *
- * Rooms are spheres (see SphericalCoordinatesMixin) positioned by focus in
- * spherical coordinates. Angles between spheres are arbitrary, so exits
+ * Locations are spheres (see SphericalCoordinatesMixin) positioned by focus
+ * in spherical coordinates. Angles between spheres are arbitrary, so exits
  * are **always explicit** — authored by hand as semantic labels like
  * `'office'` or `'plaza'`. `deriveExit()` accordingly always returns
  * `undefined`.
  *
  * A debug index by rounded focus tuple is maintained to help tooling /
- * authoring find nearby rooms; it is NOT consulted by the exit-lookup
+ * authoring find nearby locations; it is NOT consulted by the exit-lookup
  * algorithm.
  */
 
@@ -18,7 +18,7 @@ import type { Exit } from './Exit';
 import { SingletonMixin } from '../stuff/Singleton';
 
 /**
- * Minimal shape spherical rooms are expected to carry.
+ * Minimal shape spherical locations are expected to carry.
  */
 interface HasSphericalCoordinates {
   coordinates: [number, number, number];
@@ -32,31 +32,31 @@ function focusKey(coords: [number, number, number]): string {
 
 export class SphericalZone extends SingletonMixin(Zone) {
   /**
-   * Debug / authoring aid: rooms indexed by rounded focus tuple. Multiple
-   * rooms may share a key (nothing prevents overlap); the map stores the
-   * most recently added. Not used by exit lookup.
+   * Debug / authoring aid: locations indexed by rounded focus tuple.
+   * Multiple locations may share a key (nothing prevents overlap); the
+   * map stores the most recently added. Not used by exit lookup.
    */
   public readonly focusIndex: Map<string, Location> = new Map();
 
   static persistentFields = ['name'];
 
-  public override addRoom(room: Location): void {
-    super.addRoom(room);
-    const holder = room as unknown as Partial<HasSphericalCoordinates>;
+  public override addLocation(location: Location): void {
+    super.addLocation(location);
+    const holder = location as unknown as Partial<HasSphericalCoordinates>;
     if (Array.isArray(holder.coordinates)) {
-      this.focusIndex.set(focusKey(holder.coordinates), room);
+      this.focusIndex.set(focusKey(holder.coordinates), location);
     }
   }
 
-  public override removeRoom(room: Location): boolean {
-    const holder = room as unknown as Partial<HasSphericalCoordinates>;
+  public override removeLocation(location: Location): boolean {
+    const holder = location as unknown as Partial<HasSphericalCoordinates>;
     if (Array.isArray(holder.coordinates)) {
       const key = focusKey(holder.coordinates);
-      if (this.focusIndex.get(key) === room) {
+      if (this.focusIndex.get(key) === location) {
         this.focusIndex.delete(key);
       }
     }
-    return super.removeRoom(room);
+    return super.removeLocation(location);
   }
 
   /**

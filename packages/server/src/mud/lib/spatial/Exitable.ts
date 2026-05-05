@@ -2,10 +2,10 @@
  * ExitableMixin — explicit exit map + zone-delegated exit lookup.
  *
  * Exitable is the shared behavior of every navigable container: cartesian
- * rooms, spherical rooms, and vessel interiors. It maintains an explicit
- * `exits: Map<direction, Exit>` and merges that map with zone-derived
- * lookups so `getExit()` produces a single authoritative answer regardless
- * of exit origin.
+ * locations, spherical locations, and vessel interiors. It maintains an
+ * explicit `exits: Map<direction, Exit>` and merges that map with
+ * zone-derived lookups so `getExit()` produces a single authoritative
+ * answer regardless of exit origin.
  *
  * Explicit exits always win over zone-derived ones. Cartesian zone
  * adjacency is consulted only when no explicit exit covers the requested
@@ -36,11 +36,24 @@ import { MixinApi } from '../../api/mixin';
  *
  * Movement messaging now lives on MobileMixin (the mover composes the
  * Scene). Exitable provides OPTIONAL hook methods that a specific
- * room may implement to override the bodies; default impls are
+ * location may implement to override the bodies; default impls are
  * absent. See MobileMixin's `MovementHookProvider` for the shape.
  */
 export interface Exitable {
   exits: Map<string, Exit>;
+  /**
+   * True iff this Exitable has at least one outbound exit awaiting
+   * mutual-exit verification — the inverse pointer hasn't been wired
+   * because the destination wasn't loaded the last time the verifier
+   * ran. Movement consults this on the hot path to skip
+   * `verifyOutboundExits()` entirely once every exit has settled.
+   *
+   * Each authored exit is tracked individually; settled exits (wired,
+   * oneWay, blocked, non-cardinal, no resolvable destPath) are evicted
+   * from the pending set as the verifier observes them. The set is
+   * empty in the steady state.
+   */
+  readonly hasPendingVerification: boolean;
   addExit(exit: Exit): boolean;
   removeExit(direction: string): boolean;
   getExit(direction: string): Exit | undefined;
@@ -56,14 +69,14 @@ export interface Exitable {
 
   /**
    * Optional override for the bodies a Mover broadcasts when leaving
-   * this room through `exit`. Anything the implementation omits falls
-   * back to MobileMixin's default for that audience.
+   * this location through `exit`. Anything the implementation omits
+   * falls back to MobileMixin's default for that audience.
    */
   getDepartureMessage?(mover: Stuff, exit: Exit): MovementBodies;
 
   /**
    * Optional override for the bodies a Mover broadcasts when arriving
-   * in this room through `exit`. Anything the implementation omits
+   * in this location through `exit`. Anything the implementation omits
    * falls back to MobileMixin's default.
    */
   getArrivalMessage?(mover: Stuff, exit: Exit): MovementBodies;
@@ -80,7 +93,7 @@ export interface Exitable {
 
 /**
  * Options for `addBidirectionalExit`. The shared `door` installs the SAME
- * instance on both sides so opening from either room flips one state.
+ * instance on both sides so opening from either side flips one state.
  *
  * `opposite` is inferred from `NavigationApi.invertDirection(direction)`
  * for cardinal directions. For semantic labels (spherical zones, vessels)
@@ -111,9 +124,28 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      */
     exits: Map<string, Exit> = new Map();
 
+    /**
+     * Outbound exits awaiting mutual-exit verification. An exit lands
+     * here at `addExit` time when it could in principle be wired but
+     * isn't yet (cardinal, no inverse, has a destPath). The verifier
+     * walks ONLY this set — settled exits are evicted as soon as the
+     * verifier (or another side's verifier) settles them.
+     *
+     * In the steady state this set is empty and movement skips the
+     * verifier call entirely.
+     */
+    private _pendingVerify: Set<Exit> = new Set();
+
+    get hasPendingVerification(): boolean {
+      return this._pendingVerify.size > 0;
+    }
+
     addExit(exit: Exit): boolean {
       if (this.exits.has(exit.direction)) return false;
       this.exits.set(exit.direction, exit);
+      if (needsVerification(exit)) {
+        this._pendingVerify.add(exit);
+      }
       // Door back-reference: now that we're past construction (the
       // exit has been wrapped in its proxy), register the proxied
       // exit in its door's `attachedTo` set so `Door.detach()` can
@@ -125,6 +157,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     removeExit(direction: string): boolean {
       const exit = this.exits.get(direction);
       if (exit?.door) exit.door.attachedTo.delete(exit);
+      if (exit) this._pendingVerify.delete(exit);
       return this.exits.delete(direction);
     }
 
@@ -182,7 +215,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       return result;
     }
 
-    /** All non-null doors on this room's obvious exits. */
+    /** All non-null doors on this location's obvious exits. */
     getExitDoors(): Door[] {
       const doors: Door[] = [];
       for (const exit of this.getObviousExits()) {
@@ -194,7 +227,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     /**
      * Install a forward/back exit pair in one call. Both sides share the
      * same `Door` reference when one is supplied, so opening from either
-     * room flips a single state.
+     * side flips a single state.
      *
      * Reciprocity: the opposite direction is inferred from
      * `NavigationApi.invertDirection(direction)` for cardinal directions.
@@ -240,9 +273,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       }));
       // Wire each side's `inverse` pointer to the other so MobileMixin
       // can reach `exit.inverse?.direction` when announcing arrival
-      // without a separate cross-room lookup. One-way exits (a single
-      // `addExit`) leave inverse undefined; vessel-synthesized `'out'`
-      // exits also leave it undefined.
+      // without a separate cross-location lookup. One-way exits (a
+      // single `addExit`) leave inverse undefined; vessel-synthesized
+      // `'out'` exits also leave it undefined.
       forward.inverse = back;
       back.inverse = forward;
 
@@ -252,42 +285,53 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     /**
      * Mutual-exit invariant check, run at Location load (via
-     * `postRegister`) and at traversal time as a fallback. Walks each
-     * outbound exit and either:
+     * `postRegister`) and on traversal as a fallback. Walks ONLY the
+     * `_pendingVerify` set — exits the addExit-time triage flagged as
+     * "could be wired but isn't yet."
      *
-     *   - **Wires `inverse` pointers** when a matching back-exit is
-     *     found on the loaded destination (so cleanup, arrival
-     *     messaging, and other code consulting `exit.inverse` work
-     *     seamlessly).
-     *   - **Marks the exit `blocked = true`** with a logged warning
-     *     when the destination is loaded but the topology doesn't
-     *     match.
+     * For each pending exit:
      *
-     * Skip conditions (no error):
-     *   - `exit.oneWay === true` — intentional asymmetry, by design.
-     *   - `exit.inverse` already set — already wired.
-     *   - Direction not cardinal — semantic exits need explicit
-     *     authoring of the back-direction; can't be auto-verified.
-     *   - Destination not yet loaded — defer until the destination's
-     *     own load runs the verifier or traversal forces resolution.
+     *   - If it has settled by some other path (its inverse was wired
+     *     by the destination's own verifier, it became oneWay / blocked,
+     *     etc.), evict from the pending set and move on.
+     *   - Else attempt to resolve: if the destination is now loaded and
+     *     a matching back-exit exists, wire the inverse pointer pair.
+     *     If the destination is loaded but the topology is wrong, mark
+     *     the exit `blocked = true` with a logged warning. Either way,
+     *     evict.
+     *   - Else (destination still unloaded, or back-exit's destination
+     *     unloaded), leave in the pending set for a future pass.
      *
-     * Idempotent. Walks only the location's *explicit* exits. Zone-
-     * derived cartesian exits are synthesized per-call and inherently
-     * mutual by grid adjacency — no verification work needed.
+     * Idempotent. Zone-derived cartesian exits are synthesized per-call
+     * and inherently mutual by grid adjacency — they aren't tracked.
      */
     verifyOutboundExits(this: Stuff & Exitable & Container): void {
-      for (const exit of this.exits.values()) {
-        if (exit.oneWay) continue;
-        if (exit.inverse) continue;
+      // Snapshot to allow in-loop mutation of `_pendingVerify`.
+      const pending = [...this._pendingVerify];
+      for (const exit of pending) {
+        // Lazy eviction: settled by us or by another side.
+        if (exit.oneWay || exit.inverse || exit.blocked) {
+          this._pendingVerify.delete(exit);
+          continue;
+        }
 
         const expectedBack = NavigationApi.invertDirection(exit.direction);
-        if (!expectedBack) continue;
+        if (!expectedBack) {
+          this._pendingVerify.delete(exit);
+          continue;
+        }
 
         const destPath = exit.getDestinationTemplatePath();
-        if (!destPath) continue;
+        if (!destPath) {
+          this._pendingVerify.delete(exit);
+          continue;
+        }
 
         const liveDest = StuffApi.findByTemplatePath(destPath);
-        if (!liveDest) continue;
+        if (!liveDest) {
+          // Destination still not loaded; keep pending for a future pass.
+          continue;
+        }
 
         const here = this as unknown as Stuff;
         const tag =
@@ -299,6 +343,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
         if (!MixinApi.isExitable(liveDest)) {
           exit.blocked = true;
+          this._pendingVerify.delete(exit);
           console.warn(
             `exit-verifier: ${tag} → ${exit.direction} → ${destPath}: ` +
               `destination is not Exitable; marking blocked.`
@@ -309,6 +354,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         const backExit = liveDest.getExit(expectedBack);
         if (!backExit) {
           exit.blocked = true;
+          this._pendingVerify.delete(exit);
           console.warn(
             `exit-verifier: ${tag} → ${exit.direction} → ${destTag}: ` +
               `no '${expectedBack}' back-exit; marking blocked.`
@@ -318,8 +364,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
         // Confirm the back-exit actually points at us. If the back-
         // exit's destination is path-only and not yet loaded, we
-        // can't confirm and skip without breaking — the other side's
-        // verifier will run when it loads.
+        // can't confirm — keep pending so a future verify retries
+        // when the back side has loaded.
         let backDest: Stuff | null = null;
         try {
           backDest = backExit.destination as unknown as Stuff;
@@ -328,6 +374,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         }
         if (backDest !== here) {
           exit.blocked = true;
+          this._pendingVerify.delete(exit);
           console.warn(
             `exit-verifier: ${tag} → ${exit.direction} → ${destTag}: ` +
               `back-exit '${expectedBack}' does not return to source; ` +
@@ -346,6 +393,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           exit.inverse = backExit;
           backExit.inverse = exit;
         }
+        // Either we wired or there was nothing more to do — evict.
+        this._pendingVerify.delete(exit);
       }
     }
 
@@ -373,10 +422,28 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         StuffApi.destruct(exit as unknown as Stuff);
       }
       this.exits.clear();
+      this._pendingVerify.clear();
 
       // Chain to the Base — Stuff has a no-op default, Location
       // overrides it to detach from the owning zone.
       (super.prepareDestroy as (() => void) | undefined)?.call(this);
     }
   };
+}
+
+/**
+ * Triage at `addExit` time: does this exit have any work the verifier
+ * could do for it? Returns true only when the exit is a candidate for
+ * inverse wiring — cardinal direction, no inverse already set, not
+ * oneWay, not pre-blocked, with a destPath the singleton index can
+ * eventually look up. Anything that returns false is "settled at birth"
+ * and never enters the pending set.
+ */
+function needsVerification(exit: Exit): boolean {
+  if (exit.oneWay) return false;
+  if (exit.inverse) return false;
+  if (exit.blocked) return false;
+  if (!NavigationApi.invertDirection(exit.direction)) return false;
+  if (!exit.getDestinationTemplatePath()) return false;
+  return true;
 }

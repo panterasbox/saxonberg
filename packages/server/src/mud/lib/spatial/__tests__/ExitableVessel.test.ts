@@ -25,11 +25,11 @@ describe('ExitableVessel', () => {
 
     park = makeStuff(() => new CartesianLocation());
     park.shortDescription = 'Park';
-    zone.addRoom(park, 0, 0, 0);
+    zone.addLocation(park, 0, 0, 0);
 
     park2 = makeStuff(() => new CartesianLocation());
     park2.shortDescription = 'Park 2';
-    zone.addRoom(park2, 1, 0, 0);
+    zone.addLocation(park2, 1, 0, 0);
 
     wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.shortDescription = 'wardrobe';
@@ -141,7 +141,7 @@ describe('ExitableVessel', () => {
     it('cannot move between Exitables in different zones', () => {
       const otherZone = makeStuff(() => new CartesianZone());
       const otherPark = makeStuff(() => new CartesianLocation());
-      otherZone.addRoom(otherPark, 0, 0, 0);
+      otherZone.addLocation(otherPark, 0, 0, 0);
 
       wardrobe.zone = zone;
       ContainmentApi.move(wardrobe, park);

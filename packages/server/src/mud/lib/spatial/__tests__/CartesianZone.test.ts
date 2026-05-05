@@ -11,16 +11,16 @@ describe('CartesianZone', () => {
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
     center = makeStuff(() => new CartesianLocation());
-    zone.addRoom(center, 0, 0, 0);
+    zone.addLocation(center, 0, 0, 0);
   });
 
-  it('addRoom stamps coordinates and zone backref', () => {
+  it('addLocation stamps coordinates and zone backref', () => {
     expect(center.coordinates).toEqual([0, 0, 0]);
     expect(center.zone).toBe(zone);
     expect(zone.contains(center)).toBe(true);
   });
 
-  it('derives each of the 10 cardinal directions from a center room', () => {
+  it('derives each of the 10 cardinal directions from a center location', () => {
     const dirs: Array<[string, number, number, number]> = [
       ['north', 0, 1, 0],
       ['south', 0, -1, 0],
@@ -36,9 +36,9 @@ describe('CartesianZone', () => {
 
     const neighbors: Record<string, CartesianLocation> = {};
     for (const [dir, x, y, z] of dirs) {
-      const room = makeStuff(() => new CartesianLocation());
-      zone.addRoom(room, x, y, z);
-      neighbors[dir] = room;
+      const location = makeStuff(() => new CartesianLocation());
+      zone.addLocation(location, x, y, z);
+      neighbors[dir] = location;
     }
 
     for (const [dir] of dirs) {
@@ -52,7 +52,7 @@ describe('CartesianZone', () => {
 
   it('direction aliases resolve via normalizeDirection', () => {
     const north = makeStuff(() => new CartesianLocation());
-    zone.addRoom(north, 0, 1, 0);
+    zone.addLocation(north, 0, 1, 0);
 
     const viaAlias = zone.deriveExit(center, 'n');
     const viaLong = zone.deriveExit(center, 'north');
@@ -75,40 +75,40 @@ describe('CartesianZone', () => {
 
   it('caches derived exits across calls', () => {
     const north = makeStuff(() => new CartesianLocation());
-    zone.addRoom(north, 0, 1, 0);
+    zone.addLocation(north, 0, 1, 0);
 
     const first = zone.deriveExit(center, 'north');
     const second = zone.deriveExit(center, 'north');
     expect(first).toBe(second);
   });
 
-  it('invalidates cache on addRoom', () => {
+  it('invalidates cache on addLocation', () => {
     const a = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 1, 0);
+    zone.addLocation(a, 0, 1, 0);
     const cachedA = zone.deriveExit(center, 'north');
 
-    // Replace the neighbor cell with a new room.
-    zone.removeRoom(a);
+    // Replace the neighbor cell with a new location.
+    zone.removeLocation(a);
     const b = makeStuff(() => new CartesianLocation());
-    zone.addRoom(b, 0, 1, 0);
+    zone.addLocation(b, 0, 1, 0);
 
     const fresh = zone.deriveExit(center, 'north');
     expect(fresh).not.toBe(cachedA);
     expect(fresh!.destination).toBe(b);
   });
 
-  it('invalidates cache on removeRoom', () => {
+  it('invalidates cache on removeLocation', () => {
     const a = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 0, 1, 0);
+    zone.addLocation(a, 0, 1, 0);
     expect(zone.deriveExit(center, 'north')).toBeDefined();
 
-    zone.removeRoom(a);
+    zone.removeLocation(a);
     expect(zone.deriveExit(center, 'north')).toBeUndefined();
   });
 
-  it('getNeighbor returns the room at the offset cell', () => {
+  it('getNeighbor returns the location at the offset cell', () => {
     const a = makeStuff(() => new CartesianLocation());
-    zone.addRoom(a, 1, 0, 0);
+    zone.addLocation(a, 1, 0, 0);
     expect(zone.getNeighbor(center, 'east')).toBe(a);
     expect(zone.getNeighbor(center, 'west')).toBeUndefined();
   });

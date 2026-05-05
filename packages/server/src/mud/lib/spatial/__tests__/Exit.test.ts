@@ -45,8 +45,8 @@ class PeerSensor extends PeerBase {
 
 describe('Exit', () => {
   let zone: CartesianZone;
-  let roomA: CartesianLocation;
-  let roomB: CartesianLocation;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
   let mover: TestMover;
   let peerInA: PeerSensor;
   let peerInB: PeerSensor;
@@ -54,26 +54,26 @@ describe('Exit', () => {
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
 
-    roomA = makeStuff(() => new CartesianLocation());
-    roomA.shortDescription = 'Room A';
+    locA = makeStuff(() => new CartesianLocation());
+    locA.shortDescription = 'Room A';
 
-    roomB = makeStuff(() => new CartesianLocation());
-    roomB.shortDescription = 'Room B';
+    locB = makeStuff(() => new CartesianLocation());
+    locB.shortDescription = 'Room B';
 
-    zone.addRoom(roomA, 0, 0, 0);
-    zone.addRoom(roomB, 0, 1, 0);
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
 
     mover = makeStuff(() => new TestMover());
     mover.name = 'Alice';
-    ContainmentApi.move(mover, roomA);
+    ContainmentApi.move(mover, locA);
 
     peerInA = makeStuff(() => new PeerSensor());
     peerInA.name = 'PeerA';
-    ContainmentApi.move(peerInA, roomA);
+    ContainmentApi.move(peerInA, locA);
 
     peerInB = makeStuff(() => new PeerSensor());
     peerInB.name = 'PeerB';
-    ContainmentApi.move(peerInB, roomB);
+    ContainmentApi.move(peerInB, locB);
   });
 
   function bodiesOf(frames: unknown[]): string[] {
@@ -82,15 +82,15 @@ describe('Exit', () => {
 
   describe('canTraverse', () => {
     it('returns ok in the normal case', () => {
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
     });
 
     it('returns not ok when blocked', () => {
       const exit = makeStuff(() => new Exit({
         direction: 'north',
-        source: roomA,
-        destination: roomB,
+        source: locA,
+        destination: locB,
         blocked: true,
       }));
       const result = exit.canTraverse(mover);
@@ -101,7 +101,7 @@ describe('Exit', () => {
     it('returns not ok when door is closed', () => {
       const door = makeStuff(() => new Door());
       door.shortDescription = 'oak door';
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/closed/i);
@@ -112,20 +112,20 @@ describe('Exit', () => {
       const door = makeStuff(() => new Door());
       door.shortDescription = 'oak door';
       door.open();
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB, door }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
     });
   });
 
   describe('traverse', () => {
     it('moves the mover to the destination', async () => {
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       await mover.traverse(exit);
-      expect(mover.getContainer()).toBe(roomB);
+      expect(mover.getContainer()).toBe(locB);
     });
 
     it('broadcasts departure to source peers excluding the mover', async () => {
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       await mover.traverse(exit);
 
       const peerATexts = bodiesOf(peerInA.received);
@@ -142,8 +142,8 @@ describe('Exit', () => {
     it('uses custom messageIn/messageOut when provided', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'north',
-        source: roomA,
-        destination: roomB,
+        source: locA,
+        destination: locB,
         messageOut: 'custom departure',
         messageIn: 'custom arrival',
       }));
@@ -155,8 +155,8 @@ describe('Exit', () => {
     it('interpolates {{ mover }} in custom messages', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'out',
-        source: roomA,
-        destination: roomB,
+        source: locA,
+        destination: locB,
         messageOut: '{{ mover }} leaves the wardrobe.',
         messageIn: '{{ mover }} emerges from the wardrobe.',
       }));
@@ -171,7 +171,7 @@ describe('Exit', () => {
     });
 
     it('degrades arrival message when direction has no inverse', async () => {
-      const exit = makeStuff(() => new Exit({ direction: 'office', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'office', source: locA, destination: locB }));
       await mover.traverse(exit);
       const arrText = bodiesOf(peerInB.received)[0]!;
       expect(arrText).toContain('arrives');
@@ -180,23 +180,23 @@ describe('Exit', () => {
 
     it('invokes ContainmentApi.move between broadcasts', async () => {
       const moveSpy = vi.spyOn(ContainmentApi, 'move');
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       await mover.traverse(exit);
-      expect(moveSpy).toHaveBeenCalledWith(mover, roomB);
+      expect(moveSpy).toHaveBeenCalledWith(mover, locB);
       moveSpy.mockRestore();
     });
   });
 
   describe('inverse back-pointer', () => {
     it('is undefined on a freshly-constructed Exit', () => {
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       expect(exit.inverse).toBeUndefined();
     });
 
     it('addBidirectionalExit wires both inverse pointers', () => {
-      roomA.addBidirectionalExit(roomB, 'north');
-      const forward = roomA.getExit('north');
-      const back = roomB.getExit('south');
+      locA.addBidirectionalExit(locB, 'north');
+      const forward = locA.getExit('north');
+      const back = locB.getExit('south');
       expect(forward).toBeDefined();
       expect(back).toBeDefined();
       expect(forward!.inverse).toBe(back);
@@ -204,14 +204,14 @@ describe('Exit', () => {
     });
 
     it('inverse?.direction returns the opposite cardinal', () => {
-      roomA.addBidirectionalExit(roomB, 'north');
-      const forward = roomA.getExit('north')!;
+      locA.addBidirectionalExit(locB, 'north');
+      const forward = locA.getExit('north')!;
       expect(forward.inverse?.direction).toBe('south');
     });
 
     it('one-way addExit leaves inverse undefined', () => {
-      const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
-      roomA.addExit(exit);
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
+      locA.addExit(exit);
       expect(exit.inverse).toBeUndefined();
     });
   });
