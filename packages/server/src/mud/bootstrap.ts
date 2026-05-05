@@ -1,31 +1,21 @@
 /**
- * Engine bootstrap manifest. Each entry names a template the engine
- * must clone at server start. `BootstrapManager` topo-sorts by
- * `dependsOn` and clones each entry; cycles and missing deps throw
- * and prevent boot.
+ * Engine bootstrap manifest — what the engine clones at server start.
+ *
+ * Lower-level developers are expected to edit this file regularly as
+ * things come and go from service. Adding an entry: append
+ * `{ templatePath: '/obj/Whatever' }` and add `dependsOn: [...]`
+ * if it requires another entry to exist first. Removing an entry:
+ * delete the line.
+ *
+ * The `BootstrapEntry` shape is owned by `BootstrapManager` (the
+ * consumer); we import the type from there so this file stays pure
+ * data.
  *
  * Mods append their own entries to this array before
  * `BootstrapManager.run()` fires (when the modding subsystem lands).
  */
 
-import type { Stuff } from './lib/stuff/Stuff';
-
-export interface BootstrapEntry {
-  /**
-   * Path of the template to clone — the identifier in the `domain`
-   * collection AND the runtime location of the resulting clone.
-   * Each bootstrapped singleton lives at its own template path; we
-   * don't currently support cloning one template into a different
-   * runtime location.
-   */
-  templatePath: string;
-
-  /** Other entries' `templatePath`s that must complete before this. */
-  dependsOn?: string[];
-
-  /** Optional async init beyond `postRegister`'s sync surface. */
-  awaitInit?: (clone: Stuff) => Promise<void>;
-}
+import type { BootstrapEntry } from '../backend/BootstrapManager';
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },

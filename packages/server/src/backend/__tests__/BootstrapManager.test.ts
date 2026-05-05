@@ -5,13 +5,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { BootstrapManager } from '../BootstrapManager';
+import { BootstrapManager, type BootstrapEntry } from '../BootstrapManager';
 import { StuffApi } from '../../mud/api/stuff';
 import { ShadowApi } from '../../mud/api/shadow';
 import { EventApi } from '../../mud/api/event';
 import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
-import type { BootstrapEntry } from '../../mud/bootstrap';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { EventRegistry } from '../../mud/obj/EventRegistry';
 

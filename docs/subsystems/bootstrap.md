@@ -167,8 +167,13 @@ that need async setup.
 
 ### Engine manifest
 
-Lives in `mud/bootstrap.ts` alongside the `BootstrapEntry`
-interface — one file, one purpose. TypeScript (not YAML) for:
+The manifest data lives in `mud/bootstrap.ts` so lower-level
+developers can edit and review it as things come and go from
+service. The `BootstrapEntry` type itself is owned by
+`BootstrapManager` (the consumer); the mudlib file imports the type
+back from the backend rather than declaring it locally — backend
+stays the privileged layer and doesn't reach into mudlib for shape
+information. TypeScript (not YAML) for:
 - Type checking on `templatePath` references via the
   `BootstrapEntry` type.
 - Refactor-safety — rename a template path, find-references works.
@@ -177,14 +182,8 @@ interface — one file, one purpose. TypeScript (not YAML) for:
 
 ```ts
 // mud/bootstrap.ts
-import type { Stuff } from './lib/stuff/Stuff';
+import type { BootstrapEntry } from '../backend/BootstrapManager';
 import type { WorldRoot } from './obj/WorldRoot';
-
-export interface BootstrapEntry {
-  templatePath: string;
-  dependsOn?: string[];
-  awaitInit?: (clone: Stuff) => Promise<void>;
-}
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },

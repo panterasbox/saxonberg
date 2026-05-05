@@ -2,20 +2,47 @@
  * BootstrapManager — clone runtime instances from manifest entries
  * after `SeederManager` has populated the `domain` collection.
  *
- * The manifest is a TS array imported from `mud/bootstrap`.
- * Each entry names a template path; the manager topologically sorts
- * by `dependsOn` and clones each entry in order. `awaitInit` runs
- * after the clone for entries needing async setup beyond
- * `postRegister`.
+ * The manager owns the `BootstrapEntry` shape; the manifest data
+ * (the actual list of templates to bootstrap) lives at
+ * `mud/bootstrap.ts` so lower-level developers can edit and review
+ * it as things come and go from service. Imports flow mudlib →
+ * backend for the type, not the other way around — backend stays
+ * the privileged layer and doesn't reach into mudlib for shape
+ * information.
  *
- * Failure modes throw and prevent server start: dependsOn cycles,
- * missing dependsOn references, clone failures, awaitInit rejection,
- * targetPath !== templatePath (not yet supported).
+ * The manager topo-sorts entries by `dependsOn` and clones each
+ * entry in order. `awaitInit` runs after the clone for entries
+ * needing async setup beyond `postRegister`.
+ *
+ * Failure modes throw and prevent server start: `dependsOn` cycles,
+ * missing `dependsOn` references, clone failures, `awaitInit`
+ * rejection, duplicate `templatePath` in the manifest.
  */
 
 import { StuffApi } from '../mud/api/stuff';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
-import { bootstrapManifest, type BootstrapEntry } from '../mud/bootstrap';
+import { bootstrapManifest } from '../mud/bootstrap';
+
+/**
+ * One entry in the engine bootstrap manifest. Owned by
+ * `BootstrapManager` (the consumer of this shape); imported from
+ * mudlib's `bootstrap.ts` so the data file can declare its array
+ * with the right type.
+ */
+export interface BootstrapEntry {
+  /**
+   * Path of the template to clone — the identifier in the `domain`
+   * collection AND the runtime location of the resulting clone.
+   * E.g., `/obj/EventRegistry`.
+   */
+  templatePath: string;
+
+  /** Other entries' templatePaths that must complete before this. */
+  dependsOn?: string[];
+
+  /** Optional async init beyond `postRegister`'s sync surface. */
+  awaitInit?: (clone: Stuff) => Promise<void>;
+}
 
 export class BootstrapManager {
   /**
