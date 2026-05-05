@@ -23,7 +23,8 @@
 
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
-import type { Containable, VetoResult } from './Containable';
+import type { Containable } from './Containable';
+import type { VetoResult } from '../witness-types';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';

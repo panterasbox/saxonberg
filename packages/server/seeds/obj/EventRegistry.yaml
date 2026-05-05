@@ -1,3 +1,2 @@
 class: /obj/EventRegistry
-hydratorClass: /lib/persistence/PersistentHydrator
 data: {}

@@ -18,7 +18,8 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
-import type { Containable, VetoResult } from './Containable';
+import type { Containable } from './Containable';
+import type { VetoResult } from '../witness-types';
 import type { Door } from './Door';
 import type { Mobile, MovementBodies } from './Mobile';
 import { Exit } from './Exit';

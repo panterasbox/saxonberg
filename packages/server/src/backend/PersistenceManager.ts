@@ -430,7 +430,7 @@ export class PersistenceManager {
       // Post-save dispatch tail. Pre-bootstrap saves (the bootstrap
       // pipeline itself) are silently dropped by EventApi.
       const { EventApi } = await import('../mud/api/event');
-      const { Events } = await import('../mud/api/event-types');
+      const { Events } = await import('../mud/bootstrap/event-types');
       EventApi.emit(Events.PersistenceFlushed, {
         collection: collectionName,
         count: 1,

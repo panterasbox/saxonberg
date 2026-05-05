@@ -14,9 +14,9 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { Shadow } from '../../lib/stuff/Shadow';
 import {
   ContainableMixin,
-  type VetoResult,
   type Containable,
 } from '../../lib/spatial/Containable';
+import type { VetoResult } from '../../lib/witness-types';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
 import { ExitableMixin, type Exitable } from '../../lib/spatial/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';

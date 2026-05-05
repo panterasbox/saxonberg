@@ -14,13 +14,18 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 
 export interface BootstrapEntry {
-  /** MQL template path — e.g., `/obj/EventRegistry`. */
+  /**
+   * Path of the template that spawns this clone — the same path
+   * used as the template's identifier in the `domain` collection.
+   * E.g., `/obj/EventRegistry`.
+   */
   templatePath: string;
 
   /**
-   * Where the clone lives in MQL. Defaults to `templatePath`. The
-   * initial implementation throws "not yet supported" if this differs
-   * from `templatePath` — clones are placed at their template path.
+   * Where the clone lives once spawned. Defaults to `templatePath`.
+   * The initial implementation throws "not yet supported" if this
+   * differs from `templatePath` — clones are placed at their
+   * template path.
    */
   targetPath?: string;
 

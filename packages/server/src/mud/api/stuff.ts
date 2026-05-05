@@ -25,7 +25,7 @@ import { ExecutionContextApi, FrameKind } from './execution-context';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 import { EventApi } from './event';
-import { Events } from './event-types';
+import { Events } from '../../mud/bootstrap/event-types';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no

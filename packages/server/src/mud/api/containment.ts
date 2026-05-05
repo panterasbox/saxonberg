@@ -23,10 +23,8 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
-import type {
-  Containable,
-  VetoResult,
-} from '../lib/spatial/Containable';
+import type { Containable } from '../lib/spatial/Containable';
+import type { VetoResult } from '../lib/witness-types';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -62,7 +60,13 @@ export class ContainmentApi {
    *   2. `can*` Witness hooks — short-circuit on the first veto.
    *   3. `item.setEnvironment(to)` — atomic state mutation.
    *   4. `on*` Witness hooks (post-mutation, never veto).
-   *   5. Runtime-fallback zone stamp.
+   *
+   * Zone is NOT restamped on move — it should reflect whichever
+   * zone created the item, not whichever container it currently
+   * sits in. Cross-zone movement rules are enforced by the
+   * pre-flight invariants (Exitables can't cross zones via
+   * containment) but the `zone` field itself is set at clone time
+   * and stays put.
    *
    * @throws ContainmentError on invariant violations or hook vetoes.
    */
@@ -106,12 +110,6 @@ export class ContainmentApi {
     // STATE MUTATION through the chokepoint. setEnvironment handles
     // the three cross-object updates atomically.
     item.setEnvironment(to);
-
-    // POST-WRITE: zone stamp fallback (idempotent, harmless when
-    // already stamped at clone time).
-    if (to && item.zone === null && to.zone !== null) {
-      item.zone = to.zone;
-    }
 
     // NOTIFICATION HOOKS. Single onMoved per item; per-container
     // hooks for source and destination separately.

@@ -28,10 +28,9 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { VetoResult } from '../witness-types';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-
-export type VetoResult = { ok: true } | { ok: false; reason: string };
 
 /**
  * Public shape provided by ContainableMixin.

@@ -16,9 +16,9 @@
  */
 
 import type { PropAccessCheck, PropValue } from '../lib/stuff/Propertied';
-import { emittableBy } from './event';
+import { emittableBy } from '../api/event';
 import { Events, type EventName } from './event-types';
-import { StuffApi } from './stuff';
+import { StuffApi } from '../api/stuff';
 import { PersistenceManager } from '../../backend/PersistenceManager';
 
 /**

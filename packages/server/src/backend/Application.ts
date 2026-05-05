@@ -43,8 +43,6 @@ import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
-import { EventApi } from '../mud/api/event';
-import { Events } from '../mud/api/event-types';
 
 /**
  * Sets the class-default policy for Application's instance methods to
@@ -116,14 +114,6 @@ export class Application {
 
       const login = await StuffApi.create(() => new Login(interactive));
       await login.enter();
-
-      // Login flow seated the avatar. Fire the engine-level event
-      // for any observer (audit, achievements) that doesn't care
-      // which avatar — just that this user is now in-world.
-      EventApi.emit(Events.PlayerLoggedIn, {
-        playerId: userId,
-        userId,
-      });
     } catch (error) {
       console.error('Application: Error in handleUserConnect:', error);
 
@@ -142,16 +132,10 @@ export class Application {
   public handleUserDisconnect(socketId: string): void {
     console.log(`Application: User disconnecting - socketId=${socketId}`);
 
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    const playerId =
-      interactive?.user?._id ?? null;
     const removed = ConnectionManager.get().removeInteractive(socketId);
 
     if (removed) {
       console.log(`Application: User disconnected successfully`);
-      if (playerId) {
-        EventApi.emit(Events.PlayerLoggedOut, { playerId });
-      }
     } else {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
     }

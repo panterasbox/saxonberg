@@ -146,28 +146,24 @@ describe('ZoneApi.resolveZoneForPath', () => {
   });
 });
 
-describe('Runtime-fallback zone stamp', () => {
+describe('Zone is set at clone time, not on move', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('stamps a newly-created Thing on first placement and stays put after', async () => {
+  it('move does not restamp the item zone', async () => {
     const park = makeStuff(() => new CartesianLocation());
-    const park2 = makeStuff(() => new CartesianLocation());
 
-    // Manually stamp a zone on both rooms (simulating clone-time stamping).
     const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/Zone').Zone;
     park.zone = zoneRef;
-    park2.zone = zoneRef;
 
+    // Item created without a zone — `ContainmentApi.move` does NOT
+    // back-fill it. Zone identity belongs to whichever template
+    // spawned the item; runtime placement leaves it alone.
     const sword = await StuffApi.create(() => new Thing());
     expect(sword.zone).toBeNull();
 
     ContainmentApi.move(sword, park);
-    expect(sword.zone).toBe(zoneRef);
-
-    // Second move in the same zone should leave the stamp alone (idempotent).
-    ContainmentApi.move(sword, park2);
-    expect(sword.zone).toBe(zoneRef);
+    expect(sword.zone).toBeNull();
   });
 });

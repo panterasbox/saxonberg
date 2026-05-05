@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../event';
-import { Events } from '../event-types';
+import { Events } from '../../bootstrap/event-types';
 import { ConnectionApi } from '../connection';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';

@@ -33,7 +33,8 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
-import type { Containable, VetoResult } from './Containable';
+import type { Containable } from './Containable';
+import type { VetoResult } from '../witness-types';
 import type { Exitable } from './Exitable';
 import type { Exit } from './Exit';
 import { MixinApi } from '../../api/mixin';
@@ -131,10 +132,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "is this passable?" gate. The new Witness hooks layer
      * additional pre-move vetos, not a replacement.
      */
-    traverse(exit: Exit): void {
-      const mover = this as unknown as Stuff;
-      const source = exit.source as Stuff & Container & Partial<Exitable>;
-      const destination = exit.destination as Stuff & Container & Partial<Exitable>;
+    traverse(
+      this: Stuff & Containable & Mobile,
+      exit: Exit
+    ): void {
+      const mover = this;
+      const { source, destination } = exit;
 
       // Pre-move traversal vetoes.
       assertVeto(callTraverseHook(this, 'canTraverse', [exit]), 'canTraverse');
@@ -151,9 +154,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         );
       }
 
-      this.announceDeparture(exit.source, exit);
-      ContainmentApi.move(this as unknown as Stuff & Containable, exit.destination);
-      this.announceArrival(exit.destination, exit);
+      this.announceDeparture(source, exit);
+      ContainmentApi.move(mover, destination);
+      this.announceArrival(destination, exit);
 
       // Post-move traversal notifications.
       if (MixinApi.isExitable(source)) {
