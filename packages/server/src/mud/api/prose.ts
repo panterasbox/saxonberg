@@ -59,10 +59,11 @@ const engine = new Liquid({
 });
 
 /**
- * Narrow an unknown Liquid input to a Stuff. Filters that operate on
- * Stuff use this as the first gate, then layer their own `MixinApi`
- * predicate to assert the specific shape they need (Named, Visible,
- * Gendered, ...). Non-Stuff inputs render empty.
+ * Narrow an unknown Liquid input to a Stuff. Filters operating on a
+ * Stuff use this as the first gate; non-Stuff inputs render empty.
+ * Filters that need a more specific shape (Gendered for pronouns,
+ * Named for proper-name rendering) layer a `MixinApi` predicate on
+ * top.
  */
 function asStuff(v: unknown): Stuff | null {
   return v && typeof v === 'object' && 'stuffId' in (v as object)
@@ -70,28 +71,31 @@ function asStuff(v: unknown): Stuff | null {
     : null;
 }
 
-/** True if the Stuff has a display surface (Named or Visible). */
-function hasDisplaySurface(s: Stuff): boolean {
-  return MixinApi.isNamed(s) || MixinApi.isVisible(s);
-}
-
-// Mml vocabulary filters — require a display-surfaced Stuff so a
-// non-Named non-Visible input can't render an empty `<name>` tag.
+// `| name` is strict — Named only. A non-Named stuff has no proper
+// name to render, so the filter renders empty rather than wrapping a
+// fallback string in a `<name>` tag (which would lie about identity).
 engine.registerFilter('name', (v) => {
   const s = asStuff(v);
-  return s && hasDisplaySurface(s) ? Mml.name(s) : '';
+  return s && MixinApi.isNamed(s) ? Mml.name(s) : '';
 });
+
+// `| item`, `| location`, `| object` accept any Stuff. The underlying
+// `Mml.*` factories already drop to a sensible last-stitch fallback
+// (`'an item'`, `'somewhere'`, `'something'`) via
+// `DescribeApi.getDisplayName` when neither Named nor Visible is
+// present — so the filter is the right place to let that fallback
+// surface rather than swallowing the call.
 engine.registerFilter('item', (v) => {
   const s = asStuff(v);
-  return s && hasDisplaySurface(s) ? Mml.item(s) : '';
+  return s ? Mml.item(s) : '';
 });
 engine.registerFilter('location', (v) => {
   const s = asStuff(v);
-  return s && hasDisplaySurface(s) ? Mml.location(s) : '';
+  return s ? Mml.location(s) : '';
 });
 engine.registerFilter('object', (v) => {
   const s = asStuff(v);
-  return s && hasDisplaySurface(s) ? Mml.object(s) : '';
+  return s ? Mml.object(s) : '';
 });
 engine.registerFilter('direction', (v) =>
   v == null || v === '' ? '' : Mml.direction(String(v)),
@@ -110,9 +114,11 @@ engine.registerFilter('possessive', (v) => {
   const s = asStuff(v);
   return s && MixinApi.isGendered(s) ? GrammarApi.possessive(s) : '';
 });
+// `| article` accepts any Stuff; `GrammarApi.article` already returns
+// `'a'` as the last-stitch default when the display name is missing.
 engine.registerFilter('article', (v) => {
   const s = asStuff(v);
-  return s && hasDisplaySurface(s) ? GrammarApi.article(s) : '';
+  return s ? GrammarApi.article(s) : '';
 });
 
 /**

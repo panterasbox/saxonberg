@@ -94,24 +94,37 @@ to them throws.
 Registered at module init in `prose.ts`. All take an input from the
 left side of the pipe and may take additional positional arguments.
 
-Filter inputs are narrowed at the call site via `MixinApi.is*`
-predicates so a Stuff missing the relevant mixin renders empty rather
-than producing malformed markup. The narrowing is per-filter:
+Filter input expectations split between *strict* (mixin required;
+filter renders empty otherwise) and *lenient* (any Stuff accepted;
+the underlying API supplies a last-stitch fallback):
 
-| Filter | Required composition |
+| Filter | Input contract |
 |---|---|
-| `name`, `item`, `location`, `object`, `article` | `Named` or `Visible` |
-| `pronoun`, `possessive` | `Gendered` |
-| `direction` | non-empty string (no Stuff) |
+| `name` | strict — `Named` only; non-Named renders empty |
+| `pronoun`, `possessive` | strict — `Gendered` only |
+| `item`, `location`, `object`, `article` | lenient — any Stuff |
+| `direction` | non-empty string |
 | `cap` | any non-null value (coerced to string) |
+
+`name` is strict because there's no honest fallback for "this thing's
+proper name" — wrapping an `'a sword'`-style fallback in `<name>`
+tags would lie about identity. The other Mml-vocabulary filters
+delegate to `DescribeApi.getDisplayName` via `Mml.item` / `.location`
+/ `.object`, which already drop to sensible defaults (`'an item'`,
+`'somewhere'`, `'something'`) when the Stuff has neither `Named` nor
+`Visible`; the filter lets that fallback surface rather than
+swallowing the call.
 
 ### Mml vocabulary
 
-`{{ stuff | name }}`, `{{ stuff | item }}`, `{{ stuff | location }}`,
-`{{ stuff | object }}` — wrap a Named-or-Visible Stuff's display name
-in the corresponding `<name>` / `<item>` / `<location>` / `<object>`
-markup with `stuff-id` attribution. Equivalent to calling
-`Mml.name(stuff)` etc. directly.
+`{{ stuff | name }}` — Named only; renders an empty placeholder
+otherwise.
+
+`{{ stuff | item }}`, `{{ stuff | location }}`, `{{ stuff | object }}`
+— wrap any Stuff's display name in the corresponding markup tag with
+`stuff-id` attribution. Equivalent to calling `Mml.item(stuff)` etc.
+directly; uses the Mml factory's last-stitch fallback when no display
+surface is composed.
 
 `{{ direction | direction }}` — wraps a raw direction string in
 `<direction>` markup. Note the filter shadows the variable name; both
@@ -126,17 +139,18 @@ mangle the markup.
 `{{ stuff | pronoun }}` / `{{ stuff | pronoun: 'obj' }}` — return a
 pronoun for a `Gendered` stuff. Default kind is `'subj'`; other kinds
 are `'obj'`, `'poss'`, `'reflex'`. The pronoun set is selected from
-the `Pronouns` enum (`He` / `She` / `They` / `It` / `Ze`) on
+the `Pronouns` enum (`He` / `She` / `They` / `It`) on
 `GenderedMixin.pronouns`. Non-Gendered stuff renders empty.
 `GrammarApi.pronoun()` (called directly from TS) falls back to neuter
 on non-Gendered input rather than empty.
 
 `{{ stuff | possessive }}` — alias for `pronoun: 'poss'`.
 
-`{{ stuff | article }}` — return `'a'` or `'an'` for a Named-or-Visible
-Stuff based on a vowel-onset heuristic against the display name.
-Phonetic exceptions (`an honest`, `a unicorn`) need per-stuff
-overrides; not handled in v1.
+`{{ stuff | article }}` — return `'a'` or `'an'` for any Stuff based
+on a vowel-onset heuristic against the display name; falls back to
+`'a'` when no display surface is composed. Phonetic exceptions
+(`an honest`, `a unicorn`) need per-stuff overrides; not handled in
+v1.
 
 ## Authoring patterns
 

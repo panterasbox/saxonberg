@@ -122,10 +122,23 @@ describe('ProseApi.format — conditionals and filters', () => {
     ).toBe('[]');
   });
 
-  it('renders empty for the name filter on a stuff with no display surface', () => {
+  it('renders empty for the name filter on non-Named stuff', () => {
     const obj = makeStuff(() => new Plain());
     expect(ProseApi.format('[{{ x | name }}]', { x: obj }).toString()).toBe(
       '[]',
+    );
+  });
+
+  it('item filter falls back to the Mml.item default for plain stuff', () => {
+    const obj = makeStuff(() => new Plain());
+    const out = ProseApi.format('[{{ x | item }}]', { x: obj }).toString();
+    expect(out).toBe(`[<item stuff-id="${obj.stuffId}">an item</item>]`);
+  });
+
+  it('article filter falls back to "a" for plain stuff', () => {
+    const obj = makeStuff(() => new Plain());
+    expect(ProseApi.format('{{ x | article }}', { x: obj }).toString()).toBe(
+      'a',
     );
   });
 

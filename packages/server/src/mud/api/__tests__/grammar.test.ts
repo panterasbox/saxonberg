@@ -68,13 +68,6 @@ describe('GrammarApi.pronoun', () => {
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('they');
     expect(GrammarApi.pronoun(obj, 'reflex')).toBe('themselves');
   });
-
-  it('reads Pronouns.Ze on a Gendered stuff', () => {
-    const obj = makeStuff(() => new GenderedThing());
-    obj.pronouns = Pronouns.Ze;
-    expect(GrammarApi.pronoun(obj, 'subj')).toBe('ze');
-    expect(GrammarApi.pronoun(obj, 'obj')).toBe('zir');
-  });
 });
 
 describe('GrammarApi.possessive', () => {

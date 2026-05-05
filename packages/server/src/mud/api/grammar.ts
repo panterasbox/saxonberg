@@ -53,12 +53,6 @@ const SETS: Record<Pronouns, PronounSet> = {
     poss: 'its',
     reflex: 'itself',
   },
-  [Pronouns.Ze]: {
-    subj: 'ze',
-    obj: 'zir',
-    poss: 'zir',
-    reflex: 'zirself',
-  },
 };
 
 const NEUTRAL: PronounSet = SETS[Pronouns.It];
