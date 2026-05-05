@@ -31,6 +31,7 @@ import { Liquid } from 'liquidjs';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Mml } from './mml';
 import { GrammarApi, type PronounKind } from './grammar';
+import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
 type FilterFn = (input: unknown, ...args: unknown[]) => unknown;
@@ -57,28 +58,40 @@ const engine = new Liquid({
   outputEscape: outputEscapeMmlAware,
 });
 
+/**
+ * Narrow an unknown Liquid input to a Stuff. Filters that operate on
+ * Stuff use this as the first gate, then layer their own `MixinApi`
+ * predicate to assert the specific shape they need (Named, Visible,
+ * Gendered, ...). Non-Stuff inputs render empty.
+ */
 function asStuff(v: unknown): Stuff | null {
   return v && typeof v === 'object' && 'stuffId' in (v as object)
     ? (v as Stuff)
     : null;
 }
 
-// Mml vocabulary filters — accept a Stuff, return an Mml fragment.
+/** True if the Stuff has a display surface (Named or Visible). */
+function hasDisplaySurface(s: Stuff): boolean {
+  return MixinApi.isNamed(s) || MixinApi.isVisible(s);
+}
+
+// Mml vocabulary filters — require a display-surfaced Stuff so a
+// non-Named non-Visible input can't render an empty `<name>` tag.
 engine.registerFilter('name', (v) => {
   const s = asStuff(v);
-  return s ? Mml.name(s) : '';
+  return s && hasDisplaySurface(s) ? Mml.name(s) : '';
 });
 engine.registerFilter('item', (v) => {
   const s = asStuff(v);
-  return s ? Mml.item(s) : '';
+  return s && hasDisplaySurface(s) ? Mml.item(s) : '';
 });
 engine.registerFilter('location', (v) => {
   const s = asStuff(v);
-  return s ? Mml.location(s) : '';
+  return s && hasDisplaySurface(s) ? Mml.location(s) : '';
 });
 engine.registerFilter('object', (v) => {
   const s = asStuff(v);
-  return s ? Mml.object(s) : '';
+  return s && hasDisplaySurface(s) ? Mml.object(s) : '';
 });
 engine.registerFilter('direction', (v) =>
   v == null || v === '' ? '' : Mml.direction(String(v)),
@@ -90,17 +103,16 @@ engine.registerFilter('cap', (v) =>
 );
 engine.registerFilter('pronoun', (v, kind) => {
   const s = asStuff(v);
-  if (!s) return '';
-  const k = (kind ?? 'subj') as PronounKind;
-  return GrammarApi.pronoun(s, k);
-});
-engine.registerFilter('article', (v) => {
-  const s = asStuff(v);
-  return s ? GrammarApi.article(s) : '';
+  if (!s || !MixinApi.isGendered(s)) return '';
+  return GrammarApi.pronoun(s, (kind ?? 'subj') as PronounKind);
 });
 engine.registerFilter('possessive', (v) => {
   const s = asStuff(v);
-  return s ? GrammarApi.possessive(s) : '';
+  return s && MixinApi.isGendered(s) ? GrammarApi.possessive(s) : '';
+});
+engine.registerFilter('article', (v) => {
+  const s = asStuff(v);
+  return s && hasDisplaySurface(s) ? GrammarApi.article(s) : '';
 });
 
 /**

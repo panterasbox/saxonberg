@@ -1,13 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { GrammarApi, type PronounSet } from '../grammar';
+import { Pronouns } from '@saxonberg/types';
+import { GrammarApi } from '../grammar';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
+import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class Plain extends Stuff {}
 class NamedThing extends NamedMixin(Stuff) {}
 class VisibleThing extends VisibleMixin(Stuff) {}
+class GenderedThing extends GenderedMixin(Stuff) {}
 
 describe('GrammarApi.cap', () => {
   it('capitalizes the first letter', () => {
@@ -28,7 +31,7 @@ describe('GrammarApi.cap', () => {
 });
 
 describe('GrammarApi.pronoun', () => {
-  it('defaults to neuter for stuff without a pronouns override', () => {
+  it('defaults to neuter for stuff without GenderedMixin', () => {
     const obj = makeStuff(() => new Plain());
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('it');
     expect(GrammarApi.pronoun(obj, 'obj')).toBe('it');
@@ -41,32 +44,47 @@ describe('GrammarApi.pronoun', () => {
     expect(GrammarApi.pronoun(obj)).toBe('it');
   });
 
-  it('honors a pronouns override on the stuff', () => {
-    const obj = makeStuff(() => new Plain());
-    const set: PronounSet = {
-      subj: 'she',
-      obj: 'her',
-      poss: 'her',
-      reflex: 'herself',
-    };
-    (obj as unknown as { pronouns: PronounSet }).pronouns = set;
+  it('reads Pronouns.She on a Gendered stuff', () => {
+    const obj = makeStuff(() => new GenderedThing());
+    obj.pronouns = Pronouns.She;
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('she');
     expect(GrammarApi.pronoun(obj, 'obj')).toBe('her');
     expect(GrammarApi.pronoun(obj, 'poss')).toBe('her');
     expect(GrammarApi.pronoun(obj, 'reflex')).toBe('herself');
   });
 
-  it('falls back to neuter when an override is malformed', () => {
-    const obj = makeStuff(() => new Plain());
-    (obj as unknown as { pronouns: unknown }).pronouns = { subj: 'she' };
-    expect(GrammarApi.pronoun(obj, 'subj')).toBe('it');
+  it('reads Pronouns.He on a Gendered stuff', () => {
+    const obj = makeStuff(() => new GenderedThing());
+    obj.pronouns = Pronouns.He;
+    expect(GrammarApi.pronoun(obj, 'subj')).toBe('he');
+    expect(GrammarApi.pronoun(obj, 'obj')).toBe('him');
+    expect(GrammarApi.pronoun(obj, 'poss')).toBe('his');
+    expect(GrammarApi.pronoun(obj, 'reflex')).toBe('himself');
+  });
+
+  it('reads Pronouns.They on a Gendered stuff', () => {
+    const obj = makeStuff(() => new GenderedThing());
+    obj.pronouns = Pronouns.They;
+    expect(GrammarApi.pronoun(obj, 'subj')).toBe('they');
+    expect(GrammarApi.pronoun(obj, 'reflex')).toBe('themselves');
+  });
+
+  it('reads Pronouns.Ze on a Gendered stuff', () => {
+    const obj = makeStuff(() => new GenderedThing());
+    obj.pronouns = Pronouns.Ze;
+    expect(GrammarApi.pronoun(obj, 'subj')).toBe('ze');
+    expect(GrammarApi.pronoun(obj, 'obj')).toBe('zir');
   });
 });
 
 describe('GrammarApi.possessive', () => {
   it('aliases pronoun(stuff, "poss")', () => {
-    const obj = makeStuff(() => new Plain());
-    expect(GrammarApi.possessive(obj)).toBe('its');
+    const plain = makeStuff(() => new Plain());
+    expect(GrammarApi.possessive(plain)).toBe('its');
+
+    const gendered = makeStuff(() => new GenderedThing());
+    gendered.pronouns = Pronouns.She;
+    expect(GrammarApi.possessive(gendered)).toBe('her');
   });
 });
 

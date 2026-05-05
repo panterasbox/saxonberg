@@ -94,21 +94,28 @@ to them throws.
 Registered at module init in `prose.ts`. All take an input from the
 left side of the pipe and may take additional positional arguments.
 
+Filter inputs are narrowed at the call site via `MixinApi.is*`
+predicates so a Stuff missing the relevant mixin renders empty rather
+than producing malformed markup. The narrowing is per-filter:
+
+| Filter | Required composition |
+|---|---|
+| `name`, `item`, `location`, `object`, `article` | `Named` or `Visible` |
+| `pronoun`, `possessive` | `Gendered` |
+| `direction` | non-empty string (no Stuff) |
+| `cap` | any non-null value (coerced to string) |
+
 ### Mml vocabulary
 
 `{{ stuff | name }}`, `{{ stuff | item }}`, `{{ stuff | location }}`,
-`{{ stuff | object }}` — wrap a `Stuff`'s display name in the
-corresponding `<name>` / `<item>` / `<location>` / `<object>` markup
-with `stuff-id` attribution. Equivalent to calling `Mml.name(stuff)`
-etc. directly.
+`{{ stuff | object }}` — wrap a Named-or-Visible Stuff's display name
+in the corresponding `<name>` / `<item>` / `<location>` / `<object>`
+markup with `stuff-id` attribution. Equivalent to calling
+`Mml.name(stuff)` etc. directly.
 
 `{{ direction | direction }}` — wraps a raw direction string in
 `<direction>` markup. Note the filter shadows the variable name; both
 are spelled the same.
-
-If the input isn't a recognisable `Stuff` (or for `direction`, a
-non-empty string), the filter returns empty and the placeholder
-renders as `''`.
 
 ### Grammar (`GrammarApi`)
 
@@ -117,17 +124,19 @@ strings only; passing an `Mml` fragment will cap the leading `<` and
 mangle the markup.
 
 `{{ stuff | pronoun }}` / `{{ stuff | pronoun: 'obj' }}` — return a
-pronoun. Default kind is `'subj'`; other kinds are `'obj'`, `'poss'`,
-`'reflex'`. Pronouns default to neuter (`it / it / its / itself`)
-unless the `Stuff` has a `pronouns: PronounSet` property, in which
-case that set is used.
+pronoun for a `Gendered` stuff. Default kind is `'subj'`; other kinds
+are `'obj'`, `'poss'`, `'reflex'`. The pronoun set is selected from
+the `Pronouns` enum (`He` / `She` / `They` / `It` / `Ze`) on
+`GenderedMixin.pronouns`. Non-Gendered stuff renders empty.
+`GrammarApi.pronoun()` (called directly from TS) falls back to neuter
+on non-Gendered input rather than empty.
 
 `{{ stuff | possessive }}` — alias for `pronoun: 'poss'`.
 
-`{{ stuff | article }}` — return `'a'` or `'an'` based on a
-vowel-onset heuristic against the display name. Phonetic exceptions
-(`an honest`, `a unicorn`) need per-stuff overrides; not handled in
-v1.
+`{{ stuff | article }}` — return `'a'` or `'an'` for a Named-or-Visible
+Stuff based on a vowel-onset heuristic against the display name.
+Phonetic exceptions (`an honest`, `a unicorn`) need per-stuff
+overrides; not handled in v1.
 
 ## Authoring patterns
 

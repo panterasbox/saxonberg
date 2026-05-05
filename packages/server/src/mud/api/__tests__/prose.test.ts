@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest';
+import { Pronouns } from '@saxonberg/types';
 import { Prose, ProseApi } from '../prose';
 import { Mml } from '../mml';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
-import type { PronounSet } from '../grammar';
+import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class Plain extends Stuff {}
 class NamedThing extends NamedMixin(Stuff) {}
+class GenderedNamed extends GenderedMixin(NamedMixin(Stuff)) {}
 
 describe('ProseApi.format — substitution', () => {
   it('renders a literal template with no placeholders', () => {
@@ -102,19 +104,29 @@ describe('ProseApi.format — conditionals and filters', () => {
   });
 
   it('chains grammar filters: cap on a pronoun', () => {
-    const obj = makeStuff(() => new Plain());
-    (obj as unknown as { pronouns: PronounSet }).pronouns = {
-      subj: 'she',
-      obj: 'her',
-      poss: 'her',
-      reflex: 'herself',
-    };
+    const obj = makeStuff(() => new GenderedNamed());
+    obj.name = 'Alice';
+    obj.pronouns = Pronouns.She;
     expect(
       ProseApi.format(
         '{{ a | pronoun: "subj" | cap }} smiles.',
         { a: obj },
       ).toString(),
     ).toBe('She smiles.');
+  });
+
+  it('renders empty for the pronoun filter on non-Gendered stuff', () => {
+    const obj = makeStuff(() => new Plain());
+    expect(
+      ProseApi.format('[{{ x | pronoun }}]', { x: obj }).toString(),
+    ).toBe('[]');
+  });
+
+  it('renders empty for the name filter on a stuff with no display surface', () => {
+    const obj = makeStuff(() => new Plain());
+    expect(ProseApi.format('[{{ x | name }}]', { x: obj }).toString()).toBe(
+      '[]',
+    );
   });
 
   it('throws on an unknown filter (strictFilters)', () => {

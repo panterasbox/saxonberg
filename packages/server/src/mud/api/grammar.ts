@@ -3,19 +3,20 @@
  * templating. Registered as Liquid filters by `ProseApi` (`cap`,
  * `pronoun`, `article`, `possessive`) and callable directly from TS.
  *
- * Pronouns default to neuter (`it / it / its / itself`). Game content
- * that needs gendered creatures attaches a `pronouns: PronounSet`
- * property on the Stuff; future work may upgrade this to a typed mixin
- * once it's clear what the right surface looks like (avatars, NPCs,
- * familiar pronouns vs. distant pronouns, etc.).
+ * Pronoun selection reads `GenderedMixin.pronouns` (the canonical
+ * `Pronouns` enum) and maps it to a four-form set
+ * (subject / object / possessive / reflexive). Stuff that doesn't
+ * compose `GenderedMixin` falls back to neuter (`it / it / its / itself`).
  *
  * The article heuristic is vowel-onset only — `an honest` / `a unicorn`
  * exceptions need per-stuff overrides (a future article-form field on
  * the Stuff or a registered helper). Good enough for v1.
  */
 
+import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { DescribeApi } from './describe';
+import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
 export type PronounKind = 'subj' | 'obj' | 'poss' | 'reflex';
@@ -27,12 +28,40 @@ export interface PronounSet {
   reflex: string;
 }
 
-const NEUTRAL: PronounSet = {
-  subj: 'it',
-  obj: 'it',
-  poss: 'its',
-  reflex: 'itself',
+const SETS: Record<Pronouns, PronounSet> = {
+  [Pronouns.He]: {
+    subj: 'he',
+    obj: 'him',
+    poss: 'his',
+    reflex: 'himself',
+  },
+  [Pronouns.She]: {
+    subj: 'she',
+    obj: 'her',
+    poss: 'her',
+    reflex: 'herself',
+  },
+  [Pronouns.They]: {
+    subj: 'they',
+    obj: 'them',
+    poss: 'their',
+    reflex: 'themselves',
+  },
+  [Pronouns.It]: {
+    subj: 'it',
+    obj: 'it',
+    poss: 'its',
+    reflex: 'itself',
+  },
+  [Pronouns.Ze]: {
+    subj: 'ze',
+    obj: 'zir',
+    poss: 'zir',
+    reflex: 'zirself',
+  },
 };
+
+const NEUTRAL: PronounSet = SETS[Pronouns.It];
 
 const VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 
@@ -50,12 +79,13 @@ export class GrammarApi {
   }
 
   /**
-   * Return one of the four pronouns for the given Stuff. Falls back
-   * to neuter (`it / it / its / itself`) when the Stuff has no
-   * `pronouns` override.
+   * Return one of the four pronouns for the given Stuff. Reads the
+   * `GenderedMixin.pronouns` enum when present; falls back to neuter
+   * (`it / it / its / itself`) otherwise.
    */
   static pronoun(stuff: Stuff, kind: PronounKind = 'subj'): string {
-    return pronounSetOf(stuff)[kind];
+    const set = MixinApi.isGendered(stuff) ? SETS[stuff.pronouns] : NEUTRAL;
+    return set[kind];
   }
 
   /** Convenience: `pronoun(stuff, 'poss')`. */
@@ -73,21 +103,6 @@ export class GrammarApi {
     const first = display.charAt(0).toLowerCase();
     return VOWELS.has(first) ? 'an' : 'a';
   }
-}
-
-function pronounSetOf(stuff: Stuff): PronounSet {
-  const candidate = (stuff as { pronouns?: unknown }).pronouns;
-  if (
-    candidate &&
-    typeof candidate === 'object' &&
-    typeof (candidate as PronounSet).subj === 'string' &&
-    typeof (candidate as PronounSet).obj === 'string' &&
-    typeof (candidate as PronounSet).poss === 'string' &&
-    typeof (candidate as PronounSet).reflex === 'string'
-  ) {
-    return candidate as PronounSet;
-  }
-  return NEUTRAL;
 }
 
 SecurityApi.decorateApiClass(GrammarApi);
