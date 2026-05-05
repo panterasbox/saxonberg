@@ -24,7 +24,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { VetoResult } from '../lib/witness-types';
+import type { VetoResult } from '../lib/errors';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 

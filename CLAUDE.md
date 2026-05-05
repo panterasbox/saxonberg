@@ -156,7 +156,7 @@ import { Location } from './Location.js';
   folder** — "mixin" is an implementation technique, not a subsystem.
   If a new mixin doesn't fit an existing subsystem, propose a new
   subsystem folder for it. Shared mixin infrastructure (types, name
-  registry) lives in `lib/mixin-types.ts`.
+  registry) lives in `lib/mixin.ts`.
 - **Class files**: match the class name (`Avatar.ts`, `Player.ts`,
   `Thing.ts`, `Location.ts`).
 - **Api files**: lowercase with `.ts` (`stuff.ts`, `player.ts`,
@@ -241,7 +241,7 @@ Some specific reminders worth keeping in front of mind:
 - **Per-field invariants belong on setters**, not in `normalize()`-style
   post-hydrate hooks. Hydration goes through setters via bracket-assign;
   cross-field invariants go in a custom `Hydrator` subclass.
-- **`Mixins` registry constants** in `lib/mixin-types.ts` — use
+- **`Mixins` registry constants** in `lib/mixin.ts` — use
   `Mixins.X` instead of string literals when calling
   `MixinApi.hasMixin()`.
 

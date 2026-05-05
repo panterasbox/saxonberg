@@ -25,8 +25,8 @@ import {
   type PropOperation,
 } from '../lib/stuff/Propertied';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { Events } from '../bootstrap/event-types';
-import { defaultPolicyFor } from '../bootstrap/event-policies';
+import { Events } from '../lib/events';
+import { defaultPolicyFor } from '../lib/events';
 
 const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
 

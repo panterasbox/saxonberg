@@ -16,7 +16,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { SecurityApi } from './security';
 import { EventApi } from './event';
-import { Events } from '../../mud/bootstrap/event-types';
+import { Events } from '../lib/events';
 
 /**
  * Static API for connection queries (public interface for mudlib).

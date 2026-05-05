@@ -55,7 +55,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
 import { Unshadowable } from '../security/decorators';

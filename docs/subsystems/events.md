@@ -275,7 +275,7 @@ table) no-op.
 
 Well-known events differ only in being **frontloaded**:
 `EventRegistry.postRegister` declares them at registry creation
-with their specific allowlists from `event-policies.ts`
+with their specific allowlists from `lib/events.ts`
 (`emittableBy(StuffApi)` for `StuffCreated`, etc.). If you find
 yourself wanting a non-default policy for a custom event, promote
 it into the `Events.*` table and add a `POLICIES` entry. There is

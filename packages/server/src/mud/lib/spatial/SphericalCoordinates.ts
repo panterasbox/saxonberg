@@ -9,7 +9,7 @@
  * Persistence: `coordinates` and `radius` are auto-persisted.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /** Public shape added by SphericalCoordinatesMixin. */
 export interface SphericalCoordinates {

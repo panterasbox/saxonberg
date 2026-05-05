@@ -155,7 +155,7 @@ an existing subsystem folder, propose a new subsystem folder for it
 rather than grouping by mixin-ness.
 
 Shared mixin infrastructure (`MixinConstructor` type, `Mixins` name
-registry) lives in `lib/mixin-types.ts`.
+registry) lives in `lib/mixin.ts`.
 
 ### Available Mixins
 
@@ -208,7 +208,7 @@ implementation, never in a central type barrel.
 
 ### `Mixins` Registry
 
-`lib/mixin-types.ts` lists every registered mixin by name. Always use
+`lib/mixin.ts` lists every registered mixin by name. Always use
 `Mixins.X` constants instead of string literals when calling
 `MixinApi.hasMixin()`:
 

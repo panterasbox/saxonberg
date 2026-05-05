@@ -426,7 +426,7 @@ export class EventApi {
 }
 
 // Re-export the types module for convenience.
-export { Events } from '../bootstrap/event-types';
-export type { EventName, EventPayloads } from '../bootstrap/event-types';
+export { Events } from '../lib/events';
+export type { EventName, EventPayloads } from '../lib/events';
 
 SecurityApi.decorateApiClass(EventApi);

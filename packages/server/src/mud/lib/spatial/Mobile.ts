@@ -30,11 +30,11 @@
  * contained is nonsensical.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Containable } from './Containable';
-import type { VetoResult } from '../witness-types';
+import type { VetoResult } from '../errors';
 import type { Exitable } from './Exitable';
 import type { Exit } from './Exit';
 import { MixinApi } from '../../api/mixin';

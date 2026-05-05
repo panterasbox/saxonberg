@@ -25,10 +25,10 @@
  *     may be `null` for first-placement / final-detach edges.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
-import type { VetoResult } from '../witness-types';
+import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 

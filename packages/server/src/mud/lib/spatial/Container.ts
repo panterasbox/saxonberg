@@ -21,10 +21,10 @@
  *   ContainmentApi.move dispatches these around the chokepoint call.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from './Containable';
-import type { VetoResult } from '../witness-types';
+import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';

@@ -322,7 +322,7 @@ Future candidates: `AchievementRegistry`, `DamageTypeRegistry`,
 
 ### `Mixins` constants object
 
-The existing `Mixins` constant object in `lib/mixin-types.ts` is
+The existing `Mixins` constant object in `lib/mixin.ts` is
 informally called a "registry" today but doesn't fit the formal pattern
 above (it's a constants object, not an Idea, not Propertied, not
 bootstrapped). Either rename to avoid confusion (e.g., `MixinNames`)

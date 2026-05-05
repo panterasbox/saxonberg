@@ -22,7 +22,7 @@ import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
-import { Events } from '../bootstrap/event-types';
+import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';

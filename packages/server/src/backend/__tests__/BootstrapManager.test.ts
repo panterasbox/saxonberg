@@ -9,7 +9,7 @@ import { BootstrapManager } from '../BootstrapManager';
 import { StuffApi } from '../../mud/api/stuff';
 import { ShadowApi } from '../../mud/api/shadow';
 import { EventApi } from '../../mud/api/event';
-import { Events } from '../../mud/bootstrap/event-types';
+import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
 import type { BootstrapEntry } from '../../mud/bootstrap/types';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';

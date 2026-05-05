@@ -40,7 +40,7 @@
  * - keywords: string[] (auto-persisted via setter)
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /**
  * Public shape provided by PerceptibleMixin.

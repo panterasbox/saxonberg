@@ -15,11 +15,11 @@
  * containers, and we need the Stuff identity for exit messaging.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Containable } from './Containable';
-import type { VetoResult } from '../witness-types';
+import type { VetoResult } from '../errors';
 import type { Door } from './Door';
 import type { Mobile, MovementBodies } from './Mobile';
 import { Exit } from './Exit';

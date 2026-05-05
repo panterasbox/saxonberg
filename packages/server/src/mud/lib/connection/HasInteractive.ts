@@ -15,7 +15,7 @@
  * `MixinApi.isHasInteractive(obj)` to narrow.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Interactive } from '../../obj/Interactive';
 
 /**

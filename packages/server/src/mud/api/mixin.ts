@@ -11,7 +11,7 @@
  *
  * Usage:
  * ```typescript
- * import { Mixins } from '../lib/mixin-types';
+ * import { Mixins } from '../lib/mixin';
  *
  * if (MixinApi.hasMixin(Player, Mixins.Named)) {
  *   // Player has NamedMixin
@@ -19,8 +19,8 @@
  * ```
  */
 
-import type { MixinName } from '../lib/mixin-types';
-import { Mixins } from '../lib/mixin-types';
+import type { MixinName } from '../lib/mixin';
+import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
@@ -46,7 +46,7 @@ import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
 // Re-export Mixins constants for convenience
-export { Mixins } from '../lib/mixin-types';
+export { Mixins } from '../lib/mixin';
 
 /**
  * Any class-like constructor MixinApi may be asked to inspect.

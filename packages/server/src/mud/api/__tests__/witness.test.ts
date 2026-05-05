@@ -16,7 +16,7 @@ import {
   ContainableMixin,
   type Containable,
 } from '../../lib/spatial/Containable';
-import type { VetoResult } from '../../lib/witness-types';
+import type { VetoResult } from '../../lib/errors';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
 import { ExitableMixin, type Exitable } from '../../lib/spatial/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';

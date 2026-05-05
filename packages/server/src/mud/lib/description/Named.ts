@@ -32,7 +32,7 @@
  * persistent state stays untouched.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a

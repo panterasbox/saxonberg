@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /**
  * Mixin that adds description properties for visible objects.

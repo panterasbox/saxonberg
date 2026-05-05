@@ -23,7 +23,7 @@
  * duck-typing check in StuffApi.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from './Stuff';
 
 /**

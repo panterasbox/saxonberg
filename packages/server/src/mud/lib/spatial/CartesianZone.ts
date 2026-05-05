@@ -22,7 +22,7 @@ import type { Location } from '../stuff/Location';
 import type { Container } from './Container';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../mixin-types';
+import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 
 /** Compose a grid key from integer cell coordinates. */

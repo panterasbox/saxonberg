@@ -15,7 +15,7 @@ import { PlayerApi } from '../api/player';
 import { EventApi } from '../api/event';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { Events } from '../bootstrap/event-types';
+import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
