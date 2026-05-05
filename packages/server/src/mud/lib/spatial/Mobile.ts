@@ -11,8 +11,8 @@
  * Optional override hooks let game content tailor the message bodies
  * without rewriting the full announcement:
  *
- *   - `Exit.messageOut` / `Exit.messageIn` (string with `{mover}` sub) —
- *     simplest path, preserves Phase 7's custom-message strings.
+ *   - `Exit.messageOut` / `Exit.messageIn` (Liquid template with
+ *     `{{ mover }}` available) — simplest path, applies to a single exit.
  *   - `Exitable.getDepartureMessage?(mover, exit)` /
  *     `Exitable.getArrivalMessage?(mover, exit)` returning
  *     `{ self?, peers? }` — fine-grained, per-room overrides.
@@ -41,6 +41,7 @@ import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import {
   resolveSetting,
@@ -99,10 +100,6 @@ export interface MovementHookProvider {
   getTeleportInMessage?(mover: Stuff): MovementBodies;
 }
 
-function applyMoverSubstitution(template: string, moverName: string): string {
-  return template.replace(/\{mover\}/g, moverName);
-}
-
 export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>(Base: TBase) {
   return class MobileMixin extends Base {
     static _mixinName = 'MobileMixin';
@@ -124,52 +121,35 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * Movement-message templates. Schema-defaulted; player-overridable
      * via the `settings` command on Avatars (which compose
      * EnvironmentMixin); NPCs render at the schema default through
-     * `resolveSetting`'s non-Environment fallback.
-     *
-     * Two-key split for arrive (directional / bland) is tactical
-     * pending Mml.format gaining conditional syntax — see
-     * `docs/subsystems/shell-environment.md`.
+     * `resolveSetting`'s non-Environment fallback. Liquid syntax —
+     * see `docs/subsystems/prose.md`.
      */
     static settings: SettingsSchemaEntry[] = [
       {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
-        default: 'You leave to the {direction}.',
+        default: 'You leave to the {{ direction }}.',
         description: 'Message you see when you leave a room.',
       },
       {
         key: 'messages.movement.departPeers',
         type: SettingTypes.String,
-        default: '{mover} leaves to the {direction}.',
+        default: '{{ mover }} leaves to the {{ direction }}.',
         description: 'Message peers see when you leave a room.',
       },
       {
-        key: 'messages.movement.arriveSelf.directional',
+        key: 'messages.movement.arriveSelf',
         type: SettingTypes.String,
-        default: 'You arrive from the {direction}.',
-        description:
-          'Message you see when arriving and the inbound direction is known.',
+        default:
+          'You arrive{% if direction %} from the {{ direction }}{% endif %}.',
+        description: 'Message you see when arriving in a room.',
       },
       {
-        key: 'messages.movement.arriveSelf.bland',
+        key: 'messages.movement.arrivePeers',
         type: SettingTypes.String,
-        default: 'You arrive.',
-        description:
-          'Message you see when arriving and no inbound direction is known.',
-      },
-      {
-        key: 'messages.movement.arrivePeers.directional',
-        type: SettingTypes.String,
-        default: '{mover} arrives from the {direction}.',
-        description:
-          'Message peers see when you arrive and the inbound direction is known.',
-      },
-      {
-        key: 'messages.movement.arrivePeers.bland',
-        type: SettingTypes.String,
-        default: '{mover} arrives.',
-        description:
-          'Message peers see when you arrive and no inbound direction is known.',
+        default:
+          '{{ mover }} arrives{% if direction %} from the {{ direction }}{% endif %}.',
+        description: 'Message peers see when you arrive in a room.',
       },
       {
         key: 'messages.movement.teleportOutSelf',
@@ -180,7 +160,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       {
         key: 'messages.movement.teleportOutPeers',
         type: SettingTypes.String,
-        default: '{mover} vanishes.',
+        default: '{{ mover }} vanishes.',
         description: 'Message peers see when you teleport out.',
       },
       {
@@ -192,7 +172,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       {
         key: 'messages.movement.teleportInPeers',
         type: SettingTypes.String,
-        default: '{mover} appears out of nowhere.',
+        default: '{{ mover }} appears out of nowhere.',
         description: 'Message peers see when you teleport in.',
       },
     ];
@@ -301,12 +281,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       exit?: Exit
     ): MovementBodies {
       const self = this as unknown as Stuff;
-      const moverName = MessageApi.refOf(self).displayName ?? 'Someone';
 
       // 1. Custom messageOut on the Exit.
       if (exit?.messageOut) {
-        const text = applyMoverSubstitution(exit.messageOut, moverName);
-        const fragment = Mml.fromMarkup(text);
+        const fragment = ProseApi.format(exit.messageOut, {
+          mover: Mml.name(self),
+        });
         return { self: fragment, peers: fragment };
       }
 
@@ -349,11 +329,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       exit?: Exit
     ): MovementBodies {
       const self = this as unknown as Stuff;
-      const moverName = MessageApi.refOf(self).displayName ?? 'Someone';
 
       if (exit?.messageIn) {
-        const text = applyMoverSubstitution(exit.messageIn, moverName);
-        const fragment = Mml.fromMarkup(text);
+        const fragment = ProseApi.format(exit.messageIn, {
+          mover: Mml.name(self),
+        });
         return { self: fragment, peers: fragment };
       }
 
@@ -419,7 +399,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.departSelf',
       ) ?? '';
-      return Mml.format(tpl, { direction: Mml.direction(exit.direction) });
+      return ProseApi.format(tpl, { direction: Mml.direction(exit.direction) });
     }
 
     protected defaultDeparturePeers(exit: Exit): Mml {
@@ -427,32 +407,32 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.departPeers',
       ) ?? '';
-      return Mml.format(tpl, {
+      return ProseApi.format(tpl, {
         mover: Mml.name(this as unknown as Stuff),
         direction: Mml.direction(exit.direction),
       });
     }
 
     protected defaultArrivalSelf(exit: Exit): Mml {
+      const tpl = resolveSetting<string>(
+        this as unknown as Stuff,
+        'messages.movement.arriveSelf',
+      ) ?? '';
       const dir = arriveDirection(exit);
-      const key = dir
-        ? 'messages.movement.arriveSelf.directional'
-        : 'messages.movement.arriveSelf.bland';
-      const tpl = resolveSetting<string>(this as unknown as Stuff, key) ?? '';
-      return Mml.format(tpl, dir ? { direction: Mml.direction(dir) } : {});
+      return ProseApi.format(tpl, dir ? { direction: Mml.direction(dir) } : {});
     }
 
     protected defaultArrivalPeers(exit: Exit): Mml {
+      const tpl = resolveSetting<string>(
+        this as unknown as Stuff,
+        'messages.movement.arrivePeers',
+      ) ?? '';
       const dir = arriveDirection(exit);
-      const key = dir
-        ? 'messages.movement.arrivePeers.directional'
-        : 'messages.movement.arrivePeers.bland';
-      const tpl = resolveSetting<string>(this as unknown as Stuff, key) ?? '';
       const ctx: Record<string, Mml> = {
         mover: Mml.name(this as unknown as Stuff),
       };
       if (dir) ctx.direction = Mml.direction(dir);
-      return Mml.format(tpl, ctx);
+      return ProseApi.format(tpl, ctx);
     }
 
     protected defaultTeleportOutSelf(): Mml {
@@ -460,7 +440,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportOutSelf',
       ) ?? '';
-      return Mml.format(tpl, {});
+      return ProseApi.format(tpl, {});
     }
 
     protected defaultTeleportOutPeers(): Mml {
@@ -468,7 +448,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportOutPeers',
       ) ?? '';
-      return Mml.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
     }
 
     protected defaultTeleportInSelf(): Mml {
@@ -476,7 +456,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportInSelf',
       ) ?? '';
-      return Mml.format(tpl, {});
+      return ProseApi.format(tpl, {});
     }
 
     protected defaultTeleportInPeers(): Mml {
@@ -484,7 +464,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportInPeers',
       ) ?? '';
-      return Mml.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
     }
   };
 }

@@ -137,17 +137,22 @@ describe('Exit', () => {
       expect(bodiesOf(peerInB.received)).toEqual(['custom arrival']);
     });
 
-    it('interpolates {mover} in custom messages', () => {
+    it('interpolates {{ mover }} in custom messages', () => {
       const exit = makeStuff(() => new Exit({
         direction: 'out',
         source: roomA,
         destination: roomB,
-        messageOut: '{mover} leaves the wardrobe.',
-        messageIn: '{mover} emerges from the wardrobe.',
+        messageOut: '{{ mover }} leaves the wardrobe.',
+        messageIn: '{{ mover }} emerges from the wardrobe.',
       }));
       mover.traverse(exit);
-      expect(bodiesOf(peerInA.received)).toEqual(['Alice leaves the wardrobe.']);
-      expect(bodiesOf(peerInB.received)).toEqual(['Alice emerges from the wardrobe.']);
+      const departText = bodiesOf(peerInA.received)[0]!;
+      const arriveText = bodiesOf(peerInB.received)[0]!;
+      expect(departText).toContain('Alice');
+      expect(departText).toContain('leaves the wardrobe.');
+      expect(departText).toContain(`stuff-id="${mover.stuffId}"`);
+      expect(arriveText).toContain('Alice');
+      expect(arriveText).toContain('emerges from the wardrobe.');
     });
 
     it('degrades arrival message when direction has no inverse', () => {

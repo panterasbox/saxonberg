@@ -104,8 +104,8 @@ export class ExitableVessel extends ExitableVesselBase {
       direction: 'in',
       source: env,
       destination: this as unknown as Stuff & Container,
-      messageOut: `<name>{mover}</name> enters the <name>${vesselName}</name>.`,
-      messageIn: `<name>{mover}</name> enters from outside.`,
+      messageOut: `{{ mover }} enters the <name>${vesselName}</name>.`,
+      messageIn: `{{ mover }} enters from outside.`,
     }));
     this.entryCache = exit;
     this.entryCacheEnvId = env.stuffId;
@@ -125,8 +125,8 @@ export class ExitableVessel extends ExitableVesselBase {
       direction: 'out',
       source: this as unknown as Stuff & Container,
       destination: env,
-      messageOut: `<name>{mover}</name> leaves the <name>${vesselName}</name>.`,
-      messageIn: `<name>{mover}</name> emerges from the <name>${vesselName}</name>.`,
+      messageOut: `{{ mover }} leaves the <name>${vesselName}</name>.`,
+      messageIn: `{{ mover }} emerges from the <name>${vesselName}</name>.`,
     }));
     this.outCache = exit;
     this.outCacheEnvId = env.stuffId;

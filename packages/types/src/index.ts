@@ -59,7 +59,6 @@ export enum Pronouns {
   She = 'she',
   They = 'they',
   It = 'it',
-  Ze = 'ze',
 }
 
 /**
