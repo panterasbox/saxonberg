@@ -540,8 +540,8 @@ on `MobileMixin` (`messages.movement.*`). Avatars compose
 the `settings` command; NPCs and other Mobile hosts that don't
 compose `EnvironmentMixin` render at the schema default via
 `resolveSetting`'s non-Environment fallback. See
-`docs/requirements/shell-environment.md` for the broader settings
-subsystem.
+[shell-environment.md](./shell-environment.md) for the broader
+settings subsystem.
 
 The override hierarchy `MobileMixin` consults (highest priority first):
 

@@ -2,8 +2,10 @@
  * EnvironmentMixin tests — lookup chain, schema walk, validation,
  * privacy, ad-hoc vars, and the cross-host `resolveSetting` helper.
  *
- * Layout follows the requirements doc decision IDs (D2, D3, D4, D8)
- * plus the schema-walk + resolveSetting blocks.
+ * Sections cover the lookup chain, unknown-key behavior, type and
+ * custom-validator gating, the privacy mechanism, the schema-walk
+ * across composed mixins, and the cross-host `resolveSetting`
+ * helper. See `docs/subsystems/shell-environment.md` for the design.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

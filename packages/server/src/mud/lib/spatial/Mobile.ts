@@ -44,6 +44,7 @@ import { Mml } from '../../api/mml';
 import { NavigationApi } from '../../api/navigation';
 import {
   resolveSetting,
+  SettingTypes,
   type SettingsSchemaEntry,
 } from '../shell/Environment';
 
@@ -126,83 +127,73 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `resolveSetting`'s non-Environment fallback.
      *
      * Two-key split for arrive (directional / bland) is tactical
-     * pending Mml.format gaining conditional syntax — see requirements
-     * doc, "Migrating Phrasebook" §3.
+     * pending Mml.format gaining conditional syntax — see
+     * `docs/subsystems/shell-environment.md`.
      */
     static settings: SettingsSchemaEntry[] = [
       {
         key: 'messages.movement.departSelf',
-        type: 'string',
+        type: SettingTypes.String,
         default: 'You leave to the {direction}.',
         description: 'Message you see when you leave a room.',
-        private: true,
       },
       {
         key: 'messages.movement.departPeers',
-        type: 'string',
+        type: SettingTypes.String,
         default: '{mover} leaves to the {direction}.',
         description: 'Message peers see when you leave a room.',
-        private: true,
       },
       {
         key: 'messages.movement.arriveSelf.directional',
-        type: 'string',
+        type: SettingTypes.String,
         default: 'You arrive from the {direction}.',
         description:
           'Message you see when arriving and the inbound direction is known.',
-        private: true,
       },
       {
         key: 'messages.movement.arriveSelf.bland',
-        type: 'string',
+        type: SettingTypes.String,
         default: 'You arrive.',
         description:
           'Message you see when arriving and no inbound direction is known.',
-        private: true,
       },
       {
         key: 'messages.movement.arrivePeers.directional',
-        type: 'string',
+        type: SettingTypes.String,
         default: '{mover} arrives from the {direction}.',
         description:
           'Message peers see when you arrive and the inbound direction is known.',
-        private: true,
       },
       {
         key: 'messages.movement.arrivePeers.bland',
-        type: 'string',
+        type: SettingTypes.String,
         default: '{mover} arrives.',
         description:
           'Message peers see when you arrive and no inbound direction is known.',
-        private: true,
       },
       {
         key: 'messages.movement.teleportOutSelf',
-        type: 'string',
+        type: SettingTypes.String,
         default: 'The world dissolves around you.',
         description: 'Message you see when teleporting out.',
-        private: true,
       },
       {
         key: 'messages.movement.teleportOutPeers',
-        type: 'string',
+        type: SettingTypes.String,
         default: '{mover} vanishes.',
         description: 'Message peers see when you teleport out.',
-        private: true,
       },
       {
         key: 'messages.movement.teleportInSelf',
-        type: 'string',
+        type: SettingTypes.String,
         default: 'You materialize.',
         description: 'Message you see when teleporting in.',
-        private: true,
       },
       {
         key: 'messages.movement.teleportInPeers',
-        type: 'string',
+        type: SettingTypes.String,
         default: '{mover} appears out of nowhere.',
         description: 'Message peers see when you teleport in.',
-        private: true,
       },
     ];
 

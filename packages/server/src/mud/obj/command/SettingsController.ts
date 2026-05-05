@@ -7,8 +7,9 @@
  * Type coercion: YAML field values arrive as strings. For schema
  * entries declaring `type: 'number'`, `'boolean'`, or `'enum'`, we
  * coerce before calling `setSetting`. `'struct'` and `'list'` are
- * rejected at the command surface (per requirements doc D4) — a
- * structured-value command syntax doesn't exist yet.
+ * rejected at the command surface (see
+ * `docs/subsystems/shell-environment.md`) — a structured-value
+ * command syntax doesn't exist yet.
  *
  * Privacy in the player path is trivially satisfied:
  * `actor === target === avatar`. The check earns its keep against

@@ -421,6 +421,9 @@ say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
     persisted, Avatar self-contained, Persistable in the Idea hierarchy
   - [messaging.md](./subsystems/messaging.md) — MML, Scene composer,
     sensor routing, movement-message defaults
+  - [shell-environment.md](./subsystems/shell-environment.md) —
+    `EnvironmentMixin` settings keyspace, schema-on-mixin, `settings`
+    / `var` commands, `resolveSetting` cross-host helper
   - [call-security.md](./subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows
   - [mixins.md](./subsystems/mixins.md) — class-factory mixins,

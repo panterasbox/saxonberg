@@ -2,7 +2,7 @@
  * EnvironmentMixin — per-instance settings + session-var keyspace.
  *
  * The substrate of the shell subsystem (see
- * `docs/requirements/shell-environment.md`). Owns two stores:
+ * `docs/subsystems/shell-environment.md`). Owns two stores:
  *
  *   - persistent — schema-validated, declared by mixins via static
  *     `settings: SettingsSchemaEntry[]`. Saved through the Hydrator.
@@ -34,20 +34,26 @@ import { Unshadowable } from '../security/decorators';
 /**
  * Supported value types for a schema entry. `struct` / `list` are
  * accepted by the type system today; the user-facing `set` command
- * rejects them until structured-value syntax exists (see D4 in the
- * requirements doc).
+ * rejects them until structured-value syntax exists.
+ *
+ * `SettingTypes` is the constants table; declare schema entries with
+ * `type: SettingTypes.String` rather than the bare literal. Mirrors
+ * the `PropOperations` pattern in `lib/stuff/Propertied.ts`.
  */
-export type SettingType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'enum'
-  | 'struct'
-  | 'list';
+export const SettingTypes = {
+  String: 'string',
+  Number: 'number',
+  Boolean: 'boolean',
+  Enum: 'enum',
+  Struct: 'struct',
+  List: 'list',
+} as const;
+
+export type SettingType = (typeof SettingTypes)[keyof typeof SettingTypes];
 
 /**
  * Schema for a single setting declared by a mixin's static
- * `settings` field. See requirements doc D4.
+ * `settings` field. See `docs/subsystems/shell-environment.md`.
  */
 export interface SettingsSchemaEntry<T = unknown> {
   /** Dotted-name convention: `<sourceMixinDomain>.<sub>...` */

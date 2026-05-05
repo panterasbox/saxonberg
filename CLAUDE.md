@@ -33,7 +33,11 @@ behavior. Read the relevant doc before editing in its area.
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
     persisted, Avatar self-contained, Persistable in the Idea hierarchy
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
-    composer, sensor routing, Phrasebook, MudlogApi
+    composer, sensor routing, MudlogApi
+  - [shell-environment.md](./docs/subsystems/shell-environment.md) —
+    `EnvironmentMixin` settings keyspace, schema-on-mixin, lookup
+    chain, `settings` / `var` commands, `resolveSetting` cross-host
+    helper
   - [call-security.md](./docs/subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows, FrameKind
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,
