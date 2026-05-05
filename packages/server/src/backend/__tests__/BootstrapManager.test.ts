@@ -11,7 +11,7 @@ import { ShadowApi } from '../../mud/api/shadow';
 import { EventApi } from '../../mud/api/event';
 import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
-import type { BootstrapEntry } from '../../mud/bootstrap/types';
+import type { BootstrapEntry } from '../../mud/bootstrap';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { EventRegistry } from '../../mud/obj/EventRegistry';
 
@@ -131,16 +131,6 @@ describe('BootstrapManager.run', () => {
     await expect(
       BootstrapManager.run([{ templatePath: '/obj/Missing' }])
     ).rejects.toThrow(/Missing/);
-  });
-
-  it('rejects targetPath !== templatePath as not yet supported', async () => {
-    stubClone();
-    const manifest: BootstrapEntry[] = [
-      { templatePath: '/obj/A', targetPath: '/elsewhere/A' },
-    ];
-    await expect(BootstrapManager.run(manifest)).rejects.toThrow(
-      /not yet supported/
-    );
   });
 
   it('throws on duplicate templatePath', async () => {

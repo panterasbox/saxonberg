@@ -4,7 +4,7 @@
  *
  * Walks `packages/server/seeds/` recursively for `.yaml` files. Each
  * file's path (relative to `seeds/`, with `.yaml` stripped, prefixed
- * with `/`) becomes its MQL template path. For each template the
+ * with `/`) becomes its template path. For each template the
  * seeder inserts the parsed YAML into `Collections.Domain` ONLY when
  * no document exists at that path — re-runs are idempotent, existing
  * docs are left alone.
@@ -101,7 +101,7 @@ export class SeederManager {
   }
 
   /**
-   * Map a seed file path to its MQL template path. `seeds/obj/X.yaml`
+   * Map a seed file path to its template path. `seeds/obj/X.yaml`
    * → `/obj/X`.
    */
   static #fileToTemplatePath(seedsDir: string, file: string): string {

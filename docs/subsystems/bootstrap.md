@@ -51,7 +51,7 @@ packages/server/seeds/
 ```
 
 The file path determines the template path: relative path from
-`seeds/`, with extension dropped, becomes the MQL template path.
+`seeds/`, with extension dropped, becomes the template path.
 
 | File | Template path |
 |---|---|
@@ -119,9 +119,6 @@ class BootstrapManager {
   static async run(manifest = bootstrapManifest): Promise<void> {
     const sorted = topologicalSort(manifest);
     for (const entry of sorted) {
-      if (entry.targetPath && entry.targetPath !== entry.templatePath) {
-        throw new Error('targetPath !== templatePath not yet supported');
-      }
       const clone = await StuffApi.clone(entry.templatePath);
       // PostRegistration fires per existing Stuff lifecycle (sync)
       if (entry.awaitInit) {
@@ -132,16 +129,12 @@ class BootstrapManager {
 }
 ```
 
-Notes on the implementation:
-
-- `StuffApi.clone(templatePath, context?)` is the clone primitive
-  (an earlier draft of this doc referenced a `TemplateApi.clone`
-  that doesn't exist). It loads the Template by path, dynamic-imports
-  the backing class, runs the optional Hydrator, and awaits any
-  `postRegister`.
-- Initial entries place clones at their template path; the
-  `targetPath` move-after-clone case throws "not yet supported"
-  until a real entry needs it.
+`StuffApi.clone(templatePath, context?)` is the clone primitive — it
+loads the Template by path, dynamic-imports the backing class, runs
+the optional Hydrator, and awaits any `postRegister`. The clone
+always lives at its template path; there's no separate "destination"
+concept (each bootstrapped singleton's identity IS its template
+path).
 
 Failure modes throw and prevent server start:
 - Cycles in `dependsOn` graph
@@ -153,11 +146,12 @@ Failure modes throw and prevent server start:
 
 ```ts
 interface BootstrapEntry {
-  /** MQL template path — e.g., '/obj/EventRegistry' */
+  /**
+   * Path of the template to clone — the identifier in the `domain`
+   * collection AND the runtime location of the resulting clone.
+   * E.g., `/obj/EventRegistry`.
+   */
   templatePath: string;
-
-  /** Where the clone lives in MQL. Defaults to templatePath if omitted. */
-  targetPath?: string;
 
   /** Other entries' templatePaths that must complete before this one. */
   dependsOn?: string[];
@@ -173,17 +167,24 @@ that need async setup.
 
 ### Engine manifest
 
-Lives in `mud/bootstrap/manifest.ts`. TypeScript array (not YAML) for:
-- Type checking on `templatePath` references via the `BootstrapEntry`
-  type.
+Lives in `mud/bootstrap.ts` alongside the `BootstrapEntry`
+interface — one file, one purpose. TypeScript (not YAML) for:
+- Type checking on `templatePath` references via the
+  `BootstrapEntry` type.
 - Refactor-safety — rename a template path, find-references works.
-- Inline `awaitInit` functions (no need for a registry of named init
-  callbacks).
+- Inline `awaitInit` functions (no need for a registry of named
+  init callbacks).
 
 ```ts
-// mud/bootstrap/manifest.ts
-import type { BootstrapEntry } from './types';
-import type { WorldRoot } from '../obj/WorldRoot';
+// mud/bootstrap.ts
+import type { Stuff } from './lib/stuff/Stuff';
+import type { WorldRoot } from './obj/WorldRoot';
+
+export interface BootstrapEntry {
+  templatePath: string;
+  dependsOn?: string[];
+  awaitInit?: (clone: Stuff) => Promise<void>;
+}
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },
@@ -252,8 +253,8 @@ matches the module path:
 | `mud/obj/ModuleRegistry.ts` | `/obj/ModuleRegistry` |
 | `mud/obj/CommandRegistry.ts` | `/obj/CommandRegistry` |
 
-This makes them easily identifiable via MQL and aligns the on-disk
-location with the runtime path. Avatar is the existing exception
+This aligns the on-disk seed location with the runtime template
+path. Avatar is the existing exception
 (per-user dynamic template paths) and remains so.
 
 ### Mod extensibility (future)
@@ -279,7 +280,7 @@ implementation.
 
 A **Registry** is:
 
-- A long-lived **singleton Idea** (lives at a well-known MQL path).
+- A long-lived **singleton Idea** (lives at a well-known template path).
 - Holds a **named collection of declarations** (not Stuff instances).
 - Exposes **lookup-by-name** + enumeration.
 - **Gates per-entry access** through Propertied `checkAccess`.

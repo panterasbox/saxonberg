@@ -297,7 +297,7 @@ single-target alternative.
 
 `EventRegistry` is an Idea in `mud/obj/EventRegistry.ts`, composing
 `PostRegistrationMixin(PropertiedMixin(Idea))`. Singleton. Lives at
-MQL path `/obj/EventRegistry`. Bootstrapped by `BootstrapManager`
+template path `/obj/EventRegistry`. Bootstrapped by `BootstrapManager`
 (see [bootstrap.md](./bootstrap.md)).
 
 **Not Persistable.** Every event prop is `transient: true`, the

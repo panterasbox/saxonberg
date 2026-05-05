@@ -2,7 +2,7 @@
  * BootstrapManager — clone runtime instances from manifest entries
  * after `SeederManager` has populated the `domain` collection.
  *
- * The manifest is a TS array imported from `mud/bootstrap/manifest`.
+ * The manifest is a TS array imported from `mud/bootstrap`.
  * Each entry names a template path; the manager topologically sorts
  * by `dependsOn` and clones each entry in order. `awaitInit` runs
  * after the clone for entries needing async setup beyond
@@ -15,8 +15,7 @@
 
 import { StuffApi } from '../mud/api/stuff';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
-import { bootstrapManifest } from '../mud/bootstrap/manifest';
-import type { BootstrapEntry } from '../mud/bootstrap/types';
+import { bootstrapManifest, type BootstrapEntry } from '../mud/bootstrap';
 
 export class BootstrapManager {
   /**
@@ -32,14 +31,6 @@ export class BootstrapManager {
     const sorted = this.#topologicalSort(manifest);
 
     for (const entry of sorted) {
-      if (entry.targetPath && entry.targetPath !== entry.templatePath) {
-        throw new Error(
-          `BootstrapManager: targetPath !== templatePath not yet supported ` +
-            `(entry templatePath='${entry.templatePath}', ` +
-            `targetPath='${entry.targetPath}')`
-        );
-      }
-
       let clone: Stuff;
       try {
         clone = await StuffApi.clone(entry.templatePath);
