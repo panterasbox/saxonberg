@@ -52,11 +52,10 @@ packages/server/src/mud/seeds/
     EventRegistry.yaml
     Avatar/
       seed.yaml
+    hooks/
+      DomainHook.yaml
   domain/
     void.yaml
-  system/
-    hooks/
-      domain-folder-leaf.yaml
 ```
 
 The file path determines the template path: relative path from

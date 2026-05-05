@@ -158,10 +158,10 @@ slots via a YAML manifest:
 hooks:
   - collection: domain
     operation: save
-    template: /system/hooks/domain-folder-leaf
+    template: /obj/hooks/DomainHook
   - collection: domain
     operation: delete
-    template: /system/hooks/domain-folder-leaf
+    template: /obj/hooks/DomainHook
 ```
 
 `PersistenceManager.loadHooks(yamlPath?)` reads the manifest, clones

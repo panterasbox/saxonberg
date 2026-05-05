@@ -202,9 +202,11 @@ their concrete type locally rather than threading a generic through
 
 Single `domain` collection, path-namespaced:
 
-- `/obj/Avatar/<playerId>` — user-owned character templates + save state
-- `/domain/...` — content (rooms, doors, props, NPCs)
-- `/system/...` — system fixtures (e.g. hooks at `/system/hooks/...`)
+- `/obj/[<sub>/]<ClassName>` — singleton class templates
+  (`/obj/EventRegistry`, `/obj/hooks/DomainHook`).
+- `/obj/[<sub>/]<ClassName>/<id>` — multi-instance class templates
+  (e.g. `/obj/Avatar/<playerId>`).
+- `/domain/...` — content (rooms, doors, props, NPCs).
 
 Folder/leaf invariant on `domain`: Zone templates may have descendants;
 non-Zone templates may not. Enforced by `DomainHook` against the PM
