@@ -8,6 +8,11 @@ codebase, with the correct alternative for each.
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of
 using proper API layers.
 
+For the full mixin framework — authoring conventions, the `Mixins`
+registry, `MixinApi` predicates, composition order, and how mixins
+integrate with persistence/commands/security — see
+[subsystems/mixins.md](./subsystems/mixins.md).
+
 ### BAD (duck typing)
 
 ```typescript

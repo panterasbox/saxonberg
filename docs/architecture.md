@@ -189,6 +189,12 @@ Mixins are higher-order functions that extend a base class with new
 fields and methods. The Saxonberg convention is strict about where
 they live and how they're declared.
 
+The full subsystem doc is [subsystems/mixins.md](./subsystems/mixins.md)
+— infrastructure (`MixinConstructor`, `Mixins` registry, `MixinApi`),
+authoring conventions, composition rules, and cross-cutting
+integration. The summary below covers the layout rules every
+contributor needs to know.
+
 ### Subsystem-Folder Layout
 
 Mixins live in the `lib/<subsystem>/` folder that owns the concern they
@@ -417,6 +423,9 @@ say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
     sensor routing, Phrasebook
   - [call-security.md](./subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows
+  - [mixins.md](./subsystems/mixins.md) — class-factory mixins,
+    infrastructure, authoring conventions, integration with
+    persistence / commands / security
 - [antipatterns.md](./antipatterns.md) — patterns to avoid with the
   correct alternative for each
 - [roadmap.md](./roadmap.md) — what's left to build

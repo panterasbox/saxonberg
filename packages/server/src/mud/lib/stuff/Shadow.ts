@@ -11,17 +11,28 @@
  * via the standard Hydrator pipeline. The attachment relationship
  * itself does NOT persist (deferred to Tier 5).
  *
- * Authoring shape — composition declares the surface:
+ * Authoring shape — explicit declaration declares the surface.
+ * The intercept set is methods the shadow declares in its own class
+ * body (own properties of `shadow.constructor.prototype` minus
+ * `constructor`) plus any `@Shadowing`-decorated methods. Methods
+ * inherited through composed mixin layers give the shadow type/state
+ * but do NOT auto-enrol — composition alone is not enough.
  *
  * ```ts
- * class RenamedShadow extends NamedMixin(Shadow) {}
- * // Intercepts every NamedMixin method on the host. Defaults run
- * // against the shadow's own state (name, surname, fullName).
+ * // EMPTY surface — composes NamedMixin but declares nothing of its
+ * // own. ShadowApi.attach throws ('no surface').
+ * class BareShadow extends NamedMixin(Shadow) {}
  *
+ * // Intercepts ONLY `fullName`. Composition supplied the type and
+ * // backing state (name, surname); the override is the one own-
+ * // prototype method, so it's the one that intercepts on the host.
  * class LiarShadow extends NamedMixin(Shadow) {
- *   override get name() { return 'Bob'; }
+ *   override get fullName(): string { return 'Bob'; }
  * }
  *
+ * // No mixin composition — `@Shadowing` declares the intercept
+ * // directly. Local name == host name when used bare; pass a string
+ * // to remap (`@Shadowing('take') loggedTake(...)`).
  * class TraceShadow extends Shadow {
  *   @Shadowing
  *   addXp(amount: number) {
@@ -30,6 +41,13 @@
  *   }
  * }
  * ```
+ *
+ * The "explicit declaration only" rule is deliberate: under the older
+ * auto-enrol model, a shadow that composed `Containable` purely to
+ * react to an `onMoved` Witness hook would have silently intercepted
+ * `setEnvironment` / `getEnvironment` with mixin defaults, masking
+ * the host's real behaviour. Forcing explicit declaration sidesteps
+ * the trap.
  *
  * Inside a shadow's intercepting method:
  *   - `this.callDown(...args)` invokes the next layer down (next

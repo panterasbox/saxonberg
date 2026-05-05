@@ -42,6 +42,9 @@ behavior. Read the relevant doc before editing in its area.
   - [commands.md](./docs/subsystems/commands.md) — client → server
     pipeline, YAML view + controller MVC, parse/match/resolve/validate/
     execute stages, discovery via commandProvider, auto-emit ok/notok
+  - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
+    `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
+    composition order, persistence/command/security integration
 
 ## Development Commands
 
