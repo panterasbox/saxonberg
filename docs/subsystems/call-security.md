@@ -940,40 +940,43 @@ same call within `attach`, `detach`, and the privileged-detach used
 during destruct. There is no API surface — public, protected, or
 otherwise — that would allow the two sides to drift out of sync.
 
-### Authoring shape — composition declares the surface
+### Authoring shape — explicit declaration declares the surface
 
-A Shadow declares its surface by **composition** — extending the same
-mixin it wants to intercept — and the framework figures out the rest:
+A Shadow's intercept set is whatever methods it explicitly declares
+in its own class body, plus any `@Shadowing`-decorated methods.
+Composition alone does NOT auto-enrol the composed mixin's methods —
+they're part of the shadow's *type contract*, not its *intercept
+set*:
 
 ```typescript
-// Pure rename: shadow has its own NamedMixin state; intercepts ALL
-// of NamedMixin's methods on the host, defaults running on the
-// shadow's state.
-class RenamedShadow extends NamedMixin(Shadow) {}
-
-// Customization: override the methods you want, defaults handle
-// the rest (still intercepted, just running the mixin's logic on
-// the shadow's state).
+// Composes NamedMixin so the shadow has the right type and state
+// shape, but the intercept set is just `fullName` (the only method
+// the shadow declares in its own body).
 class LiarShadow extends NamedMixin(Shadow) {
-  override get name() { return "Bob"; }
+  override get fullName(): string { return 'Bob'; }
 }
+
+// Composes NamedMixin without declaring any own methods — empty
+// intercept set, ShadowApi.attach throws 'no surface'.
+class BareShadow extends NamedMixin(Shadow) {}
 ```
 
-The model: **every method that a composed mixin contributes is
-intercepted, period.** Whatever JS prototype resolution finds on the
-shadow runs — the mixin's default, an override, or a layered mixin's
-override (`PoliteMixin(NamedMixin(Shadow))` works for free).
+The model: **a shadow intercepts what it explicitly says it
+intercepts.** Either by declaring/overriding a method in the class
+body, or via `@Shadowing('hostMethod')` to remap a differently-named
+local method onto a host method. Methods inherited through
+composition are reachable on the shadow (mixin defaults still run
+on the shadow's state when called) but they don't enrol into the
+intercept chain on the host.
 
-> **Footgun.** A shadow attached without overriding anything still
-> intercepts every method its mixins contribute. The mixin defaults
-> run against the shadow's own state — which may be empty/zero/null
-> until the shadow is initialized. The host's methods may suddenly
-> return blank values. Initialize the shadow's state before attaching,
-> or override the methods you don't want defaults applied to.
+This rule exists because Witness mixins make the alternative
+unworkable: a shadow that composes `Containable` to react to
+`onMoved` would otherwise auto-intercept `setEnvironment` /
+`getEnvironment` / etc. as no-op-defaults, masking the host's real
+behavior. Explicit declaration sidesteps the trap.
 
-`@Shadowing` adds individual methods to the surface without composing
-a mixin (useful for one-off intercepts). Composes with mixin
-composition.
+`@Shadowing` adds individual methods to the surface without
+composing a mixin (useful for one-off intercepts).
 
 ### `ShadowApi` public API
 
@@ -992,11 +995,12 @@ the public surface.
 
 1. **Reject misuse.** Re-attach throws; destroyed host throws;
    destroyed shadow throws.
-2. **Compute the intercept set.** Walk the shadow's prototype chain
-   for layers marked with the `_mixinName` static (i.e. produced by a
-   mixin factory); add every own property name on that prototype EXCEPT
-   `constructor`. Then merge in any names from the class's
-   `_callSecShadowing` map.
+2. **Compute the intercept set.** Take every own property name on
+   `shadow.constructor.prototype` (minus `constructor`) — this is
+   what the shadow's class body explicitly declares. Then merge in
+   any names from the class's `_callSecShadowing` map (i.e. methods
+   tagged with `@Shadowing`). Methods inherited from composed mixin
+   layers are NOT auto-enrolled.
 3. **Reject if empty.** A no-surface shadow is a bug.
 4. **Validate `@Unshadowable`.** Method-form on the host method or
    class-form on the host's class (or any ancestor) → `ShadowError`.

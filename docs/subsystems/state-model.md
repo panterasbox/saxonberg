@@ -226,11 +226,13 @@ Every Stuff carries:
   `create`/`createSync`. Used by identity-keyed security policies
   (`FromTemplate`).
 - **`zone: Zone | null`** — universal subdivision. Stamped at clone
-  time from the nearest-ancestor Zone template, or on first placement
-  via `ContainmentApi.move()`. Runtime-only for now: Zone references
-  are not auto-persisted (mirrors how `inventory`/`environment` work —
-  the authoritative source for zone membership is the `domain`
-  template path at clone time).
+  time from the nearest-ancestor Zone template; NOT back-filled by
+  `ContainmentApi.move` — zone identity follows whichever template
+  spawned the item, not whichever container it currently sits in.
+  Runtime-only for now: Zone references are not auto-persisted
+  (mirrors how `inventory`/`environment` work — the authoritative
+  source for zone membership is the `domain` template path at clone
+  time).
 
 These are stamped by `StuffApi.clone`, not declared on subclasses. They
 exist on every Stuff regardless of mixins.
