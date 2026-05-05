@@ -36,7 +36,7 @@ export class OpenController extends CommandController<OpenInput> {
       return { success: false, summary: "can't open that" };
     }
 
-    if (hit.isOpen) {
+    if (hit.getIsOpen()) {
       return { success: false, summary: 'already open' };
     }
 

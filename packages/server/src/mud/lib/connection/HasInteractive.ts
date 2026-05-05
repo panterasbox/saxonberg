@@ -40,6 +40,9 @@ export interface HasInteractive {
   /** Remove an Interactive connection. */
   removeInteractive(interactive: Interactive): void;
 
+  /** Drop every connection in one call. Used during destruct. */
+  clearInteractives(): void;
+
   /** True iff at least one Interactive is connected. */
   isConnected(): boolean;
 
@@ -61,12 +64,10 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     static _mixinName = 'HasInteractiveMixin';
 
     /**
-     * Connected Interactives. Direct mutation is allowed within the
-     * class but external consumers should go through the mixin's
-     * `addInteractive` / `removeInteractive` methods (or via the
-     * read-only `getInteractives()` view).
+     * Connected Interactives. Host-internal storage; external consumers
+     * use `addInteractive` / `removeInteractive` / `getInteractives()`.
      */
-    interactives: Set<Interactive> = new Set();
+    protected interactives: Set<Interactive> = new Set();
 
     public getInteractives(): ReadonlySet<Interactive> {
       return this.interactives;
@@ -78,6 +79,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
 
     public removeInteractive(interactive: Interactive): void {
       this.interactives.delete(interactive);
+    }
+
+    /** Drop every connection in one call. Used during destruct. */
+    public clearInteractives(): void {
+      this.interactives.clear();
     }
 
     public isConnected(): boolean {

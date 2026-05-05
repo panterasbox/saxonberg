@@ -91,7 +91,10 @@ describe('MessageApi', () => {
       // An object with an onMessage method but no SensorMixin must not match —
       // detection is via the mixin marker, not method presence.
       const ducked = { onMessage: vi.fn() } as unknown as TestSensor;
-      location.inventory.add(ducked);
+      // test seam: bypass setContainer chokepoint to inject a duck-typed
+      // object into the inventory Set; the test verifies sensor detection
+      // is keyed by the SensorMixin marker, not method shape.
+      (location as unknown as { inventory: Set<unknown> }).inventory.add(ducked);
 
       expect(MessageApi.getSensors(location)).toHaveLength(0);
 

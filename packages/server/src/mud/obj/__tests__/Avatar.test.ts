@@ -26,7 +26,7 @@ function makeUser(id: string): User {
 
 function makeAvatar(playerId: string): Avatar {
   const a = makeStuff(() => new Avatar());
-  a.playerId = playerId;
+  a.setPlayerId(playerId);
   return a;
 }
 
@@ -170,9 +170,9 @@ describe('Avatar', () => {
     });
 
     it('should have Named mixin fullName getter', () => {
-      avatar.name = 'Jane';
-      avatar.surname = 'Smith';
-      expect(avatar.fullName).toBe('Jane Smith');
+      avatar.setName('Jane');
+      avatar.setSurname('Smith');
+      expect(avatar.getFullName()).toBe('Jane Smith');
     });
 
   });
@@ -193,8 +193,8 @@ describe('Avatar', () => {
     describe('addInteractive', () => {
       it('should add single interactive', () => {
         avatar.addInteractive(interactive1);
-        expect(avatar.interactives.size).toBe(1);
-        expect(avatar.interactives.has(interactive1)).toBe(true);
+        expect(avatar.getInteractives().size).toBe(1);
+        expect(avatar.getInteractives().has(interactive1)).toBe(true);
       });
 
       it('should add multiple interactives', () => {
@@ -202,17 +202,17 @@ describe('Avatar', () => {
         avatar.addInteractive(interactive2);
         avatar.addInteractive(interactive3);
 
-        expect(avatar.interactives.size).toBe(3);
-        expect(avatar.interactives.has(interactive1)).toBe(true);
-        expect(avatar.interactives.has(interactive2)).toBe(true);
-        expect(avatar.interactives.has(interactive3)).toBe(true);
+        expect(avatar.getInteractives().size).toBe(3);
+        expect(avatar.getInteractives().has(interactive1)).toBe(true);
+        expect(avatar.getInteractives().has(interactive2)).toBe(true);
+        expect(avatar.getInteractives().has(interactive3)).toBe(true);
       });
 
       it('should not add duplicate interactive (Set behavior)', () => {
         avatar.addInteractive(interactive1);
         avatar.addInteractive(interactive1);
 
-        expect(avatar.interactives.size).toBe(1);
+        expect(avatar.getInteractives().size).toBe(1);
       });
     });
 
@@ -225,22 +225,22 @@ describe('Avatar', () => {
       it('should remove interactive', () => {
         avatar.removeInteractive(interactive1);
 
-        expect(avatar.interactives.size).toBe(1);
-        expect(avatar.interactives.has(interactive1)).toBe(false);
-        expect(avatar.interactives.has(interactive2)).toBe(true);
+        expect(avatar.getInteractives().size).toBe(1);
+        expect(avatar.getInteractives().has(interactive1)).toBe(false);
+        expect(avatar.getInteractives().has(interactive2)).toBe(true);
       });
 
       it('should handle removing non-existent interactive', () => {
         avatar.removeInteractive(interactive3);
 
-        expect(avatar.interactives.size).toBe(2);
+        expect(avatar.getInteractives().size).toBe(2);
       });
 
       it('should handle removing all interactives', () => {
         avatar.removeInteractive(interactive1);
         avatar.removeInteractive(interactive2);
 
-        expect(avatar.interactives.size).toBe(0);
+        expect(avatar.getInteractives().size).toBe(0);
       });
     });
 

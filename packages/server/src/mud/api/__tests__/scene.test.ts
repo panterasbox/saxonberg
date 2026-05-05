@@ -62,8 +62,8 @@ describe('MessageApi.Topics / Tags', () => {
 describe('MessageApi.refOf', () => {
   it('produces a wire-safe StuffRef with display name when available', () => {
     const obj = makeStuff(() => new CapSensor());
-    obj.name = 'Alice';
-    obj.surname = 'A';
+    obj.setName('Alice');
+    obj.setSurname('A');
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
     // refOf carries the casual register; clients render the formal
@@ -148,11 +148,11 @@ describe('Scene multi-audience dispatch', () => {
   beforeEach(() => {
     location = makeStuff(() => new Location());
     alice = makeStuff(() => new CapSensor());
-    alice.name = 'Alice';
+    alice.setName('Alice');
     bob = makeStuff(() => new CapSensor());
-    bob.name = 'Bob';
+    bob.setName('Bob');
     carol = makeStuff(() => new CapSensor());
-    carol.name = 'Carol';
+    carol.setName('Carol');
     ContainmentApi.move(alice, location);
     ContainmentApi.move(bob, location);
     ContainmentApi.move(carol, location);

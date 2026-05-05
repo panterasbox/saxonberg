@@ -89,7 +89,7 @@ describe('MixinApi type predicates', () => {
     const obj: Stuff = composite;
     if (MixinApi.isNamed(obj)) {
       // Type-narrowed: accessing fullName compiles without cast
-      expect(typeof obj.fullName).toBe('string');
+      expect(typeof obj.getFullName()).toBe('string');
     } else {
       throw new Error('composite should satisfy isNamed');
     }

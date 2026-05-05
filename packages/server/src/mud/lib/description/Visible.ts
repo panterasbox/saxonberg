@@ -31,8 +31,10 @@ import type { MixinConstructor } from '../mixin';
  * Public shape provided by VisibleMixin.
  */
 export interface Visible {
-  shortDescription: string;
-  longDescription: string;
+  getShortDescription(): string;
+  setShortDescription(value: string): void;
+  getLongDescription(): string;
+  setLongDescription(value: string): void;
   getShort(): string;
   getLong(): string;
 }
@@ -60,18 +62,34 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static persistentFields = ['shortDescription', 'longDescription'];
 
-    shortDescription: string = '';
-    longDescription: string = '';
+    protected shortDescription: string = '';
+    protected longDescription: string = '';
+
+    getShortDescription(): string {
+      return this.shortDescription;
+    }
+
+    setShortDescription(value: string): void {
+      this.shortDescription = value;
+    }
+
+    getLongDescription(): string {
+      return this.longDescription;
+    }
+
+    setLongDescription(value: string): void {
+      this.longDescription = value;
+    }
 
     /**
-     * Get the short description.
+     * Get the short description with fallback.
      */
     getShort(): string {
       return this.shortDescription || 'You see nothing special.';
     }
 
     /**
-     * Get the long description.
+     * Get the long description with fallback to short, then default.
      */
     getLong(): string {
       return this.longDescription || this.shortDescription || 'You see nothing special.';

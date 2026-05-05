@@ -48,16 +48,16 @@ describe('Mobile movement-message settings (Phase E)', () => {
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
     locA = makeStuff(() => new CartesianLocation());
-    locA.shortDescription = 'A';
+    locA.setShortDescription('A');
     locB = makeStuff(() => new CartesianLocation());
-    locB.shortDescription = 'B';
+    locB.setShortDescription('B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
   });
 
   it('NPC (no EnvironmentMixin) renders the schema default', () => {
     const npc = makeStuff(() => new Npc());
-    npc.name = 'Goblin';
+    npc.setName('Goblin');
     ContainmentApi.move(npc, locA);
 
     // Teleport: arrival is rendered at schema default for the bland
@@ -73,7 +73,7 @@ describe('Mobile movement-message settings (Phase E)', () => {
 
   it('Avatar override changes the self-perspective message', () => {
     const avatar = makeStuff(() => new AvatarLike());
-    avatar.name = 'Hero';
+    avatar.setName('Hero');
     ContainmentApi.move(avatar, locA);
 
     avatar.setSetting<string>(
@@ -93,11 +93,11 @@ describe('Mobile movement-message settings (Phase E)', () => {
 
   it('Avatar override does NOT bleed into peer messages', () => {
     const avatar = makeStuff(() => new AvatarLike());
-    avatar.name = 'Hero';
+    avatar.setName('Hero');
     ContainmentApi.move(avatar, locA);
 
     const peer = makeStuff(() => new Npc());
-    peer.name = 'Bystander';
+    peer.setName('Bystander');
     ContainmentApi.move(peer, locB);
 
     avatar.setSetting<string>(

@@ -15,13 +15,17 @@ import { Avatar } from '../../obj/Avatar';
 import { User } from '../../lib/identity/User';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
-// Mock Avatar objects for testing
+// Mock Avatar objects for testing.
+// The migration's methods-only contract means PlayerApi reads
+// `avatar.getPlayerId()`; the mock has to implement those methods.
 const createMockAvatar = (playerId: string): Avatar => {
+  let _playerId = playerId;
   return {
-    playerId,
-    name: 'Test',
-    surname: 'User',
-    fullName: 'Test User',
+    getPlayerId: () => _playerId,
+    setPlayerId: (v: string) => { _playerId = v; },
+    getName: () => 'Test',
+    getSurname: () => 'User',
+    getFullName: () => 'Test User',
     stuffId: `avatar-${playerId}`,
   } as unknown as Avatar;
 };
@@ -44,7 +48,6 @@ describe('PlayerApi', () => {
 
     it('should handle avatar without playerId gracefully', () => {
       const avatar = createMockAvatar('');
-      avatar.playerId = ''; // Empty playerId
 
       // Should not throw
       expect(() => PlayerApi.registerAvatar(avatar)).not.toThrow();
@@ -96,7 +99,6 @@ describe('PlayerApi', () => {
 
     it('should handle unregistering avatar without playerId gracefully', () => {
       const avatar = createMockAvatar('');
-      avatar.playerId = '';
 
       // Should not throw
       expect(() => PlayerApi.unregisterAvatar(avatar)).not.toThrow();
@@ -240,11 +242,11 @@ describe('PlayerApi', () => {
 
     beforeEach(() => {
       mockAvatar1 = makeStuff(() => new Avatar());
-      mockAvatar1.playerId = 'player1';
-      mockAvatar1.name = 'Alice';
+      mockAvatar1.setPlayerId('player1');
+      mockAvatar1.setName('Alice');
       mockAvatar2 = makeStuff(() => new Avatar());
-      mockAvatar2.playerId = 'player2';
-      mockAvatar2.name = 'Bob';
+      mockAvatar2.setPlayerId('player2');
+      mockAvatar2.setName('Bob');
     });
 
     afterEach(() => {

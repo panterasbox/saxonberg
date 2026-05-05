@@ -13,8 +13,8 @@ import type { MixinConstructor } from '../mixin';
 
 /** Public shape added by SphericalCoordinatesMixin. */
 export interface SphericalCoordinates {
-  coordinates: [number, number, number];
-  radius: number;
+  getCoordinates(): [number, number, number];
+  setCoordinates(value: [number, number, number]): void;
   getRho(): number;
   getTheta(): number;
   getPhi(): number;
@@ -31,10 +31,15 @@ export function SphericalCoordinatesMixin<TBase extends MixinConstructor>(Base: 
     static persistentFields = ['coordinates', 'radius'];
 
     /** [rho, theta, phi] — radial distance + two angles. */
-    coordinates: [number, number, number] = [0, 0, 0];
+    protected coordinates: [number, number, number] = [0, 0, 0];
 
     /** Sphere radius. Default 1.0 makes a unit sphere. */
-    radius: number = 1.0;
+    protected radius: number = 1.0;
+
+    getCoordinates(): [number, number, number] { return this.coordinates; }
+    setCoordinates(value: [number, number, number]): void {
+      this.coordinates = value;
+    }
 
     getRho(): number {
       return this.coordinates[0];

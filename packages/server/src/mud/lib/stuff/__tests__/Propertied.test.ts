@@ -16,9 +16,18 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-// Test class with PropertiedMixin
+// Test class with PropertiedMixin.
+// Subclass-level test seams (per § 6 of the methods-only migration):
+// `peekSavedProps()` / `peekTransientProps()` expose the protected mixin
+// storage so assertions can inspect it directly.
 class PropertiedThing extends PropertiedMixin(Stuff) {
   static persistentFields: string[] = [];
+  public peekSavedProps(): Record<string, unknown> | undefined {
+    return this.savedProps as Record<string, unknown> | undefined;
+  }
+  public peekTransientProps(): Record<string, unknown> {
+    return this.transientProps as Record<string, unknown>;
+  }
 }
 
 // Minimal Stuff subclass for use as a mask owner in tests.
@@ -64,9 +73,9 @@ describe('PropertiedMixin', () => {
 
   describe('Construction', () => {
     it('should create object with empty properties', () => {
-      expect(obj.savedProps).toBeDefined();
-      expect(obj.transientProps).toBeDefined();
-      expect(Object.keys(obj.props).length).toBe(0);
+      expect(obj.peekSavedProps()).toBeDefined();
+      expect(obj.peekTransientProps()).toBeDefined();
+      expect(Object.keys(obj.getProps()).length).toBe(0);
     });
 
     it('should have PropertiedMixin marker', () => {
@@ -74,7 +83,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should have read-only props view', () => {
-      const props = obj.props;
+      const props = obj.getProps();
       expect(props).toBeDefined();
       expect(typeof props).toBe('object');
     });
@@ -151,16 +160,16 @@ describe('PropertiedMixin', () => {
       obj.initProp(new Property('temp'), { transient: true });
       obj.setProp(new Property('temp'), 'value');
 
-      expect(obj.transientProps['temp']).toBe('value');
-      expect(obj.savedProps!['temp']).toBeUndefined();
+      expect(obj.peekTransientProps()['temp']).toBe('value');
+      expect(obj.peekSavedProps()!['temp']).toBeUndefined();
     });
 
     it('should initialize property as saved', () => {
       obj.initProp(new Property('gold'), { transient: false });
       obj.setProp(new Property('gold'), 100);
 
-      expect(obj.savedProps!['gold']).toBe(100);
-      expect(obj.transientProps['gold']).toBeUndefined();
+      expect(obj.peekSavedProps()!['gold']).toBe(100);
+      expect(obj.peekTransientProps()['gold']).toBeUndefined();
     });
 
     it('should return false if property already exists', () => {
@@ -203,7 +212,7 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('temp'), 'value');
       obj.removeProp(new Property('temp'));
 
-      expect(obj.transientProps['temp']).toBeUndefined();
+      expect(obj.peekTransientProps()['temp']).toBeUndefined();
     });
 
     it('should remove from savedProps', () => {
@@ -211,7 +220,7 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('gold'), 100);
       obj.removeProp(new Property('gold'));
 
-      expect(obj.savedProps!['gold']).toBeUndefined();
+      expect(obj.peekSavedProps()!['gold']).toBeUndefined();
     });
   });
 
@@ -228,8 +237,8 @@ describe('PropertiedMixin', () => {
       expect(success).toBe(true);
 
       // Value should move from transient to saved
-      expect(obj.transientProps['test']).toBeUndefined();
-      expect(obj.savedProps!['test']).toBe('value');
+      expect(obj.peekTransientProps()['test']).toBeUndefined();
+      expect(obj.peekSavedProps()!['test']).toBe('value');
     });
 
     it('should change saved to transient', () => {
@@ -242,8 +251,8 @@ describe('PropertiedMixin', () => {
       });
       expect(success).toBe(true);
 
-      expect(obj.savedProps!['test']).toBeUndefined();
-      expect(obj.transientProps['test']).toBe('value');
+      expect(obj.peekSavedProps()!['test']).toBeUndefined();
+      expect(obj.peekTransientProps()['test']).toBe('value');
     });
 
     it('should return false for non-existent property', () => {
@@ -363,7 +372,7 @@ describe('PropertiedMixin', () => {
       });
 
       // Manually set via internal storage (bypass access control for test)
-      obj.transientProps['protected'] = 'value';
+      obj.peekTransientProps()['protected'] = 'value';
 
       // Get should work
       expect(obj.getProp(new Property<string>('protected'))).toBe('value');
@@ -553,13 +562,13 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('saved'), 'saved_value');
       obj.setProp(new Property('transient'), 'transient_value');
 
-      const props = obj.props;
+      const props = obj.getProps();
       expect(props['saved']).toBe('saved_value');
       expect(props['transient']).toBe('transient_value');
     });
 
     it('should be read-only view', () => {
-      const props = obj.props;
+      const props = obj.getProps();
       expect(Object.isFrozen(props)).toBe(false); // Not frozen, but shouldn't mutate original
     });
   });
@@ -574,15 +583,15 @@ describe('PropertiedMixin', () => {
       obj.initProp(new Property('temp'), { transient: true });
       obj.setProp(new Property('temp'), 'ephemeral');
 
-      expect(obj.savedProps!['temp']).toBeUndefined();
-      expect(obj.transientProps['temp']).toBe('ephemeral');
+      expect(obj.peekSavedProps()!['temp']).toBeUndefined();
+      expect(obj.peekTransientProps()['temp']).toBe('ephemeral');
     });
 
     it('should persist saved properties', () => {
       obj.initProp(new Property('gold'), { transient: false });
       obj.setProp(new Property('gold'), 100);
 
-      expect(obj.savedProps!['gold']).toBe(100);
+      expect(obj.peekSavedProps()!['gold']).toBe(100);
     });
 
     it('should serialize savedProps to JSON', () => {
@@ -591,7 +600,7 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('gold'), 100);
       obj.setProp(new Property('level'), 5);
 
-      const json = JSON.stringify(obj.savedProps);
+      const json = JSON.stringify(obj.peekSavedProps());
       const parsed = JSON.parse(json);
 
       expect(parsed['gold']).toBe(100);
@@ -814,17 +823,17 @@ describe('PropertiedMixin', () => {
       obj.configureProp(new Property('conflict'), { transient: true });
       obj.setProp(new Property('conflict'), 'transient_value');
 
-      const props = obj.props;
+      const props = obj.getProps();
       expect(props['conflict']).toBe('transient_value');
     });
 
     it('should reflect real-time changes', () => {
       obj.setProp(new Property('a'), 1);
-      let props = obj.props;
+      let props = obj.getProps();
       expect(props['a']).toBe(1);
 
       obj.setProp(new Property('a'), 2);
-      props = obj.props;
+      props = obj.getProps();
       expect(props['a']).toBe(2);
     });
 
@@ -839,7 +848,7 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('trans1'), 't1');
       obj.setProp(new Property('trans2'), 't2');
 
-      const props = obj.props;
+      const props = obj.getProps();
       expect(Object.keys(props).length).toBe(4);
       expect(props['saved1']).toBe('s1');
       expect(props['trans1']).toBe('t1');
@@ -866,8 +875,8 @@ describe('PropertiedMixin', () => {
       expect(success).toBe(true);
 
       // Check transient changed
-      expect(obj.savedProps!['test']).toBe('value');
-      expect(obj.transientProps['test']).toBeUndefined();
+      expect(obj.peekSavedProps()!['test']).toBe('value');
+      expect(obj.peekTransientProps()['test']).toBeUndefined();
 
       // Check access control changed
       const setSuccess = obj.setProp(new Property<string>('test'), 'new');
@@ -882,7 +891,7 @@ describe('PropertiedMixin', () => {
       obj.configureProp(new Property('test'), { checkAccess: newAccess });
 
       // Value should be preserved (access control prevents getting it though)
-      expect(obj.transientProps['test']).toBe('original');
+      expect(obj.peekTransientProps()['test']).toBe('original');
     });
   });
 
@@ -1044,7 +1053,7 @@ describe('PropertiedMixin', () => {
       });
 
       // Set via internal access
-      obj.transientProps['secret'] = 100;
+      obj.peekTransientProps()['secret'] = 100;
 
       // Add mask
       const mask: PropValueMask<number> = (prop, value) => value + 50;
@@ -1064,7 +1073,7 @@ describe('PropertiedMixin', () => {
         checkAccess
       });
 
-      obj.transientProps['stat'] = 10;
+      obj.peekTransientProps()['stat'] = 10;
 
       const mask: PropValueMask<number> = (prop, value) => value * 2;
       obj.maskProp(new Property<number>('stat'), mask, makeOwner());
@@ -1163,14 +1172,14 @@ describe('PropertiedMixin', () => {
       obj.initProp(new Property('complex'), { transient: false });
       obj.setProp(new Property('complex'), complex);
 
-      const json = JSON.stringify(obj.savedProps);
+      const json = JSON.stringify(obj.peekSavedProps());
       const parsed = JSON.parse(json);
 
       expect(parsed['complex']).toEqual(complex);
     });
 
     it('should handle empty savedProps serialization', () => {
-      const json = JSON.stringify(obj.savedProps);
+      const json = JSON.stringify(obj.peekSavedProps());
       const parsed = JSON.parse(json);
 
       expect(parsed).toEqual({});
@@ -1182,10 +1191,10 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('trans'), 'transient');
       obj.setProp(new Property('saved'), 'persistent');
 
-      expect(obj.savedProps!['trans']).toBeUndefined();
-      expect(obj.savedProps!['saved']).toBe('persistent');
-      expect(obj.transientProps['trans']).toBe('transient');
-      expect(obj.transientProps['saved']).toBeUndefined();
+      expect(obj.peekSavedProps()!['trans']).toBeUndefined();
+      expect(obj.peekSavedProps()!['saved']).toBe('persistent');
+      expect(obj.peekTransientProps()['trans']).toBe('transient');
+      expect(obj.peekTransientProps()['saved']).toBeUndefined();
     });
   });
 });

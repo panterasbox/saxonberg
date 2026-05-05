@@ -64,8 +64,17 @@ export class Door extends DoorBase {
    *
    * Not persistent: the relationship is rebuilt at load time as Exits
    * are constructed. Wiping it on destroy is `prepareDestroy`'s job.
+   *
+   * Host-internal storage; external callers (Exit's door setter,
+   * ExitableVessel's synth, tests) go through `attachExit` /
+   * `detachExit` / `hasAttached` / `getAttachedTo`.
    */
-  public attachedTo: Set<Exit> = new Set();
+  protected attachedTo: Set<Exit> = new Set();
+
+  public attachExit(exit: Exit): void { this.attachedTo.add(exit); }
+  public detachExit(exit: Exit): boolean { return this.attachedTo.delete(exit); }
+  public hasAttached(exit: Exit): boolean { return this.attachedTo.has(exit); }
+  public getAttachedTo(): ReadonlySet<Exit> { return this.attachedTo; }
 
   /**
    * Union of the PerceptibleMixin keyword list with the tokens of the
@@ -75,7 +84,7 @@ export class Door extends DoorBase {
    */
   override getKeywords(): string[] {
     const base = super.getKeywords();
-    const nameTokens = this.shortDescription
+    const nameTokens = this.getShortDescription()
       .toLowerCase()
       .split(/\s+/)
       .filter((t) => t.length > 0);
@@ -94,7 +103,7 @@ export class Door extends DoorBase {
   public detach(): void {
     const exits = [...this.attachedTo];
     for (const exit of exits) {
-      exit.door = null;
+      exit.setDoor(null);
     }
     this.attachedTo.clear();
   }

@@ -58,7 +58,7 @@ export class ExitableVessel extends ExitableVesselBase {
   private entryCacheEnvId: string | null = null;
 
   public override getExit(direction: string): Exit | undefined {
-    const explicit = this.exits.get(direction);
+    const explicit = this.getExits().get(direction);
     if (explicit) return explicit;
 
     if (direction === 'out') return this.getOrSynthesizeOutExit();
@@ -69,7 +69,7 @@ export class ExitableVessel extends ExitableVesselBase {
   public override getObviousExits(): Exit[] {
     const base = super.getObviousExits();
     const out = this.getOrSynthesizeOutExit();
-    if (out && !out.hidden) base.push(out);
+    if (out && !out.isHidden()) base.push(out);
     return base;
   }
 
@@ -95,9 +95,9 @@ export class ExitableVessel extends ExitableVesselBase {
    * back-references on both sides of the transition.
    */
   public override setDoor(door: Door | null): void {
-    if (door === this.door) return;
+    if (door === this.getDoor()) return;
     this.invalidateSynthesizedExits();
-    this.door = door;
+    super.setDoor(door);
   }
 
   /**
@@ -107,7 +107,7 @@ export class ExitableVessel extends ExitableVesselBase {
    * command controller doesn't need to hand-build an `Exit`.
    */
   public getEntryExit(): Exit | undefined {
-    const env = this.environment;
+    const env = this.getContainer();
     if (!env) return undefined;
 
     if (this.entryCache && this.entryCacheEnvId === env.stuffId) {
@@ -115,22 +115,23 @@ export class ExitableVessel extends ExitableVesselBase {
     }
 
     const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
+    const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'in',
       source: env,
       destination: this as unknown as Stuff & Container,
-      door: this.door,
+      door,
       messageOut: `{{ mover }} enters the <name>${vesselName}</name>.`,
       messageIn: `{{ mover }} enters from outside.`,
     }));
-    if (this.door) this.door.attachedTo.add(exit);
+    if (door) door.attachExit(exit);
     this.entryCache = exit;
     this.entryCacheEnvId = env.stuffId;
     return exit;
   }
 
   private getOrSynthesizeOutExit(): Exit | undefined {
-    const env = this.environment;
+    const env = this.getContainer();
     if (!env) return undefined;
 
     if (this.outCache && this.outCacheEnvId === env.stuffId) {
@@ -138,15 +139,16 @@ export class ExitableVessel extends ExitableVesselBase {
     }
 
     const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
+    const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'out',
       source: this as unknown as Stuff & Container,
       destination: env,
-      door: this.door,
+      door,
       messageOut: `{{ mover }} leaves the <name>${vesselName}</name>.`,
       messageIn: `{{ mover }} emerges from the <name>${vesselName}</name>.`,
     }));
-    if (this.door) this.door.attachedTo.add(exit);
+    if (door) door.attachExit(exit);
     this.outCache = exit;
     this.outCacheEnvId = env.stuffId;
     return exit;
@@ -158,11 +160,13 @@ export class ExitableVessel extends ExitableVesselBase {
    * will recreate them with the current `door` and re-register.
    */
   private invalidateSynthesizedExits(): void {
-    if (this.outCache?.door) {
-      this.outCache.door.attachedTo.delete(this.outCache);
+    const outDoor = this.outCache?.getDoor();
+    if (this.outCache && outDoor) {
+      outDoor.detachExit(this.outCache);
     }
-    if (this.entryCache?.door) {
-      this.entryCache.door.attachedTo.delete(this.entryCache);
+    const entryDoor = this.entryCache?.getDoor();
+    if (this.entryCache && entryDoor) {
+      entryDoor.detachExit(this.entryCache);
     }
     this.outCache = null;
     this.outCacheEnvId = null;

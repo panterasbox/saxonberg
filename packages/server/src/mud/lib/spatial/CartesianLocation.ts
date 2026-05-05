@@ -32,9 +32,10 @@ const CartesianLocationBase = PostRegistrationMixin(
 
 export class CartesianLocation extends CartesianLocationBase {
   public override addExit(exit: Exit): boolean {
-    if (!NavigationApi.isCardinalDirection(exit.direction)) {
+    const direction = exit.getDirection();
+    if (!NavigationApi.isCardinalDirection(direction)) {
       throw new Error(
-        `CartesianLocation.addExit: direction '${exit.direction}' is not a cardinal direction. ` +
+        `CartesianLocation.addExit: direction '${direction}' is not a cardinal direction. ` +
           `Cartesian locations only accept n/s/e/w/diagonals/up/down exits.`
       );
     }

@@ -68,19 +68,18 @@ export interface ExitOptions {
 }
 
 export class Exit extends Idea {
-  /**
-   * Direction label. Cardinals (`'north'`, `'ne'`, `'up'`, …) for cartesian
-   * exits; semantic labels (`'office'`, `'plaza'`) for spherical exits; and
-   * `'out'` for the vessel-synthesized exit.
-   */
-  public direction: string;
+  protected direction: string;
+  public getDirection(): string { return this.direction; }
+  public setDirection(value: string): void { this.direction = value; }
 
-  /** The Exitable this exit leaves from. */
-  public source: Stuff & Container;
+  protected source: Stuff & Container;
+  public getSource(): Stuff & Container { return this.source; }
+  public setSource(value: Stuff & Container): void { this.source = value; }
 
   /**
-   * Resolved destination (live ref). Populated lazily by `getDestination()`
-   * when the Exit was constructed with `destinationPath` only.
+   * Resolved destination (live ref). Populated lazily by
+   * `resolveDestination()` when the Exit was constructed with
+   * `destinationPath` only.
    */
   private _destination: (Stuff & Container) | null;
 
@@ -94,12 +93,16 @@ export class Exit extends Idea {
   private _destinationPath: string | null;
 
   /**
-   * Synchronous accessor. Returns the live destination if resolved or
-   * cached (the singleton index is consulted as a fast path). Throws if
-   * the destination is path-only and not yet loaded — callers in that
-   * situation must `await exit.getDestination()`.
+   * Host-internal accessor pair (Pattern D). External callers go
+   * through `getDestination()` / `setDestination()`. The getter throws
+   * if the destination is path-only and not yet loaded — callers in
+   * that situation must `await exit.resolveDestination()`.
+   *
+   * The accessor is kept (private) so that hydrators / framework
+   * brackets writing `exit['destination'] = X` continue to fire the
+   * setter; the public method form is the inter-Stuff contract.
    */
-  public get destination(): Stuff & Container {
+  protected get destination(): Stuff & Container {
     if (this._destination) return this._destination;
     if (this._destinationPath) {
       const cached = StuffApi.findByTemplatePath<Stuff & Container>(
@@ -111,81 +114,92 @@ export class Exit extends Idea {
       }
       throw new Error(
         `Exit destination '${this._destinationPath}' is not yet loaded; ` +
-          `await exit.getDestination() first.`
+          `await exit.resolveDestination() first.`
       );
     }
     throw new Error('Exit has no destination');
   }
 
-  /**
-   * Setter used by code that constructs an Exit and later supplies a
-   * live destination (e.g., a verifier that resolved a path).
-   */
-  public set destination(value: Stuff & Container) {
+  protected set destination(value: Stuff & Container) {
     this._destination = value;
   }
 
-  /** Backing storage for `door`; the getter / setter mediate
+  public getDestination(): Stuff & Container { return this.destination; }
+  public setDestination(value: Stuff & Container): void { this.destination = value; }
+
+  /** Backing storage for `door`; the accessor pair mediates
    *  `Door.attachedTo` bookkeeping. */
   private _door: Door | null = null;
 
   /**
-   * Optional shared door — same instance on both sides of a
-   * bidirectional pair. Setting this property updates the door's
-   * `attachedTo` back-reference: the previous door (if any) drops
-   * this Exit, the new door (if any) gains it. `null` clears.
+   * Host-internal accessor pair (Pattern D). External callers go
+   * through `getDoor()` / `setDoor()`. Setting this property updates
+   * the door's `attachedTo` back-reference: the previous door (if any)
+   * drops this Exit, the new door (if any) gains it. `null` clears.
    */
-  public get door(): Door | null {
+  protected get door(): Door | null {
     return this._door;
   }
 
-  public set door(value: Door | null) {
+  protected set door(value: Door | null) {
     if (value === this._door) return;
-    if (this._door) this._door.attachedTo.delete(this);
+    if (this._door) this._door.detachExit(this);
     this._door = value;
-    if (value) value.attachedTo.add(this);
+    if (value) value.attachExit(this);
   }
 
+  public getDoor(): Door | null { return this.door; }
+  public setDoor(value: Door | null): void { this.door = value; }
+
   /** Hidden exits are skipped by `getObviousExits()` (and therefore by `look`). */
-  public hidden: boolean;
+  protected hidden: boolean;
 
   /** Permanently blocked regardless of door state. */
-  public blocked: boolean;
+  protected blocked: boolean;
 
   /** Muffled exits: movement/speech through here is suppressed for sensors. Reserved for later phases. */
-  public muffled: boolean;
+  protected muffled: boolean;
 
   /** If true, followers/mounts don't chain through this exit. Reserved for later phases. */
-  public noFollow: boolean;
+  protected noFollow: boolean;
 
   /**
    * Intentionally one-way. Mutual-exit verification skips this Exit when
    * checking that the destination has a back-pointing inverse.
-   *
-   * Use for portals, teleporters, and other content whose topology is
-   * asymmetric by design. Forgetting to author the back side of a normal
-   * exit should NOT set this flag — the verifier exists to catch that.
    */
-  public oneWay: boolean;
+  protected oneWay: boolean;
+
+  public isHidden(): boolean { return this.hidden; }
+  public setHidden(value: boolean): void { this.hidden = value; }
+  public isBlocked(): boolean { return this.blocked; }
+  public setBlocked(value: boolean): void { this.blocked = value; }
+  public isMuffled(): boolean { return this.muffled; }
+  public setMuffled(value: boolean): void { this.muffled = value; }
+  public isNoFollow(): boolean { return this.noFollow; }
+  public setNoFollow(value: boolean): void { this.noFollow = value; }
+  public isOneWay(): boolean { return this.oneWay; }
+  public setOneWay(value: boolean): void { this.oneWay = value; }
 
   /** Custom arrival text (destination peers). `null` → use default. */
-  public messageIn: string | null;
+  protected messageIn: string | null;
 
   /** Custom departure text (source peers). `null` → use default. */
-  public messageOut: string | null;
+  protected messageOut: string | null;
+
+  public getMessageIn(): string | null { return this.messageIn; }
+  public setMessageIn(value: string | null): void { this.messageIn = value; }
+  public getMessageOut(): string | null { return this.messageOut; }
+  public setMessageOut(value: string | null): void { this.messageOut = value; }
 
   /**
    * Counterpart Exit on the destination side, when this exit is part
    * of a bidirectional pair. `undefined` for one-way exits, vessel-
    * synthesized `'out'` exits, or pairs that haven't been wired (lazy-
    * load case).
-   *
-   * Wired up by `Exitable.addBidirectionalExit()` after both forward
-   * and back exits exist, and by the load-time mutual-exit verifier
-   * when the destination loads after the source. Readers must tolerate
-   * `undefined`.
    */
-  public inverse?: Exit;
+  protected inverse?: Exit;
+  public getInverse(): Exit | undefined { return this.inverse; }
+  public setInverse(value: Exit | undefined): void { this.inverse = value; }
 
   constructor(opts: ExitOptions) {
     super();
@@ -218,7 +232,7 @@ export class Exit extends Idea {
    * authored with `destinationPath` only and the target hasn't been
    * loaded yet. Caches the resolved live reference for subsequent calls.
    */
-  public async getDestination(): Promise<Stuff & Container> {
+  public async resolveDestination(): Promise<Stuff & Container> {
     if (this._destination) return this._destination;
     if (this._destinationPath) {
       const resolved = await StuffApi.singleton<Stuff & Container>(
@@ -259,7 +273,7 @@ export class Exit extends Idea {
    */
   public prepareDestroy(): void {
     if (this.inverse) {
-      this.inverse.inverse = undefined;
+      this.inverse.setInverse(undefined);
       this.inverse = undefined;
     }
     // Setter detaches us from the door's `attachedTo` set.
@@ -277,7 +291,7 @@ export class Exit extends Idea {
     if (this.blocked) {
       return { ok: false, reason: 'The way is blocked.' };
     }
-    if (this.door && !this.door.isOpen) {
+    if (this.door && !this.door.getIsOpen()) {
       const doorName = DescribeApi.getDisplayName(this.door, 'door');
       return { ok: false, reason: `The ${doorName} is closed.` };
     }

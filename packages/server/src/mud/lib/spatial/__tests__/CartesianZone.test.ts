@@ -15,8 +15,8 @@ describe('CartesianZone', () => {
   });
 
   it('addLocation stamps coordinates and zone backref', () => {
-    expect(center.coordinates).toEqual([0, 0, 0]);
-    expect(center.zone).toBe(zone);
+    expect(center.getCoordinates()).toEqual([0, 0, 0]);
+    expect(center.getZone()).toBe(zone);
     expect(zone.contains(center)).toBe(true);
   });
 
@@ -44,9 +44,9 @@ describe('CartesianZone', () => {
     for (const [dir] of dirs) {
       const exit = zone.deriveExit(center, dir);
       expect(exit).toBeDefined();
-      expect(exit!.direction).toBe(dir);
-      expect(exit!.source).toBe(center);
-      expect(exit!.destination).toBe(neighbors[dir]);
+      expect(exit!.getDirection()).toBe(dir);
+      expect(exit!.getSource()).toBe(center);
+      expect(exit!.getDestination()).toBe(neighbors[dir]);
     }
   });
 
@@ -94,7 +94,7 @@ describe('CartesianZone', () => {
 
     const fresh = zone.deriveExit(center, 'north');
     expect(fresh).not.toBe(cachedA);
-    expect(fresh!.destination).toBe(b);
+    expect(fresh!.getDestination()).toBe(b);
   });
 
   it('invalidates cache on removeLocation', () => {
@@ -114,6 +114,6 @@ describe('CartesianZone', () => {
   });
 
   it('exposes the informational cellSize default', () => {
-    expect(zone.cellSize).toBe(1.0);
+    expect(zone.getCellSize()).toBe(1.0);
   });
 });

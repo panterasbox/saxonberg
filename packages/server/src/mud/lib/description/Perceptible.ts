@@ -46,7 +46,6 @@ import type { MixinConstructor } from '../mixin';
  * Public shape provided by PerceptibleMixin.
  */
 export interface Perceptible {
-  keywords: string[];
   getKeywords(): string[];
   addKeyword(keyword: string): void;
   removeKeyword(keyword: string): boolean;
@@ -68,20 +67,18 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _keywords: string[] = [];
 
     /**
-     * Read the keyword list. Returns a defensive copy so callers can't
-     * mutate the internal array through the getter.
+     * Host-internal accessor pair (Pattern D). External callers go
+     * through `getKeywords()` / `setKeywords()`. The private setter
+     * still fires when the Hydrator bracket-assigns
+     * `target['keywords'] = data['keywords']` — bracket access bypasses
+     * TS visibility, so the normalization invariant runs during
+     * hydration.
      */
-    get keywords(): string[] {
+    protected get keywords(): string[] {
       return [...this._keywords];
     }
 
-    /**
-     * Replace the keyword list, normalizing every entry through
-     * `addKeyword()`. Throws when given a non-array. This is the canonical
-     * bulk-assign entry point; the hydrator's `target.keywords = data.keywords`
-     * routes through it.
-     */
-    set keywords(value: string[]) {
+    protected set keywords(value: string[]) {
       if (!Array.isArray(value)) {
         throw new TypeError('Perceptible.keywords must be a string[]');
       }

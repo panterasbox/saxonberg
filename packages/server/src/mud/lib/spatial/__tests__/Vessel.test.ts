@@ -15,7 +15,6 @@ describe('Vessel', () => {
 
   describe('Container side', () => {
     it('starts with empty inventory', () => {
-      expect(vessel.inventory.size).toBe(0);
       expect(vessel.getContents()).toEqual([]);
     });
 

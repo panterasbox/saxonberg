@@ -23,8 +23,8 @@ describe('VisibleMixin', () => {
 
   describe('initialization', () => {
     it('should initialize with empty descriptions', () => {
-      expect(visible.shortDescription).toBe('');
-      expect(visible.longDescription).toBe('');
+      expect(visible.getShortDescription()).toBe('');
+      expect(visible.getLongDescription()).toBe('');
     });
   });
 
@@ -34,7 +34,7 @@ describe('VisibleMixin', () => {
     });
 
     it('should return shortDescription when set', () => {
-      visible.shortDescription = 'A rusty sword';
+      visible.setShortDescription('A rusty sword');
       expect(visible.getShort()).toBe('A rusty sword');
     });
   });
@@ -45,18 +45,18 @@ describe('VisibleMixin', () => {
     });
 
     it('should return longDescription when set', () => {
-      visible.longDescription = 'A long, detailed description of a rusty sword.';
+      visible.setLongDescription('A long, detailed description of a rusty sword.');
       expect(visible.getLong()).toBe('A long, detailed description of a rusty sword.');
     });
 
     it('should fall back to shortDescription when longDescription is empty', () => {
-      visible.shortDescription = 'A rusty sword';
+      visible.setShortDescription('A rusty sword');
       expect(visible.getLong()).toBe('A rusty sword');
     });
 
     it('should prefer longDescription over shortDescription', () => {
-      visible.shortDescription = 'Short';
-      visible.longDescription = 'Long';
+      visible.setShortDescription('Short');
+      visible.setLongDescription('Long');
       expect(visible.getLong()).toBe('Long');
     });
   });

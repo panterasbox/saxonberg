@@ -39,7 +39,6 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
  * Implement only the ones you care about.
  */
 export interface Containable {
-  environment: (Stuff & Container) | null;
   setContainer(container: (Stuff & Container) | null): void;
   getContainer(): (Stuff & Container) | null;
 
@@ -73,7 +72,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * It is NOT included in persistentFields - instead, classes using
      * this mixin must declare a custom persistenceHandler.
      */
-    environment: (Stuff & Container) | null = null;
+    protected environment: (Stuff & Container) | null = null;
 
     /**
      * State-mutation chokepoint. Reachable only from

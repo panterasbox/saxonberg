@@ -92,10 +92,11 @@ export class LookController extends CommandController<LookInput> {
   private formatExits(exits: Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
-      const dir = Mml.direction(exit.direction);
-      if (!exit.door) return dir;
-      const state = exit.door.isOpen ? 'open' : 'closed';
-      const doorName = DescribeApi.getDisplayName(exit.door, 'door');
+      const dir = Mml.direction(exit.getDirection());
+      const door = exit.getDoor();
+      if (!door) return dir;
+      const state = door.getIsOpen() ? 'open' : 'closed';
+      const doorName = DescribeApi.getDisplayName(door, 'door');
       return Mml.compose`${dir} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);

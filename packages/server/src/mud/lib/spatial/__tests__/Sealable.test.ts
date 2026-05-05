@@ -9,19 +9,19 @@ class TestSealable extends SealableMixin(Idea) {}
 describe('SealableMixin', () => {
   it('defaults to closed', () => {
     const s = makeStuff(() => new TestSealable());
-    expect(s.isOpen).toBe(false);
+    expect(s.getIsOpen()).toBe(false);
   });
 
   it('open() and close() flip state idempotently', () => {
     const s = makeStuff(() => new TestSealable());
     s.open();
-    expect(s.isOpen).toBe(true);
+    expect(s.getIsOpen()).toBe(true);
     s.open();
-    expect(s.isOpen).toBe(true);
+    expect(s.getIsOpen()).toBe(true);
     s.close();
-    expect(s.isOpen).toBe(false);
+    expect(s.getIsOpen()).toBe(false);
     s.close();
-    expect(s.isOpen).toBe(false);
+    expect(s.getIsOpen()).toBe(false);
   });
 
   it('MixinApi.isSealable narrows correctly', () => {

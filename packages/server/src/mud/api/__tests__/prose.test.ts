@@ -90,7 +90,7 @@ describe('ProseApi.format — conditionals and filters', () => {
 
   it('threads Mml-vocabulary filters and emits the resulting markup verbatim', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'Alice';
+    obj.setName('Alice');
     const out = ProseApi.format('hi {{ who | name }}!', { who: obj }).toString();
     expect(out).toBe(`hi <name stuff-id="${obj.stuffId}">Alice</name>!`);
   });
@@ -105,8 +105,8 @@ describe('ProseApi.format — conditionals and filters', () => {
 
   it('chains grammar filters: cap on a pronoun', () => {
     const obj = makeStuff(() => new GenderedNamed());
-    obj.name = 'Alice';
-    obj.pronouns = Pronouns.She;
+    obj.setName('Alice');
+    obj.setPronouns(Pronouns.She);
     expect(
       ProseApi.format(
         '{{ a | pronoun: "subj" | cap }} smiles.',

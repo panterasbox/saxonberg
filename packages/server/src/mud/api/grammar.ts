@@ -78,7 +78,7 @@ export class GrammarApi {
    * (`it / it / its / itself`) otherwise.
    */
   static pronoun(stuff: Stuff, kind: PronounKind = 'subj'): string {
-    const set = MixinApi.isGendered(stuff) ? SETS[stuff.pronouns] : NEUTRAL;
+    const set = MixinApi.isGendered(stuff) ? SETS[stuff.getPronouns()] : NEUTRAL;
     return set[kind];
   }
 

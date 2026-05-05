@@ -56,10 +56,10 @@ export class Login extends LoginBase {
     // Avatar before we destruct.
     ConnectionApi.transfer(interactive, this);
 
-    const avatars = await PlayerApi.loadAvatarsForUser(interactive.user);
+    const avatars = await PlayerApi.loadAvatarsForUser(interactive.getUser());
     if (avatars.length !== 1) {
       throw new Error(
-        `Login: expected exactly 1 player for user ${interactive.userId}, ` +
+        `Login: expected exactly 1 player for user ${interactive.getUserId()}, ` +
           `found ${avatars.length}`
       );
     }
@@ -67,7 +67,7 @@ export class Login extends LoginBase {
     const avatar = avatars[0]!;
     ConnectionApi.transfer(interactive, avatar);
 
-    console.info(`Login: User connected - ${avatar.fullName}`);
+    console.info(`Login: User connected - ${avatar.getFullName()}`);
 
     const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
     const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
@@ -76,7 +76,7 @@ export class Login extends LoginBase {
     // before the player has even seen the room.
     avatar.teleport(startingRoom, { silent: true });
     console.info(
-      `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
+      `Login: Placed ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
     );
 
     // Welcome scene: actor frame at system.connection.established
@@ -85,19 +85,19 @@ export class Login extends LoginBase {
     // register, so reach for fullName.
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.system.connection.established)
-      .toSelf(Mml.compose`Welcome back, ${avatar.fullName}!`)
+      .toSelf(Mml.compose`Welcome back, ${avatar.getFullName()}!`)
       .payload({
-        userId: interactive.userId,
-        socketId: interactive.socketId,
-        sessionId: interactive.sessionId,
+        userId: interactive.getUserId(),
+        socketId: interactive.getSocketId(),
+        sessionId: interactive.getSessionId(),
         player: {
-          _id: avatar.playerId,
-          honorific: avatar.honorific,
-          name: avatar.name,
-          surname: avatar.surname,
-          nameSuffix: avatar.nameSuffix,
-          alternateNames: avatar.alternateNames,
-          pronouns: avatar.pronouns,
+          _id: avatar.getPlayerId(),
+          honorific: avatar.getHonorific(),
+          name: avatar.getName(),
+          surname: avatar.getSurname(),
+          nameSuffix: avatar.getNameSuffix(),
+          alternateNames: avatar.getAlternateNames(),
+          pronouns: avatar.getPronouns(),
         },
       })
       .send();
@@ -108,8 +108,8 @@ export class Login extends LoginBase {
     // for any observer (audit, achievements) that doesn't care
     // which avatar — just that this player is now playable.
     EventApi.emit(Events.PlayerLoggedIn, {
-      playerId: avatar.playerId,
-      userId: interactive.userId ?? '',
+      playerId: avatar.getPlayerId(),
+      userId: interactive.getUserId() ?? '',
     });
 
     StuffApi.destruct(this);

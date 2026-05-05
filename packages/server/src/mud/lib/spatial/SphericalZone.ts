@@ -18,11 +18,12 @@ import type { Exit } from './Exit';
 import { SingletonMixin } from '../stuff/Singleton';
 
 /**
- * Minimal shape spherical locations are expected to carry.
+ * Minimal shape spherical locations are expected to carry — provided by
+ * `SphericalCoordinatesMixin`.
  */
 interface HasSphericalCoordinates {
-  coordinates: [number, number, number];
-  radius: number;
+  getCoordinates(): [number, number, number];
+  getRadius(): number;
 }
 
 /** Round a focus tuple to 2 decimals — good enough for authoring tooling. */
@@ -35,23 +36,26 @@ export class SphericalZone extends SingletonMixin(Zone) {
    * Debug / authoring aid: locations indexed by rounded focus tuple.
    * Multiple locations may share a key (nothing prevents overlap); the
    * map stores the most recently added. Not used by exit lookup.
+   * Host-internal storage; external callers go through `getFocusIndex()`.
    */
-  public readonly focusIndex: Map<string, Location> = new Map();
+  protected readonly focusIndex: Map<string, Location> = new Map();
+
+  public getFocusIndex(): ReadonlyMap<string, Location> { return this.focusIndex; }
 
   static persistentFields = ['name'];
 
   public override addLocation(location: Location): void {
     super.addLocation(location);
     const holder = location as unknown as Partial<HasSphericalCoordinates>;
-    if (Array.isArray(holder.coordinates)) {
-      this.focusIndex.set(focusKey(holder.coordinates), location);
+    if (typeof holder.getCoordinates === 'function') {
+      this.focusIndex.set(focusKey(holder.getCoordinates()), location);
     }
   }
 
   public override removeLocation(location: Location): boolean {
     const holder = location as unknown as Partial<HasSphericalCoordinates>;
-    if (Array.isArray(holder.coordinates)) {
-      const key = focusKey(holder.coordinates);
+    if (typeof holder.getCoordinates === 'function') {
+      const key = focusKey(holder.getCoordinates());
       if (this.focusIndex.get(key) === location) {
         this.focusIndex.delete(key);
       }

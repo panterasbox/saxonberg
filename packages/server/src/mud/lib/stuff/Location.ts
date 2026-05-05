@@ -33,8 +33,9 @@ export class Location extends LocationBase {
    * the exit-side teardown.
    */
   protected override prepareDestroy(): void {
-    if (this.zone) {
-      this.zone.removeLocation(this);
+    const zone = this.getZone();
+    if (zone) {
+      zone.removeLocation(this);
     }
   }
 }

@@ -95,7 +95,7 @@ export class ConnectionApi {
     interactive: Interactive,
     target: HasInteractive & Stuff
   ): void {
-    const previous = interactive.holder;
+    const previous = interactive.getHolder();
     if (previous === target) return;
     const previousLinkdead = previous?.isLinkdead() ?? true;
     const targetLinkdead = target.isLinkdead();
@@ -104,7 +104,7 @@ export class ConnectionApi {
       previous.removeInteractive(interactive);
     }
     target.addInteractive(interactive);
-    interactive.holder = target;
+    interactive.setHolder(target);
 
     // Fire Witness hooks AFTER state mutation. Per-connection
     // notifications fire for both endpoints; presence transitions
@@ -137,11 +137,11 @@ export class ConnectionApi {
    * No-op when there's no current holder.
    */
   public static detach(interactive: Interactive): void {
-    const previous = interactive.holder;
+    const previous = interactive.getHolder();
     if (!previous) return;
     const wasConnected = !previous.isLinkdead();
     previous.removeInteractive(interactive);
-    interactive.holder = null;
+    interactive.setHolder(null);
 
     callConnHook(previous, 'onConnectionDetached', []);
     if (wasConnected && previous.isLinkdead()) {

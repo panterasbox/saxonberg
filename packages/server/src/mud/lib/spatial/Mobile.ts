@@ -199,19 +199,19 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       exit: Exit
     ): Promise<void> {
       const mover = this;
-      const source = exit.source;
+      const source = exit.getSource();
       // Lazy-resolve the destination via the singleton cache. For Exits
       // authored with a live ref this is a no-op; for path-only exits
       // it routes through `StuffApi.singleton(path)` which clones if
       // needed.
-      const destination = await exit.getDestination();
+      const destination = await exit.resolveDestination();
 
       // Traversal-time fallback for the mutual-exit invariant. Fires
       // only when the source has at least one exit still awaiting
       // verification — typically a neighbor that hadn't loaded when
       // the source's postRegister verifier ran. Settled exits are
       // tracked individually and don't trigger this re-check.
-      if (MixinApi.isExitable(source) && source.hasPendingVerification) {
+      if (MixinApi.isExitable(source) && source.hasPendingVerification()) {
         source.verifyOutboundExits();
       }
 
@@ -297,8 +297,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const self = this as unknown as Stuff;
 
       // 1. Custom messageOut on the Exit.
-      if (exit?.messageOut) {
-        const fragment = ProseApi.format(exit.messageOut, {
+      const messageOut = exit?.getMessageOut();
+      if (messageOut) {
+        const fragment = ProseApi.format(messageOut, {
           mover: Mml.name(self),
         });
         return { self: fragment, peers: fragment };
@@ -344,8 +345,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     ): MovementBodies {
       const self = this as unknown as Stuff;
 
-      if (exit?.messageIn) {
-        const fragment = ProseApi.format(exit.messageIn, {
+      const messageIn = exit?.getMessageIn();
+      if (messageIn) {
+        const fragment = ProseApi.format(messageIn, {
           mover: Mml.name(self),
         });
         return { self: fragment, peers: fragment };
@@ -413,7 +415,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.departSelf',
       ) ?? '';
-      return ProseApi.format(tpl, { direction: Mml.direction(exit.direction) });
+      return ProseApi.format(tpl, { direction: Mml.direction(exit.getDirection()) });
     }
 
     protected defaultDeparturePeers(exit: Exit): Mml {
@@ -423,7 +425,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       ) ?? '';
       return ProseApi.format(tpl, {
         mover: Mml.name(this as unknown as Stuff),
-        direction: Mml.direction(exit.direction),
+        direction: Mml.direction(exit.getDirection()),
       });
     }
 
@@ -491,7 +493,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
  * arrival message is used in that case.
  */
 function arriveDirection(exit: Exit): string | undefined {
-  return exit.inverse?.direction ?? NavigationApi.invertDirection(exit.direction);
+  return exit.getInverse()?.getDirection() ?? NavigationApi.invertDirection(exit.getDirection());
 }
 
 /**

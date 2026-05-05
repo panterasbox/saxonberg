@@ -13,9 +13,18 @@ import type { MixinConstructor } from '../mixin';
 
 /**
  * Public shape added by SealableMixin.
+ *
+ * The accessor pair `isOpen` is host-internal (Pattern D) so the
+ * hydrator's bracket-assign still fires the boolean-validating setter.
+ * Public read uses `getIsOpen()` rather than `isOpen()` because the
+ * latter would collide with the accessor's prototype slot — the
+ * persistent-field name `isOpen` is locked by § 5 of the migration
+ * doc, so we accept the awkward `getIsOpen()` to keep the schema and
+ * the invariant.
  */
 export interface Sealable {
-  isOpen: boolean;
+  getIsOpen(): boolean;
+  setOpen(value: boolean): void;
   open(): void;
   close(): void;
 }
@@ -30,18 +39,18 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _isOpen: boolean = false;
 
     /**
-     * Current state. `false` = closed. Default closed.
-     *
-     * The setter rejects non-boolean assignments with `TypeError`. Hydrator's
-     * bracket-assign goes through this setter, so a malformed template
-     * (`isOpen: 1`) crashes loudly at hydrate time rather than being silently
-     * coerced at runtime.
+     * Host-internal accessor pair (Pattern D). External callers go
+     * through `getIsOpen()` / `setOpen()`. The setter rejects
+     * non-boolean assignments with `TypeError`. Hydrator's
+     * bracket-assign `target['isOpen'] = data.isOpen` fires this
+     * setter, so a malformed template (`isOpen: 1`) crashes loudly at
+     * hydrate time rather than being silently coerced at runtime.
      */
-    get isOpen(): boolean {
+    protected get isOpen(): boolean {
       return this._isOpen;
     }
 
-    set isOpen(value: boolean) {
+    protected set isOpen(value: boolean) {
       if (typeof value !== 'boolean') {
         throw new TypeError(
           `Sealable.isOpen must be a boolean, got ${typeof value}`
@@ -49,6 +58,9 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this._isOpen = value;
     }
+
+    getIsOpen(): boolean { return this.isOpen; }
+    setOpen(value: boolean): void { this.isOpen = value; }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {

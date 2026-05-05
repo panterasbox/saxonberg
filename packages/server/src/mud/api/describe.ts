@@ -44,9 +44,13 @@ export class DescribeApi {
    *   Visible.shortDescription is available (default: `''`)
    */
   static getDisplayName(obj: Stuff, fallback: string = ''): string {
-    if (MixinApi.isNamed(obj) && obj.name) return obj.name;
-    if (MixinApi.isVisible(obj) && obj.shortDescription) {
-      return obj.shortDescription;
+    if (MixinApi.isNamed(obj)) {
+      const name = obj.getName();
+      if (name) return name;
+    }
+    if (MixinApi.isVisible(obj)) {
+      const short = obj.getShortDescription();
+      if (short) return short;
     }
     return fallback;
   }

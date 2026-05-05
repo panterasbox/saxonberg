@@ -58,11 +58,19 @@ export abstract class Stuff {
    * clone time by `StuffApi.clone()`. Identity-keyed security policies
    * (notably `FromTemplate`) match against this string.
    *
-   * Public so the security framework's policy resolver can read it
-   * through the Proxy. Treated as immutable post-stamp; do not write
-   * after the constructor frame closes.
+   * Storage is public as a framework carve-out: SecurityPolicies and
+   * StuffApi indexes read it directly through the Proxy via
+   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`.
+   * Treated as immutable post-stamp; do not write after the constructor
+   * frame closes.
    */
   public templatePath: string | null = null;
+  public getTemplatePath(): string | null {
+    return this.templatePath;
+  }
+  public setTemplatePath(value: string | null): void {
+    this.templatePath = value;
+  }
 
   /**
    * Zone this object belongs to. Universal subdivision of the MUD domain.
@@ -72,8 +80,18 @@ export abstract class Stuff {
    * references are not auto-persisted (mirrors how `inventory`/`environment`
    * are handled — they are runtime references, and the authoritative source
    * for zone membership is the `domain` template path at clone time).
+   *
+   * Framework carve-out per `docs/migrations/methods-only-contract.md` § 5:
+   * domain code uses `getZone()` / `setZone()`; framework code reads via
+   * bracket cast (PASSTHROUGH_KEYS skips the proxy pipeline).
    */
-  public zone: Zone | null = null;
+  protected zone: Zone | null = null;
+  public getZone(): Zone | null {
+    return this.zone;
+  }
+  public setZone(value: Zone | null): void {
+    this.zone = value;
+  }
 
   /**
    * Flag indicating whether this object has been destroyed.

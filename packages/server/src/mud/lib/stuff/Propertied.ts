@@ -184,7 +184,7 @@ export interface Propertied {
   /**
    * Read-only view of all properties (saved + transient).
    */
-  props: Readonly<Record<string, PropValue>>;
+  getProps(): Readonly<Record<string, PropValue>>;
 
   /**
    * Initialize a new property with options.
@@ -357,15 +357,16 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['savedProps'];
 
     /**
-     * Persistent properties (saved to MongoDB).
-     * Framework 2 handles serialization.
+     * Persistent properties (saved to MongoDB). Host-internal; the
+     * Hydrator's bracket-assign goes through this slot, and external
+     * callers go through `setProp` / `getProp`.
      */
-    savedProps?: Record<string, PropValue> = {};
+    protected savedProps?: Record<string, PropValue> = {};
 
     /**
      * Transient properties (memory only, lost on restart).
      */
-    transientProps: Record<string, PropValue> = {};
+    protected transientProps: Record<string, PropValue> = {};
 
     /**
      * Property configuration (transient/saved, access control).
@@ -381,10 +382,17 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     private propMasks: Record<string, MaskEntry<PropValue>[]> = {};
 
     /**
+     * Host-internal accessor; external callers go through `getProps()`.
+     */
+    protected get props(): Readonly<Record<string, PropValue>> {
+      return { ...this.savedProps, ...this.transientProps };
+    }
+
+    /**
      * Read-only view combining saved + transient properties.
      */
-    get props(): Readonly<Record<string, PropValue>> {
-      return { ...this.savedProps, ...this.transientProps };
+    getProps(): Readonly<Record<string, PropValue>> {
+      return this.props;
     }
 
     /**

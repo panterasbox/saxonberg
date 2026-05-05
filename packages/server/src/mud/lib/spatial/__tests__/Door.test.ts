@@ -20,29 +20,29 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 describe('Door', () => {
   it('constructs with sensible defaults', () => {
     const door = makeStuff(() => new Door());
-    expect(door.shortDescription).toBe('');
-    expect(door.longDescription).toBe('');
+    expect(door.getShortDescription()).toBe('');
+    expect(door.getLongDescription()).toBe('');
     expect(door.getKeywords()).toEqual([]);
-    expect(door.isOpen).toBe(false);
+    expect(door.getIsOpen()).toBe(false);
   });
 
   it('accepts post-construction field assignment', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'heavy oak door';
-    door.longDescription = 'An iron-banded slab of oak.';
-    door.keywords = ['portal'];
-    door.isOpen = true;
+    door.setShortDescription('heavy oak door');
+    door.setLongDescription('An iron-banded slab of oak.');
+    door.setKeywords(['portal']);
+    door.setOpen(true);
 
-    expect(door.shortDescription).toBe('heavy oak door');
-    expect(door.longDescription).toBe('An iron-banded slab of oak.');
-    expect(door.isOpen).toBe(true);
+    expect(door.getShortDescription()).toBe('heavy oak door');
+    expect(door.getLongDescription()).toBe('An iron-banded slab of oak.');
+    expect(door.getIsOpen()).toBe(true);
     expect(door.getKeywords()).toContain('portal');
   });
 
   it('normalizes keywords assigned via the setter (lowercase, trim, dedupe)', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'heavy oak door';
-    door.keywords = ['Oak', '  ', 'OLD', 'oak'];
+    door.setShortDescription('heavy oak door');
+    door.setKeywords(['Oak', '  ', 'OLD', 'oak']);
 
     const kw = door.getKeywords();
     expect(kw).toContain('oak');
@@ -61,7 +61,7 @@ describe('Door', () => {
     expect(() => {
       (door as unknown as { isOpen: unknown }).isOpen = 'true';
     }).toThrow(TypeError);
-    expect(door.isOpen).toBe(false);
+    expect(door.getIsOpen()).toBe(false);
   });
 
   it('keywords setter rejects non-arrays with TypeError', () => {
@@ -73,21 +73,21 @@ describe('Door', () => {
 
   it('open() and close() flip state idempotently', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'gate';
+    door.setShortDescription('gate');
     door.open();
-    expect(door.isOpen).toBe(true);
+    expect(door.getIsOpen()).toBe(true);
     door.open();
-    expect(door.isOpen).toBe(true);
+    expect(door.getIsOpen()).toBe(true);
     door.close();
-    expect(door.isOpen).toBe(false);
+    expect(door.getIsOpen()).toBe(false);
     door.close();
-    expect(door.isOpen).toBe(false);
+    expect(door.getIsOpen()).toBe(false);
   });
 
   it('getKeywords() merges explicit keywords with shortDescription tokens', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'Heavy Oak Door';
-    door.keywords = ['portal'];
+    door.setShortDescription('Heavy Oak Door');
+    door.setKeywords(['portal']);
 
     const kw = door.getKeywords();
     expect(kw).toContain('portal');
@@ -98,7 +98,7 @@ describe('Door', () => {
 
   it('composes the expected mixins', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'gate';
+    door.setShortDescription('gate');
     expect(MixinApi.isSealable(door)).toBe(true);
     expect(MixinApi.isPerceptible(door)).toBe(true);
     expect(MixinApi.isVisible(door)).toBe(true);
@@ -122,13 +122,13 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'oak door';
+    door.setShortDescription('oak door');
 
     a.addBidirectionalExit(b, 'north', { door });
 
-    expect(door.attachedTo.size).toBe(2);
-    expect(door.attachedTo.has(a.exits.get('north')!)).toBe(true);
-    expect(door.attachedTo.has(b.exits.get('south')!)).toBe(true);
+    expect(door.getAttachedTo().size).toBe(2);
+    expect(door.hasAttached(a.getExits().get('north')!)).toBe(true);
+    expect(door.hasAttached(b.getExits().get('south')!)).toBe(true);
   });
 
   it('door.detach() clears every Exit.door and empties attachedTo', () => {
@@ -139,17 +139,17 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'oak door';
+    door.setShortDescription('oak door');
     a.addBidirectionalExit(b, 'north', { door });
 
-    const aNorth = a.exits.get('north')!;
-    const bSouth = b.exits.get('south')!;
+    const aNorth = a.getExits().get('north')!;
+    const bSouth = b.getExits().get('south')!;
 
     door.detach();
 
-    expect(door.attachedTo.size).toBe(0);
-    expect(aNorth.door).toBeNull();
-    expect(bSouth.door).toBeNull();
+    expect(door.getAttachedTo().size).toBe(0);
+    expect(aNorth.getDoor()).toBeNull();
+    expect(bSouth.getDoor()).toBeNull();
   });
 
   it('detach + ContainmentApi.move plants the broken door in a location', () => {
@@ -160,14 +160,14 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'oak door';
+    door.setShortDescription('oak door');
     a.addBidirectionalExit(b, 'north', { door });
 
     door.detach();
     ContainmentApi.move(door, a);
 
     expect(a.getContents()).toContain(door);
-    expect(door.environment).toBe(a);
+    expect(door.getContainer()).toBe(a);
   });
 
   it('re-installing a detached door updates attachedTo correctly', () => {
@@ -180,18 +180,18 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(c, 1, 0, 0);
 
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'oak door';
+    door.setShortDescription('oak door');
     a.addBidirectionalExit(b, 'north', { door });
-    expect(door.attachedTo.size).toBe(2);
+    expect(door.getAttachedTo().size).toBe(2);
 
     door.detach();
-    expect(door.attachedTo.size).toBe(0);
+    expect(door.getAttachedTo().size).toBe(0);
 
     // Reinstall on a different exit pair.
     a.addBidirectionalExit(c, 'east', { door });
-    expect(door.attachedTo.size).toBe(2);
-    expect(a.exits.get('east')!.door).toBe(door);
-    expect(c.exits.get('west')!.door).toBe(door);
+    expect(door.getAttachedTo().size).toBe(2);
+    expect(a.getExits().get('east')!.getDoor()).toBe(door);
+    expect(c.getExits().get('west')!.getDoor()).toBe(door);
   });
 
   it('Exit.prepareDestroy unhooks itself from door.attachedTo', () => {
@@ -202,7 +202,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(b, 0, 1, 0);
 
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'oak door';
+    door.setShortDescription('oak door');
 
     const exit = makeStuff(() => new Exit({
       direction: 'east',
@@ -214,9 +214,9 @@ describe('Door attachedTo back-reference + break/install', () => {
     // job of `addExit` — that's the only way an Exit reaches its
     // host post-construction (and post-Proxy).
     a.addExit(exit);
-    expect(door.attachedTo.has(exit)).toBe(true);
+    expect(door.hasAttached(exit)).toBe(true);
 
     StuffApi.destruct(exit);
-    expect(door.attachedTo.has(exit)).toBe(false);
+    expect(door.hasAttached(exit)).toBe(false);
   });
 });

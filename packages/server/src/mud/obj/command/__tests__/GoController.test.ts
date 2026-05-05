@@ -62,22 +62,22 @@ describe('GoController', () => {
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
-    locA.shortDescription = 'Room A';
+    locA.setShortDescription('Room A');
     locB = makeStuff(() => new CartesianLocation());
-    locB.shortDescription = 'Room B';
+    locB.setShortDescription('Room B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 
     avatar = makeStuff(() => new FakeAvatar());
-    avatar.name = 'Alice';
+    avatar.setName('Alice');
     ContainmentApi.move(avatar, locA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.name = 'BobA';
+    peerInA.setName('BobA');
     ContainmentApi.move(peerInA, locA);
 
     peerInB = makeStuff(() => new PeerSensor());
-    peerInB.name = 'BobB';
+    peerInB.setName('BobB');
     ContainmentApi.move(peerInB, locB);
 
     controller = new GoController();
@@ -156,7 +156,7 @@ describe('GoController', () => {
 
     it('blocks traversal through a closed door', async () => {
       const door = makeStuff(() => new Door());
-      door.shortDescription = 'oak door';
+      door.setShortDescription('oak door');
       locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
@@ -174,15 +174,15 @@ describe('GoController', () => {
     it('traverses explicit semantic exit and arrival degrades to "arrives"', async () => {
       const sphZone = makeStuff(() => new SphericalZone());
       const plaza = makeStuff(() => new SphericalLocation());
-      plaza.shortDescription = 'Plaza';
+      plaza.setShortDescription('Plaza');
       const office = makeStuff(() => new SphericalLocation());
-      office.shortDescription = 'Office';
+      office.setShortDescription('Office');
       sphZone.addLocation(plaza);
       sphZone.addLocation(office);
       plaza.addExit(makeStuff(() => new Exit({ direction: 'office', source: plaza, destination: office })));
 
       const visitor = makeStuff(() => new FakeAvatar());
-      visitor.name = 'Carol';
+      visitor.setName('Carol');
       ContainmentApi.move(visitor, plaza);
 
       const spherePeer = makeStuff(() => new PeerSensor());
@@ -204,7 +204,7 @@ describe('GoController', () => {
   describe('vessel entry and exit', () => {
     it('go <vessel-keyword> enters a sibling ExitableVessel', async () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
-      wardrobe.shortDescription = 'wardrobe';
+      wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
 
       const result = await controller.execute(
@@ -217,7 +217,7 @@ describe('GoController', () => {
 
     it('go out from inside a vessel returns to the environment', async () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
-      wardrobe.shortDescription = 'wardrobe';
+      wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
       ContainmentApi.move(avatar, wardrobe);
 

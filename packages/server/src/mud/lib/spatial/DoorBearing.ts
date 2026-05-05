@@ -26,7 +26,6 @@ import type { Door } from './Door';
  * Public shape added by DoorBearingMixin.
  */
 export interface DoorBearing {
-  door: Door | null;
   setDoor(door: Door | null): void;
   getDoor(): Door | null;
 }
@@ -42,7 +41,7 @@ export function DoorBearingMixin<TBase extends MixinConstructor<Stuff & Exitable
      * The defining door for this bearer's synthesized exits. `null`
      * means no door — synthesized exits will pass freely.
      */
-    door: Door | null = null;
+    protected door: Door | null = null;
 
     getDoor(): Door | null {
       return this.door;

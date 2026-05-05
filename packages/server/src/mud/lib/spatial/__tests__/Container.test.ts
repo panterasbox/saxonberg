@@ -43,7 +43,7 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
 
   describe('initialization', () => {
     it('starts with an empty inventory', () => {
-      expect(container.inventory.size).toBe(0);
+      expect(container.getContents().length).toBe(0);
       expect(container.getContents()).toEqual([]);
     });
   });
@@ -51,7 +51,7 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
   describe('add via ContainmentApi.move', () => {
     it('places an item in the container', () => {
       ContainmentApi.move(item1, container);
-      expect(container.inventory.size).toBe(1);
+      expect(container.getContents().length).toBe(1);
       expect(container.hasContainable(item1)).toBe(true);
     });
 
@@ -59,13 +59,13 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
       ContainmentApi.move(item1, container);
       ContainmentApi.move(item2, container);
       ContainmentApi.move(item3, container);
-      expect(container.inventory.size).toBe(3);
+      expect(container.getContents().length).toBe(3);
     });
 
     it('moving an item already in the container is a no-op', () => {
       ContainmentApi.move(item1, container);
       ContainmentApi.move(item1, container);
-      expect(container.inventory.size).toBe(1);
+      expect(container.getContents().length).toBe(1);
     });
   });
 
@@ -79,18 +79,18 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
       ContainmentApi.move(item1, null);
       expect(container.hasContainable(item1)).toBe(false);
       expect(item1.getContainer()).toBeNull();
-      expect(container.inventory.size).toBe(1);
+      expect(container.getContents().length).toBe(1);
     });
 
     it('detaching an item that was never placed is a no-op', () => {
       ContainmentApi.move(item3, null);
-      expect(container.inventory.size).toBe(2);
+      expect(container.getContents().length).toBe(2);
     });
 
     it('detaching every item leaves an empty container', () => {
       ContainmentApi.move(item1, null);
       ContainmentApi.move(item2, null);
-      expect(container.inventory.size).toBe(0);
+      expect(container.getContents().length).toBe(0);
       expect(container.getContents()).toEqual([]);
     });
   });

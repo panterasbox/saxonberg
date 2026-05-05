@@ -53,14 +53,14 @@ export class PlayerController extends CommandController<PlayerInput> {
     if (!input.name) {
       return { success: false, summary: 'name required' };
     }
-    avatar.name = input.name;
-    avatar.surname = input.surname || undefined;
+    avatar.setName(input.name);
+    avatar.setSurname(input.surname || undefined);
 
     this.send(
       context,
-      Mml.compose`\nYour name is now ${avatar.fullName}.\n`
+      Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`
     );
-    return { success: true, summary: `name set to ${avatar.fullName}` };
+    return { success: true, summary: `name set to ${avatar.getFullName()}` };
   }
 
   private executePronouns(
@@ -89,12 +89,12 @@ export class PlayerController extends CommandController<PlayerInput> {
       };
     }
 
-    avatar.pronouns = pronounsLower as Pronouns;
+    avatar.setPronouns(pronounsLower as Pronouns);
     this.send(
       context,
-      Mml.compose`\nYour pronouns are now ${avatar.pronouns}.\n`
+      Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`
     );
-    return { success: true, summary: `pronouns set to ${avatar.pronouns}` };
+    return { success: true, summary: `pronouns set to ${avatar.getPronouns()}` };
   }
 
   private executeShow(avatar: Avatar, context: CommandContext): CommandResult {
@@ -103,15 +103,15 @@ export class PlayerController extends CommandController<PlayerInput> {
         '',
         'Player Character Settings:',
         '',
-        `  Name:     ${avatar.fullName}`,
-        `  Pronouns: ${avatar.pronouns}`,
+        `  Name:     ${avatar.getFullName()}`,
+        `  Pronouns: ${avatar.getPronouns()}`,
         '',
       ].join('\n')
     );
     this.send(context, body);
     return {
       success: true,
-      summary: `${avatar.fullName} (${avatar.pronouns})`,
+      summary: `${avatar.getFullName()} (${avatar.getPronouns()})`,
     };
   }
 

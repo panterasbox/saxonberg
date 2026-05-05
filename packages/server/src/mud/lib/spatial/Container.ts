@@ -38,7 +38,6 @@ import { ExecutionContextApi } from '../../api/execution-context';
  * about; absence is treated as "no opinion."
  */
 export interface Container {
-  inventory: Set<Stuff & Containable>;
   addContainable(item: Stuff & Containable): void;
   removeContainable(item: Stuff & Containable): boolean;
   hasContainable(item: Stuff & Containable): boolean;
@@ -83,12 +82,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
-     * The contained items. Direct access is allowed for read paths
-     * (getContents) but mutation goes through `addContainable` /
-     * `removeContainable`, which only `Containable.setContainer`
-     * may legitimately invoke.
+     * The contained items. Read access goes through `getContents()`;
+     * mutation goes through `addContainable` / `removeContainable`,
+     * which only `Containable.setContainer` may legitimately invoke.
      */
-    inventory: Set<Stuff & Containable> = new Set();
+    protected inventory: Set<Stuff & Containable> = new Set();
 
     /**
      * State-mutation primitive. Locked down — only callable from

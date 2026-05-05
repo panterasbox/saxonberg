@@ -60,23 +60,23 @@ describe('OpenController / CloseController / doors integration', () => {
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
     locA = makeStuff(() => new CartesianLocation());
-    locA.shortDescription = 'Room A';
+    locA.setShortDescription('Room A');
     locB = makeStuff(() => new CartesianLocation());
-    locB.shortDescription = 'Room B';
+    locB.setShortDescription('Room B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 
     door = makeStuff(() => new Door());
-    door.shortDescription = 'heavy oak door';
-    door.keywords = ['oak'];
+    door.setShortDescription('heavy oak door');
+    door.setKeywords(['oak']);
     locA.addBidirectionalExit(locB, 'north', { door });
 
     avatar = makeStuff(() => new FakeAvatar());
-    avatar.name = 'Alice';
+    avatar.setName('Alice');
     ContainmentApi.move(avatar, locA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.name = 'Bob';
+    peerInA.setName('Bob');
     ContainmentApi.move(peerInA, locA);
   });
 
@@ -98,7 +98,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, locA, 'open the oak door')
     );
     expect(result.success).toBe(true);
-    expect(door.isOpen).toBe(true);
+    expect(door.getIsOpen()).toBe(true);
     expect(result.summary).toContain('heavy oak door');
 
     const peerText = JSON.stringify(peerInA.received);
@@ -151,7 +151,7 @@ describe('OpenController / CloseController / doors integration', () => {
       makeContext(avatar, locB, 'close the oak door')
     );
     expect(close.success).toBe(true);
-    expect(door.isOpen).toBe(false);
+    expect(door.getIsOpen()).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
     const goBack = await new GoController().execute(

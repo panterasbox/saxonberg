@@ -58,7 +58,7 @@ describe('VocalMixin.say()', () => {
       const room = makeStuff(() => new Location());
 
       const alice = makeStuff(() => new CharacterSpeaker());
-      alice.name = 'Alice';
+      alice.setName('Alice');
       ContainmentApi.move(alice, room);
 
       const bob = makeStuff(() => new Listener());
@@ -81,8 +81,8 @@ describe('VocalMixin.say()', () => {
   describe('pure-Container speaker (contents mode)', () => {
     it('broadcasts to its own occupants', () => {
       const house = makeStuff(() => new TalkingRoom());
-      house.name = 'Haunted';
-      house.surname = 'House';
+      house.setName('Haunted');
+      house.setSurname('House');
 
       const occupant = makeStuff(() => new Listener());
       ContainmentApi.move(occupant, house);

@@ -55,24 +55,24 @@ describe('Exit', () => {
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
-    locA.shortDescription = 'Room A';
+    locA.setShortDescription('Room A');
 
     locB = makeStuff(() => new CartesianLocation());
-    locB.shortDescription = 'Room B';
+    locB.setShortDescription('Room B');
 
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 
     mover = makeStuff(() => new TestMover());
-    mover.name = 'Alice';
+    mover.setName('Alice');
     ContainmentApi.move(mover, locA);
 
     peerInA = makeStuff(() => new PeerSensor());
-    peerInA.name = 'PeerA';
+    peerInA.setName('PeerA');
     ContainmentApi.move(peerInA, locA);
 
     peerInB = makeStuff(() => new PeerSensor());
-    peerInB.name = 'PeerB';
+    peerInB.setName('PeerB');
     ContainmentApi.move(peerInB, locB);
   });
 
@@ -100,7 +100,7 @@ describe('Exit', () => {
 
     it('returns not ok when door is closed', () => {
       const door = makeStuff(() => new Door());
-      door.shortDescription = 'oak door';
+      door.setShortDescription('oak door');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
@@ -110,7 +110,7 @@ describe('Exit', () => {
 
     it('returns ok when door is open', () => {
       const door = makeStuff(() => new Door());
-      door.shortDescription = 'oak door';
+      door.setShortDescription('oak door');
       door.open();
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
       expect(exit.canTraverse(mover)).toEqual({ ok: true });
@@ -190,7 +190,7 @@ describe('Exit', () => {
   describe('inverse back-pointer', () => {
     it('is undefined on a freshly-constructed Exit', () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      expect(exit.inverse).toBeUndefined();
+      expect(exit.getInverse()).toBeUndefined();
     });
 
     it('addBidirectionalExit wires both inverse pointers', () => {
@@ -199,20 +199,20 @@ describe('Exit', () => {
       const back = locB.getExit('south');
       expect(forward).toBeDefined();
       expect(back).toBeDefined();
-      expect(forward!.inverse).toBe(back);
-      expect(back!.inverse).toBe(forward);
+      expect(forward!.getInverse()).toBe(back);
+      expect(back!.getInverse()).toBe(forward);
     });
 
     it('inverse?.direction returns the opposite cardinal', () => {
       locA.addBidirectionalExit(locB, 'north');
       const forward = locA.getExit('north')!;
-      expect(forward.inverse?.direction).toBe('south');
+      expect(forward.getInverse()?.getDirection()).toBe('south');
     });
 
     it('one-way addExit leaves inverse undefined', () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
       locA.addExit(exit);
-      expect(exit.inverse).toBeUndefined();
+      expect(exit.getInverse()).toBeUndefined();
     });
   });
 });
@@ -230,7 +230,7 @@ describe('Exit lazy destination resolution', () => {
       destinationPath: '/zone/never-loaded',
     }));
 
-    expect(() => exit.destination).toThrow(/not yet loaded/);
+    expect(() => exit.getDestination()).toThrow(/not yet loaded/);
   });
 
   it('returns cached live destination once resolved', () => {
@@ -243,8 +243,8 @@ describe('Exit lazy destination resolution', () => {
       destinationPath: '/zone/b',
     }));
 
-    expect(exit.destination).toBe(b);
-    expect(exit.destination).toBe(b);
+    expect(exit.getDestination()).toBe(b);
+    expect(exit.getDestination()).toBe(b);
   });
 
   it('getDestinationTemplatePath returns the path regardless of resolution', () => {

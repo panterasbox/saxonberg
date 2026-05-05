@@ -26,8 +26,8 @@ class NamedAndVisible extends NamedMixin(VisibleMixin(Stuff)) {}
 describe('DescribeApi.getDisplayName', () => {
   it('returns Named.name (casual register) when set', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'Alice';
-    obj.surname = 'Smith';
+    obj.setName('Alice');
+    obj.setSurname('Smith');
     // Casual — surname is NOT included. Reach for `obj.fullName` for
     // the formal form.
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Alice');
@@ -35,7 +35,7 @@ describe('DescribeApi.getDisplayName', () => {
 
   it('falls back to Visible.shortDescription when Named.name is empty', () => {
     const obj = makeStuff(() => new NamedAndVisible());
-    obj.shortDescription = 'a heavy oak door';
+    obj.setShortDescription('a heavy oak door');
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe(
       'a heavy oak door'
     );
@@ -43,20 +43,20 @@ describe('DescribeApi.getDisplayName', () => {
 
   it('Named.name takes precedence over Visible.shortDescription', () => {
     const obj = makeStuff(() => new NamedAndVisible());
-    obj.name = 'Excalibur';
-    obj.shortDescription = 'a gleaming silver sword';
+    obj.setName('Excalibur');
+    obj.setShortDescription('a gleaming silver sword');
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Excalibur');
   });
 
   it('uses Visible.shortDescription on a non-Named object', () => {
     const obj = makeStuff(() => new VisibleThing());
-    obj.shortDescription = 'a rusty key';
+    obj.setShortDescription('a rusty key');
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('a rusty key');
   });
 
   it('skips empty Visible.shortDescription', () => {
     const obj = makeStuff(() => new VisibleThing());
-    obj.shortDescription = '';
+    obj.setShortDescription('');
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('fallback');
   });
 

@@ -182,15 +182,15 @@ describe('Zone is set at clone time, not on move', () => {
     const park = makeStuff(() => new CartesianLocation());
 
     const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/Zone').Zone;
-    park.zone = zoneRef;
+    park.setZone(zoneRef);
 
     // Item created without a zone — `ContainmentApi.move` does NOT
     // back-fill it. Zone identity belongs to whichever template
     // spawned the item; runtime placement leaves it alone.
     const sword = await StuffApi.create(() => new Thing());
-    expect(sword.zone).toBeNull();
+    expect(sword.getZone()).toBeNull();
 
     ContainmentApi.move(sword, park);
-    expect(sword.zone).toBeNull();
+    expect(sword.getZone()).toBeNull();
   });
 });

@@ -31,7 +31,7 @@ export class CloseController extends CommandController<CloseInput> {
       return { success: false, summary: "can't close that" };
     }
 
-    if (!hit.isOpen) {
+    if (!hit.getIsOpen()) {
       return { success: false, summary: 'already closed' };
     }
 

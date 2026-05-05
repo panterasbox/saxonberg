@@ -28,16 +28,22 @@ export abstract class Zone extends Idea {
   /**
    * Human-readable zone name ("Narnia Castle", "The Caves", …).
    */
-  public name: string = '';
+  protected name: string = '';
+
+  public getName(): string { return this.name; }
+  public setName(value: string): void { this.name = value; }
 
   /**
    * Locations that live in this zone. Populated by the subclass's
-   * `addLocation()`.
+   * `addLocation()`. Host-internal storage; external callers go
+   * through `getLocations()` / `contains()`.
    *
    * Membership is maintained by the Zone; `Location.zone` (on Stuff base)
    * is the back-reference stamped when the location is added.
    */
-  public locations: Set<Location> = new Set();
+  protected locations: Set<Location> = new Set();
+
+  public getLocations(): ReadonlySet<Location> { return this.locations; }
 
   /**
    * Mark a location as belonging to this zone.
@@ -46,7 +52,7 @@ export abstract class Zone extends Idea {
    */
   public addLocation(location: Location): void {
     this.locations.add(location);
-    location.zone = this;
+    location.setZone(this);
   }
 
   /**
@@ -54,8 +60,8 @@ export abstract class Zone extends Idea {
    */
   public removeLocation(location: Location): boolean {
     const removed = this.locations.delete(location);
-    if (removed && location.zone === this) {
-      location.zone = null;
+    if (removed && location.getZone() === this) {
+      location.setZone(null);
     }
     return removed;
   }
@@ -89,7 +95,7 @@ export abstract class Zone extends Idea {
   public prepareDestroy(): void {
     if (this.locations.size > 0) {
       throw new Error(
-        `Zone.prepareDestroy: cannot destruct zone '${this.name}' with ` +
+        `Zone.prepareDestroy: cannot destruct zone '${this.getName()}' with ` +
           `${this.locations.size} live location(s); destruct locations first.`
       );
     }

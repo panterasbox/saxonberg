@@ -71,7 +71,7 @@ describe('ExitableMixin', () => {
     locA.addExit(explicit);
     const exit = locA.getExit('north');
     expect(exit).toBe(explicit);
-    expect(exit!.destination).toBe(locC);
+    expect(exit!.getDestination()).toBe(locC);
   });
 
   it('returns undefined for an unknown non-cardinal lookup (no portal installed)', () => {
@@ -81,7 +81,7 @@ describe('ExitableMixin', () => {
   it('zone-derived exit returned when no explicit entry exists', () => {
     const exit = locA.getExit('north');
     expect(exit).toBeDefined();
-    expect(exit!.destination).toBe(locB);
+    expect(exit!.getDestination()).toBe(locB);
   });
 
   it('getExit for a direction without neighbor returns undefined', () => {
@@ -109,7 +109,7 @@ describe('ExitableMixin', () => {
     locA.addExit(visible);
 
     const obvious = locA.getObviousExits();
-    const directions = obvious.map((e) => e.direction);
+    const directions = obvious.map((e) => e.getDirection());
     expect(directions).toContain('down');
     expect(directions).toContain('north');
     expect(directions).not.toContain('up');
@@ -117,9 +117,9 @@ describe('ExitableMixin', () => {
 
   it('getExitDoors collects doors from obvious exits', () => {
     const oak = makeStuff(() => new Door());
-    oak.shortDescription = 'oak door';
+    oak.setShortDescription('oak door');
     const iron = makeStuff(() => new Door());
-    iron.shortDescription = 'iron gate';
+    iron.setShortDescription('iron gate');
     const withDoor = makeStuff(() => new Exit({
       direction: 'up',
       source: locA,
@@ -156,19 +156,19 @@ describe('ExitableMixin', () => {
 
   it('addBidirectionalExit infers the opposite direction for cardinals', () => {
     const door = makeStuff(() => new Door());
-    door.shortDescription = 'heavy gate';
+    door.setShortDescription('heavy gate');
     locA.addBidirectionalExit(locC, 'up', { door });
 
     const forward = locA.getExit('up');
     const back = locC.getExit('down');
     expect(forward).toBeDefined();
     expect(back).toBeDefined();
-    expect(forward!.door).toBe(door);
-    expect(back!.door).toBe(door);
+    expect(forward!.getDoor()).toBe(door);
+    expect(back!.getDoor()).toBe(door);
 
     door.open();
-    expect(forward!.door!.isOpen).toBe(true);
-    expect(back!.door!.isOpen).toBe(true);
+    expect(forward!.getDoor()!.getIsOpen()).toBe(true);
+    expect(back!.getDoor()!.getIsOpen()).toBe(true);
   });
 
   it('addBidirectionalExit requires explicit opposite for non-cardinal labels', () => {
@@ -224,14 +224,14 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     a.addExit(east);
     b.addExit(west);
 
-    expect(east.inverse).toBeUndefined();
-    expect(west.inverse).toBeUndefined();
+    expect(east.getInverse()).toBeUndefined();
+    expect(west.getInverse()).toBeUndefined();
 
     a.verifyOutboundExits();
 
-    expect(east.inverse).toBe(west);
-    expect(west.inverse).toBe(east);
-    expect(east.blocked).toBe(false);
+    expect(east.getInverse()).toBe(west);
+    expect(west.getInverse()).toBe(east);
+    expect(east.isBlocked()).toBe(false);
   });
 
   it('skips exits whose destination is not yet loaded', () => {
@@ -245,8 +245,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
     a.verifyOutboundExits();
 
-    expect(east.blocked).toBe(false);
-    expect(east.inverse).toBeUndefined();
+    expect(east.isBlocked()).toBe(false);
+    expect(east.getInverse()).toBeUndefined();
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
@@ -266,7 +266,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
     a.verifyOutboundExits();
 
-    expect(east.blocked).toBe(true);
+    expect(east.isBlocked()).toBe(true);
     expect(warnSpy).toHaveBeenCalled();
   });
 
@@ -294,8 +294,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
     a.verifyOutboundExits();
 
-    expect(east.blocked).toBe(true);
-    expect(east.inverse).toBeUndefined();
+    expect(east.isBlocked()).toBe(true);
+    expect(east.getInverse()).toBeUndefined();
   });
 
   it('skips oneWay exits even with no back-exit', () => {
@@ -315,8 +315,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
 
     a.verifyOutboundExits();
 
-    expect(east.blocked).toBe(false);
-    expect(east.inverse).toBeUndefined();
+    expect(east.isBlocked()).toBe(false);
+    expect(east.getInverse()).toBeUndefined();
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
@@ -328,12 +328,12 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     zone.addLocation(b, 0, 1, 0);
 
     a.addBidirectionalExit(b, 'east');
-    const east = a.exits.get('east')!;
-    const wiredInverse = east.inverse;
+    const east = a.getExits().get('east')!;
+    const wiredInverse = east.getInverse();
 
     a.verifyOutboundExits();
 
-    expect(east.inverse).toBe(wiredInverse);
+    expect(east.getInverse()).toBe(wiredInverse);
   });
 
   it('skips non-cardinal directions (semantic exits)', () => {
@@ -346,12 +346,13 @@ describe('ExitableMixin.verifyOutboundExits', () => {
       destination: b,
     }));
     // Bypass addExit's cardinal check by writing directly to the map.
-    a.exits.set('office', semantic);
+    // test seam: bracket access bypasses the protected `exits` modifier.
+    (a as unknown as { exits: Map<string, Exit> }).exits.set('office', semantic);
 
     a.verifyOutboundExits();
 
-    expect(semantic.blocked).toBe(false);
-    expect(semantic.inverse).toBeUndefined();
+    expect(semantic.isBlocked()).toBe(false);
+    expect(semantic.getInverse()).toBeUndefined();
   });
 });
 
@@ -372,13 +373,13 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     zone.addLocation(b, 0, 1, 0);
 
     a.addBidirectionalExit(b, 'north');
-    const aNorth = a.exits.get('north')!;
-    const bSouth = b.exits.get('south')!;
+    const aNorth = a.getExits().get('north')!;
+    const bSouth = b.getExits().get('south')!;
 
     StuffApi.destruct(a as unknown as Stuff);
 
-    expect(bSouth.blocked).toBe(true);
-    expect(bSouth.inverse).toBeUndefined();
+    expect(bSouth.isBlocked()).toBe(true);
+    expect(bSouth.getInverse()).toBeUndefined();
     expect((aNorth as unknown as Stuff).isDestroyed()).toBe(true);
     expect(zone.contains(a)).toBe(false);
   });
@@ -399,7 +400,7 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     zone.addLocation(loc, 0, 0, 0);
 
     StuffApi.destruct(loc as unknown as Stuff);
-    expect(zone.locations.size).toBe(0);
+    expect(zone.getLocations().size).toBe(0);
 
     expect(() => StuffApi.destruct(zone as unknown as Stuff)).not.toThrow();
     expect((zone as unknown as Stuff).isDestroyed()).toBe(true);

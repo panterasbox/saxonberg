@@ -71,7 +71,7 @@ export class GoController extends CommandController<GoInput> {
 
     await mover.traverse(exit);
 
-    const destName = DescribeApi.getDisplayName(exit.destination, 'somewhere new');
+    const destName = DescribeApi.getDisplayName(exit.getDestination(), 'somewhere new');
     return { success: true, summary: `to ${destName}` };
   }
 }

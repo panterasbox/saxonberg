@@ -21,7 +21,7 @@ function makeUser(): User {
 
 function makeAvatar(playerId: string): Avatar {
   const a = makeStuff(() => new Avatar());
-  a.playerId = playerId;
+  a.setPlayerId(playerId);
   return a;
 }
 
@@ -47,30 +47,30 @@ describe('ConnectionApi', () => {
 
   describe('transfer', () => {
     it('attaches an unowned Interactive to a holder', () => {
-      expect(interactive.holder).toBeNull();
+      expect(interactive.getHolder()).toBeNull();
 
       ConnectionApi.transfer(interactive, avatarA);
 
-      expect(interactive.holder).toBe(avatarA);
-      expect(avatarA.interactives.has(interactive)).toBe(true);
+      expect(interactive.getHolder()).toBe(avatarA);
+      expect(avatarA.getInteractives().has(interactive)).toBe(true);
     });
 
     it('moves an Interactive from one holder to another', () => {
       ConnectionApi.transfer(interactive, avatarA);
       ConnectionApi.transfer(interactive, avatarB);
 
-      expect(interactive.holder).toBe(avatarB);
-      expect(avatarA.interactives.has(interactive)).toBe(false);
-      expect(avatarB.interactives.has(interactive)).toBe(true);
+      expect(interactive.getHolder()).toBe(avatarB);
+      expect(avatarA.getInteractives().has(interactive)).toBe(false);
+      expect(avatarB.getInteractives().has(interactive)).toBe(true);
     });
 
     it('is idempotent on the same target', () => {
       ConnectionApi.transfer(interactive, avatarA);
       ConnectionApi.transfer(interactive, avatarA);
 
-      expect(interactive.holder).toBe(avatarA);
-      expect(avatarA.interactives.size).toBe(1);
-      expect(avatarA.interactives.has(interactive)).toBe(true);
+      expect(interactive.getHolder()).toBe(avatarA);
+      expect(avatarA.getInteractives().size).toBe(1);
+      expect(avatarA.getInteractives().has(interactive)).toBe(true);
     });
   });
 
@@ -80,16 +80,16 @@ describe('ConnectionApi', () => {
 
       ConnectionApi.detach(interactive);
 
-      expect(interactive.holder).toBeNull();
-      expect(avatarA.interactives.has(interactive)).toBe(false);
+      expect(interactive.getHolder()).toBeNull();
+      expect(avatarA.getInteractives().has(interactive)).toBe(false);
     });
 
     it('is a no-op when there is no current holder', () => {
-      expect(interactive.holder).toBeNull();
+      expect(interactive.getHolder()).toBeNull();
 
       expect(() => ConnectionApi.detach(interactive)).not.toThrow();
 
-      expect(interactive.holder).toBeNull();
+      expect(interactive.getHolder()).toBeNull();
     });
   });
 });

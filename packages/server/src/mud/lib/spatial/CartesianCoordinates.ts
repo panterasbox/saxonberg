@@ -13,7 +13,8 @@ import type { MixinConstructor } from '../mixin';
 
 /** Public shape added by CartesianCoordinatesMixin. */
 export interface CartesianCoordinates {
-  coordinates: [number, number, number];
+  getCoordinates(): [number, number, number];
+  setCoordinates(value: [number, number, number]): void;
   getX(): number;
   getY(): number;
   getZ(): number;
@@ -27,8 +28,14 @@ export function CartesianCoordinatesMixin<TBase extends MixinConstructor>(Base: 
     static _mixinName = 'CartesianCoordinatesMixin';
     static persistentFields = ['coordinates'];
 
-    coordinates: [number, number, number] = [0, 0, 0];
+    protected coordinates: [number, number, number] = [0, 0, 0];
 
+    getCoordinates(): [number, number, number] {
+      return this.coordinates;
+    }
+    setCoordinates(value: [number, number, number]): void {
+      this.coordinates = value;
+    }
     getX(): number {
       return this.coordinates[0];
     }

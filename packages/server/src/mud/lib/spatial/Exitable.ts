@@ -40,7 +40,6 @@ import { MixinApi } from '../../api/mixin';
  * absent. See MobileMixin's `MovementHookProvider` for the shape.
  */
 export interface Exitable {
-  exits: Map<string, Exit>;
   /**
    * True iff this Exitable has at least one outbound exit awaiting
    * mutual-exit verification — the inverse pointer hasn't been wired
@@ -53,7 +52,7 @@ export interface Exitable {
    * from the pending set as the verifier observes them. The set is
    * empty in the steady state.
    */
-  readonly hasPendingVerification: boolean;
+  hasPendingVerification(): boolean;
   addExit(exit: Exit): boolean;
   removeExit(direction: string): boolean;
   getExit(direction: string): Exit | undefined;
@@ -121,8 +120,11 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * Explicit exit map. Derived exits (cartesian adjacency, vessel `'out'`)
      * are NOT stored here — they are synthesized lazily by the zone and by
      * `ExitableVessel.getExit()` respectively.
+     *
+     * Host-internal storage; external callers use `getExits()` /
+     * `getExit(direction)`.
      */
-    exits: Map<string, Exit> = new Map();
+    protected exits: Map<string, Exit> = new Map();
 
     /**
      * Outbound exits awaiting mutual-exit verification. An exit lands
@@ -136,13 +138,14 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      */
     private _pendingVerify: Set<Exit> = new Set();
 
-    get hasPendingVerification(): boolean {
+    hasPendingVerification(): boolean {
       return this._pendingVerify.size > 0;
     }
 
     addExit(exit: Exit): boolean {
-      if (this.exits.has(exit.direction)) return false;
-      this.exits.set(exit.direction, exit);
+      const direction = exit.getDirection();
+      if (this.exits.has(direction)) return false;
+      this.exits.set(direction, exit);
       if (needsVerification(exit)) {
         this._pendingVerify.add(exit);
       }
@@ -150,13 +153,15 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // exit has been wrapped in its proxy), register the proxied
       // exit in its door's `attachedTo` set so `Door.detach()` can
       // walk back to clear us.
-      if (exit.door) exit.door.attachedTo.add(exit);
+      const door = exit.getDoor();
+      if (door) door.attachExit(exit);
       return true;
     }
 
     removeExit(direction: string): boolean {
       const exit = this.exits.get(direction);
-      if (exit?.door) exit.door.attachedTo.delete(exit);
+      const door = exit?.getDoor();
+      if (door) door.detachExit(exit!);
       if (exit) this._pendingVerify.delete(exit);
       return this.exits.delete(direction);
     }
@@ -172,7 +177,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const explicit = this.exits.get(direction);
       if (explicit) return explicit;
 
-      const zone = (this as unknown as Stuff).zone;
+      const zone = (this as unknown as Stuff).getZone();
       if (zone instanceof CartesianZone) {
         return zone.deriveExit(this as unknown as import('../stuff/Location').Location, direction);
       }
@@ -197,11 +202,11 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const seen = new Set<string>();
 
       for (const [dir, exit] of this.exits) {
-        if (!exit.hidden) result.push(exit);
+        if (!exit.isHidden()) result.push(exit);
         seen.add(dir);
       }
 
-      const zone = (this as unknown as Stuff).zone;
+      const zone = (this as unknown as Stuff).getZone();
       if (zone instanceof CartesianZone) {
         for (const dir of NavigationApi.cardinalDirections()) {
           if (seen.has(dir)) continue;
@@ -209,7 +214,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
             this as unknown as import('../stuff/Location').Location,
             dir
           );
-          if (exit && !exit.hidden) result.push(exit);
+          if (exit && !exit.isHidden()) result.push(exit);
         }
       }
       return result;
@@ -219,7 +224,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     getExitDoors(): Door[] {
       const doors: Door[] = [];
       for (const exit of this.getObviousExits()) {
-        if (exit.door) doors.push(exit.door);
+        const door = exit.getDoor();
+        if (door) doors.push(door);
       }
       return doors;
     }
@@ -276,8 +282,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // without a separate cross-location lookup. One-way exits (a
       // single `addExit`) leave inverse undefined; vessel-synthesized
       // `'out'` exits also leave it undefined.
-      forward.inverse = back;
-      back.inverse = forward;
+      forward.setInverse(back);
+      back.setInverse(forward);
 
       this.addExit(forward);
       other.addExit(back);
@@ -305,17 +311,18 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * Idempotent. Zone-derived cartesian exits are synthesized per-call
      * and inherently mutual by grid adjacency — they aren't tracked.
      */
-    verifyOutboundExits(this: Stuff & Exitable & Container): void {
+    verifyOutboundExits(): void {
       // Snapshot to allow in-loop mutation of `_pendingVerify`.
       const pending = [...this._pendingVerify];
       for (const exit of pending) {
         // Lazy eviction: settled by us or by another side.
-        if (exit.oneWay || exit.inverse || exit.blocked) {
+        if (exit.isOneWay() || exit.getInverse() || exit.isBlocked()) {
           this._pendingVerify.delete(exit);
           continue;
         }
 
-        const expectedBack = NavigationApi.invertDirection(exit.direction);
+        const direction = exit.getDirection();
+        const expectedBack = NavigationApi.invertDirection(direction);
         if (!expectedBack) {
           this._pendingVerify.delete(exit);
           continue;
@@ -342,10 +349,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           liveDest.stuffId;
 
         if (!MixinApi.isExitable(liveDest)) {
-          exit.blocked = true;
+          exit.setBlocked(true);
           this._pendingVerify.delete(exit);
           console.warn(
-            `exit-verifier: ${tag} → ${exit.direction} → ${destPath}: ` +
+            `exit-verifier: ${tag} → ${direction} → ${destPath}: ` +
               `destination is not Exitable; marking blocked.`
           );
           continue;
@@ -353,10 +360,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
         const backExit = liveDest.getExit(expectedBack);
         if (!backExit) {
-          exit.blocked = true;
+          exit.setBlocked(true);
           this._pendingVerify.delete(exit);
           console.warn(
-            `exit-verifier: ${tag} → ${exit.direction} → ${destTag}: ` +
+            `exit-verifier: ${tag} → ${direction} → ${destTag}: ` +
               `no '${expectedBack}' back-exit; marking blocked.`
           );
           continue;
@@ -368,15 +375,15 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         // when the back side has loaded.
         let backDest: Stuff | null = null;
         try {
-          backDest = backExit.destination as unknown as Stuff;
+          backDest = backExit.getDestination() as unknown as Stuff;
         } catch {
           continue;
         }
         if (backDest !== here) {
-          exit.blocked = true;
+          exit.setBlocked(true);
           this._pendingVerify.delete(exit);
           console.warn(
-            `exit-verifier: ${tag} → ${exit.direction} → ${destTag}: ` +
+            `exit-verifier: ${tag} → ${direction} → ${destTag}: ` +
               `back-exit '${expectedBack}' does not return to source; ` +
               `marking blocked.`
           );
@@ -387,11 +394,11 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         // in their respective explicit maps. A derived back-exit is
         // recreated per call and any inverse pointer to it would
         // dangle.
-        const forwardExplicit = this.exits.get(exit.direction) === exit;
-        const backExplicit = liveDest.exits.get(expectedBack) === backExit;
+        const forwardExplicit = this.exits.get(direction) === exit;
+        const backExplicit = liveDest.getExits().get(expectedBack) === backExit;
         if (forwardExplicit && backExplicit) {
-          exit.inverse = backExit;
-          backExit.inverse = exit;
+          exit.setInverse(backExit);
+          backExit.setInverse(exit);
         }
         // Either we wired or there was nothing more to do — evict.
         this._pendingVerify.delete(exit);
@@ -414,8 +421,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const outbound = [...this.exits.values()];
 
       for (const exit of outbound) {
-        if (exit.inverse) {
-          exit.inverse.blocked = true;
+        const inverse = exit.getInverse();
+        if (inverse) {
+          inverse.setBlocked(true);
         }
       }
       for (const exit of outbound) {
@@ -440,10 +448,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
  * and never enters the pending set.
  */
 function needsVerification(exit: Exit): boolean {
-  if (exit.oneWay) return false;
-  if (exit.inverse) return false;
-  if (exit.blocked) return false;
-  if (!NavigationApi.invertDirection(exit.direction)) return false;
+  if (exit.isOneWay()) return false;
+  if (exit.getInverse()) return false;
+  if (exit.isBlocked()) return false;
+  if (!NavigationApi.invertDirection(exit.getDirection())) return false;
   if (!exit.getDestinationTemplatePath()) return false;
   return true;
 }

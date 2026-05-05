@@ -57,9 +57,6 @@ export interface Detail {
  * Interface for objects with hierarchical details.
  */
 export interface Detailed {
-  /** Persistent hierarchical detail map */
-  details: DetailMap;
-
   /** Get single detail description */
   getDetail(id: DetailId, parent?: DetailId): string | null;
 
@@ -91,9 +88,10 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['details'];
 
     /**
-     * Hierarchical detail map.
+     * Hierarchical detail map. Host-internal storage; external callers
+     * go through `getDetail` / `setDetail` / `removeDetail`.
      */
-    details: DetailMap = new Map();
+    protected details: DetailMap = new Map();
 
     /**
      * Get single detail description.

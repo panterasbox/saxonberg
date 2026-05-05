@@ -26,8 +26,7 @@ describe('Location', () => {
   describe('Construction', () => {
     it('creates a location with default values', () => {
       expect(location).toBeDefined();
-      expect(location.inventory).toBeInstanceOf(Set);
-      expect(location.inventory.size).toBe(0);
+      expect(location.getContents()).toEqual([]);
     });
 
     it('is registered with StuffApi', () => {
@@ -41,7 +40,7 @@ describe('Location', () => {
       const item = makeStuff(() => new TestItem());
       ContainmentApi.move(item, location);
       expect(location.hasContainable(item)).toBe(true);
-      expect(location.inventory.size).toBe(1);
+      expect(location.getContents().length).toBe(1);
     });
 
     it('removes items via ContainmentApi.move(item, null)', () => {
@@ -49,7 +48,7 @@ describe('Location', () => {
       ContainmentApi.move(item, location);
       ContainmentApi.move(item, null);
       expect(location.hasContainable(item)).toBe(false);
-      expect(location.inventory.size).toBe(0);
+      expect(location.getContents().length).toBe(0);
     });
 
     it('returns all contents via getContents()', () => {

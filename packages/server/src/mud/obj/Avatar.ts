@@ -78,9 +78,12 @@ export class Avatar extends AvatarBase {
   /**
    * Runtime-only pointer to the owning User. Stamped by `postRegister`
    * from the clone context; NOT persisted. Ownership lives on
-   * `User.playerIds`.
+   * `User.playerIds`. Host-internal storage; external callers use
+   * `getUser()` / `setUser()`.
    */
-  user?: User;
+  protected user?: User;
+  public getUser(): User | undefined { return this.user; }
+  public setUser(value: User | undefined): void { this.user = value; }
 
   /**
    * Character slot id (key under `/obj/Avatar/<playerId>` and in `User.playerIds`).
@@ -88,7 +91,9 @@ export class Avatar extends AvatarBase {
    * mirrored into the doc. Stamped by `postRegister` from the clone
    * context, or seeded by the test/direct-construction data blob.
    */
-  playerId: string = '';
+  protected playerId: string = '';
+  public getPlayerId(): string { return this.playerId; }
+  public setPlayerId(value: string): void { this.playerId = value; }
 
   /**
    * Multiplexing storage (`interactives: Set<Interactive>`),
@@ -106,7 +111,7 @@ export class Avatar extends AvatarBase {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
 
-    if (this.playerId) {
+    if (this.getPlayerId()) {
       PlayerApi.registerAvatar(this);
     }
   }
@@ -115,7 +120,7 @@ export class Avatar extends AvatarBase {
    * Send a message to all connected Interactives (broadcast).
    */
   public sendMessage(message: unknown): void {
-    for (const interactive of this.interactives) {
+    for (const interactive of this.getInteractives()) {
       interactive.send(message);
     }
   }
@@ -127,7 +132,7 @@ export class Avatar extends AvatarBase {
    */
   protected override handleMessage(frame: MessageFrame): void {
     const app = Avatar.getApplicationInstance();
-    for (const interactive of this.interactives) {
+    for (const interactive of this.getInteractives()) {
       app.sendMessageToInteractive(interactive, frame);
     }
   }
@@ -139,7 +144,7 @@ export class Avatar extends AvatarBase {
    */
   protected prepareDestroy(): void {
     PlayerApi.unregisterAvatar(this);
-    this.interactives.clear();
+    this.clearInteractives();
   }
 
   /**
@@ -148,11 +153,11 @@ export class Avatar extends AvatarBase {
    * for observers that care about player presence.
    */
   public onLinkdead(): void {
-    EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
+    EventApi.emit(Events.PlayerLoggedOut, { playerId: this.getPlayerId() });
   }
 
   public toString(): string {
-    return `[Avatar ${this.fullName} playerId=${this.playerId}]`;
+    return `[Avatar ${this.getFullName()} playerId=${this.getPlayerId()}]`;
   }
 
   /** @internal — overridable for tests. */

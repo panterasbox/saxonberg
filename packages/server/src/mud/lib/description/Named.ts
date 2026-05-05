@@ -60,15 +60,19 @@ export interface AlternateName {
  * Public shape provided by NamedMixin.
  */
 export interface Named {
-  honorific?: string;
-  name: string;
-  surname?: string;
-  nameSuffix?: string;
-  alternateNames: AlternateName[];
+  getHonorific(): string | undefined;
+  setHonorific(value: string | undefined): void;
+  getName(): string;
+  setName(value: string): void;
+  getSurname(): string | undefined;
+  setSurname(value: string | undefined): void;
+  getNameSuffix(): string | undefined;
+  setNameSuffix(value: string | undefined): void;
 
-  readonly fullName: string;
+  getFullName(): string;
 
   getAlternateNames(kind?: NameKind): AlternateName[];
+  setAlternateNames(alts: AlternateName[]): void;
   addAlternateName(alt: AlternateName): void;
   removeAlternateName(value: string): boolean;
 }
@@ -90,16 +94,29 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       'alternateNames',
     ];
 
-    honorific?: string;
-    name: string = '';
-    surname?: string;
-    nameSuffix?: string;
-    alternateNames: AlternateName[] = [];
+    protected honorific?: string;
+    protected name: string = '';
+    protected surname?: string;
+    protected nameSuffix?: string;
+    protected alternateNames: AlternateName[] = [];
+
+    getHonorific(): string | undefined { return this.honorific; }
+    setHonorific(value: string | undefined): void { this.honorific = value; }
+
+    getName(): string { return this.name; }
+    setName(value: string): void { this.name = value; }
+
+    getSurname(): string | undefined { return this.surname; }
+    setSurname(value: string | undefined): void { this.surname = value; }
+
+    getNameSuffix(): string | undefined { return this.nameSuffix; }
+    setNameSuffix(value: string | undefined): void { this.nameSuffix = value; }
 
     /**
-     * Formal canonical form. Used at introductions, character info
-     * screens, disambiguation — not the default for everyday prose.
-     * Most callers should read `obj.name` directly.
+     * Host-internal accessor for the formal canonical form. Public
+     * surface is `getFullName()`. Used at introductions, character
+     * info screens, disambiguation — not the default for everyday
+     * prose. Most callers should read `getName()` directly.
      *
      * Layout:
      *
@@ -114,7 +131,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * those aren't a v1 use case; if they become one, model them
      * via `alternateNames` rather than `nameSuffix`.
      */
-    get fullName(): string {
+    protected get fullName(): string {
       const head = [this.honorific, this.name, this.surname]
         .filter(Boolean)
         .join(' ')
@@ -124,6 +141,8 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return `${head}, ${this.nameSuffix}`;
     }
 
+    getFullName(): string { return this.fullName; }
+
     /**
      * Filtered view of alternate names. Pass a `kind` to narrow.
      * Returns a copy, so callers can iterate without disturbing
@@ -132,6 +151,10 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
     getAlternateNames(kind?: NameKind): AlternateName[] {
       if (!kind) return [...this.alternateNames];
       return this.alternateNames.filter((a) => a.kind === kind);
+    }
+
+    setAlternateNames(alts: AlternateName[]): void {
+      this.alternateNames = alts.map(({ kind, value }) => ({ kind, value }));
     }
 
     addAlternateName(alt: AlternateName): void {
