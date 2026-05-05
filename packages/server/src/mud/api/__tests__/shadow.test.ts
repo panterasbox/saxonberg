@@ -22,34 +22,37 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ShadowError, SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
-// A Stuff host carrying NamedMixin (name/surname/fullName).
-class NamedHost extends NamedMixin(Stuff) {}
-
-// Shadow that composes NamedMixin AND explicitly overrides
-// `fullName`. Under the "own-properties only" rule, only methods the
-// shadow class declares directly intercept — composition alone no
-// longer auto-enrols. The `fullName` getter override is what gives
-// this shadow a non-empty intercept set.
-class RenameShadow extends NamedMixin(Shadow) {
-  override get fullName(): string {
-    return super.fullName;
+// A Stuff host with a `describe()` method. The shadow chain
+// dispatches methods only (accessors are filtered at attach time),
+// so all of the dispatch-mechanics tests below use methods.
+class DescribeHost extends Stuff {
+  public greeting: string = 'plain';
+  describe(): string {
+    return this.greeting;
   }
 }
 
-// Shadow that overrides the `fullName` getter (NamedMixin's only
-// real method on the prototype). `name`/`surname` are field
-// initializers, not prototype methods, so they're not part of the
-// inferred surface — only `fullName` (a getter) is.
-class LiarShadow extends NamedMixin(Shadow) {
-  override get fullName(): string {
-    return 'LIAR';
+// Shadow whose own-class body declares `describe()` — the canonical
+// own-prototype path that enrols a method into the intercept set.
+// Composition alone wouldn't enrol; the override here does.
+class PassthroughShadow extends Shadow {
+  describe(): string {
+    return this.callDown<string>();
   }
 }
 
-// Shadow that wraps `fullName` via callDown (observer + delegate).
-class CountShadow extends NamedMixin(Shadow) {
+// Shadow that overrides `describe()` and ignores callDown — fully
+// replaces the host's behaviour for that method.
+class ReplaceShadow extends Shadow {
+  describe(): string {
+    return 'REPLACED';
+  }
+}
+
+// Shadow that wraps `describe()` via callDown — observer + delegate.
+class CountingShadow extends Shadow {
   public count = 0;
-  override get fullName(): string {
+  describe(): string {
     this.count++;
     return this.callDown<string>();
   }
@@ -92,46 +95,62 @@ describe('ShadowApi.attach / detach', () => {
 
   it('rejects a shadow with no surface', () => {
     class NoSurface extends Shadow {}
-    const host = makeStuff(() => new NamedHost());
+    const host = makeStuff(() => new DescribeHost());
     const sh = makeStuff(() => new NoSurface());
     expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
   });
 
   it('attaches a shadow with own-method overrides and exposes interceptedMethods', () => {
-    const host = makeStuff(() => new NamedHost());
-    const sh = makeStuff(() => new RenameShadow());
+    const host = makeStuff(() => new DescribeHost());
+    const sh = makeStuff(() => new PassthroughShadow());
     ShadowApi.attach(host, sh);
     expect(sh.host).toBe(host);
     // Only methods declared in the shadow's own class body intercept.
-    // RenameShadow declares one: the `fullName` getter override.
-    // The other Named-mixin methods come in via composition and are
-    // part of the type contract, not the intercept set.
-    expect([...sh.interceptedMethods]).toEqual(['fullName']);
+    // PassthroughShadow declares one: `describe()`.
+    expect([...sh.interceptedMethods]).toEqual(['describe']);
   });
 
   it('shadow composing a mixin without own overrides has empty intercept set', () => {
+    // NamedMixin contributes accessors and methods to its prototype,
+    // but BareMixinShadow's own prototype only carries `constructor`.
+    // Inherited methods are part of the type contract, not the
+    // intercept set.
     class BareMixinShadow extends NamedMixin(Shadow) {}
-    const host = makeStuff(() => new NamedHost());
+    const host = makeStuff(() => new DescribeHost());
     const sh = makeStuff(() => new BareMixinShadow());
     expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
   });
 
+  it('shadow that only overrides accessors has empty intercept set', () => {
+    // Accessors are host-internal, never part of the shadow surface.
+    // A shadow whose only own-prototype properties are getters/setters
+    // gets an empty intercept set and attach throws.
+    class AccessorOnlyShadow extends NamedMixin(Shadow) {
+      override get fullName(): string {
+        return 'IGNORED';
+      }
+    }
+    const host = makeStuff(() => new DescribeHost());
+    const sh = makeStuff(() => new AccessorOnlyShadow());
+    expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
+  });
+
   it('rejects re-attach without intervening detach', () => {
-    const host = makeStuff(() => new NamedHost());
-    const sh = makeStuff(() => new RenameShadow());
+    const host = makeStuff(() => new DescribeHost());
+    const sh = makeStuff(() => new PassthroughShadow());
     ShadowApi.attach(host, sh);
     expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
   });
 
   it('detach is idempotent (no host → no-op)', () => {
-    const sh = makeStuff(() => new RenameShadow());
+    const sh = makeStuff(() => new PassthroughShadow());
     expect(() => ShadowApi.detach(sh)).not.toThrow();
     expect(sh.host).toBeNull();
   });
 
   it('detach clears both directions atomically', () => {
-    const host = makeStuff(() => new NamedHost());
-    const sh = makeStuff(() => new RenameShadow());
+    const host = makeStuff(() => new DescribeHost());
+    const sh = makeStuff(() => new PassthroughShadow());
     ShadowApi.attach(host, sh);
     ShadowApi.detach(sh);
     expect(sh.host).toBeNull();
@@ -163,26 +182,23 @@ describe('ShadowApi dispatch (proxy invocation)', () => {
   });
 
   it('a shadow that overrides without callDown fully replaces', () => {
-    const host = makeStuff(() => new NamedHost());
-    host.name = 'Alice';
-    host.surname = 'A';
-    const sh = makeStuff(() => new LiarShadow());
+    const host = makeStuff(() => new DescribeHost());
+    host.greeting = 'plain';
+    const sh = makeStuff(() => new ReplaceShadow());
     ShadowApi.attach(host, sh);
-    // LiarShadow overrides `fullName` to always return 'LIAR' with
-    // no callDown — the host's fullName getter never runs.
-    expect(host.fullName).toBe('LIAR');
+    // ReplaceShadow overrides `describe()` with no callDown — the
+    // host's method never runs.
+    expect(host.describe()).toBe('REPLACED');
   });
 
   it('a shadow that calls down chains through to the host original', () => {
-    const host = makeStuff(() => new NamedHost());
-    host.name = 'Bob';
-    host.surname = 'B';
-    const sh = makeStuff(() => new CountShadow());
+    const host = makeStuff(() => new DescribeHost());
+    host.greeting = 'hello';
+    const sh = makeStuff(() => new CountingShadow());
     ShadowApi.attach(host, sh);
-    // CountShadow's fullName getter increments and calls down. Since
-    // it's the only shadow, callDown lands at the host's original
-    // fullName getter (which composes name + surname).
-    expect(host.fullName).toBe('Bob B');
+    // CountingShadow increments and calls down. Since it's the only
+    // shadow, callDown lands at the host's original describe().
+    expect(host.describe()).toBe('hello');
     expect(sh.count).toBe(1);
   });
 

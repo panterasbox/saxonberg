@@ -28,8 +28,12 @@
  * caller's fallback string.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)
- * attach via `ShadowApi` on the `name` getter or `fullName` —
- * persistent state stays untouched.
+ * are out of scope for this mixin. If they're added later, they
+ * have to attach via `ShadowApi` on a method-shaped surface —
+ * accessor pairs (`fullName` here) are host-internal and don't
+ * participate in the shadow chain. A typical implementation would
+ * add a `getDisplayName()` method that wraps `fullName` and let
+ * shadows intercept that.
  */
 
 import type { MixinConstructor } from '../mixin';

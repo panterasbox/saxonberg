@@ -410,6 +410,66 @@ counters, configuration overrides, anonymous buff slots.
 
 Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 
+## Reaching Into Another Stuff's Fields or Accessors
+
+**ANTIPATTERN**: Reading or writing a field or accessor pair on
+another `Stuff` from outside its owning class.
+
+### BAD (direct field/accessor access)
+
+```typescript
+// `direction` is a public field on Exit.
+const dir = exit.direction;
+exit.direction = 'north';
+
+// `door` is an accessor pair on Exit (invariant maintenance).
+exit.door = newDoor;
+
+// `name` is a field on something composing NamedMixin.
+if (avatar.name === 'Alice') { ... }
+```
+
+The fields/accessors exist — they'll work — but they bypass the
+inter-stuff contract layer. Specifically:
+
+- **Shadows can't intercept them.** The shadow framework dispatches
+  on methods only; field reads are never mediated, accessor reads
+  are filtered out of the intercept set, and there is no `set`-trap
+  on the proxy at all. Buffs, polymorph effects, hood/disguise
+  shadows, etc. silently miss any read or write that goes through a
+  field or accessor.
+- **They couple call sites to the host's storage shape.** Renaming
+  the field, splitting it into multiple, lazifying it behind a
+  promise, or threading an invariant through a setter all become
+  changes to every caller.
+
+### GOOD (methods are the contract surface)
+
+```typescript
+const dir = exit.getDirection();
+exit.setDirection('north');
+
+exit.setDoor(newDoor);
+
+if (avatar.getName() === 'Alice') { ... }
+```
+
+Methods are what shadows hook, what call-security policies gate, and
+what the host gets to refactor freely behind. Fields and accessor
+pairs stay host-internal — accessors are still the right tool for
+invariant maintenance (e.g., `Door.attachedTo` bookkeeping on the
+`door` accessor), but the public method delegates to them rather
+than exposing them to other Stuff.
+
+The Hydrator is a deliberate framework carve-out: it reflects
+directly into persistent fields so it can populate them from
+storage, including firing accessor setters when an invariant lives
+there. Anything else outside the host's own class body should go
+through methods.
+
+See [subsystems/call-security.md § Authoring shape](./subsystems/call-security.md#authoring-shape--explicit-declaration-declares-the-surface)
+for why shadows only see methods.
+
 ## Cloning Singletons — use `StuffApi.singleton(path)`
 
 **ANTIPATTERN**: Calling `StuffApi.clone(path)` or

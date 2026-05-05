@@ -249,6 +249,58 @@ which case applies.
 reflects into them and `#` slots are unreachable from outside the
 class body.
 
+## Inter-Stuff Contract: Methods Only
+
+Privacy modifiers say what the *compiler* enforces. The **inter-stuff
+contract** says what *external code* may use. The two are related but
+not the same — even `public` fields are off-limits when the reader is
+another `Stuff`.
+
+The rule:
+
+- **Methods are the contract surface between Stuff objects.** Other
+  Stuff reads and writes via `obj.getFoo()` / `obj.setFoo(x)`, never
+  `obj.foo`.
+- **Fields and accessor pairs are host-internal.** Internal class
+  code touches `this._foo` (or `this.foo` if the accessor lives on
+  the same name) directly — that's not the contract.
+- **Hydrator is the framework carve-out.** It reflects into persistent
+  fields by name to populate them from storage. Nothing else
+  outside the host's class body does the same.
+
+### Why methods
+
+The shadow framework dispatches **methods only**. Reading `obj.foo`
+where `foo` is a field bypasses the proxy entirely; reading an
+accessor pair runs the security gate but never finds a shadow because
+accessors are filtered out of the intercept set; setters have no
+proxy trap at all. Buffs, polymorph effects, hood/disguise shadows,
+audit interceptors — none of them see field-shaped access. Methods
+are the only stable extension point.
+
+The corollary: when an invariant has to fire on every write, the
+accessor pair (`get foo()` / `set foo()`) is still the right tool —
+it's just not external surface. The public `setFoo()` method
+delegates to the accessor; outside callers never see the accessor
+form.
+
+### What this means in practice
+
+| Sense | Inside the class body | Other Stuff |
+|---|---|---|
+| Read | `this._foo` (or `this.foo` if accessor-shaped) | `other.getFoo()` |
+| Write | `this._foo = v` (or `this.foo = v` to fire the accessor) | `other.setFoo(v)` |
+| Persistence (Hydrator) | n/a | `instance['foo'] = stored` (framework carve-out) |
+
+Test code is treated like other Stuff: tests that need to inspect
+internals should reach for the host's public method surface, not
+field/accessor access. When a test genuinely needs raw state, the
+seam is `Stuff.RAW_TARGET` plus a comment explaining why.
+
+This is a graduated rule. The current codebase still has plenty of
+`obj.field`-style call sites; migration is mechanical and tracked
+separately. New code goes on the new pattern.
+
 ## Go Through the API Layer
 
 Several recurring rules collapse into one principle: **never call into
@@ -265,6 +317,7 @@ bypass it. Common cases:
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
+| `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 
