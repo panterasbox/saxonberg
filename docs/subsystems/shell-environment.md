@@ -280,11 +280,10 @@ Override precedence inside `MobileMixin` (highest first):
    `getTeleportInMessage`.
 3. `messages.movement.*` settings — the player-overridable defaults.
 
-Two-key arrive split (`*.directional` / `*.bland`) is tactical until
-`Mml.format` gains conditional syntax. Keys consolidate back into
-single `arriveSelf` / `arrivePeers` keys when that lands; existing
-overrides reset to default during the consolidation since the old
-strings won't be valid in the new format language.
+Defaults are Liquid templates rendered by `ProseApi`; conditionals
+inside the template handle the directional/bland split, so a single
+`arriveSelf` / `arrivePeers` key covers both cases. See
+[prose.md](./prose.md) for the templating language and helpers.
 
 ## Future neighbors
 

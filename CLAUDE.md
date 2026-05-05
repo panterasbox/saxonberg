@@ -38,6 +38,9 @@ behavior. Read the relevant doc before editing in its area.
     `EnvironmentMixin` settings keyspace, schema-on-mixin, lookup
     chain, `settings` / `var` commands, `resolveSetting` cross-host
     helper
+  - [prose.md](./docs/subsystems/prose.md) — `ProseApi` Liquid-based
+    templating for authorable prose, Mml-aware output, default
+    filters (Mml vocabulary, `GrammarApi`)
   - [call-security.md](./docs/subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows, FrameKind
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,

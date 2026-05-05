@@ -240,18 +240,11 @@ Vocabulary helpers always re-escape raw string arguments. Calling
 fragments explicitly. Pass-through is not a feature; it's the bug
 surface this design closes.
 
-`Mml.format` exists for prose stored outside the source — config
-objects, schema-declared settings, eventually user preference docs —
-where a tagged template literal isn't reachable. Substitution rules
-match `Mml.compose`'s interpolation rules; unknown placeholders
-resolve to empty strings. The movement-message defaults declared on
-`MobileMixin.settings` are the canonical user. Example:
-
-```typescript
-Mml.format('You leave to the {direction}.', {
-  direction: Mml.direction(exit.direction),
-});
-```
+For prose stored outside the source — schema-declared settings,
+CMS-authored room/NPC/item descriptions, eventually prompts — reach
+for `ProseApi.format` (see [prose.md](./prose.md)). Liquid-syntax
+templates with conditionals and filter chains, same Mml-aware escape
+rules as `Mml.compose`, returns a finished `Mml` fragment.
 
 `Mml.escape` is the five-entity escape exposed publicly for other
 markup-producers that need it.
@@ -546,8 +539,8 @@ settings subsystem.
 The override hierarchy `MobileMixin` consults (highest priority first):
 
 1. **`Exit.messageOut` / `Exit.messageIn`** — room-author per-exit
-   strings with `{mover}` substitution. Handy for one-off custom
-   narration on a specific door.
+   Liquid templates with `{{ mover }}` available. Handy for one-off
+   custom narration on a specific door.
 2. **Room hooks** on the source/destination Container:
    `getDepartureMessage(mover, exit)`, `getArrivalMessage(mover, exit)`,
    `getTeleportOutMessage(mover)`, `getTeleportInMessage(mover)` —
@@ -555,13 +548,11 @@ The override hierarchy `MobileMixin` consults (highest priority first):
    any audience the resolver skipped.
 3. **`messages.movement.*` settings** — schema-defaulted, player-overridable.
 
-Each schema entry's default is consumed via `Mml.format`, substituting
-`Mml.name(mover)` and `Mml.direction(...)` where appropriate so the
-output is valid MML with proper escaping. Arrival prose picks between
-the `.directional` and `.bland` keys based on whether
-`Exit.inverse?.direction` or `NavigationApi.invertDirection(...)`
-resolves; the bland fallbacks render `"You arrive."` /
-`"<mover> arrives."`.
+Each schema entry's default is rendered through `ProseApi.format`,
+which interpolates `Mml.name(mover)` and `Mml.direction(...)` and
+handles the directional/bland arrive split via `{% if direction %}`
+inside a single template — see [prose.md](./prose.md) for the
+templating language.
 
 Out of scope for these settings: prose for one-shot controller output
 (look, inventory, get/drop, open/close, etc.) lives where the controller
