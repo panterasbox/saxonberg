@@ -20,7 +20,7 @@
  * the transition.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { MessageFrame } from '@saxonberg/types';
 
 /**

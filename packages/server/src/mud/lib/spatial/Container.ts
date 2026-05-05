@@ -1,49 +1,74 @@
 /**
- * ContainerMixin - Adds inventory management
+ * ContainerMixin — anything that holds Containables.
  *
- * Provides:
- * - inventory: Set<Stuff & Containable> (items contained)
- * - addToInventory(item): void
- * - removeFromInventory(item): boolean
- * - hasInInventory(item): boolean
- * - getInventoryContents(): (Stuff & Containable)[]
+ * Vocabulary unified on the `contain*` root: state mutators are
+ * `addContainable` / `removeContainable` (not the old "Inventory"
+ * spelling); the read accessor is `getContents()`.
  *
- * Usage:
- * ```typescript
- * class MyClass extends ContainerMixin(BaseClass) {
- *   // ...
- * }
- * ```
+ * Lockdown contract (Phase 5):
+ *   - `addContainable` / `removeContainable` are the state-mutation
+ *     primitives. They are `@Final` (no subclass override —
+ *     out-of-sync inventory is catastrophic), `@Unshadowable` (no
+ *     shadow bypass), and `@CallSecurity` gated to be reachable
+ *     ONLY from inside `Containable.setEnvironment`. All
+ *     application code goes through `ContainmentApi.move` instead.
  *
- * Persistence:
- * - NOT auto-persisted (complex type)
- * - Must declare custom persistenceHandler in class
+ * Witness hooks (optional methods on the interface):
+ *   - `canAddContainable(thing)` / `canRemoveContainable(thing)` —
+ *     pre-mutation veto.
+ *   - `onContainableAdded(thing)` / `onContainableRemoved(thing)` —
+ *     post-mutation notification.
+ *   ContainmentApi.move dispatches these around the chokepoint call.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from './Containable';
+import type { VetoResult } from '../errors';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
+import { ExecutionContextApi } from '../../api/execution-context';
 
 /**
- * Mixin that adds container/inventory properties and methods.
- *
- * Also provides inventory management commands (inventory, get, drop)
- * as "self" commands for any object with ContainerMixin.
- */
-/**
  * Public shape provided by ContainerMixin.
+ *
+ * The optional Witness methods (`canAddContainable`,
+ * `canRemoveContainable`, `onContainableAdded`, `onContainableRemoved`)
+ * fire from `ContainmentApi.move`. Implement only the ones you care
+ * about; absence is treated as "no opinion."
  */
 export interface Container {
   inventory: Set<Stuff & Containable>;
-  addToInventory(item: Stuff & Containable): void;
-  removeFromInventory(item: Stuff & Containable): boolean;
-  hasInInventory(item: Stuff & Containable): boolean;
-  getInventoryContents(): (Stuff & Containable)[];
+  addContainable(item: Stuff & Containable): void;
+  removeContainable(item: Stuff & Containable): boolean;
+  hasContainable(item: Stuff & Containable): boolean;
   getContents(): (Stuff & Containable)[];
+
+  /** Optional pre-add veto. Return `{ ok: false, reason }` to block. */
+  canAddContainable?(thing: Stuff & Containable): VetoResult;
+  /** Optional pre-remove veto. */
+  canRemoveContainable?(thing: Stuff & Containable): VetoResult;
+  /** Fired after the Containable has been added. */
+  onContainableAdded?(thing: Stuff & Containable): void;
+  /** Fired after the Containable has been removed. */
+  onContainableRemoved?(thing: Stuff & Containable): void;
 }
 
+/**
+ * Custom predicate: caller's most-recent frame is inside
+ * `Containable.setEnvironment`. The proxy checks the policy BEFORE
+ * pushing the `addContainable` / `removeContainable` frame, so the
+ * top of the stack at check time IS the calling `setEnvironment`
+ * frame.
+ */
+const CalledFromSetEnvironment = SecurityPolicies.Custom(() => {
+  const stack = ExecutionContextApi.getCallStack();
+  const callerFrame = stack[stack.length - 1];
+  return callerFrame?.method === 'setEnvironment';
+}, 'CalledFromSetEnvironment');
+
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ContainerMixin extends Base {
+  class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainerMixin';
 
@@ -58,49 +83,44 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
-     * Note: inventory is a complex type (Set of references).
-     * It is NOT included in persistentFields - instead, classes using
-     * this mixin must declare a custom persistenceHandler.
+     * The contained items. Direct access is allowed for read paths
+     * (getContents) but mutation goes through `addContainable` /
+     * `removeContainable`, which only `Containable.setEnvironment`
+     * may legitimately invoke.
      */
     inventory: Set<Stuff & Containable> = new Set();
 
     /**
-     * Add an item to the inventory.
-     * @param item - Item to add
+     * State-mutation primitive. Locked down — only callable from
+     * `Containable.setEnvironment`. Use `ContainmentApi.move(item,
+     * container)` from application code.
      */
-    addToInventory(item: Stuff & Containable): void {
+    @CallSecurity(CalledFromSetEnvironment)
+    @Final
+    @Unshadowable
+    addContainable(item: Stuff & Containable): void {
       this.inventory.add(item);
     }
 
     /**
-     * Remove an item from the inventory.
-     * @param item - Item to remove
-     * @returns True if item was found and removed
+     * Remove primitive. Same lockdown as `addContainable`.
      */
-    removeFromInventory(item: Stuff & Containable): boolean {
+    @CallSecurity(CalledFromSetEnvironment)
+    @Final
+    @Unshadowable
+    removeContainable(item: Stuff & Containable): boolean {
       return this.inventory.delete(item);
     }
 
-    /**
-     * Check if inventory contains an item.
-     * @param item - Item to check for
-     */
-    hasInInventory(item: Stuff & Containable): boolean {
+    /** Membership predicate. */
+    hasContainable(item: Stuff & Containable): boolean {
       return this.inventory.has(item);
     }
 
-    /**
-     * Get all items in inventory as an array.
-     */
-    getInventoryContents(): (Stuff & Containable)[] {
+    /** Snapshot of contained items as an array. */
+    getContents(): (Stuff & Containable)[] {
       return Array.from(this.inventory);
     }
-
-    /**
-     * Alias for getInventoryContents() for consistency with ContainmentApi
-     */
-    getContents(): (Stuff & Containable)[] {
-      return this.getInventoryContents();
-    }
-  };
+  }
+  return ContainerMixin;
 }

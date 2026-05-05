@@ -8,7 +8,7 @@
  * Persistence: `coordinates` is auto-persisted via `persistentFields`.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /** Public shape added by CartesianCoordinatesMixin. */
 export interface CartesianCoordinates {

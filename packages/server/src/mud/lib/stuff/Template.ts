@@ -23,7 +23,7 @@ export class Template extends Persistable {
   static collectionName = 'domain';
   static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
 
-  /** Canonical path identifier (e.g. `/avatar/abc123`, `/narnia/castle`). */
+  /** Canonical path identifier (e.g. `/obj/Avatar/abc123`, `/narnia/castle`). */
   path: string = '';
 
   /** Runtime backing class path (e.g. `/obj/Avatar`). */

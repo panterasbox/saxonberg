@@ -1,0 +1,8 @@
+# The starting room. Plain Location — no Named, no Visible, no
+# Exitable. Avatars cloned by Login land here at first; the look
+# command renders this as the bare minimum (just whatever Mml.location
+# emits, no description body) until the look command grows a more
+# elegant fallback for non-Visible rooms — see roadmap "Command
+# system polish".
+class: /lib/stuff/Location
+data: {}

@@ -156,7 +156,7 @@ import { Location } from './Location.js';
   folder** — "mixin" is an implementation technique, not a subsystem.
   If a new mixin doesn't fit an existing subsystem, propose a new
   subsystem folder for it. Shared mixin infrastructure (types, name
-  registry) lives in `lib/mixin-types.ts`.
+  registry) lives in `lib/mixin.ts`.
 - **Class files**: match the class name (`Avatar.ts`, `Player.ts`,
   `Thing.ts`, `Location.ts`).
 - **Api files**: lowercase with `.ts` (`stuff.ts`, `player.ts`,
@@ -221,7 +221,7 @@ bypass it. Common cases:
 |---|---|
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
-| `item.setEnvironment(c); c.addToInventory(item)` | `ContainmentApi.move(item, c)` |
+| `item.setEnvironment(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
@@ -241,7 +241,7 @@ Some specific reminders worth keeping in front of mind:
 - **Per-field invariants belong on setters**, not in `normalize()`-style
   post-hydrate hooks. Hydration goes through setters via bracket-assign;
   cross-field invariants go in a custom `Hydrator` subclass.
-- **`Mixins` registry constants** in `lib/mixin-types.ts` — use
+- **`Mixins` registry constants** in `lib/mixin.ts` — use
   `Mixins.X` instead of string literals when calling
   `MixinApi.hasMixin()`.
 
@@ -250,7 +250,7 @@ Some specific reminders worth keeping in front of mind:
 Google OAuth2 via Passport. Sequence: `/auth/google` → Google →
 `/auth/google/callback` → `Backend.handleAuthenticationSuccess` →
 `Application.findOrCreateUserFromGoogle` (creates/updates
-`GoogleProfile`, `User`, default Avatar template at `/avatar/<playerId>`)
+`GoogleProfile`, `User`, default Avatar template at `/obj/Avatar/<playerId>`)
 → session cookie → client redirected with `auth=success`. WebSocket
 upgrade reuses the express-session middleware.
 

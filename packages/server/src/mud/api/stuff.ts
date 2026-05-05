@@ -24,6 +24,8 @@ import { ExecutionContextApi, FrameKind } from './execution-context';
 // the first `ProxyApi.wrap` in `create` / `clone` / `createSync`.
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
+import { EventApi } from './event';
+import { Events } from '../lib/events';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -38,9 +40,58 @@ export type StuffConstructor<T extends Stuff = Stuff> = new () => T;
  */
 export class StuffApi {
   /**
-   * Registry of all active objects by stuffId.
+   * Registry of all active runtime objects, organized by lookup attribute.
+   *
+   * Naming convention for future indexes:
+   *   - Index field: `by<Attribute>` here.
+   *   - Singleton-enforcing lookup: `findBy<Attribute>(value)` — throws
+   *     on multi-instance collision.
+   *   - Always-array lookup: `findAllBy<Attribute>(value)`.
+   *
+   * All updates flow through {@link #updateIndexes} so register /
+   * unregister atomically touch every index. One audit point.
    */
-  static #objectsById: Map<string, Stuff> = new Map();
+  static #indexes: {
+    byId: Map<string, Stuff>;
+    byTemplatePath: Map<string, Set<Stuff>>;
+  } = {
+    byId: new Map(),
+    byTemplatePath: new Map(),
+  };
+
+  /**
+   * Atomically add or remove `obj` across every index. Called from
+   * `register` / `unregister`. Reads `obj.stuffId` and the
+   * `templatePath` field stamped by `clone()` (`undefined` when the
+   * object was constructed via `create*` and never gets a template).
+   */
+  static #updateIndexes(obj: Stuff, action: 'add' | 'remove'): void {
+    const id = obj.stuffId;
+    const templatePath = (obj as unknown as { templatePath?: string })
+      .templatePath;
+    if (action === 'add') {
+      this.#indexes.byId.set(id, obj);
+      if (templatePath) {
+        let bucket = this.#indexes.byTemplatePath.get(templatePath);
+        if (!bucket) {
+          bucket = new Set();
+          this.#indexes.byTemplatePath.set(templatePath, bucket);
+        }
+        bucket.add(obj);
+      }
+    } else {
+      this.#indexes.byId.delete(id);
+      if (templatePath) {
+        const bucket = this.#indexes.byTemplatePath.get(templatePath);
+        if (bucket) {
+          bucket.delete(obj);
+          if (bucket.size === 0) {
+            this.#indexes.byTemplatePath.delete(templatePath);
+          }
+        }
+      }
+    }
+  }
 
   /**
    * WeakMap tracking destroyed objects for debugging.
@@ -120,12 +171,12 @@ export class StuffApi {
    * Objects that don't care ignore it; objects that do (Avatar) declare a
    * narrower context type locally and read what they need.
    *
-   * @param templatePath - Path to the template (e.g., "/avatar/<playerId>")
+   * @param templatePath - Path to the template (e.g., "/obj/Avatar/<playerId>")
    * @param context - Optional runtime context passed to `postRegister`
    * @returns The cloned and registered object
    *
    * @example
-   * const avatar = await StuffApi.clone<Avatar>('/avatar/abc', { user });
+   * const avatar = await StuffApi.clone<Avatar>('/obj/Avatar/abc', { user });
    * const room = await StuffApi.clone('/home/bobalu/workroom');
    */
   public static async clone<T extends Stuff>(
@@ -368,6 +419,16 @@ export class StuffApi {
       throw error;
     }
 
+    // Lifecycle event. EventApi silently drops the emit during early
+    // boot (e.g. when the EventRegistry itself is being created),
+    // so the call is safe at every point in the registration order.
+    const templatePath = (proxy as unknown as { templatePath?: string })
+      .templatePath;
+    EventApi.emit(Events.StuffCreated, {
+      stuffId: proxy.stuffId,
+      templatePath,
+    });
+
     return proxy;
   }
 
@@ -382,14 +443,14 @@ export class StuffApi {
       throw new Error('StuffApi.register(): Invalid object');
     }
 
-    if (this.#objectsById.has(object.stuffId)) {
+    if (this.#indexes.byId.has(object.stuffId)) {
       console.warn(
         `StuffApi.register(): Object ${object.stuffId} already registered`
       );
       return;
     }
 
-    this.#objectsById.set(object.stuffId, object);
+    this.#updateIndexes(object, 'add');
   }
 
   /**
@@ -413,6 +474,7 @@ export class StuffApi {
     if (!object) {
       throw new Error('StuffApi.destruct(): Invalid object');
     }
+    const stuffId = object.stuffId;
     // Fire-and-forget the prepare hook through the proxy so any
     // shadow chain observes it. Cast for direct invocation; the
     // proxy mediates the call regardless.
@@ -426,6 +488,10 @@ export class StuffApi {
     ShadowApi._detachAllForHost(object);
     // Now shadow-free — destroy() runs straight to the original body.
     object.destroy();
+
+    // Lifecycle event after the object is fully removed from the
+    // registry. EventApi silently drops emits before bootstrap.
+    EventApi.emit(Events.StuffDestructed, { stuffId });
   }
 
   /**
@@ -439,7 +505,7 @@ export class StuffApi {
       throw new Error('StuffApi.unregister(): Invalid object');
     }
 
-    this.#objectsById.delete(object.stuffId);
+    this.#updateIndexes(object, 'remove');
 
     // Track for debugging
     this.#destroyedObjects.set(object, {
@@ -456,15 +522,58 @@ export class StuffApi {
    * @returns The object, or undefined if not found
    */
   public static findById(stuffId: string): Stuff | undefined {
-    const obj = this.#objectsById.get(stuffId);
+    const obj = this.#indexes.byId.get(stuffId);
 
-    // If object is destroyed, remove it from registry
+    // If object is destroyed, drop it from every index.
     if (obj?.isDestroyed()) {
-      this.#objectsById.delete(stuffId);
+      this.#updateIndexes(obj, 'remove');
       return undefined;
     }
 
     return obj;
+  }
+
+  /**
+   * Find the single runtime instance cloned from `templatePath`.
+   *
+   * Template paths identify *classes of world objects* — the same
+   * notion as MQL identity. For singleton system Ideas (one template
+   * per class), this is the canonical lookup.
+   *
+   * Returns the instance when exactly one exists, `undefined` when
+   * none, throws when multiple share the path. Throwing on multi is
+   * deliberate — if a caller treats the result as a singleton and
+   * silently picks an arbitrary one, bugs become non-deterministic.
+   * Use {@link findAllByTemplatePath} when multiple instances are
+   * legitimate.
+   *
+   * O(1) via the `byTemplatePath` index maintained in
+   * {@link #updateIndexes}.
+   */
+  public static findByTemplatePath<T extends Stuff = Stuff>(
+    path: string
+  ): T | undefined {
+    const bucket = this.#indexes.byTemplatePath.get(path);
+    if (!bucket || bucket.size === 0) return undefined;
+    if (bucket.size > 1) {
+      throw new Error(
+        `StuffApi.findByTemplatePath('${path}'): expected singleton, found ${bucket.size}`
+      );
+    }
+    return bucket.values().next().value as T;
+  }
+
+  /**
+   * Find every runtime instance cloned from `templatePath`. Always
+   * returns an array (possibly empty). Companion to
+   * {@link findByTemplatePath} for the multi-instance case.
+   */
+  public static findAllByTemplatePath<T extends Stuff = Stuff>(
+    path: string
+  ): T[] {
+    const bucket = this.#indexes.byTemplatePath.get(path);
+    if (!bucket) return [];
+    return [...bucket] as T[];
   }
 
   /**
@@ -476,12 +585,12 @@ export class StuffApi {
   public static getAllObjects(): Stuff[] {
     const objects: Stuff[] = [];
 
-    for (const obj of this.#objectsById.values()) {
+    for (const obj of this.#indexes.byId.values()) {
       if (!obj.isDestroyed()) {
         objects.push(obj);
       } else {
-        // Clean up destroyed objects
-        this.#objectsById.delete(obj.stuffId);
+        // Clean up destroyed objects across every index.
+        this.#updateIndexes(obj, 'remove');
       }
     }
 
@@ -492,7 +601,7 @@ export class StuffApi {
    * Get count of active objects.
    */
   public static getObjectCount(): number {
-    return this.#objectsById.size;
+    return this.#indexes.byId.size;
   }
 
   /**
@@ -501,7 +610,8 @@ export class StuffApi {
    * Only use for testing or shutdown.
    */
   public static clearAll(): void {
-    this.#objectsById.clear();
+    this.#indexes.byId.clear();
+    this.#indexes.byTemplatePath.clear();
   }
 
   /**

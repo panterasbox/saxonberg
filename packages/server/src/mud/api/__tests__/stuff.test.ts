@@ -267,4 +267,83 @@ describe('StuffApi', () => {
       expect(id.length).toBeGreaterThan(0);
     });
   });
+
+  describe('findByTemplatePath / findAllByTemplatePath', () => {
+    class Stamped extends Stuff {}
+
+    function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+      (obj as unknown as { templatePath?: string }).templatePath = path;
+      return obj;
+    }
+
+    beforeEach(() => {
+      StuffApi.clearAll();
+    });
+
+    it('returns undefined for an unknown templatePath', () => {
+      expect(StuffApi.findByTemplatePath('/obj/Nope')).toBeUndefined();
+      expect(StuffApi.findAllByTemplatePath('/obj/Nope')).toEqual([]);
+    });
+
+    it('returns the single instance when one exists', async () => {
+      const inst = await StuffApi.create(() =>
+        withTemplatePath(new Stamped(), '/obj/Single')
+      );
+      // Need to re-register so the templatePath stamp lands in the index.
+      StuffApi.unregister(inst);
+      StuffApi.register(inst);
+      expect(StuffApi.findByTemplatePath('/obj/Single')).toBe(inst);
+      expect(StuffApi.findAllByTemplatePath('/obj/Single')).toEqual([inst]);
+    });
+
+    it('throws when more than one instance shares a templatePath', async () => {
+      const a = await StuffApi.create(() =>
+        withTemplatePath(new Stamped(), '/obj/Multi')
+      );
+      const b = await StuffApi.create(() =>
+        withTemplatePath(new Stamped(), '/obj/Multi')
+      );
+      StuffApi.unregister(a);
+      StuffApi.unregister(b);
+      StuffApi.register(a);
+      StuffApi.register(b);
+      expect(() => StuffApi.findByTemplatePath('/obj/Multi')).toThrow(
+        /expected singleton, found 2/
+      );
+      expect(StuffApi.findAllByTemplatePath('/obj/Multi').sort()).toEqual(
+        [a, b].sort()
+      );
+    });
+
+    it('drops templatePath entries on unregister', async () => {
+      const inst = await StuffApi.create(() =>
+        withTemplatePath(new Stamped(), '/obj/Removable')
+      );
+      StuffApi.unregister(inst);
+      StuffApi.register(inst);
+      expect(StuffApi.findByTemplatePath('/obj/Removable')).toBe(inst);
+      StuffApi.unregister(inst);
+      expect(StuffApi.findByTemplatePath('/obj/Removable')).toBeUndefined();
+    });
+
+    it('drops templatePath entries on destruct', async () => {
+      const inst = await StuffApi.create(() =>
+        withTemplatePath(new Stamped(), '/obj/Destructable')
+      );
+      StuffApi.unregister(inst);
+      StuffApi.register(inst);
+      expect(StuffApi.findByTemplatePath('/obj/Destructable')).toBe(inst);
+      StuffApi.destruct(inst);
+      expect(StuffApi.findByTemplatePath('/obj/Destructable')).toBeUndefined();
+    });
+
+    it('a never-registered Stuff is unfindable by templatePath', () => {
+      const inst = withTemplatePath(makeStuff(() => new Stamped()), '/obj/Ghost');
+      // makeStuff registers via StuffApi.register, but the stamp wasn't
+      // applied before that registration — so the byTemplatePath index
+      // has no record. Re-stamp and require an explicit re-register.
+      expect(StuffApi.findByTemplatePath('/obj/Ghost')).toBeUndefined();
+      void inst;
+    });
+  });
 });

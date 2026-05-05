@@ -170,11 +170,17 @@ the `Remove` access op.
 
 ### `checkProp` / `getAllPropNames` / `generateUniquePropName`
 
-Introspection. `checkProp` returns the options for a property (or
-null). `getAllPropNames` walks every initialized property —
-transient + saved. `generateUniquePropName` mints a unique
-`<seed>.<nanoid>` key, useful when multiple anonymous slots need to
-coexist (per-buff state, per-effect counters):
+Introspection. `checkProp` returns the property's options when the
+prop exists AND the caller is allowed to see it; otherwise `null`.
+The Get access op gates visibility, so a denied caller gets the same
+`null` as for a non-existent prop — one answer to "does this prop
+exist and can I read it?" `EventApi.on` relies on this Get-gating to
+distinguish "no such event / not allowed to subscribe" from
+"declared and emitted-but-no-payload-yet" without a sentinel value.
+`getAllPropNames` walks every initialized property — transient +
+saved. `generateUniquePropName` mints a unique `<seed>.<nanoid>`
+key, useful when multiple anonymous slots need to coexist (per-buff
+state, per-effect counters):
 
 ```typescript
 const slot = avatar.generateUniquePropName<BuffState>('buff');

@@ -102,13 +102,13 @@ pointers to other records. Its responsibilities dissolve into:
 
 The id is **still called `playerId`**. It represents "one of a user's
 owned character slots" — that meaning survives the class's death.
-Paths use `/avatar/<playerId>`.
+Paths use `/obj/Avatar/<playerId>`.
 
 ### No CharacterSheet class
 
 `CharacterSheet` existed to hold persistent character state across
 clones. Under the unified model, Avatar's own template doc at
-`/avatar/<playerId>` holds that state directly. The sheet would be
+`/obj/Avatar/<playerId>` holds that state directly. The sheet would be
 indirection for a problem the unified model already solves.
 
 ### Avatar is self-contained
@@ -119,7 +119,7 @@ Avatar's template doc carries every mixin-declared persistent field as
 
 ```js
 {
-  path: "/avatar/<playerId>",
+  path: "/obj/Avatar/<playerId>",
   class: "/obj/Avatar",
   hydratorClass: "/lib/persistence/PersistentHydrator",
   data: {
@@ -202,9 +202,11 @@ their concrete type locally rather than threading a generic through
 
 Single `domain` collection, path-namespaced:
 
-- `/avatar/<playerId>` — user-owned character templates + save state
-- `/domain/...` — content (rooms, doors, props, NPCs)
-- `/system/...` — system fixtures (e.g. hooks at `/system/hooks/...`)
+- `/obj/[<sub>/]<ClassName>` — singleton class templates
+  (`/obj/EventRegistry`, `/obj/hooks/DomainHook`).
+- `/obj/[<sub>/]<ClassName>/<id>` — multi-instance class templates
+  (e.g. `/obj/Avatar/<playerId>`).
+- `/domain/...` — content (rooms, doors, props, NPCs).
 
 Folder/leaf invariant on `domain`: Zone templates may have descendants;
 non-Zone templates may not. Enforced by `DomainHook` against the PM
@@ -226,11 +228,13 @@ Every Stuff carries:
   `create`/`createSync`. Used by identity-keyed security policies
   (`FromTemplate`).
 - **`zone: Zone | null`** — universal subdivision. Stamped at clone
-  time from the nearest-ancestor Zone template, or on first placement
-  via `ContainmentApi.move()`. Runtime-only for now: Zone references
-  are not auto-persisted (mirrors how `inventory`/`environment` work —
-  the authoritative source for zone membership is the `domain`
-  template path at clone time).
+  time from the nearest-ancestor Zone template; NOT back-filled by
+  `ContainmentApi.move` — zone identity follows whichever template
+  spawned the item, not whichever container it currently sits in.
+  Runtime-only for now: Zone references are not auto-persisted
+  (mirrors how `inventory`/`environment` work — the authoritative
+  source for zone membership is the `domain` template path at clone
+  time).
 
 These are stamped by `StuffApi.clone`, not declared on subclasses. They
 exist on every Stuff regardless of mixins.

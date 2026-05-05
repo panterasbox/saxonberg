@@ -18,7 +18,6 @@
 
 import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
-import { Pronouns } from '@saxonberg/types';
 
 /**
  * Local minimal type for inbound client → server messages. Kept simple
@@ -38,7 +37,7 @@ import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
-import { PersistentHydrator } from '../mud/lib/persistence/PersistentHydrator';
+import { Template } from '../mud/lib/stuff/Template';
 import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
@@ -339,31 +338,42 @@ export class Application {
   }
 
   /**
-   * Seed a default avatar template for a new user. Self-contained under
-   * the unified state model — no Player/CharacterSheet indirection. Opts
-   * into `PersistentHydrator` so the generic mixin-field copy applies the
-   * persistent fields (name/surname/pronouns) at clone time; runtime-only
-   * fields (`user`, `playerId`) are stamped by Avatar's `postRegister`
-   * from the clone context.
+   * Fork a per-user avatar template from the seed avatar at
+   * `Avatar.SEED_TEMPLATE_PATH` (initial doc seeded from
+   * `seeds/obj/Avatar/seed.yaml`; thereafter the live Mongo doc is
+   * source of truth). Class, hydratorClass, and starting data come
+   * from the seed; the user's name/surname overlay on top.
+   * Runtime-only fields (`user`, `playerId`) are stamped later by
+   * `Avatar.postRegister` from the clone context.
    *
-   * @returns the generated playerId (template path: `/avatar/<playerId>`)
+   * @returns the generated playerId (template path:
+   * `/obj/Avatar/<playerId>`)
    */
   private async createDefaultAvatarTemplate(
     name: string,
     surname?: string
   ): Promise<string> {
+    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    if (!seed) {
+      throw new Error(
+        `Application.createDefaultAvatarTemplate: no seed at ` +
+          `'${Avatar.SEED_TEMPLATE_PATH}'. Did SeederManager run?`
+      );
+    }
+
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
+      ...seed.data,
       name,
-      pronouns: Pronouns.They,
     };
     if (surname) data.surname = surname;
+
     await TemplateApi.saveTemplate(
       path,
-      '/obj/Avatar',
+      seed.class,
       data,
-      PersistentHydrator.templatePath
+      seed.hydratorClass
     );
     console.log(`Application: Created avatar template at ${path}`);
     return playerId;

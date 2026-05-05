@@ -709,7 +709,7 @@ The fix is per-giver memoization: build the verb map once, cache it,
 invalidate whenever the inputs change. The invalidation signals are:
 
 - **Self mixins** — fixed at construction; never invalidates.
-- **Inventory** — `addToInventory` / `removeFromInventory`.
+- **Inventory** — `addContainable` / `removeContainable`.
 - **Environment** — `setEnvironment` (giver moved) or anything in the
   current environment changing membership.
 - **Peers** — same as environment.

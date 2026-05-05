@@ -4,7 +4,7 @@
  * `TemplateApi`; this hook is the binding of the rule to the operation.
  *
  * Composes both `AroundSaveHookMixin` and `AroundDeleteHookMixin`. Loaded
- * once at boot from `/system/hooks/domain-folder-leaf` and registered
+ * once at boot from `/obj/hooks/DomainHook` and registered
  * against PM via `loadHooks()`.
  */
 

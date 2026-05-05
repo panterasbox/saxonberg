@@ -9,7 +9,7 @@
  * keys, and unlock commands are future phases.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 
 /**
  * Public shape added by SealableMixin.

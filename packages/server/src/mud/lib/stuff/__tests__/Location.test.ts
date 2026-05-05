@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Location } from '../Location';
 import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -36,41 +37,31 @@ describe('Location', () => {
   });
 
   describe('ContainerMixin integration', () => {
-    it('adds items to inventory', () => {
+    it('adds items via ContainmentApi.move', () => {
       const item = makeStuff(() => new TestItem());
-      location.addToInventory(item);
-      expect(location.hasInInventory(item)).toBe(true);
+      ContainmentApi.move(item, location);
+      expect(location.hasContainable(item)).toBe(true);
       expect(location.inventory.size).toBe(1);
     });
 
-    it('removes items from inventory', () => {
+    it('removes items via ContainmentApi.move(item, null)', () => {
       const item = makeStuff(() => new TestItem());
-      location.addToInventory(item);
-      const removed = location.removeFromInventory(item);
-      expect(removed).toBe(true);
-      expect(location.hasInInventory(item)).toBe(false);
+      ContainmentApi.move(item, location);
+      ContainmentApi.move(item, null);
+      expect(location.hasContainable(item)).toBe(false);
       expect(location.inventory.size).toBe(0);
     });
 
     it('returns all contents via getContents()', () => {
       const item1 = makeStuff(() => new TestItem());
       const item2 = makeStuff(() => new TestItem());
-      location.addToInventory(item1);
-      location.addToInventory(item2);
+      ContainmentApi.move(item1, location);
+      ContainmentApi.move(item2, location);
 
       const contents = location.getContents();
       expect(contents).toHaveLength(2);
       expect(contents).toContain(item1);
       expect(contents).toContain(item2);
-    });
-
-    it('returns inventory contents via getInventoryContents()', () => {
-      const item1 = makeStuff(() => new TestItem());
-      location.addToInventory(item1);
-
-      const contents = location.getInventoryContents();
-      expect(contents).toHaveLength(1);
-      expect(contents[0]).toBe(item1);
     });
   });
 
@@ -79,8 +70,8 @@ describe('Location', () => {
       const npc1 = makeStuff(() => new TestItem());
       const npc2 = makeStuff(() => new TestItem());
 
-      location.addToInventory(npc1);
-      location.addToInventory(npc2);
+      ContainmentApi.move(npc1, location);
+      ContainmentApi.move(npc2, location);
 
       expect(location.getContents()).toHaveLength(2);
     });

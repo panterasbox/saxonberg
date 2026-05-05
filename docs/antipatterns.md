@@ -12,8 +12,8 @@ using proper API layers.
 
 ```typescript
 // Checking if method exists
-if (typeof obj.addToInventory === 'function') {
-  obj.addToInventory(item);
+if (typeof obj.addContainable === 'function') {
+  obj.addContainable(item);
 }
 
 // Checking if property exists
@@ -22,8 +22,8 @@ if (obj.environment) {
 }
 
 // Multiple checks for mixin methods
-if (typeof container.removeFromInventory === 'function') {
-  container.removeFromInventory(item);
+if (typeof container.removeContainable === 'function') {
+  container.removeContainable(item);
 }
 if (typeof target.setEnvironment === 'function') {
   target.setEnvironment(newContainer);
@@ -35,7 +35,7 @@ if (typeof target.setEnvironment === 'function') {
 ```typescript
 // PREFERRED: type-predicate narrowing when you need to call interface methods
 if (MixinApi.isContainer(obj)) {
-  obj.addToInventory(item); // obj is narrowed to Stuff & Container
+  obj.addContainable(item); // obj is narrowed to Stuff & Container
 }
 
 // Use MixinApi.hasMixin() for dynamic introspection (no narrowing needed)
@@ -137,7 +137,7 @@ teleportation.
   programmatic-bypass callers, not a user-facing check — they are NOT
   redundant.
 
-### Level 3: `setEnvironment()` / `addToInventory()` — low level (NEVER call directly)
+### Level 3: `setEnvironment()` / `addContainable()` — low level (NEVER call directly)
 
 Only called by `ContainmentApi.move()`:
 
@@ -145,9 +145,9 @@ Only called by `ContainmentApi.move()`:
 // NEVER do this
 const currentContainer = item.getEnvironment();
 if (currentContainer) {
-  currentContainer.removeFromInventory(item);
+  currentContainer.removeContainable(item);
 }
-newContainer.addToInventory(item);
+newContainer.addContainable(item);
 item.setEnvironment(newContainer);
 
 // ALWAYS use this instead
@@ -195,11 +195,11 @@ When you encounter duck typing in existing code:
 ```typescript
 // OLD CODE (duck typing)
 const currentContainer = item.getEnvironment();
-if (typeof currentContainer?.removeFromInventory === 'function') {
-  currentContainer.removeFromInventory(item);
+if (typeof currentContainer?.removeContainable === 'function') {
+  currentContainer.removeContainable(item);
 }
-if (typeof newContainer.addToInventory === 'function') {
-  newContainer.addToInventory(item);
+if (typeof newContainer.addContainable === 'function') {
+  newContainer.addContainable(item);
 }
 if (typeof item.setEnvironment === 'function') {
   item.setEnvironment(newContainer);
@@ -407,7 +407,7 @@ Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 
 ## Summary
 
-- Never call `setEnvironment()` or `addToInventory()` directly — always
+- Never call `setEnvironment()` or `addContainable()` directly — always
   use `ContainmentApi.move()`.
 - Use the correct abstraction level: `travel()` for creatures/vehicles,
   `ContainmentApi.move()` for all other object movement, low-level

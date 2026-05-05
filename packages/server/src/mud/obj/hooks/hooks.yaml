@@ -12,7 +12,7 @@
 hooks:
   - collection: domain
     operation: save
-    template: /system/hooks/domain-folder-leaf
+    template: /obj/hooks/DomainHook
   - collection: domain
     operation: delete
-    template: /system/hooks/domain-folder-leaf
+    template: /obj/hooks/DomainHook

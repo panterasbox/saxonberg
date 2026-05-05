@@ -18,8 +18,14 @@
  * the only mutators; they always update both maps in the same call.
  *
  * Stage 3 implements §3.3–§3.10 from the requirements doc:
- *   - inferred surface = walk shadow's prototype chain for mixin
- *     marker layers (`_mixinName`) AND `@Shadowing` decorations.
+ *   - inferred surface = methods explicitly defined in the shadow's
+ *     own class body (own properties of `shadow.constructor.prototype`,
+ *     minus `constructor`) PLUS any `@Shadowing`-decorated methods.
+ *     Methods inherited from composed mixin layers are part of the
+ *     shadow's *type contract* but NOT its *intercept set* — composing
+ *     a mixin to satisfy a Witness interface no longer auto-enrolls
+ *     every method on every layer. Only what the shadow itself
+ *     declares (or remaps via `@Shadowing`) intercepts.
  *   - dispatch invokes shadows in install order (newest first),
  *     entry policy fires once at the top, per-shadow CallFrames push
  *     individually so `getCaller()` inside each shadow sees the
@@ -409,33 +415,29 @@ export class ShadowApi {
   /* ─────────────────────────── Internals ─────────────────────────── */
 
   /**
-   * Compute the inferred intercept set for a shadow class. Walk its
-   * prototype chain; for each layer marked with the `_mixinName`
-   * static (i.e. produced by a mixin factory), add every own property
-   * name on that prototype EXCEPT `constructor`. This is the
-   * "rename" pattern in pure form — every method a composed mixin
-   * contributes is intercepted.
+   * Compute the inferred intercept set for a shadow class. Two
+   * sources, unioned:
    *
-   * The plan additionally calls for `@Shadowing` decoration support
-   * (declare a method as intercepting a host method even without
-   * mixin composition). Stage 3 stubs that out — see
-   * `@Shadowing` decorator and the resolveShadowingMap helper.
+   * 1. Own properties of `shadow.constructor.prototype` (minus
+   *    `constructor`) — methods the shadow class explicitly declares.
+   *    Methods inherited from composed mixin layers do NOT enrol.
+   *    A shadow that composes `Foo` to satisfy a type interface but
+   *    only declares its own `bar()` method will intercept `bar`,
+   *    not all of `Foo`'s methods.
+   * 2. `@Shadowing(hostName)` decorations on the shadow's own class —
+   *    declare an interception even when the local method name
+   *    differs from the host's, or for shadows that don't compose a
+   *    matching mixin at all.
    */
   static #computeInterceptSet(shadow: Shadow): Set<string> {
     const out = new Set<string>();
-    let proto: unknown = Object.getPrototypeOf(shadow);
-    while (proto && proto !== Object.prototype) {
-      const ctor = (proto as { constructor: { _mixinName?: string } })
-        .constructor;
-      if (ctor?._mixinName) {
-        for (const name of Object.getOwnPropertyNames(proto)) {
-          if (name === 'constructor') continue;
-          out.add(name);
-        }
+    const ownProto = shadow.constructor.prototype as object | null;
+    if (ownProto) {
+      for (const name of Object.getOwnPropertyNames(ownProto)) {
+        if (name === 'constructor') continue;
+        out.add(name);
       }
-      proto = Object.getPrototypeOf(proto);
     }
-    // @Shadowing decorations on the shadow's own class.
     const ctor = shadow.constructor as object;
     const shadowingMap = (ctor as { _callSecShadowing?: Map<string, string> })
       ._callSecShadowing;

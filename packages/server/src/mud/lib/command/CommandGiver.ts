@@ -10,7 +10,7 @@
  * Pipeline: Parse → Match → Resolve → Validate → Execute
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { nanoid } from 'nanoid';
 import { CommandLineApi } from '../../api/command-line';

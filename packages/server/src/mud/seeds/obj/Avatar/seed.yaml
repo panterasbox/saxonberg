@@ -1,0 +1,25 @@
+# The seed avatar — an orphaned avatar record that lives at
+# `/obj/Avatar/seed`. `Avatar.SEED_PLAYER_ID` is reserved against
+# playerId nanoid collisions (`seed` is 4 chars; nanoids are 21).
+# Mechanically just a regular avatar template; no class or
+# lifecycle distinction. Login can't reach it because the id won't
+# match any user's playerIds.
+#
+# Forked at signup time by Application.createDefaultAvatarTemplate,
+# which copies this template's class/hydratorClass/data, overlays
+# the new user's name and surname, and saves at
+# `/obj/Avatar/<playerId>`.
+#
+# This YAML is initial-population only. After first boot, the live
+# `/obj/Avatar/seed` doc in Mongo is the source of truth —
+# SeederManager is idempotent and won't overwrite. To change the
+# defaults going forward, edit the doc in Mongo directly, or use
+# developer tooling to clone the seed, mutate, and persist back.
+# Editing this YAML against an already-seeded database does nothing;
+# existing players are unaffected by either path because their
+# per-user templates were forked at signup with the defaults in
+# effect at that moment.
+class: /obj/Avatar
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  pronouns: they

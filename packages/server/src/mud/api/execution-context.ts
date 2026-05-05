@@ -67,6 +67,8 @@ export const FrameKind = {
   Constructor: 'constructor',
   /** Tagged by `CommandGiverMixin.executeCommand` so `getCurrentCommandGiver` can find it. */
   Command: 'command',
+  /** Synthetic frame planted by `EventApi` around each listener invocation. */
+  EventDispatch: 'eventDispatch',
 } as const;
 export type FrameKind = (typeof FrameKind)[keyof typeof FrameKind];
 

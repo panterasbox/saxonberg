@@ -15,12 +15,14 @@ import { Idea } from '../lib/stuff/Idea';
 import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { ConnectionApi } from '../api/connection';
+import { EventApi } from '../api/event';
 import { PlayerApi } from '../api/player';
 import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
+import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
@@ -101,6 +103,14 @@ export class Login extends LoginBase {
       .send();
 
     this.sendLookDescription(avatar);
+
+    // Avatar is in-world; the user is logged in. Engine-level event
+    // for any observer (audit, achievements) that doesn't care
+    // which avatar — just that this player is now playable.
+    EventApi.emit(Events.PlayerLoggedIn, {
+      playerId: avatar.playerId,
+      userId: interactive.userId ?? '',
+    });
 
     StuffApi.destruct(this);
   }

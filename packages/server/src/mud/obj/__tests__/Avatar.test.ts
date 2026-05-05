@@ -41,7 +41,7 @@ function makeFrame(topic: string, body: string = ''): MessageFrame {
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {
     it('should have correct template path prefix', () => {
-      expect(Avatar.TEMPLATE_PATH_PREFIX).toBe('/avatar/');
+      expect(Avatar.TEMPLATE_PATH_PREFIX).toBe('/obj/Avatar/');
     });
 
     it('should be a string constant', () => {
@@ -54,7 +54,7 @@ describe('Avatar', () => {
       const playerId = '6963f6ef384c0c4830a80638';
       const path = Avatar.getTemplatePath(playerId);
 
-      expect(path).toBe('/avatar/6963f6ef384c0c4830a80638');
+      expect(path).toBe('/obj/Avatar/6963f6ef384c0c4830a80638');
     });
 
     it('should use the TEMPLATE_PATH_PREFIX constant', () => {
@@ -68,24 +68,24 @@ describe('Avatar', () => {
       // MongoDB ObjectId format
       const objectId = '507f1f77bcf86cd799439011';
       expect(Avatar.getTemplatePath(objectId)).toBe(
-        '/avatar/507f1f77bcf86cd799439011'
+        '/obj/Avatar/507f1f77bcf86cd799439011'
       );
 
       // Short ID
       const shortId = 'abc123';
-      expect(Avatar.getTemplatePath(shortId)).toBe('/avatar/abc123');
+      expect(Avatar.getTemplatePath(shortId)).toBe('/obj/Avatar/abc123');
 
       // UUID format
       const uuid = '550e8400-e29b-41d4-a716-446655440000';
       expect(Avatar.getTemplatePath(uuid)).toBe(
-        '/avatar/550e8400-e29b-41d4-a716-446655440000'
+        '/obj/Avatar/550e8400-e29b-41d4-a716-446655440000'
       );
     });
 
     it('should handle empty string playerId', () => {
       const path = Avatar.getTemplatePath('');
 
-      expect(path).toBe('/avatar/');
+      expect(path).toBe('/obj/Avatar/');
     });
 
     it('should generate unique paths for different playerIds', () => {
@@ -97,9 +97,9 @@ describe('Avatar', () => {
       expect(path2).not.toBe(path3);
       expect(path1).not.toBe(path3);
 
-      expect(path1).toBe('/avatar/player1');
-      expect(path2).toBe('/avatar/player2');
-      expect(path3).toBe('/avatar/player3');
+      expect(path1).toBe('/obj/Avatar/player1');
+      expect(path2).toBe('/obj/Avatar/player2');
+      expect(path3).toBe('/obj/Avatar/player3');
     });
 
     it('should always start with forward slash', () => {
@@ -121,7 +121,7 @@ describe('Avatar', () => {
       const path = Avatar.getTemplatePath(playerId);
 
       // Should match the expected pattern
-      expect(path).toMatch(/^\/avatar\/.+$/);
+      expect(path).toMatch(/^\/obj\/Avatar\/.+$/);
     });
   });
 
@@ -136,7 +136,7 @@ describe('Avatar', () => {
       expect(templatePath.length).toBeGreaterThan(Avatar.TEMPLATE_PATH_PREFIX.length);
 
       // Verify path structure for CMS lookup
-      expect(templatePath.includes('/avatar/')).toBe(true);
+      expect(templatePath.includes('/obj/Avatar/')).toBe(true);
       expect(templatePath.endsWith(playerId)).toBe(true);
     });
 

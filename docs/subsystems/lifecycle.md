@@ -156,8 +156,10 @@ Every `Stuff` carries:
   `create`/`createSync`. Stamped by `StuffApi.clone()`. Identity-keyed
   security policies (notably `FromTemplate`) match against this.
 - **`zone: Zone | null`** — universal subdivision. Stamped at clone
-  time by `ZoneApi.resolveZoneForPath`, or on first placement via
-  `ContainmentApi.move()` when null.
+  time by `ZoneApi.resolveZoneForPath` from the template path. NOT
+  back-filled by `ContainmentApi.move`: zone identity follows
+  whichever template spawned the item, not whichever container it
+  currently sits in.
 - **`isDestroyed(): boolean`** — `@Final @Unshadowable`. Reads a
   private `_isDestroyed` flag.
 - **`prepareDestroy(): void`** — `protected`. Default no-op. Subclass

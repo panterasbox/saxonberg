@@ -115,6 +115,50 @@ persistence helpers live on the relevant Apis directly).
 - **`StuffApi` does own state** (the `objectsById` registry). That's
   the documented exception — registry membership is a public concern.
 
+## Backend → mudlib import discipline
+
+Backend is the privileged layer; mudlib is the upper layer. Imports
+flow upward (mudlib → Api → Manager). Backend code that reaches
+into `mud/` for shape or data inverts the layering and should be
+held to a tiered standard:
+
+1. **`mud/api/*` — always free game.** Apis are the engineered
+   handshake; backend Managers naturally call into them. Importing
+   `StuffApi`, `EventApi`, `ExecutionContextApi`, etc. is the
+   intended pattern.
+
+2. **`mud/lib/*` types via `import type` — fine.** Shape information
+   only; no runtime dependency. `import type { Stuff, User,
+   Interactive, CommandContext }` from backend is normal — these
+   are framework primitives, not gameplay. Runtime `import { ... }`
+   of a `mud/lib/` value is a smell unless it's a cross-cutting
+   framework primitive (`CallSecurity`, `SecurityPolicies`).
+
+3. **`mud/lib/*` runtime values that are mudlib data or
+   configuration — invert it.** When a manager needs a list, table,
+   or manifest authored in mudlib (so lower-level developers can
+   edit it), the *type* belongs to the manager (the consumer); the
+   *data* belongs in mudlib and imports the type back. Mudlib →
+   backend for the type, never backend → mudlib for the type.
+
+   `BootstrapManager` + `mud/bootstrap.ts` is the worked example:
+   `BootstrapEntry` is exported from `BootstrapManager`;
+   `mud/bootstrap.ts` imports it and declares the manifest array
+   against it. Backend doesn't reach into mudlib for the shape;
+   mudlib doesn't have a competing definition.
+
+4. **`mud/obj/*` classes — tech debt.** `instanceof Avatar`,
+   `Avatar.getTemplatePath()` from `Application` couples backend to
+   gameplay. Pragmatic for now (the network → gameplay bridge has
+   to land somewhere) but flag and migrate to mixin predicates
+   (`MixinApi.isHasInteractive`) and Api lookups when the surface
+   stabilises.
+
+For load-time cycle breakage, `await import(...)` inside a method
+body (see `PersistenceManager.dispatchSave` and friends) is the
+established escape hatch — keeps the static graph clean while the
+runtime call still resolves.
+
 ## Class Hierarchy
 
 ```
@@ -155,7 +199,7 @@ an existing subsystem folder, propose a new subsystem folder for it
 rather than grouping by mixin-ness.
 
 Shared mixin infrastructure (`MixinConstructor` type, `Mixins` name
-registry) lives in `lib/mixin-types.ts`.
+registry) lives in `lib/mixin.ts`.
 
 ### Available Mixins
 
@@ -208,7 +252,7 @@ implementation, never in a central type barrel.
 
 ### `Mixins` Registry
 
-`lib/mixin-types.ts` lists every registered mixin by name. Always use
+`lib/mixin.ts` lists every registered mixin by name. Always use
 `Mixins.X` constants instead of string literals when calling
 `MixinApi.hasMixin()`:
 
@@ -224,7 +268,7 @@ For narrowing-and-calling, prefer the type predicate:
 
 ```typescript
 if (MixinApi.isContainer(obj)) {
-  obj.addToInventory(item); // obj: Stuff & Container
+  obj.addContainable(item); // obj: Stuff & Container
 }
 ```
 
@@ -340,7 +384,7 @@ bypass it.
 |---|---|
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
-| `item.setEnvironment(c); c.addToInventory(item)` | `ContainmentApi.move(item, c)` |
+| `item.setEnvironment(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |

@@ -426,7 +426,16 @@ export class PersistenceManager {
         const continuation = next;
         next = (doc) => hook(collectionName, doc, continuation);
       }
-      return await next(document);
+      const id = await next(document);
+      // Post-save dispatch tail. Pre-bootstrap saves (the bootstrap
+      // pipeline itself) are silently dropped by EventApi.
+      const { EventApi } = await import('../mud/api/event');
+      const { Events } = await import('../mud/lib/events');
+      EventApi.emit(Events.PersistenceFlushed, {
+        collection: collectionName,
+        count: 1,
+      });
+      return id;
     } finally {
       this.activeSlots.delete(slot);
     }

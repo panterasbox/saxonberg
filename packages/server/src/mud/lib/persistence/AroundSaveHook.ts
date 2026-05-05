@@ -14,7 +14,7 @@
  * against PM at boot via `PM.loadHooks()`.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
 /**

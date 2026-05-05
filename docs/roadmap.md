@@ -32,15 +32,17 @@ organized by area.
 
 ## What's left
 
-### Event System (Framework 9)
+### Event System — DONE
 
-- **What**: `EventApi` with symbol-keyed pub/sub, well-known events, sync
-  + async dispatch, error isolation, event history for debugging.
-- **Why**: Decouples cross-system reactions (achievements, logging, plugin
-  hooks) from the systems that emit. Currently there is no event bus —
-  `MobileMixin` already has hook stubs that want this.
-- **Size**: medium.
-- **Dependencies**: none (foundational).
+The event subsystem shipped as the **EventApi** global pub/sub bus
+plus the **Witness pattern** for object-local hooks, backed by an
+`EventRegistry` Idea bootstrapped via `BootstrapManager`. See
+[subsystems/events.md](./subsystems/events.md) and
+[subsystems/bootstrap.md](./subsystems/bootstrap.md). The
+`MobileMixin` hook stubs that motivated this entry are now real
+optional methods on the spatial mixins (Containable / Mobile /
+Container / Exitable / HasInteractive) dispatched from
+`ContainmentApi.move`, `Mobile.traverse`, and `ConnectionApi`.
 
 ### Interactive Prompt Stack (Framework 11)
 
@@ -89,11 +91,16 @@ organized by area.
 ### Command system polish
 
 - **What**: Command aliases (per-context and global), model piping
-  (PowerShell-style), and an admin `reload` command plumbed into the
-  framework.
+  (PowerShell-style), an admin `reload` command plumbed into the
+  framework, and an elegant fallback when `look` lands on a
+  non-Visible room (a bare `Location` like `/domain/void` has no
+  description by design — the current "You see nothing special."
+  fallback reads wrong for rooms).
 - **Why**: Aliases are an essential usability win; piping is foundational
-  for future scripting.
-- **Size**: small (aliases) + medium (piping).
+  for future scripting; the look fallback is a content-quality fix
+  that lower-level developers will hit any time they author a room
+  without composing `VisibleMixin`.
+- **Size**: small (aliases, look fallback) + medium (piping).
 - **Dependencies**: hot-reload for the `reload` admin command.
 
 ### Utility APIs
@@ -183,7 +190,8 @@ See `subsystems/lifecycle.md § Open Design` for the open questions.
 
 ## Suggested order
 
-1. **Event System** — small, foundational, unblocks hooks and hot-reload.
+1. ~~**Event System** — small, foundational, unblocks hooks and
+   hot-reload.~~ Done.
 2. **MQL `me`/`here` + multi-select + globbing** — visible UX win, no
    dependencies, the existing MQL is the clearest user-facing wart.
 3. **Interactive Prompt Stack** — unlocks a class of commands and
@@ -191,7 +199,8 @@ See `subsystems/lifecycle.md § Open Design` for the open questions.
 4. **Markup language extensions + client renderer** — sets up clickable
    links and richer output before more commands accrete plain-text habits.
 5. **Command aliases** — small, high-value sit-up after MQL.
-6. **Module hot-reload** — accelerates all subsequent iteration.
+6. **Module hot-reload** — accelerates all subsequent iteration. Will
+   wire `Events.ModuleReloaded` once the subsystem lands.
 7. **Mods + isolated-vm sandbox** — large, required for v1.0; start once
    core APIs feel stable.
 8. **Utility APIs / Guest accounts / GraphQL** — opportunistic; pull in

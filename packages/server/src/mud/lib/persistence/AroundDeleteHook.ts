@@ -11,7 +11,7 @@
  * orphan child records) or side-effects.
  */
 
-import type { MixinConstructor } from '../mixin-types';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
 /**

@@ -126,10 +126,11 @@ describe('ExitableVessel', () => {
       expect(() => ContainmentApi.move(wardrobe, box)).toThrow(ContainmentError);
     });
 
-    it('can move between Exitables in the same zone and stamps zone on first placement', () => {
-      expect(wardrobe.zone).toBeNull();
+    it('can move between Exitables when zones agree', () => {
+      // Pre-stamp the wardrobe (clone-time would do this); move
+      // does not back-fill or restamp.
+      wardrobe.zone = zone;
       ContainmentApi.move(wardrobe, park);
-      expect(wardrobe.zone).toBe(zone);
       ContainmentApi.move(wardrobe, park2);
       expect(wardrobe.getEnvironment()).toBe(park2);
       expect(wardrobe.zone).toBe(zone);
@@ -140,30 +141,18 @@ describe('ExitableVessel', () => {
       const otherPark = makeStuff(() => new CartesianLocation());
       otherZone.addRoom(otherPark, 0, 0, 0);
 
+      wardrobe.zone = zone;
       ContainmentApi.move(wardrobe, park);
       expect(() => ContainmentApi.move(wardrobe, otherPark)).toThrow(ContainmentError);
     });
 
-    it('nested vessels inherit the outer location’s zone on first placement', () => {
+    it('move does not back-fill zone on a Exitable that was never stamped', () => {
+      // Without a zone stamp, the cross-zone invariant is silent
+      // (the `item.zone && item.zone !== to.zone` guard short-
+      // circuits on null), and the move does NOT pick up the
+      // destination's zone — that's a clone-time concern.
       ContainmentApi.move(wardrobe, park);
-      const pocket = makeStuff(() => new ExitableVessel());
-      pocket.shortDescription = 'pocket';
-      ContainmentApi.move(pocket, wardrobe);
-      expect(pocket.zone).toBe(zone);
-    });
-  });
-
-  describe('runtime-fallback zone stamp for non-Exitables', () => {
-    it('stamps a plain item on first placement and leaves it alone afterward', () => {
-      const sword = makeStuff(() => new PlainItem());
-      expect(sword.zone).toBeNull();
-
-      ContainmentApi.move(sword, park);
-      expect(sword.zone).toBe(zone);
-
-      // Subsequent move in same zone: stays stamped (not re-stamped/cleared).
-      ContainmentApi.move(sword, park2);
-      expect(sword.zone).toBe(zone);
+      expect(wardrobe.zone).toBeNull();
     });
   });
 });

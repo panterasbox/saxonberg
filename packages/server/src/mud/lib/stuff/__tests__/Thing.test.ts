@@ -39,10 +39,10 @@ describe('Thing', () => {
       expect(thing.getEnvironment()).toBeNull();
     });
 
-    it('should set environment', () => {
+    it('should set environment via ContainmentApi.move', () => {
       const location = makeStuff(() => new Location());
 
-      thing.setEnvironment(location);
+      ContainmentApi.move(thing, location);
       expect(thing.getEnvironment()).toBe(location);
     });
 
@@ -52,7 +52,7 @@ describe('Thing', () => {
       ContainmentApi.move(thing, location);
 
       expect(thing.getEnvironment()).toBe(location);
-      expect(location.hasInInventory(thing)).toBe(true);
+      expect(location.hasContainable(thing)).toBe(true);
     });
 
     it('should be removed from old container when moved', () => {
@@ -61,12 +61,12 @@ describe('Thing', () => {
 
       // Add to first location
       ContainmentApi.move(thing, location1);
-      expect(location1.hasInInventory(thing)).toBe(true);
+      expect(location1.hasContainable(thing)).toBe(true);
 
       // Move to second location
       ContainmentApi.move(thing, location2);
-      expect(location1.hasInInventory(thing)).toBe(false);
-      expect(location2.hasInInventory(thing)).toBe(true);
+      expect(location1.hasContainable(thing)).toBe(false);
+      expect(location2.hasContainable(thing)).toBe(true);
       expect(thing.getEnvironment()).toBe(location2);
     });
   });
