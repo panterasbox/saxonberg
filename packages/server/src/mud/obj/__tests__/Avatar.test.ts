@@ -14,6 +14,7 @@ import { Avatar } from '../Avatar';
 import { Interactive } from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
+import { MixinApi } from '../../api/mixin';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -444,6 +445,35 @@ describe('Avatar', () => {
         interactive1,
         errorMsg
       );
+    });
+  });
+
+  describe('EnvironmentMixin composition', () => {
+    let avatar: Avatar;
+
+    beforeEach(() => {
+      avatar = makeAvatar('env-test');
+    });
+
+    it('composes EnvironmentMixin (isEnvironment narrows true)', () => {
+      expect(MixinApi.isEnvironment(avatar)).toBe(true);
+    });
+
+    it('round-trips an ad-hoc var through the session store', () => {
+      avatar.setVar('greeting', 'hello');
+      expect(avatar.listVars()).toEqual({ greeting: 'hello' });
+    });
+
+    it('rejects setSetting for an undeclared key', () => {
+      expect(() =>
+        avatar.setSetting('nope.never', 'x', avatar),
+      ).toThrowError(/no such setting/);
+    });
+
+    it('session store survives onLinkdead (no implicit clear)', () => {
+      avatar.setVar('keep', 'me');
+      avatar.onLinkdead();
+      expect(avatar.listVars()).toEqual({ keep: 'me' });
     });
   });
 });

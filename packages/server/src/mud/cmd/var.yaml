@@ -1,0 +1,25 @@
+verbs: [var]
+controller: VarController
+description: "Manage your ad-hoc session variables"
+subcommands:
+  list:
+    description: "List session variables"
+    pattern: ""
+  set:
+    description: "Set a session variable"
+    pattern: "<name> <value>"
+    fields:
+      name:
+        type: string
+        required: true
+      value:
+        type: string
+        required: true
+        remaining: true
+  unset:
+    description: "Clear a session variable"
+    pattern: "<name>"
+    fields:
+      name:
+        type: string
+        required: true

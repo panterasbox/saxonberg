@@ -15,6 +15,7 @@ import { PlayerApi } from '../api/player';
 import { EventApi } from '../api/event';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
+import { EnvironmentMixin } from '../lib/shell/Environment';
 import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
@@ -32,7 +33,9 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(Character));
+const AvatarBase = EnvironmentMixin(
+  PostRegistrationMixin(HasInteractiveMixin(Character)),
+);
 
 export class Avatar extends AvatarBase {
   /**
