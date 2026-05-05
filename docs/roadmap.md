@@ -91,11 +91,16 @@ Container / Exitable / HasInteractive) dispatched from
 ### Command system polish
 
 - **What**: Command aliases (per-context and global), model piping
-  (PowerShell-style), and an admin `reload` command plumbed into the
-  framework.
+  (PowerShell-style), an admin `reload` command plumbed into the
+  framework, and an elegant fallback when `look` lands on a
+  non-Visible room (a bare `Location` like `/domain/void` has no
+  description by design — the current "You see nothing special."
+  fallback reads wrong for rooms).
 - **Why**: Aliases are an essential usability win; piping is foundational
-  for future scripting.
-- **Size**: small (aliases) + medium (piping).
+  for future scripting; the look fallback is a content-quality fix
+  that lower-level developers will hit any time they author a room
+  without composing `VisibleMixin`.
+- **Size**: small (aliases, look fallback) + medium (piping).
 - **Dependencies**: hot-reload for the `reload` admin command.
 
 ### Utility APIs
