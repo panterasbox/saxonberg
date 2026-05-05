@@ -15,6 +15,7 @@
 import { Zone } from './Zone';
 import type { Location } from '../stuff/Location';
 import type { Exit } from './Exit';
+import { SingletonMixin } from '../stuff/Singleton';
 
 /**
  * Minimal shape spherical rooms are expected to carry.
@@ -29,7 +30,7 @@ function focusKey(coords: [number, number, number]): string {
   return `${coords[0].toFixed(2)},${coords[1].toFixed(2)},${coords[2].toFixed(2)}`;
 }
 
-export class SphericalZone extends Zone {
+export class SphericalZone extends SingletonMixin(Zone) {
   /**
    * Debug / authoring aid: rooms indexed by rounded focus tuple. Multiple
    * rooms may share a key (nothing prevents overlap); the map stores the

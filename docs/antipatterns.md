@@ -410,6 +410,36 @@ counters, configuration overrides, anonymous buff slots.
 
 Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 
+## Cloning Singletons — use `StuffApi.singleton(path)`
+
+**ANTIPATTERN**: Calling `StuffApi.clone(path)` or
+`Stuffapi.findByTemplatePath(path)` on a class that should be a
+singleton-by-path.
+
+### BAD
+
+```typescript
+// Risk: a second clone() throws if the class composes
+// SingletonMixin, or silently produces a duplicate if it doesn't.
+const narnia = await StuffApi.clone<CartesianZone>('/narnia');
+
+// Risk: pre-empts the cache-or-clone semantics, fails when the
+// instance hasn't been cloned yet.
+const narnia = StuffApi.findByTemplatePath<CartesianZone>('/narnia');
+```
+
+### GOOD
+
+```typescript
+// Get-or-create against the singleton index. Works whether the
+// instance is loaded yet or not.
+const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
+```
+
+`SingletonMixin` is the enforcement layer that makes bare `clone()`
+on a singleton class throw. `singleton()` is the convenient surface
+that respects the contract automatically.
+
 ## Summary
 
 - Never call `setEnvironment()` or `addContainable()` directly — always
@@ -426,3 +456,5 @@ Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 - Dynamic, per-instance state goes through `PropertiedMixin`'s
   `setProp` / `getProp` / `initProp`, never via direct field
   assignment.
+- Singleton-by-path templates resolve via `StuffApi.singleton(path)`,
+  not `clone()` or `findByTemplatePath()`.

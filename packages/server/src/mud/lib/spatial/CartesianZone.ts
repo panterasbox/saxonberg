@@ -24,6 +24,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { SingletonMixin } from '../stuff/Singleton';
 
 /** Compose a grid key from integer cell coordinates. */
 function gridKey(x: number, y: number, z: number): string {
@@ -39,7 +40,7 @@ interface HasCartesianCoordinates {
   coordinates: [number, number, number];
 }
 
-export class CartesianZone extends Zone {
+export class CartesianZone extends SingletonMixin(Zone) {
   /** Informational scale — meters/units per cell. Unused by code in Phase 7. */
   public cellSize: number = 1.0;
 
@@ -101,6 +102,17 @@ export class CartesianZone extends Zone {
     if (!Array.isArray(coords)) return undefined;
     const [dx, dy, dz] = offset;
     return this.grid.get(gridKey(coords[0] + dx, coords[1] + dy, coords[2] + dz));
+  }
+
+  /**
+   * Belt-and-braces: `removeRoom` already invalidates `derivedCache`
+   * each time a room leaves, but if the Zone is destructed while empty
+   * we still want the cache empty (and the `super.prepareDestroy()`
+   * non-empty guard fires above otherwise).
+   */
+  public override prepareDestroy(): void {
+    super.prepareDestroy();
+    this.derivedCache.clear();
   }
 
   /**

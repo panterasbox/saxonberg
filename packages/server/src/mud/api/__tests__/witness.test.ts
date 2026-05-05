@@ -174,7 +174,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     StuffApi.clearAll();
   });
 
-  it('fires the full hook quartet on a successful traverse', () => {
+  it('fires the full hook quartet on a successful traverse', async () => {
     const source = makeStuff(() => new HookableLocation());
     const dest = makeStuff(() => new HookableLocation());
     const mover = makeStuff(() => new HookableMover());
@@ -185,14 +185,14 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    mover.traverse(exit);
+    await mover.traverse(exit);
     expect(mover.traverses).toEqual([exit]);
     expect(source.exited).toHaveLength(1);
     expect(dest.entered).toHaveLength(1);
     expect(mover.getContainer()).toBe(dest);
   });
 
-  it('canEnter veto blocks traversal before move runs', () => {
+  it('canEnter veto blocks traversal before move runs', async () => {
     const source = makeStuff(() => new HookableLocation());
     const dest = makeStuff(() => new HookableLocation());
     dest.enterVeto = { ok: false, reason: 'sealed' };
@@ -204,7 +204,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    expect(() => mover.traverse(exit)).toThrow(/sealed/);
+    await expect(mover.traverse(exit)).rejects.toThrow(/sealed/);
     expect(mover.getContainer()).toBe(source);
     expect(dest.entered).toEqual([]);
   });

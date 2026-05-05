@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ExitableVessel } from '../ExitableVessel';
 import { CartesianLocation } from '../CartesianLocation';
 import { CartesianZone } from '../CartesianZone';
+import { Door } from '../Door';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';
@@ -38,6 +39,7 @@ describe('ExitableVessel', () => {
     expect(MixinApi.isExitable(wardrobe)).toBe(true);
     expect(MixinApi.isContainer(wardrobe)).toBe(true);
     expect(MixinApi.isContainable(wardrobe)).toBe(true);
+    expect(MixinApi.isDoorBearing(wardrobe)).toBe(true);
   });
 
   it("getExit('out') synthesizes an exit to the environment", () => {
@@ -153,6 +155,84 @@ describe('ExitableVessel', () => {
       // destination's zone — that's a clone-time concern.
       ContainmentApi.move(wardrobe, park);
       expect(wardrobe.zone).toBeNull();
+    });
+  });
+
+  describe('door bearing', () => {
+    it('synthesized out exit picks up the vessel door', () => {
+      const door = makeStuff(() => new Door());
+      door.shortDescription = 'wardrobe door';
+      wardrobe.door = door;
+      ContainmentApi.move(wardrobe, park);
+
+      const out = wardrobe.getExit('out');
+      expect(out!.door).toBe(door);
+      expect(door.attachedTo.has(out!)).toBe(true);
+    });
+
+    it('synthesized entry exit also picks up the vessel door', () => {
+      const door = makeStuff(() => new Door());
+      door.shortDescription = 'wardrobe door';
+      wardrobe.door = door;
+      ContainmentApi.move(wardrobe, park);
+
+      const entry = wardrobe.getEntryExit();
+      expect(entry!.door).toBe(door);
+      expect(door.attachedTo.has(entry!)).toBe(true);
+    });
+
+    it('closed door blocks traversal through synthesized exits', () => {
+      const door = makeStuff(() => new Door());
+      door.shortDescription = 'wardrobe door';
+      door.close();
+      wardrobe.door = door;
+      ContainmentApi.move(wardrobe, park);
+
+      const out = wardrobe.getExit('out')!;
+      const guard = out.canTraverse(wardrobe as unknown as Stuff & import('../Containable').Containable);
+      expect(guard.ok).toBe(false);
+      expect(guard.reason).toMatch(/closed/);
+
+      door.open();
+      const guardOpen = out.canTraverse(wardrobe as unknown as Stuff & import('../Containable').Containable);
+      expect(guardOpen.ok).toBe(true);
+    });
+
+    it('setDoor invalidates the synth caches and unhooks old door.attachedTo', () => {
+      const oldDoor = makeStuff(() => new Door());
+      oldDoor.shortDescription = 'old door';
+      const newDoor = makeStuff(() => new Door());
+      newDoor.shortDescription = 'new door';
+
+      wardrobe.door = oldDoor;
+      ContainmentApi.move(wardrobe, park);
+      const firstOut = wardrobe.getExit('out')!;
+      expect(oldDoor.attachedTo.has(firstOut)).toBe(true);
+
+      wardrobe.setDoor(newDoor);
+      // Cache invalidated → next access yields a fresh exit.
+      const secondOut = wardrobe.getExit('out')!;
+      expect(secondOut).not.toBe(firstOut);
+      expect(secondOut.door).toBe(newDoor);
+      expect(newDoor.attachedTo.has(secondOut)).toBe(true);
+      // Old exit is no longer registered with the old door.
+      expect(oldDoor.attachedTo.has(firstOut)).toBe(false);
+    });
+
+    it('move-induced cache invalidation also unhooks attachedTo', () => {
+      const door = makeStuff(() => new Door());
+      door.shortDescription = 'wardrobe door';
+      wardrobe.door = door;
+      ContainmentApi.move(wardrobe, park);
+      const firstOut = wardrobe.getExit('out')!;
+      expect(door.attachedTo.has(firstOut)).toBe(true);
+
+      wardrobe.zone = zone;
+      ContainmentApi.move(wardrobe, park2);
+      const secondOut = wardrobe.getExit('out')!;
+      expect(secondOut).not.toBe(firstOut);
+      expect(door.attachedTo.has(firstOut)).toBe(false);
+      expect(door.attachedTo.has(secondOut)).toBe(true);
     });
   });
 });

@@ -223,6 +223,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/spatial/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
+| `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
+| `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands` |

@@ -1,10 +1,14 @@
 /**
  * ExitableVessel — an enterable, portable-by-shape container.
  *
- * Composition: `ExitableMixin(Vessel)` where `Vessel = ContainerMixin(Thing)`.
- * The result is a Thing that is both Containable (so it can live inside a
- * Location or another ExitableVessel) and Container + Exitable (so players
- * can enter it and look/act inside it).
+ * Composition:
+ *   `DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)))`
+ *   where `Vessel = ContainerMixin(Thing)` and `Thing = ContainableMixin(Stuff)`.
+ *
+ * The result is a Thing that is both Containable (so it can live inside
+ * a Location or another ExitableVessel) and Container + Exitable +
+ * DoorBearing (so players can enter it, look/act inside it, and so it
+ * can carry a defining Door — wardrobe, refrigerator, car).
  *
  * Containment constraint (enforced by `ContainmentApi.move`): an
  * ExitableVessel may only live inside another Exitable. This is the
@@ -16,24 +20,27 @@
  * current environment, and `getEntryExit()` synthesizes the matching
  * one-way exit from the current environment into this vessel — used by
  * `go <vessel-keyword>`. Both are cached and invalidated when the vessel's
- * environment changes.
+ * environment changes or when the vessel's `door` is reassigned.
+ *
+ * Door wiring: when the vessel composes a non-null `door`, every
+ * synthesized exit picks it up (so `canTraverse` blocks until the door
+ * opens). Synthesized exits register themselves in `door.attachedTo`
+ * the same way explicit exits do via `addExit`, so `Door.detach()`
+ * walks back and clears refs symmetrically.
  */
 
 import { Vessel } from './Vessel';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
+import { DoorBearingMixin } from './DoorBearing';
 import { Exit } from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { Door } from './Door';
 import { StuffApi } from '../../api/stuff';
 import { DescribeApi } from '../../api/describe';
 
-// Vessel already = ContainerMixin(Thing), and Thing = ContainableMixin(Stuff),
-// so ExitableVessel is Container + Containable + Exitable + Visible. Visible
-// gives the vessel a description ("a wardrobe", "an old cart") for the
-// synthesized entry/exit messages and for `look`. Vessels that take a
-// proper name ("the Narnia wardrobe") opt into NamedMixin separately.
-const ExitableVesselBase = ExitableMixin(VisibleMixin(Vessel));
+const ExitableVesselBase = DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)));
 
 export class ExitableVessel extends ExitableVesselBase {
   /**
@@ -79,10 +86,18 @@ export class ExitableVessel extends ExitableVesselBase {
     _from: (Stuff & Container) | null,
     _to: (Stuff & Container) | null
   ): void {
-    this.outCache = null;
-    this.outCacheEnvId = null;
-    this.entryCache = null;
-    this.entryCacheEnvId = null;
+    this.invalidateSynthesizedExits();
+  }
+
+  /**
+   * Door change: drop any cached synthesized exits (so the next access
+   * recreates them with the new door) and rewire `Door.attachedTo`
+   * back-references on both sides of the transition.
+   */
+  public override setDoor(door: Door | null): void {
+    if (door === this.door) return;
+    this.invalidateSynthesizedExits();
+    this.door = door;
   }
 
   /**
@@ -104,9 +119,11 @@ export class ExitableVessel extends ExitableVesselBase {
       direction: 'in',
       source: env,
       destination: this as unknown as Stuff & Container,
+      door: this.door,
       messageOut: `{{ mover }} enters the <name>${vesselName}</name>.`,
       messageIn: `{{ mover }} enters from outside.`,
     }));
+    if (this.door) this.door.attachedTo.add(exit);
     this.entryCache = exit;
     this.entryCacheEnvId = env.stuffId;
     return exit;
@@ -125,11 +142,31 @@ export class ExitableVessel extends ExitableVesselBase {
       direction: 'out',
       source: this as unknown as Stuff & Container,
       destination: env,
+      door: this.door,
       messageOut: `{{ mover }} leaves the <name>${vesselName}</name>.`,
       messageIn: `{{ mover }} emerges from the <name>${vesselName}</name>.`,
     }));
+    if (this.door) this.door.attachedTo.add(exit);
     this.outCache = exit;
     this.outCacheEnvId = env.stuffId;
     return exit;
+  }
+
+  /**
+   * Drop both synthesized-exit caches and unhook the cached exits from
+   * any door's `attachedTo` set. The next access (if still warranted)
+   * will recreate them with the current `door` and re-register.
+   */
+  private invalidateSynthesizedExits(): void {
+    if (this.outCache?.door) {
+      this.outCache.door.attachedTo.delete(this.outCache);
+    }
+    if (this.entryCache?.door) {
+      this.entryCache.door.attachedTo.delete(this.entryCache);
+    }
+    this.outCache = null;
+    this.outCacheEnvId = null;
+    this.entryCache = null;
+    this.entryCacheEnvId = null;
   }
 }

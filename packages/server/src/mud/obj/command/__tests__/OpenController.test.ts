@@ -80,9 +80,9 @@ describe('OpenController / CloseController / doors integration', () => {
     ContainmentApi.move(peerInA, roomA);
   });
 
-  it('go north fails while door is closed', () => {
+  it('go north fails while door is closed', async () => {
     const go = new GoController();
-    const result = go.execute(
+    const result = await go.execute(
       { target: 'north' },
       makeContext(avatar, roomA, 'go north')
     );
@@ -134,12 +134,12 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(result.summary).toMatch(/don't see/i);
   });
 
-  it('go north succeeds after opening; close from destination closes same door', () => {
+  it('go north succeeds after opening; close from destination closes same door', async () => {
     new OpenController().execute(
       { target: 'oak' },
       makeContext(avatar, roomA, 'open the oak door')
     );
-    const go = new GoController().execute(
+    const go = await new GoController().execute(
       { target: 'north' },
       makeContext(avatar, roomA, 'go north')
     );
@@ -154,7 +154,7 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(door.isOpen).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
-    const goBack = new GoController().execute(
+    const goBack = await new GoController().execute(
       { target: 'south' },
       makeContext(avatar, roomB, 'go south')
     );

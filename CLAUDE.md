@@ -32,6 +32,9 @@ behavior. Read the relevant doc before editing in its area.
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
     persisted, Avatar self-contained, Persistable in the Idea hierarchy
+  - [connection.md](./docs/subsystems/connection.md) — login/logout
+    flow, WebSocket upgrade, `Interactive`/`Login`/`Avatar` handoff,
+    multiplexing, disconnect choreography
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
     composer, sensor routing, MudlogApi
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
@@ -52,6 +55,9 @@ behavior. Read the relevant doc before editing in its area.
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration
+  - [spatial.md](./docs/subsystems/spatial.md) — locations, zones
+    (Cartesian/Spherical), exits, doors, vessels, coordinates,
+    containment chokepoint, locomotion, direction vocabulary
 
 ## Development Commands
 
@@ -153,6 +159,29 @@ import { Location } from './Location';
 import { Stuff } from '../stuff/Stuff.js';
 import { Location } from './Location.js';
 ```
+
+## Module Categories — DO NOT INVENT NEW ONES
+
+Saxonberg has a fixed taxonomy of module types. Every TypeScript file
+in `packages/server/src/mud/` falls into one of these. **If a new
+file you're considering doesn't fit, STOP and discuss with the user
+before creating it.** Cross-cutting helpers default to a new or
+existing `Api` class — do not create free-floating helper modules.
+
+| Category | Where | Filename | Purpose |
+|---|---|---|---|
+| Stuff class | `lib/<subsystem>/` or `obj/` | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. |
+| Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
+| Api | `api/` | lowercase `feature.ts` | Static utility class `FeatureApi`, ends with `SecurityApi.decorateApiClass(FeatureApi)`. The natural home for cross-cutting static helpers. |
+| Controller | `obj/command/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/`). |
+| Command YAML | `mud/cmd/` | lowercase `verb.yaml` | The view side of a command. |
+| Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
+
+"Pure helper functions that don't need security" is NOT a reason to
+dodge the Api pattern — Apis hold static utility methods perfectly
+well, and the security decoration is cheap. Same for refactor splits:
+extracting helpers into a new free-floating file is the same anti-
+pattern as inventing one from scratch.
 
 ## File Naming Conventions
 

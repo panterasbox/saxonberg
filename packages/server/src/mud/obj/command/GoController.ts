@@ -22,7 +22,7 @@ export interface GoInput {
 }
 
 export class GoController extends CommandController<GoInput> {
-  execute(input: GoInput, context: CommandContext): CommandResult {
+  async execute(input: GoInput, context: CommandContext): Promise<CommandResult> {
     const { location } = context;
 
     const target = input.target?.trim().toLowerCase();
@@ -57,10 +57,10 @@ export class GoController extends CommandController<GoInput> {
     return { success: false, summary: "can't go that way" };
   }
 
-  private traverse(
+  private async traverse(
     exit: Exit,
     mover: Stuff & Containable & Mobile
-  ): CommandResult {
+  ): Promise<CommandResult> {
     const guard = exit.canTraverse(mover);
     if (!guard.ok) {
       return {
@@ -69,7 +69,7 @@ export class GoController extends CommandController<GoInput> {
       };
     }
 
-    mover.traverse(exit);
+    await mover.traverse(exit);
 
     const destName = DescribeApi.getDisplayName(exit.destination, 'somewhere new');
     return { success: true, summary: `to ${destName}` };

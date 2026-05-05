@@ -48,12 +48,12 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 describe('ZoneApi.resolveZoneForPath', () => {
   beforeEach(() => {
-    ZoneApi.clearCache();
+    StuffApi.clearAll();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    ZoneApi.clearCache();
+    StuffApi.clearAll();
   });
 
   it('returns the nearest-ancestor zone template', async () => {
@@ -132,7 +132,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     expect(first).toBe(second);
   });
 
-  it('resolveById finds a previously cloned zone', async () => {
+  it('resolves the same zone instance via StuffApi.findById', async () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
@@ -142,7 +142,34 @@ describe('ZoneApi.resolveZoneForPath', () => {
     ]);
     const zone = await ZoneApi.resolveZoneForPath('/narnia/castle/foyer');
     expect(zone).not.toBeNull();
-    expect(ZoneApi.resolveById(zone!.stuffId)).toBe(zone);
+    expect(StuffApi.findById(zone!.stuffId)).toBe(zone);
+  });
+
+  it('singleton(path) returns same instance as resolveZoneForPath', async () => {
+    installInMemoryStore([
+      {
+        path: '/narnia/castle',
+        class: '/lib/spatial/CartesianZone',
+        data: { name: 'Castle' },
+      },
+    ]);
+    const zone = await ZoneApi.resolveZoneForPath('/narnia/castle/foyer');
+    const direct = await StuffApi.singleton('/narnia/castle');
+    expect(direct).toBe(zone);
+  });
+
+  it('clone() of an already-instantiated singleton zone throws', async () => {
+    installInMemoryStore([
+      {
+        path: '/narnia/castle',
+        class: '/lib/spatial/CartesianZone',
+        data: { name: 'Castle' },
+      },
+    ]);
+    await ZoneApi.resolveZoneForPath('/narnia/castle/foyer');
+    await expect(StuffApi.clone('/narnia/castle')).rejects.toThrow(
+      /SingletonMixin/,
+    );
   });
 });
 

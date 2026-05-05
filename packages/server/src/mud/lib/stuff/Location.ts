@@ -23,4 +23,18 @@ const LocationBase = ContainerMixin(Stuff);
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
+
+  /**
+   * Detach from the owning Zone on destruct. Clears `rooms`
+   * membership and any coordinate-keyed indexes the zone maintains
+   * (CartesianZone grid, SphericalZone focus index).
+   *
+   * `ExitableMixin.prepareDestroy` super-chains here after handling
+   * the exit-side teardown.
+   */
+  protected override prepareDestroy(): void {
+    if (this.zone) {
+      this.zone.removeRoom(this);
+    }
+  }
 }

@@ -21,11 +21,12 @@ import { Location } from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
 import type { Exit } from './Exit';
 
-const CartesianLocationBase = ExitableMixin(
-  CartesianCoordinatesMixin(VisibleMixin(Location))
+const CartesianLocationBase = PostRegistrationMixin(
+  ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
 );
 
 export class CartesianLocation extends CartesianLocationBase {
@@ -38,4 +39,20 @@ export class CartesianLocation extends CartesianLocationBase {
     }
     return super.addExit(exit);
   }
+
+  /**
+   * Mutual-exit verification: wires inverse pointers for any outbound
+   * exit whose destination is already loaded, or marks the exit blocked
+   * if the destination's topology doesn't match. Defers anything whose
+   * destination hasn't been loaded yet — the destination's own load
+   * (or the next traversal) will rerun the check. See
+   * `ExitableMixin.verifyOutboundExits`.
+   */
+  public override async postRegister(_context?: unknown): Promise<void> {
+    this.verifyOutboundExits();
+  }
+
+  // prepareDestroy is inherited from ExitableMixin (exit teardown) and
+  // chains via super to Location.prepareDestroy (zone detach). No
+  // override needed.
 }

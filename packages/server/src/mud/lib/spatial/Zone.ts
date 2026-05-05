@@ -78,4 +78,19 @@ export abstract class Zone extends Idea {
    * @param direction - Normalized direction string (see `NavigationApi`).
    */
   public abstract deriveExit(from: Location, direction: string): Exit | undefined;
+
+  /**
+   * Refuse to destruct a non-empty Zone. Caller must drain the rooms
+   * (destruct or relocate) before destructing the Zone itself.
+   * Subclasses may extend (e.g. `CartesianZone` clears its derived-exit
+   * cache on top of this).
+   */
+  public prepareDestroy(): void {
+    if (this.rooms.size > 0) {
+      throw new Error(
+        `Zone.prepareDestroy: cannot destruct zone '${this.name}' with ` +
+          `${this.rooms.size} live room(s); destruct rooms first.`
+      );
+    }
+  }
 }

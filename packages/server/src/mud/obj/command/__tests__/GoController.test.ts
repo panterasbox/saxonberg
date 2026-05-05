@@ -84,8 +84,8 @@ describe('GoController', () => {
   });
 
   describe('golden path (cartesian)', () => {
-    it('go north moves the avatar and emits departure/arrival messages', () => {
-      const result = controller.execute(
+    it('go north moves the avatar and emits departure/arrival messages', async () => {
+      const result = await controller.execute(
         { target: 'north' },
         makeContext(avatar, roomA, 'go north')
       );
@@ -101,9 +101,9 @@ describe('GoController', () => {
       expect(arrText).toContain('south');
     });
 
-    it('round trip with south returns avatar to room A', () => {
-      controller.execute({ target: 'north' }, makeContext(avatar, roomA, 'go north'));
-      const back = controller.execute(
+    it('round trip with south returns avatar to room A', async () => {
+      await controller.execute({ target: 'north' }, makeContext(avatar, roomA, 'go north'));
+      const back = await controller.execute(
         { target: 'south' },
         makeContext(avatar, roomB, 'go south')
       );
@@ -111,8 +111,8 @@ describe('GoController', () => {
       expect(avatar.getContainer()).toBe(roomA);
     });
 
-    it('mover is excluded from peer broadcasts', () => {
-      controller.execute(
+    it('mover is excluded from peer broadcasts', async () => {
+      await controller.execute(
         { target: 'north' },
         makeContext(avatar, roomA, 'go north')
       );
@@ -139,14 +139,14 @@ describe('GoController', () => {
   });
 
   describe('guards and errors', () => {
-    it('returns an error when no direction is given', () => {
-      const result = controller.execute({}, makeContext(avatar, roomA, ''));
+    it('returns an error when no direction is given', async () => {
+      const result = await controller.execute({}, makeContext(avatar, roomA, ''));
       expect(result.success).toBe(false);
       expect(result.summary).toMatch(/where/i);
     });
 
-    it("returns 'can't go that way' for unmatched directions", () => {
-      const result = controller.execute(
+    it("returns 'can't go that way' for unmatched directions", async () => {
+      const result = await controller.execute(
         { target: 'south' },
         makeContext(avatar, roomA, 'go south')
       );
@@ -154,13 +154,13 @@ describe('GoController', () => {
       expect(result.summary).toMatch(/can't go that way/i);
     });
 
-    it('blocks traversal through a closed door', () => {
+    it('blocks traversal through a closed door', async () => {
       const door = makeStuff(() => new Door());
       door.shortDescription = 'oak door';
       roomA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: roomA, destination: roomB, door }))
       );
-      const result = controller.execute(
+      const result = await controller.execute(
         { target: 'east' },
         makeContext(avatar, roomA, 'go east')
       );
@@ -171,7 +171,7 @@ describe('GoController', () => {
   });
 
   describe('spherical zone with semantic exits', () => {
-    it('traverses explicit semantic exit and arrival degrades to "arrives"', () => {
+    it('traverses explicit semantic exit and arrival degrades to "arrives"', async () => {
       const sphZone = makeStuff(() => new SphericalZone());
       const plaza = makeStuff(() => new SphericalLocation());
       plaza.shortDescription = 'Plaza';
@@ -188,7 +188,7 @@ describe('GoController', () => {
       const spherePeer = makeStuff(() => new PeerSensor());
       ContainmentApi.move(spherePeer, office);
 
-      const result = controller.execute(
+      const result = await controller.execute(
         { target: 'office' },
         makeContext(visitor, plaza, 'go office')
       );
@@ -202,12 +202,12 @@ describe('GoController', () => {
   });
 
   describe('vessel entry and exit', () => {
-    it('go <vessel-keyword> enters a sibling ExitableVessel', () => {
+    it('go <vessel-keyword> enters a sibling ExitableVessel', async () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
       wardrobe.shortDescription = 'wardrobe';
       ContainmentApi.move(wardrobe, roomA);
 
-      const result = controller.execute(
+      const result = await controller.execute(
         { target: 'wardrobe' },
         makeContext(avatar, roomA, 'go wardrobe')
       );
@@ -215,13 +215,13 @@ describe('GoController', () => {
       expect(avatar.getContainer()).toBe(wardrobe);
     });
 
-    it('go out from inside a vessel returns to the environment', () => {
+    it('go out from inside a vessel returns to the environment', async () => {
       const wardrobe = makeStuff(() => new ExitableVessel());
       wardrobe.shortDescription = 'wardrobe';
       ContainmentApi.move(wardrobe, roomA);
       ContainmentApi.move(avatar, wardrobe);
 
-      const result = controller.execute(
+      const result = await controller.execute(
         { target: 'out' },
         makeContext(avatar, wardrobe as unknown as Location, 'go out')
       );

@@ -40,6 +40,8 @@ export const Mixins = {
   PostRegistration: 'PostRegistrationMixin',
   HasInteractive: 'HasInteractiveMixin',
   Environment: 'EnvironmentMixin',
+  Singleton: 'SingletonMixin',
+  DoorBearing: 'DoorBearingMixin',
 } as const;
 
 /**

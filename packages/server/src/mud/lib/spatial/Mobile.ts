@@ -58,7 +58,7 @@ import {
  * exit-aware layer on top.
  */
 export interface Mobile {
-  traverse(exit: Exit): void;
+  traverse(exit: Exit): Promise<void>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
@@ -194,12 +194,25 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "is this passable?" gate. The new Witness hooks layer
      * additional pre-move vetos, not a replacement.
      */
-    traverse(
+    async traverse(
       this: Stuff & Containable & Mobile,
       exit: Exit
-    ): void {
+    ): Promise<void> {
       const mover = this;
-      const { source, destination } = exit;
+      const source = exit.source;
+      // Lazy-resolve the destination via the singleton cache. For Exits
+      // authored with a live ref this is a no-op; for path-only exits
+      // it routes through `StuffApi.singleton(path)` which clones if
+      // needed.
+      const destination = await exit.getDestination();
+
+      // Traversal-time fallback for the mutual-exit invariant. Catches
+      // pairs whose verification couldn't fire at load time because the
+      // destination hadn't loaded yet. Idempotent — already-wired exits
+      // short-circuit. Source must be Exitable for this to make sense.
+      if (MixinApi.isExitable(source)) {
+        source.verifyOutboundExits();
+      }
 
       // Pre-move traversal vetoes.
       assertVeto(callTraverseHook(this, 'canTraverse', [exit]), 'canTraverse');

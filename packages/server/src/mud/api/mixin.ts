@@ -43,6 +43,8 @@ import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { Environment } from '../lib/shell/Environment';
+import type { Singleton } from '../lib/stuff/Singleton';
+import type { DoorBearing } from '../lib/spatial/DoorBearing';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -320,6 +322,14 @@ export class MixinApi {
 
   public static isEnvironment(obj: Stuff): obj is Stuff & Environment {
     return this.hasMixin(obj, Mixins.Environment);
+  }
+
+  public static isSingleton(obj: Stuff): obj is Stuff & Singleton {
+    return this.hasMixin(obj, Mixins.Singleton);
+  }
+
+  public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {
+    return this.hasMixin(obj, Mixins.DoorBearing);
   }
 }
 

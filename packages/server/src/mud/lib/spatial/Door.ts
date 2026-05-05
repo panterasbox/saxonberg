@@ -6,10 +6,20 @@
  * door from room A is immediately visible from room B.
  * `ExitableMixin.addBidirectionalExit()` wires this up in a single call.
  *
- * Composition: `VisibleMixin(PerceptibleMixin(SealableMixin(Idea)))`.
- * A Door is an `Idea` — it has identity but does NOT compose `Containable`
- * (no environment) or `Container` (no inventory). It lives nowhere spatial
- * and is referenced purely through `Exit.door`.
+ * Composition: `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`.
+ * A Door is a `Thing` — it has identity AND a `Containable` environment,
+ * so a *broken* or *unhinged* door can be moved into a Location with
+ * `ContainmentApi.move(door, location)` and picked up like any item. In
+ * the **attached** state the door's `environment` is `null`; the door
+ * is reachable only via the `Exit.door` references that track it. In
+ * the **detached** state (broken, removed, carried) the door has an
+ * `environment` and appears in that container's `getContents()`.
+ *
+ * The same physical door is referenced by potentially many Exits (the
+ * canonical case is two — forward + back). The `attachedTo` set is the
+ * runtime back-reference, populated automatically by `Exit`'s `door`
+ * setter. When a door breaks or is detached, walk `attachedTo` to clear
+ * each Exit's `door` ref before relocating.
  *
  * Mixin responsibilities:
  *   - `SealableMixin`: open/closed state (shared with chests, trapdoors, …).
@@ -32,19 +42,31 @@
  * MQL surfaces a door on its room via `ExitableMixin.getExitDoors()`
  * (MqlApi scans those in addition to the room's contents), so a door is
  * player-targetable by name even though it doesn't live in anyone's
- * inventory.
+ * inventory while attached.
  *
  * Phase 7 scope: open/closed only. No locks, no keys, no `unlock` command.
  */
 
-import { Idea } from '../stuff/Idea';
+import { Thing } from '../stuff/Thing';
 import { SealableMixin } from './Sealable';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
+import type { Exit } from './Exit';
 
-const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Idea)));
+const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Thing)));
 
 export class Door extends DoorBase {
+  /**
+   * Runtime back-reference: every Exit whose `door` currently points at
+   * this Door. Maintained by `Exit`'s `door` setter — adding the door
+   * to a new Exit registers; clearing the door (or `Exit.prepareDestroy`)
+   * unregisters.
+   *
+   * Not persistent: the relationship is rebuilt at load time as Exits
+   * are constructed. Wiping it on destroy is `prepareDestroy`'s job.
+   */
+  public attachedTo: Set<Exit> = new Set();
+
   /**
    * Union of the PerceptibleMixin keyword list with the tokens of the
    * door's shortDescription. A door constructed with only `shortDescription:
@@ -58,5 +80,31 @@ export class Door extends DoorBase {
       .split(/\s+/)
       .filter((t) => t.length > 0);
     return Array.from(new Set([...base, ...nameTokens]));
+  }
+
+  /**
+   * Detach this door from every Exit currently referencing it, clearing
+   * each exit's `door` ref and emptying `attachedTo`. The door becomes
+   * a free-standing Thing — the caller is responsible for placing it
+   * somewhere with `ContainmentApi.move(door, location)` (the typical
+   * "broken door drops to the floor" case).
+   *
+   * Idempotent: detaching an already-detached door is a no-op.
+   */
+  public detach(): void {
+    const exits = [...this.attachedTo];
+    for (const exit of exits) {
+      exit.door = null;
+    }
+    this.attachedTo.clear();
+  }
+
+  /**
+   * Cleanup hook fired by `StuffApi.destruct(this)`. Clears the back-
+   * pointer on every Exit that referenced this door so neighbors don't
+   * retain dead Door references.
+   */
+  public prepareDestroy(): void {
+    this.detach();
   }
 }

@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { Door } from '../Door';
+import { Exit } from '../Exit';
+import { CartesianZone } from '../CartesianZone';
+import { CartesianLocation } from '../CartesianLocation';
 import { MixinApi } from '../../../api/mixin';
+import { Mixins } from '../../mixin';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 /**
@@ -96,5 +102,121 @@ describe('Door', () => {
     expect(MixinApi.isSealable(door)).toBe(true);
     expect(MixinApi.isPerceptible(door)).toBe(true);
     expect(MixinApi.isVisible(door)).toBe(true);
+    // Phase 4: Door is now a Thing — composes Containable so a broken
+    // door can be moved into a Location and picked up.
+    expect(MixinApi.isContainable(door)).toBe(true);
+    expect(MixinApi.hasMixin(Door, Mixins.Containable)).toBe(true);
+  });
+});
+
+describe('Door attachedTo back-reference + break/install', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('addBidirectionalExit populates attachedTo with both exits', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const a = makeStuff(() => new CartesianLocation());
+    const b = makeStuff(() => new CartesianLocation());
+    zone.addRoom(a, 0, 0, 0);
+    zone.addRoom(b, 0, 1, 0);
+
+    const door = makeStuff(() => new Door());
+    door.shortDescription = 'oak door';
+
+    a.addBidirectionalExit(b, 'north', { door });
+
+    expect(door.attachedTo.size).toBe(2);
+    expect(door.attachedTo.has(a.exits.get('north')!)).toBe(true);
+    expect(door.attachedTo.has(b.exits.get('south')!)).toBe(true);
+  });
+
+  it('door.detach() clears every Exit.door and empties attachedTo', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const a = makeStuff(() => new CartesianLocation());
+    const b = makeStuff(() => new CartesianLocation());
+    zone.addRoom(a, 0, 0, 0);
+    zone.addRoom(b, 0, 1, 0);
+
+    const door = makeStuff(() => new Door());
+    door.shortDescription = 'oak door';
+    a.addBidirectionalExit(b, 'north', { door });
+
+    const aNorth = a.exits.get('north')!;
+    const bSouth = b.exits.get('south')!;
+
+    door.detach();
+
+    expect(door.attachedTo.size).toBe(0);
+    expect(aNorth.door).toBeNull();
+    expect(bSouth.door).toBeNull();
+  });
+
+  it('detach + ContainmentApi.move plants the broken door in a location', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const a = makeStuff(() => new CartesianLocation());
+    const b = makeStuff(() => new CartesianLocation());
+    zone.addRoom(a, 0, 0, 0);
+    zone.addRoom(b, 0, 1, 0);
+
+    const door = makeStuff(() => new Door());
+    door.shortDescription = 'oak door';
+    a.addBidirectionalExit(b, 'north', { door });
+
+    door.detach();
+    ContainmentApi.move(door, a);
+
+    expect(a.getContents()).toContain(door);
+    expect(door.environment).toBe(a);
+  });
+
+  it('re-installing a detached door updates attachedTo correctly', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const a = makeStuff(() => new CartesianLocation());
+    const b = makeStuff(() => new CartesianLocation());
+    const c = makeStuff(() => new CartesianLocation());
+    zone.addRoom(a, 0, 0, 0);
+    zone.addRoom(b, 0, 1, 0);
+    zone.addRoom(c, 1, 0, 0);
+
+    const door = makeStuff(() => new Door());
+    door.shortDescription = 'oak door';
+    a.addBidirectionalExit(b, 'north', { door });
+    expect(door.attachedTo.size).toBe(2);
+
+    door.detach();
+    expect(door.attachedTo.size).toBe(0);
+
+    // Reinstall on a different exit pair.
+    a.addBidirectionalExit(c, 'east', { door });
+    expect(door.attachedTo.size).toBe(2);
+    expect(a.exits.get('east')!.door).toBe(door);
+    expect(c.exits.get('west')!.door).toBe(door);
+  });
+
+  it('Exit.prepareDestroy unhooks itself from door.attachedTo', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const a = makeStuff(() => new CartesianLocation());
+    const b = makeStuff(() => new CartesianLocation());
+    zone.addRoom(a, 0, 0, 0);
+    zone.addRoom(b, 0, 1, 0);
+
+    const door = makeStuff(() => new Door());
+    door.shortDescription = 'oak door';
+
+    const exit = makeStuff(() => new Exit({
+      direction: 'east',
+      source: a,
+      destination: b,
+      door,
+    }));
+    // Registration of the exit in the door's attachedTo set is the
+    // job of `addExit` — that's the only way an Exit reaches its
+    // host post-construction (and post-Proxy).
+    a.addExit(exit);
+    expect(door.attachedTo.has(exit)).toBe(true);
+
+    StuffApi.destruct(exit);
+    expect(door.attachedTo.has(exit)).toBe(false);
   });
 });

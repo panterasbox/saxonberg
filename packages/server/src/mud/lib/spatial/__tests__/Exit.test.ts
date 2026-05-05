@@ -1,16 +1,31 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Exit } from '../Exit';
 import { Door } from '../Door';
 import { CartesianLocation } from '../CartesianLocation';
 import { CartesianZone } from '../CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
+import { ProxyApi } from '../../../api/proxy';
 import { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../Containable';
 import { MobileMixin } from '../Mobile';
 import { NamedMixin } from '../../description/Named';
 import { makeStuff } from '../../security/__tests__/test-setup';
+
+function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
+  const prev = Stuff._beginConstruction();
+  let raw: T;
+  try {
+    raw = factory();
+  } finally {
+    Stuff._endConstruction(prev);
+  }
+  const proxy = ProxyApi.wrap(raw);
+  (proxy as unknown as { templatePath?: string }).templatePath = path;
+  StuffApi.register(proxy);
+  return proxy;
+}
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
 class TestMover extends SensorBase {
@@ -103,15 +118,15 @@ describe('Exit', () => {
   });
 
   describe('traverse', () => {
-    it('moves the mover to the destination', () => {
+    it('moves the mover to the destination', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
       expect(mover.getContainer()).toBe(roomB);
     });
 
-    it('broadcasts departure to source peers excluding the mover', () => {
+    it('broadcasts departure to source peers excluding the mover', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
 
       const peerATexts = bodiesOf(peerInA.received);
       expect(peerATexts.length).toBe(1);
@@ -124,7 +139,7 @@ describe('Exit', () => {
       expect(peerBTexts[0]).toContain('south');
     });
 
-    it('uses custom messageIn/messageOut when provided', () => {
+    it('uses custom messageIn/messageOut when provided', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'north',
         source: roomA,
@@ -132,12 +147,12 @@ describe('Exit', () => {
         messageOut: 'custom departure',
         messageIn: 'custom arrival',
       }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
       expect(bodiesOf(peerInA.received)).toEqual(['custom departure']);
       expect(bodiesOf(peerInB.received)).toEqual(['custom arrival']);
     });
 
-    it('interpolates {{ mover }} in custom messages', () => {
+    it('interpolates {{ mover }} in custom messages', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'out',
         source: roomA,
@@ -145,7 +160,7 @@ describe('Exit', () => {
         messageOut: '{{ mover }} leaves the wardrobe.',
         messageIn: '{{ mover }} emerges from the wardrobe.',
       }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
       const departText = bodiesOf(peerInA.received)[0]!;
       const arriveText = bodiesOf(peerInB.received)[0]!;
       expect(departText).toContain('Alice');
@@ -155,18 +170,18 @@ describe('Exit', () => {
       expect(arriveText).toContain('emerges from the wardrobe.');
     });
 
-    it('degrades arrival message when direction has no inverse', () => {
+    it('degrades arrival message when direction has no inverse', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'office', source: roomA, destination: roomB }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
       const arrText = bodiesOf(peerInB.received)[0]!;
       expect(arrText).toContain('arrives');
       expect(arrText).not.toContain('from the');
     });
 
-    it('invokes ContainmentApi.move between broadcasts', () => {
+    it('invokes ContainmentApi.move between broadcasts', async () => {
       const moveSpy = vi.spyOn(ContainmentApi, 'move');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: roomA, destination: roomB }));
-      mover.traverse(exit);
+      await mover.traverse(exit);
       expect(moveSpy).toHaveBeenCalledWith(mover, roomB);
       moveSpy.mockRestore();
     });
@@ -199,5 +214,55 @@ describe('Exit', () => {
       roomA.addExit(exit);
       expect(exit.inverse).toBeUndefined();
     });
+  });
+});
+
+describe('Exit lazy destination resolution', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('throws on sync destination access when path not loaded', () => {
+    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const exit = makeStuff(() => new Exit({
+      direction: 'east',
+      source: a,
+      destinationPath: '/zone/never-loaded',
+    }));
+
+    expect(() => exit.destination).toThrow(/not yet loaded/);
+  });
+
+  it('returns cached live destination once resolved', () => {
+    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+
+    const exit = makeStuff(() => new Exit({
+      direction: 'east',
+      source: a,
+      destinationPath: '/zone/b',
+    }));
+
+    expect(exit.destination).toBe(b);
+    expect(exit.destination).toBe(b);
+  });
+
+  it('getDestinationTemplatePath returns the path regardless of resolution', () => {
+    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+
+    const liveExit = makeStuff(() => new Exit({
+      direction: 'east',
+      source: a,
+      destination: b,
+    }));
+    expect(liveExit.getDestinationTemplatePath()).toBe('/zone/b');
+
+    const pathExit = makeStuff(() => new Exit({
+      direction: 'west',
+      source: b,
+      destinationPath: '/zone/a',
+    }));
+    expect(pathExit.getDestinationTemplatePath()).toBe('/zone/a');
   });
 });
