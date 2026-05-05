@@ -2,12 +2,18 @@
  * SeederManager — populate the `domain` collection with engine
  * templates from disk.
  *
- * Walks `packages/server/seeds/` recursively for `.yaml` files. Each
- * file's path (relative to `seeds/`, with `.yaml` stripped, prefixed
- * with `/`) becomes its template path. For each template the
- * seeder inserts the parsed YAML into `Collections.Domain` ONLY when
- * no document exists at that path — re-runs are idempotent, existing
- * docs are left alone.
+ * Walks `mud/seeds/` recursively for `.yaml` files. Each file's path
+ * (relative to `seeds/`, with `.yaml` stripped, prefixed with `/`)
+ * becomes its template path. For each template the seeder inserts
+ * the parsed YAML into `Collections.Domain` ONLY when no document
+ * exists at that path — re-runs are idempotent, existing docs are
+ * left alone.
+ *
+ * Why under `src/mud/`: seeds are mudlib data, not infrastructure.
+ * Most are static (engine baseline, ship-once); some are blueprints
+ * lower-level developers tune over time (e.g.
+ * `mud/seeds/avatar/default.yaml`). Co-located with the rest of the
+ * mudlib so authoring lives in one tree.
  *
  * Insert-only by design. Schema migrations on already-seeded
  * templates are out of scope; the dev workflow for "I changed the
@@ -24,7 +30,7 @@ import YAML from 'yaml';
 import { Collections, PersistenceManager } from './PersistenceManager';
 
 interface SeederOptions {
-  /** Override the seeds directory; defaults to `packages/server/seeds`. */
+  /** Override the seeds directory; defaults to `src/mud/seeds`. */
   seedsDir?: string;
 }
 
@@ -67,12 +73,13 @@ export class SeederManager {
 
   /**
    * Default seeds dir relative to this module. Source layout:
-   * `packages/server/src/backend/SeederManager.ts` →
-   * `packages/server/seeds/`.
+   * `src/backend/SeederManager.ts` → `src/mud/seeds/`.
+   * Mirrors how `PersistenceManager.loadHooks` resolves its
+   * companion YAML manifest.
    */
   static #defaultSeedsDir(): string {
     const here = dirname(fileURLToPath(import.meta.url));
-    return join(here, '../../seeds');
+    return join(here, '../mud/seeds');
   }
 
   /**

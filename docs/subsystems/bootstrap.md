@@ -42,17 +42,21 @@ instances must exist for the game to function?"
 ### Layout
 
 YAML files on disk are the **source of truth** for what templates ship
-with the engine.
+with the engine. Seeds live under `src/mud/seeds/` so they sit
+alongside the rest of the mudlib — they're game data authored by
+lower-level developers, not infrastructure.
 
 ```
-packages/server/seeds/
+packages/server/src/mud/seeds/
   obj/
     EventRegistry.yaml
-    ModuleRegistry.yaml
-    Avatar.yaml
-  rooms/
-    welcome.yaml
-    plaza.yaml
+  avatar/
+    default.yaml
+  domain/
+    void.yaml
+  system/
+    hooks/
+      domain-folder-leaf.yaml
 ```
 
 The file path determines the template path: relative path from
@@ -61,14 +65,15 @@ The file path determines the template path: relative path from
 | File | Template path |
 |---|---|
 | `seeds/obj/EventRegistry.yaml` | `/obj/EventRegistry` |
-| `seeds/obj/ModuleRegistry.yaml` | `/obj/ModuleRegistry` |
-| `seeds/rooms/welcome.yaml` | `/rooms/welcome` |
+| `seeds/avatar/default.yaml` | `/avatar/default` |
+| `seeds/domain/void.yaml` | `/domain/void` |
 
 ### Why YAML on disk
 
 - Templates are visible in the repo, diffable, reviewable in PRs.
 - Single source-of-truth for what ships with the engine — answer to
-  "what objects exist out of the box?" is "look in `seeds/`."
+  "what objects exist out of the box?" is "look in
+  `src/mud/seeds/`."
 - Easy to navigate / inspect without spinning up a Mongo client.
 - Mods can ship YAML seed fragments via the same mechanism (when mods
   land).
@@ -81,7 +86,7 @@ before `BootstrapManager`.
 ```ts
 class SeederManager {
   static async run(): Promise<void> {
-    for (const yamlFile of walkSeeds('packages/server/seeds')) {
+    for (const yamlFile of walkSeeds('src/mud/seeds')) {
       const path = yamlFile.toTemplatePath();    // '/obj/EventRegistry'
       const existing = await db.collection('domain').findOne({ path });
       if (existing) continue;                    // idempotent: skip if present
@@ -293,7 +298,7 @@ When mods land:
 - Same data shape, no special mod-specific bootstrap mechanism.
 - Mod-supplied seed YAMLs are loaded by the SeederManager from the
   mod's seed directory the same way engine seeds are loaded from
-  `packages/server/seeds/`.
+  `src/mud/seeds/`.
 
 This is acknowledged as future work; not part of the initial
 implementation.
