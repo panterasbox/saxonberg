@@ -116,7 +116,7 @@ export class Login extends LoginBase {
   }
 
   private sendLookDescription(avatar: Avatar): void {
-    const location = avatar.getEnvironment() as Location | null;
+    const location = avatar.getContainer() as Location | null;
 
     if (!location) {
       MessageApi.scene(avatar)

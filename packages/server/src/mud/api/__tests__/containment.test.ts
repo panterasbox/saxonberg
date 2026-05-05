@@ -41,7 +41,7 @@ describe('ContainmentApi', () => {
     it('should move item to container', () => {
       ContainmentApi.move(item, container1);
 
-      expect(item.getEnvironment()).toBe(container1);
+      expect(item.getContainer()).toBe(container1);
       expect(container1.hasContainable(item)).toBe(true);
     });
 
@@ -53,22 +53,22 @@ describe('ContainmentApi', () => {
 
       expect(container1.hasContainable(item)).toBe(false);
       expect(container2.hasContainable(item)).toBe(true);
-      expect(item.getEnvironment()).toBe(container2);
+      expect(item.getContainer()).toBe(container2);
     });
 
     it('should work when item has no current environment', () => {
-      expect(item.getEnvironment()).toBeNull();
+      expect(item.getContainer()).toBeNull();
 
       ContainmentApi.move(item, container1);
 
-      expect(item.getEnvironment()).toBe(container1);
+      expect(item.getContainer()).toBe(container1);
       expect(container1.hasContainable(item)).toBe(true);
     });
 
     it('should work with Location as container', () => {
       ContainmentApi.move(item, location1);
 
-      expect(item.getEnvironment()).toBe(location1);
+      expect(item.getContainer()).toBe(location1);
       expect(location1.hasContainable(item)).toBe(true);
     });
 
@@ -80,7 +80,7 @@ describe('ContainmentApi', () => {
 
       expect(location1.hasContainable(item)).toBe(false);
       expect(location2.hasContainable(item)).toBe(true);
-      expect(item.getEnvironment()).toBe(location2);
+      expect(item.getContainer()).toBe(location2);
     });
   });
 
@@ -184,8 +184,8 @@ describe('ContainmentApi', () => {
       // Put item in container1
       ContainmentApi.move(item, container1);
 
-      expect(item.getEnvironment()).toBe(container1);
-      expect(container1.getEnvironment()).toBe(location1);
+      expect(item.getContainer()).toBe(container1);
+      expect(container1.getContainer()).toBe(location1);
       expect(container1.hasContainable(item)).toBe(true);
       expect(location1.hasContainable(container1)).toBe(true);
     });

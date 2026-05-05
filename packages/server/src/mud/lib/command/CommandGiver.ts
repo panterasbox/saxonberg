@@ -120,7 +120,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // 3 + 4. Commands from ENVIRONMENT and PEER objects — only if
       // this giver is placed somewhere
       if (MixinApi.isContainable(self)) {
-        const environment = self.getEnvironment();
+        const environment = self.getContainer();
         if (environment) {
           const envContents = ContainmentApi.getContents(environment);
           for (const obj of envContents) {

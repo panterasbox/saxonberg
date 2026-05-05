@@ -49,7 +49,7 @@ describe('ProxyApi.wrap + sentinel + decorated destroy', () => {
     const t = makeStuff(() => new Thing());
     StuffApi.destruct(t);
     // isDestroyed() is exempt; other methods throw.
-    expect(() => t.getEnvironment()).toThrow(DestroyedObjectError);
+    expect(() => t.getContainer()).toThrow(DestroyedObjectError);
   });
 
   it('isDestroyed() remains callable post-destruct', () => {
@@ -71,7 +71,7 @@ describe('ProxyApi mechanics', () => {
 
   it('repeated method reads return the same wrapper reference (cached)', () => {
     const t = makeStuff(() => new Thing());
-    expect(t.getEnvironment).toBe(t.getEnvironment);
+    expect(t.getContainer).toBe(t.getContainer);
   });
 
   it('passthrough keys (constructor, stuffId) bypass the pipeline', () => {

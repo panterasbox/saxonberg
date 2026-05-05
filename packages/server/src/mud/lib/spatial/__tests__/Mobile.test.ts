@@ -31,7 +31,7 @@ describe('MobileMixin', () => {
     it('should move object to destination', () => {
       mobileObj.teleport(location1);
 
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
       expect(location1.hasContainable(mobileObj)).toBe(true);
     });
 
@@ -45,24 +45,24 @@ describe('MobileMixin', () => {
 
       expect(location1.hasContainable(mobileObj)).toBe(false);
       expect(location2.hasContainable(mobileObj)).toBe(true);
-      expect(mobileObj.getEnvironment()).toBe(location2);
+      expect(mobileObj.getContainer()).toBe(location2);
     });
 
     it('should work when object has no current environment', () => {
-      expect(mobileObj.getEnvironment()).toBeNull();
+      expect(mobileObj.getContainer()).toBeNull();
 
       mobileObj.teleport(location1);
 
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
       expect(location1.hasContainable(mobileObj)).toBe(true);
     });
 
     it('should update environment reference', () => {
       mobileObj.teleport(location1);
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
 
       mobileObj.teleport(location2);
-      expect(mobileObj.getEnvironment()).toBe(location2);
+      expect(mobileObj.getContainer()).toBe(location2);
     });
 
     it('should add to destination inventory', () => {
@@ -89,13 +89,13 @@ describe('MobileMixin', () => {
     it('should handle moving between multiple locations', () => {
       // Move through several locations
       mobileObj.teleport(location1);
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
 
       mobileObj.teleport(location2);
-      expect(mobileObj.getEnvironment()).toBe(location2);
+      expect(mobileObj.getContainer()).toBe(location2);
 
       mobileObj.teleport(location1);
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
 
       // Verify only in final location
       expect(location1.hasContainable(mobileObj)).toBe(true);
@@ -104,16 +104,16 @@ describe('MobileMixin', () => {
   });
 
   describe('Integration with ContainableMixin', () => {
-    it('should properly update environment via setEnvironment', () => {
+    it('should properly update environment via setContainer', () => {
       mobileObj.teleport(location1);
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
     });
 
     it('should maintain consistency between environment and inventory', () => {
       mobileObj.teleport(location1);
 
       // Check consistency
-      expect(mobileObj.getEnvironment()).toBe(location1);
+      expect(mobileObj.getContainer()).toBe(location1);
       expect(location1.hasContainable(mobileObj)).toBe(true);
     });
   });
@@ -126,7 +126,7 @@ describe('MobileMixin', () => {
       mobileObj.teleport(location2);
 
       // No errors should occur
-      expect(mobileObj.getEnvironment()).toBe(location2);
+      expect(mobileObj.getContainer()).toBe(location2);
     });
 
     it('should be ready for afterEnter hooks', () => {

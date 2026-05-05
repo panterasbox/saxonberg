@@ -1,10 +1,10 @@
 /**
  * ContainableMixin — anything that lives inside a Container.
  *
- * State-mutation chokepoint: `setEnvironment(container)` is the only
+ * State-mutation chokepoint: `setContainer(container)` is the only
  * place inventory and environment fields are updated atomically.
  * `ContainmentApi.move` is the policy / hook layer above; it calls
- * `setEnvironment` once, which orchestrates the cross-object
+ * `setContainer` once, which orchestrates the cross-object
  * mutation:
  *
  *   1. `oldContainer.removeContainable(this)` if there was a previous
@@ -13,11 +13,11 @@
  *   3. `this.environment = newContainer`.
  *
  * Lockdown contract (Phase 5):
- *   - `setEnvironment` is `@Final` (no subclass override —
+ *   - `setContainer` is `@Final` (no subclass override —
  *     out-of-sync state is catastrophic), `@Unshadowable`, and
  *     `@CallSecurity`-gated to ContainmentApi callers only. Detach
  *     is `ContainmentApi.move(item, null)`; a direct
- *     `setEnvironment(null)` is rejected by policy.
+ *     `setContainer(null)` is rejected by policy.
  *
  * Witness hooks (optional methods on the interface):
  *   - `canMove(to)` — pre-move veto on the moving item.
@@ -40,8 +40,8 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
  */
 export interface Containable {
   environment: (Stuff & Container) | null;
-  setEnvironment(container: (Stuff & Container) | null): void;
-  getEnvironment(): (Stuff & Container) | null;
+  setContainer(container: (Stuff & Container) | null): void;
+  getContainer(): (Stuff & Container) | null;
 
   /** Optional pre-move veto on the moving item itself. */
   canMove?(to: (Stuff & Container) | null): VetoResult;
@@ -84,14 +84,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Atomic across three updates: detach from the old container,
      * attach to the new, update the field. `null` argument is the
      * detach case; the policy rejects calls from anywhere other than
-     * `ContainmentApi`, so `setEnvironment(null)` outside the Api
+     * `ContainmentApi`, so `setContainer(null)` outside the Api
      * throws — the legitimate detach is `ContainmentApi.move(item,
      * null)`.
      */
     @CallSecurity(FromContainmentApi)
     @Final
     @Unshadowable
-    setEnvironment(container: (Stuff & Container) | null): void {
+    setContainer(container: (Stuff & Container) | null): void {
       const old = this.environment;
       if (old === container) return;
       if (old) {
@@ -104,9 +104,9 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Get the current environment.
+     * Get the current container.
      */
-    getEnvironment(): (Stuff & Container) | null {
+    getContainer(): (Stuff & Container) | null {
       return this.environment;
     }
   }

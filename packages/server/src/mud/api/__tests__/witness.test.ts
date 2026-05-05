@@ -102,7 +102,7 @@ describe('Containment Witness hooks (ContainmentApi.move)', () => {
     const dest = makeStuff(() => new HookableBox());
     dest.addVeto = { ok: false, reason: 'full' };
     expect(() => ContainmentApi.move(item, dest)).toThrow(ContainmentError);
-    expect(item.getEnvironment()).toBeNull();
+    expect(item.getContainer()).toBeNull();
     expect(dest.adds).toEqual([]);
   });
 
@@ -115,23 +115,23 @@ describe('Containment Witness hooks (ContainmentApi.move)', () => {
   });
 });
 
-describe('setEnvironment lockdown', () => {
+describe('setContainer lockdown', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
   });
 
-  it('rejects direct setEnvironment calls from outside ContainmentApi', () => {
+  it('rejects direct setContainer calls from outside ContainmentApi', () => {
     const item = makeStuff(() => new HookableThing());
     const env = makeStuff(() => new HookableBox());
-    expect(() => item.setEnvironment(env)).toThrow(SecurityError);
+    expect(() => item.setContainer(env)).toThrow(SecurityError);
   });
 
-  it('rejects direct setEnvironment(null) — detach goes through ContainmentApi.move', () => {
+  it('rejects direct setContainer(null) — detach goes through ContainmentApi.move', () => {
     const item = makeStuff(() => new HookableThing());
     const env = makeStuff(() => new HookableBox());
     ContainmentApi.move(item, env);
-    expect(() => item.setEnvironment(null)).toThrow(SecurityError);
+    expect(() => item.setContainer(null)).toThrow(SecurityError);
     // The legitimate detach succeeds.
     expect(() => ContainmentApi.move(item, null)).not.toThrow();
   });
@@ -189,7 +189,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     expect(mover.traverses).toEqual([exit]);
     expect(source.exited).toHaveLength(1);
     expect(dest.entered).toHaveLength(1);
-    expect(mover.getEnvironment()).toBe(dest);
+    expect(mover.getContainer()).toBe(dest);
   });
 
   it('canEnter veto blocks traversal before move runs', () => {
@@ -205,7 +205,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       door: null,
     }));
     expect(() => mover.traverse(exit)).toThrow(/sealed/);
-    expect(mover.getEnvironment()).toBe(source);
+    expect(mover.getContainer()).toBe(source);
     expect(dest.entered).toEqual([]);
   });
 });

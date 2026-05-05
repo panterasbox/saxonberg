@@ -20,7 +20,7 @@
  * - inventory management from ContainerMixin
  * - Message capabilities from Sensor/Vocal mixins
  * - Movement capability from MobileMixin (traverse(), teleport())
- * - Container placement from ContainableMixin (setEnvironment/getEnvironment)
+ * - Container placement from ContainableMixin (setContainer/getContainer)
  * - Command execution from CommandGiverMixin (executeCommand, getAvailableCommands)
  *
  * Runtime-only class (no MongoDB collection).
@@ -38,7 +38,7 @@ import { VocalMixin } from '../message/Vocal';
 import { CommandGiverMixin } from '../command/CommandGiver';
 
 // Compose mixins: CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Gendered + Named + Agent
-// Order matters: ContainableMixin before MobileMixin (MobileMixin uses setEnvironment/getEnvironment)
+// Order matters: ContainableMixin before MobileMixin (MobileMixin uses setContainer/getContainer)
 // Commands are provided by mixins (ContainerMixin provides inventory/get/drop, VisibleMixin provides look)
 const CharacterBase = CommandGiverMixin(
   MobileMixin(

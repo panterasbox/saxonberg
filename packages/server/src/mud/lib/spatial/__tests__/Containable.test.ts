@@ -1,6 +1,6 @@
 /**
  * ContainableMixin tests — exercises environment management through
- * `ContainmentApi.move`. Direct `setEnvironment` calls now require an
+ * `ContainmentApi.move`. Direct `setContainer` calls now require an
  * `mud/api/containment#ContainmentApi` caller frame; the unit-level
  * tests for the chokepoint live above this file in `containment.test.ts`.
  */
@@ -40,15 +40,15 @@ describe('ContainableMixin', () => {
   describe('initialization', () => {
     it('initializes with null environment', () => {
       expect(containable.environment).toBeNull();
-      expect(containable.getEnvironment()).toBeNull();
+      expect(containable.getContainer()).toBeNull();
     });
   });
 
-  describe('setEnvironment via ContainmentApi.move', () => {
+  describe('setContainer via ContainmentApi.move', () => {
     it('places into a container', () => {
       ContainmentApi.move(containable, environment1);
       expect(containable.environment).toBe(environment1);
-      expect(containable.getEnvironment()).toBe(environment1);
+      expect(containable.getContainer()).toBe(environment1);
     });
 
     it('relocates between containers', () => {
@@ -64,14 +64,14 @@ describe('ContainableMixin', () => {
     });
   });
 
-  describe('getEnvironment', () => {
+  describe('getContainer', () => {
     it('returns null when not placed', () => {
-      expect(containable.getEnvironment()).toBeNull();
+      expect(containable.getContainer()).toBeNull();
     });
 
     it('returns the current environment', () => {
       ContainmentApi.move(containable, environment1);
-      expect(containable.getEnvironment()).toBe(environment1);
+      expect(containable.getContainer()).toBe(environment1);
     });
   });
 

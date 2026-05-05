@@ -180,7 +180,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      */
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
-      const previous = (this as unknown as Containable).getEnvironment();
+      const previous = (this as unknown as Containable).getContainer();
       if (!silent && previous) {
         this.announceDeparture(previous, undefined);
       }

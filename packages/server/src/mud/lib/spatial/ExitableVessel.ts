@@ -68,8 +68,8 @@ export class ExitableVessel extends ExitableVesselBase {
 
   /**
    * Invalidate the synthesized exit caches whenever the vessel moves.
-   * Migrated from a `setEnvironment` override to the new `onMoved`
-   * Witness hook: `setEnvironment` is now `@Final`, no longer
+   * Migrated from a `setContainer` override to the new `onMoved`
+   * Witness hook: `setContainer` is now `@Final`, no longer
    * overridable; `ContainmentApi.move` fires `onMoved(from, to)` once
    * per transition (with either side `null` for first-placement /
    * final-detach), which is exactly the right shape for cache

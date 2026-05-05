@@ -45,7 +45,7 @@
  * The "explicit declaration only" rule is deliberate: under the older
  * auto-enrol model, a shadow that composed `Containable` purely to
  * react to an `onMoved` Witness hook would have silently intercepted
- * `setEnvironment` / `getEnvironment` with mixin defaults, masking
+ * `setContainer` / `getContainer` with mixin defaults, masking
  * the host's real behaviour. Forcing explicit declaration sidesteps
  * the trap.
  *

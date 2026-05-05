@@ -10,7 +10,7 @@
  *     primitives. They are `@Final` (no subclass override —
  *     out-of-sync inventory is catastrophic), `@Unshadowable` (no
  *     shadow bypass), and `@CallSecurity` gated to be reachable
- *     ONLY from inside `Containable.setEnvironment`. All
+ *     ONLY from inside `Containable.setContainer`. All
  *     application code goes through `ContainmentApi.move` instead.
  *
  * Witness hooks (optional methods on the interface):
@@ -56,16 +56,16 @@ export interface Container {
 
 /**
  * Custom predicate: caller's most-recent frame is inside
- * `Containable.setEnvironment`. The proxy checks the policy BEFORE
+ * `Containable.setContainer`. The proxy checks the policy BEFORE
  * pushing the `addContainable` / `removeContainable` frame, so the
- * top of the stack at check time IS the calling `setEnvironment`
+ * top of the stack at check time IS the calling `setContainer`
  * frame.
  */
-const CalledFromSetEnvironment = SecurityPolicies.Custom(() => {
+const CalledFromSetContainer = SecurityPolicies.Custom(() => {
   const stack = ExecutionContextApi.getCallStack();
   const callerFrame = stack[stack.length - 1];
-  return callerFrame?.method === 'setEnvironment';
-}, 'CalledFromSetEnvironment');
+  return callerFrame?.method === 'setContainer';
+}, 'CalledFromSetContainer');
 
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
@@ -85,17 +85,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The contained items. Direct access is allowed for read paths
      * (getContents) but mutation goes through `addContainable` /
-     * `removeContainable`, which only `Containable.setEnvironment`
+     * `removeContainable`, which only `Containable.setContainer`
      * may legitimately invoke.
      */
     inventory: Set<Stuff & Containable> = new Set();
 
     /**
      * State-mutation primitive. Locked down — only callable from
-     * `Containable.setEnvironment`. Use `ContainmentApi.move(item,
+     * `Containable.setContainer`. Use `ContainmentApi.move(item,
      * container)` from application code.
      */
-    @CallSecurity(CalledFromSetEnvironment)
+    @CallSecurity(CalledFromSetContainer)
     @Final
     @Unshadowable
     addContainable(item: Stuff & Containable): void {
@@ -105,7 +105,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Remove primitive. Same lockdown as `addContainable`.
      */
-    @CallSecurity(CalledFromSetEnvironment)
+    @CallSecurity(CalledFromSetContainer)
     @Final
     @Unshadowable
     removeContainable(item: Stuff & Containable): boolean {

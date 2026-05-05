@@ -90,7 +90,7 @@ describe('GoController', () => {
         makeContext(avatar, roomA, 'go north')
       );
       expect(result.success).toBe(true);
-      expect(avatar.getEnvironment()).toBe(roomB);
+      expect(avatar.getContainer()).toBe(roomB);
       expect(result.summary).toContain('Room B');
 
       const depText = JSON.stringify(peerInA.received);
@@ -108,7 +108,7 @@ describe('GoController', () => {
         makeContext(avatar, roomB, 'go south')
       );
       expect(back.success).toBe(true);
-      expect(avatar.getEnvironment()).toBe(roomA);
+      expect(avatar.getContainer()).toBe(roomA);
     });
 
     it('mover is excluded from peer broadcasts', () => {
@@ -166,7 +166,7 @@ describe('GoController', () => {
       );
       expect(result.success).toBe(false);
       expect(result.summary).toMatch(/closed/i);
-      expect(avatar.getEnvironment()).toBe(roomA);
+      expect(avatar.getContainer()).toBe(roomA);
     });
   });
 
@@ -193,7 +193,7 @@ describe('GoController', () => {
         makeContext(visitor, plaza, 'go office')
       );
       expect(result.success).toBe(true);
-      expect(visitor.getEnvironment()).toBe(office);
+      expect(visitor.getContainer()).toBe(office);
 
       const arrText = JSON.stringify(spherePeer.received);
       expect(arrText).toContain('arrives');
@@ -212,7 +212,7 @@ describe('GoController', () => {
         makeContext(avatar, roomA, 'go wardrobe')
       );
       expect(result.success).toBe(true);
-      expect(avatar.getEnvironment()).toBe(wardrobe);
+      expect(avatar.getContainer()).toBe(wardrobe);
     });
 
     it('go out from inside a vessel returns to the environment', () => {
@@ -226,7 +226,7 @@ describe('GoController', () => {
         makeContext(avatar, wardrobe as unknown as Location, 'go out')
       );
       expect(result.success).toBe(true);
-      expect(avatar.getEnvironment()).toBe(roomA);
+      expect(avatar.getContainer()).toBe(roomA);
     });
 
   });

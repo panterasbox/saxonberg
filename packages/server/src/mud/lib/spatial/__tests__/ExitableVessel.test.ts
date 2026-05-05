@@ -132,7 +132,7 @@ describe('ExitableVessel', () => {
       wardrobe.zone = zone;
       ContainmentApi.move(wardrobe, park);
       ContainmentApi.move(wardrobe, park2);
-      expect(wardrobe.getEnvironment()).toBe(park2);
+      expect(wardrobe.getContainer()).toBe(park2);
       expect(wardrobe.zone).toBe(zone);
     });
 

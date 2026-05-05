@@ -169,7 +169,7 @@ describe('MessageApi', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const source = makeStuff(() => new MobileSensor());
-      // source has getEnvironment but it returns null
+      // source has getContainer but it returns null
       MessageApi.messageContainer(source, makeFrame());
 
       expect(consoleSpy).toHaveBeenCalledWith(
