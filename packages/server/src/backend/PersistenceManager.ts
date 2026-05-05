@@ -140,7 +140,7 @@ export class PersistenceManager {
       this.connectionUri = uri;
       this.databaseName = dbName;
 
-      console.log('PersistenceManager: Connecting to MongoDB...');
+      console.info('PersistenceManager: Connecting to MongoDB...');
 
       this.client = new MongoClient(uri, {
         maxPoolSize: 10,
@@ -151,7 +151,7 @@ export class PersistenceManager {
 
       this.db = this.client.db(dbName);
 
-      console.log(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
+      console.info(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
 
       // Create indexes
       await this.createIndexes();
@@ -173,7 +173,7 @@ export class PersistenceManager {
       await this.client.close();
       this.client = null;
       this.db = null;
-      console.log('PersistenceManager: Disconnected from MongoDB');
+      console.info('PersistenceManager: Disconnected from MongoDB');
     } catch (error) {
       console.error('PersistenceManager: Error disconnecting from MongoDB:', error);
       throw error;
@@ -387,7 +387,7 @@ export class PersistenceManager {
         );
       }
     }
-    console.log(
+    console.info(
       `PersistenceManager: Loaded ${manifest.hooks.length} hook binding(s) from ${path}`
     );
   }
@@ -542,7 +542,7 @@ export class PersistenceManager {
         { googleProfileId: 1 }
       );
 
-      console.log('PersistenceManager: Indexes created successfully');
+      console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
       console.error('PersistenceManager: Error creating indexes:', error);
       // Don't throw - indexes are optional for basic functionality

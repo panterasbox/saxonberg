@@ -65,7 +65,7 @@ export class Interactive extends Idea {
    * Application.sendMessageToInteractive().
    */
   public send(message: unknown): void {
-    console.log(`Interactive.send(): Message to ${this.socketId}:`, message);
+    console.debug(`Interactive.send(): Message to ${this.socketId}:`, message);
   }
 
   public getConnectionDuration(): number {

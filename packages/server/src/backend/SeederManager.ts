@@ -64,7 +64,7 @@ export class SeederManager {
       inserted++;
     }
 
-    console.log(
+    console.info(
       `SeederManager: ${inserted} new template${inserted === 1 ? '' : 's'} ` +
         `inserted from ${seedsDir}`
     );

@@ -85,7 +85,7 @@ function App() {
   useEffect(() => {
     // Connect to WebSocket when authenticated
     if (auth.isAuthenticated && !connection.isConnected) {
-      console.log('App: Authenticated - connecting to WebSocket...');
+      console.info('App: Authenticated - connecting to WebSocket...');
       websocketClient.connect('ws://localhost:2010');
     }
   }, [auth.isAuthenticated, connection.isConnected]);

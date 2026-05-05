@@ -55,7 +55,7 @@ export class WebSocketService {
       });
     });
 
-    console.log('WebSocketService: WebSocket server initialized');
+    console.info('WebSocketService: WebSocket server initialized');
 
     return this.wss;
   }
@@ -88,7 +88,7 @@ export class WebSocketService {
     this.wss!.handleUpgrade(request, socket, head, (ws) => {
       const sessionId = session.id;
 
-      console.log(
+      console.info(
         `WebSocketService: WebSocket upgrade successful - userId=${userId}, sessionId=${sessionId}`
       );
 
@@ -111,7 +111,7 @@ export class WebSocketService {
     if (this.wss) {
       this.wss.close();
       this.wss = null;
-      console.log('WebSocketService: WebSocket server closed');
+      console.info('WebSocketService: WebSocket server closed');
     }
   }
 }

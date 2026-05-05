@@ -74,7 +74,7 @@ export class BootstrapManager {
       }
     }
 
-    console.log(
+    console.info(
       `BootstrapManager: bootstrapped ${sorted.length} entr` +
         (sorted.length === 1 ? 'y' : 'ies')
     );

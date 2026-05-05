@@ -69,7 +69,7 @@ export class ConnectionManager {
 
     this.interactivesBySocketId.set(socketId, interactive);
 
-    console.log(
+    console.info(
       `ConnectionManager: Created Interactive for socket ${socketId}, user ${user._id}`
     );
 
@@ -98,7 +98,7 @@ export class ConnectionManager {
     // Remove from map
     this.interactivesBySocketId.delete(socketId);
 
-    console.log(`ConnectionManager: Removed Interactive for socket ${socketId}`);
+    console.info(`ConnectionManager: Removed Interactive for socket ${socketId}`);
 
     return true;
   }
@@ -163,6 +163,6 @@ export class ConnectionManager {
 
     this.interactivesBySocketId.clear();
 
-    console.log('ConnectionManager: Cleared all connections');
+    console.info('ConnectionManager: Cleared all connections');
   }
 }

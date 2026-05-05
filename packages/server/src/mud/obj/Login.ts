@@ -67,7 +67,7 @@ export class Login extends LoginBase {
     const avatar = avatars[0]!;
     ConnectionApi.transfer(interactive, avatar);
 
-    console.log(`Login: User connected - ${avatar.fullName}`);
+    console.info(`Login: User connected - ${avatar.fullName}`);
 
     const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
     const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
@@ -75,7 +75,7 @@ export class Login extends LoginBase {
     // "vanishing" from somewhere or "appearing out of thin air"
     // before the player has even seen the room.
     avatar.teleport(startingRoom, { silent: true });
-    console.log(
+    console.info(
       `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
     );
 

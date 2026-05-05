@@ -36,7 +36,7 @@
  * class TraceShadow extends Shadow {
  *   @Shadowing
  *   addXp(amount: number) {
- *     console.log(`addXp(${amount})`);
+ *     console.debug(`addXp(${amount})`);
  *     return this.callDown(amount);
  *   }
  * }

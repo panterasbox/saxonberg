@@ -38,7 +38,7 @@ export class AuthRoutes {
       }),
       (req: Request, res: Response) => {
         // Successful authentication
-        console.log('AuthRoutes: Google OAuth callback success');
+        console.info('AuthRoutes: Google OAuth callback success');
 
         // Redirect to client with success flag
         res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
@@ -83,6 +83,6 @@ export class AuthRoutes {
       });
     });
 
-    console.log('AuthRoutes: Routes configured');
+    console.info('AuthRoutes: Routes configured');
   }
 }

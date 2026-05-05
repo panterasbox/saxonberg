@@ -107,7 +107,7 @@ export class Backend implements IBackend {
     // Store WebSocket connection
     this.socketsBySocketId.set(socketId, ws);
 
-    console.log(`Backend: WebSocket connected - socketId=${socketId}, userId=${userId}`);
+    console.info(`Backend: WebSocket connected - socketId=${socketId}, userId=${userId}`);
 
     // Setup WebSocket event handlers
     ws.on('message', (data: Buffer) => {
@@ -170,7 +170,7 @@ export class Backend implements IBackend {
    * @param socketId - Socket ID
    */
   private handleWebSocketClose(socketId: string): void {
-    console.log(`Backend: WebSocket closed - socketId=${socketId}`);
+    console.info(`Backend: WebSocket closed - socketId=${socketId}`);
 
     // Remove from registry
     this.socketsBySocketId.delete(socketId);

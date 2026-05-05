@@ -70,7 +70,7 @@ export class Application {
 
   public initialize(backend: IBackend): void {
     this.backend = backend;
-    console.log('Application: Initialized with Backend');
+    console.info('Application: Initialized with Backend');
   }
 
   /**
@@ -98,7 +98,7 @@ export class Application {
     }
 
     try {
-      console.log(`Application: User connecting - userId=${userId}, socketId=${socketId}`);
+      console.info(`Application: User connecting - userId=${userId}, socketId=${socketId}`);
 
       const user = await User.findById(userId);
       if (!user) {
@@ -129,12 +129,12 @@ export class Application {
   }
 
   public handleUserDisconnect(socketId: string): void {
-    console.log(`Application: User disconnecting - socketId=${socketId}`);
+    console.info(`Application: User disconnecting - socketId=${socketId}`);
 
     const removed = ConnectionManager.get().removeInteractive(socketId);
 
     if (removed) {
-      console.log(`Application: User disconnected successfully`);
+      console.info(`Application: User disconnected successfully`);
     } else {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
     }
@@ -296,7 +296,7 @@ export class Application {
         ...fields,
         createdAt: new Date(),
       });
-      console.log(`Application: Created new GoogleProfile ${id}`);
+      console.info(`Application: Created new GoogleProfile ${id}`);
       return id;
     }
 
@@ -306,7 +306,7 @@ export class Application {
       _id: id,
       createdAt: existing[0].createdAt,
     });
-    console.log(`Application: Updated GoogleProfile ${id}`);
+    console.debug(`Application: Updated GoogleProfile ${id}`);
     return id;
   }
 
@@ -318,14 +318,14 @@ export class Application {
 
     if (existing.length > 0) {
       const user = existing[0]!;
-      console.log(`Application: Found existing User ${user._id}`);
+      console.debug(`Application: Found existing User ${user._id}`);
       return user._id!;
     }
 
     const user = await StuffApi.create(() => new User());
     user.googleProfileId = googleProfileId;
     await user.save();
-    console.log(`Application: Created new User ${user._id}`);
+    console.info(`Application: Created new User ${user._id}`);
 
     const playerId = await this.createDefaultAvatarTemplate(
       profile.name?.givenName || 'Unnamed',
@@ -375,7 +375,7 @@ export class Application {
       data,
       seed.hydratorClass
     );
-    console.log(`Application: Created avatar template at ${path}`);
+    console.info(`Application: Created avatar template at ${path}`);
     return playerId;
   }
 }

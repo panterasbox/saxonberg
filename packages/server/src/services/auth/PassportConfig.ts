@@ -73,6 +73,6 @@ export class PassportConfig {
       )
     );
 
-    console.log('PassportConfig: Configured Google OAuth2 strategy');
+    console.info('PassportConfig: Configured Google OAuth2 strategy');
   }
 }

@@ -57,13 +57,13 @@ class WebSocketClient {
       return;
     }
 
-    console.log(`WebSocketClient: Connecting to ${url}...`);
+    console.info(`WebSocketClient: Connecting to ${url}...`);
 
     try {
       this.ws = new WebSocket(url);
 
       this.ws.onopen = () => {
-        console.log('WebSocketClient: Connected');
+        console.info('WebSocketClient: Connected');
         this.reconnectAttempts = 0;
       };
 
@@ -72,7 +72,7 @@ class WebSocketClient {
       };
 
       this.ws.onclose = () => {
-        console.log('WebSocketClient: Connection closed');
+        console.info('WebSocketClient: Connection closed');
         this.ws = null;
 
         useStore.getState().setDisconnected();
@@ -146,7 +146,7 @@ class WebSocketClient {
   private handleMessage(data: string): void {
     try {
       const frame: MessageFrame = JSON.parse(data);
-      console.log(
+      console.debug(
         `WebSocketClient: Received frame topic='${frame.topic}'`
       );
 
@@ -175,7 +175,7 @@ class WebSocketClient {
   private handleConnectionEstablished(
     payload: ConnectionEstablishedPayload
   ): void {
-    console.log('WebSocketClient: Connection established:', payload);
+    console.info('WebSocketClient: Connection established:', payload);
     useStore.getState().setConnected(payload);
   }
 
@@ -188,7 +188,7 @@ class WebSocketClient {
       return;
     }
     this.reconnectAttempts++;
-    console.log(
+    console.warn(
       `WebSocketClient: Reconnecting in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
     );
     setTimeout(() => {

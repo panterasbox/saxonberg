@@ -103,7 +103,7 @@ export class Server {
     // Setup authentication routes
     AuthRoutes.setup(this.app);
 
-    console.log('Server: Middleware configured');
+    console.info('Server: Middleware configured');
 
     // Store session middleware for WebSocket upgrade
     (this.app as any).sessionMiddleware = sessionMiddleware;
@@ -135,7 +135,7 @@ export class Server {
       });
     });
 
-    console.log('Server: Routes configured');
+    console.info('Server: Routes configured');
   }
 
   /**
@@ -149,15 +149,15 @@ export class Server {
 
       // Create HTTP server
       this.httpServer = this.app.listen(this.port, () => {
-        console.log(`Server: HTTP server listening on port ${this.port}`);
-        console.log(`Server: http://localhost:${this.port}`);
+        console.info(`Server: HTTP server listening on port ${this.port}`);
+        console.info(`Server: http://localhost:${this.port}`);
       });
 
       // Initialize WebSocket server
       const sessionMiddleware = (this.app as any).sessionMiddleware;
       this.webSocketService.initialize(this.httpServer, sessionMiddleware);
 
-      console.log('Server: All services started successfully');
+      console.info('Server: All services started successfully');
     } catch (error) {
       console.error('Server: Failed to start:', error);
       throw error;
@@ -168,7 +168,7 @@ export class Server {
    * Stop the server gracefully.
    */
   public async stop(): Promise<void> {
-    console.log('Server: Shutting down gracefully...');
+    console.info('Server: Shutting down gracefully...');
 
     try {
       // Close WebSocket connections
@@ -185,7 +185,7 @@ export class Server {
         });
       }
 
-      console.log('Server: Shutdown complete');
+      console.info('Server: Shutdown complete');
     } catch (error) {
       console.error('Server: Error during shutdown:', error);
       throw error;
@@ -198,14 +198,14 @@ export class Server {
   public setupShutdownHandlers(): void {
     // Handle SIGTERM (e.g., from Kubernetes, Docker)
     process.on('SIGTERM', async () => {
-      console.log('Server: SIGTERM received');
+      console.info('Server: SIGTERM received');
       await this.stop();
       process.exit(0);
     });
 
     // Handle SIGINT (Ctrl+C)
     process.on('SIGINT', async () => {
-      console.log('Server: SIGINT received');
+      console.info('Server: SIGINT received');
       await this.stop();
       process.exit(0);
     });
@@ -222,7 +222,7 @@ export class Server {
       process.exit(1);
     });
 
-    console.log('Server: Shutdown handlers configured');
+    console.info('Server: Shutdown handlers configured');
   }
 
   /**

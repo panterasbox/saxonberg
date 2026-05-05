@@ -35,9 +35,9 @@ import { Server } from './services/Server';
  */
 async function main() {
   try {
-    console.log('='.repeat(60));
-    console.log('Saxonberg 2.0 Server - Starting...');
-    console.log('='.repeat(60));
+    console.info('='.repeat(60));
+    console.info('Saxonberg 2.0 Server - Starting...');
+    console.info('='.repeat(60));
 
     // Validate required environment variables
     const requiredEnvVars = [
@@ -63,11 +63,11 @@ async function main() {
     const mongoUri = process.env.MONGODB_URI!;
     const dbName = process.env.MONGODB_DATABASE || 'saxonberg';
 
-    console.log(`\nConnecting to MongoDB database '${dbName}'...`);
+    console.info(`\nConnecting to MongoDB database '${dbName}'...`);
 
     await PersistenceManager.get().connect(mongoUri, dbName);
 
-    console.log('MongoDB connection successful\n');
+    console.info('MongoDB connection successful\n');
 
     // 1a. Seed templates from disk into the `domain` collection
     //     (idempotent — existing docs are left alone). Runs FIRST
@@ -97,13 +97,13 @@ async function main() {
     // Start server
     await server.start();
 
-    console.log('\n' + '='.repeat(60));
-    console.log('Saxonberg 2.0 Server - Ready');
-    console.log('='.repeat(60));
-    console.log(`\nServer URL: http://localhost:${port}`);
-    console.log(`Client URL: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log('\n' + '='.repeat(60));
+    console.info('\n' + '='.repeat(60));
+    console.info('Saxonberg 2.0 Server - Ready');
+    console.info('='.repeat(60));
+    console.info(`\nServer URL: http://localhost:${port}`);
+    console.info(`Client URL: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
+    console.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.info('\n' + '='.repeat(60));
   } catch (error) {
     console.error('\n' + '='.repeat(60));
     console.error('FATAL ERROR: Server failed to start');
