@@ -18,7 +18,6 @@
 
 import type { IBackend } from './IBackend';
 import type { PassportGoogleProfile } from '@saxonberg/types';
-import { Pronouns } from '@saxonberg/types';
 
 /**
  * Local minimal type for inbound client → server messages. Kept simple
@@ -38,7 +37,7 @@ import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
-import { PersistentHydrator } from '../mud/lib/persistence/PersistentHydrator';
+import { Template } from '../mud/lib/stuff/Template';
 import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
@@ -339,12 +338,15 @@ export class Application {
   }
 
   /**
-   * Seed a default avatar template for a new user. Self-contained under
-   * the unified state model — no Player/CharacterSheet indirection. Opts
-   * into `PersistentHydrator` so the generic mixin-field copy applies the
-   * persistent fields (name/surname/pronouns) at clone time; runtime-only
-   * fields (`user`, `playerId`) are stamped by Avatar's `postRegister`
-   * from the clone context.
+   * Fork a per-user avatar template from the default-avatar
+   * blueprint at `/avatar/default` (seeded from
+   * `seeds/avatar/default.yaml`). Class, hydratorClass, and starting
+   * data come from the blueprint; the user's name/surname overlay
+   * on top. Runtime-only fields (`user`, `playerId`) are stamped
+   * later by Avatar's `postRegister` from the clone context.
+   *
+   * Lower-level developers tune the starting shape every new player
+   * gets by editing the seed YAML — no TS change required.
    *
    * @returns the generated playerId (template path: `/avatar/<playerId>`)
    */
@@ -352,18 +354,27 @@ export class Application {
     name: string,
     surname?: string
   ): Promise<string> {
+    const blueprint = await Template.findByPath('/avatar/default');
+    if (!blueprint) {
+      throw new Error(
+        "Application.createDefaultAvatarTemplate: no blueprint at " +
+          "'/avatar/default'. Did SeederManager run?"
+      );
+    }
+
     const playerId = nanoid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
+      ...blueprint.data,
       name,
-      pronouns: Pronouns.They,
     };
     if (surname) data.surname = surname;
+
     await TemplateApi.saveTemplate(
       path,
-      '/obj/Avatar',
+      blueprint.class,
       data,
-      PersistentHydrator.templatePath
+      blueprint.hydratorClass
     );
     console.log(`Application: Created avatar template at ${path}`);
     return playerId;

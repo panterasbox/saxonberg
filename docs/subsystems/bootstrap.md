@@ -109,6 +109,28 @@ A future migration story (versioned seeds, automatic schema upgrades)
 is acknowledged as a real future need but explicitly NOT part of the
 initial seeder design.
 
+### Blueprint seeds (forked at runtime)
+
+Most seeds are end-state singletons — `seeds/obj/EventRegistry.yaml`
+ships at `/obj/EventRegistry`, and that's it. Some seeds are
+*blueprints*: a template that consumer code reads, copies, and
+customises per-instance. The default-avatar flow is the worked
+example:
+
+- `seeds/avatar/default.yaml` lands at `/avatar/default` —
+  shape every new player starts from (class, hydrator,
+  default `pronouns`, etc.).
+- `Application.createDefaultAvatarTemplate(name, surname)` (called
+  on first login of a new user) reads the blueprint, overlays
+  `name` / `surname`, and saves the result at
+  `/avatar/<playerId>`. The user gets a per-user template
+  forked from the engine-shipped defaults.
+
+The blueprint pattern isn't a new seeder feature — it's just
+"seed lands at a known path, somebody else reads it." Lower-level
+developers edit `seeds/avatar/default.yaml` to tune the starting
+shape every new player gets, no TS change required.
+
 ---
 
 ## Bootstrap

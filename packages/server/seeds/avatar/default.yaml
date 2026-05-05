@@ -1,0 +1,12 @@
+# Default avatar blueprint. Forked at signup time by
+# Application.createDefaultAvatarTemplate, which copies this
+# template's class/hydratorClass/data, overlays the user's name and
+# surname, and saves the result at /avatar/<playerId>.
+#
+# Edit freely to change the starting shape every new player gets.
+# Existing players are unaffected — their per-user templates were
+# forked at signup and carry their own copy of these defaults.
+class: /obj/Avatar
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  pronouns: they
