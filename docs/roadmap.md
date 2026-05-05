@@ -6,7 +6,7 @@ Standard Model + mixins, locations, command framework, navigation /
 exits / doors / Cartesian and Spherical zones, the unified state model
 (Shadow, PostRegistration), the call-security framework (interceptor
 pipeline, decorators, policies), the messaging subsystem (MML, scene
-composer, Phrasebook), and the say/tell controllers. See
+composer, movement-message settings), and the say/tell controllers. See
 [architecture.md](./architecture.md) for the layout and
 [subsystems/](./subsystems/) for individual subsystem references.
 
@@ -105,8 +105,8 @@ Container / Exitable / HasInteractive) dispatched from
 
 ### Utility APIs
 
-- **What**: `GrammarApi` (pronoun conjugation, verb agreement — partially
-  in `Phrasebook.ts` already), `StringApi`, `TimeApi`, `ArrayApi`,
+- **What**: `GrammarApi` (pronoun conjugation, verb agreement),
+  `StringApi`, `TimeApi`, `ArrayApi`,
   `ObjectApi`, `CallstackApi`, `FileApi`, `AssertApi`. `MudlogApi` exists
   but is incomplete.
 - **Why**: Clean utility surface so game/mod code stops re-implementing

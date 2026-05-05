@@ -420,7 +420,7 @@ say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
   - [state-model.md](./subsystems/state-model.md) — what gets
     persisted, Avatar self-contained, Persistable in the Idea hierarchy
   - [messaging.md](./subsystems/messaging.md) — MML, Scene composer,
-    sensor routing, Phrasebook
+    sensor routing, movement-message defaults
   - [call-security.md](./subsystems/call-security.md) — proxy
     interception, decorators, policies, shadows
   - [mixins.md](./subsystems/mixins.md) — class-factory mixins,
