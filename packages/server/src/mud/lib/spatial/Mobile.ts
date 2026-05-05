@@ -33,22 +33,33 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
-import type { Containable } from './Containable';
+import type { Containable, VetoResult } from './Containable';
+import type { Exitable } from './Exitable';
 import type { Exit } from './Exit';
 import { MixinApi } from '../../api/mixin';
-import { ContainmentApi } from '../../api/containment';
+import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { Phrasebook } from '../Phrasebook';
 
 /**
  * Public shape provided by MobileMixin.
+ *
+ * Witness hooks (optional methods) — fire from `Mobile.traverse`
+ * around the inner `ContainmentApi.move`. The Containable/Container
+ * hooks fire from inside that move; the traversal hooks here add the
+ * exit-aware layer on top.
  */
 export interface Mobile {
   traverse(exit: Exit): void;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
+
+  /** Optional pre-traversal veto on the mover. */
+  canTraverse?(via: Exit): VetoResult;
+  /** Fired after the mover has crossed `via`. */
+  onTraversed?(via: Exit): void;
 }
 
 /**
@@ -104,17 +115,54 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     };
 
     /**
-     * Traverse an `Exit`. Announce departure at source (mover still
-     * there), move, announce arrival at destination (mover now there).
+     * Traverse an `Exit`. Two-layer hook dispatch:
      *
-     * The contract from Phase 7 stands: the caller has already
-     * validated traversal via `exit.canTraverse(this)` — `traverse()`
-     * does not re-check.
+     *   - Traversal layer (this method): `canTraverse` on the mover,
+     *     `canExit` on the source room, `canEnter` on the
+     *     destination room — all fire before announcement and the
+     *     containment move. After the move: `onTraversed` (mover),
+     *     `onExited` (source), `onEntered` (destination).
+     *   - Containment layer: fires from inside `ContainmentApi.move`.
+     *     `canMove` / `onMoved` on the item; `canRemove*` /
+     *     `canAdd*` / `on*` on the source/destination.
+     *
+     * The Phase 7 contract stands: the caller has already validated
+     * traversal via `exit.canTraverse(this)` — that's the door's
+     * "is this passable?" gate. The new Witness hooks layer
+     * additional pre-move vetos, not a replacement.
      */
     traverse(exit: Exit): void {
+      const mover = this as unknown as Stuff;
+      const source = exit.source as Stuff & Container & Partial<Exitable>;
+      const destination = exit.destination as Stuff & Container & Partial<Exitable>;
+
+      // Pre-move traversal vetoes.
+      assertVeto(callTraverseHook(this, 'canTraverse', [exit]), 'canTraverse');
+      if (MixinApi.isExitable(source)) {
+        assertVeto(
+          callTraverseHook(source, 'canExit', [mover, exit]),
+          'canExit'
+        );
+      }
+      if (MixinApi.isExitable(destination)) {
+        assertVeto(
+          callTraverseHook(destination, 'canEnter', [mover, exit]),
+          'canEnter'
+        );
+      }
+
       this.announceDeparture(exit.source, exit);
       ContainmentApi.move(this as unknown as Stuff & Containable, exit.destination);
       this.announceArrival(exit.destination, exit);
+
+      // Post-move traversal notifications.
+      if (MixinApi.isExitable(source)) {
+        callTraverseHook(source, 'onExited', [mover, exit]);
+      }
+      if (MixinApi.isExitable(destination)) {
+        callTraverseHook(destination, 'onEntered', [mover, exit]);
+      }
+      callTraverseHook(this, 'onTraversed', [exit]);
     }
 
     /**
@@ -313,4 +361,28 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       return Phrasebook.movement.teleportInPeers(this as unknown as Stuff);
     }
   };
+}
+
+/**
+ * Optional-method dispatcher — uses `typeof === 'function'` so a
+ * shadow defining the hook participates without a `MixinApi.hasMixin`
+ * pre-check on the host. Mirrors the `MovementHookProvider` precedent
+ * already in this file.
+ */
+function callTraverseHook<T>(
+  obj: object,
+  name: string,
+  args: unknown[]
+): T | undefined {
+  const fn = (obj as Record<string, unknown>)[name];
+  if (typeof fn !== 'function') return undefined;
+  return (fn as (...a: unknown[]) => T).apply(obj, args);
+}
+
+function assertVeto(result: VetoResult | undefined, hookName: string): void {
+  if (!result || result.ok) return;
+  throw new ContainmentError(
+    `${hookName} veto: ${result.reason}`,
+    { cause: { hookVeto: result, hookName } }
+  );
 }

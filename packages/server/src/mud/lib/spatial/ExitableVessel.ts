@@ -67,12 +67,18 @@ export class ExitableVessel extends ExitableVesselBase {
   }
 
   /**
-   * Override `setEnvironment` to invalidate the `'out'` exit cache whenever
-   * the vessel moves. Called from `ContainableMixin.setEnvironment` through
-   * `ContainmentApi.move`.
+   * Invalidate the synthesized exit caches whenever the vessel moves.
+   * Migrated from a `setEnvironment` override to the new `onMoved`
+   * Witness hook: `setEnvironment` is now `@Final`, no longer
+   * overridable; `ContainmentApi.move` fires `onMoved(from, to)` once
+   * per transition (with either side `null` for first-placement /
+   * final-detach), which is exactly the right shape for cache
+   * invalidation.
    */
-  public override setEnvironment(container: (Stuff & Container) | null): void {
-    super.setEnvironment(container);
+  public onMoved(
+    _from: (Stuff & Container) | null,
+    _to: (Stuff & Container) | null
+  ): void {
     this.outCache = null;
     this.outCacheEnvId = null;
     this.entryCache = null;

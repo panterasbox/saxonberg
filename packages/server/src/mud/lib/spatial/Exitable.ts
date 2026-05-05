@@ -18,8 +18,9 @@
 import type { MixinConstructor } from '../mixin-types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { Containable, VetoResult } from './Containable';
 import type { Door } from './Door';
-import type { MovementBodies } from './Mobile';
+import type { Mobile, MovementBodies } from './Mobile';
 import { Exit } from './Exit';
 import { CartesianZone } from './CartesianZone';
 import { NavigationApi } from '../../api/navigation';
@@ -63,6 +64,15 @@ export interface Exitable {
    * falls back to MobileMixin's default.
    */
   getArrivalMessage?(mover: Stuff, exit: Exit): MovementBodies;
+
+  /** Optional pre-traversal veto: "may this mover ENTER via via?" */
+  canEnter?(mover: Stuff & Mobile & Containable, via: Exit): VetoResult;
+  /** Optional pre-traversal veto: "may this mover EXIT via via?" */
+  canExit?(mover: Stuff & Mobile & Containable, via: Exit): VetoResult;
+  /** Fired after the mover entered through `via`. */
+  onEntered?(mover: Stuff & Mobile & Containable, via: Exit): void;
+  /** Fired after the mover exited through `via`. */
+  onExited?(mover: Stuff & Mobile & Containable, via: Exit): void;
 }
 
 /**

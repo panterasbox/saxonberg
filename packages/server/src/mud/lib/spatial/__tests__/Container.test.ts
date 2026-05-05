@@ -1,28 +1,34 @@
 /**
- * ContainerMixin tests
+ * ContainerMixin tests — exercises the Container surface through
+ * `ContainmentApi.move` (the public path). Direct calls to
+ * `addContainable` / `removeContainable` are blocked by the
+ * `@CallSecurity` lockdown introduced in Phase 5; only
+ * `Containable.setEnvironment` (itself reachable only from
+ * ContainmentApi) may invoke them.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';
+import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-// Concrete test item class — needs ContainableMixin to live in a Container
+// Concrete test item class — needs ContainableMixin to live in a Container.
 class ConcreteStuff extends ContainableMixin(Stuff) {
   constructor() {
     super();
   }
 }
 
-// Test class that uses ContainerMixin
+// Test class that uses ContainerMixin.
 class TestContainer extends ContainerMixin(Stuff) {
   constructor() {
     super();
   }
 }
 
-describe('ContainerMixin', () => {
+describe('ContainerMixin (via ContainmentApi.move)', () => {
   let container: TestContainer;
   let item1: ConcreteStuff;
   let item2: ConcreteStuff;
@@ -36,100 +42,99 @@ describe('ContainerMixin', () => {
   });
 
   describe('initialization', () => {
-    it('should initialize with empty inventory', () => {
+    it('starts with an empty inventory', () => {
       expect(container.inventory.size).toBe(0);
-      expect(container.getInventoryContents()).toEqual([]);
+      expect(container.getContents()).toEqual([]);
     });
   });
 
-  describe('addToInventory', () => {
-    it('should add item to inventory', () => {
-      container.addToInventory(item1);
+  describe('add via ContainmentApi.move', () => {
+    it('places an item in the container', () => {
+      ContainmentApi.move(item1, container);
       expect(container.inventory.size).toBe(1);
-      expect(container.hasInInventory(item1)).toBe(true);
+      expect(container.hasContainable(item1)).toBe(true);
     });
 
-    it('should add multiple items', () => {
-      container.addToInventory(item1);
-      container.addToInventory(item2);
-      container.addToInventory(item3);
+    it('places multiple items', () => {
+      ContainmentApi.move(item1, container);
+      ContainmentApi.move(item2, container);
+      ContainmentApi.move(item3, container);
       expect(container.inventory.size).toBe(3);
     });
 
-    it('should not add duplicate items (Set behavior)', () => {
-      container.addToInventory(item1);
-      container.addToInventory(item1);
+    it('moving an item already in the container is a no-op', () => {
+      ContainmentApi.move(item1, container);
+      ContainmentApi.move(item1, container);
       expect(container.inventory.size).toBe(1);
     });
   });
 
-  describe('removeFromInventory', () => {
+  describe('remove via ContainmentApi.move(item, null)', () => {
     beforeEach(() => {
-      container.addToInventory(item1);
-      container.addToInventory(item2);
+      ContainmentApi.move(item1, container);
+      ContainmentApi.move(item2, container);
     });
 
-    it('should remove item from inventory', () => {
-      const result = container.removeFromInventory(item1);
-      expect(result).toBe(true);
+    it('detaches an item back to no-environment', () => {
+      ContainmentApi.move(item1, null);
+      expect(container.hasContainable(item1)).toBe(false);
+      expect(item1.getEnvironment()).toBeNull();
       expect(container.inventory.size).toBe(1);
-      expect(container.hasInInventory(item1)).toBe(false);
     });
 
-    it('should return false when removing non-existent item', () => {
-      const result = container.removeFromInventory(item3);
-      expect(result).toBe(false);
+    it('detaching an item that was never placed is a no-op', () => {
+      ContainmentApi.move(item3, null);
       expect(container.inventory.size).toBe(2);
     });
 
-    it('should handle removing all items', () => {
-      container.removeFromInventory(item1);
-      container.removeFromInventory(item2);
+    it('detaching every item leaves an empty container', () => {
+      ContainmentApi.move(item1, null);
+      ContainmentApi.move(item2, null);
       expect(container.inventory.size).toBe(0);
-      expect(container.getInventoryContents()).toEqual([]);
+      expect(container.getContents()).toEqual([]);
     });
   });
 
-  describe('hasInInventory', () => {
+  describe('hasContainable', () => {
     beforeEach(() => {
-      container.addToInventory(item1);
-      container.addToInventory(item2);
+      ContainmentApi.move(item1, container);
+      ContainmentApi.move(item2, container);
     });
 
-    it('should return true for items in inventory', () => {
-      expect(container.hasInInventory(item1)).toBe(true);
-      expect(container.hasInInventory(item2)).toBe(true);
+    it('returns true for items currently inside', () => {
+      expect(container.hasContainable(item1)).toBe(true);
+      expect(container.hasContainable(item2)).toBe(true);
     });
 
-    it('should return false for items not in inventory', () => {
-      expect(container.hasInInventory(item3)).toBe(false);
+    it('returns false for items never placed', () => {
+      expect(container.hasContainable(item3)).toBe(false);
     });
 
-    it('should return false after item is removed', () => {
-      container.removeFromInventory(item1);
-      expect(container.hasInInventory(item1)).toBe(false);
+    it('returns false after the item is moved out', () => {
+      ContainmentApi.move(item1, null);
+      expect(container.hasContainable(item1)).toBe(false);
     });
   });
 
-  describe('getInventoryContents', () => {
-    it('should return empty array for empty inventory', () => {
-      expect(container.getInventoryContents()).toEqual([]);
+  describe('getContents', () => {
+    it('returns an empty array for an empty container', () => {
+      expect(container.getContents()).toEqual([]);
     });
 
-    it('should return all items as array', () => {
-      container.addToInventory(item1);
-      container.addToInventory(item2);
-      const contents = container.getInventoryContents();
+    it('returns every contained item', () => {
+      ContainmentApi.move(item1, container);
+      ContainmentApi.move(item2, container);
+      const contents = container.getContents();
       expect(contents.length).toBe(2);
       expect(contents).toContain(item1);
       expect(contents).toContain(item2);
     });
 
-    it('should return snapshot (not live reference)', () => {
-      container.addToInventory(item1);
-      const contents1 = container.getInventoryContents();
-      container.addToInventory(item2);
-      const contents2 = container.getInventoryContents();
+    it('returns a snapshot, not a live reference', () => {
+      ContainmentApi.move(item1, container);
+      const contents1 = container.getContents();
+      ContainmentApi.move(item2, container);
+      const contents2 = container.getContents();
 
       expect(contents1.length).toBe(1);
       expect(contents2.length).toBe(2);
@@ -137,10 +142,8 @@ describe('ContainerMixin', () => {
   });
 
   describe('persistence', () => {
-    it('should NOT have persistentFields (complex type)', () => {
-      // ContainerMixin does not declare persistentFields
-      // because inventory is a complex type requiring custom handlers
-      const fields = (TestContainer as any).persistentFields;
+    it('does NOT declare persistentFields (complex type)', () => {
+      const fields = (TestContainer as { persistentFields?: unknown }).persistentFields;
       expect(fields).toBeUndefined();
     });
   });

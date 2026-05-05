@@ -25,9 +25,16 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 // A Stuff host carrying NamedMixin (name/surname/fullName).
 class NamedHost extends NamedMixin(Stuff) {}
 
-// Plain shadow that re-implements NamedMixin's surface; the mixin's
-// defaults run against the shadow's own state.
-class RenameShadow extends NamedMixin(Shadow) {}
+// Shadow that composes NamedMixin AND explicitly overrides
+// `fullName`. Under the "own-properties only" rule, only methods the
+// shadow class declares directly intercept — composition alone no
+// longer auto-enrols. The `fullName` getter override is what gives
+// this shadow a non-empty intercept set.
+class RenameShadow extends NamedMixin(Shadow) {
+  override get fullName(): string {
+    return super.fullName;
+  }
+}
 
 // Shadow that overrides the `fullName` getter (NamedMixin's only
 // real method on the prototype). `name`/`surname` are field
@@ -90,22 +97,23 @@ describe('ShadowApi.attach / detach', () => {
     expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
   });
 
-  it('attaches a mixin-derived shadow and exposes interceptedMethods', () => {
+  it('attaches a shadow with own-method overrides and exposes interceptedMethods', () => {
     const host = makeStuff(() => new NamedHost());
     const sh = makeStuff(() => new RenameShadow());
     ShadowApi.attach(host, sh);
     expect(sh.host).toBe(host);
-    // NamedMixin's prototype-layer surface: the `fullName` getter
-    // and the alternate-name accessors. Field initializers
-    // (`name`/`surname`/`honorific`/`suffix`/`alternateNames`) are
-    // own properties on the instance, not the prototype, so the
-    // intercept-walk doesn't pick them up.
-    expect([...sh.interceptedMethods].sort()).toEqual([
-      'addAlternateName',
-      'fullName',
-      'getAlternateNames',
-      'removeAlternateName',
-    ]);
+    // Only methods declared in the shadow's own class body intercept.
+    // RenameShadow declares one: the `fullName` getter override.
+    // The other Named-mixin methods come in via composition and are
+    // part of the type contract, not the intercept set.
+    expect([...sh.interceptedMethods]).toEqual(['fullName']);
+  });
+
+  it('shadow composing a mixin without own overrides has empty intercept set', () => {
+    class BareMixinShadow extends NamedMixin(Shadow) {}
+    const host = makeStuff(() => new NamedHost());
+    const sh = makeStuff(() => new BareMixinShadow());
+    expect(() => ShadowApi.attach(host, sh)).toThrow(ShadowError);
   });
 
   it('rejects re-attach without intervening detach', () => {

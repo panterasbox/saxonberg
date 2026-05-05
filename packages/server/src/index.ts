@@ -26,6 +26,8 @@ if (!process.env.VITEST) {
 
 import 'dotenv/config';
 import { PersistenceManager } from './backend/PersistenceManager';
+import { SeederManager } from './backend/SeederManager';
+import { BootstrapManager } from './backend/BootstrapManager';
 import { Server } from './services/Server';
 
 /**
@@ -69,6 +71,13 @@ async function main() {
 
     // 1a. Load PM hooks (folder/leaf invariant on Collections.Domain, etc.)
     await PersistenceManager.get().loadHooks();
+
+    // 1b. Seed templates from disk into the `domain` collection
+    //     (idempotent — existing docs are left alone), then bootstrap
+    //     runtime instances from the engine manifest. Both run before
+    //     the HTTP/WS listeners come up; failures here prevent boot.
+    await SeederManager.run();
+    await BootstrapManager.run();
 
     // 2. Create and start Server
     const port = parseInt(process.env.PORT || '2010', 10);

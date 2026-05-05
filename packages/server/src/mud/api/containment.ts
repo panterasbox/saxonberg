@@ -1,28 +1,32 @@
 /**
- * ContainmentApi - Manages containment relationships and object movement
+ * ContainmentApi — public surface for object movement and the policy
+ * layer above the `Containable.setEnvironment` chokepoint.
  *
- * Responsibilities:
- * - move() - Mid-level function for moving ANY containable object between containers
- * - Hook execution for movement events (future)
- * - Proper cleanup of containment relationships
+ * Layering (Phase 5):
  *
- * This is the correct abstraction layer for object movement. Higher-level traverse()
- * and teleport() live in MobileMixin for creatures/vehicles. Lower-level
- * setEnvironment()/addToInventory()
- * should ONLY be called from this API.
+ *   - `Containable.addContainable` / `removeContainable` are
+ *     `@Final @Unshadowable` state-mutation primitives reachable
+ *     ONLY from `Containable.setEnvironment`.
+ *   - `Containable.setEnvironment` is the atomic chokepoint —
+ *     reachable ONLY from this Api. It orchestrates the three
+ *     cross-object updates (remove from old, add to new, set field)
+ *     in one call.
+ *   - `ContainmentApi.move` is the public surface. It runs invariants
+ *     and Witness `can*` vetoes, calls `setEnvironment` once, then
+ *     fires the post-move `on*` hooks. NO direct
+ *     `removeContainable` / `addContainable` calls happen here —
+ *     `setEnvironment` does the state mutation.
  *
- * Usage:
- * ```typescript
- * // Move any object to a container
- * // Automatically removes from current location (determined from item's environment)
- * ContainmentApi.move(sword, avatar);
- * ContainmentApi.move(player, newRoom);
- * ```
+ * Detach: `ContainmentApi.move(item, null)`. A direct
+ * `setEnvironment(null)` is rejected by the policy.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
-import type { Containable } from '../lib/spatial/Containable';
+import type {
+  Containable,
+  VetoResult,
+} from '../lib/spatial/Containable';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -37,74 +41,83 @@ type ContainableStuff = Stuff & Containable;
  * `move()`. `ContainmentError` exists to catch seeder/test/scripted bugs.
  */
 export class ContainmentError extends Error {
-  constructor(message: string) {
+  public readonly cause?: unknown;
+
+  constructor(message: string, opts?: { cause?: unknown }) {
     super(message);
     this.name = 'ContainmentError';
+    if (opts?.cause !== undefined) this.cause = opts.cause;
   }
 }
 
 /**
- * Static API for containment and movement operations
+ * Static API for containment and movement operations.
  */
 export class ContainmentApi {
   /**
-   * Move an object from one container to another.
+   * Move an item to `to`, or detach it (when `to === null`).
    *
-   * This is the ONLY correct way to move objects between containers.
-   * Handles all containment logic:
-   * - Removes from current container (determined from item's environment)
-   * - Adds to destination container
-   * - Updates item's environment reference
-   * - Executes movement hooks (future: beforeMove, afterMove)
+   * Pipeline:
+   *   1. Pre-flight invariants (Exitable layering, zone crossing).
+   *   2. `can*` Witness hooks — short-circuit on the first veto.
+   *   3. `item.setEnvironment(to)` — atomic state mutation.
+   *   4. `on*` Witness hooks (post-mutation, never veto).
+   *   5. Runtime-fallback zone stamp.
    *
-   * Invariants enforced (Phase 7):
-   *   1. Exitables may only be contained by Exitables (closes the "pick up
-   *      a chest with someone inside" exploit — Avatars aren't Exitable).
-   *   2. Exitables cannot cross zones via containment — the only legitimate
-   *      cross-zone traversal is an explicit inter-zone Exit.
-   *   3. Runtime-fallback zone stamp — `item.zone` is set to `to.zone` on
-   *      first placement when both sides agree (harmless when already
-   *      stamped at clone-time).
-   *
-   * Lower-level methods (setEnvironment, addToInventory) should NEVER
-   * be called directly - always use this method.
-   *
-   * @throws ContainmentError on invariant violations.
+   * @throws ContainmentError on invariant violations or hook vetoes.
    */
-  public static move(item: ContainableStuff, to: ContainerStuff): void {
-    // PRE-FLIGHT (1): Exitables may only land in Exitables.
-    if (MixinApi.isExitable(item) && !MixinApi.isExitable(to)) {
-      throw new ContainmentError(
-        'Exitables can only be placed inside other exitables.'
-      );
+  public static move(
+    item: ContainableStuff,
+    to: ContainerStuff | null
+  ): void {
+    if (to !== null) {
+      // PRE-FLIGHT (1): Exitables may only land in Exitables.
+      if (MixinApi.isExitable(item) && !MixinApi.isExitable(to)) {
+        throw new ContainmentError(
+          'Exitables can only be placed inside other exitables.'
+        );
+      }
+      // PRE-FLIGHT (2): Exitables cannot cross zones via containment.
+      if (MixinApi.isExitable(item) && item.zone && item.zone !== to.zone) {
+        throw new ContainmentError(
+          'Cannot move an exitable into a different zone.'
+        );
+      }
     }
-
-    // PRE-FLIGHT (2): Exitables cannot cross zones via containment. An
-    // Exitable whose zone has not yet been stamped (null) is allowed — first
-    // placement will stamp it below.
-    if (MixinApi.isExitable(item) && item.zone && item.zone !== to.zone) {
-      throw new ContainmentError(
-        'Cannot move an exitable into a different zone.'
-      );
-    }
-
-    // Future: Execute beforeMove hooks
 
     const from = item.getEnvironment();
+    if (from === to) return;
+
+    // VETO HOOKS (in declaration-of-care order: item, source, dest).
+    assertVetoOk(callHook(item, 'canMove', [to]), 'canMove');
     if (from) {
-      from.removeFromInventory(item);
+      assertVetoOk(
+        callHook(from, 'canRemoveContainable', [item]),
+        'canRemoveContainable'
+      );
+    }
+    if (to) {
+      assertVetoOk(
+        callHook(to, 'canAddContainable', [item]),
+        'canAddContainable'
+      );
     }
 
-    to.addToInventory(item);
+    // STATE MUTATION through the chokepoint. setEnvironment handles
+    // the three cross-object updates atomically.
     item.setEnvironment(to);
 
-    // POST-WRITE (3): Runtime-fallback zone stamp. Idempotent; applies to
-    // any Stuff, not just Exitables (crafted items, admin spawns, etc.).
-    if (item.zone === null && to.zone !== null) {
+    // POST-WRITE: zone stamp fallback (idempotent, harmless when
+    // already stamped at clone time).
+    if (to && item.zone === null && to.zone !== null) {
       item.zone = to.zone;
     }
 
-    // Future: Execute afterMove hooks
+    // NOTIFICATION HOOKS. Single onMoved per item; per-container
+    // hooks for source and destination separately.
+    if (from) callHook(from, 'onContainableRemoved', [item]);
+    if (to) callHook(to, 'onContainableAdded', [item]);
+    callHook(item, 'onMoved', [from, to]);
   }
 
   /**
@@ -135,5 +148,31 @@ export class ContainmentApi {
   }
 }
 
+/**
+ * Call an optional Witness hook by name. The dispatcher uses
+ * `typeof === 'function'` so the proxy resolves through any shadow
+ * stack naturally — a shadow that defines `onEntered` participates
+ * without needing a `MixinApi.hasMixin` precheck on the host.
+ *
+ * Returns the hook's return value (or `undefined` if no hook present).
+ */
+function callHook<T>(
+  obj: object,
+  hookName: string,
+  args: unknown[]
+): T | undefined {
+  const fn = (obj as Record<string, unknown>)[hookName];
+  if (typeof fn !== 'function') return undefined;
+  return (fn as (...a: unknown[]) => T).apply(obj, args);
+}
+
+function assertVetoOk(result: VetoResult | undefined, hookName: string): void {
+  if (!result) return;
+  if (result.ok) return;
+  throw new ContainmentError(
+    `${hookName} veto: ${result.reason}`,
+    { cause: { hookVeto: result, hookName } }
+  );
+}
 
 SecurityApi.decorateApiClass(ContainmentApi);

@@ -15,6 +15,8 @@ import type { Interactive } from '../obj/Interactive';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { SecurityApi } from './security';
+import { EventApi } from './event';
+import { Events } from './event-types';
 
 /**
  * Static API for connection queries (public interface for mudlib).
@@ -95,9 +97,36 @@ export class ConnectionApi {
   ): void {
     const previous = interactive.holder;
     if (previous === target) return;
-    if (previous) previous.removeInteractive(interactive);
+    const previousLinkdead = previous?.isLinkdead() ?? true;
+    const targetLinkdead = target.isLinkdead();
+
+    if (previous) {
+      previous.removeInteractive(interactive);
+    }
     target.addInteractive(interactive);
     interactive.holder = target;
+
+    // Fire Witness hooks AFTER state mutation. Per-connection
+    // notifications fire for both endpoints; presence transitions
+    // fire only when the count crosses 0.
+    if (previous) {
+      callConnHook(previous, 'onConnectionDetached', []);
+      if (!previousLinkdead && previous.isLinkdead()) {
+        callConnHook(previous, 'onLinkdead', []);
+      }
+    }
+    callConnHook(target, 'onConnectionAttached', [interactive]);
+    if (targetLinkdead && !target.isLinkdead()) {
+      callConnHook(target, 'onLinkRestored', []);
+    }
+
+    // Cross-cutting global event for any observer that doesn't care
+    // about a specific holder. Fires once per attach regardless of
+    // whether the per-holder Witness hook is implemented.
+    EventApi.emit(Events.ConnectionAttached, {
+      interactiveId: interactive.stuffId,
+      holderId: target.stuffId,
+    });
   }
 
   /**
@@ -110,9 +139,21 @@ export class ConnectionApi {
   public static detach(interactive: Interactive): void {
     const previous = interactive.holder;
     if (!previous) return;
+    const wasConnected = !previous.isLinkdead();
     previous.removeInteractive(interactive);
     interactive.holder = null;
+
+    callConnHook(previous, 'onConnectionDetached', []);
+    if (wasConnected && previous.isLinkdead()) {
+      callConnHook(previous, 'onLinkdead', []);
+    }
   }
+}
+
+function callConnHook(obj: object, name: string, args: unknown[]): void {
+  const fn = (obj as Record<string, unknown>)[name];
+  if (typeof fn !== 'function') return;
+  (fn as (...a: unknown[]) => void).apply(obj, args);
 }
 
 

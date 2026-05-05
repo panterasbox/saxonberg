@@ -635,13 +635,24 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Check if property exists and get its options.
+     * Check if property exists AND the caller is allowed to see it.
+     * Returns the prop's options when both are true, `null` otherwise.
+     *
+     * Single answer to "does this prop exist and can I read it?":
+     * the Get access op gates visibility, so a denied caller gets
+     * the same `null` as for a non-existent prop. Lets EventApi.on
+     * disambiguate "no such event / not allowed to subscribe" from
+     * "exists and emitted-but-no-payload-yet" without sentinels.
      */
     checkProp<T extends PropValue>(prop: Property<T>): PropOptions<T> | null {
       const propName = prop.toString();
       const config = this.propOptions[propName];
 
       if (!config) {
+        return null;
+      }
+
+      if (!this.checkAccess(prop, PropOperations.Get, null)) {
         return null;
       }
 

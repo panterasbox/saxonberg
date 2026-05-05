@@ -12,8 +12,8 @@
  *
  * Provides:
  * - inventory: Set<Stuff>
- * - addToInventory(), removeFromInventory(), hasInInventory()
- * - getInventoryContents(), getContents()
+ * - addContainable(), removeContainable(), hasContainable()
+ * - getContents()
  */
 
 import { Stuff } from './Stuff';

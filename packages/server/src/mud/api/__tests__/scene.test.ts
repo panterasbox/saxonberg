@@ -279,7 +279,7 @@ describe('Scene attribution stamping', () => {
   it('stamps commandId + causingCommandId from a Command frame', () => {
     const location = makeStuff(() => new Location());
     const alice = makeStuff(() => new CapSensor());
-    location.addToInventory(alice);
+    ContainmentApi.move(alice, location);
 
     const fakeCtx = {
       commandGiver: alice,
@@ -317,7 +317,7 @@ describe('Scene attribution stamping', () => {
   it('outside any command, neither commandId nor causingCommandId is set', () => {
     const location = makeStuff(() => new Location());
     const alice = makeStuff(() => new CapSensor());
-    location.addToInventory(alice);
+    ContainmentApi.move(alice, location);
 
     MessageApi.scene(alice).topic('x').toSelf(Mml.compose`hi`).send();
     expect(alice.received[0]!.meta.commandId).toBeUndefined();

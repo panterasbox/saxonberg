@@ -20,6 +20,12 @@ import type { Interactive } from '../../obj/Interactive';
 
 /**
  * Public shape provided by HasInteractiveMixin.
+ *
+ * Witness hooks (optional methods) — fire from `ConnectionApi`:
+ *   - `onConnectionAttached(conn)` / `onConnectionDetached()` —
+ *     per-connection events, fire on every transfer/detach.
+ *   - `onLinkdead()` / `onLinkRestored()` — presence transitions,
+ *     fire only when the connection count crosses 0/1.
  */
 export interface HasInteractive {
   /**
@@ -39,6 +45,15 @@ export interface HasInteractive {
 
   /** True iff no Interactives are connected. MUD-style alias for `!isConnected()`. */
   isLinkdead(): boolean;
+
+  /** Per-connection notification fired after attach. */
+  onConnectionAttached?(conn: Interactive): void;
+  /** Per-connection notification fired after detach. */
+  onConnectionDetached?(): void;
+  /** Fired when the connection count drops to zero. */
+  onLinkdead?(): void;
+  /** Fired when the connection count rises from zero to one. */
+  onLinkRestored?(): void;
 }
 
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {

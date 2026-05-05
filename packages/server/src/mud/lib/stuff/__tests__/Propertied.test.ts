@@ -276,6 +276,16 @@ describe('PropertiedMixin', () => {
       expect(options!.transient).toBe(true);
       expect(typeof options!.checkAccess).toBe('function');
     });
+
+    it('returns null when caller is denied Get access', () => {
+      const denyGet: PropAccessCheck<string> = (_p, op) =>
+        op !== PropOperations.Get;
+      obj.initProp(new Property<string>('secret'), {
+        transient: true,
+        checkAccess: denyGet,
+      });
+      expect(obj.checkProp(new Property<string>('secret'))).toBeNull();
+    });
   });
 
   describe('getAllPropNames()', () => {

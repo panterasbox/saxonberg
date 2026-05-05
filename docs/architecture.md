@@ -224,7 +224,7 @@ For narrowing-and-calling, prefer the type predicate:
 
 ```typescript
 if (MixinApi.isContainer(obj)) {
-  obj.addToInventory(item); // obj: Stuff & Container
+  obj.addContainable(item); // obj: Stuff & Container
 }
 ```
 
@@ -340,7 +340,7 @@ bypass it.
 |---|---|
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
-| `item.setEnvironment(c); c.addToInventory(item)` | `ContainmentApi.move(item, c)` |
+| `item.setEnvironment(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |

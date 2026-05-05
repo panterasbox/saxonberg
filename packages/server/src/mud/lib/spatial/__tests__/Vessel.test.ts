@@ -24,7 +24,7 @@ describe('Vessel', () => {
 
       ContainmentApi.move(item, vessel);
 
-      expect(vessel.hasInInventory(item)).toBe(true);
+      expect(vessel.hasContainable(item)).toBe(true);
       expect(item.getEnvironment()).toBe(vessel);
     });
   });
@@ -40,7 +40,7 @@ describe('Vessel', () => {
       ContainmentApi.move(vessel, room);
 
       expect(vessel.getEnvironment()).toBe(room);
-      expect(room.hasInInventory(vessel)).toBe(true);
+      expect(room.hasContainable(vessel)).toBe(true);
     });
 
     it('can itself be placed inside another Vessel', () => {
@@ -49,7 +49,7 @@ describe('Vessel', () => {
       ContainmentApi.move(vessel, outer);
 
       expect(vessel.getEnvironment()).toBe(outer);
-      expect(outer.hasInInventory(vessel)).toBe(true);
+      expect(outer.hasContainable(vessel)).toBe(true);
     });
   });
 
@@ -63,9 +63,9 @@ describe('Vessel', () => {
 
       expect(vessel.getEnvironment()).toBe(room);
       expect(coin.getEnvironment()).toBe(vessel);
-      expect(vessel.hasInInventory(coin)).toBe(true);
-      expect(room.hasInInventory(vessel)).toBe(true);
-      expect(room.hasInInventory(coin)).toBe(false);
+      expect(vessel.hasContainable(coin)).toBe(true);
+      expect(room.hasContainable(vessel)).toBe(true);
+      expect(room.hasContainable(coin)).toBe(false);
     });
   });
 });

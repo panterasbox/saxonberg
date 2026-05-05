@@ -1,10 +1,14 @@
 /**
- * ContainableMixin tests
+ * ContainableMixin tests — exercises environment management through
+ * `ContainmentApi.move`. Direct `setEnvironment` calls now require an
+ * `mud/api/containment#ContainmentApi` caller frame; the unit-level
+ * tests for the chokepoint live above this file in `containment.test.ts`.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
+import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -34,48 +38,46 @@ describe('ContainableMixin', () => {
   });
 
   describe('initialization', () => {
-    it('should initialize with null environment', () => {
+    it('initializes with null environment', () => {
       expect(containable.environment).toBeNull();
       expect(containable.getEnvironment()).toBeNull();
     });
   });
 
-  describe('setEnvironment', () => {
-    it('should set environment', () => {
-      containable.setEnvironment(environment1);
+  describe('setEnvironment via ContainmentApi.move', () => {
+    it('places into a container', () => {
+      ContainmentApi.move(containable, environment1);
       expect(containable.environment).toBe(environment1);
       expect(containable.getEnvironment()).toBe(environment1);
     });
 
-    it('should change environment', () => {
-      containable.setEnvironment(environment1);
-      containable.setEnvironment(environment2);
+    it('relocates between containers', () => {
+      ContainmentApi.move(containable, environment1);
+      ContainmentApi.move(containable, environment2);
       expect(containable.environment).toBe(environment2);
     });
 
-    it('should set environment to null', () => {
-      containable.setEnvironment(environment1);
-      containable.setEnvironment(null);
+    it('detaches via move(item, null)', () => {
+      ContainmentApi.move(containable, environment1);
+      ContainmentApi.move(containable, null);
       expect(containable.environment).toBeNull();
     });
   });
 
   describe('getEnvironment', () => {
-    it('should return null when no environment', () => {
+    it('returns null when not placed', () => {
       expect(containable.getEnvironment()).toBeNull();
     });
 
-    it('should return current environment', () => {
-      containable.setEnvironment(environment1);
+    it('returns the current environment', () => {
+      ContainmentApi.move(containable, environment1);
       expect(containable.getEnvironment()).toBe(environment1);
     });
   });
 
   describe('persistence', () => {
-    it('should NOT have persistentFields (complex type)', () => {
-      // ContainableMixin does not declare persistentFields
-      // because environment is a complex type requiring custom handlers
-      const fields = (TestContainable as any).persistentFields;
+    it('does NOT declare persistentFields (complex type)', () => {
+      const fields = (TestContainable as { persistentFields?: unknown }).persistentFields;
       expect(fields).toBeUndefined();
     });
   });

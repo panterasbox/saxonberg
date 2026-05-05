@@ -42,17 +42,17 @@ describe('ContainmentApi', () => {
       ContainmentApi.move(item, container1);
 
       expect(item.getEnvironment()).toBe(container1);
-      expect(container1.hasInInventory(item)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(true);
     });
 
     it('should automatically remove from previous container', () => {
       ContainmentApi.move(item, container1);
-      expect(container1.hasInInventory(item)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(true);
 
       ContainmentApi.move(item, container2);
 
-      expect(container1.hasInInventory(item)).toBe(false);
-      expect(container2.hasInInventory(item)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(false);
+      expect(container2.hasContainable(item)).toBe(true);
       expect(item.getEnvironment()).toBe(container2);
     });
 
@@ -62,24 +62,24 @@ describe('ContainmentApi', () => {
       ContainmentApi.move(item, container1);
 
       expect(item.getEnvironment()).toBe(container1);
-      expect(container1.hasInInventory(item)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(true);
     });
 
     it('should work with Location as container', () => {
       ContainmentApi.move(item, location1);
 
       expect(item.getEnvironment()).toBe(location1);
-      expect(location1.hasInInventory(item)).toBe(true);
+      expect(location1.hasContainable(item)).toBe(true);
     });
 
     it('should move between locations', () => {
       ContainmentApi.move(item, location1);
-      expect(location1.hasInInventory(item)).toBe(true);
+      expect(location1.hasContainable(item)).toBe(true);
 
       ContainmentApi.move(item, location2);
 
-      expect(location1.hasInInventory(item)).toBe(false);
-      expect(location2.hasInInventory(item)).toBe(true);
+      expect(location1.hasContainable(item)).toBe(false);
+      expect(location2.hasContainable(item)).toBe(true);
       expect(item.getEnvironment()).toBe(location2);
     });
   });
@@ -164,17 +164,17 @@ describe('ContainmentApi', () => {
       // Pick up into container1
       ContainmentApi.move(item, container1);
       expect(ContainmentApi.getContainer(item)).toBe(container1);
-      expect(location1.hasInInventory(item)).toBe(false);
+      expect(location1.hasContainable(item)).toBe(false);
 
       // Transfer to container2
       ContainmentApi.move(item, container2);
       expect(ContainmentApi.getContainer(item)).toBe(container2);
-      expect(container1.hasInInventory(item)).toBe(false);
+      expect(container1.hasContainable(item)).toBe(false);
 
       // Drop in location2
       ContainmentApi.move(item, location2);
       expect(ContainmentApi.getContainer(item)).toBe(location2);
-      expect(container2.hasInInventory(item)).toBe(false);
+      expect(container2.hasContainable(item)).toBe(false);
     });
 
     it('should handle nested containers', () => {
@@ -186,8 +186,8 @@ describe('ContainmentApi', () => {
 
       expect(item.getEnvironment()).toBe(container1);
       expect(container1.getEnvironment()).toBe(location1);
-      expect(container1.hasInInventory(item)).toBe(true);
-      expect(location1.hasInInventory(container1)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(true);
+      expect(location1.hasContainable(container1)).toBe(true);
     });
   });
 });

@@ -10,6 +10,7 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
+import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -61,8 +62,8 @@ describe('MessageApi', () => {
 
   describe('getSensors()', () => {
     it('should find all sensors in a container', () => {
-      location.addToInventory(sensor1);
-      location.addToInventory(sensor2);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(sensor2, location);
 
       const sensors = MessageApi.getSensors(location);
 
@@ -72,8 +73,8 @@ describe('MessageApi', () => {
     });
 
     it('should not include non-sensors', () => {
-      location.addToInventory(sensor1);
-      location.addToInventory(nonSensor);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(nonSensor, location);
 
       const sensors = MessageApi.getSensors(location);
 
@@ -95,15 +96,15 @@ describe('MessageApi', () => {
       expect(MessageApi.getSensors(location)).toHaveLength(0);
 
       // Real SensorMixin-based sensors are detected.
-      location.addToInventory(sensor1);
+      ContainmentApi.move(sensor1, location);
       expect(MessageApi.getSensors(location)).toHaveLength(1);
     });
   });
 
   describe('messageContents()', () => {
     it('sends the message to every sensor inside the container', () => {
-      location.addToInventory(sensor1);
-      location.addToInventory(sensor2);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(sensor2, location);
 
       const message = makeFrame('test', 'hello');
       MessageApi.messageContents(location, message);
@@ -113,8 +114,8 @@ describe('MessageApi', () => {
     });
 
     it('skips non-sensors', () => {
-      location.addToInventory(sensor1);
-      location.addToInventory(nonSensor);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(nonSensor, location);
 
       const message = makeFrame();
       expect(() => MessageApi.messageContents(location, message)).not.toThrow();
@@ -131,8 +132,8 @@ describe('MessageApi', () => {
   describe('messageContainer()', () => {
     it('should call onMessage for all sensors in container', () => {
       // Setup: place sensors in location
-      location.addToInventory(sensor1);
-      location.addToInventory(sensor2);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(sensor2, location);
 
       // Create a mobile sensor to be the source
       const source = makeStuff(() => new MobileSensor());
@@ -148,8 +149,8 @@ describe('MessageApi', () => {
     });
 
     it('should not affect non-sensors in container', () => {
-      location.addToInventory(sensor1);
-      location.addToInventory(nonSensor);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(nonSensor, location);
 
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
@@ -189,7 +190,7 @@ describe('MessageApi', () => {
     });
 
     it('should work with various frame topics', () => {
-      location.addToInventory(sensor1);
+      ContainmentApi.move(sensor1, location);
 
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
@@ -214,7 +215,7 @@ describe('MessageApi', () => {
         return sensor;
       });
 
-      sensors.forEach((s) => location.addToInventory(s));
+      sensors.forEach((s) => ContainmentApi.move(s, location));
 
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
@@ -233,8 +234,8 @@ describe('MessageApi', () => {
   describe('Integration scenarios', () => {
     it('should support say command pattern', () => {
       // Setup room with listeners
-      location.addToInventory(sensor1);
-      location.addToInventory(sensor2);
+      ContainmentApi.move(sensor1, location);
+      ContainmentApi.move(sensor2, location);
 
       // Speaker enters and speaks
       const speaker = makeStuff(() => new MobileSensor());
@@ -258,8 +259,8 @@ describe('MessageApi', () => {
       const sensorInRoom1 = makeStuff(() => new TestSensor());
       const sensorInRoom2 = makeStuff(() => new TestSensor());
 
-      location.addToInventory(sensorInRoom1);
-      location2.addToInventory(sensorInRoom2);
+      ContainmentApi.move(sensorInRoom1, location);
+      ContainmentApi.move(sensorInRoom2, location2);
 
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
