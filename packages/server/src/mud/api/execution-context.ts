@@ -164,11 +164,17 @@ function _findImmediateCallerUrl(): string | null {
     const trimmed = line.trim();
     if (!trimmed.startsWith('at ')) continue;
     const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
-    const bare = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+    const bare = trimmed.match(
+      /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
+    );
     const m = parens ?? bare;
     if (!m) continue;
-    const url = m[1];
-    if (!url) continue;
+    const raw = m[1];
+    if (!raw) continue;
+    // Windows: V8 emits backslashed paths in stack frames. Normalise
+    // so the regexes below (and the allowlist) — all written with
+    // forward slashes — match on every platform.
+    const url = raw.replace(/\\/g, '/');
     // Skip frames inside this module file specifically — the
     // `_findImmediateCallerUrl`, `_assertFrameMutatorAllowed`,
     // `run`, `runRoot`, and `tagCurrentFrame` frames all live in

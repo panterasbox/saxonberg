@@ -40,9 +40,15 @@ import * as path from 'node:path';
  * computed from `fileUrl`.
  */
 export function computeRegistryImportPath(fileUrl: string): string {
-  const filePath = fileUrl.startsWith('file://')
+  const rawPath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
+  // The result is embedded as a string literal in generated source —
+  // `from '../../api/module'`. Backslashes there would be parsed as
+  // JS escape sequences (`\m` → `m`, collapsing the path). Force
+  // forward slashes throughout so the emitted import is well-formed
+  // on every platform.
+  const filePath = rawPath.replace(/\\/g, '/');
   // Locate the source root anywhere in the path. `ModuleApi` lives
   // at `<srcRoot>/mud/api/module`. Build a relative path from the
   // importing file's directory to that module.
@@ -55,8 +61,8 @@ export function computeRegistryImportPath(fileUrl: string): string {
     return './ModuleApi';
   }
   const srcRoot = filePath.slice(0, srcRootIdx);
-  const registryPath = path.join(srcRoot, 'mud/api/module');
-  let rel = path.relative(fileDir, registryPath);
+  const registryPath = path.posix.join(srcRoot, 'mud/api/module');
+  let rel = path.posix.relative(fileDir, registryPath);
   if (!rel.startsWith('.')) rel = './' + rel;
   return rel;
 }
@@ -70,9 +76,12 @@ export function computeRegistryImportPath(fileUrl: string): string {
  * loading. Declaration files and node_modules are also skipped.
  */
 export function shouldTransform(fileUrl: string): boolean {
-  const filePath = fileUrl.startsWith('file://')
+  const rawPath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
+  // Match the forward-slash includes() probes below regardless of
+  // whether the loader handed us a Windows-style path.
+  const filePath = rawPath.replace(/\\/g, '/');
   if (!filePath.endsWith('.ts')) return false;
   if (filePath.endsWith('.d.ts')) return false;
   if (filePath.includes('/node_modules/')) return false;

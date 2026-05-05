@@ -195,7 +195,11 @@ export class ModuleApi {
    * match any policy glob, which is the right behaviour.
    */
   static #normaliseUrl(rawUrl: string): string {
-    let s = rawUrl;
+    // Force forward slashes first — `import.meta.url` is already
+    // forward-slash, but stack-walked URLs on Windows arrive
+    // backslashed. Normalising up-front means the source-root match
+    // and final id are platform-independent.
+    let s = rawUrl.replace(/\\/g, '/');
     if (s.startsWith('file://')) s = s.slice('file://'.length);
     for (const root of SOURCE_ROOT_HINTS) {
       const idx = s.indexOf(root);
@@ -221,11 +225,17 @@ export class ModuleApi {
       const trimmed = line.trim();
       if (!trimmed.startsWith('at ')) continue;
       const parens = trimmed.match(/\((.+):(\d+):(\d+)\)$/);
-      const bareUrl = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):(\d+):(\d+)$/);
+      const bareUrl = trimmed.match(
+        /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):(\d+):(\d+)$/
+      );
       const m = parens ?? bareUrl;
       if (!m) continue;
-      const url = m[1];
-      if (!url) continue;
+      const raw = m[1];
+      if (!raw) continue;
+      // Windows: stack frames carry backslashed paths. Normalise so
+      // both the in-module skip below and `#normaliseUrl` (which
+      // operates on forward-slash source-root hints) work uniformly.
+      const url = raw.replace(/\\/g, '/');
       // Skip frames inside this module file specifically — `stamp`,
       // `#findCallerUrl`, `#normaliseUrl`, `#validateNoFinalOverrides`
       // all live in `module.ts` (or its compiled `.js`).

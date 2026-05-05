@@ -190,11 +190,17 @@ export abstract class Stuff {
       const trimmed = line.trim();
       if (!trimmed.startsWith('at ')) continue;
       const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
-      const bare = trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
+      const bare = trimmed.match(
+        /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
+      );
       const m = parens ?? bare;
       if (!m) continue;
-      const url = m[1];
-      if (!url) continue;
+      const raw = m[1];
+      if (!raw) continue;
+      // Normalise Windows backslashes — stack-frame URLs on Windows
+      // arrive as `C:\...` while the in-module skip below is written
+      // with forward slashes.
+      const url = raw.replace(/\\/g, '/');
       // Skip frames inside this module file (Stuff.ts/js).
       if (/\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/.test(url)) continue;
       return url;

@@ -424,9 +424,14 @@ export class SecurityApi {
       if (!trimmed.startsWith('at ')) continue;
       const m =
         trimmed.match(/\((.+):\d+:\d+\)$/) ??
-        trimmed.match(/at (file:\/\/[^\s]+|\/[^\s]+):\d+:\d+$/);
-      const url = m?.[1];
-      if (!url) continue;
+        trimmed.match(
+          /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
+        );
+      const raw = m?.[1];
+      if (!raw) continue;
+      // Normalise Windows backslashes so the `.test.(ts|js)` regex
+      // (and the per-URL cache) match identically on every platform.
+      const url = raw.replace(/\\/g, '/');
       const cached = SecurityApi.#testCallerCache.get(url);
       if (cached === true) {
         inTest = true;
