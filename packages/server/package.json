@@ -8,9 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "init:world": "tsx scripts/init-starting-room.ts",
-    "init:hooks": "tsx scripts/init-hooks.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

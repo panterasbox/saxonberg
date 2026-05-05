@@ -1,0 +1,5 @@
+class: /lib/stuff/Location
+data:
+  name: The Void
+  description: |
+    You find yourself in a featureless void. There is nothing here but potential.

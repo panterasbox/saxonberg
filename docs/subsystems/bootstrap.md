@@ -25,10 +25,15 @@ instances must exist for the game to function?"
 ## Server boot order
 
 1. Connect to MongoDB
-2. **`SeederManager.run()`** — idempotent template insertion from disk
-3. Framework Api decoration (existing)
-4. **`BootstrapManager.run()`** — clone runtime instances from manifest
-5. HTTP / WebSocket listeners come up
+2. Framework Api decoration (existing)
+3. **`SeederManager.run()`** — idempotent template insertion from disk
+4. **`PersistenceManager.loadHooks()`** — clone hook templates and
+   register them with the persistence pipeline. Runs AFTER seeding so
+   the hook templates exist in `domain` when this clones them.
+5. **`BootstrapManager.run()`** — clone runtime instances from
+   manifest. Last because manifest entries may reference templates
+   that were seeded in step 3.
+6. HTTP / WebSocket listeners come up
 
 ---
 

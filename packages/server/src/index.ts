@@ -69,14 +69,22 @@ async function main() {
 
     console.log('MongoDB connection successful\n');
 
-    // 1a. Load PM hooks (folder/leaf invariant on Collections.Domain, etc.)
+    // 1a. Seed templates from disk into the `domain` collection
+    //     (idempotent — existing docs are left alone). Runs FIRST
+    //     because PM.loadHooks below clones the DomainHook template
+    //     out of `domain`, and the bootstrap manifest may reference
+    //     other seeded templates too.
+    await SeederManager.run();
+
+    // 1b. Load PM hooks (folder/leaf invariant on Collections.Domain,
+    //     etc.) — clones the seeded hook templates and registers
+    //     them with the persistence pipeline. Seeds must exist
+    //     before this runs.
     await PersistenceManager.get().loadHooks();
 
-    // 1b. Seed templates from disk into the `domain` collection
-    //     (idempotent — existing docs are left alone), then bootstrap
-    //     runtime instances from the engine manifest. Both run before
-    //     the HTTP/WS listeners come up; failures here prevent boot.
-    await SeederManager.run();
+    // 1c. Bootstrap runtime instances from the engine manifest.
+    //     Both prior steps must be complete; failures here prevent
+    //     boot.
     await BootstrapManager.run();
 
     // 2. Create and start Server
