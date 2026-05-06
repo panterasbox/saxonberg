@@ -28,7 +28,7 @@ describe('DescribeApi.getDisplayName', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     obj.setSurname('Smith');
-    // Casual — surname is NOT included. Reach for `obj.fullName` for
+    // Casual — surname is NOT included. Call `obj.getFullName()` for
     // the formal form.
     expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Alice');
   });

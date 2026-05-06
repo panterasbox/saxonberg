@@ -16,15 +16,14 @@ import type { MixinConstructor } from '../mixin';
  *
  * The accessor pair `isOpen` is host-internal (Pattern D) so the
  * hydrator's bracket-assign still fires the boolean-validating setter.
- * Public read uses `getIsOpen()` rather than `isOpen()` because the
- * latter would collide with the accessor's prototype slot — the
- * persistent-field name `isOpen` is locked by § 5 of the migration
- * doc, so we accept the awkward `getIsOpen()` to keep the schema and
- * the invariant.
+ * Public surface uses `getIsOpen()` / `setIsOpen()` to avoid colliding
+ * with the accessor's prototype slot — the persistent-field name
+ * `isOpen` is fixed by the existing schema. `open()` / `close()` are
+ * the action-shaped mutators most callers want.
  */
 export interface Sealable {
   getIsOpen(): boolean;
-  setOpen(value: boolean): void;
+  setIsOpen(value: boolean): void;
   open(): void;
   close(): void;
 }
@@ -40,7 +39,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Host-internal accessor pair (Pattern D). External callers go
-     * through `getIsOpen()` / `setOpen()`. The setter rejects
+     * through `getIsOpen()` / `setIsOpen()`. The setter rejects
      * non-boolean assignments with `TypeError`. Hydrator's
      * bracket-assign `target['isOpen'] = data.isOpen` fires this
      * setter, so a malformed template (`isOpen: 1`) crashes loudly at
@@ -60,7 +59,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     getIsOpen(): boolean { return this.isOpen; }
-    setOpen(value: boolean): void { this.isOpen = value; }
+    setIsOpen(value: boolean): void { this.isOpen = value; }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {

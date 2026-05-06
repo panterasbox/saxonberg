@@ -34,10 +34,9 @@ export class DescribeApi {
    *
    * Named takes precedence so a Named-with-description renders by
    * its proper name in casual prose. Code that needs the formal
-   * register reaches for `obj.fullName` directly when typed as
-   * Named. Future registers (`getAddressForm`, social-graph-aware
-   * variants) will be added as siblings here rather than overloading
-   * this function.
+   * register calls `obj.getFullName()` when typed as Named. Future
+   * registers (`getAddressForm`, social-graph-aware variants) will be
+   * added as siblings here rather than overloading this function.
    *
    * @param obj - Object to render
    * @param fallback - Returned when neither Named.name nor

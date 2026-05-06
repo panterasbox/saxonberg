@@ -84,7 +84,7 @@ export class Door extends DoorBase {
    */
   override getKeywords(): string[] {
     const base = super.getKeywords();
-    const nameTokens = this.getShortDescription()
+    const nameTokens = this.shortDescription
       .toLowerCase()
       .split(/\s+/)
       .filter((t) => t.length > 0);

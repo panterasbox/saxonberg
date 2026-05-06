@@ -95,7 +95,7 @@ export abstract class Zone extends Idea {
   public prepareDestroy(): void {
     if (this.locations.size > 0) {
       throw new Error(
-        `Zone.prepareDestroy: cannot destruct zone '${this.getName()}' with ` +
+        `Zone.prepareDestroy: cannot destruct zone '${this.name}' with ` +
           `${this.locations.size} live location(s); destruct locations first.`
       );
     }

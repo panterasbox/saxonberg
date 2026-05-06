@@ -259,7 +259,7 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction(prevSentinel);
     }
-    if (zone) (obj as unknown as { zone: import('../lib/spatial/Zone').Zone | null }).zone = zone;
+    if (zone) obj.setZone(zone);
     // Stamp the template path onto the instance so identity-keyed
     // policies (`FromTemplate`, etc.) can match against it. The
     // proxy reads `templatePath` directly via the get-trap; we use

@@ -10,9 +10,9 @@ import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Test class with DetailedMixin.
-// Subclass-level test seam (per § 6 of the methods-only migration):
-// `peekDetails()` exposes the protected mixin storage so assertions can
-// inspect the internal Map directly.
+// Subclass-level test seams: `peekDetails()` / `seedDetails()` expose
+// the protected mixin storage so assertions can inspect / replace the
+// internal Map directly.
 class DetailedThing extends DetailedMixin(Stuff) {
   static persistentFields: string[] = [];
   public peekDetails(): DetailMap { return this.details; }

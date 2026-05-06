@@ -81,9 +81,10 @@ export abstract class Stuff {
    * are handled — they are runtime references, and the authoritative source
    * for zone membership is the `domain` template path at clone time).
    *
-   * Framework carve-out per `docs/migrations/methods-only-contract.md` § 5:
-   * domain code uses `getZone()` / `setZone()`; framework code reads via
-   * bracket cast (PASSTHROUGH_KEYS skips the proxy pipeline).
+   * Framework carve-out: domain code uses `getZone()` / `setZone()`;
+   * framework code reads via bracket cast (PASSTHROUGH_KEYS in
+   * `proxy.ts` skips the proxy pipeline for this slot). Same shape
+   * as `templatePath` above.
    */
   protected zone: Zone | null = null;
   public getZone(): Zone | null {

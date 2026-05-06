@@ -69,8 +69,8 @@ describe('Mml vocabulary helpers', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     obj.setSurname('Smith');
-    // Casual register — surname not included. Reach for `obj.fullName`
-    // explicitly when you need the formal form.
+    // Casual register — surname not included. Call `obj.getFullName()`
+    // when you need the formal form.
     expect(Mml.name(obj).toString()).toBe(
       `<name stuff-id="${obj.stuffId}">Alice</name>`
     );

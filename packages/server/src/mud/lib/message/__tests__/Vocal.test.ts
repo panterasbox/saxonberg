@@ -90,8 +90,8 @@ describe('VocalMixin.say()', () => {
       house.say('get out');
 
       expect(occupant.received).toHaveLength(1);
-      // Casual register — surname not included; use `obj.fullName` to
-      // get "Haunted House".
+      // Casual register — surname not included; use `obj.getFullName()`
+      // to get "Haunted House".
       expect(occupant.received[0]!.body).toBe(
         `<name stuff-id="${house.stuffId}">Haunted</name> says, <speech>"get out"</speech>`
       );

@@ -111,7 +111,7 @@ export class Avatar extends AvatarBase {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
 
-    if (this.getPlayerId()) {
+    if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
   }
@@ -120,7 +120,7 @@ export class Avatar extends AvatarBase {
    * Send a message to all connected Interactives (broadcast).
    */
   public sendMessage(message: unknown): void {
-    for (const interactive of this.getInteractives()) {
+    for (const interactive of this.interactives) {
       interactive.send(message);
     }
   }
@@ -132,7 +132,7 @@ export class Avatar extends AvatarBase {
    */
   protected override handleMessage(frame: MessageFrame): void {
     const app = Avatar.getApplicationInstance();
-    for (const interactive of this.getInteractives()) {
+    for (const interactive of this.interactives) {
       app.sendMessageToInteractive(interactive, frame);
     }
   }
@@ -144,7 +144,7 @@ export class Avatar extends AvatarBase {
    */
   protected prepareDestroy(): void {
     PlayerApi.unregisterAvatar(this);
-    this.clearInteractives();
+    this.interactives.clear();
   }
 
   /**
@@ -153,11 +153,11 @@ export class Avatar extends AvatarBase {
    * for observers that care about player presence.
    */
   public onLinkdead(): void {
-    EventApi.emit(Events.PlayerLoggedOut, { playerId: this.getPlayerId() });
+    EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
   }
 
   public toString(): string {
-    return `[Avatar ${this.getFullName()} playerId=${this.getPlayerId()}]`;
+    return `[Avatar ${this.fullName} playerId=${this.playerId}]`;
   }
 
   /** @internal — overridable for tests. */

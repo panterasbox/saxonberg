@@ -17,9 +17,8 @@ import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 // Test class with PropertiedMixin.
-// Subclass-level test seams (per § 6 of the methods-only migration):
-// `peekSavedProps()` / `peekTransientProps()` expose the protected mixin
-// storage so assertions can inspect it directly.
+// Subclass-level test seams: `peekSavedProps()` / `peekTransientProps()`
+// expose the protected mixin storage so assertions can inspect it.
 class PropertiedThing extends PropertiedMixin(Stuff) {
   static persistentFields: string[] = [];
   public peekSavedProps(): Record<string, unknown> | undefined {

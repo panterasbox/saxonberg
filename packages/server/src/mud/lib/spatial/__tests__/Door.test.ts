@@ -31,7 +31,7 @@ describe('Door', () => {
     door.setShortDescription('heavy oak door');
     door.setLongDescription('An iron-banded slab of oak.');
     door.setKeywords(['portal']);
-    door.setOpen(true);
+    door.setIsOpen(true);
 
     expect(door.getShortDescription()).toBe('heavy oak door');
     expect(door.getLongDescription()).toBe('An iron-banded slab of oak.');

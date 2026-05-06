@@ -20,20 +20,19 @@
  * is too generic — many other things (URLs, paths, file types) use
  * "suffix" with different semantics, so we want this collision-free.
  *
- * Most code reads `obj.name` directly. `fullName` is the formal /
+ * Most code calls `obj.getName()`. `getFullName()` is the formal /
  * introductory register: synthesized as
  * `[honorific, name, surname, nameSuffix].filter(Boolean).join(' ')`.
- * No "Unnamed" fallback — when nothing is set, `fullName` returns
- * `''` and `DescribeApi.getDisplayName(obj, fallback)` provides the
- * caller's fallback string.
+ * No "Unnamed" fallback — when nothing is set, `getFullName()`
+ * returns `''` and `DescribeApi.getDisplayName(obj, fallback)`
+ * provides the caller's fallback string.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)
  * are out of scope for this mixin. If they're added later, they
  * have to attach via `ShadowApi` on a method-shaped surface —
- * accessor pairs (`fullName` here) are host-internal and don't
- * participate in the shadow chain. A typical implementation would
- * add a `getDisplayName()` method that wraps `fullName` and let
- * shadows intercept that.
+ * `getFullName()` is the right shadow target; the underlying
+ * accessor pair is host-internal and doesn't participate in the
+ * shadow chain.
  */
 
 import type { MixinConstructor } from '../mixin';
