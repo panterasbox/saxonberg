@@ -12,3 +12,4 @@ out/
 *.tsbuildinfo
 .claude/
 .mcp.json
+.eslintcache
