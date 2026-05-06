@@ -711,6 +711,16 @@ export class StuffApi {
   }
 
   /**
+   * Snapshot of every templatePath that currently has a registered
+   * instance. Useful for bulk operations keyed off a path prefix —
+   * `HotReloadApi.reloadControllerManifest` walks this to find every
+   * `/obj/command/*` singleton it needs to destruct, for example.
+   */
+  public static getRegisteredTemplatePaths(): string[] {
+    return [...this.#indexes.byTemplatePath.keys()];
+  }
+
+  /**
    * Clear all registries (for testing).
    * WARNING: This will not properly clean up objects.
    * Only use for testing or shutdown.

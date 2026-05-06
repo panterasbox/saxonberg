@@ -27,9 +27,7 @@ if (!process.env.VITEST) {
 import 'dotenv/config';
 import { PersistenceManager } from './backend/PersistenceManager';
 import { SeederManager } from './backend/SeederManager';
-import { ControllerSeeder } from './backend/ControllerSeeder';
 import { BootstrapManager } from './backend/BootstrapManager';
-import { CommandApi } from './mud/api/command';
 import { Server } from './services/Server';
 
 /**
@@ -78,27 +76,17 @@ async function main() {
     //     other seeded templates too.
     await SeederManager.run();
 
-    // 1a'. Seed controller Templates from `mud/obj/command/`. Same
-    //      idempotent insert-only contract as SeederManager. Must run
-    //      before `CommandApi.loadControllers` clones from these
-    //      paths.
-    await ControllerSeeder.run();
-
     // 1b. Load PM hooks (folder/leaf invariant on Collections.Domain,
     //     etc.) — clones the seeded hook templates and registers
     //     them with the persistence pipeline. Seeds must exist
     //     before this runs.
+    //
+    //     Controllers are NOT pre-loaded — dispatch goes through
+    //     `StuffApi.singleton('/obj/command/<Name>')` which lazily
+    //     clones on first use and caches via the templatePath index.
+    //     The controller seed YAMLs under `mud/seeds/obj/command/`
+    //     were just written by `SeederManager.run()` above.
     await PersistenceManager.get().loadHooks();
-
-    // 1b'. Load command controllers — clones one instance per
-    //      controller Template and registers it in CommandApi's
-    //      class-name-keyed registry. Dispatch then resolves
-    //      `command.controller` to the singleton instance with no
-    //      `new` and no HMR-aware glue: `StuffApi.clone` already
-    //      consults `HotReloadApi`, so reloads are picked up by
-    //      `HotReloadApi.reloadControllerManifest()` rebuilding the
-    //      registry against the freshly-loaded class blueprints.
-    await CommandApi.loadControllers();
 
     // 1c. Bootstrap runtime instances from the engine manifest.
     //     Both prior steps must be complete; failures here prevent

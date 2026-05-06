@@ -210,19 +210,26 @@ export class HotReloadApi {
   }
 
   /**
-   * Refresh the controller registry from `mud/obj/command/`. Required
-   * after reloading any controller source file: controller instances
-   * live as cloned Stuff pinned to the class blueprint they were
-   * cloned against. This call drops the registry and re-clones every
-   * controller; subsequent dispatches resolve to the freshly-loaded
-   * class. Idempotent.
+   * Invalidate every cached controller singleton under
+   * `/obj/command/*` so the next dispatch re-clones via
+   * `StuffApi.singleton`. Required after a controller source reload:
+   * the cached instance is pinned to the old class blueprint, and
+   * `singleton(path)` keeps returning it until it's destructed.
+   * Destructing forces a fresh clone — which goes through the
+   * HMR-aware `StuffApi.clone` path and picks up the reloaded class.
    *
-   * Lazy import for the same reason as `reloadHookManifest`.
+   * Idempotent: paths with no live singleton are skipped. Lazy
+   * import keeps StuffApi out of HotReloadApi's static graph.
    */
   public static async reloadControllerManifest(): Promise<void> {
-    const { CommandApi } = await import('./command');
-    CommandApi.clearControllers();
-    await CommandApi.loadControllers();
+    const { StuffApi } = await import('./stuff');
+    const paths = StuffApi.getRegisteredTemplatePaths().filter((p) =>
+      p.startsWith('/obj/command/')
+    );
+    for (const path of paths) {
+      const inst = StuffApi.findByTemplatePath(path);
+      if (inst) StuffApi.destruct(inst);
+    }
   }
 
   /**

@@ -459,102 +459,64 @@ describe('HotReloadApi', () => {
     });
   });
 
-  /* ─────────────────── Controller dispatch integration ─────────────────── */
+  /* ─────────────────── Controller HMR integration ─────────────────── */
 
-  describe('controller reload via reloadControllerManifest', () => {
+  describe('reloadControllerManifest', () => {
     /**
-     * The controller-reload story has two halves:
-     *
-     *   1. Reloading a controller source via `HotReloadApi.reload`
-     *      swaps the class blueprint at its path (covered by the
-     *      registry tests above).
-     *   2. `HotReloadApi.reloadControllerManifest()` then drops the
-     *      controller registry and re-clones every controller —
-     *      which goes through `StuffApi.clone`, which consults
-     *      `HotReloadApi.getCurrent`, so the freshly-loaded class
-     *      ends up in the registry. Dispatch picks it up on the
-     *      next `executeCommand`.
-     *
-     * This test exercises the second half — reloadControllerManifest
-     * actually re-clones — by pre-registering an HMR override and
-     * watching the registry pick it up.
+     * Controllers are templated singletons cached in the StuffApi
+     * byTemplatePath index. After an HMR class reload, the cached
+     * singleton still has the old prototype — `singleton(path)` would
+     * keep returning it. `reloadControllerManifest` destructs every
+     * cached `/obj/command/*` instance so the next dispatch lazy-clones
+     * against the current HMR blueprint.
      */
-    it('reloadControllerManifest re-clones controllers against current HMR blueprints', async () => {
+    it('destructs cached /obj/command/* singletons; next singleton(path) re-clones', async () => {
       const { CommandController } = await import(
         '../../lib/command/CommandController'
       );
-      const { CommandApi } = await import('../command');
 
       class HotPingV1 extends CommandController<unknown> {
-        execute() {
+        execute(_i: unknown, _c: unknown) {
           return { success: true, summary: 'v1-marker' };
         }
       }
       class HotPingV2 extends CommandController<unknown> {
-        execute() {
+        execute(_i: unknown, _c: unknown) {
           return { success: true, summary: 'v2-marker' };
         }
       }
 
-      // The HMR registry key for `/obj/command/PingController` is its
-      // absolute fs path — same convention `StuffApi.#resolveAbsoluteClassPath`
-      // uses.
-      const cmdDir = new URL('../../obj/command/', import.meta.url);
-      const absPath = fileURLToPath(new URL('PingController.ts', cmdDir));
-      HotReloadApi._registerForTest(absPath, { PingController: HotPingV1 });
-
-      // Seed a Template for /obj/command/PingController (PM mock).
-      const docs: Array<{ path: string; class: string; data: unknown }> = [
-        {
-          path: '/obj/command/PingController',
-          class: '/obj/command/PingController',
-          data: {},
-        },
-      ];
-      const find = vi.fn(
-        async (_collection: string, query: Record<string, unknown>) => {
-          return typeof query.path === 'string'
-            ? docs.filter((d) => d.path === query.path)
-            : [];
-        }
-      );
-      vi.spyOn(PersistenceManager, 'get').mockReturnValue({
-        save: vi.fn(),
-        find,
-        findById: vi.fn(),
-      } as unknown as PersistenceManager);
-
-      // Manually call loadControllers via the test seam path —
-      // `CommandApi.loadControllers` walks the controllers dir and
-      // would clone every real controller too, which we don't want
-      // in this isolated test.
-      CommandApi._clearControllersForTest();
-      const v1Instance = await StuffApi.clone<InstanceType<typeof HotPingV1>>(
-        '/obj/command/PingController'
-      );
-      CommandApi._registerControllerForTest('PingController', v1Instance);
+      // Stamp V1 into the StuffApi index under the controller's
+      // template path. Equivalent to "the boot-time first dispatch
+      // already lazy-cloned this controller."
+      const v1 = await StuffApi.create(() => new HotPingV1());
+      (v1 as unknown as { templatePath?: string }).templatePath =
+        '/obj/command/PingController';
+      StuffApi.unregister(v1);
+      StuffApi.register(v1);
       expect(
-        CommandApi.getController('PingController')!.execute(
-          {},
-          {} as never
-        )
+        (await StuffApi.singleton<HotPingV1>('/obj/command/PingController'))
+          .execute({}, {} as never)
       ).toEqual({ success: true, summary: 'v1-marker' });
 
-      // Swap HMR to V2 and re-clone.
-      HotReloadApi._registerForTest(absPath, { PingController: HotPingV2 });
-      CommandApi._clearControllersForTest();
-      const v2Instance = await StuffApi.clone<InstanceType<typeof HotPingV2>>(
-        '/obj/command/PingController'
-      );
-      CommandApi._registerControllerForTest('PingController', v2Instance);
+      // Reload the manifest — the V1 singleton is destructed.
+      await HotReloadApi.reloadControllerManifest();
       expect(
-        CommandApi.getController('PingController')!.execute(
-          {},
-          {} as never
-        )
-      ).toEqual({ success: true, summary: 'v2-marker' });
+        StuffApi.findByTemplatePath('/obj/command/PingController')
+      ).toBeUndefined();
 
-      vi.restoreAllMocks();
+      // Stamp V2 in the same way (in production, the next
+      // `StuffApi.singleton` call lazy-clones from the seeded
+      // Template, going through the HMR-aware clone path).
+      const v2 = await StuffApi.create(() => new HotPingV2());
+      (v2 as unknown as { templatePath?: string }).templatePath =
+        '/obj/command/PingController';
+      StuffApi.unregister(v2);
+      StuffApi.register(v2);
+      expect(
+        (await StuffApi.singleton<HotPingV2>('/obj/command/PingController'))
+          .execute({}, {} as never)
+      ).toEqual({ success: true, summary: 'v2-marker' });
     });
   });
 

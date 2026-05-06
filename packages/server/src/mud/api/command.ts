@@ -17,12 +17,9 @@ import type { Location } from '../lib/stuff/Location';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Interactive } from '../obj/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
-import { readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { SecurityApi } from './security';
-import { StuffApi } from './stuff';
-import type { CommandController } from '../lib/command/CommandController';
 import type { Mml } from './mml';
 
 /**
@@ -176,15 +173,6 @@ export class CommandApi {
   static #verbMap: Map<string, CommandDefinition> = new Map();
 
   /**
-   * Class-name → controller singleton instance. Populated by
-   * `loadControllers` at boot. `getController` is the dispatch-side
-   * lookup; `executeCommand` resolves `command.controller` (a string
-   * like `'PingController'`) to the cached instance and calls
-   * `.execute()` on it.
-   */
-  static #controllers: Map<string, CommandController<unknown>> = new Map();
-
-  /**
    * Get a command definition by filename, loading it if not cached
    *
    * @param filename - YAML filename (e.g., 'look.yaml')
@@ -255,108 +243,6 @@ export class CommandApi {
   static clearCache(): void {
     this.#commands.clear();
     this.#verbMap.clear();
-  }
-
-  /* ──────────────────── Controller registry ──────────────────── */
-
-  /**
-   * Walk `mud/obj/command/` and clone one controller instance per
-   * controller class via `StuffApi.clone('/obj/command/<Name>')`.
-   * Each instance is registered in the class-name-keyed registry
-   * for `getController` to look up. Mirrors `PersistenceManager.
-   * loadHooks` but for command dispatch instead of save/delete
-   * pipelines.
-   *
-   * Idempotent: re-runs replace existing entries with freshly-cloned
-   * instances. Used both at boot (called from `index.ts`) and from
-   * `HotReloadApi.reloadControllerManifest()` after a reload.
-   */
-  static async loadControllers(): Promise<void> {
-    const dir = this.#controllersDir();
-    for (const name of this.#discoverControllerNames(dir)) {
-      const controller = await StuffApi.clone<CommandController<unknown>>(
-        `/obj/command/${name}`
-      );
-      this.#controllers.set(name, controller);
-    }
-    console.info(
-      `CommandApi: Loaded ${this.#controllers.size} controller${this.#controllers.size === 1 ? '' : 's'}`
-    );
-  }
-
-  /** Drop every cached controller. */
-  static clearControllers(): void {
-    this.#controllers.clear();
-  }
-
-  /**
-   * Look up the cached controller singleton for a class name. Returns
-   * `null` when nothing is registered — dispatch surfaces that as a
-   * "controller not found" error.
-   */
-  static getController(name: string): CommandController<unknown> | null {
-    return this.#controllers.get(name) ?? null;
-  }
-
-  /** All registered controller class names, in insertion order. */
-  static getControllerNames(): string[] {
-    return [...this.#controllers.keys()];
-  }
-
-  /**
-   * Test seam — install a controller instance directly without going
-   * through `loadControllers` (which requires a populated `domain`
-   * collection). Lets dispatch tests register a fake controller for a
-   * single verb in isolation.
-   *
-   * @internal
-   */
-  public static _registerControllerForTest(
-    name: string,
-    controller: CommandController<unknown>
-  ): void {
-    SecurityApi.assertTestOnly('_registerControllerForTest');
-    this.#controllers.set(name, controller);
-  }
-
-  /** @internal — drop every cached controller. */
-  public static _clearControllersForTest(): void {
-    SecurityApi.assertTestOnly('_clearControllersForTest');
-    this.#controllers.clear();
-  }
-
-  /**
-   * Default controllers dir relative to this module. Source layout:
-   * `src/mud/api/command.ts` → `src/mud/obj/command/`.
-   */
-  static #controllersDir(): string {
-    const here = dirname(fileURLToPath(import.meta.url));
-    return join(here, '../obj/command');
-  }
-
-  /**
-   * Yield controller names from `dir`. Same convention as
-   * `ControllerSeeder`: top-level `.ts` / `.js` files whose name
-   * ends in `Controller`. Subdirectories (e.g., `__tests__/`) are
-   * skipped.
-   */
-  static *#discoverControllerNames(dir: string): Generator<string> {
-    let entries: string[];
-    try {
-      entries = readdirSync(dir);
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      if (entry.startsWith('.')) continue;
-      const full = join(dir, entry);
-      const st = statSync(full);
-      if (!st.isFile()) continue;
-      if (!entry.endsWith('.ts') && !entry.endsWith('.js')) continue;
-      const name = entry.replace(/\.(ts|js)$/, '');
-      if (!name.endsWith('Controller')) continue;
-      yield name;
-    }
   }
 }
 

@@ -23,6 +23,8 @@ import {
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
+import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
 import { getValidator } from './validators';
@@ -513,20 +515,15 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       context: CommandContext
     ): Promise<CommandResult> {
       try {
-        // Look up the cached controller singleton. Populated at boot
-        // by `CommandApi.loadControllers`; rebuilt by
-        // `HotReloadApi.reloadControllerManifest()` after a class
-        // reload. No dynamic import or `new` here — controllers
-        // themselves are templated Stuff cloned out of the `domain`
-        // collection, so the HMR-aware path lives entirely in
-        // `StuffApi.clone`.
-        const controller = CommandApi.getController(command.controller);
-        if (!controller) {
-          throw new Error(
-            `Controller class ${command.controller} not loaded (CommandApi.loadControllers must run at boot)`
-          );
-        }
-
+        // Controllers are templated singletons under
+        // `/obj/command/<Name>`. `StuffApi.singleton` returns the
+        // cached instance if one exists in the byTemplatePath index,
+        // otherwise lazily clones from the seeded Template — which
+        // goes through the HMR-aware `StuffApi.clone` path. No
+        // dispatch-side HMR glue, no `new`, no dynamic import.
+        const controller = await StuffApi.singleton<CommandController<unknown>>(
+          `/obj/command/${command.controller}`
+        );
         const result = controller.execute(
           fields as Record<string, unknown>,
           context
