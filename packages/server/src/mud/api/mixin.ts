@@ -54,7 +54,7 @@ export { Mixins } from '../lib/mixin';
 /**
  * Any class-like constructor MixinApi may be asked to inspect.
  * Intentionally loose: mixin-decorated classes carry additional static markers
- * (_mixinName, persistentFields, commandProvider) that are checked via
+ * (_mixinName, persistentFields, commands) that are checked via
  * property access rather than declared on this type.
  */
 type AnyConstructor = Function & { prototype: unknown };

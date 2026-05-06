@@ -32,6 +32,7 @@ import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
+import type { CommandContributions } from '../../api/command';
 
 /**
  * Public shape provided by ContainerMixin.
@@ -78,7 +79,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Command provider for inventory management commands
      */
-    static commandProvider = {
+    static commandContributions: CommandContributions = {
       self: ['inventory.yaml', 'get.yaml', 'drop.yaml'],
       environment: [],
       inventory: [],

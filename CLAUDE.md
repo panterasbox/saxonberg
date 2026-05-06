@@ -251,9 +251,30 @@ Caches, helpers, and ordinary internal state do NOT qualify. When
 introducing `#` in domain code, leave a one-line comment explaining
 which case applies.
 
-**Hard constraint**: persistent fields cannot be `#` — the `Hydrator`
-reflects into them and `#` slots are unreachable from outside the
-class body.
+**Hard constraints**: two things rule out `#` regardless of which
+layer the file lives in:
+
+1. **Persistent fields** — the `Hydrator` reflects into them by name,
+   and `#` slots aren't reachable from outside the class body. Use
+   public (or TypeScript `private` if the persistence layer were
+   refactored to use a friend-class hatch, which it isn't today).
+2. **Mixin instance state on Stuff hosts** — every Stuff is wrapped
+   in the call-security `Proxy`, and instance method dispatch goes
+   through `method.apply(proxy, args)`. Inside the method, `this` is
+   the proxy. `#`-private slots live on the raw target only, so any
+   `this.#foo` access from a method called through the proxy throws
+   `Cannot read private member from an object whose class did not
+   declare it`. Use TypeScript `private` (with a `_` prefix when the
+   field is part of a sealed-mutation surface a sibling Api needs to
+   reach via cast). The seal comes from `@Final @Unshadowable` on
+   the methods that own the field, NOT from `#`.
+
+   **Static fields on Api classes are fine with `#`** — Api methods
+   are static, so there's no instance proxy receiver in play.
+
+The "domain code defaults to TypeScript modifiers" rule is a
+consequence of (2) — even if `#` were tempting for a mixin's
+internal cache, the proxy makes it unworkable.
 
 ## Inter-Stuff Contract: Methods Only
 

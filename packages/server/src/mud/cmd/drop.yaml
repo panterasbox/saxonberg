@@ -1,22 +1,11 @@
 verbs: [drop]
 controller: DropController
 description: "Drop objects from your inventory"
-syntax:
-  - pattern: "<target>"
-    description: "Drop a single object"
-    fields:
-      target:
-        type: object
-        required: true
-        searchOrder: [inventory]
-        validators: [mustBeContainable]
-
-  - pattern: "<targets...>"
-    description: "Drop multiple objects"
-    fields:
-      targets:
-        type: object
-        required: true
-        multiple: true
-        searchOrder: [inventory]
-        validators: [mustBeContainable]
+args:
+  - name: targets
+    type: object
+    required: true
+    greedy: true
+    multiple: true
+    validators:
+      - /lib/command/validators/mustBeContainable

@@ -231,16 +231,17 @@ describe('CommandApi', () => {
       expect(command?.verbs).toContain('ping');
       expect(command?.controller).toBe('PingController');
       expect(command?.description).toBeDefined();
-      expect(command?.syntax).toBeDefined();
+      // ping has no positionals — args array exists and is empty.
+      expect(command?.args).toEqual([]);
     });
 
-    it('should correctly parse look.yaml with multiple syntax patterns', () => {
+    it('should correctly parse look.yaml top-level args', () => {
       const command = CommandApi.getCommand('look.yaml');
 
       expect(command).not.toBeNull();
       expect(command?.verbs).toContain('look');
       expect(command?.verbs).toContain('l');
-      expect(command?.syntax.length).toBeGreaterThan(0);
+      expect(command?.args.length).toBeGreaterThan(0);
     });
 
     it('should correctly parse player.yaml with subcommands', () => {

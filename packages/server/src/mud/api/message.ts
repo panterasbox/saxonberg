@@ -310,6 +310,11 @@ const TOPICS = {
       root: 'system.log',
       command: 'system.log.command',
     },
+    commands: {
+      added: 'system.commands.added',
+      removed: 'system.commands.removed',
+      reset: 'system.commands.reset',
+    },
   },
 } as const;
 

@@ -43,6 +43,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
+import type { CommandContributions } from '../../api/command';
 import {
   resolveSetting,
   SettingTypes,
@@ -110,7 +111,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * vehicles in future) automatically gains `go`, `open`, and
      * `close`.
      */
-    static commandProvider = {
+    static commandContributions: CommandContributions = {
       self: ['go.yaml', 'open.yaml', 'close.yaml'],
       environment: [],
       inventory: [],

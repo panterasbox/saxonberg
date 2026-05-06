@@ -1,20 +1,13 @@
 verbs: [get, take]
 controller: GetController
 description: "Pick up objects from your location"
-syntax:
-  - pattern: "<target>"
-    description: "Pick up a single object"
-    fields:
-      target:
-        type: object
-        required: true
-        validators: [mustBeVisible, canReach, mustBeContainable]
-
-  - pattern: "<targets...>"
-    description: "Pick up multiple objects"
-    fields:
-      targets:
-        type: object
-        required: true
-        multiple: true
-        validators: [mustBeVisible, canReach, mustBeContainable]
+args:
+  - name: targets
+    type: object
+    required: true
+    greedy: true
+    multiple: true
+    validators:
+      - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/canReach
+      - /lib/command/validators/mustBeContainable

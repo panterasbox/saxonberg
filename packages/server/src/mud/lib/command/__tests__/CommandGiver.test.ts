@@ -20,7 +20,11 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainmentApi } from '../../../api/containment';
-import { CommandApi, type CommandContext } from '../../../api/command';
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandContextInput,
+} from '../../../api/command';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Interactive } from '../../../obj/Interactive';
@@ -36,7 +40,7 @@ const TestGiverBase = CommandGiverMixin(
 );
 
 class TestGiver extends TestGiverBase {
-  static override commandProvider = {
+  static override commandContributions = {
     self: ['ping.yaml'],
     environment: [],
     inventory: [],
@@ -53,14 +57,13 @@ function buildContext(
   giver: TestGiver,
   location: Location,
   commandText: string
-): CommandContext {
+): CommandContextInput {
   return {
-    commandGiver: giver as unknown as CommandContext['commandGiver'],
+    commandGiver: giver as unknown as CommandContextInput['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText,
     executionId: 'test-execution',
-    commandId: '', // overwritten by executeCommand
   };
 }
 
@@ -113,9 +116,13 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     await giver.executeCommand('ping', ctx1);
     await giver.executeCommand('ping', ctx2);
 
-    expect(ctx1.commandId).toBeTruthy();
-    expect(ctx2.commandId).toBeTruthy();
-    expect(ctx1.commandId).not.toBe(ctx2.commandId);
+    // executeCommand promotes the input to a CommandContext and
+    // writes a fresh commandId before invoking controllers.
+    const c1 = ctx1 as CommandContext;
+    const c2 = ctx2 as CommandContext;
+    expect(c1.commandId).toBeTruthy();
+    expect(c2.commandId).toBeTruthy();
+    expect(c1.commandId).not.toBe(c2.commandId);
   });
 
   it('plants commandContext + causingCommandId on the Command frame', async () => {
@@ -123,17 +130,15 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     let observedCmdCtx: CommandContext | null = null;
     let observedCausing: string | null = null;
 
-    // Override pingController? No — easier route: snapshot the
-    // current frame state inside the auto-emit by hooking a sensor.
-    // Or better: read the frame stamping via the MudlogApi entry.
     await giver.executeCommand('ping', ctx);
 
     // The auto-emit frame should carry meta.commandId === ctx.commandId
     // and meta.causingCommandId === ctx.commandId.
     expect(giver.received).toHaveLength(1);
     const frame = giver.received[0]!;
-    expect(frame.meta.commandId).toBe(ctx.commandId);
-    expect(frame.meta.causingCommandId).toBe(ctx.commandId);
+    const c = ctx as CommandContext;
+    expect(frame.meta.commandId).toBe(c.commandId);
+    expect(frame.meta.causingCommandId).toBe(c.commandId);
     void observedCmdCtx;
     void observedCausing;
   });

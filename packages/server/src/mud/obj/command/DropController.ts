@@ -1,13 +1,13 @@
 /**
  * DropController — drop objects from inventory to location.
- *
- * Per item dropped, fires a Scene at `world.perception.inventory`
- * with self ("You drop X.") and peers ("<name>Alice</name> drops
- * X.") frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -15,15 +15,9 @@ import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
-export interface DropInput {
-  target?: Stuff;
-  targets?: Stuff[];
-}
-
-export class DropController extends CommandController<DropInput> {
-  execute(input: DropInput, context: CommandContext): CommandResult {
-    const targets: Stuff[] =
-      input.targets || (input.target ? [input.target] : []);
+export class DropController extends CommandController {
+  execute(model: CommandModel, context: CommandContext): CommandResult {
+    const targets = collectTargets(model);
 
     if (targets.length === 0) {
       return { success: false, summary: 'nothing to drop' };
@@ -71,4 +65,9 @@ export class DropController extends CommandController<DropInput> {
 
     return true;
   }
+}
+
+function collectTargets(model: CommandModel): Stuff[] {
+  const list = model.targets;
+  return Array.isArray(list) ? (list as Stuff[]) : [];
 }

@@ -1,13 +1,13 @@
 /**
  * GoController — locomotion: traverse a named exit or enter a sibling vessel.
- *
- * Stage 7a: shape-only update. Mover.traverse / announceArrival /
- * announceDeparture handle prose in Stage 9; the controller just
- * narrows + dispatches and returns the semantic outcome.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
 import { MqlApi } from '../../api/mql';
@@ -18,15 +18,15 @@ import type { Exit } from '../../lib/spatial/Exit';
 import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
-export interface GoInput {
-  target?: string;
-}
-
-export class GoController extends CommandController<GoInput> {
-  async execute(input: GoInput, context: CommandContext): Promise<CommandResult> {
+export class GoController extends CommandController {
+  async execute(
+    model: CommandModel,
+    context: CommandContext
+  ): Promise<CommandResult> {
     const { location } = context;
 
-    const target = input.target?.trim().toLowerCase();
+    const rawTarget = model.target as string | undefined;
+    const target = rawTarget?.trim().toLowerCase();
     if (!target) {
       return { success: false, summary: 'go where?' };
     }

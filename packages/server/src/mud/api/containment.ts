@@ -25,6 +25,12 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { VetoResult } from '../lib/errors';
+import type { CommandGiver } from '../lib/command/CommandGiver';
+import {
+  collectInventoryDefs,
+  collectEnvironmentDefs,
+  collectPeersDefs,
+} from '../lib/command/CommandGiver';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -116,6 +122,11 @@ export class ContainmentApi {
     if (from) callHook(from, 'onContainableRemoved', [item]);
     if (to) callHook(to, 'onContainableAdded', [item]);
     callHook(item, 'onMoved', [from, to]);
+
+    // Recency-stack bookkeeping for command-source attribution. Runs
+    // after world state reflects the new positions. The helpers below
+    // are no-ops when neither side carries a `CommandGiver`.
+    applyContainmentDelta(item, from, to);
   }
 
   /**
@@ -171,6 +182,102 @@ function assertVetoOk(result: VetoResult | undefined, hookName: string): void {
     `${hookName} veto: ${result.reason}`,
     { cause: { hookVeto: result, hookName } }
   );
+}
+
+/**
+ * Drive the recency stack on every successful move.
+ *
+ * Two relationships exist between item and any affected
+ * `CommandGiver`:
+ *
+ *   - **`from`/`to` IS the giver** — the giver had / now has item
+ *     in its `inventory` bucket.
+ *   - **`from`/`to` is the giver's container** — the giver had /
+ *     now has item in its `environment`/`peers` bucket as a sibling
+ *     occupant.
+ *
+ * The two are independent — both can fire on the same move (e.g. a
+ * vehicle that's a Container AND a CommandGiver and holds passenger
+ * CommandGivers: a new passenger lands in the vehicle's inventory
+ * AND in the existing passengers' environment).
+ *
+ * Plus the self-move case: an item that's itself a CommandGiver
+ * needs its own env+peers slice rebuilt from the destination's
+ * occupants.
+ */
+function applyContainmentDelta(
+  item: Stuff,
+  from: ContainerStuff | null,
+  to: ContainerStuff | null
+): void {
+  // Source side: pop from anyone whose stack carried item.
+  if (from) {
+    if (MixinApi.isCommandGiver(from)) {
+      (from as Stuff & CommandGiver).popCommandSource(item);
+    }
+    for (const sibling of from.getContents()) {
+      if (sibling === item) continue;
+      if (MixinApi.isCommandGiver(sibling)) {
+        (sibling as Stuff & CommandGiver).popCommandSource(item);
+      }
+    }
+  }
+
+  // Dest side: push to anyone whose stack now carries item.
+  if (to) {
+    if (MixinApi.isCommandGiver(to)) {
+      const defs = collectInventoryDefs(item);
+      if (defs.length > 0) {
+        (to as Stuff & CommandGiver).pushCommandSource(
+          item,
+          'inventory',
+          defs
+        );
+      }
+    }
+    const envDefs = collectEnvironmentDefs(item);
+    const peerDefs = MixinApi.isCommandGiver(item)
+      ? collectPeersDefs(item)
+      : [];
+    if (envDefs.length > 0 || peerDefs.length > 0) {
+      for (const sibling of to.getContents()) {
+        if (sibling === item) continue;
+        if (!MixinApi.isCommandGiver(sibling)) continue;
+        const siblingCG = sibling as Stuff & CommandGiver;
+        if (envDefs.length > 0) {
+          siblingCG.pushCommandSource(item, 'environment', envDefs);
+        }
+        if (peerDefs.length > 0) {
+          siblingCG.pushCommandSource(item, 'peers', peerDefs);
+        }
+      }
+    }
+  }
+
+  // Self-move: item is itself a CommandGiver entering a container.
+  // Drop its prior env+peers slice (if any) and push contributions
+  // from every neighbor in the new place — this is what makes "I
+  // just walked into a room" see the room's existing contents on
+  // the giver's own stack.
+  if (MixinApi.isCommandGiver(item) && to) {
+    const itemCG = item as Stuff & CommandGiver;
+    if (from) {
+      itemCG.resetCommandSources('self-moved');
+    }
+    for (const neighbor of to.getContents()) {
+      if ((neighbor as Stuff) === item) continue;
+      const envDefs = collectEnvironmentDefs(neighbor);
+      const peerDefs = MixinApi.isCommandGiver(neighbor)
+        ? collectPeersDefs(neighbor)
+        : [];
+      if (envDefs.length > 0) {
+        itemCG.pushCommandSource(neighbor, 'environment', envDefs);
+      }
+      if (peerDefs.length > 0) {
+        itemCG.pushCommandSource(neighbor, 'peers', peerDefs);
+      }
+    }
+  }
 }
 
 SecurityApi.decorateApiClass(ContainmentApi);

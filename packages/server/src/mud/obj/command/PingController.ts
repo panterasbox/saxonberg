@@ -6,12 +6,14 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 
-export interface PingInput {}
-
-export class PingController extends CommandController<PingInput> {
-  execute(_input: PingInput, _context: CommandContext): CommandResult {
+export class PingController extends CommandController {
+  execute(_model: CommandModel, _context: CommandContext): CommandResult {
     return { success: true, summary: 'pong' };
   }
 }

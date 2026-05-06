@@ -8,20 +8,20 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 
-export interface SayInput {
-  message: string;
-}
-
-export class SayController extends CommandController<SayInput> {
-  execute(input: SayInput, context: CommandContext): CommandResult {
+export class SayController extends CommandController {
+  execute(model: CommandModel, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
       return { success: false, summary: 'You cannot speak.' };
     }
-    speaker.say(input.message);
+    speaker.say(model.message as string);
     return { success: true };
   }
 }

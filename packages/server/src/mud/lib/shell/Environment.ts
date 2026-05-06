@@ -30,6 +30,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
+import type { CommandContributions } from '../../api/command';
 
 /**
  * Supported value types for a schema entry. `struct` / `list` are
@@ -221,7 +222,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Player-facing commands that operate on this mixin's stores.
      * Picked up by `CommandGiver` discovery via the `self` slot.
      */
-    static commandProvider = {
+    static commandContributions: CommandContributions = {
       self: ['settings.yaml', 'var.yaml'],
       environment: [],
       inventory: [],

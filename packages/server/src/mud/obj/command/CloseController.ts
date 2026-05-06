@@ -3,21 +3,21 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 
-export interface CloseInput {
-  target: string;
-}
-
-export class CloseController extends CommandController<CloseInput> {
-  execute(input: CloseInput, context: CommandContext): CommandResult {
+export class CloseController extends CommandController {
+  execute(model: CommandModel, context: CommandContext): CommandResult {
     const { commandGiver, location } = context;
-    const target = (input.target ?? '').trim();
+    const target = ((model.target as string) ?? '').trim();
     if (!target) return { success: false, summary: 'close what?' };
 
     const hit = MqlApi.resolve(target, { commandGiver, location });

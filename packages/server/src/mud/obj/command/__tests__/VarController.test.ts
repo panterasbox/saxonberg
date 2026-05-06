@@ -21,7 +21,28 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type { CommandContext } from '../../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  ModelData,
+} from '../../../api/command';
+import { CommandDefinition } from '../../../lib/command/CommandDefinition';
+
+function makeModel(
+  fields: ModelData = {},
+  subcommand?: string
+): CommandModel {
+  const model: CommandModel = { ...fields };
+  if (subcommand !== undefined) model.subcommand = subcommand;
+  return model;
+}
+
+function stubCommand(verb: string): CommandDefinition {
+  return CommandDefinition.fromYaml(
+    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
+    "<test>"
+  );
+}
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -60,6 +81,8 @@ function makeContext(host: Host, location: Location): CommandContext {
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
+  verb: 'var',
+  command: stubCommand('var'),
   };
 }
 
@@ -78,7 +101,7 @@ describe('VarController', () => {
   describe('list', () => {
     it('reports no vars when empty', () => {
       const result = controller.execute(
-        { subcommand: 'list' },
+        makeModel({}, 'list'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -87,22 +110,22 @@ describe('VarController', () => {
 
     it('lists ad-hoc vars', () => {
       controller.execute(
-        { subcommand: 'set', name: 'a', value: 'one' },
+        makeModel({ name: 'a', value: 'one' }, 'set'),
         makeContext(host, location),
       );
       controller.execute(
-        { subcommand: 'set', name: 'b', value: 'two' },
+        makeModel({ name: 'b', value: 'two' }, 'set'),
         makeContext(host, location),
       );
       const result = controller.execute(
-        { subcommand: 'list' },
+        makeModel({}, 'list'),
         makeContext(host, location),
       );
       expect(result.summary).toMatch(/2 vars/);
     });
 
     it('treats no subcommand as list', () => {
-      const result = controller.execute({}, makeContext(host, location));
+      const result = controller.execute(makeModel(), makeContext(host, location));
       expect(result.success).toBe(true);
     });
 
@@ -113,11 +136,11 @@ describe('VarController', () => {
       // listVars side, not the setVar side.)
       host.setSetting<string>('feature.declared', 'override', host);
       controller.execute(
-        { subcommand: 'set', name: 'plain', value: 'val' },
+        makeModel({ name: 'plain', value: 'val' }, 'set'),
         makeContext(host, location),
       );
       const result = controller.execute(
-        { subcommand: 'list' },
+        makeModel({}, 'list'),
         makeContext(host, location),
       );
       expect(result.summary).toMatch(/1 vars/);
@@ -127,7 +150,7 @@ describe('VarController', () => {
   describe('set', () => {
     it('writes an ad-hoc var to the session store', () => {
       const result = controller.execute(
-        { subcommand: 'set', name: 'greeting', value: 'hello' },
+        makeModel({ name: 'greeting', value: 'hello' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -136,7 +159,7 @@ describe('VarController', () => {
 
     it('rejects a declared-key write (D3 back-door close)', () => {
       const result = controller.execute(
-        { subcommand: 'set', name: 'feature.declared', value: 'sneak' },
+        makeModel({ name: 'feature.declared', value: 'sneak' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -147,11 +170,11 @@ describe('VarController', () => {
   describe('unset', () => {
     it('clears an existing var', () => {
       controller.execute(
-        { subcommand: 'set', name: 'tmp', value: 'gone' },
+        makeModel({ name: 'tmp', value: 'gone' }, 'set'),
         makeContext(host, location),
       );
       const result = controller.execute(
-        { subcommand: 'unset', name: 'tmp' },
+        makeModel({ name: 'tmp' }, 'unset'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);

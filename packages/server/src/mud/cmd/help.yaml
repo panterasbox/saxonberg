@@ -1,13 +1,7 @@
 verbs: [help, h, '?']
 controller: HelpController
 description: "Get help with commands"
-syntax:
-  - pattern: ""
-    description: "List all available commands"
-
-  - pattern: "<command>"
-    description: "Show help for specific command"
-    fields:
-      command:
-        type: string
-        required: true
+args:
+  - name: command
+    type: string
+    required: false

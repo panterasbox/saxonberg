@@ -1,13 +1,11 @@
 verbs: [tell, whisper]
 controller: TellController
 description: "Send a private message to someone"
-syntax:
-  - pattern: "<target> <message...>"
-    description: "Tell someone a private message"
-    fields:
-      target:
-        type: text
-        required: true
-      message:
-        type: text
-        required: true
+args:
+  - name: target
+    type: string
+    required: true
+  - name: message
+    type: string
+    required: true
+    greedy: true

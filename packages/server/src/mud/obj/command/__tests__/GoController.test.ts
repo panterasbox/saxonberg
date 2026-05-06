@@ -15,7 +15,28 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type { CommandContext } from '../../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  ModelData,
+} from '../../../api/command';
+import { CommandDefinition } from '../../../lib/command/CommandDefinition';
+
+function makeModel(
+  fields: ModelData = {},
+  subcommand?: string
+): CommandModel {
+  const model: CommandModel = { ...fields };
+  if (subcommand !== undefined) model.subcommand = subcommand;
+  return model;
+}
+
+function stubCommand(verb: string): CommandDefinition {
+  return CommandDefinition.fromYaml(
+    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
+    "<test>"
+  );
+}
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../lib/stuff/Idea";
 
@@ -46,6 +67,8 @@ function makeContext(
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
+  verb: 'go',
+  command: stubCommand('go'),
   };
 }
 
@@ -86,7 +109,7 @@ describe('GoController', () => {
   describe('golden path (cartesian)', () => {
     it('go north moves the avatar and emits departure/arrival messages', async () => {
       const result = await controller.execute(
-        { target: 'north' },
+        makeModel({ target: 'north' }),
         makeContext(avatar, locA, 'go north')
       );
       expect(result.success).toBe(true);
@@ -102,9 +125,9 @@ describe('GoController', () => {
     });
 
     it('round trip with south returns avatar to location A', async () => {
-      await controller.execute({ target: 'north' }, makeContext(avatar, locA, 'go north'));
+      await controller.execute(makeModel({ target: 'north' }), makeContext(avatar, locA, 'go north'));
       const back = await controller.execute(
-        { target: 'south' },
+        makeModel({ target: 'south' }),
         makeContext(avatar, locB, 'go south')
       );
       expect(back.success).toBe(true);
@@ -113,7 +136,7 @@ describe('GoController', () => {
 
     it('mover is excluded from peer broadcasts', async () => {
       await controller.execute(
-        { target: 'north' },
+        makeModel({ target: 'north' }),
         makeContext(avatar, locA, 'go north')
       );
       // The mover sees its own toSelf frames ("You leave...", "You
@@ -140,14 +163,14 @@ describe('GoController', () => {
 
   describe('guards and errors', () => {
     it('returns an error when no direction is given', async () => {
-      const result = await controller.execute({}, makeContext(avatar, locA, ''));
+      const result = await controller.execute(makeModel(), makeContext(avatar, locA, ''));
       expect(result.success).toBe(false);
       expect(result.summary).toMatch(/where/i);
     });
 
     it("returns 'can't go that way' for unmatched directions", async () => {
       const result = await controller.execute(
-        { target: 'south' },
+        makeModel({ target: 'south' }),
         makeContext(avatar, locA, 'go south')
       );
       expect(result.success).toBe(false);
@@ -161,7 +184,7 @@ describe('GoController', () => {
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
       const result = await controller.execute(
-        { target: 'east' },
+        makeModel({ target: 'east' }),
         makeContext(avatar, locA, 'go east')
       );
       expect(result.success).toBe(false);
@@ -189,7 +212,7 @@ describe('GoController', () => {
       ContainmentApi.move(spherePeer, office);
 
       const result = await controller.execute(
-        { target: 'office' },
+        makeModel({ target: 'office' }),
         makeContext(visitor, plaza, 'go office')
       );
       expect(result.success).toBe(true);
@@ -208,7 +231,7 @@ describe('GoController', () => {
       ContainmentApi.move(wardrobe, locA);
 
       const result = await controller.execute(
-        { target: 'wardrobe' },
+        makeModel({ target: 'wardrobe' }),
         makeContext(avatar, locA, 'go wardrobe')
       );
       expect(result.success).toBe(true);
@@ -222,7 +245,7 @@ describe('GoController', () => {
       ContainmentApi.move(avatar, wardrobe);
 
       const result = await controller.execute(
-        { target: 'out' },
+        makeModel({ target: 'out' }),
         makeContext(avatar, wardrobe as unknown as Location, 'go out')
       );
       expect(result.success).toBe(true);
