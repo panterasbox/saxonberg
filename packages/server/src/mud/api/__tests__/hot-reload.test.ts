@@ -459,67 +459,6 @@ describe('HotReloadApi', () => {
     });
   });
 
-  /* ─────────────────── Controller HMR integration ─────────────────── */
-
-  describe('reloadControllerManifest', () => {
-    /**
-     * Controllers are templated singletons cached in the StuffApi
-     * byTemplatePath index. After an HMR class reload, the cached
-     * singleton still has the old prototype — `singleton(path)` would
-     * keep returning it. `reloadControllerManifest` destructs every
-     * cached `/obj/command/*` instance so the next dispatch lazy-clones
-     * against the current HMR blueprint.
-     */
-    it('destructs cached /obj/command/* singletons; next singleton(path) re-clones', async () => {
-      const { CommandController } = await import(
-        '../../lib/command/CommandController'
-      );
-
-      class HotPingV1 extends CommandController<unknown> {
-        execute(_i: unknown, _c: unknown) {
-          return { success: true, summary: 'v1-marker' };
-        }
-      }
-      class HotPingV2 extends CommandController<unknown> {
-        execute(_i: unknown, _c: unknown) {
-          return { success: true, summary: 'v2-marker' };
-        }
-      }
-
-      // Stamp V1 into the StuffApi index under the controller's
-      // template path. Equivalent to "the boot-time first dispatch
-      // already lazy-cloned this controller."
-      const v1 = await StuffApi.create(() => new HotPingV1());
-      (v1 as unknown as { templatePath?: string }).templatePath =
-        '/obj/command/PingController';
-      StuffApi.unregister(v1);
-      StuffApi.register(v1);
-      expect(
-        (await StuffApi.singleton<HotPingV1>('/obj/command/PingController'))
-          .execute({}, {} as never)
-      ).toEqual({ success: true, summary: 'v1-marker' });
-
-      // Reload the manifest — the V1 singleton is destructed.
-      await HotReloadApi.reloadControllerManifest();
-      expect(
-        StuffApi.findByTemplatePath('/obj/command/PingController')
-      ).toBeUndefined();
-
-      // Stamp V2 in the same way (in production, the next
-      // `StuffApi.singleton` call lazy-clones from the seeded
-      // Template, going through the HMR-aware clone path).
-      const v2 = await StuffApi.create(() => new HotPingV2());
-      (v2 as unknown as { templatePath?: string }).templatePath =
-        '/obj/command/PingController';
-      StuffApi.unregister(v2);
-      StuffApi.register(v2);
-      expect(
-        (await StuffApi.singleton<HotPingV2>('/obj/command/PingController'))
-          .execute({}, {} as never)
-      ).toEqual({ success: true, summary: 'v2-marker' });
-    });
-  });
-
   /* ─────────────────── Hook manifest reload ─────────────────── */
 
   describe('reloadHookManifest', () => {

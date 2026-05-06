@@ -21,13 +21,15 @@ import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandApi, type CommandContext } from '../../../api/command';
-import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Interactive } from '../../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from "../../stuff/Idea";
-import { PingController } from '../../../obj/command/PingController';
+import {
+  PersistenceManager,
+  Collections,
+} from '../../../../backend/PersistenceManager';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -68,17 +70,32 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
 
   beforeEach(() => {
     CommandApi.clearCache();
-    StuffApi.clearAll();
-    // Pre-register a PingController under its template path so
-    // `StuffApi.singleton('/obj/command/PingController')` returns this
-    // instance instead of trying to clone from a (non-existent in
-    // this test) `domain` doc. Production boot seeds the template
-    // YAML and the dispatch-side singleton lazy-clones on first use.
-    const ping = makeStuff(() => new PingController());
-    (ping as unknown as { templatePath?: string }).templatePath =
-      '/obj/command/PingController';
-    StuffApi.unregister(ping);
-    StuffApi.register(ping);
+    // Dispatch clones a fresh PingController per command via
+    // `StuffApi.clone`, which calls `Template.findByPath` against PM.
+    // Mock PM so the lookup resolves without a live MongoDB.
+    const find = vi.fn(
+      async (collection: string, query: Record<string, unknown>) => {
+        if (
+          collection === Collections.Domain &&
+          query.path === '/obj/command/PingController'
+        ) {
+          return [
+            {
+              path: '/obj/command/PingController',
+              class: '/obj/command/PingController',
+              data: {},
+            },
+          ];
+        }
+        return [];
+      }
+    );
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+      save: vi.fn(),
+      find,
+      findById: vi.fn(),
+    } as unknown as PersistenceManager);
+
     location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
@@ -86,6 +103,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('stamps a fresh commandId onto context per call', async () => {

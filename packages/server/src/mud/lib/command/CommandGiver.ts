@@ -514,27 +514,28 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       options: Record<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
+      // Controllers are ephemeral: a fresh instance per execution.
+      // `StuffApi.clone` consults `HotReloadApi` so reloaded class
+      // blueprints are picked up automatically; the try/finally
+      // destructs the controller after `execute` resolves so we
+      // don't leak a registered Stuff per command.
+      let controller: CommandController<unknown> | null = null;
       try {
-        // Controllers are templated singletons under
-        // `/obj/command/<Name>`. `StuffApi.singleton` returns the
-        // cached instance if one exists in the byTemplatePath index,
-        // otherwise lazily clones from the seeded Template — which
-        // goes through the HMR-aware `StuffApi.clone` path. No
-        // dispatch-side HMR glue, no `new`, no dynamic import.
-        const controller = await StuffApi.singleton<CommandController<unknown>>(
+        controller = await StuffApi.clone<CommandController<unknown>>(
           `/obj/command/${command.controller}`
         );
-        const result = controller.execute(
+        return await controller.execute(
           fields as Record<string, unknown>,
           context
         );
-        return result;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         return {
           success: false,
           summary: `Failed to execute command: ${message}`,
         };
+      } finally {
+        if (controller) StuffApi.destruct(controller);
       }
     }
   };
