@@ -112,26 +112,45 @@ flows through the HMR registry.
 
 ### Hydrators
 
-Hydrators are templated `Idea` Stuff just like controllers. When a
-backing's Template names a `hydratorClass` (typically
-`/lib/persistence/PersistentHydrator`, seeded under
-`mud/seeds/lib/persistence/`), `clone()` recursively clones a fresh
-hydrator, runs `hydrate()`, and destructs in a try/finally:
+Hydrators are templated `Idea` Stuff. Unlike controllers, they are
+stateless by contract (`Hydrator.ts` documents this), so the clone
+pipeline resolves them via `StuffApi.singleton` — one cached
+instance per hydrator class, reused across every backing it hydrates:
 
 ```ts
 const hydrator = template.hydratorClass
-  ? await StuffApi.clone<Hydrator & Stuff>(template.hydratorClass)
+  ? await StuffApi.singleton<Hydrator & Stuff>(template.hydratorClass)
   : null;
 // ... construct backing ...
-if (hydrator) {
-  try { await hydrator.hydrate(backing, data); }
-  finally { StuffApi.destruct(hydrator); }
-}
+if (hydrator) await hydrator.hydrate(backing, data);
 ```
 
-No special-case `#resolveHydrator` path — HMR flows through the
-standard clone integration. The recursion terminates because hydrator
-Templates name no `hydratorClass` of their own.
+The first clone needing a particular hydrator lazy-clones it through
+the (HMR-aware) `StuffApi.clone` path; subsequent clones find the
+instance in the `byTemplatePath` index and reuse it.
+
+**HMR for hydrators.** A reloaded hydrator class produces a new
+blueprint in the registry, but the cached singleton instance is still
+pinned to the old class. To pick up new behavior, destruct the cached
+instance — the next clone that needs it will lazy-re-create through
+`singleton(path) → clone(path) → HMR-aware class lookup`:
+
+```ts
+await HotReloadApi.reload('/abs/.../PersistentHydrator.ts');
+const stale = StuffApi.findByTemplatePath('/lib/persistence/PersistentHydrator');
+if (stale) StuffApi.destruct(stale);
+```
+
+No dedicated helper — the byTemplatePath index is the registry.
+
+**Cycle detection.** `clone()` keeps an `#inFlightClonePaths` set:
+on entry it adds the templatePath, removes in `finally`, and throws
+`circular template dependency` if the same path is already in
+flight. This catches a hydrator template that (transitively)
+references itself before the recursion stack-overflows. Hydrators are
+the only realistic cycle vector in v1; the guard is at the clone()
+level so any future template-resolution cycle (mod system, custom
+loaders) gets the same treatment.
 
 ### Command dispatch
 

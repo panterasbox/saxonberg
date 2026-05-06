@@ -64,6 +64,18 @@ export class StuffApi {
   };
 
   /**
+   * Set of templatePaths whose `clone()` call is currently in flight.
+   * Catches circular template dependencies — e.g. a hydrator template
+   * naming itself (or another hydrator) as `hydratorClass`. Without
+   * detection the recursion would stack-overflow; with detection we
+   * throw a clear error before that happens.
+   *
+   * Invariant: every `clone()` must add its `templatePath` on entry
+   * and remove it in a finally block, regardless of success / failure.
+   */
+  static #inFlightClonePaths: Set<string> = new Set();
+
+  /**
    * Atomically add or remove `obj` across every index. Called from
    * `register` / `unregister`. Reads `obj.stuffId` and the
    * `templatePath` field stamped by `clone()` (`undefined` when the
@@ -205,6 +217,31 @@ export class StuffApi {
     templatePath: string,
     context?: unknown
   ): Promise<T> {
+    // Cycle guard. Catches a template whose `hydratorClass` resolves
+    // (transitively) back to itself before the recursion stack-
+    // overflows. Normal clones aren't recursive — only the
+    // hydrator-resolution recursion can hit this.
+    if (this.#inFlightClonePaths.has(templatePath)) {
+      throw new Error(
+        `StuffApi.clone('${templatePath}'): circular template ` +
+          `dependency — already in flight (path chain: ${[
+            ...this.#inFlightClonePaths,
+            templatePath,
+          ].join(' → ')})`
+      );
+    }
+    this.#inFlightClonePaths.add(templatePath);
+    try {
+      return await this.#cloneInner<T>(templatePath, context);
+    } finally {
+      this.#inFlightClonePaths.delete(templatePath);
+    }
+  }
+
+  static async #cloneInner<T extends Stuff>(
+    templatePath: string,
+    context?: unknown
+  ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
     //    Template → Persistable → Idea → Stuff → StuffApi cycle at module
     //    init time.
@@ -280,14 +317,16 @@ export class StuffApi {
     const zone = await ZoneApi.resolveZoneForPath(templatePath);
 
     // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
-    //    hydration step runs at all — `data` is ignored. Templates
-    //    that want generic mixin-field copy name a hydrator class
-    //    (typically `/lib/persistence/PersistentHydrator`); the
-    //    pipeline clones a fresh instance for this backing and
-    //    destructs it after `hydrate` resolves. Same HMR-aware path
-    //    as the backing class itself — no special-case logic.
+    //    hydration step runs at all — `data` is ignored. Otherwise
+    //    `singleton(path)` returns the cached hydrator instance if
+    //    one is registered, or lazily clones the first time a
+    //    backing needs it. Hydrators are stateless by contract
+    //    (`Hydrator.ts` documents this) — reusing one instance
+    //    across many `hydrate` calls is correct, and avoids a
+    //    per-clone Template.findByPath round-trip. HMR-aware via
+    //    the same clone-override path as the backing class.
     const hydrator: (Hydrator & Stuff) | null = template.hydratorClass
-      ? await this.clone<Hydrator & Stuff>(template.hydratorClass)
+      ? await this.singleton<Hydrator & Stuff>(template.hydratorClass)
       : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
@@ -310,15 +349,7 @@ export class StuffApi {
     (obj as unknown as { templatePath?: string }).templatePath = templatePath;
     return this.#registerAndInit(
       obj,
-      hydrator
-        ? async (o) => {
-            try {
-              await hydrator.hydrate(o, template.data ?? {});
-            } finally {
-              StuffApi.destruct(hydrator);
-            }
-          }
-        : null,
+      hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
       context
     );
   }

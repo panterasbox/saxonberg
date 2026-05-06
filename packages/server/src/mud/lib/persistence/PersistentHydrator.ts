@@ -27,12 +27,12 @@ type Indexable = Record<string, unknown>;
 
 /**
  * Extends `Idea` so the clone pipeline can produce a hydrator the
- * same way it produces every other templated Stuff —
- * `StuffApi.clone('/lib/persistence/PersistentHydrator')`. There's no
- * special-case `#resolveHydrator` path; HMR comes for free via the
- * standard clone integration. Templates that name this class as
- * their `hydratorClass` get a fresh instance per backing, destructed
- * after `hydrate` resolves.
+ * same way it produces every other templated Stuff. `clone()`
+ * resolves `template.hydratorClass` via `StuffApi.singleton` — one
+ * instance per hydrator class, reused across every backing it
+ * hydrates (hydrators are stateless by contract; see `Hydrator.ts`).
+ * No special-case `#resolveHydrator` path; HMR comes for free via
+ * the standard clone integration.
  */
 export class PersistentHydrator extends Idea implements Hydrator {
   /**

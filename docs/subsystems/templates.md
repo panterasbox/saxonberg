@@ -78,11 +78,16 @@ exists in the resolved module. Anything else throws.
    the instance before hydrate so anything that reads `this.zone` during
    hydrate sees the right value.
 4. **Resolve `hydratorClass`** if present. Hydrators are themselves
-   templated `Idea` Stuff — `clone` recursively clones the hydrator
-   (HMR-aware via the same path as the backing class), runs
-   `hydrate()`, then destructs the hydrator in a try/finally. The
-   recursion terminates because hydrator Templates name no
-   `hydratorClass` of their own. See
+   templated `Idea` Stuff. Because they're stateless by contract,
+   `clone` resolves them via `StuffApi.singleton` — one cached
+   instance per hydrator class, reused across every backing. The
+   first clone that needs a particular hydrator triggers a recursive
+   `clone` (HMR-aware via the same path as the backing class) to
+   warm the cache; subsequent clones reuse the singleton. Recursion
+   terminates because hydrator Templates name no `hydratorClass` of
+   their own. Cycles (a hydrator transitively naming itself) are
+   caught by `clone`'s in-flight-path guard and surfaced as
+   `circular template dependency`. See
    [hot-reload.md § Hydrators](./hot-reload.md#hydrators).
 5. **Construct** the backing under the construction sentinel:
    ```typescript
