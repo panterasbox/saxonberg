@@ -21,11 +21,12 @@ import { Shadowing, ShadowSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ShadowError, SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
 // A Stuff host with a `describe()` method. The shadow chain
 // dispatches methods only (accessors are filtered at attach time),
 // so all of the dispatch-mechanics tests below use methods.
-class DescribeHost extends Stuff {
+class DescribeHost extends Idea {
   public greeting: string = 'plain';
   describe(): string {
     return this.greeting;
@@ -69,7 +70,7 @@ class LoudShadow extends Shadow {
 }
 
 // Host that has a `say` method.
-class TalkingHost extends Stuff {
+class TalkingHost extends Idea {
   public lastUttered = '';
   say(text: string): string {
     this.lastUttered = text;
@@ -80,7 +81,7 @@ class TalkingHost extends Stuff {
 import { Unshadowable } from '../../lib/security/decorators';
 
 // Host with an @Unshadowable method.
-class GuardedHost extends Stuff {
+class GuardedHost extends Idea {
   @Unshadowable
   guarded(): string {
     return 'guarded';
@@ -322,7 +323,7 @@ describe('@ShadowSecurity', () => {
   });
 
   it('@ShadowSecurity({ attach }) gates attach', () => {
-    class StrictHost extends Stuff {
+    class StrictHost extends Idea {
       @ShadowSecurity({ attach: SecurityPolicies.SystemRoot })
       sensitive(): string {
         return 'untouched';

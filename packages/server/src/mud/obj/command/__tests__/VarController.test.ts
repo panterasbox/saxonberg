@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VarController } from '../VarController';
+import { Idea } from '../../../lib/stuff/Idea';
 import {
   EnvironmentMixin,
   type SettingsSchemaEntry,
@@ -40,7 +41,7 @@ function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 const HostBase = FeatureMixin(
   EnvironmentMixin(
-    CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Stuff)))),
+    CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
   ),
 );
 

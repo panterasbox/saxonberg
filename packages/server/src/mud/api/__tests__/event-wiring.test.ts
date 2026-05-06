@@ -15,6 +15,7 @@ import { EventRegistry } from '../../obj/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Interactive } from '../../obj/Interactive';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
+import { Idea } from "../../lib/stuff/Idea";
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -49,7 +50,7 @@ describe('Engine emit sites', () => {
         seen.push(p);
       }
     );
-    class Plain extends Stuff {}
+    class Plain extends Idea {}
     const obj = await StuffApi.create(() => new Plain());
     await flushMicrotasks();
     expect(seen.some((s) => s.stuffId === obj.stuffId)).toBe(true);
@@ -57,7 +58,7 @@ describe('Engine emit sites', () => {
 
   it('StuffDestructed fires from StuffApi.destruct', async () => {
     await bootRegistry();
-    class Plain extends Stuff {}
+    class Plain extends Idea {}
     const obj = await StuffApi.create(() => new Plain());
     const seen: Array<{ stuffId: string }> = [];
     EventApi.on<{ stuffId: string }>(Events.StuffDestructed, (p) => {
@@ -70,7 +71,7 @@ describe('Engine emit sites', () => {
 
   it('ConnectionAttached fires from ConnectionApi.transfer', async () => {
     await bootRegistry();
-    class Holder extends HasInteractiveMixin(Stuff) {}
+    class Holder extends HasInteractiveMixin(Idea) {}
     const holder = await StuffApi.create(() => new Holder());
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)

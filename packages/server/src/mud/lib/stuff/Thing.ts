@@ -23,3 +23,5 @@ export class Thing extends ThingBase {
     super();
   }
 }
+
+Stuff._registerTopLevelBranch(Thing);

@@ -12,6 +12,7 @@ import { ContainableMixin } from '../Containable';
 import { MobileMixin } from '../Mobile';
 import { NamedMixin } from '../../description/Named';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
   const prev = Stuff._beginConstruction();
@@ -27,7 +28,7 @@ function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
   return proxy;
 }
 
-const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
+const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))));
 class TestMover extends SensorBase {
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {
@@ -35,7 +36,7 @@ class TestMover extends SensorBase {
   }
 }
 
-const PeerBase = NamedMixin(SensorMixin(ContainableMixin(Stuff)));
+const PeerBase = NamedMixin(SensorMixin(ContainableMixin(Idea)));
 class PeerSensor extends PeerBase {
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {

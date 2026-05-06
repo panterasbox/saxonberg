@@ -10,6 +10,7 @@ import { Door } from '../Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 /**
  * Test helper: construct + register a Stuff at a known templatePath
@@ -376,11 +377,11 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     const aNorth = a.getExits().get('north')!;
     const bSouth = b.getExits().get('south')!;
 
-    StuffApi.destruct(a as unknown as Stuff);
+    StuffApi.destruct(a as unknown as Idea);
 
     expect(bSouth.isBlocked()).toBe(true);
     expect(bSouth.getInverse()).toBeUndefined();
-    expect((aNorth as unknown as Stuff).isDestroyed()).toBe(true);
+    expect((aNorth as unknown as Idea).isDestroyed()).toBe(true);
     expect(zone.contains(a)).toBe(false);
   });
 
@@ -389,7 +390,7 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(() => StuffApi.destruct(zone as unknown as Stuff)).toThrow(
+    expect(() => StuffApi.destruct(zone as unknown as Idea)).toThrow(
       /live location/,
     );
   });
@@ -399,10 +400,10 @@ describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
     const loc = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     zone.addLocation(loc, 0, 0, 0);
 
-    StuffApi.destruct(loc as unknown as Stuff);
+    StuffApi.destruct(loc as unknown as Idea);
     expect(zone.getLocations().size).toBe(0);
 
-    expect(() => StuffApi.destruct(zone as unknown as Stuff)).not.toThrow();
-    expect((zone as unknown as Stuff).isDestroyed()).toBe(true);
+    expect(() => StuffApi.destruct(zone as unknown as Idea)).not.toThrow();
+    expect((zone as unknown as Idea).isDestroyed()).toBe(true);
   });
 });

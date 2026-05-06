@@ -17,9 +17,10 @@ import { Stuff } from '../../stuff/Stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../stuff/Idea";
 
 const NpcBase = NamedMixin(
-  MobileMixin(SensorMixin(ContainerMixin(ContainableMixin(Stuff)))),
+  MobileMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
 );
 class Npc extends NpcBase {
   received: MessageFrame[] = [];
@@ -30,7 +31,7 @@ class Npc extends NpcBase {
 
 const AvatarLikeBase = EnvironmentMixin(
   NamedMixin(
-    MobileMixin(SensorMixin(ContainerMixin(ContainableMixin(Stuff)))),
+    MobileMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
   ),
 );
 class AvatarLike extends AvatarLikeBase {

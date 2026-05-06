@@ -30,6 +30,12 @@
 
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
+
+/**
+ * Any class reference, abstract or concrete. Used by the top-level
+ * branch registry — identity-based, no instantiation through this.
+ */
+type AnyClassRef = abstract new (...args: never[]) => unknown;
 import type { Zone } from '../spatial/Zone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -249,7 +255,103 @@ export abstract class Stuff {
       );
     }
     Stuff.#expectingConstruction = false;
+    Stuff.#assertTopLevelBranch(this.constructor as AnyClassRef);
     this.stuffId = nanoid();
+  }
+
+  /**
+   * Top-level branches registered via `_registerTopLevelBranch`.
+   * Every concrete Stuff subclass must trace through one of these in
+   * its prototype chain. Identity-based — entries are the actual
+   * branch constructors (Thing, Location, Idea, Agent, Vessel,
+   * Persistable, Shadow), not names or markers, so the membership
+   * check can't be spoofed by a same-named class declared elsewhere.
+   */
+  static #branches: Set<AnyClassRef> = new Set();
+
+  /**
+   * File-URL patterns whose code may call `_registerTopLevelBranch`.
+   * Same machinery as `#constructionGateAllowlist`: caller's source
+   * URL must match. Adding a new branch is a deliberate edit to this
+   * list AND its registration call site.
+   */
+  static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Vessel|Shadow)\.(ts|js)$/,
+    /\/mud\/lib\/persistence\/Persistable\.(ts|js)$/,
+  ];
+
+  static #branchRegistrationCache: Map<string, boolean> = new Map();
+
+  /**
+   * Register a class as a top-level branch. Called by Thing /
+   * Location / Idea / Agent / Vessel / Persistable / Shadow at module
+   * load. Caller URL must match `#branchRegistrationAllowlist`;
+   * everything else throws.
+   *
+   * @internal
+   */
+  public static _registerTopLevelBranch(ctor: AnyClassRef): void {
+    Stuff.#assertBranchRegistrationAllowed();
+    Stuff.#branches.add(ctor);
+  }
+
+  static #assertBranchRegistrationAllowed(): void {
+    const url = Stuff.#findImmediateCallerUrl();
+    if (url === null) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#branchRegistrationCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
+          `seven branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts ` +
+          `and lib/persistence/Persistable.ts) may register branches.`
+      );
+    }
+    const allowed = Stuff.#branchRegistrationAllowlist.some((re) => re.test(url));
+    Stuff.#branchRegistrationCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
+          `seven branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts ` +
+          `and lib/persistence/Persistable.ts) may register branches.`
+      );
+    }
+  }
+
+  /**
+   * Cache of constructors known to trace through a registered branch.
+   * Misses are not cached — failing classes should never be
+   * constructed twice.
+   */
+  static #branchCheckCache: WeakSet<object> = new WeakSet();
+
+  /**
+   * Throw if `ctor` doesn't trace through one of the registered
+   * top-level branches. Walks `Object.getPrototypeOf(ctor)` upward
+   * comparing constructor identity against `#branches`. See
+   * `docs/architecture.md § Top-level branches` for the rule and the
+   * rationale.
+   */
+  static #assertTopLevelBranch(ctor: AnyClassRef): void {
+    if (Stuff.#branchCheckCache.has(ctor)) return;
+    let cur: AnyClassRef | null = ctor;
+    while (cur) {
+      if (Stuff.#branches.has(cur)) {
+        Stuff.#branchCheckCache.add(ctor);
+        return;
+      }
+      cur = Object.getPrototypeOf(cur) as AnyClassRef | null;
+    }
+    throw new Error(
+      `Stuff subclass '${ctor.name || '<anonymous>'}' does not extend ` +
+        `through one of the top-level branches: Thing, Location, Idea, ` +
+        `Agent, Vessel, Persistable, or Shadow. See ` +
+        `docs/architecture.md § Top-level branches.`
+    );
   }
 
   /**

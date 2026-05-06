@@ -32,7 +32,7 @@ Sibling docs cover related ground without overlap:
 | `SphericalZone` | concrete class | Spheres-with-radius space. No implicit adjacency — every exit is authored. |
 | `Exit` | concrete `Idea` | One-way passage between two `Container & Exitable` endpoints. Carries direction, lazy-resolvable destination, optional door, `oneWay` flag, traversal flags, and custom messages. |
 | `Door` | concrete `Thing` | Shared open/closed state. As a `Thing` it has Containable, so a broken/detached door can live in a Location's contents and be picked up. `attachedTo: Set<Exit>` is the runtime back-reference. |
-| `Vessel` | concrete class | A `Thing` that is also a `Container` — chests, packs, crates. Portable AND holds stuff. |
+| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. |
 | `ExitableVessel` | concrete class | A Vessel you can enter. Composes `DoorBearingMixin`. Synthesizes `'out'` / entry exits on demand, optionally carrying the vessel's door. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
@@ -51,30 +51,39 @@ Sibling docs cover related ground without overlap:
 ## Class Hierarchy
 
 ```
-Idea
-  ├── Location                  (ContainerMixin(Stuff))
-  │     ├── CartesianLocation   (PostRegistration + Exitable + CartesianCoords + Visible)
-  │     └── SphericalLocation   (PostRegistration + Exitable + SphericalCoords + Visible)
-  ├── Zone (abstract)
-  │     ├── CartesianZone       (Singleton + grid + derived adjacency)
-  │     └── SphericalZone       (Singleton + focus index, no derivation)
-  └── Exit                      (data + canTraverse() guard, lazy destination)
-
-Thing  =  ContainableMixin(VisibleMixin(Stuff))
-  ├── Door                      (Visible + Perceptible + Sealable + Containable)
-  └── Vessel                    (ContainerMixin(Thing))
-        └── ExitableVessel      (DoorBearing + Exitable + Visible)
-
-Avatar / NPC / vehicle:
-  ContainableMixin + MobileMixin + ...   (mover-side)
+Stuff (one of seven top-level branches — see architecture.md)
+  ├── Idea
+  │     ├── Zone (abstract)
+  │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
+  │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     └── Exit                    (data + canTraverse() guard, lazy destination)
+  ├── Location                      (ContainerMixin(Stuff))
+  │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible)
+  │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible)
+  ├── Thing                         (ContainableMixin(Stuff))
+  │     └── Door                    (Visible + Perceptible + Sealable + Containable)
+  ├── Vessel                        (ContainerMixin(ContainableMixin(Stuff)))
+  │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
+  └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
-The fundamental split: **Locations are containers but not containables**
-(rooms don't live anywhere). **Things are containables and may also be
-containers** (Vessels) or *defining elements that detach to become
-containables* (Doors — attached: `environment === null`; broken: lives
-in some Location's contents). **Avatars are containable + mobile** —
-they live inside a Location and can travel.
+The fundamental split for spatial relationships:
+
+- **Locations are containers but not containables** (rooms don't
+  live anywhere).
+- **Things are containables but not containers** (or, in Vessel-light
+  cases, both — a chest *could* be modeled as a Thing-with-Container,
+  but anything with navigable interior is a Vessel).
+- **Vessels are both** — that's their distinguishing trait. Mobile
+  places.
+- **Doors are Things** with an attach/detach relationship to Exits,
+  not a pure Containable role.
+- **Agents are containable + mobile** — they live inside a Location
+  and can travel.
+
+Capability checks (`isContainer`, `isContainable`, `isExitable`)
+cross all seven branches; class-identity checks (`instanceof`) are
+for role.
 
 ## Containment
 
@@ -433,13 +442,20 @@ clears every Exit's reference to it.
 
 ### `Vessel`
 
-`lib/spatial/Vessel.ts`. The "portable container" archetype:
-`ContainerMixin(Thing)`. Since `Thing` already supplies Containable
-plus Visible, a Vessel is Container + Containable + Visible — it
-holds stuff, lives somewhere itself, and has a description.
+`lib/stuff/Vessel.ts`. **One of the seven top-level branches** — a
+*mobile place*, sibling of `Thing` / `Location` / `Idea` / `Agent` /
+`Persistable` / `Shadow`. Composition:
+`ContainerMixin(ContainableMixin(Stuff))`. A Vessel holds stuff
+(Container) and lives somewhere itself (Containable). No inheritance
+edge to `Thing` — vessels aren't items; "is this place-like?" /
+"is this item-like?" questions go through `MixinApi.isContainer` /
+`isContainable`, not `instanceof`. See
+[architecture.md § Top-level branches](../architecture.md#top-level-branches)
+for the full rationale.
 
-Pure structural composition; subclasses (locked chest, bag of
-holding, backpack with slots) layer behavior on top.
+Concrete vessels (chests, packs, ships, vehicles) extend `Vessel` and
+layer on whatever they need (`VisibleMixin` for description,
+locked-chest behavior, bag-of-holding magic, etc.).
 
 ### `ExitableVessel`
 

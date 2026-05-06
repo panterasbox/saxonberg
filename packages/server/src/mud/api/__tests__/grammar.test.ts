@@ -6,11 +6,12 @@ import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
-class Plain extends Stuff {}
-class NamedThing extends NamedMixin(Stuff) {}
-class VisibleThing extends VisibleMixin(Stuff) {}
-class GenderedThing extends GenderedMixin(Stuff) {}
+class Plain extends Idea {}
+class NamedThing extends NamedMixin(Idea) {}
+class VisibleThing extends VisibleMixin(Idea) {}
+class GenderedThing extends GenderedMixin(Idea) {}
 
 describe('GrammarApi.cap', () => {
   it('capitalizes the first letter', () => {

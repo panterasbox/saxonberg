@@ -21,10 +21,11 @@ import { Location } from '../../stuff/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../stuff/Idea";
 
 // A character-shaped speaker: Named + Vocal + Sensor + Containable
 class CharacterSpeaker extends VocalMixin(
-  SensorMixin(ContainableMixin(NamedMixin(Stuff)))
+  SensorMixin(ContainableMixin(NamedMixin(Idea)))
 ) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
@@ -33,7 +34,7 @@ class CharacterSpeaker extends VocalMixin(
 }
 
 // A sensor that just records what it hears
-class Listener extends SensorMixin(ContainableMixin(NamedMixin(Stuff))) {
+class Listener extends SensorMixin(ContainableMixin(NamedMixin(Idea))) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
@@ -44,13 +45,13 @@ class Listener extends SensorMixin(ContainableMixin(NamedMixin(Stuff))) {
 // Sensor is required because Scene.toSelf needs it (the speaker hears
 // its own self frame).
 class TalkingRoom extends VocalMixin(
-  SensorMixin(ContainerMixin(NamedMixin(Stuff)))
+  SensorMixin(ContainerMixin(NamedMixin(Idea)))
 ) {}
 
 // Speaker with no container relationship — Sensor only, so the
 // composition-error throw fires (rather than a Sensor check failing
 // first).
-class DisembodiedVoice extends VocalMixin(SensorMixin(NamedMixin(Stuff))) {}
+class DisembodiedVoice extends VocalMixin(SensorMixin(NamedMixin(Idea))) {}
 
 describe('VocalMixin.say()', () => {
   describe('Containable speaker (peers mode)', () => {

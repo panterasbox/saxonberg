@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Idea } from '../Idea';
 import {
   PropertiedMixin,
   Property,
@@ -19,7 +20,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 // Test class with PropertiedMixin.
 // Subclass-level test seams: `peekSavedProps()` / `peekTransientProps()`
 // expose the protected mixin storage so assertions can inspect it.
-class PropertiedThing extends PropertiedMixin(Stuff) {
+class PropertiedThing extends PropertiedMixin(Idea) {
   static persistentFields: string[] = [];
   public peekSavedProps(): Record<string, unknown> | undefined {
     return this.savedProps as Record<string, unknown> | undefined;
@@ -30,7 +31,7 @@ class PropertiedThing extends PropertiedMixin(Stuff) {
 }
 
 // Minimal Stuff subclass for use as a mask owner in tests.
-class OwnerStuff extends Stuff {}
+class OwnerStuff extends Idea {}
 
 function makeOwner(): OwnerStuff {
   const owner = makeStuff(() => new OwnerStuff());
@@ -40,7 +41,7 @@ function makeOwner(): OwnerStuff {
 // Stuff that invokes mask operations on another Stuff. Used to exercise
 // the call-stack-based owner default — the proxy frame pushed for these
 // methods makes `caller` resolve to the MaskApplier instance.
-class MaskApplier extends Stuff {
+class MaskApplier extends Idea {
   applyAddFive(target: PropertiedThing): boolean {
     return target.maskProp(
       new Property<number>('strength'),
@@ -618,7 +619,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('can be overridden in subclass', () => {
-      class RestrictedPropertied extends PropertiedMixin(Stuff) {
+      class RestrictedPropertied extends PropertiedMixin(Idea) {
         defaultPropAccess(property: Property, op: PropOperation, special: unknown): boolean {
           return op === PropOperations.Get; // Only allow Get
         }

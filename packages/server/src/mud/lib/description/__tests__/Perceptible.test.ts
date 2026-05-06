@@ -6,9 +6,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 // Test class with PerceptibleMixin
-const PerceptibleBase = PerceptibleMixin(Stuff);
+const PerceptibleBase = PerceptibleMixin(Idea);
 class TestObject extends PerceptibleBase {}
 
 describe('PerceptibleMixin', () => {

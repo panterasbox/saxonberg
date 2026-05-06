@@ -13,16 +13,17 @@ import { ContainableMixin } from '../Containable';
 import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 // Concrete test item class — needs ContainableMixin to live in a Container.
-class ConcreteStuff extends ContainableMixin(Stuff) {
+class ConcreteStuff extends ContainableMixin(Idea) {
   constructor() {
     super();
   }
 }
 
 // Test class that uses ContainerMixin.
-class TestContainer extends ContainerMixin(Stuff) {
+class TestContainer extends ContainerMixin(Idea) {
   constructor() {
     super();
   }

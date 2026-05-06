@@ -9,9 +9,10 @@ import { Stuff } from '../../stuff/Stuff';
 import { Location } from '../../stuff/Location';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 // Create a test class with both ContainableMixin and MobileMixin
-const MobileObjectBase = MobileMixin(ContainableMixin(Stuff));
+const MobileObjectBase = MobileMixin(ContainableMixin(Idea));
 class MobileObject extends MobileObjectBase {}
 
 describe('MobileMixin', () => {

@@ -14,6 +14,7 @@ import { ProxyApi } from '../proxy';
 import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../lib/stuff/Idea";
 
 function makeFrame(topic: string = 'test', body: string = ''): MessageFrame {
   return {
@@ -25,7 +26,7 @@ function makeFrame(topic: string = 'test', body: string = ''): MessageFrame {
 }
 
 // Create a test sensor class
-const SensorBase = SensorMixin(ContainableMixin(Stuff));
+const SensorBase = SensorMixin(ContainableMixin(Idea));
 class TestSensor extends SensorBase {
   protected override handleMessage(message: unknown): void {
     this.lastMessage = message;
@@ -34,7 +35,7 @@ class TestSensor extends SensorBase {
 }
 
 // Create a mobile sensor (like Avatar)
-const MobileSensorBase = MobileMixin(SensorMixin(ContainableMixin(Stuff)));
+const MobileSensorBase = MobileMixin(SensorMixin(ContainableMixin(Idea)));
 class MobileSensor extends MobileSensorBase {
   protected override handleMessage(message: unknown): void {
     this.lastMessage = message;
@@ -43,7 +44,7 @@ class MobileSensor extends MobileSensorBase {
 }
 
 // Create a simple non-sensor object for testing — containable so it can live in a Location
-class NonSensor extends ContainableMixin(Stuff) {}
+class NonSensor extends ContainableMixin(Idea) {}
 
 describe('MessageApi', () => {
   let location: Location;

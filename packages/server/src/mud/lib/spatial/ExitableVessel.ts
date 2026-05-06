@@ -29,7 +29,7 @@
  * walks back and clears refs symmetrically.
  */
 
-import { Vessel } from './Vessel';
+import { Vessel } from '../stuff/Vessel';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { DoorBearingMixin } from './DoorBearing';

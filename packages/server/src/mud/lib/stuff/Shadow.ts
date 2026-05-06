@@ -117,3 +117,5 @@ export abstract class Shadow extends Stuff {
     return ShadowApi._callBypass(this, method, args) as T;
   }
 }
+
+Stuff._registerTopLevelBranch(Shadow);

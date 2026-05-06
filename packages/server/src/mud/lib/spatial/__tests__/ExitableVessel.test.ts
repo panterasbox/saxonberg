@@ -10,9 +10,10 @@ import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
-class PlainItem extends ContainableMixin(Stuff) {}
-class PlainContainer extends ContainerMixin(ContainableMixin(Stuff)) {}
+class PlainItem extends ContainableMixin(Idea) {}
+class PlainContainer extends ContainerMixin(ContainableMixin(Idea)) {}
 
 describe('ExitableVessel', () => {
   let zone: CartesianZone;

@@ -17,8 +17,9 @@ import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import type { CommandContext } from '../../../api/command';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { Idea } from "../../../lib/stuff/Idea";
 
-const FakeAvatarBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Stuff))));
+const FakeAvatarBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))));
 class FakeAvatar extends FakeAvatarBase {
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {
@@ -26,7 +27,7 @@ class FakeAvatar extends FakeAvatarBase {
   }
 }
 
-class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Stuff))) {
+class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Idea))) {
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {
     this.received.push(msg);

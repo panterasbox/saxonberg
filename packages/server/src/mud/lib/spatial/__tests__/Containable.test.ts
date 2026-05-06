@@ -11,16 +11,17 @@ import { ContainerMixin } from '../Container';
 import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 // Concrete test environment class — needs ContainerMixin to be an environment
-class ConcreteStuff extends ContainerMixin(Stuff) {
+class ConcreteStuff extends ContainerMixin(Idea) {
   constructor() {
     super();
   }
 }
 
 // Test class that uses ContainableMixin
-class TestContainable extends ContainableMixin(Stuff) {
+class TestContainable extends ContainableMixin(Idea) {
   constructor() {
     super();
   }

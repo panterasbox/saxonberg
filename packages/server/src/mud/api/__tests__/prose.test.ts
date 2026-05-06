@@ -6,10 +6,11 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
-class Plain extends Stuff {}
-class NamedThing extends NamedMixin(Stuff) {}
-class GenderedNamed extends GenderedMixin(NamedMixin(Stuff)) {}
+class Plain extends Idea {}
+class NamedThing extends NamedMixin(Idea) {}
+class GenderedNamed extends GenderedMixin(NamedMixin(Idea)) {}
 
 describe('ProseApi.format — substitution', () => {
   it('renders a literal template with no placeholders', () => {

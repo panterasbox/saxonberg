@@ -18,6 +18,7 @@ import { StuffApi } from '../../../api/stuff';
 import { Shadowing } from '../../security/decorators';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../stuff/Idea";
 
 function frame(topic: string, body: string = ''): MessageFrame {
   return {
@@ -28,7 +29,7 @@ function frame(topic: string, body: string = ''): MessageFrame {
   };
 }
 
-class CapturingSensor extends SensorMixin(Stuff) {
+class CapturingSensor extends SensorMixin(Idea) {
   public received: MessageFrame[] = [];
 
   protected override handleMessage(f: MessageFrame): void {
@@ -50,7 +51,7 @@ describe('SensorMixin', () => {
   });
 
   it('default filterMessage on a bare Sensor is a no-op (frame ignored)', () => {
-    class BareSensor extends SensorMixin(Stuff) {}
+    class BareSensor extends SensorMixin(Idea) {}
     const sensor = makeStuff(() => new BareSensor());
     expect(() => sensor.onMessage(frame('x'))).not.toThrow();
   });

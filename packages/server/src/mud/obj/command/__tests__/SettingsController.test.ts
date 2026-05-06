@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SettingsController } from '../SettingsController';
+import { Idea } from '../../../lib/stuff/Idea';
 import {
   EnvironmentMixin,
   type SettingsSchemaEntry,
@@ -59,7 +60,7 @@ function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 const HostBase = FeatureMixin(
   EnvironmentMixin(
-    CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Stuff)))),
+    CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
   ),
 );
 
@@ -234,7 +235,7 @@ describe('SettingsController', () => {
     it('declines gracefully', () => {
       // A bare Stuff without EnvironmentMixin should be rejected at
       // the surface, not crash with an undefined-method error.
-      const bare = makeStuff(() => new (class extends Stuff {})());
+      const bare = makeStuff(() => new (class extends Idea {})());
       const result = controller.execute(
         { subcommand: 'list' },
         {

@@ -3,7 +3,7 @@
  *
  * Visible / Named / Exitable behaviors live on concrete subclasses
  * (`CartesianLocation`, `SphericalLocation`, …) and are exercised by
- * those subclasses' tests; bare Location is just `ContainerMixin(Stuff)`.
+ * those subclasses' tests; bare Location is just `ContainerMixin(Idea)`.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -13,8 +13,9 @@ import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../Idea";
 
-class TestItem extends ContainableMixin(Stuff) {}
+class TestItem extends ContainableMixin(Idea) {}
 
 describe('Location', () => {
   let location: Location;

@@ -39,3 +39,5 @@ export class Location extends LocationBase {
     }
   }
 }
+
+Stuff._registerTopLevelBranch(Location);
