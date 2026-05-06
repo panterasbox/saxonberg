@@ -16,20 +16,18 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
 interface DropModel extends CommandModel {
-  targets?: Stuff[];
+  // Non-optional: drop.yaml marks `targets` required + multiple, so
+  // the matcher rejects on missing input and resolveAndValidate fails
+  // the command if MQL produces zero hits. Controllers see at least
+  // one Stuff.
+  targets: Stuff[];
 }
 
 export class DropController extends CommandController<DropModel> {
   execute(model: DropModel, context: CommandContext): CommandResult {
-    const targets = collectTargets(model);
-
-    if (targets.length === 0) {
-      return { success: false, summary: 'nothing to drop' };
-    }
-
     let successCount = 0;
     const droppedNames: string[] = [];
-    for (const target of targets) {
+    for (const target of model.targets) {
       if (this.dropObject(target, context)) {
         successCount++;
         droppedNames.push(DescribeApi.getDisplayName(target, 'something'));
@@ -69,8 +67,4 @@ export class DropController extends CommandController<DropModel> {
 
     return true;
   }
-}
-
-function collectTargets(model: DropModel): Stuff[] {
-  return model.targets ?? [];
 }

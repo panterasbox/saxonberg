@@ -16,20 +16,18 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
 interface GetModel extends CommandModel {
-  targets?: Stuff[];
+  // Non-optional: get.yaml marks `targets` required + multiple, so
+  // the matcher rejects on missing input and resolveAndValidate fails
+  // the command if MQL produces zero hits. Controllers see at least
+  // one Stuff.
+  targets: Stuff[];
 }
 
 export class GetController extends CommandController<GetModel> {
   execute(model: GetModel, context: CommandContext): CommandResult {
-    const targets = collectTargets(model);
-
-    if (targets.length === 0) {
-      return { success: false, summary: 'nothing to get' };
-    }
-
     let successCount = 0;
     const pickedNames: string[] = [];
-    for (const target of targets) {
+    for (const target of model.targets) {
       if (this.pickUpObject(target, context)) {
         successCount++;
         pickedNames.push(DescribeApi.getDisplayName(target, 'something'));
@@ -73,8 +71,4 @@ export class GetController extends CommandController<GetModel> {
 
     return true;
   }
-}
-
-function collectTargets(model: GetModel): Stuff[] {
-  return model.targets ?? [];
 }
