@@ -30,6 +30,7 @@
 
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
+import { ModuleApi } from '../../api/module';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -176,7 +177,7 @@ export abstract class Stuff {
    * justification — keep the list narrow.
    */
   static #assertConstructionGateAllowed(op: string): void {
-    const url = Stuff.#findImmediateCallerUrl();
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
     if (url === null) {
       throw new Error(
         `Stuff.${op}() refused: caller URL could not be determined`
@@ -203,33 +204,12 @@ export abstract class Stuff {
   }
 
   /**
-   * Walk `Error.stack` to the first frame outside this module and
-   * return its file URL, or `null`.
+   * Self-skip pattern for `ModuleApi.getImmediateCallerUrl` — frames
+   * inside `Stuff.ts` (the construction-gate / branch-registration
+   * helpers themselves) are dropped so the first reported frame is
+   * the actual caller.
    */
-  static #findImmediateCallerUrl(): string | null {
-    const err = new Error();
-    const lines = (err.stack ?? '').split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('at ')) continue;
-      const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
-      const bare = trimmed.match(
-        /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
-      );
-      const m = parens ?? bare;
-      if (!m) continue;
-      const raw = m[1];
-      if (!raw) continue;
-      // Normalise Windows backslashes — stack-frame URLs on Windows
-      // arrive as `C:\...` while the in-module skip below is written
-      // with forward slashes.
-      const url = raw.replace(/\\/g, '/');
-      // Skip frames inside this module file (Stuff.ts/js).
-      if (/\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/.test(url)) continue;
-      return url;
-    }
-    return null;
-  }
+  static #SELF_URL = /\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/;
 
   /**
    * Constructor - generates unique runtime ID.
@@ -296,7 +276,7 @@ export abstract class Stuff {
   }
 
   static #assertBranchRegistrationAllowed(): void {
-    const url = Stuff.#findImmediateCallerUrl();
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
     if (url === null) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused: caller URL could not be determined`
