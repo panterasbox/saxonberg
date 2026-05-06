@@ -353,7 +353,7 @@ export class StuffApi {
    * the closure).
    *
    * Registration happens BEFORE `postRegister()` so that recursive
-   * resolution during setup (e.g. a room whose exits resolve back to
+   * resolution during setup (e.g. a location whose exits resolve back to
    * itself via the registry) can observe the in-flight instance. If
    * `postRegister()` throws, the object is unregistered before the error
    * propagates.

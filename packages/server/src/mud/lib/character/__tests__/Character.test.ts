@@ -21,14 +21,14 @@ describe('Character', () => {
   });
 
   describe('mixin composition', () => {
-    it('should have Named mixin properties', () => {
-      expect(character).toHaveProperty('name');
-      expect(character).toHaveProperty('surname');
-      expect(character).toHaveProperty('fullName');
+    it('should have Named mixin methods', () => {
+      expect(typeof character.getName).toBe('function');
+      expect(typeof character.getSurname).toBe('function');
+      expect(typeof character.getFullName).toBe('function');
     });
 
-    it('should have Gendered mixin properties', () => {
-      expect(character).toHaveProperty('pronouns');
+    it('should have Gendered mixin methods', () => {
+      expect(typeof character.getPronouns).toBe('function');
     });
 
     it('should have Sensor mixin methods (stub)', () => {

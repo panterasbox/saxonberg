@@ -16,6 +16,7 @@ import type { Containable } from '../../lib/spatial/Containable';
 import type { Mobile } from '../../lib/spatial/Mobile';
 import type { Exit } from '../../lib/spatial/Exit';
 import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
+import { resolveSetting } from '../../lib/shell/Environment';
 
 export interface GoInput {
   target?: string;
@@ -69,7 +70,15 @@ export class GoController extends CommandController<GoInput> {
       };
     }
 
-    await mover.traverse(exit);
+    // `go` carries no verb of its own — it dispatches under the
+    // mover's `movement.defaultMode` setting (declared on
+    // MobileMixin; defaults to 'walk' via the schema fallback for
+    // movers without EnvironmentMixin). Explicit verbs (`run`,
+    // `climb`, …) get their own controllers and pass the verb
+    // directly to `traverse`.
+    const mode =
+      resolveSetting<string>(mover, 'movement.defaultMode') ?? 'walk';
+    await mover.traverse(exit, mode);
 
     const destName = DescribeApi.getDisplayName(exit.getDestination(), 'somewhere new');
     return { success: true, summary: `to ${destName}` };

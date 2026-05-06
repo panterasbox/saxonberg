@@ -12,6 +12,7 @@
 
 import { Character } from '../lib/character/Character';
 import { PlayerApi } from '../api/player';
+import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
@@ -138,13 +139,18 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * Cleanup hook. Unregisters from PlayerApi and drops all connections.
-   * Persist-back to the avatar template is deferred to the persist
-   * direction of the unified model (not implemented this phase).
+   * Cleanup hook. Unregisters from PlayerApi and detaches every live
+   * Interactive so they don't retain a holder reference pointing at
+   * a destroyed Stuff. Persist-back to the avatar template is deferred
+   * to the persist direction of the unified model (not implemented
+   * this phase).
    */
   protected prepareDestroy(): void {
     PlayerApi.unregisterAvatar(this);
-    this.interactives.clear();
+    // Snapshot — detach() mutates the underlying set via removeInteractive.
+    for (const interactive of [...this.interactives]) {
+      ConnectionApi.detach(interactive);
+    }
   }
 
   /**

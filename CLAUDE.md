@@ -58,6 +58,9 @@ behavior. Read the relevant doc before editing in its area.
   - [spatial.md](./docs/subsystems/spatial.md) — locations, zones
     (Cartesian/Spherical), exits, doors, vessels, coordinates,
     containment chokepoint, locomotion, direction vocabulary
+  - [collections.md](./docs/subsystems/collections.md) — canonical
+    surfaces for collection-shaped mixins (Set / keyed Map / ordered
+    list / property bag), mutator/predicate naming axes
 
 ## Development Commands
 
@@ -297,9 +300,15 @@ internals should reach for the host's public method surface, not
 field/accessor access. When a test genuinely needs raw state, the
 seam is `Stuff.RAW_TARGET` plus a comment explaining why.
 
-This is a graduated rule. The current codebase still has plenty of
-`obj.field`-style call sites; migration is mechanical and tracked
-separately. New code goes on the new pattern.
+For mixins that own collections (a `Set`, a keyed `Map`, an ordered
+list), the canonical method surface — `addX` / `removeX` / `hasX` /
+`getXs` and the variations — is documented in
+[collections.md](./docs/subsystems/collections.md). Pick the shape
+that fits the underlying storage and stick to its surface.
+
+This is a graduated rule. The current codebase still has `obj.field`-
+style call sites; migration is mechanical and lands as a separate
+sweep. New code goes on the new pattern.
 
 ## Go Through the API Layer
 
@@ -315,7 +324,7 @@ bypass it. Common cases:
 | `item.setEnvironment(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
-| `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
+| `creature.move(loc)` (raw containment) | `mover.traverse(exit, mode)` (locomotion; commands resolve `mode` from the `movement.defaultMode` setting) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 

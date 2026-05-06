@@ -248,6 +248,36 @@ public static isFoo(obj: Stuff): obj is Stuff & Foo {
 The four touch-points are deliberately mechanical so that adding a
 mixin is a checklist, not a design exercise.
 
+### Marker mixins (empty public surface)
+
+Most mixins contribute fields and methods, but a few exist purely as
+identity — `SingletonMixin` is the canonical example. Composing
+`SingletonMixin(Foo)` doesn't add anything callable; it sets
+`_mixinName = 'SingletonMixin'` so framework code can detect the
+class via `MixinApi.hasMixin(ctor, Mixins.Singleton)`. The mechanical
+touch-points are unchanged — `_mixinName`, `Mixins.Singleton`,
+`MixinApi.isSingleton` — but the public-shape interface is empty:
+
+```typescript
+export interface Singleton {} // marker — no public surface
+
+export function SingletonMixin<TBase extends MixinConstructor<Stuff>>(
+  Base: TBase
+) {
+  return class SingletonMixin extends Base {
+    static _mixinName = 'SingletonMixin';
+  };
+}
+```
+
+This is a legitimate shape. Don't invent fields or methods to "give
+the mixin substance" — the marker IS the substance. The work happens
+elsewhere (in StuffApi's clone pre-flight, in this case).
+
+Marker mixins remain rare. Add fields and methods to a mixin when
+you have real surface to expose; reach for the marker shape only
+when the cross-cutting subsystem lookup is the entire purpose.
+
 ## Composition
 
 ### Stacking
@@ -794,6 +824,9 @@ contribute or whether one wins.
 - [architecture.md § Mixin
   Organization](../architecture.md#mixin-organization) — the headline
   rules (subsystem folder, no `lib/mixins/`, `Mixins` registry).
+- [collections.md](./collections.md) — canonical surfaces for mixins
+  that own a collection: Shape A (Set membership), Shape B (keyed
+  Map), Shape C (ordered list), Shape D (property bag).
 - [antipatterns.md § Duck Typing with
   Mixins](../antipatterns.md#duck-typing-with-mixins) — the `isX` /
   `hasMixin` rule and migration recipes.

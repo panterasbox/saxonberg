@@ -8,7 +8,6 @@ import { ExitableVessel } from '../../../lib/spatial/ExitableVessel';
 import { Exit } from '../../../lib/spatial/Exit';
 import { Door } from '../../../lib/spatial/Door';
 import { ContainmentApi } from '../../../api/containment';
-import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -62,9 +61,9 @@ describe('GoController', () => {
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
-    locA.setShortDescription('Room A');
+    locA.setShortDescription('Location A');
     locB = makeStuff(() => new CartesianLocation());
-    locB.setShortDescription('Room B');
+    locB.setShortDescription('Location B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 
@@ -91,7 +90,7 @@ describe('GoController', () => {
       );
       expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(locB);
-      expect(result.summary).toContain('Room B');
+      expect(result.summary).toContain('Location B');
 
       const depText = JSON.stringify(peerInA.received);
       expect(depText).toContain('leaves to the');
@@ -101,7 +100,7 @@ describe('GoController', () => {
       expect(arrText).toContain('south');
     });
 
-    it('round trip with south returns avatar to room A', async () => {
+    it('round trip with south returns avatar to location A', async () => {
       await controller.execute({ target: 'north' }, makeContext(avatar, locA, 'go north'));
       const back = await controller.execute(
         { target: 'south' },

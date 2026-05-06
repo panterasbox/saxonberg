@@ -185,7 +185,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    await mover.traverse(exit);
+    await mover.traverse(exit, 'walk');
     expect(mover.traverses).toEqual([exit]);
     expect(source.exited).toHaveLength(1);
     expect(dest.entered).toHaveLength(1);
@@ -204,7 +204,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    await expect(mover.traverse(exit)).rejects.toThrow(/sealed/);
+    await expect(mover.traverse(exit, 'walk')).rejects.toThrow(/sealed/);
     expect(mover.getContainer()).toBe(source);
     expect(dest.entered).toEqual([]);
   });

@@ -55,21 +55,19 @@ export abstract class Stuff {
   /**
    * CMS template path this object was cloned from, or null when the
    * object was constructed directly via `StuffApi.create`. Stamped at
-   * clone time by `StuffApi.clone()`. Identity-keyed security policies
-   * (notably `FromTemplate`) match against this string.
+   * clone time by `StuffApi.clone()` via the bracket-write framework
+   * carve-out below; **immutable post-stamp** for everyone else.
    *
    * Storage is public as a framework carve-out: SecurityPolicies and
    * StuffApi indexes read it directly through the Proxy via
-   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`.
-   * Treated as immutable post-stamp; do not write after the constructor
-   * frame closes.
+   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`. There
+   * is intentionally **no `setTemplatePath()`** — flipping a Stuff's
+   * identity post-clone would break `FromTemplate` policies and the
+   * `byTemplatePath` index.
    */
   public templatePath: string | null = null;
   public getTemplatePath(): string | null {
     return this.templatePath;
-  }
-  public setTemplatePath(value: string | null): void {
-    this.templatePath = value;
   }
 
   /**

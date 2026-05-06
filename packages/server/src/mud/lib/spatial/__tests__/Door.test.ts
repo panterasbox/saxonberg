@@ -126,7 +126,7 @@ describe('Door attachedTo back-reference + break/install', () => {
 
     a.addBidirectionalExit(b, 'north', { door });
 
-    expect(door.getAttachedTo().size).toBe(2);
+    expect(door.getAttachedExits().size).toBe(2);
     expect(door.hasAttached(a.getExits().get('north')!)).toBe(true);
     expect(door.hasAttached(b.getExits().get('south')!)).toBe(true);
   });
@@ -147,7 +147,7 @@ describe('Door attachedTo back-reference + break/install', () => {
 
     door.detach();
 
-    expect(door.getAttachedTo().size).toBe(0);
+    expect(door.getAttachedExits().size).toBe(0);
     expect(aNorth.getDoor()).toBeNull();
     expect(bSouth.getDoor()).toBeNull();
   });
@@ -182,14 +182,14 @@ describe('Door attachedTo back-reference + break/install', () => {
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
     a.addBidirectionalExit(b, 'north', { door });
-    expect(door.getAttachedTo().size).toBe(2);
+    expect(door.getAttachedExits().size).toBe(2);
 
     door.detach();
-    expect(door.getAttachedTo().size).toBe(0);
+    expect(door.getAttachedExits().size).toBe(0);
 
     // Reinstall on a different exit pair.
     a.addBidirectionalExit(c, 'east', { door });
-    expect(door.getAttachedTo().size).toBe(2);
+    expect(door.getAttachedExits().size).toBe(2);
     expect(a.getExits().get('east')!.getDoor()).toBe(door);
     expect(c.getExits().get('west')!.getDoor()).toBe(door);
   });

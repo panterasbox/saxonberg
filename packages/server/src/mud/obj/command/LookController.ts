@@ -72,14 +72,14 @@ export class LookController extends CommandController<LookInput> {
 
   private getObjectDescription(obj: Stuff): string {
     if (MixinApi.isVisible(obj)) return obj.getLong();
-    // TODO: differentiate "looking at a non-Visible room" from
+    // TODO: differentiate "looking at a non-Visible Location" from
     // "looking at a non-Visible object." A bare `Location` has no
     // description by design (the starting `/domain/void` is one);
     // returning "You see nothing special." in that context reads
-    // wrong. Either skip the description block entirely for rooms,
-    // or use a context-aware fallback (e.g. "An unremarkable
-    // place."). Tracked under "Command system polish" in
-    // docs/roadmap.md.
+    // wrong. Either skip the description block entirely for bare
+    // Locations, or use a context-aware fallback (e.g. "An
+    // unremarkable place."). Tracked under "Command system polish"
+    // in docs/roadmap.md.
     return 'You see nothing special.';
   }
 

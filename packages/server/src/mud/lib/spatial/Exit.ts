@@ -253,10 +253,7 @@ export class Exit extends Idea {
   public getDestinationTemplatePath(): string | null {
     if (this._destinationPath) return this._destinationPath;
     if (this._destination) {
-      return (
-        (this._destination as unknown as { templatePath?: string })
-          .templatePath ?? null
-      );
+      return this._destination.getTemplatePath() ?? null;
     }
     return null;
   }
@@ -271,7 +268,7 @@ export class Exit extends Idea {
    *     no-op).
    *   - Drops the local door reference.
    */
-  public prepareDestroy(): void {
+  protected override prepareDestroy(): void {
     if (this.inverse) {
       this.inverse.setInverse(undefined);
       this.inverse = undefined;

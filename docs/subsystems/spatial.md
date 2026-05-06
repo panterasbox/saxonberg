@@ -282,19 +282,22 @@ reading `this.zone` during `postRegister` sees the right value
 
 `lib/spatial/Exit.ts`. An `Exit` is a first-class `Idea` — runtime
 identity, but no physical presence in any room's inventory. An Exit
-carries:
+carries the following slots; **external callers use the `getX()` /
+`setX()` method pair** (per the inter-stuff contract — see
+[CLAUDE.md § Inter-Stuff Contract: Methods Only](../../CLAUDE.md)),
+not direct field access:
 
 - `direction: string` — cardinal long-form (`'north'`, `'up'`),
   semantic label (`'office'`), or vessel-synthesized (`'out'`, `'in'`).
 - `source: Stuff & Container` — the Exitable this exit leaves from.
 - `destination` — either a live `Stuff & Container` ref OR a
   `destinationPath: string` (templatePath) that resolves lazily via
-  `StuffApi.singleton()`. The synchronous `destination` getter
-  resolves from the singleton cache when possible; if the path-only
-  form is unloaded, it throws and the caller must
-  `await exit.getDestination()` first. `MobileMixin.traverse` does this.
+  `StuffApi.singleton()`. The synchronous `getDestination()` resolves
+  from the singleton cache when possible; if the path-only form is
+  unloaded, it throws and the caller must `await exit.resolveDestination()`
+  first. `MobileMixin.traverse` does this.
 - `door: Door | null` — optional. Both sides of a bidirectional pair
-  reference the same instance. Setter / `addExit` / `removeExit`
+  reference the same instance. `setDoor()` / `addExit` / `removeExit`
   maintain `Door.attachedTo`.
 - Flags: `hidden`, `blocked`, `muffled` (reserved), `noFollow`
   (reserved), `oneWay`.
@@ -323,32 +326,32 @@ this flag; the verifier exists to catch that mistake.
 container kinds. It owns the explicit `exits: Map<direction, Exit>`
 and the merged-lookup algorithm.
 
-`getExit(direction)` (`Exitable.ts:129-138`) merges in this order:
+`getExit(direction)` merges in this order:
 
 1. **Explicit map.** Wins absolutely. If you authored
    `addExit({direction:'north', ...})`, that's what `'north'` returns
    regardless of grid neighbor.
 2. **Subclass hook.** `ExitableVessel.getExit` overrides to handle
-   `direction === 'out'` (`ExitableVessel.ts:53-60`) before falling
+   `direction === 'out'` (`ExitableVessel § getExit`) before falling
    through.
 3. **Zone-derived.** `getExit` calls `zone.deriveExit(this, direction)`
    when the zone is a `CartesianZone`. SphericalZone always returns
    `undefined`, so the third step is effectively cartesian-only.
 4. `undefined`.
 
-`getObviousExits()` (`Exitable.ts:153-174`) is the union used by
+`getObviousExits()` is the union used by
 `look`. Walks explicit exits first, then iterates the 10 cardinals
 through `zone.deriveExit` for any direction not already explicit.
 Filters by `!exit.hidden`.
 
-`getExitDoors()` (`Exitable.ts:177-183`) collects every non-null
+`getExitDoors()` collects every non-null
 `exit.door` reachable through `getObviousExits` — used by MQL so a
 player can target a door by keyword without it living in an inventory.
 
 ### Bidirectional exits
 
 `Exitable.addBidirectionalExit(other, direction, opts?)`
-(`Exitable.ts:197-242`) installs both sides in one call:
+installs both sides in one call:
 
 - For cardinal `direction`, the opposite is inferred via
   `NavigationApi.invertDirection`. For semantic labels (vessel
@@ -371,7 +374,7 @@ narrow.
 
 - `isOpen: boolean` — backed by `_isOpen`. Default closed. The setter
   rejects non-boolean assignments with `TypeError`
-  (`Sealable.ts:44-51`); since the `Hydrator` bracket-assigns through
+  (`Sealable § isOpen accessor pair`); since the `Hydrator` bracket-assigns through
   setters, a malformed template (`isOpen: 1`) crashes loudly at
   hydrate time rather than coercing silently at runtime.
 - `open()` / `close()` — idempotent. Persistent (`isOpen`).
@@ -485,10 +488,15 @@ The synthesized `'out'` exit is added to `getObviousExits` output, so
 
 #### `DoorBearingMixin`
 
-`lib/spatial/DoorBearing.ts`. Adds `door: Door | null` (persistent),
-`getDoor()`, and a default `setDoor()` that just updates the field.
-Bound to `Stuff & Exitable` because a door without an exit doesn't
-make sense; the constraint enforces the layering at compile time.
+`lib/spatial/DoorBearing.ts`. Adds `door: Door | null` (runtime-only,
+**not** in `persistentFields` — a `Door` is a separate Stuff and
+the generic hydrator's bracket-assign cannot round-trip a Stuff
+reference; composing classes that need door identity to survive
+restart own that via a custom `persistenceHandler`, the same shape
+`Containable.environment` uses), `getDoor()`, and a default
+`setDoor()` that just updates the field. Bound to `Stuff & Exitable`
+because a door without an exit doesn't make sense; the constraint
+enforces the layering at compile time.
 
 ExitableVessel overrides `setDoor` to additionally invalidate the
 synthesized-exit caches — the default mixin implementation is enough
@@ -506,7 +514,13 @@ thing that cannot be contained is nonsensical.
 
 ### Two modes: `traverse` and `teleport`
 
-**`traverse(exit)`** (`Mobile.ts:197-231`) — exit-driven movement.
+**`traverse(exit, mode)`** — exit-driven movement under a named
+locomotion mode (`'walk'`, `'run'`, `'climb'`, …). `mode` is required
+at the API; `go` resolves its value from the `movement.defaultMode`
+setting (declared on `MobileMixin`, schema-defaulted to `'walk'`),
+explicit-verb controllers pass their own verb. Mode threads through
+the call but isn't yet wired into narration or per-exit validation —
+see the TODO in `Mobile.traverse`.
 Two-layer hook dispatch:
 
 1. **Traversal vetoes:** `canTraverse` on the mover, `canExit` on the
@@ -525,7 +539,7 @@ validated traversal via `exit.canTraverse(mover)` — that's the door's
 "is this passable?" gate. The Witness hooks here layer additional
 pre-move vetoes, not a replacement.
 
-**`teleport(destination, opts?)`** (`Mobile.ts:243-253`) — Exit-less
+**`teleport(destination, opts?)`** — Exit-less
 move. Default narrates departure + arrival; pass `{ silent: true }`
 to suppress both. Login spawning uses `silent: true`: a newly cloned
 avatar shouldn't be announced as "vanishing from nowhere" or
@@ -537,8 +551,7 @@ avatar shouldn't be announced as "vanishing from nowhere" or
 `world.narration.movement` (with Exit) or `world.narration.teleport`
 (without). The body resolution is a precedence chain:
 
-`resolveDepartureMessage` (`Mobile.ts:279-322`),
-`resolveArrivalMessage` (`Mobile.ts:327-366`):
+`resolveDepartureMessage`, `resolveArrivalMessage`:
 
 1. **`Exit.messageOut` / `messageIn`** — Liquid template, simplest
    override. `{{ mover }}` is bound to the mover's `Mml.name`. Used
@@ -552,7 +565,7 @@ avatar shouldn't be announced as "vanishing from nowhere" or
    from the mover via `resolveSetting` (the cross-host helper from
    [shell-environment.md](./shell-environment.md)). The defaults are
    declared as a `static settings` schema on the mixin
-   (`Mobile.ts:127-178`) — eight keys covering self/peers × depart/
+   (`Mobile § settings`) — eight keys covering self/peers × depart/
    arrive × walk/teleport, with Liquid variables `{{ mover }}` and
    `{{ direction }}`.
 
@@ -561,7 +574,7 @@ EnvironmentMixin) can override individual keys via the `settings`
 command, while NPCs and vehicles render at the schema default through
 `resolveSetting`'s non-Environment fallback.
 
-`dispatchMovementScene` (`Mobile.ts:374-393`) sends the resolved
+`dispatchMovementScene` sends the resolved
 bodies: `toSelf` only when the mover is itself a `Sensor` (a future
 vehicle carrying passengers might not be); `toPeers` always.
 
@@ -682,20 +695,27 @@ catches what slips through, and wires `inverse` pointers as a
 side-effect.
 
 `ExitableMixin.verifyOutboundExits()` (instance method on every
-Exitable) walks `this.exits`.
-For each exit:
+Exitable) walks the **per-exit `_pendingVerify` set** — the subset of
+`this.exits` that was flagged at `addExit` time as having work the
+verifier could do (path-only destination or unsettled inverse).
+Settled exits are evicted from the set so subsequent calls are
+cheap. For each pending exit:
 
 - Skip if `oneWay`, already-`inverse`-wired, or non-cardinal direction.
 - Look up destination's templatePath in `byTemplatePath`. If not
-  loaded, skip (the other side's load will run the verifier).
+  loaded, leave it pending (the other side's load will run the
+  verifier).
 - If loaded, query `destination.getExit(invert(direction))`:
   - **Match** (back-exit's destination is `loc`): wire
-    `forward.inverse = back`, `back.inverse = forward` — but only
-    when both are explicit (in their respective `exits` map; derived
-    cartesian exits are recreated per-call and inverse pointers to
-    them would dangle).
-  - **Mismatch** or **missing**: set `forward.blocked = true` and log
-    a warning.
+    `forward.inverse = back`, `back.inverse = forward`, and evict
+    from `_pendingVerify` — but only when both are explicit (in
+    their respective `exits` map; derived cartesian exits are
+    recreated per-call and inverse pointers to them would dangle).
+  - **Mismatch** or **missing**: set `forward.blocked = true`, log
+    a warning, evict from `_pendingVerify`.
+
+`hasPendingVerification()` exposes the set's emptiness so the
+traversal-time fallback can short-circuit when nothing's pending.
 
 Fires from two places:
 

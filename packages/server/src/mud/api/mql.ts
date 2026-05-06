@@ -176,7 +176,7 @@ export class MqlApi {
    *
    * Includes the location's normal contents PLUS any doors referenced by
    * its obvious exits (when the location is Exitable). Doors are not
-   * "contents" — they don't live inside the room — but they are
+   * "contents" — they don't live inside the location — but they are
    * player-targetable by name (`open the oak door`), so they participate
    * in MQL resolution on the location.
    *

@@ -4,7 +4,7 @@
  * Responsibilities:
  * - User connection lifecycle (handleUserConnect, handleUserDisconnect)
  * - Message routing between client and game
- * - Initial game state (starting room - future)
+ * - Initial game state (starting location - future)
  * - User/Player creation and lookup
  *
  * Does NOT:

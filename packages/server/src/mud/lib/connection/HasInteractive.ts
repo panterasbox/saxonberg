@@ -37,8 +37,11 @@ export interface HasInteractive {
   /** Add an Interactive connection. */
   addInteractive(interactive: Interactive): void;
 
-  /** Remove an Interactive connection. */
-  removeInteractive(interactive: Interactive): void;
+  /** Remove an Interactive connection. Returns true iff it was present. */
+  removeInteractive(interactive: Interactive): boolean;
+
+  /** Membership test. */
+  hasInteractive(interactive: Interactive): boolean;
 
   /** Drop every connection in one call. Used during destruct. */
   clearInteractives(): void;
@@ -77,8 +80,12 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       this.interactives.add(interactive);
     }
 
-    public removeInteractive(interactive: Interactive): void {
-      this.interactives.delete(interactive);
+    public removeInteractive(interactive: Interactive): boolean {
+      return this.interactives.delete(interactive);
+    }
+
+    public hasInteractive(interactive: Interactive): boolean {
+      return this.interactives.has(interactive);
     }
 
     /** Drop every connection in one call. Used during destruct. */

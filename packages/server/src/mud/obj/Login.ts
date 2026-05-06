@@ -5,7 +5,7 @@
  * and lives only as long as the entry procedure takes. Orchestrates the
  * mudlib-side work of putting a connected user into the game world:
  * reading the user's owned character slots, resolving character selection,
- * placing the chosen avatar into a starting room, and notifying the client.
+ * placing the chosen avatar into a starting location, and notifying the client.
  *
  * Lifetime: constructed once per login; destructed when the entry is
  * complete (or handed off to character selection).
@@ -21,7 +21,7 @@ import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
-import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
@@ -30,7 +30,7 @@ import type { Avatar } from './Avatar';
 const LoginBase = HasInteractiveMixin(Idea);
 
 export class Login extends LoginBase {
-  public readonly interactive: Interactive;
+  private readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {
     super();
@@ -69,14 +69,15 @@ export class Login extends LoginBase {
 
     console.info(`Login: User connected - ${avatar.getFullName()}`);
 
-    const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
-    const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
+    const startingLocation = await StuffApi.singleton<Location>(
+      DEFAULT_STARTING_LOCATION_PATH
+    );
     // Silent spawn: a freshly-cloned avatar shouldn't be announced as
     // "vanishing" from somewhere or "appearing out of thin air"
-    // before the player has even seen the room.
-    avatar.teleport(startingRoom, { silent: true });
+    // before the player has even seen the location.
+    avatar.teleport(startingLocation, { silent: true });
     console.info(
-      `Login: Placed ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
+      `Login: Placed ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
     );
 
     // Welcome scene: actor frame at system.connection.established

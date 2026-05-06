@@ -35,7 +35,12 @@ export function DoorBearingMixin<TBase extends MixinConstructor<Stuff & Exitable
 ) {
   return class DoorBearingMixin extends Base {
     static _mixinName = 'DoorBearingMixin';
-    static persistentFields = ['door'];
+
+    // `door` is intentionally NOT in `persistentFields`: a Door is a
+    // separate Stuff and the generic PersistentHydrator's `target['door']
+    // = data['door']` cannot round-trip a Stuff reference. Composing
+    // classes that need door identity to survive restart own that via
+    // a custom `persistenceHandler` (mirror of `Containable.environment`).
 
     /**
      * The defining door for this bearer's synthesized exits. `null`

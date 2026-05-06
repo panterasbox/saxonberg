@@ -235,6 +235,9 @@ describe('PlayerApi', () => {
 
     function makeUser(id: string, playerIds: string[] = []): User {
       const user = makeStuff(() => new User());
+      // MIGRATION: User has not yet been migrated to the methods-only
+      // contract; bracket assignment until `setUserId` / `setPlayerIds`
+      // land on the User class.
       user._id = id;
       user.playerIds = [...playerIds];
       return user;

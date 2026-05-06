@@ -102,11 +102,32 @@ Used inside sync helpers where awaiting would force the caller (and its
 callers) to become async too. `Exitable.addBidirectionalExit`'s
 `new Exit(...)` calls are the typical trigger.
 
+### `StuffApi.singleton<T>(templatePath, context?): Promise<T>`
+
+The "one-and-only-one instance per path" lookup. Returns the existing
+instance from the `byTemplatePath` index when present; otherwise
+delegates to `clone()`. Pairs with `SingletonMixin` (a marker mixin
+in `lib/stuff/Singleton.ts`) for enforcement: `clone()` itself does
+a pre-flight `byTemplatePath` check on classes composing
+`SingletonMixin` and throws on the second clone attempt. `singleton()`
+is the convenient surface that respects the contract automatically;
+shared-state Stuff (the starting room, the EventRegistry) should
+use it instead of `clone()`.
+
 ## What Registration Actually Does
 
 `StuffApi.register(proxy)` adds the proxy to `objectsById:
 Map<string, Stuff>`. After registration, anyone with the `stuffId` can
 resolve the object via `StuffApi.findById(id)`.
+
+It also stamps the secondary `byTemplatePath: Map<string, Set<Stuff>>`
+index when the proxy carries a templatePath, so subsequent
+`findByTemplatePath(path)` and `singleton(path)` lookups find it.
+`unregister(proxy)` (driven by `Stuff.destroy`) removes the entry
+from both indexes and deletes the bucket when its size hits zero —
+that empty-bucket cleanup is what the `singleton()` pre-flight
+relies on, so the destroy path must run before the next clone of a
+singleton template.
 
 Registration happens **before** hydrate and `postRegister`. The
 ordering is load-bearing: a hydrator might resolve the in-flight object

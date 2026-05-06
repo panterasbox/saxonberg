@@ -38,7 +38,7 @@ export class CloseController extends CommandController<CloseInput> {
     hit.close();
 
     MessageApi.scene(commandGiver)
-      .topic(MessageApi.Topics.world.narration.movement)
+      .topic(MessageApi.Topics.world.narration.action)
       .toSelf(Mml.compose`You close ${Mml.object(hit)}.`)
       .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(hit)}.`)
       .send();

@@ -10,6 +10,7 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
+import { ProxyApi } from '../proxy';
 import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
@@ -94,7 +95,8 @@ describe('MessageApi', () => {
       // test seam: bypass setContainer chokepoint to inject a duck-typed
       // object into the inventory Set; the test verifies sensor detection
       // is keyed by the SensorMixin marker, not method shape.
-      (location as unknown as { inventory: Set<unknown> }).inventory.add(ducked);
+      const raw = ProxyApi.unwrap(location) as unknown as { inventory: Set<unknown> };
+      raw.inventory.add(ducked);
 
       expect(MessageApi.getSensors(location)).toHaveLength(0);
 
@@ -236,7 +238,7 @@ describe('MessageApi', () => {
 
   describe('Integration scenarios', () => {
     it('should support say command pattern', () => {
-      // Setup room with listeners
+      // Setup location with listeners
       ContainmentApi.move(sensor1, location);
       ContainmentApi.move(sensor2, location);
 
@@ -268,11 +270,11 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message = makeFrame('test', 'Room 1 only');
+      const message = makeFrame('test', 'Location 1 only');
 
       MessageApi.messageContainer(source, message);
 
-      // Only sensor in same room should receive message
+      // Only sensor in the same location should receive message
       expect(sensorInRoom1.lastMessage).toEqual(message);
       expect(sensorInRoom2.lastMessage).toBeUndefined();
     });

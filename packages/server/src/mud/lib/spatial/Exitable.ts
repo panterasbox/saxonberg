@@ -56,7 +56,8 @@ export interface Exitable {
   addExit(exit: Exit): boolean;
   removeExit(direction: string): boolean;
   getExit(direction: string): Exit | undefined;
-  getExits(): Map<string, Exit>;
+  getExits(): ReadonlyMap<string, Exit>;
+  hasExit(direction: string): boolean;
   getObviousExits(): Exit[];
   getExitDoors(): Door[];
   addBidirectionalExit(
@@ -185,8 +186,12 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     }
 
     /** Explicit exits only. For tooling / persistence. */
-    getExits(): Map<string, Exit> {
+    getExits(): ReadonlyMap<string, Exit> {
       return this.exits;
+    }
+
+    hasExit(direction: string): boolean {
+      return this.exits.has(direction);
     }
 
     /**
@@ -341,12 +346,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         }
 
         const here = this as unknown as Stuff;
-        const tag =
-          (here as unknown as { templatePath?: string }).templatePath ??
-          here.stuffId;
-        const destTag =
-          (liveDest as unknown as { templatePath?: string }).templatePath ??
-          liveDest.stuffId;
+        const tag = here.getTemplatePath() ?? here.stuffId;
+        const destTag = liveDest.getTemplatePath() ?? liveDest.stuffId;
 
         if (!MixinApi.isExitable(liveDest)) {
           exit.setBlocked(true);
@@ -417,7 +418,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * `super.prepareDestroy()` to reach this layer (and through it,
      * the Location-level zone detach).
      */
-    prepareDestroy(): void {
+    protected prepareDestroy(): void {
       const outbound = [...this.exits.values()];
 
       for (const exit of outbound) {

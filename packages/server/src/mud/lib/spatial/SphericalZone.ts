@@ -16,15 +16,7 @@ import { Zone } from './Zone';
 import type { Location } from '../stuff/Location';
 import type { Exit } from './Exit';
 import { SingletonMixin } from '../stuff/Singleton';
-
-/**
- * Minimal shape spherical locations are expected to carry — provided by
- * `SphericalCoordinatesMixin`.
- */
-interface HasSphericalCoordinates {
-  getCoordinates(): [number, number, number];
-  getRadius(): number;
-}
+import { MixinApi } from '../../api/mixin';
 
 /** Round a focus tuple to 2 decimals — good enough for authoring tooling. */
 function focusKey(coords: [number, number, number]): string {
@@ -45,20 +37,24 @@ export class SphericalZone extends SingletonMixin(Zone) {
   static persistentFields = ['name'];
 
   public override addLocation(location: Location): void {
-    super.addLocation(location);
-    const holder = location as unknown as Partial<HasSphericalCoordinates>;
-    if (typeof holder.getCoordinates === 'function') {
-      this.focusIndex.set(focusKey(holder.getCoordinates()), location);
+    if (!MixinApi.isSphericalCoordinates(location)) {
+      throw new Error(
+        'SphericalZone.addLocation: location must compose SphericalCoordinatesMixin.'
+      );
     }
+    super.addLocation(location);
+    this.focusIndex.set(focusKey(location.getCoordinates()), location);
   }
 
   public override removeLocation(location: Location): boolean {
-    const holder = location as unknown as Partial<HasSphericalCoordinates>;
-    if (typeof holder.getCoordinates === 'function') {
-      const key = focusKey(holder.getCoordinates());
-      if (this.focusIndex.get(key) === location) {
-        this.focusIndex.delete(key);
-      }
+    if (!MixinApi.isSphericalCoordinates(location)) {
+      throw new Error(
+        'SphericalZone.removeLocation: location must compose SphericalCoordinatesMixin.'
+      );
+    }
+    const key = focusKey(location.getCoordinates());
+    if (this.focusIndex.get(key) === location) {
+      this.focusIndex.delete(key);
     }
     return super.removeLocation(location);
   }

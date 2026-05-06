@@ -110,14 +110,14 @@ export class ConnectionApi {
     // notifications fire for both endpoints; presence transitions
     // fire only when the count crosses 0.
     if (previous) {
-      callConnHook(previous, 'onConnectionDetached', []);
+      previous.onConnectionDetached?.();
       if (!previousLinkdead && previous.isLinkdead()) {
-        callConnHook(previous, 'onLinkdead', []);
+        previous.onLinkdead?.();
       }
     }
-    callConnHook(target, 'onConnectionAttached', [interactive]);
+    target.onConnectionAttached?.(interactive);
     if (targetLinkdead && !target.isLinkdead()) {
-      callConnHook(target, 'onLinkRestored', []);
+      target.onLinkRestored?.();
     }
 
     // Cross-cutting global event for any observer that doesn't care
@@ -143,17 +143,11 @@ export class ConnectionApi {
     previous.removeInteractive(interactive);
     interactive.setHolder(null);
 
-    callConnHook(previous, 'onConnectionDetached', []);
+    previous.onConnectionDetached?.();
     if (wasConnected && previous.isLinkdead()) {
-      callConnHook(previous, 'onLinkdead', []);
+      previous.onLinkdead?.();
     }
   }
-}
-
-function callConnHook(obj: object, name: string, args: unknown[]): void {
-  const fn = (obj as Record<string, unknown>)[name];
-  if (typeof fn !== 'function') return;
-  (fn as (...a: unknown[]) => void).apply(obj, args);
 }
 
 

@@ -14,6 +14,7 @@ import { Interactive } from '../Interactive';
 import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
+import { ProxyApi } from '../../api/proxy';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
@@ -166,9 +167,9 @@ describe('Interactive', () => {
       StuffApi.destruct(interactive);
 
       // Methods on destroyed Stuff throw via the security gate, so reach
-      // for the underlying state through the test seam.
-      const seam = interactive as unknown as { holder: unknown };
-      expect(seam.holder).toBeNull();
+      // for the underlying state through the canonical raw-target seam.
+      const raw = ProxyApi.unwrap(interactive) as unknown as { holder: unknown };
+      expect(raw.holder).toBeNull();
     });
 
     it('should mark object as destroyed', () => {

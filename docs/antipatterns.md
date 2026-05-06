@@ -96,15 +96,29 @@ the mixin's public interface into TypeScript's control-flow narrowing.
 
 There are three levels of movement abstraction. NEVER skip levels.
 
-### Level 1: `travel()` — high level (MobileMixin)
+### Level 1: `traverse(exit, mode)` — high level (MobileMixin)
 
-For creatures and vehicles with modes of locomotion:
+For creatures and vehicles crossing an Exit under a locomotion mode:
 
 ```typescript
-avatar.travel(targetLocation, 'walk');  // walk
-avatar.travel(targetLocation, 'run');   // run
-vehicle.travel(targetLocation, 'drive'); // drive
+avatar.traverse(exit, 'walk');     // explicit verb (run/climb/swim controllers)
+vehicle.traverse(exit, 'drive');
 ```
+
+`mode` is the verb the mover is using right now (`'walk'`, `'run'`,
+`'climb'`, …) and is required at the API. Explicit-verb controllers
+pass their own verb. The `go` command has no verb of its own — it
+dispatches "whatever the mover's current mode is" by reading the
+`movement.defaultMode` setting (declared on `MobileMixin`,
+schema-defaulted to `'walk'`):
+
+```typescript
+const mode = resolveSetting<string>(mover, 'movement.defaultMode') ?? 'walk';
+await mover.traverse(exit, mode);
+```
+
+There is no destination-based variant — callers that have a Location
+in hand resolve it to an Exit (typically by direction) and pass that.
 
 **When to use**: player/NPC movement commands, AI pathfinding.
 
@@ -265,7 +279,7 @@ description/short/long/article/list-formatting helpers belong in
 ### Rule of thumb
 
 - **Movement operations** (pick up, drop, teleport): use `ContainmentApi.move()`
-- **Locomotion** (walk, run, fly): use `travel()` from `MobileMixin`
+- **Locomotion** (walk, run, fly): use `traverse(exit, mode)` from `MobileMixin`
 - **Container access** (get contents): use `ContainmentApi.getContents()`
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
@@ -473,7 +487,7 @@ for why shadows only see methods.
 ## Cloning Singletons — use `StuffApi.singleton(path)`
 
 **ANTIPATTERN**: Calling `StuffApi.clone(path)` or
-`Stuffapi.findByTemplatePath(path)` on a class that should be a
+`StuffApi.findByTemplatePath(path)` on a class that should be a
 singleton-by-path.
 
 ### BAD
@@ -504,7 +518,7 @@ that respects the contract automatically.
 
 - Never call `setEnvironment()` or `addContainable()` directly — always
   use `ContainmentApi.move()`.
-- Use the correct abstraction level: `travel()` for creatures/vehicles,
+- Use the correct abstraction level: `traverse()` for creatures/vehicles,
   `ContainmentApi.move()` for all other object movement, low-level
   containment methods only from inside `ContainmentApi`.
 - Never duck-type mixins, even for display. Display-name lookup lives in

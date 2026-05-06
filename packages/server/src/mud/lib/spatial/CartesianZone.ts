@@ -32,16 +32,6 @@ function gridKey(x: number, y: number, z: number): string {
   return `${x},${y},${z}`;
 }
 
-/**
- * Minimal shape required of locations added to a CartesianZone: they must
- * compose `CartesianCoordinatesMixin`. Checked at runtime in
- * `addLocation()` via the method surface.
- */
-interface HasCartesianCoordinates {
-  getCoordinates(): [number, number, number];
-  setCoordinates(value: [number, number, number]): void;
-}
-
 export class CartesianZone extends SingletonMixin(Zone) {
   /** Informational scale — meters/units per cell. Unused by code in Phase 7. */
   protected cellSize: number = 1.0;
@@ -75,13 +65,12 @@ export class CartesianZone extends SingletonMixin(Zone) {
     y: number = 0,
     z: number = 0
   ): void {
-    const coordHolder = location as unknown as HasCartesianCoordinates;
-    if (typeof coordHolder.getCoordinates !== 'function') {
+    if (!MixinApi.isCartesianCoordinates(location)) {
       throw new Error(
-        'CartesianZone.addLocation: location must compose CartesianCoordinatesMixin (no getCoordinates method found).'
+        'CartesianZone.addLocation: location must compose CartesianCoordinatesMixin.'
       );
     }
-    coordHolder.setCoordinates([x, y, z]);
+    location.setCoordinates([x, y, z]);
     this.grid.set(gridKey(x, y, z), location);
     this.derivedCache.clear();
     super.addLocation(location);
@@ -92,13 +81,15 @@ export class CartesianZone extends SingletonMixin(Zone) {
    * and invalidates the derived cache.
    */
   public override removeLocation(location: Location): boolean {
-    const holder = location as unknown as Partial<HasCartesianCoordinates>;
-    if (typeof holder.getCoordinates === 'function') {
-      const coords = holder.getCoordinates();
-      const key = gridKey(coords[0], coords[1], coords[2]);
-      if (this.grid.get(key) === location) {
-        this.grid.delete(key);
-      }
+    if (!MixinApi.isCartesianCoordinates(location)) {
+      throw new Error(
+        'CartesianZone.removeLocation: location must compose CartesianCoordinatesMixin.'
+      );
+    }
+    const coords = location.getCoordinates();
+    const key = gridKey(coords[0], coords[1], coords[2]);
+    if (this.grid.get(key) === location) {
+      this.grid.delete(key);
     }
     this.derivedCache.clear();
     return super.removeLocation(location);
@@ -111,22 +102,14 @@ export class CartesianZone extends SingletonMixin(Zone) {
   public getNeighbor(from: Location, direction: string): Location | undefined {
     const offset = NavigationApi.directionOffset(direction);
     if (!offset) return undefined;
-    const holder = from as unknown as Partial<HasCartesianCoordinates>;
-    if (typeof holder.getCoordinates !== 'function') return undefined;
-    const coords = holder.getCoordinates();
+    if (!MixinApi.isCartesianCoordinates(from)) {
+      throw new Error(
+        'CartesianZone.getNeighbor: from location must compose CartesianCoordinatesMixin.'
+      );
+    }
+    const coords = from.getCoordinates();
     const [dx, dy, dz] = offset;
     return this.grid.get(gridKey(coords[0] + dx, coords[1] + dy, coords[2] + dz));
-  }
-
-  /**
-   * Belt-and-braces: `removeLocation` already invalidates `derivedCache`
-   * each time a location leaves, but if the Zone is destructed while
-   * empty we still want the cache empty (and the `super.prepareDestroy()`
-   * non-empty guard fires above otherwise).
-   */
-  public override prepareDestroy(): void {
-    super.prepareDestroy();
-    this.derivedCache.clear();
   }
 
   /**

@@ -1,5 +1,6 @@
 /**
- * SayController — broadcast a message to everyone in the room.
+ * SayController — broadcast a message to everyone in the actor's
+ * current location.
  *
  * Delegates to VocalMixin.say which fires a Scene at
  * `world.speech.say`. The controller's job is just composition-narrowing

@@ -67,14 +67,20 @@ export class Door extends DoorBase {
    *
    * Host-internal storage; external callers (Exit's door setter,
    * ExitableVessel's synth, tests) go through `attachExit` /
-   * `detachExit` / `hasAttached` / `getAttachedTo`.
+   * `detachExit` / `hasAttached` / `getAttachedExits`.
+   *
+   * The `attach`/`detach` verb pair is intentional rather than the
+   * default `add`/`remove`: attaching an exit also wires the back-
+   * reference from the exit's `door` slot to this Door, so the
+   * operation is semantically richer than mere set membership.
+   * See [docs/subsystems/collections.md](../../../../../../docs/subsystems/collections.md).
    */
   protected attachedTo: Set<Exit> = new Set();
 
   public attachExit(exit: Exit): void { this.attachedTo.add(exit); }
   public detachExit(exit: Exit): boolean { return this.attachedTo.delete(exit); }
   public hasAttached(exit: Exit): boolean { return this.attachedTo.has(exit); }
-  public getAttachedTo(): ReadonlySet<Exit> { return this.attachedTo; }
+  public getAttachedExits(): ReadonlySet<Exit> { return this.attachedTo; }
 
   /**
    * Union of the PerceptibleMixin keyword list with the tokens of the
@@ -113,7 +119,7 @@ export class Door extends DoorBase {
    * pointer on every Exit that referenced this door so neighbors don't
    * retain dead Door references.
    */
-  public prepareDestroy(): void {
+  protected override prepareDestroy(): void {
     this.detach();
   }
 }

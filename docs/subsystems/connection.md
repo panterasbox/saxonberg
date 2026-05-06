@@ -38,19 +38,23 @@ character slot; the matching template lives at `/obj/Avatar/<playerId>`.
 **`Avatar`** is what walks around the world. Composes
 `HasInteractiveMixin` so it can carry zero, one, or many connected
 `Interactive`s. `user` and `playerId` are runtime-only pointers
-stamped from the clone context (`Avatar.ts:83,91,105-112`).
+stamped from the clone context (`Avatar.ts § postRegister`); the
+public surface is `getUser()` / `getPlayerId()`.
 
-**`Interactive`** is a connection. Holds `socketId`, `sessionId`,
-the authenticated `User`, and a `holder: HasInteractive & Stuff` that
+**`Interactive`** is a connection. Holds `socketId`, `sessionId`, the
+authenticated `User`, and a `holder: HasInteractive & Stuff` that
 points at whoever currently owns the connection — `Login` during
-entry, `Avatar` during play (`Interactive.ts:31-44`). Knows nothing
-about avatars; routing goes through `ConnectionApi`.
+entry, `Avatar` during play. The contract is methods-only:
+`getSocketId()` / `getSessionId()` / `getUser()` / `getUserId()` /
+`getHolder()` / `setHolder()` (`Interactive.ts`). Routing goes
+through `ConnectionApi`; nothing dispatches on the holder field
+directly.
 
 **`Login`** is a one-shot orchestrator. Composes `HasInteractiveMixin`
 too, so the handoff from Login → Avatar uses the same
 `ConnectionApi.transfer` mechanism that any future re-handoff would.
 Lives only as long as `enter()` takes; `StuffApi.destruct(this)` is
-the last line of its body (`Login.ts:115`).
+the last line of its body (`Login.ts § enter`).
 
 There is no `Player` class. The id is "still called `playerId`" — see
 [state-model.md § No Player class](./state-model.md#no-player-class).
@@ -153,36 +157,33 @@ const userId = await ExecutionContextApi.runRoot(
 done(null, { id: userId });
 ```
 
-`Application.findOrCreateUserFromGoogle` (`Application.ts:262-273`)
-runs two upserts:
+`Application.findOrCreateUserFromGoogle` runs two upserts:
 
-1. **`findOrCreateGoogleProfile`** (lines 275-311) — keyed on
-   `googleId`. Stores email, displayName, names, photo, raw profile,
-   timestamps. Either creates or updates.
+1. **`findOrCreateGoogleProfile`** — keyed on `googleId`. Stores
+   email, displayName, names, photo, raw profile, timestamps. Either
+   creates or updates.
 
-2. **`findOrCreateUser`** (lines 313-338) — keyed on
-   `googleProfileId`. If new, constructs a `User` via
-   `await StuffApi.create(() => new User())`, saves it, then calls
-   `createDefaultAvatarTemplate` and pushes the new `playerId` onto
-   `user.playerIds`. **Avatar templates are seeded at account
-   creation; they are NOT lazy.**
+2. **`findOrCreateUser`** — keyed on `googleProfileId`. If new,
+   constructs a `User` via `await StuffApi.create(() => new User())`,
+   saves it, then calls `createDefaultAvatarTemplate` and pushes the
+   new `playerId` onto `user.playerIds`. **Avatar templates are
+   seeded at account creation; they are NOT lazy.**
 
-`createDefaultAvatarTemplate` (`Application.ts:352-380`) forks from
-the seed avatar at `Avatar.SEED_TEMPLATE_PATH` (`/obj/Avatar/seed`),
-generates a fresh `playerId` via `nanoid()`, overlays the user's
-`name`/`surname`, and persists the new template via
-`TemplateApi.saveTemplate`. **If the seed is missing it throws** —
-`SeederManager` must have run at boot (`Application.ts:357-362`).
+`createDefaultAvatarTemplate` forks from the seed avatar at
+`Avatar.SEED_TEMPLATE_PATH` (`/obj/Avatar/seed`), generates a fresh
+`playerId` via `nanoid()`, overlays the user's `name`/`surname`, and
+persists the new template via `TemplateApi.saveTemplate`. **If the
+seed is missing it throws** — `SeederManager` must have run at boot.
 
 Passport serializes `{ id: userId }` into the session
-(`PassportConfig.ts:37-39`). At this point the persistent state is
+(`PassportConfig.ts § serializeUser`). At this point the persistent state is
 done: `users`, `google_profiles`, `domain` (template) all written.
 **No runtime objects exist yet.**
 
 ## Phase 2: WebSocket Upgrade
 
 `Server.start()` passes the saved `sessionMiddleware` into
-`WebSocketService.initialize` (`Server.ts:157-158`).
+`WebSocketService.initialize`.
 `WebSocketService` attaches its own handler to the HTTP server's
 `upgrade` event:
 
@@ -218,18 +219,17 @@ sessions be checked first.
    `Application.handleUserConnect(userId, sessionId, socketId)`.
 
 ```typescript
-// Backend.ts:130-132
 ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
   app.handleUserConnect(userId, sessionId, socketId)
 );
 ```
 
-`Application.handleUserConnect` (`Application.ts:90-129`):
+`Application.handleUserConnect`:
 
 1. `User.findById(userId)` — load the persistent record.
 2. `ConnectionManager.get().createInteractive(socketId, sessionId, user)` —
    constructs an `Interactive` via `StuffApi.create` and registers it
-   in the `interactivesBySocketId` map (`ConnectionManager.ts:54-77`).
+   in the `interactivesBySocketId` map.
 3. `await StuffApi.create(() => new Login(interactive))`.
 4. `await login.enter()`.
 
@@ -237,8 +237,7 @@ ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
 it's a runtime-only object built from constructor args, not from a
 template (closes over `socketId`/`sessionId`/`user` directly).
 
-The `Login` constructor seeds itself with the Interactive
-(`Login.ts:35-42`):
+The `Login` constructor seeds itself with the Interactive:
 
 ```typescript
 constructor(interactive: Interactive) {
@@ -256,19 +255,17 @@ proper `transfer` happens inside `enter()` (next phase).
 
 ## Phase 4: Avatar Materialization and Handoff
 
-`Login.enter()` (`Login.ts:51-116`) is the body of the entry
-procedure. Verbatim sequence:
+`Login.enter()` is the body of the entry procedure. Verbatim sequence:
 
 1. **`ConnectionApi.transfer(interactive, this)`** — formal handoff
-   to Login. Sets `interactive.holder = login`, fires
+   to Login. Calls `interactive.setHolder(login)` and fires
    `onConnectionAttached` on Login.
 
-2. **`PlayerApi.loadAvatarsForUser(interactive.user)`** — for each
-   `playerId` on the user, returns the existing in-memory Avatar if
-   one is registered; otherwise clones from the per-user template
-   with context `{ user, playerId }` so `Avatar.postRegister` can
-   stamp the runtime fields synchronously
-   (`PlayerApi.ts:98-112`).
+2. **`PlayerApi.loadAvatarsForUser(interactive.getUser())`** — for
+   each `playerId` on the user, returns the existing in-memory
+   Avatar if one is registered; otherwise clones from the per-user
+   template with context `{ user, playerId }` so
+   `Avatar.postRegister` can stamp the runtime fields synchronously.
 
    ```typescript
    avatar = await StuffApi.clone<Avatar>(
@@ -278,19 +275,21 @@ procedure. Verbatim sequence:
    ```
 
    **`Avatar.postRegister` registers the avatar with `PlayerApi`
-   keyed on `playerId`** (`Avatar.ts:105-112`) — that's what makes
-   "second connection finds the same avatar" possible.
+   keyed on `playerId`** — that's what makes "second connection
+   finds the same avatar" possible.
 
 3. **`if (avatars.length !== 1) throw`** — multi-character is not
-   yet supported (`Login.ts:60-65`). See
-   [§ Not Yet Implemented](#not-yet-implemented).
+   yet supported. See [§ Not Yet Implemented](#not-yet-implemented).
 
 4. **`ConnectionApi.transfer(interactive, avatar)`** — moves the
    holder slot from Login to Avatar. Witness hooks fire (see
    [§ Multiplexing](#multiplexing)).
 
-5. **Clone the starting room** (`DEFAULT_STARTING_ROOM_PATH`) and
-   silently teleport the avatar into it.
+5. **Resolve the starting location** via
+   `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and silently
+   teleport the avatar into it. `singleton()` (not `clone()`) is
+   load-bearing — every player must spawn into the same Location
+   instance, otherwise co-presence breaks.
 
 6. **Welcome scene** at topic
    `system.connection.established`, audience `toSelf`, body
@@ -298,22 +297,24 @@ procedure. Verbatim sequence:
    needs for bootstrap:
 
    ```typescript
-   // Login.ts:89-102
    .payload({
-     userId: interactive.userId,
-     socketId: interactive.socketId,
-     sessionId: interactive.sessionId,
+     userId: interactive.getUserId(),
+     socketId: interactive.getSocketId(),
+     sessionId: interactive.getSessionId(),
      player: {
-       _id: avatar.playerId,
-       honorific, name, surname, nameSuffix,
-       alternateNames, pronouns,
+       _id: avatar.getPlayerId(),
+       honorific: avatar.getHonorific(),
+       name: avatar.getName(),
+       surname: avatar.getSurname(),
+       nameSuffix: avatar.getNameSuffix(),
+       alternateNames: avatar.getAlternateNames(),
+       pronouns: avatar.getPronouns(),
      },
    })
    ```
 
-7. **`sendLookDescription(avatar)`** (`Login.ts:118-142`) — frames
-   the room name + long description as a `world.perception.look`
-   scene to the actor.
+7. **`sendLookDescription(avatar)`** — frames the room name + long
+   description as a `world.perception.look` scene to the actor.
 
 8. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
    engine event for any observer (audit, achievements).
@@ -322,7 +323,7 @@ procedure. Verbatim sequence:
    has been handed off; nothing depends on Login any more.
 
 After `enter()` returns, the user is in-world.
-`interactive.holder === avatar`; `Login` is destructed and
+`interactive.getHolder() === avatar`; `Login` is destructed and
 unregistered.
 
 ## Multiplexing
@@ -330,15 +331,16 @@ unregistered.
 > Multiplexing was an explicit MUST-NOT-regress requirement
 > (`state-model.md:243-249`). It works as follows.
 
-`HasInteractiveMixin` (`HasInteractive.ts:59-91`) gives any composing
+`HasInteractiveMixin` (`HasInteractive.ts`) gives any composing
 class:
 
 ```typescript
-interactives: Set<Interactive>          // mutable storage
-addInteractive(i)                       // primitive
-removeInteractive(i)                    // primitive
-getInteractives(): ReadonlySet<...>     // safe read
-isConnected() / isLinkdead()            // count-based predicates
+protected interactives: Set<Interactive>   // host-internal storage
+addInteractive(i)                          // primitive
+removeInteractive(i)                       // primitive
+clearInteractives()                        // bulk drop (destruct-time)
+getInteractives(): ReadonlySet<...>        // safe read
+isConnected() / isLinkdead()               // count-based predicates
 ```
 
 External code does NOT call `addInteractive`/`removeInteractive`
@@ -357,7 +359,6 @@ The Avatar now has two Interactives. `Avatar.handleMessage` iterates
 the whole Set:
 
 ```typescript
-// Avatar.ts:128-133
 protected override handleMessage(frame: MessageFrame): void {
   const app = Avatar.getApplicationInstance();
   for (const interactive of this.interactives) {
@@ -373,7 +374,7 @@ each get their own outbound stream.
 ### Witness Hooks
 
 `ConnectionApi.transfer` fires per-connection AND presence-transition
-hooks (`connection.ts:109-129`):
+hooks (`connection.ts § transfer`):
 
 | Hook | When | Why |
 |---|---|---|
@@ -383,8 +384,8 @@ hooks (`connection.ts:109-129`):
 | `onLinkRestored()` | count crosses 0 → 1 | first connection back |
 
 All four are **optional**. `Avatar` overrides `onLinkdead` to emit
-the global `Events.PlayerLoggedOut` (`Avatar.ts:150-152`). Per-device
-hooks aren't currently used.
+the global `Events.PlayerLoggedOut`. Per-device hooks aren't
+currently used.
 
 The transition fire-once-per-edge semantics matter: a user with two
 devices who closes one tab does NOT trigger `onLinkdead`. Only the
@@ -417,19 +418,18 @@ ws 'message' → Backend.handleWebSocketMessage(socketId, data)
                   avatar.executeCommand(text, ctx)
 ```
 
-`Backend.handleWebSocketMessage` (`Backend.ts:142-165`) parses JSON
-and dispatches under another root frame. Bad JSON sends back an
-`error` frame.
+`Backend.handleWebSocketMessage` parses JSON and dispatches under
+another root frame. Bad JSON sends back an `error` frame.
 
-`Application.processUserMessage` (`Application.ts:143-186`) looks up
-the Interactive by socketId, then switches on `message.type`:
+`Application.processUserMessage` looks up the Interactive by
+socketId, then switches on `message.type`:
 
 - `echo` — round-trip the payload (debug).
 - `ping` — reply `pong` with timestamp.
 - `command` — `handleCommandMessage`.
 
-`handleCommandMessage` (`Application.ts:208-255`) requires
-`interactive.holder instanceof Avatar` — anything else gets a
+`handleCommandMessage` (`Application.ts § handleCommandMessage`)
+requires `interactive.getHolder() instanceof Avatar` — anything else gets a
 `No active character` error. **Login does not yet accept commands**;
 when it does, that will be a separate dispatch path with its own
 `CommandContext` (no `location`). Builds the `CommandContext` with
@@ -465,12 +465,12 @@ Backend.sendMessageToSocket(socketId, frame)
 ws.send(JSON.stringify(frame))     (only if ws.readyState === OPEN)
 ```
 
-`Application.sendMessageToInteractive` (`Application.ts:80-84`) is
-the **sole gateway** from game objects to the network — Application
-owns the Backend reference, no other game code holds it. Avatar's
-override at `handleMessage` is what implements multiplexing.
-`Backend.sendMessageToSocket` (`Backend.ts:70-89`) is the final
-network call; logs and skips if the socket is missing or closed.
+`Application.sendMessageToInteractive` is the **sole gateway** from
+game objects to the network — Application owns the Backend
+reference, no other game code holds it. Avatar's override at
+`handleMessage` is what implements multiplexing.
+`Backend.sendMessageToSocket` is the final network call; logs and
+skips if the socket is missing or closed.
 
 ## Disconnect
 
@@ -518,20 +518,19 @@ is the foundation of multiplexing — but it also means the registry
 Avatar. There is currently no idle eviction (see
 [lifecycle.md § Open Design — Idle Eviction](./lifecycle.md#open-design--idle-eviction)).
 
-`Avatar.onLinkdead` (`Avatar.ts:150-152`) emits
-`Events.PlayerLoggedOut`. Listeners can react (audit, "the
-adventurer fades from view" perception broadcasts in the future,
-etc.).
+`Avatar.onLinkdead` emits `Events.PlayerLoggedOut`. Listeners can
+react (audit, "the adventurer fades from view" perception broadcasts
+in the future, etc.).
 
 ### Avatar.prepareDestroy
 
 When something DOES destruct an Avatar (test cleanup, future
-character-deletion flow), `Avatar.prepareDestroy` (`Avatar.ts:140-143`)
-unregisters from `PlayerApi` and clears `interactives`. It does NOT
-detach those Interactives — they would still point at the destroyed
-Avatar via `holder`. **Don't destruct an Avatar that has live
-Interactives.** The current call sites don't, and nothing enforces
-the invariant; if a future caller does, it should detach first.
+character-deletion flow), `Avatar.prepareDestroy` unregisters from
+`PlayerApi` and detaches every still-connected Interactive via
+`ConnectionApi.detach`. The detach loop guarantees no Interactive is
+left holding `holder = avatar` after the avatar is gone, so the
+witness pipeline stays consistent even if a caller didn't drop the
+connections first.
 
 ## Logout (HTTP)
 
@@ -567,8 +566,8 @@ Every entry from the network into Application is wrapped in
 These root frames give the call-stack a well-defined bottom: when a
 mudlib method later checks `ExecutionContext`, it sees `Backend` as
 the caller at the network boundary, not `null`. Application itself
-is annotated `@CallSecurity(SecurityPolicies.Public)`
-(`Application.ts:56`); the comment there spells out that the
+is annotated `@CallSecurity(SecurityPolicies.Public)`; the comment
+there spells out that the
 decorator is forward-compatible declaration of intent — instance
 methods on Application aren't proxy-mediated. The runtime gate
 lives further down, on the Apis Application calls into.
@@ -589,10 +588,12 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   only. Don't keep references to it past `enter()`. Don't subclass
   it for "kept-alive entry contexts" — that's the Avatar's job.
 - **`ConnectionApi.transfer` / `detach` are the only mutators of
-  `interactive.holder`.** Direct assignment skips witness hooks and
-  the cross-cutting `Events.ConnectionAttached` event. Don't call
+  the holder slot.** Calling `interactive.setHolder(...)` directly
+  skips witness hooks and the cross-cutting
+  `Events.ConnectionAttached` event. Don't call
   `addInteractive`/`removeInteractive` directly from outside the
-  Api/mixin layer.
+  Api/mixin layer either — those are primitives the Api orchestrates
+  in the right order.
 - **Network → Application root frames.** Every entry from Backend
   goes through `ExecutionContextApi.runRoot(Backend, ...)`. Adding a
   fifth entry path (e.g. a REST command endpoint) requires planting
@@ -609,8 +610,8 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 
 ## Not Yet Implemented
 
-- **Multi-character selection.** `Login.enter` throws if the user has
-  zero or more than one playerId (`Login.ts:60-65`). The character
+- **Multi-character selection.** `Login.enter` throws if the user
+  has zero or more than one playerId. The character
   list / pick-a-character UI is the missing piece. When it lands,
   the `Login` body splits into "load avatars → present picker" then
   "transfer to chosen avatar" — the `ConnectionApi.transfer` machinery
@@ -624,7 +625,8 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   [lifecycle.md § Open Design — Idle Eviction](./lifecycle.md#open-design--idle-eviction).
 - **Persist-back of Avatar runtime state.** Avatar mutations are
   in-memory only; the avatar template is read on first clone and
-  never written back. Comment in `Avatar.ts:138`. Tracked under the
+  never written back. See the comment on `Avatar.prepareDestroy`.
+  Tracked under the
   unified-model "persist direction" in
   [state-model.md § Not Yet Implemented](./state-model.md#not-yet-implemented).
 - **Distributed / multi-process Interactive tracking.** `ConnectionManager`

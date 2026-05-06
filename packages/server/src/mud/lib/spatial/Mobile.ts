@@ -58,7 +58,7 @@ import {
  * exit-aware layer on top.
  */
 export interface Mobile {
-  traverse(exit: Exit): Promise<void>;
+  traverse(exit: Exit, mode: string): Promise<void>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
@@ -125,6 +125,15 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * see `docs/subsystems/prose.md`.
      */
     static settings: SettingsSchemaEntry[] = [
+      {
+        key: 'movement.defaultMode',
+        type: SettingTypes.String,
+        default: 'walk',
+        description:
+          'Default locomotion verb the `go` command dispatches under ' +
+          'when no explicit mode is given. Explicit verbs (`run`, ' +
+          '`climb`, …) override per-call.',
+      },
       {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
@@ -196,8 +205,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      */
     async traverse(
       this: Stuff & Containable & Mobile,
-      exit: Exit
+      exit: Exit,
+      mode: string
     ): Promise<void> {
+      // TODO(locomotion): mode threads through but isn't wired into
+      // narration ('walks in', 'runs in', 'climbs down') or per-exit
+      // validation (a 'climb' exit may reject 'walk') yet. The mode
+      // taxonomy and downstream consumption land in a future phase.
+      void mode;
       const mover = this;
       const source = exit.getSource();
       // Lazy-resolve the destination via the singleton cache. For Exits

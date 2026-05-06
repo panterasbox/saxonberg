@@ -1,9 +1,10 @@
 /**
  * PlayerController — manage player character settings.
  *
- * Subcommands: name, pronouns, show. Self-only Scenes at
- * `world.perception.look` carry confirmation prose; the auto-emit
- * surfaces the change to the actor independently.
+ * Subcommands: name, pronouns, show. Identity-change confirmations
+ * (name, pronouns) fire at `world.identity.change`; the `show`
+ * readout fires at `world.perception.look`. Auto-emit surfaces the
+ * change to the actor independently.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -54,11 +55,14 @@ export class PlayerController extends CommandController<PlayerInput> {
       return { success: false, summary: 'name required' };
     }
     avatar.setName(input.name);
-    avatar.setSurname(input.surname || undefined);
+    if (input.surname !== undefined) {
+      avatar.setSurname(input.surname || undefined);
+    }
 
     this.send(
       context,
-      Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`
+      Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`,
+      MessageApi.Topics.world.identity.change
     );
     return { success: true, summary: `name set to ${avatar.getFullName()}` };
   }
@@ -92,7 +96,8 @@ export class PlayerController extends CommandController<PlayerInput> {
     avatar.setPronouns(pronounsLower as Pronouns);
     this.send(
       context,
-      Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`
+      Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`,
+      MessageApi.Topics.world.identity.change
     );
     return { success: true, summary: `pronouns set to ${avatar.getPronouns()}` };
   }
@@ -115,9 +120,13 @@ export class PlayerController extends CommandController<PlayerInput> {
     };
   }
 
-  private send(context: CommandContext, body: Mml): void {
+  private send(
+    context: CommandContext,
+    body: Mml,
+    topic: string = MessageApi.Topics.world.perception.look
+  ): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(topic)
       .toSelf(body)
       .send();
   }

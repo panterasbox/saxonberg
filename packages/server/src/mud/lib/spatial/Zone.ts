@@ -92,7 +92,7 @@ export abstract class Zone extends Idea {
    * Subclasses may extend (e.g. `CartesianZone` clears its derived-exit
    * cache on top of this).
    */
-  public prepareDestroy(): void {
+  protected override prepareDestroy(): void {
     if (this.locations.size > 0) {
       throw new Error(
         `Zone.prepareDestroy: cannot destruct zone '${this.name}' with ` +

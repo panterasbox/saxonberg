@@ -6,7 +6,6 @@ import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { Door } from '../../../lib/spatial/Door';
 import { ContainmentApi } from '../../../api/containment';
-import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -60,9 +59,9 @@ describe('OpenController / CloseController / doors integration', () => {
   beforeEach(() => {
     zone = makeStuff(() => new CartesianZone());
     locA = makeStuff(() => new CartesianLocation());
-    locA.setShortDescription('Room A');
+    locA.setShortDescription('Location A');
     locB = makeStuff(() => new CartesianLocation());
-    locB.setShortDescription('Room B');
+    locB.setShortDescription('Location B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 

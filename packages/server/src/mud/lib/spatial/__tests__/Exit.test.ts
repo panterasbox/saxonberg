@@ -55,10 +55,10 @@ describe('Exit', () => {
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
-    locA.setShortDescription('Room A');
+    locA.setShortDescription('Location A');
 
     locB = makeStuff(() => new CartesianLocation());
-    locB.setShortDescription('Room B');
+    locB.setShortDescription('Location B');
 
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
@@ -120,13 +120,13 @@ describe('Exit', () => {
   describe('traverse', () => {
     it('moves the mover to the destination', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
       expect(mover.getContainer()).toBe(locB);
     });
 
     it('broadcasts departure to source peers excluding the mover', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
 
       const peerATexts = bodiesOf(peerInA.received);
       expect(peerATexts.length).toBe(1);
@@ -147,7 +147,7 @@ describe('Exit', () => {
         messageOut: 'custom departure',
         messageIn: 'custom arrival',
       }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
       expect(bodiesOf(peerInA.received)).toEqual(['custom departure']);
       expect(bodiesOf(peerInB.received)).toEqual(['custom arrival']);
     });
@@ -160,7 +160,7 @@ describe('Exit', () => {
         messageOut: '{{ mover }} leaves the wardrobe.',
         messageIn: '{{ mover }} emerges from the wardrobe.',
       }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
       const departText = bodiesOf(peerInA.received)[0]!;
       const arriveText = bodiesOf(peerInB.received)[0]!;
       expect(departText).toContain('Alice');
@@ -172,7 +172,7 @@ describe('Exit', () => {
 
     it('degrades arrival message when direction has no inverse', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'office', source: locA, destination: locB }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
       const arrText = bodiesOf(peerInB.received)[0]!;
       expect(arrText).toContain('arrives');
       expect(arrText).not.toContain('from the');
@@ -181,7 +181,7 @@ describe('Exit', () => {
     it('invokes ContainmentApi.move between broadcasts', async () => {
       const moveSpy = vi.spyOn(ContainmentApi, 'move');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      await mover.traverse(exit);
+      await mover.traverse(exit, 'walk');
       expect(moveSpy).toHaveBeenCalledWith(mover, locB);
       moveSpy.mockRestore();
     });

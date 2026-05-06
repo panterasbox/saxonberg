@@ -74,6 +74,7 @@ export interface Named {
   setAlternateNames(alts: AlternateName[]): void;
   addAlternateName(alt: AlternateName): void;
   removeAlternateName(value: string): boolean;
+  hasAlternateName(value: string): boolean;
 }
 
 export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -169,6 +170,10 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (idx === -1) return false;
       this.alternateNames.splice(idx, 1);
       return true;
+    }
+
+    hasAlternateName(value: string): boolean {
+      return this.alternateNames.some((a) => a.value === value);
     }
   };
 }

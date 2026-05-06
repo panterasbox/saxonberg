@@ -286,6 +286,15 @@ const TOPICS = {
     narration: {
       movement: 'world.narration.movement',
       teleport: 'world.narration.teleport',
+      // TODO(topics): provisional bucket for state-change narration
+      // (open/close, lock/unlock, …); revisit when the broader topic
+      // taxonomy review lands.
+      action: 'world.narration.action',
+    },
+    // TODO(topics): provisional namespace for identity events (name,
+    // pronouns, honorific changes); revisit alongside `narration.action`.
+    identity: {
+      change: 'world.identity.change',
     },
   },
   system: {
@@ -386,7 +395,7 @@ export class MessageApi {
    * Send a message to all sensors in `source`'s environment.
    *
    * Convenience wrapper for the "speaker is Containable, broadcast to
-   * peers in the same room" case. Drops the message with a warning if
+   * peers in the same location" case. Drops the message with a warning if
    * `source` has no environment.
    */
   static messageContainer(
