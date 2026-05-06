@@ -31,8 +31,9 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Location } from '../stuff/Location';
 import type { Containable } from '../spatial/Containable';
-import type { Parser } from '../../api/parser';
+import type { Parser } from '../../api/command';
 import {
   resolveSetting,
   SettingTypes,
@@ -43,9 +44,9 @@ import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
   type CommandContext,
-  type CommandContextInput,
   type CommandModel,
   type CommandResult,
+  type ExecuteCommandOpts,
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
@@ -61,12 +62,6 @@ import { Mml } from '../../api/mml';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
 import type { LogLevel } from '@saxonberg/types';
-
-type ContributionsHolder = { commandContributions?: CommandContributions };
-
-/** Extract the `commandContributions` static off any class-like value, if present. */
-const getContributions = (cls: unknown): CommandContributions | undefined =>
-  (cls as ContributionsHolder).commandContributions;
 
 /** Bucket of a recency-stack entry — categorical metadata, not ordering. */
 export type RecencyBucket = 'self' | 'inventory' | 'environment' | 'peers';
@@ -90,7 +85,7 @@ export interface CommandGiver {
   getAvailableCommands(): CommandDefinition[];
   executeCommand(
     commandText: string,
-    input: CommandContextInput
+    opts?: ExecuteCommandOpts
   ): Promise<CommandResult>;
   pushCommandSource(
     source: RecencySource,
@@ -99,95 +94,6 @@ export interface CommandGiver {
   ): void;
   popCommandSource(source: RecencySource): void;
   resetCommandSources(reason: 'self-moved'): void;
-}
-
-/**
- * Resolve a list of YAML filenames to CommandDefinitions, deduped by
- * filename.
- */
-function resolveDefs(filenames: string[] | undefined): CommandDefinition[] {
-  if (!filenames || filenames.length === 0) return [];
-  const out: CommandDefinition[] = [];
-  const seen = new Set<string>();
-  for (const fname of filenames) {
-    if (seen.has(fname)) continue;
-    seen.add(fname);
-    const cmd = CommandApi.getCommand(fname);
-    if (cmd) out.push(cmd);
-  }
-  return out;
-}
-
-/**
- * Build the 'self' contributions from a class chain, most-derived
- * first. The concrete class's `commandProvider` beats its mixins; a
- * mixin further down the prototype chain (closer to Object) loses to
- * one further up.
- *
- * @internal — exposed for ContainmentApi orchestration.
- */
-export function collectSelfDefs(
-  ctor: unknown
-): CommandDefinition[] {
-  const filenames: string[] = [];
-  // Concrete class first (most-derived).
-  const ownProvider = getContributions(ctor);
-  if (ownProvider?.self) filenames.push(...ownProvider.self);
-  // Mixins, prototype-chain order. queryMixins walks bottom-up
-  // (most-derived first) — perfect.
-  const mixins = MixinApi.queryMixins(
-    ctor as { prototype: unknown } & ((...args: unknown[]) => unknown)
-  );
-  for (const mixin of mixins) {
-    const p = getContributions(mixin);
-    if (p?.self) filenames.push(...p.self);
-  }
-  return resolveDefs(filenames);
-}
-
-/**
- * For a thing being placed into a giver's inventory, the defs the
- * thing contributes via `commandProvider.inventory`.
- */
-export function collectInventoryDefs(item: Stuff): CommandDefinition[] {
-  const filenames: string[] = [];
-  const ownProvider = getContributions(item.constructor);
-  if (ownProvider?.inventory) filenames.push(...ownProvider.inventory);
-  for (const mixin of MixinApi.queryMixins(item.constructor as never)) {
-    const p = getContributions(mixin);
-    if (p?.inventory) filenames.push(...p.inventory);
-  }
-  return resolveDefs(filenames);
-}
-
-/**
- * For a thing entering a giver's environment, the defs it contributes
- * via `commandProvider.environment`.
- */
-export function collectEnvironmentDefs(item: Stuff): CommandDefinition[] {
-  const filenames: string[] = [];
-  const ownProvider = getContributions(item.constructor);
-  if (ownProvider?.environment) filenames.push(...ownProvider.environment);
-  for (const mixin of MixinApi.queryMixins(item.constructor as never)) {
-    const p = getContributions(mixin);
-    if (p?.environment) filenames.push(...p.environment);
-  }
-  return resolveDefs(filenames);
-}
-
-/**
- * For a CommandGiver peer entering a giver's environment, the defs it
- * contributes via `commandContributions.peers`.
- */
-export function collectPeersDefs(item: Stuff): CommandDefinition[] {
-  const filenames: string[] = [];
-  const ownProvider = getContributions(item.constructor);
-  if (ownProvider?.peers) filenames.push(...ownProvider.peers);
-  for (const mixin of MixinApi.queryMixins(item.constructor as never)) {
-    const p = getContributions(mixin);
-    if (p?.peers) filenames.push(...p.peers);
-  }
-  return resolveDefs(filenames);
 }
 
 /**
@@ -201,91 +107,6 @@ export function collectPeersDefs(item: Stuff): CommandDefinition[] {
 async function resolveActorParser(actor: Stuff): Promise<Parser> {
   const spec = resolveSetting<string>(actor, 'shell.parser') ?? 'msh';
   return CommandApi.resolveParser(spec);
-}
-
-/**
- * Apply a shadow attach/detach to the recency stacks of every giver
- * the host's contributions reach. Mirrors `ContainmentApi`'s
- * orchestration: a shadow with `self` adds to the host; with
- * `inventory` adds to the host's container if it's a CommandGiver;
- * with `environment`/`peers` adds to each CommandGiver sibling in
- * the host's container.
- *
- * @internal — called from `ShadowApi.attach` and `ShadowApi.detach`.
- */
-export function applyShadowDelta(
-  host: Stuff,
-  shadow: Stuff,
-  op: 'attach' | 'detach'
-): void {
-  const push = (
-    cg: Stuff & CommandGiver,
-    bucket: RecencyBucket,
-    defs: CommandDefinition[]
-  ): void => {
-    if (defs.length === 0) return;
-    cg.pushCommandSource(shadow, bucket, defs);
-  };
-
-  if (op === 'attach') {
-    // self bucket → push to host itself if it's a CG.
-    if (MixinApi.isCommandGiver(host)) {
-      push(
-        host as Stuff & CommandGiver,
-        'self',
-        collectSelfDefs(shadow.constructor)
-      );
-    }
-
-    // inventory/environment/peers reach OTHER givers via the host's
-    // container. Host needs to be Containable to find them.
-    if (!MixinApi.isContainable(host)) return;
-    const container = (host as Stuff & Containable).getContainer();
-    if (!container) return;
-
-    // inventory: if the container holding host is a CG, the shadow's
-    // inventory contributions land on the holder.
-    if (MixinApi.isCommandGiver(container)) {
-      push(
-        container as Stuff & CommandGiver,
-        'inventory',
-        collectInventoryDefs(shadow)
-      );
-    }
-
-    // environment + peers: walk the host's siblings.
-    const envDefs = collectEnvironmentDefs(shadow);
-    const peerDefs = MixinApi.isCommandGiver(host)
-      ? collectPeersDefs(shadow)
-      : [];
-    if (envDefs.length === 0 && peerDefs.length === 0) return;
-    for (const sibling of container.getContents()) {
-      if ((sibling as Stuff) === host) continue;
-      if (!MixinApi.isCommandGiver(sibling)) continue;
-      const siblingCG = sibling as Stuff & CommandGiver;
-      push(siblingCG, 'environment', envDefs);
-      push(siblingCG, 'peers', peerDefs);
-    }
-    return;
-  }
-
-  // detach: pop the shadow from every reachable giver. popCommandSource
-  // is idempotent on missing source, so fan-out without feasibility
-  // checks is safe.
-  if (MixinApi.isCommandGiver(host)) {
-    (host as Stuff & CommandGiver).popCommandSource(shadow);
-  }
-  if (!MixinApi.isContainable(host)) return;
-  const container = (host as Stuff & Containable).getContainer();
-  if (!container) return;
-  if (MixinApi.isCommandGiver(container)) {
-    (container as Stuff & CommandGiver).popCommandSource(shadow);
-  }
-  for (const sibling of container.getContents()) {
-    if ((sibling as Stuff) === host) continue;
-    if (!MixinApi.isCommandGiver(sibling)) continue;
-    (sibling as Stuff & CommandGiver).popCommandSource(shadow);
-  }
 }
 
 /**
@@ -356,7 +177,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (typeof sup === 'function') {
         await sup.call(this, _context);
       }
-      const defs = collectSelfDefs(this.constructor);
+      const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
     }
 
@@ -393,7 +214,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         (e) => e.source === 'self' && e.bucket === 'self'
       );
       if (exists) return;
-      const defs = collectSelfDefs(this.constructor);
+      const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
     }
 
@@ -530,21 +351,37 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
     async executeCommand(
       commandText: string,
-      input: CommandContextInput
+      opts: ExecuteCommandOpts = {}
     ): Promise<CommandResult> {
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
-      const commandId = nanoid();
-      // Promote the input shape to a full CommandContext. `verb` and
-      // `command` are placeholders here — they get overwritten when
-      // the parser/matcher binds; controllers always see the
-      // populated form.
-      const context = input as CommandContextInput as CommandContext;
-      context.commandId = commandId;
-      context.verb = '';
+      // Derive the dispatch context. `verb` and `command` are
+      // placeholders here — they get overwritten when the
+      // parser/matcher binds; controllers always see the populated
+      // form.
+      const giver = this as unknown as Stuff & CommandGiver;
+      const location = MixinApi.isContainable(giver)
+        ? ((giver as Stuff & Containable).getContainer() as Location | null)
+        : null;
+      if (!location) {
+        return {
+          success: false,
+          summary: 'No location for command',
+        };
+      }
+      const context: CommandContext = {
+        commandGiver: giver,
+        location,
+        commandText,
+        executionId: nanoid(),
+        commandId: nanoid(),
+        verb: '',
+        command: undefined as unknown as CommandDefinition,
+      };
+      if (opts.interactive !== undefined) context.interactive = opts.interactive;
       ExecutionContextApi.updateCurrentFrameMetadata({
         commandContext: context,
-        causingCommandId: commandId,
+        causingCommandId: context.commandId,
       });
 
       let verb = '';
@@ -597,8 +434,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
       // Auto-emit MudlogApi command-outcome entry. Recipient defaults
       // to the giver — only if it's a Sensor.
-      const giver = context.commandGiver as unknown as Stuff;
-      if (MixinApi.isSensor(giver)) {
+      const giverAsStuff = context.commandGiver as unknown as Stuff;
+      if (MixinApi.isSensor(giverAsStuff)) {
         const tail =
           result.summary !== undefined && result.summary !== ''
             ? result.summary
@@ -607,7 +444,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               : 'failed';
         const level: LogLevel = result.success ? 'info' : 'warn';
         MudlogApi[level]('command', Mml.compose`${verb}: ${tail}`, {
-          to: giver as Stuff & Sensor,
+          to: giverAsStuff as Stuff & Sensor,
           payload: {
             verb,
             success: result.success,

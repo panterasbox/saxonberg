@@ -15,13 +15,17 @@ import type {
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 
-export class SayController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface SayModel extends CommandModel {
+  message: string;
+}
+
+export class SayController extends CommandController<SayModel> {
+  execute(model: SayModel, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
       return { success: false, summary: 'You cannot speak.' };
     }
-    speaker.say(model.message as string);
+    speaker.say(model.message);
     return { success: true };
   }
 }

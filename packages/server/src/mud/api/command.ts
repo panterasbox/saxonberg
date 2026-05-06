@@ -14,6 +14,8 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Location } from '../lib/stuff/Location';
+import type { Container } from '../lib/spatial/Container';
+import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
@@ -29,54 +31,52 @@ import { MixinApi } from './mixin';
 import { MessageApi } from './message';
 import { ExecutionContextApi } from './execution-context';
 import { CommandLineApi, type ParsedCommand, type RawToken } from './command-line';
-import type { Parser } from './parser';
 import type { Mml } from './mml';
 
 /**
- * Caller-supplied input to `CommandGiverMixin.executeCommand`. The
- * dispatcher reads these fields from the caller and fills in the
- * remaining `CommandContext` slots (`commandId`, `verb`, `command`)
- * before any controller sees the context.
+ * Optional ingress carry-throughs `executeCommand` accepts from the
+ * caller. The dispatcher derives everything else (commandGiver from
+ * `this`, location from the giver's container, execution / command
+ * ids).
  */
-export interface CommandContextInput {
-  commandGiver: Stuff & CommandGiver;
-  interactive: Interactive;
-  location: Location;
-  /** Original raw input text (pre-parse). */
-  commandText: string;
-  /** Per-execution security id (call-stack tracking). */
-  executionId: string;
+export interface ExecuteCommandOpts {
+  /**
+   * The connection/session that originated the command. Cascaded /
+   * indirect commands (NPC scripting, scheduled triggers) may omit
+   * this; controllers must tolerate `context.interactive` being
+   * undefined.
+   */
+  interactive?: Interactive;
 }
 
 /**
- * Command execution context - read-only reference holder.
+ * Read-only reference holder controllers see during `execute()`.
+ * Built by `CommandGiverMixin.executeCommand` before any controller
+ * runs; every field is guaranteed populated by the time a controller
+ * inspects it (modulo `interactive`, which is genuinely optional).
  *
- * `commandGiver` is the thing executing the command, typed as the general
- * `Stuff & CommandGiver` rather than any specific subclass (e.g. Avatar).
- * Controllers narrow with `MixinApi.isX()` predicates or cast to a known
- * concrete type (Character, Avatar) when they need class-specific surface.
- *
- * `interactive` carries the connection/session that originated the command.
- * Cascaded / indirect commands may null this out in the future; today every
- * path sets it.
- *
- * `verb` and `command` carry the dispatch identity — they're stamped by
- * `CommandGiverMixin` after the matcher binds. The active subcommand (if
- * any) lands as `model.subcommand` on the bound model — controllers
- * branch on it with the same `model.X` shape they use for every other
- * field (see `PlayerController`'s name/pronouns/show switch).
+ *   - `commandGiver` — the thing executing the command, typed as
+ *     the general `Stuff & CommandGiver`. Controllers narrow with
+ *     `MixinApi.isX()` predicates or cast to a known concrete type.
+ *   - `interactive`  — the connection/session that originated the
+ *     input. Optional; absent for cascaded commands.
+ *   - `location`     — the giver's current location at dispatch time.
+ *   - `commandText`  — the original raw input.
+ *   - `executionId`  — per-execution security id (call-stack tracking).
+ *   - `commandId`    — per-execution attribution id stamped onto
+ *     every frame composed during the synchronous span of the call.
+ *   - `verb`         — the verb the matcher dispatched on.
+ *   - `command`      — the matched YAML view. Useful for controllers
+ *     that render help text or introspect their own schema.
  */
-export interface CommandContext extends CommandContextInput {
-  /**
-   * Command-attribution id stamped onto every frame composed during
-   * the synchronous span of `executeCommand`. Set by `CommandGiverMixin`
-   * before invoking the controller; carried through ExecutionContext.
-   */
+export interface CommandContext {
+  commandGiver: Stuff & CommandGiver;
+  interactive?: Interactive;
+  location: Location;
+  commandText: string;
+  executionId: string;
   commandId: string;
-  /** The verb the matcher dispatched on (case-preserved from input). */
   verb: string;
-  /** The matched YAML view — useful for help/usage rendering and
-   * controllers that introspect their own schema. */
   command: CommandDefinition;
 }
 
@@ -87,6 +87,68 @@ export interface CommandContext extends CommandContextInput {
  * invariant in `CommandDefinition.validate` enforces this.
  */
 export const SUBCOMMAND_FIELD = 'subcommand';
+
+/**
+ * Parser-side context — what a parser may look at to decide intent.
+ */
+export interface ParserContext {
+  /**
+   * The actor running the command. NL parsers may want this for
+   * disambiguation (e.g. "look at MY sword" vs "look at her sword").
+   */
+  commandGiver: Stuff & CommandGiver;
+  /** The actor's current location — surface for disambiguation. */
+  location: Location;
+  /**
+   * Available command definitions on the actor's recency stack —
+   * the universe of verbs the parser is allowed to choose from.
+   * Pre-filtered so the parser can ignore definitions the actor
+   * can't actually fire.
+   */
+  available: CommandDefinition[];
+}
+
+/**
+ * Result a parser yields. Exactly one of `parsed`, `bound`, or
+ * `error` should be set; the dispatcher dispatches on the first
+ * non-undefined field.
+ *
+ *   - `parsed`  — a tokenized `ParsedCommand`. The dispatcher runs
+ *                 the full pipeline (match → assemble → resolve →
+ *                 execute). Used by tokenizer-driven parsers (the
+ *                 default `msh`).
+ *   - `bound`   — a `{command, model}` pair already chosen by the
+ *                 parser. Dispatcher skips match/assemble and runs
+ *                 only resolve + execute. Used by NL/LLM parsers
+ *                 that decide intent themselves.
+ *   - `error`   — input couldn't be parsed; the summary surfaces
+ *                 to the actor via the standard auto-emit path.
+ */
+export interface ParseResult {
+  parsed?: ParsedCommand;
+  bound?: {
+    command: CommandDefinition;
+    model: ModelData;
+  };
+  error?: string;
+}
+
+/**
+ * Parser contract. A parser is a stateless transform from
+ * `(text, context) → ParseResult`. Implementations live under
+ * `mud/lib/command/parsers/<name>.ts` and default-export a `Parser`
+ * value. Custom parsers can live anywhere; reference them by
+ * absolute path (`/path/to/file`) from the `shell.parser` setting.
+ */
+export interface Parser {
+  /** Display name. Bare-name spec resolves to `lib/command/parsers/<name>`. */
+  name: string;
+  /** Parse the raw input. May be sync or async. */
+  parse(
+    text: string,
+    context: ParserContext
+  ): ParseResult | Promise<ParseResult>;
+}
 
 /**
  * Per-bucket command contributions a class can declare via
@@ -155,8 +217,15 @@ export type FieldValue = boolean | string | number | Stuff | FieldValue[];
  * takes `(model: CommandModel, context: CommandContext)` where
  * `CommandModel === ModelData`. Verb / subcommand / raw / command-spec
  * live on `CommandContext`; the model carries field data only.
+ *
+ * The index signature includes `undefined` so that controllers
+ * extending `CommandModel` with optional typed fields
+ * (`interface FooModel extends CommandModel { target?: string }`)
+ * remain assignable. With `noUncheckedIndexedAccess` enabled the read
+ * type was already `FieldValue | undefined`; widening the declared
+ * shape just makes that explicit.
  */
-export type ModelData = Record<string, FieldValue>;
+export type ModelData = Record<string, FieldValue | undefined>;
 
 /** Alias for `ModelData` — the controller's view of the bound input. */
 export type CommandModel = ModelData;
@@ -403,10 +472,54 @@ export class CommandApi {
   }
 
   /**
+   * Collect the `self`-bucket command contributions from a class
+   * chain. The concrete class wins over its mixins; mixins later in
+   * the prototype chain (closer to Object) lose to earlier ones.
+   * Used at host registration to seed the `'self'` recency entry.
+   */
+  static collectSelfDefs(ctor: unknown): CommandDefinition[] {
+    return collectBucketDefs(ctor, 'self');
+  }
+
+  /**
+   * Recency-stack delta for a successful containment move. Source-
+   * side pops, dest-side pushes; if the moving item is itself a
+   * CommandGiver, its env+peers slice is rebuilt from the new
+   * neighborhood.
+   *
+   * Called by `ContainmentApi.move` after `setContainer` succeeds,
+   * before notification hooks fire.
+   */
+  static applyContainmentDelta(
+    item: Stuff,
+    from: (Stuff & Container) | null,
+    to: (Stuff & Container) | null
+  ): void {
+    applyContainmentDeltaImpl(item, from, to);
+  }
+
+  /**
+   * Recency-stack delta for a shadow attach/detach. A shadow whose
+   * class declares `commandContributions` lands on the host's stack
+   * (and on reachable peers' stacks per bucket) on attach; detach
+   * pops the shadow from every giver.
+   *
+   * Called by `ShadowApi.attach` and `ShadowApi.detach` around the
+   * atomic install/remove.
+   */
+  static applyShadowDelta(
+    host: Stuff,
+    shadow: Stuff,
+    op: 'attach' | 'detach'
+  ): void {
+    applyShadowDeltaImpl(host, shadow, op);
+  }
+
+  /**
    * Resolve a parser spec to a `Parser` instance.
    *
    * Spec conventions:
-   *   - Bare name (no `/`) → `<src>/mud/lib/parsers/<name>.ts`.
+   *   - Bare name (no `/`) → `<src>/mud/lib/command/parsers/<name>.ts`.
    *   - Absolute path (`/X`) → `<src>/mud/X.ts`.
    *
    * The default framework parser is `'msh'` (Mud SHell — the
@@ -1209,7 +1322,186 @@ function resolveParserSpec(spec: string): string {
     );
   }
   // Bare name — framework default location.
-  return resolvePath(MUD_ROOT, 'lib/parsers', spec + '.ts');
+  return resolvePath(MUD_ROOT, 'lib/command/parsers', spec + '.ts');
+}
+
+/* ────────── recency-stack orchestration helpers ────────── */
+
+type ContributionsHolder = { commandContributions?: CommandContributions };
+type Bucket = 'self' | 'inventory' | 'environment' | 'peers';
+
+/** Read the `commandContributions` static off a class-like value. */
+function getContributions(cls: unknown): CommandContributions | undefined {
+  return (cls as ContributionsHolder).commandContributions;
+}
+
+/** Resolve a list of YAML filenames to CommandDefinitions, deduped. */
+function resolveDefs(filenames: string[] | undefined): CommandDefinition[] {
+  if (!filenames || filenames.length === 0) return [];
+  const out: CommandDefinition[] = [];
+  const seen = new Set<string>();
+  for (const fname of filenames) {
+    if (seen.has(fname)) continue;
+    seen.add(fname);
+    const cmd = CommandApi.getCommand(fname);
+    if (cmd) out.push(cmd);
+  }
+  return out;
+}
+
+/**
+ * Walk a class chain — concrete first, then mixins — and collect
+ * the named bucket's filenames into a deduped CommandDefinition[].
+ */
+function collectBucketDefs(
+  ctor: unknown,
+  bucket: Bucket
+): CommandDefinition[] {
+  const filenames: string[] = [];
+  const own = getContributions(ctor);
+  const ownList = own?.[bucket];
+  if (ownList) filenames.push(...ownList);
+  const mixins = MixinApi.queryMixins(
+    ctor as { prototype: unknown } & ((...args: unknown[]) => unknown)
+  );
+  for (const mixin of mixins) {
+    const mlist = getContributions(mixin)?.[bucket];
+    if (mlist) filenames.push(...mlist);
+  }
+  return resolveDefs(filenames);
+}
+
+function applyContainmentDeltaImpl(
+  item: Stuff,
+  from: (Stuff & Container) | null,
+  to: (Stuff & Container) | null
+): void {
+  // Source side: pop from anyone whose stack carried item.
+  if (from) {
+    if (MixinApi.isCommandGiver(from)) {
+      (from as Stuff & CommandGiver).popCommandSource(item);
+    }
+    for (const sibling of from.getContents()) {
+      if (sibling === item) continue;
+      if (MixinApi.isCommandGiver(sibling)) {
+        (sibling as Stuff & CommandGiver).popCommandSource(item);
+      }
+    }
+  }
+
+  // Dest side: push to anyone whose stack now carries item.
+  if (to) {
+    if (MixinApi.isCommandGiver(to)) {
+      const defs = collectBucketDefs(item.constructor, 'inventory');
+      if (defs.length > 0) {
+        (to as Stuff & CommandGiver).pushCommandSource(item, 'inventory', defs);
+      }
+    }
+    const envDefs = collectBucketDefs(item.constructor, 'environment');
+    const peerDefs = MixinApi.isCommandGiver(item)
+      ? collectBucketDefs(item.constructor, 'peers')
+      : [];
+    if (envDefs.length > 0 || peerDefs.length > 0) {
+      for (const sibling of to.getContents()) {
+        if (sibling === item) continue;
+        if (!MixinApi.isCommandGiver(sibling)) continue;
+        const siblingCG = sibling as Stuff & CommandGiver;
+        if (envDefs.length > 0) {
+          siblingCG.pushCommandSource(item, 'environment', envDefs);
+        }
+        if (peerDefs.length > 0) {
+          siblingCG.pushCommandSource(item, 'peers', peerDefs);
+        }
+      }
+    }
+  }
+
+  // Self-move: item is a CommandGiver entering a container. Drop
+  // any prior env+peers slice and push contributions from each
+  // neighbor in the new container — this is what makes "I just
+  // walked into a room" see the room's existing contents on the
+  // giver's own stack.
+  if (MixinApi.isCommandGiver(item) && to) {
+    const itemCG = item as Stuff & CommandGiver;
+    if (from) itemCG.resetCommandSources('self-moved');
+    for (const neighbor of to.getContents()) {
+      if ((neighbor as Stuff) === item) continue;
+      const envDefs = collectBucketDefs(neighbor.constructor, 'environment');
+      const peerDefs = MixinApi.isCommandGiver(neighbor)
+        ? collectBucketDefs(neighbor.constructor, 'peers')
+        : [];
+      if (envDefs.length > 0) {
+        itemCG.pushCommandSource(neighbor, 'environment', envDefs);
+      }
+      if (peerDefs.length > 0) {
+        itemCG.pushCommandSource(neighbor, 'peers', peerDefs);
+      }
+    }
+  }
+}
+
+function applyShadowDeltaImpl(
+  host: Stuff,
+  shadow: Stuff,
+  op: 'attach' | 'detach'
+): void {
+  const push = (
+    cg: Stuff & CommandGiver,
+    bucket: Bucket,
+    defs: CommandDefinition[]
+  ): void => {
+    if (defs.length === 0) return;
+    cg.pushCommandSource(shadow, bucket, defs);
+  };
+
+  if (op === 'attach') {
+    if (MixinApi.isCommandGiver(host)) {
+      push(
+        host as Stuff & CommandGiver,
+        'self',
+        collectBucketDefs(shadow.constructor, 'self')
+      );
+    }
+    if (!MixinApi.isContainable(host)) return;
+    const container = (host as Stuff & Containable).getContainer();
+    if (!container) return;
+    if (MixinApi.isCommandGiver(container)) {
+      push(
+        container as Stuff & CommandGiver,
+        'inventory',
+        collectBucketDefs(shadow.constructor, 'inventory')
+      );
+    }
+    const envDefs = collectBucketDefs(shadow.constructor, 'environment');
+    const peerDefs = MixinApi.isCommandGiver(host)
+      ? collectBucketDefs(shadow.constructor, 'peers')
+      : [];
+    if (envDefs.length === 0 && peerDefs.length === 0) return;
+    for (const sibling of container.getContents()) {
+      if ((sibling as Stuff) === host) continue;
+      if (!MixinApi.isCommandGiver(sibling)) continue;
+      const siblingCG = sibling as Stuff & CommandGiver;
+      push(siblingCG, 'environment', envDefs);
+      push(siblingCG, 'peers', peerDefs);
+    }
+    return;
+  }
+
+  // detach: pop the shadow from every reachable giver.
+  if (MixinApi.isCommandGiver(host)) {
+    (host as Stuff & CommandGiver).popCommandSource(shadow);
+  }
+  if (!MixinApi.isContainable(host)) return;
+  const container = (host as Stuff & Containable).getContainer();
+  if (!container) return;
+  if (MixinApi.isCommandGiver(container)) {
+    (container as Stuff & CommandGiver).popCommandSource(shadow);
+  }
+  for (const sibling of container.getContents()) {
+    if ((sibling as Stuff) === host) continue;
+    if (!MixinApi.isCommandGiver(sibling)) continue;
+    (sibling as Stuff & CommandGiver).popCommandSource(shadow);
+  }
 }
 
 /** Path resolver for validator specs. See `CommandApi.resolveValidator`. */

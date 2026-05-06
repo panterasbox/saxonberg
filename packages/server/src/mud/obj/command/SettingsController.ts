@@ -21,8 +21,13 @@ import type {
 
 type EnvHost = Stuff & Environment;
 
-export class SettingsController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface SettingsModel extends CommandModel {
+  key?: string;
+  value?: string;
+}
+
+export class SettingsController extends CommandController<SettingsModel> {
+  execute(model: SettingsModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       return {
@@ -32,8 +37,8 @@ export class SettingsController extends CommandController {
     }
 
     const sub = model.subcommand ?? 'list';
-    const key = model.key as string | undefined;
-    const value = model.value as string | undefined;
+    const key = model.key;
+    const value = model.value;
     switch (sub) {
       case 'list':
         return this.executeList(avatar, context);

@@ -19,8 +19,13 @@ import type { Environment } from '../../lib/shell/Environment';
 
 type EnvHost = Stuff & Environment;
 
-export class VarController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface VarModel extends CommandModel {
+  name?: string;
+  value?: string;
+}
+
+export class VarController extends CommandController<VarModel> {
+  execute(model: VarModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       return {
@@ -30,8 +35,8 @@ export class VarController extends CommandController {
     }
 
     const sub = model.subcommand ?? 'list';
-    const name = model.name as string | undefined;
-    const value = model.value as string | undefined;
+    const name = model.name;
+    const value = model.value;
     switch (sub) {
       case 'list':
         return this.executeList(avatar, context);

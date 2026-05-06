@@ -14,10 +14,14 @@ import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 
-export class OpenController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface OpenModel extends CommandModel {
+  target?: string;
+}
+
+export class OpenController extends CommandController<OpenModel> {
+  execute(model: OpenModel, context: CommandContext): CommandResult {
     const { commandGiver, location } = context;
-    const target = ((model.target as string) ?? '').trim();
+    const target = (model.target ?? '').trim();
     if (!target) return { success: false, summary: 'open what?' };
 
     const hit = MqlApi.resolve(target, { commandGiver, location });

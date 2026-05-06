@@ -20,13 +20,11 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
-import type { CommandContextInput } from '../command';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
-import type { Interactive } from '../../obj/Interactive';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -64,19 +62,8 @@ class EnvProvider extends EnvProviderBase {
   };
 }
 
-function buildCtx(
-  giver: TestGiver,
-  location: Location,
-  text: string
-): CommandContextInput {
-  return {
-    commandGiver: giver as unknown as CommandContextInput['commandGiver'],
-    interactive: {} as Interactive,
-    location,
-    commandText: text,
-    executionId: 'test',
-  };
-}
+// executeCommand derives its own context — these tests just call it
+// directly on a giver that's been placed in a location.
 
 function stackOf(giver: TestGiver): RecencyEntry[] {
   return (giver as unknown as { _commandStack: RecencyEntry[] })._commandStack;
@@ -227,8 +214,8 @@ describe('CommandGiverMixin recency stack', () => {
 
   it('returns "Unknown command" when the verb is not on the stack at all', async () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const ctx = buildCtx(giver, makeStuff(() => new Location()), 'gibberishverb');
-    const result = await giver.executeCommand('gibberishverb', ctx);
+    ContainmentApi.move(giver, makeStuff(() => new Location()));
+    const result = await giver.executeCommand('gibberishverb');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/Unknown command/);
   });
@@ -237,8 +224,7 @@ describe('CommandGiverMixin recency stack', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     const loc = makeStuff(() => new Location());
     ContainmentApi.move(giver, loc);
-    const ctx = buildCtx(giver, loc, 'ping | ping');
-    const result = await giver.executeCommand('ping | ping', ctx);
+    const result = await giver.executeCommand('ping | ping');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/piping is not yet implemented/);
   });

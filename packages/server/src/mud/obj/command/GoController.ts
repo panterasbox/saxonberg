@@ -18,14 +18,18 @@ import type { Exit } from '../../lib/spatial/Exit';
 import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
-export class GoController extends CommandController {
+interface GoModel extends CommandModel {
+  target?: string;
+}
+
+export class GoController extends CommandController<GoModel> {
   async execute(
-    model: CommandModel,
+    model: GoModel,
     context: CommandContext
   ): Promise<CommandResult> {
     const { location } = context;
 
-    const rawTarget = model.target as string | undefined;
+    const rawTarget = model.target;
     const target = rawTarget?.trim().toLowerCase();
     if (!target) {
       return { success: false, summary: 'go where?' };

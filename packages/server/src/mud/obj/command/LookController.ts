@@ -19,9 +19,13 @@ import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 import type { Exit } from '../../lib/spatial/Exit';
 
-export class LookController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
-    const target = model.target as Stuff | undefined;
+interface LookModel extends CommandModel {
+  target?: Stuff;
+}
+
+export class LookController extends CommandController<LookModel> {
+  execute(model: LookModel, context: CommandContext): CommandResult {
+    const target = model.target;
     if (target) {
       return this.lookAtTarget(target, context);
     }

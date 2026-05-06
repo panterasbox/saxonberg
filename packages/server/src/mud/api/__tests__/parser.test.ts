@@ -26,7 +26,7 @@ describe('CommandApi.resolveParser', () => {
   });
 
   it('resolves an absolute /-rooted spec', async () => {
-    const parser = await CommandApi.resolveParser('/lib/parsers/msh');
+    const parser = await CommandApi.resolveParser('/lib/command/parsers/msh');
     expect(parser.name).toBe('msh');
   });
 

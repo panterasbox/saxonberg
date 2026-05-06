@@ -6,8 +6,8 @@
  * → resolve → execute pipeline.
  */
 
-import { CommandLineApi } from '../../api/command-line';
-import type { Parser, ParseResult } from '../../api/parser';
+import { CommandLineApi } from '../../../api/command-line';
+import type { Parser, ParseResult } from '../../../api/command';
 
 const msh: Parser = {
   name: 'msh',

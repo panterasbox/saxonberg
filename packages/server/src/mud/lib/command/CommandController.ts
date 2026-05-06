@@ -14,6 +14,12 @@
  * `pass: true` opts the controller out of the dispatch (the chain
  * tries the next match), and the optional `summary` decorates the
  * auto-emitted MudlogApi command-outcome entry.
+ *
+ * Subclasses may narrow the model type by passing a more specific
+ * `T extends CommandModel` parameter — e.g.
+ * `class DropController extends CommandController<DropModel>`. The
+ * dispatcher works with the default `CommandController` (== `T =
+ * CommandModel`) and never sees the narrower type.
  */
 
 import type {
@@ -30,7 +36,9 @@ import { Idea } from '../stuff/Idea';
  * Template — `StuffApi.clone` instantiates one per command execution.
  * Reloaded class blueprints are picked up via `HotReloadApi`.
  */
-export abstract class CommandController extends Idea {
+export abstract class CommandController<
+  T extends CommandModel = CommandModel,
+> extends Idea {
   /**
    * Execute the command with a resolved CommandModel.
    *
@@ -46,7 +54,7 @@ export abstract class CommandController extends Idea {
    *      observable side effects.
    */
   abstract execute(
-    model: CommandModel,
+    model: T,
     context: CommandContext
   ): CommandResult | Promise<CommandResult>;
 }

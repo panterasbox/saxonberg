@@ -11,9 +11,13 @@ import type {
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
-export class HelpController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
-    const command = model.command as string | undefined;
+interface HelpModel extends CommandModel {
+  command?: string;
+}
+
+export class HelpController extends CommandController<HelpModel> {
+  execute(model: HelpModel, context: CommandContext): CommandResult {
+    const command = model.command;
     if (command) {
       return this.showCommandHelp(command, context);
     }

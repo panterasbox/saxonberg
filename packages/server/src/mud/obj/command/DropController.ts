@@ -15,8 +15,12 @@ import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
-export class DropController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface DropModel extends CommandModel {
+  targets?: Stuff[];
+}
+
+export class DropController extends CommandController<DropModel> {
+  execute(model: DropModel, context: CommandContext): CommandResult {
     const targets = collectTargets(model);
 
     if (targets.length === 0) {
@@ -67,7 +71,6 @@ export class DropController extends CommandController {
   }
 }
 
-function collectTargets(model: CommandModel): Stuff[] {
-  const list = model.targets;
-  return Array.isArray(list) ? (list as Stuff[]) : [];
+function collectTargets(model: DropModel): Stuff[] {
+  return model.targets ?? [];
 }

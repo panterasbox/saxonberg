@@ -14,11 +14,16 @@ import { PlayerApi } from '../../api/player';
 import { Mml } from '../../api/mml';
 import type { Avatar } from '../Avatar';
 
-export class TellController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface TellModel extends CommandModel {
+  target: string;
+  message: string;
+}
+
+export class TellController extends CommandController<TellModel> {
+  execute(model: TellModel, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
-    const targetName = model.target as string;
-    const message = model.message as string;
+    const targetName = model.target;
+    const message = model.message;
 
     const target = this.findAvatarByName(targetName, context);
     if (!target) {

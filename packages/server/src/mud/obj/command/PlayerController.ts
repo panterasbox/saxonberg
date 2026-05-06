@@ -13,8 +13,14 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { Avatar } from '../Avatar';
 
-export class PlayerController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface PlayerModel extends CommandModel {
+  name?: string;
+  surname?: string;
+  pronouns?: string;
+}
+
+export class PlayerController extends CommandController<PlayerModel> {
+  execute(model: PlayerModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!(avatar instanceof Avatar)) {
       return {
@@ -39,12 +45,12 @@ export class PlayerController extends CommandController {
   }
 
   private executeName(
-    model: CommandModel,
+    model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
   ): CommandResult {
-    const name = model.name as string | undefined;
-    const surname = model.surname as string | undefined;
+    const name = model.name;
+    const surname = model.surname;
     if (!name) {
       return { success: false, summary: 'name required' };
     }
@@ -62,11 +68,11 @@ export class PlayerController extends CommandController {
   }
 
   private executePronouns(
-    model: CommandModel,
+    model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
   ): CommandResult {
-    const pronouns = model.pronouns as string | undefined;
+    const pronouns = model.pronouns;
     if (!pronouns) {
       return { success: false, summary: 'pronouns required' };
     }

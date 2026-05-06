@@ -38,7 +38,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Shadow } from '../lib/stuff/Shadow';
-import { applyShadowDelta } from '../lib/command/CommandGiver';
+import { CommandApi } from './command';
 import {
   ShadowError,
   DestroyedObjectError,
@@ -144,7 +144,7 @@ export class ShadowApi {
     // contributions, push them onto the host's stack (and reachable
     // peer/holder stacks). Schema-delivery emits piggy-back on the
     // sealed push surface, so attach surfaces as `commands.added`.
-    applyShadowDelta(host, shadow, 'attach');
+    CommandApi.applyShadowDelta(host, shadow, 'attach');
   }
 
   /**
@@ -175,7 +175,7 @@ export class ShadowApi {
     // contributed to. Order matters — pop BEFORE the shadow
     // detaches from the host, so containment lookups (which use
     // `host.getContainer()`) still see the right neighborhood.
-    applyShadowDelta(host, shadow, 'detach');
+    CommandApi.applyShadowDelta(host, shadow, 'detach');
 
     ShadowApi.#removeAtomic(shadow, host, methods);
   }

@@ -14,10 +14,14 @@ import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 
-export class CloseController extends CommandController {
-  execute(model: CommandModel, context: CommandContext): CommandResult {
+interface CloseModel extends CommandModel {
+  target?: string;
+}
+
+export class CloseController extends CommandController<CloseModel> {
+  execute(model: CloseModel, context: CommandContext): CommandResult {
     const { commandGiver, location } = context;
-    const target = ((model.target as string) ?? '').trim();
+    const target = (model.target ?? '').trim();
     if (!target) return { success: false, summary: 'close what?' };
 
     const hit = MqlApi.resolve(target, { commandGiver, location });
