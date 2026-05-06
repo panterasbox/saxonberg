@@ -156,6 +156,9 @@ describe('BootstrapManager + EventRegistry integration', () => {
   it('clones the EventRegistry template and exposes it via findByTemplatePath', async () => {
     // Stub the Template lookup so we don't need a live Mongo
     // connection — return what the seeded YAML would produce.
+    // PersistentHydrator is itself templated now, so we serve its
+    // Template here too (a hydrator template names no hydratorClass,
+    // breaking the recursion).
     vi.spyOn(Template, 'findByPath').mockImplementation(
       async (path: string) => {
         if (path === '/obj/EventRegistry') {
@@ -163,6 +166,13 @@ describe('BootstrapManager + EventRegistry integration', () => {
           t.path = path;
           t.class = '/obj/EventRegistry';
           t.hydratorClass = '/lib/persistence/PersistentHydrator';
+          t.data = {};
+          return t;
+        }
+        if (path === '/lib/persistence/PersistentHydrator') {
+          const t = await StuffApi.create(() => new Template());
+          t.path = path;
+          t.class = '/lib/persistence/PersistentHydrator';
           t.data = {};
           return t;
         }

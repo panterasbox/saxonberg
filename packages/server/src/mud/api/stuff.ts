@@ -13,6 +13,8 @@
  */
 
 import { nanoid } from 'nanoid';
+import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi } from './mixin';
@@ -27,6 +29,7 @@ import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 import { EventApi } from './event';
 import { Events } from '../lib/events';
+import { HotReloadApi } from './hot-reload';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -59,6 +62,18 @@ export class StuffApi {
     byId: new Map(),
     byTemplatePath: new Map(),
   };
+
+  /**
+   * Set of templatePaths whose `clone()` call is currently in flight.
+   * Catches circular template dependencies — e.g. a hydrator template
+   * naming itself (or another hydrator) as `hydratorClass`. Without
+   * detection the recursion would stack-overflow; with detection we
+   * throw a clear error before that happens.
+   *
+   * Invariant: every `clone()` must add its `templatePath` on entry
+   * and remove it in a finally block, regardless of success / failure.
+   */
+  static #inFlightClonePaths: Set<string> = new Set();
 
   /**
    * Atomically add or remove `obj` across every index. Called from
@@ -147,6 +162,24 @@ export class StuffApi {
   }
 
   /**
+   * Resolve a validated class path (e.g. `/obj/Avatar`) to the absolute
+   * fs path of the module. Prefer `.ts` (dev/test) when present, fall
+   * back to `.js` (built artifacts), and finally return the `.ts` path
+   * unconditionally so HMR-registered paths without a disk-resident
+   * source still match.
+   */
+  static #resolveAbsoluteClassPath(classPath: string): string {
+    const moduleDir = new URL('..', import.meta.url); // <srcRoot>/mud/
+    for (const ext of ['ts', 'js']) {
+      const candidate = fileURLToPath(
+        new URL(`.${classPath}.${ext}`, moduleDir)
+      );
+      if (existsSync(candidate)) return candidate;
+    }
+    return fileURLToPath(new URL(`.${classPath}.ts`, moduleDir));
+  }
+
+  /**
    * Clone an object from a template in the domain collection.
    *
    * Pipeline:
@@ -184,6 +217,31 @@ export class StuffApi {
     templatePath: string,
     context?: unknown
   ): Promise<T> {
+    // Cycle guard. Catches a template whose `hydratorClass` resolves
+    // (transitively) back to itself before the recursion stack-
+    // overflows. Normal clones aren't recursive — only the
+    // hydrator-resolution recursion can hit this.
+    if (this.#inFlightClonePaths.has(templatePath)) {
+      throw new Error(
+        `StuffApi.clone('${templatePath}'): circular template ` +
+          `dependency — already in flight (path chain: ${[
+            ...this.#inFlightClonePaths,
+            templatePath,
+          ].join(' → ')})`
+      );
+    }
+    this.#inFlightClonePaths.add(templatePath);
+    try {
+      return await this.#cloneInner<T>(templatePath, context);
+    } finally {
+      this.#inFlightClonePaths.delete(templatePath);
+    }
+  }
+
+  static async #cloneInner<T extends Stuff>(
+    templatePath: string,
+    context?: unknown
+  ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
     //    Template → Persistable → Idea → Stuff → StuffApi cycle at module
     //    init time.
@@ -196,28 +254,44 @@ export class StuffApi {
     // 2. Validate and resolve class path
     const classPath = this.#validateClassPath(template.class);
 
-    // 3. Dynamically import the module
-    // Convert "/obj/Avatar" to "../obj/Avatar"
-    const modulePath = `..${classPath}.js`;
+    // 3. Resolve the class. HotReloadApi is consulted first as an
+    //    override: if a reload has registered a current blueprint for
+    //    this path, that is what we instantiate. Otherwise fall back
+    //    to a bare dynamic import (Node ESM cache; matches the class
+    //    identity any static import of the same module would see).
+    //    `unload(absPath)` poisons the path: subsequent clones throw.
     const className = classPath.split('/').pop()!; // "Avatar" from "/obj/Avatar"
-
-    // Dynamic import result is an opaque module namespace object; we fish the
-    // class constructor out of it by string name below.
-    let module: Record<string, unknown>;
-    try {
-      module = (await import(modulePath)) as Record<string, unknown>;
-    } catch (error) {
+    const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(classPath);
+    if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
-        `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
+        `StuffApi.clone('${templatePath}'): no blueprint at '${absoluteClassPath}' — was unloaded via HotReloadApi.unload`
       );
     }
 
-    // 4. Get the class constructor from the module
-    const ClassConstructor = module[className] as StuffConstructor<T> | undefined;
+    let ClassConstructor: StuffConstructor<T> | undefined;
+    const reloaded = HotReloadApi.getCurrentExport(absoluteClassPath, className);
+    if (reloaded) {
+      ClassConstructor = reloaded as StuffConstructor<T>;
+    }
+
     if (!ClassConstructor) {
-      throw new Error(
-        `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
-      );
+      // Cold path: bare dynamic import. Convert "/obj/Avatar" to
+      // "../obj/Avatar.js" relative to this module.
+      const modulePath = `..${classPath}.js`;
+      let module: Record<string, unknown>;
+      try {
+        module = (await import(modulePath)) as Record<string, unknown>;
+      } catch (error) {
+        throw new Error(
+          `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      ClassConstructor = module[className] as StuffConstructor<T> | undefined;
+      if (!ClassConstructor) {
+        throw new Error(
+          `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
+        );
+      }
     }
 
     // 4b. SingletonMixin pre-flight: classes composing SingletonMixin
@@ -243,9 +317,17 @@ export class StuffApi {
     const zone = await ZoneApi.resolveZoneForPath(templatePath);
 
     // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
-    //    hydration step runs at all — `data` is ignored. Templates that
-    //    want generic mixin-field copy must opt in.
-    const hydrator = await this.#resolveHydrator(template.hydratorClass);
+    //    hydration step runs at all — `data` is ignored. Otherwise
+    //    `singleton(path)` returns the cached hydrator instance if
+    //    one is registered, or lazily clones the first time a
+    //    backing needs it. Hydrators are stateless by contract
+    //    (`Hydrator.ts` documents this) — reusing one instance
+    //    across many `hydrate` calls is correct, and avoids a
+    //    per-clone Template.findByPath round-trip. HMR-aware via
+    //    the same clone-override path as the backing class.
+    const hydrator: (Hydrator & Stuff) | null = template.hydratorClass
+      ? await this.singleton<Hydrator & Stuff>(template.hydratorClass)
+      : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
     //    postRegister sequence. The hydrator captures `template.data`.
@@ -307,39 +389,6 @@ export class StuffApi {
       return bucket.values().next().value as T;
     }
     return this.clone<T>(path, context);
-  }
-
-  /**
-   * Resolve a `hydratorClass` path into a `Hydrator` instance. Returns
-   * `null` when no `hydratorClass` is configured — clone() then skips the
-   * hydrate step entirely. Hydrator modules follow the same
-   * last-segment-as-export-name convention as backing classes.
-   */
-  static async #resolveHydrator(
-    hydratorClassPath: string | undefined
-  ): Promise<Hydrator | null> {
-    if (!hydratorClassPath) return null;
-
-    const normalized = this.#validateClassPath(hydratorClassPath);
-    const modulePath = `..${normalized}.js`;
-    const className = normalized.split('/').pop()!;
-
-    let module: Record<string, unknown>;
-    try {
-      module = (await import(modulePath)) as Record<string, unknown>;
-    } catch (error) {
-      throw new Error(
-        `Failed to import hydrator ${hydratorClassPath}: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-
-    const Ctor = module[className] as (new () => Hydrator) | undefined;
-    if (!Ctor) {
-      throw new Error(
-        `Hydrator ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
-      );
-    }
-    return new Ctor();
   }
 
   /**

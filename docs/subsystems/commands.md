@@ -58,8 +58,9 @@ avatar.executeCommand(commandText, context)            ← CommandGiverMixin
    │    ├─ resolve type:object fields via MqlApi
    │    ├─ run validators (mustBeVisible, canReach, …)
    │    └─ executeController
-   │         dynamic import('../../obj/command/' + cmd.controller)
-   │         new ControllerClass().execute(fields, context)
+   │         StuffApi.clone('/obj/command/' + cmd.controller)  ── HMR-aware
+   │         await controller.execute(fields, context)
+   │         StuffApi.destruct(controller)                    ── ephemeral
    ▼
 LookController.execute(input, ctx) (etc.)
    │  fires prose: MessageApi.scene(actor).topic(…).toSelf(body).send()
@@ -82,7 +83,16 @@ The MVC mapping inside that pipeline:
 |---|---|---|
 | **View** | YAML file declaring verb, syntax, fields, validators | `mud/cmd/*.yaml` |
 | **Model** | `CommandModel` — resolved fields + options + verb | runtime only |
-| **Controller** | `CommandController` subclass with `execute(input, ctx)` | `mud/obj/command/*Controller.ts` |
+| **Controller** | `CommandController` subclass (extends `Idea`) with `execute(input, ctx)` | `mud/obj/command/*Controller.ts` |
+
+Controllers are templated `Idea` Stuff. Each controller file has a
+matching seed YAML at `mud/seeds/obj/command/<Name>.yaml` so
+`SeederManager` writes a Template doc into `domain` at boot. Dispatch
+clones a fresh instance per execution via `StuffApi.clone` (which
+consults `HotReloadApi` automatically — see
+[hot-reload.md](./hot-reload.md)) and destructs after `execute`
+resolves. The "fresh per execution" semantic isolates state across
+commands; the destruct keeps `StuffApi`'s indexes from accumulating.
 
 ## Concepts
 

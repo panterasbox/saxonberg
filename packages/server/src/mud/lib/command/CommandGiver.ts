@@ -23,6 +23,8 @@ import {
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
+import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandProviderRegistry } from './ICommandProvider';
 import { getValidator } from './validators';
@@ -512,29 +514,28 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       options: Record<string, boolean>,
       context: CommandContext
     ): Promise<CommandResult> {
+      // Controllers are ephemeral: a fresh instance per execution.
+      // `StuffApi.clone` consults `HotReloadApi` so reloaded class
+      // blueprints are picked up automatically; the try/finally
+      // destructs the controller after `execute` resolves so we
+      // don't leak a registered Stuff per command.
+      let controller: CommandController<unknown> | null = null;
       try {
-        // Dynamic import of controller
-        const controllerPath = `../../obj/command/${command.controller}`;
-        const controllerModule = await import(controllerPath);
-
-        const ControllerClass = controllerModule[command.controller];
-        if (!ControllerClass) {
-          throw new Error(`Controller class ${command.controller} not found in module`);
-        }
-
-        // Instantiate controller
-        const controller = new ControllerClass();
-
-        // Execute
-        const result = controller.execute(fields, context);
-
-        return result;
+        controller = await StuffApi.clone<CommandController<unknown>>(
+          `/obj/command/${command.controller}`
+        );
+        return await controller.execute(
+          fields as Record<string, unknown>,
+          context
+        );
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         return {
           success: false,
           summary: `Failed to execute command: ${message}`,
         };
+      } finally {
+        if (controller) StuffApi.destruct(controller);
       }
     }
   };

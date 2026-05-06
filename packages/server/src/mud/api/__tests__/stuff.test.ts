@@ -347,4 +347,34 @@ describe('StuffApi', () => {
       void inst;
     });
   });
+
+  describe('clone() cycle detection', () => {
+    it('throws on a self-referencing template (hydratorClass = self)', async () => {
+      // Use PersistentHydrator (a real on-disk class) but stub its
+      // Template to falsely claim it hydrates itself, creating a
+      // one-step cycle. clone() should bail before the recursion
+      // stack-overflows.
+      const { Template } = await import('../../lib/stuff/Template');
+      const { vi } = await import('vitest');
+      vi.spyOn(Template, 'findByPath').mockImplementation(
+        async (path: string) => {
+          if (path === '/lib/persistence/PersistentHydrator') {
+            const t = await StuffApi.create(() => new Template());
+            t.path = path;
+            t.class = '/lib/persistence/PersistentHydrator';
+            t.hydratorClass = '/lib/persistence/PersistentHydrator';
+            t.data = {};
+            return t;
+          }
+          return null;
+        }
+      );
+
+      await expect(
+        StuffApi.clone('/lib/persistence/PersistentHydrator')
+      ).rejects.toThrow(/circular template dependency/);
+
+      vi.restoreAllMocks();
+    });
+  });
 });

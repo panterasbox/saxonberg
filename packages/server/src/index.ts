@@ -80,6 +80,12 @@ async function main() {
     //     etc.) — clones the seeded hook templates and registers
     //     them with the persistence pipeline. Seeds must exist
     //     before this runs.
+    //
+    //     Controllers are NOT pre-loaded — dispatch goes through
+    //     `StuffApi.singleton('/obj/command/<Name>')` which lazily
+    //     clones on first use and caches via the templatePath index.
+    //     The controller seed YAMLs under `mud/seeds/obj/command/`
+    //     were just written by `SeederManager.run()` above.
     await PersistenceManager.get().loadHooks();
 
     // 1c. Bootstrap runtime instances from the engine manifest.

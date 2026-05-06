@@ -6,11 +6,15 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { writeFileSync, mkdtempSync, rmSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import { EventApi } from '../event';
-import { Events } from '../../lib/events';
+import { Events, type ReloadEvent } from '../../lib/events';
 import { ConnectionApi } from '../connection';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
+import { HotReloadApi } from '../hot-reload';
 import { EventRegistry } from '../../obj/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Interactive } from '../../obj/Interactive';
@@ -90,5 +94,32 @@ describe('Engine emit sites', () => {
     ]);
   });
 
-  it.todo('ModuleReloaded — wire when hot-reload subsystem lands');
+  it('ModuleReloaded fires from HotReloadApi.reload with the documented payload', async () => {
+    await bootRegistry();
+    HotReloadApi._clearAllForTest();
+
+    const workDir = mkdtempSync(join(tmpdir(), 'hmr-event-wiring-'));
+    try {
+      const fixturePath = join(workDir, 'WiringGreeter.ts');
+      writeFileSync(
+        fixturePath,
+        `export class WiringGreeter { greet() { return 'hello'; } }\n`
+      );
+
+      const seen: ReloadEvent[] = [];
+      EventApi.on<ReloadEvent>(Events.ModuleReloaded, (p) => { seen.push(p); });
+
+      await HotReloadApi.reload(fixturePath);
+      await flushMicrotasks();
+
+      expect(seen).toHaveLength(1);
+      expect(seen[0]!.path).toBe(fixturePath);
+      expect(seen[0]!.versionId).toBeTypeOf('string');
+      expect(seen[0]!.previousVersionId).toBeNull();
+      expect(seen[0]!.exports).toContain('WiringGreeter');
+      expect(seen[0]!.error).toBeUndefined();
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
 });

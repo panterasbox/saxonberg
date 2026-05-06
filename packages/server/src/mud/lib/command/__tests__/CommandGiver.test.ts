@@ -26,6 +26,10 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Interactive } from '../../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from "../../stuff/Idea";
+import {
+  PersistenceManager,
+  Collections,
+} from '../../../../backend/PersistenceManager';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -66,6 +70,32 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
 
   beforeEach(() => {
     CommandApi.clearCache();
+    // Dispatch clones a fresh PingController per command via
+    // `StuffApi.clone`, which calls `Template.findByPath` against PM.
+    // Mock PM so the lookup resolves without a live MongoDB.
+    const find = vi.fn(
+      async (collection: string, query: Record<string, unknown>) => {
+        if (
+          collection === Collections.Domain &&
+          query.path === '/obj/command/PingController'
+        ) {
+          return [
+            {
+              path: '/obj/command/PingController',
+              class: '/obj/command/PingController',
+              data: {},
+            },
+          ];
+        }
+        return [];
+      }
+    );
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+      save: vi.fn(),
+      find,
+      findById: vi.fn(),
+    } as unknown as PersistenceManager);
+
     location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
@@ -73,6 +103,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('stamps a fresh commandId onto context per call', async () => {

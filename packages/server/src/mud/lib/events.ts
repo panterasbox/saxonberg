@@ -19,6 +19,7 @@
 import type { PropAccessCheck, PropValue } from './stuff/Propertied';
 import { emittableBy } from '../api/event';
 import { StuffApi } from '../api/stuff';
+import { HotReloadApi } from '../api/hot-reload';
 import { PersistenceManager } from '../../backend/PersistenceManager';
 
 /**
@@ -41,10 +42,30 @@ export const Events = {
   PlayerLoggedIn: 'player.loggedIn',
   PlayerLoggedOut: 'player.loggedOut',
   ModuleReloaded: 'module.reloaded',
+  ModuleRolledBack: 'module.rolledBack',
+  ModuleUnloaded: 'module.unloaded',
+  ModuleReloadFailed: 'module.reloadFailed',
   PersistenceFlushed: 'persistence.flushed',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
+
+/**
+ * Payload shape for the four `module.*` lifecycle events emitted by
+ * `HotReloadApi`. `versionId` is the truncated sha256 of the module
+ * source bytes at load time; `null` for `Unloaded`. `previousVersionId`
+ * carries the version that this transition replaced, or `null` when
+ * there was no prior. `exports` is the set of class export names from
+ * the new module; empty for `Unloaded` / `ReloadFailed`. `error` is
+ * present only on `ReloadFailed`.
+ */
+export interface ReloadEvent {
+  path: string;
+  versionId: string | null;
+  previousVersionId: string | null;
+  exports: string[];
+  error?: { message: string; stack?: string };
+}
 
 /**
  * Optional per-event payload shapes. Subscribers calling
@@ -62,7 +83,10 @@ export interface EventPayloads {
   [Events.ConnectionAttached]: { interactiveId: string; holderId?: string };
   [Events.PlayerLoggedIn]: { playerId: string; userId: string };
   [Events.PlayerLoggedOut]: { playerId: string };
-  [Events.ModuleReloaded]: { module: string };
+  [Events.ModuleReloaded]: ReloadEvent;
+  [Events.ModuleRolledBack]: ReloadEvent;
+  [Events.ModuleUnloaded]: ReloadEvent;
+  [Events.ModuleReloadFailed]: ReloadEvent;
   [Events.PersistenceFlushed]: { collection: string; count: number };
 }
 
@@ -93,7 +117,10 @@ function getPolicies(): Record<EventName, PropAccessCheck<PropValue>> {
     [Events.ConnectionAttached]: emittableBy(),
     [Events.PlayerLoggedIn]: emittableBy(),
     [Events.PlayerLoggedOut]: emittableBy(),
-    [Events.ModuleReloaded]: emittableBy(),
+    [Events.ModuleReloaded]: emittableBy(HotReloadApi),
+    [Events.ModuleRolledBack]: emittableBy(HotReloadApi),
+    [Events.ModuleUnloaded]: emittableBy(HotReloadApi),
+    [Events.ModuleReloadFailed]: emittableBy(HotReloadApi),
     [Events.PersistenceFlushed]: emittableBy(PersistenceManager),
   };
   return _policies;

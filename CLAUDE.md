@@ -61,6 +61,9 @@ behavior. Read the relevant doc before editing in its area.
   - [collections.md](./docs/subsystems/collections.md) — canonical
     surfaces for collection-shaped mixins (Set / keyed Map / ordered
     list / property bag), mutator/predicate naming axes
+  - [hot-reload.md](./docs/subsystems/hot-reload.md) — `HotReloadApi`
+    state machine, `StuffApi.clone` integration, lifecycle events,
+    controller dispatch (clone-per-execution), `reloadHookManifest`
 
 ## Development Commands
 

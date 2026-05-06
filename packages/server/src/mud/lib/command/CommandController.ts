@@ -15,13 +15,22 @@
  */
 
 import type { CommandContext, CommandResult } from '../../api/command';
+import { Idea } from '../stuff/Idea';
 
 /**
  * Abstract base class for command controllers.
  *
+ * Extends `Idea` so controllers are Stuff-shaped and cloneable from a
+ * Template — `CommandApi.loadControllers()` clones one instance per
+ * controller class at boot via `StuffApi.clone`, and dispatch then
+ * looks up the cached singleton by class name. This is the HMR-correct
+ * dispatch path: when a controller source file is reloaded, calling
+ * `HotReloadApi.reloadControllerManifest()` re-clones the registry,
+ * pinning the new instances to the freshly-loaded class blueprints.
+ *
  * @template I Input model type (command-specific)
  */
-export abstract class CommandController<I = unknown> {
+export abstract class CommandController<I = unknown> extends Idea {
   /**
    * Execute command with validated, resolved input.
    *
