@@ -120,20 +120,20 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * Shell-level settings the command pipeline consumes.
      *
      * `shell.parser` selects which parser turns input text into a
-     * `ParseResult` (see `mud/api/parser.ts`). Bare names resolve
-     * to `<src>/mud/lib/parsers/<name>.ts`; absolute paths resolve
-     * to `<src>/mud/<rest>.ts`. The default `'msh'` is the Mud SHell
-     * tokenizer-driven parser.
+     * `ParseResult`. Today the only registered parser is `'msh'`, the
+     * Mud SHell tokenizer-driven parser; declared as an enum so the
+     * future LLM-backed parser can be added by appending to
+     * `enumValues`.
      */
     static settings: SettingsSchemaEntry[] = [
       {
         key: 'shell.parser',
-        type: SettingTypes.String,
+        type: SettingTypes.Enum,
         default: 'msh',
+        enumValues: ['msh'],
         description:
-          'Parser used to turn raw input into commands. Bare name ' +
-          '(e.g. `msh`) resolves to `/lib/parsers/<name>`; absolute ' +
-          'path (`/X`) resolves to `<src>/mud/X.ts`.',
+          'Parser used to turn raw input into commands. ' +
+          '`msh` is the default tokenizer-driven shell.',
       },
     ];
 
