@@ -8,10 +8,11 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
-class Plain extends Stuff {}
-class NamedThing extends NamedMixin(Stuff) {}
-class VisibleThing extends VisibleMixin(Stuff) {}
+class Plain extends Idea {}
+class NamedThing extends NamedMixin(Idea) {}
+class VisibleThing extends VisibleMixin(Idea) {}
 
 describe('Mml.compose', () => {
   it('emits literal text verbatim', () => {
@@ -67,10 +68,10 @@ describe('Mml.fromMarkup', () => {
 describe('Mml vocabulary helpers', () => {
   it('Mml.name returns the casual register (just `name`) and stamps stuff-id', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'Alice';
-    obj.surname = 'Smith';
-    // Casual register — surname not included. Reach for `obj.fullName`
-    // explicitly when you need the formal form.
+    obj.setName('Alice');
+    obj.setSurname('Smith');
+    // Casual register — surname not included. Call `obj.getFullName()`
+    // when you need the formal form.
     expect(Mml.name(obj).toString()).toBe(
       `<name stuff-id="${obj.stuffId}">Alice</name>`
     );
@@ -78,7 +79,7 @@ describe('Mml vocabulary helpers', () => {
 
   it('Mml.name escapes chars in the casual name', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'a "quoted" name';
+    obj.setName('a "quoted" name');
     expect(Mml.name(obj).toString()).toBe(
       `<name stuff-id="${obj.stuffId}">a &quot;quoted&quot; name</name>`
     );
@@ -93,7 +94,7 @@ describe('Mml vocabulary helpers', () => {
 
   it('Mml.object / Mml.item / Mml.location stamp stuff-id and use the casual `name`', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'rusty sword';
+    obj.setName('rusty sword');
     expect(Mml.object(obj).toString()).toBe(
       `<object stuff-id="${obj.stuffId}">rusty sword</object>`
     );

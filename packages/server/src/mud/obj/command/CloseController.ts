@@ -31,14 +31,14 @@ export class CloseController extends CommandController<CloseInput> {
       return { success: false, summary: "can't close that" };
     }
 
-    if (!hit.isOpen) {
+    if (!hit.getIsOpen()) {
       return { success: false, summary: 'already closed' };
     }
 
     hit.close();
 
     MessageApi.scene(commandGiver)
-      .topic(MessageApi.Topics.world.narration.movement)
+      .topic(MessageApi.Topics.world.narration.action)
       .toSelf(Mml.compose`You close ${Mml.object(hit)}.`)
       .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(hit)}.`)
       .send();

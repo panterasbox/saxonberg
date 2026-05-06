@@ -1,21 +1,22 @@
 /**
- * Idea - Abstract base class for conceptual objects
+ * Idea - Top-level branch for incorporeal identity.
  *
- * In the Standard Model hierarchy:
- * - Stuff (base) - runtime objects with IDs
- * - Idea (abstract) - conceptual objects (users, players, locations, items)
- * - Agent/Thing/Location - concrete specializations
+ * One of the seven top-level branches sitting on Stuff (Thing,
+ * Location, Idea, Agent, Vessel, Persistable, Shadow). Idea is the
+ * branch for things that have identity and state but no physical
+ * presence in the world — `Exit`, `Login`, `Zone`, command-staging
+ * Stuff, etc. Concrete in-world things use `Thing` (item-scale
+ * movable), `Location` (stationary place), `Vessel` (mobile place),
+ * or `Agent` (sentient actor).
  *
- * Idea represents objects that have identity and state but aren't necessarily
- * physical. This includes users, players, NPCs, and will later include items
- * and locations.
+ * See [docs/architecture.md § Top-level branches](../../../../../../docs/architecture.md).
  */
 
 import { Stuff } from './Stuff';
 
 /**
- * Base class for conceptual game objects.
- * Game-world persistent objects (Location, props, NPCs, etc.) extend Idea.
+ * Base class for incorporeal game objects with identity but no
+ * physical presence.
  */
 export class Idea extends Stuff {
   /**
@@ -33,3 +34,5 @@ export class Idea extends Stuff {
     return `[Idea ${this.stuffId}${this.isDestroyed() ? ' (destroyed)' : ''}]`;
   }
 }
+
+Stuff._registerTopLevelBranch(Idea);

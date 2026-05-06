@@ -29,10 +29,15 @@ import type { User } from '../lib/identity/User';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 
 export class Interactive extends Idea {
-  socketId: string;
-  sessionId: string;
-  user: User;
-  connectedAt: Date;
+  protected socketId: string;
+  protected sessionId: string;
+  protected user: User;
+  protected connectedAt: Date;
+
+  public getSocketId(): string { return this.socketId; }
+  public getSessionId(): string { return this.sessionId; }
+  public getUser(): User { return this.user; }
+  public getConnectedAt(): Date { return this.connectedAt; }
 
   /**
    * Whoever currently owns this connection. Set via
@@ -41,7 +46,9 @@ export class Interactive extends Idea {
    * — so the typed intersection captures that. Mutation goes through
    * the Api, not direct assignment.
    */
-  holder: (HasInteractive & Stuff) | null = null;
+  protected holder: (HasInteractive & Stuff) | null = null;
+  public getHolder(): (HasInteractive & Stuff) | null { return this.holder; }
+  public setHolder(value: (HasInteractive & Stuff) | null): void { this.holder = value; }
 
   constructor(socketId: string, sessionId: string, user: User) {
     super();
@@ -54,11 +61,13 @@ export class Interactive extends Idea {
 
   /**
    * Convenience: owning user's `_id`. May be undefined for an unsaved
-   * User (primarily relevant in tests).
+   * User (primarily relevant in tests). Host-internal accessor; external
+   * callers go through `getUserId()`.
    */
-  get userId(): string | undefined {
+  protected get userId(): string | undefined {
     return this.user._id;
   }
+  public getUserId(): string | undefined { return this.userId; }
 
   /**
    * Stub for client messaging. Actual delivery runs through
@@ -80,6 +89,6 @@ export class Interactive extends Idea {
     const holderInfo = this.holder
       ? ` holder=${DescribeApi.getDisplayName(this.holder, '?')}`
       : '';
-    return `[Interactive socketId=${this.socketId} userId=${this.userId ?? '(unsaved)'}${holderInfo}]`;
+    return `[Interactive socketId=${this.socketId} userId=${this.getUserId() ?? '(unsaved)'}${holderInfo}]`;
   }
 }

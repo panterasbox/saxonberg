@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Idea } from '../../stuff/Idea';
 import {
   EnvironmentMixin,
   resolveSetting,
@@ -103,14 +104,14 @@ function DuplicateFeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 /* Composed test classes — Stuff + EnvironmentMixin + feature mixins. */
 
-class TestHost extends FeatureMixin(OtherFeatureMixin(EnvironmentMixin(Stuff))) {
+class TestHost extends FeatureMixin(OtherFeatureMixin(EnvironmentMixin(Idea))) {
   constructor() {
     super();
   }
 }
 
 class DuplicateHost extends FeatureMixin(
-  DuplicateFeatureMixin(EnvironmentMixin(Stuff)),
+  DuplicateFeatureMixin(EnvironmentMixin(Idea)),
 ) {
   constructor() {
     super();
@@ -120,7 +121,7 @@ class DuplicateHost extends FeatureMixin(
 /** Host that composes feature settings but NOT EnvironmentMixin —
  *  represents an NPC that declares MobileMixin-style messages without
  *  carrying its own settings store. */
-class NonEnvHost extends FeatureMixin(Stuff) {
+class NonEnvHost extends FeatureMixin(Idea) {
   constructor() {
     super();
   }

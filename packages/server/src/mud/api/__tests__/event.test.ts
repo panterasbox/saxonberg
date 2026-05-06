@@ -13,6 +13,7 @@ import { EventRegistry } from '../../obj/EventRegistry';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
+import { Idea } from '../../lib/stuff/Idea';
 import {
   Property,
   PropOperations,
@@ -302,7 +303,7 @@ describe('EventRegistry composition + postRegister', () => {
   it('composes PropertiedMixin + PostRegistrationMixin', async () => {
     const reg = await makeRegistry();
     // Sanity: it IS a Stuff and has setProp.
-    expect(reg).toBeInstanceOf(Stuff);
+    expect(reg).toBeInstanceOf(Idea);
     expect(typeof reg.setProp).toBe('function');
     expect(typeof reg.postRegister).toBe('function');
   });

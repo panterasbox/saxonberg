@@ -1,7 +1,7 @@
 /**
  * Zone - Abstract first-class subdivision of the MUD domain.
  *
- * A Zone is a continuous region containing rooms. Two concrete subtypes
+ * A Zone is a continuous region containing locations. Two concrete subtypes
  * today: `CartesianZone` (same-size grid cells with derived cardinal exits)
  * and `SphericalZone` (spheres-with-radius, explicit semantic exits only).
  * Future subtypes can layer in new coordinate semantics without changing the
@@ -28,42 +28,49 @@ export abstract class Zone extends Idea {
   /**
    * Human-readable zone name ("Narnia Castle", "The Caves", …).
    */
-  public name: string = '';
+  protected name: string = '';
+
+  public getName(): string { return this.name; }
+  public setName(value: string): void { this.name = value; }
 
   /**
-   * Rooms that live in this zone. Populated by the subclass's `addRoom()`.
+   * Locations that live in this zone. Populated by the subclass's
+   * `addLocation()`. Host-internal storage; external callers go
+   * through `getLocations()` / `contains()`.
    *
    * Membership is maintained by the Zone; `Location.zone` (on Stuff base)
-   * is the back-reference stamped when the room is added.
+   * is the back-reference stamped when the location is added.
    */
-  public rooms: Set<Location> = new Set();
+  protected locations: Set<Location> = new Set();
+
+  public getLocations(): ReadonlySet<Location> { return this.locations; }
 
   /**
-   * Mark a room as belonging to this zone.
+   * Mark a location as belonging to this zone.
    * Subclasses may extend to capture coordinates (CartesianZone stamps grid
    * position, SphericalZone stamps focus tuple).
    */
-  public addRoom(room: Location): void {
-    this.rooms.add(room);
-    room.zone = this;
+  public addLocation(location: Location): void {
+    this.locations.add(location);
+    location.setZone(this);
   }
 
   /**
-   * Remove a room from this zone. Clears the back-reference.
+   * Remove a location from this zone. Clears the back-reference.
    */
-  public removeRoom(room: Location): boolean {
-    const removed = this.rooms.delete(room);
-    if (removed && room.zone === this) {
-      room.zone = null;
+  public removeLocation(location: Location): boolean {
+    const removed = this.locations.delete(location);
+    if (removed && location.getZone() === this) {
+      location.setZone(null);
     }
     return removed;
   }
 
   /**
-   * Does this zone contain the given room?
+   * Does this zone contain the given location?
    */
-  public contains(room: Location): boolean {
-    return this.rooms.has(room);
+  public contains(location: Location): boolean {
+    return this.locations.has(location);
   }
 
   /**
@@ -74,8 +81,23 @@ export abstract class Zone extends Idea {
    * - SphericalZone: always `undefined` (spherical space has no implicit
    *   adjacency).
    *
-   * @param from - The exitable source room performing the lookup.
+   * @param from - The exitable source location performing the lookup.
    * @param direction - Normalized direction string (see `NavigationApi`).
    */
   public abstract deriveExit(from: Location, direction: string): Exit | undefined;
+
+  /**
+   * Refuse to destruct a non-empty Zone. Caller must drain the member
+   * locations (destruct or relocate) before destructing the Zone itself.
+   * Subclasses may extend (e.g. `CartesianZone` clears its derived-exit
+   * cache on top of this).
+   */
+  protected override prepareDestroy(): void {
+    if (this.locations.size > 0) {
+      throw new Error(
+        `Zone.prepareDestroy: cannot destruct zone '${this.name}' with ` +
+          `${this.locations.size} live location(s); destruct locations first.`
+      );
+    }
+  }
 }

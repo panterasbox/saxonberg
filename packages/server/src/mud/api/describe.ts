@@ -34,19 +34,22 @@ export class DescribeApi {
    *
    * Named takes precedence so a Named-with-description renders by
    * its proper name in casual prose. Code that needs the formal
-   * register reaches for `obj.fullName` directly when typed as
-   * Named. Future registers (`getAddressForm`, social-graph-aware
-   * variants) will be added as siblings here rather than overloading
-   * this function.
+   * register calls `obj.getFullName()` when typed as Named. Future
+   * registers (`getAddressForm`, social-graph-aware variants) will be
+   * added as siblings here rather than overloading this function.
    *
    * @param obj - Object to render
    * @param fallback - Returned when neither Named.name nor
    *   Visible.shortDescription is available (default: `''`)
    */
   static getDisplayName(obj: Stuff, fallback: string = ''): string {
-    if (MixinApi.isNamed(obj) && obj.name) return obj.name;
-    if (MixinApi.isVisible(obj) && obj.shortDescription) {
-      return obj.shortDescription;
+    if (MixinApi.isNamed(obj)) {
+      const name = obj.getName();
+      if (name) return name;
+    }
+    if (MixinApi.isVisible(obj)) {
+      const short = obj.getShortDescription();
+      if (short) return short;
     }
     return fallback;
   }

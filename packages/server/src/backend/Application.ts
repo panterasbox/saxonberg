@@ -4,7 +4,7 @@
  * Responsibilities:
  * - User connection lifecycle (handleUserConnect, handleUserDisconnect)
  * - Message routing between client and game
- * - Initial game state (starting room - future)
+ * - Initial game state (starting location - future)
  * - User/Player creation and lookup
  *
  * Does NOT:
@@ -78,8 +78,9 @@ export class Application {
    * game objects to reach Backend — Application owns Backend communication.
    */
   public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
-    if (this.backend && interactive.socketId) {
-      this.backend.sendMessageToSocket(interactive.socketId, message);
+    const socketId = interactive.getSocketId();
+    if (this.backend && socketId) {
+      this.backend.sendMessageToSocket(socketId, message);
     }
   }
 
@@ -213,7 +214,8 @@ export class Application {
     // CommandContext. When Login (or any other HasInteractive) starts
     // running commands of its own, that's a separate dispatch path —
     // its CommandContext won't have a location.
-    if (!interactive || !(interactive.holder instanceof Avatar)) {
+    const holder = interactive?.getHolder();
+    if (!interactive || !(holder instanceof Avatar)) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',
         payload: { message: 'No active character' },
@@ -224,7 +226,7 @@ export class Application {
     const commandText = (message.payload as { text: string }).text?.trim();
     if (!commandText) return;
 
-    const avatar = interactive.holder;
+    const avatar = holder;
     const location = avatar.getContainer() as Location;
 
     if (!location) {

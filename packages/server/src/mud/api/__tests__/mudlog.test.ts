@@ -14,8 +14,9 @@ import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../lib/stuff/Idea";
 
-class CapSensor extends SensorMixin(ContainableMixin(Stuff)) {
+class CapSensor extends SensorMixin(ContainableMixin(Idea)) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
@@ -73,7 +74,7 @@ describe('MudlogApi recipient resolution', () => {
   });
 
   it('throws when the command giver is not a Sensor', () => {
-    class NonSensor extends Stuff {}
+    class NonSensor extends Idea {}
     const giver = makeStuff(() => new NonSensor()) as unknown as CapSensor;
     const fakeCtx = {
       commandGiver: giver,

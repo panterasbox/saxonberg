@@ -30,6 +30,13 @@
 
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
+import { ModuleApi } from '../../api/module';
+
+/**
+ * Any class reference, abstract or concrete. Used by the top-level
+ * branch registry — identity-based, no instantiation through this.
+ */
+type AnyClassRef = abstract new (...args: never[]) => unknown;
 import type { Zone } from '../spatial/Zone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -55,14 +62,20 @@ export abstract class Stuff {
   /**
    * CMS template path this object was cloned from, or null when the
    * object was constructed directly via `StuffApi.create`. Stamped at
-   * clone time by `StuffApi.clone()`. Identity-keyed security policies
-   * (notably `FromTemplate`) match against this string.
+   * clone time by `StuffApi.clone()` via the bracket-write framework
+   * carve-out below; **immutable post-stamp** for everyone else.
    *
-   * Public so the security framework's policy resolver can read it
-   * through the Proxy. Treated as immutable post-stamp; do not write
-   * after the constructor frame closes.
+   * Storage is public as a framework carve-out: SecurityPolicies and
+   * StuffApi indexes read it directly through the Proxy via
+   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`. There
+   * is intentionally **no `setTemplatePath()`** — flipping a Stuff's
+   * identity post-clone would break `FromTemplate` policies and the
+   * `byTemplatePath` index.
    */
   public templatePath: string | null = null;
+  public getTemplatePath(): string | null {
+    return this.templatePath;
+  }
 
   /**
    * Zone this object belongs to. Universal subdivision of the MUD domain.
@@ -72,8 +85,19 @@ export abstract class Stuff {
    * references are not auto-persisted (mirrors how `inventory`/`environment`
    * are handled — they are runtime references, and the authoritative source
    * for zone membership is the `domain` template path at clone time).
+   *
+   * Framework carve-out: domain code uses `getZone()` / `setZone()`;
+   * framework code reads via bracket cast (PASSTHROUGH_KEYS in
+   * `proxy.ts` skips the proxy pipeline for this slot). Same shape
+   * as `templatePath` above.
    */
-  public zone: Zone | null = null;
+  protected zone: Zone | null = null;
+  public getZone(): Zone | null {
+    return this.zone;
+  }
+  public setZone(value: Zone | null): void {
+    this.zone = value;
+  }
 
   /**
    * Flag indicating whether this object has been destroyed.
@@ -153,7 +177,7 @@ export abstract class Stuff {
    * justification — keep the list narrow.
    */
   static #assertConstructionGateAllowed(op: string): void {
-    const url = Stuff.#findImmediateCallerUrl();
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
     if (url === null) {
       throw new Error(
         `Stuff.${op}() refused: caller URL could not be determined`
@@ -180,33 +204,12 @@ export abstract class Stuff {
   }
 
   /**
-   * Walk `Error.stack` to the first frame outside this module and
-   * return its file URL, or `null`.
+   * Self-skip pattern for `ModuleApi.getImmediateCallerUrl` — frames
+   * inside `Stuff.ts` (the construction-gate / branch-registration
+   * helpers themselves) are dropped so the first reported frame is
+   * the actual caller.
    */
-  static #findImmediateCallerUrl(): string | null {
-    const err = new Error();
-    const lines = (err.stack ?? '').split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('at ')) continue;
-      const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
-      const bare = trimmed.match(
-        /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
-      );
-      const m = parens ?? bare;
-      if (!m) continue;
-      const raw = m[1];
-      if (!raw) continue;
-      // Normalise Windows backslashes — stack-frame URLs on Windows
-      // arrive as `C:\...` while the in-module skip below is written
-      // with forward slashes.
-      const url = raw.replace(/\\/g, '/');
-      // Skip frames inside this module file (Stuff.ts/js).
-      if (/\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/.test(url)) continue;
-      return url;
-    }
-    return null;
-  }
+  static #SELF_URL = /\/mud\/lib\/stuff\/Stuff\.(ts|js)(\?|$|:)/;
 
   /**
    * Constructor - generates unique runtime ID.
@@ -232,7 +235,103 @@ export abstract class Stuff {
       );
     }
     Stuff.#expectingConstruction = false;
+    Stuff.#assertTopLevelBranch(this.constructor as AnyClassRef);
     this.stuffId = nanoid();
+  }
+
+  /**
+   * Top-level branches registered via `_registerTopLevelBranch`.
+   * Every concrete Stuff subclass must trace through one of these in
+   * its prototype chain. Identity-based — entries are the actual
+   * branch constructors (Thing, Location, Idea, Agent, Vessel,
+   * Persistable, Shadow), not names or markers, so the membership
+   * check can't be spoofed by a same-named class declared elsewhere.
+   */
+  static #branches: Set<AnyClassRef> = new Set();
+
+  /**
+   * File-URL patterns whose code may call `_registerTopLevelBranch`.
+   * Same machinery as `#constructionGateAllowlist`: caller's source
+   * URL must match. Adding a new branch is a deliberate edit to this
+   * list AND its registration call site.
+   */
+  static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Vessel|Shadow)\.(ts|js)$/,
+    /\/mud\/lib\/persistence\/Persistable\.(ts|js)$/,
+  ];
+
+  static #branchRegistrationCache: Map<string, boolean> = new Map();
+
+  /**
+   * Register a class as a top-level branch. Called by Thing /
+   * Location / Idea / Agent / Vessel / Persistable / Shadow at module
+   * load. Caller URL must match `#branchRegistrationAllowlist`;
+   * everything else throws.
+   *
+   * @internal
+   */
+  public static _registerTopLevelBranch(ctor: AnyClassRef): void {
+    Stuff.#assertBranchRegistrationAllowed();
+    Stuff.#branches.add(ctor);
+  }
+
+  static #assertBranchRegistrationAllowed(): void {
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
+    if (url === null) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#branchRegistrationCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
+          `seven branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts ` +
+          `and lib/persistence/Persistable.ts) may register branches.`
+      );
+    }
+    const allowed = Stuff.#branchRegistrationAllowlist.some((re) => re.test(url));
+    Stuff.#branchRegistrationCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
+          `seven branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts ` +
+          `and lib/persistence/Persistable.ts) may register branches.`
+      );
+    }
+  }
+
+  /**
+   * Cache of constructors known to trace through a registered branch.
+   * Misses are not cached — failing classes should never be
+   * constructed twice.
+   */
+  static #branchCheckCache: WeakSet<object> = new WeakSet();
+
+  /**
+   * Throw if `ctor` doesn't trace through one of the registered
+   * top-level branches. Walks `Object.getPrototypeOf(ctor)` upward
+   * comparing constructor identity against `#branches`. See
+   * `docs/architecture.md § Top-level branches` for the rule and the
+   * rationale.
+   */
+  static #assertTopLevelBranch(ctor: AnyClassRef): void {
+    if (Stuff.#branchCheckCache.has(ctor)) return;
+    let cur: AnyClassRef | null = ctor;
+    while (cur) {
+      if (Stuff.#branches.has(cur)) {
+        Stuff.#branchCheckCache.add(ctor);
+        return;
+      }
+      cur = Object.getPrototypeOf(cur) as AnyClassRef | null;
+    }
+    throw new Error(
+      `Stuff subclass '${ctor.name || '<anonymous>'}' does not extend ` +
+        `through one of the top-level branches: Thing, Location, Idea, ` +
+        `Agent, Vessel, Persistable, or Shadow. See ` +
+        `docs/architecture.md § Top-level branches.`
+    );
   }
 
   /**

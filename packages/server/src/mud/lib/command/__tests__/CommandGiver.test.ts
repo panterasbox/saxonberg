@@ -25,9 +25,10 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Interactive } from '../../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../stuff/Idea";
 
 const TestGiverBase = CommandGiverMixin(
-  SensorMixin(ContainerMixin(ContainableMixin(Stuff)))
+  SensorMixin(ContainerMixin(ContainableMixin(Idea)))
 );
 
 class TestGiver extends TestGiverBase {

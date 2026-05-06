@@ -5,7 +5,7 @@
  * and lives only as long as the entry procedure takes. Orchestrates the
  * mudlib-side work of putting a connected user into the game world:
  * reading the user's owned character slots, resolving character selection,
- * placing the chosen avatar into a starting room, and notifying the client.
+ * placing the chosen avatar into a starting location, and notifying the client.
  *
  * Lifetime: constructed once per login; destructed when the entry is
  * complete (or handed off to character selection).
@@ -21,7 +21,7 @@ import { DescribeApi } from '../api/describe';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { Mml } from '../api/mml';
-import { DEFAULT_STARTING_ROOM_PATH } from '../config/constants';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import type { Interactive } from './Interactive';
@@ -30,7 +30,7 @@ import type { Avatar } from './Avatar';
 const LoginBase = HasInteractiveMixin(Idea);
 
 export class Login extends LoginBase {
-  public readonly interactive: Interactive;
+  private readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {
     super();
@@ -56,10 +56,10 @@ export class Login extends LoginBase {
     // Avatar before we destruct.
     ConnectionApi.transfer(interactive, this);
 
-    const avatars = await PlayerApi.loadAvatarsForUser(interactive.user);
+    const avatars = await PlayerApi.loadAvatarsForUser(interactive.getUser());
     if (avatars.length !== 1) {
       throw new Error(
-        `Login: expected exactly 1 player for user ${interactive.userId}, ` +
+        `Login: expected exactly 1 player for user ${interactive.getUserId()}, ` +
           `found ${avatars.length}`
       );
     }
@@ -67,16 +67,17 @@ export class Login extends LoginBase {
     const avatar = avatars[0]!;
     ConnectionApi.transfer(interactive, avatar);
 
-    console.info(`Login: User connected - ${avatar.fullName}`);
+    console.info(`Login: User connected - ${avatar.getFullName()}`);
 
-    const startingRoomPath = DEFAULT_STARTING_ROOM_PATH;
-    const startingRoom = await StuffApi.clone<Location>(startingRoomPath);
+    const startingLocation = await StuffApi.singleton<Location>(
+      DEFAULT_STARTING_LOCATION_PATH
+    );
     // Silent spawn: a freshly-cloned avatar shouldn't be announced as
     // "vanishing" from somewhere or "appearing out of thin air"
-    // before the player has even seen the room.
-    avatar.teleport(startingRoom, { silent: true });
+    // before the player has even seen the location.
+    avatar.teleport(startingLocation, { silent: true });
     console.info(
-      `Login: Placed ${avatar.fullName} in ${DescribeApi.getDisplayName(startingRoom, 'somewhere')}`
+      `Login: Placed ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
     );
 
     // Welcome scene: actor frame at system.connection.established
@@ -85,19 +86,19 @@ export class Login extends LoginBase {
     // register, so reach for fullName.
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.system.connection.established)
-      .toSelf(Mml.compose`Welcome back, ${avatar.fullName}!`)
+      .toSelf(Mml.compose`Welcome back, ${avatar.getFullName()}!`)
       .payload({
-        userId: interactive.userId,
-        socketId: interactive.socketId,
-        sessionId: interactive.sessionId,
+        userId: interactive.getUserId(),
+        socketId: interactive.getSocketId(),
+        sessionId: interactive.getSessionId(),
         player: {
-          _id: avatar.playerId,
-          honorific: avatar.honorific,
-          name: avatar.name,
-          surname: avatar.surname,
-          nameSuffix: avatar.nameSuffix,
-          alternateNames: avatar.alternateNames,
-          pronouns: avatar.pronouns,
+          _id: avatar.getPlayerId(),
+          honorific: avatar.getHonorific(),
+          name: avatar.getName(),
+          surname: avatar.getSurname(),
+          nameSuffix: avatar.getNameSuffix(),
+          alternateNames: avatar.getAlternateNames(),
+          pronouns: avatar.getPronouns(),
         },
       })
       .send();
@@ -108,8 +109,8 @@ export class Login extends LoginBase {
     // for any observer (audit, achievements) that doesn't care
     // which avatar — just that this player is now playable.
     EventApi.emit(Events.PlayerLoggedIn, {
-      playerId: avatar.playerId,
-      userId: interactive.userId ?? '',
+      playerId: avatar.getPlayerId(),
+      userId: interactive.getUserId() ?? '',
     });
 
     StuffApi.destruct(this);

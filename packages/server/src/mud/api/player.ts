@@ -30,19 +30,19 @@ export class PlayerApi {
    * @param avatar - The Avatar object to register
    */
   public static registerAvatar(avatar: Avatar): void {
-    if (!avatar.playerId) {
+    if (!avatar.getPlayerId()) {
       console.warn('PlayerApi.registerAvatar(): Avatar has no playerId');
       return;
     }
 
-    if (this.#avatarsByPlayerId.has(avatar.playerId)) {
+    if (this.#avatarsByPlayerId.has(avatar.getPlayerId())) {
       console.warn(
-        `PlayerApi.registerAvatar(): Avatar already registered for playerId ${avatar.playerId}`
+        `PlayerApi.registerAvatar(): Avatar already registered for playerId ${avatar.getPlayerId()}`
       );
       return;
     }
 
-    this.#avatarsByPlayerId.set(avatar.playerId, avatar);
+    this.#avatarsByPlayerId.set(avatar.getPlayerId(), avatar);
   }
 
   /**
@@ -52,11 +52,11 @@ export class PlayerApi {
    * @param avatar - The Avatar object to unregister
    */
   public static unregisterAvatar(avatar: Avatar): void {
-    if (!avatar.playerId) {
+    if (!avatar.getPlayerId()) {
       return;
     }
 
-    this.#avatarsByPlayerId.delete(avatar.playerId);
+    this.#avatarsByPlayerId.delete(avatar.getPlayerId());
   }
 
   /**

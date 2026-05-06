@@ -1,9 +1,11 @@
 /**
- * Persistable - Idea base class for records that save to MongoDB.
+ * Persistable - Top-level branch for records that save to MongoDB.
  *
- * Persistable composes a CRUD surface (`save`/`delete`/`findById`/`find`)
- * onto the Idea hierarchy. Concrete subclasses are records — auth/meta
- * data (`User`, `GoogleProfile`) and CMS assets (`Template`). They are
+ * Persistable is its own top-level branch (sibling of Thing /
+ * Location / Idea / Agent / Vessel / Shadow) for auth and CMS records.
+ * It composes a CRUD surface (`save` / `delete` / `findById` / `find`)
+ * directly on Stuff. Concrete subclasses are records — auth/meta data
+ * (`User`, `GoogleProfile`) and CMS assets (`Template`). They are
  * Stuff in every other respect: they carry a `stuffId`, register with
  * `StuffApi`, flow through the call-security gate, and are destroyed
  * via `StuffApi.destruct`.
@@ -37,7 +39,7 @@
  * an explicit `StuffApi.destruct(instance)`.
  */
 
-import { Idea } from '../stuff/Idea';
+import { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
@@ -57,9 +59,9 @@ export interface PersistableConstructor {
 }
 
 /**
- * Idea-rooted base for MongoDB-backed records.
+ * Top-level base for MongoDB-backed records.
  */
-export class Persistable extends Idea {
+export class Persistable extends Stuff {
   /**
    * MongoDB ObjectId (undefined until saved).
    */
@@ -234,3 +236,5 @@ export class Persistable extends Idea {
     return `[${this.constructor.name} ${this._id ?? '(unsaved)'}]`;
   }
 }
+
+Stuff._registerTopLevelBranch(Persistable);

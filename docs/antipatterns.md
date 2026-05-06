@@ -96,15 +96,29 @@ the mixin's public interface into TypeScript's control-flow narrowing.
 
 There are three levels of movement abstraction. NEVER skip levels.
 
-### Level 1: `travel()` — high level (MobileMixin)
+### Level 1: `traverse(exit, mode)` — high level (MobileMixin)
 
-For creatures and vehicles with modes of locomotion:
+For creatures and vehicles crossing an Exit under a locomotion mode:
 
 ```typescript
-avatar.travel(targetLocation, 'walk');  // walk
-avatar.travel(targetLocation, 'run');   // run
-vehicle.travel(targetLocation, 'drive'); // drive
+avatar.traverse(exit, 'walk');     // explicit verb (run/climb/swim controllers)
+vehicle.traverse(exit, 'drive');
 ```
+
+`mode` is the verb the mover is using right now (`'walk'`, `'run'`,
+`'climb'`, …) and is required at the API. Explicit-verb controllers
+pass their own verb. The `go` command has no verb of its own — it
+dispatches "whatever the mover's current mode is" by reading the
+`movement.defaultMode` setting (declared on `MobileMixin`,
+schema-defaulted to `'walk'`):
+
+```typescript
+const mode = resolveSetting<string>(mover, 'movement.defaultMode') ?? 'walk';
+await mover.traverse(exit, mode);
+```
+
+There is no destination-based variant — callers that have a Location
+in hand resolve it to an Exit (typically by direction) and pass that.
 
 **When to use**: player/NPC movement commands, AI pathfinding.
 
@@ -265,7 +279,7 @@ description/short/long/article/list-formatting helpers belong in
 ### Rule of thumb
 
 - **Movement operations** (pick up, drop, teleport): use `ContainmentApi.move()`
-- **Locomotion** (walk, run, fly): use `travel()` from `MobileMixin`
+- **Locomotion** (walk, run, fly): use `traverse(exit, mode)` from `MobileMixin`
 - **Container access** (get contents): use `ContainmentApi.getContents()`
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
@@ -410,11 +424,101 @@ counters, configuration overrides, anonymous buff slots.
 
 Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 
+## Reaching Into Another Stuff's Fields or Accessors
+
+**ANTIPATTERN**: Reading or writing a field or accessor pair on
+another `Stuff` from outside its owning class.
+
+### BAD (direct field/accessor access)
+
+```typescript
+// `direction` is a public field on Exit.
+const dir = exit.direction;
+exit.direction = 'north';
+
+// `door` is an accessor pair on Exit (invariant maintenance).
+exit.door = newDoor;
+
+// `name` is a field on something composing NamedMixin.
+if (avatar.name === 'Alice') { ... }
+```
+
+The fields/accessors exist — they'll work — but they bypass the
+inter-stuff contract layer. Specifically:
+
+- **Shadows can't intercept them.** The shadow framework dispatches
+  on methods only; field reads are never mediated, accessor reads
+  are filtered out of the intercept set, and there is no `set`-trap
+  on the proxy at all. Buffs, polymorph effects, hood/disguise
+  shadows, etc. silently miss any read or write that goes through a
+  field or accessor.
+- **They couple call sites to the host's storage shape.** Renaming
+  the field, splitting it into multiple, lazifying it behind a
+  promise, or threading an invariant through a setter all become
+  changes to every caller.
+
+### GOOD (methods are the contract surface)
+
+```typescript
+const dir = exit.getDirection();
+exit.setDirection('north');
+
+exit.setDoor(newDoor);
+
+if (avatar.getName() === 'Alice') { ... }
+```
+
+Methods are what shadows hook, what call-security policies gate, and
+what the host gets to refactor freely behind. Fields and accessor
+pairs stay host-internal — accessors are still the right tool for
+invariant maintenance (e.g., `Door.attachedTo` bookkeeping on the
+`door` accessor), but the public method delegates to them rather
+than exposing them to other Stuff.
+
+The Hydrator is a deliberate framework carve-out: it reflects
+directly into persistent fields so it can populate them from
+storage, including firing accessor setters when an invariant lives
+there. Anything else outside the host's own class body should go
+through methods.
+
+See [subsystems/call-security.md § Authoring shape](./subsystems/call-security.md#authoring-shape--explicit-declaration-declares-the-surface)
+for why shadows only see methods.
+
+## Cloning Singletons — use `StuffApi.singleton(path)`
+
+**ANTIPATTERN**: Calling `StuffApi.clone(path)` or
+`StuffApi.findByTemplatePath(path)` on a class that should be a
+singleton-by-path.
+
+### BAD
+
+```typescript
+// Risk: a second clone() throws if the class composes
+// SingletonMixin, or silently produces a duplicate if it doesn't.
+const narnia = await StuffApi.clone<CartesianZone>('/narnia');
+
+// Risk: pre-empts the cache-or-clone semantics, fails when the
+// instance hasn't been cloned yet.
+const narnia = StuffApi.findByTemplatePath<CartesianZone>('/narnia');
+```
+
+### GOOD
+
+```typescript
+// Get-or-create against the singleton index. Works whether the
+// instance is loaded yet or not.
+const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
+```
+
+`SingletonMixin` is the enforcement layer that makes bare `clone()`
+on a singleton class throw. `singleton()` is the convenient surface
+that respects the contract automatically.
+
 ## Summary
 
 - Never call `setEnvironment()` or `addContainable()` directly — always
   use `ContainmentApi.move()`.
-- Use the correct abstraction level: `travel()` for creatures/vehicles,
+- Use the correct abstraction level: `traverse()` for creatures/vehicles,
   `ContainmentApi.move()` for all other object movement, low-level
   containment methods only from inside `ContainmentApi`.
 - Never duck-type mixins, even for display. Display-name lookup lives in
@@ -426,3 +530,5 @@ Full subsystem doc: [subsystems/properties.md](./subsystems/properties.md).
 - Dynamic, per-instance state goes through `PropertiedMixin`'s
   `setProp` / `getProp` / `initProp`, never via direct field
   assignment.
+- Singleton-by-path templates resolve via `StuffApi.singleton(path)`,
+  not `clone()` or `findByTemplatePath()`.

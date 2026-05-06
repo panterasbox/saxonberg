@@ -10,9 +10,11 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
+import { ProxyApi } from '../proxy';
 import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../lib/stuff/Idea";
 
 function makeFrame(topic: string = 'test', body: string = ''): MessageFrame {
   return {
@@ -24,7 +26,7 @@ function makeFrame(topic: string = 'test', body: string = ''): MessageFrame {
 }
 
 // Create a test sensor class
-const SensorBase = SensorMixin(ContainableMixin(Stuff));
+const SensorBase = SensorMixin(ContainableMixin(Idea));
 class TestSensor extends SensorBase {
   protected override handleMessage(message: unknown): void {
     this.lastMessage = message;
@@ -33,7 +35,7 @@ class TestSensor extends SensorBase {
 }
 
 // Create a mobile sensor (like Avatar)
-const MobileSensorBase = MobileMixin(SensorMixin(ContainableMixin(Stuff)));
+const MobileSensorBase = MobileMixin(SensorMixin(ContainableMixin(Idea)));
 class MobileSensor extends MobileSensorBase {
   protected override handleMessage(message: unknown): void {
     this.lastMessage = message;
@@ -42,7 +44,7 @@ class MobileSensor extends MobileSensorBase {
 }
 
 // Create a simple non-sensor object for testing — containable so it can live in a Location
-class NonSensor extends ContainableMixin(Stuff) {}
+class NonSensor extends ContainableMixin(Idea) {}
 
 describe('MessageApi', () => {
   let location: Location;
@@ -91,7 +93,11 @@ describe('MessageApi', () => {
       // An object with an onMessage method but no SensorMixin must not match —
       // detection is via the mixin marker, not method presence.
       const ducked = { onMessage: vi.fn() } as unknown as TestSensor;
-      location.inventory.add(ducked);
+      // test seam: bypass setContainer chokepoint to inject a duck-typed
+      // object into the inventory Set; the test verifies sensor detection
+      // is keyed by the SensorMixin marker, not method shape.
+      const raw = ProxyApi.unwrap(location) as unknown as { contents: Set<unknown> };
+      raw.contents.add(ducked);
 
       expect(MessageApi.getSensors(location)).toHaveLength(0);
 
@@ -233,7 +239,7 @@ describe('MessageApi', () => {
 
   describe('Integration scenarios', () => {
     it('should support say command pattern', () => {
-      // Setup room with listeners
+      // Setup location with listeners
       ContainmentApi.move(sensor1, location);
       ContainmentApi.move(sensor2, location);
 
@@ -265,11 +271,11 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message = makeFrame('test', 'Room 1 only');
+      const message = makeFrame('test', 'Location 1 only');
 
       MessageApi.messageContainer(source, message);
 
-      // Only sensor in same room should receive message
+      // Only sensor in the same location should receive message
       expect(sensorInRoom1.lastMessage).toEqual(message);
       expect(sensorInRoom2.lastMessage).toBeUndefined();
     });

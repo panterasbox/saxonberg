@@ -11,7 +11,7 @@
  * Composition: `ContainerMixin(Stuff)`
  *
  * Provides:
- * - inventory: Set<Stuff>
+ * - contents: Set<Stuff & Containable> (host-internal storage)
  * - addContainable(), removeContainable(), hasContainable()
  * - getContents()
  */
@@ -23,4 +23,21 @@ const LocationBase = ContainerMixin(Stuff);
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
+
+  /**
+   * Detach from the owning Zone on destruct. Clears `locations`
+   * membership and any coordinate-keyed indexes the zone maintains
+   * (CartesianZone grid, SphericalZone focus index).
+   *
+   * `ExitableMixin.prepareDestroy` super-chains here after handling
+   * the exit-side teardown.
+   */
+  protected override prepareDestroy(): void {
+    const zone = this.getZone();
+    if (zone) {
+      zone.removeLocation(this);
+    }
+  }
 }
+
+Stuff._registerTopLevelBranch(Location);

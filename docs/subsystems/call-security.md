@@ -942,41 +942,65 @@ otherwise — that would allow the two sides to drift out of sync.
 
 ### Authoring shape — explicit declaration declares the surface
 
-A Shadow's intercept set is whatever methods it explicitly declares
+A Shadow's intercept set is whatever **methods** it explicitly declares
 in its own class body, plus any `@Shadowing`-decorated methods.
 Composition alone does NOT auto-enrol the composed mixin's methods —
 they're part of the shadow's *type contract*, not its *intercept
-set*:
+set*. **Accessor pairs (`get foo()` / `set foo()`) are also excluded**:
+accessors are host-internal implementation tools (invariant
+maintenance, sync/async splits) and aren't part of the inter-stuff
+contract surface. The shadow chain dispatches behavior, which lives
+on methods.
 
 ```typescript
-// Composes NamedMixin so the shadow has the right type and state
-// shape, but the intercept set is just `fullName` (the only method
-// the shadow declares in its own body).
-class LiarShadow extends NamedMixin(Shadow) {
-  override get fullName(): string { return 'Bob'; }
+// Declares one method in its own body — `describe` is the intercept set.
+class CountingShadow extends Shadow {
+  public count = 0;
+  describe(): string {
+    this.count++;
+    return this.callDown<string>();
+  }
 }
 
 // Composes NamedMixin without declaring any own methods — empty
 // intercept set, ShadowApi.attach throws 'no surface'.
 class BareShadow extends NamedMixin(Shadow) {}
+
+// Only override is an accessor — accessors don't enrol, so the
+// intercept set is empty and attach throws 'no surface'.
+class AccessorOnlyShadow extends NamedMixin(Shadow) {
+  override get fullName(): string { return 'IGNORED'; }
+}
 ```
 
 The model: **a shadow intercepts what it explicitly says it
-intercepts.** Either by declaring/overriding a method in the class
-body, or via `@Shadowing('hostMethod')` to remap a differently-named
-local method onto a host method. Methods inherited through
-composition are reachable on the shadow (mixin defaults still run
-on the shadow's state when called) but they don't enrol into the
-intercept chain on the host.
+intercepts, and only methods participate.** Either declare/override
+a method in the class body, or use `@Shadowing('hostMethod')` to
+remap a differently-named local method onto a host method. Methods
+inherited through composition are reachable on the shadow (mixin
+defaults still run on the shadow's state when called) but they don't
+enrol into the intercept chain on the host. Accessors and field
+declarations don't enrol either.
 
-This rule exists because Witness mixins make the alternative
-unworkable: a shadow that composes `Containable` to react to
-`onMoved` would otherwise auto-intercept `setEnvironment` /
-`getEnvironment` / etc. as no-op-defaults, masking the host's real
-behavior. Explicit declaration sidesteps the trap.
+Two reasons for these rules:
+
+1. **Witness mixins make auto-enrolment unworkable.** A shadow that
+   composes `Containable` to react to `onMoved` would otherwise
+   auto-intercept `setEnvironment` / `getEnvironment` / etc. as
+   no-op-defaults, masking the host's real behavior. Explicit
+   declaration sidesteps the trap.
+2. **Accessors are field-shaped.** A getter is a typed, side-effecty
+   read; a setter is an invariant point. Letting shadows replace
+   them at the inter-stuff boundary turns "this is the host's data"
+   into "this is whatever the most recent shadow felt like
+   returning." Accessors stay host-internal; if you want extension,
+   wrap the accessor in a method (`getFoo()` returning `this.foo`)
+   and shadow that.
 
 `@Shadowing` adds individual methods to the surface without
-composing a mixin (useful for one-off intercepts).
+composing a mixin (useful for one-off intercepts). It is for value
+methods only — tagging a getter or setter results in a dispatch-time
+"shadow has no method" error from `_invokeOn`.
 
 ### `ShadowApi` public API
 
@@ -996,11 +1020,14 @@ the public surface.
 1. **Reject misuse.** Re-attach throws; destroyed host throws;
    destroyed shadow throws.
 2. **Compute the intercept set.** Take every own property name on
-   `shadow.constructor.prototype` (minus `constructor`) — this is
-   what the shadow's class body explicitly declares. Then merge in
-   any names from the class's `_callSecShadowing` map (i.e. methods
-   tagged with `@Shadowing`). Methods inherited from composed mixin
-   layers are NOT auto-enrolled.
+   `shadow.constructor.prototype` (minus `constructor`) whose
+   descriptor is a value method — accessor pairs are filtered out.
+   This is what the shadow's class body explicitly declares as
+   *behavior*. Then merge in any names from the class's
+   `_callSecShadowing` map (i.e. methods tagged with `@Shadowing`).
+   Methods inherited from composed mixin layers are NOT
+   auto-enrolled, and accessor pairs declared in the shadow's body
+   are NOT enrolled either.
 3. **Reject if empty.** A no-surface shadow is a bug.
 4. **Validate `@Unshadowable`.** Method-form on the host method or
    class-form on the host's class (or any ancestor) → `ShadowError`.
@@ -1027,8 +1054,9 @@ the security gate (after the destroyed-object guard and entry policy):
    ```
 3. Push a CallFrame for the topmost shadow. The shadow runs as **its
    own target** — see "Shadow identity on the call stack" below.
-4. Invoke the topmost shadow's method via descriptor-aware dispatch
-   (value methods, getters, setters).
+4. Invoke the topmost shadow's method. Only value methods are
+   dispatched; the intercept set has already filtered out anything
+   else.
 
 If the topmost shadow's body calls `this.callDown(...)`, see "callDown"
 below.
@@ -1082,11 +1110,11 @@ Consequences:
 2. Find self in `state.shadows` via `indexOf`. Not found → throw.
 3. **`idx > 0`** → call the next shadow down. Push CallFrame `{
    caller: callingShadow, target: state.shadows[idx - 1], method }`,
-   invoke via descriptor-aware dispatch, pop.
+   invoke the next shadow's value method, pop.
 4. **`idx === 0`** → at the bottom. Set `state.bypassNext = true`,
-   push CallFrame for the host, invoke through the host's proxy. The
-   security gate's `_consumeBypass()` returns true exactly once,
-   skipping every check, so the raw method runs.
+   push CallFrame for the host, invoke the host method through the
+   proxy. The security gate's `_consumeBypass()` returns true exactly
+   once, skipping every check, so the raw method runs.
 
 `indexOf` lookup means re-entry is fine: a shadow that calls down,
 returns, and calls down again gets the same downstream behavior both

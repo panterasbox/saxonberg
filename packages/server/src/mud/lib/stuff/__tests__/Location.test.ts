@@ -3,7 +3,7 @@
  *
  * Visible / Named / Exitable behaviors live on concrete subclasses
  * (`CartesianLocation`, `SphericalLocation`, …) and are exercised by
- * those subclasses' tests; bare Location is just `ContainerMixin(Stuff)`.
+ * those subclasses' tests; bare Location is just `ContainerMixin(Idea)`.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -13,8 +13,9 @@ import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../Idea";
 
-class TestItem extends ContainableMixin(Stuff) {}
+class TestItem extends ContainableMixin(Idea) {}
 
 describe('Location', () => {
   let location: Location;
@@ -26,8 +27,7 @@ describe('Location', () => {
   describe('Construction', () => {
     it('creates a location with default values', () => {
       expect(location).toBeDefined();
-      expect(location.inventory).toBeInstanceOf(Set);
-      expect(location.inventory.size).toBe(0);
+      expect(location.getContents()).toEqual([]);
     });
 
     it('is registered with StuffApi', () => {
@@ -41,7 +41,7 @@ describe('Location', () => {
       const item = makeStuff(() => new TestItem());
       ContainmentApi.move(item, location);
       expect(location.hasContainable(item)).toBe(true);
-      expect(location.inventory.size).toBe(1);
+      expect(location.getContents().length).toBe(1);
     });
 
     it('removes items via ContainmentApi.move(item, null)', () => {
@@ -49,7 +49,7 @@ describe('Location', () => {
       ContainmentApi.move(item, location);
       ContainmentApi.move(item, null);
       expect(location.hasContainable(item)).toBe(false);
-      expect(location.inventory.size).toBe(0);
+      expect(location.getContents().length).toBe(0);
     });
 
     it('returns all contents via getContents()', () => {

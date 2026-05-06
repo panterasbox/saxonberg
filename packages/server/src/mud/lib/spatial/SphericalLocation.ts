@@ -13,9 +13,22 @@ import { Location } from '../stuff/Location';
 import { SphericalCoordinatesMixin } from './SphericalCoordinates';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
 
-const SphericalLocationBase = ExitableMixin(
-  SphericalCoordinatesMixin(VisibleMixin(Location))
+const SphericalLocationBase = PostRegistrationMixin(
+  ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
 );
 
-export class SphericalLocation extends SphericalLocationBase {}
+export class SphericalLocation extends SphericalLocationBase {
+  /**
+   * Mutual-exit verification — same as CartesianLocation. The verifier
+   * skips non-cardinal directions, so spherical exits authored with
+   * semantic labels (`'office'`, `'plaza'`) are no-ops here; they rely
+   * on `addBidirectionalExit` for inverse wiring at construction time.
+   */
+  public override async postRegister(_context?: unknown): Promise<void> {
+    this.verifyOutboundExits();
+  }
+
+  // prepareDestroy inherited from ExitableMixin → Location chain.
+}

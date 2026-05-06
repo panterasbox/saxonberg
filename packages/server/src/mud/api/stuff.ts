@@ -16,6 +16,7 @@ import { nanoid } from 'nanoid';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi } from './mixin';
+import { Mixins } from '../lib/mixin';
 import { ProxyApi } from './proxy';
 import { ExecutionContextApi, FrameKind } from './execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer
@@ -219,6 +220,21 @@ export class StuffApi {
       );
     }
 
+    // 4b. SingletonMixin pre-flight: classes composing SingletonMixin
+    //     allow at most one live instance per templatePath. Use
+    //     `singleton(path)` to get-or-create; bare `clone()` on an
+    //     already-instantiated singleton path throws.
+    if (
+      MixinApi.hasMixin(ClassConstructor, Mixins.Singleton) &&
+      this.#indexes.byTemplatePath.has(templatePath)
+    ) {
+      throw new Error(
+        `StuffApi.clone('${templatePath}'): class ${className} composes ` +
+          `SingletonMixin and an instance already exists. Use ` +
+          `StuffApi.singleton('${templatePath}') instead.`
+      );
+    }
+
     // 5. Resolve the template's zone from its path. Stamped before hydrate /
     //    initialize so hooks that rely on `this.zone` see the correct value.
     //    `ZoneApi.resolveZoneForPath` returns null when the template is
@@ -243,7 +259,7 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction(prevSentinel);
     }
-    if (zone) obj.zone = zone;
+    if (zone) obj.setZone(zone);
     // Stamp the template path onto the instance so identity-keyed
     // policies (`FromTemplate`, etc.) can match against it. The
     // proxy reads `templatePath` directly via the get-trap; we use
@@ -254,6 +270,43 @@ export class StuffApi {
       hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
       context
     );
+  }
+
+  /**
+   * Cache-or-clone for templatePath-keyed singletons.
+   *
+   * Returns the unique live instance for `path` if one exists in the
+   * `byTemplatePath` index, otherwise routes through `clone()` to create
+   * one. Works on any class — composition with `SingletonMixin` is the
+   * separate enforcement layer that prevents bare `clone()` from
+   * producing duplicates.
+   *
+   * Throws when the index has multiple instances for `path` — that
+   * means the caller violated the singleton contract by also using
+   * `clone()` on a non-`SingletonMixin` class. Use `clone()` and track
+   * instances explicitly in that case.
+   *
+   * @param path - Template path (e.g., `/narnia` for the Narnia zone).
+   * @param context - Forwarded to `clone()` when this resolves to a
+   *   first-time clone.
+   */
+  public static async singleton<T extends Stuff>(
+    path: string,
+    context?: unknown
+  ): Promise<T> {
+    const bucket = this.#indexes.byTemplatePath.get(path);
+    if (bucket && bucket.size > 0) {
+      if (bucket.size > 1) {
+        throw new Error(
+          `StuffApi.singleton('${path}'): expected at most one ` +
+            `instance, found ${bucket.size}. The caller mixed ` +
+            `clone() and singleton() on a class that does not ` +
+            `compose SingletonMixin.`
+        );
+      }
+      return bucket.values().next().value as T;
+    }
+    return this.clone<T>(path, context);
   }
 
   /**
@@ -300,7 +353,7 @@ export class StuffApi {
    * the closure).
    *
    * Registration happens BEFORE `postRegister()` so that recursive
-   * resolution during setup (e.g. a room whose exits resolve back to
+   * resolution during setup (e.g. a location whose exits resolve back to
    * itself via the registry) can observe the in-flight instance. If
    * `postRegister()` throws, the object is unregistered before the error
    * propagates.

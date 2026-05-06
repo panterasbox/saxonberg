@@ -5,8 +5,8 @@
  */
 
 /**
- * Default starting room path in the domain collection.
- * Used when Player.startingRoomPath is not set.
+ * Default starting location path in the domain collection.
+ * Used as the spawn target for newly-connected avatars.
  *
  * Template structure in domain collection:
  * {
@@ -18,4 +18,4 @@
  *   }
  * }
  */
-export const DEFAULT_STARTING_ROOM_PATH = '/domain/void';
+export const DEFAULT_STARTING_LOCATION_PATH = '/domain/void';

@@ -25,9 +25,10 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
 import { Shadowing } from '../../lib/security/decorators';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
 // Plain Stuff — has no mixins (negative-case fixture)
-class Plain extends Stuff {}
+class Plain extends Idea {}
 
 // Composite fixture covering every mixin we have a predicate for
 class Composite extends CommandGiverMixin(
@@ -38,7 +39,7 @@ class Composite extends CommandGiverMixin(
           VocalMixin(
             SensorMixin(
               ContainerMixin(
-                ContainableMixin(GenderedMixin(NamedMixin(Stuff)))
+                ContainableMixin(GenderedMixin(NamedMixin(Idea)))
               )
             )
           )
@@ -64,7 +65,7 @@ describe('MixinApi type predicates', () => {
   const composite = makeStuff(() => new Composite());
   const plain = makeStuff(() => new Plain());
 
-  const cases: Array<[string, (obj: Stuff) => boolean]> = [
+  const cases: Array<[string, (obj: Idea) => boolean]> = [
     ['isContainer', (o) => MixinApi.isContainer(o)],
     ['isContainable', (o) => MixinApi.isContainable(o)],
     ['isSensor', (o) => MixinApi.isSensor(o)],
@@ -89,7 +90,7 @@ describe('MixinApi type predicates', () => {
     const obj: Stuff = composite;
     if (MixinApi.isNamed(obj)) {
       // Type-narrowed: accessing fullName compiles without cast
-      expect(typeof obj.fullName).toBe('string');
+      expect(typeof obj.getFullName()).toBe('string');
     } else {
       throw new Error('composite should satisfy isNamed');
     }
@@ -109,7 +110,7 @@ describe('hasMixin walks the shadow stack', () => {
   });
 
   // Host without NamedMixin.
-  class BareHost extends Stuff {}
+  class BareHost extends Idea {}
 
   // Shadow that composes NamedMixin and declares one own method so
   // the inferred-surface walk picks it up. The composition is what

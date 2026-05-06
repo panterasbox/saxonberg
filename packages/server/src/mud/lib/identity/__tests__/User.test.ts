@@ -10,6 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { User } from '../User';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 describe('User', () => {
   describe('collectionName', () => {

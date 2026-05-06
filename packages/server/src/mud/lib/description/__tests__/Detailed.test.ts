@@ -8,10 +8,16 @@ import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
-// Test class with DetailedMixin
-class DetailedThing extends DetailedMixin(Stuff) {
+// Test class with DetailedMixin.
+// Subclass-level test seams: `peekDetails()` / `seedDetails()` expose
+// the protected mixin storage so assertions can inspect / replace the
+// internal Map directly.
+class DetailedThing extends DetailedMixin(Idea) {
   static persistentFields: string[] = [];
+  public peekDetails(): DetailMap { return this.details; }
+  public seedDetails(map: DetailMap): void { this.details = map; }
 }
 
 /**
@@ -45,8 +51,8 @@ describe('DetailedMixin', () => {
 
   describe('Construction', () => {
     it('should create object with empty details', () => {
-      expect(obj.details).toBeDefined();
-      expect(obj.details.size).toBe(0);
+      expect(obj.peekDetails()).toBeDefined();
+      expect(obj.peekDetails().size).toBe(0);
     });
 
     it('should have DetailedMixin marker', () => {
@@ -288,9 +294,9 @@ describe('DetailedMixin', () => {
     it('should share one Detail object across all aliases in a single call', () => {
       obj.setDetail(['x', 'y', 'z'], 'Shared description.');
 
-      const dx = obj.details.get('x');
-      const dy = obj.details.get('y');
-      const dz = obj.details.get('z');
+      const dx = obj.peekDetails().get('x');
+      const dy = obj.peekDetails().get('y');
+      const dz = obj.peekDetails().get('z');
       expect(dx).toBeDefined();
       expect(dx).toBe(dy);
       expect(dy).toBe(dz);
@@ -303,8 +309,8 @@ describe('DetailedMixin', () => {
       obj.setDetail(['a'], 'Same description.');
       obj.setDetail(['b'], 'Same description.');
 
-      const detailA = obj.details.get('a');
-      const detailB = obj.details.get('b');
+      const detailA = obj.peekDetails().get('a');
+      const detailB = obj.peekDetails().get('b');
 
       expect(detailA).not.toBe(detailB);
       expect(detailA!.description).toBe(detailB!.description);
@@ -431,12 +437,12 @@ describe('DetailedMixin', () => {
 
       // 'b' should be gone
       expect(obj.getDetail('b')).toBeNull();
-      expect(obj.details.has('b')).toBe(false);
+      expect(obj.peekDetails().has('b')).toBe(false);
 
       // 'a' and 'c' should still work and still share the same Detail object
       expect(obj.getDetail('a')).toBe('Shared detail.');
       expect(obj.getDetail('c')).toBe('Shared detail.');
-      expect(obj.details.get('a')).toBe(obj.details.get('c'));
+      expect(obj.peekDetails().get('a')).toBe(obj.peekDetails().get('c'));
     });
 
     it('should remove detail completely when all aliases are removed', () => {
@@ -450,7 +456,7 @@ describe('DetailedMixin', () => {
       expect(obj.getDetail('y')).toBeNull();
 
       // Map should be empty
-      expect(obj.details.size).toBe(0);
+      expect(obj.peekDetails().size).toBe(0);
     });
 
     it('should handle removing non-existent alias from multi-alias detail', () => {
@@ -467,7 +473,7 @@ describe('DetailedMixin', () => {
       obj.setDetail(['parent'], 'Parent.');
 
       // parent.details should not exist yet
-      const parentDetail = obj.details.get('parent');
+      const parentDetail = obj.peekDetails().get('parent');
       expect(parentDetail?.details).toBeUndefined();
 
       // Adding child should initialize parent.details
@@ -480,7 +486,7 @@ describe('DetailedMixin', () => {
     it('should auto-initialize details Map when querying with getDetailIds', () => {
       obj.setDetail(['parent'], 'Parent.');
 
-      const parentDetail = obj.details.get('parent');
+      const parentDetail = obj.peekDetails().get('parent');
       expect(parentDetail?.details).toBeUndefined();
 
       // Query should initialize the Map
@@ -493,7 +499,7 @@ describe('DetailedMixin', () => {
     it('should auto-initialize details Map when querying with getDeepDetailIds', () => {
       obj.setDetail(['parent'], 'Parent.');
 
-      const parentDetail = obj.details.get('parent');
+      const parentDetail = obj.peekDetails().get('parent');
       expect(parentDetail?.details).toBeUndefined();
 
       // Query should initialize the Map
@@ -509,11 +515,11 @@ describe('DetailedMixin', () => {
       obj.setDetail(['test'], 'Test description.');
 
       // Serialize
-      const serialized = JSON.stringify(Array.from(obj.details.entries()));
+      const serialized = JSON.stringify(Array.from(obj.peekDetails().entries()));
 
       // Deserialize into new object
       const obj2 = makeStuff(() => new DetailedThing());
-      obj2.details = new Map(JSON.parse(serialized));
+      obj2.seedDetails(new Map(JSON.parse(serialized)));
 
       expect(obj2.getDetail('test')).toBe('Test description.');
     });
@@ -546,11 +552,11 @@ describe('DetailedMixin', () => {
         );
       };
 
-      const serialized = JSON.stringify(serialize(obj.details));
+      const serialized = JSON.stringify(serialize(obj.peekDetails()));
 
       // Deserialize into new object
       const obj2 = makeStuff(() => new DetailedThing());
-      obj2.details = deserialize(JSON.parse(serialized));
+      obj2.seedDetails(deserialize(JSON.parse(serialized)));
 
       expect(obj2.getDetail('parent')).toBe('Parent.');
       expect(obj2.getDetail('child', 'parent')).toBe('Child.');
@@ -605,7 +611,7 @@ describe('DetailedMixin', () => {
     function makeReferenceState(): Record<string, SerializedDetail> {
       const ref = makeBaseHierarchy();
       ref.setDetail(['d'], 'D', 'a.b.c');
-      return serialize(ref.details);
+      return serialize(ref.peekDetails());
     }
 
     it.each(forms)(
@@ -614,7 +620,7 @@ describe('DetailedMixin', () => {
         const o = makeBaseHierarchy();
         const count = o.setDetail(ids, 'D', parent);
         expect(count).toBe(1);
-        expect(serialize(o.details)).toEqual(makeReferenceState());
+        expect(serialize(o.peekDetails())).toEqual(makeReferenceState());
       },
     );
 
@@ -731,7 +737,7 @@ describe('DetailedMixin', () => {
       obj.setDetail(['handle'], 'A brass fitting.');
       obj.setDetail(['knob'], 'A brass fitting.', 'handle');
 
-      const handle = obj.details.get('handle');
+      const handle = obj.peekDetails().get('handle');
       expect(handle).toBeDefined();
 
       const knob = handle!.details?.get('knob');
@@ -749,9 +755,9 @@ describe('DetailedMixin', () => {
     it('reuses detail correctly when adding aliases (same level, one call)', () => {
       // This is the intended use of reuse: one setDetail call with multiple ids.
       obj.setDetail(['a', 'b', 'c'], 'Shared.');
-      const a = obj.details.get('a');
-      const b = obj.details.get('b');
-      const c = obj.details.get('c');
+      const a = obj.peekDetails().get('a');
+      const b = obj.peekDetails().get('b');
+      const c = obj.peekDetails().get('c');
       expect(a).toBe(b);
       expect(b).toBe(c);
     });

@@ -2,7 +2,7 @@
  * ProseApi — Liquid-based templating for authorable prose.
  *
  * Sits between `Mml` (markup) and any prose externalized from source —
- * settings, CMS-authored room/NPC/item descriptions, prompts. Turns a
+ * settings, CMS-authored location/NPC/item descriptions, prompts. Turns a
  * string template with `{{ var }}` placeholders, `{% if %}` conditionals,
  * and `| filter` chains into a finished `Mml` fragment.
  *

@@ -15,7 +15,6 @@ describe('Vessel', () => {
 
   describe('Container side', () => {
     it('starts with empty inventory', () => {
-      expect(vessel.inventory.size).toBe(0);
       expect(vessel.getContents()).toEqual([]);
     });
 
@@ -35,12 +34,12 @@ describe('Vessel', () => {
     });
 
     it('can be placed inside a Location', () => {
-      const room = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Location());
 
-      ContainmentApi.move(vessel, room);
+      ContainmentApi.move(vessel, loc);
 
-      expect(vessel.getContainer()).toBe(room);
-      expect(room.hasContainable(vessel)).toBe(true);
+      expect(vessel.getContainer()).toBe(loc);
+      expect(loc.hasContainable(vessel)).toBe(true);
     });
 
     it('can itself be placed inside another Vessel', () => {
@@ -54,18 +53,18 @@ describe('Vessel', () => {
   });
 
   describe('Both sides together', () => {
-    it('holds items while itself sitting in a room', () => {
-      const room = makeStuff(() => new Location());
+    it('holds items while itself sitting in a location', () => {
+      const loc = makeStuff(() => new Location());
       const coin = makeStuff(() => new Thing());
 
-      ContainmentApi.move(vessel, room);
+      ContainmentApi.move(vessel, loc);
       ContainmentApi.move(coin, vessel);
 
-      expect(vessel.getContainer()).toBe(room);
+      expect(vessel.getContainer()).toBe(loc);
       expect(coin.getContainer()).toBe(vessel);
       expect(vessel.hasContainable(coin)).toBe(true);
-      expect(room.hasContainable(vessel)).toBe(true);
-      expect(room.hasContainable(coin)).toBe(false);
+      expect(loc.hasContainable(vessel)).toBe(true);
+      expect(loc.hasContainable(coin)).toBe(false);
     });
   });
 });

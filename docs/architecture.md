@@ -161,27 +161,71 @@ runtime call still resolves.
 
 ## Class Hierarchy
 
+### Top-level branches
+
+Every concrete `Stuff` subclass MUST extend through exactly one of
+seven top-level branches, each capturing a distinct role:
+
 ```
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
-  ├── Idea (abstract)
-  │    ├── Location           (rooms / spatial containers)
-  │    ├── Interactive        (runtime connection state)
-  │    ├── Persistable        (records: User, GoogleProfile, Template)
-  │    │    ├── User          (auth/meta record)
-  │    │    ├── GoogleProfile (OAuth profile record)
-  │    │    └── Template      (CMS asset — describes how to clone Stuff)
-  │    └── Agent (abstract — runtime active beings)
-  │         └── Character (abstract — sentient)
-  │              └── Avatar  (runtime player presence)
-  └── Shadow                  (function-shadowing host — see call-security.md)
+  ├── Idea          incorporeal identity (Exit, Login, Zone, …)
+  ├── Thing         portable physical item
+  ├── Location      stationary place
+  ├── Vessel        mobile place (Container + Containable)
+  ├── Agent         sentient/active actor (Character → Avatar)
+  ├── Persistable   MongoDB-backed record (User, GoogleProfile, Template)
+  └── Shadow        function-shadowing host — see call-security.md
 ```
 
-`Persistable` adds an explicit `save`/`delete`/`findById`/`find` CRUD
-surface over MongoDB. Records under it (User, GoogleProfile, Template)
-are loaded as records — no template/clone/hydrate pipeline. Otherwise
-they're Stuff like anything else: registered in `StuffApi`, proxy-
-mediated, destroyed via `StuffApi.destruct` (which `Persistable.delete`
-cascades to). See [subsystems/persistence.md](./subsystems/persistence.md).
+Each branch lives in `lib/stuff/` (except `Persistable`, which lives
+in `lib/persistence/`) and registers itself with `Stuff` at module
+load via `Stuff._registerTopLevelBranch(BranchClass)`. The
+registration is gated by a URL allowlist on `Stuff` — only those
+seven files may register, so the branch set can't be silently
+extended from a subclass or a third-party file.
+
+`Stuff`'s constructor walks the prototype chain at instance-creation
+time and throws if no registered branch is found. Class-time work is
+done once per class (cached); the per-instance cost is a single
+WeakSet lookup. The error message lists the seven branches and
+points readers here.
+
+### Why the invariant
+
+- **Roles, not capabilities.** Class identity (`instanceof`) is for
+  role checks (`instanceof Avatar`, `instanceof Vessel`); capability
+  checks (`is this place-like / item-like / navigable?`) go through
+  `MixinApi.isContainer` / `isContainable` / `isExitable`. The seven
+  branches give every role a clean `instanceof` that doesn't lie.
+- **Vessel as its own branch.** A vessel is a *mobile place* — both
+  Container (it holds passengers/cargo) and Containable (it lives
+  somewhere). Putting it under `Thing` would say "vessels are items"
+  (false — you can't pocket a ship); putting it under `Location`
+  would say "locations don't move" (false for vessels). It's its own
+  role.
+- **Persistable as its own branch.** Auth/CMS records are Stuff in
+  every framework respect (registered, proxy-wrapped, destructed)
+  but they're not in-world. Keeping them as a sibling branch rather
+  than a sub-tree of Idea matches that distinction and leaves room
+  to revisit later if the mental model converges.
+
+### What each branch composes
+
+| Branch | Composition | Notes |
+|---|---|---|
+| `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
+| `Thing` | `ContainableMixin(Stuff)` | "I live somewhere." |
+| `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
+| `Vessel` | `ContainerMixin(ContainableMixin(Stuff))` | Both Container AND Containable. `ExitableVessel` etc. layer on navigation. |
+| `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
+| `Persistable` | `Stuff` | Adds `save` / `delete` / `findById` / `find`. Records (User, GoogleProfile, Template) extend Persistable. |
+| `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
+
+`Persistable` sits on `Stuff` directly (sibling of the in-world
+branches). Records under it are loaded via `findById` / `find` rather
+than the template/clone/hydrate pipeline; otherwise they're Stuff
+like anything else. See
+[subsystems/persistence.md](./subsystems/persistence.md).
 
 ## Mixin Organization
 
@@ -223,6 +267,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/spatial/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
+| `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
+| `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands` |

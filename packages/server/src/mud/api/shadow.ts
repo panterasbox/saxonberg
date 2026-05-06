@@ -278,12 +278,10 @@ export class ShadowApi {
       );
     }
     // Bottom of chain — invoke host's original via bypass marker.
-    // For methods: read returns the wrapper, invoke with args
-    // (wrapper consumes the bypass and runs raw). For getters:
-    // reading the property IS the invocation — the proxy's getter
-    // path consumes the bypass and runs the raw getter, returning
-    // a value directly. Detect which form by walking the host's
-    // descriptor.
+    // The shadow chain only dispatches methods (accessors are
+    // filtered at attach time), so the host method must be a
+    // function; reading it through the proxy returns the wrapper,
+    // and applying with args runs the raw method via the bypass.
     state.bypassNext = true;
     return ExecutionContextApi.run(
       callingShadow,
@@ -291,14 +289,6 @@ export class ShadowApi {
       state.methodName,
       undefined,
       () => {
-        const descriptor = ShadowApi.#findDescriptor(state.host, state.methodName);
-        if (descriptor?.get) {
-          // Reading the proxy property fires the getter through the
-          // mediation pipeline, which sees bypassNext and runs raw.
-          return (state.host as unknown as Record<string, unknown>)[
-            state.methodName
-          ];
-        }
         const fn = (state.host as unknown as Record<string, unknown>)[
           state.methodName
         ];
@@ -311,17 +301,6 @@ export class ShadowApi {
         return (fn as (...a: unknown[]) => unknown).apply(state.host, args);
       }
     );
-  }
-
-  /** Walk an object's prototype chain returning the first descriptor for `name`. */
-  static #findDescriptor(obj: object, name: string): PropertyDescriptor | undefined {
-    let cur: object | null = obj;
-    while (cur && cur !== Object.prototype) {
-      const d = Object.getOwnPropertyDescriptor(cur, name);
-      if (d) return d;
-      cur = Object.getPrototypeOf(cur);
-    }
-    return undefined;
   }
 
   /**
@@ -419,15 +398,19 @@ export class ShadowApi {
    * sources, unioned:
    *
    * 1. Own properties of `shadow.constructor.prototype` (minus
-   *    `constructor`) — methods the shadow class explicitly declares.
-   *    Methods inherited from composed mixin layers do NOT enrol.
-   *    A shadow that composes `Foo` to satisfy a type interface but
-   *    only declares its own `bar()` method will intercept `bar`,
-   *    not all of `Foo`'s methods.
+   *    `constructor`) whose descriptor is a value method — accessor
+   *    pairs (`get foo()` / `set foo()`) are deliberately excluded.
+   *    Accessors are host-implementation tools (invariant maintenance,
+   *    sync/async splits) and are not part of the inter-stuff
+   *    contract; shadows extend behavior, which lives on methods.
+   *    Methods inherited from composed mixin layers also do NOT enrol
+   *    — only what the shadow's own class body declares.
    * 2. `@Shadowing(hostName)` decorations on the shadow's own class —
    *    declare an interception even when the local method name
    *    differs from the host's, or for shadows that don't compose a
-   *    matching mixin at all.
+   *    matching mixin at all. The decorator is method-only at use; if
+   *    a shadow author tags a getter/setter with `@Shadowing` the
+   *    `_invokeOn` lookup will fail at dispatch.
    */
   static #computeInterceptSet(shadow: Shadow): Set<string> {
     const out = new Set<string>();
@@ -435,6 +418,11 @@ export class ShadowApi {
     if (ownProto) {
       for (const name of Object.getOwnPropertyNames(ownProto)) {
         if (name === 'constructor') continue;
+        const d = Object.getOwnPropertyDescriptor(ownProto, name);
+        if (!d) continue;
+        // Skip accessors — they're host-internal, not contract surface.
+        if (d.get || d.set) continue;
+        if (typeof d.value !== 'function') continue;
         out.add(name);
       }
     }
@@ -462,18 +450,16 @@ export class ShadowApi {
   }
 
   /**
-   * Invoke a method on a shadow, dispatching based on the
-   * descriptor's shape (value / get / set). For mixin-derived
-   * intercepts and bare `@Shadowing`s, the local name equals the
-   * host method name; for `@Shadowing('hostName')` patterns it's
-   * remapped.
+   * Invoke a method on a shadow. Methods are the only shape the
+   * shadow chain dispatches — accessors are filtered out at attach
+   * time by `#computeInterceptSet`. For mixin-derived intercepts
+   * and bare `@Shadowing`s, the local name equals the host method
+   * name; for `@Shadowing('hostName')` patterns it's remapped.
    */
   static #invokeOn(shadow: Shadow, hostMethodName: string, args: unknown[]): unknown {
     const localName = ShadowApi.#resolveLocalMethodName(shadow, hostMethodName);
-    // Walk the prototype chain to find the descriptor — getters and
-    // setters live on the prototype, not on the instance, and value
-    // methods do too. `Reflect.get` returns the resolved value but
-    // doesn't tell us if it was an accessor. Find descriptor first.
+    // Walk the prototype chain — value methods live on a prototype,
+    // not on the instance.
     let proto: unknown = Object.getPrototypeOf(shadow);
     let descriptor: PropertyDescriptor | undefined;
     while (proto && proto !== Object.prototype) {
@@ -484,28 +470,15 @@ export class ShadowApi {
       }
       proto = Object.getPrototypeOf(proto);
     }
-    if (!descriptor) {
+    if (!descriptor || typeof descriptor.value !== 'function') {
       throw new ShadowError(
         `shadow has no method ${localName} for host method ${hostMethodName}`,
         { shadowId: shadow.stuffId, methodName: hostMethodName }
       );
     }
-    if (typeof descriptor.value === 'function') {
-      return (descriptor.value as (...a: unknown[]) => unknown).apply(
-        shadow,
-        args
-      );
-    }
-    if (descriptor.get && args.length === 0) {
-      return descriptor.get.call(shadow);
-    }
-    if (descriptor.set && args.length === 1) {
-      descriptor.set.call(shadow, args[0]);
-      return undefined;
-    }
-    throw new ShadowError(
-      `shadow descriptor for ${localName} doesn't match dispatch shape`,
-      { shadowId: shadow.stuffId, methodName: hostMethodName }
+    return (descriptor.value as (...a: unknown[]) => unknown).apply(
+      shadow,
+      args
     );
   }
 

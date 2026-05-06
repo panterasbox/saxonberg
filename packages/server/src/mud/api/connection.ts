@@ -95,7 +95,7 @@ export class ConnectionApi {
     interactive: Interactive,
     target: HasInteractive & Stuff
   ): void {
-    const previous = interactive.holder;
+    const previous = interactive.getHolder();
     if (previous === target) return;
     const previousLinkdead = previous?.isLinkdead() ?? true;
     const targetLinkdead = target.isLinkdead();
@@ -104,20 +104,20 @@ export class ConnectionApi {
       previous.removeInteractive(interactive);
     }
     target.addInteractive(interactive);
-    interactive.holder = target;
+    interactive.setHolder(target);
 
     // Fire Witness hooks AFTER state mutation. Per-connection
     // notifications fire for both endpoints; presence transitions
     // fire only when the count crosses 0.
     if (previous) {
-      callConnHook(previous, 'onConnectionDetached', []);
+      previous.onConnectionDetached?.();
       if (!previousLinkdead && previous.isLinkdead()) {
-        callConnHook(previous, 'onLinkdead', []);
+        previous.onLinkdead?.();
       }
     }
-    callConnHook(target, 'onConnectionAttached', [interactive]);
+    target.onConnectionAttached?.(interactive);
     if (targetLinkdead && !target.isLinkdead()) {
-      callConnHook(target, 'onLinkRestored', []);
+      target.onLinkRestored?.();
     }
 
     // Cross-cutting global event for any observer that doesn't care
@@ -137,23 +137,17 @@ export class ConnectionApi {
    * No-op when there's no current holder.
    */
   public static detach(interactive: Interactive): void {
-    const previous = interactive.holder;
+    const previous = interactive.getHolder();
     if (!previous) return;
     const wasConnected = !previous.isLinkdead();
     previous.removeInteractive(interactive);
-    interactive.holder = null;
+    interactive.setHolder(null);
 
-    callConnHook(previous, 'onConnectionDetached', []);
+    previous.onConnectionDetached?.();
     if (wasConnected && previous.isLinkdead()) {
-      callConnHook(previous, 'onLinkdead', []);
+      previous.onLinkdead?.();
     }
   }
-}
-
-function callConnHook(obj: object, name: string, args: unknown[]): void {
-  const fn = (obj as Record<string, unknown>)[name];
-  if (typeof fn !== 'function') return;
-  (fn as (...a: unknown[]) => void).apply(obj, args);
 }
 
 

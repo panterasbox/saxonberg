@@ -29,6 +29,7 @@
 
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 import { ExecutionContextApi } from './execution-context';
+import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import {
   SecurityError,
@@ -416,36 +417,17 @@ export class SecurityApi {
    * offender sees exactly which seam was misused.
    */
   public static assertTestOnly(op: string): void {
-    const stack = new Error().stack ?? '';
-    const lines = stack.split('\n');
-    let inTest = false;
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('at ')) continue;
-      const m =
-        trimmed.match(/\((.+):\d+:\d+\)$/) ??
-        trimmed.match(
-          /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
-        );
-      const raw = m?.[1];
-      if (!raw) continue;
-      // Normalise Windows backslashes so the `.test.(ts|js)` regex
-      // (and the per-URL cache) match identically on every platform.
-      const url = raw.replace(/\\/g, '/');
+    // The predicate IS the cache reader — `findFrameMatching` stops at
+    // the first frame that returns true, so caching test-frame hits as
+    // `true` short-circuits future calls from the same site.
+    const matched = ModuleApi.findFrameMatching((url) => {
       const cached = SecurityApi.#testCallerCache.get(url);
-      if (cached === true) {
-        inTest = true;
-        break;
-      }
-      if (cached === false) continue;
+      if (cached !== undefined) return cached;
       const isTest = /\.test\.(ts|js)(\?|$|:)/.test(url);
       SecurityApi.#testCallerCache.set(url, isTest);
-      if (isTest) {
-        inTest = true;
-        break;
-      }
-    }
-    if (!inTest) {
+      return isTest;
+    });
+    if (matched === null) {
       throw new SecurityError(
         `${op}: test-only seam called from non-test code. ` +
           `Production code must not reach methods named *ForTest / *ForTesting.`

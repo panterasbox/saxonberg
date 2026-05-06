@@ -49,7 +49,7 @@ export class TellController extends CommandController<TellInput> {
       })
       .send();
 
-    return { success: true, summary: `told ${target.fullName}` };
+    return { success: true, summary: `told ${target.getFullName()}` };
   }
 
   private findAvatarByName(
@@ -62,14 +62,14 @@ export class TellController extends CommandController<TellInput> {
     const sensors = MessageApi.getSensors(location);
     for (const sensor of sensors) {
       if (!MixinApi.isNamed(sensor)) continue;
-      if (sensor.fullName.toLowerCase() === nameLower) {
+      if (sensor.getFullName().toLowerCase() === nameLower) {
         return sensor as unknown as Avatar;
       }
     }
 
     const allAvatars = PlayerApi.getAllAvatars();
     for (const avatar of allAvatars) {
-      const fullName = avatar.fullName || '';
+      const fullName = avatar.getFullName() || '';
       if (fullName.toLowerCase() === nameLower) {
         return avatar;
       }

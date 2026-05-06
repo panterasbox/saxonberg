@@ -6,10 +6,11 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
-class Plain extends Stuff {}
-class NamedThing extends NamedMixin(Stuff) {}
-class GenderedNamed extends GenderedMixin(NamedMixin(Stuff)) {}
+class Plain extends Idea {}
+class NamedThing extends NamedMixin(Idea) {}
+class GenderedNamed extends GenderedMixin(NamedMixin(Idea)) {}
 
 describe('ProseApi.format — substitution', () => {
   it('renders a literal template with no placeholders', () => {
@@ -90,7 +91,7 @@ describe('ProseApi.format — conditionals and filters', () => {
 
   it('threads Mml-vocabulary filters and emits the resulting markup verbatim', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'Alice';
+    obj.setName('Alice');
     const out = ProseApi.format('hi {{ who | name }}!', { who: obj }).toString();
     expect(out).toBe(`hi <name stuff-id="${obj.stuffId}">Alice</name>!`);
   });
@@ -105,8 +106,8 @@ describe('ProseApi.format — conditionals and filters', () => {
 
   it('chains grammar filters: cap on a pronoun', () => {
     const obj = makeStuff(() => new GenderedNamed());
-    obj.name = 'Alice';
-    obj.pronouns = Pronouns.She;
+    obj.setName('Alice');
+    obj.setPronouns(Pronouns.She);
     expect(
       ProseApi.format(
         '{{ a | pronoun: "subj" | cap }} smiles.',

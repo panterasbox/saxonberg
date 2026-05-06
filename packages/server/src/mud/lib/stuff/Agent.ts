@@ -26,3 +26,5 @@ export class Agent extends Stuff {
     // Subclasses can override for agent-specific cleanup
   }
 }
+
+Stuff._registerTopLevelBranch(Agent);

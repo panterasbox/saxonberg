@@ -32,6 +32,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { SecurityError } from '../lib/security/errors';
 import { SecurityApi } from './security';
+import { ModuleApi } from './module';
 import type { CommandContext } from './command';
 
 // NOTE: ExecutionContextApi deliberately does NOT call
@@ -148,42 +149,18 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
 const _allowlistCache: Map<string, boolean> = new Map();
 
 /**
- * Walk `Error.stack` to the first frame outside this module and
- * return its file URL, or `null` if we can't extract one.
+ * Self-skip pattern for `ModuleApi.getImmediateCallerUrl`. Frames
+ * inside `execution-context.ts` (the frame-mutator helpers, this
+ * function's own caller, etc.) are dropped so the first reported
+ * frame is the actual caller of the public API.
  *
- * Frames inside this module are skipped by URL match (e.g.
- * `/execution-context.ts:42:5` or `/execution-context.js:42:5`),
- * NOT by substring on the full line — that would also skip frames
- * from `execution-context.test.ts` and any other file whose name
+ * Skipped by URL match (e.g. `/execution-context.ts:42:5` or
+ * `/execution-context.js:42:5`), NOT by substring on the full
+ * line — that would also skip frames from
+ * `execution-context.test.ts` and any other file whose name
  * happens to contain the module name.
  */
-function _findImmediateCallerUrl(): string | null {
-  const err = new Error();
-  const lines = (err.stack ?? '').split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('at ')) continue;
-    const parens = trimmed.match(/\((.+):\d+:\d+\)$/);
-    const bare = trimmed.match(
-      /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
-    );
-    const m = parens ?? bare;
-    if (!m) continue;
-    const raw = m[1];
-    if (!raw) continue;
-    // Windows: V8 emits backslashed paths in stack frames. Normalise
-    // so the regexes below (and the allowlist) — all written with
-    // forward slashes — match on every platform.
-    const url = raw.replace(/\\/g, '/');
-    // Skip frames inside this module file specifically — the
-    // `_findImmediateCallerUrl`, `_assertFrameMutatorAllowed`,
-    // `run`, `runRoot`, and `tagCurrentFrame` frames all live in
-    // `execution-context.ts` (or its compiled `.js`).
-    if (/\/execution-context\.(ts|js)(\?|$|:)/.test(url)) continue;
-    return url;
-  }
-  return null;
-}
+const _SELF_URL = /\/execution-context\.(ts|js)(\?|$|:)/;
 
 /**
  * Throw `SecurityError` if the immediate caller isn't in the
@@ -195,7 +172,7 @@ function _findImmediateCallerUrl(): string | null {
  * sees exactly which API was misused.
  */
 function _assertFrameMutatorAllowed(op: string): void {
-  const url = _findImmediateCallerUrl();
+  const url = ModuleApi.getImmediateCallerUrl(_SELF_URL);
   if (url === null) {
     // Couldn't extract a caller URL. Fail closed — better to break
     // the call than silently allow a forge.

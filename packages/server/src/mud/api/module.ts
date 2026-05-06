@@ -177,6 +177,77 @@ export class ModuleApi {
     ModuleApi.#validateNoFinalOverrides(cls);
   }
 
+  /* ─────────────────────── Stack walking ─────────────────────── */
+
+  /**
+   * Find the first frame on the current call stack whose source URL
+   * doesn't match `skipModule`, and return that URL. Use this when
+   * you need "the file that called me" for a URL allowlist (e.g.
+   * the construction-gate, frame-mutator, or branch-registration
+   * gates) — pass a regex matching your own module so frames inside
+   * your file (the helper that wraps this call, the policy method,
+   * etc.) are skipped past.
+   *
+   * Returns `null` when the stack can't be parsed or every frame is
+   * inside `ModuleApi` itself or `skipModule`.
+   *
+   * URLs are normalized to forward slashes before `skipModule` is
+   * applied — write your pattern with `/`, not `\\`, regardless of
+   * platform.
+   */
+  public static getImmediateCallerUrl(skipModule: RegExp): string | null {
+    for (const url of ModuleApi.#walkExternalFrames()) {
+      if (!skipModule.test(url)) return url;
+    }
+    return null;
+  }
+
+  /**
+   * Walk the call stack and return the first frame's URL for which
+   * `predicate` returns `true`, or `null` if no frame matches.
+   * Useful for "is any caller in a test file?" / "is anyone in
+   * `mud/api/...`?" style searches where the immediate caller isn't
+   * what matters.
+   *
+   * Frames inside `ModuleApi` itself are skipped automatically.
+   * URLs are normalized to forward slashes before the predicate runs.
+   */
+  public static findFrameMatching(
+    predicate: (url: string) => boolean
+  ): string | null {
+    for (const url of ModuleApi.#walkExternalFrames()) {
+      if (predicate(url)) return url;
+    }
+    return null;
+  }
+
+  /**
+   * Generator over normalized URLs from each `at …` frame in the
+   * current stack, skipping frames inside `module.ts` itself so
+   * `getImmediateCallerUrl` / `findFrameMatching` and their callees
+   * never appear as the caller. Single point of truth for the
+   * regex parsing + Windows backslash normalization.
+   */
+  static *#walkExternalFrames(): Generator<string> {
+    const SELF = /\/mud\/api\/module\.(ts|js)(\?|$|:)/;
+    const err = new Error();
+    const lines = (err.stack ?? '').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('at ')) continue;
+      const m =
+        trimmed.match(/\((.+):\d+:\d+\)$/) ??
+        trimmed.match(
+          /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):\d+:\d+$/
+        );
+      const raw = m?.[1];
+      if (!raw) continue;
+      const url = raw.replace(/\\/g, '/');
+      if (SELF.test(url)) continue;
+      yield url;
+    }
+  }
+
   /* ─────────────────────── Internal helpers ─────────────────────── */
 
   /**
@@ -213,35 +284,12 @@ export class ModuleApi {
   }
 
   /**
-   * Find the file URL of the function that called `stamp()`. Walk the
-   * stack; skip frames inside this module so `stamp` itself and the
-   * private helpers don't show up as the caller. Return the first
-   * external frame's URL.
+   * Find the file URL of the function that called `stamp()`. The
+   * generator already skips frames inside `module.ts`, so the first
+   * external URL it yields IS the immediate caller.
    */
   static #findCallerUrl(): string | null {
-    const err = new Error();
-    const lines = (err.stack ?? '').split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('at ')) continue;
-      const parens = trimmed.match(/\((.+):(\d+):(\d+)\)$/);
-      const bareUrl = trimmed.match(
-        /at (file:\/\/[^\s]+|\/[^\s]+|[A-Za-z]:[\\/][^\s]+):(\d+):(\d+)$/
-      );
-      const m = parens ?? bareUrl;
-      if (!m) continue;
-      const raw = m[1];
-      if (!raw) continue;
-      // Windows: stack frames carry backslashed paths. Normalise so
-      // both the in-module skip below and `#normaliseUrl` (which
-      // operates on forward-slash source-root hints) work uniformly.
-      const url = raw.replace(/\\/g, '/');
-      // Skip frames inside this module file specifically — `stamp`,
-      // `#findCallerUrl`, `#normaliseUrl`, `#validateNoFinalOverrides`
-      // all live in `module.ts` (or its compiled `.js`).
-      if (/\/mud\/api\/module\.(ts|js)(\?|$|:)/.test(url)) continue;
-      return url;
-    }
+    for (const url of ModuleApi.#walkExternalFrames()) return url;
     return null;
   }
 

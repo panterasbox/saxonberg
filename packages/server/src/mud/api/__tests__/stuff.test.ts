@@ -12,6 +12,7 @@ import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
 describe('StuffApi', () => {
   describe('validateClassPath', () => {
@@ -67,10 +68,10 @@ describe('StuffApi', () => {
 
   describe('create', () => {
     // Test class without PostRegistrationMixin (no postRegister hook)
-    class SimpleStuff extends Stuff {}
+    class SimpleStuff extends Idea {}
 
     // Test class composing PostRegistrationMixin
-    class InitializableStuff extends PostRegistrationMixin(Stuff) {
+    class InitializableStuff extends PostRegistrationMixin(Idea) {
       initializeCalled = false;
 
       override async postRegister() {
@@ -78,7 +79,7 @@ describe('StuffApi', () => {
       }
     }
 
-    class AsyncStuff extends PostRegistrationMixin(Stuff) {
+    class AsyncStuff extends PostRegistrationMixin(Idea) {
       loadedData: string = '';
 
       override async postRegister() {
@@ -122,7 +123,7 @@ describe('StuffApi', () => {
     it('should register object in correct order (register → postRegister)', async () => {
       let registeredDuringInit = false;
 
-      class OrderTestStuff extends PostRegistrationMixin(Stuff) {
+      class OrderTestStuff extends PostRegistrationMixin(Idea) {
         override async postRegister() {
           // Registration happens before postRegister() so recursive resolvers
           // (e.g. exit hydration that points back to this object) can see
@@ -138,7 +139,7 @@ describe('StuffApi', () => {
     });
 
     it('should unregister the object if postRegister() throws', async () => {
-      class FailingInitStuff extends PostRegistrationMixin(Stuff) {
+      class FailingInitStuff extends PostRegistrationMixin(Idea) {
         override async postRegister() {
           throw new Error('init failed');
         }
@@ -158,7 +159,7 @@ describe('StuffApi', () => {
     });
 
     it('should thread context into postRegister(context)', async () => {
-      class ContextStuff extends PostRegistrationMixin(Stuff) {
+      class ContextStuff extends PostRegistrationMixin(Idea) {
         received: unknown = undefined;
 
         override async postRegister(context?: unknown) {
@@ -173,7 +174,7 @@ describe('StuffApi', () => {
     });
 
     it('should pass undefined when no context is supplied', async () => {
-      class ContextStuff extends PostRegistrationMixin(Stuff) {
+      class ContextStuff extends PostRegistrationMixin(Idea) {
         received: unknown = 'sentinel';
 
         override async postRegister(context?: unknown) {
@@ -188,9 +189,9 @@ describe('StuffApi', () => {
   });
 
   describe('createSync', () => {
-    class SimpleStuff extends Stuff {}
+    class SimpleStuff extends Idea {}
 
-    class NeedsAsyncSetup extends PostRegistrationMixin(Stuff) {
+    class NeedsAsyncSetup extends PostRegistrationMixin(Idea) {
       override async postRegister() {
         // would never run via createSync — guardrail should catch it
       }
@@ -230,7 +231,7 @@ describe('StuffApi', () => {
   });
 
   describe('register and findById', () => {
-    class TestStuff extends Stuff {}
+    class TestStuff extends Idea {}
 
     beforeEach(() => {
       StuffApi.clearAll();
@@ -269,7 +270,7 @@ describe('StuffApi', () => {
   });
 
   describe('findByTemplatePath / findAllByTemplatePath', () => {
-    class Stamped extends Stuff {}
+    class Stamped extends Idea {}
 
     function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
       (obj as unknown as { templatePath?: string }).templatePath = path;

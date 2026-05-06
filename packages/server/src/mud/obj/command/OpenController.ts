@@ -1,10 +1,8 @@
 /**
  * OpenController — open any Sealable the player can reach.
  *
- * Fires a Scene at `world.narration.movement` (the closest topic for
- * "physical interaction with the room state") with self ("You open
- * the door.") and peers ("<name>Alice</name> opens the door.")
- * frames.
+ * Fires a Scene at `world.narration.action` with self ("You open the
+ * door.") and peers ("<name>Alice</name> opens the door.") frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -36,14 +34,14 @@ export class OpenController extends CommandController<OpenInput> {
       return { success: false, summary: "can't open that" };
     }
 
-    if (hit.isOpen) {
+    if (hit.getIsOpen()) {
       return { success: false, summary: 'already open' };
     }
 
     hit.open();
 
     MessageApi.scene(commandGiver)
-      .topic(MessageApi.Topics.world.narration.movement)
+      .topic(MessageApi.Topics.world.narration.action)
       .toSelf(Mml.compose`You open ${Mml.object(hit)}.`)
       .toPeers(Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(hit)}.`)
       .send();

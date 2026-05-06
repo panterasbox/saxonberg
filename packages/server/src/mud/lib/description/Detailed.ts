@@ -57,9 +57,6 @@ export interface Detail {
  * Interface for objects with hierarchical details.
  */
 export interface Detailed {
-  /** Persistent hierarchical detail map */
-  details: DetailMap;
-
   /** Get single detail description */
   getDetail(id: DetailId, parent?: DetailId): string | null;
 
@@ -68,6 +65,9 @@ export interface Detailed {
 
   /** Get all detail IDs recursively */
   getDeepDetailIds(parent?: DetailId): string[] | null;
+
+  /** Membership test for a single detail id at the given level. */
+  hasDetail(id: DetailId, parent?: DetailId): boolean;
 
   /** Set detail(s) - supports multiple IDs (aliases) */
   setDetail(ids: DetailId[], description: string, parent?: DetailId): number;
@@ -91,9 +91,10 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['details'];
 
     /**
-     * Hierarchical detail map.
+     * Hierarchical detail map. Host-internal storage; external callers
+     * go through `getDetail` / `setDetail` / `removeDetail`.
      */
-    details: DetailMap = new Map();
+    protected details: DetailMap = new Map();
 
     /**
      * Get single detail description.
@@ -124,6 +125,18 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return null;
       }
       return Array.from(details.keys());
+    }
+
+    /**
+     * Membership test for a single detail id at the given level.
+     * Cheaper than `getDetailIds(parent)?.includes(id)`.
+     */
+    hasDetail(id: DetailId, parent?: DetailId): boolean {
+      const resolved = this.resolveParent(parent, id);
+      if (!resolved) return false;
+      const [details, resolvedId] = resolved;
+      if (!resolvedId || !details) return false;
+      return details.has(resolvedId);
     }
 
     /**

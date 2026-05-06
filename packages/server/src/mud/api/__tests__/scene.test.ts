@@ -16,15 +16,16 @@ import { ExecutionContextApi, FrameKind } from '../execution-context';
 import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
+import { Idea } from "../../lib/stuff/Idea";
 
-class CapSensor extends SensorMixin(ContainableMixin(NamedMixin(Stuff))) {
+class CapSensor extends SensorMixin(ContainableMixin(NamedMixin(Idea))) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
   }
 }
 
-class HauntedPlace extends SensorMixin(ContainerMixin(Stuff)) {
+class HauntedPlace extends SensorMixin(ContainerMixin(Idea)) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
@@ -62,8 +63,8 @@ describe('MessageApi.Topics / Tags', () => {
 describe('MessageApi.refOf', () => {
   it('produces a wire-safe StuffRef with display name when available', () => {
     const obj = makeStuff(() => new CapSensor());
-    obj.name = 'Alice';
-    obj.surname = 'A';
+    obj.setName('Alice');
+    obj.setSurname('A');
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
     // refOf carries the casual register; clients render the formal
@@ -72,7 +73,7 @@ describe('MessageApi.refOf', () => {
   });
 
   it('omits displayName when no name is resolvable', () => {
-    class Plain extends Stuff {}
+    class Plain extends Idea {}
     const obj = makeStuff(() => new Plain());
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
@@ -82,7 +83,7 @@ describe('MessageApi.refOf', () => {
 
 describe('Scene compositional checks', () => {
   it('toSelf throws when actor is not a Sensor', () => {
-    class NonSensor extends ContainableMixin(Stuff) {}
+    class NonSensor extends ContainableMixin(Idea) {}
     const actor = makeStuff(() => new NonSensor());
     expect(() =>
       MessageApi.scene(actor)
@@ -93,7 +94,7 @@ describe('Scene compositional checks', () => {
 
   it('toTarget throws when target is not a Sensor', () => {
     const actor = makeStuff(() => new CapSensor());
-    class Plain extends Stuff {}
+    class Plain extends Idea {}
     const target = makeStuff(() => new Plain());
     expect(() =>
       MessageApi.scene(actor)
@@ -103,7 +104,7 @@ describe('Scene compositional checks', () => {
   });
 
   it('toPeers throws when actor is not Containable', () => {
-    class HauntedNoContain extends SensorMixin(ContainerMixin(Stuff)) {}
+    class HauntedNoContain extends SensorMixin(ContainerMixin(Idea)) {}
     const actor = makeStuff(() => new HauntedNoContain());
     expect(() =>
       MessageApi.scene(actor)
@@ -148,11 +149,11 @@ describe('Scene multi-audience dispatch', () => {
   beforeEach(() => {
     location = makeStuff(() => new Location());
     alice = makeStuff(() => new CapSensor());
-    alice.name = 'Alice';
+    alice.setName('Alice');
     bob = makeStuff(() => new CapSensor());
-    bob.name = 'Bob';
+    bob.setName('Bob');
     carol = makeStuff(() => new CapSensor());
-    carol.name = 'Carol';
+    carol.setName('Carol');
     ContainmentApi.move(alice, location);
     ContainmentApi.move(bob, location);
     ContainmentApi.move(carol, location);

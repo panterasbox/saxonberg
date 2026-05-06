@@ -289,6 +289,30 @@ where templates aren't right:
 Reach for `create()` whenever async hydration or post-registration
 matters; `createSync()` is the narrow-use sister.
 
+## `singleton(path)` and the Clone Pre-Flight
+
+`StuffApi.singleton<T>(templatePath, context?)` returns the existing
+instance for a path when one is already loaded; otherwise it routes
+through `clone()`. The lookup hits the `byTemplatePath: Map<string,
+Set<Stuff>>` index that `register` / `unregister` keep up to date —
+see [lifecycle.md](./lifecycle.md#what-registration-actually-does).
+A non-empty bucket with more than one entry throws (the caller mixed
+`clone()` and `singleton()` on a class that does NOT compose
+`SingletonMixin`).
+
+`SingletonMixin` (`lib/stuff/Singleton.ts`) is a marker mixin (no
+public surface; see
+[mixins.md § Marker mixins](./mixins.md#marker-mixins-empty-public-surface)).
+Composing it opts a class into a clone-time pre-flight: `clone()`
+checks `byTemplatePath` first and throws if any instance already
+exists for that path. The pre-flight depends on `unregister`'s
+empty-bucket cleanup running before the next clone — which it does,
+because `Stuff.destroy()` synchronously calls `unregister`.
+
+Use `singleton()` for shared-state Stuff (the starting room, the
+EventRegistry, well-known service objects); use `clone()` for
+per-instance Stuff (avatars, items, NPCs) that should multiply.
+
 ## Failure Modes
 
 - Template not found → `Error("Template not found: ${path}")`

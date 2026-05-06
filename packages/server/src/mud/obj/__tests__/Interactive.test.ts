@@ -14,6 +14,7 @@ import { Interactive } from '../Interactive';
 import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
+import { ProxyApi } from '../../api/proxy';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
@@ -27,7 +28,7 @@ function makeUser(id: string, playerIds: string[] = []): User {
 
 function makeAvatar(playerId: string): Avatar {
   const a = makeStuff(() => new Avatar());
-  a.playerId = playerId;
+  a.setPlayerId(playerId);
   return a;
 }
 
@@ -52,16 +53,16 @@ describe('Interactive', () => {
       const user = makeUser(testUserId);
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, user));
 
-      expect(interactive.socketId).toBe(testSocketId);
-      expect(interactive.sessionId).toBe(testSessionId);
-      expect(interactive.user).toBe(user);
-      expect(interactive.userId).toBe(testUserId);
-      expect(interactive.connectedAt).toBeInstanceOf(Date);
+      expect(interactive.getSocketId()).toBe(testSocketId);
+      expect(interactive.getSessionId()).toBe(testSessionId);
+      expect(interactive.getUser()).toBe(user);
+      expect(interactive.getUserId()).toBe(testUserId);
+      expect(interactive.getConnectedAt()).toBeInstanceOf(Date);
     });
 
     it('should initialize with null holder', () => {
       interactive = makeStuff(() => new Interactive(testSocketId, testSessionId, makeUser(testUserId)));
-      expect(interactive.holder).toBeNull();
+      expect(interactive.getHolder()).toBeNull();
     });
 
     it('should have unique stuffId', () => {
@@ -82,7 +83,7 @@ describe('Interactive', () => {
       interactive1 = makeStuff(() => new Interactive('socket1', 'session1', makeUser(testUserId)));
       interactive2 = makeStuff(() => new Interactive('socket2', 'session2', makeUser(testUserId)));
       mockAvatar = makeAvatar('player1');
-      mockAvatar.name = 'Alice';
+      mockAvatar.setName('Alice');
     });
 
     afterEach(() => {
@@ -98,17 +99,17 @@ describe('Interactive', () => {
       ConnectionApi.transfer(interactive1, mockAvatar);
       ConnectionApi.transfer(interactive2, mockAvatar);
 
-      expect(mockAvatar.interactives.size).toBe(2);
-      expect(mockAvatar.interactives.has(interactive1)).toBe(true);
-      expect(mockAvatar.interactives.has(interactive2)).toBe(true);
+      expect(mockAvatar.getInteractives().size).toBe(2);
+      expect(mockAvatar.getInteractives().has(interactive1)).toBe(true);
+      expect(mockAvatar.getInteractives().has(interactive2)).toBe(true);
     });
 
     it('should both Interactives reference same Avatar via holder', () => {
       ConnectionApi.transfer(interactive1, mockAvatar);
       ConnectionApi.transfer(interactive2, mockAvatar);
 
-      expect(interactive1.holder).toBe(mockAvatar);
-      expect(interactive2.holder).toBe(mockAvatar);
+      expect(interactive1.getHolder()).toBe(mockAvatar);
+      expect(interactive2.getHolder()).toBe(mockAvatar);
     });
   });
 
@@ -157,7 +158,7 @@ describe('Interactive', () => {
 
       StuffApi.destruct(interactive);
 
-      expect(mockAvatar.interactives.has(interactive)).toBe(false);
+      expect(mockAvatar.getInteractives().has(interactive)).toBe(false);
     });
 
     it('should clear holder on destroy', () => {
@@ -165,7 +166,10 @@ describe('Interactive', () => {
 
       StuffApi.destruct(interactive);
 
-      expect(interactive.holder).toBeNull();
+      // Methods on destroyed Stuff throw via the security gate, so reach
+      // for the underlying state through the canonical raw-target seam.
+      const raw = ProxyApi.unwrap(interactive) as unknown as { holder: unknown };
+      expect(raw.holder).toBeNull();
     });
 
     it('should mark object as destroyed', () => {
@@ -177,7 +181,7 @@ describe('Interactive', () => {
     });
 
     it('should handle destroy with no holder', () => {
-      expect(interactive.holder).toBeNull();
+      expect(interactive.getHolder()).toBeNull();
       expect(() => StuffApi.destruct(interactive)).not.toThrow();
       expect(interactive.isDestroyed()).toBe(true);
     });
@@ -197,8 +201,8 @@ describe('Interactive', () => {
 
     it('should include holder name when connected', () => {
       const mockAvatar = makeAvatar('player1');
-      mockAvatar.name = 'Alice';
-      mockAvatar.surname = 'Smith';
+      mockAvatar.setName('Alice');
+      mockAvatar.setSurname('Smith');
 
       ConnectionApi.transfer(interactive, mockAvatar);
       const str = interactive.toString();

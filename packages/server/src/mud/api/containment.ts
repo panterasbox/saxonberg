@@ -82,7 +82,7 @@ export class ContainmentApi {
         );
       }
       // PRE-FLIGHT (2): Exitables cannot cross zones via containment.
-      if (MixinApi.isExitable(item) && item.zone && item.zone !== to.zone) {
+      if (MixinApi.isExitable(item) && item.getZone() && item.getZone() !== to.getZone()) {
         throw new ContainmentError(
           'Cannot move an exitable into a different zone.'
         );
@@ -138,7 +138,7 @@ export class ContainmentApi {
    * Usage:
    * ```typescript
    * const inventory = ContainmentApi.getContents(avatar);
-   * const roomContents = ContainmentApi.getContents(location);
+   * const locationContents = ContainmentApi.getContents(location);
    * ```
    */
   public static getContents(container: ContainerStuff): ContainableStuff[] {

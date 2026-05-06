@@ -12,6 +12,7 @@ import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Shadow } from '../../lib/stuff/Shadow';
+import { Idea } from '../../lib/stuff/Idea';
 import {
   ContainableMixin,
   type Containable,
@@ -28,7 +29,7 @@ import { SecurityError } from '../../lib/security/errors';
 import { Shadowing } from '../../lib/security/decorators';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
-class HookableThing extends ContainableMixin(Stuff) {
+class HookableThing extends ContainableMixin(Idea) {
   public moves: Array<[
     (Stuff & Container) | null,
     (Stuff & Container) | null,
@@ -46,7 +47,7 @@ class HookableThing extends ContainableMixin(Stuff) {
   }
 }
 
-class HookableBox extends ContainableMixin(ContainerMixin(Stuff)) {
+class HookableBox extends ContainableMixin(ContainerMixin(Idea)) {
   public adds: Array<Stuff & Containable> = [];
   public removes: Array<Stuff & Containable> = [];
   public addVeto: VetoResult | null = null;
@@ -139,7 +140,7 @@ describe('setContainer lockdown', () => {
 
 describe('Traversal Witness hooks (Mobile.traverse)', () => {
   class HookableLocation
-    extends ExitableMixin(ContainableMixin(ContainerMixin(Stuff)))
+    extends ExitableMixin(ContainableMixin(ContainerMixin(Idea)))
     implements Exitable
   {
     public entered: Array<[unknown, Exit]> = [];
@@ -157,7 +158,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     }
   }
 
-  class HookableMover extends MobileMixin(ContainableMixin(Stuff)) {
+  class HookableMover extends MobileMixin(ContainableMixin(Idea)) {
     public traverses: Array<Exit> = [];
     public traverseVeto: VetoResult | null = null;
 
@@ -174,7 +175,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     StuffApi.clearAll();
   });
 
-  it('fires the full hook quartet on a successful traverse', () => {
+  it('fires the full hook quartet on a successful traverse', async () => {
     const source = makeStuff(() => new HookableLocation());
     const dest = makeStuff(() => new HookableLocation());
     const mover = makeStuff(() => new HookableMover());
@@ -185,14 +186,14 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    mover.traverse(exit);
+    await mover.traverse(exit, 'walk');
     expect(mover.traverses).toEqual([exit]);
     expect(source.exited).toHaveLength(1);
     expect(dest.entered).toHaveLength(1);
     expect(mover.getContainer()).toBe(dest);
   });
 
-  it('canEnter veto blocks traversal before move runs', () => {
+  it('canEnter veto blocks traversal before move runs', async () => {
     const source = makeStuff(() => new HookableLocation());
     const dest = makeStuff(() => new HookableLocation());
     dest.enterVeto = { ok: false, reason: 'sealed' };
@@ -204,14 +205,14 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    expect(() => mover.traverse(exit)).toThrow(/sealed/);
+    await expect(mover.traverse(exit, 'walk')).rejects.toThrow(/sealed/);
     expect(mover.getContainer()).toBe(source);
     expect(dest.entered).toEqual([]);
   });
 });
 
 describe('HasInteractive Witness hooks (ConnectionApi)', () => {
-  class HookableHolder extends HasInteractiveMixin(Stuff) {
+  class HookableHolder extends HasInteractiveMixin(Idea) {
     public attaches: Interactive[] = [];
     public detaches = 0;
     public linkdead = 0;
@@ -266,7 +267,7 @@ describe('Witness hooks via shadows', () => {
   });
 
   it('a shadow overrides the host onMoved when both are defined', () => {
-    class HostItem extends ContainableMixin(Stuff) {
+    class HostItem extends ContainableMixin(Idea) {
       public called: Array<[unknown, unknown]> = [];
       onMoved?(
         from: (Stuff & Container) | null,

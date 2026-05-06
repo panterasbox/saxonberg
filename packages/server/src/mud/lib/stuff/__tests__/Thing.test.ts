@@ -19,7 +19,7 @@ describe('Thing', () => {
   describe('Construction', () => {
     it('should create a thing with default values', () => {
       expect(thing).toBeDefined();
-      expect(thing.environment).toBeNull();
+      expect(thing.getContainer()).toBeNull();
     });
 
     it('should be registered with StuffApi', () => {

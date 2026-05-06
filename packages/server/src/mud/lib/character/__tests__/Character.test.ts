@@ -21,14 +21,14 @@ describe('Character', () => {
   });
 
   describe('mixin composition', () => {
-    it('should have Named mixin properties', () => {
-      expect(character).toHaveProperty('name');
-      expect(character).toHaveProperty('surname');
-      expect(character).toHaveProperty('fullName');
+    it('should have Named mixin methods', () => {
+      expect(typeof character.getName).toBe('function');
+      expect(typeof character.getSurname).toBe('function');
+      expect(typeof character.getFullName).toBe('function');
     });
 
-    it('should have Gendered mixin properties', () => {
-      expect(character).toHaveProperty('pronouns');
+    it('should have Gendered mixin methods', () => {
+      expect(typeof character.getPronouns).toBe('function');
     });
 
     it('should have Sensor mixin methods (stub)', () => {
@@ -42,33 +42,33 @@ describe('Character', () => {
 
   describe('Named mixin integration', () => {
     it('should compute fullName from name and surname', () => {
-      character.name = 'John';
-      character.surname = 'Doe';
-      expect(character.fullName).toBe('John Doe');
+      character.setName('John');
+      character.setSurname('Doe');
+      expect(character.getFullName()).toBe('John Doe');
     });
 
     it('returns empty string when no names set (no fallback)', () => {
-      expect(character.fullName).toBe('');
+      expect(character.getFullName()).toBe('');
     });
 
     it('synthesizes honorific + name + surname + nameSuffix with a comma before the suffix', () => {
-      character.honorific = 'Dr.';
-      character.name = 'John';
-      character.surname = 'Doe';
-      character.nameSuffix = 'PhD';
-      expect(character.fullName).toBe('Dr. John Doe, PhD');
+      character.setHonorific('Dr.');
+      character.setName('John');
+      character.setSurname('Doe');
+      character.setNameSuffix('PhD');
+      expect(character.getFullName()).toBe('Dr. John Doe, PhD');
     });
 
     it('renders generational suffixes with the older-style comma', () => {
-      character.name = 'John';
-      character.surname = 'Smith';
-      character.nameSuffix = 'Jr.';
-      expect(character.fullName).toBe('John Smith, Jr.');
+      character.setName('John');
+      character.setSurname('Smith');
+      character.setNameSuffix('Jr.');
+      expect(character.getFullName()).toBe('John Smith, Jr.');
     });
 
     it('omits the comma when there is no preceding head', () => {
-      character.nameSuffix = 'Esq.';
-      expect(character.fullName).toBe('Esq.');
+      character.setNameSuffix('Esq.');
+      expect(character.getFullName()).toBe('Esq.');
     });
   });
 

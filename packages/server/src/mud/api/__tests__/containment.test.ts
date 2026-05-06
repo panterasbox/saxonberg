@@ -10,12 +10,13 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
 // Create test classes
-const ContainableBase = ContainableMixin(Stuff);
+const ContainableBase = ContainableMixin(Idea);
 class TestItem extends ContainableBase {}
 
-const ContainerBase = ContainerMixin(ContainableMixin(Stuff));
+const ContainerBase = ContainerMixin(ContainableMixin(Idea));
 class TestContainer extends ContainerBase {}
 
 describe('ContainmentApi', () => {

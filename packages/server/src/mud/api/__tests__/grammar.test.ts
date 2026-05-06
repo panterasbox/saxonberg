@@ -6,11 +6,12 @@ import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Idea } from "../../lib/stuff/Idea";
 
-class Plain extends Stuff {}
-class NamedThing extends NamedMixin(Stuff) {}
-class VisibleThing extends VisibleMixin(Stuff) {}
-class GenderedThing extends GenderedMixin(Stuff) {}
+class Plain extends Idea {}
+class NamedThing extends NamedMixin(Idea) {}
+class VisibleThing extends VisibleMixin(Idea) {}
+class GenderedThing extends GenderedMixin(Idea) {}
 
 describe('GrammarApi.cap', () => {
   it('capitalizes the first letter', () => {
@@ -46,7 +47,7 @@ describe('GrammarApi.pronoun', () => {
 
   it('reads Pronouns.She on a Gendered stuff', () => {
     const obj = makeStuff(() => new GenderedThing());
-    obj.pronouns = Pronouns.She;
+    obj.setPronouns(Pronouns.She);
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('she');
     expect(GrammarApi.pronoun(obj, 'obj')).toBe('her');
     expect(GrammarApi.pronoun(obj, 'poss')).toBe('her');
@@ -55,7 +56,7 @@ describe('GrammarApi.pronoun', () => {
 
   it('reads Pronouns.He on a Gendered stuff', () => {
     const obj = makeStuff(() => new GenderedThing());
-    obj.pronouns = Pronouns.He;
+    obj.setPronouns(Pronouns.He);
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('he');
     expect(GrammarApi.pronoun(obj, 'obj')).toBe('him');
     expect(GrammarApi.pronoun(obj, 'poss')).toBe('his');
@@ -64,7 +65,7 @@ describe('GrammarApi.pronoun', () => {
 
   it('reads Pronouns.They on a Gendered stuff', () => {
     const obj = makeStuff(() => new GenderedThing());
-    obj.pronouns = Pronouns.They;
+    obj.setPronouns(Pronouns.They);
     expect(GrammarApi.pronoun(obj, 'subj')).toBe('they');
     expect(GrammarApi.pronoun(obj, 'reflex')).toBe('themselves');
   });
@@ -76,7 +77,7 @@ describe('GrammarApi.possessive', () => {
     expect(GrammarApi.possessive(plain)).toBe('its');
 
     const gendered = makeStuff(() => new GenderedThing());
-    gendered.pronouns = Pronouns.She;
+    gendered.setPronouns(Pronouns.She);
     expect(GrammarApi.possessive(gendered)).toBe('her');
   });
 });
@@ -84,19 +85,19 @@ describe('GrammarApi.possessive', () => {
 describe('GrammarApi.article', () => {
   it("returns 'a' for consonant-onset names", () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'sword';
+    obj.setName('sword');
     expect(GrammarApi.article(obj)).toBe('a');
   });
 
   it("returns 'an' for vowel-onset names", () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'axe';
+    obj.setName('axe');
     expect(GrammarApi.article(obj)).toBe('an');
   });
 
   it('handles uppercase first letters', () => {
     const obj = makeStuff(() => new NamedThing());
-    obj.name = 'Onyx amulet';
+    obj.setName('Onyx amulet');
     expect(GrammarApi.article(obj)).toBe('an');
   });
 
@@ -107,7 +108,7 @@ describe('GrammarApi.article', () => {
 
   it('uses Visible.shortDescription when no proper name is set', () => {
     const obj = makeStuff(() => new VisibleThing());
-    obj.shortDescription = 'orcish blade';
+    obj.setShortDescription('orcish blade');
     expect(GrammarApi.article(obj)).toBe('an');
   });
 });

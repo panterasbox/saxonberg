@@ -22,7 +22,8 @@ import type { MixinConstructor } from '../mixin';
  * Public shape provided by GenderedMixin.
  */
 export interface Gendered {
-  pronouns: Pronouns;
+  getPronouns(): Pronouns;
+  setPronouns(value: Pronouns): void;
 }
 
 export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -36,6 +37,9 @@ export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static persistentFields = ['pronouns'];
 
-    pronouns: Pronouns = Pronouns.They;
+    protected pronouns: Pronouns = Pronouns.They;
+
+    getPronouns(): Pronouns { return this.pronouns; }
+    setPronouns(value: Pronouns): void { this.pronouns = value; }
   };
 }

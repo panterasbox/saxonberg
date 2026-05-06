@@ -11,16 +11,17 @@ import { ContainerMixin } from '../Container';
 import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { Idea } from "../../stuff/Idea";
 
 // Concrete test environment class — needs ContainerMixin to be an environment
-class ConcreteStuff extends ContainerMixin(Stuff) {
+class ConcreteStuff extends ContainerMixin(Idea) {
   constructor() {
     super();
   }
 }
 
 // Test class that uses ContainableMixin
-class TestContainable extends ContainableMixin(Stuff) {
+class TestContainable extends ContainableMixin(Idea) {
   constructor() {
     super();
   }
@@ -39,7 +40,6 @@ describe('ContainableMixin', () => {
 
   describe('initialization', () => {
     it('initializes with null environment', () => {
-      expect(containable.environment).toBeNull();
       expect(containable.getContainer()).toBeNull();
     });
   });
@@ -47,20 +47,19 @@ describe('ContainableMixin', () => {
   describe('setContainer via ContainmentApi.move', () => {
     it('places into a container', () => {
       ContainmentApi.move(containable, environment1);
-      expect(containable.environment).toBe(environment1);
       expect(containable.getContainer()).toBe(environment1);
     });
 
     it('relocates between containers', () => {
       ContainmentApi.move(containable, environment1);
       ContainmentApi.move(containable, environment2);
-      expect(containable.environment).toBe(environment2);
+      expect(containable.getContainer()).toBe(environment2);
     });
 
     it('detaches via move(item, null)', () => {
       ContainmentApi.move(containable, environment1);
       ContainmentApi.move(containable, null);
-      expect(containable.environment).toBeNull();
+      expect(containable.getContainer()).toBeNull();
     });
   });
 

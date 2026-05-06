@@ -1,14 +1,18 @@
 /**
  * ContainerMixin — anything that holds Containables.
  *
- * Vocabulary unified on the `contain*` root: state mutators are
- * `addContainable` / `removeContainable` (not the old "Inventory"
- * spelling); the read accessor is `getContents()`.
+ * Vocabulary unified on the `contain*` root for state mutators
+ * (`addContainable` / `removeContainable`) and on `contents` for the
+ * collection itself: read accessor `getContents()`, host-internal
+ * field `contents`. The MUD-classic "inventory" word is reserved for
+ * the player-facing command verb (the `inventory` command and its
+ * `world.perception.inventory` topic) — see
+ * [docs/subsystems/collections.md § Capability-derived items](../../../../../../docs/subsystems/collections.md).
  *
  * Lockdown contract (Phase 5):
  *   - `addContainable` / `removeContainable` are the state-mutation
  *     primitives. They are `@Final` (no subclass override —
- *     out-of-sync inventory is catastrophic), `@Unshadowable` (no
+ *     out-of-sync contents is catastrophic), `@Unshadowable` (no
  *     shadow bypass), and `@CallSecurity` gated to be reachable
  *     ONLY from inside `Containable.setContainer`. All
  *     application code goes through `ContainmentApi.move` instead.
@@ -38,7 +42,6 @@ import { ExecutionContextApi } from '../../api/execution-context';
  * about; absence is treated as "no opinion."
  */
 export interface Container {
-  inventory: Set<Stuff & Containable>;
   addContainable(item: Stuff & Containable): void;
   removeContainable(item: Stuff & Containable): boolean;
   hasContainable(item: Stuff & Containable): boolean;
@@ -83,12 +86,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
-     * The contained items. Direct access is allowed for read paths
-     * (getContents) but mutation goes through `addContainable` /
-     * `removeContainable`, which only `Containable.setContainer`
-     * may legitimately invoke.
+     * The contained items. Read access goes through `getContents()`;
+     * mutation goes through `addContainable` / `removeContainable`,
+     * which only `Containable.setContainer` may legitimately invoke.
      */
-    inventory: Set<Stuff & Containable> = new Set();
+    protected contents: Set<Stuff & Containable> = new Set();
 
     /**
      * State-mutation primitive. Locked down — only callable from
@@ -99,7 +101,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     addContainable(item: Stuff & Containable): void {
-      this.inventory.add(item);
+      this.contents.add(item);
     }
 
     /**
@@ -109,17 +111,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     removeContainable(item: Stuff & Containable): boolean {
-      return this.inventory.delete(item);
+      return this.contents.delete(item);
     }
 
     /** Membership predicate. */
     hasContainable(item: Stuff & Containable): boolean {
-      return this.inventory.has(item);
+      return this.contents.has(item);
     }
 
     /** Snapshot of contained items as an array. */
     getContents(): (Stuff & Containable)[] {
-      return Array.from(this.inventory);
+      return Array.from(this.contents);
     }
   }
   return ContainerMixin;
