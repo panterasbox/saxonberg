@@ -26,6 +26,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Interactive } from '../../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from "../../stuff/Idea";
+import { PingController } from '../../../obj/command/PingController';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -66,6 +67,15 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
 
   beforeEach(() => {
     CommandApi.clearCache();
+    CommandApi._clearControllersForTest();
+    // Register PingController via the test seam — production boot
+    // does this via `CommandApi.loadControllers()` which clones from
+    // a Template doc; tests skip the domain round-trip and install a
+    // hand-built instance directly.
+    CommandApi._registerControllerForTest(
+      'PingController',
+      makeStuff(() => new PingController())
+    );
     location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);

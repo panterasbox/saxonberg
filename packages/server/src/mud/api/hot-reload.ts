@@ -194,12 +194,11 @@ export class HotReloadApi {
    * after reloading a hook source file: hook instances live as
    * cloned Stuff objects pinned to their old class. This call drops
    * the chain and rebuilds it from the manifest, so the next save /
-   * delete fires the freshly-cloned hooks. Idempotent — calling it
-   * twice is equivalent to calling it once.
+   * delete fires the freshly-cloned hooks. Idempotent.
    *
-   * Lazy import to avoid pulling `PersistenceManager` (and its
-   * mongo dependency tree) into HotReloadApi's static graph for
-   * callers that only use the registry surface.
+   * Lazy import keeps `PersistenceManager` (and its mongo dependency
+   * tree) out of HotReloadApi's static graph for callers that only
+   * touch the registry surface.
    */
   public static async reloadHookManifest(): Promise<void> {
     const { PersistenceManager } = await import(
@@ -208,6 +207,22 @@ export class HotReloadApi {
     const pm = PersistenceManager.get();
     pm.clearHooks();
     await pm.loadHooks();
+  }
+
+  /**
+   * Refresh the controller registry from `mud/obj/command/`. Required
+   * after reloading any controller source file: controller instances
+   * live as cloned Stuff pinned to the class blueprint they were
+   * cloned against. This call drops the registry and re-clones every
+   * controller; subsequent dispatches resolve to the freshly-loaded
+   * class. Idempotent.
+   *
+   * Lazy import for the same reason as `reloadHookManifest`.
+   */
+  public static async reloadControllerManifest(): Promise<void> {
+    const { CommandApi } = await import('./command');
+    CommandApi.clearControllers();
+    await CommandApi.loadControllers();
   }
 
   /**

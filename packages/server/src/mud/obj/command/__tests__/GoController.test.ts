@@ -80,7 +80,7 @@ describe('GoController', () => {
     peerInB.setName('BobB');
     ContainmentApi.move(peerInB, locB);
 
-    controller = new GoController();
+    controller = makeStuff(() => new GoController());
   });
 
   describe('golden path (cartesian)', () => {

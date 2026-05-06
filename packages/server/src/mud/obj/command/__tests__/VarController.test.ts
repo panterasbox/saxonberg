@@ -72,7 +72,7 @@ describe('VarController', () => {
     location = makeStuff(() => new CartesianLocation());
     host = makeStuff(() => new Host());
     ContainmentApi.move(host, location);
-    controller = new VarController();
+    controller = makeStuff(() => new VarController());
   });
 
   describe('list', () => {

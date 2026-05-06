@@ -91,7 +91,7 @@ describe('SettingsController', () => {
     location = makeStuff(() => new CartesianLocation());
     host = makeStuff(() => new Host());
     ContainmentApi.move(host, location);
-    controller = new SettingsController();
+    controller = makeStuff(() => new SettingsController());
   });
 
   describe('list', () => {

@@ -13,8 +13,6 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { nanoid } from 'nanoid';
-import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
@@ -31,26 +29,8 @@ import { getValidator } from './validators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
-import { HotReloadApi } from '../../api/hot-reload';
 import type { Sensor } from '../message/Sensor';
 import type { LogLevel } from '@saxonberg/types';
-
-/**
- * Resolve a controller name (e.g. `LookController`) to the absolute fs
- * path the source lives at. Mirrors the resolution
- * `StuffApi.#resolveAbsoluteClassPath` does for templated classes:
- * prefer `.ts` (dev/test), fall back to `.js` (built artifacts), and
- * finally return the `.ts` path so HMR-registered keys without a
- * disk-resident source still match the dispatch lookup.
- */
-function resolveControllerAbsolutePath(controller: string): string {
-  const cmdDir = new URL('../../obj/command/', import.meta.url);
-  for (const ext of ['ts', 'js']) {
-    const candidate = fileURLToPath(new URL(`${controller}.${ext}`, cmdDir));
-    if (existsSync(candidate)) return candidate;
-  }
-  return fileURLToPath(new URL(`${controller}.ts`, cmdDir));
-}
 
 type CommandProviderHolder = { commandProvider?: CommandProviderRegistry };
 
@@ -533,46 +513,24 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       context: CommandContext
     ): Promise<CommandResult> {
       try {
-        // Resolve the controller class. HotReloadApi is consulted as
-        // an override so reloaded controllers dispatch correctly. A
-        // bare dynamic import here would return Node's cached class —
-        // older than the HMR registry's current — and the new
-        // behavior would be invisible until server restart.
-        const absControllerPath = resolveControllerAbsolutePath(
-          command.controller
-        );
-        if (HotReloadApi.isFrozen(absControllerPath)) {
+        // Look up the cached controller singleton. Populated at boot
+        // by `CommandApi.loadControllers`; rebuilt by
+        // `HotReloadApi.reloadControllerManifest()` after a class
+        // reload. No dynamic import or `new` here — controllers
+        // themselves are templated Stuff cloned out of the `domain`
+        // collection, so the HMR-aware path lives entirely in
+        // `StuffApi.clone`.
+        const controller = CommandApi.getController(command.controller);
+        if (!controller) {
           throw new Error(
-            `executeController('${command.controller}'): no blueprint at '${absControllerPath}' — was unloaded via HotReloadApi.unload`
+            `Controller class ${command.controller} not loaded (CommandApi.loadControllers must run at boot)`
           );
         }
-        type ControllerCtor = new () => {
-          execute(
-            i: Record<string, unknown>,
-            c: CommandContext
-          ): CommandResult | Promise<CommandResult>;
-        };
-        let ControllerClass = HotReloadApi.getCurrentExport(
-          absControllerPath,
-          command.controller
-        ) as ControllerCtor | null;
-        if (!ControllerClass) {
-          const controllerPath = `../../obj/command/${command.controller}`;
-          const controllerModule = await import(controllerPath);
-          ControllerClass = controllerModule[command.controller] as
-            | ControllerCtor
-            | undefined ?? null;
-        }
-        if (!ControllerClass) {
-          throw new Error(`Controller class ${command.controller} not found in module`);
-        }
 
-        // Instantiate controller
-        const controller = new ControllerClass();
-
-        // Execute
-        const result = controller.execute(fields, context);
-
+        const result = controller.execute(
+          fields as Record<string, unknown>,
+          context
+        );
         return result;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
