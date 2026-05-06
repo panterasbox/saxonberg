@@ -13,6 +13,8 @@
  */
 
 import { nanoid } from 'nanoid';
+import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi } from './mixin';
@@ -27,6 +29,7 @@ import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 import { EventApi } from './event';
 import { Events } from '../lib/events';
+import { HotReloadApi } from './hot-reload';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -147,6 +150,24 @@ export class StuffApi {
   }
 
   /**
+   * Resolve a validated class path (e.g. `/obj/Avatar`) to the absolute
+   * fs path of the module. Prefer `.ts` (dev/test) when present, fall
+   * back to `.js` (built artifacts), and finally return the `.ts` path
+   * unconditionally so HMR-registered paths without a disk-resident
+   * source still match.
+   */
+  static #resolveAbsoluteClassPath(classPath: string): string {
+    const moduleDir = new URL('..', import.meta.url); // <srcRoot>/mud/
+    for (const ext of ['ts', 'js']) {
+      const candidate = fileURLToPath(
+        new URL(`.${classPath}.${ext}`, moduleDir)
+      );
+      if (existsSync(candidate)) return candidate;
+    }
+    return fileURLToPath(new URL(`.${classPath}.ts`, moduleDir));
+  }
+
+  /**
    * Clone an object from a template in the domain collection.
    *
    * Pipeline:
@@ -196,28 +217,44 @@ export class StuffApi {
     // 2. Validate and resolve class path
     const classPath = this.#validateClassPath(template.class);
 
-    // 3. Dynamically import the module
-    // Convert "/obj/Avatar" to "../obj/Avatar"
-    const modulePath = `..${classPath}.js`;
+    // 3. Resolve the class. HotReloadApi is consulted first as an
+    //    override: if a reload has registered a current blueprint for
+    //    this path, that is what we instantiate. Otherwise fall back
+    //    to a bare dynamic import (Node ESM cache; matches the class
+    //    identity any static import of the same module would see).
+    //    `unload(absPath)` poisons the path: subsequent clones throw.
     const className = classPath.split('/').pop()!; // "Avatar" from "/obj/Avatar"
-
-    // Dynamic import result is an opaque module namespace object; we fish the
-    // class constructor out of it by string name below.
-    let module: Record<string, unknown>;
-    try {
-      module = (await import(modulePath)) as Record<string, unknown>;
-    } catch (error) {
+    const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(classPath);
+    if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
-        `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
+        `StuffApi.clone('${templatePath}'): no blueprint at '${absoluteClassPath}' — was unloaded via HotReloadApi.unload`
       );
     }
 
-    // 4. Get the class constructor from the module
-    const ClassConstructor = module[className] as StuffConstructor<T> | undefined;
+    let ClassConstructor: StuffConstructor<T> | undefined;
+    const reloaded = HotReloadApi.getCurrentExport(absoluteClassPath, className);
+    if (reloaded) {
+      ClassConstructor = reloaded as StuffConstructor<T>;
+    }
+
     if (!ClassConstructor) {
-      throw new Error(
-        `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
-      );
+      // Cold path: bare dynamic import. Convert "/obj/Avatar" to
+      // "../obj/Avatar.js" relative to this module.
+      const modulePath = `..${classPath}.js`;
+      let module: Record<string, unknown>;
+      try {
+        module = (await import(modulePath)) as Record<string, unknown>;
+      } catch (error) {
+        throw new Error(
+          `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      ClassConstructor = module[className] as StuffConstructor<T> | undefined;
+      if (!ClassConstructor) {
+        throw new Error(
+          `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
+        );
+      }
     }
 
     // 4b. SingletonMixin pre-flight: classes composing SingletonMixin

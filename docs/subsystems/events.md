@@ -41,7 +41,7 @@ under "Event System (Framework 9)."
 | Tracking aggregate movement | Don't. Use shadows on each player; install via the `PlayerLoggedIn` event |
 | **Login / logout** | **EventApi** (no Connection object exists before login) |
 | **`StuffCreated`** (any new Stuff of any kind) | **EventApi** (no target exists yet) |
-| **`ModuleReloaded`** | **EventApi** (no target object) |
+| **`Module*` lifecycle (reloaded / rolledBack / unloaded / reloadFailed)** | **EventApi** (no target object) |
 | **Audit / mudlog / server-wide metrics** | **EventApi** (cross-cutting, no target) |
 | **Mod plugin hooks** for engine-wide phenomena | **EventApi** |
 | Around-save / around-delete | Existing `AroundSaveHook`, not events |
@@ -243,9 +243,30 @@ export const Events = {
   PlayerLoggedIn:      'player.loggedIn',
   PlayerLoggedOut:     'player.loggedOut',
   ModuleReloaded:      'module.reloaded',
+  ModuleRolledBack:    'module.rolledBack',
+  ModuleUnloaded:      'module.unloaded',
+  ModuleReloadFailed:  'module.reloadFailed',
   PersistenceFlushed:  'persistence.flushed',
 } as const;
 ```
+
+The four `module.*` lifecycle events all share the `ReloadEvent`
+payload shape:
+
+```ts
+interface ReloadEvent {
+  path: string;                       // absolute fs path of the module
+  versionId: string | null;           // truncated sha256 of source bytes; null for Unloaded
+  previousVersionId: string | null;   // version this transition replaced; null when none
+  exports: string[];                  // class export names from the new module; empty for Unloaded / Failed
+  error?: { message: string; stack?: string };  // ReloadFailed only
+}
+```
+
+`emittableBy(HotReloadApi)` on all four — only `HotReloadApi`'s public
+methods can fire them. Subscribe is open by default. See
+[hot-reload.md](./hot-reload.md) for the state machine and
+integration points.
 
 String-keyed with **hierarchical dot-notation** values. The TS keys
 (`Events.PlayerLoggedIn`) are ergonomic identifiers; the underlying
