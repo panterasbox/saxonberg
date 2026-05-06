@@ -77,9 +77,13 @@ exists in the resolved module. Anything else throws.
    template is itself a Zone, or when no ancestor is a Zone. Stamped onto
    the instance before hydrate so anything that reads `this.zone` during
    hydrate sees the right value.
-4. **Resolve `hydratorClass`** if present. Same dynamic-import +
-   class-path validation as the backing class. Returns a stateless
-   `Hydrator` instance.
+4. **Resolve `hydratorClass`** if present. Hydrators are themselves
+   templated `Idea` Stuff — `clone` recursively clones the hydrator
+   (HMR-aware via the same path as the backing class), runs
+   `hydrate()`, then destructs the hydrator in a try/finally. The
+   recursion terminates because hydrator Templates name no
+   `hydratorClass` of their own. See
+   [hot-reload.md § Hydrators](./hot-reload.md#hydrators).
 5. **Construct** the backing under the construction sentinel:
    ```typescript
    Stuff._beginConstruction();

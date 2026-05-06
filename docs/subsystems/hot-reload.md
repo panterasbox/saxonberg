@@ -101,6 +101,8 @@ blueprint at path." This means **every Stuff that flows through
 - Hooks (cloned by `PersistenceManager.loadHooks` from `hooks.yaml`).
 - Command controllers (cloned by `CommandGiver.executeController`
   from the `/obj/command/*` Templates seeded under `mud/seeds/`).
+- Hydrators (cloned by `clone()` itself from the `hydratorClass`
+  field of the backing's Template — see Hydrators below).
 - Anything else templated, including avatars, locations, ideas.
 
 The fallback from `clone` to a bare dynamic import only fires when
@@ -108,11 +110,28 @@ the registry is Empty for a path — i.e., the path was statically
 imported by something else first. After the first lazy `reload()` it
 flows through the HMR registry.
 
-### `StuffApi.#resolveHydrator`
+### Hydrators
 
-Same override pattern as `clone()` — consult `HotReloadApi.getCurrent
-Export` first, fall back to bare import. Reloaded hydrator classes
-are picked up on the next clone that needs them.
+Hydrators are templated `Idea` Stuff just like controllers. When a
+backing's Template names a `hydratorClass` (typically
+`/lib/persistence/PersistentHydrator`, seeded under
+`mud/seeds/lib/persistence/`), `clone()` recursively clones a fresh
+hydrator, runs `hydrate()`, and destructs in a try/finally:
+
+```ts
+const hydrator = template.hydratorClass
+  ? await StuffApi.clone<Hydrator & Stuff>(template.hydratorClass)
+  : null;
+// ... construct backing ...
+if (hydrator) {
+  try { await hydrator.hydrate(backing, data); }
+  finally { StuffApi.destruct(hydrator); }
+}
+```
+
+No special-case `#resolveHydrator` path — HMR flows through the
+standard clone integration. The recursion terminates because hydrator
+Templates name no `hydratorClass` of their own.
 
 ### Command dispatch
 

@@ -280,9 +280,15 @@ export class StuffApi {
     const zone = await ZoneApi.resolveZoneForPath(templatePath);
 
     // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
-    //    hydration step runs at all — `data` is ignored. Templates that
-    //    want generic mixin-field copy must opt in.
-    const hydrator = await this.#resolveHydrator(template.hydratorClass);
+    //    hydration step runs at all — `data` is ignored. Templates
+    //    that want generic mixin-field copy name a hydrator class
+    //    (typically `/lib/persistence/PersistentHydrator`); the
+    //    pipeline clones a fresh instance for this backing and
+    //    destructs it after `hydrate` resolves. Same HMR-aware path
+    //    as the backing class itself — no special-case logic.
+    const hydrator: (Hydrator & Stuff) | null = template.hydratorClass
+      ? await this.clone<Hydrator & Stuff>(template.hydratorClass)
+      : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
     //    postRegister sequence. The hydrator captures `template.data`.
@@ -304,7 +310,15 @@ export class StuffApi {
     (obj as unknown as { templatePath?: string }).templatePath = templatePath;
     return this.#registerAndInit(
       obj,
-      hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
+      hydrator
+        ? async (o) => {
+            try {
+              await hydrator.hydrate(o, template.data ?? {});
+            } finally {
+              StuffApi.destruct(hydrator);
+            }
+          }
+        : null,
       context
     );
   }
@@ -344,55 +358,6 @@ export class StuffApi {
       return bucket.values().next().value as T;
     }
     return this.clone<T>(path, context);
-  }
-
-  /**
-   * Resolve a `hydratorClass` path into a `Hydrator` instance. Returns
-   * `null` when no `hydratorClass` is configured — clone() then skips the
-   * hydrate step entirely. Hydrator modules follow the same
-   * last-segment-as-export-name convention as backing classes.
-   */
-  static async #resolveHydrator(
-    hydratorClassPath: string | undefined
-  ): Promise<Hydrator | null> {
-    if (!hydratorClassPath) return null;
-
-    const normalized = this.#validateClassPath(hydratorClassPath);
-    const className = normalized.split('/').pop()!;
-
-    // Same HMR-override pattern as `clone()` above: a reloaded
-    // hydrator class wins over Node's cached binding. Without this
-    // hook a `HotReloadApi.reload` on a hydrator file would have no
-    // effect — the bare `await import` returns the original class.
-    const absolutePath = this.#resolveAbsoluteClassPath(normalized);
-    if (HotReloadApi.isFrozen(absolutePath)) {
-      throw new Error(
-        `StuffApi.#resolveHydrator('${hydratorClassPath}'): no blueprint at '${absolutePath}' — was unloaded via HotReloadApi.unload`
-      );
-    }
-
-    let Ctor = HotReloadApi.getCurrentExport(absolutePath, className) as
-      | (new () => Hydrator)
-      | null;
-
-    if (!Ctor) {
-      const modulePath = `..${normalized}.js`;
-      let module: Record<string, unknown>;
-      try {
-        module = (await import(modulePath)) as Record<string, unknown>;
-      } catch (error) {
-        throw new Error(
-          `Failed to import hydrator ${hydratorClassPath}: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-      Ctor = (module[className] as (new () => Hydrator) | undefined) ?? null;
-      if (!Ctor) {
-        throw new Error(
-          `Hydrator ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
-        );
-      }
-    }
-    return new Ctor();
   }
 
   /**

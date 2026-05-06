@@ -9,12 +9,19 @@
  * templates that want generic mixin-field copy must opt in by naming
  * `'/lib/persistence/PersistentHydrator'` (the standard implementation).
  *
- * Hydrators are STATELESS by convention. One instance can (and should)
- * hydrate many backings. They don't mirror-compose the backing's mixins;
- * instead they introspect the backing directly. That lets a single hydrator
- * class serve multiple backing classes (e.g. a `CreatureHydrator` usable by
- * both a `Guard` and a `GuardDog`), and lets `hydrate()` branch on the
- * backing's runtime class when needed.
+ * Hydrators are EPHEMERAL: the clone pipeline calls
+ * `StuffApi.clone(hydratorClass)` to produce a fresh instance for each
+ * backing it hydrates, then destructs the hydrator after `hydrate()`
+ * resolves. Implementations don't mirror-compose the backing's mixins;
+ * instead they introspect the backing directly. That lets a single
+ * hydrator class serve multiple backing classes (e.g. a
+ * `CreatureHydrator` usable by both a `Guard` and a `GuardDog`), and
+ * lets `hydrate()` branch on the backing's runtime class when needed.
+ *
+ * Concrete implementations extend `Idea` (and therefore `Stuff`) so
+ * `StuffApi.clone` can produce them — see `PersistentHydrator` for
+ * the standard implementation. Each hydrator class needs a Template
+ * doc in `domain` (seeded under `mud/seeds/lib/persistence/`).
  *
  * Bracket-assign IS the contract surface for the standard `PersistentHydrator`.
  * Its default copy uses `target[field] = data[field]`, which invokes setters

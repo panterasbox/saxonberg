@@ -19,12 +19,22 @@
  */
 
 import { MixinApi } from '../../api/mixin';
+import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
 import type { Hydrator } from '../stuff/Hydrator';
 
 type Indexable = Record<string, unknown>;
 
-export class PersistentHydrator implements Hydrator {
+/**
+ * Extends `Idea` so the clone pipeline can produce a hydrator the
+ * same way it produces every other templated Stuff —
+ * `StuffApi.clone('/lib/persistence/PersistentHydrator')`. There's no
+ * special-case `#resolveHydrator` path; HMR comes for free via the
+ * standard clone integration. Templates that name this class as
+ * their `hydratorClass` get a fresh instance per backing, destructed
+ * after `hydrate` resolves.
+ */
+export class PersistentHydrator extends Idea implements Hydrator {
   /**
    * Canonical template path for templates that want generic mixin-field
    * copy. Use this constant at call sites (e.g.,
