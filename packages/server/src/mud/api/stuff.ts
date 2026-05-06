@@ -358,23 +358,39 @@ export class StuffApi {
     if (!hydratorClassPath) return null;
 
     const normalized = this.#validateClassPath(hydratorClassPath);
-    const modulePath = `..${normalized}.js`;
     const className = normalized.split('/').pop()!;
 
-    let module: Record<string, unknown>;
-    try {
-      module = (await import(modulePath)) as Record<string, unknown>;
-    } catch (error) {
+    // Same HMR-override pattern as `clone()` above: a reloaded
+    // hydrator class wins over Node's cached binding. Without this
+    // hook a `HotReloadApi.reload` on a hydrator file would have no
+    // effect — the bare `await import` returns the original class.
+    const absolutePath = this.#resolveAbsoluteClassPath(normalized);
+    if (HotReloadApi.isFrozen(absolutePath)) {
       throw new Error(
-        `Failed to import hydrator ${hydratorClassPath}: ${error instanceof Error ? error.message : String(error)}`
+        `StuffApi.#resolveHydrator('${hydratorClassPath}'): no blueprint at '${absolutePath}' — was unloaded via HotReloadApi.unload`
       );
     }
 
-    const Ctor = module[className] as (new () => Hydrator) | undefined;
+    let Ctor = HotReloadApi.getCurrentExport(absolutePath, className) as
+      | (new () => Hydrator)
+      | null;
+
     if (!Ctor) {
-      throw new Error(
-        `Hydrator ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
-      );
+      const modulePath = `..${normalized}.js`;
+      let module: Record<string, unknown>;
+      try {
+        module = (await import(modulePath)) as Record<string, unknown>;
+      } catch (error) {
+        throw new Error(
+          `Failed to import hydrator ${hydratorClassPath}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      Ctor = (module[className] as (new () => Hydrator) | undefined) ?? null;
+      if (!Ctor) {
+        throw new Error(
+          `Hydrator ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
+        );
+      }
     }
     return new Ctor();
   }
