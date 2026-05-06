@@ -7,7 +7,7 @@
  * each side (and, optionally, the same shared `Door` reference).
  *
  * An Exit is an `Idea` — it has identity but no physical presence in a
- * location's inventory. Exits are referenced from `Exitable.exits` and,
+ * location's contents. Exits are referenced from `Exitable.exits` and,
  * for zone-derived cartesian exits, synthesized lazily by `CartesianZone`.
  *
  * An Exit carries *data* (endpoints, direction label, door, flags, custom

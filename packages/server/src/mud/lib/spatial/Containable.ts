@@ -2,7 +2,8 @@
  * ContainableMixin — anything that lives inside a Container.
  *
  * State-mutation chokepoint: `setContainer(container)` is the only
- * place inventory and environment fields are updated atomically.
+ * place the container's `contents` and the item's `environment`
+ * fields are updated atomically.
  * `ContainmentApi.move` is the policy / hook layer above; it calls
  * `setContainer` once, which orchestrates the cross-object
  * mutation:
@@ -76,8 +77,8 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * State-mutation chokepoint. Reachable only from
-     * `ContainmentApi.move`; inventory mutation must not be
-     * subclass-extensible (`@Final`) or shadow-bypassable
+     * `ContainmentApi.move`; cross-Container `contents` mutation must
+     * not be subclass-extensible (`@Final`) or shadow-bypassable
      * (`@Unshadowable`).
      *
      * Atomic across three updates: detach from the old container,

@@ -95,8 +95,8 @@ describe('MessageApi', () => {
       // test seam: bypass setContainer chokepoint to inject a duck-typed
       // object into the inventory Set; the test verifies sensor detection
       // is keyed by the SensorMixin marker, not method shape.
-      const raw = ProxyApi.unwrap(location) as unknown as { inventory: Set<unknown> };
-      raw.inventory.add(ducked);
+      const raw = ProxyApi.unwrap(location) as unknown as { contents: Set<unknown> };
+      raw.contents.add(ducked);
 
       expect(MessageApi.getSensors(location)).toHaveLength(0);
 

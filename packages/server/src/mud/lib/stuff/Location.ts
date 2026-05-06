@@ -11,7 +11,7 @@
  * Composition: `ContainerMixin(Stuff)`
  *
  * Provides:
- * - inventory: Set<Stuff>
+ * - contents: Set<Stuff & Containable> (host-internal storage)
  * - addContainable(), removeContainable(), hasContainable()
  * - getContents()
  */

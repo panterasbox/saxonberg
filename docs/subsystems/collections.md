@@ -127,6 +127,77 @@ This is mostly a naming variant of Shape B. The `setProp` returning
 `boolean` is the security gate's signal that the write was accepted
 (see [properties.md](./properties.md)).
 
+## Capability-derived items: the `getContents` exception
+
+The `getXs()` rule (method named for the item type) works when the
+item type describes the *relationship* between owner and item:
+
+- `Avatar.getInteractives()` — Interactive is what they are AND what
+  they are *to* the Avatar (its connections).
+- `Zone.getLocations()` — same.
+- `Door.getAttachedExits()` — same.
+
+Some mixins identify their items by **capability** rather than
+**kind** — `Containable`, `Sealable`, `Visible`. These are mixin
+traits, not noun-phrases describing the relationship. `Container`
+holds *contents*, not *containables*: to a container, its items
+aren't "things-that-can-be-contained," they're its contents. Use
+the relationship noun, not the capability suffix:
+
+```typescript
+// Container (Shape C, items are Containable):
+addContainable(item): void;       // mutator names the capability
+removeContainable(item): boolean;
+hasContainable(item): boolean;
+getContents(): (Stuff & Containable)[];   // accessor names the relationship
+```
+
+The mutator verbs still mention the capability (`addContainable`)
+because the operation is "make this Containable belong to me" —
+capability is exactly what's being asserted at the call site. The
+accessor reads "give me what's *in* you," and "in" needs a
+relationship noun.
+
+**Why not just always use the capability suffix?** Future-proofing.
+If a hypothetical `MassMoveOperation` mixin holds `Containable`s for
+unrelated reasons, it should describe its own relationship
+(`getStagedItems()`, `getTargets()`, …) instead of also being called
+`getContainables()`. Two classes with the same generic accessor name
+would collide semantically; classes named after distinct
+relationships stay distinguishable. The same applies to any other
+capability-shaped collection that comes later.
+
+## The model / parlance / prose layer split
+
+`Container.contents` is the model noun. Player-facing language
+sometimes uses different words for the same concept depending on the
+container's role — most prominently, MUD-tradition `inventory` for an
+avatar's carried items. Don't push that vocabulary down into the
+mixin or the API. The split is:
+
+| Layer | Word | Why |
+|---|---|---|
+| Model / API method / internal field / MQL token | `contents` | Universal, matches the relationship, type-agnostic |
+| Player command verb (the action of displaying self-contents) | `inventory` (`i`, `inv`) | MUD-canonical for the *self-look-at-what-I-carry* action |
+| Narration / prose | per genre | "There is a sword here." / "Bob is here." / "The ship carries 3 passengers." Per-template, not unified |
+
+So:
+
+- `ContainerMixin.contents` (host-internal field)
+- `Container.getContents()` (API)
+- `me:contents` / `here:contents` (MQL canonical token, when the
+  contents-token is added)
+- `inventory` command (player verb) — reads `avatar.getContents()`
+  under the hood
+- `world.perception.inventory` topic (player-action topic) — keeps
+  the player vocabulary at the messaging layer where players see it
+
+MQL aliases are fine where player vocabulary is more familiar than
+the canonical noun: `me:inventory` aliasing `me:contents` is
+defensible. Keep the canonical token (`:contents`) as the
+documented surface so the model stays consistent; let aliases serve
+ergonomics.
+
 ## Naming axes — when to pick the alternative
 
 | Axis | Default | Use the alternative when |
