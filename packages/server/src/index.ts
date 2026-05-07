@@ -29,6 +29,7 @@ import { PersistenceManager } from './backend/PersistenceManager';
 import { SeederManager } from './backend/SeederManager';
 import { BootstrapManager } from './backend/BootstrapManager';
 import { Server } from './services/Server';
+import { CommandApi } from './mud/api/command';
 
 /**
  * Main server initialization function.
@@ -81,15 +82,29 @@ async function main() {
     //     them with the persistence pipeline. Seeds must exist
     //     before this runs.
     //
-    //     Controllers are NOT pre-loaded — dispatch goes through
-    //     `StuffApi.singleton('/obj/command/<Name>')` which lazily
-    //     clones on first use and caches via the templatePath index.
+    //     Controllers are not pre-loaded; dispatch clones a fresh one
+    //     per command via `StuffApi.clone('/obj/command/<Name>')`.
     //     The controller seed YAMLs under `mud/seeds/obj/command/`
     //     were just written by `SeederManager.run()` above.
     await PersistenceManager.get().loadHooks();
 
-    // 1c. Bootstrap runtime instances from the engine manifest.
-    //     Both prior steps must be complete; failures here prevent
+    // 1c. Preload command YAMLs and resolve each `validators: [...]`
+    //     spec into a live function. Validators are inert until this
+    //     runs (`runValidators` early-returns on absent
+    //     `_resolvedValidators`), so this MUST happen before the
+    //     server accepts traffic.
+    const cmd = await CommandApi.preloadAll();
+    if (cmd.failed.length > 0) {
+      console.error(
+        `CommandApi.preloadAll: ${cmd.failed.length} command(s) failed: ` +
+          cmd.failed.join(', ')
+      );
+      process.exit(1);
+    }
+    console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
+
+    // 1d. Bootstrap runtime instances from the engine manifest.
+    //     All prior steps must be complete; failures here prevent
     //     boot.
     await BootstrapManager.run();
 

@@ -49,7 +49,6 @@ import {
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
-import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
@@ -536,6 +535,3 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
   }
   return CommandGiverMixin;
 }
-
-// Re-export for ContainmentApi orchestration.
-export { CommandApi, ContainmentApi };

@@ -213,22 +213,36 @@ export type FieldValue = boolean | string | number | Stuff | FieldValue[];
  * and option values share the same flat map per §3.3 of the
  * requirements doc.
  *
- * This IS the controller's input model — `CommandController.execute`
- * takes `(model: CommandModel, context: CommandContext)` where
- * `CommandModel === ModelData`. Verb / subcommand / raw / command-spec
- * live on `CommandContext`; the model carries field data only.
- *
- * The index signature includes `undefined` so that controllers
- * extending `CommandModel` with optional typed fields
- * (`interface FooModel extends CommandModel { target?: string }`)
- * remain assignable. With `noUncheckedIndexedAccess` enabled the read
- * type was already `FieldValue | undefined`; widening the declared
- * shape just makes that explicit.
+ * The index signature includes `undefined` so that typed model
+ * extensions (`interface FooModel extends CommandModel { target?:
+ * string }`) remain assignable. With `noUncheckedIndexedAccess`
+ * enabled the read type was already `FieldValue | undefined`;
+ * widening the declared shape just makes that explicit.
  */
 export type ModelData = Record<string, FieldValue | undefined>;
 
-/** Alias for `ModelData` — the controller's view of the bound input. */
-export type CommandModel = ModelData;
+/**
+ * The controller's input model. Extends `ModelData` with the one
+ * field the matcher always stamps when relevant — `subcommand` —
+ * so controllers can switch on it without a per-call cast.
+ *
+ * Concrete controllers narrow further by declaring their own field
+ * shape (`interface DropModel extends CommandModel { targets:
+ * Stuff[] }`).
+ *
+ * Verb / commandText / executionId / commandId / the matched
+ * `CommandDefinition` live on `CommandContext`; the model carries
+ * field data only.
+ */
+export type CommandModel = ModelData & {
+  /**
+   * Stamped by the matcher when the active YAML declares
+   * `subcommands:` and the input named one. Absent for flat verbs
+   * (no `subcommands:` block) and for subcommanded verbs invoked
+   * without a subcommand (the controller decides what that means).
+   */
+  subcommand?: string;
+};
 
 /**
  * Field validator function type.
@@ -359,16 +373,21 @@ const MUD_ROOT = resolvePath(__dirname, '..');
 
 /**
  * CommandApi - Static command definition cache
+ *
+ * Production dispatch never queries the cache directly; it walks each
+ * giver's recency stack (`CommandGiverMixin.getAvailableCommands()`)
+ * and filters via `CommandApi.matchVerbContextual`. The filename-keyed
+ * map below is just a "load once, reuse" sharing layer between the
+ * recency-push helpers and the YAML preload pass.
  */
 export class CommandApi {
-  /** Cached command definitions by filename (performance) */
+  /** Cached command definitions by filename (load-once sharing) */
   static #commands: Map<string, CommandDefinition> = new Map();
-
-  /** Verb → CommandDefinition lookup map (performance) */
-  static #verbMap: Map<string, CommandDefinition> = new Map();
 
   /**
    * Get a command definition by filename, loading it if not cached.
+   * Returns the cached instance on repeat calls so the recency-push
+   * pipeline never re-parses the same YAML.
    */
   static getCommand(filename: string): CommandDefinition | null {
     if (this.#commands.has(filename)) {
@@ -378,25 +397,7 @@ export class CommandApi {
     try {
       const filePath = join(CMD_DIR, filename);
       const command = CommandDefinition.fromFile(filePath);
-
       this.#commands.set(filename, command);
-
-      for (const verb of command.verbs) {
-        if (typeof verb !== 'string') {
-          console.error(
-            `CommandApi: Invalid verb in ${filename}: expected string, got ${typeof verb}. ` +
-              `Verb value: ${JSON.stringify(verb)}`
-          );
-          continue;
-        }
-
-        const lowerVerb = verb.toLowerCase();
-        if (this.#verbMap.has(lowerVerb)) {
-          console.warn(`CommandApi: Verb '${verb}' from ${filename} is already registered`);
-        }
-        this.#verbMap.set(lowerVerb, command);
-      }
-
       return command;
     } catch (error) {
       console.error(`CommandApi: Failed to load command ${filename}:`, error);
@@ -405,30 +406,11 @@ export class CommandApi {
   }
 
   /**
-   * Match verb to cached CommandDefinition.
-   *
-   * @deprecated for production dispatch — use the per-giver recency
-   * stack via `CommandGiverMixin.getAvailableCommands()` and
-   * `matchVerbContextual` (lands in step 3). Still used by command
-   * tests for cache introspection.
-   */
-  static matchVerb(verb: string): CommandDefinition | null {
-    return this.#verbMap.get(verb.toLowerCase()) || null;
-  }
-
-  /**
-   * Get all cached commands.
-   */
-  static getAllCommands(): CommandDefinition[] {
-    return Array.from(this.#commands.values());
-  }
-
-  /**
-   * Clear cache (useful for testing/reloading).
+   * Clear the filename cache. Used by tests; production never calls
+   * this (HMR for command YAMLs is not yet implemented).
    */
   static clearCache(): void {
     this.#commands.clear();
-    this.#verbMap.clear();
   }
 
   /**
@@ -597,30 +579,6 @@ export class CommandApi {
       );
     }
     return fn as FieldValidator;
-  }
-
-  /**
-   * Synchronous boot-time sweep — kept for tests / paths that don't
-   * need validator resolution. Production servers should call
-   * `preloadAll()` instead.
-   */
-  static sweepYamls(): { loaded: number; failed: string[] } {
-    let entries: string[];
-    try {
-      entries = readdirSync(CMD_DIR);
-    } catch (err) {
-      console.error(`CommandApi: cannot read cmd dir at ${CMD_DIR}:`, err);
-      return { loaded: 0, failed: [] };
-    }
-    const yamls = entries.filter((f) => f.endsWith('.yaml'));
-    const failed: string[] = [];
-    let loaded = 0;
-    for (const file of yamls) {
-      const cmd = this.getCommand(file);
-      if (cmd) loaded += 1;
-      else failed.push(file);
-    }
-    return { loaded, failed };
   }
 
   /**
