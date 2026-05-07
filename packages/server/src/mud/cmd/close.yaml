@@ -5,5 +5,5 @@ args:
   - name: target
     type: object
     required: true
-    scope: "inventory, here"
+    scope: "reachable"
     updates_scope: true

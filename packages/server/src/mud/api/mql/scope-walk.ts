@@ -47,26 +47,19 @@ export interface ScopeCandidate {
  * Build the candidate pool for the `here` neighborhood (req §11.2):
  *
  * 1. The location itself.
- * 2. Each content item in the location.
- * 3. Each Detail on the location, on each content.
+ * 2. Each Detail on the location.
+ * 3. Doors associated with the location's exits (each door + details).
  * 4. Each Exit on the location (direction + aliases).
  *
- * Doors associated with exits also appear naturally — they are
- * Stuff in the location's contents (see `MqlApi.#getLocationObjects`
- * legacy behavior).
+ * Peers (the location's contents) live in their own seed —
+ * {@link candidatesForPeers}. `here` is the location's own surface,
+ * not the room's inhabitants.
  */
 export function candidatesForHere(location: Stuff): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
 
   pushDirect(out, location);
   pushDetails(out, location);
-
-  if (MixinApi.isContainer(location)) {
-    for (const item of ContainmentApi.getContents(location)) {
-      pushDirect(out, item);
-      pushDetails(out, item);
-    }
-  }
 
   if (MixinApi.isExitable(location)) {
     const seenDoors = new Set<string>();

@@ -171,7 +171,7 @@ describe('MQL resolver — keyword search', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   it('rose finds the rose in the room', () => {
@@ -187,7 +187,7 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('honors a multi-source scope fragment', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory, here' };
+    ctx = { commandGiver: world.giver, scope: 'inventory, peers' };
     const out = resolve('apple', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
@@ -204,12 +204,19 @@ describe('MQL resolver — keyword search', () => {
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
-  it('matches keywords on the location itself in here scope', () => {
+  it('here scope alone matches keywords on the location itself', () => {
+    ctx = { commandGiver: world.giver, scope: 'here' };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
 
-  it('falls back to here when scope is empty', () => {
+  it('here scope alone does NOT match peers (post-split)', () => {
+    ctx = { commandGiver: world.giver, scope: 'here' };
+    const out = resolve('rose', ctx);
+    expect(ids(out)).not.toContain(world.rose.stuffId);
+  });
+
+  it('falls back to reachable when scope is empty', () => {
     ctx = { commandGiver: world.giver, scope: '' };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
@@ -226,6 +233,21 @@ describe('MQL resolver — keyword search', () => {
     expect(ids(resolve('rose', ctx))).toContain(world.rose.stuffId);
     expect(ids(resolve('apple', ctx))).toContain(world.apple.stuffId);
     expect(ids(resolve('square', ctx))).toContain(world.location.stuffId);
+  });
+
+  it('here.inscription detail-drill still works after split', () => {
+    // The `here` seed (location only) still carries its details; the
+    // split removed contents from the candidate pool but kept the
+    // location-as-anchor semantics.
+    const out = resolve('here.inscription', ctx);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+  });
+
+  it('peers scope does not include the giver itself', () => {
+    ctx = { commandGiver: world.giver, scope: 'peers' };
+    const out = resolve('bob', ctx);
+    expect(ids(out)).not.toContain(world.giver.stuffId);
   });
 });
 
@@ -285,7 +307,7 @@ describe('MQL resolver — set operations', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   it('comma is union', () => {
@@ -315,7 +337,7 @@ describe('MQL resolver — literals', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   it("'rose' (literal) matches by exact name", () => {
@@ -340,7 +362,7 @@ describe('MQL resolver — predicates', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   afterEach(() => {
@@ -387,7 +409,7 @@ describe('MQL resolver — filter expressions', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
     _MqlAdminFlag.granter = () => true; // admin so authoring tier passes
   });
 
@@ -459,7 +481,7 @@ describe('MQL resolver — bracket ordinals and ranges', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   it('[1] picks the first match', () => {
@@ -489,7 +511,7 @@ describe('MQL resolver — desugar integration', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
   });
 
   it('strips leading articles', () => {

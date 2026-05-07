@@ -948,7 +948,7 @@ export class CommandApi {
       const tries: string[] =
         yamlScopes.length > 0
           ? yamlScopes.map((s) => ShellApi.expandVariables(s, giver))
-          : ['here'];
+          : ['reachable'];
 
       const updatesScope = def.updates_scope === true;
       const fieldPrep = prep[fname];

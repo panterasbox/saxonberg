@@ -49,7 +49,7 @@ function singleObjectCmd(): CommandDefinition {
       '  - name: target',
       '    type: object',
       '    required: false',
-      '    scope: "inventory, here"',
+      '    scope: "reachable"',
       '    updates_scope: true',
     ].join('\n'),
     '<test>'

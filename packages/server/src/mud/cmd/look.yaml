@@ -5,7 +5,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "inventory, here"]
+    scope: ["$focus", "reachable"]
     updates_scope: true
     prepositions: [at]
     default: "$focus"

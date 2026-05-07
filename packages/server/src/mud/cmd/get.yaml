@@ -6,7 +6,7 @@ args:
     type: objects
     required: true
     greedy: true
-    scope: "here"
+    scope: "peers"
     validators:
       - /lib/command/validators/mustBeVisible
       - /lib/command/validators/canReach

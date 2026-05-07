@@ -259,19 +259,20 @@ function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
 /**
  * Build the candidate pool for a scope MQL fragment. Recognizes the
  * scope-as-fragment shapes that v1 supports: a single direct seed
- * (`here`, `inventory`, `online`, `world`, `me`), a comma-union of
- * such seeds, or a path/stuff-id seed.
+ * (`here`, `peers`, `reachable`, `inventory`, `online`, `world`,
+ * `me`), a comma-union of such seeds, or a path/stuff-id seed.
  *
- * Falls back to `here` when the fragment is empty, unrecognized, or
- * fails to resolve to any anchor — the graceful-fallback rule from
- * the unified-scope delta.
+ * Falls back to `reachable` when the fragment is empty, unrecognized,
+ * or fails to resolve to any anchor — the graceful-fallback rule from
+ * the unified-scope delta. `reachable` is the closest analogue to the
+ * old conflated `here` (location + peers + inventory).
  */
 export function candidatesForScope(
   scope: string,
   ctx: MqlContext
 ): ScopeCandidate[] {
   const trimmed = scope.trim();
-  if (!trimmed) return candidatesForHereScope(ctx);
+  if (!trimmed) return candidatesForReachable(ctx.commandGiver);
 
   // Split on top-level commas. v1 only supports flat unions of
   // recognized scope tokens; nested parens / chains aren't expected
@@ -287,7 +288,7 @@ export function candidatesForScope(
       for (const c of partial) out.push(c);
     }
   }
-  if (!recognized) return candidatesForHereScope(ctx);
+  if (!recognized) return candidatesForReachable(ctx.commandGiver);
   return out;
 }
 

@@ -60,7 +60,7 @@ function lookCommand(): CommandDefinition {
       '  - name: target',
       '    type: object',
       '    required: false',
-      '    scope: "inventory, here"',
+      '    scope: "reachable"',
       '    updates_scope: true',
     ].join('\n'),
     '<test>'
@@ -202,7 +202,7 @@ describe('Dispatcher pronoun-memory integration', () => {
         '    type: objects',
         '    required: true',
         '    greedy: true',
-        '    scope: here',
+        '    scope: peers',
       ].join('\n'),
       '<test>'
     );
@@ -314,7 +314,7 @@ describe('Dispatcher pronoun-memory integration', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: ["$focus", "inventory, here"]',
+        '    scope: ["$focus", "reachable"]',
         '    updates_scope: true',
       ].join('\n'),
       '<test>'
