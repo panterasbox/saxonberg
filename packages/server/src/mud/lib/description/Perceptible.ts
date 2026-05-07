@@ -89,9 +89,23 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `target['keywords'] = data['keywords']` — bracket access bypasses
      * TS visibility, so the normalization invariant runs during
      * hydration.
+     *
+     * The getter returns the **derived** keyword pool: authored
+     * keywords plus, for hosts that compose `NamedMixin`, tokenized
+     * words from the host's display name. Authored entries always
+     * lead so an exact-keyword match outranks a tokenized-name
+     * match (see `scope-walk.scoreCandidate`). Internal callers that
+     * need the raw authored set go through `_keywords` directly.
      */
     protected get keywords(): string[] {
-      return [...this._keywords];
+      const out: string[] = [...this._keywords];
+      if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
+        const named = this as unknown as { getName(): string };
+        for (const tok of tokenizeName(named.getName())) {
+          if (!out.includes(tok)) out.push(tok);
+        }
+      }
+      return out;
     }
 
     protected set keywords(value: string[]) {
@@ -102,23 +116,8 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const k of value) this.addKeyword(k);
     }
 
-    /**
-     * Return the host's keyword pool. Folds tokenized name words in
-     * for hosts that compose `NamedMixin`, so a player can type
-     * `oak door` against an Idea named "Oak Door" without an
-     * explicit `addKeyword('oak')`. Authored keywords still take
-     * precedence on score (exact-keyword match outranks tokenized
-     * name fragment) — see `scope-walk.scoreCandidate`.
-     */
     getKeywords(): string[] {
-      const out: string[] = [...this._keywords];
-      if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
-        const named = this as unknown as { getName(): string };
-        for (const tok of tokenizeName(named.getName())) {
-          if (!out.includes(tok)) out.push(tok);
-        }
-      }
-      return out;
+      return this.keywords;
     }
 
     addKeyword(keyword: string): void {

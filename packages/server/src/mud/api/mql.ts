@@ -35,6 +35,14 @@ import type {
 
 export type { MqlContext, MqlMatchVia, MqlOneResult, MqlManyResult, PermissionTier };
 
+// Re-exports of types/classes the non-api layer (lib/, obj/) needs.
+// The internal pipeline modules under `mql/` are not direct
+// import targets for non-api code — everything flows through this
+// facade so the `MqlApi` boundary stays the seam.
+export { PronounMemory } from './mql/pronoun-memory';
+export { MqlParseError } from './mql/parser';
+export { MqlPermissionError } from './mql/permissions';
+
 /**
  * MqlApi — static utility class for object resolution.
  *

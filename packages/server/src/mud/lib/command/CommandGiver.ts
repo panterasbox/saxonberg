@@ -58,7 +58,7 @@ import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
-import { PronounMemory } from '../../api/mql/pronoun-memory';
+import { PronounMemory } from '../../api/mql';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
 import type { LogLevel } from '@saxonberg/types';

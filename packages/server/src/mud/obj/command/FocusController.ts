@@ -19,9 +19,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import { parse, MqlParseError } from '../../api/mql/parser';
-import { MqlApi } from '../../api/mql';
-import { MqlPermissionError } from '../../api/mql/permissions';
+import { MqlApi, MqlParseError, MqlPermissionError } from '../../api/mql';
 
 interface FocusModel extends CommandModel {
   fragment?: string;
@@ -40,29 +38,19 @@ export class FocusController extends CommandController<FocusModel> {
       };
     }
 
-    // Parse-validate so typos surface before we mutate state. The
-    // parser doesn't touch the world; the permission probe (next)
-    // is the gate that runs resolver tier checks.
-    try {
-      parse(fragmentRaw);
-    } catch (err) {
-      if (err instanceof MqlParseError) {
-        return { success: false, summary: `bad scope: ${err.message}` };
-      }
-      throw err;
-    }
-
-    // Permission probe: run resolveOne against the fragment as both
-    // query and scope so any admin-tier seeds (`online`, `world`,
-    // path globs, stuff ids) trip the tier check before we commit.
-    // Empty match lists are fine — the player's just pointing at a
-    // valid-but-currently-empty area.
+    // Single validation pass — `resolveOne` runs the parser and the
+    // permission gate. An empty match list is fine; the player's
+    // just pointing at a valid-but-currently-empty area
+    // (e.g. `focus online` when no one's online).
     try {
       MqlApi.resolveOne(fragmentRaw, {
         commandGiver: giver,
         scope: fragmentRaw,
       });
     } catch (err) {
+      if (err instanceof MqlParseError) {
+        return { success: false, summary: `bad scope: ${err.message}` };
+      }
       if (err instanceof MqlPermissionError) {
         return { success: false, summary: err.message };
       }
