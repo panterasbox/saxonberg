@@ -26,7 +26,13 @@ import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
-import { MqlApi, type MqlManyResult, type MqlMatchVia } from './mql';
+import {
+  MqlApi,
+  type MqlManyResult,
+  type MqlMany,
+  type MqlMatchVia,
+  type MqlOne,
+} from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
 import { ExecutionContextApi } from './execution-context';
@@ -91,31 +97,6 @@ export interface CommandContext {
   commandId: string;
   verb: string;
   command: CommandDefinition;
-  /**
-   * Sub-feature attribution stamped per field after MQL resolution.
-   * Keyed by field name, value is the field's `MqlMatchVia` (e.g.,
-   * `{ exit }` for a directional match, `{ detailPath }` for a
-   * detail drill). Controllers that care destructure off `ctx.via`;
-   * controllers that don't simply ignore it.
-   */
-  via?: Record<string, MqlMatchVia>;
-  /**
-   * Preposition consumed by the matcher for a positional field, keyed
-   * by field name. Stored lowercased and as-typed; declaring
-   * `prepositions: [in, into]` and typing `into` lands `'into'` here.
-   * Equivalence (`in` vs `into` for `put`) is the controller's call.
-   */
-  prep?: Record<string, string>;
-  /**
-   * Player-typed text per MQL field, snapshotted before the
-   * dispatcher replaces the field with resolved Stuff(s). Keyed by
-   * field name; only present for `type: object` / `type: objects`
-   * fields (other types keep their original value on the model).
-   * Useful when the controller's job is to store the fragment
-   * itself rather than act on the resolved Stuff — e.g.
-   * `FocusController` reads `ctx.raw.fragment` to set scope.
-   */
-  raw?: Record<string, string>;
 }
 
 /**
@@ -238,18 +219,31 @@ export interface CommandResult {
 
 /**
  * Field value union — what `model.fields[name]` can hold after the
- * matcher's resolve/validate stage. The `Stuff` arm covers
- * `type: object` fields after MQL resolves them; `FieldValue[]`
- * covers `type: objects` (plural-cardinality MQL fields) and
- * `multiple: true` option accumulation; `null` covers a `type: object`
- * field whose MQL resolution produced no match (controllers
- * distinguish "player typed nothing" — model field absent — from
- * "player typed but nothing resolved" — model field is `null`).
+ * matcher's resolve/validate stage.
+ *
+ *   - `boolean`/`string`/`number` for primitive-typed fields.
+ *   - `Stuff` historically for `type: object` resolved fields;
+ *     replaced by `MqlOne` post-Phase-7 (kept in the union for the
+ *     transitional matcher path that lands raw values on the model
+ *     before resolution).
+ *   - `MqlOne` for resolved `type: object` fields — bundles
+ *     stuff + via + raw + prep into a single per-field record.
+ *     `MqlOne.stuff` is `null` when MQL produced no match.
+ *   - `MqlMany` for resolved `type: objects` fields — same shape
+ *     with `stuff` as `Stuff[]`.
+ *   - `FieldValue[]` covers `multiple: true` option accumulation.
  *
  * Arrays of arrays are not produced (the matcher flattens), but the
  * type is recursive to keep callers from having to disambiguate.
  */
-export type FieldValue = boolean | string | number | null | Stuff | FieldValue[];
+export type FieldValue =
+  | boolean
+  | string
+  | number
+  | Stuff
+  | MqlOne
+  | MqlMany
+  | FieldValue[];
 
 /**
  * Resolved field values keyed by field name. Positional-field values
@@ -895,7 +889,8 @@ export class CommandApi {
    */
   static resolveAndValidate(
     model: CommandModel,
-    context: CommandContext
+    context: CommandContext,
+    prep: Record<string, string> = {}
   ): { resolved: CommandModel } | { result: CommandResult } {
     const command = context.command;
     const subcommand =
@@ -910,15 +905,12 @@ export class CommandApi {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
-      // Snapshot the player-typed text on `ctx.raw` before the
-      // model field gets overwritten with resolved Stuffs.
-      stampRaw(context, fname, raw);
-
       const fieldScope =
         typeof def.scope === 'string' && def.scope.length > 0
           ? def.scope
           : context.commandGiver.getScope();
       const updatesScope = def.updates_scope === true;
+      const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
         const r = MqlApi.resolveMany(raw, {
@@ -926,12 +918,14 @@ export class CommandApi {
           scope: fieldScope,
         });
         // Empty results are a normal outcome — pass `[]` through
-        // and let the controller decide what no-match means in its
-        // domain. Don't update via, scope, or pronoun memory on
-        // empty (no anchor to anchor on).
-        resolved[fname] = r.stuff as unknown as FieldValue;
+        // on the wrapper and let the controller decide what
+        // no-match means in its domain. Don't update scope or
+        // pronoun memory on empty (no anchor to anchor on).
+        const bound: MqlMany = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        if (fieldPrep !== undefined) bound.prep = fieldPrep;
+        resolved[fname] = bound;
         if (r.stuff.length > 0) {
-          if (r.via) stampVia(context, fname, r.via);
           // Multi-cardinality results don't update player scope (no
           // single anchor to extend or re-anchor from).
           context.commandGiver
@@ -943,11 +937,14 @@ export class CommandApi {
           commandGiver: context.commandGiver,
           scope: fieldScope,
         });
-        // `null` (empty) is a normal outcome — pass it through to
-        // the controller and let it decide what no-match means.
-        resolved[fname] = (r.stuff ?? null) as unknown as FieldValue;
+        // `null` (empty) is a normal outcome — pass it through on
+        // the wrapper and let the controller decide what no-match
+        // means.
+        const bound: MqlOne = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        if (fieldPrep !== undefined) bound.prep = fieldPrep;
+        resolved[fname] = bound;
         if (r.stuff !== null) {
-          if (r.via) stampVia(context, fname, r.via);
           if (updatesScope) {
             updatePlayerScope(context, raw, r.stuff, r.via);
           }
@@ -1754,23 +1751,6 @@ function slotForGenderRouting(stuff: Stuff): GenderedSlot {
   }
 }
 
-function stampVia(
-  context: CommandContext,
-  fname: string,
-  via: MqlMatchVia
-): void {
-  if (!context.via) context.via = {};
-  context.via[fname] = via;
-}
-
-function stampRaw(
-  context: CommandContext,
-  fname: string,
-  raw: string
-): void {
-  if (!context.raw) context.raw = {};
-  context.raw[fname] = raw;
-}
 
 /**
  * Drill-trail rule: when an inspection-shaped command resolves a

@@ -560,12 +560,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // matcher.
         context.verb = parsed.verb;
         context.command = command;
-        // Reset side-channel metadata between match attempts —
-        // earlier shape-error matches may have stamped via/prep.
-        delete context.via;
-        delete context.prep;
-        if (built.prep) context.prep = { ...built.prep };
-        const validated = CommandApi.resolveAndValidate(built.model, context);
+        const validated = CommandApi.resolveAndValidate(
+          built.model,
+          context,
+          built.prep
+        );
         if ('result' in validated) return validated.result;
         const interim = await this._executeOne(
           command,

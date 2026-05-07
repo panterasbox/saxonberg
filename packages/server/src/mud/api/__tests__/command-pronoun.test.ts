@@ -21,6 +21,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import { CommandApi, type CommandContext } from '../command';
+import type { MqlOne } from '../mql';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
 import { Idea } from '../../lib/stuff/Idea';
@@ -234,7 +235,8 @@ describe('Dispatcher pronoun-memory integration', () => {
     const r = CommandApi.resolveAndValidate({ target: 'it' }, ctx2);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
-      expect(r.resolved.target).toBe(rose);
+      const target = r.resolved.target as MqlOne;
+      expect(target.stuff).toBe(rose);
     }
   });
 

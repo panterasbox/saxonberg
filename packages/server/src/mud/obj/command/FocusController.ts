@@ -19,11 +19,10 @@
  * need to re-validate. Empty resolutions are normal here — `focus
  * online` when no one's online still sets the scope.
  *
- * The fragment text the player typed is read from `ctx.raw.fragment`
- * since `model.fragment` is now the resolved `Stuff[]`, not the
- * source string. The match list itself is informational —
- * controllers report the count so players can sanity-check what
- * they've focused on.
+ * The fragment text the player typed comes from `model.fragment.raw`
+ * (the dispatcher-bound wrapper). The match list itself is
+ * informational — controllers report the count so players can
+ * sanity-check what they've focused on.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -32,31 +31,31 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { Stuff } from '../../lib/stuff/Stuff';
+import type { MqlMany } from '../../api/mql';
 
 interface FocusModel extends CommandModel {
-  fragment?: Stuff[];
+  fragment?: MqlMany;
 }
 
 export class FocusController extends CommandController<FocusModel> {
   execute(model: FocusModel, context: CommandContext): CommandResult {
     const giver = context.commandGiver;
-    const fragmentRaw = context.raw?.fragment?.trim() ?? '';
+    const wrapper = model.fragment;
 
-    if (fragmentRaw.length === 0) {
-      const current = giver.getScope();
+    if (!wrapper || wrapper.raw.trim().length === 0) {
       return {
         success: true,
-        summary: `scope: ${current}`,
+        summary: `scope: ${giver.getScope()}`,
       };
     }
 
-    giver.setScope(fragmentRaw);
-    const matches = Array.isArray(model.fragment) ? model.fragment.length : 0;
+    const fragmentText = wrapper.raw.trim();
+    giver.setScope(fragmentText);
+    const matches = wrapper.stuff.length;
     const noun = matches === 1 ? 'object' : 'objects';
     return {
       success: true,
-      summary: `scope: ${fragmentRaw} (${matches} ${noun})`,
+      summary: `scope: ${fragmentText} (${matches} ${noun})`,
     };
   }
 }

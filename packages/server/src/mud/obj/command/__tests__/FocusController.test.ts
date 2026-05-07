@@ -26,6 +26,7 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
+import type { MqlMany } from '../../../api/mql';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
@@ -33,7 +34,6 @@ import type { Location } from '../../../lib/stuff/Location';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
   ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
@@ -68,7 +68,7 @@ function makeContext(
   location: Location,
   raw?: string
 ): CommandContext {
-  const ctx: CommandContext = {
+  return {
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -78,8 +78,12 @@ function makeContext(
     verb: 'focus',
     command: stubCommand('focus'),
   };
-  if (raw !== undefined) ctx.raw = { fragment: raw };
-  return ctx;
+}
+
+/** Build the MqlMany wrapper the dispatcher would land on the
+ *  fragment field of FocusModel. */
+function fragmentField(stuff: Stuff[], raw: string): MqlMany {
+  return { stuff, raw };
 }
 
 describe('FocusController', () => {
@@ -110,7 +114,7 @@ describe('FocusController', () => {
 
   it('sets scope to the player-typed fragment', () => {
     const result = controller.execute(
-      makeModel({ fragment: [] as FieldValue }),
+      makeModel({ fragment: fragmentField([], 'inventory') } as ModelData),
       makeContext(giver, location, 'inventory')
     );
     expect(result.success).toBe(true);
@@ -121,7 +125,7 @@ describe('FocusController', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
     const b = makeStuff(() => new TestThing()) as Stuff;
     const result = controller.execute(
-      makeModel({ fragment: [a, b] as unknown as FieldValue }),
+      makeModel({ fragment: fragmentField([a, b], 'flowers') } as ModelData),
       makeContext(giver, location, 'flowers')
     );
     expect(result.success).toBe(true);
@@ -132,7 +136,7 @@ describe('FocusController', () => {
   it('"1 object" when exactly one resolves', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
     const result = controller.execute(
-      makeModel({ fragment: [a] as unknown as FieldValue }),
+      makeModel({ fragment: fragmentField([a], 'rose') } as ModelData),
       makeContext(giver, location, 'rose')
     );
     expect(result.success).toBe(true);
@@ -143,7 +147,7 @@ describe('FocusController', () => {
     // `focus online` when no one's online — the dispatcher's
     // resolveMany returns []; controller still anchors scope.
     const result = controller.execute(
-      makeModel({ fragment: [] as FieldValue }),
+      makeModel({ fragment: fragmentField([], 'online') } as ModelData),
       makeContext(giver, location, 'online')
     );
     expect(result.success).toBe(true);

@@ -6,7 +6,7 @@ import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { Door } from '../../../lib/spatial/Door';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlApi } from '../../../api/mql';
+import { MqlApi, type MqlOne } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -76,24 +76,18 @@ function makeContext(
 }
 
 /**
- * Resolve a target string against the giver's "inventory, here"
- * scope (Phase 7 cmd/open.yaml override) and return the model + ctx
- * the controller would see post-dispatcher. Returns `null` when
- * MQL produces no match — the controller-level test then asserts
- * the dispatcher's "you don't see…" failure.
+ * Resolve a target string against `scope` and bundle the result
+ * into the {@link MqlOne} wrapper the controller now reads from
+ * `model.target`.
  */
-function resolveTarget(
-  giver: Stuff,
-  raw: string
-): { target: Stuff; via: CommandContext['via'] } | null {
+function buildMqlOne(giver: Stuff, raw: string, scope: string): MqlOne {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
-    scope: 'inventory, here',
+    scope,
   });
-  if (!r.stuff) return null;
-  const ctxVia: CommandContext['via'] = {};
-  if (r.via) ctxVia.target = r.via;
-  return { target: r.stuff, via: ctxVia };
+  const bound: MqlOne = { stuff: r.stuff, raw };
+  if (r.via) bound.via = r.via;
+  return bound;
 }
 
 async function openCmd(
@@ -103,12 +97,8 @@ async function openCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
-  const r = resolveTarget(avatar as unknown as Stuff, raw);
-  if (r === null) {
-    return { success: false, summary: `You don't see any '${raw}' here` };
-  }
-  ctx.via = r.via;
-  return controller.execute(makeModel({ target: r.target }), ctx);
+  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'inventory, here');
+  return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
 async function closeCmd(
@@ -118,12 +108,8 @@ async function closeCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `close ${raw}`);
-  const r = resolveTarget(avatar as unknown as Stuff, raw);
-  if (r === null) {
-    return { success: false, summary: `You don't see any '${raw}' here` };
-  }
-  ctx.via = r.via;
-  return controller.execute(makeModel({ target: r.target }), ctx);
+  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'inventory, here');
+  return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
 async function goCmd(
@@ -133,19 +119,8 @@ async function goCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
-  const r = MqlApi.resolveOne(raw, {
-    commandGiver: avatar as unknown as Parameters<
-      typeof MqlApi.resolveOne
-    >[1]['commandGiver'],
-    scope: 'here',
-  });
-  if (!r.stuff) {
-    return controller.execute(makeModel(), ctx);
-  }
-  const via: CommandContext['via'] = {};
-  if (r.via) via.target = r.via;
-  ctx.via = via;
-  return controller.execute(makeModel({ target: r.stuff }), ctx);
+  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'here');
+  return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
 describe('OpenController / CloseController / doors integration', () => {

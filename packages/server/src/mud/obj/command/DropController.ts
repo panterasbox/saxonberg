@@ -8,6 +8,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import type { MqlMany } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -17,23 +18,24 @@ import { Mml } from '../../api/mml';
 
 interface DropModel extends CommandModel {
   // drop.yaml marks `targets` required (matcher rejects on missing
-  // input) but the dispatcher passes empty arrays through on
-  // unresolved input — controller produces the player-facing error.
-  targets: Stuff[];
+  // input) but the dispatcher passes empty `targets.stuff` arrays
+  // through on unresolved input — controller produces the player-
+  // facing error.
+  targets: MqlMany;
 }
 
 export class DropController extends CommandController<DropModel> {
   execute(model: DropModel, context: CommandContext): CommandResult {
-    if (model.targets.length === 0) {
-      const raw = context.raw?.targets ?? '';
+    const targets = model.targets.stuff;
+    if (targets.length === 0) {
       return {
         success: false,
-        summary: `you don't have any '${raw}' to drop`,
+        summary: `you don't have any '${model.targets.raw}' to drop`,
       };
     }
     let successCount = 0;
     const droppedNames: string[] = [];
-    for (const target of model.targets) {
+    for (const target of targets) {
       if (this.dropObject(target, context)) {
         successCount++;
         droppedNames.push(DescribeApi.getDisplayName(target, 'something'));

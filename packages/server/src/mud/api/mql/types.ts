@@ -95,6 +95,53 @@ export interface MqlManyResult {
 }
 
 /**
+ * Per-field model-side wrapper for a `type: object` resolution. The
+ * dispatcher lands this on `model[fieldName]` after running MQL,
+ * bundling everything a controller might need:
+ *
+ *   - `stuff`: the resolved Stuff, or `null` when MQL produced no
+ *     match. Distinguished from the field being absent on the model
+ *     (player typed nothing) — controllers can tell the two apart.
+ *
+ *   - `via`: sub-feature attribution (`exit` for direction matches,
+ *     `detailPath` for detail drills, etc.). Only present when MQL
+ *     found something and stamped a path.
+ *
+ *   - `raw`: the player-typed text post-desugar, before MQL replaced
+ *     it with the resolved Stuff. Always present when this wrapper
+ *     exists.
+ *
+ *   - `prep`: lowercased preposition the matcher consumed for this
+ *     field per the YAML's `prepositions:` declaration. Absent when
+ *     no preposition was declared or none typed.
+ *
+ * Replaces the earlier "Stuff on the model + parallel `ctx.via` /
+ * `ctx.raw` / `ctx.prep` records" shape. Controllers destructure
+ * directly:
+ *
+ *   const { stuff, via, raw, prep } = model.target;
+ */
+export interface MqlOne {
+  stuff: Stuff | null;
+  via?: MqlMatchVia;
+  raw: string;
+  prep?: string;
+}
+
+/**
+ * Plural counterpart to {@link MqlOne}. `stuff` is the full match
+ * list (empty array when MQL produced no match — still a valid
+ * outcome the controller decides about). `via` is the query-level
+ * attribution (only when every match arrived through the same path).
+ */
+export interface MqlMany {
+  stuff: Stuff[];
+  via?: MqlMatchVia;
+  raw: string;
+  prep?: string;
+}
+
+/**
  * Permission tier for MQL operators and seeds. Operators that touch
  * sensitive data (`online`, `world`, path globs) declare a tier; the
  * resolver gates access against the giver's privilege level.

@@ -9,7 +9,7 @@ import { Exit } from '../../../lib/spatial/Exit';
 import { Door } from '../../../lib/spatial/Door';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlApi } from '../../../api/mql';
+import { MqlApi, type MqlOne } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -44,23 +44,17 @@ import { Idea } from "../../../lib/stuff/Idea";
 
 /**
  * Resolve a target string through MQL exactly as the dispatcher
- * would, returning the bound model + the via attribution to stamp
- * onto `ctx`. Returns `null` when MQL produces no match — the
- * test then exercises the controller's "go where?" path with no
- * resolved target.
+ * would and bundle the result into the {@link MqlOne} wrapper the
+ * controller now reads from `model.target`.
  */
-function resolveTarget(
-  giver: Stuff,
-  raw: string
-): { target: Stuff; via: CommandContext['via'] } | null {
+function resolveTarget(giver: Stuff, raw: string): MqlOne {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
     scope: 'here',
   });
-  if (!r.stuff) return null;
-  const ctxVia: CommandContext['via'] = {};
-  if (r.via) ctxVia.target = r.via;
-  return { target: r.stuff, via: ctxVia };
+  const bound: MqlOne = { stuff: r.stuff, raw };
+  if (r.via) bound.via = r.via;
+  return bound;
 }
 
 const FakeAvatarBase = CommandGiverMixin(
@@ -99,9 +93,8 @@ function makeContext(
 
 /**
  * Resolve `raw` through MQL and run GoController as the dispatcher
- * would: stamp `model.target` with the resolved Stuff (or leave it
- * unset on no-match) and stamp `ctx.via.target` with the matcher's
- * sub-feature attribution. Returns the controller's CommandResult.
+ * would: build the `MqlOne` wrapper for `model.target` and run the
+ * controller. Returns the controller's CommandResult.
  */
 async function goCmd(
   controller: GoController,
@@ -110,12 +103,8 @@ async function goCmd(
   raw: string
 ): Promise<ReturnType<GoController['execute']> extends Promise<infer T> ? T : never> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
-  const r = resolveTarget(avatar as unknown as Stuff, raw);
-  if (r === null) {
-    return controller.execute(makeModel(), ctx);
-  }
-  ctx.via = r.via;
-  return controller.execute(makeModel({ target: r.target }), ctx);
+  const target = resolveTarget(avatar as unknown as Stuff, raw);
+  return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
 describe('GoController', () => {
@@ -205,15 +194,14 @@ describe('GoController', () => {
       expect(result.summary).toMatch(/where/i);
     });
 
-    it("returns 'go where?' when the input doesn't resolve", async () => {
-      // Phase 7 cutover: with `go.yaml` declaring `target: type: object`,
-      // a non-resolvable input (no exit with that direction, no
-      // matching Stuff) leaves the dispatcher with nothing to bind.
-      // The controller never sees a target — its empty-target branch
-      // fires with "go where?".
+    it("returns \"can't go that way\" when the input doesn't resolve", async () => {
+      // Post-wrapper cutover: the dispatcher lands an `MqlOne`
+      // wrapper on `model.target` with `stuff: null` for an
+      // unresolved input. Controller fires its null-stuff branch
+      // and reports "can't go that way".
       const result = await goCmd(controller, avatar, locA, 'south');
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/where/i);
+      expect(result.summary).toMatch(/can't go that way/i);
     });
 
     it('blocks traversal through a closed door', async () => {

@@ -16,6 +16,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import type { MqlOne } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -26,7 +27,7 @@ import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
 interface GoModel extends CommandModel {
-  target?: Stuff | null;
+  target?: MqlOne;
 }
 
 export class GoController extends CommandController<GoModel> {
@@ -41,7 +42,7 @@ export class GoController extends CommandController<GoModel> {
       // flows) — keep it for safety.
       return { success: false, summary: 'go where?' };
     }
-    if (target === null) {
+    if (target.stuff === null) {
       // Player typed a direction/keyword that MQL couldn't resolve.
       return { success: false, summary: "can't go that way" };
     }
@@ -51,11 +52,11 @@ export class GoController extends CommandController<GoModel> {
       return { success: false, summary: "can't move" };
     }
 
-    const exit = context.via?.target?.exit;
+    const exit = target.via?.exit;
     if (exit) return this.traverse(exit, mover);
 
-    if (target instanceof ExitableVessel) {
-      const entry = target.getEntryExit();
+    if (target.stuff instanceof ExitableVessel) {
+      const entry = target.stuff.getEntryExit();
       if (entry) return this.traverse(entry, mover);
     }
 

@@ -12,6 +12,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import type { MqlOne } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
@@ -20,31 +21,30 @@ import { Mml } from '../../api/mml';
 import type { Exit } from '../../lib/spatial/Exit';
 
 interface LookModel extends CommandModel {
-  target?: Stuff | null;
+  target?: MqlOne;
 }
 
 export class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): CommandResult {
     const target = model.target;
-    if (target) {
-      return this.lookAtTarget(target, context);
+    if (target === undefined) {
+      // Bare `look` (no target) is "look here" for scope-update
+      // purposes per the unified-scope delta. The dispatcher's
+      // resolveAndValidate skips fields with empty raw input — so
+      // the bare-look path resets scope explicitly here. This is
+      // also what the auto-look-on-arrival hook depends on to
+      // re-anchor scope to the new room's "here" after movement.
+      context.commandGiver.clearScope();
+      return this.lookAtLocation(context);
     }
-    if (target === null) {
+    if (target.stuff === null) {
       // Player typed something but MQL produced no match.
-      const raw = context.raw?.target ?? '';
       return {
         success: false,
-        summary: `you don't see any '${raw}' here`,
+        summary: `you don't see any '${target.raw}' here`,
       };
     }
-    // Bare `look` (no target) is "look here" for scope-update
-    // purposes per the unified-scope delta. The dispatcher's
-    // resolveAndValidate skips fields with empty raw input — so the
-    // bare-look path resets scope explicitly here. This is also what
-    // the auto-look-on-arrival hook depends on to re-anchor scope to
-    // the new room's "here" after movement.
-    context.commandGiver.clearScope();
-    return this.lookAtLocation(context);
+    return this.lookAtTarget(target.stuff, context);
   }
 
   private lookAtLocation(context: CommandContext): CommandResult {

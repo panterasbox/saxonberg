@@ -28,12 +28,22 @@ import { SecurityApi } from './security';
 import type {
   MqlContext,
   MqlMatchVia,
+  MqlOne,
+  MqlMany,
   MqlOneResult,
   MqlManyResult,
   PermissionTier,
 } from './mql/types';
 
-export type { MqlContext, MqlMatchVia, MqlOneResult, MqlManyResult, PermissionTier };
+export type {
+  MqlContext,
+  MqlMatchVia,
+  MqlOne,
+  MqlMany,
+  MqlOneResult,
+  MqlManyResult,
+  PermissionTier,
+};
 
 // Re-exports of types/classes the non-api layer (lib/, obj/) needs.
 // The internal pipeline modules under `mql/` are not direct

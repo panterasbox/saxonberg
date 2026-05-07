@@ -16,6 +16,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CommandApi, type CommandContext } from '../command';
+import type { MqlOne, MqlMany } from '../mql';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
 import { Idea } from '../../lib/stuff/Idea';
@@ -112,17 +113,20 @@ describe('Dispatcher empty-resolution passthrough', () => {
     );
   });
 
-  it('passes null through for type:object when MQL produces no match', () => {
+  it('lands an MqlOne wrapper with stuff=null on no match', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
     const r = CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
-      expect(r.resolved.target).toBeNull();
+      const target = r.resolved.target as MqlOne;
+      expect(target).toBeDefined();
+      expect(target.stuff).toBeNull();
+      expect(target.raw).toBe('bathtub');
     }
   });
 
-  it('passes [] through for type:objects when MQL produces no match', () => {
+  it('lands an MqlMany wrapper with stuff=[] on no match', () => {
     const cmd = pluralObjectsCmd();
     const ctx = makeContext(
       giver,
@@ -133,22 +137,31 @@ describe('Dispatcher empty-resolution passthrough', () => {
     const r = CommandApi.resolveAndValidate({ targets: 'bathtub' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
-      expect(r.resolved.targets).toEqual([]);
+      const targets = r.resolved.targets as MqlMany;
+      expect(targets).toBeDefined();
+      expect(targets.stuff).toEqual([]);
+      expect(targets.raw).toBe('bathtub');
     }
   });
 
-  it('stamps ctx.raw with the player-typed text per MQL field', () => {
+  it('captures the player-typed text on the MqlOne.raw field', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
-    CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
-    expect(ctx.raw?.target).toBe('rose');
+    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    if ('resolved' in r) {
+      const target = r.resolved.target as MqlOne;
+      expect(target.raw).toBe('rose');
+    }
   });
 
-  it('stamps ctx.raw even when MQL resolves to nothing', () => {
+  it('captures raw text on the wrapper even when MQL resolves to nothing', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
-    CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
-    expect(ctx.raw?.target).toBe('bathtub');
+    const r = CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    if ('resolved' in r) {
+      const target = r.resolved.target as MqlOne;
+      expect(target.raw).toBe('bathtub');
+    }
   });
 
   it('does not update player scope on empty resolution', () => {
