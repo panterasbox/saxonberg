@@ -45,6 +45,7 @@ import type {
   ExprNode,
   KeywordsNode,
   MqlContext,
+  MqlManyResult,
   MqlMatch,
   PronounNode,
   QueryNode,
@@ -131,10 +132,7 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return found ? matchesFromStuff([found]) : [];
     }
     case 'lastResult':
-      // Phase 8 wires this up via pronoun memory; until then it
-      // returns nothing rather than throwing, so a future-typed
-      // query falls back to "no match".
-      return [];
+      return matchesFromStash(ctx, 'last');
     case 'group':
       return resolveQuery(node.query, ctx);
     case 'transform':
@@ -167,10 +165,27 @@ function resolvePronoun(node: PronounNode, ctx: MqlContext): MqlMatch[] {
     case 'them':
     case 'him':
     case 'her':
-      // Phase 8 wires up pronoun memory; for now these resolve to
-      // empty rather than throw — keeps failure messages clean.
-      return [];
+      return matchesFromStash(ctx, node.name);
   }
+}
+
+function matchesFromStash(
+  ctx: MqlContext,
+  slot: 'it' | 'him' | 'her' | 'them' | 'last'
+): MqlMatch[] {
+  const stash = ctx.commandGiver.getPronounMemory();
+  const stored = stash.read(slot);
+  if (!stored) return [];
+  return stashEntryToMatches(stored);
+}
+
+function stashEntryToMatches(stored: MqlManyResult): MqlMatch[] {
+  const via = stored.via;
+  return stored.stuff.map((s) => {
+    const m: MqlMatch = { stuff: s, score: 100 };
+    if (via) m.via = via;
+    return m;
+  });
 }
 
 function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {

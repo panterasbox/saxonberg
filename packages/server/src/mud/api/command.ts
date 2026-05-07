@@ -26,12 +26,14 @@ import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
-import { MqlApi, type MqlMatchVia } from './mql';
+import { MqlApi, type MqlManyResult, type MqlMatchVia } from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
 import { ExecutionContextApi } from './execution-context';
 import { CommandLineApi, type ParsedCommand, type RawToken } from './command-line';
 import type { Mml } from './mml';
+import type { GenderedSlot } from './mql/pronoun-memory';
+import { Pronouns } from '@saxonberg/types';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -914,6 +916,9 @@ export class CommandApi {
         if (r.via) stampVia(context, fname, r.via);
         // Multi-cardinality results don't update player scope (no
         // single anchor to extend or re-anchor from).
+        context.commandGiver
+          .getPronounMemory()
+          .update(r, raw, slotForGenderRouting);
       } else {
         const r = MqlApi.resolveOne(raw, {
           commandGiver: context.commandGiver,
@@ -929,6 +934,13 @@ export class CommandApi {
         if (updatesScope) {
           updatePlayerScope(context, raw, r.stuff, r.via);
         }
+        // Pronoun memory always sees a many-shaped result; wrap the
+        // single-cardinality outcome into one for the stash.
+        const asMany: MqlManyResult = { stuff: [r.stuff] };
+        if (r.via) asMany.via = r.via;
+        context.commandGiver
+          .getPronounMemory()
+          .update(asMany, raw, slotForGenderRouting);
       }
     }
 
@@ -1710,6 +1722,26 @@ function failNoMatch(raw: string): CommandResult {
   return { success: false, summary: `You don't see any '${raw}' here` };
 }
 
+/**
+ * Map a Stuff to the pronoun-memory slot it routes to. Used by the
+ * dispatcher's post-resolve update so `look bob` (a he/him NPC)
+ * lands `bob` in the `him` slot, not the generic `it`. Stuff
+ * without `GenderedMixin` defaults to `it`.
+ */
+function slotForGenderRouting(stuff: Stuff): GenderedSlot {
+  if (!MixinApi.isGendered(stuff)) return 'it';
+  switch (stuff.getPronouns()) {
+    case Pronouns.He:
+      return 'him';
+    case Pronouns.She:
+      return 'her';
+    case Pronouns.They:
+      return 'them';
+    case Pronouns.It:
+      return 'it';
+  }
+}
+
 function stampVia(
   context: CommandContext,
   fname: string,
@@ -1731,7 +1763,10 @@ function stampVia(
  * branch fires when result.stuff is the same identity as the current
  * scope's resolved Stuff AND a detailPath is present — typical case
  * is `look book` while scoped on `bookcase`. Everything else
- * re-anchors to the raw input.
+ * re-anchors to the raw input — except dynamic pronouns
+ * (`it`/`him`/`her`/`them`/`$$`), which substitute the stored
+ * fragment from pronoun memory so the scope tracks the original
+ * referent rather than the unstable pronoun string.
  */
 function updatePlayerScope(
   context: CommandContext,
@@ -1755,8 +1790,38 @@ function updatePlayerScope(
       return;
     }
   }
+  // Dynamic-pronoun carve-out: when the input was itself a pronoun,
+  // substitute the stored fragment so the scope tracks the actual
+  // referent. Storing "it" or "him" as the scope would re-resolve
+  // on each subsequent query, drifting unpredictably.
+  const pronounFragment = resolvePronounFragment(context, raw);
+  if (pronounFragment !== null) {
+    giver.setScope(pronounFragment);
+    return;
+  }
   // Re-anchor: the post-desugar input fragment IS the new scope.
   giver.setScope(raw);
+}
+
+/**
+ * If `raw` is a dynamic pronoun (`it`, `him`, `her`, `them`, `$$`),
+ * return the original fragment from pronoun memory — `null`
+ * otherwise (or when the slot is empty). Lookups are
+ * case-insensitive on the trimmed input.
+ */
+function resolvePronounFragment(
+  context: CommandContext,
+  raw: string
+): string | null {
+  const s = raw.trim().toLowerCase();
+  let slot: 'it' | 'him' | 'her' | 'them' | 'last' | null = null;
+  if (s === 'it') slot = 'it';
+  else if (s === 'him') slot = 'him';
+  else if (s === 'her') slot = 'her';
+  else if (s === 'them') slot = 'them';
+  else if (s === '$$') slot = 'last';
+  if (slot === null) return null;
+  return context.commandGiver.getPronounMemory().readFragment(slot);
 }
 
 /**

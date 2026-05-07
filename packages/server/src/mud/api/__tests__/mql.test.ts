@@ -38,13 +38,43 @@ describe('MQL resolver — direct seeds', () => {
     expect(ids(out)).toEqual([world.location.stuffId]);
   });
 
-  it('it / him / her / them are no-ops in Phase 5 (pronoun memory not wired)', () => {
+  it('it / him / her / them resolve from the giver pronoun stash', () => {
+    // Empty stash → empty match list.
     expect(resolve('it', ctx)).toEqual([]);
     expect(resolve('them', ctx)).toEqual([]);
+
+    // Populate the stash directly (the dispatcher does this in
+    // production; here we go through the public stash surface).
+    world.giver.getPronounMemory().update(
+      { stuff: [world.rose] },
+      'rose',
+      () => 'it'
+    );
+    expect(ids(resolve('it', ctx))).toEqual([world.rose.stuffId]);
+
+    world.giver.getPronounMemory().update(
+      { stuff: [world.rose, world.daisy] },
+      'flowers',
+      () => 'it'
+    );
+    // Multi-stuff routes to `them`.
+    expect(ids(resolve('them', ctx))).toEqual([
+      world.rose.stuffId,
+      world.daisy.stuffId,
+    ]);
   });
 
-  it('$$ is empty in Phase 5 (pronoun memory not wired)', () => {
+  it('$$ returns the previous full result, including via', () => {
     expect(resolve('$$', ctx)).toEqual([]);
+    world.giver.getPronounMemory().update(
+      { stuff: [world.location], via: { detailPath: ['inscription'] } },
+      'square.inscription',
+      () => 'it'
+    );
+    const out = resolve('$$', ctx);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.stuff).toBe(world.location);
+    expect(out[0]!.via).toEqual({ detailPath: ['inscription'] });
   });
 
   describe('admin-tier seeds', () => {

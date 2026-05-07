@@ -58,6 +58,7 @@ import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
+import { PronounMemory } from '../../api/mql/pronoun-memory';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
 import type { LogLevel } from '@saxonberg/types';
@@ -104,6 +105,19 @@ export interface CommandGiver {
   getScope(): string;
   setScope(fragment: string): void;
   clearScope(): void;
+  /**
+   * Per-giver MQL pronoun stash (`it`/`him`/`her`/`them`/`$$`).
+   * Updated post-resolve by the dispatcher; read by the resolver
+   * when those seeds appear in a chain. Each CommandGiver carries
+   * its own — multiplexed avatars under one player don't share.
+   *
+   * Note: this is NOT the same as `GenderedMixin.getPronouns()`
+   * (which returns a single Pronouns enum value describing the host
+   * itself). Naming is `getPronounMemory` here to dodge the
+   * collision; the underlying plan referred to this as
+   * `getPronouns()` but `Gendered` already owns that name.
+   */
+  getPronounMemory(): PronounMemory;
 }
 
 /**
@@ -190,6 +204,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * `updates_scope` path; the `focus` command sets it explicitly.
      */
     private _scope: string = 'here';
+
+    /**
+     * Per-giver pronoun stash. Transient — populated post-resolve
+     * by the dispatcher (`CommandApi.resolveAndValidate`) and read
+     * by the resolver when a query's seed is `it`/`him`/`her`/
+     * `them`/`$$`.
+     */
+    private _pronounMemory: PronounMemory = new PronounMemory();
 
     /**
      * Build the `'self'` entry once, at registration. Walks the class
@@ -388,6 +410,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
     clearScope(): void {
       this._scope = 'here';
+    }
+
+    getPronounMemory(): PronounMemory {
+      return this._pronounMemory;
     }
 
     async executeCommand(
