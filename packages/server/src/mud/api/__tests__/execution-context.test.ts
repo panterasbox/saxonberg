@@ -98,6 +98,135 @@ describe('ExecutionContextApi', () => {
     });
   });
 
+  describe('getCommandStack / getParentCommandContext', () => {
+    function makeCtx(commandId: string): { commandId: string } {
+      // Synthetic "CommandContext" for the test — getCommandStack
+      // only reads `metadata.commandContext`, so a stub object is
+      // sufficient. The real context shape is verified by the
+      // command-pipeline tests.
+      return { commandId };
+    }
+
+    it('returns an empty array outside any frame', () => {
+      expect(ExecutionContextApi.getCommandStack()).toEqual([]);
+      expect(ExecutionContextApi.getParentCommandContext()).toBeNull();
+    });
+
+    it('returns Command frames in outer→inner order with forced flag', () => {
+      const outer = { name: 'outer-giver' };
+      const inner = { name: 'inner-giver' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(
+          null,
+          outer,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: {
+              commandContext: makeCtx('outer-cmd'),
+              forced: false,
+            },
+          },
+          () => {
+            ExecutionContextApi.run(
+              outer,
+              inner,
+              'executeCommand',
+              {
+                kind: FrameKind.Command,
+                metadata: {
+                  commandContext: makeCtx('inner-cmd'),
+                  forced: true,
+                },
+              },
+              () => {
+                const stack = ExecutionContextApi.getCommandStack();
+                expect(stack).toHaveLength(2);
+                expect(
+                  (stack[0]!.context as { commandId: string }).commandId
+                ).toBe('outer-cmd');
+                expect(stack[0]!.forced).toBe(false);
+                expect(
+                  (stack[1]!.context as { commandId: string }).commandId
+                ).toBe('inner-cmd');
+                expect(stack[1]!.forced).toBe(true);
+
+                // getParentCommandContext returns the second-from-
+                // top frame (the outer command).
+                const parent = ExecutionContextApi.getParentCommandContext();
+                expect(
+                  (parent as { commandId: string }).commandId
+                ).toBe('outer-cmd');
+              }
+            );
+          }
+        );
+      });
+    });
+
+    it('skips non-Command frames in the walk', () => {
+      const giver = { name: 'giver' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(
+          null,
+          giver,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { commandContext: makeCtx('only-cmd'), forced: false },
+          },
+          () => {
+            // Plain (untagged) inner frame between Command frames.
+            ExecutionContextApi.run(giver, {}, 'helper', undefined, () => {
+              const stack = ExecutionContextApi.getCommandStack();
+              expect(stack).toHaveLength(1);
+              expect(
+                (stack[0]!.context as { commandId: string }).commandId
+              ).toBe('only-cmd');
+            });
+          }
+        );
+      });
+    });
+
+    it('forced defaults to false when metadata omits the flag', () => {
+      const giver = { name: 'giver' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(
+          null,
+          giver,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { commandContext: makeCtx('cmd') },
+          },
+          () => {
+            const stack = ExecutionContextApi.getCommandStack();
+            expect(stack[0]!.forced).toBe(false);
+          }
+        );
+      });
+    });
+
+    it('getParentCommandContext returns null with only one Command frame', () => {
+      const giver = { name: 'giver' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(
+          null,
+          giver,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { commandContext: makeCtx('only'), forced: false },
+          },
+          () => {
+            expect(ExecutionContextApi.getParentCommandContext()).toBeNull();
+          }
+        );
+      });
+    });
+  });
+
   it('dumpCallStack renders human-readable frames', () => {
     const c = new Caller();
     const t = new Target();

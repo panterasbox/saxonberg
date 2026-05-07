@@ -41,6 +41,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { Mixins } from '../mixin';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Public shape provided by PerceptibleMixin.
@@ -51,6 +53,20 @@ export interface Perceptible {
   removeKeyword(keyword: string): boolean;
   hasKeyword(keyword: string): boolean;
   setKeywords(keywords: string[]): void;
+}
+
+/**
+ * Lowercase + split-on-whitespace tokenization. Used by
+ * {@link PerceptibleMixin.getKeywords} to fold a host's display name
+ * into the keyword pool — `'oak door'` produces `['oak', 'door']`,
+ * letting players type either token.
+ */
+function tokenizeName(name: string): string[] {
+  return name
+    .toLowerCase()
+    .split(/\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -86,8 +102,23 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const k of value) this.addKeyword(k);
     }
 
+    /**
+     * Return the host's keyword pool. Folds tokenized name words in
+     * for hosts that compose `NamedMixin`, so a player can type
+     * `oak door` against an Idea named "Oak Door" without an
+     * explicit `addKeyword('oak')`. Authored keywords still take
+     * precedence on score (exact-keyword match outranks tokenized
+     * name fragment) — see `scope-walk.scoreCandidate`.
+     */
     getKeywords(): string[] {
-      return [...this._keywords];
+      const out: string[] = [...this._keywords];
+      if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
+        const named = this as unknown as { getName(): string };
+        for (const tok of tokenizeName(named.getName())) {
+          if (!out.includes(tok)) out.push(tok);
+        }
+      }
+      return out;
     }
 
     addKeyword(keyword: string): void {

@@ -148,6 +148,15 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     ];
 
     /**
+     * Self-bucket commands every CommandGiver picks up. `focus` is
+     * the meta-command for inspecting/setting the giver's MQL scope
+     * — the state is on this mixin, so the command lives here too.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['focus.yaml'],
+    };
+
+    /**
      * Recency stack — chronological. Index 0 is `'self'`. Idempotency
      * is by (source, bucket); a single source can land multiple
      * entries when its class declares contributions to several

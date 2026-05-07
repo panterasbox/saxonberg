@@ -1,0 +1,8 @@
+verbs: [focus]
+controller: FocusController
+description: "Display or set your active scope (the anchor your queries are pointed at)"
+args:
+  - name: fragment
+    type: string
+    required: false
+    greedy: true

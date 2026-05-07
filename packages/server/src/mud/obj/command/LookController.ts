@@ -29,6 +29,13 @@ export class LookController extends CommandController<LookModel> {
     if (target) {
       return this.lookAtTarget(target, context);
     }
+    // Bare `look` (no target) is "look here" for scope-update
+    // purposes per the unified-scope delta. The dispatcher's
+    // resolveAndValidate skips fields with empty raw input — so the
+    // bare-look path resets scope explicitly here. This is also what
+    // the auto-look-on-arrival hook depends on to re-anchor scope to
+    // the new room's "here" after movement.
+    context.commandGiver.clearScope();
     return this.lookAtLocation(context);
   }
 

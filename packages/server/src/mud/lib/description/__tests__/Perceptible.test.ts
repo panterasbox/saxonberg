@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
+import { NamedMixin } from '../Named';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
@@ -11,6 +12,10 @@ import { Idea } from "../../stuff/Idea";
 // Test class with PerceptibleMixin
 const PerceptibleBase = PerceptibleMixin(Idea);
 class TestObject extends PerceptibleBase {}
+
+// Composed with NamedMixin so name-token folding fires.
+const NamedPerceptibleBase = PerceptibleMixin(NamedMixin(Idea));
+class NamedTestObject extends NamedPerceptibleBase {}
 
 describe('PerceptibleMixin', () => {
   let obj: TestObject;
@@ -235,6 +240,42 @@ describe('PerceptibleMixin', () => {
       const persistentFields = (TestObject as any).persistentFields;
 
       expect(persistentFields).toContain('keywords');
+    });
+  });
+
+  describe('name folding (Phase 7)', () => {
+    it('does NOT fold name tokens when host omits NamedMixin', () => {
+      // The bare TestObject doesn't compose NamedMixin, so the
+      // name-derived token branch is skipped.
+      obj.addKeyword('explicit');
+      expect(obj.getKeywords()).toEqual(['explicit']);
+    });
+
+    it('folds tokenized name into the keyword pool when Named is composed', () => {
+      const named = makeStuff(() => new NamedTestObject());
+      named.setName('Oak Door');
+      named.addKeyword('door');
+      // 'door' is authored, 'oak' comes from the name; duplicates
+      // are deduped (the authored 'door' is preserved).
+      const kws = named.getKeywords();
+      expect(kws).toContain('door');
+      expect(kws).toContain('oak');
+      expect(kws.filter((k) => k === 'door')).toHaveLength(1);
+    });
+
+    it('lowercases name tokens during folding', () => {
+      const named = makeStuff(() => new NamedTestObject());
+      named.setName('CRYSTAL ROSE');
+      const kws = named.getKeywords();
+      expect(kws).toContain('crystal');
+      expect(kws).toContain('rose');
+    });
+
+    it('returns just authored keywords when name is empty', () => {
+      const named = makeStuff(() => new NamedTestObject());
+      // No setName — Named.name defaults to ''.
+      named.addKeyword('flower');
+      expect(named.getKeywords()).toEqual(['flower']);
     });
   });
 });
