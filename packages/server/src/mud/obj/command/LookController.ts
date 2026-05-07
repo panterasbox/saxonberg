@@ -27,19 +27,14 @@ interface LookModel extends CommandModel {
 export class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): CommandResult {
     const target = model.target;
-    // `look.yaml` declares `default: "$scope"`, so the matcher fills
-    // bare `look` with the giver's current scope — undefined target
-    // here means the dispatcher couldn't supply input at all (no
-    // scope, structured input that omitted the field, etc.). Treat
-    // that as "look at the room" for backwards compatibility.
-    if (target === undefined) {
-      return this.lookAtLocation(context);
-    }
-    if (target.stuff === null) {
-      // Player typed something but MQL produced no match.
+    // `look.yaml` declares `default: "$scope"` and the scope fallback
+    // chain `["$scope", "inventory, here"]`, so the dispatcher always
+    // hands us a wrapper. Empty (`null`) is the only honest "no
+    // match" signal; we don't fabricate another fallback here.
+    if (!target || target.stuff === null) {
       return {
         success: false,
-        summary: `you don't see any '${target.raw}' here`,
+        summary: `you don't see any '${target?.raw ?? ''}' here`,
       };
     }
     // Render the room (with exits) when the resolved target IS the

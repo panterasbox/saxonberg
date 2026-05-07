@@ -53,7 +53,6 @@ import { StuffApi } from '../../api/stuff';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
-import type { SyntheticVarEntry } from '../shell/var-interpolation';
 import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
@@ -133,19 +132,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         description:
           'Parser used to turn raw input into commands. ' +
           '`msh` is the default tokenizer-driven shell.',
-      },
-    ];
-
-    /**
-     * Synthetic vars sourced from CommandGiver state. `$me` is
-     * the MQL pronoun for the giver itself — always the literal
-     * `'me'` (MQL's own resolver maps that to the actor).
-     */
-    static syntheticVars: SyntheticVarEntry[] = [
-      {
-        name: 'me',
-        description: 'The MQL pronoun literal `me`.',
-        read: () => 'me',
       },
     ];
 

@@ -25,12 +25,12 @@
  *
  * Synthetic vars declared here:
  *
- *   - `$scope`   → current scope fragment.
- *   - `$it`/`$him`/`$her`/`$them` → the corresponding MQL pronoun
- *     literal (for use inside larger fragments). Note: the
- *     dispatcher resolves `it` etc. via the pronoun stash whether
- *     or not the player typed `$`; the `$it` form lets authors
- *     interpolate inside other fragments (`look ${it}:i`).
+ *   - `$scope` → current scope fragment.
+ *
+ * Pronoun words (`me`, `here`, `it`/`him`/`her`/`them`) are NOT
+ * shell vars. They are first-class MQL keywords recognized by the
+ * resolver — typing `look him` or `look here` works because MQL's
+ * pronoun seed handles them, not because of variable expansion.
  *
  * Naming note: `getPronounMemory()` rather than `getPronouns()`
  * because `GenderedMixin` already owns the latter (returning a
@@ -42,7 +42,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { PronounMemory } from '../../api/mql/pronoun-memory';
 import type { CommandContributions } from '../../api/command';
-import type { SyntheticVarEntry } from '../shell/var-interpolation';
+import type { SyntheticVarEntry } from '../../api/shell';
 
 /**
  * Public shape provided by FocusedMixin.
@@ -81,38 +81,14 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     };
 
     /**
-     * Synthetic vars sourced from this mixin's state. `$scope`
-     * reads the live drilled fragment; the pronoun aliases let
-     * authors interpolate the literal pronoun word inside larger
-     * fragments (`look ${it}:i`) — the dispatcher already
-     * resolves bare `it`/`him`/etc. via the stash, so this is
-     * for composed contexts where the fragment needs the word.
+     * Synthetic vars sourced from this mixin's state. v1 ships
+     * exactly one — `$scope` reads the live drilled fragment.
      */
     static syntheticVars: SyntheticVarEntry[] = [
       {
         name: 'scope',
         description: "The giver's current MQL scope fragment.",
         read: (giver) => (giver as Stuff & { getScope(): string }).getScope(),
-      },
-      {
-        name: 'it',
-        description: 'The MQL pronoun literal `it`.',
-        read: () => 'it',
-      },
-      {
-        name: 'him',
-        description: 'The MQL pronoun literal `him`.',
-        read: () => 'him',
-      },
-      {
-        name: 'her',
-        description: 'The MQL pronoun literal `her`.',
-        read: () => 'her',
-      },
-      {
-        name: 'them',
-        description: 'The MQL pronoun literal `them`.',
-        read: () => 'them',
       },
     ];
 

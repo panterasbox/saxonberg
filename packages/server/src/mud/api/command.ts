@@ -18,7 +18,7 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
-import { expandVariables } from '../lib/shell/var-interpolation';
+import { ShellApi } from './shell';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
@@ -337,25 +337,33 @@ export interface FieldDefinition {
   _resolvedValidators?: FieldValidator[];
   /**
    * Value the matcher fills when the player provides no input for
-   * this field. A string default runs through shell-side variable
+   * this field. The default runs through shell-side variable
    * interpolation just like player-typed text — `default: "$scope"`
-   * resolves to the giver's current scope at bind time. Non-string
-   * defaults pass through verbatim.
+   * resolves to the giver's current scope at bind time.
    *
    * `required: true` + `default:` is allowed: the default replaces
    * the missing input, no shape error. The "missing required arg"
    * message only fires when the field is required AND has no
    * default AND the player supplied nothing.
    */
-  default?: unknown;
+  default?: string;
   /**
-   * MQL fragment string overriding the player's active scope for
-   * resolution of THIS field. Examples: `"inventory"`, `"here"`,
-   * `"inventory, here"` (comma-union), `"online"`, `"#abc123"`.
-   * When omitted, the dispatcher uses `commandGiver.getScope()`.
-   * Only meaningful for `type: object` / `type: objects` fields.
+   * MQL fragment(s) the dispatcher tries when resolving this field.
+   * Each fragment runs through `ShellApi.expandVariables` (so
+   * `$scope` / stored vars expand at resolve time) and is tried in
+   * order; first non-empty result wins.
+   *
+   * Single-string and string-array forms are both accepted. The
+   * array form is the explicit fallback chain — a verb that wants
+   * drill-first semantics declares `scope: ['$scope', 'inventory,
+   * here']` so a drilled player searches the drill scope first
+   * with the room as fallback. Verbs that should ignore drill
+   * declare just `scope: 'inventory, here'`.
+   *
+   * Default when omitted: `'here'`. Only meaningful for
+   * `type: object` / `type: objects` fields.
    */
-  scope?: string;
+  scope?: string | string[];
   /**
    * When `true`, the dispatcher updates the giver's stored scope
    * fragment after a successful resolution per the drill-trail rule
@@ -923,24 +931,22 @@ export class CommandApi {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
-      // Priority/fallback rule: drilled player tries their own scope
-      // first, falls back to the YAML scope on empty (drill stays
-      // ergonomic without trapping inspection commands inside detail
-      // stacks). When the giver isn't Focused, only the YAML scope
-      // (or `'here'`) is in play.
-      const playerScope = focused ? focused.getScope() : null;
-      const yamlScope =
-        typeof def.scope === 'string' && def.scope.length > 0
-          ? def.scope
-          : null;
+      // Build the scope try-list. The YAML's `scope:` is authoritative
+      // — it's the explicit ordered fallback chain. Each entry runs
+      // through ShellApi.expandVariables so authors can reference
+      // synthetic vars (`$scope`) and stored vars at resolve time. A
+      // YAML that wants drill-first declares `scope: ['$scope', ...]`.
+      // No implicit player-scope priority — the help system can read
+      // the YAML to tell players which commands respect drill.
+      const yamlScopes = Array.isArray(def.scope)
+        ? def.scope
+        : typeof def.scope === 'string' && def.scope.length > 0
+          ? [def.scope]
+          : [];
       const tries: string[] =
-        playerScope && yamlScope && playerScope !== yamlScope
-          ? [playerScope, yamlScope]
-          : playerScope
-            ? [playerScope]
-            : yamlScope
-              ? [yamlScope]
-              : ['here'];
+        yamlScopes.length > 0
+          ? yamlScopes.map((s) => ShellApi.expandVariables(s, giver))
+          : ['here'];
 
       const updatesScope = def.updates_scope === true;
       const fieldPrep = prep[fname];
@@ -1346,7 +1352,7 @@ function bindPositionals(
     if (def.greedy) {
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
-          bound[name] = expandDefault(def.default, expand);
+          bound[name] = expand(def.default);
           return { bound, prep };
         }
         if (def.required !== false) {
@@ -1379,7 +1385,7 @@ function bindPositionals(
         // — the greedy field has no content. Default fills if
         // declared; else required→shape error / optional→absent.
         if (def.default !== undefined) {
-          bound[name] = expandDefault(def.default, expand);
+          bound[name] = expand(def.default);
         } else if (def.required !== false) {
           return {
             error: 'shape',
@@ -1419,7 +1425,7 @@ function bindPositionals(
     if (def.required) {
       if (pi >= positionals.length || nextBelongsToLater) {
         if (def.default !== undefined) {
-          bound[name] = expandDefault(def.default, expand);
+          bound[name] = expand(def.default);
           continue;
         }
         return {
@@ -1437,7 +1443,7 @@ function bindPositionals(
       bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
-      bound[name] = expandDefault(def.default, expand);
+      bound[name] = expand(def.default);
     }
   }
 
@@ -1451,19 +1457,6 @@ function bindPositionals(
 }
 
 /**
- * Expand a YAML-declared default — only string defaults run through
- * variable interpolation; numeric / boolean / object defaults pass
- * through untouched.
- */
-function expandDefault(
-  def: unknown,
-  expand: (text: string) => string,
-): FieldValue {
-  if (typeof def === 'string') return expand(def);
-  return def as FieldValue;
-}
-
-/**
  * Build a per-call expander. Returns the identity function when
  * the giver doesn't compose `EnvironmentMixin` or has
  * `shell.interpolate-vars` set to false — callers stay branch-free.
@@ -1472,7 +1465,7 @@ function makeExpander(giver: Stuff): (text: string) => string {
   if (!MixinApi.isEnvironment(giver)) return (s) => s;
   const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
   if (enabled === false) return (s) => s;
-  return (text) => expandVariables(text, giver);
+  return (text) => ShellApi.expandVariables(text, giver);
 }
 
 /** Collect every later positional's declared prepositions into one

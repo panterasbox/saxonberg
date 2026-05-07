@@ -417,10 +417,11 @@ fields and runs every declared validator:
 
 ```
 for each type:object field present:
-  build the scope try-list (priority + fallback):
-    playerScope = isFocused(giver) ? giver.getScope() : null
-    yamlScope   = def.scope ?? null
-    tries = [playerScope?, yamlScope?] (skipping nulls; defaulting to ['here'])
+  yamlScopes = Array.isArray(def.scope) ? def.scope
+              : def.scope ? [def.scope] : []
+  tries = yamlScopes.length > 0
+            ? yamlScopes.map(s => ShellApi.expandVariables(s, giver))
+            : ['here']
   for each scope in tries:
     if multiple:  MqlApi.resolveMany(query, { commandGiver, scope })
     else:         MqlApi.resolveOne (query, { commandGiver, scope })
@@ -432,14 +433,21 @@ run verb-scoped option validators
 run subcommand-scoped option validators (if active)
 ```
 
-### Scope priority + fallback
+### YAML scope[] is the explicit fallback chain
 
-Drilled players get drill-first / YAML-fallback semantics: a player
-scoped on `bookcase.book` typing `look chair` searches the drill
-scope first (no chair there), then falls back to `inventory, here`
-and finds it — without leaving the chair-find unable to fire just
-because the player happened to be drilled. Cheap when the first
-try hits (the common case).
+`FieldDefinition.scope` accepts `string | string[]`. Each entry
+runs through `ShellApi.expandVariables` (synthetic vars like
+`$scope` and stored vars expand at bind time) and is tried in
+order; first non-empty result wins. The array form is the
+explicit fallback chain — a verb that wants drill-first semantics
+declares `scope: ['$scope', 'inventory, here']` so a drilled
+player searches the drill scope first, with the room as fallback.
+A verb that should ignore drill declares just
+`scope: 'inventory, here'`.
+
+There's no implicit "player scope tries first" rule. The YAML is
+authoritative — the help system can read `scope` to tell players
+which commands respect drill and which don't.
 
 Pronoun memory updates and the `updates_scope` post-resolve hook
 both gate on `MixinApi.isFocused(giver)`. NPCs without
@@ -448,14 +456,13 @@ a pronoun stash.
 
 ### Default args
 
-`FieldDefinition.default?: unknown` lets a field declare fill-in
-text (or non-string defaults) for missing input. The matcher's
-boundary-lookahead extends to non-greedy fields: when binding a
-positional and the next available token belongs to a *later*
-field's `prepositions:` list, the current field defaults rather
-than consuming. String defaults run through the same shell-side
-variable interpolation as player-typed text — `default: "$scope"`
-expands at bind time.
+`FieldDefinition.default?: string` lets a field declare fill-in
+text for missing input. The matcher's boundary-lookahead extends
+to non-greedy fields: when binding a positional and the next
+available token belongs to a *later* field's `prepositions:`
+list, the current field defaults rather than consuming. The
+default runs through the same `ShellApi.expandVariables` as
+player-typed text — `default: "$scope"` expands at bind time.
 
 `required: true` + `default:` is allowed; the default replaces
 the missing input. The "missing required arg" error only fires

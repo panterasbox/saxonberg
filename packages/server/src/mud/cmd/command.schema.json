@@ -82,10 +82,16 @@
           "type": "array",
           "items": { "$ref": "#/$defs/validatorSpec" }
         },
-        "default": {},
-        "scope": {
+        "default": {
           "type": "string",
-          "description": "MQL fragment overriding the player's active scope for THIS field. Examples: `inventory`, `here`, `inventory, here`, `online`. Only meaningful for `type: object` / `type: objects`."
+          "description": "Fill-in text used when the player provides no input for this field. Runs through ShellApi.expandVariables — `default: \"$scope\"` resolves to the giver's current scope at bind time."
+        },
+        "scope": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+          ],
+          "description": "MQL fragment(s) the dispatcher tries when resolving this field. Each entry runs through ShellApi.expandVariables and is tried in order; first non-empty result wins. Array form is the explicit fallback chain (e.g. `['$scope', 'inventory, here']` for drill-first). Only meaningful for `type: object` / `type: objects`."
         },
         "updates_scope": {
           "type": "boolean",

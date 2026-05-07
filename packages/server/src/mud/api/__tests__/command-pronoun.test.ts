@@ -300,17 +300,30 @@ describe('Dispatcher pronoun-memory integration', () => {
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
   });
 
-  it('drilled player falls back to YAML scope when player scope misses', () => {
-    // Player drilled to "rose" (in the room, not their inventory).
+  it('YAML scope[] tries entries in order; falls back when first misses', () => {
+    // Drill-first verb declared via the explicit array form. The
+    // dispatcher tries `$scope` (= 'rose') first; `apple` lives in
+    // the giver's inventory, not in the rose detail tree, so the
+    // first try misses and the second (`inventory, here`) finds it.
+    const drillFirstLook = CommandDefinition.fromYaml(
+      [
+        'verbs: [look]',
+        'controller: LookController',
+        'description: examine',
+        'args:',
+        '  - name: target',
+        '    type: object',
+        '    required: false',
+        '    scope: ["$scope", "inventory, here"]',
+        '    updates_scope: true',
+      ].join('\n'),
+      '<test>'
+    );
     giver.setScope('rose');
-    const cmd = lookCommand();
-    // `look apple` — apple is in the giver's inventory, NOT in the
-    // rose detail tree. Player scope tries first ("rose" → no apple),
-    // then YAML scope "inventory, here" picks it up.
     const ctx = makeContext(
       giver,
       location as unknown as Location,
-      cmd,
+      drillFirstLook,
       'look apple'
     );
     const r = CommandApi.resolveAndValidate({ target: 'apple' }, ctx);

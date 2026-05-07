@@ -10,14 +10,12 @@
  * connection drops.
  */
 
-import { Character } from '../lib/character/Character';
+import { ShelledCharacter } from '../lib/shell/ShelledCharacter';
 import { PlayerApi } from '../api/player';
 import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { EnvironmentMixin } from '../lib/shell/Environment';
-import { FocusedMixin } from '../lib/command/Focused';
 import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
@@ -36,9 +34,7 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = EnvironmentMixin(
-  FocusedMixin(PostRegistrationMixin(HasInteractiveMixin(Character))),
-);
+const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(ShelledCharacter));
 
 export class Avatar extends AvatarBase {
   /**

@@ -32,7 +32,6 @@ import type { Container } from './Container';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import type { SyntheticVarEntry } from '../shell/var-interpolation';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -68,20 +67,6 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainableMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainableMixin';
-
-    /**
-     * Synthetic vars sourced from Containable state. `$here` is
-     * the MQL pronoun for the giver's current environment —
-     * always the literal `'here'` (MQL's resolver maps that to
-     * the giver's container).
-     */
-    static syntheticVars: SyntheticVarEntry[] = [
-      {
-        name: 'here',
-        description: "The MQL pronoun literal `here`.",
-        read: () => 'here',
-      },
-    ];
 
     /**
      * Note: environment is a complex type (reference to another object).

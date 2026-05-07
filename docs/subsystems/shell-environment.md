@@ -309,16 +309,23 @@ boundary, not preemptively.
 ## Variable interpolation
 
 `$name` and `${name}` references inside command-line text expand
-to the resolved value at matcher time. Implementation lives in
-`lib/shell/var-interpolation.ts` (the `expandVariables` helper);
-the matcher (`CommandApi.assemble`) calls it per `WordToken` value
-before binding to a positional. Greedy slices have each token
-expanded before rejoining; quoted slices expand the same way (one
-uniform rule — shell-quoting is just token-grouping).
+to the resolved value at matcher time. Implementation lives on
+`ShellApi` (`api/shell.ts`) — the substrate Api for the msh shell
+suite. The matcher (`CommandApi.assemble`) calls
+`ShellApi.expandVariables` per `WordToken` value before binding to
+a positional. Greedy slices have each token expanded before
+rejoining; quoted slices expand the same way (one uniform rule —
+shell-quoting is just token-grouping).
 
 `$$` is left intact for MQL's last-result token to handle. Names
 match `[A-Za-z_][A-Za-z0-9_]*` — no dots, no hyphens, matching the
 existing setting/var naming convention.
+
+> **Pronoun words are not shell vars.** `me`, `here`,
+> `it`/`him`/`her`/`them` are first-class MQL keywords recognized
+> by the resolver. Typing `look here` or `look him` works because
+> MQL's pronoun seed handles them, not because of variable
+> expansion. There is no `$me` / `$here` / `$it` alias.
 
 ### Synthetic vs stored vars
 
@@ -327,19 +334,12 @@ Two sources, with synthetic winning on collision:
 - **Synthetic** — read-only, declared by mixins via static
   `syntheticVars: SyntheticVarEntry[]`. Same composition-driven
   pattern as `static settings`, `static commandContributions`,
-  `static persistentFields`. The lookup walks the giver's mixin
-  chain (`MixinApi.queryMixins`) on each expansion; first match
-  wins. An NPC composed without `FocusedMixin` won't find
-  `$scope` — the lookup returns null and expansion soft-warns.
+  `static persistentFields`. `ShellApi.lookupSyntheticVar` walks
+  the giver's mixin chain on each expansion; first match wins.
 
-  v1 set:
-
-  - `$scope` — `FocusedMixin`. Live read of `getScope()`.
-  - `$it` / `$him` / `$her` / `$them` — `FocusedMixin`. Each
-    returns the corresponding MQL pronoun literal so authors
-    can interpolate them inside larger fragments.
-  - `$me` — `CommandGiverMixin`. Always returns `'me'`.
-  - `$here` — `ContainableMixin`. Always returns `'here'`.
+  v1 ships exactly one entry: **`$scope`** on `FocusedMixin`,
+  reading the live drilled fragment via `getScope()`. NPCs
+  without `FocusedMixin` get null on lookup.
 
 - **Stored** — settable via `var set NAME VALUE`, read on
   expansion via `giver.listVars()`. Only available when the giver
@@ -353,21 +353,25 @@ silent override.
 
 ### Gating
 
-Expansion is on by default for any giver composing
-`EnvironmentMixin`. Two opt-outs:
+The matcher gates `expandVariables` per giver. `ShellApi` itself
+is unconditional — direct callers (the YAML scope expander) want
+to expand regardless of player settings. The two matcher gates:
 
 - Per-host setting: `shell.interpolate-vars: boolean` (default
-  `true`). Off → matcher skips expansion entirely; literal `$X`
-  flows through.
-- Mixin absence: NPCs without `EnvironmentMixin` never expand.
-  Scripts pass literal MQL.
+  `true`). Off → matcher's per-token pass skips expansion
+  entirely; literal `$X` flows through.
+- Mixin absence: givers without `EnvironmentMixin` skip expansion
+  on the matcher path. Scripts pass literal MQL.
+
+The YAML-side `scope:` expander always runs, since the YAML is
+authored content rather than player input.
 
 NPC scripts that hit `$X` either fail loud at MQL parse time
 (`$` isn't valid MQL syntax outside `$$`) or pass a literal token
-the resolver doesn't recognize. The contract: opt in to
-`FocusedMixin` + `EnvironmentMixin` if you want drill state,
-pronoun memory, or var interpolation; the default NPC has none of
-those.
+the resolver doesn't recognize. The contract: opt in to the shell
+suite (compose `ShelledCharacter` instead of `Character`) if you
+want drill state or var interpolation; the default NPC has
+neither.
 
 ### Empty / missing variables
 
@@ -375,19 +379,31 @@ those.
   shouldn't happen, scope defaults to `"here"`): the token
   becomes empty and drops out of the bind.
 - Stored-var miss: empty substitution + soft-warn via `MudlogApi`
-  ("unknown variable: $foo"). Failing the command would break
-  scripts mid-flight; empty-substitute keeps things moving and
-  surfaces the typo.
+  ("unknown variable: $foo") when the giver is a Sensor. Failing
+  the command would break scripts mid-flight; empty-substitute
+  keeps things moving and surfaces the typo.
+
+### YAML scope[]
+
+`FieldDefinition.scope` accepts `string | string[]`. Each entry
+runs through `ShellApi.expandVariables` (so `$scope` and stored
+vars resolve at bind time) and is tried in order; first non-empty
+result wins. The array form is the explicit fallback chain — a
+verb that wants drill-first semantics declares
+`scope: ['$scope', 'inventory, here']`. There is no implicit
+"player scope tries first" rule; the YAML is authoritative, and
+the help system can read the array to tell players which commands
+respect drill.
 
 ### Defaults
 
-`FieldDefinition.default?: unknown` lets a YAML field declare
+`FieldDefinition.default?: string` lets a YAML field declare
 fill-in text. The matcher's `bindPositionals` extends boundary-
 lookahead to non-greedy fields too: if the next available token
 belongs to a *later* field's `prepositions:` list, the current
 field has no input — apply the default (or fail when required
-without default). String defaults run through `expandVariables`,
-so `default: "$scope"` resolves at bind time. `required: true` +
+without default). The default runs through `expandVariables`, so
+`default: "$scope"` resolves at bind time. `required: true` +
 `default:` is allowed; the default replaces the missing input.
 
 The canonical use is `look.yaml` — `default: "$scope"` makes bare
