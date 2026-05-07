@@ -417,18 +417,52 @@ fields and runs every declared validator:
 
 ```
 for each type:object field present:
-  if multiple:
-    MqlApi.resolveMany(query, ctx) → Stuff[]
-    empty → fail with "you don't see any '<query>' here"
-  else:
-    MqlApi.resolve(query, ctx) → Stuff | null
-    null → same failure
-  replace string with resolved Stuff / Stuff[]
+  build the scope try-list (priority + fallback):
+    playerScope = isFocused(giver) ? giver.getScope() : null
+    yamlScope   = def.scope ?? null
+    tries = [playerScope?, yamlScope?] (skipping nulls; defaulting to ['here'])
+  for each scope in tries:
+    if multiple:  MqlApi.resolveMany(query, { commandGiver, scope })
+    else:         MqlApi.resolveOne (query, { commandGiver, scope })
+    stop on first non-empty result
+  bind the wrapper (MqlOne / MqlMany) onto the model
 
 run field validators (positional + sub-positional)
 run verb-scoped option validators
 run subcommand-scoped option validators (if active)
 ```
+
+### Scope priority + fallback
+
+Drilled players get drill-first / YAML-fallback semantics: a player
+scoped on `bookcase.book` typing `look chair` searches the drill
+scope first (no chair there), then falls back to `inventory, here`
+and finds it — without leaving the chair-find unable to fire just
+because the player happened to be drilled. Cheap when the first
+try hits (the common case).
+
+Pronoun memory updates and the `updates_scope` post-resolve hook
+both gate on `MixinApi.isFocused(giver)`. NPCs without
+`FocusedMixin` resolve through MQL but don't carry drill state or
+a pronoun stash.
+
+### Default args
+
+`FieldDefinition.default?: unknown` lets a field declare fill-in
+text (or non-string defaults) for missing input. The matcher's
+boundary-lookahead extends to non-greedy fields: when binding a
+positional and the next available token belongs to a *later*
+field's `prepositions:` list, the current field defaults rather
+than consuming. String defaults run through the same shell-side
+variable interpolation as player-typed text — `default: "$scope"`
+expands at bind time.
+
+`required: true` + `default:` is allowed; the default replaces
+the missing input. The "missing required arg" error only fires
+when the field is required AND has no default AND the player
+supplied nothing. See [shell-environment.md § Variable
+interpolation](./shell-environment.md#variable-interpolation) for
+the expansion machinery.
 
 The first validator to return a non-undefined string fails the command
 with that summary. On success, the dispatcher hands the resolved

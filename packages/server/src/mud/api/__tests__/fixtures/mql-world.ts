@@ -15,11 +15,13 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
+import { FocusedMixin } from '../../../lib/command/Focused';
 import { ContainmentApi } from '../../containment';
 import { StuffApi } from '../../stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../../lib/command/CommandGiver';
+import type { Focused } from '../../../lib/command/Focused';
 
 class TestLocation extends ContainerMixin(
   DetailedMixin(NamedMixin(PerceptibleMixin(Idea)))
@@ -30,11 +32,13 @@ class TestThing extends ContainableMixin(
 ) {}
 
 class TestGiver extends ContainerMixin(
-  ContainableMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  ContainableMixin(
+    FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  )
 ) {}
 
 export interface MqlWorld {
-  giver: Stuff & CommandGiver;
+  giver: Stuff & CommandGiver & Focused;
   location: Stuff;
   rose: Stuff;
   daisy: Stuff;
@@ -61,7 +65,8 @@ export function makeWorld(): MqlWorld {
   location.setDetail(['inscription'], 'A weathered inscription on the cobblestones.');
 
   const giver = makeStuff(() => new TestGiver()) as unknown as Stuff &
-    CommandGiver & { setName: (n: string) => void };
+    CommandGiver &
+    Focused & { setName: (n: string) => void };
   giver.setName('bob');
   ContainmentApi.move(
     giver as unknown as Parameters<typeof ContainmentApi.move>[0],

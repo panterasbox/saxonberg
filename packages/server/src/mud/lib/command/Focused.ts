@@ -42,6 +42,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { PronounMemory } from '../../api/mql/pronoun-memory';
 import type { CommandContributions } from '../../api/command';
+import type { SyntheticVarEntry } from '../shell/var-interpolation';
 
 /**
  * Public shape provided by FocusedMixin.
@@ -78,6 +79,42 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     static commandContributions: CommandContributions = {
       self: ['focus.yaml'],
     };
+
+    /**
+     * Synthetic vars sourced from this mixin's state. `$scope`
+     * reads the live drilled fragment; the pronoun aliases let
+     * authors interpolate the literal pronoun word inside larger
+     * fragments (`look ${it}:i`) — the dispatcher already
+     * resolves bare `it`/`him`/etc. via the stash, so this is
+     * for composed contexts where the fragment needs the word.
+     */
+    static syntheticVars: SyntheticVarEntry[] = [
+      {
+        name: 'scope',
+        description: "The giver's current MQL scope fragment.",
+        read: (giver) => (giver as Stuff & { getScope(): string }).getScope(),
+      },
+      {
+        name: 'it',
+        description: 'The MQL pronoun literal `it`.',
+        read: () => 'it',
+      },
+      {
+        name: 'him',
+        description: 'The MQL pronoun literal `him`.',
+        read: () => 'him',
+      },
+      {
+        name: 'her',
+        description: 'The MQL pronoun literal `her`.',
+        read: () => 'her',
+      },
+      {
+        name: 'them',
+        description: 'The MQL pronoun literal `them`.',
+        read: () => 'them',
+      },
+    ];
 
     /**
      * Active MQL scope fragment. Transient — every Focused giver

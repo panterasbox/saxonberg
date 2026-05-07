@@ -306,13 +306,101 @@ If the per-avatar + two-store + schema-on-mixin pattern proves to be
 genuine shared infrastructure, factor it out at the second-mixin
 boundary, not preemptively.
 
-## Variable interpolation, eventually
+## Variable interpolation
 
-When `$name` substitution arrives (a future shell-parser concern),
-the lookup chain extends — but does not replace — what's described
-here:
+`$name` and `${name}` references inside command-line text expand
+to the resolved value at matcher time. Implementation lives in
+`lib/shell/var-interpolation.ts` (the `expandVariables` helper);
+the matcher (`CommandApi.assemble`) calls it per `WordToken` value
+before binding to a positional. Greedy slices have each token
+expanded before rejoining; quoted slices expand the same way (one
+uniform rule — shell-quoting is just token-grouping).
+
+`$$` is left intact for MQL's last-result token to handle. Names
+match `[A-Za-z_][A-Za-z0-9_]*` — no dots, no hyphens, matching the
+existing setting/var naming convention.
+
+### Synthetic vs stored vars
+
+Two sources, with synthetic winning on collision:
+
+- **Synthetic** — read-only, declared by mixins via static
+  `syntheticVars: SyntheticVarEntry[]`. Same composition-driven
+  pattern as `static settings`, `static commandContributions`,
+  `static persistentFields`. The lookup walks the giver's mixin
+  chain (`MixinApi.queryMixins`) on each expansion; first match
+  wins. An NPC composed without `FocusedMixin` won't find
+  `$scope` — the lookup returns null and expansion soft-warns.
+
+  v1 set:
+
+  - `$scope` — `FocusedMixin`. Live read of `getScope()`.
+  - `$it` / `$him` / `$her` / `$them` — `FocusedMixin`. Each
+    returns the corresponding MQL pronoun literal so authors
+    can interpolate them inside larger fragments.
+  - `$me` — `CommandGiverMixin`. Always returns `'me'`.
+  - `$here` — `ContainableMixin`. Always returns `'here'`.
+
+- **Stored** — settable via `var set NAME VALUE`, read on
+  expansion via `giver.listVars()`. Only available when the giver
+  composes `EnvironmentMixin`.
+
+Synthetic precedence: if a player does `var set scope foo`,
+`$scope` still resolves to the giver's actual current scope.
+Synthetic names are documented and stable; an accidental
+collision is better surfaced as documented-name-wins than as
+silent override.
+
+### Gating
+
+Expansion is on by default for any giver composing
+`EnvironmentMixin`. Two opt-outs:
+
+- Per-host setting: `shell.interpolate-vars: boolean` (default
+  `true`). Off → matcher skips expansion entirely; literal `$X`
+  flows through.
+- Mixin absence: NPCs without `EnvironmentMixin` never expand.
+  Scripts pass literal MQL.
+
+NPC scripts that hit `$X` either fail loud at MQL parse time
+(`$` isn't valid MQL syntax outside `$$`) or pass a literal token
+the resolver doesn't recognize. The contract: opt in to
+`FocusedMixin` + `EnvironmentMixin` if you want drill state,
+pronoun memory, or var interpolation; the default NPC has none of
+those.
+
+### Empty / missing variables
+
+- Synthetic that returns empty (e.g., `$scope` with empty scope —
+  shouldn't happen, scope defaults to `"here"`): the token
+  becomes empty and drops out of the bind.
+- Stored-var miss: empty substitution + soft-warn via `MudlogApi`
+  ("unknown variable: $foo"). Failing the command would break
+  scripts mid-flight; empty-substitute keeps things moving and
+  surfaces the typo.
+
+### Defaults
+
+`FieldDefinition.default?: unknown` lets a YAML field declare
+fill-in text. The matcher's `bindPositionals` extends boundary-
+lookahead to non-greedy fields too: if the next available token
+belongs to a *later* field's `prepositions:` list, the current
+field has no input — apply the default (or fail when required
+without default). String defaults run through `expandVariables`,
+so `default: "$scope"` resolves at bind time. `required: true` +
+`default:` is allowed; the default replaces the missing input.
+
+The canonical use is `look.yaml` — `default: "$scope"` makes bare
+`look` mean "look at what I'm focused on" without controller-side
+special branches.
+
+### Future evolution
+
+When alias / function frame-local scope arrives, the lookup chain
+extends — but does not replace — what's described here:
 
 > frame-local (alias / function args)
+> → synthetic (mixin-declared)
 > → session store
 > → persistent store
 > → schema default (or, eventually, a `defaultCompute(host)`)
@@ -320,9 +408,9 @@ here:
 `EnvironmentMixin` owns session and persistent only. Frame-local
 scope is the future alias / function executor's concern. The
 scripting language and the interactive shell share session and
-persistent stores (bash model); locally-scoped script variables, if
-needed, arrive as a `local` modifier — they don't reclaim the word
-`var`.
+persistent stores (bash model); locally-scoped script variables,
+if needed, arrive as a `local` modifier — they don't reclaim the
+word `var`.
 
 ## Antipatterns
 

@@ -8,5 +8,6 @@ args:
     scope: "inventory, here"
     updates_scope: true
     prepositions: [at]
+    default: "$scope"
     validators:
       - /lib/command/validators/mustBeVisible

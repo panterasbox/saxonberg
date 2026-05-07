@@ -124,13 +124,13 @@ describe('SettingsController', () => {
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/5 settings/);
+      expect(result.summary).toMatch(/6 settings/);
     });
 
     it('treats no subcommand as list', () => {
       const result = controller.execute(makeModel(), makeContext(host, location));
       expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/5 settings/);
+      expect(result.summary).toMatch(/6 settings/);
     });
   });
 

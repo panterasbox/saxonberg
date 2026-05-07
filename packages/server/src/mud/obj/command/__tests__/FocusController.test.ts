@@ -19,6 +19,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { FocusController } from '../FocusController';
 import { Idea } from '../../../lib/stuff/Idea';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
+import { FocusedMixin } from '../../../lib/command/Focused';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -38,8 +39,8 @@ import type {
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
-const TestGiverBase = CommandGiverMixin(
-  ContainerMixin(ContainableMixin(SensorMixin(Idea)))
+const TestGiverBase = FocusedMixin(
+  CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
 );
 class TestGiver extends TestGiverBase {
   protected override handleMessage(): void {}

@@ -27,14 +27,12 @@ interface LookModel extends CommandModel {
 export class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): CommandResult {
     const target = model.target;
+    // `look.yaml` declares `default: "$scope"`, so the matcher fills
+    // bare `look` with the giver's current scope — undefined target
+    // here means the dispatcher couldn't supply input at all (no
+    // scope, structured input that omitted the field, etc.). Treat
+    // that as "look at the room" for backwards compatibility.
     if (target === undefined) {
-      // Bare `look` (no target) is "look here" for scope-update
-      // purposes per the unified-scope delta. The dispatcher's
-      // resolveAndValidate skips fields with empty raw input — so
-      // the bare-look path resets scope explicitly here. This is
-      // also what the auto-look-on-arrival hook depends on to
-      // re-anchor scope to the new room's "here" after movement.
-      context.commandGiver.clearScope();
       return this.lookAtLocation(context);
     }
     if (target.stuff === null) {
@@ -43,6 +41,12 @@ export class LookController extends CommandController<LookModel> {
         success: false,
         summary: `you don't see any '${target.raw}' here`,
       };
+    }
+    // Render the room (with exits) when the resolved target IS the
+    // current location — bare `look` on arrival, `look here`, or
+    // any `$scope` that re-resolved to the location.
+    if (target.stuff === context.location) {
+      return this.lookAtLocation(context);
     }
     return this.lookAtTarget(target.stuff, context);
   }

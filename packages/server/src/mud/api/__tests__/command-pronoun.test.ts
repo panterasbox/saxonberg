@@ -28,6 +28,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
+import { FocusedMixin } from '../../lib/command/Focused';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
@@ -42,7 +43,9 @@ class TestPerson extends GenderedMixin(
   ContainableMixin(NamedMixin(PerceptibleMixin(Idea)))
 ) {}
 class TestGiver extends ContainerMixin(
-  ContainableMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  ContainableMixin(
+    FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  )
 ) {}
 
 function lookCommand(): CommandDefinition {
@@ -295,5 +298,28 @@ describe('Dispatcher pronoun-memory integration', () => {
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
+  });
+
+  it('drilled player falls back to YAML scope when player scope misses', () => {
+    // Player drilled to "rose" (in the room, not their inventory).
+    giver.setScope('rose');
+    const cmd = lookCommand();
+    // `look apple` — apple is in the giver's inventory, NOT in the
+    // rose detail tree. Player scope tries first ("rose" → no apple),
+    // then YAML scope "inventory, here" picks it up.
+    const ctx = makeContext(
+      giver,
+      location as unknown as Location,
+      cmd,
+      'look apple'
+    );
+    const r = CommandApi.resolveAndValidate({ target: 'apple' }, ctx);
+    expect('resolved' in r).toBe(true);
+    if ('resolved' in r) {
+      const target = r.resolved.target as MqlOne;
+      expect(target.stuff).toBe(apple);
+    }
+    // updates_scope re-anchors to the typed fragment.
+    expect(giver.getScope()).toBe('apple');
   });
 });

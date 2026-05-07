@@ -52,13 +52,12 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
-import type { CommandContributions } from '../../api/command';
 import type { CommandSchemaPayload } from '../../api/command';
+import type { SyntheticVarEntry } from '../shell/var-interpolation';
 import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
-import { PronounMemory } from '../../api/mql';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
 import type { LogLevel } from '@saxonberg/types';
@@ -94,30 +93,6 @@ export interface CommandGiver {
   ): void;
   popCommandSource(source: RecencySource): void;
   resetCommandSources(reason: 'self-moved'): void;
-  /**
-   * Read the giver's active MQL scope fragment — the search anchor
-   * the dispatcher passes to MQL when a field doesn't override
-   * `scope:`. Defaults to `"here"`. Inspection-shaped commands
-   * (`look`, `examine`, …) update scope post-resolve via the
-   * dispatcher's drill-trail rule; the `focus` command sets it
-   * explicitly.
-   */
-  getScope(): string;
-  setScope(fragment: string): void;
-  clearScope(): void;
-  /**
-   * Per-giver MQL pronoun stash (`it`/`him`/`her`/`them`/`$$`).
-   * Updated post-resolve by the dispatcher; read by the resolver
-   * when those seeds appear in a chain. Each CommandGiver carries
-   * its own — multiplexed avatars under one player don't share.
-   *
-   * Note: this is NOT the same as `GenderedMixin.getPronouns()`
-   * (which returns a single Pronouns enum value describing the host
-   * itself). Naming is `getPronounMemory` here to dodge the
-   * collision; the underlying plan referred to this as
-   * `getPronouns()` but `Gendered` already owns that name.
-   */
-  getPronounMemory(): PronounMemory;
 }
 
 /**
@@ -162,13 +137,17 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     ];
 
     /**
-     * Self-bucket commands every CommandGiver picks up. `focus` is
-     * the meta-command for inspecting/setting the giver's MQL scope
-     * — the state is on this mixin, so the command lives here too.
+     * Synthetic vars sourced from CommandGiver state. `$me` is
+     * the MQL pronoun for the giver itself — always the literal
+     * `'me'` (MQL's own resolver maps that to the actor).
      */
-    static commandContributions: CommandContributions = {
-      self: ['focus.yaml'],
-    };
+    static syntheticVars: SyntheticVarEntry[] = [
+      {
+        name: 'me',
+        description: 'The MQL pronoun literal `me`.',
+        read: () => 'me',
+      },
+    ];
 
     /**
      * Recency stack — chronological. Index 0 is `'self'`. Idempotency
@@ -195,23 +174,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * to a not-yet-listening client.
      */
     private _commandSchemaSubscribed = false;
-
-    /**
-     * Active MQL scope fragment. Transient — every CommandGiver
-     * starts at `"here"` and resets to `"here"` whenever the auto-
-     * look-on-arrival re-anchors after movement. Inspection-shaped
-     * commands (`look`, `examine`) update this via the dispatcher's
-     * `updates_scope` path; the `focus` command sets it explicitly.
-     */
-    private _scope: string = 'here';
-
-    /**
-     * Per-giver pronoun stash. Transient — populated post-resolve
-     * by the dispatcher (`CommandApi.resolveAndValidate`) and read
-     * by the resolver when a query's seed is `it`/`him`/`her`/
-     * `them`/`$$`.
-     */
-    private _pronounMemory: PronounMemory = new PronounMemory();
 
     /**
      * Build the `'self'` entry once, at registration. Walks the class
@@ -397,23 +359,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      */
     _isSchemaSubscribed(): boolean {
       return this._commandSchemaSubscribed;
-    }
-
-    getScope(): string {
-      return this._scope;
-    }
-
-    setScope(fragment: string): void {
-      const trimmed = fragment.trim();
-      this._scope = trimmed.length > 0 ? trimmed : 'here';
-    }
-
-    clearScope(): void {
-      this._scope = 'here';
-    }
-
-    getPronounMemory(): PronounMemory {
-      return this._pronounMemory;
     }
 
     async executeCommand(

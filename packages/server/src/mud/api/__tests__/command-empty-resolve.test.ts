@@ -23,6 +23,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
+import { FocusedMixin } from '../../lib/command/Focused';
 import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
@@ -33,7 +34,9 @@ import type { Interactive } from '../../obj/Interactive';
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestGiver extends ContainerMixin(
-  ContainableMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  ContainableMixin(
+    FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+  )
 ) {}
 
 function singleObjectCmd(): CommandDefinition {

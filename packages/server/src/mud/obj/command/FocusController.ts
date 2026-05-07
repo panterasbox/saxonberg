@@ -32,6 +32,7 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlMany } from '../../api/mql';
+import { MixinApi } from '../../api/mixin';
 
 interface FocusModel extends CommandModel {
   fragment?: MqlMany;
@@ -40,6 +41,15 @@ interface FocusModel extends CommandModel {
 export class FocusController extends CommandController<FocusModel> {
   execute(model: FocusModel, context: CommandContext): CommandResult {
     const giver = context.commandGiver;
+    // FocusController only contributes via FocusedMixin, so the giver
+    // composes Focused — guard typed-narrowing rather than the
+    // (impossible) absence case.
+    if (!MixinApi.isFocused(giver)) {
+      return {
+        success: false,
+        summary: 'focus is unavailable on this command giver',
+      };
+    }
     const wrapper = model.fragment;
 
     if (!wrapper || wrapper.raw.trim().length === 0) {

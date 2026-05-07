@@ -555,15 +555,26 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
  * room. Skips silently when `mover` isn't a CommandGiver — non-
  * giver NPCs can move without auto-looking.
  *
+ * Resets the mover's scope to `"here"` first when the mover is
+ * Focused. Bare `look` is `default: "$scope"` now, so without
+ * this reset the auto-look would carry stale drilled scope from
+ * the prior room into the new one — typical case is "scope was
+ * `widget`, you walk into a room without a widget, the auto-look
+ * comes up empty." The reset is a side effect of *moving*, not
+ * of *looking*; the auto-look itself stays a normal forced
+ * bare-look.
+ *
  * Errors are caught and dropped: a flaky look shouldn't prevent
  * the movement from completing. The mover already received an
  * arrival narration from `announceArrival`; the auto-look is
  * additive context, not a critical step.
  */
 async function autoLookOnArrival(mover: object): Promise<void> {
-  if (!MixinApi.isCommandGiver(mover as Stuff)) return;
+  const m = mover as Stuff;
+  if (!MixinApi.isCommandGiver(m)) return;
+  if (MixinApi.isFocused(m)) m.clearScope();
   try {
-    await CommandApi.forceCommand(mover as Stuff & CommandGiver, 'look');
+    await CommandApi.forceCommand(m as Stuff & CommandGiver, 'look');
   } catch {
     // Swallow — see jsdoc.
   }

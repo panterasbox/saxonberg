@@ -17,6 +17,8 @@ import type { Location } from '../lib/stuff/Location';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
+import type { Focused } from '../lib/command/Focused';
+import { expandVariables } from '../lib/shell/var-interpolation';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
@@ -32,6 +34,7 @@ import {
   type MqlMany,
   type MqlMatchVia,
   type MqlOne,
+  type MqlOneResult,
 } from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
@@ -332,6 +335,18 @@ export interface FieldDefinition {
    * @internal
    */
   _resolvedValidators?: FieldValidator[];
+  /**
+   * Value the matcher fills when the player provides no input for
+   * this field. A string default runs through shell-side variable
+   * interpolation just like player-typed text — `default: "$scope"`
+   * resolves to the giver's current scope at bind time. Non-string
+   * defaults pass through verbatim.
+   *
+   * `required: true` + `default:` is allowed: the default replaces
+   * the missing input, no shape error. The "missing required arg"
+   * message only fires when the field is required AND has no
+   * default AND the player supplied nothing.
+   */
   default?: unknown;
   /**
    * MQL fragment string overriding the player's active scope for
@@ -718,13 +733,14 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    _ctx: { commandGiver: Stuff & CommandGiver; location: Location }
+    ctx: { commandGiver: Stuff & CommandGiver; location: Location }
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
       return { error: 'shape', summary: 'No verb' };
     }
 
+    const expand = makeExpander(ctx.commandGiver);
     const fields: ModelData = {};
     let i = 1;
     let stopped = false;
@@ -794,7 +810,7 @@ export class CommandApi {
     let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed);
+      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -810,7 +826,7 @@ export class CommandApi {
       }
     } else {
       // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed);
+      const r = bindPositionals(positionals, command.args, parsed, expand);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -900,23 +916,41 @@ export class CommandApi {
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     const resolved: ModelData = { ...model };
 
+    const giver = context.commandGiver;
+    const focused = MixinApi.isFocused(giver) ? giver : null;
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
-      const fieldScope =
+      // Priority/fallback rule: drilled player tries their own scope
+      // first, falls back to the YAML scope on empty (drill stays
+      // ergonomic without trapping inspection commands inside detail
+      // stacks). When the giver isn't Focused, only the YAML scope
+      // (or `'here'`) is in play.
+      const playerScope = focused ? focused.getScope() : null;
+      const yamlScope =
         typeof def.scope === 'string' && def.scope.length > 0
           ? def.scope
-          : context.commandGiver.getScope();
+          : null;
+      const tries: string[] =
+        playerScope && yamlScope && playerScope !== yamlScope
+          ? [playerScope, yamlScope]
+          : playerScope
+            ? [playerScope]
+            : yamlScope
+              ? [yamlScope]
+              : ['here'];
+
       const updatesScope = def.updates_scope === true;
       const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
-        const r = MqlApi.resolveMany(raw, {
-          commandGiver: context.commandGiver,
-          scope: fieldScope,
-        });
+        let r: MqlManyResult = { stuff: [] };
+        for (const scope of tries) {
+          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+          if (r.stuff.length > 0) break;
+        }
         // Empty results are a normal outcome — pass `[]` through
         // on the wrapper and let the controller decide what
         // no-match means in its domain. Don't update scope or
@@ -925,18 +959,18 @@ export class CommandApi {
         if (r.via) bound.via = r.via;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff.length > 0) {
+        if (r.stuff.length > 0 && focused) {
           // Multi-cardinality results don't update player scope (no
-          // single anchor to extend or re-anchor from).
-          context.commandGiver
-            .getPronounMemory()
-            .update(r, raw, slotForGenderRouting);
+          // single anchor to extend or re-anchor from). Pronoun memory
+          // only updates for Focused givers — others have no stash.
+          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        const r = MqlApi.resolveOne(raw, {
-          commandGiver: context.commandGiver,
-          scope: fieldScope,
-        });
+        let r: MqlOneResult = { stuff: null };
+        for (const scope of tries) {
+          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+          if (r.stuff !== null) break;
+        }
         // `null` (empty) is a normal outcome — pass it through on
         // the wrapper and let the controller decide what no-match
         // means.
@@ -944,15 +978,13 @@ export class CommandApi {
         if (r.via) bound.via = r.via;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff !== null) {
+        if (r.stuff !== null && focused) {
           if (updatesScope) {
-            updatePlayerScope(context, raw, r.stuff, r.via);
+            updatePlayerScope(focused, raw, r.stuff, r.via);
           }
           const asMany: MqlManyResult = { stuff: [r.stuff] };
           if (r.via) asMany.via = r.via;
-          context.commandGiver
-            .getPronounMemory()
-            .update(asMany, raw, slotForGenderRouting);
+          focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
       }
     }
@@ -1283,7 +1315,8 @@ type WordToken = Extract<RawToken, { kind: 'word' }>;
 function bindPositionals(
   positionals: WordToken[],
   args: PositionalDefinition[],
-  parsed: ParsedCommand
+  parsed: ParsedCommand,
+  expand: (text: string) => string,
 ):
   | { bound: ModelData; prep: Record<string, string> }
   | { error: 'shape'; summary: string } {
@@ -1312,14 +1345,15 @@ function bindPositionals(
 
     if (def.greedy) {
       if (pi >= positionals.length) {
+        if (def.default !== undefined) {
+          bound[name] = expandDefault(def.default, expand);
+          return { bound, prep };
+        }
         if (def.required !== false) {
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
           };
-        }
-        if (def.default !== undefined) {
-          bound[name] = def.default as FieldValue;
         }
         // Greedy must be last per the load-time invariant; we
         // don't loop further.
@@ -1342,9 +1376,11 @@ function bindPositionals(
       }
       if (stopAt === pi) {
         // The boundary preposition appeared with nothing before it
-        // — the greedy field has no content. If the field is
-        // required, fail shape so the chain can try another match.
-        if (def.required !== false) {
+        // — the greedy field has no content. Default fills if
+        // declared; else required→shape error / optional→absent.
+        if (def.default !== undefined) {
+          bound[name] = expandDefault(def.default, expand);
+        } else if (def.required !== false) {
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
@@ -1357,11 +1393,13 @@ function bindPositionals(
         const last = positionals[stopAt - 1]!;
         const endInSource = last.pos + last.value.length - parsed.start;
         const slice = parsed.source.substring(startInSource, endInSource);
-        bound[name] = CommandLineApi.processOutsideEscapes(slice).trimEnd();
+        const processed = CommandLineApi.processOutsideEscapes(slice).trimEnd();
+        bound[name] = expand(processed);
       } else {
         const startInSource = first.pos - parsed.start;
         const slice = parsed.source.substring(startInSource);
-        bound[name] = CommandLineApi.processOutsideEscapes(slice);
+        const processed = CommandLineApi.processOutsideEscapes(slice);
+        bound[name] = expand(processed);
       }
       pi = stopAt;
       // After the greedy field consumes (or skips), continue binding
@@ -1369,24 +1407,37 @@ function bindPositionals(
       continue;
     }
 
+    // Boundary lookahead extends to non-greedy fields too: if the
+    // next available token belongs to a later field's `prepositions`
+    // list, this field has no input — apply the default (or fail
+    // when required without default).
+    const laterPreps = collectLaterPrepositions(args, ai);
+    const nextBelongsToLater =
+      pi < positionals.length &&
+      laterPreps.has(positionals[pi]!.value.toLowerCase());
+
     if (def.required) {
-      if (pi >= positionals.length) {
+      if (pi >= positionals.length || nextBelongsToLater) {
+        if (def.default !== undefined) {
+          bound[name] = expandDefault(def.default, expand);
+          continue;
+        }
         return {
           error: 'shape',
           summary: `missing required arg: ${name}`,
         };
       }
-      bound[name] = positionals[pi]!.value;
+      bound[name] = expand(positionals[pi]!.value);
       pi++;
       continue;
     }
 
     // Optional positional.
-    if (pi < positionals.length) {
-      bound[name] = positionals[pi]!.value;
+    if (pi < positionals.length && !nextBelongsToLater) {
+      bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
-      bound[name] = def.default as FieldValue;
+      bound[name] = expandDefault(def.default, expand);
     }
   }
 
@@ -1397,6 +1448,31 @@ function bindPositionals(
   }
 
   return { bound, prep };
+}
+
+/**
+ * Expand a YAML-declared default — only string defaults run through
+ * variable interpolation; numeric / boolean / object defaults pass
+ * through untouched.
+ */
+function expandDefault(
+  def: unknown,
+  expand: (text: string) => string,
+): FieldValue {
+  if (typeof def === 'string') return expand(def);
+  return def as FieldValue;
+}
+
+/**
+ * Build a per-call expander. Returns the identity function when
+ * the giver doesn't compose `EnvironmentMixin` or has
+ * `shell.interpolate-vars` set to false — callers stay branch-free.
+ */
+function makeExpander(giver: Stuff): (text: string) => string {
+  if (!MixinApi.isEnvironment(giver)) return (s) => s;
+  const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
+  if (enabled === false) return (s) => s;
+  return (text) => expandVariables(text, giver);
 }
 
 /** Collect every later positional's declared prepositions into one
@@ -1770,12 +1846,11 @@ function slotForGenderRouting(stuff: Stuff): GenderedSlot {
  * referent rather than the unstable pronoun string.
  */
 function updatePlayerScope(
-  context: CommandContext,
+  giver: Stuff & CommandGiver & Focused,
   raw: string,
   stuff: Stuff,
   via: MqlMatchVia | undefined
 ): void {
-  const giver = context.commandGiver;
   const detailPath = via?.detailPath;
   if (detailPath && detailPath.length > 0) {
     const currentScope = giver.getScope();
@@ -1795,7 +1870,7 @@ function updatePlayerScope(
   // substitute the stored fragment so the scope tracks the actual
   // referent. Storing "it" or "him" as the scope would re-resolve
   // on each subsequent query, drifting unpredictably.
-  const pronounFragment = resolvePronounFragment(context, raw);
+  const pronounFragment = resolvePronounFragment(giver, raw);
   if (pronounFragment !== null) {
     giver.setScope(pronounFragment);
     return;
@@ -1811,7 +1886,7 @@ function updatePlayerScope(
  * case-insensitive on the trimmed input.
  */
 function resolvePronounFragment(
-  context: CommandContext,
+  focused: Stuff & Focused,
   raw: string
 ): string | null {
   const s = raw.trim().toLowerCase();
@@ -1822,7 +1897,7 @@ function resolvePronounFragment(
   else if (s === 'them') slot = 'them';
   else if (s === '$$') slot = 'last';
   if (slot === null) return null;
-  return context.commandGiver.getPronounMemory().readFragment(slot);
+  return focused.getPronounMemory().readFragment(slot);
 }
 
 /**

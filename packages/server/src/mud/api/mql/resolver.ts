@@ -173,6 +173,10 @@ function matchesFromStash(
   ctx: MqlContext,
   slot: 'it' | 'him' | 'her' | 'them' | 'last'
 ): MqlMatch[] {
+  // Gate on FocusedMixin — non-Focused givers (scripted NPCs without
+  // pronoun memory) see an empty stash, so dynamic pronouns and `$$`
+  // resolve to no matches rather than throwing.
+  if (!MixinApi.isFocused(ctx.commandGiver)) return [];
   const stash = ctx.commandGiver.getPronounMemory();
   const stored = stash.read(slot);
   if (!stored) return [];
