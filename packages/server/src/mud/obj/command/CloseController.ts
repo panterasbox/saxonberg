@@ -18,14 +18,23 @@ import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface CloseModel extends CommandModel {
-  target?: Stuff;
+  target?: Stuff | null;
 }
 
 export class CloseController extends CommandController<CloseModel> {
   execute(model: CloseModel, context: CommandContext): CommandResult {
     const { commandGiver } = context;
     const target = model.target;
-    if (!target) return { success: false, summary: 'close what?' };
+    if (target === undefined) {
+      return { success: false, summary: 'close what?' };
+    }
+    if (target === null) {
+      const raw = context.raw?.target ?? '';
+      return {
+        success: false,
+        summary: `you don't see any '${raw}' here`,
+      };
+    }
 
     if (!MixinApi.isSealable(target)) {
       return { success: false, summary: "can't close that" };

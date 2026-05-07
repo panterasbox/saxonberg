@@ -16,15 +16,21 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
 interface GetModel extends CommandModel {
-  // Non-optional: get.yaml marks `targets` required + multiple, so
-  // the matcher rejects on missing input and resolveAndValidate fails
-  // the command if MQL produces zero hits. Controllers see at least
-  // one Stuff.
+  // get.yaml marks `targets` required (matcher rejects on missing
+  // input) but the dispatcher passes empty arrays through on
+  // unresolved input — controller produces the player-facing error.
   targets: Stuff[];
 }
 
 export class GetController extends CommandController<GetModel> {
   execute(model: GetModel, context: CommandContext): CommandResult {
+    if (model.targets.length === 0) {
+      const raw = context.raw?.targets ?? '';
+      return {
+        success: false,
+        summary: `you don't see any '${raw}' here`,
+      };
+    }
     let successCount = 0;
     const pickedNames: string[] = [];
     for (const target of model.targets) {

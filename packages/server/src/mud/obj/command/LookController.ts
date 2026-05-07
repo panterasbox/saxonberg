@@ -20,7 +20,7 @@ import { Mml } from '../../api/mml';
 import type { Exit } from '../../lib/spatial/Exit';
 
 interface LookModel extends CommandModel {
-  target?: Stuff;
+  target?: Stuff | null;
 }
 
 export class LookController extends CommandController<LookModel> {
@@ -28,6 +28,14 @@ export class LookController extends CommandController<LookModel> {
     const target = model.target;
     if (target) {
       return this.lookAtTarget(target, context);
+    }
+    if (target === null) {
+      // Player typed something but MQL produced no match.
+      const raw = context.raw?.target ?? '';
+      return {
+        success: false,
+        summary: `you don't see any '${raw}' here`,
+      };
     }
     // Bare `look` (no target) is "look here" for scope-update
     // purposes per the unified-scope delta. The dispatcher's

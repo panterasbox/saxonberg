@@ -3,6 +3,6 @@ controller: FocusController
 description: "Display or set your active scope (the anchor your queries are pointed at)"
 args:
   - name: fragment
-    type: string
+    type: objects
     required: false
     greedy: true

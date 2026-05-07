@@ -16,15 +16,21 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
 interface DropModel extends CommandModel {
-  // Non-optional: drop.yaml marks `targets` required + multiple, so
-  // the matcher rejects on missing input and resolveAndValidate fails
-  // the command if MQL produces zero hits. Controllers see at least
-  // one Stuff.
+  // drop.yaml marks `targets` required (matcher rejects on missing
+  // input) but the dispatcher passes empty arrays through on
+  // unresolved input — controller produces the player-facing error.
   targets: Stuff[];
 }
 
 export class DropController extends CommandController<DropModel> {
   execute(model: DropModel, context: CommandContext): CommandResult {
+    if (model.targets.length === 0) {
+      const raw = context.raw?.targets ?? '';
+      return {
+        success: false,
+        summary: `you don't have any '${raw}' to drop`,
+      };
+    }
     let successCount = 0;
     const droppedNames: string[] = [];
     for (const target of model.targets) {

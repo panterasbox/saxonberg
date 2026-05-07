@@ -1,24 +1,39 @@
 /**
- * FocusController tests — display, set, parse-validation failure,
- * permission rejection on admin-tier seeds.
+ * FocusController tests.
+ *
+ * Phase-7-review note: parse + permission validation moved out of
+ * the controller and onto the dispatcher (since `focus.fragment`
+ * is now `type: objects`, the dispatcher's `MqlApi.resolveMany`
+ * call runs the parser and permission gate). Errors from those
+ * surface from `executeCommand`'s outer try/catch, not from
+ * controller code — those scenarios are covered in
+ * `command-pronoun.test.ts` and `mql.test.ts`.
+ *
+ * What's still controller-shaped: bare-`focus` displays the
+ * current scope; `focus <fragment>` calls `setScope` and reports
+ * the resolved match count. Empty match lists are intentionally
+ * fine.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { FocusController } from '../FocusController';
 import { Idea } from '../../../lib/stuff/Idea';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
+import { NamedMixin } from '../../../lib/description/Named';
+import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
-import { _MqlAdminFlag } from '../../../api/mql/permissions';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import type {
   CommandContext,
   CommandModel,
+  FieldValue,
   ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
@@ -29,6 +44,8 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   protected override handleMessage(): void {}
 }
+
+class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 
 function makeModel(
   fields: ModelData = {},
@@ -46,17 +63,23 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
-  return {
+function makeContext(
+  giver: TestGiver,
+  location: Location,
+  raw?: string
+): CommandContext {
+  const ctx: CommandContext = {
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
-    commandText: 'focus',
+    commandText: raw === undefined ? 'focus' : `focus ${raw}`,
     executionId: 'test-execution',
     commandId: 'test-command',
     verb: 'focus',
     command: stubCommand('focus'),
   };
+  if (raw !== undefined) ctx.raw = { fragment: raw };
+  return ctx;
 }
 
 describe('FocusController', () => {
@@ -72,10 +95,6 @@ describe('FocusController', () => {
     controller = makeStuff(() => new FocusController());
   });
 
-  afterEach(() => {
-    _MqlAdminFlag.granter = () => false;
-  });
-
   it('reports the current scope when no fragment is given', () => {
     giver.setScope('bookcase.book');
     const result = controller.execute(makeModel(), makeContext(giver, location));
@@ -89,43 +108,46 @@ describe('FocusController', () => {
     expect(result.summary).toContain('here');
   });
 
-  it('sets scope to the supplied fragment after parse validation', () => {
+  it('sets scope to the player-typed fragment', () => {
     const result = controller.execute(
-      makeModel({ fragment: 'inventory' }),
-      makeContext(giver, location)
+      makeModel({ fragment: [] as FieldValue }),
+      makeContext(giver, location, 'inventory')
     );
     expect(result.success).toBe(true);
     expect(giver.getScope()).toBe('inventory');
   });
 
-  it('rejects a syntactically invalid fragment without mutating scope', () => {
-    giver.setScope('here');
+  it('reports the resolved match count alongside the scope', () => {
+    const a = makeStuff(() => new TestThing()) as Stuff;
+    const b = makeStuff(() => new TestThing()) as Stuff;
     const result = controller.execute(
-      makeModel({ fragment: '[]' }),
-      makeContext(giver, location)
+      makeModel({ fragment: [a, b] as unknown as FieldValue }),
+      makeContext(giver, location, 'flowers')
     );
-    expect(result.success).toBe(false);
-    expect(giver.getScope()).toBe('here');
+    expect(result.success).toBe(true);
+    expect(result.summary).toContain('flowers');
+    expect(result.summary).toContain('2 objects');
   });
 
-  it('rejects admin-tier seeds for non-admin givers', () => {
-    giver.setScope('here');
+  it('"1 object" when exactly one resolves', () => {
+    const a = makeStuff(() => new TestThing()) as Stuff;
     const result = controller.execute(
-      makeModel({ fragment: 'online' }),
-      makeContext(giver, location)
+      makeModel({ fragment: [a] as unknown as FieldValue }),
+      makeContext(giver, location, 'rose')
     );
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/permission/i);
-    expect(giver.getScope()).toBe('here');
+    expect(result.success).toBe(true);
+    expect(result.summary).toContain('1 object');
   });
 
-  it('admits admin-tier seeds when admin is granted', () => {
-    _MqlAdminFlag.granter = () => true;
+  it('still sets scope when the fragment resolves to nothing now', () => {
+    // `focus online` when no one's online — the dispatcher's
+    // resolveMany returns []; controller still anchors scope.
     const result = controller.execute(
-      makeModel({ fragment: 'online' }),
-      makeContext(giver, location)
+      makeModel({ fragment: [] as FieldValue }),
+      makeContext(giver, location, 'online')
     );
     expect(result.success).toBe(true);
     expect(giver.getScope()).toBe('online');
+    expect(result.summary).toContain('0 objects');
   });
 });

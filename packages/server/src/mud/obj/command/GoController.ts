@@ -26,7 +26,7 @@ import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
 interface GoModel extends CommandModel {
-  target?: Stuff;
+  target?: Stuff | null;
 }
 
 export class GoController extends CommandController<GoModel> {
@@ -35,8 +35,15 @@ export class GoController extends CommandController<GoModel> {
     context: CommandContext
   ): Promise<CommandResult> {
     const target = model.target;
-    if (!target) {
+    if (target === undefined) {
+      // The matcher requires a target on `go`, so this branch is
+      // only reachable from synthetic dispatches (tests, internal
+      // flows) — keep it for safety.
       return { success: false, summary: 'go where?' };
+    }
+    if (target === null) {
+      // Player typed a direction/keyword that MQL couldn't resolve.
+      return { success: false, summary: "can't go that way" };
     }
 
     const mover = context.commandGiver;

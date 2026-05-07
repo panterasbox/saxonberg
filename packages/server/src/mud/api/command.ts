@@ -106,6 +106,16 @@ export interface CommandContext {
    * Equivalence (`in` vs `into` for `put`) is the controller's call.
    */
   prep?: Record<string, string>;
+  /**
+   * Player-typed text per MQL field, snapshotted before the
+   * dispatcher replaces the field with resolved Stuff(s). Keyed by
+   * field name; only present for `type: object` / `type: objects`
+   * fields (other types keep their original value on the model).
+   * Useful when the controller's job is to store the fragment
+   * itself rather than act on the resolved Stuff — e.g.
+   * `FocusController` reads `ctx.raw.fragment` to set scope.
+   */
+  raw?: Record<string, string>;
 }
 
 /**
@@ -229,13 +239,17 @@ export interface CommandResult {
 /**
  * Field value union — what `model.fields[name]` can hold after the
  * matcher's resolve/validate stage. The `Stuff` arm covers
- * `type: object` fields after MQL resolves them; `FieldValue[]` covers
- * `type: objects` (plural-cardinality MQL fields) and `multiple: true`
- * option accumulation. Arrays of arrays are not produced (the matcher
- * flattens), but the type is recursive to keep callers from having to
- * disambiguate.
+ * `type: object` fields after MQL resolves them; `FieldValue[]`
+ * covers `type: objects` (plural-cardinality MQL fields) and
+ * `multiple: true` option accumulation; `null` covers a `type: object`
+ * field whose MQL resolution produced no match (controllers
+ * distinguish "player typed nothing" — model field absent — from
+ * "player typed but nothing resolved" — model field is `null`).
+ *
+ * Arrays of arrays are not produced (the matcher flattens), but the
+ * type is recursive to keep callers from having to disambiguate.
  */
-export type FieldValue = boolean | string | number | Stuff | FieldValue[];
+export type FieldValue = boolean | string | number | null | Stuff | FieldValue[];
 
 /**
  * Resolved field values keyed by field name. Positional-field values
@@ -896,6 +910,10 @@ export class CommandApi {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
+      // Snapshot the player-typed text on `ctx.raw` before the
+      // model field gets overwritten with resolved Stuffs.
+      stampRaw(context, fname, raw);
+
       const fieldScope =
         typeof def.scope === 'string' && def.scope.length > 0
           ? def.scope
@@ -907,40 +925,38 @@ export class CommandApi {
           commandGiver: context.commandGiver,
           scope: fieldScope,
         });
-        if (r.stuff.length === 0) {
-          return {
-            result: failNoMatch(raw),
-          };
-        }
+        // Empty results are a normal outcome — pass `[]` through
+        // and let the controller decide what no-match means in its
+        // domain. Don't update via, scope, or pronoun memory on
+        // empty (no anchor to anchor on).
         resolved[fname] = r.stuff as unknown as FieldValue;
-        if (r.via) stampVia(context, fname, r.via);
-        // Multi-cardinality results don't update player scope (no
-        // single anchor to extend or re-anchor from).
-        context.commandGiver
-          .getPronounMemory()
-          .update(r, raw, slotForGenderRouting);
+        if (r.stuff.length > 0) {
+          if (r.via) stampVia(context, fname, r.via);
+          // Multi-cardinality results don't update player scope (no
+          // single anchor to extend or re-anchor from).
+          context.commandGiver
+            .getPronounMemory()
+            .update(r, raw, slotForGenderRouting);
+        }
       } else {
         const r = MqlApi.resolveOne(raw, {
           commandGiver: context.commandGiver,
           scope: fieldScope,
         });
-        if (r.stuff === null) {
-          return {
-            result: failNoMatch(raw),
-          };
+        // `null` (empty) is a normal outcome — pass it through to
+        // the controller and let it decide what no-match means.
+        resolved[fname] = (r.stuff ?? null) as unknown as FieldValue;
+        if (r.stuff !== null) {
+          if (r.via) stampVia(context, fname, r.via);
+          if (updatesScope) {
+            updatePlayerScope(context, raw, r.stuff, r.via);
+          }
+          const asMany: MqlManyResult = { stuff: [r.stuff] };
+          if (r.via) asMany.via = r.via;
+          context.commandGiver
+            .getPronounMemory()
+            .update(asMany, raw, slotForGenderRouting);
         }
-        resolved[fname] = r.stuff as unknown as FieldValue;
-        if (r.via) stampVia(context, fname, r.via);
-        if (updatesScope) {
-          updatePlayerScope(context, raw, r.stuff, r.via);
-        }
-        // Pronoun memory always sees a many-shaped result; wrap the
-        // single-cardinality outcome into one for the stash.
-        const asMany: MqlManyResult = { stuff: [r.stuff] };
-        if (r.via) asMany.via = r.via;
-        context.commandGiver
-          .getPronounMemory()
-          .update(asMany, raw, slotForGenderRouting);
       }
     }
 
@@ -1718,10 +1734,6 @@ function runValidators(
   return undefined;
 }
 
-function failNoMatch(raw: string): CommandResult {
-  return { success: false, summary: `You don't see any '${raw}' here` };
-}
-
 /**
  * Map a Stuff to the pronoun-memory slot it routes to. Used by the
  * dispatcher's post-resolve update so `look bob` (a he/him NPC)
@@ -1749,6 +1761,15 @@ function stampVia(
 ): void {
   if (!context.via) context.via = {};
   context.via[fname] = via;
+}
+
+function stampRaw(
+  context: CommandContext,
+  fname: string,
+  raw: string
+): void {
+  if (!context.raw) context.raw = {};
+  context.raw[fname] = raw;
 }
 
 /**
