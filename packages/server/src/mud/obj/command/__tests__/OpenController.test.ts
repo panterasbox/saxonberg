@@ -6,7 +6,9 @@ import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { Door } from '../../../lib/spatial/Door';
 import { ContainmentApi } from '../../../api/containment';
-import { Stuff } from '../../../lib/stuff/Stuff';
+import { MqlApi } from '../../../api/mql';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -17,6 +19,7 @@ import type { Location } from '../../../lib/stuff/Location';
 import type {
   CommandContext,
   CommandModel,
+  CommandResult,
   ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
@@ -39,8 +42,8 @@ function stubCommand(verb: string): CommandDefinition {
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../lib/stuff/Idea";
 
-const FakeAvatarBase = NamedMixin(
-  MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))
+const FakeAvatarBase = CommandGiverMixin(
+  NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))
 );
 class FakeAvatar extends FakeAvatarBase {
   received: unknown[] = [];
@@ -70,6 +73,79 @@ function makeContext(
   verb: 'open',
   command: stubCommand('open'),
   };
+}
+
+/**
+ * Resolve a target string against the giver's "inventory, here"
+ * scope (Phase 7 cmd/open.yaml override) and return the model + ctx
+ * the controller would see post-dispatcher. Returns `null` when
+ * MQL produces no match — the controller-level test then asserts
+ * the dispatcher's "you don't see…" failure.
+ */
+function resolveTarget(
+  giver: Stuff,
+  raw: string
+): { target: Stuff; via: CommandContext['via'] } | null {
+  const r = MqlApi.resolveOne(raw, {
+    commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
+    scope: 'inventory, here',
+  });
+  if (!r.stuff) return null;
+  const ctxVia: CommandContext['via'] = {};
+  if (r.via) ctxVia.target = r.via;
+  return { target: r.stuff, via: ctxVia };
+}
+
+async function openCmd(
+  controller: OpenController,
+  avatar: FakeAvatar,
+  location: Location,
+  raw: string
+): Promise<CommandResult> {
+  const ctx = makeContext(avatar, location, `open ${raw}`);
+  const r = resolveTarget(avatar as unknown as Stuff, raw);
+  if (r === null) {
+    return { success: false, summary: `You don't see any '${raw}' here` };
+  }
+  ctx.via = r.via;
+  return controller.execute(makeModel({ target: r.target }), ctx);
+}
+
+async function closeCmd(
+  controller: CloseController,
+  avatar: FakeAvatar,
+  location: Location,
+  raw: string
+): Promise<CommandResult> {
+  const ctx = makeContext(avatar, location, `close ${raw}`);
+  const r = resolveTarget(avatar as unknown as Stuff, raw);
+  if (r === null) {
+    return { success: false, summary: `You don't see any '${raw}' here` };
+  }
+  ctx.via = r.via;
+  return controller.execute(makeModel({ target: r.target }), ctx);
+}
+
+async function goCmd(
+  controller: GoController,
+  avatar: FakeAvatar,
+  location: Location,
+  raw: string
+): Promise<CommandResult> {
+  const ctx = makeContext(avatar, location, `go ${raw}`);
+  const r = MqlApi.resolveOne(raw, {
+    commandGiver: avatar as unknown as Parameters<
+      typeof MqlApi.resolveOne
+    >[1]['commandGiver'],
+    scope: 'here',
+  });
+  if (!r.stuff) {
+    return controller.execute(makeModel(), ctx);
+  }
+  const via: CommandContext['via'] = {};
+  if (r.via) via.target = r.via;
+  ctx.via = via;
+  return controller.execute(makeModel({ target: r.stuff }), ctx);
 }
 
 describe('OpenController / CloseController / doors integration', () => {
@@ -105,21 +181,15 @@ describe('OpenController / CloseController / doors integration', () => {
 
   it('go north fails while door is closed', async () => {
     const go = makeStuff(() => new GoController());
-    const result = await go.execute(
-      makeModel({ target: 'north' }),
-      makeContext(avatar, locA, 'go north')
-    );
+    const result = await goCmd(go, avatar, locA, 'north');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/closed/i);
     expect(result.summary).toContain('heavy oak door');
   });
 
-  it('open <keyword> resolves via MQL and opens the door', () => {
+  it('open <keyword> resolves via MQL and opens the door', async () => {
     const open = makeStuff(() => new OpenController());
-    const result = open.execute(
-      makeModel({ target: 'oak' }),
-      makeContext(avatar, locA, 'open the oak door')
-    );
+    const result = await openCmd(open, avatar, locA, 'oak');
     expect(result.success).toBe(true);
     expect(door.getIsOpen()).toBe(true);
     expect(result.summary).toContain('heavy oak door');
@@ -136,61 +206,55 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(moverFrames[0]!.body).toContain('You open');
   });
 
-  it('already-open door returns a friendly error', () => {
+  it('already-open door returns a friendly error', async () => {
     door.open();
     const open = makeStuff(() => new OpenController());
-    const result = open.execute(
-      makeModel({ target: 'oak' }),
-      makeContext(avatar, locA, 'open the oak door')
-    );
+    const result = await openCmd(open, avatar, locA, 'oak');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/already open/i);
   });
 
-  it('no sealable matching the name: clear error', () => {
+  it('no sealable matching the name: clear error', async () => {
     const open = makeStuff(() => new OpenController());
-    const result = open.execute(
-      makeModel({ target: 'bathtub' }),
-      makeContext(avatar, locA, 'open bathtub')
-    );
+    const result = await openCmd(open, avatar, locA, 'bathtub');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/don't see/i);
   });
 
   it('go north succeeds after opening; close from destination closes same door', async () => {
-    makeStuff(() => new OpenController()).execute(
-      makeModel({ target: 'oak' }),
-      makeContext(avatar, locA, 'open the oak door')
-    );
-    const go = await makeStuff(() => new GoController()).execute(
-      makeModel({ target: 'north' }),
-      makeContext(avatar, locA, 'go north')
+    await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
+    const go = await goCmd(
+      makeStuff(() => new GoController()),
+      avatar,
+      locA,
+      'north'
     );
     expect(go.success).toBe(true);
     expect(avatar.getContainer()).toBe(locB);
 
-    const close = makeStuff(() => new CloseController()).execute(
-      makeModel({ target: 'oak' }),
-      makeContext(avatar, locB, 'close the oak door')
+    const close = await closeCmd(
+      makeStuff(() => new CloseController()),
+      avatar,
+      locB,
+      'oak'
     );
     expect(close.success).toBe(true);
     expect(door.getIsOpen()).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
-    const goBack = await makeStuff(() => new GoController()).execute(
-      makeModel({ target: 'south' }),
-      makeContext(avatar, locB, 'go south')
+    const goBack = await goCmd(
+      makeStuff(() => new GoController()),
+      avatar,
+      locB,
+      'south'
     );
     expect(goBack.success).toBe(false);
     expect(goBack.summary).toMatch(/closed|way/i);
   });
 
-  it('already-closed door on close returns friendly error', () => {
+  it('already-closed door on close returns friendly error', async () => {
     const close = makeStuff(() => new CloseController());
-    const result = close.execute(
-      makeModel({ target: 'oak' }),
-      makeContext(avatar, locA, 'close the oak door')
-    );
+    const result = await closeCmd(close, avatar, locA, 'oak');
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/already closed/i);
   });

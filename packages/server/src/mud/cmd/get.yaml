@@ -3,10 +3,10 @@ controller: GetController
 description: "Pick up objects from your location"
 args:
   - name: targets
-    type: object
+    type: objects
     required: true
     greedy: true
-    multiple: true
+    scope: "here"
     validators:
       - /lib/command/validators/mustBeVisible
       - /lib/command/validators/canReach

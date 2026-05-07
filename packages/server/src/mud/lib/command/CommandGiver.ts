@@ -93,6 +93,17 @@ export interface CommandGiver {
   ): void;
   popCommandSource(source: RecencySource): void;
   resetCommandSources(reason: 'self-moved'): void;
+  /**
+   * Read the giver's active MQL scope fragment — the search anchor
+   * the dispatcher passes to MQL when a field doesn't override
+   * `scope:`. Defaults to `"here"`. Inspection-shaped commands
+   * (`look`, `examine`, …) update scope post-resolve via the
+   * dispatcher's drill-trail rule; the `focus` command sets it
+   * explicitly.
+   */
+  getScope(): string;
+  setScope(fragment: string): void;
+  clearScope(): void;
 }
 
 /**
@@ -161,6 +172,15 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * to a not-yet-listening client.
      */
     private _commandSchemaSubscribed = false;
+
+    /**
+     * Active MQL scope fragment. Transient — every CommandGiver
+     * starts at `"here"` and resets to `"here"` whenever the auto-
+     * look-on-arrival re-anchors after movement. Inspection-shaped
+     * commands (`look`, `examine`) update this via the dispatcher's
+     * `updates_scope` path; the `focus` command sets it explicitly.
+     */
+    private _scope: string = 'here';
 
     /**
      * Build the `'self'` entry once, at registration. Walks the class
@@ -348,6 +368,19 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       return this._commandSchemaSubscribed;
     }
 
+    getScope(): string {
+      return this._scope;
+    }
+
+    setScope(fragment: string): void {
+      const trimmed = fragment.trim();
+      this._scope = trimmed.length > 0 ? trimmed : 'here';
+    }
+
+    clearScope(): void {
+      this._scope = 'here';
+    }
+
     async executeCommand(
       commandText: string,
       opts: ExecuteCommandOpts = {}
@@ -381,6 +414,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       ExecutionContextApi.updateCurrentFrameMetadata({
         commandContext: context,
         causingCommandId: context.commandId,
+        forced: opts.forced ?? false,
       });
 
       let verb = '';
@@ -491,6 +525,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // matcher.
         context.verb = parsed.verb;
         context.command = command;
+        // Reset side-channel metadata between match attempts —
+        // earlier shape-error matches may have stamped via/prep.
+        delete context.via;
+        delete context.prep;
+        if (built.prep) context.prep = { ...built.prep };
         const validated = CommandApi.resolveAndValidate(built.model, context);
         if ('result' in validated) return validated.result;
         const interim = await this._executeOne(

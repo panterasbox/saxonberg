@@ -1,193 +1,119 @@
 /**
- * MqlApi - MUD Query Language for object resolution
+ * MqlApi — MUD Query Language for object resolution.
  *
- * Phase 1 facade: existing keyword-scoring `resolve` / `resolveMany`
- * remain as delegating shims so the dispatcher and direct-caller
- * controllers (Go/Open/Close) compile unchanged. The Phase 7 cutover
- * replaces this surface with `resolveOne` / `resolveMany` returning
- * wrapped results ({@link MqlOneResult}, {@link MqlManyResult}).
+ * The thin public facade in front of the `mql/` pipeline. Two entry
+ * points reflect caller intent:
  *
- * The new public type surface ({@link MqlContext}, {@link MqlOneResult},
- * {@link MqlManyResult}, {@link MqlMatchVia}, {@link PermissionTier})
- * is re-exported from `./mql/types`. Internal pipeline modules under
- * `./mql/` (lexer, desugar, parser, resolver, scope-walk, predicates,
- * permissions, pronoun-memory) start as stubs and grow phase by phase.
+ *   - {@link resolveOne} — one-of-N intent. Returns the highest-scored
+ *     match (or null) wrapped in {@link MqlOneResult}, with optional
+ *     sub-feature attribution. The future auto-disambiguation hook
+ *     (UI prompt when several candidates score equally) will layer
+ *     onto this code path additively.
+ *   - {@link resolveMany} — multi intent. Returns the full match list
+ *     in {@link MqlManyResult}; never disambiguated.
  *
- * The internal `mql/` modules are not Apis: they're pipeline stages
- * that the public `MqlApi` (this file) drives. The `MqlApi` class
- * itself remains the security-decorated entry point.
+ * Both delegate to the same internal pipeline (`mql/resolver.ts`); the
+ * difference is only in how the match list is wrapped.
+ *
+ * Internal `mql/` modules are pipeline stages, not Apis — they're not
+ * security-decorated. The class below is the security-decorated entry
+ * point; controllers and the dispatcher reach this surface only.
  */
 
-import type { Location } from '../lib/stuff/Location';
-import type { Stuff } from '../lib/stuff/Stuff';
 import type { CommandGiver } from '../lib/command/CommandGiver';
-import { ContainmentApi } from './containment';
-import { DescribeApi } from './describe';
-import { MixinApi } from './mixin';
+import type { Stuff } from '../lib/stuff/Stuff';
+import { resolve as resolvePipeline } from './mql/resolver';
 import { SecurityApi } from './security';
 
-export type {
-  MqlContext as MqlContextV2,
+import type {
+  MqlContext,
   MqlMatchVia,
   MqlOneResult,
   MqlManyResult,
   PermissionTier,
 } from './mql/types';
 
-/**
- * Legacy MQL context. Phase 1 keeps the original shape so callers
- * compile unchanged. Phase 7 retires this in favor of the
- * scope-fragment-based {@link MqlContextV2} (re-exported above).
- *
- * - `commandGiver`: the actor whose perspective drives the query.
- * - `location`: the giver's current environment — searched after
- *   inventory.
- * - `searchOrder`: order of contexts to search; defaults to
- *   `['inventory', 'location']`.
- *
- * @deprecated Phase 7 cutover removes this in favor of
- *   `MqlContextV2 { commandGiver, scope: string }`.
- */
-export interface MqlContext {
-  commandGiver: Stuff & CommandGiver;
-  location: Location;
-  searchOrder?: string[];
-}
+export type { MqlContext, MqlMatchVia, MqlOneResult, MqlManyResult, PermissionTier };
 
 /**
- * Internal match result with score — higher score = better match.
- */
-interface MqlMatch {
-  object: Stuff;
-  score: number;
-}
-
-/**
- * MqlApi - Static utility class for object resolution.
+ * MqlApi — static utility class for object resolution.
  *
- * Phase 1 surface: legacy `resolve` / `resolveMany` keyed off the
- * Phase-4 keyword-scoring algorithm. Phase 7 replaces these with
- * `resolveOne` / `resolveMany` that drive the new pipeline.
+ * Two public methods, both calling the same resolver pass:
+ *
+ *   - {@link resolveOne}: returns the top match wrapped (or null).
+ *   - {@link resolveMany}: returns the full sorted list, plus a
+ *     query-level `via` when every match arrived through the same
+ *     sub-feature path.
  */
 export class MqlApi {
   /**
-   * Resolve single object from query string.
+   * Resolve a query under one-of-N intent. Returns the highest-scored
+   * match (or null when nothing matched), wrapped with any
+   * sub-feature attribution describing how the resolver got there
+   * (an Exit, a detail path, etc.).
    *
-   * Returns the FIRST (highest-scored) match, or null if no matches
-   * found.
-   *
-   * @deprecated Phase 7 will replace this with
-   *   {@link resolveOne} returning {@link MqlOneResult}.
+   * The dispatcher routes `type: object` YAML fields through this
+   * surface. Direct callers wanting "first match wins" semantics —
+   * the controller-side equivalent of `cmd foo, cmd foo working
+   * down the stack" — also use this.
    */
-  static resolve(query: string, context: MqlContext): Stuff | null {
-    const matches = this.#findMatches(query, context);
-    if (matches.length === 0) return null;
-    return matches[0]?.object || null;
+  static resolveOne(query: string, ctx: MqlContext): MqlOneResult {
+    const matches = resolvePipeline(query, ctx);
+    if (matches.length === 0) return { stuff: null };
+    const top = matches[0]!;
+    const out: MqlOneResult = { stuff: top.stuff };
+    if (top.via) out.via = top.via;
+    return out;
   }
 
   /**
-   * Resolve multiple objects from query string.
+   * Resolve a query under multi intent. Returns the full match list
+   * sorted by score (highest first), plus a query-level `via` when
+   * every match arrived through the same sub-feature path; mixed
+   * paths produce `via: undefined`.
    *
-   * Returns ALL matching objects, sorted by score (highest first).
-   *
-   * @deprecated Phase 7 will replace this signature with one that
-   *   returns {@link MqlManyResult}.
+   * The dispatcher routes `type: objects` YAML fields through this
+   * surface.
    */
-  static resolveMany(query: string, context: MqlContext): Stuff[] {
-    const matches = this.#findMatches(query, context);
-    return matches.map((m) => m.object);
-  }
-
-  static #findMatches(query: string, context: MqlContext): MqlMatch[] {
-    const keywords = this.#tokenizeQuery(query);
-    if (keywords.length === 0) return [];
-
-    const matches: MqlMatch[] = [];
-    const searchOrder = context.searchOrder || ['inventory', 'location'];
-
-    for (const contextName of searchOrder) {
-      const objects = this.#getObjectsInContext(contextName, context);
-      for (const obj of objects) {
-        const score = this.#scoreMatch(obj, keywords);
-        if (score > 0) matches.push({ object: obj, score });
-      }
-    }
-
-    matches.sort((a, b) => b.score - a.score);
-    return matches;
-  }
-
-  static #tokenizeQuery(query: string): string[] {
-    return query
-      .trim()
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((k) => k.length > 0);
-  }
-
-  static #getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
-    switch (contextName) {
-      case 'inventory':
-        return this.#getInventoryObjects(context.commandGiver);
-      case 'location':
-        return this.#getLocationObjects(context.location);
-      default:
-        return [];
-    }
-  }
-
-  static #getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
-    if (!MixinApi.isContainer(giver)) return [];
-    return ContainmentApi.getContents(giver);
-  }
-
-  static #getLocationObjects(location: Location): Stuff[] {
-    const objects: Stuff[] = ContainmentApi.getContents(location);
-    if (MixinApi.isExitable(location)) {
-      const seen = new Set<string>();
-      for (const door of location.getExitDoors()) {
-        if (seen.has(door.stuffId)) continue;
-        seen.add(door.stuffId);
-        objects.push(door);
-      }
-    }
-    return objects;
-  }
-
-  static #scoreMatch(obj: Stuff, keywords: string[]): number {
-    const name = DescribeApi.getDisplayName(obj);
-    if (!name) return 0;
-
-    const nameLower = name.toLowerCase();
-    const nameWords = nameLower.split(/\s+/);
-
-    const objKeywords: string[] = [];
-    if (MixinApi.isPerceptible(obj)) {
-      const kw = obj.getKeywords();
-      if (Array.isArray(kw)) objKeywords.push(...kw);
-    }
-
-    if (keywords.length === 1 && nameLower === keywords[0]) return 100;
-
-    if (keywords.every((kw) => nameLower.includes(kw))) return 50;
-
-    const nameMatches = keywords.filter((kw) =>
-      nameWords.some((word) => word.includes(kw))
-    );
-    if (nameMatches.length === keywords.length) return 40;
-
-    if (objKeywords.length > 0) {
-      const keywordMatches = keywords.filter((kw) =>
-        objKeywords.some((objKw) => objKw.includes(kw))
-      );
-      if (keywordMatches.length === keywords.length) return 25;
-      if (keywordMatches.length > 0) return 10 * keywordMatches.length;
-    }
-
-    if (nameMatches.length > 0) return 5 * nameMatches.length;
-
-    return 0;
+  static resolveMany(query: string, ctx: MqlContext): MqlManyResult {
+    const matches = resolvePipeline(query, ctx);
+    const stuff: Stuff[] = matches.map((m) => m.stuff);
+    const via = consensusVia(matches);
+    const out: MqlManyResult = { stuff };
+    if (via) out.via = via;
+    return out;
   }
 }
+
+/**
+ * Decide whether the match list shares a single `via` shape — when
+ * every match's via is undefined, return undefined; when every match's
+ * via is the same identity (shallow-equal), return that one; otherwise
+ * `undefined` (mixed paths).
+ *
+ * "Same identity" here means same exit reference or same detailPath
+ * sequence; we keep the comparison cheap by JSON-stringifying.
+ */
+function consensusVia(
+  matches: ReadonlyArray<{ via?: MqlMatchVia }>
+): MqlMatchVia | undefined {
+  if (matches.length === 0) return undefined;
+  const first = matches[0]!.via;
+  if (!first) {
+    // Every match must also have no via for consensus.
+    for (const m of matches) if (m.via) return undefined;
+    return undefined;
+  }
+  const firstKey = JSON.stringify(first);
+  for (const m of matches) {
+    if (!m.via) return undefined;
+    if (JSON.stringify(m.via) !== firstKey) return undefined;
+  }
+  return first;
+}
+
+// Keep `CommandGiver` referenced for external `MqlContext` consumers
+// that re-export through this module's type surface.
+export type _MqlCommandGiverRef = Stuff & CommandGiver;
 
 SecurityApi.decorateApiClass(MqlApi);

@@ -3,5 +3,5 @@ controller: GoController
 description: "Move to a named exit or into a named vessel"
 args:
   - name: target
-    type: string
+    type: object
     required: true

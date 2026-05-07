@@ -13,8 +13,13 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
-import { ConnectionApi } from '../connection';
+// `ConnectionApi` is reached through the resolver's online-holders
+// provider (set by `mql/online-wire.ts`); pulling `ConnectionApi`
+// directly here would resurrect the load-time cycle this file's
+// position on the `command.ts → MqlApi` chain creates with
+// `ConnectionManager → Interactive → Idea`.
 import { MixinApi } from '../mixin';
+import { getOnlineHolders } from './online-provider';
 import { _MqlAdminFlag } from './permissions';
 import type { PermissionTier } from './types';
 
@@ -36,9 +41,8 @@ function isLiving(target: Stuff): boolean {
 }
 
 function isOnline(target: Stuff): boolean {
-  for (const interactive of ConnectionApi.getAllInteractives()) {
-    const holder = interactive.getHolder();
-    if (holder && holder.stuffId === target.stuffId) return true;
+  for (const holder of getOnlineHolders()) {
+    if (holder.stuffId === target.stuffId) return true;
   }
   return false;
 }

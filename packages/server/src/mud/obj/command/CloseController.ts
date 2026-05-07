@@ -1,5 +1,8 @@
 /**
  * CloseController — close any Sealable the player can reach.
+ *
+ * Phase 7+: target is pre-resolved through MQL by the dispatcher;
+ * the controller reads `model.target` directly.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -10,46 +13,39 @@ import type {
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface CloseModel extends CommandModel {
-  target?: string;
+  target?: Stuff;
 }
 
 export class CloseController extends CommandController<CloseModel> {
   execute(model: CloseModel, context: CommandContext): CommandResult {
-    const { commandGiver, location } = context;
-    const target = (model.target ?? '').trim();
+    const { commandGiver } = context;
+    const target = model.target;
     if (!target) return { success: false, summary: 'close what?' };
 
-    const hit = MqlApi.resolve(target, { commandGiver, location });
-    if (!hit) {
-      return {
-        success: false,
-        summary: `you don't see any ${target} here`,
-      };
-    }
-    if (!MixinApi.isSealable(hit)) {
+    if (!MixinApi.isSealable(target)) {
       return { success: false, summary: "can't close that" };
     }
 
-    if (!hit.getIsOpen()) {
+    if (!target.getIsOpen()) {
       return { success: false, summary: 'already closed' };
     }
 
-    hit.close();
+    target.close();
 
     MessageApi.scene(commandGiver)
       .topic(MessageApi.Topics.world.narration.action)
-      .toSelf(Mml.compose`You close ${Mml.object(hit)}.`)
-      .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(hit)}.`)
+      .toSelf(Mml.compose`You close ${Mml.object(target)}.`)
+      .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(target)}.`)
       .send();
 
     return {
       success: true,
-      summary: `closed ${DescribeApi.getDisplayName(hit, 'it')}`,
+      summary: `closed ${DescribeApi.getDisplayName(target, 'it')}`,
     };
   }
 }

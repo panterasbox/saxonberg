@@ -26,7 +26,7 @@ import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
-import { MqlApi } from './mql';
+import { MqlApi, type MqlMatchVia } from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
 import { ExecutionContextApi } from './execution-context';
@@ -47,6 +47,17 @@ export interface ExecuteCommandOpts {
    * undefined.
    */
   interactive?: Interactive;
+
+  /**
+   * Set by {@link CommandApi.forceCommand} when the runtime fires a
+   * command on behalf of the player (auto-look on arrival, NPC
+   * scripts, scheduled triggers). The flag rides through to the
+   * Command frame's metadata so hooks can ask "am I executing inside
+   * a forced command?" via
+   * {@link ExecutionContextApi.getCommandStack}. Player-typed input
+   * defaults to `false`.
+   */
+  forced?: boolean;
 }
 
 /**
@@ -78,6 +89,21 @@ export interface CommandContext {
   commandId: string;
   verb: string;
   command: CommandDefinition;
+  /**
+   * Sub-feature attribution stamped per field after MQL resolution.
+   * Keyed by field name, value is the field's `MqlMatchVia` (e.g.,
+   * `{ exit }` for a directional match, `{ detailPath }` for a
+   * detail drill). Controllers that care destructure off `ctx.via`;
+   * controllers that don't simply ignore it.
+   */
+  via?: Record<string, MqlMatchVia>;
+  /**
+   * Preposition consumed by the matcher for a positional field, keyed
+   * by field name. Stored lowercased and as-typed; declaring
+   * `prepositions: [in, into]` and typing `into` lands `'into'` here.
+   * Equivalence (`in` vs `into` for `put`) is the controller's call.
+   */
+  prep?: Record<string, string>;
 }
 
 /**
@@ -202,9 +228,10 @@ export interface CommandResult {
  * Field value union — what `model.fields[name]` can hold after the
  * matcher's resolve/validate stage. The `Stuff` arm covers
  * `type: object` fields after MQL resolves them; `FieldValue[]` covers
- * `multiple: true` accumulation. Arrays of arrays are not produced
- * (the matcher flattens), but the type is recursive to keep callers
- * from having to disambiguate.
+ * `type: objects` (plural-cardinality MQL fields) and `multiple: true`
+ * option accumulation. Arrays of arrays are not produced (the matcher
+ * flattens), but the type is recursive to keep callers from having to
+ * disambiguate.
  */
 export type FieldValue = boolean | string | number | Stuff | FieldValue[];
 
@@ -269,7 +296,16 @@ export type FieldValidator = (
  * string form.
  */
 export interface FieldDefinition {
-  type?: 'string' | 'number' | 'boolean' | 'object';
+  /**
+   * - `string` / `number` / `boolean` — primitive coerce-on-bind.
+   * - `object` — singular MQL field; the dispatcher resolves the
+   *   bound text via `MqlApi.resolveOne`, picking the highest-scored
+   *   match (or failing the command on no match).
+   * - `objects` — plural MQL field; the dispatcher resolves via
+   *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
+   *   fields — the cardinality is the type.
+   */
+  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects';
   required?: boolean;
   /**
    * Greedy positional: consumes the remainder of the original input
@@ -287,6 +323,41 @@ export interface FieldDefinition {
    */
   _resolvedValidators?: FieldValidator[];
   default?: unknown;
+  /**
+   * MQL fragment string overriding the player's active scope for
+   * resolution of THIS field. Examples: `"inventory"`, `"here"`,
+   * `"inventory, here"` (comma-union), `"online"`, `"#abc123"`.
+   * When omitted, the dispatcher uses `commandGiver.getScope()`.
+   * Only meaningful for `type: object` / `type: objects` fields.
+   */
+  scope?: string;
+  /**
+   * When `true`, the dispatcher updates the giver's stored scope
+   * fragment after a successful resolution per the drill-trail rule
+   * (extend on same-stuff with via, otherwise re-anchor to the
+   * post-desugar input fragment). Default `false` — most commands
+   * don't shift focus. Inspection-shaped commands (`look`,
+   * `examine`, `read`, `open`, `close`) opt in explicitly.
+   */
+  updates_scope?: boolean;
+  /**
+   * Optional list of prepositions the matcher will consume as a
+   * leading boundary marker for this positional field. Lowercased.
+   * Typing `look at flower` against `prepositions: [at]` consumes
+   * the `at` and binds `target = "flower"`; typing `look flower`
+   * binds `target = "flower"` directly. The consumed preposition
+   * lands on `ctx.prep[fieldName]`.
+   *
+   * For multi-field commands, *later* fields' declared prepositions
+   * also serve as termination boundaries for an earlier greedy
+   * field — `give the red flower to bob` splits correctly because
+   * `recipient: prepositions: [to]` tells the matcher to stop the
+   * greedy `gift` at `to`.
+   *
+   * Prepositions are always optional: declaring `prepositions: [to]`
+   * means "consume `to` if it appears here," not "require `to`."
+   */
+  prepositions?: string[];
 }
 
 /**
@@ -710,11 +781,13 @@ export class CommandApi {
     }
 
     // Phase 4: bind positionals against the active args array(s).
+    let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
       const r = bindPositionals(positionals, sub.args ?? [], parsed);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
+      prep = r.prep;
     } else if (command.hasSubcommands()) {
       // Subcommanded verb without a subcommand — still legal; the
       // controller decides what to do with `model.subcommand ===
@@ -730,6 +803,7 @@ export class CommandApi {
       const r = bindPositionals(positionals, command.args, parsed);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
+      prep = r.prep;
     }
 
     // Apply option defaults that didn't fire.
@@ -740,7 +814,9 @@ export class CommandApi {
       fields[SUBCOMMAND_FIELD] = subcommand;
     }
 
-    return { model: fields };
+    const out: AssembleSuccess = { model: fields };
+    if (Object.keys(prep).length > 0) out.prep = prep;
+    return out;
   }
 
   /**
@@ -815,30 +891,44 @@ export class CommandApi {
 
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const raw = resolved[fname];
-      if (def.type !== 'object') continue;
+      if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
-      if (def.multiple) {
-        const objects = MqlApi.resolveMany(raw, {
+
+      const fieldScope =
+        typeof def.scope === 'string' && def.scope.length > 0
+          ? def.scope
+          : context.commandGiver.getScope();
+      const updatesScope = def.updates_scope === true;
+
+      if (def.type === 'objects') {
+        const r = MqlApi.resolveMany(raw, {
           commandGiver: context.commandGiver,
-          location: context.location,
+          scope: fieldScope,
         });
-        if (objects.length === 0) {
+        if (r.stuff.length === 0) {
           return {
-            result: { success: false, summary: `You don't see any '${raw}' here` },
+            result: failNoMatch(raw),
           };
         }
-        resolved[fname] = objects as unknown as FieldValue;
+        resolved[fname] = r.stuff as unknown as FieldValue;
+        if (r.via) stampVia(context, fname, r.via);
+        // Multi-cardinality results don't update player scope (no
+        // single anchor to extend or re-anchor from).
       } else {
-        const obj = MqlApi.resolve(raw, {
+        const r = MqlApi.resolveOne(raw, {
           commandGiver: context.commandGiver,
-          location: context.location,
+          scope: fieldScope,
         });
-        if (!obj) {
+        if (r.stuff === null) {
           return {
-            result: { success: false, summary: `You don't see any '${raw}' here` },
+            result: failNoMatch(raw),
           };
         }
-        resolved[fname] = obj as unknown as FieldValue;
+        resolved[fname] = r.stuff as unknown as FieldValue;
+        if (r.via) stampVia(context, fname, r.via);
+        if (updatesScope) {
+          updatePlayerScope(context, raw, r.stuff, r.via);
+        }
       }
     }
 
@@ -905,6 +995,32 @@ export class CommandApi {
   }
 
   /**
+   * Programmatic command invocation — fire `text` on `giver` exactly
+   * as if the player had typed it, but stamp `forced: true` on the
+   * resulting Command frame so hooks can tell the two apart.
+   *
+   * Used by:
+   *   - The auto-look-on-arrival hook (`look` after a successful
+   *     traversal), so the dispatcher's normal `updates_scope` path
+   *     re-anchors scope to the new room.
+   *   - Future system-fired commands (event-triggered actions, NPC
+   *     scripts, scheduled tasks).
+   *
+   * Player-typed commands continue to flow through `executeCommand`
+   * directly with `forced` defaulting to `false`. Hooks that need to
+   * distinguish (e.g., a cinematic-locked NPC blocking auto-look)
+   * walk the stack via {@link ExecutionContextApi.getCommandStack}
+   * and look for forced ancestors.
+   */
+  static forceCommand(
+    giver: Stuff & CommandGiver,
+    text: string,
+    opts: ExecuteCommandOpts = {}
+  ): Promise<CommandResult> {
+    return giver.executeCommand(text, { ...opts, forced: true });
+  }
+
+  /**
    * Project a `CommandDefinition` to a wire-safe schema payload for
    * client-side widget rendering. Used by `system.commands.{added,
    * reset}`.
@@ -924,8 +1040,16 @@ export class CommandApi {
 
 /* ─────────────────── Matcher helpers ─────────────────── */
 
+/** `assemble` success arm. `prep` carries any prepositions consumed
+ *  per positional field — keyed by field name, lowercased value.
+ *  Absent (or empty) when no field declared `prepositions:`. */
+export interface AssembleSuccess {
+  model: CommandModel;
+  prep?: Record<string, string>;
+}
+
 export type AssembleResult =
-  | { model: CommandModel }
+  | AssembleSuccess
   | { error: 'shape'; summary: string }
   | { error: 'bind'; summary: string };
 
@@ -1136,14 +1260,30 @@ function bindPositionals(
   args: PositionalDefinition[],
   parsed: ParsedCommand
 ):
-  | { bound: ModelData }
+  | { bound: ModelData; prep: Record<string, string> }
   | { error: 'shape'; summary: string } {
   const bound: ModelData = {};
+  const prep: Record<string, string> = {};
   let pi = 0;
 
   for (let ai = 0; ai < args.length; ai++) {
     const def = args[ai]!;
     const name = def.name;
+
+    // Peek for a leading preposition this field declared. Consume
+    // exactly one; later prepositions on the same field are bound as
+    // ordinary positional content.
+    if (
+      def.prepositions &&
+      def.prepositions.length > 0 &&
+      pi < positionals.length
+    ) {
+      const head = positionals[pi]!.value.toLowerCase();
+      if (def.prepositions.includes(head)) {
+        prep[name] = head;
+        pi++;
+      }
+    }
 
     if (def.greedy) {
       if (pi >= positionals.length) {
@@ -1158,14 +1298,50 @@ function bindPositionals(
         }
         // Greedy must be last per the load-time invariant; we
         // don't loop further.
-        return { bound };
+        return { bound, prep };
       }
       const first = positionals[pi]!;
-      const startInSource = first.pos - parsed.start;
-      const slice = parsed.source.substring(startInSource);
-      bound[name] = CommandLineApi.processOutsideEscapes(slice);
-      // All remaining positionals are absorbed by greedy.
-      return { bound };
+      // Greedy fields stop at the next *later* field's declared
+      // preposition (boundary lookahead). Scan forward for a token
+      // that matches one of those, and slice up to it.
+      const laterPreps = collectLaterPrepositions(args, ai);
+      let stopAt = positionals.length;
+      if (laterPreps.size > 0) {
+        for (let k = pi; k < positionals.length; k++) {
+          const tk = positionals[k]!.value.toLowerCase();
+          if (laterPreps.has(tk)) {
+            stopAt = k;
+            break;
+          }
+        }
+      }
+      if (stopAt === pi) {
+        // The boundary preposition appeared with nothing before it
+        // — the greedy field has no content. If the field is
+        // required, fail shape so the chain can try another match.
+        if (def.required !== false) {
+          return {
+            error: 'shape',
+            summary: `missing required arg: ${name}`,
+          };
+        }
+      } else if (stopAt < positionals.length) {
+        // Build the substring from the original source to preserve
+        // whitespace, but cut it just before the boundary token.
+        const startInSource = first.pos - parsed.start;
+        const last = positionals[stopAt - 1]!;
+        const endInSource = last.pos + last.value.length - parsed.start;
+        const slice = parsed.source.substring(startInSource, endInSource);
+        bound[name] = CommandLineApi.processOutsideEscapes(slice).trimEnd();
+      } else {
+        const startInSource = first.pos - parsed.start;
+        const slice = parsed.source.substring(startInSource);
+        bound[name] = CommandLineApi.processOutsideEscapes(slice);
+      }
+      pi = stopAt;
+      // After the greedy field consumes (or skips), continue binding
+      // remaining positionals to subsequent fields.
+      continue;
     }
 
     if (def.required) {
@@ -1195,7 +1371,24 @@ function bindPositionals(
     return { error: 'shape', summary: 'too many arguments' };
   }
 
-  return { bound };
+  return { bound, prep };
+}
+
+/** Collect every later positional's declared prepositions into one
+ *  set. Used as the greedy-field termination lookahead — `give the
+ *  red flower to bob` stops the greedy `gift` at `to` because
+ *  `recipient` declared `prepositions: [to]`. */
+function collectLaterPrepositions(
+  args: PositionalDefinition[],
+  fromIdx: number
+): Set<string> {
+  const out = new Set<string>();
+  for (let i = fromIdx + 1; i < args.length; i++) {
+    const ps = args[i]!.prepositions;
+    if (!ps) continue;
+    for (const p of ps) out.add(p.toLowerCase());
+  }
+  return out;
 }
 
 function applyOptionDefaults(
@@ -1511,6 +1704,72 @@ function runValidators(
     if (err) return err;
   }
   return undefined;
+}
+
+function failNoMatch(raw: string): CommandResult {
+  return { success: false, summary: `You don't see any '${raw}' here` };
+}
+
+function stampVia(
+  context: CommandContext,
+  fname: string,
+  via: MqlMatchVia
+): void {
+  if (!context.via) context.via = {};
+  context.via[fname] = via;
+}
+
+/**
+ * Drill-trail rule: when an inspection-shaped command resolves a
+ * `type: object` field, extend the player's scope along a detail path
+ * if the resolved Stuff matches the current scope's anchor; otherwise
+ * re-anchor to the post-desugar input fragment.
+ *
+ * v1 implements the simpler "compare resolved Stuff identity to the
+ * current scope's leading anchor token" check by re-resolving the
+ * current scope and matching stuffId. The plan's "same-anchor drill"
+ * branch fires when result.stuff is the same identity as the current
+ * scope's resolved Stuff AND a detailPath is present — typical case
+ * is `look book` while scoped on `bookcase`. Everything else
+ * re-anchors to the raw input.
+ */
+function updatePlayerScope(
+  context: CommandContext,
+  raw: string,
+  stuff: Stuff,
+  via: MqlMatchVia | undefined
+): void {
+  const giver = context.commandGiver;
+  const detailPath = via?.detailPath;
+  if (detailPath && detailPath.length > 0) {
+    const currentScope = giver.getScope();
+    const currentAnchor = MqlApi.resolveOne(currentScope, {
+      commandGiver: giver,
+      scope: currentScope,
+    });
+    if (currentAnchor.stuff && currentAnchor.stuff.stuffId === stuff.stuffId) {
+      // Same-anchor drill — keep the anchor fragment, replace the
+      // detail trail with the new one.
+      const head = stripDetailTrail(currentScope);
+      giver.setScope(head + '.' + detailPath.join('.'));
+      return;
+    }
+  }
+  // Re-anchor: the post-desugar input fragment IS the new scope.
+  giver.setScope(raw);
+}
+
+/**
+ * Strip a trailing `.foo.bar` detail trail from a scope fragment,
+ * leaving just the anchor portion. Conservative — only trims when the
+ * fragment is a single chain (no commas, no bracket bodies).
+ */
+function stripDetailTrail(fragment: string): string {
+  if (fragment.includes(',') || fragment.includes('[') || fragment.includes("'")) {
+    return fragment;
+  }
+  const dot = fragment.indexOf('.');
+  return dot === -1 ? fragment : fragment.slice(0, dot);
 }
 
 SecurityApi.decorateApiClass(CommandApi);

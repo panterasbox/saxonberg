@@ -76,7 +76,15 @@ export function candidatesForHere(location: Stuff): ScopeCandidate[] {
       pushDirect(out, door);
       pushDetails(out, door);
     }
-    for (const [direction, exit] of location.getExits()) {
+    // Use `getObviousExits()` so synthesized exits (an
+    // `ExitableVessel`'s `out` exit, a Cartesian zone's derived
+    // cardinal directions) appear in the candidate pool the same
+    // way explicit exits do.
+    const seenDirs = new Set<string>();
+    for (const exit of location.getObviousExits()) {
+      const direction = exit.getDirection();
+      if (seenDirs.has(direction)) continue;
+      seenDirs.add(direction);
       out.push({
         stuff: location,
         name: direction,

@@ -1,5 +1,8 @@
 /**
  * OpenController — open any Sealable the player can reach.
+ *
+ * Phase 7+: target is pre-resolved through MQL by the dispatcher;
+ * the controller reads `model.target` directly.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -10,46 +13,39 @@ import type {
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface OpenModel extends CommandModel {
-  target?: string;
+  target?: Stuff;
 }
 
 export class OpenController extends CommandController<OpenModel> {
   execute(model: OpenModel, context: CommandContext): CommandResult {
-    const { commandGiver, location } = context;
-    const target = (model.target ?? '').trim();
+    const { commandGiver } = context;
+    const target = model.target;
     if (!target) return { success: false, summary: 'open what?' };
 
-    const hit = MqlApi.resolve(target, { commandGiver, location });
-    if (!hit) {
-      return {
-        success: false,
-        summary: `you don't see any ${target} here`,
-      };
-    }
-    if (!MixinApi.isSealable(hit)) {
+    if (!MixinApi.isSealable(target)) {
       return { success: false, summary: "can't open that" };
     }
 
-    if (hit.getIsOpen()) {
+    if (target.getIsOpen()) {
       return { success: false, summary: 'already open' };
     }
 
-    hit.open();
+    target.open();
 
     MessageApi.scene(commandGiver)
       .topic(MessageApi.Topics.world.narration.action)
-      .toSelf(Mml.compose`You open ${Mml.object(hit)}.`)
-      .toPeers(Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(hit)}.`)
+      .toSelf(Mml.compose`You open ${Mml.object(target)}.`)
+      .toPeers(Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(target)}.`)
       .send();
 
     return {
       success: true,
-      summary: `opened ${DescribeApi.getDisplayName(hit, 'it')}`,
+      summary: `opened ${DescribeApi.getDisplayName(target, 'it')}`,
     };
   }
 }

@@ -16,6 +16,12 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
+// Side-effecting import: registers the live `online`/`world` provider
+// so MQL queries against admin-tier seeds reflect connected
+// interactives. Pulled in here (off the eager command/MqlApi chain)
+// to avoid the `ConnectionApi → ConnectionManager → Interactive →
+// Idea` load-time cycle.
+import '../mud/api/mql/online-wire';
 
 export interface AppBootstrapConfig {
   /** Mongo connection URI. */

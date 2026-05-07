@@ -307,6 +307,62 @@ export class ExecutionContextApi {
   }
 
   /**
+   * Walk the call stack outermost-to-innermost and return every
+   * Command frame's contextual data. The returned tuples carry the
+   * frame's `CommandContext` (already includes `commandId` and
+   * `executionId`) plus the `forced` flag — `true` for system-fired
+   * commands invoked through `CommandApi.forceCommand`, `false` (or
+   * absent) for player-typed input.
+   *
+   * Use this for "is the current command nested inside a forced
+   * command?" patterns: walk the result, check the `forced` flag,
+   * decide whether to short-circuit (e.g., a cinematic-locked NPC
+   * blocking auto-look). For the common "what fired me" question the
+   * sugar helper {@link getParentCommandContext} skips the boilerplate.
+   *
+   * `causingCommandId` is deliberately NOT in the per-frame return —
+   * every Command frame's `causingCommandId` equals its own
+   * `commandId` by construction, so including it would mislead
+   * callers into using it as a parent-pointer (which it isn't). The
+   * async-boundary "originating command id" use case is served by
+   * the existing {@link getCurrentCausingCommandId}.
+   */
+  public static getCommandStack(): ReadonlyArray<{
+    context: CommandContext;
+    forced: boolean;
+  }> {
+    const stack = _als.getStore();
+    if (!stack) return [];
+    const out: { context: CommandContext; forced: boolean }[] = [];
+    for (const frame of stack) {
+      if (frame.kind !== FrameKind.Command) continue;
+      const ctx = frame.metadata?.commandContext as CommandContext | undefined;
+      if (!ctx) continue;
+      const forced = frame.metadata?.forced === true;
+      out.push({ context: ctx, forced });
+    }
+    return out;
+  }
+
+  /**
+   * Synchronous-stack relationship: the {@link CommandContext} of the
+   * command that *fired* the currently running command, or `null`
+   * when the current command is the outermost.
+   *
+   * Distinct from `causingCommandId`. `causingCommandId` is the
+   * originating-command-id snapshot designed to propagate across
+   * async boundaries (ScheduleApi replants it on a fresh Root frame
+   * when a deferred callback fires). The parent context, by
+   * contrast, only exists while both commands share a synchronous
+   * span — once the outer command's `executeCommand` returns, no
+   * parent is reachable.
+   */
+  public static getParentCommandContext(): CommandContext | null {
+    const stack = ExecutionContextApi.getCommandStack();
+    return stack.length >= 2 ? stack[stack.length - 2]!.context : null;
+  }
+
+  /**
    * Walk the call stack top-down and return the first
    * `metadata.causingCommandId` we hit. Set on the Command frame by
    * `CommandGiverMixin.executeCommand`, and re-planted on a fresh

@@ -66,8 +66,8 @@
           "description": "Field name the bound value lands on. Reserved: `subcommand` (when the verb declares subcommands)."
         },
         "type": {
-          "enum": ["string", "number", "boolean", "object"],
-          "description": "Field value type. `object` runs MQL resolution."
+          "enum": ["string", "number", "boolean", "object", "objects"],
+          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL)."
         },
         "required": { "type": "boolean" },
         "greedy": {
@@ -76,13 +76,26 @@
         },
         "multiple": {
           "type": "boolean",
-          "description": "Accumulate multiple values into an array (typically with type: object)."
+          "description": "Accumulate multiple values into an array. Used for non-MQL fields; for MQL plural use `type: objects` instead."
         },
         "validators": {
           "type": "array",
           "items": { "$ref": "#/$defs/validatorSpec" }
         },
-        "default": {}
+        "default": {},
+        "scope": {
+          "type": "string",
+          "description": "MQL fragment overriding the player's active scope for THIS field. Examples: `inventory`, `here`, `inventory, here`, `online`. Only meaningful for `type: object` / `type: objects`."
+        },
+        "updates_scope": {
+          "type": "boolean",
+          "description": "When true, the dispatcher updates the giver's stored scope after a successful resolution (drill-trail rule)."
+        },
+        "prepositions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Optional list of leading prepositions the matcher consumes (e.g. `[at]` for `look at`, `[to]` for `give X to Y`)."
+        }
       }
     },
     "option": {

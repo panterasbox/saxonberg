@@ -7,8 +7,10 @@ import { SphericalLocation } from '../../../lib/spatial/SphericalLocation';
 import { ExitableVessel } from '../../../lib/spatial/ExitableVessel';
 import { Exit } from '../../../lib/spatial/Exit';
 import { Door } from '../../../lib/spatial/Door';
+import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
-import { Stuff } from '../../../lib/stuff/Stuff';
+import { MqlApi } from '../../../api/mql';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
@@ -40,7 +42,30 @@ function stubCommand(verb: string): CommandDefinition {
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../lib/stuff/Idea";
 
-const FakeAvatarBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))));
+/**
+ * Resolve a target string through MQL exactly as the dispatcher
+ * would, returning the bound model + the via attribution to stamp
+ * onto `ctx`. Returns `null` when MQL produces no match — the
+ * test then exercises the controller's "go where?" path with no
+ * resolved target.
+ */
+function resolveTarget(
+  giver: Stuff,
+  raw: string
+): { target: Stuff; via: CommandContext['via'] } | null {
+  const r = MqlApi.resolveOne(raw, {
+    commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
+    scope: 'here',
+  });
+  if (!r.stuff) return null;
+  const ctxVia: CommandContext['via'] = {};
+  if (r.via) ctxVia.target = r.via;
+  return { target: r.stuff, via: ctxVia };
+}
+
+const FakeAvatarBase = CommandGiverMixin(
+  NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))))
+);
 class FakeAvatar extends FakeAvatarBase {
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {
@@ -70,6 +95,27 @@ function makeContext(
   verb: 'go',
   command: stubCommand('go'),
   };
+}
+
+/**
+ * Resolve `raw` through MQL and run GoController as the dispatcher
+ * would: stamp `model.target` with the resolved Stuff (or leave it
+ * unset on no-match) and stamp `ctx.via.target` with the matcher's
+ * sub-feature attribution. Returns the controller's CommandResult.
+ */
+async function goCmd(
+  controller: GoController,
+  avatar: FakeAvatar,
+  location: Location,
+  raw: string
+): Promise<ReturnType<GoController['execute']> extends Promise<infer T> ? T : never> {
+  const ctx = makeContext(avatar, location, `go ${raw}`);
+  const r = resolveTarget(avatar as unknown as Stuff, raw);
+  if (r === null) {
+    return controller.execute(makeModel(), ctx);
+  }
+  ctx.via = r.via;
+  return controller.execute(makeModel({ target: r.target }), ctx);
 }
 
 describe('GoController', () => {
@@ -108,10 +154,7 @@ describe('GoController', () => {
 
   describe('golden path (cartesian)', () => {
     it('go north moves the avatar and emits departure/arrival messages', async () => {
-      const result = await controller.execute(
-        makeModel({ target: 'north' }),
-        makeContext(avatar, locA, 'go north')
-      );
+      const result = await goCmd(controller, avatar, locA, 'north');
       expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(locB);
       expect(result.summary).toContain('Location B');
@@ -125,20 +168,14 @@ describe('GoController', () => {
     });
 
     it('round trip with south returns avatar to location A', async () => {
-      await controller.execute(makeModel({ target: 'north' }), makeContext(avatar, locA, 'go north'));
-      const back = await controller.execute(
-        makeModel({ target: 'south' }),
-        makeContext(avatar, locB, 'go south')
-      );
+      await goCmd(controller, avatar, locA, 'north');
+      const back = await goCmd(controller, avatar, locB, 'south');
       expect(back.success).toBe(true);
       expect(avatar.getContainer()).toBe(locA);
     });
 
     it('mover is excluded from peer broadcasts', async () => {
-      await controller.execute(
-        makeModel({ target: 'north' }),
-        makeContext(avatar, locA, 'go north')
-      );
+      await goCmd(controller, avatar, locA, 'north');
       // The mover sees its own toSelf frames ("You leave...", "You
       // arrive..."), but never the peer-broadcast frames that name
       // the mover ("<name>Alice</name> leaves..."). Auto-emit
@@ -168,13 +205,15 @@ describe('GoController', () => {
       expect(result.summary).toMatch(/where/i);
     });
 
-    it("returns 'can't go that way' for unmatched directions", async () => {
-      const result = await controller.execute(
-        makeModel({ target: 'south' }),
-        makeContext(avatar, locA, 'go south')
-      );
+    it("returns 'go where?' when the input doesn't resolve", async () => {
+      // Phase 7 cutover: with `go.yaml` declaring `target: type: object`,
+      // a non-resolvable input (no exit with that direction, no
+      // matching Stuff) leaves the dispatcher with nothing to bind.
+      // The controller never sees a target — its empty-target branch
+      // fires with "go where?".
+      const result = await goCmd(controller, avatar, locA, 'south');
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/can't go that way/i);
+      expect(result.summary).toMatch(/where/i);
     });
 
     it('blocks traversal through a closed door', async () => {
@@ -183,10 +222,7 @@ describe('GoController', () => {
       locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
-      const result = await controller.execute(
-        makeModel({ target: 'east' }),
-        makeContext(avatar, locA, 'go east')
-      );
+      const result = await goCmd(controller, avatar, locA, 'east');
       expect(result.success).toBe(false);
       expect(result.summary).toMatch(/closed/i);
       expect(avatar.getContainer()).toBe(locA);
@@ -211,10 +247,7 @@ describe('GoController', () => {
       const spherePeer = makeStuff(() => new PeerSensor());
       ContainmentApi.move(spherePeer, office);
 
-      const result = await controller.execute(
-        makeModel({ target: 'office' }),
-        makeContext(visitor, plaza, 'go office')
-      );
+      const result = await goCmd(controller, visitor, plaza, 'office');
       expect(result.success).toBe(true);
       expect(visitor.getContainer()).toBe(office);
 
@@ -230,10 +263,7 @@ describe('GoController', () => {
       wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
 
-      const result = await controller.execute(
-        makeModel({ target: 'wardrobe' }),
-        makeContext(avatar, locA, 'go wardrobe')
-      );
+      const result = await goCmd(controller, avatar, locA, 'wardrobe');
       expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(wardrobe);
     });
@@ -244,9 +274,11 @@ describe('GoController', () => {
       ContainmentApi.move(wardrobe, locA);
       ContainmentApi.move(avatar, wardrobe);
 
-      const result = await controller.execute(
-        makeModel({ target: 'out' }),
-        makeContext(avatar, wardrobe as unknown as Location, 'go out')
+      const result = await goCmd(
+        controller,
+        avatar,
+        wardrobe as unknown as Location,
+        'out'
       );
       expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(locA);

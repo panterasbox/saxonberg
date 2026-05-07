@@ -19,13 +19,13 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ConnectionApi } from '../connection';
 import { ContainmentApi } from '../containment';
 import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import { desugar } from './desugar';
+import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
 import { checkTier } from './permissions';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
@@ -694,16 +694,7 @@ function keywordsOf(stuff: Stuff): string[] {
 }
 
 function allOnlineCommandGivers(): Stuff[] {
-  const out: Stuff[] = [];
-  const seen = new Set<string>();
-  for (const interactive of ConnectionApi.getAllInteractives()) {
-    const holder = interactive.getHolder();
-    if (!holder) continue;
-    if (seen.has(holder.stuffId)) continue;
-    seen.add(holder.stuffId);
-    out.push(holder);
-  }
-  return out;
+  return getOnlineHolders();
 }
 
 function describeKind(kind: ChainElement['kind']): string {

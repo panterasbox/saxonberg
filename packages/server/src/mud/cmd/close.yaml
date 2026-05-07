@@ -3,5 +3,7 @@ controller: CloseController
 description: "Close a door (by direction or by name)"
 args:
   - name: target
-    type: string
+    type: object
     required: true
+    scope: "inventory, here"
+    updates_scope: true
