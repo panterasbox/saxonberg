@@ -417,10 +417,9 @@ fields and runs every declared validator:
 
 ```
 for each type:object field present:
-  yamlScopes = Array.isArray(def.scope) ? def.scope
-              : def.scope ? [def.scope] : []
-  tries = yamlScopes.length > 0
-            ? yamlScopes.map(s => ShellApi.expandVariables(s, giver))
+  // def.scope is normalised to string[] | undefined at construction
+  tries = (def.scope ?? []).length > 0
+            ? def.scope.map(s => ShellApi.expandVariables(s, giver))
             : ['here']
   for each scope in tries:
     if multiple:  MqlApi.resolveMany(query, { commandGiver, scope })
@@ -435,23 +434,28 @@ run subcommand-scoped option validators (if active)
 
 ### YAML scope[] is the explicit fallback chain
 
-`FieldDefinition.scope` accepts `string | string[]`. Each entry
-runs through `ShellApi.expandVariables` (synthetic vars like
-`$scope` and stored vars expand at bind time) and is tried in
-order; first non-empty result wins. The array form is the
+`FieldDefinition.scope` accepts `string | string[]` in the YAML /
+spec record. `CommandDefinition.normaliseShape` coerces the bare-
+string form to a singleton array, so the runtime value downstream
+code sees is always `string[] | undefined` — no `Array.isArray`
+checks at the call sites.
+
+Each entry runs through `ShellApi.expandVariables` (synthetic vars
+like `$focus` and stored vars expand at bind time) and is tried
+in order; first non-empty result wins. The array form is the
 explicit fallback chain — a verb that wants drill-first semantics
-declares `scope: ['$scope', 'inventory, here']` so a drilled
-player searches the drill scope first, with the room as fallback.
-A verb that should ignore drill declares just
+declares `scope: ['$focus', 'inventory, here']` so a drilled
+player searches the focus first, with the room as fallback. A
+verb that should ignore drill declares just
 `scope: 'inventory, here'`.
 
-There's no implicit "player scope tries first" rule. The YAML is
+There's no implicit "player focus tries first" rule. The YAML is
 authoritative — the help system can read `scope` to tell players
 which commands respect drill and which don't.
 
 Pronoun memory updates and the `updates_scope` post-resolve hook
 both gate on `MixinApi.isFocused(giver)`. NPCs without
-`FocusedMixin` resolve through MQL but don't carry drill state or
+`FocusedMixin` resolve through MQL but don't carry focus state or
 a pronoun stash.
 
 ### Default args
@@ -462,7 +466,7 @@ to non-greedy fields: when binding a positional and the next
 available token belongs to a *later* field's `prepositions:`
 list, the current field defaults rather than consuming. The
 default runs through the same `ShellApi.expandVariables` as
-player-typed text — `default: "$scope"` expands at bind time.
+player-typed text — `default: "$focus"` expands at bind time.
 
 `required: true` + `default:` is allowed; the default replaces
 the missing input. The "missing required arg" error only fires

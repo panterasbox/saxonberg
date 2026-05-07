@@ -551,14 +551,14 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
 /**
  * Fire `look` on `mover` as a forced command, so the resulting
  * Command frame carries `forced: true` and `look`'s
- * `updates_scope: true` re-anchors the mover's scope to the new
+ * `updates_scope: true` re-anchors the mover's focus to the new
  * room. Skips silently when `mover` isn't a CommandGiver — non-
  * giver NPCs can move without auto-looking.
  *
- * Resets the mover's scope to `"here"` first when the mover is
- * Focused. Bare `look` is `default: "$scope"` now, so without
- * this reset the auto-look would carry stale drilled scope from
- * the prior room into the new one — typical case is "scope was
+ * Resets the mover's focus to `"here"` first when the mover is
+ * Focused. Bare `look` is `default: "$focus"` now, so without
+ * this reset the auto-look would carry stale drilled focus from
+ * the prior room into the new one — typical case is "focus was
  * `widget`, you walk into a room without a widget, the auto-look
  * comes up empty." The reset is a side effect of *moving*, not
  * of *looking*; the auto-look itself stays a normal forced
@@ -572,7 +572,7 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
 async function autoLookOnArrival(mover: object): Promise<void> {
   const m = mover as Stuff;
   if (!MixinApi.isCommandGiver(m)) return;
-  if (MixinApi.isFocused(m)) m.clearScope();
+  if (MixinApi.isFocused(m)) m.clearFocus();
   try {
     await CommandApi.forceCommand(m as Stuff & CommandGiver, 'look');
   } catch {

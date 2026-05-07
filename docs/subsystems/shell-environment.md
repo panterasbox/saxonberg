@@ -337,16 +337,21 @@ Two sources, with synthetic winning on collision:
   `static persistentFields`. `ShellApi.lookupSyntheticVar` walks
   the giver's mixin chain on each expansion; first match wins.
 
-  v1 ships exactly one entry: **`$scope`** on `FocusedMixin`,
-  reading the live drilled fragment via `getScope()`. NPCs
+  v1 ships exactly one entry: **`$focus`** on `FocusedMixin`,
+  reading the live drilled fragment via `getFocus()`. NPCs
   without `FocusedMixin` get null on lookup.
+
+  Naming note: **scope** is the general term for the per-resolution
+  MQL search anchor; **focus** is the specific persisted state on
+  the command giver. The synthetic var is named after the state it
+  reads, not the role it plays.
 
 - **Stored** — settable via `var set NAME VALUE`, read on
   expansion via `giver.listVars()`. Only available when the giver
   composes `EnvironmentMixin`.
 
-Synthetic precedence: if a player does `var set scope foo`,
-`$scope` still resolves to the giver's actual current scope.
+Synthetic precedence: if a player does `var set focus foo`,
+`$focus` still resolves to the giver's actual current focus.
 Synthetic names are documented and stable; an accidental
 collision is better surfaced as documented-name-wins than as
 silent override.
@@ -375,8 +380,8 @@ neither.
 
 ### Empty / missing variables
 
-- Synthetic that returns empty (e.g., `$scope` with empty scope —
-  shouldn't happen, scope defaults to `"here"`): the token
+- Synthetic that returns empty (e.g., `$focus` with empty focus —
+  shouldn't happen, focus defaults to `"here"`): the token
   becomes empty and drops out of the bind.
 - Stored-var miss: empty substitution + soft-warn via `MudlogApi`
   ("unknown variable: $foo") when the giver is a Sensor. Failing
@@ -385,13 +390,16 @@ neither.
 
 ### YAML scope[]
 
-`FieldDefinition.scope` accepts `string | string[]`. Each entry
-runs through `ShellApi.expandVariables` (so `$scope` and stored
-vars resolve at bind time) and is tried in order; first non-empty
-result wins. The array form is the explicit fallback chain — a
-verb that wants drill-first semantics declares
-`scope: ['$scope', 'inventory, here']`. There is no implicit
-"player scope tries first" rule; the YAML is authoritative, and
+`FieldDefinition.scope` accepts `string | string[]` in the YAML /
+spec record. After `CommandDefinition.normaliseShape` runs, the
+runtime value is always `string[] | undefined` — downstream code
+treats it as an array, no `Array.isArray` checks needed. Each
+entry runs through `ShellApi.expandVariables` (so `$focus` and
+stored vars resolve at bind time) and is tried in order; first
+non-empty result wins. The array form is the explicit fallback
+chain — a verb that wants drill-first semantics declares
+`scope: ['$focus', 'inventory, here']`. There is no implicit
+"player focus tries first" rule; the YAML is authoritative, and
 the help system can read the array to tell players which commands
 respect drill.
 
@@ -403,10 +411,10 @@ lookahead to non-greedy fields too: if the next available token
 belongs to a *later* field's `prepositions:` list, the current
 field has no input — apply the default (or fail when required
 without default). The default runs through `expandVariables`, so
-`default: "$scope"` resolves at bind time. `required: true` +
+`default: "$focus"` resolves at bind time. `required: true` +
 `default:` is allowed; the default replaces the missing input.
 
-The canonical use is `look.yaml` — `default: "$scope"` makes bare
+The canonical use is `look.yaml` — `default: "$focus"` makes bare
 `look` mean "look at what I'm focused on" without controller-side
 special branches.
 

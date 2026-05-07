@@ -338,8 +338,8 @@ export interface FieldDefinition {
   /**
    * Value the matcher fills when the player provides no input for
    * this field. The default runs through shell-side variable
-   * interpolation just like player-typed text — `default: "$scope"`
-   * resolves to the giver's current scope at bind time.
+   * interpolation just like player-typed text — `default: "$focus"`
+   * resolves to the giver's current focus at bind time.
    *
    * `required: true` + `default:` is allowed: the default replaces
    * the missing input, no shape error. The "missing required arg"
@@ -348,17 +348,21 @@ export interface FieldDefinition {
    */
   default?: string;
   /**
-   * MQL fragment(s) the dispatcher tries when resolving this field.
-   * Each fragment runs through `ShellApi.expandVariables` (so
-   * `$scope` / stored vars expand at resolve time) and is tried in
-   * order; first non-empty result wins.
+   * MQL scope fragment(s) the dispatcher tries when resolving this
+   * field. Each fragment runs through `ShellApi.expandVariables`
+   * (so `$focus` / stored vars expand at resolve time) and is tried
+   * in order; first non-empty result wins.
    *
-   * Single-string and string-array forms are both accepted. The
-   * array form is the explicit fallback chain — a verb that wants
-   * drill-first semantics declares `scope: ['$scope', 'inventory,
-   * here']` so a drilled player searches the drill scope first
-   * with the room as fallback. Verbs that should ignore drill
-   * declare just `scope: 'inventory, here'`.
+   * The YAML/spec record accepts `string | string[]`. After
+   * `CommandDefinition` construction, the runtime value is always
+   * `string[] | undefined` — `normaliseShape` coerces a bare string
+   * into a singleton array, so consumers don't have to branch.
+   *
+   * The array form is the explicit fallback chain — a verb that
+   * wants drill-first semantics declares
+   * `scope: ['$focus', 'inventory, here']` so a drilled player
+   * searches the focus first with the room as fallback. Verbs that
+   * should ignore drill declare just `scope: 'inventory, here'`.
    *
    * Default when omitted: `'here'`. Only meaningful for
    * `type: object` / `type: objects` fields.
@@ -934,15 +938,13 @@ export class CommandApi {
       // Build the scope try-list. The YAML's `scope:` is authoritative
       // — it's the explicit ordered fallback chain. Each entry runs
       // through ShellApi.expandVariables so authors can reference
-      // synthetic vars (`$scope`) and stored vars at resolve time. A
-      // YAML that wants drill-first declares `scope: ['$scope', ...]`.
-      // No implicit player-scope priority — the help system can read
+      // synthetic vars (`$focus`) and stored vars at resolve time. A
+      // YAML that wants drill-first declares `scope: ['$focus', ...]`.
+      // No implicit player-focus priority — the help system can read
       // the YAML to tell players which commands respect drill.
-      const yamlScopes = Array.isArray(def.scope)
-        ? def.scope
-        : typeof def.scope === 'string' && def.scope.length > 0
-          ? [def.scope]
-          : [];
+      // `def.scope` is normalised to `string[] | undefined` by
+      // CommandDefinition.normaliseShape, so no Array.isArray here.
+      const yamlScopes = (def.scope as string[] | undefined) ?? [];
       const tries: string[] =
         yamlScopes.length > 0
           ? yamlScopes.map((s) => ShellApi.expandVariables(s, giver))
@@ -986,7 +988,7 @@ export class CommandApi {
         resolved[fname] = bound;
         if (r.stuff !== null && focused) {
           if (updatesScope) {
-            updatePlayerScope(focused, raw, r.stuff, r.via);
+            updatePlayerFocus(focused, raw, r.stuff, r.via);
           }
           const asMany: MqlManyResult = { stuff: [r.stuff] };
           if (r.via) asMany.via = r.via;
@@ -1823,22 +1825,22 @@ function slotForGenderRouting(stuff: Stuff): GenderedSlot {
 
 /**
  * Drill-trail rule: when an inspection-shaped command resolves a
- * `type: object` field, extend the player's scope along a detail path
- * if the resolved Stuff matches the current scope's anchor; otherwise
- * re-anchor to the post-desugar input fragment.
+ * `type: object` field, extend the player's focus along a detail
+ * path if the resolved Stuff matches the current focus's anchor;
+ * otherwise re-anchor to the post-desugar input fragment.
  *
  * v1 implements the simpler "compare resolved Stuff identity to the
- * current scope's leading anchor token" check by re-resolving the
- * current scope and matching stuffId. The plan's "same-anchor drill"
- * branch fires when result.stuff is the same identity as the current
- * scope's resolved Stuff AND a detailPath is present — typical case
- * is `look book` while scoped on `bookcase`. Everything else
+ * current focus's leading anchor token" check by re-resolving the
+ * current focus and matching stuffId. The "same-anchor drill" branch
+ * fires when result.stuff is the same identity as the current
+ * focus's resolved Stuff AND a detailPath is present — typical case
+ * is `look book` while focused on `bookcase`. Everything else
  * re-anchors to the raw input — except dynamic pronouns
  * (`it`/`him`/`her`/`them`/`$$`), which substitute the stored
- * fragment from pronoun memory so the scope tracks the original
- * referent rather than the unstable pronoun string.
+ * fragment from pronoun memory so focus tracks the original referent
+ * rather than the unstable pronoun string.
  */
-function updatePlayerScope(
+function updatePlayerFocus(
   giver: Stuff & CommandGiver & Focused,
   raw: string,
   stuff: Stuff,
@@ -1846,30 +1848,30 @@ function updatePlayerScope(
 ): void {
   const detailPath = via?.detailPath;
   if (detailPath && detailPath.length > 0) {
-    const currentScope = giver.getScope();
-    const currentAnchor = MqlApi.resolveOne(currentScope, {
+    const currentFocus = giver.getFocus();
+    const currentAnchor = MqlApi.resolveOne(currentFocus, {
       commandGiver: giver,
-      scope: currentScope,
+      scope: currentFocus,
     });
     if (currentAnchor.stuff && currentAnchor.stuff.stuffId === stuff.stuffId) {
       // Same-anchor drill — keep the anchor fragment, replace the
       // detail trail with the new one.
-      const head = stripDetailTrail(currentScope);
-      giver.setScope(head + '.' + detailPath.join('.'));
+      const head = stripDetailTrail(currentFocus);
+      giver.setFocus(head + '.' + detailPath.join('.'));
       return;
     }
   }
   // Dynamic-pronoun carve-out: when the input was itself a pronoun,
-  // substitute the stored fragment so the scope tracks the actual
-  // referent. Storing "it" or "him" as the scope would re-resolve
+  // substitute the stored fragment so focus tracks the actual
+  // referent. Storing "it" or "him" as the focus would re-resolve
   // on each subsequent query, drifting unpredictably.
   const pronounFragment = resolvePronounFragment(giver, raw);
   if (pronounFragment !== null) {
-    giver.setScope(pronounFragment);
+    giver.setFocus(pronounFragment);
     return;
   }
-  // Re-anchor: the post-desugar input fragment IS the new scope.
-  giver.setScope(raw);
+  // Re-anchor: the post-desugar input fragment IS the new focus.
+  giver.setFocus(raw);
 }
 
 /**

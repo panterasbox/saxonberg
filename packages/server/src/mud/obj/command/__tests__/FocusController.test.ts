@@ -100,29 +100,29 @@ describe('FocusController', () => {
     controller = makeStuff(() => new FocusController());
   });
 
-  it('reports the current scope when no fragment is given', () => {
-    giver.setScope('bookcase.book');
+  it('reports the current focus when no fragment is given', () => {
+    giver.setFocus('bookcase.book');
     const result = controller.execute(makeModel(), makeContext(giver, location));
     expect(result.success).toBe(true);
     expect(result.summary).toContain('bookcase.book');
   });
 
-  it("defaults to 'here' scope when nothing has set it", () => {
+  it("defaults to 'here' focus when nothing has set it", () => {
     const result = controller.execute(makeModel(), makeContext(giver, location));
     expect(result.success).toBe(true);
     expect(result.summary).toContain('here');
   });
 
-  it('sets scope to the player-typed fragment', () => {
+  it('sets focus to the player-typed fragment', () => {
     const result = controller.execute(
       makeModel({ fragment: fragmentField([], 'inventory') } as ModelData),
       makeContext(giver, location, 'inventory')
     );
     expect(result.success).toBe(true);
-    expect(giver.getScope()).toBe('inventory');
+    expect(giver.getFocus()).toBe('inventory');
   });
 
-  it('reports the resolved match count alongside the scope', () => {
+  it('reports the resolved match count alongside the focus', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
     const b = makeStuff(() => new TestThing()) as Stuff;
     const result = controller.execute(
@@ -144,15 +144,15 @@ describe('FocusController', () => {
     expect(result.summary).toContain('1 object');
   });
 
-  it('still sets scope when the fragment resolves to nothing now', () => {
+  it('still sets focus when the fragment resolves to nothing now', () => {
     // `focus online` when no one's online — the dispatcher's
-    // resolveMany returns []; controller still anchors scope.
+    // resolveMany returns []; controller still anchors focus.
     const result = controller.execute(
       makeModel({ fragment: fragmentField([], 'online') } as ModelData),
       makeContext(giver, location, 'online')
     );
     expect(result.success).toBe(true);
-    expect(giver.getScope()).toBe('online');
+    expect(giver.getFocus()).toBe('online');
     expect(result.summary).toContain('0 objects');
   });
 });

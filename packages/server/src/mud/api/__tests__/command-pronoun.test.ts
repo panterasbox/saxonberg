@@ -243,13 +243,13 @@ describe('Dispatcher pronoun-memory integration', () => {
     }
   });
 
-  it("look it after look rose anchors scope to 'rose', not 'it'", () => {
+  it("look it after look rose anchors focus to 'rose', not 'it'", () => {
     const cmd = lookCommand();
     CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
-    expect(giver.getScope()).toBe('rose');
+    expect(giver.getFocus()).toBe('rose');
 
     // `look it` — updates_scope: true fires. The dispatcher should
     // substitute the stored fragment ("rose"), NOT use "it".
@@ -257,7 +257,7 @@ describe('Dispatcher pronoun-memory integration', () => {
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
-    expect(giver.getScope()).toBe('rose');
+    expect(giver.getFocus()).toBe('rose');
   });
 
   it('two distinct CommandGivers do not share their stashes', () => {
@@ -302,7 +302,7 @@ describe('Dispatcher pronoun-memory integration', () => {
 
   it('YAML scope[] tries entries in order; falls back when first misses', () => {
     // Drill-first verb declared via the explicit array form. The
-    // dispatcher tries `$scope` (= 'rose') first; `apple` lives in
+    // dispatcher tries `$focus` (= 'rose') first; `apple` lives in
     // the giver's inventory, not in the rose detail tree, so the
     // first try misses and the second (`inventory, here`) finds it.
     const drillFirstLook = CommandDefinition.fromYaml(
@@ -314,12 +314,12 @@ describe('Dispatcher pronoun-memory integration', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: ["$scope", "inventory, here"]',
+        '    scope: ["$focus", "inventory, here"]',
         '    updates_scope: true',
       ].join('\n'),
       '<test>'
     );
-    giver.setScope('rose');
+    giver.setFocus('rose');
     const ctx = makeContext(
       giver,
       location as unknown as Location,
@@ -333,6 +333,6 @@ describe('Dispatcher pronoun-memory integration', () => {
       expect(target.stuff).toBe(apple);
     }
     // updates_scope re-anchors to the typed fragment.
-    expect(giver.getScope()).toBe('apple');
+    expect(giver.getFocus()).toBe('apple');
   });
 });

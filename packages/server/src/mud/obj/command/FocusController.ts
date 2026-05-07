@@ -1,15 +1,15 @@
 /**
- * FocusController — explicit scope inspection / set.
+ * FocusController — explicit focus inspection / set.
  *
- * `focus` (no fragment) — display the giver's current scope.
- * `focus <fragment>` — apply via `commandGiver.setScope(fragment)`,
+ * `focus` (no fragment) — display the giver's current focus.
+ * `focus <fragment>` — apply via `giver.setFocus(fragment)`,
  *   reporting how many things the fragment currently resolves to.
  *
- * The verb is `focus` (action-shaped) and the engine state remains
- * `commandGiver.scope` (state-shaped) — the verb-noun split is
- * intentional. From the player's perspective, `focus X` points
- * subsequent queries at X; the prompt rendering reflects the current
- * scope fragment.
+ * The verb is `focus` and the engine state lives on
+ * `FocusedMixin.getFocus()` — both are named for the player-facing
+ * concept. (We use **scope** for the per-resolution MQL search anchor
+ * since that's the broader term; **focus** is the persisted giver
+ * state surfaced to YAMLs as `$focus`.)
  *
  * `focus.yaml` declares `fragment: type: objects`, so the dispatcher
  * runs the parser + permission probe + resolveMany before the
@@ -17,7 +17,7 @@
  * level failures from the dispatcher's outer try/catch (see
  * `CommandGiverMixin.executeCommand`), so the controller doesn't
  * need to re-validate. Empty resolutions are normal here — `focus
- * online` when no one's online still sets the scope.
+ * online` when no one's online still sets the focus.
  *
  * The fragment text the player typed comes from `model.fragment.raw`
  * (the dispatcher-bound wrapper). The match list itself is
@@ -50,17 +50,17 @@ export class FocusController extends CommandController<FocusModel> {
     if (!wrapper || wrapper.raw.trim().length === 0) {
       return {
         success: true,
-        summary: `scope: ${giver.getScope()}`,
+        summary: `focus: ${giver.getFocus()}`,
       };
     }
 
     const fragmentText = wrapper.raw.trim();
-    giver.setScope(fragmentText);
+    giver.setFocus(fragmentText);
     const matches = wrapper.stuff.length;
     const noun = matches === 1 ? 'object' : 'objects';
     return {
       success: true,
-      summary: `scope: ${fragmentText} (${matches} ${noun})`,
+      summary: `focus: ${fragmentText} (${matches} ${noun})`,
     };
   }
 }

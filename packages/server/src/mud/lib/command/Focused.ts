@@ -2,18 +2,26 @@
  * FocusedMixin — interactive-command-giver state for drill,
  * pronoun memory, and the `focus` verb.
  *
- * Decoration on top of `CommandGiverMixin`. Avatars compose it
- * (alongside `EnvironmentMixin`); NPCs that script commands but
- * don't need drill state or pronoun stash leave it off.
+ * Decoration on top of `CommandGiverMixin`. Avatars compose it via
+ * `ShelledCharacter`; NPCs that script commands but don't need
+ * drill state or pronoun stash leave it off.
  *
  * Owns:
  *
- *   - Active MQL scope fragment, defaults to `"here"`. The
- *     dispatcher reads it as the search anchor for non-anchored
- *     fragments; inspection-shaped commands (`look`, `examine`,
- *     `open`, `close`) update it post-resolve via the drill-trail
- *     rule. Movement (`Mobile.traverse` / `teleport`) clears it
- *     before the auto-look-on-arrival.
+ *   - **Active focus fragment**, defaults to `"here"`. The dispatcher
+ *     reads it via `$focus` expansion as the search anchor for verbs
+ *     whose YAML opts in (`scope: ['$focus', ...]`); inspection-
+ *     shaped commands (`look`, `examine`, `open`, `close`) update it
+ *     post-resolve via the drill-trail rule. Movement
+ *     (`Mobile.traverse` / `teleport`) clears it before the
+ *     auto-look-on-arrival.
+ *
+ *     Naming note: the giver-side state is **focus**, not **scope**.
+ *     `scope` is the general term for the MQL search anchor an
+ *     expression resolves against; `focus` is the specific persisted
+ *     state on the command giver. They're related but distinct
+ *     concepts — keeping them named differently avoids the constant
+ *     "which scope?" question.
  *
  *   - Pronoun memory stash (`it`/`him`/`her`/`them`/`last`). The
  *     dispatcher updates it post-resolve; the resolver reads it
@@ -25,7 +33,7 @@
  *
  * Synthetic vars declared here:
  *
- *   - `$scope` → current scope fragment.
+ *   - `$focus` → current focus fragment.
  *
  * Pronoun words (`me`, `here`, `it`/`him`/`her`/`them`) are NOT
  * shell vars. They are first-class MQL keywords recognized by the
@@ -49,16 +57,16 @@ import type { SyntheticVarEntry } from '../../api/shell';
  */
 export interface Focused {
   /**
-   * Read the giver's active MQL scope fragment — the search anchor
-   * the dispatcher passes to MQL when a field doesn't override
-   * `scope:`. Defaults to `"here"`. Inspection-shaped commands
-   * (`look`, `examine`, …) update scope post-resolve via the
-   * dispatcher's drill-trail rule; the `focus` command sets it
-   * explicitly.
+   * Read the giver's active focus fragment — the persisted MQL
+   * scope state. Surfaced to verbs via the `$focus` synthetic var
+   * inside YAML `scope:` and `default:` declarations. Defaults to
+   * `"here"`. Inspection-shaped commands (`look`, `examine`, …)
+   * update focus post-resolve via the dispatcher's drill-trail
+   * rule; the `focus` command sets it explicitly.
    */
-  getScope(): string;
-  setScope(fragment: string): void;
-  clearScope(): void;
+  getFocus(): string;
+  setFocus(fragment: string): void;
+  clearFocus(): void;
   /**
    * Per-giver MQL pronoun stash (`it`/`him`/`her`/`them`/`$$`).
    * Updated post-resolve by the dispatcher; read by the resolver
@@ -74,7 +82,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     /**
      * Self-bucket commands every Focused giver picks up. The
      * `focus` meta-command lives here because the state it
-     * inspects/mutates (scope) is on this mixin.
+     * inspects/mutates (the focus fragment) is on this mixin.
      */
     static commandContributions: CommandContributions = {
       self: ['focus.yaml'],
@@ -82,24 +90,24 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
 
     /**
      * Synthetic vars sourced from this mixin's state. v1 ships
-     * exactly one — `$scope` reads the live drilled fragment.
+     * exactly one — `$focus` reads the live drilled fragment.
      */
     static syntheticVars: SyntheticVarEntry[] = [
       {
-        name: 'scope',
-        description: "The giver's current MQL scope fragment.",
-        read: (giver) => (giver as Stuff & { getScope(): string }).getScope(),
+        name: 'focus',
+        description: "The giver's current focus fragment.",
+        read: (giver) => (giver as Stuff & { getFocus(): string }).getFocus(),
       },
     ];
 
     /**
-     * Active MQL scope fragment. Transient — every Focused giver
+     * Active focus fragment. Transient — every Focused giver
      * starts at `"here"` and resets to `"here"` on movement
-     * (the auto-look-on-arrival path post-`clearScope()`).
+     * (the auto-look-on-arrival path post-`clearFocus()`).
      * Inspection-shaped commands update this via the dispatcher's
      * `updates_scope` path; the `focus` command sets it explicitly.
      */
-    private _scope: string = 'here';
+    private _focus: string = 'here';
 
     /**
      * Per-giver pronoun stash. Transient — populated post-resolve
@@ -109,17 +117,17 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      */
     private _pronounMemory: PronounMemory = new PronounMemory();
 
-    getScope(): string {
-      return this._scope;
+    getFocus(): string {
+      return this._focus;
     }
 
-    setScope(fragment: string): void {
+    setFocus(fragment: string): void {
       const trimmed = fragment.trim();
-      this._scope = trimmed.length > 0 ? trimmed : 'here';
+      this._focus = trimmed.length > 0 ? trimmed : 'here';
     }
 
-    clearScope(): void {
-      this._scope = 'here';
+    clearFocus(): void {
+      this._focus = 'here';
     }
 
     getPronounMemory(): PronounMemory {

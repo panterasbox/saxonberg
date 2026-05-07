@@ -27,8 +27,8 @@ interface LookModel extends CommandModel {
 export class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): CommandResult {
     const target = model.target;
-    // `look.yaml` declares `default: "$scope"` and the scope fallback
-    // chain `["$scope", "inventory, here"]`, so the dispatcher always
+    // `look.yaml` declares `default: "$focus"` and the scope fallback
+    // chain `["$focus", "inventory, here"]`, so the dispatcher always
     // hands us a wrapper. Empty (`null`) is the only honest "no
     // match" signal; we don't fabricate another fallback here.
     if (!target || target.stuff === null) {
@@ -39,7 +39,7 @@ export class LookController extends CommandController<LookModel> {
     }
     // Render the room (with exits) when the resolved target IS the
     // current location — bare `look` on arrival, `look here`, or
-    // any `$scope` that re-resolved to the location.
+    // any `$focus` that re-resolved to the location.
     if (target.stuff === context.location) {
       return this.lookAtLocation(context);
     }

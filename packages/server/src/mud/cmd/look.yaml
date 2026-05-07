@@ -5,9 +5,9 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$scope", "inventory, here"]
+    scope: ["$focus", "inventory, here"]
     updates_scope: true
     prepositions: [at]
-    default: "$scope"
+    default: "$focus"
     validators:
       - /lib/command/validators/mustBeVisible

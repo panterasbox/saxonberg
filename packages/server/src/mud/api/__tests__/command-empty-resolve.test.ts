@@ -167,14 +167,14 @@ describe('Dispatcher empty-resolution passthrough', () => {
     }
   });
 
-  it('does not update player scope on empty resolution', () => {
+  it('does not update player focus on empty resolution', () => {
     const cmd = singleObjectCmd(); // updates_scope: true
-    giver.setScope('rose');
+    giver.setFocus('rose');
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
     CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
-    // Scope unchanged — would have been clobbered if the dispatcher
+    // Focus unchanged — would have been clobbered if the dispatcher
     // had re-anchored to "bathtub".
-    expect(giver.getScope()).toBe('rose');
+    expect(giver.getFocus()).toBe('rose');
   });
 
   it('does not update pronoun memory on empty resolution', () => {
@@ -184,11 +184,11 @@ describe('Dispatcher empty-resolution passthrough', () => {
     expect(giver.getPronounMemory().read('it')).toBeNull();
   });
 
-  it('still updates scope/stash on a non-empty resolution', () => {
+  it('still updates focus/stash on a non-empty resolution', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
     CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
-    expect(giver.getScope()).toBe('rose');
+    expect(giver.getFocus()).toBe('rose');
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
   });
 });

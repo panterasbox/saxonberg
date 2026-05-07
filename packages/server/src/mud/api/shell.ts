@@ -19,14 +19,14 @@
  *
  *   - Synthetic — read-only, sourced from a mixin's `static
  *     syntheticVars: SyntheticVarEntry[]`. v1 ships exactly one:
- *     `$scope` on `FocusedMixin`. Pronoun words (`me`, `here`,
+ *     `$focus` on `FocusedMixin`. Pronoun words (`me`, `here`,
  *     `it`/`him`/`her`/`them`) are NOT shell vars — they're
  *     first-class MQL keywords, recognized by the resolver.
  *   - Stored — `var set NAME VALUE` lands in `EnvironmentMixin`'s
  *     session store; `$<name>` reads it back.
  *
- * Synthetic precedence on collision: `var set scope foo` does not
- * shadow the synthetic `$scope`. The synthetic name is documented
+ * Synthetic precedence on collision: `var set focus foo` does not
+ * shadow the synthetic `$focus`. The synthetic name is documented
  * and stable; surprise overrides are worse than a documented win.
  *
  * Unknown stored-var names soft-warn via `MudlogApi` (when the
