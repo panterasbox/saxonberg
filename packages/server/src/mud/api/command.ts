@@ -18,6 +18,7 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
+import { ArrayApi } from './array';
 import { ShellApi } from './shell';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
@@ -1904,11 +1905,11 @@ function updatePlayerFocus(
   if (sameStuff) {
     const oldPath = currentAnchor.via?.detailPath ?? [];
     const newPath = via?.detailPath ?? [];
-    if (arraysEqual(oldPath, newPath)) {
+    if (ArrayApi.equal(oldPath, newPath)) {
       // Re-resolved the same target — leave focus alone.
       return;
     }
-    if (isPrefix(oldPath, newPath)) {
+    if (ArrayApi.isPrefix(oldPath, newPath)) {
       // Compaction: same anchor, deeper via — append only the new
       // tail segments. Joining with `:` matches the new chain
       // separator.
@@ -1922,22 +1923,6 @@ function updatePlayerFocus(
   // navigability — the next query's scope try-list with the
   // reachable fallback handles cases where the chain stops resolving.
   giver.setFocus(currentFocus + ':' + fragment);
-}
-
-function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
-function isPrefix(prefix: readonly string[], full: readonly string[]): boolean {
-  if (prefix.length > full.length) return false;
-  for (let i = 0; i < prefix.length; i++) {
-    if (prefix[i] !== full[i]) return false;
-  }
-  return true;
 }
 
 /**
