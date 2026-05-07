@@ -122,6 +122,33 @@ describe('MQL resolver — direct seeds', () => {
     });
   });
 
+  describe('peers seed', () => {
+    it('resolves to the location contents excluding the giver', () => {
+      const out = resolve('peers', ctx);
+      const idSet = new Set(ids(out));
+      expect(idSet.has(world.rose.stuffId)).toBe(true);
+      expect(idSet.has(world.daisy.stuffId)).toBe(true);
+      expect(idSet.has(world.giver.stuffId)).toBe(false);
+      expect(idSet.has(world.location.stuffId)).toBe(false);
+    });
+
+    it('mid-chain peers:rose filters peers by keyword', () => {
+      const out = resolve('peers:rose', ctx);
+      expect(ids(out)).toEqual([world.rose.stuffId]);
+    });
+  });
+
+  describe('reachable seed', () => {
+    it('includes peers, the location, and inventory items', () => {
+      const out = resolve('reachable', ctx);
+      const idSet = new Set(ids(out));
+      expect(idSet.has(world.rose.stuffId)).toBe(true);
+      expect(idSet.has(world.daisy.stuffId)).toBe(true);
+      expect(idSet.has(world.location.stuffId)).toBe(true);
+      expect(idSet.has(world.apple.stuffId)).toBe(true);
+    });
+  });
+
   describe('path seed', () => {
     afterEach(() => {
       _MqlAdminFlag.granter = () => false;
@@ -186,6 +213,19 @@ describe('MQL resolver — keyword search', () => {
     ctx = { commandGiver: world.giver, scope: '' };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
+  });
+
+  it('peers scope finds peer items', () => {
+    ctx = { commandGiver: world.giver, scope: 'peers' };
+    const out = resolve('rose', ctx);
+    expect(ids(out)).toContain(world.rose.stuffId);
+  });
+
+  it('reachable scope unions peers, here, and inventory', () => {
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    expect(ids(resolve('rose', ctx))).toContain(world.rose.stuffId);
+    expect(ids(resolve('apple', ctx))).toContain(world.apple.stuffId);
+    expect(ids(resolve('square', ctx))).toContain(world.location.stuffId);
   });
 });
 

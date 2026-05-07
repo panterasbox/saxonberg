@@ -114,6 +114,46 @@ export function candidatesForInventory(giver: Stuff): ScopeCandidate[] {
 }
 
 /**
+ * Build the candidate pool for the giver's peers — the contents of
+ * the giver's location, excluding the giver itself. Each peer
+ * contributes its direct entry plus any Details it carries.
+ */
+export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
+  if (!MixinApi.isContainable(giver)) return [];
+  const env = giver.getContainer();
+  if (!env || !MixinApi.isContainer(env)) return [];
+  const out: ScopeCandidate[] = [];
+  for (const item of ContainmentApi.getContents(env)) {
+    if (item.stuffId === giver.stuffId) continue;
+    pushDirect(out, item);
+    pushDetails(out, item);
+  }
+  return out;
+}
+
+/**
+ * Build the candidate pool for `reachable` — the union of `here`,
+ * `peers`, and `inventory` pools. Lets a single seed name "everything
+ * reachable from the giver right now" so it composes mid-chain
+ * (e.g., `online:reachable`) where the comma-union form can't.
+ *
+ * Duplicates across the sub-pools are tolerated; the resolver's
+ * `finalize` step dedupes by stuffId before reporting matches.
+ */
+export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
+  const out: ScopeCandidate[] = [];
+  if (MixinApi.isContainable(giver)) {
+    const env = giver.getContainer();
+    if (env) {
+      for (const c of candidatesForHere(env)) out.push(c);
+    }
+  }
+  for (const c of candidatesForPeers(giver)) out.push(c);
+  for (const c of candidatesForInventory(giver)) out.push(c);
+  return out;
+}
+
+/**
  * Build the candidate pool from a flat array of Stuff. Used for
  * `online` and `world` scopes where each Stuff is a candidate on its
  * own merits (no sub-features expanded).

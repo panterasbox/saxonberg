@@ -33,6 +33,8 @@ import {
   candidatesForFlat,
   candidatesForHere,
   candidatesForInventory,
+  candidatesForPeers,
+  candidatesForReachable,
   scoreCandidates,
   type ScopeCandidate,
 } from './scope-walk';
@@ -193,7 +195,8 @@ function stashEntryToMatches(stored: MqlMany): MqlMatch[] {
 }
 
 function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
-  // Single-word seed promotions: `inventory`, `online`, `world`.
+  // Single-word seed promotions: `inventory`, `online`, `world`,
+  // `peers`, `reachable`.
   if (node.words.length === 1) {
     const w = node.words[0]!;
     if (w === 'inventory') {
@@ -207,9 +210,29 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       checkTier('admin', 'world', ctx.commandGiver);
       return matchesFromStuff(StuffApi.getAllObjects());
     }
+    if (w === 'peers') {
+      return candidatesToMatches(candidatesForPeers(ctx.commandGiver));
+    }
+    if (w === 'reachable') {
+      return candidatesToMatches(candidatesForReachable(ctx.commandGiver));
+    }
   }
   // Otherwise: keyword search against the field's scope.
   return scopeKeywordSearch(node.words, ctx);
+}
+
+/**
+ * Turn a candidate pool into seed matches. Dedup by `(stuff, via)` is
+ * deferred to {@link finalize}, which keeps the highest-scored entry
+ * per `stuffId`. Each candidate scores 100 — seed promotion is a
+ * direct anchor, not a keyword match.
+ */
+function candidatesToMatches(pool: ScopeCandidate[]): MqlMatch[] {
+  return pool.map((c) => {
+    const m: MqlMatch = { stuff: c.stuff, score: 100 };
+    if (c.via) m.via = c.via;
+    return m;
+  });
 }
 
 function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
@@ -275,6 +298,8 @@ function candidatesForScopePart(
   const lower = part.toLowerCase();
   if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
   if (lower === 'inventory') return candidatesForInventory(ctx.commandGiver);
+  if (lower === 'peers') return candidatesForPeers(ctx.commandGiver);
+  if (lower === 'reachable') return candidatesForReachable(ctx.commandGiver);
   if (lower === 'online') {
     try {
       checkTier('admin', 'online', ctx.commandGiver);
