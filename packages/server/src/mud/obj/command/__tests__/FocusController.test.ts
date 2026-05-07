@@ -27,7 +27,7 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
-import type { MqlMany } from '../../../api/mql';
+import type { MqlManyResult } from '../../../api/mql';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
@@ -81,9 +81,9 @@ function makeContext(
   };
 }
 
-/** Build the MqlMany wrapper the dispatcher would land on the
+/** Build the MqlManyResult wrapper the dispatcher would land on the
  *  fragment field of FocusModel. */
-function fragmentField(stuff: Stuff[], raw: string): MqlMany {
+function fragmentField(stuff: Stuff[], raw: string): MqlManyResult {
   return { stuff, raw };
 }
 

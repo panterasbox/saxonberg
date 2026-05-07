@@ -16,7 +16,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlOne } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -27,7 +27,7 @@ import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
 interface GoModel extends CommandModel {
-  target?: MqlOne;
+  target?: MqlOneResult;
 }
 
 export class GoController extends CommandController<GoModel> {

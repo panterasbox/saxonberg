@@ -31,12 +31,12 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlMany } from '../../api/mql';
+import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Focused } from '../../lib/command/Focused';
 
 interface FocusModel extends CommandModel {
-  fragment?: MqlMany;
+  fragment?: MqlManyResult;
 }
 
 export class FocusController extends CommandController<FocusModel> {

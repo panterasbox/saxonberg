@@ -6,7 +6,7 @@ import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { Door } from '../../../lib/spatial/Door';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlApi, type MqlOne } from '../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -77,15 +77,15 @@ function makeContext(
 
 /**
  * Resolve a target string against `scope` and bundle the result
- * into the {@link MqlOne} wrapper the controller now reads from
+ * into the {@link MqlOneResult} wrapper the controller now reads from
  * `model.target`.
  */
-function buildMqlOne(giver: Stuff, raw: string, scope: string): MqlOne {
+function buildMqlOneResult(giver: Stuff, raw: string, scope: string): MqlOneResult {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
     scope,
   });
-  const bound: MqlOne = { stuff: r.stuff, raw };
+  const bound: MqlOneResult = { stuff: r.stuff, raw };
   if (r.via) bound.via = r.via;
   return bound;
 }
@@ -97,7 +97,7 @@ async function openCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
-  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'inventory, here');
+  const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
@@ -108,7 +108,7 @@ async function closeCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `close ${raw}`);
-  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'inventory, here');
+  const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 
@@ -119,7 +119,7 @@ async function goCmd(
   raw: string
 ): Promise<CommandResult> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
-  const target = buildMqlOne(avatar as unknown as Stuff, raw, 'here');
+  const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
 }
 

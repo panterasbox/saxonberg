@@ -11,7 +11,7 @@
  *     (the enum: He → him, She → her, They → them, It → it). Stuff
  *     that doesn't compose `Gendered` defaults to `it`.
  *
- *   - `last` — full `MqlManyResult` from the most recent resolve,
+ *   - `last` — full `MqlMany` from the most recent resolve,
  *     including any query-level via. `$$` reads this slot verbatim.
  *
  * Each slot also carries the **input fragment** that produced it
@@ -44,7 +44,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { MqlManyResult } from './types';
+import type { MqlMany } from './types';
 
 /**
  * Slots indexed by the dynamic-pronoun seed name. `last` is the
@@ -57,7 +57,7 @@ export type GenderedSlot = Exclude<PronounSlot, 'last'>;
 interface StashEntry {
   /** Resolved-result snapshot. For gendered slots, length is 1
    *  (single anchor) for he/she/it and 1+ for they/them collectives. */
-  result: MqlManyResult;
+  result: MqlMany;
   /** Post-desugar input fragment that produced this entry. */
   fragment: string;
 }
@@ -77,7 +77,7 @@ export class PronounMemory {
    * resolver maps the returned `result.stuff` array to `MqlMatch`
    * records, stamping `result.via` (when present) on each.
    */
-  read(slot: PronounSlot): MqlManyResult | null {
+  read(slot: PronounSlot): MqlMany | null {
     return this.#entry(slot)?.result ?? null;
   }
 
@@ -108,7 +108,7 @@ export class PronounMemory {
    * that knows the gender mapping.
    */
   update(
-    result: MqlManyResult,
+    result: MqlMany,
     fragment: string,
     slotFor: (stuff: Stuff) => GenderedSlot
   ): void {

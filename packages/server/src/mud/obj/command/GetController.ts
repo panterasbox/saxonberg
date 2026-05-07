@@ -8,7 +8,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlMany } from '../../api/mql';
+import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -21,7 +21,7 @@ interface GetModel extends CommandModel {
   // input) but the dispatcher passes empty `targets.stuff` arrays
   // through on unresolved input — controller produces the player-
   // facing error.
-  targets: MqlMany;
+  targets: MqlManyResult;
 }
 
 export class GetController extends CommandController<GetModel> {

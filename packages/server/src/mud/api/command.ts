@@ -30,11 +30,11 @@ import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
 import {
   MqlApi,
-  type MqlManyResult,
   type MqlMany,
+  type MqlManyResult,
   type MqlMatchVia,
-  type MqlOne,
   type MqlOneResult,
+  type MqlOne,
 } from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
@@ -226,13 +226,13 @@ export interface CommandResult {
  *
  *   - `boolean`/`string`/`number` for primitive-typed fields.
  *   - `Stuff` historically for `type: object` resolved fields;
- *     replaced by `MqlOne` post-Phase-7 (kept in the union for the
+ *     replaced by `MqlOneResult` post-Phase-7 (kept in the union for the
  *     transitional matcher path that lands raw values on the model
  *     before resolution).
- *   - `MqlOne` for resolved `type: object` fields — bundles
+ *   - `MqlOneResult` for resolved `type: object` fields — bundles
  *     stuff + via + raw + prep into a single per-field record.
- *     `MqlOne.stuff` is `null` when MQL produced no match.
- *   - `MqlMany` for resolved `type: objects` fields — same shape
+ *     `MqlOneResult.stuff` is `null` when MQL produced no match.
+ *   - `MqlManyResult` for resolved `type: objects` fields — same shape
  *     with `stuff` as `Stuff[]`.
  *   - `FieldValue[]` covers `multiple: true` option accumulation.
  *
@@ -244,8 +244,8 @@ export type FieldValue =
   | string
   | number
   | Stuff
-  | MqlOne
-  | MqlMany
+  | MqlOneResult
+  | MqlManyResult
   | FieldValue[];
 
 /**
@@ -954,7 +954,7 @@ export class CommandApi {
       const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
-        let r: MqlManyResult = { stuff: [] };
+        let r: MqlMany = { stuff: [] };
         for (const scope of tries) {
           r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
           if (r.stuff.length > 0) break;
@@ -963,7 +963,7 @@ export class CommandApi {
         // on the wrapper and let the controller decide what
         // no-match means in its domain. Don't update scope or
         // pronoun memory on empty (no anchor to anchor on).
-        const bound: MqlMany = { stuff: r.stuff, raw };
+        const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
@@ -974,7 +974,7 @@ export class CommandApi {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOneResult = { stuff: null };
+        let r: MqlOne = { stuff: null };
         for (const scope of tries) {
           r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
           if (r.stuff !== null) break;
@@ -982,7 +982,7 @@ export class CommandApi {
         // `null` (empty) is a normal outcome — pass it through on
         // the wrapper and let the controller decide what no-match
         // means.
-        const bound: MqlOne = { stuff: r.stuff, raw };
+        const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
@@ -990,7 +990,7 @@ export class CommandApi {
           if (updatesScope) {
             updatePlayerFocus(focused, raw, r.stuff, r.via);
           }
-          const asMany: MqlManyResult = { stuff: [r.stuff] };
+          const asMany: MqlMany = { stuff: [r.stuff] };
           if (r.via) asMany.via = r.via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }

@@ -5,12 +5,12 @@
  * points reflect caller intent:
  *
  *   - {@link resolveOne} — one-of-N intent. Returns the highest-scored
- *     match (or null) wrapped in {@link MqlOneResult}, with optional
+ *     match (or null) wrapped in {@link MqlOne}, with optional
  *     sub-feature attribution. The future auto-disambiguation hook
  *     (UI prompt when several candidates score equally) will layer
  *     onto this code path additively.
  *   - {@link resolveMany} — multi intent. Returns the full match list
- *     in {@link MqlManyResult}; never disambiguated.
+ *     in {@link MqlMany}; never disambiguated.
  *
  * Both delegate to the same internal pipeline (`mql/resolver.ts`); the
  * difference is only in how the match list is wrapped.
@@ -27,19 +27,19 @@ import { SecurityApi } from './security';
 import type {
   MqlContext,
   MqlMatchVia,
-  MqlOne,
-  MqlMany,
   MqlOneResult,
   MqlManyResult,
+  MqlOne,
+  MqlMany,
 } from './mql/types';
 
 export type {
   MqlContext,
   MqlMatchVia,
-  MqlOne,
-  MqlMany,
   MqlOneResult,
   MqlManyResult,
+  MqlOne,
+  MqlMany,
 };
 
 // `PronounMemory` is the one mql/ class the non-api layer consumes
@@ -70,11 +70,11 @@ export class MqlApi {
    * the controller-side equivalent of `cmd foo, cmd foo working
    * down the stack" — also use this.
    */
-  static resolveOne(query: string, ctx: MqlContext): MqlOneResult {
+  static resolveOne(query: string, ctx: MqlContext): MqlOne {
     const matches = resolvePipeline(query, ctx);
     if (matches.length === 0) return { stuff: null };
     const top = matches[0]!;
-    const out: MqlOneResult = { stuff: top.stuff };
+    const out: MqlOne = { stuff: top.stuff };
     if (top.via) out.via = top.via;
     return out;
   }
@@ -88,11 +88,11 @@ export class MqlApi {
    * The dispatcher routes `type: objects` YAML fields through this
    * surface.
    */
-  static resolveMany(query: string, ctx: MqlContext): MqlManyResult {
+  static resolveMany(query: string, ctx: MqlContext): MqlMany {
     const matches = resolvePipeline(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
-    const out: MqlManyResult = { stuff };
+    const out: MqlMany = { stuff };
     if (via) out.via = via;
     return out;
   }

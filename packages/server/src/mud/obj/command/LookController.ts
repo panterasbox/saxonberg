@@ -12,7 +12,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlOne } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
@@ -21,7 +21,7 @@ import { Mml } from '../../api/mml';
 import type { Exit } from '../../lib/spatial/Exit';
 
 interface LookModel extends CommandModel {
-  target?: MqlOne;
+  target?: MqlOneResult;
 }
 
 export class LookController extends CommandController<LookModel> {

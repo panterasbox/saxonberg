@@ -9,7 +9,7 @@ import { Exit } from '../../../lib/spatial/Exit';
 import { Door } from '../../../lib/spatial/Door';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlApi, type MqlOne } from '../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -44,15 +44,15 @@ import { Idea } from "../../../lib/stuff/Idea";
 
 /**
  * Resolve a target string through MQL exactly as the dispatcher
- * would and bundle the result into the {@link MqlOne} wrapper the
+ * would and bundle the result into the {@link MqlOneResult} wrapper the
  * controller now reads from `model.target`.
  */
-function resolveTarget(giver: Stuff, raw: string): MqlOne {
+function resolveTarget(giver: Stuff, raw: string): MqlOneResult {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
     scope: 'here',
   });
-  const bound: MqlOne = { stuff: r.stuff, raw };
+  const bound: MqlOneResult = { stuff: r.stuff, raw };
   if (r.via) bound.via = r.via;
   return bound;
 }
@@ -93,7 +93,7 @@ function makeContext(
 
 /**
  * Resolve `raw` through MQL and run GoController as the dispatcher
- * would: build the `MqlOne` wrapper for `model.target` and run the
+ * would: build the `MqlOneResult` wrapper for `model.target` and run the
  * controller. Returns the controller's CommandResult.
  */
 async function goCmd(
@@ -195,7 +195,7 @@ describe('GoController', () => {
     });
 
     it("returns \"can't go that way\" when the input doesn't resolve", async () => {
-      // Post-wrapper cutover: the dispatcher lands an `MqlOne`
+      // Post-wrapper cutover: the dispatcher lands an `MqlOneResult`
       // wrapper on `model.target` with `stuff: null` for an
       // unresolved input. Controller fires its null-stuff branch
       // and reports "can't go that way".

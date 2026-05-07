@@ -45,7 +45,7 @@ import type {
   ExprNode,
   KeywordsNode,
   MqlContext,
-  MqlManyResult,
+  MqlMany,
   MqlMatch,
   PronounNode,
   QueryNode,
@@ -183,7 +183,7 @@ function matchesFromStash(
   return stashEntryToMatches(stored);
 }
 
-function stashEntryToMatches(stored: MqlManyResult): MqlMatch[] {
+function stashEntryToMatches(stored: MqlMany): MqlMatch[] {
   const via = stored.via;
   return stored.stuff.map((s) => {
     const m: MqlMatch = { stuff: s, score: 100 };

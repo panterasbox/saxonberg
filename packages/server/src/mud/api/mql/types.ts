@@ -6,12 +6,12 @@
  *
  * Two product-level result types reflect caller intent:
  *
- *   - {@link MqlOneResult} — single-cardinality lookup. Returned from
+ *   - {@link MqlOne} — single-cardinality lookup. Returned from
  *     `MqlApi.resolveOne`. Future auto-disambiguation (UI prompt when
  *     several candidates score equally) will hook into this surface
  *     additively; v1 just picks the highest-scored match.
  *
- *   - {@link MqlManyResult} — multi-cardinality lookup. Returned from
+ *   - {@link MqlMany} — multi-cardinality lookup. Returned from
  *     `MqlApi.resolveMany`. Never disambiguated — multi-intent is the
  *     point.
  *
@@ -78,7 +78,7 @@ export interface MqlMatch {
  * sub-feature attribution for that candidate, or undefined when the
  * match was direct.
  */
-export interface MqlOneResult {
+export interface MqlOne {
   stuff: Stuff | null;
   via?: MqlMatchVia;
 }
@@ -89,7 +89,7 @@ export interface MqlOneResult {
  * query level, present only when every match arrived through the same
  * sub-feature path; mixed paths produce `via: undefined`.
  */
-export interface MqlManyResult {
+export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
 }
@@ -100,13 +100,13 @@ export interface MqlManyResult {
  * bundling everything a controller might need:
  *
  *   - `stuff`: the resolved Stuff, or `null` when MQL produced no
- *     match. (Inherited from {@link MqlOneResult}.) Distinguished
+ *     match. (Inherited from {@link MqlOne}.) Distinguished
  *     from the field being absent on the model (player typed
  *     nothing) — controllers can tell the two apart.
  *
  *   - `via`: sub-feature attribution (`exit` for direction matches,
  *     `detailPath` for detail drills, etc.). (Inherited from
- *     {@link MqlOneResult}.)
+ *     {@link MqlOne}.)
  *
  *   - `raw`: the player-typed text post-desugar, before MQL replaced
  *     it with the resolved Stuff. Always present when this wrapper
@@ -120,19 +120,19 @@ export interface MqlManyResult {
  *
  *   const { stuff, via, raw, prep } = model.target;
  */
-export interface MqlOne extends MqlOneResult {
+export interface MqlOneResult extends MqlOne {
   raw: string;
   prep?: string;
 }
 
 /**
- * Plural counterpart to {@link MqlOne}. Adds `raw` and `prep` to
- * {@link MqlManyResult}. `stuff` is the full match list (empty
+ * Plural counterpart to {@link MqlOneResult}. Adds `raw` and `prep` to
+ * {@link MqlMany}. `stuff` is the full match list (empty
  * array when MQL produced no match — still a valid outcome the
  * controller decides about); `via` is the query-level attribution
  * (only when every match arrived through the same path).
  */
-export interface MqlMany extends MqlManyResult {
+export interface MqlManyResult extends MqlMany {
   raw: string;
   prep?: string;
 }

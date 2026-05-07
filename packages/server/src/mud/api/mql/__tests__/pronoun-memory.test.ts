@@ -16,7 +16,7 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { NamedMixin } from '../../../lib/description/Named';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { MqlManyResult } from '../types';
+import type { MqlMany } from '../types';
 
 class TestStuff extends NamedMixin(Idea) {}
 
@@ -26,7 +26,7 @@ function s(name: string): Stuff {
   return stuff as unknown as Stuff;
 }
 
-function many(stuff: Stuff[]): MqlManyResult {
+function many(stuff: Stuff[]): MqlMany {
   return { stuff };
 }
 
@@ -100,7 +100,7 @@ describe('PronounMemory', () => {
 
   it('preserves via on read', () => {
     const rose = s('rose');
-    const result: MqlManyResult = { stuff: [rose], via: { detailPath: ['petal'] } };
+    const result: MqlMany = { stuff: [rose], via: { detailPath: ['petal'] } };
     mem.update(result, 'rose', routeAsIt);
     const stored = mem.read('it')!;
     expect(stored.via).toEqual({ detailPath: ['petal'] });
