@@ -59,6 +59,20 @@ export interface MqlContext {
 export interface MqlMatchVia {}
 
 /**
+ * Internal per-match record tracked by the resolver. Carries the
+ * matched Stuff, its score under the scoring rule, and any
+ * sub-feature attribution. Phase 7's `MqlApi.resolveOne` /
+ * `MqlApi.resolveMany` collapse these into the public result shapes.
+ *
+ * Not exported from the public `MqlApi` surface.
+ */
+export interface MqlMatch {
+  stuff: Stuff;
+  score: number;
+  via?: MqlMatchVia;
+}
+
+/**
  * Result of `MqlApi.resolveOne`. `stuff` is null when there were no
  * matches; otherwise it's the highest-scored candidate. `via` is the
  * sub-feature attribution for that candidate, or undefined when the
