@@ -1,18 +1,21 @@
 /**
  * MqlApi - MUD Query Language for object resolution
  *
- * Phase 4 implementation: Basic keyword matching only
- * - No ordinals ("first flower", "second sword")
- * - No quantities ("5 arrows")
- * - Simple keyword matching against name and keywords[]
+ * Phase 1 facade: existing keyword-scoring `resolve` / `resolveMany`
+ * remain as delegating shims so the dispatcher and direct-caller
+ * controllers (Go/Open/Close) compile unchanged. The Phase 7 cutover
+ * replaces this surface with `resolveOne` / `resolveMany` returning
+ * wrapped results ({@link MqlOneResult}, {@link MqlManyResult}).
  *
- * Future phases will extend with advanced query syntax.
+ * The new public type surface ({@link MqlContext}, {@link MqlOneResult},
+ * {@link MqlManyResult}, {@link MqlMatchVia}, {@link PermissionTier})
+ * is re-exported from `./mql/types`. Internal pipeline modules under
+ * `./mql/` (lexer, desugar, parser, resolver, scope-walk, predicates,
+ * permissions, pronoun-memory) start as stubs and grow phase by phase.
  *
- * Example:
- * ```typescript
- * const flower = MqlApi.resolve('flower', { avatar, location });
- * const flowers = MqlApi.resolveMany('flowers', { avatar, location });
- * ```
+ * The internal `mql/` modules are not Apis: they're pipeline stages
+ * that the public `MqlApi` (this file) drives. The `MqlApi` class
+ * itself remains the security-decorated entry point.
  */
 
 import type { Location } from '../lib/stuff/Location';
@@ -23,15 +26,27 @@ import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
+export type {
+  MqlContext as MqlContextV2,
+  MqlMatchVia,
+  MqlOneResult,
+  MqlManyResult,
+  PermissionTier,
+} from './mql/types';
+
 /**
- * MQL (MUD Query Language) context.
+ * Legacy MQL context. Phase 1 keeps the original shape so callers
+ * compile unchanged. Phase 7 retires this in favor of the
+ * scope-fragment-based {@link MqlContextV2} (re-exported above).
  *
- * - `commandGiver`: the thing whose perspective drives the query (inventory
- *   search, "you" in error messages). Narrower than Stuff because MQL is
- *   always run on behalf of a command-issuing actor.
- * - `location`: the giver's current environment — searched after inventory.
+ * - `commandGiver`: the actor whose perspective drives the query.
+ * - `location`: the giver's current environment — searched after
+ *   inventory.
  * - `searchOrder`: order of contexts to search; defaults to
  *   `['inventory', 'location']`.
+ *
+ * @deprecated Phase 7 cutover removes this in favor of
+ *   `MqlContextV2 { commandGiver, scope: string }`.
  */
 export interface MqlContext {
   commandGiver: Stuff & CommandGiver;
@@ -42,98 +57,66 @@ export interface MqlContext {
 /**
  * Internal match result with score — higher score = better match.
  */
-export interface MqlMatch {
+interface MqlMatch {
   object: Stuff;
   score: number;
 }
 
 /**
- * MqlApi - Static utility class for object resolution
+ * MqlApi - Static utility class for object resolution.
+ *
+ * Phase 1 surface: legacy `resolve` / `resolveMany` keyed off the
+ * Phase-4 keyword-scoring algorithm. Phase 7 replaces these with
+ * `resolveOne` / `resolveMany` that drive the new pipeline.
  */
 export class MqlApi {
   /**
-   * Resolve single object from query string
+   * Resolve single object from query string.
    *
-   * Returns the FIRST (highest-scored) match, or null if no matches found.
+   * Returns the FIRST (highest-scored) match, or null if no matches
+   * found.
    *
-   * Example:
-   *   "flower" → Find object matching "flower"
-   *   "pink flower" → Find object matching both keywords
-   *
-   * @param query - Query string (keywords separated by spaces)
-   * @param context - MQL context (avatar, location, search order)
-   * @returns First matching object or null
+   * @deprecated Phase 7 will replace this with
+   *   {@link resolveOne} returning {@link MqlOneResult}.
    */
   static resolve(query: string, context: MqlContext): Stuff | null {
     const matches = this.#findMatches(query, context);
-
-    if (matches.length === 0) {
-      return null;
-    }
-
-    // Return highest-scored match
+    if (matches.length === 0) return null;
     return matches[0]?.object || null;
   }
 
   /**
-   * Resolve multiple objects from query string
+   * Resolve multiple objects from query string.
    *
    * Returns ALL matching objects, sorted by score (highest first).
    *
-   * Example:
-   *   "flower" → All objects matching "flower"
-   *   "flowers" → All objects matching "flowers"
-   *
-   * @param query - Query string (keywords separated by spaces)
-   * @param context - MQL context (avatar, location, search order)
-   * @returns Array of matching objects (empty if no matches)
+   * @deprecated Phase 7 will replace this signature with one that
+   *   returns {@link MqlManyResult}.
    */
   static resolveMany(query: string, context: MqlContext): Stuff[] {
     const matches = this.#findMatches(query, context);
     return matches.map((m) => m.object);
   }
 
-  /**
-   * Find and score all matching objects
-   *
-   * @param query - Query string
-   * @param context - MQL context
-   * @returns Array of matches sorted by score (highest first)
-   */
   static #findMatches(query: string, context: MqlContext): MqlMatch[] {
     const keywords = this.#tokenizeQuery(query);
-    if (keywords.length === 0) {
-      return [];
-    }
+    if (keywords.length === 0) return [];
 
     const matches: MqlMatch[] = [];
-
-    // Search in order: inventory → location
     const searchOrder = context.searchOrder || ['inventory', 'location'];
 
     for (const contextName of searchOrder) {
       const objects = this.#getObjectsInContext(contextName, context);
-
       for (const obj of objects) {
         const score = this.#scoreMatch(obj, keywords);
-        if (score > 0) {
-          matches.push({ object: obj, score });
-        }
+        if (score > 0) matches.push({ object: obj, score });
       }
     }
 
-    // Sort by score (highest first)
     matches.sort((a, b) => b.score - a.score);
-
     return matches;
   }
 
-  /**
-   * Tokenize query string into keywords
-   *
-   * @param query - Query string
-   * @returns Array of lowercase keywords
-   */
   static #tokenizeQuery(query: string): string[] {
     return query
       .trim()
@@ -142,13 +125,6 @@ export class MqlApi {
       .filter((k) => k.length > 0);
   }
 
-  /**
-   * Get objects in a specific context
-   *
-   * @param contextName - Context name ('inventory' or 'location')
-   * @param context - MQL context
-   * @returns Array of objects in that context
-   */
   static #getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
     switch (contextName) {
       case 'inventory':
@@ -160,29 +136,11 @@ export class MqlApi {
     }
   }
 
-  /**
-   * Get objects in the command giver's inventory.
-   *
-   * A giver without a Container mixin (no inventory) contributes nothing —
-   * this path is a no-op in that case rather than a type error.
-   */
   static #getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
     if (!MixinApi.isContainer(giver)) return [];
     return ContainmentApi.getContents(giver);
   }
 
-  /**
-   * Get objects in location.
-   *
-   * Includes the location's normal contents PLUS any doors referenced by
-   * its obvious exits (when the location is Exitable). Doors are not
-   * "contents" — they don't live inside the location — but they are
-   * player-targetable by name (`open the oak door`), so they participate
-   * in MQL resolution on the location.
-   *
-   * @param location - Location to search
-   * @returns Array of objects in location (contents ∪ exit doors)
-   */
   static #getLocationObjects(location: Location): Stuff[] {
     const objects: Stuff[] = ContainmentApi.getContents(location);
     if (MixinApi.isExitable(location)) {
@@ -196,19 +154,6 @@ export class MqlApi {
     return objects;
   }
 
-  /**
-   * Score an object against query keywords
-   *
-   * Scoring algorithm:
-   * - Exact name match: 100 points
-   * - Name contains all keywords: 50 points
-   * - Keyword array match (all keywords): 25 points
-   * - Keyword array match (partial): 10 points per keyword
-   *
-   * @param obj - Object to score
-   * @param keywords - Query keywords
-   * @returns Score (0 = no match, higher = better match)
-   */
   static #scoreMatch(obj: Stuff, keywords: string[]): number {
     const name = DescribeApi.getDisplayName(obj);
     if (!name) return 0;
@@ -218,52 +163,31 @@ export class MqlApi {
 
     const objKeywords: string[] = [];
     if (MixinApi.isPerceptible(obj)) {
-      const keywords = obj.getKeywords();
-      if (Array.isArray(keywords)) {
-        objKeywords.push(...keywords);
-      }
+      const kw = obj.getKeywords();
+      if (Array.isArray(kw)) objKeywords.push(...kw);
     }
 
-    // Exact name match
-    if (keywords.length === 1 && nameLower === keywords[0]) {
-      return 100;
-    }
+    if (keywords.length === 1 && nameLower === keywords[0]) return 100;
 
-    // Name contains all keywords
-    if (keywords.every((kw) => nameLower.includes(kw))) {
-      return 50;
-    }
+    if (keywords.every((kw) => nameLower.includes(kw))) return 50;
 
-    // Check against name words
-    const nameMatches = keywords.filter((kw) => nameWords.some((word) => word.includes(kw)));
-    if (nameMatches.length === keywords.length) {
-      return 40;
-    }
+    const nameMatches = keywords.filter((kw) =>
+      nameWords.some((word) => word.includes(kw))
+    );
+    if (nameMatches.length === keywords.length) return 40;
 
-    // Check against keyword array (all keywords match)
     if (objKeywords.length > 0) {
       const keywordMatches = keywords.filter((kw) =>
         objKeywords.some((objKw) => objKw.includes(kw))
       );
-
-      if (keywordMatches.length === keywords.length) {
-        return 25;
-      }
-
-      // Partial keyword match
-      if (keywordMatches.length > 0) {
-        return 10 * keywordMatches.length;
-      }
+      if (keywordMatches.length === keywords.length) return 25;
+      if (keywordMatches.length > 0) return 10 * keywordMatches.length;
     }
 
-    // Check name word partial matches
-    if (nameMatches.length > 0) {
-      return 5 * nameMatches.length;
-    }
+    if (nameMatches.length > 0) return 5 * nameMatches.length;
 
     return 0;
   }
-
 }
 
 SecurityApi.decorateApiClass(MqlApi);

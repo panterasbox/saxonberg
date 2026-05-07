@@ -19,6 +19,7 @@ import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi } from './mixin';
 import { Mixins } from '../lib/mixin';
+import { PathTrie } from './path-pattern';
 import { ProxyApi } from './proxy';
 import { ExecutionContextApi, FrameKind } from './execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer
@@ -57,10 +58,10 @@ export class StuffApi {
    */
   static #indexes: {
     byId: Map<string, Stuff>;
-    byTemplatePath: Map<string, Set<Stuff>>;
+    byTemplatePath: PathTrie<Stuff>;
   } = {
     byId: new Map(),
-    byTemplatePath: new Map(),
+    byTemplatePath: new PathTrie<Stuff>(),
   };
 
   /**
@@ -88,23 +89,12 @@ export class StuffApi {
     if (action === 'add') {
       this.#indexes.byId.set(id, obj);
       if (templatePath) {
-        let bucket = this.#indexes.byTemplatePath.get(templatePath);
-        if (!bucket) {
-          bucket = new Set();
-          this.#indexes.byTemplatePath.set(templatePath, bucket);
-        }
-        bucket.add(obj);
+        this.#indexes.byTemplatePath.insert(templatePath, obj);
       }
     } else {
       this.#indexes.byId.delete(id);
       if (templatePath) {
-        const bucket = this.#indexes.byTemplatePath.get(templatePath);
-        if (bucket) {
-          bucket.delete(obj);
-          if (bucket.size === 0) {
-            this.#indexes.byTemplatePath.delete(templatePath);
-          }
-        }
+        this.#indexes.byTemplatePath.remove(templatePath, obj);
       }
     }
   }
@@ -300,7 +290,7 @@ export class StuffApi {
     //     already-instantiated singleton path throws.
     if (
       MixinApi.hasMixin(ClassConstructor, Mixins.Singleton) &&
-      this.#indexes.byTemplatePath.has(templatePath)
+      this.#indexes.byTemplatePath.exact(templatePath).length > 0
     ) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): class ${className} composes ` +
@@ -376,17 +366,17 @@ export class StuffApi {
     path: string,
     context?: unknown
   ): Promise<T> {
-    const bucket = this.#indexes.byTemplatePath.get(path);
-    if (bucket && bucket.size > 0) {
-      if (bucket.size > 1) {
+    const bucket = this.#indexes.byTemplatePath.exact(path);
+    if (bucket.length > 0) {
+      if (bucket.length > 1) {
         throw new Error(
           `StuffApi.singleton('${path}'): expected at most one ` +
-            `instance, found ${bucket.size}. The caller mixed ` +
+            `instance, found ${bucket.length}. The caller mixed ` +
             `clone() and singleton() on a class that does not ` +
             `compose SingletonMixin.`
         );
       }
-      return bucket.values().next().value as T;
+      return bucket[0] as T;
     }
     return this.clone<T>(path, context);
   }
@@ -655,14 +645,14 @@ export class StuffApi {
   public static findByTemplatePath<T extends Stuff = Stuff>(
     path: string
   ): T | undefined {
-    const bucket = this.#indexes.byTemplatePath.get(path);
-    if (!bucket || bucket.size === 0) return undefined;
-    if (bucket.size > 1) {
+    const bucket = this.#indexes.byTemplatePath.exact(path);
+    if (bucket.length === 0) return undefined;
+    if (bucket.length > 1) {
       throw new Error(
-        `StuffApi.findByTemplatePath('${path}'): expected singleton, found ${bucket.size}`
+        `StuffApi.findByTemplatePath('${path}'): expected singleton, found ${bucket.length}`
       );
     }
-    return bucket.values().next().value as T;
+    return bucket[0] as T;
   }
 
   /**
@@ -673,9 +663,19 @@ export class StuffApi {
   public static findAllByTemplatePath<T extends Stuff = Stuff>(
     path: string
   ): T[] {
-    const bucket = this.#indexes.byTemplatePath.get(path);
-    if (!bucket) return [];
-    return [...bucket] as T[];
+    return this.#indexes.byTemplatePath.exact(path) as T[];
+  }
+
+  /**
+   * Find every runtime instance whose `templatePath` matches `pattern`
+   * under {@link PathPatternApi} glob syntax (`*`, `**`, `?`).
+   *
+   * Backs the MQL path-glob seed (`/obj/Avatar/*`). Stuff without a
+   * template path are not in the index and never match. Result order
+   * is unspecified — callers that need stable ordering must sort.
+   */
+  public static findByPathGlob<T extends Stuff = Stuff>(pattern: string): T[] {
+    return this.#indexes.byTemplatePath.glob(pattern) as T[];
   }
 
   /**

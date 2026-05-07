@@ -112,3 +112,35 @@ describe('GrammarApi.article', () => {
     expect(GrammarApi.article(obj)).toBe('an');
   });
 });
+
+describe('GrammarApi input-side lexicon', () => {
+  it('exposes ARTICLES with the expected entries', () => {
+    expect(GrammarApi.ARTICLES.has('the')).toBe(true);
+    expect(GrammarApi.ARTICLES.has('a')).toBe(true);
+    expect(GrammarApi.ARTICLES.has('an')).toBe(true);
+    expect(GrammarApi.ARTICLES.has('THE')).toBe(false);
+    expect(GrammarApi.ARTICLES.size).toBe(3);
+  });
+
+  it('exposes ORDINAL_WORDS mapping first..tenth + last', () => {
+    expect(GrammarApi.ORDINAL_WORDS.get('first')).toBe(1);
+    expect(GrammarApi.ORDINAL_WORDS.get('second')).toBe(2);
+    expect(GrammarApi.ORDINAL_WORDS.get('tenth')).toBe(10);
+    expect(GrammarApi.ORDINAL_WORDS.get('last')).toBe(-1);
+    expect(GrammarApi.ORDINAL_WORDS.size).toBe(11);
+  });
+
+  it('exposes ORDINAL_NUMERIC matching Nst/Nnd/Nrd/Nth', () => {
+    expect(GrammarApi.ORDINAL_NUMERIC.test('1st')).toBe(true);
+    expect(GrammarApi.ORDINAL_NUMERIC.test('2nd')).toBe(true);
+    expect(GrammarApi.ORDINAL_NUMERIC.test('3rd')).toBe(true);
+    expect(GrammarApi.ORDINAL_NUMERIC.test('100th')).toBe(true);
+    expect(GrammarApi.ORDINAL_NUMERIC.test('5')).toBe(false);
+    expect(GrammarApi.ORDINAL_NUMERIC.test('first')).toBe(false);
+  });
+
+  it('captures the integer in group 1', () => {
+    const m = GrammarApi.ORDINAL_NUMERIC.exec('42nd');
+    expect(m?.[1]).toBe('42');
+  });
+});
