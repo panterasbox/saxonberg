@@ -278,6 +278,108 @@ describe('Drill-additive focus (replace mode)', () => {
   });
 });
 
+describe('Default scope when YAML omits scope:', () => {
+  let location: TestLocation;
+  let giver: TestGiver;
+  let rose: TestThing;
+
+  beforeEach(() => {
+    StuffApi.clearAll();
+    location = makeStuff(() => new TestLocation()) as TestLocation;
+    location.setName('Town Square');
+    location.setDetail(
+      ['bookcase'],
+      'A tall oak bookcase, packed with old volumes.'
+    );
+
+    giver = makeStuff(() => new TestGiver()) as TestGiver;
+    giver.setName('player');
+    ContainmentApi.move(
+      giver as unknown as Parameters<typeof ContainmentApi.move>[0],
+      location as unknown as Parameters<typeof ContainmentApi.move>[1]
+    );
+
+    rose = makeStuff(() => new TestThing()) as TestThing;
+    rose.setName('rose');
+    rose.addKeyword('rose');
+    ContainmentApi.move(
+      rose as unknown as Parameters<typeof ContainmentApi.move>[0],
+      location as unknown as Parameters<typeof ContainmentApi.move>[1]
+    );
+  });
+
+  function bareExamineCmd(): CommandDefinition {
+    return CommandDefinition.fromYaml(
+      [
+        'verbs: [examine]',
+        'controller: LookController',
+        'description: examine',
+        'args:',
+        '  - name: target',
+        '    type: object',
+        '    required: false',
+      ].join('\n'),
+      '<test>'
+    );
+  }
+
+  it("YAML without scope: defaults to ['$focus'] — drill chain IS the scope", () => {
+    // No scope: declared. Default is ['$focus']. From a drilled
+    // focus 'here:bookcase', the bookcase detail's neighborhood
+    // doesn't include peers like rose, and the default try-list has
+    // no 'reachable' fallback. Resolution should miss; the wrapper
+    // lands stuff=null.
+    const cmd = bareExamineCmd();
+    giver.setFocus('here:bookcase');
+    const ctx = makeContext(
+      giver,
+      location as unknown as Location,
+      cmd,
+      'examine rose'
+    );
+    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    expect('resolved' in r).toBe(true);
+    if ('resolved' in r) {
+      const target = r.resolved.target as { stuff: unknown };
+      expect(target).toBeDefined();
+      // Rose isn't in the bookcase detail tree; no fallback chain
+      // declared, so the stuff lands null.
+      expect(target.stuff).toBeNull();
+    }
+  });
+
+  it('declaring scope: ["$focus", "reachable"] gets the drill-first-then-broad pattern', () => {
+    // The explicit fallback chain. Drill chain ('here:bookcase')
+    // misses for rose; the second try ('reachable') finds it.
+    const cmd = CommandDefinition.fromYaml(
+      [
+        'verbs: [examine]',
+        'controller: LookController',
+        'description: examine',
+        'args:',
+        '  - name: target',
+        '    type: object',
+        '    required: false',
+        '    scope: ["$focus", "reachable"]',
+      ].join('\n'),
+      '<test>'
+    );
+    giver.setFocus('here:bookcase');
+    const ctx = makeContext(
+      giver,
+      location as unknown as Location,
+      cmd,
+      'examine rose'
+    );
+    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    expect('resolved' in r).toBe(true);
+    if ('resolved' in r) {
+      const target = r.resolved.target as { stuff: unknown };
+      expect(target.stuff).toBe(rose);
+    }
+  });
+});
+
 describe('Drill-additive focus (none mode / default)', () => {
   let location: TestLocation;
   let giver: TestGiver;

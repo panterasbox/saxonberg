@@ -417,10 +417,10 @@ fields and runs every declared validator:
 
 ```
 for each type:object field present:
-  // def.scope is normalised to string[] | undefined at construction
-  tries = (def.scope ?? []).length > 0
-            ? def.scope.map(s => ShellApi.expandVariables(s, giver))
-            : ['here']
+  // def.scope is normalised to string[] | undefined at construction.
+  // Default ['$focus'] when YAML omits scope: entirely.
+  tries = (def.scope ?? ['$focus'])
+            .map(s => ShellApi.expandVariables(s, giver))
   for each scope in tries:
     if multiple:  MqlApi.resolveMany(query, { commandGiver, scope })
     else:         MqlApi.resolveOne (query, { commandGiver, scope })
@@ -443,21 +443,27 @@ checks at the call sites.
 Each entry runs through `ShellApi.expandVariables` (synthetic vars
 like `$focus` and stored vars expand at bind time) and is tried
 in order; first non-empty result wins. The array form is the
-explicit fallback chain — a verb that wants drill-first semantics
-declares `scope: ['$focus', 'reachable']` so a drilled
-player searches the focus first, with the room as fallback. A
-verb that should ignore drill declares just `scope: 'reachable'`.
+explicit fallback chain — a verb that wants drill-first-then-broad
+semantics declares `scope: ['$focus', 'reachable']` so a drilled
+player searches the focus first, with the room as fallback. Verbs
+that should ignore drill entirely declare a non-`$focus` fragment
+(e.g. `scope: 'inventory'` for `drop`, `scope: 'peers'` for `get`).
 
 When a YAML omits `scope:` entirely, the dispatcher defaults to
-`reachable` — the union of `here`, `peers`, and `inventory`,
-which is the closest analogue to "everything the giver can act
-on right now."
+`['$focus']` — the drill chain IS the scope. The resolver's
+empty-scope fallback to `reachable` stays as the safety net for
+when the focus chain stops resolving (typically after the player
+walks into a different room and the old chain doesn't make sense
+in the new context). Inspection-shaped YAMLs continue to declare
+`scope: ['$focus', 'reachable']` explicitly when they want the
+drill-first-then-broad pattern; the omit-default is the same shape
+with a single `$focus` entry.
 
 There's no implicit "player focus tries first" rule. The YAML is
 authoritative — the help system can read `scope` to tell players
 which commands respect drill and which don't.
 
-Pronoun memory updates and the `updates_scope` post-resolve hook
+Pronoun memory updates and the `updates_focus` post-resolve hook
 both gate on `MixinApi.isFocused(giver)`. NPCs without
 `FocusedMixin` resolve through MQL but don't carry focus state or
 a pronoun stash.

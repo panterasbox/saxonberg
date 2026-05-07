@@ -359,13 +359,17 @@ export interface FieldDefinition {
    * into a singleton array, so consumers don't have to branch.
    *
    * The array form is the explicit fallback chain — a verb that
-   * wants drill-first semantics declares
-   * `scope: ['$focus', 'reachable']` so a drilled player
-   * searches the focus first with the room as fallback. Verbs that
-   * should ignore drill declare just `scope: 'reachable'`.
+   * wants drill-first-then-broad declares
+   * `scope: ['$focus', 'reachable']` so a drilled player searches
+   * the focus first with the room as fallback. Verbs that should
+   * ignore drill declare a non-`$focus` fragment (e.g.
+   * `scope: 'inventory'` for `drop`, `scope: 'peers'` for `get`).
    *
-   * Default when omitted: `'reachable'`. Only meaningful for
-   * `type: object` / `type: objects` fields.
+   * Default when omitted: `['$focus']` — the drill chain IS the
+   * scope. The resolver's empty-scope fallback to `reachable`
+   * stays as the safety net for when the focus chain stops resolving
+   * (typically after movement into a different room). Only
+   * meaningful for `type: object` / `type: objects` fields.
    */
   scope?: string | string[];
   /**
@@ -961,16 +965,21 @@ export class CommandApi {
       // — it's the explicit ordered fallback chain. Each entry runs
       // through ShellApi.expandVariables so authors can reference
       // synthetic vars (`$focus`) and stored vars at resolve time. A
-      // YAML that wants drill-first declares `scope: ['$focus', ...]`.
-      // No implicit player-focus priority — the help system can read
-      // the YAML to tell players which commands respect drill.
+      // YAML that wants drill-first-then-broad declares
+      // `scope: ['$focus', 'reachable']`.
+      //
+      // When YAML omits `scope:` entirely, the default is `['$focus']`
+      // — the drill chain IS the scope. The resolver's empty-scope
+      // fallback to reachable stays as the safety net for when the
+      // chain stops resolving (typically after the player walks into
+      // a different room and the old chain doesn't make sense).
+      //
       // `def.scope` is normalised to `string[] | undefined` by
       // CommandDefinition.normaliseShape, so no Array.isArray here.
-      const yamlScopes = (def.scope as string[] | undefined) ?? [];
-      const tries: string[] =
-        yamlScopes.length > 0
-          ? yamlScopes.map((s) => ShellApi.expandVariables(s, giver))
-          : ['reachable'];
+      const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
+      const tries: string[] = yamlScopes.map((s) =>
+        ShellApi.expandVariables(s, giver)
+      );
 
       const focusMode: 'extend' | 'replace' | 'none' =
         def.updates_focus ?? 'none';
