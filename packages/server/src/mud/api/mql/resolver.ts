@@ -446,24 +446,85 @@ function intersectWithSeed(
   return input.filter((m) => allowed.has(m.stuff.stuffId));
 }
 
+/**
+ * Apply `:i` (inventory / descend) or `:e` (environment / ascend).
+ *
+ * Polymorphic on the match's `via.detailPath`:
+ *
+ *   - With **no via**, the operators behave on Stuff containment —
+ *     `:i` yields contents (Container), `:e` yields the environment
+ *     (Containable). Today's behavior.
+ *
+ *   - With **via.detailPath set**, the operators behave on the detail
+ *     tree — `:i` yields one match per child detail at the current
+ *     path tip (via extended), `:e` pops one detail level (or to no
+ *     via if already at the top of the detail tree).
+ *
+ * Conceptually `:i` / `:e` are uniform "descend" / "ascend"
+ * operators, polymorphic on whether the candidate is in a detail
+ * tree or Stuff-containment context.
+ */
 function applyTransform(
   input: MqlMatch[],
   transform: 'i' | 'e'
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
   for (const m of input) {
+    const path = m.via?.detailPath;
+    const insideDetailTree = path && path.length > 0;
     if (transform === 'i') {
-      if (!MixinApi.isContainer(m.stuff)) continue;
-      for (const item of ContainmentApi.getContents(m.stuff)) {
-        out.push({ stuff: item, score: m.score });
+      if (insideDetailTree) {
+        if (!MixinApi.isDetailed(m.stuff)) continue;
+        const parent = path![path!.length - 1];
+        const childIds = m.stuff.getDetailIds(parent) ?? [];
+        for (const id of childIds) {
+          out.push({
+            stuff: m.stuff,
+            score: m.score,
+            via: { ...m.via, detailPath: [...path!, id] },
+          });
+        }
+      } else {
+        if (!MixinApi.isContainer(m.stuff)) continue;
+        for (const item of ContainmentApi.getContents(m.stuff)) {
+          out.push({ stuff: item, score: m.score });
+        }
       }
     } else {
-      if (!MixinApi.isContainable(m.stuff)) continue;
-      const env = m.stuff.getContainer();
-      if (env) out.push({ stuff: env, score: m.score });
+      if (insideDetailTree) {
+        if (path!.length === 1) {
+          // Pop to no-via (still anchored on the same Stuff).
+          const next: MqlMatch = { stuff: m.stuff, score: m.score };
+          const restVia = stripDetailPath(m.via);
+          if (restVia) next.via = restVia;
+          out.push(next);
+        } else {
+          out.push({
+            stuff: m.stuff,
+            score: m.score,
+            via: { ...m.via, detailPath: path!.slice(0, -1) },
+          });
+        }
+      } else {
+        if (!MixinApi.isContainable(m.stuff)) continue;
+        const env = m.stuff.getContainer();
+        if (env) out.push({ stuff: env, score: m.score });
+      }
     }
   }
   return out;
+}
+
+/**
+ * Return a copy of `via` with `detailPath` removed. Returns
+ * `undefined` if the resulting via has no remaining augmentations,
+ * so the match can drop its via entirely rather than carry an empty
+ * object.
+ */
+function stripDetailPath(via: MqlMatchVia | undefined): MqlMatchVia | undefined {
+  if (!via) return undefined;
+  const { detailPath: _drop, ...rest } = via;
+  return Object.keys(rest).length === 0 ? undefined : (rest as MqlMatchVia);
 }
 
 function filterByKeywordsOrPredicate(
@@ -491,51 +552,85 @@ function filterByKeywordsOrPredicate(
 
 /**
  * Mid-chain `:keyword` narrowing. The candidate space for each prior
- * match gets auto-extended with detail names at the current
- * `via.detailPath` depth — direct (host keywords + name) plus one
- * sub-candidate per detail at the current depth, each carrying the
- * extended `via.detailPath`. Score every variant; keep the matching
- * ones with their respective `via`.
+ * match is built per the unified addressing rule:
  *
- * This is the unified addressing rule that covers what the old `.X`
- * detail-drill operator did, and lets a chain like `here:bookcase:book`
- * resolve to the book child detail of the bookcase detail of the room.
+ *   - **No via** — direct candidate is the host stuff (its display
+ *     name + perceptible keywords). Detail-extension candidates: one
+ *     per top-level detail of the host.
+ *   - **via.detailPath set** — direct candidate is the tip detail
+ *     (its name as both display and keyword). Detail-extension
+ *     candidates: one per child detail at the current path tip.
+ *
+ * Each variant scores against the keyword(s) independently and brings
+ * its own via attribution. The best-scoring match for each prior
+ * survives into the output.
+ *
+ * This is what lets `here:bookcase:book` walk into the bookcase
+ * detail's book child and `here:bookcase:i:book` reach the same
+ * place — `:i` between detail steps is redundant because `:keyword`
+ * already auto-extends with child names.
  */
 function filterByKeywords(input: MqlMatch[], words: string[]): MqlMatch[] {
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
   for (const m of input) {
-    // Direct candidate: host's own keywords + display name, prior via
-    // preserved.
-    const direct: ScopeCandidate = {
-      stuff: m.stuff,
-      name: nameOf(m.stuff),
-      keywords: keywordsOf(m.stuff),
-    };
-    if (m.via) direct.via = m.via;
-
-    // Detail-extension candidates: one per detail at the current via
-    // depth (top-level when no via, child-of-tip when via set). Each
-    // lands as a separate candidate so it can be scored against the
-    // query independently and bring its own via attribution.
+    const direct = directCandidate(m);
     const detailCandidates = detailExtensionCandidates(m);
 
-    let best: { score: number; via: MqlMatchVia | undefined } | null = null;
+    // Pick the best candidate by RAW score (not max-with-prior) — the
+    // prior match's score is locked in regardless, but the candidate
+    // selection has to choose between siblings, so an exact 100 on a
+    // child detail must outrank a substring 50 on the parent detail's
+    // name.
+    let bestRaw = 0;
+    let bestVia: MqlMatchVia | undefined = undefined;
+    let matched = false;
     for (const c of [direct, ...detailCandidates]) {
       const score = scoreCandidate(c, words);
       if (score === 0) continue;
-      const candidateScore = Math.max(m.score, score);
-      if (!best || candidateScore > best.score) {
-        best = { score: candidateScore, via: c.via };
+      if (!matched || score > bestRaw) {
+        bestRaw = score;
+        bestVia = c.via;
+        matched = true;
       }
     }
-    if (best) {
-      const next: MqlMatch = { stuff: m.stuff, score: best.score };
-      if (best.via) next.via = best.via;
+    if (matched) {
+      const next: MqlMatch = {
+        stuff: m.stuff,
+        score: Math.max(m.score, bestRaw),
+      };
+      if (bestVia) next.via = bestVia;
       out.push(next);
     }
   }
   return out;
+}
+
+/**
+ * Build the direct (non-extension) candidate for a prior match. When
+ * the prior carries `via.detailPath`, the candidate addresses the tip
+ * detail by name; otherwise it addresses the host stuff with its own
+ * keywords + display name.
+ */
+function directCandidate(m: MqlMatch): ScopeCandidate {
+  const path = m.via?.detailPath;
+  if (path && path.length > 0) {
+    const tip = path[path.length - 1]!;
+    const c: ScopeCandidate = {
+      stuff: m.stuff,
+      name: tip,
+      keywords: [tip.toLowerCase()],
+    };
+    if (m.via) c.via = m.via;
+    return c;
+  }
+  const c: ScopeCandidate = {
+    stuff: m.stuff,
+    name: nameOf(m.stuff),
+    keywords: keywordsOf(m.stuff),
+  };
+  if (m.via) c.via = m.via;
+  return c;
 }
 
 /**

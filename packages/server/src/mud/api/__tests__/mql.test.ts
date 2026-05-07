@@ -263,12 +263,12 @@ describe('MQL resolver — transforms', () => {
     ctx = { commandGiver: world.giver, scope: 'here' };
   });
 
-  it(':i lists giver contents', () => {
+  it(':i lists giver contents (no via — Stuff containment)', () => {
     const out = resolve('me:i', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
-  it(':e gives giver environment', () => {
+  it(':e gives giver environment (no via — Stuff containment)', () => {
     const out = resolve('me:e', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
@@ -279,6 +279,62 @@ describe('MQL resolver — transforms', () => {
     const idSet = new Set(ids(out));
     expect(idSet.has(world.rose.stuffId)).toBe(true);
     expect(idSet.has(world.daisy.stuffId)).toBe(true);
+  });
+
+  describe('via-aware (inside the detail tree)', () => {
+    it('here:bookcase:i lists child details of the bookcase detail', () => {
+      // After `here:bookcase` the via.detailPath is ['bookcase'].
+      // `:i` then descends one level — the bookcase has one child
+      // detail, "book", so the result is a single match still
+      // anchored on the location, with via.detailPath = ['bookcase',
+      // 'book'].
+      const out = resolve('here:bookcase:i', ctx);
+      expect(out).toHaveLength(1);
+      expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+      expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+    });
+
+    it('here:bookcase:e pops the bookcase detail level', () => {
+      // After `here:bookcase` the via is ['bookcase']. `:e` from a
+      // detailPath of length 1 pops to no-via (same Stuff, no via).
+      const out = resolve('here:bookcase:e', ctx);
+      expect(out).toHaveLength(1);
+      expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+      expect(out[0]?.via?.detailPath).toBeUndefined();
+    });
+
+    it('here:bookcase:book:e pops to (location, via=[bookcase])', () => {
+      // From detailPath = ['bookcase', 'book'], `:e` pops one level
+      // back to ['bookcase'].
+      const out = resolve('here:bookcase:book:e', ctx);
+      expect(out).toHaveLength(1);
+      expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+      expect(out[0]?.via?.detailPath).toEqual(['bookcase']);
+    });
+
+    it('here:bookcase:i:book is equivalent to here:bookcase:book', () => {
+      // The `:i` between detail steps is redundant — `:keyword`
+      // already auto-extends with child detail names at the current
+      // depth. Both forms should land the same match.
+      const a = resolve('here:bookcase:i:book', ctx);
+      const b = resolve('here:bookcase:book', ctx);
+      expect(a).toHaveLength(1);
+      expect(b).toHaveLength(1);
+      expect(a[0]?.stuff.stuffId).toBe(b[0]?.stuff.stuffId);
+      expect(a[0]?.via?.detailPath).toEqual(b[0]?.via?.detailPath);
+    });
+
+    it(':i with via on a non-Detailed stuff yields nothing', () => {
+      // The rose isn't Detailed. If it ever shows up with a via.
+      // detailPath, `:i` should fall through silently — same as the
+      // no-via case for non-Container stuff.
+      // (No public way to get a non-Detailed stuff with a via; this
+      // is exercised through the negative path where bookcase has
+      // no children — `here:inscription:i` should be empty since
+      // inscription has no children.)
+      const out = resolve('here:inscription:i', ctx);
+      expect(out).toEqual([]);
+    });
   });
 });
 
