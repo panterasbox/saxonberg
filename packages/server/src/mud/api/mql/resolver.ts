@@ -260,15 +260,27 @@ function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
 // ----- scope-walking -------------------------------------------------
 
 /**
- * Build the candidate pool for a scope MQL fragment. Recognizes the
- * scope-as-fragment shapes that v1 supports: a single direct seed
- * (`here`, `peers`, `reachable`, `inventory`, `online`, `world`,
- * `me`), a comma-union of such seeds, or a path/stuff-id seed.
+ * Build the candidate pool for a scope MQL fragment. Two paths:
  *
- * Falls back to `reachable` when the fragment is empty, unrecognized,
- * or fails to resolve to any anchor — the graceful-fallback rule from
- * the unified-scope delta. `reachable` is the closest analogue to the
- * old conflated `here` (location + peers + inventory).
+ *   1. **Fast path** — the fragment is a recognized seed name (`here`,
+ *      `peers`, `reachable`, `inventory`, `online`, `world`, `me`),
+ *      a path glob, a stuff id, or a comma-union of such tokens.
+ *      Each token expands directly to its candidate pool.
+ *
+ *   2. **Slow path** — anything else (a keyword, an arbitrary chain,
+ *      a bracket filter, etc.). The fragment is parsed and resolved
+ *      as a full MQL query against an inner `reachable` context, and
+ *      each resulting `(Stuff, via)` anchor's neighborhood becomes
+ *      part of the candidate pool. This is what makes a focus chain
+ *      like `"here:bookcase:book"` evaluate cleanly as a scope —
+ *      the pool is the book detail's neighborhood (its children, if
+ *      any).
+ *
+ * Falls back to `reachable` when the fragment is empty, the slow
+ * path produces no anchors, or the slow-path parse/resolve throws —
+ * the graceful-fallback rule from the unified-scope delta. Typical
+ * trigger: the player walked into a different room and the old focus
+ * chain doesn't resolve in the new context.
  */
 export function candidatesForScope(
   scope: string,
@@ -277,21 +289,175 @@ export function candidatesForScope(
   const trimmed = scope.trim();
   if (!trimmed) return candidatesForReachable(ctx.commandGiver);
 
-  // Split on top-level commas. v1 only supports flat unions of
-  // recognized scope tokens; nested parens / chains aren't expected
-  // here. Anything more sophisticated falls back to the keyword
-  // search-as-anchors path.
+  // Fast path: comma-union of recognized seed names. Every part has
+  // to be recognized; a single unrecognized part bumps the whole
+  // fragment to the slow path so we don't silently drop intent.
   const parts = trimmed.split(',').map((p) => p.trim()).filter((p) => p.length > 0);
-  const out: ScopeCandidate[] = [];
-  let recognized = false;
+  const fast: ScopeCandidate[] = [];
+  let allRecognized = parts.length > 0;
   for (const part of parts) {
     const partial = candidatesForScopePart(part, ctx);
-    if (partial !== null) {
-      recognized = true;
-      for (const c of partial) out.push(c);
+    if (partial === null) {
+      allRecognized = false;
+      break;
+    }
+    for (const c of partial) fast.push(c);
+  }
+  if (allRecognized) return fast;
+
+  // Slow path: parse-and-resolve the fragment, walk each anchor's
+  // neighborhood. Reachable backstops on miss.
+  const slow = candidatesFromQuery(trimmed, ctx);
+  if (slow.length > 0) return slow;
+  return candidatesForReachable(ctx.commandGiver);
+}
+
+/**
+ * Resolve `fragment` as a full MQL query against an inner `reachable`
+ * context, then walk each anchor's neighborhood. The inner scope is
+ * `reachable` (not the outer scope) to give bareword keywords a
+ * defensible search area without re-entering the slow path.
+ *
+ * Returns `[]` when the fragment fails to parse or resolves to
+ * nothing — callers fall back to reachable in that case.
+ */
+function candidatesFromQuery(
+  fragment: string,
+  ctx: MqlContext
+): ScopeCandidate[] {
+  let matches: MqlMatch[];
+  try {
+    matches = resolve(fragment, {
+      commandGiver: ctx.commandGiver,
+      scope: 'reachable',
+    });
+  } catch {
+    return [];
+  }
+  const out: ScopeCandidate[] = [];
+  for (const m of matches) {
+    for (const c of candidatesForAnchor(m.stuff, m.via)) out.push(c);
+  }
+  return out;
+}
+
+/**
+ * Neighborhood walk for a `(stuff, via)` anchor — used by the
+ * scope-as-MQL slow path. Emits one candidate per addressable
+ * keyword in the anchor's neighborhood:
+ *
+ *   - The anchor itself: name + keywords (or the detail tip name if
+ *     `via.detailPath` is set).
+ *   - Detail names at the current via depth (top-level when no via,
+ *     child-of-tip when via set).
+ *   - When **no via** AND the stuff is a `Container`: include its
+ *     contents (each item plus its own details).
+ *   - When **no via** AND the stuff is `Exitable`: include doors and
+ *     direction candidates.
+ *
+ * The "no via" gate on contents/exits matches the via-aware transform
+ * rule: a candidate with via is "inside" a detail, so its
+ * neighborhood is the detail tree, not the host's contents.
+ */
+function candidatesForAnchor(
+  stuff: Stuff,
+  via: MqlMatchVia | undefined
+): ScopeCandidate[] {
+  const out: ScopeCandidate[] = [];
+  const path = via?.detailPath;
+  const insideDetail = path && path.length > 0;
+
+  if (insideDetail) {
+    const tip = path[path.length - 1]!;
+    const c: ScopeCandidate = {
+      stuff,
+      name: tip,
+      keywords: [tip.toLowerCase()],
+      via,
+    };
+    out.push(c);
+  } else {
+    out.push({
+      stuff,
+      name: nameOf(stuff),
+      keywords: keywordsOf(stuff),
+    });
+  }
+
+  // Detail names at the current via depth.
+  if (MixinApi.isDetailed(stuff)) {
+    const parent = insideDetail ? path[path.length - 1] : undefined;
+    const ids = stuff.getDetailIds(parent) ?? [];
+    for (const id of ids) {
+      const childPath = insideDetail ? [...path, id] : [id];
+      out.push({
+        stuff,
+        name: id,
+        keywords: [id.toLowerCase()],
+        via: { ...via, detailPath: childPath },
+      });
     }
   }
-  if (!recognized) return candidatesForReachable(ctx.commandGiver);
+
+  // Stuff containment context only when not inside a detail tree.
+  if (!insideDetail) {
+    if (MixinApi.isContainer(stuff)) {
+      for (const item of ContainmentApi.getContents(stuff)) {
+        out.push({
+          stuff: item,
+          name: nameOf(item),
+          keywords: keywordsOf(item),
+        });
+        if (MixinApi.isDetailed(item)) {
+          const ids = item.getDetailIds() ?? [];
+          for (const id of ids) {
+            out.push({
+              stuff: item,
+              name: id,
+              keywords: [id.toLowerCase()],
+              via: { detailPath: [id] },
+            });
+          }
+        }
+      }
+    }
+    if (MixinApi.isExitable(stuff)) {
+      const seenDoors = new Set<string>();
+      for (const door of stuff.getExitDoors()) {
+        if (seenDoors.has(door.stuffId)) continue;
+        seenDoors.add(door.stuffId);
+        out.push({
+          stuff: door,
+          name: nameOf(door),
+          keywords: keywordsOf(door),
+        });
+        if (MixinApi.isDetailed(door)) {
+          const ids = door.getDetailIds() ?? [];
+          for (const id of ids) {
+            out.push({
+              stuff: door,
+              name: id,
+              keywords: [id.toLowerCase()],
+              via: { detailPath: [id] },
+            });
+          }
+        }
+      }
+      const seenDirs = new Set<string>();
+      for (const exit of stuff.getObviousExits()) {
+        const direction = exit.getDirection();
+        if (seenDirs.has(direction)) continue;
+        seenDirs.add(direction);
+        out.push({
+          stuff,
+          name: direction,
+          keywords: [direction],
+          via: { exit },
+        });
+      }
+    }
+  }
+
   return out;
 }
 

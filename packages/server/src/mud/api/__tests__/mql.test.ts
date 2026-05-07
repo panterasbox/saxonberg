@@ -418,6 +418,74 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
   });
 });
 
+describe('MQL resolver — scope-as-MQL evaluation', () => {
+  let world: MqlWorld;
+
+  beforeEach(() => {
+    world = makeWorld();
+  });
+
+  it('scope: "rose" walks the rose anchor neighborhood', () => {
+    // The rose's neighborhood includes its own keywords (`rose`,
+    // `flower`). Searching "flower" in this scope finds the rose.
+    const ctx: MqlContext = { commandGiver: world.giver, scope: 'rose' };
+    const out = resolve('flower', ctx);
+    expect(ids(out)).toContain(world.rose.stuffId);
+    expect(ids(out)).not.toContain(world.daisy.stuffId);
+  });
+
+  it('scope: "bookcase:book" walks the book detail neighborhood', () => {
+    // The book detail has no children; its neighborhood is just the
+    // tip name. Searching "book" finds it (the host stuff is the
+    // location, with via=[bookcase, book]).
+    const ctx: MqlContext = {
+      commandGiver: world.giver,
+      scope: 'bookcase:book',
+    };
+    const out = resolve('book', ctx);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+    expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+  });
+
+  it('scope: "bookcase" walks the bookcase detail neighborhood (children visible)', () => {
+    // The bookcase detail has one child, "book". Searching "book" in
+    // this scope finds it.
+    const ctx: MqlContext = { commandGiver: world.giver, scope: 'bookcase' };
+    const out = resolve('book', ctx);
+    expect(out.length).toBeGreaterThanOrEqual(1);
+    expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+  });
+
+  it('scope: "here" still hits the fast path', () => {
+    // The fast path predates this work; it still produces the right
+    // candidates for keyword search.
+    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const out = resolve('square', ctx);
+    expect(ids(out)).toContain(world.location.stuffId);
+  });
+
+  it('scope: "reachable, peers" still hits the fast path (comma-union)', () => {
+    const ctx: MqlContext = {
+      commandGiver: world.giver,
+      scope: 'reachable, peers',
+    };
+    const out = resolve('rose', ctx);
+    expect(ids(out)).toContain(world.rose.stuffId);
+  });
+
+  it('scope: "no_such_thing" falls back to reachable', () => {
+    // Unknown bareword: slow path resolves to nothing, last-resort
+    // is reachable.
+    const ctx: MqlContext = {
+      commandGiver: world.giver,
+      scope: 'no_such_thing',
+    };
+    const out = resolve('rose', ctx);
+    expect(ids(out)).toContain(world.rose.stuffId);
+  });
+});
+
 describe('MQL resolver — mid-chain seed intersection', () => {
   let world: MqlWorld;
   let ctx: MqlContext;
