@@ -406,11 +406,30 @@ export class CommandApi {
   }
 
   /**
-   * Clear the filename cache. Used by tests; production never calls
-   * this (HMR for command YAMLs is not yet implemented).
+   * Clear the filename cache. Used by tests; production should
+   * prefer `invalidate(filename)` to drop a single entry when a
+   * YAML changes on disk.
    */
   static clearCache(): void {
     this.#commands.clear();
+  }
+
+  /**
+   * Drop the cached `CommandDefinition` for one YAML so the next
+   * `getCommand(filename)` re-reads from disk. The escape hatch
+   * for dev edits — command YAMLs don't auto-reload (the cache
+   * outlives file edits), so the workflow is: edit YAML → call
+   * `CommandApi.invalidate('foo.yaml')` → next push reloads.
+   *
+   * Note: live recency-stack entries that already hold a reference
+   * to the old `CommandDefinition` keep using it until they pop.
+   * The next `applyContainmentDelta` / `applyShadowDelta` push will
+   * pick up the reloaded definition.
+   *
+   * Returns `true` if the entry existed and was removed.
+   */
+  static invalidate(filename: string): boolean {
+    return this.#commands.delete(filename);
   }
 
   /**

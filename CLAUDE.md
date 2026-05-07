@@ -49,9 +49,14 @@ behavior. Read the relevant doc before editing in its area.
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,
     Property<T>, transient vs saved storage, access control patterns,
     masks (the unshadowable mixin's per-property override mechanism)
-  - [commands.md](./docs/subsystems/commands.md) — client → server
-    pipeline, YAML view + controller MVC, parse/match/resolve/validate/
-    execute stages, discovery via commandProvider, auto-emit ok/notok
+  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML
+    view + controller MVC, the per-giver recency stack, dispatch chain
+    (shape vs bind, `pass: true`), validators, schema delivery via
+    `system.commands.{added,removed,reset}`, frame attribution
+  - [command-parsing.md](./docs/subsystems/command-parsing.md) —
+    `CommandLineApi` tokenizer, `RawToken` classification, `format()`
+    round-trip, the `msh` shell, parser pluggability via the
+    `shell.parser` setting
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration

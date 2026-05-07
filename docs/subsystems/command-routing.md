@@ -1,10 +1,10 @@
-# Commands
+# Command Routing
 
-The path between "the player typed `get sword` and pressed enter" and
-"the world has changed and the player's client knows it." MVC: a
-**YAML view** declares the verb and its argument shape, a
-**CommandModel** is the bound input the controller consumes, and a
-**CommandController** is the body that mutates the world.
+The path between a parsed command and "the world has changed and the
+player's client knows it." MVC: a **YAML view** declares the verb
+and its argument shape, a **CommandModel** is the bound input the
+controller consumes, and a **CommandController** is the body that
+mutates the world.
 
 Discovery is per-giver and contextual. Every Stuff that touches the
 executor — the giver itself, things in its inventory, things in its
@@ -15,21 +15,20 @@ contributions ride on a per-giver **recency stack** maintained by
 stack newest-first, filters by verb, and runs a chain-of-responsibility:
 each match's controller can return `pass: true` to defer to the next.
 
+For tokenization, parser pluggability, and the `msh` shell, see
+[command-parsing.md](./command-parsing.md).
+
 The shape lives in:
 
 - `packages/server/src/mud/api/command.ts` — `CommandApi`,
   `CommandContext`, `CommandResult`, `CommandModel`, the YAML view
-  types, parser/validator path resolvers, recency-stack orchestration.
-- `packages/server/src/mud/api/command-line.ts` — `CommandLineApi`
-  (pure tokenizer + pipeline split, YAML-unaware).
+  types, validator path resolver, recency-stack orchestration helpers.
 - `packages/server/src/mud/lib/command/CommandGiverMixin.ts` — the
   per-giver recency stack and `executeCommand` dispatch loop.
 - `packages/server/src/mud/lib/command/CommandDefinition.ts` — the
   loaded YAML view, validated against `cmd/command.schema.json`.
 - `packages/server/src/mud/lib/command/CommandController.ts` — the
   abstract base controllers extend.
-- `packages/server/src/mud/lib/command/parsers/<name>.ts` — pluggable
-  parsers (today: `msh`).
 - `packages/server/src/mud/lib/command/validators/<name>.ts` —
   per-validator modules (no registry; YAML references them by path).
 - `packages/server/src/mud/cmd/*.yaml` — command views (declarative).
@@ -55,8 +54,8 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    ├─ resolveActorParser(actor)            ← reads `shell.parser` setting
    │     CommandApi.resolveParser('msh') → Parser
    ├─ parser.parse(text, parserCtx)        → ParseResult
-   │     msh wraps CommandLineApi.parsePipeline; LLM parsers can
-   │     short-circuit and return { bound: { command, model } }.
+   │     (msh; LLM parsers can short-circuit with { bound })
+   │     see command-parsing.md
    │
    ├─ if ParseResult.parsed: _runChain
    │     CommandApi.matchVerbContextual(verb, available)  → CommandDefinition[]
@@ -216,7 +215,7 @@ Each filename resolves through `CommandApi.getCommand` and is loaded
 once per file; the resulting `CommandDefinition` is shared across
 every host that contributes it.
 
-### Recency stack
+## Recency stack
 
 Per-giver, chronological. Each entry is `(source, bucket,
 CommandDefinition[], seq)`. `'self'` is at index 0 and never removed;
@@ -244,19 +243,60 @@ room" override of "the throne in here" comes from the chain-of-
 responsibility — both `sit` controllers run in order; either claims
 or passes.
 
-The mutation surface (`pushCommandSource`, `popCommandSource`,
-`resetCommandSources`) is `@Final @Unshadowable`. The orchestration
-lives on `CommandApi.applyContainmentDelta` and
-`CommandApi.applyShadowDelta`, called from `ContainmentApi.move` and
-`ShadowApi.attach` / `detach` respectively. A buff or polymorph
-shadow cannot corrupt the stack by intercepting these methods.
+**Within a single source (most-derived first).** When a concrete
+class and the mixins it composes both contribute the same verb on
+the `self` bucket, `collectSelfDefs` walks the prototype chain and
+pushes the concrete `commandContributions` ahead of every mixin
+layer. The push order is the dispatch order, so the concrete class's
+override of a mixin verb wins. This is the same composition order
+`MixinApi.queryMixins` uses for predicate dispatch.
 
-Schema delivery to the client is gated by `_commandSchemaSubscribed`,
-which flips on the first `onConnectionAttached`. Pre-subscription
-pushes (hydration, boot-time) don't fire spurious frames; after the
-gate opens, every push/pop emits a `system.commands.{added,
-removed}` frame and the gate-open itself emits a `system.commands.reset`
-carrying the full deduped payload.
+### Ownership: ContainmentApi orchestrates, mixin holds state
+
+The mutation surface (`pushCommandSource`, `popCommandSource`,
+`resetCommandSources`) is `@Final @Unshadowable`. Buffs, polymorph
+effects, and hood/disguise shadows can't corrupt the stack by
+intercepting these methods.
+
+The orchestration sits in `CommandApi.applyContainmentDelta` and
+`CommandApi.applyShadowDelta`, called from `ContainmentApi.move` and
+`ShadowApi.attach` / `detach` after the underlying state change
+succeeds. Splitting state from triggering keeps `CommandGiverMixin`'s
+lifecycle hooks (`onContainableAdded` etc.) free of bookkeeping
+responsibility — those hooks are subclass extension points, not
+`@Final`, so a shadow could intercept them. The seal lives where it
+needs to: on the surface the orchestration calls.
+
+The on-attach delta from `ContainmentApi.move`:
+
+- If `dest` is a `CommandGiver`, push `item.commandContributions.inventory`.
+- If `dest` is a Location, walk each `CommandGiver` in
+  `dest.getContents()` and push `item.commandContributions.{environment,peers}`
+  on each (peers only when `item` is itself a `CommandGiver`).
+- If `item` is itself a `CommandGiver` and entered a new container,
+  call `item.resetCommandSources('self-moved')` to drop the prior
+  env+peers slice, then push contributions from each new neighbor.
+
+The detach delta is the symmetric pop: a single `popCommandSource(item)`
+on the source-side giver and on each sibling sweeps every bucket
+that source contributed to.
+
+### Schema delivery to the client
+
+Schema delivery is gated by `_commandSchemaSubscribed`, which flips
+on the first `onConnectionAttached`. Pre-subscription pushes
+(hydration, boot-time) don't fire spurious frames. After the gate
+opens:
+
+- Every push emits a `system.commands.added` frame per
+  `CommandSchemaPayload`.
+- Every pop emits a `system.commands.removed` with `{ verb }`.
+- The gate-open itself emits one `system.commands.reset` carrying
+  the full deduped payload (the client uses this as its baseline
+  schema view).
+
+The same hooks drive both the recency stack and the schema delivery
+— one signal, two consumers.
 
 ## Stage 1 — Ingress
 
@@ -282,43 +322,23 @@ A structured ingress path also exists: `{ type: 'command', payload:
 { verb, subcommand?, fields, raw? } }` skips the parser and goes
 straight to `CommandApi.assembleFromStructured` — used for widget
 input where the client has already chosen the verb. Same
-`resolveAndValidate` and controller stack downstream.
+`resolveAndValidate` and controller stack downstream. The `raw`
+string is an opaque audit hint; the server logs it but does not
+parse or trust it.
 
 ## Stage 2 — Parsing
 
-Parsing is pluggable. The actor's `shell.parser` setting (declared on
-`CommandGiverMixin`, default `'msh'`) names the parser to use;
-`CommandApi.resolveParser(spec)` dynamic-imports the module from
-`mud/lib/command/parsers/<name>.ts` (bare name) or `mud/<rest>.ts`
-(absolute `/`-prefixed path). The setting is enum-typed; adding a new
-parser is a one-line append to `enumValues`.
+Delegated. The dispatcher resolves the actor's parser (`shell.parser`
+setting, default `'msh'`), calls `parser.parse(text, parserCtx)`,
+and dispatches on the `ParseResult`:
 
-```ts
-interface Parser {
-  name: string;
-  parse(text: string, ctx: ParserContext):
-    ParseResult | Promise<ParseResult>;
-}
+- `{ parsed }` → run match → assemble → resolve → execute.
+- `{ bound }` → skip match + assemble; run resolve → execute.
+- `{ error }` → fail the command with the parser's summary.
 
-interface ParseResult {
-  parsed?: ParsedCommand;             // hand to match + assemble
-  bound?: { command, model };         // already chose verb + bound model
-  error?: string;                     // surfaces via auto-emit
-}
-```
-
-The default `msh` parser wraps `CommandLineApi.parsePipeline` — pure
-tokenization, single + double quotes, escape sequences, short-flag
-collapse, long flags, `--` stop marker, `|` pipeline boundary
-(non-trivial pipelines throw NYI today). It returns
-`{ parsed: ParsedCommand }`; the dispatcher runs the full
-match/assemble/resolve/execute pipeline.
-
-NL/LLM parsers can short-circuit by returning `{ bound: { command,
-model } }` — they pick the verb and produce field values themselves;
-the dispatcher skips parse + match and runs only resolve + execute.
-The `ParserContext.available` field hands the parser the recency-
-stack-filtered command set so it can constrain its choices.
+For tokenization rules, `RawToken` shape, escape handling, the
+single-quote-as-literal convention, and `format()` round-trip, see
+[command-parsing.md](./command-parsing.md).
 
 ## Stage 3 — Matching
 
@@ -341,10 +361,19 @@ type AssembleResult =
 3. Subcommand-scoped options + remaining positionals.
 4. Positional binding against the active `args:` array.
 
-`shape` errors mean "this YAML's grammar didn't fit" — the chain tries
-the next match. `bind` errors mean "user typed something that fits the
-shape but not the spec" (unknown option, malformed value, repeated
-non-multi option) — the chain stops and the user sees the error.
+**Shape vs bind is the chain-of-responsibility hinge.** A `shape`
+error means "this YAML's grammar didn't fit" (pattern mismatch,
+missing required positional, unknown subcommand, leftover positionals)
+— the dispatcher falls through to the next match. A `bind` error
+means "user typed something that fits the shape but not the spec"
+(unknown option at scope, malformed option value, repeated non-multi
+option, boolean given a value) — the chain stops and the user sees
+the error. The split is what lets a room override a verb without
+breaking the original: if the user's input doesn't fit the override's
+shape, the chain naturally finds the original; if it fits the
+override's shape but the override has a real binding problem, the
+user gets a real error rather than silently re-binding against
+something else.
 
 The `args:` array is ordered: index 0 is positional slot 0, index 1
 is slot 1, etc. Each arg carries its own `name`, so YAML-formatter
@@ -365,6 +394,21 @@ When the matcher stamps a subcommand, it lands on the model under the
 reserved key `subcommand` (the constant `SUBCOMMAND_FIELD` in
 `api/command.ts`). YAMLs with `subcommands:` cannot declare a field
 or option named `subcommand` — caught at load time.
+
+### Two-tier option scope
+
+Options have lexical scope (where they appear in the input) but the
+model is flat (one `fields` map for the whole command). Options
+typed before the subcommand are verb-scoped — bound against the
+verb's top-level `options:` block. Options typed after the
+subcommand are subcommand-scoped — bound against the active
+subcommand's `options:` block. An option name not declared at the
+scope where it appears is a `bind` error (`unknown option --xyz at
+verb-level`). Both layers contribute to the same flat `model` map,
+keyed by each option's `field` (defaults to the option name). The
+lexical-scope rule is what makes `--oneline` valid under `git log`
+but rejected under `git pull` without each subcommand needing to
+know about every verb-level option.
 
 ## Stage 4 — Resolution + validation
 
@@ -460,13 +504,18 @@ Throws inside the controller bubble out and get caught at
 `{ success: false, summary: error.message }`.
 
 Returning `{ success: false, pass: true }` defers to the next match.
-The Throne example: a Throne in the room contributes `sit.yaml`
-under `environment`. The avatar's own `sit.yaml` (from a hypothetical
+The Throne example: a Throne in the room contributes `sit.yaml` under
+`environment`. The avatar's own `sit.yaml` (from a hypothetical
 `SitterMixin` on Avatar) is on `self`. Newest-first order puts the
 Throne first; `ThroneSitController` claims (success). If the Throne
-were destructed-but-never-popped (a bug) or refused with `pass: true`
-(by design — "you can't sit on this throne, it's already taken"),
-the avatar's intrinsic `sit` runs next.
+refuses with `pass: true` (by design — "you can't sit on this throne,
+it's already taken"), the avatar's intrinsic `sit` runs next.
+
+A passing controller MUST NOT have observable side effects: no
+`Scene.send()`, no world-state mutation. The pre-execute resolve/
+validate stage **does** run for the passing controller — that's how
+a controller can decide it's not applicable based on resolved object
+state.
 
 ## Stage 6 — Auto-emit
 
@@ -505,7 +554,8 @@ conveys success) returns `summary: ''` — usually it's simpler to let
 
 Each file under `mud/cmd/` declares one `CommandView`. The schema
 lives at `mud/cmd/command.schema.json` and is enforced by Ajv on
-load.
+load — schema failures throw with the full error trail at boot, not
+at first verb invocation.
 
 **Flat verb (no subcommands):**
 
@@ -580,6 +630,27 @@ may be absent (a verb with neither — e.g. `ping` — is fine).
 6. **Tests** — colocate under `__tests__/`. Vitest. Drive controllers
    directly with a synthetic `CommandContext` for unit coverage; the
    full pipeline can be exercised via `giver.executeCommand(text)`.
+
+## Cache invalidation (dev)
+
+YAML CommandDefinitions don't auto-reload — `CommandApi.getCommand`
+caches by filename for the process lifetime. The intentional escape
+hatch for dev edits:
+
+```ts
+CommandApi.invalidate('look.yaml');     // drop one entry
+CommandApi.invalidate('player.yaml');
+// next CommandApi.getCommand(...) re-reads the YAML from disk
+```
+
+Live recency-stack entries that already hold a reference to the old
+`CommandDefinition` keep using it until they pop. The next
+`applyContainmentDelta` / `applyShadowDelta` push will pick up the
+reloaded definition. For most dev workflows, "edit YAML →
+invalidate → move yourself in/out of the affected container" is a
+two-line console sequence. Wiring full HMR for command YAMLs (file-
+watcher → invalidate → broadcast `system.commands.reset`) is a
+future task.
 
 ## Frame attribution
 
@@ -661,16 +732,6 @@ The chain-of-responsibility (`pass: true`) is the override mechanic:
 two contributors of the same verb run in recency order; either claims
 or passes.
 
-### Why parsers are pluggable
-
-The `msh` tokenizer-driven shell is one parser shape; future LLM- or
-NL-driven parsers are another. Hard-coding parse semantics into
-`executeCommand` would force every shell to fit the same mold. The
-`Parser` interface decouples ingress: token-based parsers return
-`{ parsed }`, intent-based parsers return `{ bound }`. The dispatcher
-runs whichever post-stage applies. The `shell.parser` setting picks
-per-actor.
-
 ### Why validators are file-based, not registered
 
 A registry is a layer of indirection that doesn't pay off when YAML
@@ -696,17 +757,10 @@ Two requirements drove this:
 Destructing in `finally` keeps `StuffApi`'s template/instance indexes
 from accumulating ephemeral entries.
 
-## Deferred
-
-CommandDefinitions don't yet participate in HMR — the
-filename-keyed cache holds the parsed view across the process
-lifetime. Editing a YAML during dev requires a server restart. Wiring
-the YAML loader to `HotReloadApi.reloadHookManifest`-style invalidation
-is a future task; the surface is small (one cache, one preload path,
-one schema validator).
-
 ## Cross-references
 
+- [command-parsing.md](./command-parsing.md) — tokenization, parser
+  pluggability, `RawToken`, `format()` round-trip, the `msh` shell.
 - [call-security.md § Command Attribution](./call-security.md) —
   `FrameKind.Command`, `commandId`, `causingCommandId`,
   `getCurrentCommandGiver`, `getCurrentCommandContext`,
