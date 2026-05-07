@@ -6,7 +6,7 @@ args:
     type: object
     required: false
     scope: ["$focus", "reachable"]
-    updates_scope: true
+    updates_focus: extend
     prepositions: [at]
     default: "$focus"
     validators:

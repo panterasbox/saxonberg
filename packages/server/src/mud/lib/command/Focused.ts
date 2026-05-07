@@ -105,7 +105,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * starts at `"here"` and resets to `"here"` on movement
      * (the auto-look-on-arrival path post-`clearFocus()`).
      * Inspection-shaped commands update this via the dispatcher's
-     * `updates_scope` path; the `focus` command sets it explicitly.
+     * `updates_focus` path; the `focus` command sets it explicitly.
      */
     private _focus: string = 'here';
 

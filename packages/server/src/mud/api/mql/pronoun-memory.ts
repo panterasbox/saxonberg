@@ -17,7 +17,7 @@
  * Each slot also carries the **input fragment** that produced it
  * (the post-desugar query text). This is what the dispatcher's
  * scope-update logic substitutes for the pronoun string when a
- * `look it`-shaped query fires `updates_scope: true` — storing the
+ * `look it`-shaped query fires `updates_focus: extend` — storing the
  * literal pronoun would be unstable across queries, so the original
  * fragment ("bookcase") is the right anchor.
  *

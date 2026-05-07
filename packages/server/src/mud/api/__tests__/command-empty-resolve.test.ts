@@ -50,7 +50,7 @@ function singleObjectCmd(): CommandDefinition {
       '    type: object',
       '    required: false',
       '    scope: "reachable"',
-      '    updates_scope: true',
+      '    updates_focus: extend',
     ].join('\n'),
     '<test>'
   );
@@ -168,7 +168,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
   });
 
   it('does not update player focus on empty resolution', () => {
-    const cmd = singleObjectCmd(); // updates_scope: true
+    const cmd = singleObjectCmd(); // updates_focus: extend
     giver.setFocus('rose');
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
     CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
@@ -188,7 +188,10 @@ describe('Dispatcher empty-resolution passthrough', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
     CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
-    expect(giver.getFocus()).toBe('rose');
+    // updates_focus: extend appends the typed fragment to the prior
+    // focus ("here", the default) — different stuff (location vs
+    // rose), so naive append.
+    expect(giver.getFocus()).toBe('here:rose');
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
   });
 });

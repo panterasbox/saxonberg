@@ -9,7 +9,7 @@
  *   - Multi-cardinality results route to `them`.
  *   - Subsequent queries with `it`/`him`/...  resolve through the
  *     stash.
- *   - Dynamic-pronoun queries that fire `updates_scope: true`
+ *   - Dynamic-pronoun queries that fire `updates_focus: extend`
  *     substitute the original fragment for the pronoun string when
  *     setting the giver's scope.
  *
@@ -50,7 +50,7 @@ class TestGiver extends ContainerMixin(
 
 function lookCommand(): CommandDefinition {
   // `look`-shaped: single-cardinality MQL field, scope = "inventory,
-  // here", updates_scope true. Mirrors the production cmd/look.yaml.
+  // here", updates_focus extend. Mirrors the production cmd/look.yaml.
   return CommandDefinition.fromYaml(
     [
       'verbs: [look]',
@@ -61,7 +61,7 @@ function lookCommand(): CommandDefinition {
       '    type: object',
       '    required: false',
       '    scope: "reachable"',
-      '    updates_scope: true',
+      '    updates_focus: extend',
     ].join('\n'),
     '<test>'
   );
@@ -243,21 +243,27 @@ describe('Dispatcher pronoun-memory integration', () => {
     }
   });
 
-  it("look it after look rose anchors focus to 'rose', not 'it'", () => {
+  it("look it after look rose substitutes the stored fragment, not 'it'", () => {
     const cmd = lookCommand();
     CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
-    expect(giver.getFocus()).toBe('rose');
+    // From initial focus 'here', extend mode appends 'rose'.
+    expect(giver.getFocus()).toBe('here:rose');
 
-    // `look it` — updates_scope: true fires. The dispatcher should
-    // substitute the stored fragment ("rose"), NOT use "it".
+    // `look it` — updates_focus: extend fires. The dispatcher
+    // substitutes the stored fragment ("rose") for the literal "it"
+    // before extending, so the trail tracks the actual referent.
+    // The current focus 'here:rose' fails to resolve in this small
+    // test world (no detailed location), so the same-anchor
+    // compaction doesn't apply and the substituted fragment is
+    // appended naively.
     CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
-    expect(giver.getFocus()).toBe('rose');
+    expect(giver.getFocus()).toBe('here:rose:rose');
   });
 
   it('two distinct CommandGivers do not share their stashes', () => {
@@ -315,7 +321,7 @@ describe('Dispatcher pronoun-memory integration', () => {
         '    type: object',
         '    required: false',
         '    scope: ["$focus", "reachable"]',
-        '    updates_scope: true',
+        '    updates_focus: extend',
       ].join('\n'),
       '<test>'
     );
@@ -332,7 +338,8 @@ describe('Dispatcher pronoun-memory integration', () => {
       const target = r.resolved.target as MqlOneResult;
       expect(target.stuff).toBe(apple);
     }
-    // updates_scope re-anchors to the typed fragment.
-    expect(giver.getFocus()).toBe('apple');
+    // updates_focus extend appends the typed fragment to the prior
+    // focus — different stuff (rose vs apple), so naive append.
+    expect(giver.getFocus()).toBe('rose:apple');
   });
 });

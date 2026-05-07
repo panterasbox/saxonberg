@@ -6,4 +6,4 @@ args:
     type: object
     required: true
     scope: "reachable"
-    updates_scope: true
+    updates_focus: extend

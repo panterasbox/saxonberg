@@ -262,9 +262,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
 
       // Auto-look on arrival. Fired through the dispatcher so the
       // resulting Command frame is tagged `forced: true` and `look`'s
-      // `updates_scope: true` re-anchors the mover's scope to the
-      // new room. Only CommandGivers participate; non-givers (NPCs
-      // without command surfaces) move silently.
+      // `updates_focus: extend` re-anchors the mover's focus chain
+      // for the new room (the `clearFocus()` call below resets the
+      // chain to "here" first, so extend simply produces "here"
+      // again — focus is well-defined on arrival). Only CommandGivers
+      // participate; non-givers (NPCs without command surfaces) move
+      // silently.
       await autoLookOnArrival(this);
     }
 
@@ -551,8 +554,8 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
 /**
  * Fire `look` on `mover` as a forced command, so the resulting
  * Command frame carries `forced: true` and `look`'s
- * `updates_scope: true` re-anchors the mover's focus to the new
- * room. Skips silently when `mover` isn't a CommandGiver — non-
+ * `updates_focus: extend` re-anchors the mover's focus chain to the
+ * new room. Skips silently when `mover` isn't a CommandGiver — non-
  * giver NPCs can move without auto-looking.
  *
  * Resets the mover's focus to `"here"` first when the mover is

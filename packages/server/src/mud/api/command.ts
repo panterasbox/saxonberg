@@ -369,14 +369,36 @@ export interface FieldDefinition {
    */
   scope?: string | string[];
   /**
-   * When `true`, the dispatcher updates the giver's stored scope
-   * fragment after a successful resolution per the drill-trail rule
-   * (extend on same-stuff with via, otherwise re-anchor to the
-   * post-desugar input fragment). Default `false` — most commands
-   * don't shift focus. Inspection-shaped commands (`look`,
-   * `examine`, `read`, `open`, `close`) opt in explicitly.
+   * Focus management policy for this field. Three modes:
+   *
+   *   - `extend` — append the post-desugar input fragment to the
+   *     giver's current focus with `:` as the separator. With
+   *     same-anchor + via.detailPath compaction (re-resolving the
+   *     same target doesn't double-add). The drill-additive default
+   *     for inspection-shaped verbs (`look`, `examine`, `read`,
+   *     `open`, `close`).
+   *
+   *   - `replace` — set focus to the post-desugar input fragment
+   *     wholesale. For navigation/anchoring verbs that should reset
+   *     the trail rather than extend it.
+   *
+   *   - `none` (default) — focus unchanged. Most commands (`get`,
+   *     `drop`, `say`) don't manage focus.
+   *
+   * Pronoun substitution applies in all extending paths: when raw
+   * is itself a pronoun (`it`/`him`/`her`/`them`/`$$`), the stored
+   * fragment from pronoun memory replaces the literal pronoun string
+   * before the focus is updated, so the trail tracks the actual
+   * referent rather than the unstable pronoun.
+   *
+   * Empty resolutions never touch focus regardless of mode — the
+   * resolveAndValidate gate is "if resolved.stuff is non-null".
+   *
+   * Renamed from the v1 `updates_scope?: boolean` field — the field
+   * manages **focus**, not scope. The boolean's `true` setting is
+   * equivalent to `'extend'` under the new drill-additive default.
    */
-  updates_scope?: boolean;
+  updates_focus?: 'extend' | 'replace' | 'none';
   /**
    * Optional list of prepositions the matcher will consume as a
    * leading boundary marker for this positional field. Lowercased.
@@ -950,7 +972,8 @@ export class CommandApi {
           ? yamlScopes.map((s) => ShellApi.expandVariables(s, giver))
           : ['reachable'];
 
-      const updatesScope = def.updates_scope === true;
+      const focusMode: 'extend' | 'replace' | 'none' =
+        def.updates_focus ?? 'none';
       const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
@@ -987,8 +1010,8 @@ export class CommandApi {
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (r.stuff !== null && focused) {
-          if (updatesScope) {
-            updatePlayerFocus(focused, raw, r.stuff, r.via);
+          if (focusMode !== 'none') {
+            updatePlayerFocus(focused, raw, r.stuff, r.via, focusMode);
           }
           const asMany: MqlMany = { stuff: [r.stuff] };
           if (r.via) asMany.via = r.via;
@@ -1066,8 +1089,8 @@ export class CommandApi {
    *
    * Used by:
    *   - The auto-look-on-arrival hook (`look` after a successful
-   *     traversal), so the dispatcher's normal `updates_scope` path
-   *     re-anchors scope to the new room.
+   *     traversal), so the dispatcher's normal `updates_focus` path
+   *     re-anchors the focus chain for the new room.
    *   - Future system-fired commands (event-triggered actions, NPC
    *     scripts, scheduled tasks).
    *
@@ -1824,54 +1847,88 @@ function slotForGenderRouting(stuff: Stuff): GenderedSlot {
 
 
 /**
- * Drill-trail rule: when an inspection-shaped command resolves a
- * `type: object` field, extend the player's focus along a detail
- * path if the resolved Stuff matches the current focus's anchor;
- * otherwise re-anchor to the post-desugar input fragment.
+ * Drill-additive focus update. Three modes:
  *
- * v1 implements the simpler "compare resolved Stuff identity to the
- * current focus's leading anchor token" check by re-resolving the
- * current focus and matching stuffId. The "same-anchor drill" branch
- * fires when result.stuff is the same identity as the current
- * focus's resolved Stuff AND a detailPath is present — typical case
- * is `look book` while focused on `bookcase`. Everything else
- * re-anchors to the raw input — except dynamic pronouns
- * (`it`/`him`/`her`/`them`/`$$`), which substitute the stored
- * fragment from pronoun memory so focus tracks the original referent
- * rather than the unstable pronoun string.
+ *   - `extend` (default for inspection verbs): append the input
+ *     fragment to the current focus with `:` as the separator. When
+ *     the resolved (Stuff, via) is "deeper than" the current focus's
+ *     resolved (Stuff, via) — same Stuff, current via.detailPath is
+ *     a prefix of the new — append only the new via tail to avoid
+ *     double-counting (`look bookcase` → `here:bookcase`, then
+ *     `look book` → `here:bookcase:book`, not `here:bookcase:bookcase:book`).
+ *     When the resolved (Stuff, via) is exactly the current one,
+ *     focus is unchanged (re-resolving the same target).
+ *
+ *   - `replace`: set focus to the post-desugar input fragment
+ *     wholesale.
+ *
+ *   - `none`: caller filters this case out before calling here.
+ *
+ * Pronoun carve-out: when raw is itself a dynamic pronoun
+ * (`it`/`him`/`her`/`them`/`$$`), substitute the stored fragment
+ * from pronoun memory so the focus chain tracks the actual referent
+ * rather than the unstable pronoun string. Applies to both extend
+ * and replace modes.
  */
 function updatePlayerFocus(
   giver: Stuff & CommandGiver & Focused,
   raw: string,
   stuff: Stuff,
-  via: MqlMatchVia | undefined
+  via: MqlMatchVia | undefined,
+  mode: 'extend' | 'replace'
 ): void {
-  const detailPath = via?.detailPath;
-  if (detailPath && detailPath.length > 0) {
-    const currentFocus = giver.getFocus();
-    const currentAnchor = MqlApi.resolveOne(currentFocus, {
-      commandGiver: giver,
-      scope: currentFocus,
-    });
-    if (currentAnchor.stuff && currentAnchor.stuff.stuffId === stuff.stuffId) {
-      // Same-anchor drill — keep the anchor fragment, replace the
-      // detail trail with the new one.
-      const head = stripDetailTrail(currentFocus);
-      giver.setFocus(head + '.' + detailPath.join('.'));
+  const fragment = resolvePronounFragment(giver, raw) ?? raw;
+
+  if (mode === 'replace') {
+    giver.setFocus(fragment);
+    return;
+  }
+
+  // Extend mode.
+  const currentFocus = giver.getFocus();
+  const currentAnchor = MqlApi.resolveOne(currentFocus, {
+    commandGiver: giver,
+    scope: currentFocus,
+  });
+  const sameStuff =
+    currentAnchor.stuff && currentAnchor.stuff.stuffId === stuff.stuffId;
+  if (sameStuff) {
+    const oldPath = currentAnchor.via?.detailPath ?? [];
+    const newPath = via?.detailPath ?? [];
+    if (arraysEqual(oldPath, newPath)) {
+      // Re-resolved the same target — leave focus alone.
+      return;
+    }
+    if (isPrefix(oldPath, newPath)) {
+      // Compaction: same anchor, deeper via — append only the new
+      // tail segments. Joining with `:` matches the new chain
+      // separator.
+      const tail = newPath.slice(oldPath.length).join(':');
+      giver.setFocus(currentFocus + ':' + tail);
       return;
     }
   }
-  // Dynamic-pronoun carve-out: when the input was itself a pronoun,
-  // substitute the stored fragment so focus tracks the actual
-  // referent. Storing "it" or "him" as the focus would re-resolve
-  // on each subsequent query, drifting unpredictably.
-  const pronounFragment = resolvePronounFragment(giver, raw);
-  if (pronounFragment !== null) {
-    giver.setFocus(pronounFragment);
-    return;
+
+  // Naive append. The chain accumulates user intent, not actual
+  // navigability — the next query's scope try-list with the
+  // reachable fallback handles cases where the chain stops resolving.
+  giver.setFocus(currentFocus + ':' + fragment);
+}
+
+function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
   }
-  // Re-anchor: the post-desugar input fragment IS the new focus.
-  giver.setFocus(raw);
+  return true;
+}
+
+function isPrefix(prefix: readonly string[], full: readonly string[]): boolean {
+  if (prefix.length > full.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== full[i]) return false;
+  }
+  return true;
 }
 
 /**
@@ -1895,17 +1952,5 @@ function resolvePronounFragment(
   return focused.getPronounMemory().readFragment(slot);
 }
 
-/**
- * Strip a trailing `.foo.bar` detail trail from a scope fragment,
- * leaving just the anchor portion. Conservative — only trims when the
- * fragment is a single chain (no commas, no bracket bodies).
- */
-function stripDetailTrail(fragment: string): string {
-  if (fragment.includes(',') || fragment.includes('[') || fragment.includes("'")) {
-    return fragment;
-  }
-  const dot = fragment.indexOf('.');
-  return dot === -1 ? fragment : fragment.slice(0, dot);
-}
 
 SecurityApi.decorateApiClass(CommandApi);

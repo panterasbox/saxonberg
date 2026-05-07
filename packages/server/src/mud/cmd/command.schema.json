@@ -93,9 +93,9 @@
           ],
           "description": "MQL fragment(s) the dispatcher tries when resolving this field. Each entry runs through ShellApi.expandVariables and is tried in order; first non-empty result wins. Array form is the explicit fallback chain (e.g. `['$focus', 'inventory, here']` for drill-first). Only meaningful for `type: object` / `type: objects`."
         },
-        "updates_scope": {
-          "type": "boolean",
-          "description": "When true, the dispatcher updates the giver's stored scope after a successful resolution (drill-trail rule)."
+        "updates_focus": {
+          "enum": ["extend", "replace", "none"],
+          "description": "Focus management policy. `extend` appends the input fragment to the giver's current focus with `:` (with same-anchor compaction); `replace` re-anchors wholesale; `none` (default) leaves focus alone. Inspection-shaped verbs (look, examine, open, close) declare `extend`."
         },
         "prepositions": {
           "type": "array",
