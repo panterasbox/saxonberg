@@ -264,6 +264,155 @@ describe('MQL resolver — literals', () => {
   });
 });
 
+describe('MQL resolver — predicates', () => {
+  let world: MqlWorld;
+  let ctx: MqlContext;
+
+  beforeEach(() => {
+    world = makeWorld();
+    ctx = { commandGiver: world.giver, scope: 'here' };
+  });
+
+  afterEach(() => {
+    _MqlAdminFlag.granter = () => false;
+  });
+
+  it(':here filters to the giver location and contents', () => {
+    const out = resolve('flower:here', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(true);
+    expect(idSet.has(world.daisy.stuffId)).toBe(true);
+  });
+
+  it(':visible includes the giver itself when it appears', () => {
+    // me:visible — the giver is always visible to itself.
+    const out = resolve('me:visible', ctx);
+    expect(ids(out)).toEqual([world.giver.stuffId]);
+  });
+
+  it(':living drops non-mobile things', () => {
+    // None of the test fixture stuff composes Mobile, so :living
+    // filters everything out.
+    const out = resolve('flower:living', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it(':mine returns empty (owner subsystem stub)', () => {
+    const out = resolve('flower:mine', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it(':online requires admin tier', () => {
+    expect(() => resolve('me:online', ctx)).toThrow(MqlPermissionError);
+  });
+
+  it(':admin requires admin tier', () => {
+    expect(() => resolve('me:admin', ctx)).toThrow(MqlPermissionError);
+  });
+});
+
+describe('MQL resolver — filter expressions', () => {
+  let world: MqlWorld;
+  let ctx: MqlContext;
+
+  beforeEach(() => {
+    world = makeWorld();
+    ctx = { commandGiver: world.giver, scope: 'here' };
+    _MqlAdminFlag.granter = () => true; // admin so authoring tier passes
+  });
+
+  afterEach(() => {
+    _MqlAdminFlag.granter = () => false;
+  });
+
+  it("filters by name comparison", () => {
+    const out = resolve("flower:[name = 'rose']", ctx);
+    expect(ids(out)).toEqual([world.rose.stuffId]);
+  });
+
+  it('filters by != comparison', () => {
+    const out = resolve("flower:[name != 'rose']", ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(false);
+    expect(idSet.has(world.daisy.stuffId)).toBe(true);
+  });
+
+  it('filters by keyword presence', () => {
+    const out = resolve('flower:[keyword.daisy]', ctx);
+    expect(ids(out)).toEqual([world.daisy.stuffId]);
+  });
+
+  it('filters by mixin composition', () => {
+    const out = resolve('flower:[mixin.NamedMixin]', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(true);
+    expect(idSet.has(world.daisy.stuffId)).toBe(true);
+  });
+
+  it('boolean composition (and)', () => {
+    const out = resolve(
+      "flower:[keyword.flower and name = 'rose']",
+      ctx
+    );
+    expect(ids(out)).toEqual([world.rose.stuffId]);
+  });
+
+  it('boolean composition (or)', () => {
+    const out = resolve(
+      "flower:[name = 'rose' or name = 'daisy']",
+      ctx
+    );
+    expect(ids(out)).toHaveLength(2);
+  });
+
+  it('not-expression', () => {
+    const out = resolve("flower:[not name = 'rose']", ctx);
+    expect(ids(out)).toEqual([world.daisy.stuffId]);
+  });
+
+  it("comparison against a missing property is always false", () => {
+    const out = resolve('flower:[prop.gold > 0]', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it('rejects authoring filters without privilege', () => {
+    _MqlAdminFlag.granter = () => false;
+    expect(() => resolve('flower:[mixin.NamedMixin]', ctx)).toThrow(
+      MqlPermissionError
+    );
+  });
+});
+
+describe('MQL resolver — bracket ordinals and ranges', () => {
+  let world: MqlWorld;
+  let ctx: MqlContext;
+
+  beforeEach(() => {
+    world = makeWorld();
+    ctx = { commandGiver: world.giver, scope: 'here' };
+  });
+
+  it('[1] picks the first match', () => {
+    const out = resolve('flower:[1]', ctx);
+    expect(out).toHaveLength(1);
+  });
+
+  it('[-1] picks the last match', () => {
+    const out = resolve('flower:[-1]', ctx);
+    expect(out).toHaveLength(1);
+  });
+
+  it('[1..3] picks the inclusive range', () => {
+    const out = resolve('flower:[1..3]', ctx);
+    expect(out.length).toBeLessThanOrEqual(2);
+  });
+
+  it('[N..] picks to the end', () => {
+    const out = resolve('flower:[1..]', ctx);
+    expect(out.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describe('MQL resolver — desugar integration', () => {
   let world: MqlWorld;
   let ctx: MqlContext;

@@ -23,10 +23,12 @@ import { ConnectionApi } from '../connection';
 import { ContainmentApi } from '../containment';
 import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
+import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import { desugar } from './desugar';
 import { parse, type MqlParseError } from './parser';
 import { checkTier } from './permissions';
+import { isPredicateName, MQL_PREDICATES } from './predicates';
 import {
   candidatesForFlat,
   candidatesForHere,
@@ -35,15 +37,19 @@ import {
   type ScopeCandidate,
 } from './scope-walk';
 import type {
+  AtomNode,
   ChainElement,
   ChainNode,
   ChainOp,
+  CmpOp,
+  ExprNode,
   KeywordsNode,
   MqlContext,
   MqlMatch,
   PronounNode,
   QueryNode,
   SublistNode,
+  ValueNode,
 } from './types';
 // Loads `detailPath` and `exit` augmentations onto `MqlMatchVia`.
 import './via-augment';
@@ -327,13 +333,13 @@ function applyColon(
     case 'transform':
       return applyTransform(input, el.transform);
     case 'keywords':
-      return filterByKeywords(input, el.words);
+      return filterByKeywordsOrPredicate(input, el.words, ctx);
     case 'literal':
       return filterByLiteral(input, el.value);
     case 'pronoun':
       // Pronouns mid-chain don't combine cleanly. v1 falls through
       // to a keyword filter on the pronoun name.
-      return filterByKeywords(input, [el.name]);
+      return filterByKeywordsOrPredicate(input, [el.name], ctx);
     case 'path':
     case 'stuffId':
     case 'lastResult':
@@ -350,9 +356,7 @@ function applyColon(
     case 'bracket-range':
       return applyRange(input, el);
     case 'bracket-filter':
-      // Phase 6 implements filter expressions; until then a filter
-      // bracket leaves the input unchanged.
-      return input;
+      return filterByExpression(input, el.expr, ctx);
     case 'detail-drill':
       // Detail drill always rides on `.`; reaching here means the
       // parser produced something unusual.
@@ -410,6 +414,29 @@ function applyTransform(
   return out;
 }
 
+function filterByKeywordsOrPredicate(
+  input: MqlMatch[],
+  words: string[],
+  ctx: MqlContext
+): MqlMatch[] {
+  // A single-word filter that matches a registered predicate gets
+  // dispatched to the predicate registry. Everything else (multi-
+  // word filters, single-word non-predicate names) falls through to
+  // keyword filtering. Predicates declare their permission tier
+  // separately from operators.
+  if (words.length === 1 && isPredicateName(words[0]!)) {
+    const name = words[0]!;
+    const predicate = MQL_PREDICATES[name]!;
+    checkTier(predicate.tier, name, ctx.commandGiver);
+    const out: MqlMatch[] = [];
+    for (const m of input) {
+      if (predicate.check(m.stuff, ctx.commandGiver)) out.push(m);
+    }
+    return out;
+  }
+  return filterByKeywords(input, words);
+}
+
 function filterByKeywords(input: MqlMatch[], words: string[]): MqlMatch[] {
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
@@ -429,6 +456,187 @@ function filterByKeywords(input: MqlMatch[], words: string[]): MqlMatch[] {
     }
   }
   return out;
+}
+
+// ----- bracket filter expressions -----------------------------------
+
+function filterByExpression(
+  input: MqlMatch[],
+  expr: ExprNode,
+  ctx: MqlContext
+): MqlMatch[] {
+  const out: MqlMatch[] = [];
+  for (const m of input) {
+    if (evaluateExpr(expr, m.stuff, ctx)) out.push(m);
+  }
+  return out;
+}
+
+function evaluateExpr(
+  expr: ExprNode,
+  stuff: Stuff,
+  ctx: MqlContext
+): boolean {
+  switch (expr.kind) {
+    case 'or':
+      return evaluateExpr(expr.left, stuff, ctx) || evaluateExpr(expr.right, stuff, ctx);
+    case 'and':
+      return evaluateExpr(expr.left, stuff, ctx) && evaluateExpr(expr.right, stuff, ctx);
+    case 'not':
+      return !evaluateExpr(expr.child, stuff, ctx);
+    case 'has':
+      return readAtom(expr.atom, stuff, ctx) !== undefined;
+    case 'comparison': {
+      const left = readAtom(expr.left, stuff, ctx);
+      // Comparison against a missing property is always false (req §4.3).
+      if (left === undefined) return false;
+      return compare(left, expr.op, valueOf(expr.right));
+    }
+    case 'truthy': {
+      const v = readAtom(expr.atom, stuff, ctx);
+      return Boolean(v);
+    }
+  }
+}
+
+/**
+ * Read the value of an atom against `stuff`. Returns `undefined` for
+ * "no such fact" — the comparison rule treats undefined as false-on-
+ * comparison.
+ *
+ * Each authoring-tier namespace gates its own access via the
+ * permission framework; the resolver runs the gate here so a query
+ * like `[mixin.X]` from a non-author trips the right error before
+ * filtering touches a single Stuff.
+ */
+function readAtom(
+  atom: AtomNode,
+  stuff: Stuff,
+  ctx: MqlContext
+): string | number | boolean | undefined {
+  if (atom.kind === 'name') {
+    return nameOf(stuff);
+  }
+  if (atom.kind === 'id') {
+    return stuff.stuffId;
+  }
+  // namespaced
+  const op = `${atom.namespace}.${atom.key}`;
+  switch (atom.namespace) {
+    case 'prop':
+      checkTier('authoring', op, ctx.commandGiver);
+      return readProp(stuff, atom.key);
+    case 'mixin':
+      checkTier('authoring', op, ctx.commandGiver);
+      return hasMixinByLowercaseName(stuff, atom.key);
+    case 'class':
+      checkTier('authoring', op, ctx.commandGiver);
+      return matchesClass(stuff, atom.key);
+    case 'keyword':
+      checkTier('authoring', op, ctx.commandGiver);
+      return keywordsOf(stuff).includes(atom.key.toLowerCase());
+    case 'template':
+      checkTier('authoring', op, ctx.commandGiver);
+      return matchesTemplate(stuff, atom.key);
+    default:
+      throw new MqlResolveError(
+        `unknown filter namespace '${atom.namespace}' (expected prop, mixin, class, keyword, or template)`
+      );
+  }
+}
+
+function valueOf(value: ValueNode): string | number {
+  if (value.kind === 'value-int') return value.value;
+  return value.value;
+}
+
+function compare(
+  left: string | number | boolean,
+  op: CmpOp,
+  right: string | number
+): boolean {
+  if (op === '=') return looseEq(left, right);
+  if (op === '!=') return !looseEq(left, right);
+  // Ordering comparisons: only meaningful on numbers. String < / >
+  // also work in JS, but we keep things simple.
+  if (typeof left !== typeof right) return false;
+  switch (op) {
+    case '>':
+      return (left as number) > (right as number);
+    case '<':
+      return (left as number) < (right as number);
+    case '>=':
+      return (left as number) >= (right as number);
+    case '<=':
+      return (left as number) <= (right as number);
+  }
+}
+
+function looseEq(
+  left: string | number | boolean,
+  right: string | number
+): boolean {
+  if (typeof left === 'boolean') {
+    if (typeof right === 'string') {
+      const r = right.toLowerCase();
+      if (r === 'true') return left === true;
+      if (r === 'false') return left === false;
+    }
+    return false;
+  }
+  return left === right;
+}
+
+function readProp(stuff: Stuff, key: string): string | number | boolean | undefined {
+  if (!MixinApi.isPropertied(stuff)) return undefined;
+  const props = stuff.getProps();
+  const value = props[key];
+  if (value === undefined) return undefined;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  // Non-scalar property values — render to undefined for comparison
+  // purposes so `[prop.complex > 5]` doesn't blow up.
+  return undefined;
+}
+
+function matchesClass(stuff: Stuff, className: string): boolean {
+  // Case-insensitive walk over the prototype chain. The lexer
+  // lowercases barewords, so the player-typed `[class.Sword]` arrives
+  // as `sword` here and matches any constructor whose name compares
+  // equal under `toLowerCase()`.
+  const target = className.toLowerCase();
+  let proto = Object.getPrototypeOf(stuff) as { constructor?: { name?: string } } | null;
+  while (proto && proto.constructor) {
+    const name = proto.constructor.name;
+    if (typeof name === 'string' && name.toLowerCase() === target) return true;
+    proto = Object.getPrototypeOf(proto);
+  }
+  return false;
+}
+
+/**
+ * Case-insensitive mixin lookup. The lexer lowercases barewords, so
+ * we have to enumerate the mixin names on `stuff` (and any installed
+ * shadows) and match by `toLowerCase()` instead of relying on
+ * `MixinApi.hasMixin`'s exact compare.
+ */
+function hasMixinByLowercaseName(stuff: Stuff, name: string): boolean {
+  const target = name.toLowerCase();
+  const ctor = stuff.constructor as Parameters<
+    typeof MixinApi.queryMixins
+  >[0];
+  for (const m of MixinApi.queryMixins(ctor)) {
+    const mn = m._mixinName;
+    if (typeof mn === 'string' && mn.toLowerCase() === target) return true;
+  }
+  return false;
+}
+
+function matchesTemplate(stuff: Stuff, pattern: string): boolean {
+  const path = (stuff as unknown as { templatePath?: string }).templatePath;
+  if (!path) return false;
+  return PathPatternApi.matches(path, pattern);
 }
 
 function filterByLiteral(input: MqlMatch[], literal: string): MqlMatch[] {
