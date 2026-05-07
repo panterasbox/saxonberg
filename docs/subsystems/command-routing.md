@@ -444,10 +444,14 @@ Each entry runs through `ShellApi.expandVariables` (synthetic vars
 like `$focus` and stored vars expand at bind time) and is tried
 in order; first non-empty result wins. The array form is the
 explicit fallback chain — a verb that wants drill-first semantics
-declares `scope: ['$focus', 'inventory, here']` so a drilled
+declares `scope: ['$focus', 'reachable']` so a drilled
 player searches the focus first, with the room as fallback. A
-verb that should ignore drill declares just
-`scope: 'inventory, here'`.
+verb that should ignore drill declares just `scope: 'reachable'`.
+
+When a YAML omits `scope:` entirely, the dispatcher defaults to
+`reachable` — the union of `here`, `peers`, and `inventory`,
+which is the closest analogue to "everything the giver can act
+on right now."
 
 There's no implicit "player focus tries first" rule. The YAML is
 authoritative — the help system can read `scope` to tell players

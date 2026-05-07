@@ -360,11 +360,11 @@ export interface FieldDefinition {
    *
    * The array form is the explicit fallback chain — a verb that
    * wants drill-first semantics declares
-   * `scope: ['$focus', 'inventory, here']` so a drilled player
+   * `scope: ['$focus', 'reachable']` so a drilled player
    * searches the focus first with the room as fallback. Verbs that
-   * should ignore drill declare just `scope: 'inventory, here'`.
+   * should ignore drill declare just `scope: 'reachable'`.
    *
-   * Default when omitted: `'here'`. Only meaningful for
+   * Default when omitted: `'reachable'`. Only meaningful for
    * `type: object` / `type: objects` fields.
    */
   scope?: string | string[];
