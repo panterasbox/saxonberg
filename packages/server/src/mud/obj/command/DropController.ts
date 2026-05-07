@@ -1,13 +1,13 @@
 /**
  * DropController — drop objects from inventory to location.
- *
- * Per item dropped, fires a Scene at `world.perception.inventory`
- * with self ("You drop X.") and peers ("<name>Alice</name> drops
- * X.") frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -15,23 +15,19 @@ import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
-export interface DropInput {
-  target?: Stuff;
-  targets?: Stuff[];
+interface DropModel extends CommandModel {
+  // Non-optional: drop.yaml marks `targets` required + multiple, so
+  // the matcher rejects on missing input and resolveAndValidate fails
+  // the command if MQL produces zero hits. Controllers see at least
+  // one Stuff.
+  targets: Stuff[];
 }
 
-export class DropController extends CommandController<DropInput> {
-  execute(input: DropInput, context: CommandContext): CommandResult {
-    const targets: Stuff[] =
-      input.targets || (input.target ? [input.target] : []);
-
-    if (targets.length === 0) {
-      return { success: false, summary: 'nothing to drop' };
-    }
-
+export class DropController extends CommandController<DropModel> {
+  execute(model: DropModel, context: CommandContext): CommandResult {
     let successCount = 0;
     const droppedNames: string[] = [];
-    for (const target of targets) {
+    for (const target of model.targets) {
       if (this.dropObject(target, context)) {
         successCount++;
         droppedNames.push(DescribeApi.getDisplayName(target, 'something'));

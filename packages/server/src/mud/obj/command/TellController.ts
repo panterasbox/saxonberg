@@ -1,30 +1,29 @@
 /**
  * TellController — send a private message to another player.
- *
- * Composes a Scene at `world.speech.tell` with a self frame ("You
- * tell <name>X</name>, ...") and a target frame ("<name>X</name>
- * tells you, ..."). Cross-actor delivery flows through the same
- * pipeline as everything else — no direct envelope construction.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
 import { Mml } from '../../api/mml';
 import type { Avatar } from '../Avatar';
 
-export interface TellInput {
+interface TellModel extends CommandModel {
   target: string;
   message: string;
 }
 
-export class TellController extends CommandController<TellInput> {
-  execute(input: TellInput, context: CommandContext): CommandResult {
+export class TellController extends CommandController<TellModel> {
+  execute(model: TellModel, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
-    const targetName = input.target;
-    const message = input.message;
+    const targetName = model.target;
+    const message = model.message;
 
     const target = this.findAvatarByName(targetName, context);
     if (!target) {

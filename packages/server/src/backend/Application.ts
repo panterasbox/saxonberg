@@ -38,7 +38,6 @@ import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
 import { Location } from '../mud/lib/stuff/Location';
 import { Template } from '../mud/lib/stuff/Template';
-import type { CommandContext } from '../mud/api/command';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
@@ -237,23 +236,11 @@ export class Application {
       return;
     }
 
-    const context: CommandContext = {
-      commandGiver: avatar,
-      interactive,
-      location,
-      commandText,
-      executionId: nanoid(),
-      // Placeholder — `CommandGiverMixin.executeCommand` overwrites this
-      // with a fresh per-execution attribution id before invoking the
-      // controller.
-      commandId: '',
-    };
-
     // Discard the result; CommandResult is purely semantic now. Any
     // prose the controller wanted the actor to see is fired via Scene
     // inside the controller body, and the auto-emitted MudlogApi
     // command-outcome entry surfaces success/failure with `summary`.
-    await avatar.executeCommand(commandText, context);
+    await avatar.executeCommand(commandText, { interactive });
   }
 
   /**

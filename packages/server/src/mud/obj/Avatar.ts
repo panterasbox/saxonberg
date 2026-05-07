@@ -21,6 +21,7 @@ import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
 import type { MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
+import type { CommandContributions } from '../api/command';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -42,7 +43,7 @@ export class Avatar extends AvatarBase {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
-  static commandProvider = {
+  static commandContributions: CommandContributions = {
     self: ['ping.yaml', 'help.yaml', 'player.yaml'],
     environment: [],
     inventory: [],

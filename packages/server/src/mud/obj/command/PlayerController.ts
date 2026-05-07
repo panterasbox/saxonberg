@@ -1,28 +1,26 @@
 /**
  * PlayerController — manage player character settings.
- *
- * Subcommands: name, pronouns, show. Identity-change confirmations
- * (name, pronouns) fire at `world.identity.change`; the `show`
- * readout fires at `world.perception.look`. Auto-emit surfaces the
- * change to the actor independently.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { Avatar } from '../Avatar';
 
-export interface PlayerInput {
-  subcommand: string;
+interface PlayerModel extends CommandModel {
   name?: string;
   surname?: string;
   pronouns?: string;
 }
 
-export class PlayerController extends CommandController<PlayerInput> {
-  execute(input: PlayerInput, context: CommandContext): CommandResult {
+export class PlayerController extends CommandController<PlayerModel> {
+  execute(model: PlayerModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!(avatar instanceof Avatar)) {
       return {
@@ -31,32 +29,34 @@ export class PlayerController extends CommandController<PlayerInput> {
       };
     }
 
-    switch (input.subcommand) {
+    switch (model.subcommand) {
       case 'name':
-        return this.executeName(input, avatar, context);
+        return this.executeName(model, avatar, context);
       case 'pronouns':
-        return this.executePronouns(input, avatar, context);
+        return this.executePronouns(model, avatar, context);
       case 'show':
         return this.executeShow(avatar, context);
       default:
         return {
           success: false,
-          summary: `unknown subcommand: ${input.subcommand}`,
+          summary: `unknown subcommand: ${model.subcommand ?? '(none)'}`,
         };
     }
   }
 
   private executeName(
-    input: PlayerInput,
+    model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
   ): CommandResult {
-    if (!input.name) {
+    const name = model.name;
+    const surname = model.surname;
+    if (!name) {
       return { success: false, summary: 'name required' };
     }
-    avatar.setName(input.name);
-    if (input.surname !== undefined) {
-      avatar.setSurname(input.surname || undefined);
+    avatar.setName(name);
+    if (surname !== undefined) {
+      avatar.setSurname(surname || undefined);
     }
 
     this.send(
@@ -68,11 +68,12 @@ export class PlayerController extends CommandController<PlayerInput> {
   }
 
   private executePronouns(
-    input: PlayerInput,
+    model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
   ): CommandResult {
-    if (!input.pronouns) {
+    const pronouns = model.pronouns;
+    if (!pronouns) {
       return { success: false, summary: 'pronouns required' };
     }
 
@@ -85,7 +86,7 @@ export class PlayerController extends CommandController<PlayerInput> {
       'other',
     ];
 
-    const pronounsLower = input.pronouns.toLowerCase();
+    const pronounsLower = pronouns.toLowerCase();
     if (!validPronouns.includes(pronounsLower)) {
       return {
         success: false,

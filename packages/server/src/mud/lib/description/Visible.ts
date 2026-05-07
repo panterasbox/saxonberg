@@ -17,6 +17,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -49,7 +50,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * When an object is visible, others can "look" at it.
      */
-    static commandProvider = {
+    static commandContributions: CommandContributions = {
       self: ['look.yaml'],        // Can look at yourself
       environment: ['look.yaml'], // Others can look at you in their environment
       inventory: ['look.yaml'],   // Others can look at you in their inventory

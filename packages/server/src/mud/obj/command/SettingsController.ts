@@ -1,23 +1,15 @@
 /**
  * SettingsController — player surface for the schema-validated
- * persistent settings store.
- *
- * Subcommands: list (default), get, set, unset, describe.
- *
- * Type coercion: YAML field values arrive as strings. For schema
- * entries declaring `type: 'number'`, `'boolean'`, or `'enum'`, we
- * coerce before calling `setSetting`. `'struct'` and `'list'` are
- * rejected at the command surface (see
- * `docs/subsystems/shell-environment.md`) — a structured-value
- * command syntax doesn't exist yet.
- *
- * Privacy in the player path is trivially satisfied:
- * `actor === target === avatar`. The check earns its keep against
- * programmatic writes elsewhere (see D8).
+ * persistent settings store. Subcommands: list (default), get, set,
+ * unset, describe.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -29,14 +21,13 @@ import type {
 
 type EnvHost = Stuff & Environment;
 
-export interface SettingsInput {
-  subcommand?: string;
+interface SettingsModel extends CommandModel {
   key?: string;
   value?: string;
 }
 
-export class SettingsController extends CommandController<SettingsInput> {
-  execute(input: SettingsInput, context: CommandContext): CommandResult {
+export class SettingsController extends CommandController<SettingsModel> {
+  execute(model: SettingsModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       return {
@@ -45,18 +36,20 @@ export class SettingsController extends CommandController<SettingsInput> {
       };
     }
 
-    const sub = input.subcommand ?? 'list';
+    const sub = model.subcommand ?? 'list';
+    const key = model.key;
+    const value = model.value;
     switch (sub) {
       case 'list':
         return this.executeList(avatar, context);
       case 'get':
-        return this.executeGet(avatar, input.key, context);
+        return this.executeGet(avatar, key, context);
       case 'set':
-        return this.executeSet(avatar, input.key, input.value, context);
+        return this.executeSet(avatar, key, value, context);
       case 'unset':
-        return this.executeUnset(avatar, input.key, context);
+        return this.executeUnset(avatar, key, context);
       case 'describe':
-        return this.executeDescribe(avatar, input.key, context);
+        return this.executeDescribe(avatar, key, context);
       default:
         return { success: false, summary: `unknown subcommand: ${sub}` };
     }

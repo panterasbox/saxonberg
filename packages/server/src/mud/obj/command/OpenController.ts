@@ -1,26 +1,27 @@
 /**
  * OpenController — open any Sealable the player can reach.
- *
- * Fires a Scene at `world.narration.action` with self ("You open the
- * door.") and peers ("<name>Alice</name> opens the door.") frames.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 
-export interface OpenInput {
-  target: string;
+interface OpenModel extends CommandModel {
+  target?: string;
 }
 
-export class OpenController extends CommandController<OpenInput> {
-  execute(input: OpenInput, context: CommandContext): CommandResult {
+export class OpenController extends CommandController<OpenModel> {
+  execute(model: OpenModel, context: CommandContext): CommandResult {
     const { commandGiver, location } = context;
-    const target = (input.target ?? '').trim();
+    const target = (model.target ?? '').trim();
     if (!target) return { success: false, summary: 'open what?' };
 
     const hit = MqlApi.resolve(target, { commandGiver, location });

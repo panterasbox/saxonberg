@@ -6,7 +6,11 @@
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -15,14 +19,13 @@ import type { Environment } from '../../lib/shell/Environment';
 
 type EnvHost = Stuff & Environment;
 
-export interface VarInput {
-  subcommand?: string;
+interface VarModel extends CommandModel {
   name?: string;
   value?: string;
 }
 
-export class VarController extends CommandController<VarInput> {
-  execute(input: VarInput, context: CommandContext): CommandResult {
+export class VarController extends CommandController<VarModel> {
+  execute(model: VarModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       return {
@@ -31,14 +34,16 @@ export class VarController extends CommandController<VarInput> {
       };
     }
 
-    const sub = input.subcommand ?? 'list';
+    const sub = model.subcommand ?? 'list';
+    const name = model.name;
+    const value = model.value;
     switch (sub) {
       case 'list':
         return this.executeList(avatar, context);
       case 'set':
-        return this.executeSet(avatar, input.name, input.value, context);
+        return this.executeSet(avatar, name, value, context);
       case 'unset':
-        return this.executeUnset(avatar, input.name, context);
+        return this.executeUnset(avatar, name, context);
       default:
         return { success: false, summary: `unknown subcommand: ${sub}` };
     }

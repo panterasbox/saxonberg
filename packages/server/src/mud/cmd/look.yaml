@@ -1,14 +1,9 @@
 verbs: [look, l]
 controller: LookController
 description: "Examine your surroundings or an object"
-syntax:
-  - pattern: ""
-    description: "Look at current location"
-
-  - pattern: "<target>"
-    description: "Look at specific target"
-    fields:
-      target:
-        type: object
-        required: true
-        validators: [mustBeVisible]
+args:
+  - name: target
+    type: object
+    required: false
+    validators:
+      - /lib/command/validators/mustBeVisible

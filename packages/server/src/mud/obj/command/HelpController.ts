@@ -1,25 +1,25 @@
 /**
  * HelpController — display help information for commands.
- *
- * Fires a self-only Scene at `world.perception.look` (help is a kind
- * of perception — looking up information about the world). For now
- * the body is plain text; future enhancements may grow per-command
- * descriptions and structured payloads.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
-export interface HelpInput {
+interface HelpModel extends CommandModel {
   command?: string;
 }
 
-export class HelpController extends CommandController<HelpInput> {
-  execute(input: HelpInput, context: CommandContext): CommandResult {
-    if (input.command) {
-      return this.showCommandHelp(input.command, context);
+export class HelpController extends CommandController<HelpModel> {
+  execute(model: HelpModel, context: CommandContext): CommandResult {
+    const command = model.command;
+    if (command) {
+      return this.showCommandHelp(command, context);
     }
     return this.listCommands(context);
   }

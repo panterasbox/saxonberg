@@ -14,7 +14,28 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type { CommandContext } from '../../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  ModelData,
+} from '../../../api/command';
+import { CommandDefinition } from '../../../lib/command/CommandDefinition';
+
+function makeModel(
+  fields: ModelData = {},
+  subcommand?: string
+): CommandModel {
+  const model: CommandModel = { ...fields };
+  if (subcommand !== undefined) model.subcommand = subcommand;
+  return model;
+}
+
+function stubCommand(verb: string): CommandDefinition {
+  return CommandDefinition.fromYaml(
+    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
+    "<test>"
+  );
+}
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../lib/stuff/Idea";
 
@@ -46,6 +67,8 @@ function makeContext(
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
+  verb: 'open',
+  command: stubCommand('open'),
   };
 }
 
@@ -83,7 +106,7 @@ describe('OpenController / CloseController / doors integration', () => {
   it('go north fails while door is closed', async () => {
     const go = makeStuff(() => new GoController());
     const result = await go.execute(
-      { target: 'north' },
+      makeModel({ target: 'north' }),
       makeContext(avatar, locA, 'go north')
     );
     expect(result.success).toBe(false);
@@ -94,7 +117,7 @@ describe('OpenController / CloseController / doors integration', () => {
   it('open <keyword> resolves via MQL and opens the door', () => {
     const open = makeStuff(() => new OpenController());
     const result = open.execute(
-      { target: 'oak' },
+      makeModel({ target: 'oak' }),
       makeContext(avatar, locA, 'open the oak door')
     );
     expect(result.success).toBe(true);
@@ -117,7 +140,7 @@ describe('OpenController / CloseController / doors integration', () => {
     door.open();
     const open = makeStuff(() => new OpenController());
     const result = open.execute(
-      { target: 'oak' },
+      makeModel({ target: 'oak' }),
       makeContext(avatar, locA, 'open the oak door')
     );
     expect(result.success).toBe(false);
@@ -127,7 +150,7 @@ describe('OpenController / CloseController / doors integration', () => {
   it('no sealable matching the name: clear error', () => {
     const open = makeStuff(() => new OpenController());
     const result = open.execute(
-      { target: 'bathtub' },
+      makeModel({ target: 'bathtub' }),
       makeContext(avatar, locA, 'open bathtub')
     );
     expect(result.success).toBe(false);
@@ -136,18 +159,18 @@ describe('OpenController / CloseController / doors integration', () => {
 
   it('go north succeeds after opening; close from destination closes same door', async () => {
     makeStuff(() => new OpenController()).execute(
-      { target: 'oak' },
+      makeModel({ target: 'oak' }),
       makeContext(avatar, locA, 'open the oak door')
     );
     const go = await makeStuff(() => new GoController()).execute(
-      { target: 'north' },
+      makeModel({ target: 'north' }),
       makeContext(avatar, locA, 'go north')
     );
     expect(go.success).toBe(true);
     expect(avatar.getContainer()).toBe(locB);
 
     const close = makeStuff(() => new CloseController()).execute(
-      { target: 'oak' },
+      makeModel({ target: 'oak' }),
       makeContext(avatar, locB, 'close the oak door')
     );
     expect(close.success).toBe(true);
@@ -155,7 +178,7 @@ describe('OpenController / CloseController / doors integration', () => {
 
     // Both sides share the same Door instance — going south is now blocked.
     const goBack = await makeStuff(() => new GoController()).execute(
-      { target: 'south' },
+      makeModel({ target: 'south' }),
       makeContext(avatar, locB, 'go south')
     );
     expect(goBack.success).toBe(false);
@@ -165,7 +188,7 @@ describe('OpenController / CloseController / doors integration', () => {
   it('already-closed door on close returns friendly error', () => {
     const close = makeStuff(() => new CloseController());
     const result = close.execute(
-      { target: 'oak' },
+      makeModel({ target: 'oak' }),
       makeContext(avatar, locA, 'close the oak door')
     );
     expect(result.success).toBe(false);

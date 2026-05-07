@@ -38,6 +38,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Shadow } from '../lib/stuff/Shadow';
+import { CommandApi } from './command';
 import {
   ShadowError,
   DestroyedObjectError,
@@ -138,6 +139,12 @@ export class ShadowApi {
     }
     this.#shadowHost.set(shadow, host);
     this.#shadowMethods.set(shadow, Object.freeze(new Set(intercept)));
+
+    // Recency-stack delta: if the shadow's class declares command
+    // contributions, push them onto the host's stack (and reachable
+    // peer/holder stacks). Schema-delivery emits piggy-back on the
+    // sealed push surface, so attach surfaces as `commands.added`.
+    CommandApi.applyShadowDelta(host, shadow, 'attach');
   }
 
   /**
@@ -163,6 +170,12 @@ export class ShadowApi {
         }
       }
     }
+
+    // Recency-stack delta: pop the shadow from every giver it
+    // contributed to. Order matters — pop BEFORE the shadow
+    // detaches from the host, so containment lookups (which use
+    // `host.getContainer()`) still see the right neighborhood.
+    CommandApi.applyShadowDelta(host, shadow, 'detach');
 
     ShadowApi.#removeAtomic(shadow, host, methods);
   }

@@ -21,7 +21,28 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type { CommandContext } from '../../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  ModelData,
+} from '../../../api/command';
+import { CommandDefinition } from '../../../lib/command/CommandDefinition';
+
+function makeModel(
+  fields: ModelData = {},
+  subcommand?: string
+): CommandModel {
+  const model: CommandModel = { ...fields };
+  if (subcommand !== undefined) model.subcommand = subcommand;
+  return model;
+}
+
+function stubCommand(verb: string): CommandDefinition {
+  return CommandDefinition.fromYaml(
+    `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
+    "<test>"
+  );
+}
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -79,6 +100,8 @@ function makeContext(host: Host, location: Location): CommandContext {
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
+  verb: 'settings',
+  command: stubCommand('settings'),
   };
 }
 
@@ -97,24 +120,24 @@ describe('SettingsController', () => {
   describe('list', () => {
     it('lists declared settings grouped by source mixin', () => {
       const result = controller.execute(
-        { subcommand: 'list' },
+        makeModel({}, 'list'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/4 settings/);
+      expect(result.summary).toMatch(/5 settings/);
     });
 
     it('treats no subcommand as list', () => {
-      const result = controller.execute({}, makeContext(host, location));
+      const result = controller.execute(makeModel(), makeContext(host, location));
       expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/4 settings/);
+      expect(result.summary).toMatch(/5 settings/);
     });
   });
 
   describe('get', () => {
     it('shows the schema default when no override', () => {
       const result = controller.execute(
-        { subcommand: 'get', key: 'feature.greeting' },
+        makeModel({ key: 'feature.greeting' }, 'get'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -124,7 +147,7 @@ describe('SettingsController', () => {
     it('shows the override after set', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
       const result = controller.execute(
-        { subcommand: 'get', key: 'feature.greeting' },
+        makeModel({ key: 'feature.greeting' }, 'get'),
         makeContext(host, location),
       );
       expect(result.summary).toContain('howdy');
@@ -132,7 +155,7 @@ describe('SettingsController', () => {
 
     it('rejects an unknown key', () => {
       const result = controller.execute(
-        { subcommand: 'get', key: 'nope' },
+        makeModel({ key: 'nope' }, 'get'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -143,7 +166,7 @@ describe('SettingsController', () => {
   describe('set', () => {
     it('writes a string', () => {
       const result = controller.execute(
-        { subcommand: 'set', key: 'feature.greeting', value: 'howdy' },
+        makeModel({ key: 'feature.greeting', value: 'howdy' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -152,7 +175,7 @@ describe('SettingsController', () => {
 
     it('coerces a numeric string for number-typed settings', () => {
       const result = controller.execute(
-        { subcommand: 'set', key: 'feature.count', value: '42' },
+        makeModel({ key: 'feature.count', value: '42' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -161,7 +184,7 @@ describe('SettingsController', () => {
 
     it('reports a useful error when number coercion fails', () => {
       const result = controller.execute(
-        { subcommand: 'set', key: 'feature.count', value: 'abc' },
+        makeModel({ key: 'feature.count', value: 'abc' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -170,12 +193,12 @@ describe('SettingsController', () => {
 
     it('coerces boolean shorthands', () => {
       controller.execute(
-        { subcommand: 'set', key: 'feature.flag', value: 'yes' },
+        makeModel({ key: 'feature.flag', value: 'yes' }, 'set'),
         makeContext(host, location),
       );
       expect(host.getSetting<boolean>('feature.flag')).toBe(true);
       controller.execute(
-        { subcommand: 'set', key: 'feature.flag', value: 'no' },
+        makeModel({ key: 'feature.flag', value: 'no' }, 'set'),
         makeContext(host, location),
       );
       expect(host.getSetting<boolean>('feature.flag')).toBe(false);
@@ -183,7 +206,7 @@ describe('SettingsController', () => {
 
     it('rejects an enum value not in the allowed set', () => {
       const result = controller.execute(
-        { subcommand: 'set', key: 'feature.color', value: 'mauve' },
+        makeModel({ key: 'feature.color', value: 'mauve' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -192,7 +215,7 @@ describe('SettingsController', () => {
 
     it('rejects an unknown key', () => {
       const result = controller.execute(
-        { subcommand: 'set', key: 'nope', value: 'x' },
+        makeModel({ key: 'nope', value: 'x' }, 'set'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -204,7 +227,7 @@ describe('SettingsController', () => {
     it('clears an override; default reapplies', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
       const result = controller.execute(
-        { subcommand: 'unset', key: 'feature.greeting' },
+        makeModel({ key: 'feature.greeting' }, 'unset'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -213,7 +236,7 @@ describe('SettingsController', () => {
 
     it('rejects an unknown key', () => {
       const result = controller.execute(
-        { subcommand: 'unset', key: 'nope' },
+        makeModel({ key: 'nope' }, 'unset'),
         makeContext(host, location),
       );
       expect(result.success).toBe(false);
@@ -223,7 +246,7 @@ describe('SettingsController', () => {
   describe('describe', () => {
     it('returns the schema entry summary', () => {
       const result = controller.execute(
-        { subcommand: 'describe', key: 'feature.color' },
+        makeModel({ key: 'feature.color' }, 'describe'),
         makeContext(host, location),
       );
       expect(result.success).toBe(true);
@@ -237,7 +260,7 @@ describe('SettingsController', () => {
       // the surface, not crash with an undefined-method error.
       const bare = makeStuff(() => new (class extends Idea {})());
       const result = controller.execute(
-        { subcommand: 'list' },
+        makeModel({}, 'list'),
         {
           commandGiver: bare as unknown as CommandContext['commandGiver'],
           interactive: {} as Interactive,
@@ -245,6 +268,8 @@ describe('SettingsController', () => {
           commandText: '',
           executionId: 'e',
           commandId: 'c',
+          verb: 'settings',
+          command: stubCommand('settings'),
         },
       );
       expect(result.success).toBe(false);

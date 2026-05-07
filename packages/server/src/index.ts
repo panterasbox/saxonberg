@@ -25,13 +25,20 @@ if (!process.env.VITEST) {
 }
 
 import 'dotenv/config';
-import { PersistenceManager } from './backend/PersistenceManager';
-import { SeederManager } from './backend/SeederManager';
-import { BootstrapManager } from './backend/BootstrapManager';
+import { AppBootstrap } from './backend/AppBootstrap';
 import { Server } from './services/Server';
 
 /**
  * Main server initialization function.
+ *
+ * Entry-point concerns only:
+ *   1. Validate required env vars; exit early if any are missing.
+ *   2. Hand off to `AppBootstrap.run` for the prep sequence.
+ *   3. Wire and start the `Server`.
+ *
+ * App-specific bootstrap (Mongo, seeders, PM hooks, command preload,
+ * runtime-instance manifest) lives behind `AppBootstrap` so this
+ * file doesn't have to know about every prep system.
  */
 async function main() {
   try {
@@ -39,7 +46,6 @@ async function main() {
     console.info('Saxonberg 2.0 Server - Starting...');
     console.info('='.repeat(60));
 
-    // Validate required environment variables
     const requiredEnvVars = [
       'MONGODB_URI',
       'GOOGLE_CLIENT_ID',
@@ -47,11 +53,9 @@ async function main() {
       'GOOGLE_CALLBACK_URL',
       'SESSION_SECRET',
     ];
-
     const missingEnvVars = requiredEnvVars.filter(
       (varName) => !process.env[varName]
     );
-
     if (missingEnvVars.length > 0) {
       console.error('ERROR: Missing required environment variables:');
       missingEnvVars.forEach((varName) => console.error(`  - ${varName}`));
@@ -59,48 +63,14 @@ async function main() {
       process.exit(1);
     }
 
-    // 1. Connect to MongoDB
-    const mongoUri = process.env.MONGODB_URI!;
-    const dbName = process.env.MONGODB_DATABASE || 'saxonberg';
+    await AppBootstrap.run({
+      mongoUri: process.env.MONGODB_URI!,
+      dbName: process.env.MONGODB_DATABASE || 'saxonberg',
+    });
 
-    console.info(`\nConnecting to MongoDB database '${dbName}'...`);
-
-    await PersistenceManager.get().connect(mongoUri, dbName);
-
-    console.info('MongoDB connection successful\n');
-
-    // 1a. Seed templates from disk into the `domain` collection
-    //     (idempotent — existing docs are left alone). Runs FIRST
-    //     because PM.loadHooks below clones the DomainHook template
-    //     out of `domain`, and the bootstrap manifest may reference
-    //     other seeded templates too.
-    await SeederManager.run();
-
-    // 1b. Load PM hooks (folder/leaf invariant on Collections.Domain,
-    //     etc.) — clones the seeded hook templates and registers
-    //     them with the persistence pipeline. Seeds must exist
-    //     before this runs.
-    //
-    //     Controllers are NOT pre-loaded — dispatch goes through
-    //     `StuffApi.singleton('/obj/command/<Name>')` which lazily
-    //     clones on first use and caches via the templatePath index.
-    //     The controller seed YAMLs under `mud/seeds/obj/command/`
-    //     were just written by `SeederManager.run()` above.
-    await PersistenceManager.get().loadHooks();
-
-    // 1c. Bootstrap runtime instances from the engine manifest.
-    //     Both prior steps must be complete; failures here prevent
-    //     boot.
-    await BootstrapManager.run();
-
-    // 2. Create and start Server
     const port = parseInt(process.env.PORT || '2010', 10);
     const server = new Server(port);
-
-    // Setup shutdown handlers
     server.setupShutdownHandlers();
-
-    // Start server
     await server.start();
 
     console.info('\n' + '='.repeat(60));

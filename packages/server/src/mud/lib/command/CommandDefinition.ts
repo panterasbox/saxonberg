@@ -1,90 +1,88 @@
 /**
- * CommandDefinition - Parse and represent YAML command definitions (View in MVC)
+ * CommandDefinition - parsed YAML command (the "View" in MVC).
  *
- * Wraps a CommandView (YAML file) and provides structured access to command metadata.
+ * Wraps a CommandView and surfaces accessors for syntax patterns,
+ * subcommands, and options. Positional shape is declared by an
+ * ordered `args:` array on each syntax variant / subcommand;
+ * `args[0]` is positional slot 0, `args[1]` is slot 1, etc. Each
+ * arg carries its own `name` so the YAML is self-documenting and
+ * insensitive to YAML-formatter key-sort.
  *
- * Responsible for:
- * - Loading YAML command definition files
- * - Parsing command structure (verbs, syntax, subcommands, fields)
- * - Providing access to command metadata
+ * Three load-time invariants run in `validate()`:
  *
- * YAML View Example:
- * ```yaml
- * verbs: [look, l]
- * controller: LookController
- * description: "Examine your surroundings"
- * syntax:
- *   - pattern: ""
- *     description: "Look at current location"
- *   - pattern: "<target>"
- *     description: "Look at specific target"
- *     fields:
- *       target:
- *         type: object
- *         required: true
- *         validators: [mustBeVisible]
- * ```
+ *   1. **Field-name uniqueness.** Across positional args of every
+ *      syntax variant + verb-scoped options + every subcommand's
+ *      options + that subcommand's positional args, no two
+ *      declarations share a `name` (or option `field`) unless
+ *      they're in mutually-exclusive syntax variants or
+ *      subcommands.
+ *   2. **Greedy must be last.** A `greedy: true` arg is the last
+ *      arg in its `args:` array.
+ *   3. **No required after optional.** A `required: true` arg
+ *      cannot follow a `required: false` arg in the same array.
+ *      Greedy is `required: true` by definition, so this rule
+ *      subsumes "optional cannot precede greedy".
  */
 
 import { parse as parseYaml } from 'yaml';
 import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import Ajv, { type ValidateFunction } from 'ajv';
 import type {
   CommandView,
-  SyntaxDefinition,
   SubcommandDefinition,
+  OptionDefinition,
+  PositionalDefinition,
 } from '../../api/command';
+import { SUBCOMMAND_FIELD } from '../../api/command';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const SCHEMA_PATH = join(__dirname, '../../cmd/command.schema.json');
+
+let _validate: ValidateFunction | null = null;
 
 /**
- * Parsed command definition
- *
- * Provides structured access to command metadata from YAML
+ * Load the JSON schema once and return the compiled Ajv validator.
+ * Pure-lazy: cost is paid on first YAML load, not at module import.
+ */
+function getSchemaValidator(): ValidateFunction {
+  if (_validate) return _validate;
+  const schemaJson = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8')) as object;
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  _validate = ajv.compile(schemaJson);
+  return _validate;
+}
+
+/**
+ * Parsed command definition.
  */
 export class CommandDefinition {
-  /** Command verbs (aliases) */
   public readonly verbs: string[];
-
-  /** Controller class name */
   public readonly controller: string;
-
-  /** Human-readable description */
   public readonly description: string;
-
-  /** Syntax patterns (for commands without subcommands) */
-  public readonly syntax: SyntaxDefinition[];
-
-  /** Subcommand definitions (for commands with subcommands) */
+  /** Top-level positionals for flat verbs. Empty array for zero-arg verbs and subcommanded verbs. */
+  public readonly args: PositionalDefinition[];
   public readonly subcommands: Record<string, SubcommandDefinition>;
-
-  /** File path this definition was loaded from */
+  public readonly verbOptions: Record<string, OptionDefinition>;
   public readonly filePath: string;
 
-  /**
-   * Private constructor - use static fromFile() or fromView()
-   *
-   * @param view - CommandView (parsed YAML structure)
-   * @param filePath - Path to YAML file
-   */
-  private constructor(
-    view: CommandView,
-    filePath: string
-  ) {
+  private constructor(view: CommandView, filePath: string) {
     this.verbs = view.verbs || [];
     this.controller = view.controller;
     this.description = view.description || '';
-    this.syntax = view.syntax || [];
+    this.args = view.args || [];
     this.subcommands = view.subcommands || {};
+    this.verbOptions = normaliseOptions(view.options);
     this.filePath = filePath;
 
-    // Validate
+    this.normaliseShape();
     this.validate();
   }
 
   /**
-   * Load CommandDefinition from YAML file
-   *
-   * @param filePath - Path to YAML file
-   * @returns Parsed command definition
-   * @throws Error if file cannot be read or YAML is invalid
+   * Load CommandDefinition from YAML file.
    */
   static fromFile(filePath: string): CommandDefinition {
     try {
@@ -96,122 +94,153 @@ export class CommandDefinition {
   }
 
   /**
-   * Parse CommandDefinition from YAML string
-   *
-   * @param yamlContent - YAML content string
-   * @param filePath - File path (for error messages)
-   * @returns Parsed command definition
-   * @throws Error if YAML is invalid
+   * Parse CommandDefinition from YAML string. The parsed view is
+   * validated against `cmd/command.schema.json`; schema failures
+   * throw with the full Ajv error trail so authoring mistakes
+   * surface at boot, not at first verb invocation.
    */
-  static fromYaml(yamlContent: string, filePath: string = '<inline>'): CommandDefinition {
+  static fromYaml(
+    yamlContent: string,
+    filePath: string = '<inline>'
+  ): CommandDefinition {
+    let view: unknown;
     try {
-      const view = parseYaml(yamlContent) as CommandView;
-      return new CommandDefinition(view, filePath);
+      view = parseYaml(yamlContent);
     } catch (error) {
       throw new Error(`Failed to parse YAML in ${filePath}: ${error}`);
     }
+    const validate = getSchemaValidator();
+    if (!validate(view)) {
+      const trail = (validate.errors ?? [])
+        .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+        .join('\n');
+      throw new Error(
+        `Schema validation failed for ${filePath}:\n${trail}`
+      );
+    }
+    return new CommandDefinition(view as CommandView, filePath);
   }
 
   /**
-   * Validate command definition
-   *
-   * @throws Error if definition is invalid
+   * Per-subcommand `options` table normalisation. Args arrays are
+   * already in their canonical shape from YAML.
+   */
+  private normaliseShape(): void {
+    for (const [, sub] of Object.entries(this.subcommands)) {
+      sub.options = normaliseOptions(sub.options);
+    }
+  }
+
+  /**
+   * Run load-time invariants. Throws on violation.
    */
   private validate(): void {
-    // Must have at least one verb
     if (!this.verbs || this.verbs.length === 0) {
-      throw new Error(`Command definition ${this.filePath} must have at least one verb`);
+      throw new Error(
+        `Command definition ${this.filePath} must have at least one verb`
+      );
     }
-
-    // Must have controller
     if (!this.controller) {
-      throw new Error(`Command definition ${this.filePath} must specify a controller`);
+      throw new Error(
+        `Command definition ${this.filePath} must specify a controller`
+      );
     }
 
-    // Must have either syntax or subcommands (not both, not neither)
-    const hasSyntax = this.syntax && this.syntax.length > 0;
+    const hasArgs = this.args.length > 0;
     const hasSubcommands = Object.keys(this.subcommands).length > 0;
 
-    if (!hasSyntax && !hasSubcommands) {
+    if (hasArgs && hasSubcommands) {
       throw new Error(
-        `Command definition ${this.filePath} must have either syntax patterns or subcommands`
+        `Command definition ${this.filePath} cannot have both args and subcommands`
       );
     }
 
-    if (hasSyntax && hasSubcommands) {
-      throw new Error(
-        `Command definition ${this.filePath} cannot have both syntax and subcommands`
-      );
+    if (hasArgs) {
+      validateArgOrdering(this.args, this.filePath, 'args');
     }
 
-    // Validate syntax patterns
-    if (hasSyntax) {
-      this.syntax.forEach((syn, index) => {
-        if (syn.pattern === undefined) {
-          throw new Error(
-            `Syntax pattern ${index} in ${this.filePath} must have a pattern field`
-          );
-        }
-      });
-    }
-
-    // Validate subcommands
     if (hasSubcommands) {
       Object.entries(this.subcommands).forEach(([name, sub]) => {
-        if (sub.pattern === undefined) {
-          throw new Error(
-            `Subcommand '${name}' in ${this.filePath} must have a pattern field`
-          );
-        }
+        validateArgOrdering(sub.args, this.filePath, name);
       });
     }
+
+    validateFieldNameUniqueness(this);
   }
 
-  /**
-   * Check if this command has subcommands
-   */
   hasSubcommands(): boolean {
     return Object.keys(this.subcommands).length > 0;
   }
 
-  /**
-   * Get subcommand definition by name
-   *
-   * @param name - Subcommand name
-   * @returns Subcommand definition or undefined
-   */
   getSubcommand(name: string): SubcommandDefinition | undefined {
     return this.subcommands[name];
   }
 
-  /**
-   * Get all subcommand names
-   */
   getSubcommandNames(): string[] {
     return Object.keys(this.subcommands);
   }
 
-  /**
-   * Check if command has a specific verb/alias
-   *
-   * @param verb - Verb to check
-   * @returns True if this command responds to the verb
-   */
   hasVerb(verb: string): boolean {
     return this.verbs.some((v) => v.toLowerCase() === verb.toLowerCase());
   }
 
-  /**
-   * Get primary verb (first in list)
-   */
   getPrimaryVerb(): string {
     return this.verbs[0] || '';
   }
 
   /**
-   * Get usage string for display
-   *
-   * @returns Human-readable usage string
+   * Verb-scoped options for the assemble() phase. The map keys are
+   * option names; pre-resolve short-flag aliases via `getOption`.
+   */
+  getOptions(scope: 'verb' | string): Record<string, OptionDefinition> {
+    if (scope === 'verb') return this.verbOptions;
+    const sub = this.subcommands[scope];
+    return sub?.options ?? {};
+  }
+
+  /**
+   * Resolve an option by long-name OR short-flag char within a scope
+   * ('verb' or a subcommand name). Returns the canonical name and
+   * its definition, or undefined when the scope doesn't declare it.
+   */
+  getOption(
+    scope: 'verb' | string,
+    nameOrShort: string
+  ): { name: string; def: OptionDefinition } | undefined {
+    const opts = this.getOptions(scope);
+    const direct = opts[nameOrShort];
+    if (direct) return { name: nameOrShort, def: direct };
+    for (const [name, def] of Object.entries(opts)) {
+      if (def.short === nameOrShort) return { name, def };
+    }
+    return undefined;
+  }
+
+  /**
+   * Set of all field names this verb may produce, across positional
+   * args, verb-scoped options, every subcommand's options, and every
+   * subcommand's positional args. Used by `assembleFromStructured`
+   * to validate incoming `fields` keys.
+   */
+  getAllFieldNames(): Set<string> {
+    const names = new Set<string>();
+    for (const a of this.args) names.add(a.name);
+    for (const [, def] of Object.entries(this.verbOptions)) {
+      names.add(def.field ?? optionFieldName(this.verbOptions, def));
+    }
+    for (const sub of Object.values(this.subcommands)) {
+      for (const a of sub.args ?? []) names.add(a.name);
+      for (const [, def] of Object.entries(sub.options ?? {})) {
+        names.add(def.field ?? optionFieldName(sub.options ?? {}, def));
+      }
+    }
+    if (this.hasSubcommands()) names.add(SUBCOMMAND_FIELD);
+    return names;
+  }
+
+  /**
+   * Render man-page-style usage from the args block. Format is the
+   * *output* of the schema, not part of it.
    */
   getUsage(): string {
     const verb = this.getPrimaryVerb();
@@ -221,58 +250,41 @@ export class CommandDefinition {
       return `${verb} <${subcommands}> [args...]`;
     }
 
-    if (this.syntax.length === 0) {
-      return verb;
-    }
-
-    if (this.syntax.length === 1) {
-      const pattern = this.syntax[0]?.pattern;
-      return pattern ? `${verb} ${pattern}` : verb;
-    }
-
-    // Multiple syntax patterns
-    return `${verb} (see help ${verb} for syntax)`;
+    const rendered = renderArgs(this.args);
+    return rendered ? `${verb} ${rendered}` : verb;
   }
 
   /**
-   * Get detailed help text
-   *
-   * @returns Multi-line help text
+   * Multi-line help text — verb header, aliases, then per-syntax /
+   * per-subcommand lines.
    */
   getHelpText(): string {
     const lines: string[] = [];
 
-    // Header
     lines.push(`${this.getPrimaryVerb().toUpperCase()}: ${this.description}`);
     lines.push('');
 
-    // Aliases
     if (this.verbs.length > 1) {
       lines.push(`Aliases: ${this.verbs.join(', ')}`);
       lines.push('');
     }
 
-    // Syntax patterns
-    if (!this.hasSubcommands() && this.syntax.length > 0) {
+    if (!this.hasSubcommands()) {
       lines.push('Syntax:');
-      this.syntax.forEach((syn) => {
-        const pattern = syn.pattern || '';
-        const usage = pattern ? `${this.getPrimaryVerb()} ${pattern}` : this.getPrimaryVerb();
-        lines.push(`  ${usage}`);
-        if (syn.description) {
-          lines.push(`    ${syn.description}`);
-        }
-      });
+      const rendered = renderArgs(this.args);
+      const usage = rendered
+        ? `${this.getPrimaryVerb()} ${rendered}`
+        : this.getPrimaryVerb();
+      lines.push(`  ${usage}`);
       lines.push('');
     }
 
-    // Subcommands
     if (this.hasSubcommands()) {
       lines.push('Subcommands:');
       Object.entries(this.subcommands).forEach(([name, sub]) => {
-        const pattern = sub?.pattern || '';
-        const usage = pattern
-          ? `${this.getPrimaryVerb()} ${name} ${pattern}`
+        const rendered = renderArgs(sub?.args);
+        const usage = rendered
+          ? `${this.getPrimaryVerb()} ${name} ${rendered}`
           : `${this.getPrimaryVerb()} ${name}`;
         lines.push(`  ${usage}`);
         if (sub?.description) {
@@ -283,5 +295,162 @@ export class CommandDefinition {
     }
 
     return lines.join('\n');
+  }
+}
+
+/* ────────────────────── helpers ────────────────────── */
+
+function normaliseOptions(
+  raw: Record<string, OptionDefinition> | undefined
+): Record<string, OptionDefinition> {
+  if (!raw) return {};
+  return raw;
+}
+
+function optionFieldName(
+  scope: Record<string, OptionDefinition>,
+  def: OptionDefinition
+): string {
+  for (const [name, candidate] of Object.entries(scope)) {
+    if (candidate === def) return name;
+  }
+  return def.field ?? '';
+}
+
+/**
+ * Render an args array as `<req> [opt] <greedy...>` form.
+ */
+function renderArgs(args: PositionalDefinition[] | undefined): string {
+  if (!args || args.length === 0) return '';
+  return args
+    .map((def) => {
+      if (def.greedy) return `<${def.name}...>`;
+      if (def.required) return `<${def.name}>`;
+      return `[${def.name}]`;
+    })
+    .join(' ');
+}
+
+/**
+ * Enforce greedy-must-be-last and no-required-after-optional
+ * invariants on a single args array.
+ */
+function validateArgOrdering(
+  args: PositionalDefinition[] | undefined,
+  filePath: string,
+  label: string
+): void {
+  if (!args) return;
+
+  let sawOptional = false;
+  for (let i = 0; i < args.length; i++) {
+    const def = args[i]!;
+    if (!def.name) {
+      throw new Error(
+        `arg at ${label}[${i}] is missing required \`name\` field (${filePath})`
+      );
+    }
+
+    if (def.greedy && i !== args.length - 1) {
+      throw new Error(
+        `greedy arg must be last: ${filePath} ${label} arg "${def.name}"`
+      );
+    }
+
+    const isOptional = def.required === false;
+    const isRequired = def.required === true || def.greedy === true;
+
+    if (sawOptional && isRequired) {
+      throw new Error(
+        `required arg cannot follow optional: ${filePath} ${label} arg "${def.name}"`
+      );
+    }
+    if (isOptional) sawOptional = true;
+  }
+}
+
+/**
+ * Field-name uniqueness across the entire command. Mutually-
+ * exclusive syntax variants and mutually-exclusive subcommands are
+ * allowed to repeat names.
+ *
+ * Also enforces the `subcommand` reserved name when the verb has
+ * subcommands — the matcher stamps the active subcommand on
+ * `model.subcommand`, so a YAML can't compete with that key.
+ */
+function validateFieldNameUniqueness(def: CommandDefinition): void {
+  if (def.hasSubcommands()) {
+    const collide = (label: string, names: Iterable<string>): void => {
+      for (const n of names) {
+        if (n === SUBCOMMAND_FIELD) {
+          throw new Error(
+            `field name "${SUBCOMMAND_FIELD}" is reserved when subcommands are declared (${label}, ${def.filePath})`
+          );
+        }
+      }
+    };
+    collide('verb-scoped option', Object.keys(def.verbOptions));
+    for (const [subName, sub] of Object.entries(def.subcommands)) {
+      collide(`subcommand "${subName}" option`, Object.keys(sub.options ?? {}));
+      collide(
+        `subcommand "${subName}" arg`,
+        (sub.args ?? []).map((a) => a.name)
+      );
+    }
+  }
+
+  // Verb-scoped option names — collisions with positionals or
+  // subcommand-scoped options are reportable.
+  const verbOptionNames = new Set<string>();
+  for (const [name, opt] of Object.entries(def.verbOptions)) {
+    verbOptionNames.add(opt.field ?? name);
+  }
+
+  // Top-level positional args.
+  {
+    const seen = new Set<string>();
+    for (const a of def.args) {
+      if (seen.has(a.name)) {
+        throw new Error(
+          `arg name "${a.name}" duplicated in top-level args in ${def.filePath}`
+        );
+      }
+      seen.add(a.name);
+      if (verbOptionNames.has(a.name)) {
+        throw new Error(
+          `arg name "${a.name}" collides with verb-scoped option in ${def.filePath}`
+        );
+      }
+    }
+  }
+
+  for (const [subName, sub] of Object.entries(def.subcommands)) {
+    const subOptionNames = new Set<string>();
+    for (const [name, opt] of Object.entries(sub.options ?? {})) {
+      subOptionNames.add(opt.field ?? name);
+    }
+
+    for (const n of subOptionNames) {
+      if (verbOptionNames.has(n)) {
+        throw new Error(
+          `field name "${n}" collides between verb-scoped option and subcommand "${subName}" option in ${def.filePath}`
+        );
+      }
+    }
+
+    const seenArg = new Set<string>();
+    for (const a of sub.args ?? []) {
+      if (seenArg.has(a.name)) {
+        throw new Error(
+          `arg name "${a.name}" duplicated in subcommand "${subName}" of ${def.filePath}`
+        );
+      }
+      seenArg.add(a.name);
+      if (verbOptionNames.has(a.name) || subOptionNames.has(a.name)) {
+        throw new Error(
+          `arg name "${a.name}" collides in subcommand "${subName}" of ${def.filePath}`
+        );
+      }
+    }
   }
 }

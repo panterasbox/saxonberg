@@ -25,6 +25,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { VetoResult } from '../lib/errors';
+import { CommandApi } from './command';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -110,6 +111,11 @@ export class ContainmentApi {
     // STATE MUTATION through the chokepoint. setContainer handles
     // the three cross-object updates atomically.
     item.setContainer(to);
+
+    // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything
+    // those hooks observe (e.g. peers' getAvailableCommands) reflects
+    // the new contributions.
+    CommandApi.applyContainmentDelta(item, from, to);
 
     // NOTIFICATION HOOKS. Single onMoved per item; per-container
     // hooks for source and destination separately.

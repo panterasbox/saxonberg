@@ -1,14 +1,13 @@
 /**
  * GetController — pick up objects from the location.
- *
- * Per item picked up, fires a Scene at `world.perception.inventory`
- * with self ("You pick up X.") and peers ("<name>Alice</name> picks
- * up X.") frames. Failure cases are reported via summary; the
- * auto-emitted MudlogApi entry surfaces them on the actor.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
-import type { CommandContext, CommandResult } from '../../api/command';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -16,23 +15,19 @@ import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
-export interface GetInput {
-  target?: Stuff;
-  targets?: Stuff[];
+interface GetModel extends CommandModel {
+  // Non-optional: get.yaml marks `targets` required + multiple, so
+  // the matcher rejects on missing input and resolveAndValidate fails
+  // the command if MQL produces zero hits. Controllers see at least
+  // one Stuff.
+  targets: Stuff[];
 }
 
-export class GetController extends CommandController<GetInput> {
-  execute(input: GetInput, context: CommandContext): CommandResult {
-    const targets: Stuff[] =
-      input.targets || (input.target ? [input.target] : []);
-
-    if (targets.length === 0) {
-      return { success: false, summary: 'nothing to get' };
-    }
-
+export class GetController extends CommandController<GetModel> {
+  execute(model: GetModel, context: CommandContext): CommandResult {
     let successCount = 0;
     const pickedNames: string[] = [];
-    for (const target of targets) {
+    for (const target of model.targets) {
       if (this.pickUpObject(target, context)) {
         successCount++;
         pickedNames.push(DescribeApi.getDisplayName(target, 'something'));

@@ -20,10 +20,9 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainmentApi } from '../../../api/containment';
-import { CommandApi, type CommandContext } from '../../../api/command';
+import { CommandApi } from '../../../api/command';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import type { Interactive } from '../../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from "../../stuff/Idea";
 import {
@@ -36,7 +35,7 @@ const TestGiverBase = CommandGiverMixin(
 );
 
 class TestGiver extends TestGiverBase {
-  static override commandProvider = {
+  static override commandContributions = {
     self: ['ping.yaml'],
     environment: [],
     inventory: [],
@@ -49,20 +48,9 @@ class TestGiver extends TestGiverBase {
   }
 }
 
-function buildContext(
-  giver: TestGiver,
-  location: Location,
-  commandText: string
-): CommandContext {
-  return {
-    commandGiver: giver as unknown as CommandContext['commandGiver'],
-    interactive: {} as Interactive,
-    location,
-    commandText,
-    executionId: 'test-execution',
-    commandId: '', // overwritten by executeCommand
-  };
-}
+// The new executeCommand derives its own context — callers just
+// pass the input text plus optional opts. Tests read the per-call
+// commandId off the auto-emit frame's metadata.
 
 describe('CommandGiverMixin.executeCommand lifecycle', () => {
   let giver: TestGiver;
@@ -106,53 +94,39 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     vi.restoreAllMocks();
   });
 
-  it('stamps a fresh commandId onto context per call', async () => {
-    const ctx1 = buildContext(giver, location, 'ping');
-    const ctx2 = buildContext(giver, location, 'ping');
+  it('stamps a fresh commandId per call (visible on the auto-emit frame)', async () => {
+    await giver.executeCommand('ping');
+    await giver.executeCommand('ping');
 
-    await giver.executeCommand('ping', ctx1);
-    await giver.executeCommand('ping', ctx2);
-
-    expect(ctx1.commandId).toBeTruthy();
-    expect(ctx2.commandId).toBeTruthy();
-    expect(ctx1.commandId).not.toBe(ctx2.commandId);
+    expect(giver.received).toHaveLength(2);
+    const id1 = giver.received[0]!.meta.commandId;
+    const id2 = giver.received[1]!.meta.commandId;
+    expect(id1).toBeTruthy();
+    expect(id2).toBeTruthy();
+    expect(id1).not.toBe(id2);
   });
 
   it('plants commandContext + causingCommandId on the Command frame', async () => {
-    const ctx = buildContext(giver, location, 'ping');
-    let observedCmdCtx: CommandContext | null = null;
-    let observedCausing: string | null = null;
+    await giver.executeCommand('ping');
 
-    // Override pingController? No — easier route: snapshot the
-    // current frame state inside the auto-emit by hooking a sensor.
-    // Or better: read the frame stamping via the MudlogApi entry.
-    await giver.executeCommand('ping', ctx);
-
-    // The auto-emit frame should carry meta.commandId === ctx.commandId
-    // and meta.causingCommandId === ctx.commandId.
     expect(giver.received).toHaveLength(1);
     const frame = giver.received[0]!;
-    expect(frame.meta.commandId).toBe(ctx.commandId);
-    expect(frame.meta.causingCommandId).toBe(ctx.commandId);
-    void observedCmdCtx;
-    void observedCausing;
+    expect(frame.meta.commandId).toBeTruthy();
+    expect(frame.meta.causingCommandId).toBe(frame.meta.commandId);
   });
 
   it('auto-emits at system.log.command.info on success', async () => {
-    const ctx = buildContext(giver, location, 'ping');
-    const result = await giver.executeCommand('ping', ctx);
+    const result = await giver.executeCommand('ping');
 
     expect(result.success).toBe(true);
     expect(giver.received).toHaveLength(1);
     expect(giver.received[0]!.topic).toBe('system.log.command.info');
-    // PingController returns summary 'pong'.
     expect(giver.received[0]!.body).toContain('ping');
     expect(giver.received[0]!.body).toContain('pong');
   });
 
   it('auto-emits at system.log.command.warn on failure', async () => {
-    const ctx = buildContext(giver, location, 'nope');
-    const result = await giver.executeCommand('nope', ctx);
+    const result = await giver.executeCommand('nope');
 
     expect(result.success).toBe(false);
     expect(giver.received).toHaveLength(1);
@@ -160,33 +134,24 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     expect(giver.received[0]!.body).toContain('nope');
   });
 
-  it('auto-emit body falls back to "ok" / "failed" when no summary', async () => {
-    // Direct executeCommand on an unknown verb gives a summary already
-    // ("Unknown command: ..."). To exercise the fallback we'd need a
-    // controller that returns no summary. PingController does set
-    // 'pong'; an empty-summary success path doesn't exist among the
-    // production controllers right now, so verify only the body
-    // shape carries the verb prefix.
-    const ctx = buildContext(giver, location, 'ping');
-    await giver.executeCommand('ping', ctx);
+  it('auto-emit body carries the verb prefix', async () => {
+    await giver.executeCommand('ping');
     expect(giver.received[0]!.body).toMatch(/^ping:/);
   });
 
   it('the auto-emit payload exposes verb + success + commandText', async () => {
-    const ctx = buildContext(giver, location, 'ping');
-    await giver.executeCommand('ping', ctx);
+    await giver.executeCommand('ping');
     const payload = giver.received[0]!.payload as Record<string, unknown>;
     expect(payload).toMatchObject({
       verb: 'ping',
       success: true,
       commandText: 'ping',
-      executionId: 'test-execution',
     });
+    expect(typeof payload.executionId).toBe('string');
   });
 
   it('Command frame is gone after executeCommand returns', async () => {
-    const ctx = buildContext(giver, location, 'ping');
-    await giver.executeCommand('ping', ctx);
+    await giver.executeCommand('ping');
     // After return, ALS context has unwound, no live frame.
     expect(ExecutionContextApi.getCurrentCommandContext()).toBeNull();
     expect(ExecutionContextApi.getCurrentCausingCommandId()).toBeNull();
