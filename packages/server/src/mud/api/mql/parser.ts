@@ -2,21 +2,26 @@
  * MQL parser — recursive descent over the lexer's token stream into
  * the AST defined in `./types`.
  *
- * Grammar (informal, per req §2 plus the `.X` detail-drill operator):
+ * Grammar (informal, per req §2):
  *
  *   query        = sublist ("," sublist)*
  *   sublist      = chain ("-" chain)*
- *   chain        = seed (chainOp chainElement)*
- *   chainOp      = ":" | "."           ; "." is detail-drill, allowed
- *                                       ; only OUTSIDE bracket bodies
+ *   chain        = seed (":" chainElement)*
  *   seed         = pronoun | keywords | literal | path
  *                | stuffId | "$$" | "(" query ")"
  *   chainElement = transform | keywords | predicate | ordinal
- *                | bracket | group | detail-drill | seed-shaped
+ *                | bracket | group | seed-shaped
  *   transform    = "i" | "e"
  *   ordinal      = "#" int
  *   bracket      = "[" bracketBody "]"
  *   bracketBody  = ( "-"? int ) ranges? | filterExpr
+ *
+ * The `.` token is reserved for namespaced atoms inside bracket
+ * bodies (`prop.X`, `mixin.X`); it is NOT a chain operator. The old
+ * `.X` detail-drill form is gone — `:keyword` mid-chain narrows the
+ * prior set with the keyword space auto-extended by detail names at
+ * the current `via.detailPath` depth, so `here:bookcase:book` covers
+ * the cases the old `.book` form did.
  *
  *   filterExpr   = orExpr
  *   orExpr       = andExpr ("or" andExpr)*
@@ -174,16 +179,19 @@ class Parser {
   private parseChain(): ChainNode {
     const head = this.parseSeed();
     const rest: ChainOp[] = [];
-    for (;;) {
-      if (this.peekKind('colon')) {
-        this.advance();
-        rest.push({ op: ':', element: this.parseChainElement() });
-      } else if (this.peekKind('dot')) {
-        this.advance();
-        rest.push({ op: '.', element: this.parseDetailDrill() });
-      } else {
-        break;
-      }
+    while (this.peekKind('colon')) {
+      this.advance();
+      rest.push({ op: ':', element: this.parseChainElement() });
+    }
+    // The `.X` detail-drill operator was removed — detail navigation
+    // is uniform with keyword filtering now (`here:bookcase:book`).
+    // Catch the old form and give a useful diagnostic.
+    if (this.peekKind('dot')) {
+      const t = this.peek();
+      throw new MqlParseError(
+        "the '.X' detail-drill operator is gone — use ':X' instead (e.g., 'here:bookcase:book')",
+        t.start
+      );
     }
     return { kind: 'chain', head, rest };
   }
@@ -329,19 +337,6 @@ class Parser {
       return { kind: 'transform', transform: words[0] };
     }
     return { kind: 'keywords', words };
-  }
-
-  /** A `.X` detail-drill — `X` must be a bareword. */
-  private parseDetailDrill(): ChainElement {
-    const t = this.peek();
-    if (t.kind !== 'bareword') {
-      throw new MqlParseError(
-        `expected a name after '.' (detail drill) but got ${describe(t)}`,
-        t.start
-      );
-    }
-    this.advance();
-    return { kind: 'detail-drill', name: t.value };
   }
 
   // ----- brackets ------------------------------------------------------

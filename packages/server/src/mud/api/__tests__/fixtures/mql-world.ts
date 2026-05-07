@@ -1,8 +1,10 @@
 /**
  * Shared MQL test world. Builds a giver in a location with two
- * contents, an inventory item, a north exit, and a Detail on the
- * location — enough surface to exercise the resolver's scope-walk,
- * transforms, detail-drill, and basic seeds.
+ * peer items, an inventory item, and Details on the location —
+ * `inscription` (top-level) plus `bookcase` with a child `book`
+ * (nested). Enough surface to exercise the resolver's scope-walk,
+ * transforms, detail-keyword extension at multiple depths, and
+ * basic seeds.
  *
  * Each call to {@link makeWorld} clears the StuffApi registry first
  * so tests are isolated.
@@ -63,6 +65,8 @@ export function makeWorld(): MqlWorld {
   location.addKeyword('square');
   location.addKeyword('town');
   location.setDetail(['inscription'], 'A weathered inscription on the cobblestones.');
+  location.setDetail(['bookcase'], 'A tall oak bookcase, its shelves crammed with old volumes.');
+  location.setDetail(['book'], 'A leather-bound tome, spine cracked with use.', 'bookcase');
 
   const giver = makeStuff(() => new TestGiver()) as unknown as Stuff &
     CommandGiver &

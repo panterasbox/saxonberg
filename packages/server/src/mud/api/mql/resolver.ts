@@ -12,10 +12,12 @@
  *
  * Phase 5 scope: direct seeds (pronouns, paths, stuff ids, literals,
  * `$$`, scope-promoted seeds), keyword-search seeds resolved via the
- * giver's `scope` fragment, `:i` / `:e` transforms, the `.X` detail-
- * drill operator (annotates `via.detailPath`), and set ops (union /
- * difference). Bracket filter expressions, predicates, and pronoun
- * memory arrive in later phases.
+ * giver's `scope` fragment, `:i` / `:e` transforms, set ops (union /
+ * difference), and detail navigation via the unified chain rule —
+ * `:keyword` mid-chain narrows the prior set with the keyword space
+ * auto-extended by detail names at the current `via.detailPath` depth.
+ * Bracket filter expressions, predicates, and pronoun memory arrive
+ * in later phases.
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -35,6 +37,7 @@ import {
   candidatesForInventory,
   candidatesForPeers,
   candidatesForReachable,
+  scoreCandidate,
   scoreCandidates,
   type ScopeCandidate,
 } from './scope-walk';
@@ -49,6 +52,7 @@ import type {
   MqlContext,
   MqlMany,
   MqlMatch,
+  MqlMatchVia,
   PronounNode,
   QueryNode,
   SublistNode,
@@ -142,7 +146,6 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'bracket-ordinal':
     case 'bracket-range':
     case 'bracket-filter':
-    case 'detail-drill':
       throw new MqlResolveError(
         `'${describeKind(node.kind)}' is not valid as a seed — chain it after a base seed`
       );
@@ -365,8 +368,7 @@ function applyChainOp(
   op: ChainOp,
   ctx: MqlContext
 ): MqlMatch[] {
-  if (op.op === ':') return applyColon(input, op.element, ctx);
-  return applyDot(input, op.element);
+  return applyColon(input, op.element, ctx);
 }
 
 /**
@@ -422,10 +424,6 @@ function applyColon(
       return applyRange(input, el);
     case 'bracket-filter':
       return filterByExpression(input, el.expr, ctx);
-    case 'detail-drill':
-      // Detail drill always rides on `.`; reaching here means the
-      // parser produced something unusual.
-      return applyDot(input, el);
     default: {
       const exhaustive: never = el;
       throw new Error(`unhandled chain element kind: ${JSON.stringify(exhaustive)}`);
@@ -446,32 +444,6 @@ function intersectWithSeed(
   const seedMatches = resolveSeed(el, ctx);
   const allowed = new Set(seedMatches.map((m) => m.stuff.stuffId));
   return input.filter((m) => allowed.has(m.stuff.stuffId));
-}
-
-function applyDot(input: MqlMatch[], el: ChainElement): MqlMatch[] {
-  if (el.kind !== 'detail-drill') {
-    throw new MqlResolveError(
-      `the '.' operator only accepts a detail name (got ${describeKind(el.kind)})`
-    );
-  }
-  const name = el.name.toLowerCase();
-  const out: MqlMatch[] = [];
-  for (const m of input) {
-    if (!MixinApi.isDetailed(m.stuff)) continue;
-    const path = (m.via?.detailPath ?? []).slice();
-    // Walk the path: the drill applies one level deeper. If the
-    // current via has detailPath = ['book'], we look for `name` as
-    // a child of 'book'. With no path yet, look at top level.
-    const parent = path[path.length - 1];
-    if (!m.stuff.hasDetail(name, parent)) continue;
-    path.push(name);
-    out.push({
-      stuff: m.stuff,
-      score: m.score,
-      via: { ...m.via, detailPath: path },
-    });
-  }
-  return out;
 }
 
 function applyTransform(
@@ -517,23 +489,75 @@ function filterByKeywordsOrPredicate(
   return filterByKeywords(input, words);
 }
 
+/**
+ * Mid-chain `:keyword` narrowing. The candidate space for each prior
+ * match gets auto-extended with detail names at the current
+ * `via.detailPath` depth — direct (host keywords + name) plus one
+ * sub-candidate per detail at the current depth, each carrying the
+ * extended `via.detailPath`. Score every variant; keep the matching
+ * ones with their respective `via`.
+ *
+ * This is the unified addressing rule that covers what the old `.X`
+ * detail-drill operator did, and lets a chain like `here:bookcase:book`
+ * resolve to the book child detail of the bookcase detail of the room.
+ */
 function filterByKeywords(input: MqlMatch[], words: string[]): MqlMatch[] {
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
   for (const m of input) {
-    const candidate: ScopeCandidate = {
+    // Direct candidate: host's own keywords + display name, prior via
+    // preserved.
+    const direct: ScopeCandidate = {
       stuff: m.stuff,
       name: nameOf(m.stuff),
       keywords: keywordsOf(m.stuff),
     };
-    const reScore = scoreCandidates([candidate], words);
-    if (reScore.length > 0) {
-      // Keep the original via and pick the higher of the two scores.
-      const newScore = Math.max(m.score, reScore[0]!.score);
-      const next: MqlMatch = { stuff: m.stuff, score: newScore };
-      if (m.via) next.via = m.via;
+    if (m.via) direct.via = m.via;
+
+    // Detail-extension candidates: one per detail at the current via
+    // depth (top-level when no via, child-of-tip when via set). Each
+    // lands as a separate candidate so it can be scored against the
+    // query independently and bring its own via attribution.
+    const detailCandidates = detailExtensionCandidates(m);
+
+    let best: { score: number; via: MqlMatchVia | undefined } | null = null;
+    for (const c of [direct, ...detailCandidates]) {
+      const score = scoreCandidate(c, words);
+      if (score === 0) continue;
+      const candidateScore = Math.max(m.score, score);
+      if (!best || candidateScore > best.score) {
+        best = { score: candidateScore, via: c.via };
+      }
+    }
+    if (best) {
+      const next: MqlMatch = { stuff: m.stuff, score: best.score };
+      if (best.via) next.via = best.via;
       out.push(next);
     }
+  }
+  return out;
+}
+
+/**
+ * Build sub-candidates for the host's details at the current via
+ * depth. With no via, top-level detail names; with `via.detailPath`
+ * set, the children of the path's tip. Each sub-candidate is the
+ * same Stuff with `via.detailPath` extended by the detail's name.
+ */
+function detailExtensionCandidates(m: MqlMatch): ScopeCandidate[] {
+  if (!MixinApi.isDetailed(m.stuff)) return [];
+  const currentPath = m.via?.detailPath ?? [];
+  const parent = currentPath[currentPath.length - 1];
+  const ids = m.stuff.getDetailIds(parent) ?? [];
+  const out: ScopeCandidate[] = [];
+  for (const id of ids) {
+    const lower = id.toLowerCase();
+    out.push({
+      stuff: m.stuff,
+      name: id,
+      keywords: [lower],
+      via: { ...m.via, detailPath: [...currentPath, id] },
+    });
   }
   return out;
 }

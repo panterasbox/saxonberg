@@ -4,8 +4,10 @@
  *
  * Phase 5 scope: direct seeds (pronouns, keywords, paths, ids,
  * literals), scope-promoted seeds (`inventory`, `online`, `world`),
- * `:i` and `:e` transforms, the `.X` detail-drill operator, set ops.
- * Predicates and bracket filter expressions arrive in Phase 6.
+ * `:i` and `:e` transforms, set ops, and detail navigation via the
+ * unified chain rule (`:keyword` mid-chain auto-extends with detail
+ * names at the current via depth). Predicates and bracket filter
+ * expressions arrive in Phase 6.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -235,11 +237,12 @@ describe('MQL resolver — keyword search', () => {
     expect(ids(resolve('square', ctx))).toContain(world.location.stuffId);
   });
 
-  it('here.inscription detail-drill still works after split', () => {
+  it('here:inscription navigates to the location detail', () => {
     // The `here` seed (location only) still carries its details; the
     // split removed contents from the candidate pool but kept the
-    // location-as-anchor semantics.
-    const out = resolve('here.inscription', ctx);
+    // location-as-anchor semantics. `:inscription` mid-chain matches
+    // the detail name at top-level via depth.
+    const out = resolve('here:inscription', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
   });
@@ -279,7 +282,7 @@ describe('MQL resolver — transforms', () => {
   });
 });
 
-describe('MQL resolver — detail-drill', () => {
+describe('MQL resolver — detail-keyword extension on `:`', () => {
   let world: MqlWorld;
   let ctx: MqlContext;
 
@@ -288,16 +291,74 @@ describe('MQL resolver — detail-drill', () => {
     ctx = { commandGiver: world.giver, scope: 'here' };
   });
 
-  it('here.inscription drills into the location detail', () => {
-    const out = resolve('here.inscription', ctx);
+  it('here:inscription navigates to the inscription detail', () => {
+    const out = resolve('here:inscription', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
     expect(out[0]?.via?.detailPath).toEqual(['inscription']);
   });
 
-  it('here.unknown returns no matches', () => {
-    const out = resolve('here.nope', ctx);
+  it('here:bookcase navigates to the bookcase detail (top-level)', () => {
+    const out = resolve('here:bookcase', ctx);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+    expect(out[0]?.via?.detailPath).toEqual(['bookcase']);
+  });
+
+  it('here:bookcase:book navigates to the book child detail', () => {
+    const out = resolve('here:bookcase:book', ctx);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+    expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+  });
+
+  it('here:nope returns no matches (not a detail of the location)', () => {
+    const out = resolve('here:nope', ctx);
     expect(out).toEqual([]);
+  });
+
+  it('here:rose returns no matches — chain narrows, never broadens', () => {
+    // "rose" is a peer keyword, not a top-level detail of the location.
+    // Chain `:` is narrow-with-detail-extension, so `:rose` filters
+    // the prior set ((location, no via)) and only matches when "rose"
+    // is one of the location's keywords or a top-level detail name.
+    // Neither holds, so the result is empty.
+    const out = resolve('here:rose', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it('bookcase:rose returns no matches — child of bookcase has no rose', () => {
+    // The bareword `bookcase` resolves at the seed via the scope
+    // walker, which emits a candidate per top-level detail of the
+    // location. `:rose` then narrows: candidates are the host's own
+    // keywords plus children of the bookcase detail (`book`). No rose.
+    const out = resolve('bookcase:rose', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it('detail extension is via-aware: top-level when no via', () => {
+    // `here` produces (location, no via). Filtering by `bookcase`
+    // matches the top-level detail. After this step the via depth is
+    // 1, so the next `:` should look for child details, not top-level
+    // ones — confirmed by `here:bookcase:book` finding the nested
+    // book detail.
+    const out = resolve('here:bookcase:book', ctx);
+    expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+  });
+
+  it('detail extension is via-aware: child-of-tip when via set', () => {
+    // After `here:bookcase`, via.detailPath = ['bookcase']. A second
+    // `:book` step looks for children of "bookcase", not for top-level
+    // details. `inscription` is top-level, so `here:bookcase:inscription`
+    // misses (inscription is not a child of bookcase).
+    const out = resolve('here:bookcase:inscription', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it("rejects the old '.X' detail-drill form at parse time", () => {
+    expect(() => resolve('here.inscription', ctx)).toThrow(
+      /'\.X' detail-drill/
+    );
   });
 });
 
@@ -366,10 +427,10 @@ describe('MQL resolver — mid-chain seed intersection', () => {
   });
 
   it('intersection preserves prior via attribution', () => {
-    // Drill into the inscription detail, then intersect with reachable
-    // — the location is reachable, and the via should still carry the
-    // detail path.
-    const out = resolve('here.inscription:reachable', ctx);
+    // Navigate into the inscription detail (via the unified `:` chain),
+    // then intersect with reachable — the location is reachable, and
+    // the via should still carry the detail path.
+    const out = resolve('here:inscription:reachable', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.via?.detailPath).toEqual(['inscription']);
   });

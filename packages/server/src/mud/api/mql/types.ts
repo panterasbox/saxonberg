@@ -175,8 +175,13 @@ export interface SublistNode {
 
 /**
  * A chain: a head element followed by zero or more chain operations.
- * Each operation carries its operator (`:` for transforms/filters,
- * `.` for detail-drills) and the element that operator introduces.
+ * Each operation introduces a new element via the `:` operator. The
+ * old `.X` detail-drill operator is gone — detail navigation is now
+ * uniform with keyword filtering: `:keyword` mid-chain auto-extends
+ * the candidate space with detail names at the current via depth.
+ * The `.` token survives in the lexer for namespaced atoms inside
+ * bracket bodies (`prop.X`, `mixin.X`), but it never appears as a
+ * top-level chain operator.
  */
 export interface ChainNode {
   kind: 'chain';
@@ -184,10 +189,10 @@ export interface ChainNode {
   rest: ChainOp[];
 }
 
-/** One step of a chain: the operator that introduced the element,
- *  plus the element itself. */
+/** One step of a chain: the `:` operator plus the element it
+ *  introduces. */
 export interface ChainOp {
-  op: ':' | '.';
+  op: ':';
   element: ChainElement;
 }
 
@@ -201,8 +206,7 @@ export type ChainElement =
   | TransformNode
   | OrdinalNode
   | BracketNode
-  | GroupNode
-  | DetailDrillNode;
+  | GroupNode;
 
 export interface PronounNode {
   kind: 'pronoun';
@@ -272,13 +276,6 @@ export type BracketNode =
 export interface GroupNode {
   kind: 'group';
   query: QueryNode;
-}
-
-/** `.book` — detail-drill chain operator. Multiple drills compose;
- *  `bookcase.book.page` is two consecutive ChainOps with op `.`. */
-export interface DetailDrillNode {
-  kind: 'detail-drill';
-  name: string;
 }
 
 // Filter expression AST (inside `[…]`).

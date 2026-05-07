@@ -101,10 +101,10 @@ describe('FocusController', () => {
   });
 
   it('reports the current focus when no fragment is given', () => {
-    giver.setFocus('bookcase.book');
+    giver.setFocus('bookcase:book');
     const result = controller.execute(makeModel(), makeContext(giver, location));
     expect(result.success).toBe(true);
-    expect(result.summary).toContain('bookcase.book');
+    expect(result.summary).toContain('bookcase:book');
   });
 
   it("defaults to 'here' focus when nothing has set it", () => {

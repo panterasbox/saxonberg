@@ -1,7 +1,8 @@
 /**
  * MQL parser tests — every grammar production, bracket dispatch,
- * operator precedence, error cases, and the new `.X` detail-drill
- * chain operator.
+ * operator precedence, and error cases. The old `.X` detail-drill
+ * chain operator is gone — detail navigation is uniform with keyword
+ * filtering (`here:bookcase:book`).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -165,36 +166,45 @@ describe('MQL parser — chain operators', () => {
   });
 });
 
-describe('MQL parser — detail-drill operator', () => {
-  it('parses bookcase.book as one chain with a detail-drill', () => {
-    const q = parse('bookcase.book');
+describe('MQL parser — detail navigation via colon (post-collapse)', () => {
+  it('parses bookcase:book as a chain with a keyword filter', () => {
+    // The old `.X` detail-drill operator is gone. Detail navigation
+    // now goes through `:keyword` — the resolver auto-extends the
+    // candidate keyword space with detail names at the current via
+    // depth (see `filterByKeywords` in the resolver).
+    const q = parse('bookcase:book');
     const chain = singleChain(q);
     expect(chain.head).toEqual({ kind: 'keywords', words: ['bookcase'] });
     expect(chain.rest).toEqual([
-      { op: '.', element: { kind: 'detail-drill', name: 'book' } },
+      { op: ':', element: { kind: 'keywords', words: ['book'] } },
     ]);
   });
 
-  it('parses bookcase.book.page as two consecutive drills', () => {
-    const q = parse('bookcase.book.page');
+  it('parses bookcase:book:page as two consecutive narrows', () => {
+    const q = parse('bookcase:book:page');
     const chain = singleChain(q);
     expect(chain.rest).toEqual([
-      { op: '.', element: { kind: 'detail-drill', name: 'book' } },
-      { op: '.', element: { kind: 'detail-drill', name: 'page' } },
+      { op: ':', element: { kind: 'keywords', words: ['book'] } },
+      { op: ':', element: { kind: 'keywords', words: ['page'] } },
     ]);
   });
 
-  it('mixes : and . operators in one chain', () => {
-    const q = parse('bag:i.sword');
+  it("rejects the old '.X' detail-drill form with a useful diagnostic", () => {
+    expect(() => parse('bookcase.book')).toThrow(/'\.X' detail-drill/);
+    expect(() => parse('bookcase.book')).toThrow(/use ':X' instead/);
+  });
+
+  it("rejects '.' without a following name (same diagnostic as '.X')", () => {
+    expect(() => parse('bookcase.')).toThrow(/'\.X' detail-drill/);
+  });
+
+  it("mixes : transforms and : keyword filters in one chain", () => {
+    const q = parse('bag:i:sword');
     const chain = singleChain(q);
     expect(chain.rest).toEqual([
       { op: ':', element: { kind: 'transform', transform: 'i' } },
-      { op: '.', element: { kind: 'detail-drill', name: 'sword' } },
+      { op: ':', element: { kind: 'keywords', words: ['sword'] } },
     ]);
-  });
-
-  it('errors on . without a following name', () => {
-    expect(() => parse('bookcase.')).toThrow(/expected a name after '\.'/);
   });
 });
 

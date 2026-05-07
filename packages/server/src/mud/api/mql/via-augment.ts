@@ -21,8 +21,8 @@ declare module './types' {
     /**
      * Detail name path for matches that arrived through a host's
      * Detailed-mixin descriptors. Single-element for top-level
-     * details, longer for nested drills (`bookcase.book.page` →
-     * `['book', 'page']`).
+     * details, longer for nested navigation (`here:bookcase:book`
+     * lands `detailPath: ['bookcase', 'book']` on the room match).
      */
     detailPath?: string[];
 
