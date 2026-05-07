@@ -369,6 +369,24 @@ function applyChainOp(
   return applyDot(input, op.element);
 }
 
+/**
+ * Single-word keyword forms that name a seed pool. Mid-chain, these
+ * intersect rather than keyword-filter — `online:reachable` means
+ * "the online set ∩ the reachable set", not "online matches with the
+ * keyword 'reachable'." Pronouns (`me`, `here`) and the `it`/`him`/
+ * `her`/`them` family deliberately stay out of this list: `here` is
+ * still a registered predicate (location-or-contents membership)
+ * and `me` mid-chain has no useful seed-intersection meaning beyond
+ * what `:i` / `:e` already cover.
+ */
+const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
+  'online',
+  'inventory',
+  'world',
+  'peers',
+  'reachable',
+]);
+
 function applyColon(
   input: MqlMatch[],
   el: ChainElement,
@@ -377,23 +395,25 @@ function applyColon(
   switch (el.kind) {
     case 'transform':
       return applyTransform(input, el.transform);
-    case 'keywords':
+    case 'keywords': {
+      if (el.words.length === 1 && NAMED_SEED_KEYWORDS.has(el.words[0]!)) {
+        return intersectWithSeed(input, el, ctx);
+      }
       return filterByKeywordsOrPredicate(input, el.words, ctx);
+    }
     case 'literal':
       return filterByLiteral(input, el.value);
     case 'pronoun':
-      // Pronouns mid-chain don't combine cleanly. v1 falls through
-      // to a keyword filter on the pronoun name.
-      return filterByKeywordsOrPredicate(input, [el.name], ctx);
     case 'path':
     case 'stuffId':
     case 'lastResult':
     case 'group':
-      // Re-resolving a seed mid-chain isn't a useful operation in v1.
-      // Return the input unchanged so a fielded controller doesn't
-      // explode; future versions can give this proper semantics
-      // (intersect, etc.).
-      return input;
+      // Seed-shaped chain elements mid-chain intersect the prior set
+      // with the seed's candidate set by `stuffId`. Score and `via`
+      // attribution from the prior set are preserved — intersection
+      // doesn't change *how* a Stuff was found, only whether it
+      // survives.
+      return intersectWithSeed(input, el, ctx);
     case 'ordinal':
       return applyOrdinal(input, el.index);
     case 'bracket-ordinal':
@@ -411,6 +431,21 @@ function applyColon(
       throw new Error(`unhandled chain element kind: ${JSON.stringify(exhaustive)}`);
     }
   }
+}
+
+/**
+ * Intersect the prior match list with the candidate set produced by
+ * re-resolving `el` as a seed. Permission gates fire from the seed
+ * resolution path (`flower:online` from a non-admin throws).
+ */
+function intersectWithSeed(
+  input: MqlMatch[],
+  el: ChainElement,
+  ctx: MqlContext
+): MqlMatch[] {
+  const seedMatches = resolveSeed(el, ctx);
+  const allowed = new Set(seedMatches.map((m) => m.stuff.stuffId));
+  return input.filter((m) => allowed.has(m.stuff.stuffId));
 }
 
 function applyDot(input: MqlMatch[], el: ChainElement): MqlMatch[] {
