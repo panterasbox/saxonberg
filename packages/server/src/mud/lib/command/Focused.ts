@@ -48,7 +48,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { PronounMemory } from '../../api/mql/pronoun-memory';
+import { PronounMemory } from '../../api/mql';
 import type { CommandContributions } from '../../api/command';
 import type { SyntheticVarEntry } from '../../api/shell';
 

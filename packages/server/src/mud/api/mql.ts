@@ -20,7 +20,6 @@
  * point; controllers and the dispatcher reach this surface only.
  */
 
-import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { resolve as resolvePipeline } from './mql/resolver';
 import { SecurityApi } from './security';
@@ -32,7 +31,6 @@ import type {
   MqlMany,
   MqlOneResult,
   MqlManyResult,
-  PermissionTier,
 } from './mql/types';
 
 export type {
@@ -42,16 +40,13 @@ export type {
   MqlMany,
   MqlOneResult,
   MqlManyResult,
-  PermissionTier,
 };
 
-// Re-exports of types/classes the non-api layer (lib/, obj/) needs.
-// The internal pipeline modules under `mql/` are not direct
-// import targets for non-api code — everything flows through this
-// facade so the `MqlApi` boundary stays the seam.
+// `PronounMemory` is the one mql/ class the non-api layer consumes
+// — `FocusedMixin` holds an instance per giver. Internal mql/
+// modules import their own siblings directly; everything else flows
+// through this facade so the `MqlApi` boundary stays the seam.
 export { PronounMemory } from './mql/pronoun-memory';
-export { MqlParseError } from './mql/parser';
-export { MqlPermissionError } from './mql/permissions';
 
 /**
  * MqlApi — static utility class for object resolution.
@@ -129,9 +124,5 @@ function consensusVia(
   }
   return first;
 }
-
-// Keep `CommandGiver` referenced for external `MqlContext` consumers
-// that re-export through this module's type surface.
-export type _MqlCommandGiverRef = Stuff & CommandGiver;
 
 SecurityApi.decorateApiClass(MqlApi);
