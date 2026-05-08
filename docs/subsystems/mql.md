@@ -188,7 +188,7 @@ seed         = pronoun | keywords | literal | path
              | stuffId | "$$" | "(" query ")"
 chainElement = transform | keywords | predicate | ordinal
              | bracket | group | seed-shaped
-transform    = "i" | "e"
+transform    = "i" | "I" | "e" | "E"
 ordinal      = "#" int
 bracket      = "[" bracketBody "]"
 bracketBody  = ( "-"? int ) ranges? | filterExpr
@@ -262,10 +262,10 @@ converts the throw into a command-level failure.
 Seed-shaped chain elements split by whether the seed is
 **element-derivable**:
 
-- `peers`, `reachable`, `inventory`, and the transforms `:i` / `:e`
-  are element-derivable. Mid-chain they **flat-map** over the prior
-  set: for each `x in prior`, compute `seed(x)` and union the
-  results.
+- `peers`, `reachable`, `inventory`, and the transforms `:i` / `:I`
+  / `:e` / `:E` are element-derivable. Mid-chain they **flat-map**
+  over the prior set: for each `x in prior`, compute `seed(x)` and
+  union the results.
 - `me`, `here`, `online`, `world`, paths, stuff ids, `$$`, and
   groups are **fixed pools**. Mid-chain they **intersect** with the
   prior set. `reachable:online` is "of the giver's reachable set,
@@ -307,8 +307,10 @@ seed-shaped chain element kinds (`pronoun`, `path`, `stuffId`,
 |---|---|---|
 | `:keyword` | narrow current set by keyword | auto-extends with detail names at current via depth |
 | `:predicate` | narrow by predicate (`living`, `online`, `mine`, …) | reserved by name match |
-| `:i` | descend (no via: contents; with via: child details) | via-aware |
-| `:e` | ascend (no via: container; with via: pop one detail level) | via-aware |
+| `:i` | descend one level (no via: immediate contents; with via: immediate child details) | via-aware |
+| `:I` | descend deep (no via: `getDeepContents()`; with via: every detail descendant from the tip, DFS) | via-aware |
+| `:e` | ascend one level (no via: container; with via: pop one detail level) | via-aware |
+| `:E` | ascend to root (no via: walk container chain to the topmost; with via: drop the entire detail path) | via-aware |
 | `:[N]`, `:[N..M]`, `:[N..]`, `:[-N]` | ordinal index / range | 1-based |
 | `:[expr]` | filter expression | bracketed body that isn't pure-numeric |
 | `:seed` | intersect with the seed's candidate pool | seed-shaped chain elements |

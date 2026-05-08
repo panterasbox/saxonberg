@@ -56,7 +56,18 @@ export type TokenKind =
   | 'path'
   | 'int'
   | 'bareword'
+  | 'transformLetter'
   | 'eof';
+
+/**
+ * Single-letter transform candidates. The lexer emits these as the
+ * dedicated {@link TokenKind.TransformLetter} kind with the original
+ * case preserved in `value` so the parser can dispatch `:i` (shallow)
+ * vs `:I` (deep) and `:e` (one level up) vs `:E` (root). At seed
+ * position they're treated as a single-letter keyword search by the
+ * parser — the case doesn't matter there.
+ */
+const TRANSFORM_LETTERS: ReadonlySet<string> = new Set(['i', 'I', 'e', 'E']);
 
 export interface Token {
   kind: TokenKind;
@@ -311,13 +322,24 @@ function scanWord(
   }
   const raw = input.slice(start, j);
   const allDigits = /^\d+$/.test(raw);
-  return {
-    token: {
-      kind: allDigits ? 'int' : 'bareword',
-      value: allDigits ? raw : raw.toLowerCase(),
-      start,
+  if (allDigits) {
+    return {
+      token: { kind: 'int', value: raw, start, end: j },
       end: j,
-    },
+    };
+  }
+  // Single-letter transform candidates (`i` / `I` / `e` / `E`)
+  // get their own token kind with case preserved, so the parser
+  // can distinguish `:i` (shallow) from `:I` (deep). Multi-letter
+  // words always lowercase — keyword matching is case-insensitive.
+  if (TRANSFORM_LETTERS.has(raw)) {
+    return {
+      token: { kind: 'transformLetter', value: raw, start, end: j },
+      end: j,
+    };
+  }
+  return {
+    token: { kind: 'bareword', value: raw.toLowerCase(), start, end: j },
     end: j,
   };
 }

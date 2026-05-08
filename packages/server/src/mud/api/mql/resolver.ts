@@ -726,26 +726,36 @@ function candidatesForElementDerivable(
 }
 
 /**
- * Apply `:i` (inventory / descend) or `:e` (environment / ascend).
+ * Apply a chain transform — `:i` (descend), `:I` (descend deep),
+ * `:e` (ascend), `:E` (ascend to root).
  *
  * Polymorphic on the match's `via.detailPath`:
  *
- *   - With **no via**, the operators behave on Stuff containment —
- *     `:i` yields contents (Container), `:e` yields the environment
- *     (Containable). Today's behavior.
+ *   - With **no via**, the operators behave on Stuff containment.
+ *       `:i` yields immediate contents (Container).
+ *       `:I` yields the entire `getDeepContents()` subtree.
+ *       `:e` yields the environment (Containable).
+ *       `:E` walks the environment chain to the topmost
+ *         non-null container.
  *
  *   - With **via.detailPath set**, the operators behave on the detail
- *     tree — `:i` yields one match per child detail at the current
- *     path tip (via extended), `:e` pops one detail level (or to no
- *     via if already at the top of the detail tree).
+ *     tree.
+ *       `:i` yields one match per child detail at the current path
+ *         tip (via extended one level).
+ *       `:I` walks the detail subtree from the tip and emits one
+ *         match per descendant detail (DFS pre-order, vias extended
+ *         along the path).
+ *       `:e` pops one detail level (or to no-via if at the top).
+ *       `:E` drops the entire detail path (anchor stays on the same
+ *         Stuff, no via).
  *
- * Conceptually `:i` / `:e` are uniform "descend" / "ascend"
+ * Conceptually `:i` / `:I` / `:e` / `:E` are uniform descend / ascend
  * operators, polymorphic on whether the candidate is in a detail
- * tree or Stuff-containment context.
+ * tree or a Stuff-containment context.
  */
 function applyTransform(
   input: MqlMatch[],
-  transform: 'i' | 'e'
+  transform: 'i' | 'I' | 'e' | 'E'
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
   for (const m of input) {
@@ -769,7 +779,25 @@ function applyTransform(
           out.push({ stuff: item, score: m.score });
         }
       }
-    } else {
+    } else if (transform === 'I') {
+      if (insideDetailTree) {
+        if (!MixinApi.isDetailed(m.stuff)) continue;
+        // Walk the detail subtree from the current tip and emit one
+        // match per descendant, vias extended along the walk path.
+        for (const subPath of walkDetailDescendants(m.stuff, path!)) {
+          out.push({
+            stuff: m.stuff,
+            score: m.score,
+            via: { ...m.via, detailPath: subPath },
+          });
+        }
+      } else {
+        if (!MixinApi.isContainer(m.stuff)) continue;
+        for (const item of m.stuff.getDeepContents()) {
+          out.push({ stuff: item, score: m.score });
+        }
+      }
+    } else if (transform === 'e') {
       if (insideDetailTree) {
         if (path!.length === 1) {
           // Pop to no-via (still anchored on the same Stuff).
@@ -789,6 +817,27 @@ function applyTransform(
         const env = m.stuff.getContainer();
         if (env) out.push({ stuff: env, score: m.score });
       }
+    } else {
+      // transform === 'E' — pop entirely / walk to root.
+      if (insideDetailTree) {
+        // Drop the detail path; same Stuff, no via.
+        const next: MqlMatch = { stuff: m.stuff, score: m.score };
+        const restVia = stripDetailPath(m.via);
+        if (restVia) next.via = restVia;
+        out.push(next);
+      } else {
+        if (!MixinApi.isContainable(m.stuff)) continue;
+        let current: Stuff = m.stuff;
+        while (true) {
+          if (!MixinApi.isContainable(current)) break;
+          const env = current.getContainer();
+          if (!env) break;
+          current = env;
+        }
+        if (current !== m.stuff) {
+          out.push({ stuff: current, score: m.score });
+        }
+      }
     }
   }
   return out;
@@ -804,6 +853,36 @@ function stripDetailPath(via: MqlMatchVia | undefined): MqlMatchVia | undefined 
   if (!via) return undefined;
   const { detailPath: _drop, ...rest } = via;
   return Object.keys(rest).length === 0 ? undefined : (rest as MqlMatchVia);
+}
+
+/**
+ * Walk the detail subtree rooted at `host`'s current path tip (last
+ * segment of `path`) DFS pre-order and yield each descendant's
+ * full path (`[...path, child, ...]`). Used by `:I` mid-via to
+ * emit one match per detail descendant.
+ *
+ * `path` is the current via.detailPath of the prior match; the
+ * walk starts at its tip and descends through `getDetailIds(parent)`
+ * recursively. Containment is acyclic by construction so no cycle
+ * protection is needed.
+ */
+function walkDetailDescendants(
+  host: Stuff,
+  path: string[],
+): string[][] {
+  if (!MixinApi.isDetailed(host)) return [];
+  const out: string[][] = [];
+  const recurse = (currentPath: string[]): void => {
+    const tip = currentPath[currentPath.length - 1]!;
+    const childIds = host.getDetailIds(tip) ?? [];
+    for (const id of childIds) {
+      const next = [...currentPath, id];
+      out.push(next);
+      recurse(next);
+    }
+  };
+  recurse(path);
+  return out;
 }
 
 function filterByKeywordsOrPredicate(

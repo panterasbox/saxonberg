@@ -207,6 +207,13 @@ class Parser {
     switch (t.kind) {
       case 'bareword':
         return this.parseKeywordsOrPronoun();
+      case 'transformLetter':
+        // At seed position a transform letter is just a one-letter
+        // keyword search ("look e" → keyword 'e'). Lowercase to
+        // match the keyword invariant. Mid-chain it dispatches to
+        // a transform — see parseChainElement.
+        this.advance();
+        return { kind: 'keywords', words: [t.value.toLowerCase()] };
       case 'literal':
         this.advance();
         return { kind: 'literal', value: t.value };
@@ -294,6 +301,15 @@ class Parser {
     switch (t.kind) {
       case 'bareword':
         return this.parseChainBarewords();
+      case 'transformLetter':
+        // Mid-chain `:i` / `:I` / `:e` / `:E` — case-preserved by
+        // the lexer so we can dispatch shallow vs deep / single
+        // step vs root.
+        this.advance();
+        return {
+          kind: 'transform',
+          transform: t.value as 'i' | 'I' | 'e' | 'E',
+        };
       case 'literal':
         this.advance();
         return { kind: 'literal', value: t.value };
@@ -324,17 +340,16 @@ class Parser {
   }
 
   /**
-   * Parse barewords at chain non-head position. A single bareword
-   * matching a transform letter (`i`/`e`) is the corresponding
-   * transform; otherwise the run is a keyword filter.
+   * Parse barewords at chain non-head position. Multi-bareword
+   * runs are AND-narrow keyword filters; the case-sensitive
+   * transform letters (`i`/`I`/`e`/`E`) come through their own
+   * `transformLetter` token and are handled in
+   * {@link parseChainElement}, not here.
    */
   private parseChainBarewords(): TransformNode | KeywordsNode {
     const words: string[] = [];
     while (this.peekKind('bareword')) {
       words.push(this.advance().value);
-    }
-    if (words.length === 1 && (words[0] === 'i' || words[0] === 'e')) {
-      return { kind: 'transform', transform: words[0] };
     }
     return { kind: 'keywords', words };
   }
@@ -531,6 +546,7 @@ class Parser {
 function describe(t: Token): string {
   if (t.kind === 'eof') return 'end of input';
   if (t.kind === 'bareword') return `bareword '${t.value}'`;
+  if (t.kind === 'transformLetter') return `'${t.value}'`;
   if (t.kind === 'literal') return `literal '${t.value}'`;
   if (t.kind === 'path') return `path '${t.value}'`;
   if (t.kind === 'int') return `integer '${t.value}'`;

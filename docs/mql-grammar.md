@@ -36,8 +36,11 @@ here                      the giver's current location
 peers                     everything in the room except the giver
 inventory                 the giver's contents
 reachable                 me ∪ here ∪ peers ∪ inventory
-me:i                      the giver's inventory contents
+me:i                      the giver's inventory (immediate contents)
+me:I                      everything reachable through inventory
+                          recursively (apple in pouch in pack…)
 me:i:sword                a sword in the giver's inventory
+me:E                      the topmost container (zone, world, …)
 here:bookcase             the bookcase detail of the room
 here:bookcase:book        the book detail nested inside the bookcase
 roses:[5]                 the 5th rose
@@ -204,26 +207,38 @@ buckets, the verb's YAML declares a fallback chain — the dispatcher
 falls back from `$focus` to `reachable` automatically when the focus
 chain stops resolving.
 
-### `:i` and `:e` — descend / ascend
+### `:i` / `:I` and `:e` / `:E` — descend / ascend
+
+Lower-case forms step one level; upper-case forms walk all the way.
+Case is part of the syntax — `:i` and `:I` are different operators.
 
 Polymorphic on whether the candidate is in a detail tree or the
 Stuff-containment context:
 
 | Operator | No via | Via set |
 |---|---|---|
-| `:i` | contents of each object (Container) | one match per child detail at the current path tip |
-| `:e` | environment of each object (Containable) | pop one detail level |
+| `:i` | immediate contents (Container) | one match per child detail at the current path tip |
+| `:I` | every Stuff in the contents subtree (`getDeepContents()`) | every detail descendant from the current tip (DFS) |
+| `:e` | environment (Containable) | pop one detail level |
+| `:E` | walk to the root container (topmost non-null environment) | drop the entire detail path (anchor stays on the same Stuff) |
 
 ```
-me:i              giver's inventory
+me:i              giver's inventory (immediate)
+me:I              everything reachable through the giver's contents
+                  recursively (apple, anything inside the apple, …)
 me:i:sword        a sword in inventory
 me:e              giver's location
+me:E              the root container (walks giver → location → zone → …
+                  to the topmost non-null environment)
 here:bookcase:i   child details of the bookcase
+here:bookcase:I   every detail nested anywhere under the bookcase
 here:bookcase:e   pops back to (room, no via)
+here:bookcase:E   pops the whole detail path (same Stuff, no via)
 ```
 
 Objects without the relevant mixin contribute nothing — the chain
-silent-filters rather than erroring.
+silent-filters rather than erroring. A Stuff already at the root
+(no container) yields nothing on `:E` rather than emitting itself.
 
 `:i` between detail steps is **redundant**: `:keyword` already
 auto-extends with child detail names at the current depth, so
@@ -257,8 +272,9 @@ how `:` combines it with the prior set depends on whether the seed
 has a per-element interpretation:
 
 - **Element-derivable seeds** (`peers`, `reachable`, `inventory`,
-  and the transforms `:i` / `:e`) **flat-map** over the prior set:
-  for each element `x`, expand to `seed(x)` and union the results.
+  and the transforms `:i` / `:I` / `:e` / `:E`) **flat-map** over
+  the prior set: for each element `x`, expand to `seed(x)` and
+  union the results.
 - **Fixed-pool seeds** (`me`, `here`, `online`, `world`, paths,
   stuff ids, `$$`, groups) **intersect** with the prior set.
 

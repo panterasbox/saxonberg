@@ -121,14 +121,29 @@ describe('MQL parser — chain operators', () => {
     });
   });
 
-  it('treats :i broken as a multi-word keyword filter (not transform i)', () => {
-    const q = parse('me:i broken');
+  it('parses :I as the deep-inventory transform (uppercase variant of :i)', () => {
+    const q = parse('me:I');
     const chain = singleChain(q);
-    expect(chain.rest).toHaveLength(1);
-    expect(chain.rest[0]).toEqual({
-      op: ':',
-      element: { kind: 'keywords', words: ['i', 'broken'] },
-    });
+    expect(chain.rest).toEqual([
+      { op: ':', element: { kind: 'transform', transform: 'I' } },
+    ]);
+  });
+
+  it('parses :E as the root-environment transform (uppercase variant of :e)', () => {
+    const q = parse('me:E');
+    const chain = singleChain(q);
+    expect(chain.rest).toEqual([
+      { op: ':', element: { kind: 'transform', transform: 'E' } },
+    ]);
+  });
+
+  it('treats `i` at seed position as a one-letter keyword (case folded to lowercase)', () => {
+    // `i` and `I` lex as transformLetter, but at chain-head
+    // position the parser folds them into a single-letter keyword
+    // search — keyword matching is case-insensitive.
+    const q = parse('I');
+    const chain = singleChain(q);
+    expect(chain.head).toEqual({ kind: 'keywords', words: ['i'] });
   });
 
   it('parses #N at chain non-head position as ordinal', () => {

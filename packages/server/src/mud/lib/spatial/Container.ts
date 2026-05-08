@@ -32,6 +32,7 @@ import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { MixinApi } from '../../api/mixin';
 import type { CommandContributions } from '../../api/command';
 
 /**
@@ -47,6 +48,19 @@ export interface Container {
   removeContainable(item: Stuff & Containable): boolean;
   hasContainable(item: Stuff & Containable): boolean;
   getContents(): (Stuff & Containable)[];
+  /**
+   * Recursive contents: every Containable reachable from this
+   * Container, including descendants of nested Containers. Walked
+   * depth-first pre-order, so a child appears immediately after its
+   * parent. Containment is acyclic by construction (a Container
+   * can't contain its own ancestor — `Containable.setContainer`
+   * enforces it), so no cycle protection is needed.
+   *
+   * Used by MQL's `:I` deep-inventory transform; equally available
+   * to controllers that want every nested item without writing the
+   * recursion themselves.
+   */
+  getDeepContents(): (Stuff & Containable)[];
 
   /** Optional pre-add veto. Return `{ ok: false, reason }` to block. */
   canAddContainable?(thing: Stuff & Containable): VetoResult;
@@ -123,6 +137,26 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Snapshot of contained items as an array. */
     getContents(): (Stuff & Containable)[] {
       return Array.from(this.contents);
+    }
+
+    /**
+     * Walk the containment tree depth-first pre-order, starting
+     * from this Container's immediate contents, and return every
+     * Containable encountered. Used by MQL's `:I` transform and
+     * any controller that wants the full nested inventory.
+     */
+    getDeepContents(): (Stuff & Containable)[] {
+      const out: (Stuff & Containable)[] = [];
+      const walk = (c: Stuff & Container): void => {
+        for (const item of c.getContents()) {
+          out.push(item);
+          if (MixinApi.isContainer(item)) {
+            walk(item as Stuff & Container);
+          }
+        }
+      };
+      walk(this as unknown as Stuff & Container);
+      return out;
     }
   }
   return ContainerMixin;

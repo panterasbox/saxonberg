@@ -248,10 +248,25 @@ export interface LastResultNode {
   kind: 'lastResult';
 }
 
-/** `:i` (inventory) / `:e` (environment) chain transforms. */
+/**
+ * Chain transforms — descend / ascend operators.
+ *
+ *   - `:i` shallow inventory / detail-children — one container level
+ *     down (no via) or one detail level down (via set).
+ *   - `:I` deep inventory — every Stuff in the contents subtree (no
+ *     via), or every detail descendant from the current tip (via set).
+ *   - `:e` shallow environment — one container level up (no via) or
+ *     one detail level up (via set).
+ *   - `:E` root environment — walk to the topmost containing Stuff
+ *     (no via) or pop the entire detail path (via set).
+ *
+ * Lower-case forms are single-step; upper-case forms are the deep /
+ * root counterparts. Case is preserved through the lexer's
+ * `transformLetter` token.
+ */
 export interface TransformNode {
   kind: 'transform';
-  transform: 'i' | 'e';
+  transform: 'i' | 'I' | 'e' | 'E';
 }
 
 /** `#5` at chain position — equivalent to `:[5]`. */

@@ -200,7 +200,7 @@ describe('MQL lexer', () => {
       expect(kinds('/obj/Avatar/*:i')).toEqual([
         'path',
         'colon',
-        'bareword',
+        'transformLetter',
       ]);
     });
   });
@@ -281,14 +281,25 @@ describe('MQL lexer', () => {
   });
 
   describe('compound queries', () => {
-    it('me:i:rose lexes as bareword colon bareword colon bareword', () => {
+    it('me:i:rose lexes — `i` is a transformLetter, others are barewords', () => {
+      // `i` / `I` / `e` / `E` get the dedicated transformLetter
+      // kind so the parser can dispatch shallow vs deep / step vs
+      // root. Multi-letter words (`me`, `rose`) stay barewords.
       expect(kinds('me:i:rose')).toEqual([
         'bareword',
         'colon',
-        'bareword',
+        'transformLetter',
         'colon',
         'bareword',
       ]);
+    });
+
+    it('uppercase :I lexes as transformLetter (deep variant)', () => {
+      expect(kinds('me:I')).toEqual(['bareword', 'colon', 'transformLetter']);
+    });
+
+    it('uppercase :E lexes as transformLetter (root variant)', () => {
+      expect(kinds('me:E')).toEqual(['bareword', 'colon', 'transformLetter']);
     });
 
     it('roses:[5] lexes correctly', () => {
@@ -349,7 +360,7 @@ describe('MQL lexer', () => {
       expect(kinds('#abc123:i:rose')).toEqual([
         'hashId',
         'colon',
-        'bareword',
+        'transformLetter',
         'colon',
         'bareword',
       ]);

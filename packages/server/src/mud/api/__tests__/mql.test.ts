@@ -336,6 +336,58 @@ describe('MQL resolver — transforms', () => {
       expect(out).toEqual([]);
     });
   });
+
+  describe('deep transforms (`:I`, `:E`)', () => {
+    it(':I (deep inventory) walks the whole containment subtree', () => {
+      // The location's :I covers peers + the giver's contents
+      // (apple). With a single non-nested layer and the apple
+      // inside the giver, :I from `here` reaches the apple.
+      const out = resolve('here:I', ctx);
+      const idSet = new Set(ids(out));
+      expect(idSet.has(world.rose.stuffId)).toBe(true);
+      expect(idSet.has(world.daisy.stuffId)).toBe(true);
+      expect(idSet.has(world.giver.stuffId)).toBe(true);
+      expect(idSet.has(world.apple.stuffId)).toBe(true);
+    });
+
+    it(':I from the giver yields just inventory items (no peer descent)', () => {
+      // me:I is the giver's deep contents — the apple (no further
+      // nesting because TestThing isn't a Container).
+      const out = resolve('me:I', ctx);
+      expect(ids(out)).toEqual([world.apple.stuffId]);
+    });
+
+    it(':I with via emits every detail descendant from the tip', () => {
+      // From here:bookcase (via=[bookcase]), :I walks descendants:
+      // 'book' (the only child of bookcase). Result has via=
+      // ['bookcase', 'book'].
+      const out = resolve('here:bookcase:I', ctx);
+      expect(out).toHaveLength(1);
+      expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
+    });
+
+    it(':E (root environment) walks the container chain to the topmost', () => {
+      // me:E walks giver → location. The location has no container,
+      // so it's the root.
+      const out = resolve('me:E', ctx);
+      expect(ids(out)).toEqual([world.location.stuffId]);
+    });
+
+    it(':E from a stuff already at the root yields nothing', () => {
+      // here:E — the location has no container; result is empty.
+      const out = resolve('here:E', ctx);
+      expect(out).toEqual([]);
+    });
+
+    it(':E with via drops the entire detail path', () => {
+      // From here:bookcase:book (via=['bookcase','book']), :E pops
+      // back to (location, no via).
+      const out = resolve('here:bookcase:book:E', ctx);
+      expect(out).toHaveLength(1);
+      expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
+      expect(out[0]?.via?.detailPath).toBeUndefined();
+    });
+  });
 });
 
 describe('MQL resolver — detail-keyword extension on `:`', () => {
