@@ -87,12 +87,16 @@ export interface SettingsSnapshotEntry {
 }
 
 /**
- * Public shape provided by `EnvironmentMixin`.
+ * Public shape provided by `EnvironmentMixin` — methods only, per
+ * the inter-stuff contract. The `persistentStore` (Hydrator-saved)
+ * and `sessionStore` (transient) stores live as public fields on the
+ * implementing class so the Hydrator can reflect into them by name,
+ * but they are NOT part of the contract surface; external code goes
+ * through `getSetting` / `setSetting` / `setVar` / `listVars`. Tests
+ * that need raw state reach for the concrete class type, not the
+ * `Environment` narrowing.
  */
 export interface Environment {
-  persistentStore?: Record<string, unknown>;
-  sessionStore: Record<string, unknown>;
-
   getSetting<T>(key: string): T | undefined;
   setSetting<T>(key: string, value: T, actor: Stuff): void;
   unsetSetting(key: string, actor: Stuff): void;

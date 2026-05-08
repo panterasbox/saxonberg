@@ -39,6 +39,15 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Alias, AliasEntry } from '../lib/shell/Alias';
+import type {
+  AliasExpansionInfo,
+} from './command';
+import {
+  CommandLineApi,
+  type ParsedCommand,
+  type RawToken,
+} from './command-line';
 import { MixinApi } from './mixin';
 import { Mml } from './mml';
 import { MudlogApi } from './mudlog';
@@ -108,6 +117,269 @@ export class ShellApi {
       }
     }
     return null;
+  }
+
+  /**
+   * Resolve verb-position aliases on a `ParsedCommand`, returning the
+   * (possibly rewritten) command plus an expansion record when one or
+   * more aliases fired.
+   *
+   * Operates on classified `RawToken`s — leverages the tokenizer's
+   * existing quoting/escape work rather than manipulating raw text.
+   * Pure on its inputs except for reading `giver.getAlias`.
+   *
+   * Behaviors:
+   *
+   *   - **Bypass prefix.** A verb starting with `\` is stripped of the
+   *     leading backslash and not subject to alias lookup. `\\look`
+   *     produces the literal verb `\look` (the second `\` is taken as
+   *     part of the verb).
+   *   - **Positional substitution.** `$1`..`$9` and `$@` (bare or
+   *     braced) inside `word` and `long-with-value.value` text expand
+   *     against the user's args. A naked `$@` token expands to the
+   *     full user-arg list as separate tokens; embedded `$@` is a
+   *     space-joined string.
+   *   - **Consume-vs-append.** If any positional ref appeared in the
+   *     body, user-args were consumed and are NOT appended; otherwise
+   *     they're appended bash-style.
+   *   - **Recursion.** The expansion's resulting verb is itself
+   *     subject to alias lookup, with a per-call in-flight Set as
+   *     cycle guard and a hard depth ceiling (16). Cycles terminate
+   *     silently; depth-cap fires a soft `MudlogApi.warn` when the
+   *     giver is a Sensor.
+   *   - **Source reconstruction.** The returned `ParsedCommand`
+   *     carries a synthesized `source` faithful enough for greedy
+   *     positionals: append case preserves the user's literal
+   *     post-verb slice; consume case uses `CommandLineApi.format` so
+   *     quoted user-args round-trip with their interior whitespace.
+   *
+   * Caller is responsible for gating on `MixinApi.isAlias(giver)` —
+   * this function takes `Stuff & Alias` directly so the type
+   * discipline is at the call site.
+   */
+  static expandAliases(
+    parsed: ParsedCommand,
+    giver: Stuff & Alias,
+  ): { parsed: ParsedCommand; expansion?: AliasExpansionInfo } {
+    // Bypass prefix: `\verb` → run real verb; not an "alias fired" event.
+    if (parsed.verb.startsWith('\\')) {
+      return { parsed: stripBypassPrefix(parsed) };
+    }
+
+    const inflight = new Set<string>();
+    const chain: string[] = [];
+    const result = expandRecursive(parsed, giver, inflight, 0, chain);
+
+    if (chain.length === 0) {
+      return { parsed: result };
+    }
+
+    const expansion: AliasExpansionInfo = {
+      aliasName: chain[0]!,
+      originalText: parsed.source,
+      expandedText: CommandLineApi.format(result),
+    };
+    if (chain.length > 1) expansion.chain = chain;
+    return { parsed: result, expansion };
+  }
+}
+
+/* ───────────── Alias expansion — file-private helpers ───────────── */
+
+const ALIAS_DEPTH_CEILING = 16;
+
+/** Strip a leading `\` from the verb and rebuild the ParsedCommand. */
+function stripBypassPrefix(parsed: ParsedCommand): ParsedCommand {
+  const stripped = parsed.verb.slice(1);
+  // Synthesize a new source from format() with the stripped verb in
+  // front of the rest of the tokens — keeps round-trip property.
+  const newTokens: RawToken[] = parsed.rawTokens.slice();
+  newTokens[0] = { kind: 'word', value: stripped, raw: stripped, pos: 0 };
+  const stub: ParsedCommand = {
+    verb: stripped,
+    rawTokens: newTokens,
+    source: '',
+    start: 0,
+  };
+  const synthSource = CommandLineApi.format(stub);
+  return CommandLineApi.parsePipeline(synthSource).commands[0]!;
+}
+
+/** Naked `$@` token — match exactly, allow brace form. */
+const NAKED_AT_RE = /^\$\{?@\}?$/;
+
+/** Inline positional ref pattern — `$1..$9` or `$@`, bare or braced. */
+const POS_INLINE_RE = /\$(?:\{([1-9@])\}|([1-9@]))/g;
+
+/**
+ * Substitute inline positional refs in a string. Naked `$@` is the
+ * caller's concern (multi-token case); here `$@` is a space-joined
+ * string substitution.
+ */
+function applyPosSubsToString(
+  text: string,
+  userArgs: RawToken[],
+): { text: string; hadRef: boolean } {
+  let hadRef = false;
+  const out = text.replace(POS_INLINE_RE, (_, brace, bare) => {
+    hadRef = true;
+    const ref = brace ?? bare;
+    if (ref === '@') {
+      return userArgs.map((t) => tokenValue(t)).join(' ');
+    }
+    const idx = Number(ref) - 1;
+    return idx >= 0 && idx < userArgs.length
+      ? tokenValue(userArgs[idx]!)
+      : '';
+  });
+  return { text: out, hadRef };
+}
+
+/** Best-effort string view of a RawToken's user-visible value. */
+function tokenValue(t: RawToken): string {
+  if (t.kind === 'word') return t.value;
+  if (t.kind === 'long-flag') return `--${t.name}`;
+  if (t.kind === 'long-with-value') return `--${t.name}=${t.value}`;
+  if (t.kind === 'short-flags') return `-${t.flags}`;
+  return '--';
+}
+
+/** One expansion step — substitute body tokens, decide consume/append. */
+function expandOnce(
+  parsed: ParsedCommand,
+  entry: AliasEntry,
+): { mergedTokens: RawToken[]; consumed: boolean; bodyText: string } {
+  let bodyPipeline;
+  try {
+    bodyPipeline = CommandLineApi.parsePipeline(entry.body);
+  } catch (e) {
+    throw new Error(
+      `alias '${entry.name}' has malformed body: ${(e as Error).message}`,
+    );
+  }
+  if (bodyPipeline.commands.length !== 1) {
+    throw new Error(
+      `alias '${entry.name}' body has multiple commands (set-time validation should reject)`,
+    );
+  }
+  const bodyTokens = bodyPipeline.commands[0]!.rawTokens;
+  const userArgs = parsed.rawTokens.slice(1);
+
+  let consumed = false;
+
+  const expandedBodyTokens: RawToken[] = bodyTokens.flatMap((tok): RawToken[] => {
+    if (tok.kind === 'word') {
+      // Naked `$@` → multi-token expansion.
+      if (NAKED_AT_RE.test(tok.value)) {
+        consumed = true;
+        return userArgs.length === 0 ? [] : userArgs.slice();
+      }
+      const sub = applyPosSubsToString(tok.value, userArgs);
+      if (sub.hadRef) consumed = true;
+      return [{ kind: 'word', value: sub.text, raw: sub.text, pos: 0 }];
+    }
+    if (tok.kind === 'long-with-value') {
+      const sub = applyPosSubsToString(tok.value, userArgs);
+      if (sub.hadRef) consumed = true;
+      return [
+        {
+          kind: 'long-with-value',
+          name: tok.name,
+          value: sub.text,
+          raw: `--${tok.name}=${sub.text}`,
+          pos: 0,
+        },
+      ];
+    }
+    // short-flags, long-flag, stop-options: pass through unchanged.
+    return [tok];
+  });
+
+  const mergedTokens = consumed
+    ? expandedBodyTokens
+    : [...expandedBodyTokens, ...userArgs];
+
+  return { mergedTokens, consumed, bodyText: entry.body };
+}
+
+/** Build the result `ParsedCommand` from an expansion step (§8 option B). */
+function buildResultParsed(
+  step: { mergedTokens: RawToken[]; consumed: boolean; bodyText: string },
+  originalParsed: ParsedCommand,
+): ParsedCommand {
+  let synthSource: string;
+  if (step.consumed) {
+    // Body tokens carry user-args inlined as values; format() canonicalizes
+    // and re-quotes — quoted user-args keep interior whitespace via this path.
+    synthSource = CommandLineApi.format({
+      verb: '',
+      rawTokens: step.mergedTokens,
+      source: '',
+      start: 0,
+    });
+  } else {
+    // Append case: literal body text + user's literal post-verb slice.
+    let userTailSlice = '';
+    if (originalParsed.rawTokens.length > 1) {
+      const firstUserArgPos =
+        originalParsed.rawTokens[1]!.pos - originalParsed.start;
+      userTailSlice = originalParsed.source.slice(firstUserArgPos);
+      // Ensure a space between body text and the user's tail slice;
+      // the slice typically begins with the original whitespace, but
+      // if greedy-quoting put the args flush, format()'s canonical
+      // single-space reconstruction handles the boundary.
+      if (
+        userTailSlice.length > 0 &&
+        !/^\s/.test(userTailSlice) &&
+        step.bodyText.length > 0 &&
+        !/\s$/.test(step.bodyText)
+      ) {
+        userTailSlice = ' ' + userTailSlice;
+      }
+    }
+    synthSource = step.bodyText + userTailSlice;
+  }
+  // Re-tokenize the synthesized source — fixes up pos/raw cleanly.
+  const reparsed = CommandLineApi.parsePipeline(synthSource);
+  return reparsed.commands[0]!;
+}
+
+/** Recursive expansion with cycle guard + depth ceiling. */
+function expandRecursive(
+  parsed: ParsedCommand,
+  giver: Stuff & Alias,
+  inflight: Set<string>,
+  depth: number,
+  chain: string[],
+): ParsedCommand {
+  if (depth >= ALIAS_DEPTH_CEILING) {
+    const giverStuff = giver as unknown as Stuff;
+    if (MixinApi.isSensor(giverStuff)) {
+      MudlogApi.warn(
+        'shell',
+        Mml.compose`alias expansion depth limit reached at '${parsed.verb}'`,
+        { to: giverStuff },
+      );
+    }
+    return parsed;
+  }
+
+  const entry = giver.getAlias(parsed.verb);
+  if (!entry) return parsed;
+
+  if (inflight.has(parsed.verb)) {
+    // Cycle — break out silently. Bash convention.
+    return parsed;
+  }
+
+  inflight.add(parsed.verb);
+  chain.push(parsed.verb);
+  try {
+    const step = expandOnce(parsed, entry);
+    const next = buildResultParsed(step, parsed);
+    return expandRecursive(next, giver, inflight, depth + 1, chain);
+  } finally {
+    inflight.delete(parsed.verb);
   }
 }
 
