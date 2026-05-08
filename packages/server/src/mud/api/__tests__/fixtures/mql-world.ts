@@ -16,6 +16,7 @@ import { DetailedMixin } from '../../../lib/description/Detailed';
 import { Idea } from '../../../lib/stuff/Idea';
 import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
+import { VisibleMixin } from '../../../lib/description/Visible';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { FocusedMixin } from '../../../lib/command/Focused';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -26,12 +27,16 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../../lib/command/CommandGiver';
 import type { Focused } from '../../../lib/command/Focused';
 
+// VisibleMixin is composed on TestLocation and TestThing so the
+// shared fixture matches the typical real-world Stuff shape — every
+// production location / thing players can examine has a description
+// surface. Validators like `mustBeVisible` rely on it.
 class TestLocation extends ContainerMixin(
-  DetailedMixin(NamedMixin(PerceptibleMixin(Idea)))
+  DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea))))
 ) {}
 
 class TestThing extends ContainableMixin(
-  DetailedMixin(NamedMixin(PerceptibleMixin(Idea)))
+  DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea))))
 ) {}
 
 // SensorMixin is composed so controllers that fire Scenes against
