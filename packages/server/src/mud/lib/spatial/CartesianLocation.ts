@@ -60,21 +60,28 @@ export class CartesianLocation extends CartesianLocationBase {
   // override needed.
 
   /**
+   * Narrowed override: a `CartesianLocation` lives in a `CartesianZone`
+   * by `CartesianZone.addLocation`'s rejection of non-Cartesian
+   * locations. The cast happens once here, at the boundary; every
+   * caller within (or with a typed reference to) `CartesianLocation`
+   * gets the narrowed type for free. If a `CartesianLocation` ever
+   * landed in a non-Cartesian zone, `getCellSize` would be undefined
+   * and any optional-call would short-circuit — defensive but
+   * documented.
+   */
+  public override getZone(): CartesianZone | null {
+    return super.getZone() as CartesianZone | null;
+  }
+
+  /**
    * Spatial scale used by `LightApi.bandAt` to map total intensity to
    * a band: `effective = light.intensity / loc.getSizeScale()`. For
    * a Cartesian room the scale is the owning zone's `cellSize` —
-   * larger cells mean the same total light reads dimmer.
-   *
-   * Invariant: a `CartesianLocation` lives in a `CartesianZone`
-   * (`CartesianZone.addLocation` rejects non-Cartesian locations).
-   * The cast leans on that invariant — if a `CartesianLocation` ever
-   * landed in a non-Cartesian zone, `getCellSize` would be undefined
-   * and the optional call short-circuits to `1.0`. The fallback also
-   * handles transient test state where the room hasn't been added to
-   * a zone yet.
+   * larger cells mean the same total light reads dimmer. The
+   * fallback covers transient test state where the room hasn't been
+   * added to a zone yet.
    */
   public getSizeScale(): number {
-    const zone = this.getZone() as CartesianZone | null;
-    return zone?.getCellSize() ?? 1.0;
+    return this.getZone()?.getCellSize() ?? 1.0;
   }
 }

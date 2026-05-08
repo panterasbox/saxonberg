@@ -36,7 +36,6 @@ import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { Avatar } from '../mud/obj/Avatar';
-import { Location } from '../mud/lib/stuff/Location';
 import { Template } from '../mud/lib/stuff/Template';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
@@ -226,9 +225,10 @@ export class Application {
     if (!commandText) return;
 
     const avatar = holder;
-    const location = avatar.getContainer() as Location;
-
-    if (!location) {
+    // The avatar must be inside *some* Container (Location, Vessel, …)
+    // for command dispatch — the value isn't used past this guard, we
+    // just need to bail out on the placeless edge case.
+    if (!avatar.getContainer()) {
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',
         payload: { message: 'Avatar has no location' },

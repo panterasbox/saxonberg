@@ -14,6 +14,7 @@ import { SphericalCoordinatesMixin } from './SphericalCoordinates';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import type { SphericalZone } from './SphericalZone';
 
 const SphericalLocationBase = PostRegistrationMixin(
   ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
@@ -31,6 +32,17 @@ export class SphericalLocation extends SphericalLocationBase {
   }
 
   // prepareDestroy inherited from ExitableMixin → Location chain.
+
+  /**
+   * Narrowed override: a `SphericalLocation` lives in a `SphericalZone`
+   * by `SphericalZone.addLocation`'s rejection of non-Spherical
+   * locations. The cast happens once here, at the boundary; callers
+   * with a typed `SphericalLocation` reference get the narrowed type
+   * for free. Symmetric with `CartesianLocation.getZone`.
+   */
+  public override getZone(): SphericalZone | null {
+    return super.getZone() as SphericalZone | null;
+  }
 
   /**
    * Spatial scale used by `LightApi.bandAt`. For a spherical room

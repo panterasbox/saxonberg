@@ -117,7 +117,12 @@ export class Login extends LoginBase {
   }
 
   private sendLookDescription(avatar: Avatar): void {
-    const location = avatar.getContainer() as Location | null;
+    // The avatar's container is whatever Container holds them —
+    // typically a Location, but may be a Vessel (an entered
+    // wardrobe / ship cabin). The renderer below uses
+    // `MixinApi.isVisible` to narrow before reaching for
+    // description text, so any Container works.
+    const location = avatar.getContainer();
 
     if (!location) {
       MessageApi.scene(avatar)

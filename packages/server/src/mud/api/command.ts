@@ -13,7 +13,6 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Location } from '../lib/stuff/Location';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
@@ -83,7 +82,12 @@ export interface ExecuteCommandOpts {
  *     `MixinApi.isX()` predicates or cast to a known concrete type.
  *   - `interactive`  — the connection/session that originated the
  *     input. Optional; absent for cascaded commands.
- *   - `location`     — the giver's current location at dispatch time.
+ *   - `location`     — the Container the giver is in at dispatch
+ *     time. Typically a `Location` (a room), but may be any
+ *     `Stuff & Container` — an Avatar inside a `Vessel` (wardrobe,
+ *     ship cabin) issues commands from the vessel as the location.
+ *     Controllers narrow with `MixinApi.isX()` if they need a
+ *     specific surface (e.g. `isExitable` for exit listing).
  *   - `commandText`  — the original raw input.
  *   - `executionId`  — per-execution security id (call-stack tracking).
  *   - `commandId`    — per-execution attribution id stamped onto
@@ -95,7 +99,7 @@ export interface ExecuteCommandOpts {
 export interface CommandContext {
   commandGiver: Stuff & CommandGiver;
   interactive?: Interactive;
-  location: Location;
+  location: Stuff & Container;
   commandText: string;
   executionId: string;
   commandId: string;
@@ -144,8 +148,12 @@ export interface ParserContext {
    * disambiguation (e.g. "look at MY sword" vs "look at her sword").
    */
   commandGiver: Stuff & CommandGiver;
-  /** The actor's current location — surface for disambiguation. */
-  location: Location;
+  /**
+   * The Container the actor is currently in — surface for
+   * disambiguation. Typically a `Location` but may be any
+   * `Stuff & Container` (a Vessel interior, etc.).
+   */
+  location: Stuff & Container;
   /**
    * Available command definitions on the actor's recency stack —
    * the universe of verbs the parser is allowed to choose from.
@@ -796,7 +804,7 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    ctx: { commandGiver: Stuff & CommandGiver; location: Location }
+    ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
@@ -924,7 +932,7 @@ export class CommandApi {
       raw?: string;
     },
     command: CommandDefinition,
-    _ctx: { commandGiver: Stuff & CommandGiver; location: Location }
+    _ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
   ): { model: CommandModel } | { error: string } {
     const allowed = command.getAllFieldNames();
     const fields: ModelData = {};
