@@ -32,6 +32,7 @@ import type { Container } from './Container';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -42,6 +43,19 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 export interface Containable {
   setContainer(container: (Stuff & Container) | null): void;
   getContainer(): (Stuff & Container) | null;
+  /**
+   * Walk the container chain to the topmost non-null environment.
+   * Returns `null` when this Stuff is already at the root (its own
+   * `getContainer()` is null) — the caller decides whether "I am
+   * the root" should be treated as the result or as no-op.
+   *
+   * Counterpart to `ContainerMixin.getDeepContents()` — both side
+   * helpers for "walk all the way" navigation. Used by MQL's `:E`
+   * transform; equally available to controllers that want to find
+   * the world / zone / outermost room without rolling their own
+   * loop.
+   */
+  getRootContainer(): (Stuff & Container) | null;
 
   /** Optional pre-move veto on the moving item itself. */
   canMove?(to: (Stuff & Container) | null): VetoResult;
@@ -108,6 +122,27 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getContainer(): (Stuff & Container) | null {
       return this.environment;
+    }
+
+    /**
+     * Walk the container chain to the topmost non-null environment.
+     * Returns `null` when already at the root.
+     *
+     * Containment is acyclic by construction (a Container can't
+     * contain its own ancestor — `setContainer`'s atomic update is
+     * the chokepoint), so the loop is bounded by the depth of the
+     * world's nesting.
+     */
+    getRootContainer(): (Stuff & Container) | null {
+      let current: Stuff = this as unknown as Stuff;
+      let topmost: (Stuff & Container) | null = null;
+      while (MixinApi.isContainable(current)) {
+        const env = current.getContainer();
+        if (!env) break;
+        topmost = env;
+        current = env as Stuff;
+      }
+      return topmost;
     }
   }
   return ContainableMixin;

@@ -819,24 +819,22 @@ function applyTransform(
       }
     } else {
       // transform === 'E' — pop entirely / walk to root.
+      //
+      // Asymmetric on purpose: `:E` from a detail-tree match drops
+      // the detail path back to the host Stuff (same Stuff, no
+      // via), without walking up. A subsequent `:E` from there
+      // hits the no-via branch and walks to the root container.
+      // So `me:i:sword:engraving:E` → sword;
+      // `me:i:sword:engraving:E:E` → the sword's root container.
       if (insideDetailTree) {
-        // Drop the detail path; same Stuff, no via.
         const next: MqlMatch = { stuff: m.stuff, score: m.score };
         const restVia = stripDetailPath(m.via);
         if (restVia) next.via = restVia;
         out.push(next);
       } else {
         if (!MixinApi.isContainable(m.stuff)) continue;
-        let current: Stuff = m.stuff;
-        while (true) {
-          if (!MixinApi.isContainable(current)) break;
-          const env = current.getContainer();
-          if (!env) break;
-          current = env;
-        }
-        if (current !== m.stuff) {
-          out.push({ stuff: current, score: m.score });
-        }
+        const root = m.stuff.getRootContainer();
+        if (root) out.push({ stuff: root, score: m.score });
       }
     }
   }

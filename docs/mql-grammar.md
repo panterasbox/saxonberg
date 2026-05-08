@@ -240,6 +240,25 @@ Objects without the relevant mixin contribute nothing — the chain
 silent-filters rather than erroring. A Stuff already at the root
 (no container) yields nothing on `:E` rather than emitting itself.
 
+`:E` is **asymmetric on purpose** when a detail-tree match meets a
+container walk: the first `:E` drops the detail path (back to the
+host Stuff, no via), and a *second* `:E` from there walks the
+container chain. So:
+
+```
+me:i:sword:engraving:E       → the sword
+                                (drops the detail via, anchor stays)
+me:i:sword:engraving:E:E     → the sword's root container
+                                (now walks up from the sword)
+```
+
+The mental model: `:E` first finishes "leaving the detail," then on
+a subsequent step "leaves the container." Folding both into one
+`:E` would lose the natural pause at the detail's host. `:I` is
+symmetric in the same way — a single `:I` either descends into
+contents (no via) or into detail subtree (via set), never both at
+once.
+
 `:i` between detail steps is **redundant**: `:keyword` already
 auto-extends with child detail names at the current depth, so
 `here:bookcase:i:book` ≡ `here:bookcase:book`.

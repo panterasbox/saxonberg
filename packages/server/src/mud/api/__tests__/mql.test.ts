@@ -387,6 +387,33 @@ describe('MQL resolver — transforms', () => {
       expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
       expect(out[0]?.via?.detailPath).toBeUndefined();
     });
+
+    it(':E:E from inside a detail tree first pops the via, then walks to root', () => {
+      // Asymmetric by design: the first :E drops the detail path
+      // (same Stuff, no via); the second :E hits the no-via branch
+      // and walks to the root container. So
+      // `me:i:sword:engraving:E:E` first pops back to (sword, no via)
+      // and then walks to the sword's outermost container.
+      //
+      // The test fixture's apple is Containable AND Detailed; give
+      // it an "engraving" detail inline and walk:
+      //   me:i:apple             → (apple, no via)
+      //   me:i:apple:engraving   → (apple, via=['engraving'])
+      //   me:i:apple:engraving:E → (apple, no via)        — first :E drops via
+      //   me:i:apple:engraving:E:E → location             — second :E walks to root
+      (world.apple as unknown as {
+        setDetail: (ids: string[], desc: string) => void;
+      }).setDetail(['engraving'], 'A small heart, scratched into the skin.');
+
+      const oneStep = resolve('me:i:apple:engraving:E', ctx);
+      expect(oneStep).toHaveLength(1);
+      expect(oneStep[0]?.stuff.stuffId).toBe(world.apple.stuffId);
+      expect(oneStep[0]?.via?.detailPath).toBeUndefined();
+
+      const twoStep = resolve('me:i:apple:engraving:E:E', ctx);
+      expect(twoStep).toHaveLength(1);
+      expect(twoStep[0]?.stuff.stuffId).toBe(world.location.stuffId);
+    });
   });
 });
 

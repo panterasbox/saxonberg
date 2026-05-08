@@ -310,7 +310,25 @@ seed-shaped chain element kinds (`pronoun`, `path`, `stuffId`,
 | `:i` | descend one level (no via: immediate contents; with via: immediate child details) | via-aware |
 | `:I` | descend deep (no via: `getDeepContents()`; with via: every detail descendant from the tip, DFS) | via-aware |
 | `:e` | ascend one level (no via: container; with via: pop one detail level) | via-aware |
-| `:E` | ascend to root (no via: walk container chain to the topmost; with via: drop the entire detail path) | via-aware |
+| `:E` | ascend to root (no via: walk container chain to the topmost via `Containable.getRootContainer()`; with via: drop the entire detail path, anchor stays on the same Stuff) | via-aware; asymmetric — see below |
+
+**`:E` two-step asymmetry.** When a detail-tree match meets the
+container walk, `:E` does the work in two steps: the first `:E`
+drops the via (anchor stays on the host Stuff); a *subsequent* `:E`
+hits the no-via branch and walks the container chain. So
+`me:i:sword:engraving:E` lands on the sword, and
+`me:i:sword:engraving:E:E` walks from the sword to its root
+container. The mental model: `:E` first finishes "leaving the
+detail," then "leaves the container." Folding both into one step
+would lose the natural pause at the detail's host. `:I` doesn't
+need the symmetry rule because it descends one direction at a
+time — into contents (no via) or into the detail subtree (via set),
+never both in a single step.
+
+`Containable.getRootContainer()` is the underlying walker — exposed
+for controllers that want to find the world / zone / outermost room
+without rolling their own loop. Returns `null` when the receiver is
+already at the root.
 | `:[N]`, `:[N..M]`, `:[N..]`, `:[-N]` | ordinal index / range | 1-based |
 | `:[expr]` | filter expression | bracketed body that isn't pure-numeric |
 | `:seed` | intersect with the seed's candidate pool | seed-shaped chain elements |
