@@ -285,6 +285,124 @@ description/short/long/article/list-formatting helpers belong in
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
 - **Display text** (names/descriptions): use `DescribeApi.getDisplayName()`
 
+## Persistent Fields Default to Scalars; Marshallers Are the Escape Hatch
+
+**THE RULE**: persistent fields default to scalars and arrays of
+scalars (numbers, strings, booleans, null, primitive tuples,
+templatePath strings for Stuff cross-references, keyword lists).
+Mixins that carry richer runtime types decompose them into named
+scalar fields and reconstruct on read. The hydrator's bracket-assign
+stays dumb; setters validate one primitive shape each.
+
+For the rare case where a field genuinely doesn't decompose
+(variable-key maps, structured composites whose internal
+substructure is the data), authors write a `Marshaller` (an Idea-
+shaped Stuff at `lib/persistence/Marshaller.ts`) that owns the
+runtime↔stored conversion. The mixin declares
+`static fieldMarshallers = { fieldName: marshallerTemplatePath }`
+and the persistence framework applies it transparently around the
+bracket-assign.
+
+### BAD (object-shaped storage with a union setter)
+
+```typescript
+class AmbientLitMixin {
+  static persistentFields = ['ambientLight'];
+  // The setter accepts BOTH a runtime Light AND the raw doc shape
+  // because the hydrator's bracket-assign drops a plain object in.
+  setAmbientLight(value: Light | LightDataShape): void {
+    this._ambientLight = Light.from(value);   // does double duty:
+                                              // validation + coercion
+  }
+}
+```
+
+Two complaints. Setter is doing two jobs. Runtime callers can pass
+nonsense (a raw object) and the setter swallows it. Storage is an
+opaque blob in MongoDB.
+
+### GOOD (scalar-flat persistence, strict setter)
+
+```typescript
+class AmbientLitMixin {
+  static persistentFields = ['ambientIntensity', 'ambientColor'];
+
+  protected _ambientIntensity = 0;
+  protected _ambientColor: ColorTag | null = null;
+
+  // Each scalar accessor pair validates ONE shape:
+  protected set ambientIntensity(v: number) {
+    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) {
+      throw new TypeError('ambientIntensity must be a non-negative finite number');
+    }
+    this._ambientIntensity = v;
+  }
+  protected set ambientColor(v: ColorTag | null) {
+    if (v !== null && typeof v !== 'string') {
+      throw new TypeError('ambientColor must be string or null');
+    }
+    this._ambientColor = v;
+  }
+
+  // Runtime API takes ONLY the value object:
+  getAmbientLight(): Light {
+    if (this._ambientIntensity === 0 && this._ambientColor === null) {
+      return Light.ZERO;
+    }
+    return Light.of(this._ambientIntensity, this._ambientColor);
+  }
+  setAmbientLight(value: Light): void {
+    if (!(value instanceof Light)) throw new TypeError('expected Light');
+    this._ambientIntensity = value.intensity;
+    this._ambientColor = value.color;
+  }
+}
+```
+
+Storage is two scalars. Each setter validates one primitive shape.
+The runtime API is strict on the value class.
+
+### GOOD (escape hatch — Marshaller for genuinely composite fields)
+
+When the storage shape genuinely doesn't decompose — variable-key
+maps, structured composites — a Marshaller takes over the
+runtime↔stored conversion:
+
+```typescript
+class MoneyBagMarshaller extends Marshaller<MoneyBag, Record<string, number>> {
+  public static readonly templatePath = '/lib/persistence/MoneyBagMarshaller';
+  fromStored(raw: Record<string, number>): MoneyBag { return MoneyBag.of(raw); }
+  toStored(mb: MoneyBag): Record<string, number> { return mb.toRecord(); }
+}
+
+class WalletMixin {
+  static persistentFields = ['wallet'];
+  static fieldMarshallers = { wallet: MoneyBagMarshaller.templatePath };
+
+  // Setter is STRICT — the marshaller has already produced a MoneyBag
+  // by the time the bracket-assign hits this setter on hydrate.
+  setWallet(value: MoneyBag): void {
+    if (!(value instanceof MoneyBag)) throw new TypeError('expected MoneyBag');
+    this._wallet = value;
+  }
+}
+```
+
+`PersistentHydrator.hydrate` and `Persistable.toDocument` /
+`fromDocument` look up the marshaller via
+`MixinApi.getAllFieldMarshallers(constructor)` and apply
+`fromStored` / `toStored` around the bracket-assign / bracket-read.
+
+### Don't reach for a marshaller as a first move
+
+Most fields decompose. A `{ aToB?, bToA? }` overrides object becomes
+two scalar fields named `aToBOverride: number | null` and
+`bToAOverride: number | null`; the runtime API can still expose
+`getDirectionalOverrides()` returning the structured shape, but
+storage is two named scalars. Marshallers exist for the cases where
+the structured shape IS the data — variable keys, dynamic
+composition — and decomposition would lose information.
+
 ## Per-Field Invariants Belong on Setters, Not in `normalize()` Hooks
 
 **ANTIPATTERN**: A `#normalize()` private method called after hydration to
@@ -715,3 +833,9 @@ invariant and cast — don't pollute the base.
   external relationship, `instanceof` only as a last resort. Don't
   lift a subclass-only *value* onto the base just to avoid
   `instanceof` — that's pollution-by-null.
+- Persistent fields default to scalars and arrays of scalars.
+  Decompose value-object runtime types into named scalar fields;
+  the getter reconstructs. For the rare field that genuinely
+  doesn't decompose (variable-key maps, structured composites),
+  declare a `Marshaller` and register it in `static fieldMarshallers`
+  on the mixin. Strict setters always.

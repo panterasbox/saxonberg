@@ -43,6 +43,7 @@ import { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { MixinApi } from '../../api/mixin';
+import type { Marshaller } from './Marshaller';
 
 type Indexable = Record<string, unknown>;
 
@@ -117,6 +118,12 @@ export class Persistable extends Stuff {
 
   /**
    * Convert this object to a plain document for MongoDB.
+   *
+   * Marshallers (declared via `static fieldMarshallers` on a mixin
+   * or class) intercept their assigned fields: the runtime
+   * value-object value is passed through `marshaller.toStored`
+   * before being written into the doc. Fields without a marshaller
+   * pass through bracket-read unchanged.
    */
   protected toDocument(): Record<string, unknown> {
     const doc: Record<string, unknown> = {};
@@ -125,8 +132,26 @@ export class Persistable extends Stuff {
     if (this._id) doc._id = this._id;
 
     const fields = this.getAllFields();
+    const marshallerPaths = MixinApi.getAllFieldMarshallers(
+      this.constructor as new (...args: unknown[]) => Stuff
+    );
     for (const field of fields) {
-      if (field in this) doc[field] = self[field];
+      if (!(field in this)) continue;
+      const value = self[field];
+      const path = marshallerPaths[field];
+      if (path) {
+        const marshaller = StuffApi.findByTemplatePath<
+          Marshaller<unknown, unknown>
+        >(path);
+        if (!marshaller) {
+          throw new Error(
+            `Persistable.toDocument: marshaller '${path}' for field '${field}' is not registered.`
+          );
+        }
+        doc[field] = marshaller.toStored(value);
+      } else {
+        doc[field] = value;
+      }
     }
 
     doc.createdAt = this.createdAt;
@@ -137,6 +162,10 @@ export class Persistable extends Stuff {
 
   /**
    * Load data from a MongoDB document into this object.
+   *
+   * Symmetric to `toDocument`: marshallers transform their assigned
+   * fields' raw values via `fromStored` before bracket-assign hits
+   * the runtime setter.
    */
   protected fromDocument(doc: Record<string, unknown>): void {
     const self = this as unknown as Indexable;
@@ -144,8 +173,26 @@ export class Persistable extends Stuff {
     if (doc._id) this._id = doc._id as string;
 
     const fields = this.getAllFields();
+    const marshallerPaths = MixinApi.getAllFieldMarshallers(
+      this.constructor as new (...args: unknown[]) => Stuff
+    );
     for (const field of fields) {
-      if (field in doc) self[field] = doc[field];
+      if (!(field in doc)) continue;
+      const raw = doc[field];
+      const path = marshallerPaths[field];
+      if (path) {
+        const marshaller = StuffApi.findByTemplatePath<
+          Marshaller<unknown, unknown>
+        >(path);
+        if (!marshaller) {
+          throw new Error(
+            `Persistable.fromDocument: marshaller '${path}' for field '${field}' is not registered.`
+          );
+        }
+        self[field] = marshaller.fromStored(raw);
+      } else {
+        self[field] = raw;
+      }
     }
 
     if (doc.createdAt) this.createdAt = doc.createdAt as Date;

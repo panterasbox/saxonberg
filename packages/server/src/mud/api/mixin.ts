@@ -200,6 +200,51 @@ export class MixinApi {
   }
 
   /**
+   * Get the field-marshaller registry for a class — the map of
+   * persistent-field names → marshaller templatePaths declared on
+   * mixins / classes in the prototype chain.
+   *
+   * Walks the prototype chain concrete-class-first, so a subclass's
+   * declaration wins over a base mixin's for the same field. The
+   * returned map is keyed by field name; values are templatePath
+   * strings that callers resolve via `StuffApi.findByTemplatePath`
+   * at use time.
+   *
+   * Mirrors the shape of {@link getAllPersistentFields} and is the
+   * companion lookup for `PersistentHydrator` / `Persistable`'s
+   * marshaller-aware coercion path.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Map of field name to marshaller templatePath
+   */
+  public static getAllFieldMarshallers(
+    constructor: AnyConstructor
+  ): Record<string, string> {
+    const out: Record<string, string> = {};
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        fieldMarshallers?: Record<string, string>;
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'fieldMarshallers') &&
+        c.fieldMarshallers &&
+        typeof c.fieldMarshallers === 'object'
+      ) {
+        for (const [k, v] of Object.entries(c.fieldMarshallers)) {
+          // First declaration wins — concrete-class walked first, so
+          // subclass overrides base.
+          if (!(k in out) && typeof v === 'string') out[k] = v;
+        }
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
+  }
+
+  /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
    * Walks the prototype chain and collects `persistentFields` declared at

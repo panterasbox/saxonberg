@@ -2,7 +2,7 @@
  * LightSourceMixin — anything that emits light.
  *
  * Saxonberg v1 keeps the surface deliberately narrow: a host that
- * composes this mixin carries a persistent `emittedLight: Light`. To
+ * composes this mixin carries an emitted `Light` value. To
  * "extinguish" a source, set the emission to `Light.ZERO`; to
  * "ignite" it, set the emission back to a positive Light. There is
  * no `Switchable`, no fuel state, no `light X` verb in v1 — those
@@ -17,19 +17,27 @@
  * `Adornable.getFixtureLightSources()` (fixture-side), and calls
  * `getEmittedLight()` once per emitter.
  *
- * The setter coerces a hydrated `LightDataShape` (raw object stored
- * in MongoDB) into a `Light` instance — same coercion shape as
- * `AmbientLitMixin`. The host fires the optional Witness hook
+ * Persistence — scalar-default rule.
+ *
+ * The emitted `Light` decomposes into two scalar persistent fields:
+ * `emittedIntensity` (number, ≥ 0) and `emittedColor`
+ * (`ColorTag | null`). `Light.sources` is runtime-only and not
+ * stored. The runtime API (`setEmittedLight(value: Light)`) is
+ * strict on the value type and decomposes into the two stored
+ * scalars; `getEmittedLight()` reconstructs a `Light` instance on
+ * read.
+ *
+ * Witness hook: `setEmittedLight` fires
  * `onLightSourceChanged(source, oldEmission, newEmission)` on the
- * immediate environment when the emission changes, so a future cache
- * layer (or a Sensor present in the room) can react. v1's lazy
- * walk doesn't need the hook itself.
+ * immediate environment when the reconstructed emitted Light
+ * differs. v1 fans out to the IMMEDIATE environment only — no
+ * walk-up to outer Containers.
  */
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Light } from './Light';
-import type { LightDataShape } from './Light';
+import type { ColorTag } from './Light';
 
 /**
  * Witness hook fired on the source's immediate environment whenever
@@ -47,43 +55,86 @@ export interface LightSourceObserver {
 /** Public shape added by LightSourceMixin. */
 export interface LightSource {
   getEmittedLight(): Light;
-  setEmittedLight(value: Light | LightDataShape): void;
+  setEmittedLight(value: Light): void;
 }
 
 export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LightSourceMixin extends Base {
     static _mixinName = 'LightSourceMixin';
 
-    static persistentFields = ['emittedLight'];
+    static persistentFields = ['emittedIntensity', 'emittedColor'];
 
-    /** Backing storage for the `emittedLight` accessor pair. */
-    private _emittedLight: Light = Light.ZERO;
+    /** Backing storage for the `emittedIntensity` accessor pair. */
+    private _emittedIntensity: number = 0;
+    /** Backing storage for the `emittedColor` accessor pair. */
+    private _emittedColor: ColorTag | null = null;
 
     /**
-     * Host-internal accessor pair (Pattern D). External callers go
-     * through `getEmittedLight()` / `setEmittedLight()`. The setter
-     * coerces a Light or hydrated LightDataShape into a Light, fires
-     * the change-witness hook on the immediate environment, and
-     * stores the new value. `target['emittedLight'] = data['emittedLight']`
-     * in the hydrator goes through this setter.
+     * Host-internal accessor pair (Pattern D) for the intensity
+     * scalar. Hydrator's bracket-assign goes through here so a
+     * malformed template (negative, NaN, non-number) crashes loudly.
      */
-    protected get emittedLight(): Light {
-      return this._emittedLight;
+    protected get emittedIntensity(): number {
+      return this._emittedIntensity;
+    }
+    protected set emittedIntensity(value: number) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        throw new TypeError(
+          `LightSourceMixin.emittedIntensity must be a non-negative finite number, got ${value}`
+        );
+      }
+      this._emittedIntensity = value;
     }
 
-    protected set emittedLight(value: Light | LightDataShape) {
-      const next = Light.from(value);
-      const prev = this._emittedLight;
-      this._emittedLight = next;
-      if (prev !== next) fireOnLightSourceChanged(this as unknown as Stuff, prev, next);
+    /**
+     * Host-internal accessor pair for the color tag. Setter validates
+     * the runtime shape — string-or-null only.
+     */
+    protected get emittedColor(): ColorTag | null {
+      return this._emittedColor;
+    }
+    protected set emittedColor(value: ColorTag | null) {
+      if (value !== null && typeof value !== 'string') {
+        throw new TypeError(
+          `LightSourceMixin.emittedColor must be a string ColorTag or null, got ${typeof value}`
+        );
+      }
+      this._emittedColor = value;
     }
 
+    /**
+     * Reconstruct a `Light` instance from the stored scalars. Returns
+     * `Light.ZERO` when both scalars are at their defaults.
+     */
     getEmittedLight(): Light {
-      return this._emittedLight;
+      if (this._emittedIntensity === 0 && this._emittedColor === null) {
+        return Light.ZERO;
+      }
+      return Light.of(this._emittedIntensity, this._emittedColor);
     }
 
-    setEmittedLight(value: Light | LightDataShape): void {
-      this.emittedLight = value;
+    /**
+     * Strict runtime API — accepts only a `Light` value object.
+     * Decomposes into the two stored scalars and fires the change
+     * Witness hook on the immediate environment when the
+     * reconstructed Light differs from the previous one.
+     */
+    setEmittedLight(value: Light): void {
+      if (!(value instanceof Light)) {
+        throw new TypeError(
+          `LightSourceMixin.setEmittedLight: expected a Light, got ${typeof value}`
+        );
+      }
+      const prev = this.getEmittedLight();
+      this._emittedIntensity = value.intensity;
+      this._emittedColor = value.color;
+      const next = this.getEmittedLight();
+      if (
+        prev.intensity !== next.intensity ||
+        prev.color !== next.color
+      ) {
+        fireOnLightSourceChanged(this as unknown as Stuff, prev, next);
+      }
     }
   };
 }
@@ -92,11 +143,10 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
  * Fire `onLightSourceChanged` on the source's immediate environment
  * if the host is Containable and the environment's hook is present.
  * Optional-method dispatch via `typeof === 'function'`, mirroring the
- * Witness hook pattern in `containment.ts:163-171`.
+ * Witness hook pattern in `containment.ts`.
  *
- * v1 fans out to the IMMEDIATE environment only — no walk-up to outer
- * Containers. A future caching layer (and the Phase 4 Window
- * scenarios) may widen this radius.
+ * v1 fans out to the IMMEDIATE environment only — no walk-up to
+ * outer Containers. A future caching layer may widen this radius.
  */
 function fireOnLightSourceChanged(
   source: Stuff,

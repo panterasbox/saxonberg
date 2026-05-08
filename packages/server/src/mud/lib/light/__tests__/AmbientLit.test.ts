@@ -20,16 +20,17 @@ describe('AmbientLitMixin', () => {
     const t = makeStuff(() => new TestAmbient());
     const l = Light.of(10, 'warm');
     t.setAmbientLight(l);
-    expect(t.getAmbientLight()).toBe(l);
-  });
-
-  it('setAmbientLight coerces a data-shape value into a Light', () => {
-    const t = makeStuff(() => new TestAmbient());
-    t.setAmbientLight({ intensity: 30, color: 'warm' });
     const stored = t.getAmbientLight();
     expect(stored).toBeInstanceOf(Light);
-    expect(stored.intensity).toBe(30);
+    expect(stored.intensity).toBe(10);
     expect(stored.color).toBe('warm');
+  });
+
+  it('setAmbientLight rejects non-Light values with TypeError', () => {
+    const t = makeStuff(() => new TestAmbient());
+    expect(() =>
+      t.setAmbientLight({ intensity: 30, color: 'warm' } as unknown as Light)
+    ).toThrow(TypeError);
   });
 
   it('MixinApi.isAmbientLit narrows correctly', () => {
@@ -38,11 +39,12 @@ describe('AmbientLitMixin', () => {
     expect(MixinApi.hasMixin(TestAmbient, Mixins.AmbientLit)).toBe(true);
   });
 
-  describe('persistence round-trip', () => {
-    it('hydrates ambientLight via bracket-assign and the setter', async () => {
+  describe('persistence round-trip — scalar fields', () => {
+    it('hydrates ambientIntensity + ambientColor as scalars', async () => {
       const t = makeStuff(() => new TestAmbient());
       await makeStuff(() => new PersistentHydrator()).hydrate(t, {
-        ambientLight: { intensity: 40, color: 'warm' },
+        ambientIntensity: 40,
+        ambientColor: 'warm',
       });
       const stored = t.getAmbientLight();
       expect(stored).toBeInstanceOf(Light);
@@ -50,21 +52,57 @@ describe('AmbientLitMixin', () => {
       expect(stored.color).toBe('warm');
     });
 
-    it('toDocument-shape bracket-read returns the Light value', async () => {
+    it('toDocument-shape bracket-read returns the stored scalars', async () => {
       const t = makeStuff(() => new TestAmbient());
       await makeStuff(() => new PersistentHydrator()).hydrate(t, {
-        ambientLight: { intensity: 40, color: 'warm' },
+        ambientIntensity: 40,
+        ambientColor: 'warm',
       });
-      const raw = ProxyApi.unwrap(t) as unknown as { ambientLight: Light };
-      expect(raw.ambientLight).toBeInstanceOf(Light);
-      expect(raw.ambientLight.intensity).toBe(40);
+      const raw = ProxyApi.unwrap(t) as unknown as {
+        ambientIntensity: number;
+        ambientColor: string | null;
+      };
+      expect(raw.ambientIntensity).toBe(40);
+      expect(raw.ambientColor).toBe('warm');
     });
 
-    it('hydrating a malformed shape throws TypeError via the setter', async () => {
+    it('round-trips through the runtime API', () => {
+      const t = makeStuff(() => new TestAmbient());
+      t.setAmbientLight(Light.of(25, 'cool'));
+      const stored = t.getAmbientLight();
+      expect(stored.intensity).toBe(25);
+      expect(stored.color).toBe('cool');
+    });
+
+    it('default scalars round-trip back to Light.ZERO', () => {
+      const t = makeStuff(() => new TestAmbient());
+      // No setter call — defaults should produce Light.ZERO from getter.
+      expect(t.getAmbientLight()).toBe(Light.ZERO);
+    });
+
+    it('hydrating a malformed intensity throws TypeError via the setter', async () => {
       const t = makeStuff(() => new TestAmbient());
       await expect(
         makeStuff(() => new PersistentHydrator()).hydrate(t, {
-          ambientLight: { intensity: 'lots' } as unknown as object,
+          ambientIntensity: 'lots' as unknown as number,
+        })
+      ).rejects.toThrow(TypeError);
+    });
+
+    it('hydrating a malformed color throws TypeError via the setter', async () => {
+      const t = makeStuff(() => new TestAmbient());
+      await expect(
+        makeStuff(() => new PersistentHydrator()).hydrate(t, {
+          ambientColor: 42 as unknown as string,
+        })
+      ).rejects.toThrow(TypeError);
+    });
+
+    it('hydrating a negative intensity throws TypeError via the setter', async () => {
+      const t = makeStuff(() => new TestAmbient());
+      await expect(
+        makeStuff(() => new PersistentHydrator()).hydrate(t, {
+          ambientIntensity: -1,
         })
       ).rejects.toThrow(TypeError);
     });

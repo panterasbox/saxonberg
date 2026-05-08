@@ -57,7 +57,8 @@ interface DirectionalOverrides {
 export class Window extends WindowBase {
   static persistentFields = [
     'baseTransmissivity',
-    'directionalOverrides',
+    'aToBOverride',
+    'bToAOverride',
     'colorTint',
   ];
 
@@ -96,46 +97,62 @@ export class Window extends WindowBase {
   }
 
   /**
-   * Optional asymmetric pass-through. When `aToB` or `bToA` is set,
-   * it replaces `baseTransmissivity` for that direction. Use `0` for
-   * the dark side of one-way glass.
+   * Optional one-way pass-through factor for light flowing from side
+   * A to side B. `null` means "no override; use baseTransmissivity."
+   * Set to `0` for the dark side of one-way glass (A→B blocked).
+   * Stored as a scalar (number | null) per the scalar-default rule;
+   * the structured `DirectionalOverrides` shape lives only at the
+   * runtime API layer.
    */
-  protected _directionalOverrides: DirectionalOverrides | null = null;
+  protected _aToBOverride: number | null = null;
+  /** Optional one-way pass-through factor for light flowing from side B to side A. */
+  protected _bToAOverride: number | null = null;
 
-  protected get directionalOverrides(): DirectionalOverrides | null {
-    return this._directionalOverrides;
+  protected get aToBOverride(): number | null {
+    return this._aToBOverride;
+  }
+  protected set aToBOverride(value: number | null) {
+    this._aToBOverride = validateOverrideScalar(value, 'aToBOverride');
+  }
+  protected get bToAOverride(): number | null {
+    return this._bToAOverride;
+  }
+  protected set bToAOverride(value: number | null) {
+    this._bToAOverride = validateOverrideScalar(value, 'bToAOverride');
   }
 
-  protected set directionalOverrides(value: DirectionalOverrides | null) {
+  /**
+   * Read the directional overrides as the structured runtime shape.
+   * Returns `null` when neither side has an override; otherwise an
+   * object with only the present sides populated. Symmetric with the
+   * pre-flatten public API.
+   */
+  public getDirectionalOverrides(): DirectionalOverrides | null {
+    if (this._aToBOverride === null && this._bToAOverride === null) return null;
+    const out: DirectionalOverrides = {};
+    if (this._aToBOverride !== null) out.aToB = this._aToBOverride;
+    if (this._bToAOverride !== null) out.bToA = this._bToAOverride;
+    return out;
+  }
+
+  /**
+   * Write the directional overrides from a structured runtime shape.
+   * The setter decomposes into the two stored scalars; null clears
+   * both sides.
+   */
+  public setDirectionalOverrides(value: DirectionalOverrides | null): void {
     if (value === null || value === undefined) {
-      this._directionalOverrides = null;
+      this._aToBOverride = null;
+      this._bToAOverride = null;
       return;
     }
     if (typeof value !== 'object') {
       throw new TypeError(
-        'Window.directionalOverrides must be null or an object with optional aToB / bToA.'
+        'Window.setDirectionalOverrides: expected null or an object with optional aToB / bToA.'
       );
     }
-    const next: DirectionalOverrides = {};
-    for (const side of ['aToB', 'bToA'] as const) {
-      const v = value[side];
-      if (v === undefined) continue;
-      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1) {
-        throw new RangeError(
-          `Window.directionalOverrides.${side} must be a finite number in [0, 1], got ${v}`
-        );
-      }
-      next[side] = v;
-    }
-    this._directionalOverrides = next;
-  }
-
-  public getDirectionalOverrides(): DirectionalOverrides | null {
-    return this._directionalOverrides;
-  }
-
-  public setDirectionalOverrides(value: DirectionalOverrides | null): void {
-    this.directionalOverrides = value;
+    this.aToBOverride = value.aToB ?? null;
+    this.bToAOverride = value.bToA ?? null;
   }
 
   /** Atmospheric tint applied to light flowing through this window. */
@@ -180,17 +197,31 @@ export class Window extends WindowBase {
   public transmissivity(from: BoundarySide, to: BoundarySide): number {
     if (!this.getIsOpen()) return 0;
     if (from === to) return this._baseTransmissivity;
-    const overrides = this._directionalOverrides;
-    if (overrides) {
-      const override = from === 'A' ? overrides.aToB : overrides.bToA;
-      if (typeof override === 'number') return override;
-    }
+    const override = from === 'A' ? this._aToBOverride : this._bToAOverride;
+    if (override !== null) return override;
     return this._baseTransmissivity;
   }
 
   public canSeeThrough(from: BoundarySide, to: BoundarySide): boolean {
     return this.transmissivity(from, to) > 0;
   }
+}
+
+/**
+ * Validate a directional-override scalar — `null` or a number in
+ * [0, 1]. Used by both `aToBOverride` and `bToAOverride` setters.
+ */
+function validateOverrideScalar(
+  value: number | null,
+  name: 'aToBOverride' | 'bToAOverride'
+): number | null {
+  if (value === null) return null;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
+    throw new RangeError(
+      `Window.${name} must be null or a finite number in [0, 1], got ${value}`
+    );
+  }
+  return value;
 }
 
 /**

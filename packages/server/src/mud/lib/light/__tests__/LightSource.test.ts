@@ -29,30 +29,39 @@ describe('LightSourceMixin', () => {
     expect(MixinApi.hasMixin(Candle, Mixins.LightSource)).toBe(true);
   });
 
-  it('setEmittedLight stores a Light instance', () => {
+  it('setEmittedLight stores the Light value (decomposed into scalars)', () => {
     const c = makeStuff(() => new Candle());
     const l = Light.of(15, 'warm');
     c.setEmittedLight(l);
-    expect(c.getEmittedLight()).toBe(l);
-  });
-
-  it('setEmittedLight coerces a LightDataShape via the setter', () => {
-    const c = makeStuff(() => new Candle());
-    c.setEmittedLight({ intensity: 25, color: 'warm' });
     const stored = c.getEmittedLight();
     expect(stored).toBeInstanceOf(Light);
-    expect(stored.intensity).toBe(25);
+    expect(stored.intensity).toBe(15);
+    expect(stored.color).toBe('warm');
   });
 
-  it('PersistentHydrator round-trip via the setter', async () => {
+  it('setEmittedLight rejects non-Light values with TypeError', () => {
+    const c = makeStuff(() => new Candle());
+    expect(() =>
+      c.setEmittedLight({ intensity: 25, color: 'warm' } as unknown as Light)
+    ).toThrow(TypeError);
+  });
+
+  it('PersistentHydrator round-trips emittedIntensity + emittedColor', async () => {
     const c = makeStuff(() => new Candle());
     await makeStuff(() => new PersistentHydrator()).hydrate(c, {
-      emittedLight: { intensity: 30, color: 'warm' },
+      emittedIntensity: 30,
+      emittedColor: 'warm',
     });
-    expect(c.getEmittedLight()).toBeInstanceOf(Light);
-    expect(c.getEmittedLight().intensity).toBe(30);
-    const raw = ProxyApi.unwrap(c) as unknown as { emittedLight: Light };
-    expect(raw.emittedLight).toBeInstanceOf(Light);
+    const stored = c.getEmittedLight();
+    expect(stored).toBeInstanceOf(Light);
+    expect(stored.intensity).toBe(30);
+    expect(stored.color).toBe('warm');
+    const raw = ProxyApi.unwrap(c) as unknown as {
+      emittedIntensity: number;
+      emittedColor: string | null;
+    };
+    expect(raw.emittedIntensity).toBe(30);
+    expect(raw.emittedColor).toBe('warm');
   });
 
   it('fires onLightSourceChanged on the immediate environment when emission changes', () => {
@@ -70,11 +79,11 @@ describe('LightSourceMixin', () => {
     candle.setEmittedLight(Light.of(10));
     expect(hook).toHaveBeenCalledTimes(1);
     expect(hook.mock.calls[0]![0]).toBe(candle);
-    expect(hook.mock.calls[0]![1]).toBe(Light.ZERO);
-    expect(hook.mock.calls[0]![2].intensity).toBe(10);
+    expect((hook.mock.calls[0]![1] as Light).intensity).toBe(0);
+    expect((hook.mock.calls[0]![2] as Light).intensity).toBe(10);
   });
 
-  it('does not fire when the new value is the same Light instance', () => {
+  it('does not fire when intensity and color are unchanged', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new CartesianLocation());
     zone.addLocation(room, 0, 0, 0);
@@ -83,9 +92,10 @@ describe('LightSourceMixin', () => {
     (room as unknown as { onLightSourceChanged: typeof hook }).onLightSourceChanged = hook;
     ContainmentApi.move(candle, room);
 
-    const l = Light.of(10);
-    candle.setEmittedLight(l);
-    candle.setEmittedLight(l);
+    candle.setEmittedLight(Light.of(10));
+    expect(hook).toHaveBeenCalledTimes(1);
+    // Different Light instance, but same intensity and color — no fire.
+    candle.setEmittedLight(Light.of(10));
     expect(hook).toHaveBeenCalledTimes(1);
   });
 
