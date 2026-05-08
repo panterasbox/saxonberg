@@ -1,269 +1,196 @@
 /**
- * MqlApi - MUD Query Language for object resolution
+ * MqlApi — MUD Query Language for object resolution.
  *
- * Phase 4 implementation: Basic keyword matching only
- * - No ordinals ("first flower", "second sword")
- * - No quantities ("5 arrows")
- * - Simple keyword matching against name and keywords[]
+ * The thin public facade in front of the `mql/` pipeline. Two entry
+ * points reflect caller intent:
  *
- * Future phases will extend with advanced query syntax.
+ *   - {@link resolveOne} — one-of-N intent. Returns the highest-scored
+ *     match (or null) wrapped in {@link MqlOne}, with optional
+ *     sub-feature attribution. The future auto-disambiguation hook
+ *     (UI prompt when several candidates score equally) will layer
+ *     onto this code path additively.
+ *   - {@link resolveMany} — multi intent. Returns the full match list
+ *     in {@link MqlMany}; never disambiguated.
  *
- * Example:
- * ```typescript
- * const flower = MqlApi.resolve('flower', { avatar, location });
- * const flowers = MqlApi.resolveMany('flowers', { avatar, location });
- * ```
+ * Both delegate to the same internal pipeline (`mql/resolver.ts`); the
+ * difference is only in how the match list is wrapped.
+ *
+ * Internal `mql/` modules are pipeline stages, not Apis — they're not
+ * security-decorated. The class below is the security-decorated entry
+ * point; controllers and the dispatcher reach this surface only.
  */
 
-import type { Location } from '../lib/stuff/Location';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { CommandGiver } from '../lib/command/CommandGiver';
-import { ContainmentApi } from './containment';
-import { DescribeApi } from './describe';
-import { MixinApi } from './mixin';
+import { resolve as resolvePipeline } from './mql/resolver';
 import { SecurityApi } from './security';
 
+import type {
+  MqlContext,
+  MqlMatchVia,
+  MqlOneResult,
+  MqlManyResult,
+  MqlOne,
+  MqlMany,
+} from './mql/types';
+
+export type {
+  MqlContext,
+  MqlMatchVia,
+  MqlOneResult,
+  MqlManyResult,
+  MqlOne,
+  MqlMany,
+};
+
+// `PronounMemory` is the one mql/ class the non-api layer consumes
+// — `FocusedMixin` holds an instance per giver. Internal mql/
+// modules import their own siblings directly; everything else flows
+// through this facade so the `MqlApi` boundary stays the seam.
+export { PronounMemory } from './mql/pronoun-memory';
+
 /**
- * MQL (MUD Query Language) context.
+ * MqlApi — static utility class for object resolution.
  *
- * - `commandGiver`: the thing whose perspective drives the query (inventory
- *   search, "you" in error messages). Narrower than Stuff because MQL is
- *   always run on behalf of a command-issuing actor.
- * - `location`: the giver's current environment — searched after inventory.
- * - `searchOrder`: order of contexts to search; defaults to
- *   `['inventory', 'location']`.
- */
-export interface MqlContext {
-  commandGiver: Stuff & CommandGiver;
-  location: Location;
-  searchOrder?: string[];
-}
-
-/**
- * Internal match result with score — higher score = better match.
- */
-export interface MqlMatch {
-  object: Stuff;
-  score: number;
-}
-
-/**
- * MqlApi - Static utility class for object resolution
+ * Two public methods, both calling the same resolver pass:
+ *
+ *   - {@link resolveOne}: returns the top match wrapped (or null).
+ *   - {@link resolveMany}: returns the full sorted list, plus a
+ *     query-level `via` when every match arrived through the same
+ *     sub-feature path.
  */
 export class MqlApi {
   /**
-   * Resolve single object from query string
+   * Resolve a query under one-of-N intent. Returns the highest-scored
+   * match (or null when nothing matched), wrapped with any
+   * sub-feature attribution describing how the resolver got there
+   * (an Exit, a detail path, etc.).
    *
-   * Returns the FIRST (highest-scored) match, or null if no matches found.
-   *
-   * Example:
-   *   "flower" → Find object matching "flower"
-   *   "pink flower" → Find object matching both keywords
-   *
-   * @param query - Query string (keywords separated by spaces)
-   * @param context - MQL context (avatar, location, search order)
-   * @returns First matching object or null
+   * The dispatcher routes `type: object` YAML fields through this
+   * surface. Direct callers wanting "first match wins" semantics —
+   * the controller-side equivalent of `cmd foo, cmd foo working
+   * down the stack" — also use this.
    */
-  static resolve(query: string, context: MqlContext): Stuff | null {
-    const matches = this.#findMatches(query, context);
+  static resolveOne(query: string, ctx: MqlContext): MqlOne {
+    const matches = resolvePipeline(query, ctx);
+    if (matches.length === 0) return { stuff: null };
+    const top = matches[0]!;
+    const out: MqlOne = { stuff: top.stuff };
+    if (top.via) out.via = top.via;
+    return out;
+  }
 
-    if (matches.length === 0) {
+  /**
+   * Resolve a query under multi intent. Returns the full match list
+   * sorted by score (highest first), plus a query-level `via` when
+   * every match arrived through the same sub-feature path; mixed
+   * paths produce `via: undefined`.
+   *
+   * The dispatcher routes `type: objects` YAML fields through this
+   * surface.
+   */
+  static resolveMany(query: string, ctx: MqlContext): MqlMany {
+    const matches = resolvePipeline(query, ctx);
+    const stuff: Stuff[] = matches.map((m) => m.stuff);
+    const via = consensusVia(matches);
+    const out: MqlMany = { stuff };
+    if (via) out.via = via;
+    return out;
+  }
+
+  /**
+   * Unwrap a YAML-bound field value into a flat `Stuff[]`. Accepts
+   * `MqlOneResult` (single, possibly null), `MqlManyResult` (plural,
+   * possibly empty), or a bare `Stuff` (legacy / structured-input
+   * path). Returns `null` for anything else — a wrong-shape binding
+   * (string, number, boolean, undefined, …) — so validators can
+   * surface the right "must be an object" error.
+   *
+   * Empty MQL results (`stuff: null` / `stuff: []`) return `[]`
+   * rather than `null` — empty is a normal outcome the controller
+   * decides about, not a wrong-shape error. Validators that want
+   * to skip empty bindings should check `length === 0`.
+   *
+   * The MqlApi is the natural home: the wrappers come out of this
+   * pipeline, and validators ride on top of those wrappers.
+   */
+  static extractStuffs(value: unknown): Stuff[] | null {
+    if (value === null || value === undefined) return null;
+    if (typeof value !== 'object') return null;
+    if ('stuffId' in value && typeof (value as Stuff).stuffId === 'string') {
+      return [value as Stuff];
+    }
+    if ('stuff' in value) {
+      const v = (value as { stuff: Stuff | Stuff[] | null }).stuff;
+      if (v === null) return [];
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'object' && v !== null && 'stuffId' in v) {
+        return [v];
+      }
       return null;
     }
-
-    // Return highest-scored match
-    return matches[0]?.object || null;
+    return null;
   }
 
   /**
-   * Resolve multiple objects from query string
+   * Pick the effective target Stuff from a single-cardinality
+   * binding, considering both the direct match and any door
+   * attached to a `via.exit`. Returns the first Stuff (in that
+   * order) that satisfies `predicate`, or `null` when neither
+   * does.
    *
-   * Returns ALL matching objects, sorted by score (highest first).
+   * The "direct first, door second" rule is what makes door-acting
+   * verbs (`open`, `close`, future `knock` / `lock`) work
+   * uniformly across the two ways MQL can land on a door: by
+   * keyword on the door itself (`open oak`) or by direction
+   * through the location (`open north`). Controllers that don't
+   * care about doors just call `effectiveTarget(value, predicate)`
+   * and the via.exit branch is a no-op when no door is attached
+   * (or when the door doesn't satisfy the predicate).
    *
-   * Example:
-   *   "flower" → All objects matching "flower"
-   *   "flowers" → All objects matching "flowers"
-   *
-   * @param query - Query string (keywords separated by spaces)
-   * @param context - MQL context (avatar, location, search order)
-   * @returns Array of matching objects (empty if no matches)
+   * `predicate` is the standard `MixinApi.isX` shape — a type
+   * guard returning `obj is Stuff & T`. The narrowing flows
+   * through the return type, so callers don't need a follow-up
+   * cast.
    */
-  static resolveMany(query: string, context: MqlContext): Stuff[] {
-    const matches = this.#findMatches(query, context);
-    return matches.map((m) => m.object);
+  static effectiveTarget<T extends object>(
+    value: MqlOneResult,
+    predicate: (s: Stuff) => s is Stuff & T,
+  ): (Stuff & T) | null {
+    if (value.stuff && predicate(value.stuff)) return value.stuff;
+    const exit = value.via?.exit;
+    if (exit) {
+      const door = exit.getDoor();
+      if (door && predicate(door)) return door;
+    }
+    return null;
   }
+}
 
-  /**
-   * Find and score all matching objects
-   *
-   * @param query - Query string
-   * @param context - MQL context
-   * @returns Array of matches sorted by score (highest first)
-   */
-  static #findMatches(query: string, context: MqlContext): MqlMatch[] {
-    const keywords = this.#tokenizeQuery(query);
-    if (keywords.length === 0) {
-      return [];
-    }
-
-    const matches: MqlMatch[] = [];
-
-    // Search in order: inventory → location
-    const searchOrder = context.searchOrder || ['inventory', 'location'];
-
-    for (const contextName of searchOrder) {
-      const objects = this.#getObjectsInContext(contextName, context);
-
-      for (const obj of objects) {
-        const score = this.#scoreMatch(obj, keywords);
-        if (score > 0) {
-          matches.push({ object: obj, score });
-        }
-      }
-    }
-
-    // Sort by score (highest first)
-    matches.sort((a, b) => b.score - a.score);
-
-    return matches;
+/**
+ * Decide whether the match list shares a single `via` shape — when
+ * every match's via is undefined, return undefined; when every match's
+ * via is the same identity (shallow-equal), return that one; otherwise
+ * `undefined` (mixed paths).
+ *
+ * "Same identity" here means same exit reference or same detailPath
+ * sequence; we keep the comparison cheap by JSON-stringifying.
+ */
+function consensusVia(
+  matches: ReadonlyArray<{ via?: MqlMatchVia }>
+): MqlMatchVia | undefined {
+  if (matches.length === 0) return undefined;
+  const first = matches[0]!.via;
+  if (!first) {
+    // Every match must also have no via for consensus.
+    for (const m of matches) if (m.via) return undefined;
+    return undefined;
   }
-
-  /**
-   * Tokenize query string into keywords
-   *
-   * @param query - Query string
-   * @returns Array of lowercase keywords
-   */
-  static #tokenizeQuery(query: string): string[] {
-    return query
-      .trim()
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((k) => k.length > 0);
+  const firstKey = JSON.stringify(first);
+  for (const m of matches) {
+    if (!m.via) return undefined;
+    if (JSON.stringify(m.via) !== firstKey) return undefined;
   }
-
-  /**
-   * Get objects in a specific context
-   *
-   * @param contextName - Context name ('inventory' or 'location')
-   * @param context - MQL context
-   * @returns Array of objects in that context
-   */
-  static #getObjectsInContext(contextName: string, context: MqlContext): Stuff[] {
-    switch (contextName) {
-      case 'inventory':
-        return this.#getInventoryObjects(context.commandGiver);
-      case 'location':
-        return this.#getLocationObjects(context.location);
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get objects in the command giver's inventory.
-   *
-   * A giver without a Container mixin (no inventory) contributes nothing —
-   * this path is a no-op in that case rather than a type error.
-   */
-  static #getInventoryObjects(giver: Stuff & CommandGiver): Stuff[] {
-    if (!MixinApi.isContainer(giver)) return [];
-    return ContainmentApi.getContents(giver);
-  }
-
-  /**
-   * Get objects in location.
-   *
-   * Includes the location's normal contents PLUS any doors referenced by
-   * its obvious exits (when the location is Exitable). Doors are not
-   * "contents" — they don't live inside the location — but they are
-   * player-targetable by name (`open the oak door`), so they participate
-   * in MQL resolution on the location.
-   *
-   * @param location - Location to search
-   * @returns Array of objects in location (contents ∪ exit doors)
-   */
-  static #getLocationObjects(location: Location): Stuff[] {
-    const objects: Stuff[] = ContainmentApi.getContents(location);
-    if (MixinApi.isExitable(location)) {
-      const seen = new Set<string>();
-      for (const door of location.getExitDoors()) {
-        if (seen.has(door.stuffId)) continue;
-        seen.add(door.stuffId);
-        objects.push(door);
-      }
-    }
-    return objects;
-  }
-
-  /**
-   * Score an object against query keywords
-   *
-   * Scoring algorithm:
-   * - Exact name match: 100 points
-   * - Name contains all keywords: 50 points
-   * - Keyword array match (all keywords): 25 points
-   * - Keyword array match (partial): 10 points per keyword
-   *
-   * @param obj - Object to score
-   * @param keywords - Query keywords
-   * @returns Score (0 = no match, higher = better match)
-   */
-  static #scoreMatch(obj: Stuff, keywords: string[]): number {
-    const name = DescribeApi.getDisplayName(obj);
-    if (!name) return 0;
-
-    const nameLower = name.toLowerCase();
-    const nameWords = nameLower.split(/\s+/);
-
-    const objKeywords: string[] = [];
-    if (MixinApi.isPerceptible(obj)) {
-      const keywords = obj.getKeywords();
-      if (Array.isArray(keywords)) {
-        objKeywords.push(...keywords);
-      }
-    }
-
-    // Exact name match
-    if (keywords.length === 1 && nameLower === keywords[0]) {
-      return 100;
-    }
-
-    // Name contains all keywords
-    if (keywords.every((kw) => nameLower.includes(kw))) {
-      return 50;
-    }
-
-    // Check against name words
-    const nameMatches = keywords.filter((kw) => nameWords.some((word) => word.includes(kw)));
-    if (nameMatches.length === keywords.length) {
-      return 40;
-    }
-
-    // Check against keyword array (all keywords match)
-    if (objKeywords.length > 0) {
-      const keywordMatches = keywords.filter((kw) =>
-        objKeywords.some((objKw) => objKw.includes(kw))
-      );
-
-      if (keywordMatches.length === keywords.length) {
-        return 25;
-      }
-
-      // Partial keyword match
-      if (keywordMatches.length > 0) {
-        return 10 * keywordMatches.length;
-      }
-    }
-
-    // Check name word partial matches
-    if (nameMatches.length > 0) {
-      return 5 * nameMatches.length;
-    }
-
-    return 0;
-  }
-
+  return first;
 }
 
 SecurityApi.decorateApiClass(MqlApi);

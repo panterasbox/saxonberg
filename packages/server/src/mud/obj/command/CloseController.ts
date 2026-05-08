@@ -1,5 +1,21 @@
 /**
  * CloseController — close any Sealable the player can reach.
+ *
+ * Phase 7+: target is pre-resolved through MQL by the dispatcher;
+ * the controller reads `model.target.stuff` directly.
+ *
+ * Two resolution shapes can arrive:
+ *
+ *   - **Direct hit on a Sealable** — `target.stuff` is the Sealable
+ *     itself (a chest, a door matched by keyword like
+ *     `close oak door`).
+ *   - **Direction match** — `target.stuff` is the actor's current
+ *     location and `target.via.exit` is the exit the actor named.
+ *     The door is fetched from `via.exit.getDoor()`. This is the
+ *     canonical `close north` shape.
+ *
+ * The YAML wires `canReach` so MQL queries that resolve to remote
+ * Sealables fail validation before reaching the controller.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -8,48 +24,62 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Sealable } from '../../lib/spatial/Sealable';
 
 interface CloseModel extends CommandModel {
-  target?: string;
+  target?: MqlOneResult;
 }
 
 export class CloseController extends CommandController<CloseModel> {
   execute(model: CloseModel, context: CommandContext): CommandResult {
-    const { commandGiver, location } = context;
-    const target = (model.target ?? '').trim();
-    if (!target) return { success: false, summary: 'close what?' };
-
-    const hit = MqlApi.resolve(target, { commandGiver, location });
-    if (!hit) {
+    const { commandGiver } = context;
+    const target = model.target;
+    if (target === undefined) {
+      return { success: false, summary: 'close what?' };
+    }
+    if (target.stuff === null) {
       return {
         success: false,
-        summary: `you don't see any ${target} here`,
+        summary: `you don't see any '${target.raw}' here`,
       };
     }
-    if (!MixinApi.isSealable(hit)) {
+
+    // Direct hit (close oak) → target.stuff; direction match
+    // (close north) → via.exit.getDoor(). MqlApi.effectiveTarget
+    // tries both and returns the first Sealable. The arrow
+    // wrapper preserves MixinApi as `this` for the internal
+    // hasMixin lookup.
+    const sealable = MqlApi.effectiveTarget(
+      target,
+      (s): s is Stuff & Sealable => MixinApi.isSealable(s),
+    );
+    if (!sealable) {
       return { success: false, summary: "can't close that" };
     }
 
-    if (!hit.getIsOpen()) {
+    if (!sealable.getIsOpen()) {
       return { success: false, summary: 'already closed' };
     }
 
-    hit.close();
+    sealable.close();
 
     MessageApi.scene(commandGiver)
       .topic(MessageApi.Topics.world.narration.action)
-      .toSelf(Mml.compose`You close ${Mml.object(hit)}.`)
-      .toPeers(Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(hit)}.`)
+      .toSelf(Mml.compose`You close ${Mml.object(sealable as unknown as Stuff)}.`)
+      .toPeers(
+        Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(sealable as unknown as Stuff)}.`,
+      )
       .send();
 
     return {
       success: true,
-      summary: `closed ${DescribeApi.getDisplayName(hit, 'it')}`,
+      summary: `closed ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
     };
   }
 }

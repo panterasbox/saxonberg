@@ -41,6 +41,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { Mixins } from '../mixin';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Public shape provided by PerceptibleMixin.
@@ -51,6 +53,20 @@ export interface Perceptible {
   removeKeyword(keyword: string): boolean;
   hasKeyword(keyword: string): boolean;
   setKeywords(keywords: string[]): void;
+}
+
+/**
+ * Lowercase + split-on-whitespace tokenization. Used by
+ * {@link PerceptibleMixin.getKeywords} to fold a host's display name
+ * into the keyword pool — `'oak door'` produces `['oak', 'door']`,
+ * letting players type either token.
+ */
+function tokenizeName(name: string): string[] {
+  return name
+    .toLowerCase()
+    .split(/\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -73,9 +89,23 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `target['keywords'] = data['keywords']` — bracket access bypasses
      * TS visibility, so the normalization invariant runs during
      * hydration.
+     *
+     * The getter returns the **derived** keyword pool: authored
+     * keywords plus, for hosts that compose `NamedMixin`, tokenized
+     * words from the host's display name. Authored entries always
+     * lead so an exact-keyword match outranks a tokenized-name
+     * match (see `scope-walk.scoreCandidate`). Internal callers that
+     * need the raw authored set go through `_keywords` directly.
      */
     protected get keywords(): string[] {
-      return [...this._keywords];
+      const out: string[] = [...this._keywords];
+      if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
+        const named = this as unknown as { getName(): string };
+        for (const tok of tokenizeName(named.getName())) {
+          if (!out.includes(tok)) out.push(tok);
+        }
+      }
+      return out;
     }
 
     protected set keywords(value: string[]) {
@@ -87,7 +117,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     getKeywords(): string[] {
-      return [...this._keywords];
+      return this.keywords;
     }
 
     addKeyword(keyword: string): void {

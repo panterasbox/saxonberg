@@ -52,7 +52,6 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
-import type { CommandContributions } from '../../api/command';
 import type { CommandSchemaPayload } from '../../api/command';
 import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
@@ -381,6 +380,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       ExecutionContextApi.updateCurrentFrameMetadata({
         commandContext: context,
         causingCommandId: context.commandId,
+        forced: opts.forced ?? false,
       });
 
       let verb = '';
@@ -491,7 +491,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // matcher.
         context.verb = parsed.verb;
         context.command = command;
-        const validated = CommandApi.resolveAndValidate(built.model, context);
+        const validated = CommandApi.resolveAndValidate(
+          built.model,
+          context,
+          built.prep
+        );
         if ('result' in validated) return validated.result;
         const interim = await this._executeOne(
           command,

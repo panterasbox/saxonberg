@@ -30,6 +30,7 @@ export const Mixins = {
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
   CommandGiver: 'CommandGiverMixin',
+  Focused: 'FocusedMixin',
   Mobile: 'MobileMixin',
   CartesianCoordinates: 'CartesianCoordinatesMixin',
   SphericalCoordinates: 'SphericalCoordinatesMixin',

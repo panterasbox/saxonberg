@@ -213,10 +213,24 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['persistentStore'];
 
     /**
-     * Substrate declares no settings of its own (D6). This empty
-     * static is intentional — it documents the discipline.
+     * Shell-tier settings the substrate owns. The substrate
+     * historically declared none (D6); `shell.interpolate-vars`
+     * lives here because it gates a substrate-wide behavior that
+     * keys off `EnvironmentMixin`'s presence — declaring it
+     * elsewhere would split the contract.
      */
-    static settings: SettingsSchemaEntry[] = [];
+    static settings: SettingsSchemaEntry[] = [
+      {
+        key: 'shell.interpolate-vars',
+        type: SettingTypes.Boolean,
+        default: true,
+        description:
+          'When true, the matcher expands $name / ${name} ' +
+          'references in command input before binding. False ' +
+          'turns expansion off for the host (scripts can use ' +
+          'literal `$X` text).',
+      },
+    ];
 
     /**
      * Player-facing commands that operate on this mixin's stores.

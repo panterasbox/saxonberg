@@ -1,5 +1,13 @@
 /**
  * GoController — locomotion: traverse a named exit or enter a sibling vessel.
+ *
+ * Phase 7+: the dispatcher pre-resolves `target` through MQL with
+ * scope inherited from the player. When the match arrived through an
+ * Exit (direction or door alias), the resolver stamps
+ * `ctx.via.target.exit`; the controller traverses that exit directly.
+ * Otherwise the resolved Stuff itself is consulted — an
+ * `ExitableVessel` synthesizes its entry exit so the player can
+ * enter sibling vessels naturally.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -8,9 +16,9 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import type { MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
-import { MqlApi } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Mobile } from '../../lib/spatial/Mobile';
@@ -19,7 +27,7 @@ import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
 interface GoModel extends CommandModel {
-  target?: string;
+  target?: MqlOneResult;
 }
 
 export class GoController extends CommandController<GoModel> {
@@ -27,12 +35,16 @@ export class GoController extends CommandController<GoModel> {
     model: GoModel,
     context: CommandContext
   ): Promise<CommandResult> {
-    const { location } = context;
-
-    const rawTarget = model.target;
-    const target = rawTarget?.trim().toLowerCase();
-    if (!target) {
+    const target = model.target;
+    if (target === undefined) {
+      // The matcher requires a target on `go`, so this branch is
+      // only reachable from synthetic dispatches (tests, internal
+      // flows) — keep it for safety.
       return { success: false, summary: 'go where?' };
+    }
+    if (target.stuff === null) {
+      // Player typed a direction/keyword that MQL couldn't resolve.
+      return { success: false, summary: "can't go that way" };
     }
 
     const mover = context.commandGiver;
@@ -40,22 +52,11 @@ export class GoController extends CommandController<GoModel> {
       return { success: false, summary: "can't move" };
     }
 
-    if (!MixinApi.isExitable(location)) {
-      return { success: false, summary: "can't go anywhere from here" };
-    }
+    const exit = target.via?.exit;
+    if (exit) return this.traverse(exit, mover);
 
-    const namedExit = location.getExit(target);
-    if (namedExit) {
-      return this.traverse(namedExit, mover);
-    }
-
-    const resolved = MqlApi.resolve(target, {
-      commandGiver: context.commandGiver,
-      location,
-      searchOrder: ['location'],
-    });
-    if (resolved instanceof ExitableVessel) {
-      const entry = resolved.getEntryExit();
+    if (target.stuff instanceof ExitableVessel) {
+      const entry = target.stuff.getEntryExit();
       if (entry) return this.traverse(entry, mover);
     }
 

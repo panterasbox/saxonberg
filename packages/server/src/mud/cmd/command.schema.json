@@ -66,8 +66,8 @@
           "description": "Field name the bound value lands on. Reserved: `subcommand` (when the verb declares subcommands)."
         },
         "type": {
-          "enum": ["string", "number", "boolean", "object"],
-          "description": "Field value type. `object` runs MQL resolution."
+          "enum": ["string", "number", "boolean", "object", "objects"],
+          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL)."
         },
         "required": { "type": "boolean" },
         "greedy": {
@@ -76,13 +76,32 @@
         },
         "multiple": {
           "type": "boolean",
-          "description": "Accumulate multiple values into an array (typically with type: object)."
+          "description": "Accumulate multiple values into an array. Used for non-MQL fields; for MQL plural use `type: objects` instead."
         },
         "validators": {
           "type": "array",
           "items": { "$ref": "#/$defs/validatorSpec" }
         },
-        "default": {}
+        "default": {
+          "type": "string",
+          "description": "Fill-in text used when the player provides no input for this field. Runs through ShellApi.expandVariables — `default: \"$focus\"` resolves to the giver's current focus at bind time."
+        },
+        "scope": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+          ],
+          "description": "MQL fragment(s) the dispatcher tries when resolving this field. Each entry runs through ShellApi.expandVariables and is tried in order; first non-empty result wins. Array form is the explicit fallback chain (e.g. `['$focus', 'inventory, here']` for drill-first). Only meaningful for `type: object` / `type: objects`."
+        },
+        "updates_focus": {
+          "enum": ["extend", "replace", "none"],
+          "description": "Focus management policy. `extend` appends the input fragment to the giver's current focus with `:` (with same-anchor compaction); `replace` re-anchors wholesale; `none` (default) leaves focus alone. Inspection-shaped verbs (look, examine, open, close) declare `extend`."
+        },
+        "prepositions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Optional list of leading prepositions the matcher consumes (e.g. `[at]` for `look at`, `[to]` for `give X to Y`)."
+        }
       }
     },
     "option": {

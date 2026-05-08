@@ -3,5 +3,9 @@ controller: CloseController
 description: "Close a door (by direction or by name)"
 args:
   - name: target
-    type: string
+    type: object
     required: true
+    scope: "reachable"
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/canReach

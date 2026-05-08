@@ -34,6 +34,7 @@ import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
 import type { Propertied } from '../lib/stuff/Propertied';
 import type { CommandGiver } from '../lib/command/CommandGiver';
+import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/spatial/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
 import type { CartesianCoordinates } from '../lib/spatial/CartesianCoordinates';
@@ -286,6 +287,10 @@ export class MixinApi {
 
   public static isCommandGiver(obj: Stuff): obj is Stuff & CommandGiver {
     return this.hasMixin(obj, Mixins.CommandGiver);
+  }
+
+  public static isFocused(obj: Stuff): obj is Stuff & Focused {
+    return this.hasMixin(obj, Mixins.Focused);
   }
 
   public static isExitable(obj: Stuff): obj is Stuff & Exitable {

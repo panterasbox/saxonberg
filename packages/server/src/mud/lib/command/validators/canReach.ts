@@ -1,7 +1,34 @@
 /**
- * canReach — the bound Stuff must be in the actor's inventory or in
- * their location's contents. Cheap reachability gate ahead of the
- * controller's per-verb logic.
+ * canReach — every bound Stuff must be physically reachable from the
+ * actor right now. The reachability surface is wider than
+ * `getContents()` — it includes attached doors and the location
+ * itself when the match arrived through a direction (via.exit).
+ *
+ * **Why the validator exists.** MQL's `scope:` declaration is a
+ * search hint, not a security gate. A query like
+ * `drop online:bob:i:sword` resolves to bob's sword regardless of
+ * the YAML's `scope: "inventory"` because the scope is just the
+ * default search anchor. Validators on `type: object` /
+ * `type: objects` fields enforce world-state constraints the
+ * resolver can't — "this thing must actually be in arm's reach"
+ * is the canonical example.
+ *
+ * Reach criteria, any one passes:
+ *
+ *   - The Stuff is in the actor's inventory.
+ *   - The Stuff is in the actor's current location's contents
+ *     (peers, dropped items, detached doors).
+ *   - The Stuff is a door currently attached to one of the
+ *     location's exits (attached doors have `environment === null`,
+ *     so they aren't in any container — but they're reachable
+ *     through the exits that reference them).
+ *   - The Stuff is the actor's current location AND the binding
+ *     carries `via.exit` (the door-via-direction case — `open
+ *     north` resolves to the location with the exit attribution;
+ *     the controller fetches the door from `via.exit.getDoor()`).
+ *
+ * Empty MQL results pass through — the controller produces the
+ * `you don't see X here` message.
  */
 
 import type { Stuff } from '../../stuff/Stuff';
@@ -9,28 +36,46 @@ import type { FieldValidator } from '../../../api/command';
 import { ContainmentApi } from '../../../api/containment';
 import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
+import { MqlApi } from '../../../api/mql';
 
-const validator: FieldValidator = (obj, field, context) => {
-  if (!(obj && typeof obj === 'object' && 'stuffId' in obj)) {
-    return `${field} must be an object`;
-  }
-
-  const stuff = obj as Stuff;
+const validator: FieldValidator = (value, field, context) => {
+  const stuffs = MqlApi.extractStuffs(value);
+  if (stuffs === null) return `${field} must be an object`;
+  if (stuffs.length === 0) return undefined;
 
   const giver = context.commandGiver;
-  if (MixinApi.isContainer(giver)) {
-    const inventory = ContainmentApi.getContents(giver);
-    if (inventory.some((item) => item.stuffId === stuff.stuffId)) {
-      return undefined;
+  const location = context.location;
+
+  const inventoryIds = MixinApi.isContainer(giver)
+    ? new Set(ContainmentApi.getContents(giver).map((s) => s.stuffId))
+    : new Set<string>();
+  const locationIds = new Set(
+    ContainmentApi.getContents(location).map((s) => s.stuffId),
+  );
+  const exitDoorIds = new Set<string>();
+  if (MixinApi.isExitable(location)) {
+    for (const exit of location.getObviousExits()) {
+      const door = exit.getDoor();
+      if (door) exitDoorIds.add(door.stuffId);
     }
   }
 
-  const contents = ContainmentApi.getContents(context.location);
-  if (contents.some((item) => item.stuffId === stuff.stuffId)) {
-    return undefined;
-  }
+  const via = isViaShape(value) ? value.via : undefined;
 
-  return `You cannot reach the ${DescribeApi.getDisplayName(stuff, 'object')}`;
+  for (const stuff of stuffs) {
+    const id = (stuff as Stuff).stuffId;
+    if (id === giver.stuffId) continue; // the actor themselves
+    if (id === location.stuffId && via?.exit) continue; // door-via-direction
+    if (inventoryIds.has(id)) continue;
+    if (locationIds.has(id)) continue;
+    if (exitDoorIds.has(id)) continue;
+    return `you can't reach ${DescribeApi.getDisplayName(stuff, 'that')}`;
+  }
+  return undefined;
 };
+
+function isViaShape(value: unknown): value is { via?: { exit?: unknown } } {
+  return typeof value === 'object' && value !== null && 'via' in value;
+}
 
 export default validator;

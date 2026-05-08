@@ -122,12 +122,17 @@ export class CommandDefinition {
   }
 
   /**
-   * Per-subcommand `options` table normalisation. Args arrays are
-   * already in their canonical shape from YAML.
+   * Per-subcommand `options` table normalisation, plus per-positional
+   * `scope` coercion. The YAML/spec record accepts
+   * `scope: string | string[]`; downstream code treats it as
+   * `string[] | undefined` after this pass, so consumers don't have
+   * to branch on `Array.isArray` at every call site.
    */
   private normaliseShape(): void {
+    for (const a of this.args) normalisePositionalScope(a);
     for (const [, sub] of Object.entries(this.subcommands)) {
       sub.options = normaliseOptions(sub.options);
+      for (const a of sub.args ?? []) normalisePositionalScope(a);
     }
   }
 
@@ -305,6 +310,26 @@ function normaliseOptions(
 ): Record<string, OptionDefinition> {
   if (!raw) return {};
   return raw;
+}
+
+/**
+ * Coerce `scope: 'foo'` to `['foo']` in place. Empty strings are
+ * normalised to `undefined` (so the dispatcher's "default to
+ * 'here'" branch fires). Idempotent — re-running on an already-
+ * arrayed scope leaves it alone.
+ */
+function normalisePositionalScope(def: PositionalDefinition): void {
+  const s = def.scope;
+  if (Array.isArray(s)) return;
+  if (typeof s !== 'string') {
+    delete def.scope;
+    return;
+  }
+  if (s.length === 0) {
+    delete def.scope;
+    return;
+  }
+  def.scope = [s];
 }
 
 function optionFieldName(

@@ -3,9 +3,10 @@ controller: DropController
 description: "Drop objects from your inventory"
 args:
   - name: targets
-    type: object
+    type: objects
     required: true
     greedy: true
-    multiple: true
+    scope: "inventory"
     validators:
       - /lib/command/validators/mustBeContainable
+      - /lib/command/validators/mustBeInInventory

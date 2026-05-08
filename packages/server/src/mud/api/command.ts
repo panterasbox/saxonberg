@@ -17,6 +17,9 @@ import type { Location } from '../lib/stuff/Location';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
+import type { Focused } from '../lib/command/Focused';
+import { ArrayApi } from './array';
+import { ShellApi } from './shell';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
@@ -26,12 +29,21 @@ import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
-import { MqlApi } from './mql';
+import {
+  MqlApi,
+  type MqlMany,
+  type MqlManyResult,
+  type MqlMatchVia,
+  type MqlOneResult,
+  type MqlOne,
+} from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
 import { ExecutionContextApi } from './execution-context';
 import { CommandLineApi, type ParsedCommand, type RawToken } from './command-line';
 import type { Mml } from './mml';
+import type { GenderedSlot } from './mql/pronoun-memory';
+import { Pronouns } from '@saxonberg/types';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -47,6 +59,17 @@ export interface ExecuteCommandOpts {
    * undefined.
    */
   interactive?: Interactive;
+
+  /**
+   * Set by {@link CommandApi.forceCommand} when the runtime fires a
+   * command on behalf of the player (auto-look on arrival, NPC
+   * scripts, scheduled triggers). The flag rides through to the
+   * Command frame's metadata so hooks can ask "am I executing inside
+   * a forced command?" via
+   * {@link ExecutionContextApi.getCommandStack}. Player-typed input
+   * defaults to `false`.
+   */
+  forced?: boolean;
 }
 
 /**
@@ -200,13 +223,31 @@ export interface CommandResult {
 
 /**
  * Field value union — what `model.fields[name]` can hold after the
- * matcher's resolve/validate stage. The `Stuff` arm covers
- * `type: object` fields after MQL resolves them; `FieldValue[]` covers
- * `multiple: true` accumulation. Arrays of arrays are not produced
- * (the matcher flattens), but the type is recursive to keep callers
- * from having to disambiguate.
+ * matcher's resolve/validate stage.
+ *
+ *   - `boolean`/`string`/`number` for primitive-typed fields.
+ *   - `Stuff` historically for `type: object` resolved fields;
+ *     replaced by `MqlOneResult` post-Phase-7 (kept in the union for the
+ *     transitional matcher path that lands raw values on the model
+ *     before resolution).
+ *   - `MqlOneResult` for resolved `type: object` fields — bundles
+ *     stuff + via + raw + prep into a single per-field record.
+ *     `MqlOneResult.stuff` is `null` when MQL produced no match.
+ *   - `MqlManyResult` for resolved `type: objects` fields — same shape
+ *     with `stuff` as `Stuff[]`.
+ *   - `FieldValue[]` covers `multiple: true` option accumulation.
+ *
+ * Arrays of arrays are not produced (the matcher flattens), but the
+ * type is recursive to keep callers from having to disambiguate.
  */
-export type FieldValue = boolean | string | number | Stuff | FieldValue[];
+export type FieldValue =
+  | boolean
+  | string
+  | number
+  | Stuff
+  | MqlOneResult
+  | MqlManyResult
+  | FieldValue[];
 
 /**
  * Resolved field values keyed by field name. Positional-field values
@@ -269,7 +310,16 @@ export type FieldValidator = (
  * string form.
  */
 export interface FieldDefinition {
-  type?: 'string' | 'number' | 'boolean' | 'object';
+  /**
+   * - `string` / `number` / `boolean` — primitive coerce-on-bind.
+   * - `object` — singular MQL field; the dispatcher resolves the
+   *   bound text via `MqlApi.resolveOne`, picking the highest-scored
+   *   match (or failing the command on no match).
+   * - `objects` — plural MQL field; the dispatcher resolves via
+   *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
+   *   fields — the cardinality is the type.
+   */
+  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects';
   required?: boolean;
   /**
    * Greedy positional: consumes the remainder of the original input
@@ -286,7 +336,92 @@ export interface FieldDefinition {
    * @internal
    */
   _resolvedValidators?: FieldValidator[];
-  default?: unknown;
+  /**
+   * Value the matcher fills when the player provides no input for
+   * this field. The default runs through shell-side variable
+   * interpolation just like player-typed text — `default: "$focus"`
+   * resolves to the giver's current focus at bind time.
+   *
+   * `required: true` + `default:` is allowed: the default replaces
+   * the missing input, no shape error. The "missing required arg"
+   * message only fires when the field is required AND has no
+   * default AND the player supplied nothing.
+   */
+  default?: string;
+  /**
+   * MQL scope fragment(s) the dispatcher tries when resolving this
+   * field. Each fragment runs through `ShellApi.expandVariables`
+   * (so `$focus` / stored vars expand at resolve time) and is tried
+   * in order; first non-empty result wins.
+   *
+   * The YAML/spec record accepts `string | string[]`. After
+   * `CommandDefinition` construction, the runtime value is always
+   * `string[] | undefined` — `normaliseShape` coerces a bare string
+   * into a singleton array, so consumers don't have to branch.
+   *
+   * The array form is the explicit fallback chain — a verb that
+   * wants drill-first-then-broad declares
+   * `scope: ['$focus', 'reachable']` so a drilled player searches
+   * the focus first with the room as fallback. Verbs that should
+   * ignore drill declare a non-`$focus` fragment (e.g.
+   * `scope: 'inventory'` for `drop`, `scope: 'peers'` for `get`).
+   *
+   * Default when omitted: `['$focus']` — the drill chain IS the
+   * scope. The resolver's empty-scope fallback to `reachable`
+   * stays as the safety net for when the focus chain stops resolving
+   * (typically after movement into a different room). Only
+   * meaningful for `type: object` / `type: objects` fields.
+   */
+  scope?: string | string[];
+  /**
+   * Focus management policy for this field. Three modes:
+   *
+   *   - `extend` — append the post-desugar input fragment to the
+   *     giver's current focus with `:` as the separator. With
+   *     same-anchor + via.detailPath compaction (re-resolving the
+   *     same target doesn't double-add). The drill-additive default
+   *     for inspection-shaped verbs (`look`, `examine`, `read`,
+   *     `open`, `close`).
+   *
+   *   - `replace` — set focus to the post-desugar input fragment
+   *     wholesale. For navigation/anchoring verbs that should reset
+   *     the trail rather than extend it.
+   *
+   *   - `none` (default) — focus unchanged. Most commands (`get`,
+   *     `drop`, `say`) don't manage focus.
+   *
+   * Pronoun substitution applies in all extending paths: when raw
+   * is itself a pronoun (`it`/`him`/`her`/`them`/`$$`), the stored
+   * fragment from pronoun memory replaces the literal pronoun string
+   * before the focus is updated, so the trail tracks the actual
+   * referent rather than the unstable pronoun.
+   *
+   * Empty resolutions never touch focus regardless of mode — the
+   * resolveAndValidate gate is "if resolved.stuff is non-null".
+   *
+   * Renamed from the v1 `updates_scope?: boolean` field — the field
+   * manages **focus**, not scope. The boolean's `true` setting is
+   * equivalent to `'extend'` under the new drill-additive default.
+   */
+  updates_focus?: 'extend' | 'replace' | 'none';
+  /**
+   * Optional list of prepositions the matcher will consume as a
+   * leading boundary marker for this positional field. Lowercased.
+   * Typing `look at flower` against `prepositions: [at]` consumes
+   * the `at` and binds `target = "flower"`; typing `look flower`
+   * binds `target = "flower"` directly. The consumed preposition
+   * lands on `ctx.prep[fieldName]`.
+   *
+   * For multi-field commands, *later* fields' declared prepositions
+   * also serve as termination boundaries for an earlier greedy
+   * field — `give the red flower to bob` splits correctly because
+   * `recipient: prepositions: [to]` tells the matcher to stop the
+   * greedy `gift` at `to`.
+   *
+   * Prepositions are always optional: declaring `prepositions: [to]`
+   * means "consume `to` if it appears here," not "require `to`."
+   */
+  prepositions?: string[];
 }
 
 /**
@@ -637,13 +772,14 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    _ctx: { commandGiver: Stuff & CommandGiver; location: Location }
+    ctx: { commandGiver: Stuff & CommandGiver; location: Location }
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
       return { error: 'shape', summary: 'No verb' };
     }
 
+    const expand = makeExpander(ctx.commandGiver);
     const fields: ModelData = {};
     let i = 1;
     let stopped = false;
@@ -710,11 +846,13 @@ export class CommandApi {
     }
 
     // Phase 4: bind positionals against the active args array(s).
+    let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed);
+      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
+      prep = r.prep;
     } else if (command.hasSubcommands()) {
       // Subcommanded verb without a subcommand — still legal; the
       // controller decides what to do with `model.subcommand ===
@@ -727,9 +865,10 @@ export class CommandApi {
       }
     } else {
       // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed);
+      const r = bindPositionals(positionals, command.args, parsed, expand);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
+      prep = r.prep;
     }
 
     // Apply option defaults that didn't fire.
@@ -740,7 +879,9 @@ export class CommandApi {
       fields[SUBCOMMAND_FIELD] = subcommand;
     }
 
-    return { model: fields };
+    const out: AssembleSuccess = { model: fields };
+    if (Object.keys(prep).length > 0) out.prep = prep;
+    return out;
   }
 
   /**
@@ -803,7 +944,8 @@ export class CommandApi {
    */
   static resolveAndValidate(
     model: CommandModel,
-    context: CommandContext
+    context: CommandContext,
+    prep: Record<string, string> = {}
   ): { resolved: CommandModel } | { result: CommandResult } {
     const command = context.command;
     const subcommand =
@@ -813,32 +955,78 @@ export class CommandApi {
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     const resolved: ModelData = { ...model };
 
+    const giver = context.commandGiver;
+    const focused = MixinApi.isFocused(giver) ? giver : null;
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const raw = resolved[fname];
-      if (def.type !== 'object') continue;
+      if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
-      if (def.multiple) {
-        const objects = MqlApi.resolveMany(raw, {
-          commandGiver: context.commandGiver,
-          location: context.location,
-        });
-        if (objects.length === 0) {
-          return {
-            result: { success: false, summary: `You don't see any '${raw}' here` },
-          };
+
+      // Build the scope try-list. The YAML's `scope:` is authoritative
+      // — it's the explicit ordered fallback chain. Each entry runs
+      // through ShellApi.expandVariables so authors can reference
+      // synthetic vars (`$focus`) and stored vars at resolve time. A
+      // YAML that wants drill-first-then-broad declares
+      // `scope: ['$focus', 'reachable']`.
+      //
+      // When YAML omits `scope:` entirely, the default is `['$focus']`
+      // — the drill chain IS the scope. The resolver's empty-scope
+      // fallback to reachable stays as the safety net for when the
+      // chain stops resolving (typically after the player walks into
+      // a different room and the old chain doesn't make sense).
+      //
+      // `def.scope` is normalised to `string[] | undefined` by
+      // CommandDefinition.normaliseShape, so no Array.isArray here.
+      const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
+      const tries: string[] = yamlScopes.map((s) =>
+        ShellApi.expandVariables(s, giver)
+      );
+
+      const focusMode: 'extend' | 'replace' | 'none' =
+        def.updates_focus ?? 'none';
+      const fieldPrep = prep[fname];
+
+      if (def.type === 'objects') {
+        let r: MqlMany = { stuff: [] };
+        for (const scope of tries) {
+          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+          if (r.stuff.length > 0) break;
         }
-        resolved[fname] = objects as unknown as FieldValue;
+        // Empty results are a normal outcome — pass `[]` through
+        // on the wrapper and let the controller decide what
+        // no-match means in its domain. Don't update scope or
+        // pronoun memory on empty (no anchor to anchor on).
+        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        if (fieldPrep !== undefined) bound.prep = fieldPrep;
+        resolved[fname] = bound;
+        if (r.stuff.length > 0 && focused) {
+          // Multi-cardinality results don't update player scope (no
+          // single anchor to extend or re-anchor from). Pronoun memory
+          // only updates for Focused givers — others have no stash.
+          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        }
       } else {
-        const obj = MqlApi.resolve(raw, {
-          commandGiver: context.commandGiver,
-          location: context.location,
-        });
-        if (!obj) {
-          return {
-            result: { success: false, summary: `You don't see any '${raw}' here` },
-          };
+        let r: MqlOne = { stuff: null };
+        for (const scope of tries) {
+          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+          if (r.stuff !== null) break;
         }
-        resolved[fname] = obj as unknown as FieldValue;
+        // `null` (empty) is a normal outcome — pass it through on
+        // the wrapper and let the controller decide what no-match
+        // means.
+        const bound: MqlOneResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        if (fieldPrep !== undefined) bound.prep = fieldPrep;
+        resolved[fname] = bound;
+        if (r.stuff !== null && focused) {
+          if (focusMode !== 'none') {
+            updatePlayerFocus(focused, raw, r.stuff, r.via, focusMode);
+          }
+          const asMany: MqlMany = { stuff: [r.stuff] };
+          if (r.via) asMany.via = r.via;
+          focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
+        }
       }
     }
 
@@ -905,6 +1093,32 @@ export class CommandApi {
   }
 
   /**
+   * Programmatic command invocation — fire `text` on `giver` exactly
+   * as if the player had typed it, but stamp `forced: true` on the
+   * resulting Command frame so hooks can tell the two apart.
+   *
+   * Used by:
+   *   - The auto-look-on-arrival hook (`look` after a successful
+   *     traversal), so the dispatcher's normal `updates_focus` path
+   *     re-anchors the focus chain for the new room.
+   *   - Future system-fired commands (event-triggered actions, NPC
+   *     scripts, scheduled tasks).
+   *
+   * Player-typed commands continue to flow through `executeCommand`
+   * directly with `forced` defaulting to `false`. Hooks that need to
+   * distinguish (e.g., a cinematic-locked NPC blocking auto-look)
+   * walk the stack via {@link ExecutionContextApi.getCommandStack}
+   * and look for forced ancestors.
+   */
+  static forceCommand(
+    giver: Stuff & CommandGiver,
+    text: string,
+    opts: ExecuteCommandOpts = {}
+  ): Promise<CommandResult> {
+    return giver.executeCommand(text, { ...opts, forced: true });
+  }
+
+  /**
    * Project a `CommandDefinition` to a wire-safe schema payload for
    * client-side widget rendering. Used by `system.commands.{added,
    * reset}`.
@@ -924,8 +1138,16 @@ export class CommandApi {
 
 /* ─────────────────── Matcher helpers ─────────────────── */
 
+/** `assemble` success arm. `prep` carries any prepositions consumed
+ *  per positional field — keyed by field name, lowercased value.
+ *  Absent (or empty) when no field declared `prepositions:`. */
+export interface AssembleSuccess {
+  model: CommandModel;
+  prep?: Record<string, string>;
+}
+
 export type AssembleResult =
-  | { model: CommandModel }
+  | AssembleSuccess
   | { error: 'shape'; summary: string }
   | { error: 'bind'; summary: string };
 
@@ -1134,58 +1356,129 @@ type WordToken = Extract<RawToken, { kind: 'word' }>;
 function bindPositionals(
   positionals: WordToken[],
   args: PositionalDefinition[],
-  parsed: ParsedCommand
+  parsed: ParsedCommand,
+  expand: (text: string) => string,
 ):
-  | { bound: ModelData }
+  | { bound: ModelData; prep: Record<string, string> }
   | { error: 'shape'; summary: string } {
   const bound: ModelData = {};
+  const prep: Record<string, string> = {};
   let pi = 0;
 
   for (let ai = 0; ai < args.length; ai++) {
     const def = args[ai]!;
     const name = def.name;
 
+    // Peek for a leading preposition this field declared. Consume
+    // exactly one; later prepositions on the same field are bound as
+    // ordinary positional content.
+    if (
+      def.prepositions &&
+      def.prepositions.length > 0 &&
+      pi < positionals.length
+    ) {
+      const head = positionals[pi]!.value.toLowerCase();
+      if (def.prepositions.includes(head)) {
+        prep[name] = head;
+        pi++;
+      }
+    }
+
     if (def.greedy) {
       if (pi >= positionals.length) {
+        if (def.default !== undefined) {
+          bound[name] = expand(def.default);
+          return { bound, prep };
+        }
         if (def.required !== false) {
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
           };
         }
-        if (def.default !== undefined) {
-          bound[name] = def.default as FieldValue;
-        }
         // Greedy must be last per the load-time invariant; we
         // don't loop further.
-        return { bound };
+        return { bound, prep };
       }
       const first = positionals[pi]!;
-      const startInSource = first.pos - parsed.start;
-      const slice = parsed.source.substring(startInSource);
-      bound[name] = CommandLineApi.processOutsideEscapes(slice);
-      // All remaining positionals are absorbed by greedy.
-      return { bound };
+      // Greedy fields stop at the next *later* field's declared
+      // preposition (boundary lookahead). Scan forward for a token
+      // that matches one of those, and slice up to it.
+      const laterPreps = collectLaterPrepositions(args, ai);
+      let stopAt = positionals.length;
+      if (laterPreps.size > 0) {
+        for (let k = pi; k < positionals.length; k++) {
+          const tk = positionals[k]!.value.toLowerCase();
+          if (laterPreps.has(tk)) {
+            stopAt = k;
+            break;
+          }
+        }
+      }
+      if (stopAt === pi) {
+        // The boundary preposition appeared with nothing before it
+        // — the greedy field has no content. Default fills if
+        // declared; else required→shape error / optional→absent.
+        if (def.default !== undefined) {
+          bound[name] = expand(def.default);
+        } else if (def.required !== false) {
+          return {
+            error: 'shape',
+            summary: `missing required arg: ${name}`,
+          };
+        }
+      } else if (stopAt < positionals.length) {
+        // Build the substring from the original source to preserve
+        // whitespace, but cut it just before the boundary token.
+        const startInSource = first.pos - parsed.start;
+        const last = positionals[stopAt - 1]!;
+        const endInSource = last.pos + last.value.length - parsed.start;
+        const slice = parsed.source.substring(startInSource, endInSource);
+        const processed = CommandLineApi.processOutsideEscapes(slice).trimEnd();
+        bound[name] = expand(processed);
+      } else {
+        const startInSource = first.pos - parsed.start;
+        const slice = parsed.source.substring(startInSource);
+        const processed = CommandLineApi.processOutsideEscapes(slice);
+        bound[name] = expand(processed);
+      }
+      pi = stopAt;
+      // After the greedy field consumes (or skips), continue binding
+      // remaining positionals to subsequent fields.
+      continue;
     }
 
+    // Boundary lookahead extends to non-greedy fields too: if the
+    // next available token belongs to a later field's `prepositions`
+    // list, this field has no input — apply the default (or fail
+    // when required without default).
+    const laterPreps = collectLaterPrepositions(args, ai);
+    const nextBelongsToLater =
+      pi < positionals.length &&
+      laterPreps.has(positionals[pi]!.value.toLowerCase());
+
     if (def.required) {
-      if (pi >= positionals.length) {
+      if (pi >= positionals.length || nextBelongsToLater) {
+        if (def.default !== undefined) {
+          bound[name] = expand(def.default);
+          continue;
+        }
         return {
           error: 'shape',
           summary: `missing required arg: ${name}`,
         };
       }
-      bound[name] = positionals[pi]!.value;
+      bound[name] = expand(positionals[pi]!.value);
       pi++;
       continue;
     }
 
     // Optional positional.
-    if (pi < positionals.length) {
-      bound[name] = positionals[pi]!.value;
+    if (pi < positionals.length && !nextBelongsToLater) {
+      bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
-      bound[name] = def.default as FieldValue;
+      bound[name] = expand(def.default);
     }
   }
 
@@ -1195,7 +1488,36 @@ function bindPositionals(
     return { error: 'shape', summary: 'too many arguments' };
   }
 
-  return { bound };
+  return { bound, prep };
+}
+
+/**
+ * Build a per-call expander. Returns the identity function when
+ * the giver doesn't compose `EnvironmentMixin` or has
+ * `shell.interpolate-vars` set to false — callers stay branch-free.
+ */
+function makeExpander(giver: Stuff): (text: string) => string {
+  if (!MixinApi.isEnvironment(giver)) return (s) => s;
+  const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
+  if (enabled === false) return (s) => s;
+  return (text) => ShellApi.expandVariables(text, giver);
+}
+
+/** Collect every later positional's declared prepositions into one
+ *  set. Used as the greedy-field termination lookahead — `give the
+ *  red flower to bob` stops the greedy `gift` at `to` because
+ *  `recipient` declared `prepositions: [to]`. */
+function collectLaterPrepositions(
+  args: PositionalDefinition[],
+  fromIdx: number
+): Set<string> {
+  const out = new Set<string>();
+  for (let i = fromIdx + 1; i < args.length; i++) {
+    const ps = args[i]!.prepositions;
+    if (!ps) continue;
+    for (const p of ps) out.add(p.toLowerCase());
+  }
+  return out;
 }
 
 function applyOptionDefaults(
@@ -1512,5 +1834,117 @@ function runValidators(
   }
   return undefined;
 }
+
+/**
+ * Map a Stuff to the pronoun-memory slot it routes to. Used by the
+ * dispatcher's post-resolve update so `look bob` (a he/him NPC)
+ * lands `bob` in the `him` slot, not the generic `it`. Stuff
+ * without `GenderedMixin` defaults to `it`.
+ */
+function slotForGenderRouting(stuff: Stuff): GenderedSlot {
+  if (!MixinApi.isGendered(stuff)) return 'it';
+  switch (stuff.getPronouns()) {
+    case Pronouns.He:
+      return 'him';
+    case Pronouns.She:
+      return 'her';
+    case Pronouns.They:
+      return 'them';
+    case Pronouns.It:
+      return 'it';
+  }
+}
+
+
+/**
+ * Drill-additive focus update. Three modes:
+ *
+ *   - `extend` (default for inspection verbs): append the input
+ *     fragment to the current focus with `:` as the separator. When
+ *     the resolved (Stuff, via) is "deeper than" the current focus's
+ *     resolved (Stuff, via) — same Stuff, current via.detailPath is
+ *     a prefix of the new — append only the new via tail to avoid
+ *     double-counting (`look bookcase` → `here:bookcase`, then
+ *     `look book` → `here:bookcase:book`, not `here:bookcase:bookcase:book`).
+ *     When the resolved (Stuff, via) is exactly the current one,
+ *     focus is unchanged (re-resolving the same target).
+ *
+ *   - `replace`: set focus to the post-desugar input fragment
+ *     wholesale.
+ *
+ *   - `none`: caller filters this case out before calling here.
+ *
+ * Pronoun carve-out: when raw is itself a dynamic pronoun
+ * (`it`/`him`/`her`/`them`/`$$`), substitute the stored fragment
+ * from pronoun memory so the focus chain tracks the actual referent
+ * rather than the unstable pronoun string. Applies to both extend
+ * and replace modes.
+ */
+function updatePlayerFocus(
+  giver: Stuff & CommandGiver & Focused,
+  raw: string,
+  stuff: Stuff,
+  via: MqlMatchVia | undefined,
+  mode: 'extend' | 'replace'
+): void {
+  const fragment = resolvePronounFragment(giver, raw) ?? raw;
+
+  if (mode === 'replace') {
+    giver.setFocus(fragment);
+    return;
+  }
+
+  // Extend mode.
+  const currentFocus = giver.getFocus();
+  const currentAnchor = MqlApi.resolveOne(currentFocus, {
+    commandGiver: giver,
+    scope: currentFocus,
+  });
+  const sameStuff =
+    currentAnchor.stuff && currentAnchor.stuff.stuffId === stuff.stuffId;
+  if (sameStuff) {
+    const oldPath = currentAnchor.via?.detailPath ?? [];
+    const newPath = via?.detailPath ?? [];
+    if (ArrayApi.equal(oldPath, newPath)) {
+      // Re-resolved the same target — leave focus alone.
+      return;
+    }
+    if (ArrayApi.isPrefix(oldPath, newPath)) {
+      // Compaction: same anchor, deeper via — append only the new
+      // tail segments. Joining with `:` matches the new chain
+      // separator.
+      const tail = newPath.slice(oldPath.length).join(':');
+      giver.setFocus(currentFocus + ':' + tail);
+      return;
+    }
+  }
+
+  // Naive append. The chain accumulates user intent, not actual
+  // navigability — the next query's scope try-list with the
+  // reachable fallback handles cases where the chain stops resolving.
+  giver.setFocus(currentFocus + ':' + fragment);
+}
+
+/**
+ * If `raw` is a dynamic pronoun (`it`, `him`, `her`, `them`, `$$`),
+ * return the original fragment from pronoun memory — `null`
+ * otherwise (or when the slot is empty). Lookups are
+ * case-insensitive on the trimmed input.
+ */
+function resolvePronounFragment(
+  focused: Stuff & Focused,
+  raw: string
+): string | null {
+  const s = raw.trim().toLowerCase();
+  let slot: 'it' | 'him' | 'her' | 'them' | 'last' | null = null;
+  if (s === 'it') slot = 'it';
+  else if (s === 'him') slot = 'him';
+  else if (s === 'her') slot = 'her';
+  else if (s === 'them') slot = 'them';
+  else if (s === '$$') slot = 'last';
+  if (slot === null) return null;
+  return focused.getPronounMemory().readFragment(slot);
+}
+
 
 SecurityApi.decorateApiClass(CommandApi);

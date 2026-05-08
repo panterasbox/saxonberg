@@ -37,4 +37,24 @@ describe('PathPatternApi.matches', () => {
     // The literal `.` should NOT match `_` (which it would as a regex).
     expect(PathPatternApi.matches('a_b', 'a.b')).toBe(false);
   });
+
+  describe('? wildcard', () => {
+    it('matches a single character', () => {
+      expect(PathPatternApi.matches('foo', 'fo?')).toBe(true);
+      expect(PathPatternApi.matches('fox', 'fo?')).toBe(true);
+    });
+
+    it('does not cross segment boundaries', () => {
+      expect(PathPatternApi.matches('a/b', 'a?b')).toBe(false);
+    });
+
+    it('does not match zero characters', () => {
+      expect(PathPatternApi.matches('fo', 'fo?')).toBe(false);
+    });
+
+    it('combines with literal characters in a segment', () => {
+      expect(PathPatternApi.matches('mud/api/stuff', 'mud/?pi/stuff')).toBe(true);
+      expect(PathPatternApi.matches('mud/aapi/stuff', 'mud/?pi/stuff')).toBe(false);
+    });
+  });
 });

@@ -5,5 +5,9 @@ args:
   - name: target
     type: object
     required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at]
+    default: "$focus"
     validators:
       - /lib/command/validators/mustBeVisible

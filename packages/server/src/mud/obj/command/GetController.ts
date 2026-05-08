@@ -8,6 +8,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -16,18 +17,25 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
 interface GetModel extends CommandModel {
-  // Non-optional: get.yaml marks `targets` required + multiple, so
-  // the matcher rejects on missing input and resolveAndValidate fails
-  // the command if MQL produces zero hits. Controllers see at least
-  // one Stuff.
-  targets: Stuff[];
+  // get.yaml marks `targets` required (matcher rejects on missing
+  // input) but the dispatcher passes empty `targets.stuff` arrays
+  // through on unresolved input — controller produces the player-
+  // facing error.
+  targets: MqlManyResult;
 }
 
 export class GetController extends CommandController<GetModel> {
   execute(model: GetModel, context: CommandContext): CommandResult {
+    const targets = model.targets.stuff;
+    if (targets.length === 0) {
+      return {
+        success: false,
+        summary: `you don't see any '${model.targets.raw}' here`,
+      };
+    }
     let successCount = 0;
     const pickedNames: string[] = [];
-    for (const target of model.targets) {
+    for (const target of targets) {
       if (this.pickUpObject(target, context)) {
         successCount++;
         pickedNames.push(DescribeApi.getDisplayName(target, 'something'));

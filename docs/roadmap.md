@@ -67,14 +67,34 @@ Container / Exitable / HasInteractive) dispatched from
 
 ### MQL extensions
 
-- **What**: `me` / `here` / `it` resolvers, multi-object selection
-  (`get all swords`, `get 3 arrows`), object globbing (`Globbable` flag for
-  fungible items), and the contextual / complex query grammar from PLAN.md.
-- **Why**: Today `MqlApi` is the simplified Phase-4 version; players hit
-  the limits as soon as inventories grow.
-- **Size**: large overall — tackle in three slices: (a) `me`/`here` +
-  multi-select, (b) globbing, (c) contextual grammar.
-- **Dependencies**: none.
+The bulk of MQL shipped on the `mql` branch — pronouns (`me`, `here`,
+`it`/`him`/`her`/`them`, `$$`), multi-object selection (`type:
+objects` / `MqlMany`), the chain grammar (`:keyword`, `:i`/`:e`,
+brackets, set ops), filter expressions inside `[…]`, scope-as-MQL
+evaluation, drill-additive focus, the `focus` verb, the predicate
+registry, pronoun memory, the online-provider seam, and `PathTrie`-
+backed glob seeds. See [subsystems/mql.md](./subsystems/mql.md) and
+[mql-grammar.md](./mql-grammar.md).
+
+What's left:
+
+- **Globbable / fungible items**. Quantity syntax (`drop 2 roses`,
+  `get all coins`) needs a `Globbable` flag on Stuff plus a
+  natural-language transform on the desugar pass. The cardinality
+  contract anticipates it; `MqlResult` may grow a `quantity` slot.
+- **Disambiguation prompts**. Single-cardinality fields with multiple
+  top-scored matches today pick by stable order. The future prompt
+  stack (Framework 11) turns `result.stuff.length > 1` into a UI
+  prompt.
+- **Sort / named-group operators** (`:sort.X`, `@@group`). Distinct
+  syntactic shapes; can be added without grammar churn when demand
+  is real.
+- **Real authoring-tier permission check**. Today's stub treats
+  `authoring` and `admin` identically against `_MqlAdminFlag`. Real
+  zone-aware logic lands with the player-authoring work.
+
+Size: medium-small per slice. Dependencies: prompt stack for
+disambiguation; Globbable scoping for quantity syntax.
 
 ### Markup language (Phase 5+/9+ tags)
 
@@ -87,6 +107,52 @@ Container / Exitable / HasInteractive) dispatched from
   future GUI affordances.
 - **Size**: medium (server tags + helpers) + medium (client renderer).
 - **Dependencies**: none.
+
+### Display-name composition (DescribeApi v2)
+
+- **What**: Extend `DescribeApi` beyond today's two-step
+  Named → Visible.shortDescription chain. Real-world display names
+  are *composed*: a sword in someone's hand reads as `sword (wielded)`,
+  an NPC currently scripted into a routine reads as
+  `Dave is tending bar`, a hooded thief reads as `a tall figure in a
+  black cloak` rather than the host's underlying short description.
+  Today's `DescribeApi.getDisplayName` returns the bare core string;
+  every surrounding decoration (state tags, shadow overrides,
+  status lines) lives in ad-hoc code paths or doesn't exist yet.
+- **Why**: As MQL settles and validators are routing more prose
+  through `DescribeApi.getDisplayName`, the lack of decoration
+  becomes structural. Old-school "You wield sword (wielded)." is
+  the relic case — controllers should be able to produce
+  `You wield the sword.` (no redundant tag) AND
+  `inventory` should produce `sword (wielded)` from the same
+  source of truth. The split between *core identity* and
+  *decoration* needs to be a first-class API distinction.
+- **Design constraints (informative, not committed)**:
+    - **Pull-apart access** so consumers can render selectively —
+      a `getDisplayParts(obj)` returning something like
+      `{ core, tags?, status?, override? }` lets a verb composer
+      choose which parts to include in which contexts.
+    - **Standard composed form** so casual callers don't have to
+      reassemble the parts — `getDisplayName(obj)` keeps doing
+      the right thing for the 95% case.
+    - **Decoration sources**: shadows (hood/disguise), worn-slot
+      mixins (wielded / equipped), per-character status lines
+      (NPCs running scripted routines), object-state tags
+      (broken / locked / lit).
+    - **MML-aware**: composition produces Mml fragments rather
+      than raw strings, so the `<item>` / `<npc>` / `<player>`
+      semantic tags from the Markup-language roadmap entry can
+      land naturally.
+- **Size**: medium (API + composition rules) + small per
+  decoration source as they're brought in (worn slots, status
+  lines, etc.).
+- **Dependencies**: none blocking; benefits from the Markup
+  language entry for the MML side.
+- **Caller migration**: every `DescribeApi.getDisplayName` call
+  site stays working — the v1 surface continues to return the
+  bare composed string. Verbs / inventory rendering / scene
+  bodies that want decoration switch to `getDisplayParts` or a
+  new composer when those land.
 
 ### Command system polish
 
@@ -105,10 +171,12 @@ Container / Exitable / HasInteractive) dispatched from
 
 ### Utility APIs
 
-- **What**: `GrammarApi` (pronoun conjugation, verb agreement),
-  `StringApi`, `TimeApi`, `ArrayApi`,
-  `ObjectApi`, `CallstackApi`, `FileApi`, `AssertApi`. `MudlogApi` exists
-  but is incomplete.
+`GrammarApi` (pronoun conjugation, articles, ordinal/article
+lexicons used by the MQL desugar pass) and `ArrayApi` (`equal`,
+`isPrefix`) shipped with the MQL work. Still wanted on demand:
+`StringApi`, `TimeApi`, `ObjectApi`, `CallstackApi`, `FileApi`,
+`AssertApi`. `MudlogApi` exists but is incomplete.
+
 - **Why**: Clean utility surface so game/mod code stops re-implementing
   these. Take them on demand as commands need them.
 - **Size**: small each — collectively medium.

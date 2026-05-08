@@ -59,7 +59,61 @@ const NEUTRAL: PronounSet = SETS[Pronouns.It];
 
 const VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 
+/**
+ * Articles stripped during MQL desugar (req §9.1). Lowercase. Used
+ * by `MqlApi` to clean up natural English before formal parsing —
+ * `look at the rose` → `look at rose`.
+ */
+const ARTICLES: ReadonlySet<string> = new Set(['the', 'a', 'an']);
+
+/**
+ * Word-form ordinal markers (req §9.2). The value is the 1-indexed
+ * position the marker resolves to; `last` is `-1` per the negative-
+ * index convention. Used by MQL desugar to translate
+ * `second rose` → `rose:[2]`.
+ */
+const ORDINAL_WORDS: ReadonlyMap<string, number> = new Map([
+  ['first', 1],
+  ['second', 2],
+  ['third', 3],
+  ['fourth', 4],
+  ['fifth', 5],
+  ['sixth', 6],
+  ['seventh', 7],
+  ['eighth', 8],
+  ['ninth', 9],
+  ['tenth', 10],
+  ['last', -1],
+]);
+
+/**
+ * Numeric-suffix ordinal pattern (req §9.2): `1st`, `2nd`, `3rd`,
+ * `4th`, … Captures the integer in group 1.
+ */
+const ORDINAL_NUMERIC: RegExp = /^(\d+)(st|nd|rd|th)$/;
+
 export class GrammarApi {
+  /**
+   * Articles stripped from the head of a query during MQL desugar.
+   * Lowercase entries; comparisons are case-insensitive and done by
+   * the consumer.
+   */
+  public static readonly ARTICLES: ReadonlySet<string> = ARTICLES;
+
+  /**
+   * Word-form ordinal markers ({@link ORDINAL_WORDS}). Maps
+   * `first` → 1, `second` → 2, … `last` → -1 (per the negative-index
+   * convention from req §6).
+   */
+  public static readonly ORDINAL_WORDS: ReadonlyMap<string, number> =
+    ORDINAL_WORDS;
+
+  /**
+   * Numeric-suffix ordinal pattern. Matches `1st`, `2nd`, `3rd`,
+   * `4th`, … Group 1 is the integer.
+   */
+  public static readonly ORDINAL_NUMERIC: RegExp = ORDINAL_NUMERIC;
+
   /**
    * Capitalize the first character. Operates on raw strings only —
    * passing a markup fragment will cap the leading `<`, which is

@@ -1,0 +1,8 @@
+verbs: [focus]
+controller: FocusController
+description: "Display or set your focus (the anchor your queries are pointed at)"
+args:
+  - name: fragment
+    type: objects
+    required: false
+    greedy: true
