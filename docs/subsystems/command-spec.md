@@ -19,6 +19,25 @@ A command lives in five places:
 The schema for the YAML lives at `mud/cmd/command.schema.json` and is
 enforced at boot.
 
+### Aside: spec, parser, and the model
+
+Today's parser is **`msh`** — the framework's tokenizer-driven shell
+(see [command-parsing.md](./command-parsing.md)). The spec described
+here is what `msh` binds against, but the spec isn't actually
+parser-specific: it's the **model definition**. A YAML view declares
+verbs, fields, types, scope, validators, focus policy — all of that
+is "what the controller expects to be handed," not "how the player
+expressed it."
+
+Parsers are pluggable (`Parser` interface in `api/command.ts`). A
+hypothetical NL / LLM parser could read the same YAMLs to know what
+verbs and fields exist, then return a `{ bound: { command, model } }`
+result that skips match/assemble entirely — the dispatcher runs only
+resolve + execute. The same controllers fire either way; the spec
+they consume stays one source of truth across input modalities. None
+of that is built today, but with LLMs it's well within reach, and
+the spec is shaped to make it cheap when someone wants it.
+
 ## YAML view — top-level shape
 
 Every YAML declares one `CommandView`. Required keys: `verbs`,
@@ -28,7 +47,7 @@ load-time error. `options` is optional at every level.
 
 ```yaml
 verbs: [look, l]              # primary verb first; rest are aliases
-controller: LookController    # class name in mud/obj/command/
+controller: LookController    # template name; resolves to /obj/command/<Name>
 description: "Examine your surroundings or an object"
 args:                         # OR `subcommands:` — never both
   - name: target
@@ -296,8 +315,15 @@ A second occurrence of a non-`multiple` option is a `bind` error
 ## Controllers
 
 A controller is a templated `Idea` (Stuff). One file per controller
-under `mud/obj/command/<Name>Controller.ts`. The `controller` field
-in the YAML names the class.
+under `mud/obj/command/<Name>Controller.ts`, with a matching seed at
+`mud/seeds/obj/command/<Name>.yaml` that produces a Template doc at
+`/obj/command/<Name>` in the `domain` collection. The YAML view's
+`controller:` field is that **template name** — the dispatcher does
+`StuffApi.clone('/obj/command/' + command.controller)` for each
+execution. By convention the template name matches the TS class name
+(`LookController`'s seed creates `/obj/command/LookController`), but
+the binding is template-driven, not class-driven. Hot-reload works
+because `StuffApi.clone` consults `HotReloadApi`.
 
 ### Skeleton
 
@@ -328,8 +354,11 @@ export class OpenController extends CommandController<OpenModel> {
 
 ### Conventions
 
-- **Class name matches the YAML's `controller` field.** The
-  dispatcher resolves it through `StuffApi.clone('/obj/command/<Name>')`.
+- **Template name matches the YAML's `controller` field.** The
+  dispatcher resolves through
+  `StuffApi.clone('/obj/command/' + command.controller)`. The
+  template seed and the TS class conventionally share the name, but
+  it's the template path that's load-bearing.
 - **One TModel interface per controller.** Extend `CommandModel` and
   add only the fields the YAML produces. Match the YAML's field
   names exactly — the matcher binds by name.
@@ -377,7 +406,10 @@ execute(model: PlayerModel, context: CommandContext): CommandResult {
 Per-subcommand methods narrow the model again (`name` requires a
 non-empty `model.name` string, etc.).
 
-### `CommandResult`
+### Resolution outcomes — how a controller finishes
+
+`execute` may be sync or async (return type
+`CommandResult | Promise<CommandResult>`). The shape is small:
 
 ```ts
 interface CommandResult {
@@ -387,13 +419,92 @@ interface CommandResult {
 }
 ```
 
-- `success` answers "did the command achieve its goal?"
-- `summary` decorates the auto-emit; defaults to `'ok'` (success) or
-  `'failed'` (failure). Returning `summary: ''` shows nothing extra.
-- `pass: true` opts out — see above.
+But there are several distinct **resolution modes** worth knowing
+about — the controller picks one each call:
 
-The auto-emit is the "ok / not-ok" framework contract. Don't write
-prose into `summary`; that's what `MessageApi.scene` is for.
+#### 1. Plain success — `{ success: true, summary }`
+
+The command did what it was supposed to. The auto-emit fires
+`<verb>: <summary>` at info level for the giver. Prose has already
+been delivered via `MessageApi.scene(...)`; the summary is the audit
+tail, not the player-visible output.
+
+Example: `OpenController` returns `{ success: true, summary:
+'opened the chest' }` after firing the open scene.
+
+#### 2. Player-facing failure — `{ success: false, summary }`
+
+The command can't run for a player-input reason: target not visible,
+nothing in inventory, can't reach, already open. The auto-emit fires
+at warn level; `summary` is the message the player reads. No scene
+needed in most cases — the auto-emit IS the feedback.
+
+Example: `OpenController` returns
+`{ success: false, summary: "you don't see any 'chest' here" }`.
+
+#### 3. Silent success — `{ success: true, summary: '' }`
+
+Same as #1 but suppresses the auto-emit tail. Use when the
+controller's own `Scene.send()` already carries the player-visible
+result and an extra "verb: ok" line would be noise. Rare —
+usually it's simpler to let `'ok'` ride.
+
+#### 4. Chain pass-through — `{ success: false, pass: true }`
+
+Opts the controller out of dispatch. The dispatcher tries the next
+recency-stack match. The Throne example: a Throne in the room
+contributes `sit.yaml` under `environment`; the Throne controller
+either claims (`success: true`) or passes — when it passes, the
+avatar's intrinsic `sit` runs next.
+
+A passing controller MUST NOT have observable side effects: no
+`Scene.send()`, no world-state mutation. The pre-execute resolve
+stage **does** still run (that's how a controller can decide it's
+not applicable based on resolved object state), but past that, the
+controller body has to be read-only.
+
+#### 5. Throw — programmatic invariant failure
+
+A throw inside `execute` bubbles to `_executeOne`'s boundary, which
+catches it and converts to `{ success: false, summary: error.message
+}`. Use this for cases that shouldn't happen: a `Mobile` mover that
+isn't `Containable`, a `target.stuff` that fails an `instanceof`
+narrow that the validator was supposed to catch, etc.
+
+Don't throw for player-input problems — return `{ success: false,
+summary: '...' }`. The split mirrors the bind/shape error split in
+the matcher: throws are bugs, returned failures are normal control
+flow.
+
+#### 6. Re-dispatch — `CommandApi.forceCommand(giver, text)`
+
+A controller can run a second command on the same giver, stamped
+`forced: true` on the resulting Command frame. Used by
+`MobileMixin.traverse` for the auto-look-on-arrival; future
+NPC-script and admin verbs will use it too. The forced command's
+result is independent — the calling controller still returns its
+own `CommandResult`.
+
+#### Picking a `summary`
+
+`summary` is the short auto-emit tail. Defaults: `'ok'` (success),
+`'failed'` (failure). One sentence, no markup, no newlines. Don't
+write prose into `summary` — that's `MessageApi.scene(...)`'s job.
+Examples from the shipped controllers:
+
+| Verb | Outcome | summary |
+|---|---|---|
+| `look` | success | `examined the throne room` |
+| `look` | no match | `you don't see any 'flower' here` |
+| `go` | success | `to the dungeon` |
+| `go` | no match | `can't go that way` |
+| `open` | success | `opened the chest` |
+| `open` | wrong type | `can't open that` |
+| `drop` | success | `rose, sword` (the dropped names, joined) |
+| `drop` | nothing dropped | `nothing dropped` |
+
+The convention: success summaries describe **what changed**, failure
+summaries describe **why nothing changed**.
 
 ## Discovery — wiring the verb to the recency stack
 
