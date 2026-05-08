@@ -170,8 +170,9 @@ function pushDetails(out: ScopeCandidate[], host: Stuff): void {
   // object). Walk the alias map to dedup before emitting candidates.
   const seen = new Set<Detail>();
   for (const id of ids) {
-    // hasDetail semantics: top-level only here; nested details are
-    // reachable through the `.X` drill operator, not the seed scope.
+    // Top-level details only — nested details are reached through
+    // the chain rule (`:keyword` mid-chain auto-extends with child
+    // detail names at the current via depth), not the seed scope.
     if (!host.hasDetail(id)) continue;
     // Resolve the actual Detail object behind this id by reading the
     // raw map. DetailedMixin doesn't expose the Detail object

@@ -23,8 +23,13 @@ The shape lives in:
 - `packages/server/src/mud/api/command.ts` — `CommandApi`,
   `CommandContext`, `CommandResult`, `CommandModel`, the YAML view
   types, validator path resolver, recency-stack orchestration helpers.
-- `packages/server/src/mud/lib/command/CommandGiverMixin.ts` — the
-  per-giver recency stack and `executeCommand` dispatch loop.
+- `packages/server/src/mud/lib/command/CommandGiver.ts` — the
+  `CommandGiverMixin` (per-giver recency stack and `executeCommand`
+  dispatch loop).
+- `packages/server/src/mud/lib/command/Focused.ts` — the
+  `FocusedMixin` (focus fragment, pronoun memory, `focus` self-bucket
+  contribution, `$focus` synthetic var). Composed onto Avatars via
+  `ShelledCharacter`.
 - `packages/server/src/mud/lib/command/CommandDefinition.ts` — the
   loaded YAML view, validated against `cmd/command.schema.json`.
 - `packages/server/src/mud/lib/command/CommandController.ts` — the

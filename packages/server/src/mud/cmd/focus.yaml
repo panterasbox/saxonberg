@@ -1,6 +1,6 @@
 verbs: [focus]
 controller: FocusController
-description: "Display or set your active scope (the anchor your queries are pointed at)"
+description: "Display or set your focus (the anchor your queries are pointed at)"
 args:
   - name: fragment
     type: objects

@@ -23,6 +23,9 @@ behavior. Read the relevant doc before editing in its area.
   with the correct alternative for each (lookup-table style)
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
+- [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar
+  reference for players / authors writing queries (seeds, chain
+  operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`:
   - [templates.md](./docs/subsystems/templates.md) — clone pipeline,
     Hydrator, TemplateApi, folder/leaf invariant
@@ -51,12 +54,21 @@ behavior. Read the relevant doc before editing in its area.
     masks (the unshadowable mixin's per-property override mechanism)
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML
     view + controller MVC, the per-giver recency stack, dispatch chain
-    (shape vs bind, `pass: true`), validators, schema delivery via
+    (shape vs bind, `pass: true`), validators, scope try-list,
+    `updates_focus`, schema delivery via
     `system.commands.{added,removed,reset}`, frame attribution
   - [command-parsing.md](./docs/subsystems/command-parsing.md) —
     `CommandLineApi` tokenizer, `RawToken` classification, `format()`
     round-trip, the `msh` shell, parser pluggability via the
     `shell.parser` setting
+  - [command-spec.md](./docs/subsystems/command-spec.md) — author
+    guide for adding a verb: YAML field shape, controller
+    conventions, validators, discovery wiring, the controller seed
+    file
+  - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline
+    (desugar / lex / parse / resolve), AST, scope-walk, predicates,
+    pronoun memory, via augmentation, permission tiers, online
+    provider seam, PathTrie
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration

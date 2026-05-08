@@ -67,14 +67,34 @@ Container / Exitable / HasInteractive) dispatched from
 
 ### MQL extensions
 
-- **What**: `me` / `here` / `it` resolvers, multi-object selection
-  (`get all swords`, `get 3 arrows`), object globbing (`Globbable` flag for
-  fungible items), and the contextual / complex query grammar from PLAN.md.
-- **Why**: Today `MqlApi` is the simplified Phase-4 version; players hit
-  the limits as soon as inventories grow.
-- **Size**: large overall — tackle in three slices: (a) `me`/`here` +
-  multi-select, (b) globbing, (c) contextual grammar.
-- **Dependencies**: none.
+The bulk of MQL shipped on the `mql` branch — pronouns (`me`, `here`,
+`it`/`him`/`her`/`them`, `$$`), multi-object selection (`type:
+objects` / `MqlMany`), the chain grammar (`:keyword`, `:i`/`:e`,
+brackets, set ops), filter expressions inside `[…]`, scope-as-MQL
+evaluation, drill-additive focus, the `focus` verb, the predicate
+registry, pronoun memory, the online-provider seam, and `PathTrie`-
+backed glob seeds. See [subsystems/mql.md](./subsystems/mql.md) and
+[mql-grammar.md](./mql-grammar.md).
+
+What's left:
+
+- **Globbable / fungible items**. Quantity syntax (`drop 2 roses`,
+  `get all coins`) needs a `Globbable` flag on Stuff plus a
+  natural-language transform on the desugar pass. The cardinality
+  contract anticipates it; `MqlResult` may grow a `quantity` slot.
+- **Disambiguation prompts**. Single-cardinality fields with multiple
+  top-scored matches today pick by stable order. The future prompt
+  stack (Framework 11) turns `result.stuff.length > 1` into a UI
+  prompt.
+- **Sort / named-group operators** (`:sort.X`, `@@group`). Distinct
+  syntactic shapes; can be added without grammar churn when demand
+  is real.
+- **Real authoring-tier permission check**. Today's stub treats
+  `authoring` and `admin` identically against `_MqlAdminFlag`. Real
+  zone-aware logic lands with the player-authoring work.
+
+Size: medium-small per slice. Dependencies: prompt stack for
+disambiguation; Globbable scoping for quantity syntax.
 
 ### Markup language (Phase 5+/9+ tags)
 
@@ -105,10 +125,12 @@ Container / Exitable / HasInteractive) dispatched from
 
 ### Utility APIs
 
-- **What**: `GrammarApi` (pronoun conjugation, verb agreement),
-  `StringApi`, `TimeApi`, `ArrayApi`,
-  `ObjectApi`, `CallstackApi`, `FileApi`, `AssertApi`. `MudlogApi` exists
-  but is incomplete.
+`GrammarApi` (pronoun conjugation, articles, ordinal/article
+lexicons used by the MQL desugar pass) and `ArrayApi` (`equal`,
+`isPrefix`) shipped with the MQL work. Still wanted on demand:
+`StringApi`, `TimeApi`, `ObjectApi`, `CallstackApi`, `FileApi`,
+`AssertApi`. `MudlogApi` exists but is incomplete.
+
 - **Why**: Clean utility surface so game/mod code stops re-implementing
   these. Take them on demand as commands need them.
 - **Size**: small each — collectively medium.
