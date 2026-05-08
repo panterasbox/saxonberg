@@ -108,6 +108,52 @@ disambiguation; Globbable scoping for quantity syntax.
 - **Size**: medium (server tags + helpers) + medium (client renderer).
 - **Dependencies**: none.
 
+### Display-name composition (DescribeApi v2)
+
+- **What**: Extend `DescribeApi` beyond today's two-step
+  Named → Visible.shortDescription chain. Real-world display names
+  are *composed*: a sword in someone's hand reads as `sword (wielded)`,
+  an NPC currently scripted into a routine reads as
+  `Dave is tending bar`, a hooded thief reads as `a tall figure in a
+  black cloak` rather than the host's underlying short description.
+  Today's `DescribeApi.getDisplayName` returns the bare core string;
+  every surrounding decoration (state tags, shadow overrides,
+  status lines) lives in ad-hoc code paths or doesn't exist yet.
+- **Why**: As MQL settles and validators are routing more prose
+  through `DescribeApi.getDisplayName`, the lack of decoration
+  becomes structural. Old-school "You wield sword (wielded)." is
+  the relic case — controllers should be able to produce
+  `You wield the sword.` (no redundant tag) AND
+  `inventory` should produce `sword (wielded)` from the same
+  source of truth. The split between *core identity* and
+  *decoration* needs to be a first-class API distinction.
+- **Design constraints (informative, not committed)**:
+    - **Pull-apart access** so consumers can render selectively —
+      a `getDisplayParts(obj)` returning something like
+      `{ core, tags?, status?, override? }` lets a verb composer
+      choose which parts to include in which contexts.
+    - **Standard composed form** so casual callers don't have to
+      reassemble the parts — `getDisplayName(obj)` keeps doing
+      the right thing for the 95% case.
+    - **Decoration sources**: shadows (hood/disguise), worn-slot
+      mixins (wielded / equipped), per-character status lines
+      (NPCs running scripted routines), object-state tags
+      (broken / locked / lit).
+    - **MML-aware**: composition produces Mml fragments rather
+      than raw strings, so the `<item>` / `<npc>` / `<player>`
+      semantic tags from the Markup-language roadmap entry can
+      land naturally.
+- **Size**: medium (API + composition rules) + small per
+  decoration source as they're brought in (worn slots, status
+  lines, etc.).
+- **Dependencies**: none blocking; benefits from the Markup
+  language entry for the MML side.
+- **Caller migration**: every `DescribeApi.getDisplayName` call
+  site stays working — the v1 surface continues to return the
+  bare composed string. Verbs / inventory rendering / scene
+  bodies that want decoration switch to `getDisplayParts` or a
+  new composer when those land.
+
 ### Command system polish
 
 - **What**: Command aliases (per-context and global), model piping
