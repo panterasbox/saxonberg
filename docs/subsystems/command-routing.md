@@ -62,6 +62,12 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     (msh; LLM parsers can short-circuit with { bound })
    │     see command-parsing.md
    │
+   ├─ if ParseResult.parsed AND isAlias(giver):
+   │     ShellApi.expandAliases(parsed, giver) → ParsedCommand
+   │     (verb-position alias substitution; sets context.aliasExpansion
+   │     when an alias fires) — see shell-alias.md. Skipped on the bound
+   │     branch (LLM parsers chose the verb directly).
+   │
    ├─ if ParseResult.parsed: _runChain
    │     CommandApi.matchVerbContextual(verb, available)  → CommandDefinition[]
    │     for each match (newest first):

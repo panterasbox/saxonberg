@@ -514,6 +514,43 @@ const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
 on a singleton class throw. `singleton()` is the convenient surface
 that respects the contract automatically.
 
+## Reaching Into Raw Alias Storage
+
+**ANTIPATTERN**: Mutating `aliases` / `aliasesSession` directly,
+manually writing tombstone nulls, or calling `ShellApi.expandAliases`
+from a controller.
+
+The `setAlias` / `removeAlias` mutators on `AliasMixin` are
+`@Unshadowable`, validate body shape and name shape at set-time, and
+correctly handle tombstones for default-suppression. Bracket access
+on the raw stores bypasses every guarantee.
+
+### BAD
+
+```typescript
+// Manual store mutation — skips validation, skips shadow-resistance,
+// skips the tombstone semantics removeAlias provides.
+avatar.aliases['l'] = 'look';
+delete avatar.aliasesSession['foo'];
+avatar.aliases['s'] = null; // hand-rolled tombstone
+```
+
+### GOOD
+
+```typescript
+avatar.setAlias('l', 'look', { actor: avatar });
+avatar.setAlias('foo', 'bar', { lifetime: 'session', actor: avatar });
+avatar.removeAlias('s', avatar); // tombstones a default automatically
+```
+
+`ShellApi.expandAliases` is a substrate-pipeline helper invoked by
+`CommandGiverMixin.executeCommand`. Controllers should not call it —
+they receive the post-expansion `CommandContext.aliasExpansion`
+record when they need to know an alias fired.
+
+See [subsystems/shell-alias.md](./subsystems/shell-alias.md) for
+the full design.
+
 ## Summary
 
 - Never call `setEnvironment()` or `addContainable()` directly — always
@@ -532,3 +569,6 @@ that respects the contract automatically.
   assignment.
 - Singleton-by-path templates resolve via `StuffApi.singleton(path)`,
   not `clone()` or `findByTemplatePath()`.
+- Alias state goes through `setAlias` / `removeAlias`, never via
+  bracket access on `aliases` / `aliasesSession`. `ShellApi.expandAliases`
+  is a pipeline helper, not a controller-facing API.

@@ -290,11 +290,12 @@ inside the template handle the directional/bland split, so a single
 Planned shell mixins not built today, but whose shape constrains
 decisions here:
 
-- **`AliasMixin`** — per-avatar command aliases. Same two-store
-  pattern, but its own storage; alias bodies will support positional
-  argv interpolation via a future frame-local scope owned by the
-  shell pipeline (push/pop'd by the alias expander, not stored on
-  the mixin).
+- **`AliasMixin`** — shipped. Per-character verb aliases with the
+  same two-store pattern (persistent + session), plus a defaults tier
+  walked from `static defaultAliases` on any composed mixin and a
+  tombstone mechanism for default-suppression. Body-side positional
+  substitution (`$1`..`$9`, `$@`) lives in `ShellApi.expandAliases`.
+  See [shell-alias.md](./shell-alias.md).
 - **`HistoryMixin`** — command history, recall, search.
 - **`PromptMixin`** — prompt rendering. `prompt.format` is the
   canonical example of "shell meta-config" — it lives on

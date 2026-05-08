@@ -156,17 +156,17 @@ disambiguation; Globbable scoping for quantity syntax.
 
 ### Command system polish
 
-- **What**: Command aliases (per-context and global), model piping
-  (PowerShell-style), an admin `reload` command plumbed into the
-  framework, and an elegant fallback when `look` lands on a
-  non-Visible room (a bare `Location` like `/domain/void` has no
-  description by design — the current "You see nothing special."
-  fallback reads wrong for rooms).
-- **Why**: Aliases are an essential usability win; piping is foundational
-  for future scripting; the look fallback is a content-quality fix
-  that lower-level developers will hit any time they author a room
-  without composing `VisibleMixin`.
-- **Size**: small (aliases, look fallback) + medium (piping).
+- **What**: Model piping (PowerShell-style), an admin `reload`
+  command plumbed into the framework, and an elegant fallback when
+  `look` lands on a non-Visible room (a bare `Location` like
+  `/domain/void` has no description by design — the current "You
+  see nothing special." fallback reads wrong for rooms). Per-character
+  command aliases (`AliasMixin`) shipped — see
+  [subsystems/shell-alias.md](./subsystems/shell-alias.md).
+- **Why**: Piping is foundational for future scripting; the look
+  fallback is a content-quality fix that lower-level developers will
+  hit any time they author a room without composing `VisibleMixin`.
+- **Size**: small (look fallback) + medium (piping).
 - **Dependencies**: hot-reload for the `reload` admin command.
 
 ### Utility APIs
@@ -266,7 +266,7 @@ See `subsystems/lifecycle.md § Open Design` for the open questions.
    meaningfully improves UX.
 4. **Markup language extensions + client renderer** — sets up clickable
    links and richer output before more commands accrete plain-text habits.
-5. **Command aliases** — small, high-value sit-up after MQL.
+5. ~~**Command aliases** — small, high-value sit-up after MQL.~~ Shipped (`AliasMixin`).
 6. **Module hot-reload** — accelerates all subsequent iteration. Will
    wire `Events.ModuleReloaded` once the subsystem lands.
 7. **Mods + isolated-vm sandbox** — large, required for v1.0; start once

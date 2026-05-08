@@ -44,6 +44,10 @@ behavior. Read the relevant doc before editing in its area.
     `EnvironmentMixin` settings keyspace, schema-on-mixin, lookup
     chain, `settings` / `var` commands, `resolveSetting` cross-host
     helper
+  - [shell-alias.md](./docs/subsystems/shell-alias.md) — `AliasMixin`
+    per-character verb aliases, lookup chain (defaults / persistent /
+    session), tombstones, `ShellApi.expandAliases` algorithm with
+    positional substitution + cycle guard, the `alias` player command
   - [prose.md](./docs/subsystems/prose.md) — `ProseApi` Liquid-based
     templating for authorable prose, Mml-aware output, default
     filters (Mml vocabulary, `GrammarApi`)

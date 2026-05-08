@@ -101,6 +101,30 @@ export interface CommandContext {
   commandId: string;
   verb: string;
   command: CommandDefinition;
+  /**
+   * Populated by `ShellApi.expandAliases` when the command's verb was
+   * resolved through one or more alias hops. Absent when the verb was
+   * typed directly. Controllers that branch on alias-vs-direct read
+   * this; everyone else ignores it. The audit log's auto-emit picks
+   * it up onto the structured payload.
+   */
+  aliasExpansion?: AliasExpansionInfo;
+}
+
+/**
+ * One alias-expansion record — what the user typed, what it resolved
+ * to, and the chain of intermediate alias names when the resolution
+ * recursed.
+ */
+export interface AliasExpansionInfo {
+  /** The verb the user actually typed (always the first alias name). */
+  aliasName: string;
+  /** The user's raw input — same string as `commandText`, surfaced here so log consumers don't have to thread two fields. */
+  originalText: string;
+  /** Canonical post-expansion text (`CommandLineApi.format` of the resulting `ParsedCommand`). */
+  expandedText: string;
+  /** Multi-step chain when recursive (e.g. `['gn', 'goodnight']`). One entry per hop in firing order; absent for single-step. */
+  chain?: string[];
 }
 
 /**

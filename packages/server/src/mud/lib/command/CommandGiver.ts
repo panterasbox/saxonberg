@@ -49,6 +49,8 @@ import {
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
+import { ShellApi } from '../../api/shell';
+import type { Alias } from '../shell/Alias';
 import { StuffApi } from '../../api/stuff';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
@@ -397,8 +399,25 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         if (parseResult.error !== undefined) {
           result = { success: false, summary: parseResult.error };
         } else if (parseResult.parsed) {
-          verb = parseResult.parsed.verb;
-          result = await this._runChain(parseResult.parsed, context);
+          let parsed = parseResult.parsed;
+          // Alias expansion: only on the parsed branch (the bound /
+          // LLM short-circuit picked the verb directly), only when
+          // the giver carries AliasMixin. NPCs without aliases skip.
+          if (MixinApi.isAlias(context.commandGiver)) {
+            const expanded = ShellApi.expandAliases(
+              parsed,
+              context.commandGiver as Stuff & Alias,
+            );
+            parsed = expanded.parsed;
+            if (expanded.expansion) {
+              context.aliasExpansion = {
+                ...expanded.expansion,
+                originalText: commandText,
+              };
+            }
+          }
+          verb = parsed.verb;
+          result = await this._runChain(parsed, context);
         } else if (parseResult.bound) {
           // Parser already chose the command and built the model;
           // skip parse + match. Run resolve + execute only.
@@ -449,6 +468,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             success: result.success,
             commandText,
             executionId: context.executionId,
+            ...(context.aliasExpansion
+              ? { aliasExpansion: context.aliasExpansion }
+              : {}),
           },
         });
       }
