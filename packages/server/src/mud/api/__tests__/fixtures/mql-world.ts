@@ -18,6 +18,7 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { FocusedMixin } from '../../../lib/command/Focused';
+import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainmentApi } from '../../containment';
 import { StuffApi } from '../../stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -33,9 +34,15 @@ class TestThing extends ContainableMixin(
   DetailedMixin(NamedMixin(PerceptibleMixin(Idea)))
 ) {}
 
+// SensorMixin is composed so controllers that fire Scenes against
+// the giver (LookController's `Scene.toSelf` in particular) work
+// out of the box. Doesn't change the surface seen by tests that
+// don't use messaging.
 class TestGiver extends ContainerMixin(
   ContainableMixin(
-    FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+    SensorMixin(
+      FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+    )
   )
 ) {}
 

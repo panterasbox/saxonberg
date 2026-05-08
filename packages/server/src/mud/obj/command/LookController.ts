@@ -1,9 +1,27 @@
 /**
- * LookController — examine surroundings or a specific object.
+ * LookController — examine surroundings, an object, or a sub-feature
+ * (Detail).
  *
  * Fires a Scene at `world.perception.look` with a single self frame
- * carrying the location/target description body. No peer broadcast —
- * looking is a private observation.
+ * carrying the location/target/detail description body. No peer
+ * broadcast — looking is a private observation.
+ *
+ * Three rendering branches, dispatched on the bound `target`:
+ *
+ *   - **Detail** — `target.via.detailPath` is set. The host Stuff
+ *     (`target.stuff`) carries `DetailedMixin`; the controller looks
+ *     up the description via `host.getDetail(path.join('.'))` and
+ *     renders the detail tip name + description. This is the
+ *     `look bookcase` / `look at the inscription` flow that lands
+ *     after MQL's chain narrows into the host's detail tree.
+ *
+ *   - **Location** — `target.stuff` is the giver's current location
+ *     and no detail via is set. Renders the room name +
+ *     description + obvious exits. Fired by bare `look` on arrival
+ *     and `look here`.
+ *
+ *   - **Direct Stuff** — anything else. Renders the bound Stuff's
+ *     own name + long description.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -28,7 +46,7 @@ export class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): CommandResult {
     const target = model.target;
     // `look.yaml` declares `default: "$focus"` and the scope fallback
-    // chain `["$focus", "inventory, here"]`, so the dispatcher always
+    // chain `["$focus", "reachable"]`, so the dispatcher always
     // hands us a wrapper. Empty (`null`) is the only honest "no
     // match" signal; we don't fabricate another fallback here.
     if (!target || target.stuff === null) {
@@ -37,6 +55,16 @@ export class LookController extends CommandController<LookModel> {
         summary: `you don't see any '${target?.raw ?? ''}' here`,
       };
     }
+    // Detail-via dispatch: when MQL's chain narrowed into the host's
+    // detail tree, render the detail rather than the host itself.
+    // Holds for `look bookcase` (host=location, via=['bookcase'])
+    // AND `look engraving` against an item in inventory
+    // (host=apple, via=['engraving']) — anywhere `via.detailPath`
+    // is set.
+    const detailPath = target.via?.detailPath;
+    if (detailPath && detailPath.length > 0) {
+      return this.lookAtDetail(target.stuff, detailPath, context);
+    }
     // Render the room (with exits) when the resolved target IS the
     // current location — bare `look` on arrival, `look here`, or
     // any `$focus` that re-resolved to the location.
@@ -44,6 +72,48 @@ export class LookController extends CommandController<LookModel> {
       return this.lookAtLocation(context);
     }
     return this.lookAtTarget(target.stuff, context);
+  }
+
+  /**
+   * Render a Detail as `<tip name>\n\n<description>`. The host's
+   * `getDetail` resolver accepts dot-notation paths (`'bookcase.book'`),
+   * so the controller just joins `via.detailPath` and asks. Aliases
+   * are transparent at this layer — the detail tip name is whatever
+   * id MQL matched on.
+   *
+   * Defensive on missing details: the chain rule that produced
+   * `via.detailPath` already verified the detail exists, but a
+   * race-y removal between resolve and execute (or a host that
+   * isn't actually Detailed) falls through to a polite error.
+   */
+  private lookAtDetail(
+    host: Stuff,
+    detailPath: string[],
+    context: CommandContext,
+  ): CommandResult {
+    if (!MixinApi.isDetailed(host)) {
+      return {
+        success: false,
+        summary: `you can't make out any detail there`,
+      };
+    }
+    const dotted = detailPath.join('.');
+    const description = host.getDetail(dotted);
+    if (description === null) {
+      return {
+        success: false,
+        summary: `you can't make out any '${dotted}' there`,
+      };
+    }
+    const tip = detailPath[detailPath.length - 1]!;
+    const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;
+
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
+
+    return { success: true, summary: `examined ${tip}` };
   }
 
   private lookAtLocation(context: CommandContext): CommandResult {
