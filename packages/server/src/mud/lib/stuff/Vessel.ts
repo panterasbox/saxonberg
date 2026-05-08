@@ -19,7 +19,7 @@
  * surface as a `BoundaryAnchor` fixture on the vessel side of the
  * (vessel, environment) Boundary pair. Non-Exitable Vessels with no
  * fixtures pay only an empty Set — see
- * `docs/light-requirements.md § Decisions`.
+ * `docs/subsystems/light.md § Boundary Substrate`.
  *
  * Subclasses (e.g., `ExitableVessel` in `lib/spatial/`) layer
  * navigation, deck-plans, captain semantics, etc. on top.

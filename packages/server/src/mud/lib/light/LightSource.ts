@@ -7,7 +7,7 @@
  * "ignite" it, set the emission back to a positive Light. There is
  * no `Switchable`, no fuel state, no `light X` verb in v1 — those
  * are content-authoring concerns layered on top of this physics
- * surface (see `docs/light-requirements.md § Out of scope`).
+ * surface (see `docs/subsystems/light.md § Out of scope (v1)`).
  *
  * Hosts can be Things (a candle in the inventory; a wall sconce as a
  * fixture, via Adornment), Vessels (a magic lantern), or even

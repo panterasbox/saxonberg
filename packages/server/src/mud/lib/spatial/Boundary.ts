@@ -27,7 +27,7 @@
  * Boundary is the runtime triple `BoundaryApi` manages — the spec
  * calls this the symmetric two-bearing model with the existing
  * `DoorBearingMixin` deliberately kept distinct (see
- * `docs/light-requirements.md § Naming: BoundaryAnchor vs DoorBearing`).
+ * `docs/subsystems/light.md § Naming: BoundaryAnchor vs DoorBearing`).
  *
  * Persistence: Boundary itself is a Thing — its persistent fields are
  * subclass-specific (`Window.baseTransmissivity`, etc.). The two

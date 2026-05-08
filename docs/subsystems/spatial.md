@@ -17,6 +17,10 @@ Sibling docs cover related ground without overlap:
   Movement narration sits on top of this.
 - [prose.md](./prose.md) — the Liquid templating used by
   `Exit.messageOut` / `messageIn` and the Mobile default settings.
+- [light.md](./light.md) — the Light & Boundary subsystem that
+  layers on top of this one. `Door` is now a `Boundary` (closed
+  doors block light, not just movement); `Adornable` composed onto
+  `Location` and `Vessel` is what hosts `BoundaryAnchor` fixtures.
 - [properties.md](./properties.md), [mixins.md](./mixins.md) — the
   general mechanics that let mixins carry persistent fields.
 
@@ -41,7 +45,9 @@ Sibling docs cover related ground without overlap:
 | `CartesianCoordinatesMixin` | mixin | `[x,y,z]` data carrier. |
 | `SphericalCoordinatesMixin` | mixin | `[rho,theta,phi] + radius` data carrier. |
 | `SealableMixin` | mixin | Binary `isOpen` state. Used by `Door`; reusable for chests, trapdoors, envelopes. |
-| `DoorBearingMixin` | mixin | Adds a `door` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
+| `DoorBearingMixin` | mixin | Adds a `door` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. NOT the same as `BoundaryAnchor` — see [light.md § Naming](./light.md#naming-boundaryanchor-vs-doorbearing). |
+| `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `Vessel`. Hosts `BoundaryAnchor` for cross-room channels — see [light.md](./light.md). |
+| `AdornmentMixin` | mixin | Host-side back-reference for fixtures (`adornedTo`) and the not-portable invariant — `ContainmentApi.move` rejects an attached Adornment until detached. |
 | `SingletonMixin` | mixin | Class-level uniqueness: composing classes refuse a second `clone()` for the same `templatePath`. Composed by `CartesianZone` and `SphericalZone`. |
 | `ZoneApi` | static API | Resolves `templatePath → Zone` via `StuffApi.singleton`. Caching is delegated; ZoneApi just owns the ancestor walk. |
 | `StuffApi.singleton(path)` | static API | Cache-or-clone tool for any class. Pairs with `SingletonMixin` for enforced uniqueness. |
@@ -57,12 +63,15 @@ Stuff (one of seven top-level branches — see architecture.md)
   │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
   │     │     └── SphericalZone     (Singleton + focus index, no derivation)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
-  ├── Location                      (ContainerMixin(Stuff))
+  ├── Location                      (Adornable + Container, was Container only)
   │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible)
   │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible)
   ├── Thing                         (ContainableMixin(Stuff))
-  │     └── Door                    (Visible + Perceptible + Sealable + Containable)
-  ├── Vessel                        (ContainerMixin(ContainableMixin(Stuff)))
+  │     ├── Boundary                (Visible + Perceptible)            ← see light.md
+  │     │     ├── Window            (Sealable + LightConduit + LineOfSight)
+  │     │     └── Door              (Sealable + Light/Sight/Movement Conduits)  ← retrofit
+  │     └── BoundaryAnchor          (Adornment)                         ← see light.md
+  ├── Vessel                        (Adornable + Container + Containable, was Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
@@ -167,7 +176,7 @@ the right answer — see [state-model.md § Stamped-on-Stuff Fields](./state-mod
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:
 "any Stuff that can hold other Stuff but doesn't itself live inside
-something." `ContainerMixin(Stuff)` and nothing else.
+something." `AdornableMixin(ContainerMixin(Stuff))`.
 
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 
@@ -182,6 +191,17 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
 ("Town Square").
+
+Both override `getZone()` with a narrowed return type:
+`CartesianLocation.getZone(): CartesianZone | null` and
+`SphericalLocation.getZone(): SphericalZone | null`. The cast-by-
+invariant lives at the boundary method (each `Zone.addLocation`
+rejects mismatched coordinate types), so call sites within the
+concrete location see the narrowed type for free —
+`CartesianLocation.getSizeScale()` reads `getZone()?.getCellSize()`
+without any local cast. See
+[antipatterns.md § "instanceof, virtual methods, and cast-by-invariant"](../antipatterns.md)
+for the underlying pattern.
 
 ## Coordinates
 
@@ -394,16 +414,28 @@ trapdoors, windows, envelopes can compose Sealable directly.
 
 ### `Door`
 
-`lib/spatial/Door.ts`. Composition:
-`VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`.
+`lib/spatial/Door.ts`. Composition: `SealableMixin(Boundary)`
+(Boundary supplies Visible + Perceptible + Thing).
 
-A Door is a `Thing` — Visible + Perceptible + Sealable + Containable.
-The Containable composition is what enables broken/unhinged doors to
-become inventory items: in the **attached** state `door.environment`
-is `null` and the door is reachable only through the `Exit.door`
-references that track it; in the **detached** state (broken, removed,
-carried) the door is moved into a Location or Avatar via
-`ContainmentApi.move` and appears in that container's `getContents()`.
+A Door is a `Thing` — Visible + Perceptible + Sealable + Containable —
+**and** a `Boundary` (see [light.md](./light.md)). In the
+**attached** state `door.environment` is `null` and the door is
+reachable only through the `Exit.door` references that track it; in
+the **detached** state (broken, removed, carried) the door is moved
+into a Location or Avatar via `ContainmentApi.move` and appears in
+that container's `getContents()`.
+
+After the Boundary retrofit, every `addBidirectionalExit({ door })`
+also installs a `BoundaryAnchor` pair (one in each room's
+`getFixtures()`). The anchors are what surface the Door to the
+`LightApi` propagation walk and to MQL fixture queries; the
+`attachedTo` Set continues to track Exit references for movement.
+A closed Door now blocks light propagation between its two rooms
+via `LightConduit.transmissivity` returning 0 — that's the visible
+behavior change. `Exit.canTraverse` is intentionally unchanged
+(still consults `door.getIsOpen()` directly); routing it through
+`MovementConduit.canPassThrough` is deferred to a future Door
+subclass that varies on traversal mode.
 
 The same physical door is referenced by potentially many Exits (the
 canonical case is two — forward + back). The `attachedTo: Set<Exit>`
@@ -436,7 +468,57 @@ Doors are template-loadable: clone from a `domain` template via
 `hydratorClass: '/lib/persistence/PersistentHydrator'`.
 
 `Door.prepareDestroy()` calls `detach()` first, so destructing a Door
-clears every Exit's reference to it.
+clears every Exit's reference to it. After the Boundary retrofit,
+`Door.detach()` also walks the BoundaryAnchor pair via
+`super.detach()` (Boundary's anchor cleanup), and the standard
+`Boundary.prepareDestroy` chain destructs the anchors. The two
+back-references — `attachedTo` Set for Exits, anchorA/anchorB for
+the Boundary — are independent and cleaned up symmetrically.
+
+## Adornable
+
+`lib/spatial/Adornable.ts`. The container-side surface for
+non-portable attached Stuff: wall sconces, ceiling lamps,
+`BoundaryAnchor`s. Composed onto `Location` and `Vessel` so every
+room and every vessel can hold fixtures.
+
+`getFixtures()` runs parallel to `getContents()`. Fixtures are NOT
+inventory; they don't show up in `look`-list output by default
+(authors mention them in long descriptions or in details). The
+not-portable invariant is enforced at `ContainmentApi.move`:
+attempting to move an attached `Adornment` rejects with
+`ContainmentError` until the host calls `removeFixture` first
+(same shape `Door.detach()` uses for breakable doors).
+
+Surface (canonical collection vocabulary —
+[collections.md](./collections.md)):
+
+```ts
+addFixture(f: Stuff & Adornment): boolean;
+removeFixture(f: Stuff & Adornment): boolean;
+hasFixture(f: Stuff & Adornment): boolean;
+getFixtures(): readonly (Stuff & Adornment)[];
+getFixtureBoundaries(): Boundary[];      // dedupes via anchor → boundary
+getFixtureLightSources(): (Stuff & Adornment)[];
+```
+
+The typed walks (`getFixtureBoundaries`, `getFixtureLightSources`)
+parallel `ExitableMixin.getExitDoors()` — they're the way the Light
+propagation walk and MQL fixture-side scope queries find structured
+fixture populations without iterating the full set themselves.
+
+`AdornableMixin.prepareDestroy()` walks `fixtures` and destructs
+each via `StuffApi.destruct` before chaining to super. A
+`BoundaryAnchor` being destructed clears the boundary's slot for
+its side; if the host on the OTHER side is still alive, its anchor
+stays put and the now-half-attached Boundary lingers until
+explicitly destructed.
+
+The full Boundary substrate (Boundary, BoundaryAnchor, Conduit
+interfaces, Window, Door retrofit details) lives in
+[light.md](./light.md). The piece that touches spatial directly is
+just "Location and Vessel are Adornable; their fixture sets host
+the BoundaryAnchors that surface cross-room channels."
 
 ## Vessels
 
@@ -501,6 +583,18 @@ Both are cached and **invalidated** in two situations:
 
 The synthesized `'out'` exit is added to `getObviousExits` output, so
 `look` from inside the vessel mentions it.
+
+After the Door retrofit (see [light.md](./light.md)), `onMoved` and
+`setDoor` also migrate the door's `BoundaryAnchor` pair on the
+`(vessel, environment)` Adornable hosts: the old pair tears down via
+`Boundary._detachAndDestructAnchors()` (the subclass-bypass seam
+that doesn't touch Door's `attachedTo`), and a new pair installs on
+`(vessel, currentEnv)` so the closed-vessel-door light-blocking
+behavior follows the vessel as it relocates. The `attachedTo` and
+the boundary anchors are independent back-references — the
+DoorBearing field still owns the runtime door reference for synth
+exits; the anchors are runtime fixtures on each side. The two
+roles do not overlap.
 
 #### `DoorBearingMixin`
 
@@ -816,3 +910,6 @@ Two intentional non-persistents:
   and the Mobile default settings.
 - [shell-environment.md § resolveSetting](./shell-environment.md) —
   cross-host setting resolution used by Mobile defaults.
+- [light.md](./light.md) — the Light & Boundary subsystem on top of
+  Door, Adornable, and the per-room walks.
+- [perception.md](./perception.md) — viewer-aware-query pattern.

@@ -19,10 +19,14 @@
  * shape. Mutation is unsupported — `add`, `attenuate`, `withColor`
  * each return a new `Light`.
  *
- * Persistence: stored on hosts via `AmbientLitMixin` and (eventually)
- * `LightSourceMixin`. The setter on each accepts a `Light` directly
- * or the raw `LightDataShape` produced by `JSON.stringify(light)` so
- * the `PersistentHydrator`'s bracket-assign round-trips cleanly.
+ * Persistence: `Light` is a value object, not a persisted shape.
+ * Mixins that expose a Light at runtime (`AmbientLitMixin`,
+ * `LightSourceMixin`) decompose it into named scalar fields
+ * (`*Intensity`, `*Color`) per the persistence subsystem's
+ * scalar-default rule (see `docs/subsystems/persistence.md`); the
+ * getter reconstructs a Light via `Light.of(...)` on read. There is
+ * no `Light | LightDataShape` union setter — the runtime API is
+ * strict on `Light`.
  */
 
 /**
@@ -45,10 +49,15 @@ export interface LightSourceRef {
 }
 
 /**
- * Raw data shape produced by `JSON.stringify(light)` and consumed by
- * `Light.from` / the AmbientLit setter. Lets the
- * `PersistentHydrator` round-trip via plain bracket-assign without a
- * custom `persistenceHandler`.
+ * Plain-object data shape mirroring a Light's public-readonly fields.
+ * Produced by `JSON.stringify(light)` (the `toJSON` form) and
+ * consumed by `Light.from` for coercing externally-sourced data
+ * (test fixtures, JSON over the wire) into a Light value object.
+ *
+ * NOT used as a persistence shape — the persistence subsystem
+ * decomposes Light values into scalar fields instead. This type
+ * exists for callers that genuinely have a `{intensity, color,
+ * sources?}` plain object and need a Light.
  */
 export interface LightDataShape {
   intensity: number;
@@ -129,10 +138,12 @@ export class Light {
   }
 
   /**
-   * Coerce a `Light | LightDataShape` value into a `Light`. The setter
-   * on `AmbientLitMixin` (and Phase 3's `LightSourceMixin`) routes
-   * hydrated data through here so persistence round-trips look like
-   * regular value objects to the rest of the code.
+   * Coerce a `Light | LightDataShape` value into a `Light`. Utility
+   * for callers that hold an externally-sourced plain-object shape
+   * (test fixtures, JSON over the wire) and need a Light value
+   * object. NOT part of the persistence path — `AmbientLitMixin` /
+   * `LightSourceMixin` decompose Light into scalar fields instead
+   * (see `docs/subsystems/persistence.md` § "Scalar-default rule").
    */
   public static from(value: Light | LightDataShape): Light {
     if (value instanceof Light) return value;
