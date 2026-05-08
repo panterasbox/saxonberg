@@ -259,11 +259,32 @@ converts the throw into a command-level failure.
 | `#abc123` | `StuffIdNode` | direct stuff id lookup |
 | `(query)` | `GroupNode` | grouping |
 
-Seed-shaped chain elements (anything that names a candidate set) act
-as **set intersections** mid-chain. So `online:reachable` ≡
-`reachable:online` (online ∩ reachable). A seed-shaped element
-preserves the prior set's `via` attribution; intersection only
-decides membership.
+Seed-shaped chain elements split by whether the seed is
+**element-derivable**:
+
+- `peers`, `reachable`, `inventory`, and the transforms `:i` / `:e`
+  are element-derivable. Mid-chain they **flat-map** over the prior
+  set: for each `x in prior`, compute `seed(x)`, union, then exclude
+  the prior set from the union (set-aware exclusion). So
+  `(bob, joe):peers` gives "everyone in the rooms bob or joe occupy,
+  minus bob and joe themselves."
+- `me`, `here`, `online`, `world`, paths, stuff ids, `$$`, and
+  groups are **fixed pools**. Mid-chain they **intersect** with the
+  prior set. `reachable:online` is "of the giver's reachable set,
+  which are online."
+
+A seed-shaped element preserves the prior set's `via` attribution
+in both cases; flat-map and intersect only decide membership.
+
+> **Implementation gap (2026-05).** The resolver in `mql/resolver.ts`
+> currently intersects for **every** seed-shaped chain element. The
+> element-derivable / fixed-pool split above is the target spec; the
+> runtime alignment is a follow-up. `intersectBySeed` becomes a
+> dispatch that routes element-derivable seeds through a flat-map
+> path with prior-set exclusion. Test coverage to add: `(bob,
+> joe):peers` in same room and different rooms; `me:i:peers` (the
+> degenerate-empty case for the right reason); `reachable:online`
+> staying as today's intersection.
 
 #### Chain operators
 
@@ -304,8 +325,9 @@ Dedup is automatic at the boundary of every set operation — `A, A`
 yields `A` once.
 
 Set intersection has no dedicated character — it falls out of mid-chain
-seed-shaped tokens. `(A):(B)` (a `:` between two grouped seeds) is
-intersection by virtue of the chain rule.
+seed-shaped tokens whose right side is a fixed-pool seed (per the
+element-derivable / fixed-pool split above). `(A):(B)` between two
+grouped fixed-pool seeds is intersection by virtue of the chain rule.
 
 #### Stable ordering
 

@@ -239,18 +239,47 @@ me:i:visible              visible items in inventory
 Unknown barewords in chain position fall back to the keyword filter —
 predicates are reserved by name match against the published list.
 
-### Seed-shaped chain elements: intersection
+### Seed-shaped chain elements
 
-When a chain element is itself a seed (it names a candidate set), `:`
-intersects the prior set with the seed's pool. Intersection is
-commutative for seed-shaped elements:
+When a chain element is itself a seed (it names a candidate set),
+how `:` combines it with the prior set depends on whether the seed
+has a per-element interpretation:
+
+- **Element-derivable seeds** (`peers`, `reachable`, `inventory`,
+  and the transforms `:i` / `:e`) **flat-map** over the prior set:
+  for each element `x`, expand to `seed(x)`, union the results,
+  and exclude the prior set itself from the final union (so "peers
+  of these people" doesn't include those people).
+- **Fixed-pool seeds** (`me`, `here`, `online`, `world`, paths,
+  stuff ids, `$$`, groups) **intersect** with the prior set.
 
 ```
-online:reachable          online ∩ reachable
-reachable:online          same — commutative
-peers:reachable           equivalent to peers (peers ⊆ reachable)
-me:i:peers                empty (inventory items aren't peers)
+(bob, joe):peers          everyone in the room with bob or joe,
+                          excluding bob and joe themselves. When they
+                          share a room: the room's other occupants.
+                          When in different rooms: union of both rooms,
+                          minus both bob and joe.
+
+reachable:online          people in the giver's reachable set who are
+                          also online (online is fixed-pool → intersect)
+
+(bob, joe):i              union of bob's and joe's contents (each `:i`
+                          flat-maps; transforms have always worked
+                          this way)
 ```
+
+The split keeps the common cases reading naturally: `:online` /
+`:world` filter ("of these, which are online?"); `:peers` /
+`:reachable` / `:i` / `:e` extend ("for each of these, give me
+peers / reachable / contents / container").
+
+> **Implementation status (2026-05).** The resolver currently
+> intersects for **every** seed-shaped chain element, including
+> `:peers` / `:reachable` / `:inventory`. The grammar described
+> here is the target; the runtime will catch up on a follow-up
+> branch. Until then, treat `:peers` mid-chain as "intersect with
+> the giver's peer pool" rather than the per-element flat-map
+> described above.
 
 ## Brackets `[…]`
 
@@ -325,8 +354,10 @@ parse on both sides. Inside a bareword (`oak-door`) it's a literal.
 Dedup is automatic at every set boundary. `A, A` yields `A` once.
 
 Set intersection has no dedicated character — it falls out of
-mid-chain seed-shaped tokens. `(A):(B)` is intersection by virtue of
-the chain rule.
+mid-chain seed-shaped tokens (when the right side is a fixed-pool
+seed). For element-derivable seeds (`peers`, `reachable`,
+`inventory`), mid-chain is flat-map per element; see the seed-shaped
+chain elements section above.
 
 ## Pronouns
 
@@ -487,7 +518,10 @@ me:i:rust
 reachable:sword:[3]
 
 # Players online in the same room
-peers:online                            (admin)
+peers:online                            (admin; online is fixed-pool, intersect)
+
+# The room-mates of bob and joe (excluding bob and joe)
+(bob, joe):peers                        (peers is element-derivable, flat-map)
 
 # Burnable items I'm carrying
 me:i:[mixin.Burnable]                   (authoring)
