@@ -165,7 +165,8 @@ export class LightApi {
     if (!MixinApi.isContainable(target)) {
       return applyCanSeeOverride(viewer, target, detail, true);
     }
-    const env = (target as unknown as Stuff & Containable).getContainer();
+    // `target` is narrowed to `Stuff & Containable` by the predicate above.
+    const env = target.getContainer();
     if (!env) {
       return applyCanSeeOverride(viewer, target, detail, false);
     }
@@ -329,11 +330,11 @@ function walkLightAt(
   // narrowed back to `LightSource` for the emission read.
   if (MixinApi.isAdornable(loc)) {
     for (const fx of loc.getFixtureLightSources()) {
-      if (!MixinApi.isLightSource(fx as unknown as Stuff)) continue;
-      const emitter = fx as unknown as Stuff & Adornment & {
-        getEmittedLight(): Light;
-      };
-      const emitted = emitter.getEmittedLight();
+      // `fx` is `Stuff & Adornment` from `getFixtureLightSources`; the
+      // predicate narrows it to `Stuff & Adornment & LightSource` so
+      // `getEmittedLight()` resolves on the narrowed type — no cast.
+      if (!MixinApi.isLightSource(fx)) continue;
+      const emitted = fx.getEmittedLight();
       if (emitted && emitted !== Light.ZERO && emitted.intensity > 0) {
         total = total.add(emitted);
       }

@@ -23,7 +23,6 @@ import type { Location } from '../stuff/Location';
 import type { Container } from './Container';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { SingletonMixin } from '../stuff/Singleton';
 
@@ -33,11 +32,17 @@ function gridKey(x: number, y: number, z: number): string {
 }
 
 export class CartesianZone extends SingletonMixin(Zone) {
-  /** Informational scale — meters/units per cell. Unused by code in Phase 7. */
+  /** Meters/units per cell. Drives `getSizeScale` on Cartesian Locations. */
   protected cellSize: number = 1.0;
 
   public getCellSize(): number { return this.cellSize; }
   public setCellSize(value: number): void { this.cellSize = value; }
+
+  /**
+   * CartesianZone synthesizes cardinal-derived exits from grid
+   * adjacency. Overrides the Zone base's `false` default.
+   */
+  public override hasDerivedAdjacency(): boolean { return true; }
 
   /** Locations indexed by `"x,y,z"` key. Host-internal. */
   protected readonly grid: Map<string, Location> = new Map();
@@ -131,13 +136,17 @@ export class CartesianZone extends SingletonMixin(Zone) {
     const neighbor = this.getNeighbor(from, canonical);
     if (!neighbor) return undefined;
 
-    if (!MixinApi.hasMixin(from.constructor as never, Mixins.Container)) return undefined;
-    if (!MixinApi.hasMixin(neighbor.constructor as never, Mixins.Container)) return undefined;
+    // Use the type-predicate form so the narrowing flows through to
+    // the Exit constructor — `MixinApi.isContainer` narrows
+    // `Location` to `Location & Container`, which IS `Stuff & Container`,
+    // so no cast is needed at the call site.
+    if (!MixinApi.isContainer(from)) return undefined;
+    if (!MixinApi.isContainer(neighbor)) return undefined;
 
     const exit = StuffApi.createSync(() => new Exit({
       direction: canonical,
-      source: from as unknown as Stuff & Container,
-      destination: neighbor as unknown as Stuff & Container,
+      source: from,
+      destination: neighbor,
     }));
     this.derivedCache.set(cacheKey, exit);
     return exit;

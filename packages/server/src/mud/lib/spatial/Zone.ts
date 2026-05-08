@@ -87,6 +87,23 @@ export abstract class Zone extends Idea {
   public abstract deriveExit(from: Location, direction: string): Exit | undefined;
 
   /**
+   * Does this Zone synthesize cardinal-derived exits from grid
+   * adjacency? CartesianZone overrides to return `true`; the
+   * default is `false`. `ExitableMixin.getObviousExits` uses this
+   * to skip the cardinal-iteration loop on zones that don't have
+   * adjacency-derived exits.
+   *
+   * This is a behavioural query (yes/no about how the zone routes
+   * exits), not a Cartesian-specific value extraction. `cellSize`
+   * lives on `CartesianZone` because it's meaningless on
+   * non-Cartesian zones; the Cartesian-shaped Location reaches
+   * into its zone for that value via cast-by-invariant.
+   */
+  public hasDerivedAdjacency(): boolean {
+    return false;
+  }
+
+  /**
    * Refuse to destruct a non-empty Zone. Caller must drain the member
    * locations (destruct or relocate) before destructing the Zone itself.
    * Subclasses may extend (e.g. `CartesianZone` clears its derived-exit

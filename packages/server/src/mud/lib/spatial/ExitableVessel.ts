@@ -134,13 +134,20 @@ export class ExitableVessel extends ExitableVesselBase {
   ): void {
     if (!env) return;
     if (door.getAnchorA() || door.getAnchorB()) return;
-    const vesselAsAdornable = this as unknown as Stuff & Adornable;
-    if (!MixinApi.isAdornable(vesselAsAdornable as unknown as Stuff)) return;
-    if (!MixinApi.isAdornable(env as unknown as Stuff)) return;
+    // Cast both sides to plain `Stuff` (sound — vessel and env are
+    // both Stuff) and let `MixinApi.isAdornable` narrow them to
+    // `Stuff & Adornable` via its type predicate. The earlier
+    // pre-assert-then-verify shape double-cast around the predicate;
+    // this lets the predicate's narrowing flow through to the
+    // BoundaryApi call site.
+    const vesselStuff = this as unknown as Stuff;
+    const envStuff = env as unknown as Stuff;
+    if (!MixinApi.isAdornable(vesselStuff)) return;
+    if (!MixinApi.isAdornable(envStuff)) return;
     BoundaryApi.attachExistingBoundary({
       boundary: door,
-      hostA: vesselAsAdornable,
-      hostB: env as unknown as Stuff & Adornable,
+      hostA: vesselStuff,
+      hostB: envStuff,
     });
   }
 

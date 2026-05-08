@@ -24,7 +24,7 @@ import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
-import { CartesianZone } from './CartesianZone';
+import type { CartesianZone } from './CartesianZone';
 import type { Exit } from './Exit';
 
 const CartesianLocationBase = PostRegistrationMixin(
@@ -63,13 +63,18 @@ export class CartesianLocation extends CartesianLocationBase {
    * Spatial scale used by `LightApi.bandAt` to map total intensity to
    * a band: `effective = light.intensity / loc.getSizeScale()`. For
    * a Cartesian room the scale is the owning zone's `cellSize` —
-   * larger cells mean the same total light reads dimmer. Defaults
-   * to `1.0` when the room hasn't been added to a zone yet (transient
-   * test state) or the zone is missing a cellSize.
+   * larger cells mean the same total light reads dimmer.
+   *
+   * Invariant: a `CartesianLocation` lives in a `CartesianZone`
+   * (`CartesianZone.addLocation` rejects non-Cartesian locations).
+   * The cast leans on that invariant — if a `CartesianLocation` ever
+   * landed in a non-Cartesian zone, `getCellSize` would be undefined
+   * and the optional call short-circuits to `1.0`. The fallback also
+   * handles transient test state where the room hasn't been added to
+   * a zone yet.
    */
   public getSizeScale(): number {
-    const zone = this.getZone();
-    if (zone instanceof CartesianZone) return zone.getCellSize() ?? 1.0;
-    return 1.0;
+    const zone = this.getZone() as CartesianZone | null;
+    return zone?.getCellSize() ?? 1.0;
   }
 }

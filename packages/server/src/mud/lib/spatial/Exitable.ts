@@ -180,11 +180,14 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const explicit = this.exits.get(direction);
       if (explicit) return explicit;
 
+      // `Zone.deriveExit` is polymorphic: CartesianZone synthesizes
+      // a grid-adjacent Exit, SphericalZone always returns undefined.
+      // No `instanceof` check needed.
       const zone = (this as unknown as Stuff).getZone();
-      if (zone instanceof CartesianZone) {
-        return zone.deriveExit(this as unknown as import('../stuff/Location').Location, direction);
-      }
-      return undefined;
+      return zone?.deriveExit(
+        this as unknown as import('../stuff/Location').Location,
+        direction
+      );
     }
 
     /** Explicit exits only. For tooling / persistence. */
@@ -199,10 +202,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     /**
      * Exits displayed by `look` — explicit ∪ derived, filtered by `!hidden`.
      *
-     * Derived exits are only reachable via `CartesianZone`; we iterate the
-     * 10 cardinals and let `getExit()` handle the merge. Uses a Set of
-     * directions already covered by explicit exits to avoid re-querying the
-     * zone for those.
+     * Zones that synthesize cardinal-derived exits (CartesianZone) opt in
+     * via `Zone.hasDerivedAdjacency()`; zones without adjacency derivation
+     * (SphericalZone) skip the iteration entirely so we don't waste 10
+     * always-undefined `deriveExit` calls per query.
      */
     getObviousExits(): Exit[] {
       const result: Exit[] = [];
@@ -214,7 +217,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       }
 
       const zone = (this as unknown as Stuff).getZone();
-      if (zone instanceof CartesianZone) {
+      if (zone?.hasDerivedAdjacency()) {
         for (const dir of NavigationApi.cardinalDirections()) {
           if (seen.has(dir)) continue;
           const exit = zone.deriveExit(
@@ -304,16 +307,21 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // walk consumes these anchors; `Exit.canTraverse` keeps using
       // `door.getIsOpen()` directly (see plan § Exit.canTraverse).
       if (opts.door) {
-        const here = this as unknown as Stuff & Adornable;
-        const there = other as unknown as Stuff & Adornable;
+        // Cast `this` and `other` to plain `Stuff` (sound — both are
+        // Stuff via the mixin chain), then let `MixinApi.isAdornable`
+        // narrow to `Stuff & Adornable` via its type predicate. Don't
+        // pre-assert the Adornable shape with a cast; the predicate is
+        // the verification.
+        const thisStuff = this as unknown as Stuff;
+        const otherStuff = other as unknown as Stuff;
         if (
-          MixinApi.isAdornable(here as unknown as Stuff) &&
-          MixinApi.isAdornable(there as unknown as Stuff)
+          MixinApi.isAdornable(thisStuff) &&
+          MixinApi.isAdornable(otherStuff)
         ) {
           BoundaryApi.attachExistingBoundary({
             boundary: opts.door,
-            hostA: here,
-            hostB: there,
+            hostA: thisStuff,
+            hostB: otherStuff,
           });
         }
       }
