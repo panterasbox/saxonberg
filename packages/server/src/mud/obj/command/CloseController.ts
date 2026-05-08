@@ -24,7 +24,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlOneResult } from '../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -50,7 +50,15 @@ export class CloseController extends CommandController<CloseModel> {
       };
     }
 
-    const sealable = resolveSealable(target);
+    // Direct hit (close oak) → target.stuff; direction match
+    // (close north) → via.exit.getDoor(). MqlApi.effectiveTarget
+    // tries both and returns the first Sealable. The arrow
+    // wrapper preserves MixinApi as `this` for the internal
+    // hasMixin lookup.
+    const sealable = MqlApi.effectiveTarget(
+      target,
+      (s): s is Stuff & Sealable => MixinApi.isSealable(s),
+    );
     if (!sealable) {
       return { success: false, summary: "can't close that" };
     }
@@ -74,25 +82,4 @@ export class CloseController extends CommandController<CloseModel> {
       summary: `closed ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
     };
   }
-}
-
-/**
- * Resolve the Sealable to act on from a `target` binding. Direct
- * Sealable matches (chest, named door) hand back the Stuff itself;
- * direction matches return the door attached to the matched exit
- * when it's Sealable. Anything else returns null.
- */
-function resolveSealable(target: MqlOneResult): (Stuff & Sealable) | null {
-  const stuff = target.stuff;
-  if (stuff && MixinApi.isSealable(stuff)) {
-    return stuff;
-  }
-  const exit = target.via?.exit;
-  if (exit) {
-    const door = exit.getDoor();
-    if (door && MixinApi.isSealable(door)) {
-      return door;
-    }
-  }
-  return null;
 }

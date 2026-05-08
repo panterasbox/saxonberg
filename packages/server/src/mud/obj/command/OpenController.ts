@@ -26,7 +26,7 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
-import type { MqlOneResult } from '../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -52,7 +52,16 @@ export class OpenController extends CommandController<OpenModel> {
       };
     }
 
-    const sealable = resolveSealable(target);
+    // Direct hit (open oak) → the door is target.stuff;
+    // direction match (open north) → the door is via.exit.getDoor().
+    // MqlApi.effectiveTarget tries both and returns the first
+    // Sealable. The arrow wrapper preserves MixinApi as `this` —
+    // the security-gated static needs it for the internal
+    // hasMixin lookup.
+    const sealable = MqlApi.effectiveTarget(
+      target,
+      (s): s is Stuff & Sealable => MixinApi.isSealable(s),
+    );
     if (!sealable) {
       return { success: false, summary: "can't open that" };
     }
@@ -76,26 +85,4 @@ export class OpenController extends CommandController<OpenModel> {
       summary: `opened ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
     };
   }
-}
-
-/**
- * Resolve the Sealable to act on from a `target` binding. Direct
- * Sealable matches (chest, named door) hand back the Stuff itself;
- * direction matches return the door attached to the matched exit
- * when it's Sealable. Anything else returns null and the controller
- * surfaces "can't open that."
- */
-function resolveSealable(target: MqlOneResult): (Stuff & Sealable) | null {
-  const stuff = target.stuff;
-  if (stuff && MixinApi.isSealable(stuff)) {
-    return stuff;
-  }
-  const exit = target.via?.exit;
-  if (exit) {
-    const door = exit.getDoor();
-    if (door && MixinApi.isSealable(door)) {
-      return door;
-    }
-  }
-  return null;
 }

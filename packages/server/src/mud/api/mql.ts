@@ -130,6 +130,40 @@ export class MqlApi {
     }
     return null;
   }
+
+  /**
+   * Pick the effective target Stuff from a single-cardinality
+   * binding, considering both the direct match and any door
+   * attached to a `via.exit`. Returns the first Stuff (in that
+   * order) that satisfies `predicate`, or `null` when neither
+   * does.
+   *
+   * The "direct first, door second" rule is what makes door-acting
+   * verbs (`open`, `close`, future `knock` / `lock`) work
+   * uniformly across the two ways MQL can land on a door: by
+   * keyword on the door itself (`open oak`) or by direction
+   * through the location (`open north`). Controllers that don't
+   * care about doors just call `effectiveTarget(value, predicate)`
+   * and the via.exit branch is a no-op when no door is attached
+   * (or when the door doesn't satisfy the predicate).
+   *
+   * `predicate` is the standard `MixinApi.isX` shape — a type
+   * guard returning `obj is Stuff & T`. The narrowing flows
+   * through the return type, so callers don't need a follow-up
+   * cast.
+   */
+  static effectiveTarget<T extends object>(
+    value: MqlOneResult,
+    predicate: (s: Stuff) => s is Stuff & T,
+  ): (Stuff & T) | null {
+    if (value.stuff && predicate(value.stuff)) return value.stuff;
+    const exit = value.via?.exit;
+    if (exit) {
+      const door = exit.getDoor();
+      if (door && predicate(door)) return door;
+    }
+    return null;
+  }
 }
 
 /**
