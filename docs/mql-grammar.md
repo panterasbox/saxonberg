@@ -150,6 +150,17 @@ open east        resolves to (location, via.exit=east-exit) — controller opens
 The direction vocabulary (canonical names + aliases like `n` →
 `north`) lives in the spatial subsystem.
 
+> **Doors and exits aren't the same thing.** A door is a Stuff —
+> a thing with its own keywords (`oak`, `iron`, `door`) that
+> players reach for. An exit is a feature of the room — a
+> direction the room offers, with an optional door attached. Both
+> are addressable from the `here` scope, but through different
+> paths: `oak` matches the door directly; `north` matches the
+> exit and lands `via.exit` so the controller can find any door
+> hanging off it. That mirrors how players think about the world
+> — `look at the oak door` and `go north` are different verbs
+> aimed at different concepts, and MQL keeps them distinct.
+
 ### Path globs
 
 Paths support `*` (any non-`/` chars), `?` (single char), `**`

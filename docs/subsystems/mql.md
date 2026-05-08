@@ -391,6 +391,40 @@ Built-in scopes:
 split lets `get` declare the surgical scope it actually wants
 (`peers`) without picking up the room itself or its exits.
 
+##### Doors vs exits — an intentional asymmetry
+
+`candidatesForHere` walks doors and exits along **different paths**,
+and that's deliberate, not a workaround:
+
+- **Doors are Stuff.** They have keywords, descriptions, props, and
+  participate in the lifecycle like any other thing. They flow
+  through the standard `pushDirect` candidate emission (own
+  keywords + display name) plus `pushDetails` (any details on the
+  door). A door at the north exit is addressable by its own
+  keywords (`oak`, `door`, `iron`).
+
+- **Exits are descriptors of the room**, not Stuff. They have a
+  direction, an inverse, optionally a door reference — but they
+  aren't lifecycle-attached objects with keywords of their own. The
+  candidate walk synthesizes one per exit:
+  `{ stuff: location, name: direction, keywords: [direction], via: { exit } }`.
+  The matched Stuff is the location; `via.exit` carries the
+  attribution.
+
+This mirrors how players think about the world: doors are *things*
+("the oak door") and exits are *features of the room* ("you can go
+north"). The resolver's two paths encode that asymmetry — a single
+"give exits keywords too" generalization would obscure it. The
+direction vocabulary stays the canonical surface for "name an exit"
+because it's already the framework's closed set of direction tokens.
+
+Collisions between a door's keywords and an exit's direction (a
+door author who adds `north` as a keyword on the door at the north
+exit) resolve through scoring: the synthesized exit candidate
+scores 100 (exact-name match on the direction), the door's keyword
+hit on a multi-word display name scores 25. Exit wins. Authors who
+don't want this should leave directions out of door keyword lists.
+
 #### Scope-as-MQL evaluation
 
 When the YAML's `scope:` fragment isn't a recognized named seed (or
