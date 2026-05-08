@@ -336,6 +336,21 @@ Comparisons against a missing property yield `false` — `[prop.gold > 0]`
 excludes objects without a `gold` property, which is usually what you
 want.
 
+> **`has` only earns its keep on `prop.K`.** `mixin.X`, `class.X`,
+> `keyword.X`, and `template.X` always return a strict boolean; `has`
+> checks "is the value not `undefined`," so for those atoms `has` is
+> always true and reads as a no-op. Use the bare atom (`[keyword.X]`)
+> or its negation (`[not keyword.X]`) instead.
+
+> **Bareword vs `[keyword.X]` are not the same.** A bareword chain
+> step (`peers:rose`) runs the fuzzy scored matcher (exact name >
+> substring > keyword AND-narrow > partial), so it pulls in `rose`,
+> `rosehip`, `rosie`, etc. `[keyword.X]` is the strict boolean —
+> only Stuff that has the exact keyword `X` in its keyword list.
+> Pick the one that matches your intent: bareword for player-style
+> seek, `[keyword.X]` for author-grade assertions and composition
+> (`[keyword.rusty and keyword.broken]`).
+
 ## Set operations
 
 | Form | Means |
@@ -529,10 +544,15 @@ me:i:[mixin.Burnable]                   (authoring)
 world:[mixin.Door]                      (admin)
 
 # Items with hp > 0 in inventory
-me:i:[has prop.hp]:[prop.hp > 0]        (authoring)
+me:i:[prop.hp > 0]                      (authoring; comparison
+                                         against undefined is false,
+                                         so missing prop.hp is excluded)
 
-# Rooms with a "fountain" detail
-/obj/Location/*:[has detail.fountain]   (authoring)
+# Rooms whose name or top-level detail names match "fountain"
+/obj/Location/*:fountain                (authoring; chain narrow uses
+                                         the detail-keyword extension,
+                                         landing via.detailPath when
+                                         a detail name matched)
 
 # Things I had drilled on, but specifically the burnable ones
 $$:[mixin.Burnable]                     (authoring)
