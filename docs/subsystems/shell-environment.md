@@ -137,9 +137,6 @@ must use `settings set` for declared keys.
 
 ```typescript
 interface Environment {
-  persistentStore?: Record<string, unknown>;
-  sessionStore: Record<string, unknown>;
-
   // Schema-validated settings.
   getSetting<T>(key: string): T | undefined;
   setSetting<T>(key: string, value: T, actor: Stuff): void;

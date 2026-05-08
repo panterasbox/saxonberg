@@ -76,25 +76,16 @@ export interface DefaultAliasEntry {
 }
 
 /**
- * Public shape provided by AliasMixin. The two raw stores are exposed
- * on the interface (parallel to `Environment.persistentStore`) because
- * the Hydrator reflects into them by name; everything else goes
- * through the canonical Shape B (keyed map) collection surface.
+ * Public shape provided by AliasMixin — methods only, per the
+ * inter-stuff contract. The persistent (`aliases`) and session
+ * (`aliasesSession`) stores live as public fields on the
+ * implementing class so the Hydrator can reflect into them by name,
+ * but they are NOT part of the contract surface; every external
+ * read or write goes through the methods below. Tests that need to
+ * seed raw state reach for the concrete class type rather than the
+ * `Alias` narrowing.
  */
 export interface Alias {
-  /**
-   * Persistent overrides + tombstones. Hydrator reflects in. Optional
-   * + default `{}` matches the legacy-tolerant pattern from
-   * `Propertied.savedProps` / `Environment.persistentStore`.
-   */
-  aliases?: Record<string, string | null>;
-
-  /**
-   * Transient overrides. NOT in `persistentFields`. Lives only as long
-   * as the in-memory host instance.
-   */
-  aliasesSession: Record<string, string>;
-
   /**
    * Set or override an alias. Persistent unless `opts.lifetime ===
    * 'session'`. Validates name shape and body shape at set-time;
