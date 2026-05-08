@@ -31,4 +31,14 @@ export class SphericalLocation extends SphericalLocationBase {
   }
 
   // prepareDestroy inherited from ExitableMixin → Location chain.
+
+  /**
+   * Spatial scale used by `LightApi.bandAt`. For a spherical room
+   * the scale is the room's own radius (the focus index of a
+   * spherical zone is purely positional). A bigger sphere means
+   * the same total light reads dimmer.
+   */
+  public getSizeScale(): number {
+    return this.getRadius();
+  }
 }

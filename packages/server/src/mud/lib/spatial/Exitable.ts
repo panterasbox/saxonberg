@@ -27,6 +27,8 @@ import { CartesianZone } from './CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { BoundaryApi } from '../../api/boundary';
+import type { Adornable } from './Adornable';
 
 /**
  * Public shape added by ExitableMixin.
@@ -292,6 +294,29 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
       this.addExit(forward);
       other.addExit(back);
+
+      // Phase 5 Door retrofit: a Door is a Boundary, so when this
+      // pair carries a shared door, also install the door's
+      // BoundaryAnchors on each room. Idempotent against re-install
+      // — `attachExistingBoundary` rejects a wired boundary, so
+      // callers passing the same door twice (e.g., reinstall after
+      // detach) must `door.detach()` first. The cross-boundary light
+      // walk consumes these anchors; `Exit.canTraverse` keeps using
+      // `door.getIsOpen()` directly (see plan § Exit.canTraverse).
+      if (opts.door) {
+        const here = this as unknown as Stuff & Adornable;
+        const there = other as unknown as Stuff & Adornable;
+        if (
+          MixinApi.isAdornable(here as unknown as Stuff) &&
+          MixinApi.isAdornable(there as unknown as Stuff)
+        ) {
+          BoundaryApi.attachExistingBoundary({
+            boundary: opts.door,
+            hostA: here,
+            hostB: there,
+          });
+        }
+      }
     }
 
     /**

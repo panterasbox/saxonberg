@@ -47,6 +47,10 @@ import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
 import type { DoorBearing } from '../lib/spatial/DoorBearing';
+import type { Adornable } from '../lib/spatial/Adornable';
+import type { Adornment } from '../lib/spatial/Adornment';
+import type { AmbientLit } from '../lib/light/AmbientLit';
+import type { LightSource } from '../lib/light/LightSource';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -340,6 +344,22 @@ export class MixinApi {
 
   public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {
     return this.hasMixin(obj, Mixins.DoorBearing);
+  }
+
+  public static isAdornable(obj: Stuff): obj is Stuff & Adornable {
+    return this.hasMixin(obj, Mixins.Adornable);
+  }
+
+  public static isAdornment(obj: Stuff): obj is Stuff & Adornment {
+    return this.hasMixin(obj, Mixins.Adornment);
+  }
+
+  public static isAmbientLit(obj: Stuff): obj is Stuff & AmbientLit {
+    return this.hasMixin(obj, Mixins.AmbientLit);
+  }
+
+  public static isLightSource(obj: Stuff): obj is Stuff & LightSource {
+    return this.hasMixin(obj, Mixins.LightSource);
   }
 }
 

@@ -24,6 +24,7 @@ import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
+import { CartesianZone } from './CartesianZone';
 import type { Exit } from './Exit';
 
 const CartesianLocationBase = PostRegistrationMixin(
@@ -57,4 +58,18 @@ export class CartesianLocation extends CartesianLocationBase {
   // prepareDestroy is inherited from ExitableMixin (exit teardown) and
   // chains via super to Location.prepareDestroy (zone detach). No
   // override needed.
+
+  /**
+   * Spatial scale used by `LightApi.bandAt` to map total intensity to
+   * a band: `effective = light.intensity / loc.getSizeScale()`. For
+   * a Cartesian room the scale is the owning zone's `cellSize` —
+   * larger cells mean the same total light reads dimmer. Defaults
+   * to `1.0` when the room hasn't been added to a zone yet (transient
+   * test state) or the zone is missing a cellSize.
+   */
+  public getSizeScale(): number {
+    const zone = this.getZone();
+    if (zone instanceof CartesianZone) return zone.getCellSize() ?? 1.0;
+    return 1.0;
+  }
 }

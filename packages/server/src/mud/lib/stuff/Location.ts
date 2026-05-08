@@ -8,18 +8,23 @@
  * navigation), coordinate mixins, NamedMixin (for places with proper
  * names like "Town Square"), and whatever else they need.
  *
- * Composition: `ContainerMixin(Stuff)`
+ * Composition: `AdornableMixin(ContainerMixin(Stuff))`
  *
  * Provides:
  * - contents: Set<Stuff & Containable> (host-internal storage)
+ * - fixtures: Set<Stuff & Adornment> (host-internal, non-portable
+ *   attached Stuff: wall sconces, ceiling lamps, BoundaryAnchors)
  * - addContainable(), removeContainable(), hasContainable()
  * - getContents()
+ * - addFixture(), removeFixture(), hasFixture(), getFixtures(),
+ *   getFixtureBoundaries(), getFixtureLightSources() (from AdornableMixin)
  */
 
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
+import { AdornableMixin } from '../spatial/Adornable';
 
-const LocationBase = ContainerMixin(Stuff);
+const LocationBase = AdornableMixin(ContainerMixin(Stuff));
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
@@ -30,13 +35,17 @@ export class Location extends LocationBase {
    * (CartesianZone grid, SphericalZone focus index).
    *
    * `ExitableMixin.prepareDestroy` super-chains here after handling
-   * the exit-side teardown.
+   * the exit-side teardown. We chain to super in turn so
+   * `AdornableMixin.prepareDestroy` (fixture teardown — wall
+   * sconces, BoundaryAnchors) runs before the chain bottoms out at
+   * `Stuff`.
    */
   protected override prepareDestroy(): void {
     const zone = this.getZone();
     if (zone) {
       zone.removeLocation(this);
     }
+    (super.prepareDestroy as (() => void) | undefined)?.call(this);
   }
 }
 

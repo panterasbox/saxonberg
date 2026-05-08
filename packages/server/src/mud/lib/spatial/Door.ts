@@ -1,92 +1,108 @@
 /**
- * Door - First-class shared door state referenced by exit pairs.
+ * Door — first-class shared door state referenced by exit pairs AND
+ * surfaced as a `Boundary` on each adjacent room.
  *
- * One `Door` instance represents one physical door. Both sides of a
- * bidirectional exit pair reference the SAME instance so that opening the
- * door from one side is immediately visible from the other.
- * `ExitableMixin.addBidirectionalExit()` wires this up in a single call.
+ * Phase 5 retrofit: a Door is now a `Boundary` subclass. The two
+ * sides of a bidirectional exit pair still reference the SAME `Door`
+ * instance via `Exit.door` (the movement-channel fast path), and the
+ * Door additionally lives in each adjacent room's
+ * `Adornable.getFixtures()` via a `BoundaryAnchor` per side. This
+ * lets a closed Door block light propagation between its two rooms
+ * via the cross-boundary walk in `LightApi.lightAt`, alongside the
+ * pre-existing movement gate on `Exit.canTraverse`.
  *
- * Composition: `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`.
- * A Door is a `Thing` — it has identity AND a `Containable` environment,
- * so a *broken* or *unhinged* door can be moved into a Location with
- * `ContainmentApi.move(door, location)` and picked up like any item. In
- * the **attached** state the door's `environment` is `null`; the door
- * is reachable only via the `Exit.door` references that track it. In
- * the **detached** state (broken, removed, carried) the door has an
- * `environment` and appears in that container's `getContents()`.
+ * Composition: `SealableMixin(Boundary)`. Boundary already supplies
+ * `Visible + Perceptible + Thing` (Containable comes from Thing), so
+ * a *broken* or *unhinged* door can still be moved into a Location
+ * via `ContainmentApi.move(door, location)` once detached. The
+ * `attachedTo: Set<Exit>` field is preserved as the runtime
+ * back-reference from each Exit that still references this Door.
  *
- * The same physical door is referenced by potentially many Exits (the
- * canonical case is two — forward + back). The `attachedTo` set is the
- * runtime back-reference, populated automatically by `Exit`'s `door`
- * setter. When a door breaks or is detached, walk `attachedTo` to clear
- * each Exit's `door` ref before relocating.
+ * Conduit registry: a Door advertises three conduits in
+ * `getConduits()` — `LightConduit`, `LineOfSight`, and
+ * `MovementConduit`. All three delegate to `getIsOpen()`: a closed
+ * Door blocks light, line-of-sight, and movement uniformly. Per-mode
+ * traversal logic (squeeze through, wedge open) is a future Door
+ * subclass; v1 Door is binary-open.
  *
- * Mixin responsibilities:
- *   - `SealableMixin`: open/closed state (shared with chests, trapdoors, …).
- *     The `isOpen` setter rejects non-boolean assignments.
- *   - `PerceptibleMixin`: MQL keywords so the player can type
- *     `open the oak door` and have it resolve. The `keywords` setter
- *     normalizes (lowercase / trim / dedupe).
- *   - `VisibleMixin`: short/long descriptions, so `look door` and
- *     `DescribeApi.getDisplayName()` both work uniformly. A door's
- *     identity is its visual description ("a heavy oak door") — not
- *     a proper name. NamedMixin is for things that take proper
- *     names (characters, ships, named places).
+ * `Exit.canTraverse` is INTENTIONALLY unmodified by this retrofit —
+ * it already consults `door.getIsOpen()`, which returns the same
+ * answer as the new `MovementConduit.canPassThrough`. Generalizing
+ * the call site is deferred to a future Door subclass that varies on
+ * traversal mode (`'squeeze'`, `'climb'`, …).
+ *
+ * Mixin responsibilities (unchanged from pre-retrofit):
+ *   - `SealableMixin`: open/closed state. The `isOpen` setter
+ *     rejects non-boolean assignments — same shape as before.
+ *   - `PerceptibleMixin` (via Boundary): MQL keywords. Door
+ *     overrides `getKeywords()` to union with shortDescription
+ *     tokens.
+ *   - `VisibleMixin` (via Boundary): short/long descriptions.
  *
  * Template-loadable: `Door` is cloned from a `domain` template via
- * `StuffApi.clone()`. Templates set
- * `hydratorClass: '/lib/persistence/PersistentHydrator'` to opt into the
- * generic mixin-field copy; the field setters above enforce shape on the
- * way in, so no post-hydrate fixup is needed.
+ * `StuffApi.clone()` with
+ * `hydratorClass: '/lib/persistence/PersistentHydrator'`. The
+ * persistent field shape is unchanged from pre-retrofit — `isOpen`
+ * (Sealable) plus the inherited Visible / Perceptible fields.
  *
- * MQL surfaces a door on its location via `ExitableMixin.getExitDoors()`
- * (MqlApi scans those in addition to the location's contents), so a door
- * is player-targetable by name even though it doesn't live in anyone's
- * inventory while attached.
- *
- * Phase 7 scope: open/closed only. No locks, no keys, no `unlock` command.
+ * MQL: a Door surfaces twice on its containing Location — once via
+ * `ExitableMixin.getExitDoors()` and once via
+ * `Adornable.getFixtureBoundaries()`. The `getFixtureBoundaries`
+ * walk dedupes by `stuffId`, and the resolver dedupes the (stuff, via)
+ * pair so the existing `via.exit` attribution survives.
  */
 
-import { Thing } from '../stuff/Thing';
+import { Boundary } from './Boundary';
 import { SealableMixin } from './Sealable';
-import { PerceptibleMixin } from '../description/Perceptible';
-import { VisibleMixin } from '../description/Visible';
 import type { Exit } from './Exit';
+import type {
+  Conduit,
+  LightConduit,
+  LineOfSight,
+  MovementConduit,
+  BoundarySide,
+} from './Conduit';
 
-const DoorBase = VisibleMixin(PerceptibleMixin(SealableMixin(Thing)));
+const DoorBase = SealableMixin(Boundary);
 
 export class Door extends DoorBase {
   /**
-   * Runtime back-reference: every Exit whose `door` currently points at
-   * this Door. Maintained by `Exit`'s `door` setter — adding the door
-   * to a new Exit registers; clearing the door (or `Exit.prepareDestroy`)
-   * unregisters.
+   * Runtime back-reference: every Exit whose `door` currently points
+   * at this Door. Maintained by `Exit`'s `door` setter — adding the
+   * door to a new Exit registers; clearing the door (or
+   * `Exit.prepareDestroy`) unregisters.
    *
-   * Not persistent: the relationship is rebuilt at load time as Exits
-   * are constructed. Wiping it on destroy is `prepareDestroy`'s job.
+   * Not persistent: the relationship is rebuilt at load time as
+   * Exits are constructed. Wiping it on destroy is `prepareDestroy`'s
+   * job (via `detach()`).
    *
-   * Host-internal storage; external callers (Exit's door setter,
-   * ExitableVessel's synth, tests) go through `attachExit` /
-   * `detachExit` / `hasAttached` / `getAttachedExits`.
-   *
-   * The `attach`/`detach` verb pair is intentional rather than the
-   * default `add`/`remove`: attaching an exit also wires the back-
-   * reference from the exit's `door` slot to this Door, so the
-   * operation is semantically richer than mere set membership.
-   * See [docs/subsystems/collections.md](../../../../../../docs/subsystems/collections.md).
+   * Host-internal storage; external callers go through `attachExit`
+   * / `detachExit` / `hasAttached` / `getAttachedExits`. The verb
+   * pair stays `attach`/`detach` rather than `add`/`remove` because
+   * the operation is semantically richer than mere set membership —
+   * the exit's `door` slot points back here, so attach/detach are
+   * the right names for the bidirectional wiring.
    */
   protected attachedTo: Set<Exit> = new Set();
 
-  public attachExit(exit: Exit): void { this.attachedTo.add(exit); }
-  public detachExit(exit: Exit): boolean { return this.attachedTo.delete(exit); }
-  public hasAttached(exit: Exit): boolean { return this.attachedTo.has(exit); }
-  public getAttachedExits(): ReadonlySet<Exit> { return this.attachedTo; }
+  public attachExit(exit: Exit): void {
+    this.attachedTo.add(exit);
+  }
+  public detachExit(exit: Exit): boolean {
+    return this.attachedTo.delete(exit);
+  }
+  public hasAttached(exit: Exit): boolean {
+    return this.attachedTo.has(exit);
+  }
+  public getAttachedExits(): ReadonlySet<Exit> {
+    return this.attachedTo;
+  }
 
   /**
-   * Union of the PerceptibleMixin keyword list with the tokens of the
-   * door's shortDescription. A door constructed with only `shortDescription:
-   * 'heavy oak door'` should still be targetable as `oak` / `door` without
-   * the template author having to re-list those as explicit keywords.
+   * Union of the PerceptibleMixin keyword list with the tokens of
+   * the door's shortDescription. A door constructed with only
+   * `shortDescription: 'heavy oak door'` should still be targetable
+   * as `oak` / `door` without re-listing those as explicit keywords.
    */
   override getKeywords(): string[] {
     const base = super.getKeywords();
@@ -97,29 +113,91 @@ export class Door extends DoorBase {
     return Array.from(new Set([...base, ...nameTokens]));
   }
 
+  // --- Conduit surface ---------------------------------------------------
+
   /**
-   * Detach this door from every Exit currently referencing it, clearing
-   * each exit's `door` ref and emptying `attachedTo`. The door becomes
-   * a free-standing Thing — the caller is responsible for placing it
-   * somewhere with `ContainmentApi.move(door, location)` (the typical
-   * "broken door drops to the floor" case).
-   *
-   * Idempotent: detaching an already-detached door is a no-op.
+   * Conduit registry: a Door advertises Light, Sight, and Movement
+   * conduits, all gated on `getIsOpen()`. Closed Door → all three
+   * return 0 / false. The dual-tag exposure pattern follows
+   * `Window.getConduits()` — wrappers rebadge `conduitKind` so a
+   * single Door instance can serve all three channel queries.
    */
-  public detach(): void {
+  public override getConduits(): readonly Conduit[] {
+    return [
+      lightConduitFor(this),
+      lineOfSightFor(this),
+      movementConduitFor(this),
+    ];
+  }
+
+  public transmissivity(_from: BoundarySide, _to: BoundarySide): number {
+    // v1 Door: binary open/closed. A future muffled-door subclass
+    // could return a partial transmissivity instead.
+    return this.getIsOpen() ? 1 : 0;
+  }
+
+  public canSeeThrough(_from: BoundarySide, _to: BoundarySide): boolean {
+    return this.getIsOpen();
+  }
+
+  public canPassThrough(
+    _from: BoundarySide,
+    _to: BoundarySide,
+    _mode: string
+  ): boolean {
+    return this.getIsOpen();
+  }
+
+  /**
+   * Detach this door from every Exit currently referencing it AND
+   * from its Boundary anchors on each side's host. The first step
+   * mirrors pre-retrofit behaviour — Exit.door slots clear, the
+   * door becomes a free-standing Thing addressable as inventory.
+   * The second step (super.detach) clears each room's
+   * BoundaryAnchor fixture so the cross-boundary light walk no
+   * longer passes through this door.
+   *
+   * Idempotent.
+   */
+  public override detach(): void {
     const exits = [...this.attachedTo];
     for (const exit of exits) {
       exit.setDoor(null);
     }
     this.attachedTo.clear();
+    super.detach();
   }
 
-  /**
-   * Cleanup hook fired by `StuffApi.destruct(this)`. Clears the back-
-   * pointer on every Exit that referenced this door so neighbors don't
-   * retain dead Door references.
-   */
-  protected override prepareDestroy(): void {
-    this.detach();
-  }
+  // prepareDestroy is inherited from Boundary, which calls our
+  // overridden detach() (clearing both attachedTo and Boundary
+  // anchors) and then destructs the anchors. No override needed
+  // here — the Boundary chain is the single source of truth for
+  // destruct choreography.
+}
+
+function lightConduitFor(door: Door): LightConduit {
+  return {
+    conduitKind: 'light',
+    transmissivity(from, to) {
+      return door.transmissivity(from, to);
+    },
+  };
+}
+
+function lineOfSightFor(door: Door): LineOfSight {
+  return {
+    conduitKind: 'sight',
+    canSeeThrough(from, to) {
+      return door.canSeeThrough(from, to);
+    },
+  };
+}
+
+function movementConduitFor(door: Door): MovementConduit {
+  return {
+    conduitKind: 'movement',
+    canPassThrough(from, to, mode) {
+      return door.canPassThrough(from, to, mode);
+    },
+  };
 }

@@ -8,11 +8,18 @@
  * vessels are *places that move*. Examples: ship, cart, train car,
  * spaceship, balloon, magic carpet.
  *
- * Composition: `ContainerMixin(ContainableMixin(Stuff))`. No
- * inheritance edge to `Thing` — vessels aren't items. Code that
+ * Composition: `AdornableMixin(ContainerMixin(ContainableMixin(Stuff)))`.
+ * No inheritance edge to `Thing` — vessels aren't items. Code that
  * needs "is this a place?" should use `MixinApi.isContainer(obj)`
  * (which catches `Location ∪ Vessel ∪ Agent ∪ container-Thing`);
  * `instanceof Vessel` is reserved for genuine vessel-role checks.
+ *
+ * AdornableMixin gives every Vessel `getFixtures()` — needed by
+ * `ExitableVessel`'s Door retrofit so the vessel's defining Door can
+ * surface as a `BoundaryAnchor` fixture on the vessel side of the
+ * (vessel, environment) Boundary pair. Non-Exitable Vessels with no
+ * fixtures pay only an empty Set — see
+ * `docs/light-requirements.md § Decisions`.
  *
  * Subclasses (e.g., `ExitableVessel` in `lib/spatial/`) layer
  * navigation, deck-plans, captain semantics, etc. on top.
@@ -24,8 +31,9 @@
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { ContainableMixin } from '../spatial/Containable';
+import { AdornableMixin } from '../spatial/Adornable';
 
-const VesselBase = ContainerMixin(ContainableMixin(Stuff));
+const VesselBase = AdornableMixin(ContainerMixin(ContainableMixin(Stuff)));
 
 export class Vessel extends VesselBase {
   static persistentFields: string[] = [];

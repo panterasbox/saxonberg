@@ -1,0 +1,217 @@
+/**
+ * Window — first user of the `Boundary` substrate.
+ *
+ * Composition: `SealableMixin(Boundary)` (Boundary already provides
+ * `Visible + Perceptible + Thing`). The `Sealable.isOpen` flag is the
+ * shutter state — closing the shutters zeroes both `LightConduit`
+ * transmissivity and `LineOfSight`.
+ *
+ * State:
+ *   - `baseTransmissivity` (default 1.0) — the symmetric, both-directions
+ *     pass-through factor when the window is open.
+ *   - `directionalOverrides` (optional `{ aToB?, bToA? }`) — one-way
+ *     glass. Either side's value, when present, replaces
+ *     `baseTransmissivity` for light flowing FROM that side. Set
+ *     `bToA = 0` to make a window through which A's light reaches B
+ *     but not vice versa.
+ *   - `colorTint` (optional ColorTag) — stained glass. Atmospheric
+ *     only; does not propagate elsewhere.
+ *
+ * Template authoring follows the "option (b)" in the plan: `Window`
+ * is template-loadable like `Door` (`class: '/lib/light/Window'`,
+ * `hydratorClass: '/lib/persistence/PersistentHydrator'`); seed code
+ * calls `BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB })`
+ * to wire the per-side anchors after clone time. Mirrors how
+ * `addBidirectionalExit({ door })` wires a templated Door.
+ *
+ * Persistence is hydrate-only — there's no v1 use case for a
+ * Window's configuration mutating at runtime; only the
+ * `Sealable.isOpen` shutter state changes. Anchors are rebuilt at
+ * load time by the seed code.
+ */
+
+import { Boundary } from '../spatial/Boundary';
+import { SealableMixin } from '../spatial/Sealable';
+import type {
+  Conduit,
+  LightConduit,
+  LineOfSight,
+  BoundarySide,
+} from '../spatial/Conduit';
+import type { ColorTag } from './Light';
+
+const WindowBase = SealableMixin(Boundary);
+
+interface DirectionalOverrides {
+  aToB?: number;
+  bToA?: number;
+}
+
+/**
+ * Window does not declare `implements LightConduit, LineOfSight` on
+ * the class itself because the two interfaces have incompatible
+ * `conduitKind` literal-type fields. Instead, the conduit registry
+ * exposes them via the lightweight wrappers below — the host Window
+ * provides the method implementations the wrappers delegate to.
+ */
+export class Window extends WindowBase {
+  static persistentFields = [
+    'baseTransmissivity',
+    'directionalOverrides',
+    'colorTint',
+  ];
+
+  /**
+   * 0..1, default 1.0. The pass-through factor when the window is
+   * open (modulo any directional override). Setter validates and
+   * clamps the input — the hydrator's bracket-assign reaches it for
+   * a templated Window.
+   */
+  protected _baseTransmissivity: number = 1.0;
+
+  protected get baseTransmissivity(): number {
+    return this._baseTransmissivity;
+  }
+
+  protected set baseTransmissivity(value: number) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new TypeError(
+        `Window.baseTransmissivity must be a finite number, got ${typeof value}`
+      );
+    }
+    if (value < 0 || value > 1) {
+      throw new RangeError(
+        `Window.baseTransmissivity must be in [0, 1], got ${value}`
+      );
+    }
+    this._baseTransmissivity = value;
+  }
+
+  public getBaseTransmissivity(): number {
+    return this._baseTransmissivity;
+  }
+
+  public setBaseTransmissivity(value: number): void {
+    this.baseTransmissivity = value;
+  }
+
+  /**
+   * Optional asymmetric pass-through. When `aToB` or `bToA` is set,
+   * it replaces `baseTransmissivity` for that direction. Use `0` for
+   * the dark side of one-way glass.
+   */
+  protected _directionalOverrides: DirectionalOverrides | null = null;
+
+  protected get directionalOverrides(): DirectionalOverrides | null {
+    return this._directionalOverrides;
+  }
+
+  protected set directionalOverrides(value: DirectionalOverrides | null) {
+    if (value === null || value === undefined) {
+      this._directionalOverrides = null;
+      return;
+    }
+    if (typeof value !== 'object') {
+      throw new TypeError(
+        'Window.directionalOverrides must be null or an object with optional aToB / bToA.'
+      );
+    }
+    const next: DirectionalOverrides = {};
+    for (const side of ['aToB', 'bToA'] as const) {
+      const v = value[side];
+      if (v === undefined) continue;
+      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1) {
+        throw new RangeError(
+          `Window.directionalOverrides.${side} must be a finite number in [0, 1], got ${v}`
+        );
+      }
+      next[side] = v;
+    }
+    this._directionalOverrides = next;
+  }
+
+  public getDirectionalOverrides(): DirectionalOverrides | null {
+    return this._directionalOverrides;
+  }
+
+  public setDirectionalOverrides(value: DirectionalOverrides | null): void {
+    this.directionalOverrides = value;
+  }
+
+  /** Atmospheric tint applied to light flowing through this window. */
+  protected _colorTint: ColorTag | null = null;
+
+  protected get colorTint(): ColorTag | null {
+    return this._colorTint;
+  }
+
+  protected set colorTint(value: ColorTag | null | undefined) {
+    if (value === null || value === undefined) {
+      this._colorTint = null;
+      return;
+    }
+    if (typeof value !== 'string') {
+      throw new TypeError(
+        `Window.colorTint must be a string ColorTag or null, got ${typeof value}`
+      );
+    }
+    this._colorTint = value;
+  }
+
+  public getColorTint(): ColorTag | null {
+    return this._colorTint;
+  }
+
+  public setColorTint(value: ColorTag | null): void {
+    this.colorTint = value;
+  }
+
+  // --- Conduit surface --------------------------------------------------
+
+  /**
+   * Conduit registry. A Window advertises both LightConduit and
+   * LineOfSight. The two are surfaced as wrappers that delegate to
+   * `this.transmissivity` / `this.canSeeThrough`.
+   */
+  public override getConduits(): readonly Conduit[] {
+    return [lightConduitFor(this), lineOfSightFor(this)];
+  }
+
+  public transmissivity(from: BoundarySide, to: BoundarySide): number {
+    if (!this.getIsOpen()) return 0;
+    if (from === to) return this._baseTransmissivity;
+    const overrides = this._directionalOverrides;
+    if (overrides) {
+      const override = from === 'A' ? overrides.aToB : overrides.bToA;
+      if (typeof override === 'number') return override;
+    }
+    return this._baseTransmissivity;
+  }
+
+  public canSeeThrough(from: BoundarySide, to: BoundarySide): boolean {
+    return this.transmissivity(from, to) > 0;
+  }
+}
+
+/**
+ * Wrap the host Window's `transmissivity` in a LightConduit-shaped
+ * record. The wrapper rebadges the kind tag at the top of the
+ * registry walk so consumers can `find(c => c.conduitKind === 'light')`.
+ */
+function lightConduitFor(window: Window): LightConduit {
+  return {
+    conduitKind: 'light',
+    transmissivity(from, to) {
+      return window.transmissivity(from, to);
+    },
+  };
+}
+
+function lineOfSightFor(window: Window): LineOfSight {
+  return {
+    conduitKind: 'sight',
+    canSeeThrough(from, to) {
+      return window.canSeeThrough(from, to);
+    },
+  };
+}

@@ -37,8 +37,11 @@ import { Exit } from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Door } from './Door';
+import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
 import { DescribeApi } from '../../api/describe';
+import { BoundaryApi } from '../../api/boundary';
+import { MixinApi } from '../../api/mixin';
 
 const ExitableVesselBase = DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)));
 
@@ -74,30 +77,71 @@ export class ExitableVessel extends ExitableVesselBase {
   }
 
   /**
-   * Invalidate the synthesized exit caches whenever the vessel moves.
-   * Migrated from a `setContainer` override to the new `onMoved`
-   * Witness hook: `setContainer` is now `@Final`, no longer
-   * overridable; `ContainmentApi.move` fires `onMoved(from, to)` once
-   * per transition (with either side `null` for first-placement /
-   * final-detach), which is exactly the right shape for cache
-   * invalidation.
+   * Invalidate the synthesized exit caches AND migrate the door's
+   * BoundaryAnchor pair from (vessel, oldEnv) to (vessel, newEnv).
+   * Fires once per `ContainmentApi.move` transition.
+   *
+   * The (vessel, env) anchor-pair is the runtime install on the
+   * vessel side of the door's Boundary representation: a closed
+   * vessel-door blocks light flowing between vessel interior and
+   * its current environment. As the vessel relocates, the boundary
+   * follows.
    */
   public onMoved(
     _from: (Stuff & Container) | null,
-    _to: (Stuff & Container) | null
+    to: (Stuff & Container) | null
   ): void {
     this.invalidateSynthesizedExits();
+    const door = this.getDoor();
+    if (door) {
+      // Destruct any existing (vessel, oldEnv) anchor pair via the
+      // Boundary subclass-bypass seam — we don't want Door.detach's
+      // `attachedTo` cleanup, just the anchor migration.
+      door._detachAndDestructAnchors();
+      this.installVesselDoorBoundary(door, to);
+    }
   }
 
   /**
    * Door change: drop any cached synthesized exits (so the next access
-   * recreates them with the new door) and rewire `Door.attachedTo`
-   * back-references on both sides of the transition.
+   * recreates them with the new door) and migrate the BoundaryAnchor
+   * pair on (vessel, environment) — old door's anchors are torn down,
+   * new door's anchors are installed if the vessel is currently
+   * placed.
    */
   public override setDoor(door: Door | null): void {
-    if (door === this.getDoor()) return;
+    const old = this.getDoor();
+    if (door === old) return;
     this.invalidateSynthesizedExits();
+    if (old) {
+      old._detachAndDestructAnchors();
+    }
     super.setDoor(door);
+    if (door) {
+      this.installVesselDoorBoundary(door, this.getContainer());
+    }
+  }
+
+  /**
+   * Anchor the vessel's defining door on (vessel, env). No-op when
+   * the env is null (vessel hasn't been placed yet) or the door
+   * already has anchors (re-install would throw — caller should
+   * detach first).
+   */
+  private installVesselDoorBoundary(
+    door: Door,
+    env: (Stuff & Container) | null
+  ): void {
+    if (!env) return;
+    if (door.getAnchorA() || door.getAnchorB()) return;
+    const vesselAsAdornable = this as unknown as Stuff & Adornable;
+    if (!MixinApi.isAdornable(vesselAsAdornable as unknown as Stuff)) return;
+    if (!MixinApi.isAdornable(env as unknown as Stuff)) return;
+    BoundaryApi.attachExistingBoundary({
+      boundary: door,
+      hostA: vesselAsAdornable,
+      hostB: env as unknown as Stuff & Adornable,
+    });
   }
 
   /**
