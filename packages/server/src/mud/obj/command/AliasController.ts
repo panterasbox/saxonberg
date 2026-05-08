@@ -82,14 +82,14 @@ export class AliasController extends CommandController<AliasModel> {
       const entry = resolved.get(n)!;
       const marker = entry.source === 'default' ? ' ' : '*';
       lines.push(
-        `  ${marker} ${pad(n, nameWidth)} = ${entry.body}    [${entry.source}]`,
+        `  ${marker} ${n.padEnd(nameWidth)} = ${entry.body}    [${entry.source}]`,
       );
     }
     if (tombstones.length > 0) {
       lines.push('');
       lines.push('Tombstoned (default suppressed):');
       for (const n of tombstones) {
-        lines.push(`  T ${pad(n, nameWidth)}`);
+        lines.push(`  T ${n.padEnd(nameWidth)}`);
       }
     }
     lines.push('');
@@ -188,8 +188,4 @@ export class AliasController extends CommandController<AliasModel> {
       .toSelf(body)
       .send();
   }
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length);
 }
