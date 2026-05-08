@@ -17,7 +17,7 @@
  */
 
 import { Zone } from './Zone';
-import { Exit } from './Exit';
+import { Exit } from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
 import type { Location } from '../stuff/Location';
 import type { Container } from './Container';

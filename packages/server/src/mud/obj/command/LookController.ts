@@ -36,7 +36,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
-import type { Exit } from '../../lib/spatial/Exit';
+import type { Exit } from '../../lib/boundary/Exit';
 
 interface LookModel extends CommandModel {
   target?: MqlOneResult;

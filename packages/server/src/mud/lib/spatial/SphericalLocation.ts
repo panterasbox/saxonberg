@@ -11,7 +11,7 @@
 
 import { Location } from '../stuff/Location';
 import { SphericalCoordinatesMixin } from './SphericalCoordinates';
-import { ExitableMixin } from './Exitable';
+import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import type { SphericalZone } from './SphericalZone';

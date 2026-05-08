@@ -18,7 +18,7 @@
  *     only; does not propagate elsewhere.
  *
  * Template authoring follows the "option (b)" in the plan: `Window`
- * is template-loadable like `Door` (`class: '/lib/light/Window'`,
+ * is template-loadable like `Door` (`class: '/lib/perception/Window'`,
  * `hydratorClass: '/lib/persistence/PersistentHydrator'`); seed code
  * calls `BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB })`
  * to wire the per-side anchors after clone time. Mirrors how
@@ -30,15 +30,15 @@
  * load time by the seed code.
  */
 
-import { Boundary } from '../spatial/Boundary';
+import { Boundary } from './Boundary';
 import { SealableMixin } from '../spatial/Sealable';
 import type {
   Conduit,
   LightConduit,
   LineOfSight,
   BoundarySide,
-} from '../spatial/Conduit';
-import type { ColorTag } from './Light';
+} from './Conduit';
+import type { ColorTag } from '../perception/Light';
 
 const WindowBase = SealableMixin(Boundary);
 

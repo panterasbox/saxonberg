@@ -20,12 +20,12 @@
 
 import { Location } from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
-import { ExitableMixin } from './Exitable';
+import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
 import type { CartesianZone } from './CartesianZone';
-import type { Exit } from './Exit';
+import type { Exit } from '../boundary/Exit';
 
 const CartesianLocationBase = PostRegistrationMixin(
   ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))

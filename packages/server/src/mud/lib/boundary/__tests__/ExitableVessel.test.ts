@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ExitableVessel } from '../ExitableVessel';
-import { CartesianLocation } from '../CartesianLocation';
-import { CartesianZone } from '../CartesianZone';
+import { CartesianLocation } from '../../spatial/CartesianLocation';
+import { CartesianZone } from '../../spatial/CartesianZone';
 import { Door } from '../Door';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
-import { ContainerMixin } from '../Container';
-import { ContainableMixin } from '../Containable';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -190,12 +190,12 @@ describe('ExitableVessel', () => {
       ContainmentApi.move(wardrobe, park);
 
       const out = wardrobe.getExit('out')!;
-      const guard = out.canTraverse(wardrobe as unknown as Stuff & import('../Containable').Containable);
+      const guard = out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable);
       expect(guard.ok).toBe(false);
       expect(guard.reason).toMatch(/closed/);
 
       door.open();
-      const guardOpen = out.canTraverse(wardrobe as unknown as Stuff & import('../Containable').Containable);
+      const guardOpen = out.canTraverse(wardrobe as unknown as Stuff & import('../../spatial/Containable').Containable);
       expect(guardOpen.ok).toBe(true);
     });
 

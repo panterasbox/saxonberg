@@ -33,18 +33,17 @@ import { SecurityApi } from './security';
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
-import type { Containable } from '../lib/spatial/Containable';
 import type { Sensor } from '../lib/message/Sensor';
-import type { Adornment } from '../lib/spatial/Adornment';
-import { Light, bandFor } from '../lib/light/Light';
-import type { LightBand } from '../lib/light/Light';
+import type { Perception } from '../lib/perception/Perception';
+import type { Adornment } from '../lib/boundary/Adornment';
+import { Light, bandFor } from '../lib/perception/Light';
+import type { LightBand } from '../lib/perception/Light';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
-import { ShadowApi } from './shadow';
-import type { LightConduit, BoundarySide } from '../lib/spatial/Conduit';
-import type { Conduit } from '../lib/spatial/Conduit';
-import type { Boundary } from '../lib/spatial/Boundary';
-import type { BoundaryAnchor } from '../lib/spatial/BoundaryAnchor';
+import type { LightConduit, BoundarySide } from '../lib/boundary/Conduit';
+import type { Conduit } from '../lib/boundary/Conduit';
+import type { Boundary } from '../lib/boundary/Boundary';
+import type { BoundaryAnchor } from '../lib/boundary/BoundaryAnchor';
 
 /** Maximum recursion depth for the propagation walk. */
 export const MAX_HOPS = 2;
@@ -120,29 +119,24 @@ export class LightApi {
    *   1. Compute raw `bandAt(loc)`.
    *   2. Apply the viewer's species vision profile via
    *      `viewerVisionProfile(viewer).bandShift` (v1 identity for
-   *      every viewer; the Organism subsystem populates this
-   *      later).
-   *   3. Apply the optional `viewer.perceivedBandModifier?(raw, loc)`
-   *      seam so Shadows on the viewer can override (BlindfoldShadow,
-   *      DarknessShadow, NightVisionShadow). Optional method —
-   *      declared in JSDoc here, NOT added to the Sensor interface,
-   *      because Sensor implementors don't add it; only Shadows
-   *      that intercept it do.
-   *   4. Return.
+   *      every viewer; the Organism subsystem populates this later
+   *      via a per-species shadow on `getVisionProfile`).
+   *   3. Dispatch `viewer.perceivedBandModifier(shifted, loc)` —
+   *      the host's identity default returns `shifted` unchanged;
+   *      Shadows on the viewer (BlindfoldShadow, NightVisionShadow,
+   *      DarknessCurseShadow) intercept this method through the
+   *      standard Stuff Shadow pipeline and modulate the answer.
+   *      `callDown` chains naturally when multiple shadows are
+   *      attached.
    */
   public static perceivedBand(
-    viewer: Stuff & Sensor,
+    viewer: Stuff & Sensor & Perception,
     loc: Stuff & Container
   ): LightBand {
     const raw = this.bandAt(loc);
     const profile = this.viewerVisionProfile(viewer);
     const shifted = applyBandShift(raw, profile.bandShift);
-    const overridden = invokeShadowSeam<LightBand>(
-      viewer,
-      'perceivedBandModifier',
-      [shifted, loc]
-    );
-    return overridden ?? shifted;
+    return viewer.perceivedBandModifier(shifted, loc);
   }
 
   /**
@@ -154,26 +148,27 @@ export class LightApi {
    *      by reference, not by location.
    *   2. Compute the raw answer: viewer's `perceivedBand(env)` ≥
    *      detail-level threshold.
-   *   3. Apply the optional `viewer.canSeeOverride?(target, detail, raw)`
-   *      seam so Shadows can yes/no the answer outright.
+   *   3. Dispatch `viewer.canSeeOverride(target, detail, raw)` —
+   *      identity default returns `raw`; XRayShadow / BlindfoldShadow
+   *      style Shadows intercept to yes/no the answer outright.
    */
   public static canSee(
-    viewer: Stuff & Sensor,
+    viewer: Stuff & Sensor & Perception,
     target: Stuff,
     detail: VisibilityDetail = 'figure'
   ): boolean {
     if (!MixinApi.isContainable(target)) {
-      return applyCanSeeOverride(viewer, target, detail, true);
+      return viewer.canSeeOverride(target, detail, true);
     }
     // `target` is narrowed to `Stuff & Containable` by the predicate above.
     const env = target.getContainer();
     if (!env) {
-      return applyCanSeeOverride(viewer, target, detail, false);
+      return viewer.canSeeOverride(target, detail, false);
     }
     const band = this.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];
     const raw = compareBand(band, required) >= 0;
-    return applyCanSeeOverride(viewer, target, detail, raw);
+    return viewer.canSeeOverride(target, detail, raw);
   }
 
   /**
@@ -199,19 +194,16 @@ export class LightApi {
   }
 
   /**
-   * Per-viewer vision profile. Optional `viewer.getVisionProfile?()`
-   * seam lets the (future) Organism subsystem populate this from
-   * species data; v1 falls back to the constant human-shaped
-   * profile when the seam is absent or returns null.
+   * Per-viewer vision profile. The host's identity default returns
+   * `null`, in which case the framework falls back to the constant
+   * human-shaped profile. The Organism subsystem will populate
+   * per-species profiles via a shadow that intercepts
+   * `getVisionProfile` and reads from the species template.
    */
-  public static viewerVisionProfile(viewer: Stuff & Sensor): VisionProfile {
-    const profile = invokeShadowSeam<VisionProfile | null>(
-      viewer,
-      'getVisionProfile',
-      []
-    );
-    if (profile) return profile;
-    return DEFAULT_VISION_PROFILE;
+  public static viewerVisionProfile(
+    viewer: Stuff & Sensor & Perception
+  ): VisionProfile {
+    return viewer.getVisionProfile() ?? DEFAULT_VISION_PROFILE;
   }
 }
 
@@ -251,51 +243,6 @@ const REQUIRED_BAND_FOR_DETAIL: Record<VisibilityDetail, LightBand> = {
   fine: 'bright',
 };
 
-function applyCanSeeOverride(
-  viewer: Stuff & Sensor,
-  target: Stuff,
-  detail: VisibilityDetail,
-  raw: boolean
-): boolean {
-  const overridden = invokeShadowSeam<boolean>(viewer, 'canSeeOverride', [
-    target,
-    detail,
-    raw,
-  ]);
-  return overridden ?? raw;
-}
-
-/**
- * Invoke an optional Sensor seam method declared by a Shadow attached
- * to `viewer`. The seam methods (`perceivedBandModifier`,
- * `canSeeOverride`, `getVisionProfile`) deliberately do NOT live on
- * the `Sensor` interface — only Shadows that intercept light
- * perception declare them. Plain `viewer.foo()` would return
- * `undefined` because the host has no such method, so we walk the
- * shadow stack via `ShadowApi.getShadows(viewer, methodName)` and
- * invoke the topmost Shadow that declares the seam.
- *
- * v1 honours a single shadow's value — first match wins. Future
- * iterations can dispatch through the chain via `Shadow.callDown`
- * if multiple effects need to compose.
- */
-function invokeShadowSeam<T>(
-  viewer: Stuff,
-  methodName: string,
-  args: readonly unknown[]
-): T | null {
-  const shadows = ShadowApi.getShadows(viewer, methodName);
-  for (const shadow of shadows) {
-    const fn = (shadow as unknown as Record<string, unknown>)[methodName];
-    if (typeof fn !== 'function') continue;
-    const result = (fn as (...a: unknown[]) => unknown).apply(
-      shadow,
-      Array.from(args)
-    );
-    return result as T;
-  }
-  return null;
-}
 
 /**
  * Internal recursive walk. Separate from the public

@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { ExitableVessel } from '../ExitableVessel';
 import { Door } from '../Door';
-import { CartesianLocation } from '../CartesianLocation';
-import { CartesianZone } from '../CartesianZone';
+import { CartesianLocation } from '../../spatial/CartesianLocation';
+import { CartesianZone } from '../../spatial/CartesianZone';
 import { LightApi } from '../../../api/light';
-import { Light } from '../../light/Light';
-import { AmbientLitMixin } from '../../light/AmbientLit';
+import { Light } from '../../perception/Light';
+import { AmbientLitMixin } from '../../perception/AmbientLit';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

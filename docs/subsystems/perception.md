@@ -96,24 +96,76 @@ any query Api method called for that viewer:
 Shadow overrides are *per-viewer-per-query*. They don't fight the
 contract; they're how the contract gets specialized.
 
-## The viewer type
+## The viewer type — two orthogonal axes
 
-All viewer-aware query Apis take **`Stuff & Sensor`** as the viewer
-parameter. The reasoning:
+Perception splits into two orthogonal mixins:
 
-- Perceiving is a sensor-side concern. `Sensor` is the existing
-  mixin for "I receive perceptual input."
-- Channel filtering (`hearing disabled`, `vision disabled`,
-  `magical sense enabled`) lives on Sensor.
-- Anything that perceives composes Sensor — players' avatars, NPCs
-  that act as witnesses, observers in a sense-routing graph.
+| Mixin | Layer | What it carries | Composers |
+|---|---|---|---|
+| `Sensor` | **channel** | `onMessage(frame)` + the shadowable `filterMessage` hook. You receive perceptual input as message frames through the messaging subsystem; vision, hearing, ESP all ride this — the frame's metadata names the channel. Channel-level filtering (deaf, blind, magical-sense-enabled) lives here. | Anything that *receives* perceptual input. |
+| `Perception` | **interpretation** | `perceivedBandModifier(raw, loc)`, `canSeeOverride(target, detail, raw)`, `getVisionProfile()`, future `perceivedVolumeModifier` / `canHearOverride` / `getHearingProfile`. The seams query Apis dispatch through when the framework asks "what does this entity perceive?" Identity defaults pass the raw answer through; Shadows on the host modulate. | Anything *queryable as a viewer* — entities with subjective experience to be asked about. |
 
-There is no separate `Perceiver` mixin. **Sensor *is* the perceiver
-type.** The "I receive messages" and "I am queried as a viewer"
-surfaces are the same set of objects.
+All viewer-aware query Apis take **`Stuff & Sensor & Perception`**
+as the viewer parameter. Avatars and Characters compose both for
+free through the Character chain. A passive recording device might
+compose only Sensor (it receives, but isn't queryable for
+subjective experience). Inert Stuff (rooms, items) composes
+neither.
 
-A non-Sensor cannot be the viewer in a perception query. This is
-enforced at the type level — passing a non-Sensor fails to compile.
+**Why split.** The original framing tried to unify both axes under
+Sensor — "Sensor IS the perceiver type" — and put the
+interpretation seams on Sensor too. That muddied Sensor's surface
+(message reception vs. interpretation modulation are unrelated
+concerns) and forced Light's perception pipeline to bypass
+standard Stuff Shadow dispatch (since the seam methods didn't
+naturally live anywhere a host could declare them with sensible
+defaults). The split puts each axis where its methods belong:
+Sensor owns the input pipeline; Perception owns the answer-
+shaping.
+
+A non-(Sensor & Perception) cannot be the viewer in a perception
+query — enforced at the type level.
+
+### Standard Stuff Shadow dispatch
+
+PerceptionMixin's seams are real host methods with no-op identity
+defaults. Shadows that intercept them follow the standard pattern:
+`@Shadowing`, `callDown` for chaining, `@Unshadowable` /
+`@ShadowSecurity` policies. The proxy pipeline routes
+`viewer.perceivedBandModifier(...)` through the shadow stack
+naturally — `LightApi` just calls the host method.
+
+```ts
+// A blindfold curse — overrides perceivedBandModifier:
+class BlindfoldShadow extends Shadow {
+  @Shadowing
+  perceivedBandModifier(_raw: LightBand): LightBand {
+    return 'pitch-black';
+  }
+}
+
+// A night-vision potion — overrides getVisionProfile, composes
+// with other shadows via callDown:
+class NightVisionShadow extends Shadow {
+  @Shadowing
+  getVisionProfile(): VisionProfile {
+    return { scotopicMin: 'pitch-black', photopicMax: 'blinding', bandShift: 1 };
+  }
+}
+
+// Multiple shadows on the same method compose via callDown:
+class BoostShadow extends Shadow {
+  @Shadowing
+  perceivedBandModifier(raw: LightBand, loc: Stuff & Container): LightBand {
+    const lower = this.callDown<LightBand>(raw, loc);
+    return shiftUp(lower);                    // boost what's below
+  }
+}
+```
+
+The Light subsystem doc's "Per-Viewer Perception" section
+([light.md](./light.md#per-viewer-perception)) walks the full
+pipeline.
 
 ## Worked example
 

@@ -15,7 +15,7 @@
 
 import { Idea } from '../stuff/Idea';
 import type { Location } from '../stuff/Location';
-import type { Exit } from './Exit';
+import type { Exit } from '../boundary/Exit';
 
 /**
  * Abstract base for all Zone subtypes.

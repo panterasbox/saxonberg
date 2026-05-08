@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Door } from '../Door';
 import { Boundary } from '../Boundary';
-import { CartesianLocation } from '../CartesianLocation';
-import { CartesianZone } from '../CartesianZone';
+import { CartesianLocation } from '../../spatial/CartesianLocation';
+import { CartesianZone } from '../../spatial/CartesianZone';
 import { LightApi } from '../../../api/light';
-import { Light } from '../../light/Light';
-import { LightSourceMixin } from '../../light/LightSource';
+import { Light } from '../../perception/Light';
+import { LightSourceMixin } from '../../perception/LightSource';
 import { Thing } from '../../stuff/Thing';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';

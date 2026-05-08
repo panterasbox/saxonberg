@@ -26,9 +26,9 @@ import { SecurityApi } from './security';
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Boundary } from '../lib/spatial/Boundary';
-import type { Adornable } from '../lib/spatial/Adornable';
-import { BoundaryAnchor } from '../lib/spatial/BoundaryAnchor';
+import type { Boundary } from '../lib/boundary/Boundary';
+import type { Adornable } from '../lib/boundary/Adornable';
+import { BoundaryAnchor } from '../lib/boundary/BoundaryAnchor';
 import { StuffApi } from './stuff';
 
 export interface AttachExistingBoundaryOptions<T extends Boundary = Boundary> {

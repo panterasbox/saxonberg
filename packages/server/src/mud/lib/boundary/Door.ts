@@ -53,7 +53,7 @@
  */
 
 import { Boundary } from './Boundary';
-import { SealableMixin } from './Sealable';
+import { SealableMixin } from '../spatial/Sealable';
 import type { Exit } from './Exit';
 import type {
   Conduit,

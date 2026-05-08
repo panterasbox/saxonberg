@@ -355,7 +355,7 @@ The structured runtime API `getDirectionalOverrides()` /
 pattern Light value objects use, applied to the per-side overrides.
 
 Template authoring: Window is template-loadable like Door
-(`class: '/lib/light/Window'`,
+(`class: '/lib/boundary/Window'`,
 `hydratorClass: '/lib/persistence/PersistentHydrator'`). Seed code
 calls `BoundaryApi.attachExistingBoundary({ boundary: clonedWindow,
 hostA: roomA, hostB: roomB })` to install on two rooms — mirrors
@@ -395,7 +395,7 @@ What stays the same:
   `hasAttached` / `getAttachedExits` accessors.
 - `Door.getKeywords()` override (unions PerceptibleMixin keywords
   with shortDescription tokens).
-- All existing `Door` templates (`class: '/lib/spatial/Door'`).
+- All existing `Door` templates (`class: '/lib/boundary/Door'`).
 - All existing `addBidirectionalExit({ door })` call sites.
 
 What changes observably: a closed Door now blocks light propagation

@@ -22,7 +22,7 @@
 
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
-import { AdornableMixin } from '../spatial/Adornable';
+import { AdornableMixin } from '../boundary/Adornable';
 
 const LocationBase = AdornableMixin(ContainerMixin(Stuff));
 

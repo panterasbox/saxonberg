@@ -35,7 +35,7 @@ import { VisibleMixin } from '../description/Visible';
 import { DoorBearingMixin } from './DoorBearing';
 import { Exit } from './Exit';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from './Container';
+import type { Container } from '../spatial/Container';
 import type { Door } from './Door';
 import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';

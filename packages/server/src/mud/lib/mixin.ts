@@ -48,6 +48,7 @@ export const Mixins = {
   Adornment: 'AdornmentMixin',
   AmbientLit: 'AmbientLitMixin',
   LightSource: 'LightSourceMixin',
+  Perception: 'PerceptionMixin',
 } as const;
 
 /**

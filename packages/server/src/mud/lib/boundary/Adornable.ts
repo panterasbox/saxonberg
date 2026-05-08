@@ -33,7 +33,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from './Container';
+import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
 import { StuffApi } from '../../api/stuff';
 

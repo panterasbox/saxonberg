@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Window } from '../Window';
-import { Light } from '../Light';
-import { LightSourceMixin } from '../LightSource';
+import { Light } from '../../perception/Light';
+import { LightSourceMixin } from '../../perception/LightSource';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { Thing } from '../../stuff/Thing';

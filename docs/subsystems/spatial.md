@@ -34,20 +34,13 @@ Sibling docs cover related ground without overlap:
 | `Zone` | abstract class | First-class subdivision of the world. Owns its rooms and a `deriveExit()` strategy. |
 | `CartesianZone` | concrete class | Same-size-cell grid. Derives cardinal exits from adjacency. |
 | `SphericalZone` | concrete class | Spheres-with-radius space. No implicit adjacency — every exit is authored. |
-| `Exit` | concrete `Idea` | One-way passage between two `Container & Exitable` endpoints. Carries direction, lazy-resolvable destination, optional door, `oneWay` flag, traversal flags, and custom messages. |
-| `Door` | concrete `Thing` | Shared open/closed state. As a `Thing` it has Containable, so a broken/detached door can live in a Location's contents and be picked up. `attachedTo: Set<Exit>` is the runtime back-reference. |
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. |
-| `ExitableVessel` | concrete class | A Vessel you can enter. Composes `DoorBearingMixin`. Synthesizes `'out'` / entry exits on demand, optionally carrying the vessel's door. |
+| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
-| `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo`. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
 | `CartesianCoordinatesMixin` | mixin | `[x,y,z]` data carrier. |
 | `SphericalCoordinatesMixin` | mixin | `[rho,theta,phi] + radius` data carrier. |
-| `SealableMixin` | mixin | Binary `isOpen` state. Used by `Door`; reusable for chests, trapdoors, envelopes. |
-| `DoorBearingMixin` | mixin | Adds a `door` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. NOT the same as `BoundaryAnchor` — see [light.md § Naming](./light.md#naming-boundaryanchor-vs-doorbearing). |
-| `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `Vessel`. Hosts `BoundaryAnchor` for cross-room channels — see [light.md](./light.md). |
-| `AdornmentMixin` | mixin | Host-side back-reference for fixtures (`adornedTo`) and the not-portable invariant — `ContainmentApi.move` rejects an attached Adornment until detached. |
+| `SealableMixin` | mixin | Binary `isOpen` state. Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Stays in `lib/spatial/` because it's generic. |
 | `SingletonMixin` | mixin | Class-level uniqueness: composing classes refuse a second `clone()` for the same `templatePath`. Composed by `CartesianZone` and `SphericalZone`. |
 | `ZoneApi` | static API | Resolves `templatePath → Zone` via `StuffApi.singleton`. Caching is delegated; ZoneApi just owns the ancestor walk. |
 | `StuffApi.singleton(path)` | static API | Cache-or-clone tool for any class. Pairs with `SingletonMixin` for enforced uniqueness. |
@@ -307,313 +300,19 @@ stamps the result onto `Stuff.zone` before hydrate, so anything
 reading `this.zone` during `postRegister` sees the right value
 (see [templates.md](./templates.md#clone-pipeline)).
 
-## Exits
+## Exits, Doors, Adornable, ExitableVessel
 
-`lib/spatial/Exit.ts`. An `Exit` is a first-class `Idea` — runtime
-identity, but no physical presence in any room's inventory. An Exit
-carries the following slots; **external callers use the `getX()` /
-`setX()` method pair** (per the inter-stuff contract — see
-[CLAUDE.md § Inter-Stuff Contract: Methods Only](../../CLAUDE.md)),
-not direct field access:
+Moved out of `lib/spatial/` and into `lib/boundary/`. The full
+architectural reference for these — exits, doors (now `Boundary`
+subclasses), the `Adornable` / `Adornment` fixture surface, and
+`ExitableVessel` (which composes `DoorBearing` and migrates the
+vessel-door's `(vessel, env)` Boundary anchor pair on `setDoor` /
+`onMoved`) — lives in [boundary.md](./boundary.md). Spatial keeps
+the containers; boundary holds what connects them.
 
-- `direction: string` — cardinal long-form (`'north'`, `'up'`),
-  semantic label (`'office'`), or vessel-synthesized (`'out'`, `'in'`).
-- `source: Stuff & Container` — the Exitable this exit leaves from.
-- `destination` — either a live `Stuff & Container` ref OR a
-  `destinationPath: string` (templatePath) that resolves lazily via
-  `StuffApi.singleton()`. The synchronous `getDestination()` resolves
-  from the singleton cache when possible; if the path-only form is
-  unloaded, it throws and the caller must `await exit.resolveDestination()`
-  first. `MobileMixin.traverse` does this.
-- `door: Door | null` — optional. Both sides of a bidirectional pair
-  reference the same instance. `setDoor()` / `addExit` / `removeExit`
-  maintain `Door.attachedTo`.
-- Flags: `hidden`, `blocked`, `muffled` (reserved), `noFollow`
-  (reserved), `oneWay`.
-- Optional Liquid templates: `messageOut` (departure narration to
-  source-side audience) and `messageIn` (arrival narration to
-  destination-side audience).
-- `inverse?: Exit` — counterpart on the other side, wired by
-  `addBidirectionalExit` at construction OR by the mutual-exit
-  verifier when both ends are loaded. `undefined` for one-way exits,
-  vessel `'out'` exits, and unwired pairs.
-
-`Exit.canTraverse(mover)` is the only guard on the Exit itself:
-rejects when `blocked` or when an attached door is shut. The mover
-argument is reserved for future hooks (stamina, permissions) and
-unused today.
-
-**`oneWay`** opts an Exit out of the mutual-exit invariant — portals,
-teleporters, one-way valves. The verifier skips these. Forgetting to
-author the back side of an ordinary bidirectional exit should NOT set
-this flag; the verifier exists to catch that mistake.
-
-### Lookup precedence: `ExitableMixin.getExit`
-
-`ExitableMixin` (`Exitable.ts`) is composed by `CartesianLocation`,
-`SphericalLocation`, and `ExitableVessel` — the three navigable
-container kinds. It owns the explicit `exits: Map<direction, Exit>`
-and the merged-lookup algorithm.
-
-`getExit(direction)` merges in this order:
-
-1. **Explicit map.** Wins absolutely. If you authored
-   `addExit({direction:'north', ...})`, that's what `'north'` returns
-   regardless of grid neighbor.
-2. **Subclass hook.** `ExitableVessel.getExit` overrides to handle
-   `direction === 'out'` (`ExitableVessel § getExit`) before falling
-   through.
-3. **Zone-derived.** `getExit` calls `zone.deriveExit(this, direction)`
-   when the zone is a `CartesianZone`. SphericalZone always returns
-   `undefined`, so the third step is effectively cartesian-only.
-4. `undefined`.
-
-`getObviousExits()` is the union used by
-`look`. Walks explicit exits first, then iterates the 10 cardinals
-through `zone.deriveExit` for any direction not already explicit.
-Filters by `!exit.hidden`.
-
-`getExitDoors()` collects every non-null
-`exit.door` reachable through `getObviousExits` — used by MQL so a
-player can target a door by keyword without it living in an inventory.
-
-### Bidirectional exits
-
-`Exitable.addBidirectionalExit(other, direction, opts?)`
-installs both sides in one call:
-
-- For cardinal `direction`, the opposite is inferred via
-  `NavigationApi.invertDirection`. For semantic labels (vessel
-  keywords, spherical names) the caller MUST pass `opts.opposite`.
-- A shared `door` reference is installed on both sides — opening from
-  either room flips one state.
-- `forward.inverse = back` and `back.inverse = forward` are wired so
-  Mobile's arrival-message resolver can reach `exit.inverse?.direction`
-  for "Alice arrives from the south" without a separate cross-room
-  lookup.
-
-One-way exits use `addExit` and leave `inverse` undefined.
-
-## Doors and Sealables
-
-### `SealableMixin`
-
-`lib/spatial/Sealable.ts`. Binary open/closed state, intentionally
-narrow.
-
-- `isOpen: boolean` — backed by `_isOpen`. Default closed. The setter
-  rejects non-boolean assignments with `TypeError`
-  (`Sealable § isOpen accessor pair`); since the `Hydrator` bracket-assigns through
-  setters, a malformed template (`isOpen: 1`) crashes loudly at
-  hydrate time rather than coercing silently at runtime.
-- `open()` / `close()` — idempotent. Persistent (`isOpen`).
-
-Locks, keys, and unlock commands are deliberately out of scope. Doors
-are the canonical sealable, but the concept generalizes — chests,
-trapdoors, windows, envelopes can compose Sealable directly.
-
-### `Door`
-
-`lib/spatial/Door.ts`. Composition: `SealableMixin(Boundary)`
-(Boundary supplies Visible + Perceptible + Thing).
-
-A Door is a `Thing` — Visible + Perceptible + Sealable + Containable —
-**and** a `Boundary` (see [light.md](./light.md)). In the
-**attached** state `door.environment` is `null` and the door is
-reachable only through the `Exit.door` references that track it; in
-the **detached** state (broken, removed, carried) the door is moved
-into a Location or Avatar via `ContainmentApi.move` and appears in
-that container's `getContents()`.
-
-After the Boundary retrofit, every `addBidirectionalExit({ door })`
-also installs a `BoundaryAnchor` pair (one in each room's
-`getFixtures()`). The anchors are what surface the Door to the
-`LightApi` propagation walk and to MQL fixture queries; the
-`attachedTo` Set continues to track Exit references for movement.
-A closed Door now blocks light propagation between its two rooms
-via `LightConduit.transmissivity` returning 0 — that's the visible
-behavior change. `Exit.canTraverse` is intentionally unchanged
-(still consults `door.getIsOpen()` directly); routing it through
-`MovementConduit.canPassThrough` is deferred to a future Door
-subclass that varies on traversal mode.
-
-The same physical door is referenced by potentially many Exits (the
-canonical case is two — forward + back). The `attachedTo: Set<Exit>`
-field on `Door` is the runtime back-reference, populated by:
-
-- `ExitableMixin.addExit` when the exit it accepts has a non-null
-  `door`.
-- `ExitableMixin.addBidirectionalExit` indirectly, since the pair of
-  Exits it constructs each get added through `addExit`.
-- `ExitableVessel`'s synthesized exit factories (`'out'`, `'in'`)
-  when `vessel.door` is non-null.
-
-…and unwired by `removeExit`, by `Exit.prepareDestroy`, by
-`vessel.setDoor` cache invalidation, and by `Door.detach()`.
-
-**`Door.detach()`** walks `attachedTo`, clears each Exit's `door`,
-empties the set. The caller follows with
-`ContainmentApi.move(door, location)` to plant the broken/removed
-door somewhere in the world. Reinstalling reverses the steps:
-`ContainmentApi.move(door, null)` (or to a new attachment site)
-plus a fresh `addBidirectionalExit(other, dir, { door })`.
-
-`Door.getKeywords()` overrides Perceptible to union the explicit
-keyword list with tokens of the `shortDescription`. So a door
-authored with only `shortDescription: 'heavy oak door'` is targetable
-as `oak` / `door` without re-listing those as keywords.
-
-Doors are template-loadable: clone from a `domain` template via
-`StuffApi.clone()` with
-`hydratorClass: '/lib/persistence/PersistentHydrator'`.
-
-`Door.prepareDestroy()` calls `detach()` first, so destructing a Door
-clears every Exit's reference to it. After the Boundary retrofit,
-`Door.detach()` also walks the BoundaryAnchor pair via
-`super.detach()` (Boundary's anchor cleanup), and the standard
-`Boundary.prepareDestroy` chain destructs the anchors. The two
-back-references — `attachedTo` Set for Exits, anchorA/anchorB for
-the Boundary — are independent and cleaned up symmetrically.
-
-## Adornable
-
-`lib/spatial/Adornable.ts`. The container-side surface for
-non-portable attached Stuff: wall sconces, ceiling lamps,
-`BoundaryAnchor`s. Composed onto `Location` and `Vessel` so every
-room and every vessel can hold fixtures.
-
-`getFixtures()` runs parallel to `getContents()`. Fixtures are NOT
-inventory; they don't show up in `look`-list output by default
-(authors mention them in long descriptions or in details). The
-not-portable invariant is enforced at `ContainmentApi.move`:
-attempting to move an attached `Adornment` rejects with
-`ContainmentError` until the host calls `removeFixture` first
-(same shape `Door.detach()` uses for breakable doors).
-
-Surface (canonical collection vocabulary —
-[collections.md](./collections.md)):
-
-```ts
-addFixture(f: Stuff & Adornment): boolean;
-removeFixture(f: Stuff & Adornment): boolean;
-hasFixture(f: Stuff & Adornment): boolean;
-getFixtures(): readonly (Stuff & Adornment)[];
-getFixtureBoundaries(): Boundary[];      // dedupes via anchor → boundary
-getFixtureLightSources(): (Stuff & Adornment)[];
-```
-
-The typed walks (`getFixtureBoundaries`, `getFixtureLightSources`)
-parallel `ExitableMixin.getExitDoors()` — they're the way the Light
-propagation walk and MQL fixture-side scope queries find structured
-fixture populations without iterating the full set themselves.
-
-`AdornableMixin.prepareDestroy()` walks `fixtures` and destructs
-each via `StuffApi.destruct` before chaining to super. A
-`BoundaryAnchor` being destructed clears the boundary's slot for
-its side; if the host on the OTHER side is still alive, its anchor
-stays put and the now-half-attached Boundary lingers until
-explicitly destructed.
-
-The full Boundary substrate (Boundary, BoundaryAnchor, Conduit
-interfaces, Window, Door retrofit details) lives in
-[light.md](./light.md). The piece that touches spatial directly is
-just "Location and Vessel are Adornable; their fixture sets host
-the BoundaryAnchors that surface cross-room channels."
-
-## Vessels
-
-### `Vessel`
-
-`lib/stuff/Vessel.ts`. **One of the seven top-level branches** — a
-*mobile place*, sibling of `Thing` / `Location` / `Idea` / `Agent` /
-`Persistable` / `Shadow`. Composition:
-`ContainerMixin(ContainableMixin(Stuff))`. A Vessel holds stuff
-(Container) and lives somewhere itself (Containable). No inheritance
-edge to `Thing` — vessels aren't items; "is this place-like?" /
-"is this item-like?" questions go through `MixinApi.isContainer` /
-`isContainable`, not `instanceof`. See
-[architecture.md § Top-level branches](../architecture.md#top-level-branches)
-for the full rationale.
-
-Concrete vessels (chests, packs, ships, vehicles) extend `Vessel` and
-layer on whatever they need (`VisibleMixin` for description,
-locked-chest behavior, bag-of-holding magic, etc.).
-
-### `ExitableVessel`
-
-`lib/spatial/ExitableVessel.ts`. An *enterable, door-capable* vessel:
-`DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)))`. Container +
-Containable + Exitable + DoorBearing + Visible.
-
-**Containment constraint** (enforced in `ContainmentApi.move`):
-an `ExitableVessel` may only land inside another Exitable. This is
-the exploit-closer: vessels with player-traversable interiors cannot
-end up in an Avatar's inventory, even empty. Loose `Vessel`s (chests,
-packs) have no such restriction — they CAN sit in inventories.
-
-#### Synthesized `'out'` and entry exits
-
-A vessel that's been placed somewhere needs a way out — but the
-target depends on where the vessel currently is, so the exit can't be
-pre-authored. ExitableVessel synthesizes two exits on demand:
-
-- `getExit('out')` — the inside-to-outside edge. Source = vessel;
-  destination = vessel's current `environment`. Direction `'out'`.
-- `getEntryExit()` — the outside-to-inside edge. Source =
-  current environment; destination = vessel. Direction `'in'`. Used
-  by `go <vessel-keyword>` so the GoController doesn't hand-build an
-  Exit.
-
-Both pick up the vessel's `door` (from `DoorBearingMixin`) at
-construction time. If `vessel.door` is non-null, the synthesized
-exits carry that door reference and the synth exits are registered
-in `door.attachedTo` — so a closed wardrobe door blocks `go out` /
-`go wardrobe`, and `Door.detach()` walks back to the synth exits
-exactly as it does for explicit exits.
-
-Both are cached and **invalidated** in two situations:
-
-1. **Vessel moves** — `onMoved` (Witness hook) fires once per
-   transition; the cached exits are dropped (and unhooked from
-   `door.attachedTo`) so the next access recreates them with the new
-   environment.
-2. **Vessel's door changes** — `setDoor(door)` invalidates the same
-   way so the next access uses the new door (and registers it in the
-   new door's `attachedTo`).
-
-The synthesized `'out'` exit is added to `getObviousExits` output, so
-`look` from inside the vessel mentions it.
-
-After the Door retrofit (see [light.md](./light.md)), `onMoved` and
-`setDoor` also migrate the door's `BoundaryAnchor` pair on the
-`(vessel, environment)` Adornable hosts: the old pair tears down via
-`Boundary._detachAndDestructAnchors()` (the subclass-bypass seam
-that doesn't touch Door's `attachedTo`), and a new pair installs on
-`(vessel, currentEnv)` so the closed-vessel-door light-blocking
-behavior follows the vessel as it relocates. The `attachedTo` and
-the boundary anchors are independent back-references — the
-DoorBearing field still owns the runtime door reference for synth
-exits; the anchors are runtime fixtures on each side. The two
-roles do not overlap.
-
-#### `DoorBearingMixin`
-
-`lib/spatial/DoorBearing.ts`. Adds `door: Door | null` (runtime-only,
-**not** in `persistentFields` — a `Door` is a separate Stuff and
-the generic hydrator's bracket-assign cannot round-trip a Stuff
-reference; composing classes that need door identity to survive
-restart own that via a custom `persistenceHandler`, the same shape
-`Containable.environment` uses), `getDoor()`, and a default
-`setDoor()` that just updates the field. Bound to `Stuff & Exitable`
-because a door without an exit doesn't make sense; the constraint
-enforces the layering at compile time.
-
-ExitableVessel overrides `setDoor` to additionally invalidate the
-synthesized-exit caches — the default mixin implementation is enough
-for hosts whose exits are all explicit (where `addExit`/`removeExit`
-already wire `attachedTo`). Future single-defining-door Locations
-(gatehouse, vault) compose the mixin and rely on the default.
-
+Locations and Vessels compose `AdornableMixin` so their
+`getFixtures()` collection can host `BoundaryAnchor`s; that is
+the only Boundary detail that lives in this doc.
 ## Locomotion: `MobileMixin`
 
 `lib/spatial/Mobile.ts`. The mover's side of movement. Composed by
@@ -774,103 +473,24 @@ specific subclass; the base `Location` is deliberately not singleton
 so that future `MultiLocation` patterns (procedural deserts,
 self-rearranging chambers) can produce many instances per template.
 
-### Lazy Exit destination resolution
-
-An Exit can be authored two ways:
-
-- With a live `destination` ref — the historical case. Used by
-  `addBidirectionalExit`, `CartesianZone.deriveExit`, vessel
-  synthesizers, and runtime tests.
-- With a `destinationPath` — a templatePath string. Resolves on first
-  `await getDestination()` via `StuffApi.singleton(path)`. Cached
-  thereafter on the Exit instance.
-
-The synchronous `destination` getter consults the singleton cache
-first; if the destination is loaded it caches and returns. If only a
-path is set and the destination isn't loaded, the getter throws —
-async-aware callers (`Mobile.traverse`) `await getDestination()`
-before reading. `Exit.getDestinationTemplatePath()` returns the path
-regardless of resolution state, used by the verifier.
-
-This is what makes lazy Location loading work. Exits authored across
-Locations don't force the destination Location to clone at content
-load time; the destination is materialized when traversal forces it.
-
-### Mutual-exit verification
-
-The framework requires every authored exit to have a matching back-
-exit on its destination, modulo the explicit `oneWay` flag. Content-
-authoring tools should catch most asymmetries at save time. Runtime
-catches what slips through, and wires `inverse` pointers as a
-side-effect.
-
-`ExitableMixin.verifyOutboundExits()` (instance method on every
-Exitable) walks the **per-exit `_pendingVerify` set** — the subset of
-`this.exits` that was flagged at `addExit` time as having work the
-verifier could do (path-only destination or unsettled inverse).
-Settled exits are evicted from the set so subsequent calls are
-cheap. For each pending exit:
-
-- Skip if `oneWay`, already-`inverse`-wired, or non-cardinal direction.
-- Look up destination's templatePath in `byTemplatePath`. If not
-  loaded, leave it pending (the other side's load will run the
-  verifier).
-- If loaded, query `destination.getExit(invert(direction))`:
-  - **Match** (back-exit's destination is `loc`): wire
-    `forward.inverse = back`, `back.inverse = forward`, and evict
-    from `_pendingVerify` — but only when both are explicit (in
-    their respective `exits` map; derived cartesian exits are
-    recreated per-call and inverse pointers to them would dangle).
-  - **Mismatch** or **missing**: set `forward.blocked = true`, log
-    a warning, evict from `_pendingVerify`.
-
-`hasPendingVerification()` exposes the set's emptiness so the
-traversal-time fallback can short-circuit when nothing's pending.
-
-Fires from two places:
-
-- **Load-time:** `CartesianLocation.postRegister` and
-  `SphericalLocation.postRegister` invoke the verifier as part of
-  the clone pipeline. Whichever side of a pair loads second gets the
-  wire-up.
-- **Traversal-time fallback:** `MobileMixin.traverse` calls the
-  verifier on the source location after resolving the destination.
-  Catches pairs whose load-time verification couldn't fire because
-  the destination wasn't loaded yet, and wires up the inverses
-  before traversal proceeds.
-
-The verifier is idempotent — already-wired exits short-circuit.
-
 ### Destroy choreography
 
 `StuffApi.destruct(stuff)` runs `stuff.prepareDestroy()` and then
-`stuff.destroy()`. The spatial subsystem implements `prepareDestroy`
-across four classes:
+`stuff.destroy()`. Spatial-side `prepareDestroy` implementations:
 
-- **`ExitableMixin.prepareDestroy()`** handles the exit-side
-  teardown:
-  1. Mark each `exit.inverse?.blocked = true` so neighbors can't
-     traverse here once we're gone.
-  2. Destruct each owned outbound exit. `Exit.prepareDestroy()`
-     clears the inverse-side back-pointer so neighbors don't retain
-     dead references.
-  3. Empty `exits`.
-  4. `super.prepareDestroy()` chains to **`Location.prepareDestroy()`**
-     which detaches from the owning Zone (`zone.removeRoom(this)`),
-     clearing coordinate-keyed indexes (CartesianZone grid,
-     SphericalZone focusIndex). Concrete subclasses
-     (CartesianLocation, SphericalLocation) inherit the chain — no
-     overrides needed unless they have additional cleanup.
-- **`Exit`:** clear `inverse?.inverse`; clear `door` (the setter
-  detaches us from `door.attachedTo`).
+- **`Location.prepareDestroy()`** detaches from the owning Zone
+  (`zone.removeLocation(this)`), clearing coordinate-keyed
+  indexes (CartesianZone grid, SphericalZone focusIndex).
+  Concrete subclasses inherit. `ExitableMixin.prepareDestroy`
+  (lib/boundary/) chains here after handling the exit-side
+  teardown — see [boundary.md § Doors](./boundary.md#doors) and
+  [boundary.md § Exits](./boundary.md#exits).
 - **`Zone`:** refuse to destruct while non-empty — caller drains
-  rooms first. `CartesianZone` additionally clears `derivedCache`.
-- **`Door`:** call `detach()` to walk `attachedTo` and clear every
-  Exit's `door` reference.
-
-There's no central inbound-Exit index; the verifier's job of wiring
-`inverse` pointers AT load time is what makes destroy-time inbound
-discovery cheap (just walk `outbound.map(e => e.inverse)`).
+  rooms first. `CartesianZone` additionally clears
+  `derivedCache`.
+- **`AdornableMixin`** (composed on Location and Vessel) walks
+  `getFixtures()` and destructs each. See
+  [boundary.md § Adornable / Adornment](./boundary.md#adornable--adornment).
 
 ## Persistence Notes
 

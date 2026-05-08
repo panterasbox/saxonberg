@@ -17,13 +17,13 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from './Container';
-import type { Containable } from './Containable';
+import type { Container } from '../spatial/Container';
+import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
 import type { Door } from './Door';
-import type { Mobile, MovementBodies } from './Mobile';
+import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import { Exit } from './Exit';
-import { CartesianZone } from './CartesianZone';
+import { CartesianZone } from '../spatial/CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';

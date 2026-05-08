@@ -77,8 +77,13 @@ behavior. Read the relevant doc before editing in its area.
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration
   - [spatial.md](./docs/subsystems/spatial.md) — locations, zones
-    (Cartesian/Spherical), exits, doors, vessels, coordinates,
-    containment chokepoint, locomotion, direction vocabulary
+    (Cartesian/Spherical), vessels, coordinates, containment
+    chokepoint, locomotion, direction vocabulary
+  - [boundary.md](./docs/subsystems/boundary.md) — exits, doors,
+    `Adornable` / `Adornment`, the `Boundary` substrate
+    (`Boundary`, `BoundaryAnchor`, `Conduit` interfaces),
+    `Window`, `ExitableVessel`. Everything that lives on the
+    seams between containment scopes.
   - [light.md](./docs/subsystems/light.md) — Light value object,
     `LightApi` propagation walk (`lightAt`, `bandAt`,
     `perceivedBand`, `canSee`, `shadowsAt`), `AmbientLitMixin`,

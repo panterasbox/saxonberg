@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Window } from '../Window';
-import { Boundary } from '../../spatial/Boundary';
+import { Boundary } from '../Boundary';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
@@ -9,7 +9,7 @@ import { MixinApi } from '../../../api/mixin';
 import { ProxyApi } from '../../../api/proxy';
 import { PersistentHydrator } from '../../persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import type { LightConduit, LineOfSight } from '../../spatial/Conduit';
+import type { LightConduit, LineOfSight } from '../Conduit';
 
 describe('Window', () => {
   afterEach(() => {

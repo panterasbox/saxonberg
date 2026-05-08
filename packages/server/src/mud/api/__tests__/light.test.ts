@@ -1,12 +1,12 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { LightApi, MAX_HOPS, EXIT_TAU } from '../light';
-import { Light } from '../../lib/light/Light';
+import { Light } from '../../lib/perception/Light';
 import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
 import { CartesianZone } from '../../lib/spatial/CartesianZone';
 import { SphericalLocation } from '../../lib/spatial/SphericalLocation';
 import { SphericalZone } from '../../lib/spatial/SphericalZone';
-import { Door } from '../../lib/spatial/Door';
-import { AmbientLitMixin } from '../../lib/light/AmbientLit';
+import { Door } from '../../lib/boundary/Door';
+import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
