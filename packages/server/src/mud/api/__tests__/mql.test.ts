@@ -526,17 +526,26 @@ describe('MQL resolver — mid-chain seed semantics', () => {
     expect(idSet.has(world.giver.stuffId)).toBe(true);
   });
 
-  it('flat-map: peers:reachable expands each peer to its reachable set', () => {
-    // The peers (rose, daisy) live in the giver's room. Each peer's
-    // reachable set includes the location, the location's details,
-    // and other peers. After excluding {rose, daisy}, we still see
-    // the location and the giver.
+  it('flat-map: peers:reachable expands each peer to its reachable set (includes self-reachable)', () => {
+    // Each peer's reachable set includes itself (you can reach
+    // yourself), so rose and daisy stay in the result. The room
+    // and giver are also in each peer's reachable set.
     const out = resolve('peers:reachable', ctx);
     const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(false);
-    expect(idSet.has(world.daisy.stuffId)).toBe(false);
+    expect(idSet.has(world.rose.stuffId)).toBe(true);
+    expect(idSet.has(world.daisy.stuffId)).toBe(true);
     expect(idSet.has(world.location.stuffId)).toBe(true);
     expect(idSet.has(world.giver.stuffId)).toBe(true);
+  });
+
+  it('flat-map: (rose, daisy):reachable keeps rose and daisy (self-reachable)', () => {
+    // `reachable` includes the focal in its per-element definition,
+    // so set-aware exclusion does NOT apply. Contrast with
+    // `(rose, daisy):peers`, which excludes the prior set.
+    const out = resolve('(rose, daisy):reachable', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(true);
+    expect(idSet.has(world.daisy.stuffId)).toBe(true);
   });
 
   it('flat-map: me:i:peers is empty (peers of inventory items are siblings; all in prior set)', () => {

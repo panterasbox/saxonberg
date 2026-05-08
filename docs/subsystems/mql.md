@@ -264,14 +264,26 @@ Seed-shaped chain elements split by whether the seed is
 
 - `peers`, `reachable`, `inventory`, and the transforms `:i` / `:e`
   are element-derivable. Mid-chain they **flat-map** over the prior
-  set: for each `x in prior`, compute `seed(x)`, union, then exclude
-  the prior set from the union (set-aware exclusion). So
-  `(bob, joe):peers` gives "everyone in the rooms bob or joe occupy,
-  minus bob and joe themselves."
+  set: for each `x in prior`, compute `seed(x)` and union the
+  results.
 - `me`, `here`, `online`, `world`, paths, stuff ids, `$$`, and
   groups are **fixed pools**. Mid-chain they **intersect** with the
   prior set. `reachable:online` is "of the giver's reachable set,
   which are online."
+
+**Set-aware exclusion is per seed.** `peers` and `inventory` exclude
+the prior set from the union — their per-element definitions
+already exclude the focal Stuff (peers excludes the focal by
+definition; `inventory(x)` is `x`'s contents, not `x`), and without
+the exclusion the union cross-pollinates: `(bob, joe):peers` would
+pull bob in via `peers(joe)` and vice versa. The exclusion gives the
+expected "peers of these people, minus these people" answer.
+
+`reachable` does **not** exclude the prior set, because its
+per-element definition INCLUDES the focal (you can reach yourself —
+see {@link candidatesForReachable}). Excluding the prior set there
+would silently drop legitimate self-reachable matches:
+`(bob, joe):reachable` keeps bob and joe in the result.
 
 For fixed-pool seeds (intersection), the prior set's `via`
 attribution is preserved — intersection only decides membership.

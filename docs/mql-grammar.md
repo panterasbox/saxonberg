@@ -258,23 +258,33 @@ has a per-element interpretation:
 
 - **Element-derivable seeds** (`peers`, `reachable`, `inventory`,
   and the transforms `:i` / `:e`) **flat-map** over the prior set:
-  for each element `x`, expand to `seed(x)`, union the results,
-  and exclude the prior set itself from the final union (so "peers
-  of these people" doesn't include those people).
+  for each element `x`, expand to `seed(x)` and union the results.
 - **Fixed-pool seeds** (`me`, `here`, `online`, `world`, paths,
   stuff ids, `$$`, groups) **intersect** with the prior set.
 
+`peers` and `inventory` additionally exclude the prior set from the
+flat-map result (because they cross-pollinate: bob is in joe's
+peers and joe is in bob's, so without the exclusion `(bob, joe):peers`
+would include both). `reachable` does NOT exclude the prior set,
+because its definition includes the focal — you can reach yourself.
+The transforms `:i` / `:e` likewise don't exclude (they descend /
+ascend per element).
+
 ```
-(bob, joe):peers          everyone in the room with bob or joe,
+(bob, joe):peers          everyone in the rooms with bob or joe,
                           excluding bob and joe themselves. When they
                           share a room: the room's other occupants.
                           When in different rooms: union of both rooms,
                           minus both bob and joe.
 
+(bob, joe):reachable      everything reachable from bob or joe,
+                          INCLUDING bob and joe themselves (reachable
+                          is self-inclusive — you can reach you).
+
 reachable:online          people in the giver's reachable set who are
                           also online (online is fixed-pool → intersect)
 
-(bob, joe):i              union of bob's and joe's contents (each `:i`
+(bag1, bag2):i            union of each bag's contents (each `:i`
                           flat-maps; transforms have always worked
                           this way)
 ```

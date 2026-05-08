@@ -646,8 +646,7 @@ function intersectWithSeed(
  * Flat-map an element-derivable seed (`peers`, `reachable`,
  * `inventory`) over the prior set: for each prior match, build the
  * seed's candidate pool **anchored on that match's Stuff** (in place
- * of the giver), then union and exclude the prior set's stuffIds
- * from the result.
+ * of the giver), then union the results.
  *
  * Each resulting match takes its `via` from the candidate (e.g.,
  * detail subcandidates carry `via.detailPath`, exit candidates carry
@@ -658,22 +657,31 @@ function intersectWithSeed(
  * resolver's terminal `finalize`. Two prior matches that flat-map to
  * the same `(stuff, via)` collapse.
  *
- * Set-aware exclusion: any candidate whose `stuffId` is in the prior
- * set is dropped, regardless of via. So `(bob, joe):peers` excludes
- * both bob and joe even when each appears in the other's peer pool.
+ * **Set-aware exclusion is per seed.** `peers` and `inventory`
+ * exclude the prior set from the result, because their per-element
+ * definitions exclude the focal naturally and the union otherwise
+ * cross-pollinates (`(bob, joe):peers` would pull bob in via
+ * `peers(joe)` and vice versa). `reachable`, by contrast, INCLUDES
+ * the focal in its per-element definition (you can reach yourself);
+ * dropping the prior set there would silently kick out legitimate
+ * self-reachable matches. So `(bob, joe):reachable` keeps bob and
+ * joe in the result, while `(bob, joe):peers` excludes them.
  */
 function flatMapBySeed(
   input: MqlMatch[],
   seedName: string
 ): MqlMatch[] {
   if (input.length === 0) return [];
-  const priorIds = new Set(input.map((m) => m.stuff.stuffId));
+  const excludePriorSet = SEEDS_EXCLUDING_PRIOR.has(seedName);
+  const priorIds = excludePriorSet
+    ? new Set(input.map((m) => m.stuff.stuffId))
+    : null;
   const out: MqlMatch[] = [];
   const seen = new Set<string>();
   for (const m of input) {
     const candidates = candidatesForElementDerivable(seedName, m.stuff);
     for (const c of candidates) {
-      if (priorIds.has(c.stuff.stuffId)) continue;
+      if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
       const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
       if (seen.has(key)) continue;
       seen.add(key);
@@ -684,6 +692,22 @@ function flatMapBySeed(
   }
   return out;
 }
+
+/**
+ * Element-derivable seeds whose per-element definition excludes the
+ * focal Stuff (peers excludes the focal by definition; inventory's
+ * contents-of-x doesn't include x). For these, `flatMapBySeed`
+ * subtracts the prior set from the union to prevent cross-pollination
+ * — bob appearing in `peers(joe)` and joe appearing in `peers(bob)`.
+ *
+ * `reachable` is intentionally absent: it includes the focal in its
+ * per-element definition (you can reach yourself), so excluding the
+ * prior set would silently drop self-reachable matches.
+ */
+const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
+  'peers',
+  'inventory',
+]);
 
 function candidatesForElementDerivable(
   seedName: string,
