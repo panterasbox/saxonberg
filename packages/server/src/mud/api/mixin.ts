@@ -35,7 +35,7 @@ import type { Detailed } from '../lib/description/Detailed';
 import type { Propertied } from '../lib/stuff/Propertied';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
-import type { Exitable } from '../lib/spatial/Exitable';
+import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
 import type { CartesianCoordinates } from '../lib/spatial/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/spatial/SphericalCoordinates';
@@ -46,7 +46,12 @@ import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
-import type { DoorBearing } from '../lib/spatial/DoorBearing';
+import type { DoorBearing } from '../lib/boundary/DoorBearing';
+import type { Adornable } from '../lib/boundary/Adornable';
+import type { Adornment } from '../lib/boundary/Adornment';
+import type { AmbientLit } from '../lib/perception/AmbientLit';
+import type { LightSource } from '../lib/perception/LightSource';
+import type { Perception } from '../lib/perception/Perception';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -196,6 +201,51 @@ export class MixinApi {
   }
 
   /**
+   * Get the field-marshaller registry for a class — the map of
+   * persistent-field names → marshaller templatePaths declared on
+   * mixins / classes in the prototype chain.
+   *
+   * Walks the prototype chain concrete-class-first, so a subclass's
+   * declaration wins over a base mixin's for the same field. The
+   * returned map is keyed by field name; values are templatePath
+   * strings that callers resolve via `StuffApi.findByTemplatePath`
+   * at use time.
+   *
+   * Mirrors the shape of {@link getAllPersistentFields} and is the
+   * companion lookup for `PersistentHydrator` / `Persistable`'s
+   * marshaller-aware coercion path.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Map of field name to marshaller templatePath
+   */
+  public static getAllFieldMarshallers(
+    constructor: AnyConstructor
+  ): Record<string, string> {
+    const out: Record<string, string> = {};
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        fieldMarshallers?: Record<string, string>;
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'fieldMarshallers') &&
+        c.fieldMarshallers &&
+        typeof c.fieldMarshallers === 'object'
+      ) {
+        for (const [k, v] of Object.entries(c.fieldMarshallers)) {
+          // First declaration wins — concrete-class walked first, so
+          // subclass overrides base.
+          if (!(k in out) && typeof v === 'string') out[k] = v;
+        }
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
+  }
+
+  /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
    * Walks the prototype chain and collects `persistentFields` declared at
@@ -340,6 +390,26 @@ export class MixinApi {
 
   public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {
     return this.hasMixin(obj, Mixins.DoorBearing);
+  }
+
+  public static isAdornable(obj: Stuff): obj is Stuff & Adornable {
+    return this.hasMixin(obj, Mixins.Adornable);
+  }
+
+  public static isAdornment(obj: Stuff): obj is Stuff & Adornment {
+    return this.hasMixin(obj, Mixins.Adornment);
+  }
+
+  public static isAmbientLit(obj: Stuff): obj is Stuff & AmbientLit {
+    return this.hasMixin(obj, Mixins.AmbientLit);
+  }
+
+  public static isLightSource(obj: Stuff): obj is Stuff & LightSource {
+    return this.hasMixin(obj, Mixins.LightSource);
+  }
+
+  public static isPerception(obj: Stuff): obj is Stuff & Perception {
+    return this.hasMixin(obj, Mixins.Perception);
   }
 }
 

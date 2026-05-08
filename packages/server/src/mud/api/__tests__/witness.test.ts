@@ -19,10 +19,10 @@ import {
 } from '../../lib/spatial/Containable';
 import type { VetoResult } from '../../lib/errors';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
-import { ExitableMixin, type Exitable } from '../../lib/spatial/Exitable';
+import { ExitableMixin, type Exitable } from '../../lib/boundary/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';
 import { Location } from '../../lib/stuff/Location';
-import { Exit } from '../../lib/spatial/Exit';
+import { Exit } from '../../lib/boundary/Exit';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import { Interactive } from '../../obj/Interactive';
 import { SecurityError } from '../../lib/security/errors';

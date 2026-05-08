@@ -20,11 +20,12 @@
 
 import { Location } from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
-import { ExitableMixin } from './Exitable';
+import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
-import type { Exit } from './Exit';
+import type { CartesianZone } from './CartesianZone';
+import type { Exit } from '../boundary/Exit';
 
 const CartesianLocationBase = PostRegistrationMixin(
   ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
@@ -57,4 +58,30 @@ export class CartesianLocation extends CartesianLocationBase {
   // prepareDestroy is inherited from ExitableMixin (exit teardown) and
   // chains via super to Location.prepareDestroy (zone detach). No
   // override needed.
+
+  /**
+   * Narrowed override: a `CartesianLocation` lives in a `CartesianZone`
+   * by `CartesianZone.addLocation`'s rejection of non-Cartesian
+   * locations. The cast happens once here, at the boundary; every
+   * caller within (or with a typed reference to) `CartesianLocation`
+   * gets the narrowed type for free. If a `CartesianLocation` ever
+   * landed in a non-Cartesian zone, `getCellSize` would be undefined
+   * and any optional-call would short-circuit — defensive but
+   * documented.
+   */
+  public override getZone(): CartesianZone | null {
+    return super.getZone() as CartesianZone | null;
+  }
+
+  /**
+   * Spatial scale used by `LightApi.bandAt` to map total intensity to
+   * a band: `effective = light.intensity / loc.getSizeScale()`. For
+   * a Cartesian room the scale is the owning zone's `cellSize` —
+   * larger cells mean the same total light reads dimmer. The
+   * fallback covers transient test state where the room hasn't been
+   * added to a zone yet.
+   */
+  public getSizeScale(): number {
+    return this.getZone()?.getCellSize() ?? 1.0;
+  }
 }

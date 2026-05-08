@@ -14,7 +14,7 @@
 
 import { Zone } from './Zone';
 import type { Location } from '../stuff/Location';
-import type { Exit } from './Exit';
+import type { Exit } from '../boundary/Exit';
 import { SingletonMixin } from '../stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
 

@@ -31,7 +31,6 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Location } from '../stuff/Location';
 import type { Containable } from '../spatial/Containable';
 import type { Parser } from '../../api/command';
 import {
@@ -360,8 +359,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // parser/matcher binds; controllers always see the populated
       // form.
       const giver = this as unknown as Stuff & CommandGiver;
+      // The dispatch location is whichever Container holds the giver
+      // — typically a Location (room) but may be a Vessel (entered
+      // wardrobe/ship). Controllers narrow with MixinApi predicates
+      // when they need a specific surface.
       const location = MixinApi.isContainable(giver)
-        ? ((giver as Stuff & Containable).getContainer() as Location | null)
+        ? giver.getContainer()
         : null;
       if (!location) {
         return {

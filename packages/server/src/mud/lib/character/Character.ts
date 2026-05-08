@@ -34,17 +34,28 @@ import { ContainerMixin } from '../spatial/Container';
 import { VisibleMixin } from '../description/Visible';
 import { MobileMixin } from '../spatial/Mobile';
 import { SensorMixin } from '../message/Sensor';
+import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { CommandGiverMixin } from '../command/CommandGiver';
 
-// Compose mixins: CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Gendered + Named + Agent
+// Compose mixins: CommandGiver + Mobile + Container + Containable + Visible + Vocal + Perception + Sensor + Gendered + Named + Agent
 // Order matters: ContainableMixin before MobileMixin (MobileMixin uses setContainer/getContainer)
 // Commands are provided by mixins (ContainerMixin provides inventory/get/drop, VisibleMixin provides look)
+// Sensor + Perception together = the full perceiver: Sensor handles
+// channel-side message receipt, Perception handles the subjective
+// interpretation seams that LightApi (and future hearing/etc.) ask
+// the viewer to modulate. See lib/perception/Perception.ts.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
     ContainerMixin(
       ContainableMixin(
-        VisibleMixin(VocalMixin(SensorMixin(GenderedMixin(NamedMixin(Agent)))))
+        VisibleMixin(
+          VocalMixin(
+            PerceptionMixin(
+              SensorMixin(GenderedMixin(NamedMixin(Agent)))
+            )
+          )
+        )
       )
     )
   )

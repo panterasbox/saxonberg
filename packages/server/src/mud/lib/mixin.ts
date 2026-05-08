@@ -44,6 +44,11 @@ export const Mixins = {
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',
   DoorBearing: 'DoorBearingMixin',
+  Adornable: 'AdornableMixin',
+  Adornment: 'AdornmentMixin',
+  AmbientLit: 'AmbientLitMixin',
+  LightSource: 'LightSourceMixin',
+  Perception: 'PerceptionMixin',
 } as const;
 
 /**

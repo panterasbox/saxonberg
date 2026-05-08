@@ -28,8 +28,8 @@
 
 import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from './Container';
-import type { Containable } from './Containable';
+import type { Container } from '../spatial/Container';
+import type { Containable } from '../spatial/Containable';
 import type { Door } from './Door';
 import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';

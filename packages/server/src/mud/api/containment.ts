@@ -88,6 +88,20 @@ export class ContainmentApi {
           'Cannot move an exitable into a different zone.'
         );
       }
+      // PRE-FLIGHT (3): Adornments attached to a host cannot be moved
+      // into a Container's contents while still adorning. The
+      // not-portable invariant — wall sconces, BoundaryAnchors, and
+      // similar fixtures are reachable through `Adornable.getFixtures()`,
+      // not `getContents()`. Detaching first
+      // (`host.removeFixture(item)`) is the prerequisite for moving
+      // the Adornment as inventory; same shape as `Door.detach()` for
+      // a broken door.
+      if (MixinApi.isAdornment(item) && item.getAdornedTo() !== null) {
+        throw new ContainmentError(
+          'Cannot move an adornment that is still attached to a host; ' +
+            'detach it first.'
+        );
+      }
     }
 
     const from = item.getContainer();

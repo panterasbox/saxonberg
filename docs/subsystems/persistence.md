@@ -190,6 +190,142 @@ is true, `lockKey` must reference a real key" — go in a custom
 
 Full rule: [antipatterns.md § Per-Field Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks).
 
+## Scalar-Default Rule
+
+**Persistent fields default to scalars and arrays of scalars.** That
+covers nearly everything Saxonberg persists: booleans, numbers,
+strings, primitive tuples like `[x, y, z]`, keyword lists,
+templatePath strings for Stuff cross-references. Mixins that carry
+richer runtime types (value objects, structured composites)
+**decompose** them into named scalar fields and reconstruct on
+read; the runtime API stays strict on the value-object type.
+
+Why: the hydrator's bracket-assign is dumb — it copies whatever
+shape comes out of MongoDB straight into the field via a setter.
+For a Light value object that means the setter would have to accept
+both a runtime `Light` AND the raw `{intensity, color}` plain
+object, smushing two jobs (validation + coercion) into one
+signature with a union type. Splitting storage into scalar fields
+keeps each setter validating one primitive shape independently
+(intensity is a number ≥ 0, color is a string-or-null), and the
+runtime API stays strict on the value class.
+
+Canonical example — `AmbientLitMixin`:
+
+```ts
+class AmbientLitMixin {
+  static persistentFields = ['ambientIntensity', 'ambientColor'];
+
+  // Stored scalars — accessor pairs validate primitive shape:
+  protected set ambientIntensity(v: number) {
+    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) {
+      throw new TypeError(/* … */);
+    }
+    this._ambientIntensity = v;
+  }
+  protected set ambientColor(v: ColorTag | null) {
+    if (v !== null && typeof v !== 'string') throw new TypeError(/* … */);
+    this._ambientColor = v;
+  }
+
+  // Runtime API — strict on Light, decomposes into the two scalars:
+  setAmbientLight(value: Light): void {
+    if (!(value instanceof Light)) throw new TypeError(/* … */);
+    this._ambientIntensity = value.intensity;
+    this._ambientColor = value.color;
+  }
+  getAmbientLight(): Light {
+    return Light.of(this._ambientIntensity, this._ambientColor);
+  }
+}
+```
+
+Same shape for `LightSourceMixin` (`emittedIntensity`,
+`emittedColor`) and for `Window`'s directional override pair
+(`aToBOverride`, `bToAOverride` — the structured `{aToB?, bToA?}`
+shape lives only at the runtime API layer).
+
+When NOT to flatten: a small number of fields genuinely don't
+decompose into named scalars — variable-key maps
+(`Record<currency, amount>`), structured composites whose internal
+structure IS the data, future composite types we can't anticipate.
+That's what the Marshaller framework below is for.
+
+Full rule + counter-examples:
+[antipatterns.md § "Persistent Fields Default to Scalars; Marshallers Are the Escape Hatch"](../antipatterns.md#persistent-fields-default-to-scalars-marshallers-are-the-escape-hatch).
+
+## Marshaller Framework
+
+For the rare field whose storage shape genuinely doesn't decompose
+into scalars, authors write a `Marshaller` (`lib/persistence/Marshaller.ts`):
+
+```ts
+abstract class Marshaller<TRuntime, TStored> extends Idea {
+  abstract fromStored(stored: TStored): TRuntime;
+  abstract toStored(runtime: TRuntime): TStored;
+}
+```
+
+A Marshaller is an Idea-shaped Stuff (singleton-resolved by
+templatePath, mirroring `PersistentHydrator`'s shape) so
+content-author marshallers participate in `HotReloadApi` and can
+hot-swap without restarting the server. Stateless by contract;
+`fromStored` and `toStored` are pure functions of their input.
+
+### Wire-up
+
+The mixin declares `static fieldMarshallers` mapping the persistent
+field name to the marshaller's templatePath:
+
+```ts
+class WalletMixin {
+  static persistentFields = ['wallet'];
+  static fieldMarshallers = {
+    wallet: '/lib/persistence/MoneyBagMarshaller',
+  };
+
+  // Setter is STRICT on the runtime type — by the time the
+  // hydrator's bracket-assign fires, the marshaller's
+  // `fromStored` has already produced a runtime MoneyBag.
+  setWallet(value: MoneyBag): void {
+    if (!(value instanceof MoneyBag)) throw new TypeError(/* … */);
+    this._wallet = value;
+  }
+}
+```
+
+`MixinApi.getAllFieldMarshallers(constructor)` walks the prototype
+chain (same shape as `getAllPersistentFields`) collecting the maps,
+with subclass declarations winning over base for the same field
+key.
+
+### Resolution
+
+`PersistentHydrator.hydrate` and `Persistable.toDocument` /
+`Persistable.fromDocument` look up the marshaller per field via
+`StuffApi.findByTemplatePath`, then apply `fromStored` (read path)
+or `toStored` (write path) around the bracket-assign /
+bracket-read. Sync resolution because `Persistable.toDocument` is
+sync; the marshaller must be loaded into the Stuff registry
+before any save / hydrate runs.
+
+In production, the marshaller's CMS template is seeded at boot
+(same shape `PersistentHydrator` uses today). In tests, a small
+helper (see `Marshaller.test.ts`) constructs the marshaller via
+`makeStuff` and stamps `templatePath` so the standard
+`StuffApi.findByTemplatePath` lookup resolves it.
+
+### Don't reach for it as a first move
+
+The framework lands ahead of any production user. The only
+consumer in v1 is the contrived `MoneyBag` test fixture
+(`Marshaller.test.ts`) — a variable-key
+`Record<currency, number>` storage shape that exercises the
+framework end-to-end. The first real production marshaller will
+arrive when a content author hits a field that genuinely needs an
+object-shaped storage and confirms it doesn't decompose. Most
+fields decompose; flatten them.
+
 ## Design Decisions
 
 ### Why static `collectionName`?
@@ -275,5 +411,11 @@ Index creation is best-effort (logs and continues on failure).
   `Persistable.delete` doesn't call `destroy`.
 - [antipatterns.md § Per-Field Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks)
   — setter contract that hydration rides on.
+- [antipatterns.md § Persistent Fields Default to Scalars](../antipatterns.md#persistent-fields-default-to-scalars-marshallers-are-the-escape-hatch)
+  — full statement of the scalar-default rule and the marshaller
+  escape hatch, with BAD/GOOD examples.
 - [state-model.md](./state-model.md) — Persistable in the Idea
   hierarchy, Avatar self-contained model, why Player class is gone.
+- [light.md](./light.md) — first major user of the scalar-default
+  rule; `AmbientLitMixin` / `LightSourceMixin` / `Window`
+  decompose Light value objects into scalar fields.

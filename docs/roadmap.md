@@ -154,6 +154,52 @@ disambiguation; Globbable scoping for quantity syntax.
   bodies that want decoration switch to `getDisplayParts` or a
   new composer when those land.
 
+### Race / species / organism subsystem
+
+- **What**: A real biological-style standard-model layer for organic
+  agents. `OrganismMixin` distinguishes organic from inorganic
+  agents (constructs, robots, ghosts). `Species` modeled as
+  `Idea`-shaped templates in a Linnaean taxonomy
+  (`/domain/species/animalia/chordata/…`), spanning real species
+  (frogs, lizards, fish, humans) and fantasy (dragons, dwarves,
+  elves) inside the same hierarchy. Body plan derived from species
+  drives equipment-slot taxonomy. `Sexed` as a separate biological
+  axis from the existing `Gendered` *(have — social / pronoun)*.
+  Eventually genetics: alleles, inheritance, mutation, evolution.
+- **Why**: Saxonberg's first audience is academic. STEM students
+  studying biology should be able to *exercise* their classroom
+  concepts inside the game — pathogens with realistic host ranges,
+  Punnett squares for breeding, real toxicity tables, real
+  metabolism. Not a model of reality (it's a fantasy game), but a
+  pedagogically honest substrate underneath the fantasy. Also
+  resolves several smaller design questions on its own: the
+  long-pending `isLiving()` predicate, equipment-slot taxonomy,
+  diet / edibility gating, who-gets-diseased.
+- **Size**: large. The `Organism` mixin + species-template tree is
+  medium; genetics is its own sub-subsystem on top.
+- **Dependencies**: none blocking, but several mixins on the
+  current slate are organism-shaped — see
+  [mixin-slate.md](./mixin-slate.md) § "Organism subsystem
+  awareness". Building those without awareness risks baking in
+  assumptions (global slot enums, single-material bodies, blanket
+  "all agents sleep") that the race system will then have to fight.
+- **Open questions**:
+  - How deep does the genetics layer go? (Mendelian basics,
+    polygenic traits, sex-linked inheritance, full genome?)
+  - How does evolution surface in play — long-running population
+    sim, per-character mutation as quest reward / hazard, both?
+  - Single-material vs. tissue-composition for `material` on
+    organisms.
+  - What's the construct (non-organic) hierarchy parallel to
+    `Species`? Robots, golems, ghosts — do they get a templated
+    `make` / `model` hierarchy?
+  - Sex-determination systems — XX/XY only for simplicity, or
+    model ZW/ZZ, environmental, haplodiploid for the relevant
+    real + fantasy species?
+  - Avatar customization at character creation vs.
+    phenotype-from-genotype: does the player pick traits and
+    the system derives a plausible genotype, or vice versa?
+
 ### Command system polish
 
 - **What**: Model piping (PowerShell-style), an admin `reload`
@@ -292,6 +338,13 @@ See `subsystems/lifecycle.md § Open Design` for the open questions.
 
 ## What got skipped or absorbed
 
+- **Light & Boundary subsystem** — shipped. The Light value object,
+  propagation walk, per-viewer perception, and the Boundary
+  substrate (Window, Door retrofit) all landed in v1. Documented in
+  [subsystems/light.md](./subsystems/light.md). Persistence followed
+  the scalar-default rule the same MR introduced; the Marshaller
+  framework landed alongside as the escape hatch
+  ([subsystems/persistence.md § Marshaller Framework](./subsystems/persistence.md#marshaller-framework)).
 - **Phase 5 ("Communications")**: absorbed into Phase 3 (mixins) + early
   Phase 4 (commands). Already shipped.
 - **Phase 6 ("Extended Object Model")**: absorbed; `Thing`, `Detailed`,

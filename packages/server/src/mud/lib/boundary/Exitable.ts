@@ -17,16 +17,18 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from './Container';
-import type { Containable } from './Containable';
+import type { Container } from '../spatial/Container';
+import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
 import type { Door } from './Door';
-import type { Mobile, MovementBodies } from './Mobile';
+import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import { Exit } from './Exit';
-import { CartesianZone } from './CartesianZone';
+import { CartesianZone } from '../spatial/CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { BoundaryApi } from '../../api/boundary';
+import type { Adornable } from './Adornable';
 
 /**
  * Public shape added by ExitableMixin.
@@ -178,11 +180,14 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const explicit = this.exits.get(direction);
       if (explicit) return explicit;
 
+      // `Zone.deriveExit` is polymorphic: CartesianZone synthesizes
+      // a grid-adjacent Exit, SphericalZone always returns undefined.
+      // No `instanceof` check needed.
       const zone = (this as unknown as Stuff).getZone();
-      if (zone instanceof CartesianZone) {
-        return zone.deriveExit(this as unknown as import('../stuff/Location').Location, direction);
-      }
-      return undefined;
+      return zone?.deriveExit(
+        this as unknown as import('../stuff/Location').Location,
+        direction
+      );
     }
 
     /** Explicit exits only. For tooling / persistence. */
@@ -197,10 +202,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     /**
      * Exits displayed by `look` — explicit ∪ derived, filtered by `!hidden`.
      *
-     * Derived exits are only reachable via `CartesianZone`; we iterate the
-     * 10 cardinals and let `getExit()` handle the merge. Uses a Set of
-     * directions already covered by explicit exits to avoid re-querying the
-     * zone for those.
+     * Zones that synthesize cardinal-derived exits (CartesianZone) opt in
+     * via `Zone.hasDerivedAdjacency()`; zones without adjacency derivation
+     * (SphericalZone) skip the iteration entirely so we don't waste 10
+     * always-undefined `deriveExit` calls per query.
      */
     getObviousExits(): Exit[] {
       const result: Exit[] = [];
@@ -212,7 +217,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       }
 
       const zone = (this as unknown as Stuff).getZone();
-      if (zone instanceof CartesianZone) {
+      if (zone?.hasDerivedAdjacency()) {
         for (const dir of NavigationApi.cardinalDirections()) {
           if (seen.has(dir)) continue;
           const exit = zone.deriveExit(
@@ -292,6 +297,34 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
       this.addExit(forward);
       other.addExit(back);
+
+      // Phase 5 Door retrofit: a Door is a Boundary, so when this
+      // pair carries a shared door, also install the door's
+      // BoundaryAnchors on each room. Idempotent against re-install
+      // — `attachExistingBoundary` rejects a wired boundary, so
+      // callers passing the same door twice (e.g., reinstall after
+      // detach) must `door.detach()` first. The cross-boundary light
+      // walk consumes these anchors; `Exit.canTraverse` keeps using
+      // `door.getIsOpen()` directly (see plan § Exit.canTraverse).
+      if (opts.door) {
+        // Cast `this` and `other` to plain `Stuff` (sound — both are
+        // Stuff via the mixin chain), then let `MixinApi.isAdornable`
+        // narrow to `Stuff & Adornable` via its type predicate. Don't
+        // pre-assert the Adornable shape with a cast; the predicate is
+        // the verification.
+        const thisStuff = this as unknown as Stuff;
+        const otherStuff = other as unknown as Stuff;
+        if (
+          MixinApi.isAdornable(thisStuff) &&
+          MixinApi.isAdornable(otherStuff)
+        ) {
+          BoundaryApi.attachExistingBoundary({
+            boundary: opts.door,
+            hostA: thisStuff,
+            hostB: otherStuff,
+          });
+        }
+      }
     }
 
     /**

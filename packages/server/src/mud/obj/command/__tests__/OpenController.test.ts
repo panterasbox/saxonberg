@@ -4,7 +4,7 @@ import { CloseController } from '../CloseController';
 import { GoController } from '../GoController';
 import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
-import { Door } from '../../../lib/spatial/Door';
+import { Door } from '../../../lib/boundary/Door';
 import { ContainmentApi } from '../../../api/containment';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';

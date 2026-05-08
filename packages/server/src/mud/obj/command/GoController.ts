@@ -22,8 +22,8 @@ import { DescribeApi } from '../../api/describe';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Mobile } from '../../lib/spatial/Mobile';
-import type { Exit } from '../../lib/spatial/Exit';
-import { ExitableVessel } from '../../lib/spatial/ExitableVessel';
+import type { Exit } from '../../lib/boundary/Exit';
+import { ExitableVessel } from '../../lib/boundary/ExitableVessel';
 import { resolveSetting } from '../../lib/shell/Environment';
 
 interface GoModel extends CommandModel {

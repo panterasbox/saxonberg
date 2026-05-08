@@ -19,9 +19,11 @@
  */
 
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
 import type { Hydrator } from '../stuff/Hydrator';
+import type { Marshaller } from './Marshaller';
 
 type Indexable = Record<string, unknown>;
 
@@ -48,12 +50,30 @@ export class PersistentHydrator extends Idea implements Hydrator {
     backing: Stuff,
     data: Record<string, unknown>
   ): Promise<void> {
-    const fields = MixinApi.getAllPersistentFields(
-      backing.constructor as new (...args: unknown[]) => Stuff
-    );
+    const constructor = backing.constructor as new (...args: unknown[]) => Stuff;
+    const fields = MixinApi.getAllPersistentFields(constructor);
+    const marshallerPaths = MixinApi.getAllFieldMarshallers(constructor);
     const target = backing as unknown as Indexable;
     for (const field of fields) {
-      if (field in data) target[field] = data[field];
+      if (!(field in data)) continue;
+      const raw = data[field];
+      const path = marshallerPaths[field];
+      if (path) {
+        const marshaller = StuffApi.findByTemplatePath<
+          Marshaller<unknown, unknown>
+        >(path);
+        if (!marshaller) {
+          throw new Error(
+            `PersistentHydrator: marshaller '${path}' for field '${field}' is not registered. ` +
+              `Marshallers must be loaded before hydration runs.`
+          );
+        }
+        target[field] = marshaller.fromStored(raw);
+      } else {
+        // Default path: dumb bracket-assign. The setter (if any) on
+        // the field's accessor pair fires runtime-shape validation.
+        target[field] = raw;
+      }
     }
   }
 }
