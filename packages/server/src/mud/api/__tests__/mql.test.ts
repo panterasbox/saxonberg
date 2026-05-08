@@ -486,7 +486,7 @@ describe('MQL resolver — scope-as-MQL evaluation', () => {
   });
 });
 
-describe('MQL resolver — mid-chain seed intersection', () => {
+describe('MQL resolver — mid-chain seed semantics', () => {
   let world: MqlWorld;
   let ctx: MqlContext;
 
@@ -499,64 +499,102 @@ describe('MQL resolver — mid-chain seed intersection', () => {
     _MqlAdminFlag.granter = () => false;
   });
 
-  it('peers:reachable equals peers (peers ⊆ reachable)', () => {
-    const peersOnly = ids(resolve('peers', ctx));
-    const intersected = ids(resolve('peers:reachable', ctx));
-    expect(intersected.sort()).toEqual(peersOnly.sort());
+  // Element-derivable seeds (`peers`, `reachable`, `inventory`)
+  // flat-map per-element with set-aware exclusion of the prior set.
+  // Fixed-pool seeds (`me`, `here`, `online`, `world`, paths,
+  // stuff ids, `$$`, groups) intersect.
+
+  it('flat-map: (rose, daisy):peers excludes rose and daisy themselves', () => {
+    // rose and daisy share the room with the giver. `peers(rose)` is
+    // the room contents minus rose (= giver, daisy); `peers(daisy)`
+    // is room minus daisy (= giver, rose). Union, then exclude
+    // {rose, daisy} → just the giver.
+    const out = resolve('(rose, daisy):peers', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(false);
+    expect(idSet.has(world.daisy.stuffId)).toBe(false);
+    expect(idSet.has(world.giver.stuffId)).toBe(true);
   });
 
-  it('reachable:peers equals peers (commutative with peers:reachable)', () => {
-    const a = ids(resolve('peers:reachable', ctx)).sort();
-    const b = ids(resolve('reachable:peers', ctx)).sort();
-    expect(a).toEqual(b);
+  it('flat-map: flower:peers — peers of each flower, minus the flowers', () => {
+    // The keyword "flower" matches rose and daisy. `:peers`
+    // flat-maps over both, unions, then excludes rose and daisy.
+    const out = resolve('flower:peers', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(false);
+    expect(idSet.has(world.daisy.stuffId)).toBe(false);
+    expect(idSet.has(world.giver.stuffId)).toBe(true);
   });
 
-  it('online:reachable and reachable:online produce identical sets', () => {
-    _MqlAdminFlag.granter = () => true;
-    const a = ids(resolve('online:reachable', ctx)).sort();
-    const b = ids(resolve('reachable:online', ctx)).sort();
-    expect(a).toEqual(b);
-    // No interactives connected in tests, so online is empty and the
-    // intersection is empty in both directions.
-    expect(a).toEqual([]);
+  it('flat-map: peers:reachable expands each peer to its reachable set', () => {
+    // The peers (rose, daisy) live in the giver's room. Each peer's
+    // reachable set includes the location, the location's details,
+    // and other peers. After excluding {rose, daisy}, we still see
+    // the location and the giver.
+    const out = resolve('peers:reachable', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.rose.stuffId)).toBe(false);
+    expect(idSet.has(world.daisy.stuffId)).toBe(false);
+    expect(idSet.has(world.location.stuffId)).toBe(true);
+    expect(idSet.has(world.giver.stuffId)).toBe(true);
   });
 
-  it('me:i:peers is empty (inventory items are not peers)', () => {
+  it('flat-map: me:i:peers is empty (peers of inventory items are siblings; all in prior set)', () => {
+    // me:i is the giver's inventory (apple). peers(apple) =
+    // apple.container.contents - apple = giver.contents - apple,
+    // which would be other inventory items if any. With one
+    // inventory item, peers(apple) is empty. Either way, set-aware
+    // exclusion drops anything that was in the prior set.
     const out = resolve('me:i:peers', ctx);
     expect(out).toEqual([]);
   });
 
-  it('me:i:inventory equals me:i (inventory items are giver contents)', () => {
-    const a = ids(resolve('me:i', ctx)).sort();
-    const b = ids(resolve('me:i:inventory', ctx)).sort();
-    // `inventory` seed resolves to giver, so intersection picks
-    // nothing — confirm the asymmetry: this is empty, but the
-    // reverse direction (`inventory:i:me`) would also be unusual.
-    // Use this test to pin down the current behavior.
-    void a;
-    expect(b).toEqual([]);
+  it('flat-map: me:i:inventory is empty (inventory items are not Containers)', () => {
+    // me:i = apple (a TestThing, not a Container).
+    // inventory(apple) = ∅ because apple isn't a Container.
+    const out = resolve('me:i:inventory', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it('intersection: reachable:online (online is fixed-pool) is empty when nobody is online', () => {
+    _MqlAdminFlag.granter = () => true;
+    // No interactives connected → online is empty → intersection is
+    // empty.
+    expect(resolve('reachable:online', ctx)).toEqual([]);
+  });
+
+  it('intersection: peers:me filters peers down to the giver (not in peers, so empty)', () => {
+    // `me` is a fixed-pool seed (the giver). Mid-chain `:me`
+    // intersects: which peers are the giver? None — peers exclude
+    // the giver by definition.
+    const out = resolve('peers:me', ctx);
+    expect(out).toEqual([]);
+  });
+
+  it('intersection: reachable:here filters reachable down to the location', () => {
+    // `here` is a fixed-pool seed (the location). Mid-chain `:here`
+    // intersects.
+    const out = resolve('reachable:here', ctx);
+    const idSet = new Set(ids(out));
+    expect(idSet.has(world.location.stuffId)).toBe(true);
+    expect(idSet.size).toBeGreaterThanOrEqual(1);
+  });
+
+  it('intersection preserves prior via on fixed-pool seeds', () => {
+    // Navigate into the inscription detail (chain narrowing), then
+    // intersect with `here` (fixed-pool — the location). The
+    // location is one of the matches; its prior via.detailPath is
+    // preserved.
+    const out = resolve('here:inscription:here', ctx);
+    expect(out.length).toBeGreaterThanOrEqual(1);
+    const withDetail = out.find((m) => m.via?.detailPath?.[0] === 'inscription');
+    expect(withDetail).toBeDefined();
   });
 
   it('peers:sword (bareword keyword filter) still works', () => {
     // `sword` is not a seed name → falls through to keyword filter.
     const out = resolve('peers:sword', ctx);
     expect(out).toEqual([]);
-  });
-
-  it('flower:peers narrows the prior keyword set by peer membership', () => {
-    const out = resolve('flower:peers', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(true);
-    expect(idSet.has(world.daisy.stuffId)).toBe(true);
-  });
-
-  it('intersection preserves prior via attribution', () => {
-    // Navigate into the inscription detail (via the unified `:` chain),
-    // then intersect with reachable — the location is reachable, and
-    // the via should still carry the detail path.
-    const out = resolve('here:inscription:reachable', ctx);
-    expect(out).toHaveLength(1);
-    expect(out[0]?.via?.detailPath).toEqual(['inscription']);
   });
 
   it('flower:online from a non-admin throws', () => {

@@ -538,14 +538,16 @@ function applyChainOp(
 }
 
 /**
- * Single-word keyword forms that name a seed pool. Mid-chain, these
- * intersect rather than keyword-filter — `online:reachable` means
- * "the online set ∩ the reachable set", not "online matches with the
- * keyword 'reachable'." Pronouns (`me`, `here`) and the `it`/`him`/
- * `her`/`them` family deliberately stay out of this list: `here` is
- * still a registered predicate (location-or-contents membership)
- * and `me` mid-chain has no useful seed-intersection meaning beyond
- * what `:i` / `:e` already cover.
+ * Single-word keyword forms that name a candidate-set seed.
+ * Mid-chain these dispatch to either the **flat-map** path
+ * (element-derivable seeds — see {@link ELEMENT_DERIVABLE_SEEDS})
+ * or the **intersection** path (everything else in this set).
+ *
+ * Pronouns (`me`, `here`) and the `it`/`him`/`her`/`them` family
+ * deliberately stay out: `here` is a registered predicate
+ * (location-or-contents membership), `me` mid-chain has no useful
+ * meaning beyond what `:i` / `:e` already cover, and the dynamic
+ * pronouns dispatch through the seed-shaped intersect path below.
  */
 const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
   'online',
@@ -553,6 +555,28 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
   'world',
   'peers',
   'reachable',
+]);
+
+/**
+ * Element-derivable seeds. Mid-chain, these flat-map over the prior
+ * set: for each prior match, build the seed's candidate pool with
+ * that prior Stuff as the anchor (in place of the giver), union the
+ * results, and exclude the prior set's stuffIds from the union (so
+ * "peers of these people" doesn't include those people).
+ *
+ * The fixed-pool seeds (`me`, `here`, `online`, `world`, paths,
+ * stuff ids, `$$`, groups) take the intersection path — see
+ * {@link intersectWithSeed}. The transforms `:i` / `:e` are
+ * conceptually the same family as flat-map (already per-element);
+ * they have their own dispatch in {@link applyTransform}.
+ *
+ * See `docs/subsystems/mql.md` and `docs/mql-grammar.md` for the
+ * grammar-level rationale.
+ */
+const ELEMENT_DERIVABLE_SEEDS: ReadonlySet<string> = new Set([
+  'peers',
+  'reachable',
+  'inventory',
 ]);
 
 function applyColon(
@@ -564,8 +588,14 @@ function applyColon(
     case 'transform':
       return applyTransform(input, el.transform);
     case 'keywords': {
-      if (el.words.length === 1 && NAMED_SEED_KEYWORDS.has(el.words[0]!)) {
-        return intersectWithSeed(input, el, ctx);
+      if (el.words.length === 1) {
+        const name = el.words[0]!;
+        if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
+          return flatMapBySeed(input, name);
+        }
+        if (NAMED_SEED_KEYWORDS.has(name)) {
+          return intersectWithSeed(input, el, ctx);
+        }
       }
       return filterByKeywordsOrPredicate(input, el.words, ctx);
     }
@@ -576,8 +606,8 @@ function applyColon(
     case 'stuffId':
     case 'lastResult':
     case 'group':
-      // Seed-shaped chain elements mid-chain intersect the prior set
-      // with the seed's candidate set by `stuffId`. Score and `via`
+      // Fixed-pool seeds mid-chain intersect the prior set with the
+      // seed's candidate set by `stuffId`. Score and `via`
       // attribution from the prior set are preserved — intersection
       // doesn't change *how* a Stuff was found, only whether it
       // survives.
@@ -610,6 +640,65 @@ function intersectWithSeed(
   const seedMatches = resolveSeed(el, ctx);
   const allowed = new Set(seedMatches.map((m) => m.stuff.stuffId));
   return input.filter((m) => allowed.has(m.stuff.stuffId));
+}
+
+/**
+ * Flat-map an element-derivable seed (`peers`, `reachable`,
+ * `inventory`) over the prior set: for each prior match, build the
+ * seed's candidate pool **anchored on that match's Stuff** (in place
+ * of the giver), then union and exclude the prior set's stuffIds
+ * from the result.
+ *
+ * Each resulting match takes its `via` from the candidate (e.g.,
+ * detail subcandidates carry `via.detailPath`, exit candidates carry
+ * `via.exit`). Score is inherited from the prior match — same
+ * convention as {@link applyTransform}.
+ *
+ * Dedup is by `(stuffId, JSON-stringified via)` — same shape as the
+ * resolver's terminal `finalize`. Two prior matches that flat-map to
+ * the same `(stuff, via)` collapse.
+ *
+ * Set-aware exclusion: any candidate whose `stuffId` is in the prior
+ * set is dropped, regardless of via. So `(bob, joe):peers` excludes
+ * both bob and joe even when each appears in the other's peer pool.
+ */
+function flatMapBySeed(
+  input: MqlMatch[],
+  seedName: string
+): MqlMatch[] {
+  if (input.length === 0) return [];
+  const priorIds = new Set(input.map((m) => m.stuff.stuffId));
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  for (const m of input) {
+    const candidates = candidatesForElementDerivable(seedName, m.stuff);
+    for (const c of candidates) {
+      if (priorIds.has(c.stuff.stuffId)) continue;
+      const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const next: MqlMatch = { stuff: c.stuff, score: m.score };
+      if (c.via) next.via = c.via;
+      out.push(next);
+    }
+  }
+  return out;
+}
+
+function candidatesForElementDerivable(
+  seedName: string,
+  anchor: Stuff
+): ScopeCandidate[] {
+  switch (seedName) {
+    case 'peers':
+      return candidatesForPeers(anchor);
+    case 'inventory':
+      return candidatesForInventory(anchor);
+    case 'reachable':
+      return candidatesForReachable(anchor);
+    default:
+      return [];
+  }
 }
 
 /**

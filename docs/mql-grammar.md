@@ -273,13 +273,12 @@ The split keeps the common cases reading naturally: `:online` /
 `:reachable` / `:i` / `:e` extend ("for each of these, give me
 peers / reachable / contents / container").
 
-> **Implementation status (2026-05).** The resolver currently
-> intersects for **every** seed-shaped chain element, including
-> `:peers` / `:reachable` / `:inventory`. The grammar described
-> here is the target; the runtime will catch up on a follow-up
-> branch. Until then, treat `:peers` mid-chain as "intersect with
-> the giver's peer pool" rather than the per-element flat-map
-> described above.
+A migration note: an older form like `flower:peers` used to mean
+"flowers among the peer pool" (intersection). Under the new rule
+it means "peers of each flower, excluding the flowers themselves"
+(flat-map). To express the old intent, swap the order:
+`peers:flower` (peer pool, then keyword filter "flower"). The
+keyword direction is the more natural shape anyway.
 
 ## Brackets `[…]`
 

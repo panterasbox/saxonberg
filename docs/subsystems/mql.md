@@ -273,18 +273,21 @@ Seed-shaped chain elements split by whether the seed is
   prior set. `reachable:online` is "of the giver's reachable set,
   which are online."
 
-A seed-shaped element preserves the prior set's `via` attribution
-in both cases; flat-map and intersect only decide membership.
+For fixed-pool seeds (intersection), the prior set's `via`
+attribution is preserved — intersection only decides membership.
+For element-derivable seeds (flat-map), each derived match takes
+its `via` from the candidate's via (e.g., detail subcandidates
+carry `via.detailPath`, exit candidates carry `via.exit`); the
+prior `via` is replaced by the derived origin, and score is
+inherited from the prior match (same convention as
+{@link applyTransform}).
 
-> **Implementation gap (2026-05).** The resolver in `mql/resolver.ts`
-> currently intersects for **every** seed-shaped chain element. The
-> element-derivable / fixed-pool split above is the target spec; the
-> runtime alignment is a follow-up. `intersectBySeed` becomes a
-> dispatch that routes element-derivable seeds through a flat-map
-> path with prior-set exclusion. Test coverage to add: `(bob,
-> joe):peers` in same room and different rooms; `me:i:peers` (the
-> degenerate-empty case for the right reason); `reachable:online`
-> staying as today's intersection.
+The dispatch lives in `mql/resolver.ts:applyColon`:
+`ELEMENT_DERIVABLE_SEEDS` routes through `flatMapBySeed` (which
+calls `candidatesForElementDerivable` to anchor the seed walk on
+each prior Stuff); everything else in `NAMED_SEED_KEYWORDS` and the
+seed-shaped chain element kinds (`pronoun`, `path`, `stuffId`,
+`lastResult`, `group`) routes through `intersectWithSeed`.
 
 #### Chain operators
 
