@@ -125,16 +125,24 @@ export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
 }
 
 /**
- * Build the candidate pool for `reachable` — the union of `here`,
- * `peers`, and `inventory` pools. Lets a single seed name "everything
- * reachable from the giver right now" so it composes mid-chain
- * (e.g., `online:reachable`) where the comma-union form can't.
+ * Build the candidate pool for `reachable` — the union of the giver,
+ * `here`, `peers`, and `inventory` pools. Lets a single seed name
+ * "everything reachable from the giver right now" so it composes
+ * mid-chain (e.g., `online:reachable`) where the comma-union form
+ * can't.
+ *
+ * The giver itself is in the pool: you can reach yourself, and
+ * scope-walked queries for the giver's own keywords (`look bob`
+ * when you are bob) need to find it. Pronouns (`me`) and the
+ * sub-pools (`here`, `peers`, `inventory`) all keep their stricter
+ * meanings.
  *
  * Duplicates across the sub-pools are tolerated; the resolver's
  * `finalize` step dedupes by stuffId before reporting matches.
  */
 export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
+  pushDirect(out, giver);
   if (MixinApi.isContainable(giver)) {
     const env = giver.getContainer();
     if (env) {

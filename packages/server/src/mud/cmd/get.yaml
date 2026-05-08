@@ -9,5 +9,5 @@ args:
     scope: "peers"
     validators:
       - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/canReach
       - /lib/command/validators/mustBeContainable
+      - /lib/command/validators/mustBeInLocation

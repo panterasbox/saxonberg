@@ -9,3 +9,4 @@ args:
     scope: "inventory"
     validators:
       - /lib/command/validators/mustBeContainable
+      - /lib/command/validators/mustBeInInventory

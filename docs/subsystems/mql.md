@@ -383,7 +383,7 @@ Built-in scopes:
 | `here` | location + its details + exits/doors |
 | `peers` | location's contents (each item + its details), minus the giver |
 | `inventory` | giver's contents (Container check) |
-| `reachable` | union of `here` + `peers` + `inventory` |
+| `reachable` | union of the giver, `here`, `peers`, and `inventory` (you can reach yourself) |
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff |
 

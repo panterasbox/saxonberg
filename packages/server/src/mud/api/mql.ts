@@ -96,6 +96,40 @@ export class MqlApi {
     if (via) out.via = via;
     return out;
   }
+
+  /**
+   * Unwrap a YAML-bound field value into a flat `Stuff[]`. Accepts
+   * `MqlOneResult` (single, possibly null), `MqlManyResult` (plural,
+   * possibly empty), or a bare `Stuff` (legacy / structured-input
+   * path). Returns `null` for anything else — a wrong-shape binding
+   * (string, number, boolean, undefined, …) — so validators can
+   * surface the right "must be an object" error.
+   *
+   * Empty MQL results (`stuff: null` / `stuff: []`) return `[]`
+   * rather than `null` — empty is a normal outcome the controller
+   * decides about, not a wrong-shape error. Validators that want
+   * to skip empty bindings should check `length === 0`.
+   *
+   * The MqlApi is the natural home: the wrappers come out of this
+   * pipeline, and validators ride on top of those wrappers.
+   */
+  static extractStuffs(value: unknown): Stuff[] | null {
+    if (value === null || value === undefined) return null;
+    if (typeof value !== 'object') return null;
+    if ('stuffId' in value && typeof (value as Stuff).stuffId === 'string') {
+      return [value as Stuff];
+    }
+    if ('stuff' in value) {
+      const v = (value as { stuff: Stuff | Stuff[] | null }).stuff;
+      if (v === null) return [];
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'object' && v !== null && 'stuffId' in v) {
+        return [v];
+      }
+      return null;
+    }
+    return null;
+  }
 }
 
 /**

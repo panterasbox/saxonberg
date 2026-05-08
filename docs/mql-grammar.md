@@ -35,7 +35,7 @@ me                        the command-giver
 here                      the giver's current location
 peers                     everything in the room except the giver
 inventory                 the giver's contents
-reachable                 here ∪ peers ∪ inventory
+reachable                 me ∪ here ∪ peers ∪ inventory
 me:i                      the giver's inventory contents
 me:i:sword                a sword in the giver's inventory
 here:bookcase             the bookcase detail of the room
@@ -119,7 +119,7 @@ seed yields a list of Stuff (possibly empty).
 | `me` | the command-giver |
 | `here` | the giver's current location |
 | `peers` | the location's contents minus the giver, each with its details |
-| `reachable` | union of `here` + `peers` + `inventory` |
+| `reachable` | union of the giver, `here`, `peers`, and `inventory` (you can reach yourself) |
 | `inventory` | the giver's contents (the giver itself is `me`) |
 | `online` | every connected command-giver (admin) |
 | `world` | every Stuff (admin) |

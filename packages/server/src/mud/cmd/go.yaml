@@ -5,3 +5,5 @@ args:
   - name: target
     type: object
     required: true
+    validators:
+      - /lib/command/validators/canReach

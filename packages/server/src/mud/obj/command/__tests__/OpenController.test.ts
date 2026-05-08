@@ -233,4 +233,22 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(result.success).toBe(false);
     expect(result.summary).toMatch(/already closed/i);
   });
+
+  it('open north resolves via direction and opens the exit door', async () => {
+    // The direction match lands on the location with via.exit; the
+    // controller fetches the door from via.exit.getDoor().
+    const open = makeStuff(() => new OpenController());
+    const result = await openCmd(open, avatar, locA, 'north');
+    expect(result.success).toBe(true);
+    expect(door.getIsOpen()).toBe(true);
+    expect(result.summary).toContain('heavy oak door');
+  });
+
+  it('close north resolves via direction and closes the exit door', async () => {
+    door.open();
+    const close = makeStuff(() => new CloseController());
+    const result = await closeCmd(close, avatar, locA, 'north');
+    expect(result.success).toBe(true);
+    expect(door.getIsOpen()).toBe(false);
+  });
 });

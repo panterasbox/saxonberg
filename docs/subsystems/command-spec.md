@@ -216,31 +216,104 @@ Bare names and package specifiers are rejected. The path tells you
 exactly where the validator lives — there's no registry, no implicit
 search paths.
 
-Built-ins live under `mud/lib/command/validators/`:
+#### Why validators are mandatory on object-acting verbs
 
-| Validator | Checks |
-|---|---|
-| `mustBeVisible` | bound value is a Stuff (visibility-system gate is a future hook) |
-| `mustBeContainable` | bound Stuff composes `ContainableMixin` |
-| `canReach` | bound Stuff is in giver's inventory or location contents |
-| `mustBeNumber` | bound value is a finite number |
-| `notEmpty` | bound value is non-null, non-empty (string / array) |
+**`scope:` is a search hint, not a security gate.** The MQL grammar
+lets a player address any Stuff in the world from any starting
+seed: `drop online:bob:i:sword` resolves to bob's sword regardless
+of `scope: "inventory"`, because the scope is only the default
+search anchor for keyword resolution, not a constraint on the final
+result. Permission tiers (admin / authoring / public) gate
+*operators*, not result sets — even after tiering, an admin player's
+query can land on a Stuff that the verb has no business acting on.
 
-A validator is a default-exported `FieldValidator` function:
+That makes validators load-bearing for any verb that mutates world
+state through a `type: object` / `type: objects` field. The pattern
+is:
+
+```
+scope:    where MQL looks first (hint, with fallback chain)
+validator: what the controller is allowed to act on (gate)
+```
+
+A `drop` controller without `mustBeInInventory` will silently fail
+to drop foreign Stuffs (catching the bug at `ContainmentApi.move`
+time), but the player gets a confusing "nothing dropped" instead of
+the right "you don't have that." A `get` controller without
+`mustBeInLocation` is structurally similar. The validator is what
+turns "MQL pretended to find this" into "and you can actually act
+on it."
+
+#### Built-in validators
+
+Live under `mud/lib/command/validators/`:
+
+| Validator | Checks | Use on |
+|---|---|---|
+| `mustBeVisible` | binding is a Stuff (visibility-system gate is a future hook) | inspection verbs (`look`) |
+| `mustBeContainable` | every bound Stuff composes `ContainableMixin` | `get`, `drop`, `give` (any verb that calls `ContainmentApi.move`) |
+| `mustBeInInventory` | every bound Stuff is in the giver's inventory | `drop`, `give` (the gift) |
+| `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
+| `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
+| `mustBeNumber` | binding is a finite number | numeric primitive fields |
+| `notEmpty` | binding is non-null, non-empty (string / array) | string / multi fields where blank is a category error |
+
+For object-acting verbs, the convention is to layer:
+
+- **Type/shape**: `mustBeContainable` (or another mixin-shape check).
+- **Reach**: `mustBeInInventory` / `mustBeInLocation` / `canReach`,
+  whichever matches the verb's domain.
+
+So `drop.yaml` declares both `mustBeContainable` (you can't drop a
+non-Containable) AND `mustBeInInventory` (and you can't drop what
+you don't have).
+
+#### Writing a new validator
+
+A validator is a default-exported `FieldValidator` function. For
+object-acting fields, use `MqlApi.extractStuffs(value)` to unwrap
+the binding into a flat `Stuff[]` — that handles the
+`MqlOneResult` / `MqlManyResult` wrappers and the legacy bare-Stuff
+form uniformly:
 
 ```ts
+import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
+import { MqlApi } from '../../../api/mql';
 
 const validator: FieldValidator = (value, field, context) => {
-  if (/* not ok */) return `${field}: explanation here`;
-  return undefined; // pass
+  const stuffs = MqlApi.extractStuffs(value);
+  if (stuffs === null) return `${field} must be an object`;
+  if (stuffs.length === 0) return undefined;  // empty MQL → controller decides
+  for (const stuff of stuffs) {
+    if (/* per-Stuff check fails */) {
+      return `you can't <verb> <thing>`;
+    }
+  }
+  return undefined;
 };
 
 export default validator;
 ```
 
+Three rules:
+
+1. **Empty results pass through.** When `stuffs.length === 0` (no
+   MQL match), let the controller produce its own user-facing
+   "you don't see X here" message. Validators that fail on empty
+   pre-empt that.
+2. **Per-Stuff iteration for plural fields.** A `type: objects`
+   binding can contain multiple Stuffs; the validator should fail
+   on the first that doesn't pass and surface a message naming
+   that Stuff.
+3. **Wrapper read-through.** Validators that need `via` (e.g.,
+   `canReach` on the door-via-direction case) can read it off the
+   `value` object directly — `value.via?.exit`, `value.via?.detailPath`.
+   `extractStuffs` doesn't unwrap via.
+
 Returning a string fails the command with that summary. Returning
-`undefined` passes.
+`undefined` passes. The first validator to fail wins; remaining
+validators don't run.
 
 ## Subcommands (`subcommands:`)
 

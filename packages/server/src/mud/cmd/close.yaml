@@ -7,3 +7,5 @@ args:
     required: true
     scope: "reachable"
     updates_focus: extend
+    validators:
+      - /lib/command/validators/canReach
