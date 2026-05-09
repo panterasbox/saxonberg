@@ -39,13 +39,10 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
-import type {
-  SettingsSchemaEntry,
-} from './Environment';
-import { SettingTypes, resolveSetting } from './Environment';
+import type { Environment, SettingsSchemaEntry } from './Environment';
+import { SettingTypes } from './Environment';
 import type { SyntheticVarEntry } from '../../api/shell';
 import type { Stuff } from '../stuff/Stuff';
-import { MixinApi } from '../../api/mixin';
 
 /**
  * Which of the two trees an operation acts on.
@@ -63,12 +60,28 @@ export type WorkspaceTree = 'content' | 'source';
 export type WorkspaceTreeMode = WorkspaceTree | 'mirror';
 
 /**
+ * Per-call flags shape that selects a tree explicitly. Pulled out of
+ * the controller-side model interfaces so `pickTree` has a stable
+ * contract independent of any one verb's option layout.
+ */
+export interface TreeFlags {
+  content?: boolean;
+  source?: boolean;
+}
+
+/**
  * Public shape provided by `WorkspaceMixin`. Methods only, per the
  * inter-stuff contract — `contentCwd` / `sourceCwd` are public
  * fields for the Hydrator's reflection but external callers go
  * through these accessors.
+ *
+ * Extends `Environment` because Workspace always co-composes with
+ * `EnvironmentMixin` on `ShelledCharacter`. The interface extension
+ * lets controllers narrow once via `MixinApi.isWorkspace(giver)`
+ * and reach Environment's `getSetting` / `setSetting` surface
+ * without a second narrow.
  */
-export interface Workspace {
+export interface Workspace extends Environment {
   /**
    * Active tree's cwd, honoring the player's `workspace.tree`
    * setting. In `mirror` mode the two cwds are kept in sync so
@@ -89,6 +102,28 @@ export interface Workspace {
    * decide whether to mirror the operation across both trees.
    */
   getTreeMode(): WorkspaceTreeMode;
+
+  /**
+   * Resolve which tree a verb invocation acts on, given the parsed
+   * tree flags. Encapsulates the precedence: explicit `-s` wins
+   * over explicit `-c`, otherwise the `workspace.tree` setting's
+   * default-tree resolution. Controllers thread this so the
+   * priority lives in one place.
+   */
+  pickTree(flags: TreeFlags): WorkspaceTree;
+
+  /**
+   * Resolved `workspace.home` setting. Schema-defaulted; the
+   * accessor exists so controllers don't reach for raw setting
+   * keys.
+   */
+  getHome(): string;
+
+  /**
+   * Resolved `workspace.pageSize` setting. Same accessor-pattern
+   * rationale as `getHome()`.
+   */
+  getPageSize(): number;
 
   /**
    * Read the cwd for one tree.
@@ -120,35 +155,22 @@ export interface Workspace {
 }
 
 /**
- * Resolve which tree a workspace verb invocation acts on, given the
- * giver's `workspace.tree` setting and the parsed flags. Verbs share
- * this so the precedence (explicit-flag > setting > content
- * fallback) lives in one place.
- *
- * `flags.source` wins over `flags.content` if a player somehow
- * passes both — explicit `-s` is the louder signal.
- */
-export function pickWorkspaceTree(
-  giver: Stuff,
-  flags: { content?: boolean; source?: boolean },
-): WorkspaceTree {
-  if (flags.source) return 'source';
-  if (flags.content) return 'content';
-  if (MixinApi.isWorkspace(giver)) {
-    return giver.getDefaultTree();
-  }
-  return 'content';
-}
-
-/**
  * Default cwd when the avatar hasn't been to either tree yet.
  * Mirrors the `workspace.home` setting's default so a fresh avatar's
  * `$PWD` and `$HOME` agree out of the gate.
  */
 const DEFAULT_HOME = '/';
 
-export function WorkspaceMixin<TBase extends MixinConstructor>(Base: TBase) {
-  class WorkspaceMixin extends Base implements Workspace {
+export function WorkspaceMixin<
+  TBase extends MixinConstructor<Stuff & Environment>,
+>(Base: TBase) {
+  // No `implements Workspace` here: TypeScript's mixin-class
+  // typing doesn't merge Base's inherited methods into the
+  // `implements` check, even though the constraint above
+  // guarantees the runtime shape. The test file's
+  // `const w: Workspace = host` assignment is the structural
+  // check; runtime ducktyping covers the rest.
+  class WorkspaceMixin extends Base {
     static _mixinName = 'WorkspaceMixin';
 
     /**
@@ -213,9 +235,7 @@ export function WorkspaceMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Synthetic shell vars. Read-only — `var set PWD foo` is rejected
      * by `EnvironmentMixin.setVar` because the ShellApi resolution
-     * order picks synthetic vars first. The `$HOME` reader pulls
-     * from `workspace.home`, going through `resolveSetting` so
-     * it survives a giver that doesn't compose `EnvironmentMixin`.
+     * order picks synthetic vars first.
      */
     static syntheticVars: SyntheticVarEntry[] = [
       {
@@ -240,9 +260,7 @@ export function WorkspaceMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'HOME',
         description:
           "Avatar's `workspace.home` setting; one value across trees.",
-        read: (giver) =>
-          resolveSetting<string>(giver as Stuff, 'workspace.home') ??
-          DEFAULT_HOME,
+        read: (giver) => (giver as Stuff & Workspace).getHome(),
       },
     ];
 
@@ -282,8 +300,12 @@ export function WorkspaceMixin<TBase extends MixinConstructor>(Base: TBase) {
     public sourceCwd: string = DEFAULT_HOME;
 
     getTreeMode(): WorkspaceTreeMode {
+      // TypeScript's mixin-inheritance of generic-constrained Base
+      // doesn't expose Environment methods on `this` directly; the
+      // constraint guarantees the runtime shape but the cast is the
+      // mechanical bridge.
       const raw =
-        resolveSetting<string>(this as unknown as Stuff, 'workspace.tree') ??
+        (this as unknown as Environment).getSetting<string>('workspace.tree') ??
         'content';
       if (raw === 'content' || raw === 'source' || raw === 'mirror') {
         return raw;
@@ -296,6 +318,29 @@ export function WorkspaceMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Mirror mode collapses to content for read ops — the path
       // shape is the same in both trees and content is canonical.
       return mode === 'source' ? 'source' : 'content';
+    }
+
+    pickTree(flags: TreeFlags): WorkspaceTree {
+      // `-s` wins over `-c` if both are somehow set — explicit
+      // source is the louder signal. Otherwise the setting decides.
+      if (flags.source) return 'source';
+      if (flags.content) return 'content';
+      return this.getDefaultTree();
+    }
+
+    getHome(): string {
+      return (
+        (this as unknown as Environment).getSetting<string>('workspace.home') ??
+        DEFAULT_HOME
+      );
+    }
+
+    getPageSize(): number {
+      return (
+        (this as unknown as Environment).getSetting<number>(
+          'workspace.pageSize',
+        ) ?? 25
+      );
     }
 
     getActiveCwd(): string {

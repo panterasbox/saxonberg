@@ -1,14 +1,14 @@
 /**
  * WorkspaceMixin tests — cwd round-trip, mirror semantics, synthetic
  * var resolution, the `workspace.tree` setting, and the
- * `pickWorkspaceTree` helper that all controllers thread.
+ * `pickTree` / `getHome` / `getPageSize` accessors that controllers
+ * call instead of importing helpers.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import {
   WorkspaceMixin,
-  pickWorkspaceTree,
   type Workspace,
 } from '../Workspace';
 import { EnvironmentMixin } from '../Environment';
@@ -96,35 +96,51 @@ describe('WorkspaceMixin', () => {
     });
   });
 
-  describe('pickWorkspaceTree helper', () => {
+  describe('host.pickTree(flags)', () => {
     it('explicit --source flag wins', () => {
       const host = makeStuff(() => new TestHost());
-      expect(pickWorkspaceTree(host, { source: true })).toBe('source');
+      expect(host.pickTree({ source: true })).toBe('source');
     });
 
     it('explicit --content flag wins over default', () => {
       const host = makeStuff(() => new TestHost());
       host.setSetting('workspace.tree', 'source', host);
-      expect(pickWorkspaceTree(host, { content: true })).toBe('content');
+      expect(host.pickTree({ content: true })).toBe('content');
     });
 
     it('--source beats --content when both somehow set', () => {
       const host = makeStuff(() => new TestHost());
-      expect(
-        pickWorkspaceTree(host, { content: true, source: true }),
-      ).toBe('source');
+      expect(host.pickTree({ content: true, source: true })).toBe(
+        'source',
+      );
     });
 
-    it('falls back to giver.getDefaultTree when no flag', () => {
+    it('falls back to host.getDefaultTree when no flag', () => {
       const host = makeStuff(() => new TestHost());
       host.setSetting('workspace.tree', 'source', host);
-      expect(pickWorkspaceTree(host, {})).toBe('source');
+      expect(host.pickTree({})).toBe('source');
     });
 
     it('mirror mode resolves to content for read ops', () => {
       const host = makeStuff(() => new TestHost());
       host.setSetting('workspace.tree', 'mirror', host);
-      expect(pickWorkspaceTree(host, {})).toBe('content');
+      expect(host.pickTree({})).toBe('content');
+    });
+  });
+
+  describe('host.getHome() / host.getPageSize()', () => {
+    it('getHome reads workspace.home with the schema default', () => {
+      const host = makeStuff(() => new TestHost());
+      expect(host.getHome()).toBe('/');
+      host.setSetting('workspace.home', '/home/me', host);
+      expect(host.getHome()).toBe('/home/me');
+    });
+
+    it('getPageSize reads workspace.pageSize with the schema default', () => {
+      const host = makeStuff(() => new TestHost());
+      expect(host.getPageSize()).toBe(25);
+      host.setSetting('workspace.pageSize', 100, host);
+      expect(host.getPageSize()).toBe(100);
     });
   });
 

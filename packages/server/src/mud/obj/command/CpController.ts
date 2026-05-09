@@ -19,8 +19,6 @@ import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { TemplateApi } from '../../api/template';
 import { Template } from '../../lib/stuff/Template';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface CpModel extends CommandModel {
   src?: string;
@@ -39,8 +37,8 @@ export class CpController extends CommandController<CpModel> {
     if (!model.src || !model.dst) {
       return this.fail(context, 'cp needs <src> and <dst>');
     }
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     if (tree === 'content') {

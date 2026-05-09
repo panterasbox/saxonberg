@@ -24,7 +24,6 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SourceTreeApi } from '../../api/source-tree';
 import { MqlApi } from '../../api/mql';
-import { resolveSetting } from '../../lib/shell/Environment';
 import { DescribeApi } from '../../api/describe';
 
 interface CloneModel extends CommandModel {
@@ -50,7 +49,7 @@ export class CloneController extends CommandController<CloneModel> {
         null;
     } else if (model.template) {
       if (MixinApi.isWorkspace(giver)) {
-        const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+        const home = giver.getHome();
         path = SourceTreeApi.joinLogical(
           giver.getCwd('content'),
           model.template,

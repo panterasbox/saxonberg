@@ -23,8 +23,6 @@ import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
 import { MqlApi } from '../../api/mql';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface RmModel extends CommandModel {
   path?: string;
@@ -40,8 +38,8 @@ export class RmController extends CommandController<RmModel> {
     if (!MixinApi.isWorkspace(giver)) {
       return { success: false, summary: 'this character has no workspace' };
     }
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     let target: string | null = null;

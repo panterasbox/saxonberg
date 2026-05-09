@@ -18,8 +18,6 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { TemplateApi } from '../../api/template';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface MkdirModel extends CommandModel {
   path?: string;
@@ -34,8 +32,8 @@ export class MkdirController extends CommandController<MkdirModel> {
       return { success: false, summary: 'this character has no workspace' };
     }
     if (!model.path) return this.fail(context, 'mkdir needs a <path>');
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     if (tree === 'content') {

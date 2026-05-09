@@ -24,8 +24,8 @@ import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
 import { ZoneApi } from '../../api/zone';
 import { MqlApi } from '../../api/mql';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Workspace } from '../../lib/shell/Workspace';
 
 interface CatModel extends CommandModel {
   path?: string;
@@ -40,10 +40,10 @@ export class CatController extends CommandController<CatModel> {
     if (!MixinApi.isWorkspace(giver)) {
       return { success: false, summary: 'this character has no workspace' };
     }
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const pageSize =
-      resolveSetting<number>(giver, 'workspace.pageSize') ?? 25;
+      giver.getPageSize();
 
     let target: string | null = null;
     if (model.mql) {
@@ -89,7 +89,7 @@ export class CatController extends CommandController<CatModel> {
     if (tree === 'content') {
       return this.catTemplate(context, target);
     }
-    return this.catCode(context, target, pageSize);
+    return this.catCode(context, giver, target, pageSize);
   }
 
   private async catTemplate(
@@ -123,20 +123,15 @@ export class CatController extends CommandController<CatModel> {
 
   private async catCode(
     context: CommandContext,
+    giver: Stuff & Workspace,
     displayPath: string,
     pageSize: number,
   ): Promise<CommandResult> {
-    const giver = context.commandGiver as unknown as {
-      getCwd(t: 'source'): string;
-    };
-    const home =
-      resolveSetting<string>(
-        context.commandGiver,
-        'workspace.home',
-      ) ?? '/';
-    const abs = SourceTreeApi.resolvePath(giver.getCwd('source'), displayPath, {
-      home,
-    });
+    const abs = SourceTreeApi.resolvePath(
+      giver.getCwd('source'),
+      displayPath,
+      { home: giver.getHome() },
+    );
     if (!(await SourceTreeApi.isFile(abs))) {
       return this.fail(context, `${displayPath} is not a file`);
     }

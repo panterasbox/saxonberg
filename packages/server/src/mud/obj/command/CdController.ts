@@ -30,8 +30,6 @@ import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { ZoneApi } from '../../api/zone';
 import { Template } from '../../lib/stuff/Template';
 import { MqlApi } from '../../api/mql';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface CdModel extends CommandModel {
   path?: string;
@@ -56,8 +54,8 @@ export class CdController extends CommandController<CdModel> {
       return { success: true, summary: 'cwd mirrored' };
     }
 
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
 
     // Path-then-MQL alternation. The yaml does not enforce mutual
     // exclusivity, so the controller picks: --mql wins when set.

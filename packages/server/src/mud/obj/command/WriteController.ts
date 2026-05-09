@@ -57,8 +57,6 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { TemplateApi } from '../../api/template';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface WriteModel extends CommandModel {
   path?: string;
@@ -78,8 +76,8 @@ export class WriteController extends CommandController<WriteModel> {
     if (model.body === undefined) {
       return this.fail(context, 'write needs <body>');
     }
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     if (tree === 'content') {

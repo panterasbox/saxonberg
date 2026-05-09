@@ -19,8 +19,6 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
-import { resolveSetting } from '../../lib/shell/Environment';
-import { pickWorkspaceTree } from '../../lib/shell/Workspace';
 
 interface LsModel extends CommandModel {
   path?: string;
@@ -39,8 +37,8 @@ export class LsController extends CommandController<LsModel> {
     if (!MixinApi.isWorkspace(giver)) {
       return { success: false, summary: 'this character has no workspace' };
     }
-    const tree = pickWorkspaceTree(giver, model);
-    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const tree = giver.pickTree(model);
+    const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     let basePath: string;

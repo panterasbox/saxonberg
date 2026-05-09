@@ -18,7 +18,6 @@ import { MixinApi } from '../../api/mixin';
 import { HotReloadApi } from '../../api/hot-reload';
 import { SourceTreeApi } from '../../api/source-tree';
 import { MqlApi } from '../../api/mql';
-import { resolveSetting } from '../../lib/shell/Environment';
 
 interface ReloadModel extends CommandModel {
   target?: string;
@@ -43,11 +42,10 @@ export class ReloadController extends CommandController<ReloadModel> {
         null;
     } else if (model.target) {
       if (MixinApi.isWorkspace(giver)) {
-        const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
         path = SourceTreeApi.joinLogical(
           giver.getCwd('content'),
           model.target,
-          { home },
+          { home: giver.getHome() },
         );
       } else {
         path = model.target;
