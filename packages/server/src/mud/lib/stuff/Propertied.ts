@@ -474,13 +474,22 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Set property value (auto-initializes if doesn't exist).
+     *
+     * If `savedProps` already carries an entry for this name (e.g.
+     * delivered by hydration from a seed template), auto-init treats
+     * the prop as `transient: false` so subsequent writes route back
+     * to `savedProps` rather than landing in `transientProps`. Without
+     * this branch, hydrated values would be silently shadowed by the
+     * first set call.
      */
     setProp<T extends PropValue>(prop: Property<T>, value: T): boolean {
       const propName = prop.toString();
 
       // Auto-initialize if doesn't exist
       if (!this.propOptions[propName]) {
-        this.initProp(prop);
+        const fromHydration =
+          !!this.savedProps && propName in this.savedProps;
+        this.initProp(prop, fromHydration ? { transient: false } : undefined);
       }
 
       // Check access for Set operation
@@ -500,10 +509,24 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Get property value (with masks applied).
+     *
+     * Lazily auto-initializes prop options when `savedProps` carries
+     * a hydration-delivered entry but `propOptions` doesn't yet —
+     * otherwise the value would be unreachable through the public API
+     * (getProp returns null without a config). Auto-init uses
+     * `transient: false` so the prop's persistence flag matches its
+     * storage location.
      */
     getProp<T extends PropValue>(prop: Property<T>): T | null {
       const propName = prop.toString();
-      const config = this.propOptions[propName];
+      let config = this.propOptions[propName];
+
+      if (!config) {
+        if (this.savedProps && propName in this.savedProps) {
+          this.initProp(prop, { transient: false });
+          config = this.propOptions[propName];
+        }
+      }
 
       if (!config) {
         return null;

@@ -23,8 +23,9 @@
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
+import { TangibleMixin } from '../material/Tangible';
 
-const LocationBase = AdornableMixin(ContainerMixin(Stuff));
+const LocationBase = TangibleMixin(AdornableMixin(ContainerMixin(Stuff)));
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];

@@ -1,0 +1,28 @@
+# Iron — Fe, atomic number 26. Workhorse metal: dense, hard,
+# ferromagnetic, mediocre fire behavior at room temp. Standard
+# slash/blunt resistance baseline for weapon-grade materials.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: iron
+  density: 7874
+  hardness: 4
+  flammability: 0
+  opacity: 1
+  thermalConductivity: 80
+  electricalConductivity: 1.0e7
+  magneticSusceptibility: 0.99
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: ["iron-poisoning"]
+  savedProps:
+    "resistance.slash": 0.7
+    "resistance.blunt": 0.4
+    "resistance.pierce": 0.5
+  tags: ["element", "metal", "ferrous", "magnetic", "crystalline", "conductor"]
+  composition: []
+  chemistry:
+    symbol: Fe
+    atomicNumber: 26
+    atomicMass: 55.845
+  biologicalSource: null

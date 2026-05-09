@@ -32,8 +32,11 @@ import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { ContainableMixin } from '../spatial/Containable';
 import { AdornableMixin } from '../boundary/Adornable';
+import { TangibleMixin } from '../material/Tangible';
 
-const VesselBase = AdornableMixin(ContainerMixin(ContainableMixin(Stuff)));
+const VesselBase = TangibleMixin(
+  AdornableMixin(ContainerMixin(ContainableMixin(Stuff)))
+);
 
 export class Vessel extends VesselBase {
   static persistentFields: string[] = [];

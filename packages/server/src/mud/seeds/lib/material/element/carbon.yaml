@@ -1,0 +1,31 @@
+# Carbon — C, atomic number 6. Non-metallic element underlying all
+# organic chemistry. v1's carbon is the generic stand-in: density and
+# hardness vary wildly between allotropes (graphite vs diamond), so
+# the values here are mid-range. Allotrope-specific carbon
+# (`/lib/material/element/carbon-graphite`, `.../carbon-diamond`) is a
+# content extension when content needs the distinction.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: carbon
+  density: 2200
+  hardness: 1.5
+  flammability: 0.7
+  opacity: 1
+  thermalConductivity: 200
+  electricalConductivity: 7.0e4
+  magneticSusceptibility: 0.0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  savedProps:
+    "resistance.slash": 0.1
+    "resistance.blunt": 0.1
+    "resistance.pierce": 0.1
+  tags: ["element", "non-metal", "organic-base"]
+  composition: []
+  chemistry:
+    symbol: C
+    atomicNumber: 6
+    atomicMass: 12.011
+  biologicalSource: null

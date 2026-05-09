@@ -1,6 +1,8 @@
 verbs: [get, take]
 controller: GetController
 description: "Pick up objects from your location"
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
   - name: targets
     type: objects

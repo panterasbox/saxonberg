@@ -52,6 +52,10 @@ import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { Perception } from '../lib/perception/Perception';
+import type { Tangible } from '../lib/material/Tangible';
+import type { Organism } from '../lib/species/Organism';
+import type { Sexed } from '../lib/character/Sexed';
+import type { Radioactive } from '../lib/material/Radioactive';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -410,6 +414,22 @@ export class MixinApi {
 
   public static isPerception(obj: Stuff): obj is Stuff & Perception {
     return this.hasMixin(obj, Mixins.Perception);
+  }
+
+  public static isTangible(obj: Stuff): obj is Stuff & Tangible {
+    return this.hasMixin(obj, Mixins.Tangible);
+  }
+
+  public static isOrganism(obj: Stuff): obj is Stuff & Organism {
+    return this.hasMixin(obj, Mixins.Organism);
+  }
+
+  public static isSexed(obj: Stuff): obj is Stuff & Sexed {
+    return this.hasMixin(obj, Mixins.Sexed);
+  }
+
+  public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
+    return this.hasMixin(obj, Mixins.Radioactive);
   }
 }
 

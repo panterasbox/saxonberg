@@ -1,0 +1,28 @@
+# Copper — Cu, atomic number 29. Soft red metal. Excellent thermal
+# and electrical conductor (the standard for wiring); essentially
+# non-magnetic.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: copper
+  density: 8960
+  hardness: 3
+  flammability: 0
+  opacity: 1
+  thermalConductivity: 401
+  electricalConductivity: 5.96e7
+  magneticSusceptibility: 0.0
+  edibility: false
+  nutrients: ["copper"]
+  toxicity: ["copper-poisoning"]
+  savedProps:
+    "resistance.slash": 0.4
+    "resistance.blunt": 0.3
+    "resistance.pierce": 0.3
+  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
+  composition: []
+  chemistry:
+    symbol: Cu
+    atomicNumber: 29
+    atomicMass: 63.546
+  biologicalSource: null

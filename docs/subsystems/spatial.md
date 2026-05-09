@@ -31,9 +31,10 @@ Sibling docs cover related ground without overlap:
 | `Location` | concrete class | Base for any Stuff that holds Stuff but isn't itself contained. `ContainerMixin(Stuff)`. |
 | `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits only. |
 | `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. |
-| `Zone` | abstract class | First-class subdivision of the world. Owns its rooms and a `deriveExit()` strategy. |
-| `CartesianZone` | concrete class | Same-size-cell grid. Derives cardinal exits from adjacency. |
-| `SphericalZone` | concrete class | Spheres-with-radius space. No implicit adjacency — every exit is authored. |
+| `Zone` | abstract class | Bare scope/folder unit of the template tree — name + folder-of-templates contract, nothing more. Subclasses (`SpatialZone`, `Clade`) layer behavior on top. |
+| `SpatialZone` | abstract class | Topographical Zone intermediate — owns the `Set<Location>` and the `deriveExit()` strategy. Lives between `Zone` and the concrete spatial Zones. |
+| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. |
+| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. |
 | `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
@@ -52,9 +53,11 @@ Sibling docs cover related ground without overlap:
 ```
 Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
-  │     ├── Zone (abstract)
-  │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
-  │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     ├── Zone (abstract scope/folder)
+  │     │     ├── SpatialZone (abstract topographical intermediate)
+  │     │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
+  │     │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     │     └── Clade (taxonomic — see race.md)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container, was Container only)
   │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible)
@@ -165,6 +168,41 @@ pre-flight; non-Exitable Stuff (an Avatar walking from a Narnia room
 into a Caves room) keeps its original `zone` reference, which is
 the right answer — see [state-model.md § Stamped-on-Stuff Fields](./state-model.md#stamped-on-stuff-fields).
 
+### Detached Stuff (`environment === null`)
+
+A `Stuff & Containable` whose `environment === null` is **detached**
+— not in any container, not anywhere in the world. Detachment comes
+up in three normal situations: a Stuff just constructed via
+`StuffApi.create` but not yet placed; a door that has been removed
+from its Boundary anchor; an item whose container was destroyed
+mid-frame.
+
+Detachment is a normal state, not an error. Subsystems that walk
+container chains, route messages, or compute perception MUST handle
+the null-env case without throwing. The matrix below is canonical;
+new code that touches a detached input has to land somewhere on it.
+
+| Subsystem | Site | Behavior on null env |
+|---|---|---|
+| MQL scope walks | `api/mql/resolver.ts:165, 520, 817, 836` | Silently skip the detached Stuff; resolver continues with what's left. Empty results are normal. |
+| MQL scope-walk helper | `api/mql/scope-walk.ts:116, 147` | Returns `[]` when the giver has no environment. |
+| MQL predicates | `api/mql/predicates.ts:61, 65` | `inLocation` / `peers` return `false`. |
+| Command scoping | `lib/command/CommandGiver.ts:367` | A detached giver's environment-bucket is empty; recency stack reflects only `self` + `inventory`. |
+| Perception (canSee) | `api/light.ts:164` | `LightApi.canSee` returns `false` for a detached target. The shadow seam still fires for per-viewer overrides. |
+| Mudlog routing | `api/message.ts:237, 411` | `MudlogApi.peers` walks no further. `messageContainer` warns once and returns; nothing is delivered. |
+| Boundary (ExitableVessel) | `lib/boundary/ExitableVessel.ts:121, 161, 185` | `getExit` returns `undefined` for a detached vessel. The vessel is still reachable through its interior. |
+| Light source notification | `lib/perception/LightSource.ts:156-168` | A detached LightSource emits no notifications. |
+| Containment move | `api/containment.ts:107` | Detached → null is a no-op; detached → present follows the regular path with no `from` to remove from. |
+| Mobile traversal | `lib/spatial/Mobile.ts:286` | A detached mover can `traverse`; no leaving-message fires (no `previous` to address). |
+| Login | `obj/Login.ts:125` | If an avatar is detached at login time, the login frame announces "you are nowhere" and routes to `/void`. |
+
+By behavior class: silently-skip / empty-result for the MQL stack and
+command scoping; `false` for `canSee`; `undefined` for boundary
+queries; warn-and-return for `messageContainer`. **Nothing throws.**
+Code that throws on null-env is a bug — file the regression as a
+matrix-invariant violation. Regression tests live in
+`lib/spatial/__tests__/Containable.nullEnv.test.ts`.
+
 ## Locations
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:
@@ -267,33 +305,32 @@ adjacency**.
 is delegated to `StuffApi.singleton()` (Zones compose
 `SingletonMixin`); ZoneApi just owns the ancestor walk.
 
-`ZONE_CLASS_PATHS` is the whitelist of class paths that count as zone
-folders:
-
-```typescript
-export const ZONE_CLASS_PATHS = new Set<string>([
-  '/lib/spatial/CartesianZone',
-  '/lib/spatial/SphericalZone',
-]);
-```
-
-Adding a new Zone subclass = one line here. `TemplateApi` shares the
-same set to enforce the folder/leaf invariant on `domain` — see
+**`ZoneApi.isFolderClass(classPath)`** answers "does this class count
+as a zone folder?" — structural: `prototype instanceof Zone`. Any
+Zone subclass — spatial (`CartesianZone`, `SphericalZone`) or
+non-spatial (`Clade`, future taxonomic / permission scopes) — passes.
+`TemplateApi` consults this for the folder/leaf invariant — see
 [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant).
-This set is **structural** (which template kinds aggregate descendants),
-distinct from `SingletonMixin` composition (which classes are
-unique-per-templatePath); the two happen to overlap today but should
-not be conflated when adding new template kinds.
+
+**`ZoneApi.isSpatialZoneClass(classPath)`** is the strict subset:
+`prototype instanceof SpatialZone`. Only spatial Zones stamp
+`Stuff.zone`; non-spatial Zones (Clade) are folders but never become
+a `Stuff.zone` reference. Adding a new Zone subclass means
+`extends Zone` (or `extends SpatialZone` if it's a topographical
+flavor) — no central allow-list to edit. Both checks dynamic-import
+the class once and cache the result.
 
 `ZoneApi.resolveZoneForPath(templatePath)` walks ancestor paths
-nearest-first; returns the singleton Zone of the first ancestor whose
-template names a Zone class via `StuffApi.singleton(ancestor)`. The
-second resolution for the same zone path is an O(1) cache hit; first
-resolution clones. Returns `null` when:
+nearest-first, consulting `isSpatialZoneClass` to skip non-spatial
+Zone ancestors (Clades) during the walk. Returns the singleton
+SpatialZone at the first spatial-zone ancestor via
+`StuffApi.singleton(ancestor)`. The second resolution for the same
+zone path is an O(1) cache hit; first resolution clones. Returns
+`null` when:
 
-- The template at `templatePath` is itself a Zone (a zone isn't inside
-  itself).
-- No ancestor resolves to a Zone template.
+- The template at `templatePath` is itself a spatial Zone (a zone
+  isn't inside itself).
+- No ancestor resolves to a spatial Zone template.
 
 The clone pipeline calls `resolveZoneForPath` once at clone time and
 stamps the result onto `Stuff.zone` before hydrate, so anything

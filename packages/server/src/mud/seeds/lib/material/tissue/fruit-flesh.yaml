@@ -1,0 +1,25 @@
+# Fruit flesh — sugary-water plant tissue. The substance an apple is
+# made of. Edible by default; the carrying detached tissue is NOT an
+# Organism even though its parent tree is.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: fruit-flesh
+  density: 870
+  hardness: 0.2
+  flammability: 0.1
+  opacity: 1
+  thermalConductivity: 0.5
+  electricalConductivity: 1.0e-6
+  magneticSusceptibility: 0.0
+  edibility: true
+  nutrients: ["sugar", "water", "fiber"]
+  toxicity: []
+  savedProps:
+    "resistance.slash": 0.02
+    "resistance.blunt": 0.05
+    "resistance.pierce": 0.02
+  tags: ["tissue", "plant", "fruit", "mixture", "organic", "edible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -355,11 +355,12 @@ describe('StuffApi', () => {
       // one-step cycle. clone() should bail before the recursion
       // stack-overflows.
       const { Template } = await import('../../lib/stuff/Template');
+      const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
           if (path === '/lib/persistence/PersistentHydrator') {
-            const t = await StuffApi.create(() => new Template());
+            const t = await StuffApi.create(() => new LeafTemplate());
             t.path = path;
             t.class = '/lib/persistence/PersistentHydrator';
             t.hydratorClass = '/lib/persistence/PersistentHydrator';

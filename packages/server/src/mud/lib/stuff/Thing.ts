@@ -13,8 +13,9 @@
 
 import { Stuff } from './Stuff';
 import { ContainableMixin } from '../spatial/Containable';
+import { TangibleMixin } from '../material/Tangible';
 
-const ThingBase = ContainableMixin(Stuff);
+const ThingBase = TangibleMixin(ContainableMixin(Stuff));
 
 export class Thing extends ThingBase {
   static persistentFields: string[] = [];

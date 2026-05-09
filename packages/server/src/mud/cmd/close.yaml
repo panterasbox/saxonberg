@@ -1,6 +1,8 @@
 verbs: [close]
 controller: CloseController
 description: "Close a door (by direction or by name)"
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
   - name: target
     type: object

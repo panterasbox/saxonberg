@@ -11,6 +11,7 @@ import { ShadowApi } from '../../mud/api/shadow';
 import { EventApi } from '../../mud/api/event';
 import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
+import { LeafTemplate } from '../../mud/lib/stuff/LeafTemplate';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { EventRegistry } from '../../mud/obj/EventRegistry';
 
@@ -162,7 +163,7 @@ describe('BootstrapManager + EventRegistry integration', () => {
     vi.spyOn(Template, 'findByPath').mockImplementation(
       async (path: string) => {
         if (path === '/obj/EventRegistry') {
-          const t = await StuffApi.create(() => new Template());
+          const t = await StuffApi.create(() => new LeafTemplate());
           t.path = path;
           t.class = '/obj/EventRegistry';
           t.hydratorClass = '/lib/persistence/PersistentHydrator';
@@ -170,7 +171,7 @@ describe('BootstrapManager + EventRegistry integration', () => {
           return t;
         }
         if (path === '/lib/persistence/PersistentHydrator') {
-          const t = await StuffApi.create(() => new Template());
+          const t = await StuffApi.create(() => new LeafTemplate());
           t.path = path;
           t.class = '/lib/persistence/PersistentHydrator';
           t.data = {};

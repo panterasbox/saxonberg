@@ -14,11 +14,15 @@ everything in the game world.
 ## The Template Class
 
 Templates are modelled as a `Persistable` subclass — like `User` and
-`GoogleProfile`, a Template is a record, not a game-world entity. The
-class lives at `lib/stuff/Template.ts`:
+`GoogleProfile`, a Template is a record, not a game-world entity.
+`Template` itself is **abstract**; concrete subclasses (`ZoneTemplate`,
+`LeafTemplate`) are returned by `Template.findByPath` based on
+`ZoneApi.isFolderClass(doc.class)` — a structural check
+(`prototype instanceof Zone`) rather than a central allow-list. The
+base lives at `lib/stuff/Template.ts`:
 
 ```typescript
-class Template extends Persistable {
+abstract class Template extends Persistable {
   static collectionName = 'domain';
   static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
 
@@ -29,9 +33,25 @@ class Template extends Persistable {
 
   static findByPath(path: string): Promise<Template | null>;
   static findDescendants(basePath: string): Promise<Template[]>;
+  static loadById(id: string): Promise<Template | null>;
   static ancestorPaths(path: string): string[];
 }
+
+class ZoneTemplate extends Template {} // type-level marker; folders.
+class LeafTemplate extends Template {} // type-level marker; leaves.
 ```
+
+`findByPath`, `findDescendants`, and `loadById` all dispatch into the
+right subclass — callers that hold a `Template` get back the correct
+shape without needing to sniff `class`. The split is the primary
+expression of the folder/leaf invariant; the `DomainHook` that fires
+on save/delete is defense-in-depth at the persistence chokepoint.
+
+`Persistable.findById<T>` is still available on the concrete subclasses
+(`LeafTemplate.findById(id)` works); on the abstract base it's a
+compile-time error because `new Template()` isn't legal — that's by
+design and is the reason `loadById` is a separate method on
+`Template`.
 
 CRUD goes through the inherited `Persistable` surface
 (`save`/`delete`/`findById`/`find`) plus the helpers above. See
@@ -233,10 +253,24 @@ It looks up an existing `_id` for upsert semantics and delegates to
 The **folder/leaf invariant** (Phase 7 Decision 12) constrains the
 `domain` collection paths:
 
-- **Folders** = Zone templates (`/lib/spatial/CartesianZone`,
-  `/lib/spatial/SphericalZone` — see `ZONE_CLASS_PATHS` in
-  `api/zone.ts`). May have descendant templates.
-- **Leaves** = any non-Zone template. Must NOT have descendant templates.
+- **Folders** = Zone-class templates. Detected structurally by
+  `ZoneApi.isFolderClass(classPath)` — a class is a folder iff its
+  `prototype instanceof Zone`. Spatial Zones (`CartesianZone`,
+  `SphericalZone`) AND non-spatial Zones (`Clade` — taxonomic) all
+  qualify. Folders MAY have descendant templates.
+- **Leaves** = any non-folder template. Must NOT have descendant
+  templates.
+
+The folder check (`ZoneApi.isFolderClass`) is a strict superset of
+the spatial-zone check (`ZoneApi.isSpatialZoneClass`) — the latter
+is `prototype instanceof SpatialZone`, the set of classes whose
+templates stamp `Stuff.zone` via `ZoneApi.resolveZoneForPath`.
+Non-spatial folders (Clades) are folders for the invariant but
+**never** become a `Stuff.zone`. The structural-check approach
+means content devs add new folder or spatial-zone classes by
+extending the right base — no central allow-list to edit. See
+[spatial.md § Zones](./spatial.md) and
+[race.md § Clade](./race.md#clade--taxonomic-scope).
 
 The rule is enforced by `DomainHook` (`obj/hooks/DomainHook.ts`), which
 composes `AroundSaveHookMixin` and `AroundDeleteHookMixin` and registers

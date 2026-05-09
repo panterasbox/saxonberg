@@ -34,6 +34,7 @@ import type {
   SubcommandDefinition,
   OptionDefinition,
   PositionalDefinition,
+  CommandValidator,
 } from '../../api/command';
 import { SUBCOMMAND_FIELD } from '../../api/command';
 
@@ -66,6 +67,18 @@ export class CommandDefinition {
   public readonly args: PositionalDefinition[];
   public readonly subcommands: Record<string, SubcommandDefinition>;
   public readonly verbOptions: Record<string, OptionDefinition>;
+  /**
+   * Verb-level validator path specs from the YAML. Resolved into
+   * `_resolvedValidators` by `CommandApi.preloadAll`; the dispatch
+   * pipeline reads only the resolved form.
+   */
+  public readonly validators: string[];
+  /**
+   * Live functions populated by `CommandApi.preloadAll`. Always
+   * parallels `validators` 1-to-1; absence means preload hasn't run.
+   * @internal
+   */
+  public _resolvedValidators?: CommandValidator[];
   public readonly filePath: string;
 
   private constructor(view: CommandView, filePath: string) {
@@ -75,6 +88,7 @@ export class CommandDefinition {
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
     this.verbOptions = normaliseOptions(view.options);
+    this.validators = view.validators ?? [];
     this.filePath = filePath;
 
     this.normaliseShape();

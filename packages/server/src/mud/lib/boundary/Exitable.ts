@@ -180,9 +180,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const explicit = this.exits.get(direction);
       if (explicit) return explicit;
 
-      // `Zone.deriveExit` is polymorphic: CartesianZone synthesizes
+      // `SpatialZone.deriveExit` is polymorphic: CartesianZone synthesizes
       // a grid-adjacent Exit, SphericalZone always returns undefined.
-      // No `instanceof` check needed.
+      // `Stuff.zone` is typed `SpatialZone | null` — non-spatial Zone
+      // subclasses (Clade) never stamp here, so no narrowing needed.
       const zone = (this as unknown as Stuff).getZone();
       return zone?.deriveExit(
         this as unknown as import('../stuff/Location').Location,
