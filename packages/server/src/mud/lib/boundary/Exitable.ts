@@ -446,13 +446,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * through us once we're gone), destructs every outbound exit,
      * and empties the explicit exits map. Does NOT detach from the
      * owning Zone — that's a Location-level concern handled by
-     * `Location.prepareDestroy()`.
+     * `Location.onDestruct()`.
      *
-     * Subclasses overriding `prepareDestroy` MUST call
-     * `super.prepareDestroy()` to reach this layer (and through it,
+     * Subclasses overriding `onDestruct` MUST call
+     * `super.onDestruct()` to reach this layer (and through it,
      * the Location-level zone detach).
      */
-    protected prepareDestroy(): void {
+    onDestruct(): void {
       const outbound = [...this.exits.values()];
 
       for (const exit of outbound) {
@@ -467,9 +467,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       this.exits.clear();
       this._pendingVerify.clear();
 
-      // Chain to the Base — Stuff has a no-op default, Location
-      // overrides it to detach from the owning zone.
-      (super.prepareDestroy as (() => void) | undefined)?.call(this);
+      // Chain to super — Location overrides onDestruct to detach
+      // from the owning zone, which then chains into Adornable for
+      // fixture teardown. Stuff itself declares no onDestruct.
+      (super.onDestruct as (() => void) | undefined)?.call(this);
     }
   };
 }

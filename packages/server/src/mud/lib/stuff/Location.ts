@@ -35,18 +35,18 @@ export class Location extends LocationBase {
    * membership and any coordinate-keyed indexes the zone maintains
    * (CartesianZone grid, SphericalZone focus index).
    *
-   * `ExitableMixin.prepareDestroy` super-chains here after handling
-   * the exit-side teardown. We chain to super in turn so
-   * `AdornableMixin.prepareDestroy` (fixture teardown — wall
-   * sconces, BoundaryAnchors) runs before the chain bottoms out at
-   * `Stuff`.
+   * `ExitableMixin.onDestruct` super-chains here after handling the
+   * exit-side teardown. We chain to super in turn so
+   * `AdornableMixin.onDestruct` (fixture teardown — wall sconces,
+   * BoundaryAnchors) runs before the chain bottoms out at `Stuff`
+   * (which has no `onDestruct` of its own).
    */
-  protected override prepareDestroy(): void {
+  public override onDestruct(): void {
     const zone = this.getZone();
     if (zone) {
       zone.removeLocation(this);
     }
-    (super.prepareDestroy as (() => void) | undefined)?.call(this);
+    (super.onDestruct as (() => void) | undefined)?.call(this);
   }
 }
 

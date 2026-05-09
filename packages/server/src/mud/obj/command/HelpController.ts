@@ -1,5 +1,14 @@
 /**
- * HelpController — display help information for commands.
+ * HelpController — subcommand-shaped help surface.
+ *
+ *   - bare `help`         → list verbs
+ *   - `help verb [name]`  → verb help (no name → list verbs)
+ *   - `help api [target]` → api signature browser (Type or Type.member)
+ *   - `help search <q>`   → full-text search
+ *
+ * The api-reference index is best filled from JSDoc-derived JSON; v1
+ * ships a placeholder that points players at the source until the
+ * docs build pipeline lands.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -12,16 +21,27 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
 interface HelpModel extends CommandModel {
-  command?: string;
+  subcommand?: string;
+  name?: string;
+  target?: string;
+  query?: string;
 }
 
 export class HelpController extends CommandController<HelpModel> {
   execute(model: HelpModel, context: CommandContext): CommandResult {
-    const command = model.command;
-    if (command) {
-      return this.showCommandHelp(command, context);
+    switch (model.subcommand) {
+      case 'verb':
+        return model.name
+          ? this.showVerbHelp(model.name, context)
+          : this.listCommands(context);
+      case 'api':
+        return this.showApiHelp(model.target, context);
+      case 'search':
+        return this.showSearchResults(model.query ?? '', context);
+      default:
+        // Bare `help` — `model.subcommand === undefined`.
+        return this.listCommands(context);
     }
-    return this.listCommands(context);
   }
 
   private listCommands(context: CommandContext): CommandResult {
@@ -30,11 +50,9 @@ export class HelpController extends CommandController<HelpModel> {
       this.send(context, Mml.compose`\nNo commands available.\n`);
       return { success: true, summary: 'no commands' };
     }
-
     commands.sort((a, b) =>
-      a.getPrimaryVerb().localeCompare(b.getPrimaryVerb())
+      a.getPrimaryVerb().localeCompare(b.getPrimaryVerb()),
     );
-
     const lines: string[] = ['', 'Available commands:', ''];
     for (const cmd of commands) {
       const verb = cmd.getPrimaryVerb();
@@ -42,27 +60,25 @@ export class HelpController extends CommandController<HelpModel> {
       lines.push(`  ${verb.padEnd(15)} - ${description}`);
     }
     lines.push('');
-    lines.push('Type "help <command>" for more information.');
+    lines.push('Type "help verb <command>" for verb-specific help, or');
+    lines.push('"help api <Type>" for api docs, or "help search <q>".');
     lines.push('');
-
     this.send(context, Mml.fromMarkup(lines.join('\n')));
     return { success: true, summary: `${commands.length} commands` };
   }
 
-  private showCommandHelp(
+  private showVerbHelp(
     commandName: string,
-    context: CommandContext
+    context: CommandContext,
   ): CommandResult {
     const commands = context.commandGiver.getAvailableCommands();
     const command = commands.find((cmd) => {
       const verbs = cmd.verbs || [cmd.getPrimaryVerb()];
       return verbs.some((v) => v.toLowerCase() === commandName.toLowerCase());
     });
-
     if (!command) {
       return { success: false, summary: `unknown command: ${commandName}` };
     }
-
     const lines: string[] = ['', `Command: ${command.getPrimaryVerb()}`, ''];
     if (command.description) {
       lines.push(`Description: ${command.description}`);
@@ -84,9 +100,64 @@ export class HelpController extends CommandController<HelpModel> {
       lines.push(helpText);
       lines.push('');
     }
-
     this.send(context, Mml.fromMarkup(lines.join('\n')));
     return { success: true, summary: command.getPrimaryVerb() };
+  }
+
+  private showApiHelp(
+    target: string | undefined,
+    context: CommandContext,
+  ): CommandResult {
+    if (!target) {
+      this.send(
+        context,
+        Mml.fromMarkup(
+          `\nUsage: help api <Type>  or  help api <Type>.<member>\n\n` +
+            `(api index pipeline pending — see docs/subsystems/ for now)\n`,
+        ),
+      );
+      return { success: true };
+    }
+    // v1 placeholder: the JSDoc-derived JSON index is a follow-on
+    // landing; once it ships this branch reads from
+    // `api/help-index.ts` and renders signatures + descriptions.
+    this.send(
+      context,
+      Mml.fromMarkup(
+        `\nApi reference for '${target}' is not yet indexed.\n` +
+          `Browse the source under packages/server/src/mud/api/ for now.\n`,
+      ),
+    );
+    return { success: true, summary: `api ${target}` };
+  }
+
+  private showSearchResults(
+    query: string,
+    context: CommandContext,
+  ): CommandResult {
+    if (!query) {
+      this.send(context, Mml.fromMarkup(`\nUsage: help search <query>\n`));
+      return { success: false, summary: 'no query' };
+    }
+    const needle = query.toLowerCase();
+    const commands = context.commandGiver.getAvailableCommands();
+    const hits = commands.filter((cmd) => {
+      const blob = `${cmd.getPrimaryVerb()} ${cmd.description ?? ''}`;
+      return blob.toLowerCase().includes(needle);
+    });
+    if (hits.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo matches for '${query}'.\n`));
+      return { success: true, summary: 'no matches' };
+    }
+    const lines: string[] = ['', `Matches for '${query}':`, ''];
+    for (const cmd of hits) {
+      lines.push(
+        `  ${cmd.getPrimaryVerb().padEnd(15)} - ${cmd.description ?? ''}`,
+      );
+    }
+    lines.push('');
+    this.send(context, Mml.fromMarkup(lines.join('\n')));
+    return { success: true, summary: `${hits.length} matches` };
   }
 
   private send(context: CommandContext, body: Mml): void {

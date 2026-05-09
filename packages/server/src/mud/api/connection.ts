@@ -132,7 +132,7 @@ export class ConnectionApi {
   /**
    * Detach an Interactive from its current holder. After detach,
    * `interactive.holder` is null. Used at disconnect / cleanup
-   * (`Interactive.prepareDestroy` calls this).
+   * (`Interactive.onDestruct` calls this).
    *
    * No-op when there's no current holder.
    */

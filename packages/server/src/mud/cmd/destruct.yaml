@@ -1,0 +1,16 @@
+verbs: [destruct]
+controller: DestructController
+description: "Destruct a runtime instance or template"
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable"]
+options:
+  mql:
+    type: string
+    description: "MQL expression alternate to <target>"
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canDestruct veto (admin only; v1 stub always denies)"

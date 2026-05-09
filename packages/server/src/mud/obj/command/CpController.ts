@@ -1,0 +1,94 @@
+/**
+ * CpController — copy `<src>` to `<dst>`.
+ *
+ * Templates: clone the source template's class/data/hydratorClass to
+ * the dst path via `TemplateApi.saveTemplate`. Code: `SourceTreeApi.cp`
+ * (recursive). Both endpoints in the same tree v1 — cross-tree copy
+ * is a follow-up.
+ */
+
+import { CommandController } from '../../lib/command/CommandController';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { MixinApi } from '../../api/mixin';
+import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { TemplateApi } from '../../api/template';
+import { Template } from '../../lib/stuff/Template';
+import { resolveSetting } from '../../lib/shell/Environment';
+import { pickWorkspaceTree } from '../../lib/shell/Workspace';
+
+interface CpModel extends CommandModel {
+  src?: string;
+  dst?: string;
+  mql?: string;
+  content?: boolean;
+  source?: boolean;
+}
+
+export class CpController extends CommandController<CpModel> {
+  async execute(model: CpModel, context: CommandContext): Promise<CommandResult> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isWorkspace(giver)) {
+      return { success: false, summary: 'this character has no workspace' };
+    }
+    if (!model.src || !model.dst) {
+      return this.fail(context, 'cp needs <src> and <dst>');
+    }
+    const tree = pickWorkspaceTree(giver, model);
+    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const cwd = giver.getCwd(tree);
+
+    if (tree === 'content') {
+      const src = SourceTreeApi.joinLogical(cwd, model.src, { home });
+      const dst = SourceTreeApi.joinLogical(cwd, model.dst, { home });
+      const tpl = await Template.findByPath(src);
+      if (!tpl) return this.fail(context, `no template at ${src}`);
+      try {
+        await TemplateApi.saveTemplate(
+          dst,
+          tpl.class,
+          tpl.data ?? {},
+          tpl.hydratorClass,
+        );
+      } catch (err) {
+        return this.fail(context, (err as Error).message);
+      }
+      this.tell(context, `\ncopied ${src} → ${dst}\n`);
+      return { success: true, summary: `${src} → ${dst}` };
+    }
+
+    let absSrc: string, absDst: string;
+    try {
+      absSrc = SourceTreeApi.resolvePath(cwd, model.src, { home });
+      absDst = SourceTreeApi.resolvePath(cwd, model.dst, { home });
+    } catch (err) {
+      if (err instanceof SourceTreeSandboxError) {
+        return this.fail(context, err.message);
+      }
+      throw err;
+    }
+    await SourceTreeApi.cp(absSrc, absDst);
+    this.tell(
+      context,
+      `\ncopied ${SourceTreeApi.toDisplayPath(absSrc)} → ${SourceTreeApi.toDisplayPath(absDst)}\n`,
+    );
+    return { success: true };
+  }
+
+  private tell(context: CommandContext, text: string): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(Mml.fromMarkup(text))
+      .send();
+  }
+
+  private fail(context: CommandContext, summary: string): CommandResult {
+    this.tell(context, `\n${summary}\n`);
+    return { success: false, summary };
+  }
+}

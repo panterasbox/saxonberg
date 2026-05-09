@@ -28,6 +28,8 @@ import type { VetoResult } from '../lib/errors';
 import { CommandApi } from './command';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -75,6 +77,42 @@ export class ContainmentApi {
     item: ContainableStuff,
     to: ContainerStuff | null
   ): void {
+    ContainmentApi.#moveCore(item, to, false);
+  }
+
+  /**
+   * Force-bypass variant of `move()`. Pre-flight invariants still
+   * fire (those are programmatic-contract guards, not policy);
+   * `canMove` / `canRemoveContainable` / `canAddContainable`
+   * witnesses still fire (so observers / audit hooks see the call)
+   * but their veto results are ignored. Post-move `on*` hooks fire
+   * identically.
+   *
+   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
+   * always-deny stub: every call throws `SecurityError: admin
+   * privilege required` from the decorator gate before this body
+   * runs. The seam is in place; the real permissions-aware policy
+   * replaces the stub when the permission framework lands.
+   */
+  @CallSecurity(SecurityPolicies.AdminOnly)
+  public static forceMove(
+    item: ContainableStuff,
+    to: ContainerStuff | null
+  ): void {
+    ContainmentApi.#moveCore(item, to, true);
+  }
+
+  /**
+   * Shared implementation for `move` / `forceMove`. Pre-flight
+   * invariants and witness invocation are uniform across both
+   * paths so any side effects the hooks attach observe every call;
+   * `force=true` skips only the veto-result enforcement.
+   */
+  static #moveCore(
+    item: ContainableStuff,
+    to: ContainerStuff | null,
+    force: boolean
+  ): void {
     if (to !== null) {
       // PRE-FLIGHT (1): Exitables may only land in Exitables.
       if (MixinApi.isExitable(item) && !MixinApi.isExitable(to)) {
@@ -107,19 +145,20 @@ export class ContainmentApi {
     const from = item.getContainer();
     if (from === to) return;
 
-    // VETO HOOKS (in declaration-of-care order: item, source, dest).
-    assertVetoOk(callHook(item, 'canMove', [to]), 'canMove');
-    if (from) {
-      assertVetoOk(
-        callHook(from, 'canRemoveContainable', [item]),
-        'canRemoveContainable'
-      );
-    }
-    if (to) {
-      assertVetoOk(
-        callHook(to, 'canAddContainable', [item]),
-        'canAddContainable'
-      );
+    // VETO HOOKS — invoked uniformly; only the assert is conditional.
+    // Witnesses fire on every call (observability) so the force path
+    // matches the polished path's side effects.
+    const moveVeto = callHook<VetoResult>(item, 'canMove', [to]);
+    const removeVeto = from
+      ? callHook<VetoResult>(from, 'canRemoveContainable', [item])
+      : undefined;
+    const addVeto = to
+      ? callHook<VetoResult>(to, 'canAddContainable', [item])
+      : undefined;
+    if (!force) {
+      assertVetoOk(moveVeto, 'canMove');
+      assertVetoOk(removeVeto, 'canRemoveContainable');
+      assertVetoOk(addVeto, 'canAddContainable');
     }
 
     // STATE MUTATION through the chokepoint. setContainer handles

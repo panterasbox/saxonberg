@@ -151,7 +151,7 @@ export class Boundary extends BoundaryBase {
   }
 
   /**
-   * Internal seam used by an anchor's `prepareDestroy` to clear its
+   * Internal seam used by an anchor's `onDestruct` to clear its
    * own slot when the anchor is being torn down (e.g., its host is
    * destructing). Idempotent.
    */
@@ -220,7 +220,7 @@ export class Boundary extends BoundaryBase {
    * cleanup pattern, but Boundary owns the anchors so it also
    * destructs them.
    */
-  protected override prepareDestroy(): void {
+  public onDestruct(): void {
     const orphaned: BoundaryAnchor[] = [];
     if (this.anchorA) orphaned.push(this.anchorA);
     if (this.anchorB) orphaned.push(this.anchorB);

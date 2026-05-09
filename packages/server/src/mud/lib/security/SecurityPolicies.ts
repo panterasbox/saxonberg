@@ -177,6 +177,27 @@ const ApiOnlyPolicy: SecurityPolicy = (() => {
 })();
 
 /**
+ * `AdminOnly` — gate for force-bypass entry points (`StuffApi.forceDestruct`,
+ * `StuffApi.forceClone`, `HotReloadApi.forceReload`,
+ * `ContainmentApi.forceMove`).
+ *
+ * v1 implementation is **always-deny**. The seam is in place so
+ * `forceX` API methods compile, decorate, and invoke with the
+ * intended security shape; the actual "is this caller an admin?"
+ * answer comes from the permission framework once it lands. Until
+ * then every call into a `forceX` method throws
+ * `SecurityError: admin privilege required` from the decorator gate
+ * before the body runs.
+ *
+ * Replacing this stub with the real policy is a single edit here —
+ * no decorated method needs to change.
+ */
+const AdminOnlyPolicy: SecurityPolicy = {
+  name: 'AdminOnly',
+  allows: () => false,
+};
+
+/**
  * Combinators — compose policies into richer rules.
  */
 
@@ -237,6 +258,7 @@ export const SecurityPolicies = {
   SystemRoot: SystemRootPolicy,
   SelfOnly: SelfOnlyPolicy,
   ApiOnly: ApiOnlyPolicy,
+  AdminOnly: AdminOnlyPolicy,
   Custom,
   AllOf,
   AnyOf,

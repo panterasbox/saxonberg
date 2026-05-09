@@ -24,10 +24,8 @@ export class Agent extends AgentBase {
     super();
   }
 
-  protected prepareDestroy(): void {
-    // Default: no-op
-    // Subclasses can override for agent-specific cleanup
-  }
+  // No `onDestruct()` default — the destruct witness pair is optional;
+  // subclasses (or shadows) define `onDestruct()` if they need cleanup.
 }
 
 Stuff._registerTopLevelBranch(Agent);

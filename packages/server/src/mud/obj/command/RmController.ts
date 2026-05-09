@@ -1,0 +1,130 @@
+/**
+ * RmController — remove a content-tree template (default) or
+ * source-tree file.
+ *
+ * Templates: validateFolderLeafDelete fires unconditionally (it's a
+ * correctness invariant, not a policy), then `Template.delete()`.
+ * `-r` recurses (delete descendants first, then parent).
+ *
+ * No `-f` v1 — folder/leaf is a hard invariant, not a bypassable
+ * policy. If a per-template veto pattern emerges later, `-f` lands
+ * via the parallel-API force-bypass shape.
+ */
+
+import { CommandController } from '../../lib/command/CommandController';
+import type {
+  CommandContext,
+  CommandModel,
+  CommandResult,
+} from '../../api/command';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { MixinApi } from '../../api/mixin';
+import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { Template } from '../../lib/stuff/Template';
+import { MqlApi } from '../../api/mql';
+import { resolveSetting } from '../../lib/shell/Environment';
+import { pickWorkspaceTree } from '../../lib/shell/Workspace';
+
+interface RmModel extends CommandModel {
+  path?: string;
+  mql?: string;
+  content?: boolean;
+  source?: boolean;
+  recursive?: boolean;
+}
+
+export class RmController extends CommandController<RmModel> {
+  async execute(model: RmModel, context: CommandContext): Promise<CommandResult> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isWorkspace(giver)) {
+      return { success: false, summary: 'this character has no workspace' };
+    }
+    const tree = pickWorkspaceTree(giver, model);
+    const home = resolveSetting<string>(giver, 'workspace.home') ?? '/';
+    const cwd = giver.getCwd(tree);
+
+    let target: string | null = null;
+    if (model.mql) {
+      const r = MqlApi.resolveOne(model.mql, {
+        commandGiver: giver,
+        scope: 'reachable',
+      });
+      if (!r.stuff) return this.fail(context, `no match for --mql ${model.mql}`);
+      target =
+        (r.stuff as unknown as { path?: string; templatePath?: string })
+          .path ??
+        (r.stuff as unknown as { templatePath?: string }).templatePath ??
+        null;
+    } else if (model.path) {
+      try {
+        target =
+          tree === 'content'
+            ? SourceTreeApi.joinLogical(cwd, model.path, { home })
+            : SourceTreeApi.toDisplayPath(
+                SourceTreeApi.resolvePath(cwd, model.path, { home }),
+              );
+      } catch (err) {
+        if (err instanceof SourceTreeSandboxError) {
+          return this.fail(context, err.message);
+        }
+        throw err;
+      }
+    } else {
+      return this.fail(context, 'rm needs a <path> or --mql');
+    }
+    if (!target) return this.fail(context, 'no target');
+
+    if (tree === 'content') {
+      const tpl = await Template.findByPath(target);
+      if (!tpl) return this.fail(context, `no template at ${target}`);
+      // Recursive: delete descendants first.
+      if (model.recursive) {
+        const descendants = await Template.findDescendants(target);
+        // Deepest first so leaves go before their folder ancestors.
+        descendants.sort(
+          (a, b) => b.path.split('/').length - a.path.split('/').length,
+        );
+        for (const d of descendants) {
+          try {
+            await d.delete();
+          } catch (err) {
+            return this.fail(context, (err as Error).message);
+          }
+        }
+      }
+      try {
+        await tpl.delete();
+      } catch (err) {
+        return this.fail(context, (err as Error).message);
+      }
+      this.tell(context, `\nremoved ${target}\n`);
+      return { success: true, summary: target };
+    }
+
+    let abs: string;
+    try {
+      abs = SourceTreeApi.resolvePath(cwd, model.path!, { home });
+    } catch (err) {
+      if (err instanceof SourceTreeSandboxError) {
+        return this.fail(context, err.message);
+      }
+      throw err;
+    }
+    await SourceTreeApi.rm(abs, { recursive: !!model.recursive });
+    this.tell(context, `\nremoved ${SourceTreeApi.toDisplayPath(abs)}\n`);
+    return { success: true, summary: SourceTreeApi.toDisplayPath(abs) };
+  }
+
+  private tell(context: CommandContext, text: string): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(Mml.fromMarkup(text))
+      .send();
+  }
+
+  private fail(context: CommandContext, summary: string): CommandResult {
+    this.tell(context, `\n${summary}\n`);
+    return { success: false, summary };
+  }
+}

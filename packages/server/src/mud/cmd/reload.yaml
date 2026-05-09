@@ -1,0 +1,15 @@
+verbs: [reload]
+controller: ReloadController
+description: "Hot-reload a template or runtime instance"
+args:
+  - name: target
+    type: string
+    required: false
+options:
+  mql:
+    type: string
+    description: "MQL expression alternate to <target>"
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canReload veto (admin only; v1 stub always denies)"

@@ -53,6 +53,9 @@ export const Mixins = {
   Organism: 'OrganismMixin',
   Sexed: 'SexedMixin',
   Radioactive: 'RadioactiveMixin',
+  Workspace: 'WorkspaceMixin',
+  Author: 'AuthorMixin',
+  Scry: 'ScryMixin',
 } as const;
 
 /**

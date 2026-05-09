@@ -92,6 +92,7 @@ Three load-time invariants enforced by `CommandDefinition.validate`:
 | `boolean` | `true` / `false` | usually used on options, not positionals |
 | `object` | an `MqlOneResult` wrapper around a single Stuff | runs `MqlApi.resolveOne` |
 | `objects` | an `MqlManyResult` wrapper around a Stuff list | runs `MqlApi.resolveMany` |
+| `struct` | a plain object (`Record<string, unknown>`) | structured-input only — text input is rejected |
 
 For `object` / `objects` the controller reads `model.field.stuff`
 (plus optional `via`, `raw`, `prep` — see
@@ -103,6 +104,65 @@ means in its domain (see the example controllers).
 `multiple: true` is for non-MQL fields where repeated occurrences
 should accumulate. Don't combine it with `type: objects` — the
 plurality is the type.
+
+### `type: struct` — structured-input-only fields
+
+For verbs whose input includes a client-composed payload (a code-
+editor buffer, a form-field bag, anything richer than tokens can
+faithfully represent), declare the field `type: struct`. The bound
+value is whatever plain object the structured-form ingress
+delivered, opaque to the matcher.
+
+```yaml
+verbs: [compose]
+controller: ComposeController
+description: Compose an authoring payload
+args:
+  - name: doc
+    type: struct
+    required: true
+    schema:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1 }
+        body:  { type: string }
+      additionalProperties: false
+```
+
+Three rules:
+
+- **Text input cannot bind a struct field.** A struct positional
+  encountering a token (or required-and-absent) yields a shape error
+  pointing the player at structured input: *"field 'doc' requires
+  structured input; cannot bind from text"*. Same for struct
+  options on `--name=value` text input.
+- **Structured input is the channel.**
+  `CommandApi.assembleFromStructured({ verb, fields: { doc: {...} } })`
+  drops the value straight onto `model.doc`. This is the path
+  widget / editor clients use; nothing extra to wire.
+- **Schema validation is opt-in.** An optional `schema:` block
+  carries a JSON Schema fragment ajv runs against the structured
+  value at the coercion step. Failures yield a friendly error
+  pointing at the offending property (`doc.title: must be string`).
+  Custom `validators:` paths still fire as usual after the schema
+  pass.
+
+Stuff references on a struct payload still ride as MQL strings
+(`'#abc123'`, `'/obj/Avatar/foo'`) — raw `Stuff` object references
+through any channel would bypass MQL's permission/visibility
+filters and the inter-stuff "address via MQL" contract. If a
+struct field's schema declares a property as `type: string`, that
+string is just a value; it does NOT auto-resolve through MQL. For
+fields whose values are Stuff references, declare them as
+`type: object` / `type: objects` (separate fields, not nested
+inside a struct).
+
+A separate `context.payload` sidecar channel for non-field metadata
+(editor cursor, draft id, binary uploads) was considered and
+deferred — the structured-fields path covers every v1 use case and
+the retrofit when one shows up is mechanical (add the field on
+`CommandContext`, opt controllers in).
 
 ### `required:` — when the matcher demands input
 

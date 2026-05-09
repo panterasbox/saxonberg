@@ -26,6 +26,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, isAbsolute, join, resolve as resolvePath } from 'path';
 import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
+import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
 import {
@@ -365,8 +366,20 @@ export interface FieldDefinition {
    * - `objects` — plural MQL field; the dispatcher resolves via
    *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
    *   fields — the cardinality is the type.
+   * - `struct` — structured-input-only blob (`Record<string, unknown>`).
+   *   Cannot be bound from text — `msh` returns a clear error if a
+   *   verb's positional or option of this type appears in tokenised
+   *   input. Used by widget/editor clients via
+   *   `assembleFromStructured`. Validated against the optional
+   *   `schema` (JSON Schema) before user-defined validators fire.
    */
-  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects';
+  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  /**
+   * Optional JSON Schema fragment for `type: 'struct'` fields. Run
+   * by ajv during the structured-input coercion step; failure yields
+   * a friendly error pointing at the offending property.
+   */
+  schema?: Record<string, unknown>;
   required?: boolean;
   /**
    * Greedy positional: consumes the remainder of the original input
@@ -491,7 +504,15 @@ export interface PositionalDefinition extends FieldDefinition {
  */
 export interface OptionDefinition {
   short?: string;
-  type: 'boolean' | 'string' | 'number' | 'object';
+  /**
+   * Same type taxonomy as positional fields, minus `objects` (options
+   * that need plural cardinality use `multiple: true`). `struct` is
+   * structured-input-only — text-input rejects it with a clear
+   * error.
+   */
+  type: 'boolean' | 'string' | 'number' | 'object' | 'struct';
+  /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
+  schema?: Record<string, unknown>;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
   /**
@@ -995,7 +1016,8 @@ export class CommandApi {
       const fdef = lookupFieldDefinition(command, payload.subcommand, k);
       const odef = lookupOptionDefinition(command, payload.subcommand, k);
       const type = fdef?.type ?? odef?.type;
-      const coerceResult = coerceStructuredValue(type, v);
+      const schema = fdef?.schema ?? odef?.schema;
+      const coerceResult = coerceStructuredValue(type, v, schema, k);
       if (!coerceResult.ok) {
         return { error: `field ${k}: ${coerceResult.error}` };
       }
@@ -1410,12 +1432,21 @@ function coerceOptionValue(
       // value is rejected upstream). If we still got here, it's a
       // bug; surface as error.
       return { ok: false, error: 'boolean cannot take a value' };
+    case 'struct':
+      // struct options require structured input; the text path can't
+      // meaningfully bind them.
+      return {
+        ok: false,
+        error: 'requires structured input; cannot bind from text',
+      };
   }
 }
 
 function coerceStructuredValue(
   type: FieldDefinition['type'] | OptionDefinition['type'] | undefined,
-  raw: unknown
+  raw: unknown,
+  schema?: Record<string, unknown>,
+  fieldName?: string
 ): CoerceOk | CoerceErr {
   if (type === undefined) {
     // No declared type — accept as-is.
@@ -1439,10 +1470,74 @@ function coerceStructuredValue(
     }
     return { ok: true, value: raw };
   }
-  // type: 'object' — accept strings (MQL string) or pre-resolved
-  // values (Stuff/array). The structured path can carry pre-resolved
-  // objects for forms.
+  if (type === 'struct') {
+    if (
+      raw === null ||
+      typeof raw !== 'object' ||
+      Array.isArray(raw)
+    ) {
+      return {
+        ok: false,
+        error: `expected struct (plain object), got ${
+          raw === null ? 'null' : Array.isArray(raw) ? 'array' : typeof raw
+        }`,
+      };
+    }
+    if (schema) {
+      const schemaErr = validateAgainstJsonSchema(schema, raw);
+      if (schemaErr !== null) {
+        return {
+          ok: false,
+          error: fieldName
+            ? `field '${fieldName}' failed schema: ${schemaErr}`
+            : `failed schema: ${schemaErr}`,
+        };
+      }
+    }
+    // Cast through — `Record<string, unknown>` doesn't fit FieldValue's
+    // narrower union, but struct values are by contract opaque to the
+    // matcher and narrowed by the controller via its typed model
+    // interface.
+    return { ok: true, value: raw as FieldValue };
+  }
+  // type: 'object' / 'objects' — accept strings (MQL string) or
+  // pre-resolved values (Stuff/array). The structured path can carry
+  // pre-resolved objects for forms.
   return { ok: true, value: raw as FieldValue };
+}
+
+/**
+ * Validate a structured value against a JSON Schema fragment. Returns
+ * a friendly error string on failure, `null` on success.
+ *
+ * Compiled validators are cached by JSON-stringified schema so
+ * repeated invocations against the same struct field skip
+ * recompilation.
+ */
+const _structAjv = new Ajv({ allErrors: false, strict: false });
+const _compiledStructSchemas = new Map<string, ValidateFunction>();
+
+function validateAgainstJsonSchema(
+  schema: Record<string, unknown>,
+  value: unknown
+): string | null {
+  const key = JSON.stringify(schema);
+  let validate = _compiledStructSchemas.get(key);
+  if (!validate) {
+    try {
+      validate = _structAjv.compile(schema);
+      _compiledStructSchemas.set(key, validate);
+    } catch (e) {
+      return `invalid JSON Schema: ${(e as Error).message}`;
+    }
+  }
+  const ok = validate(value);
+  if (ok) return null;
+  const errs = validate.errors ?? [];
+  const first = errs[0];
+  if (!first) return 'schema validation failed';
+  const path = first.instancePath || '<root>';
+  return `${path}: ${first.message ?? 'invalid'}`;
 }
 
 type WordToken = Extract<RawToken, { kind: 'word' }>;
@@ -1487,12 +1582,21 @@ function bindPositionals(
         if (def.required !== false) {
           return {
             error: 'shape',
-            summary: `missing required arg: ${name}`,
+            summary:
+              def.type === 'struct'
+                ? `field '${name}' requires structured input; cannot bind from text`
+                : `missing required arg: ${name}`,
           };
         }
         // Greedy must be last per the load-time invariant; we
         // don't loop further.
         return { bound, prep };
+      }
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
+        };
       }
       const first = positionals[pi]!;
       // Greedy fields stop at the next *later* field's declared
@@ -1559,7 +1663,16 @@ function bindPositionals(
         }
         return {
           error: 'shape',
-          summary: `missing required arg: ${name}`,
+          summary:
+            def.type === 'struct'
+              ? `field '${name}' requires structured input; cannot bind from text`
+              : `missing required arg: ${name}`,
+        };
+      }
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
       bound[name] = expand(positionals[pi]!.value);
@@ -1569,6 +1682,12 @@ function bindPositionals(
 
     // Optional positional.
     if (pi < positionals.length && !nextBelongsToLater) {
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
+        };
+      }
       bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {

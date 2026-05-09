@@ -113,7 +113,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `close`.
      */
     static commandContributions: CommandContributions = {
-      self: ['go.yaml', 'open.yaml', 'close.yaml'],
+      self: ['go.yaml', 'open.yaml', 'close.yaml', 'goto.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -572,7 +572,7 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
  * arrival narration from `announceArrival`; the auto-look is
  * additive context, not a critical step.
  */
-async function autoLookOnArrival(mover: object): Promise<void> {
+export async function autoLookOnArrival(mover: object): Promise<void> {
   const m = mover as Stuff;
   if (!MixinApi.isCommandGiver(m)) return;
   if (MixinApi.isFocused(m)) m.clearFocus();

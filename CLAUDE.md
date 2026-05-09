@@ -104,6 +104,23 @@ behavior. Read the relevant doc before editing in its area.
     `BodyPlan` + `Species` templates, `OrganismMixin`, `SexedMixin`,
     `SpeciesApi` (kingdom resolution, lifecycle predicates,
     `isAnimate`), animacy gating at the command layer
+  - [shell-workspace.md](./docs/subsystems/shell-workspace.md) —
+    `WorkspaceMixin` cwd state (content + source trees),
+    `workspace.tree` setting (`content` / `source` / `mirror`),
+    `pickWorkspaceTree` helper, synthetic vars (`$PWD`, `$CPWD`,
+    `$SPWD`, `$HOME`), read/write verb suite (`pwd`/`cd`/`ls`/
+    `cat`/`grep`/`write`/`mkdir`/`rm`/`cp`/`mv`), `SourceTreeApi`
+    sandboxed fs surface
+  - [shell-author.md](./docs/subsystems/shell-author.md) —
+    `AuthorMixin` lifecycle and code-execution verbs (`clone`,
+    `reload`, `destruct`, `eval`, `teleport`), `EvalScript`
+    Stuff-wrapped sandbox, `forceX` parallel-API force-bypass
+    shape, eval singleton lifecycle, future `--save` / `--mixin` /
+    `--extends`
+  - [shell-scry.md](./docs/subsystems/shell-scry.md) —
+    `ScryMixin` at-a-distance perception (`scry`, `locate`),
+    `Scryable` / `ScryFocus` capability interfaces, instrument
+    auto-resolution
 
 ## Development Commands
 

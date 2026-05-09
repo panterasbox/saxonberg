@@ -1,0 +1,22 @@
+verbs: [cp]
+controller: CpController
+description: "Copy <src> to <dst> in the content (default) or source tree"
+args:
+  - name: src
+    type: string
+    required: true
+  - name: dst
+    type: string
+    required: true
+options:
+  mql:
+    type: string
+    description: "MQL expression alternate to <src>"
+  content:
+    short: c
+    type: boolean
+    description: "Force the operation to the content tree (overrides workspace.tree)"
+  source:
+    short: s
+    type: boolean
+    description: "Force the operation to the source tree (overrides workspace.tree)"

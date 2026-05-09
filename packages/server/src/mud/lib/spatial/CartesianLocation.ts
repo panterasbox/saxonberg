@@ -55,8 +55,8 @@ export class CartesianLocation extends CartesianLocationBase {
     this.verifyOutboundExits();
   }
 
-  // prepareDestroy is inherited from ExitableMixin (exit teardown) and
-  // chains via super to Location.prepareDestroy (zone detach). No
+  // onDestruct is inherited from ExitableMixin (exit teardown) and
+  // chains via super to Location.onDestruct (zone detach). No
   // override needed.
 
   /**

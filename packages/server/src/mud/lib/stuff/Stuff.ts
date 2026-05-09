@@ -19,9 +19,14 @@
  * 2. Object Destruction:
  * - Call StuffApi.destruct(obj) to destroy objects — it is the canonical
  *   destruction entry point. The call-security framework's `ApiOnly`
- *   policy now enforces this at runtime; direct obj.destroy() throws
+ *   policy enforces this at runtime; direct obj.destroy() throws
  *   `SecurityError`.
- * - Override prepareDestroy() in subclasses for cleanup logic.
+ * - Subclasses customize destruction via two optional Witness hooks:
+ *     `canDestruct(): VetoResult` — refusal seam (return
+ *       `{ ok: false, reason }` to abort). Bypassable via
+ *       `StuffApi.forceDestruct` (admin-gated).
+ *     `onDestruct(): void` — cleanup hook, runs while the target is
+ *       still live. Replaces the retired `prepareDestroy()` hook.
  * - destroy() carries `@Final @Unshadowable @CallSecurity(ApiOnly)`.
  *   Subclass overrides throw `FinalViolationError` at import time;
  *   shadows attempting to attach throw `ShadowError`. Together these
@@ -357,24 +362,6 @@ export abstract class Stuff {
   }
 
   /**
-   * Hook for subclass cleanup logic.
-   * Called by destroy() before marking object as destroyed and unregistering.
-   *
-   * Override this method in subclasses to add cleanup logic.
-   * DO NOT call super.prepareDestroy() unless parent class needs it.
-   *
-   * Examples:
-   * - Unlink references to other objects
-   * - Close file handles
-   * - Cancel timers
-   * - Release resources
-   */
-  protected prepareDestroy(): void {
-    // Default: no-op
-    // Subclasses override this for cleanup
-  }
-
-  /**
    * Destroy this object.
    *
    * Locked down by `@CallSecurity(ApiOnly)` — only callers under
@@ -385,7 +372,10 @@ export abstract class Stuff {
    * defeat the same invariant — the loader hook throws
    * `FinalViolationError` at import time on any subclass redefinition.
    *
-   * Cleanup logic belongs in `prepareDestroy()`, not here.
+   * Subclass cleanup belongs on the optional `onDestruct()` witness
+   * (consulted by `StuffApi.destruct` while the target is still live);
+   * refusal logic belongs on `canDestruct()`. This terminal `destroy()`
+   * is the unshadowable mark-and-unregister step only.
    */
   @Final
   @Unshadowable
@@ -396,13 +386,10 @@ export abstract class Stuff {
       return;
     }
 
-    // Step 1: Call subclass cleanup hook
-    this.prepareDestroy();
-
-    // Step 2: Mark as destroyed (prevents double-destroy)
+    // Mark as destroyed (prevents double-destroy)
     this._isDestroyed = true;
 
-    // Step 3: Critical housekeeping - unregister from StuffApi
+    // Critical housekeeping - unregister from StuffApi
     // This MUST happen for garbage collection to work properly
     StuffApi.unregister(this);
   }

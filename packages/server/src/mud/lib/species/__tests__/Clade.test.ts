@@ -38,7 +38,7 @@ describe('Clade', () => {
     expect(clade.getSpecies().size).toBe(0);
   });
 
-  it('prepareDestroy throws when species are still attached', async () => {
+  it('canDestruct vetoes destruction when species are still attached', async () => {
     const clade = makeStuff(() => new Clade());
     const fake = await StuffApi.create(() => new Clade());
     clade.addSpecies(fake as unknown as never);

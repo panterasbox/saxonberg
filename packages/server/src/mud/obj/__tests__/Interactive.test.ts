@@ -145,7 +145,7 @@ describe('Interactive', () => {
     });
   });
 
-  describe('prepareDestroy', () => {
+  describe('onDestruct', () => {
     let mockAvatar: Avatar;
 
     beforeEach(() => {

@@ -1,0 +1,15 @@
+verbs: [clone]
+controller: CloneController
+description: "Clone a fresh instance from a template"
+args:
+  - name: template
+    type: string
+    required: false
+options:
+  mql:
+    type: string
+    description: "MQL expression alternate to <template>"
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canClone veto (admin only; v1 stub always denies)"

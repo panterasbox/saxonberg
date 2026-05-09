@@ -27,6 +27,7 @@ import { Zone } from '../spatial/Zone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { Species } from './Species';
+import type { VetoResult } from '../errors';
 
 /** Taxonomic ranks the v1 build recognizes. */
 export type CladeRank =
@@ -69,14 +70,19 @@ export class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
   /**
    * Refuse to destruct a Clade with live Species members. Drain the
    * member Species (destruct or relocate) first. Same shape as
-   * `SpatialZone.prepareDestroy`.
+   * `SpatialZone.canDestruct`. Bypassable via `forceDestruct`
+   * (admin-gated).
    */
-  protected override prepareDestroy(): void {
+  public canDestruct(): VetoResult {
     if (this.species.size > 0) {
-      throw new Error(
-        `Clade.prepareDestroy: cannot destruct clade '${this.getName()}' with ` +
-          `${this.species.size} live species member(s); destruct or relocate first.`
-      );
+      return {
+        ok: false,
+        reason:
+          `cannot destruct clade '${this.getName()}' with ` +
+          `${this.species.size} live species member(s); ` +
+          `destruct or relocate first`,
+      };
     }
+    return { ok: true };
   }
 }

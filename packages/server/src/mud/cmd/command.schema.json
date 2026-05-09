@@ -71,8 +71,12 @@
           "description": "Field name the bound value lands on. Reserved: `subcommand` (when the verb declares subcommands)."
         },
         "type": {
-          "enum": ["string", "number", "boolean", "object", "objects"],
-          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL)."
+          "enum": ["string", "number", "boolean", "object", "objects", "struct"],
+          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) — text input cannot bind it."
+        },
+        "schema": {
+          "type": "object",
+          "description": "Optional JSON Schema fragment validated against the structured value before user-defined validators fire. Only meaningful for `type: struct`. Runs through ajv during the structured-input coercion step."
         },
         "required": { "type": "boolean" },
         "greedy": {
@@ -121,7 +125,11 @@
           "description": "Single-character short alias (e.g. `-v` for `--verbose`)."
         },
         "type": {
-          "enum": ["boolean", "string", "number", "object"]
+          "enum": ["boolean", "string", "number", "object", "struct"]
+        },
+        "schema": {
+          "type": "object",
+          "description": "Optional JSON Schema fragment validated against the structured value before user-defined validators fire. Only meaningful for `type: struct`."
         },
         "field": {
           "type": "string",

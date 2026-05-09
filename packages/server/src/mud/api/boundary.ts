@@ -21,7 +21,7 @@ import { SecurityApi } from './security';
  *
  * `destruct(boundary)` is the symmetric teardown: routes through
  * `StuffApi.destruct` so the proxy / shadow / lifecycle machinery
- * runs, and the Boundary's own `prepareDestroy` chain detaches and
+ * runs, and the Boundary's own `onDestruct` chain detaches and
  * destructs the anchors.
  */
 
@@ -102,7 +102,7 @@ export class BoundaryApi {
   /**
    * Tear down a Boundary and its anchors. Routes through
    * `StuffApi.destruct` so the proxy / shadow lifecycle runs; the
-   * Boundary's own `prepareDestroy` detaches the anchors from each
+   * Boundary's own `onDestruct` detaches the anchors from each
    * host's `getFixtures()` and destructs them.
    */
   public static destruct(boundary: Boundary): void {

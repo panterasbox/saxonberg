@@ -170,7 +170,7 @@ describe('Boundary', () => {
 
     StuffApi.destruct(a);
 
-    // Anchor on side A is destructed via Adornable.prepareDestroy.
+    // Anchor on side A is destructed via Adornable.onDestruct.
     expect((anchorA as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
     // The boundary's slot for that side is cleared.
     expect(boundary.getAnchorA()).toBeNull();

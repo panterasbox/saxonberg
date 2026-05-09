@@ -19,10 +19,10 @@
  * moving vessel" — but the constraint admits a future composition with
  * no surface change.
  *
- * Lifecycle: `prepareDestroy()` destructs every fixture before chaining
- * to super. The fixture's own `prepareDestroy()` is responsible for
+ * Lifecycle: `onDestruct()` destructs every fixture before chaining
+ * to super. The fixture's own `onDestruct()` is responsible for
  * unhooking from any Boundary it's an anchor of (see
- * `BoundaryAnchor.prepareDestroy`).
+ * `BoundaryAnchor.onDestruct`).
  *
  * Containment invariant: an `Adornment` whose `adornedTo` is non-null
  * cannot be moved into a Container's `contents` via
@@ -133,16 +133,16 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
 
     /**
      * Tear down every fixture before chaining to super. A fixture's
-     * own `prepareDestroy` is responsible for unhooking from any
+     * own `onDestruct` is responsible for unhooking from any
      * Boundary it's an anchor of — see `BoundaryAnchor`.
      */
-    protected prepareDestroy(): void {
+    onDestruct(): void {
       const toDestroy = Array.from(this.fixtures);
       for (const f of toDestroy) {
         StuffApi.destruct(f as unknown as Stuff);
       }
       this.fixtures.clear();
-      (super.prepareDestroy as (() => void) | undefined)?.call(this);
+      (super.onDestruct as (() => void) | undefined)?.call(this);
     }
   };
 }

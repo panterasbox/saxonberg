@@ -1,0 +1,18 @@
+verbs: [teleport]
+controller: TeleportController
+description: "Relocate <target> to <destination> (defaults to your location)"
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+  - name: destination
+    type: object
+    required: false
+    scope: ["reachable"]
+    prepositions: [to]
+options:
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canTeleport / containment vetoes (admin only; v1 stub always denies)"

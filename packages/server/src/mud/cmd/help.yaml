@@ -1,7 +1,23 @@
 verbs: [help, h, '?']
 controller: HelpController
-description: "Get help with commands"
-args:
-  - name: command
-    type: string
-    required: false
+description: "Get help: bare lists verbs; `help verb`, `help api`, `help search`"
+subcommands:
+  verb:
+    description: "Show help for a verb (no name → list verbs)"
+    args:
+      - name: name
+        type: string
+        required: false
+  api:
+    description: "Show api signatures (Type or Type.member)"
+    args:
+      - name: target
+        type: string
+        required: false
+  search:
+    description: "Full-text search across verb help and api docs"
+    args:
+      - name: query
+        type: string
+        required: true
+        greedy: true

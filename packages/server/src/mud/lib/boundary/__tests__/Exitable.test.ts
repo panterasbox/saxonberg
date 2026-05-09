@@ -357,7 +357,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
   });
 });
 
-describe('ExitableMixin.prepareDestroy / Location destroy choreography', () => {
+describe('ExitableMixin.onDestruct / Location destroy choreography', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });

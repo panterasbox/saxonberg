@@ -38,6 +38,8 @@ import { pathToFileURL } from 'url';
 
 import { EventApi } from './event';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Events, type ReloadEvent } from '../lib/events';
 
 /**
@@ -98,6 +100,24 @@ export class HotReloadApi {
     });
     this.#inflight.set(path, promise);
     return promise;
+  }
+
+  /**
+   * Force-bypass variant of `reload()`. v1 ships with no `canReload`
+   * witness invocation inside this Api — reload has no per-target
+   * refusal seam at the lowest layer (the witness fires at the verb
+   * controller level when needed). `forceReload` exists today as the
+   * admin-gated entry the verb controller's `-f` path routes through;
+   * its body is identical to `reload()` for v1.
+   *
+   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
+   * always-deny stub: every call throws `SecurityError: admin
+   * privilege required` from the decorator gate before this body
+   * runs.
+   */
+  @CallSecurity(SecurityPolicies.AdminOnly)
+  public static async forceReload(path: string): Promise<void> {
+    return HotReloadApi.reload(path);
   }
 
   /**
