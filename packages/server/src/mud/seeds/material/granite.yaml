@@ -1,6 +1,6 @@
 # Granite — coarse-grained igneous rock. Heavy, hard, electrically
 # inert. The default stone for walls and statuary.
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: granite

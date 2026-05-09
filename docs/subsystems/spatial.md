@@ -168,6 +168,41 @@ pre-flight; non-Exitable Stuff (an Avatar walking from a Narnia room
 into a Caves room) keeps its original `zone` reference, which is
 the right answer — see [state-model.md § Stamped-on-Stuff Fields](./state-model.md#stamped-on-stuff-fields).
 
+### Detached Stuff (`environment === null`)
+
+A `Stuff & Containable` whose `environment === null` is **detached**
+— not in any container, not anywhere in the world. Detachment comes
+up in three normal situations: a Stuff just constructed via
+`StuffApi.create` but not yet placed; a door that has been removed
+from its Boundary anchor; an item whose container was destroyed
+mid-frame.
+
+Detachment is a normal state, not an error. Subsystems that walk
+container chains, route messages, or compute perception MUST handle
+the null-env case without throwing. The matrix below is canonical;
+new code that touches a detached input has to land somewhere on it.
+
+| Subsystem | Site | Behavior on null env |
+|---|---|---|
+| MQL scope walks | `api/mql/resolver.ts:165, 520, 817, 836` | Silently skip the detached Stuff; resolver continues with what's left. Empty results are normal. |
+| MQL scope-walk helper | `api/mql/scope-walk.ts:116, 147` | Returns `[]` when the giver has no environment. |
+| MQL predicates | `api/mql/predicates.ts:61, 65` | `inLocation` / `peers` return `false`. |
+| Command scoping | `lib/command/CommandGiver.ts:367` | A detached giver's environment-bucket is empty; recency stack reflects only `self` + `inventory`. |
+| Perception (canSee) | `api/light.ts:164` | `LightApi.canSee` returns `false` for a detached target. The shadow seam still fires for per-viewer overrides. |
+| Mudlog routing | `api/message.ts:237, 411` | `MudlogApi.peers` walks no further. `messageContainer` warns once and returns; nothing is delivered. |
+| Boundary (ExitableVessel) | `lib/boundary/ExitableVessel.ts:121, 161, 185` | `getExit` returns `undefined` for a detached vessel. The vessel is still reachable through its interior. |
+| Light source notification | `lib/perception/LightSource.ts:156-168` | A detached LightSource emits no notifications. |
+| Containment move | `api/containment.ts:107` | Detached → null is a no-op; detached → present follows the regular path with no `from` to remove from. |
+| Mobile traversal | `lib/spatial/Mobile.ts:286` | A detached mover can `traverse`; no leaving-message fires (no `previous` to address). |
+| Login | `obj/Login.ts:125` | If an avatar is detached at login time, the login frame announces "you are nowhere" and routes to `/void`. |
+
+By behavior class: silently-skip / empty-result for the MQL stack and
+command scoping; `false` for `canSee`; `undefined` for boundary
+queries; warn-and-return for `messageContainer`. **Nothing throws.**
+Code that throws on null-env is a bug — file the regression as a
+matrix-invariant violation. Regression tests live in
+`lib/spatial/__tests__/Containable.nullEnv.test.ts`.
+
 ## Locations
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:

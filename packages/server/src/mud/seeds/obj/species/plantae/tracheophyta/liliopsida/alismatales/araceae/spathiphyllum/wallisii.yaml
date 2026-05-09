@@ -8,7 +8,7 @@ data:
   commonNames: ["peace lily", "houseplant"]
   _bodyPlanPath: /obj/body-plans/sessile
   _parentCladePath: /obj/species/plantae
-  _defaultMaterialPath: /domain/material/plant-tissue
+  _defaultMaterialPath: /material/plant-tissue
   lifecycleStates: ["alive", "dead"]
   sexDeterminationSystem: monoecious
   reproductiveMode: sexual

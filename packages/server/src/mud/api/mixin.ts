@@ -52,7 +52,7 @@ import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { Perception } from '../lib/perception/Perception';
-import type { Tangible } from '../lib/stuff/Tangible';
+import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import { SecurityApi } from './security';

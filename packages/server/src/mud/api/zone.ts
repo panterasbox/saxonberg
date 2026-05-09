@@ -1,83 +1,128 @@
 /**
- * ZoneApi — template-path → spatial-Zone resolution.
+ * ZoneApi — template-path → spatial-Zone resolution + folder/spatial
+ * class predicates.
  *
- * A Stuff's `zone` is derived from the nearest ancestor path in the
- * `domain` collection whose template resolves to a *spatial* Zone class
- * (`SPATIAL_ZONE_CLASS_PATHS`). ZoneApi is the single entry point for
- * that derivation.
+ * Two concerns this module owns:
  *
- * Caching is delegated to `StuffApi.singleton()` — Zone subclasses compose
- * `SingletonMixin`, so any clone-by-path resolves to a unique instance and
- * subsequent `singleton()` calls hit the cache automatically. ZoneApi no
- * longer maintains its own `zoneByPath` / `zoneByStuffId` indexes.
+ * 1. Resolve a template path to its nearest *spatial* zone via
+ *    `resolveZoneForPath`. Stuff stamping (the `Stuff.zone` field)
+ *    walks ancestor paths nearest-first, picking the first ancestor
+ *    whose `class:` resolves to a `SpatialZone` subclass. Non-spatial
+ *    Zone subclasses (Clade, future taxonomic / permission scopes)
+ *    are skipped — they're folders for the template-tree invariant,
+ *    but never become a `Stuff.zone`.
  *
- * **Two class-path sets** drive different concerns:
+ * 2. Answer "is this class a folder?" / "is this class a spatial
+ *    zone?" via `isFolderClass` / `isSpatialZoneClass`. The check is
+ *    structural: dynamic-import the class from its path-string,
+ *    consult `prototype instanceof Zone` (or `instanceof SpatialZone`
+ *    for the subset). Content devs add folder/spatial-zone classes by
+ *    `extends Zone` / `extends SpatialZone` — no central allow-list
+ *    to edit.
  *
- * - `FOLDER_CLASS_PATHS` — every Zone subclass that participates in the
- *   folder/leaf invariant. Drives `TemplateApi.validateFolderLeafSave` /
- *   `validateFolderLeafDelete` (i.e. "this template kind may have
- *   descendants"). Includes spatial Zones (`CartesianZone`,
- *   `SphericalZone`) and non-spatial Zones (`Clade`, future
- *   permission-grouping zones, future runtime-rule scopes).
- *
- * - `SPATIAL_ZONE_CLASS_PATHS` — the strict subset whose templates
- *   stamp `Stuff.zone` via `resolveZoneForPath`. Non-spatial Zones do
- *   NOT participate in `Stuff.zone` because the field is the
- *   nearest-spatial-zone reference, not a generic folder reference.
- *
- * `SPATIAL_ZONE_CLASS_PATHS ⊂ FOLDER_CLASS_PATHS`. Adding a new spatial
- * Zone subclass means adding its class path to BOTH; adding a new
- * non-spatial Zone (a future taxonomic, permission, or rule scope)
- * means adding it to `FOLDER_CLASS_PATHS` only.
+ * Caching is delegated to `StuffApi.singleton()` (for runtime
+ * instances) and to a per-classPath result map below (for the
+ * structural checks). The dynamic import itself is also cached by the
+ * JS module cache; the local maps just save the prototype walk.
  */
 
 import { StuffApi } from './stuff';
 import { Template } from '../lib/stuff/Template';
-import type { SpatialZone } from '../lib/spatial/SpatialZone';
+import { Zone } from '../lib/spatial/Zone';
+import { SpatialZone } from '../lib/spatial/SpatialZone';
 import { SecurityApi } from './security';
 
 /**
- * Class paths (as stored in `domain.class`) whose templates participate
- * in the folder/leaf invariant — i.e. "this template kind may have
- * descendant templates beneath it." Used by `TemplateApi`.
- *
- * Includes every Zone subclass: spatial (CartesianZone, SphericalZone)
- * and non-spatial (Clade — taxonomic scope unit). The non-spatial
- * entries are the live demonstration of the Phase Z3 split:
- * `FOLDER_CLASS_PATHS` ⊋ `SPATIAL_ZONE_CLASS_PATHS`.
+ * Cache of `classPath → prototype instanceof Zone` results. The check
+ * is structural and stable across the process lifetime — a class
+ * that extends Zone today still extends it tomorrow. Cleared by
+ * `_clearClassCaches` for tests.
  */
-export const FOLDER_CLASS_PATHS: ReadonlySet<string> = new Set<string>([
-  '/lib/spatial/CartesianZone',
-  '/lib/spatial/SphericalZone',
-  '/lib/species/Clade',
-]);
+const folderClassCache = new Map<string, boolean>();
+const spatialZoneClassCache = new Map<string, boolean>();
 
-/**
- * Class paths whose templates stamp `Stuff.zone` via the
- * `resolveZoneForPath` walk. Strict subset of `FOLDER_CLASS_PATHS`:
- * non-spatial Zones (Clade) are folders but never become a `Stuff.zone`.
- *
- * Add a new spatial Zone subclass here AND in `FOLDER_CLASS_PATHS`.
- */
-export const SPATIAL_ZONE_CLASS_PATHS: ReadonlySet<string> = new Set<string>([
-  '/lib/spatial/CartesianZone',
-  '/lib/spatial/SphericalZone',
-]);
+interface ClassWithPrototype {
+  prototype: object;
+}
+
+function hasPrototype(value: unknown): value is ClassWithPrototype {
+  return (
+    typeof value === 'function' &&
+    typeof (value as { prototype?: unknown }).prototype === 'object' &&
+    (value as { prototype?: unknown }).prototype !== null
+  );
+}
 
 export class ZoneApi {
+  /**
+   * Does the class at `classPath` extend `Zone`? Folder classes (the
+   * folder/leaf invariant's "may have descendants" set) are exactly
+   * the Zone subclasses; this predicate is what `Template.findByPath`
+   * and `TemplateApi.validateFolderLeaf*` consult.
+   *
+   * Result is cached per classPath. Returns `false` when the class
+   * fails to import or has no prototype chain (e.g. a typoed path) —
+   * the caller's path validation surfaces those errors separately.
+   */
+  public static async isFolderClass(classPath: string): Promise<boolean> {
+    const cached = folderClassCache.get(classPath);
+    if (cached !== undefined) return cached;
+    let result = false;
+    try {
+      const cls = await StuffApi.loadClassByPath(classPath);
+      result = hasPrototype(cls) && cls.prototype instanceof Zone;
+    } catch {
+      result = false;
+    }
+    folderClassCache.set(classPath, result);
+    return result;
+  }
+
+  /**
+   * Does the class at `classPath` extend `SpatialZone`? The strict
+   * subset of folder classes that stamp `Stuff.zone`. Non-spatial
+   * Zones (Clade) return `false` here even though `isFolderClass`
+   * returns `true` for them.
+   */
+  public static async isSpatialZoneClass(classPath: string): Promise<boolean> {
+    const cached = spatialZoneClassCache.get(classPath);
+    if (cached !== undefined) return cached;
+    let result = false;
+    try {
+      const cls = await StuffApi.loadClassByPath(classPath);
+      result = hasPrototype(cls) && cls.prototype instanceof SpatialZone;
+    } catch {
+      result = false;
+    }
+    spatialZoneClassCache.set(classPath, result);
+    return result;
+  }
+
+  /**
+   * Test seam: clear the structural-check caches. Production code
+   * never invalidates — the prototype chain of a class is stable —
+   * but tests that mock dynamic imports want fresh lookups per case.
+   * @internal
+   */
+  public static _clearClassCaches(): void {
+    SecurityApi.assertTestOnly('_clearClassCaches');
+    folderClassCache.clear();
+    spatialZoneClassCache.clear();
+  }
+
   /**
    * Resolve the nearest *spatial* zone for a template path.
    *
    * Walks ancestor paths from nearest to root; returns the singleton
-   * SpatialZone at the first ancestor whose template's `class` is in
-   * `SPATIAL_ZONE_CLASS_PATHS`. Non-spatial zone ancestors (Clades,
-   * future permission/rule scopes) are skipped — they're folders for
-   * the template-tree invariant, but not the spatial zone for the
+   * SpatialZone at the first ancestor whose template's class extends
+   * `SpatialZone`. Non-spatial zone ancestors (Clades, future
+   * permission/rule scopes) are skipped — they're folders for the
+   * template-tree invariant, but not the spatial zone for the
    * descendant.
    *
    * Returns `null` when:
-   *   - The template at `templatePath` is itself a spatial Zone (a zone
-   *     isn't inside itself).
+   *   - The template at `templatePath` is itself a spatial Zone (a
+   *     zone isn't inside itself).
    *   - No ancestor resolves to a spatial Zone template.
    *
    * Calls `StuffApi.singleton(ancestor)` so the second resolution for
@@ -89,14 +134,14 @@ export class ZoneApi {
     templatePath: string
   ): Promise<SpatialZone | null> {
     const selfTemplate = await Template.findByPath(templatePath);
-    if (selfTemplate && SPATIAL_ZONE_CLASS_PATHS.has(selfTemplate.class)) {
+    if (selfTemplate && (await ZoneApi.isSpatialZoneClass(selfTemplate.class))) {
       return null;
     }
 
     for (const ancestor of Template.ancestorPaths(templatePath)) {
       const ancestorTpl = await Template.findByPath(ancestor);
       if (!ancestorTpl) continue;
-      if (!SPATIAL_ZONE_CLASS_PATHS.has(ancestorTpl.class)) continue;
+      if (!(await ZoneApi.isSpatialZoneClass(ancestorTpl.class))) continue;
       return await StuffApi.singleton<SpatialZone>(ancestor);
     }
     return null;

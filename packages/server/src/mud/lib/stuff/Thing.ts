@@ -13,7 +13,7 @@
 
 import { Stuff } from './Stuff';
 import { ContainableMixin } from '../spatial/Containable';
-import { TangibleMixin } from './Tangible';
+import { TangibleMixin } from '../material/Tangible';
 
 const ThingBase = TangibleMixin(ContainableMixin(Stuff));
 

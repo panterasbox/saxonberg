@@ -24,7 +24,6 @@ import type { Door } from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import { Exit } from './Exit';
 import { CartesianZone } from '../spatial/CartesianZone';
-import { SpatialZone } from '../spatial/SpatialZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -183,12 +182,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
       // `SpatialZone.deriveExit` is polymorphic: CartesianZone synthesizes
       // a grid-adjacent Exit, SphericalZone always returns undefined.
-      // Non-spatial Zone subclasses (Clade) never stamp onto Stuff.zone
-      // (see ZoneApi.resolveZoneForPath / SPATIAL_ZONE_CLASS_PATHS), but
-      // we narrow defensively: the field type is `Zone | null`.
+      // `Stuff.zone` is typed `SpatialZone | null` — non-spatial Zone
+      // subclasses (Clade) never stamp here, so no narrowing needed.
       const zone = (this as unknown as Stuff).getZone();
-      if (!(zone instanceof SpatialZone)) return undefined;
-      return zone.deriveExit(
+      return zone?.deriveExit(
         this as unknown as import('../stuff/Location').Location,
         direction
       );
@@ -221,7 +218,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       }
 
       const zone = (this as unknown as Stuff).getZone();
-      if (zone instanceof SpatialZone && zone.hasDerivedAdjacency()) {
+      if (zone?.hasDerivedAdjacency()) {
         for (const dir of NavigationApi.cardinalDirections()) {
           if (seen.has(dir)) continue;
           const exit = zone.deriveExit(

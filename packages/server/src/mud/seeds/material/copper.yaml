@@ -1,5 +1,5 @@
 # Copper — soft red metal. Excellent conductor; minor ferromagnetism.
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: copper

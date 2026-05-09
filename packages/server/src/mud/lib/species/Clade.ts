@@ -10,9 +10,10 @@
  * Why bare-`Zone` and not `SpatialZone`: the race-slate-locked
  * decision is "Stuff.zone is the nearest spatial zone, not a generic
  * folder reference." Clades participate in the folder/leaf invariant
- * (they're in `FOLDER_CLASS_PATHS`) but are deliberately excluded from
- * `SPATIAL_ZONE_CLASS_PATHS` so a species member's `Stuff.zone` reads
- * `null` instead of pointing at its kingdom.
+ * (`ZoneApi.isFolderClass(/lib/species/Clade)` returns true via
+ * `prototype instanceof Zone`) but `ZoneApi.isSpatialZoneClass`
+ * returns false — so a species member's `Stuff.zone` reads `null`
+ * instead of pointing at its kingdom.
  *
  * v1 ships kingdom-rank Clades only (Animalia, Plantae, Fungi,
  * Constructa). Sub-clades, family ranks, and per-Clade defaults

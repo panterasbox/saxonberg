@@ -15,7 +15,7 @@
  */
 
 import { Stuff } from './Stuff';
-import { TangibleMixin } from './Tangible';
+import { TangibleMixin } from '../material/Tangible';
 
 const AgentBase = TangibleMixin(Stuff);
 

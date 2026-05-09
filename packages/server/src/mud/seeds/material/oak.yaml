@@ -1,6 +1,6 @@
 # Oak — dense hardwood. Flammable, opaque, organic. Standard wood for
 # tool handles, doors, and furniture.
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: oak

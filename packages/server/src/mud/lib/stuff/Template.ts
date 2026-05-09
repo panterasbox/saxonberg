@@ -29,7 +29,7 @@
 import { Persistable } from '../persistence/Persistable';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
-import { FOLDER_CLASS_PATHS } from '../../api/zone';
+import { ZoneApi } from '../../api/zone';
 
 /**
  * Doc shape we pull off the `domain` collection. The `class` field drives
@@ -61,10 +61,11 @@ export abstract class Template extends Persistable {
   /**
    * Materialize a doc as the right `Template` subclass.
    *
-   * Folder classes (those in `FOLDER_CLASS_PATHS`) become `ZoneTemplate`;
-   * everything else becomes `LeafTemplate`. The two subclasses share fields
-   * and persistence; the type distinction is what lets callers reason
-   * about folder-vs-leaf without sniffing `class`.
+   * Folder classes (`Zone` subclasses, per `ZoneApi.isFolderClass`)
+   * become `ZoneTemplate`; everything else becomes `LeafTemplate`.
+   * The two subclasses share fields and persistence; the type
+   * distinction is what lets callers reason about folder-vs-leaf
+   * without sniffing `class`.
    *
    * Constructed via `StuffApi.create` so the loaded record is registered
    * + proxy-wrapped like any other Stuff.
@@ -74,7 +75,7 @@ export abstract class Template extends Persistable {
     // Lazy imports to dodge the cycle: ZoneTemplate / LeafTemplate
     // extend Template, but Template needs to construct them. Module
     // initialization order makes the eager form unsafe.
-    const isFolder = FOLDER_CLASS_PATHS.has(classPath);
+    const isFolder = await ZoneApi.isFolderClass(classPath);
     let instance: Template;
     if (isFolder) {
       const { ZoneTemplate } = await import('./ZoneTemplate');

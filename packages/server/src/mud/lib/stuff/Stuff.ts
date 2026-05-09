@@ -37,7 +37,7 @@ import { ModuleApi } from '../../api/module';
  * branch registry — identity-based, no instantiation through this.
  */
 type AnyClassRef = abstract new (...args: never[]) => unknown;
-import type { Zone } from '../spatial/Zone';
+import type { SpatialZone } from '../spatial/SpatialZone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
@@ -78,24 +78,31 @@ export abstract class Stuff {
   }
 
   /**
-   * Zone this object belongs to. Universal subdivision of the MUD domain.
+   * Spatial zone this object belongs to. Stamped at clone-time from the
+   * nearest spatial-zone ancestor via `ZoneApi.resolveZoneForPath`, or
+   * left null when no spatial ancestor exists.
    *
-   * Stamped at clone-time from the template path (see ZoneApi), or on first
-   * placement via ContainmentApi.move() when null. Runtime-only for now: Zone
-   * references are not auto-persisted (mirrors how `inventory`/`environment`
-   * are handled — they are runtime references, and the authoritative source
-   * for zone membership is the `domain` template path at clone time).
+   * The field is narrowed to `SpatialZone` (not the bare `Zone` base):
+   * non-spatial Zone subclasses (`Clade`, future taxonomic / permission
+   * scopes) NEVER stamp here. The folder-of-templates membership lives
+   * in the template-tree structure; only spatial zones — the things
+   * that own a `Set<Location>` and a `deriveExit` strategy — go on
+   * `Stuff.zone`. Callers who want "what folder does this template path
+   * sit under" should consult the template tree, not this field.
+   *
+   * Runtime-only: not auto-persisted (the authoritative source is the
+   * `domain` template path at clone time).
    *
    * Framework carve-out: domain code uses `getZone()` / `setZone()`;
    * framework code reads via bracket cast (PASSTHROUGH_KEYS in
    * `proxy.ts` skips the proxy pipeline for this slot). Same shape
    * as `templatePath` above.
    */
-  protected zone: Zone | null = null;
-  public getZone(): Zone | null {
+  protected zone: SpatialZone | null = null;
+  public getZone(): SpatialZone | null {
     return this.zone;
   }
-  public setZone(value: Zone | null): void {
+  public setZone(value: SpatialZone | null): void {
     this.zone = value;
   }
 

@@ -159,9 +159,10 @@ describe('ZoneApi.resolveZoneForPath', () => {
   });
 
   it('skips a non-spatial folder ancestor (Clade) during the walk', async () => {
-    // Clade is in FOLDER_CLASS_PATHS but NOT in
-    // SPATIAL_ZONE_CLASS_PATHS. A species member at this path has no
-    // spatial zone ancestor, so the walk returns null even though
+    // Clade extends Zone (so ZoneApi.isFolderClass returns true) but
+    // does NOT extend SpatialZone (so isSpatialZoneClass returns
+    // false). A species member at this path has no spatial zone
+    // ancestor, so the walk returns null even though
     // /obj/species/animalia is a legal folder ancestor.
     installInMemoryStore([
       {
@@ -198,7 +199,7 @@ describe('Zone is set at clone time, not on move', () => {
   it('move does not restamp the item zone', async () => {
     const park = makeStuff(() => new CartesianLocation());
 
-    const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/Zone').Zone;
+    const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/SpatialZone').SpatialZone;
     park.setZone(zoneRef);
 
     // Item created without a zone — `ContainmentApi.move` does NOT

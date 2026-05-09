@@ -1,6 +1,6 @@
 # Steel — iron–carbon alloy. Harder than iron, similarly conductive,
 # the standard for swords/armor.
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: steel

@@ -104,10 +104,6 @@ behavior. Read the relevant doc before editing in its area.
     `BodyPlan` + `Species` templates, `OrganismMixin`, `SexedMixin`,
     `SpeciesApi` (kingdom resolution, lifecycle predicates,
     `isAnimate`), animacy gating at the command layer
-  - [null-environment.md](./docs/subsystems/null-environment.md) —
-    behavior matrix for detached Stuff (`environment === null`)
-    across MQL, command scoping, perception, mudlog routing,
-    boundary, and locomotion
 
 ## Development Commands
 

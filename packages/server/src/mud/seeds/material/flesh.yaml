@@ -1,6 +1,6 @@
 # Flesh — generic animal tissue. Soft, flammable when dry, edible
 # (with carnivore/detrivore caveats; v1 has no DietApi consumer).
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: flesh

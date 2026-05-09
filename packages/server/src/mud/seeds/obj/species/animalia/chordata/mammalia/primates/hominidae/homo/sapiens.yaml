@@ -8,7 +8,7 @@ data:
   commonNames: ["human", "man", "person"]
   _bodyPlanPath: /obj/body-plans/biped
   _parentCladePath: /obj/species/animalia
-  _defaultMaterialPath: /domain/material/flesh
+  _defaultMaterialPath: /material/flesh
   lifecycleStates: ["alive", "dead", "undead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

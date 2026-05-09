@@ -23,8 +23,7 @@
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
-import { SpatialZone } from '../spatial/SpatialZone';
-import { TangibleMixin } from './Tangible';
+import { TangibleMixin } from '../material/Tangible';
 
 const LocationBase = TangibleMixin(AdornableMixin(ContainerMixin(Stuff)));
 
@@ -44,7 +43,7 @@ export class Location extends LocationBase {
    */
   protected override prepareDestroy(): void {
     const zone = this.getZone();
-    if (zone instanceof SpatialZone) {
+    if (zone) {
       zone.removeLocation(this);
     }
     (super.prepareDestroy as (() => void) | undefined)?.call(this);

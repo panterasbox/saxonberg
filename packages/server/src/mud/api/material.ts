@@ -1,32 +1,41 @@
 /**
- * MaterialApi — bulk-material lookup for any Stuff.
+ * MaterialApi — facade for material-world queries on any Stuff.
  *
- * Single entry point so callers don't have to know whether the Stuff in
- * hand composes `TangibleMixin`. Non-Tangible Stuff (Ideas, command
- * staging entities, raw `Agent` subclasses without bulk physical
- * presence) return `null` here.
+ * Today this is a thin shim over `Tangible.getMaterial`: dispatch on
+ * `MixinApi.isTangible`, return the singleton, return `null` for
+ * non-Tangible Stuff. The narrowness is by design — content has zero
+ * material consumers in v1, so the surface lands as the consumers
+ * arrive.
  *
- * v1 is bulk-only: one Material per Stuff. The slate explicitly defers
- * per-Detail materials (the wood haft vs iron head of an axe). When
- * tissues / per-Detail authoring lands, this Api gains a `detailKey`
- * parameter; today it does NOT.
+ * Architecturally this is the home for "physical-world constraints"
+ * queries. Future surface (lands as consumers do, not speculatively):
+ * `weightOf(stuff)` (density × volume), `damageResistance(stuff,
+ * damageType, detailKey?)`, `flammabilityOf(stuff, detailKey?)`,
+ * `canConduct(stuff, kind)`, `nutrientsOf(stuff, detailKey?)`. The
+ * counterpart to ZoneApi/ContainmentApi for the spatial side.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Material } from '../lib/stuff/Material';
+import type { Material } from '../lib/material/Material';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
 export class MaterialApi {
   /**
-   * Resolve the bulk Material singleton for `stuff`, or `null` if `stuff`
-   * is not Tangible (or is Tangible but unset). Sync; threads through
-   * `Tangible.getMaterial()`, which uses `findByTemplatePath` for HMR
-   * safety.
+   * Resolve the Material at `detailKey`, falling through to the bulk
+   * default when no per-Detail override is set. Omit `detailKey` to
+   * read the bulk default directly. Returns `null` when `stuff` is
+   * not Tangible (or is Tangible but unset).
+   *
+   * Sync; threads through `Tangible.getMaterial`, which uses
+   * `findByTemplatePath` for HMR safety.
    */
-  public static materialOf(stuff: Stuff): Material | null {
+  public static materialOf(
+    stuff: Stuff,
+    detailKey?: string
+  ): Material | null {
     if (!MixinApi.isTangible(stuff)) return null;
-    return stuff.getMaterial();
+    return stuff.getMaterial(detailKey);
   }
 }
 

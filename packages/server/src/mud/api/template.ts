@@ -18,7 +18,7 @@
  *   - Leaves  = any non-Zone template. MUST NOT have descendant templates.
  */
 
-import { FOLDER_CLASS_PATHS } from './zone';
+import { ZoneApi } from './zone';
 import { Template } from '../lib/stuff/Template';
 import { ZoneTemplate } from '../lib/stuff/ZoneTemplate';
 import { LeafTemplate } from '../lib/stuff/LeafTemplate';
@@ -54,7 +54,7 @@ export class TemplateApi {
   ): Promise<string> {
     const tpl =
       (await Template.findByPath(path)) ??
-      (FOLDER_CLASS_PATHS.has(classPath)
+      ((await ZoneApi.isFolderClass(classPath))
         ? await StuffApi.create(() => new ZoneTemplate())
         : await StuffApi.create(() => new LeafTemplate()));
     tpl.path = path;
@@ -82,8 +82,10 @@ export class TemplateApi {
    *   4. Any save under a non-Zone ancestor — "Ancestor `A` is a leaf
    *      template, not a zone folder."
    *
-   * Zone classification uses the runtime `class` field (matched against
-   * `FOLDER_CLASS_PATHS`); `hydratorClass` is orthogonal to zonehood.
+   * Zone classification uses the runtime `class` field via
+   * `ZoneApi.isFolderClass` — a Zone subclass extends `Zone`,
+   * regardless of whether anyone registered it in a central
+   * allow-list. `hydratorClass` is orthogonal to zonehood.
    */
   public static async validateFolderLeafSave(
     doc: Record<string, unknown>
@@ -99,11 +101,11 @@ export class TemplateApi {
       throw new TemplateError(`Template path must start with '/': ${path}`);
     }
 
-    const isZone = FOLDER_CLASS_PATHS.has(classPath);
+    const isZone = await ZoneApi.isFolderClass(classPath);
 
     for (const ancestor of Template.ancestorPaths(path)) {
       const ancestorTpl = await Template.findByPath(ancestor);
-      if (ancestorTpl && !FOLDER_CLASS_PATHS.has(ancestorTpl.class)) {
+      if (ancestorTpl && !(await ZoneApi.isFolderClass(ancestorTpl.class))) {
         throw new TemplateError(
           `Ancestor '${ancestor}' is a leaf template, not a zone folder; cannot place children under it.`
         );
@@ -131,7 +133,7 @@ export class TemplateApi {
   public static async validateFolderLeafDelete(id: string): Promise<void> {
     const tpl = await Template.loadById(id);
     if (!tpl) return;
-    if (!FOLDER_CLASS_PATHS.has(tpl.class)) return;
+    if (!(await ZoneApi.isFolderClass(tpl.class))) return;
     const children = await Template.findDescendants(tpl.path);
     if (children.length > 0) {
       throw new TemplateError(

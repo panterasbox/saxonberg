@@ -8,19 +8,19 @@
  * physics. Per-object variation lives elsewhere — the bulk Material is
  * shared.
  *
- * v1 ships only **bulk** material — one Material per Tangible Stuff. Per-
- * Detail materials (the wood haft vs iron head of an axe) and edibility
- * machinery (`DietApi`, `Edible`) are deferred. The fields below are
- * authored as data on Material templates and stay constant at runtime.
+ * Tangible Stuff carries a default bulk Material plus optional per-Detail
+ * overrides (the wood haft vs the iron head of an axe). Edibility tags
+ * (`edibility`, `nutrients`, `toxicity`) are authored here today; the
+ * `DietApi` consumer is deferred.
  *
- * Singleton-by-templatePath: every `/domain/material/<x>` template
- * resolves to the same instance via `StuffApi.singleton(path)` /
+ * Singleton-by-templatePath: every `/material/<x>` template resolves to
+ * the same instance via `StuffApi.singleton(path)` /
  * `findByTemplatePath`. Cross-references on other Stuff store the path
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { Idea } from './Idea';
-import { SingletonMixin } from './Singleton';
+import { Idea } from '../stuff/Idea';
+import { SingletonMixin } from '../stuff/Singleton';
 
 export class Material extends SingletonMixin(Idea) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */

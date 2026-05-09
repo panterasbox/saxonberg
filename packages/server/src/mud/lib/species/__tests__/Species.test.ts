@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Species } from '../Species';
 import { BodyPlan } from '../BodyPlan';
 import { Clade } from '../Clade';
-import { Material } from '../../stuff/Material';
+import { Material } from '../../material/Material';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -67,7 +67,7 @@ describe('Species', () => {
     );
     const flesh = withTemplatePath(
       makeStuff(() => new Material()),
-      '/domain/material/flesh'
+      '/material/flesh'
     );
 
     const sapiens = makeStuff(() => new Species());
@@ -76,7 +76,7 @@ describe('Species', () => {
     sapiens.setDefaultMaterial(flesh);
     expect(sapiens._bodyPlanPath).toBe('/obj/body-plans/biped');
     expect(sapiens._parentCladePath).toBe('/obj/species/animalia');
-    expect(sapiens._defaultMaterialPath).toBe('/domain/material/flesh');
+    expect(sapiens._defaultMaterialPath).toBe('/material/flesh');
     expect(sapiens.getBodyPlan()).toBe(biped);
     expect(sapiens.getParentClade()).toBe(animalia);
     expect(sapiens.getDefaultMaterial()).toBe(flesh);

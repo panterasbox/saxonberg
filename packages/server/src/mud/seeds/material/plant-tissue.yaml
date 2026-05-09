@@ -1,6 +1,6 @@
 # Plant tissue — soft cellulose-based. Living plant matter (a leaf, a
 # stem); distinct from oak (dead, processed wood). Flammable when dry.
-class: /lib/stuff/Material
+class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: plant-tissue

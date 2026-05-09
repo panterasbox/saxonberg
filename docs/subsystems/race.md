@@ -25,9 +25,9 @@ follow-on builds:
   not).
 - Diet (`DietApi`, `Edible`, `Portable`) — the data is authored,
   but no consumer reads it yet.
-- Per-Detail materials, tissue authoring, genetics, per-individual
-  feature mixins, polymorph, sleep/circadian, aging,
-  character-creation UI.
+- Tissue authoring (named Details with their own descriptions and
+  materials), genetics, per-individual feature mixins, polymorph,
+  sleep/circadian, aging, character-creation UI.
 
 ---
 
@@ -43,12 +43,16 @@ edibility/nutrient/toxicity tags reserved for the future DietApi.
 [cross-reference shape](#cross-references)). `getMaterial()` resolves
 on each call via `StuffApi.findByTemplatePath` — HMR-safe.
 
-`MaterialApi.materialOf(stuff)` is the single dispatch point for
-"what is this made of?" — returns the singleton if Tangible, `null`
-otherwise. v1 ships *bulk-only* (one Material per Stuff); per-Detail
-materials (the wood haft vs iron head of an axe) are deferred.
+`MaterialApi.materialOf(stuff, detailKey?)` is the single dispatch
+point for "what is this made of?" — returns the singleton if
+Tangible, `null` otherwise. With no `detailKey` it reads the Stuff's
+bulk default Material; with one, it reads the per-Detail override
+(falling through to the bulk default when no override is set). An
+axe with a wooden haft and an iron head: `setMaterial(oak)` for the
+bulk, `setMaterial(iron, 'head')` for the override; the head reads
+iron, everything else reads oak.
 
-The v1 roster (`/domain/material/<x>`):
+The v1 roster (`/material/<x>`):
 
 - `iron`, `steel`, `copper` — metals
 - `granite` — stone
@@ -63,26 +67,38 @@ These are leaf templates; Material isn't a folder class.
 
 ## Clade — taxonomic scope
 
-`Clade extends Zone` (the *bare* `Zone`, not `SpatialZone`). Joins
-`FOLDER_CLASS_PATHS` so taxonomic templates can hold descendants;
-deliberately stays out of `SPATIAL_ZONE_CLASS_PATHS` so a species
-member's `Stuff.zone` reads `null` rather than pointing at its
-kingdom (kingdoms aren't spatial).
+`Clade extends Zone` (the *bare* `Zone`, not `SpatialZone`).
+`ZoneApi.isFolderClass(/lib/species/Clade)` returns true (it extends
+Zone), so taxonomic templates can hold descendants under the
+folder/leaf invariant. `ZoneApi.isSpatialZoneClass` returns false
+(Clade does NOT extend SpatialZone), so a species member's
+`Stuff.zone` reads `null` rather than pointing at its kingdom —
+kingdoms aren't spatial.
 
 A Clade has a `name`, a `rank` (`'kingdom'` … `'species'`), and a
 runtime-only `Set<Species>` of members. Members are populated as
 Species singletons load.
 
-v1 ships kingdom-rank Clades only:
+**Sub-clade hierarchy is encoded in the template path itself**
+(`/obj/species/animalia/chordata/mammalia/.../sapiens`). Each path
+segment between the kingdom and the species leaf is a candidate
+sub-clade; v1 ships only the four kingdom-rank Clades because that's
+all `SpeciesApi.getKingdom` actually consults today, but any of the
+intermediate path segments can hold a `/lib/species/Clade` template
+the moment a content reason arrives — Phylum, Class, Order, Family,
+Genus all plug in without a schema change. `SpeciesApi`'s walk
+already iterates every ancestor segment looking for Clade
+singletons; populating intermediate Clades is purely additive.
+
+The four v1 kingdoms:
 
 - `/obj/species/animalia` — Animalia
 - `/obj/species/plantae` — Plantae
 - `/obj/species/fungi` — Fungi (no v1 species)
 - `/obj/species/constructa` — Constructa
 
-Sub-clades, family ranks, and per-Clade defaults (e.g. "all Hominidae
-default to body plan X") are deferred until a content reason for them
-arrives.
+Per-Clade defaults (e.g. "all Hominidae default to body plan X") are
+deferred until a sub-clade lands and earns the inheritance machinery.
 
 ---
 

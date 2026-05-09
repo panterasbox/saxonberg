@@ -32,7 +32,7 @@ import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { ContainableMixin } from '../spatial/Containable';
 import { AdornableMixin } from '../boundary/Adornable';
-import { TangibleMixin } from './Tangible';
+import { TangibleMixin } from '../material/Tangible';
 
 const VesselBase = TangibleMixin(
   AdornableMixin(ContainerMixin(ContainableMixin(Stuff)))

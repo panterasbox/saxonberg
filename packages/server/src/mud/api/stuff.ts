@@ -741,6 +741,55 @@ export class StuffApi {
     SecurityApi.assertTestOnly('_validateClassPath');
     return this.#validateClassPath(classPath);
   }
+
+  /**
+   * Load and return the class constructor at `classPath`.
+   *
+   * Public companion to the inline class-loading logic in `clone()`:
+   * validates the path, consults HotReloadApi for an override
+   * blueprint, and falls back to a bare dynamic import. Returns the
+   * raw constructor (typed as `unknown` — caller decides what to do
+   * with it).
+   *
+   * Used by `ZoneApi.isFolderClass` and `isSpatialZoneClass` to
+   * resolve a template's `class:` field to its TS class so the check
+   * can be `prototype instanceof Zone` rather than membership in a
+   * central allow-list. Content devs add a folder class by `extends
+   * Zone` — no central registry to edit.
+   */
+  public static async loadClassByPath(classPath: string): Promise<unknown> {
+    const validated = this.#validateClassPath(classPath);
+    const className = validated.split('/').pop()!;
+    const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(validated);
+
+    if (HotReloadApi.isFrozen(absoluteClassPath)) {
+      throw new Error(
+        `StuffApi.loadClassByPath('${classPath}'): no blueprint at ` +
+          `'${absoluteClassPath}' — was unloaded via HotReloadApi.unload`
+      );
+    }
+    const reloaded = HotReloadApi.getCurrentExport(absoluteClassPath, className);
+    if (reloaded) return reloaded;
+
+    const modulePath = `..${validated}.js`;
+    let module: Record<string, unknown>;
+    try {
+      module = (await import(modulePath)) as Record<string, unknown>;
+    } catch (error) {
+      throw new Error(
+        `StuffApi.loadClassByPath: failed to import ${classPath}: ` +
+          `${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    const ClassConstructor = module[className];
+    if (!ClassConstructor) {
+      throw new Error(
+        `StuffApi.loadClassByPath: class ${className} not found in module ` +
+          `${modulePath} (available exports: ${Object.keys(module).join(', ')})`
+      );
+    }
+    return ClassConstructor;
+  }
 }
 
 SecurityApi.decorateApiClass(StuffApi);
