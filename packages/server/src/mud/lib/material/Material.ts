@@ -40,7 +40,7 @@
  * identity carries the capability compose the mixin; everything else
  * stays plain `Material`.
  *
- * Singleton-by-templatePath: every `/material/<...>` template resolves
+ * Singleton-by-templatePath: every `/lib/material/<...>` template resolves
  * to the same instance via `StuffApi.singleton(path)` /
  * `findByTemplatePath`. Cross-references on other Stuff store the path
  * string and re-resolve on each call (HMR-safe — no cached instance).

@@ -163,16 +163,16 @@ describe('ZoneApi.resolveZoneForPath', () => {
     // does NOT extend SpatialZone (so isSpatialZoneClass returns
     // false). A species member at this path has no spatial zone
     // ancestor, so the walk returns null even though
-    // /obj/species/animalia is a legal folder ancestor.
+    // /lib/species/animalia is a legal folder ancestor.
     installInMemoryStore([
       {
-        path: '/obj/species/animalia',
+        path: '/lib/species/animalia',
         class: '/lib/species/Clade',
         data: { name: 'Animalia', rank: 'kingdom' },
       },
     ]);
     expect(
-      await ZoneApi.resolveZoneForPath('/obj/species/animalia/foo')
+      await ZoneApi.resolveZoneForPath('/lib/species/animalia/foo')
     ).toBeNull();
   });
 

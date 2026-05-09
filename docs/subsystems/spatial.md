@@ -305,33 +305,32 @@ adjacency**.
 is delegated to `StuffApi.singleton()` (Zones compose
 `SingletonMixin`); ZoneApi just owns the ancestor walk.
 
-`ZONE_CLASS_PATHS` is the whitelist of class paths that count as zone
-folders:
-
-```typescript
-export const ZONE_CLASS_PATHS = new Set<string>([
-  '/lib/spatial/CartesianZone',
-  '/lib/spatial/SphericalZone',
-]);
-```
-
-Adding a new Zone subclass = one line here. `TemplateApi` shares the
-same set to enforce the folder/leaf invariant on `domain` — see
+**`ZoneApi.isFolderClass(classPath)`** answers "does this class count
+as a zone folder?" — structural: `prototype instanceof Zone`. Any
+Zone subclass — spatial (`CartesianZone`, `SphericalZone`) or
+non-spatial (`Clade`, future taxonomic / permission scopes) — passes.
+`TemplateApi` consults this for the folder/leaf invariant — see
 [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant).
-This set is **structural** (which template kinds aggregate descendants),
-distinct from `SingletonMixin` composition (which classes are
-unique-per-templatePath); the two happen to overlap today but should
-not be conflated when adding new template kinds.
+
+**`ZoneApi.isSpatialZoneClass(classPath)`** is the strict subset:
+`prototype instanceof SpatialZone`. Only spatial Zones stamp
+`Stuff.zone`; non-spatial Zones (Clade) are folders but never become
+a `Stuff.zone` reference. Adding a new Zone subclass means
+`extends Zone` (or `extends SpatialZone` if it's a topographical
+flavor) — no central allow-list to edit. Both checks dynamic-import
+the class once and cache the result.
 
 `ZoneApi.resolveZoneForPath(templatePath)` walks ancestor paths
-nearest-first; returns the singleton Zone of the first ancestor whose
-template names a Zone class via `StuffApi.singleton(ancestor)`. The
-second resolution for the same zone path is an O(1) cache hit; first
-resolution clones. Returns `null` when:
+nearest-first, consulting `isSpatialZoneClass` to skip non-spatial
+Zone ancestors (Clades) during the walk. Returns the singleton
+SpatialZone at the first spatial-zone ancestor via
+`StuffApi.singleton(ancestor)`. The second resolution for the same
+zone path is an O(1) cache hit; first resolution clones. Returns
+`null` when:
 
-- The template at `templatePath` is itself a Zone (a zone isn't inside
-  itself).
-- No ancestor resolves to a Zone template.
+- The template at `templatePath` is itself a spatial Zone (a zone
+  isn't inside itself).
+- No ancestor resolves to a spatial Zone template.
 
 The clone pipeline calls `resolveZoneForPath` once at clone time and
 stamps the result onto `Stuff.zone` before hydrate, so anything

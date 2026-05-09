@@ -27,14 +27,14 @@ function setupAnimaliaOrganism(): {
 } {
   const animalia = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/animalia'
+    '/lib/species/animalia'
   );
   animalia.setName('Animalia');
   animalia.setRank('kingdom');
 
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+    '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -45,14 +45,14 @@ function setupAnimaliaOrganism(): {
 function setupConstructaOrganism(): InstanceType<typeof OrganismThing> {
   const constructa = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/constructa'
+    '/lib/species/constructa'
   );
   constructa.setName('Constructa');
   constructa.setRank('kingdom');
 
   const robot = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/constructa/metallica/tutor-bot/mk-iv'
+    '/lib/species/constructa/metallica/tutor-bot/mk-iv'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -131,13 +131,13 @@ describe('SpeciesApi', () => {
     it('Plantae: never animate (no Agent surface in v1)', () => {
       const plantae = withTemplatePath(
         makeStuff(() => new Clade()),
-        '/obj/species/plantae'
+        '/lib/species/plantae'
       );
       plantae.setName('Plantae');
       plantae.setRank('kingdom');
       const peace = withTemplatePath(
         makeStuff(() => new Species()),
-        '/obj/species/plantae/.../wallisii'
+        '/lib/species/plantae/.../wallisii'
       );
       const plant = makeStuff(() => new OrganismThing());
       plant.setSpecies(peace);

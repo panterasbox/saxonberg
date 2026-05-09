@@ -12,13 +12,13 @@
  * through the inherited `save`/`delete`/`findById`/`find` surface plus
  * the `findByPath` / `findDescendants` helpers below.
  *
- * **Phase Z2 (folder/leaf type split).** `Template` is now abstract;
- * concrete subclasses are `ZoneTemplate` (folders — anything in
- * `FOLDER_CLASS_PATHS`) and `LeafTemplate` (everything else). The
- * static helpers (`findByPath`, `findDescendants`, `findById`)
- * discriminate at load time by inspecting the `class` field; callers
- * that hold a `Template` get back the correct subclass without
- * needing to know.
+ * **Folder/leaf type split.** `Template` is abstract; concrete
+ * subclasses are `ZoneTemplate` (folders — any class extending
+ * `Zone`, detected via `ZoneApi.isFolderClass`) and `LeafTemplate`
+ * (everything else). The static helpers (`findByPath`,
+ * `findDescendants`, `loadById`) discriminate at load time by
+ * inspecting the `class` field; callers that hold a `Template` get
+ * back the correct subclass without needing to know.
  *
  * The folder/leaf invariant on the `domain` collection is enforced by
  * `DomainHook` against the `PersistenceManager` chokepoint — see

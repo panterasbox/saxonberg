@@ -16,7 +16,7 @@
  * `StuffApi.findByTemplatePath`. No instance caching, no marshaller —
  * HMR-safe by construction.
  *
- * Singleton-by-templatePath: every `/obj/species/.../<species>`
+ * Singleton-by-templatePath: every `/lib/species/.../<species>`
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 

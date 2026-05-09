@@ -53,7 +53,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
   it('decayProduct cross-reference resolves lazily', () => {
     const thorium = withTemplatePath(
       makeStuff(() => new RadioactiveMaterial()),
-      '/material/element/thorium'
+      '/lib/material/element/thorium'
     );
     thorium.setName('thorium');
 
@@ -62,7 +62,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     uranium.setDecayMode('alpha');
     uranium.setDecayProduct(thorium);
 
-    expect(uranium._decayProductPath).toBe('/material/element/thorium');
+    expect(uranium._decayProductPath).toBe('/lib/material/element/thorium');
     expect(uranium.getDecayProduct()).toBe(thorium);
   });
 
@@ -75,7 +75,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     const u = makeStuff(() => new RadioactiveMaterial());
     const product = withTemplatePath(
       makeStuff(() => new RadioactiveMaterial()),
-      '/material/element/thorium'
+      '/lib/material/element/thorium'
     );
     u.setDecayProduct(product);
     u.setDecayProduct(null);

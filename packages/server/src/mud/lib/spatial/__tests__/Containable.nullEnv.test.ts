@@ -2,7 +2,8 @@
  * Null-environment regression tests.
  *
  * Locks in the documented behavior matrix for detached Stuff
- * (`environment === null`) — see `docs/subsystems/null-environment.md`.
+ * (`environment === null`) — see
+ * `docs/subsystems/spatial.md § Detached Stuff (environment === null)`.
  * Each test exercises one row of the matrix from a real subsystem
  * entry point, asserting the documented outcome.
  *

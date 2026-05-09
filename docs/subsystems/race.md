@@ -106,20 +106,20 @@ bulk, `setMaterial(iron, 'head')` for the override.
 
 ### v1 roster
 
-Materials are organized under `/material/<category>/...`.
+Materials are organized under `/lib/material/<category>/...`.
 Categories track everyday "what kind of stuff is this" rather than
 a single science's classification — chemistry, biology, geology
 all overlay via tags. Path depth varies by branch: shallow where one
 level reads naturally; deeper when content earns it.
 
-- `/material/element/iron, copper, carbon` — pure elements
-- `/material/element/uranium` — `RadioactiveMaterial` (the
+- `/lib/material/element/iron, copper, carbon` — pure elements
+- `/lib/material/element/uranium` — `RadioactiveMaterial` (the
   capability-mixin demo)
-- `/material/alloy/steel` — Fe + C composition
-- `/material/rock/granite` — igneous; mineral composition unmodeled
+- `/lib/material/alloy/steel` — Fe + C composition
+- `/lib/material/rock/granite` — igneous; mineral composition unmodeled
   in v1
-- `/material/wood/oak` — once-living plant tissue
-- `/material/tissue/flesh, plant-tissue, fruit-flesh` — biological
+- `/lib/material/wood/oak` — once-living plant tissue
+- `/lib/material/tissue/flesh, plant-tissue, fruit-flesh` — biological
 
 These are leaf templates; Material isn't a folder class.
 
@@ -157,7 +157,7 @@ runtime-only `Set<Species>` of members. Members are populated as
 Species singletons load.
 
 **Sub-clade hierarchy is encoded in the template path itself**
-(`/obj/species/animalia/chordata/mammalia/.../sapiens`). Each path
+(`/lib/species/animalia/chordata/mammalia/.../sapiens`). Each path
 segment between the kingdom and the species leaf is a candidate
 sub-clade; v1 ships only the four kingdom-rank Clades because that's
 all `SpeciesApi.getKingdom` actually consults today, but any of the
@@ -169,10 +169,10 @@ singletons; populating intermediate Clades is purely additive.
 
 The four v1 kingdoms:
 
-- `/obj/species/animalia` — Animalia
-- `/obj/species/plantae` — Plantae
-- `/obj/species/fungi` — Fungi (no v1 species)
-- `/obj/species/constructa` — Constructa
+- `/lib/species/animalia` — Animalia
+- `/lib/species/plantae` — Plantae
+- `/lib/species/fungi` — Fungi (no v1 species)
+- `/lib/species/constructa` — Constructa
 
 Per-Clade defaults (e.g. "all Hominidae default to body plan X") are
 deferred until a sub-clade lands and earns the inheritance machinery.
@@ -215,7 +215,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `LightApi`
 
-The v1 acceptance roster (`/obj/species/...`):
+The v1 acceptance roster (`/lib/species/...`):
 
 | Path | Body plan | Kingdom | Notes |
 |---|---|---|---|
@@ -240,14 +240,13 @@ Species, with biological state." The mixin carries:
 `OrganismMixin` is composed:
 
 - Via `Character` — every Avatar is an Organism. Inserted between
-  `NamedMixin` and `GenderedMixin` (slate-locked composition order).
+  `NamedMixin` and `GenderedMixin` in the composition chain.
 - Via concrete plant/NPC subclasses — a houseplant Thing composes
   Organism on its own class.
 
 Detached tissue is **NOT** an Organism. The apple-on-the-ground case
 is `Tangible` (made of fruit-flesh) but not Organism — its parent
-tree is the organism, the apple is bulk material. This is the
-slate-locked "tissue is not an organism" rule.
+tree is the organism, the apple is bulk material.
 
 `getSex()` returns `null` by default; when the host also composes
 `SexedMixin`, that mixin's override shadows the default through the
@@ -366,13 +365,15 @@ replacement of singletons.
 
 ## See also
 
-- [zones-slate.md](../zones-slate.md) — zone/template refactor that
-  this subsystem builds on.
-- [race-slate.md](../race-slate.md) — the locked design slate.
 - [templates.md](./templates.md) — folder/leaf invariant, the
-  `ZoneTemplate` / `LeafTemplate` split.
-- [spatial.md](./spatial.md) — `Zone` / `SpatialZone` layering.
+  `ZoneTemplate` / `LeafTemplate` split, `ZoneApi.isFolderClass`.
+- [spatial.md](./spatial.md) — `Zone` / `SpatialZone` layering;
+  `ZoneApi.resolveZoneForPath`; null-environment behavior matrix.
 - [perception.md](./perception.md) — viewer-aware queries; species
   visionProfile feeds `LightApi`.
 - [mixins.md](./mixins.md) — composition mechanics for the new
   mixins.
+- [race-slate.md](../race-slate.md) — historical design rationale +
+  forward-looking notes for v1-deferred features (death/resurrection
+  flow, DietApi, tissue authoring at the Detail level, sleep,
+  polymorph, genetics).

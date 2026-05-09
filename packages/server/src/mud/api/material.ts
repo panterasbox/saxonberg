@@ -130,7 +130,7 @@ export class MaterialApi {
 }
 
 function everyMaterial(): Material[] {
-  return StuffApi.findByPathGlob<Material>('/material/**').filter((m) =>
+  return StuffApi.findByPathGlob<Material>('/lib/material/**').filter((m) =>
     isMaterial(m)
   );
 }

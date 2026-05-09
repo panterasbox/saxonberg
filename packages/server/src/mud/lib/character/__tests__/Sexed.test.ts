@@ -26,7 +26,7 @@ function withTemplatePath<T extends { templatePath: string | null }>(
 
 function setupSpecies(
   system: string,
-  path: string = '/obj/species/test'
+  path: string = '/lib/species/test'
 ): Species {
   const species = withTemplatePath(makeStuff(() => new Species()), path);
   species.setSexDeterminationSystem(system);

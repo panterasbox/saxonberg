@@ -59,24 +59,24 @@ describe('Species', () => {
   it('cross-references resolve lazily via templatePath', () => {
     const biped = withTemplatePath(
       makeStuff(() => new BodyPlan()),
-      '/obj/body-plans/biped'
+      '/lib/body-plans/biped'
     );
     const animalia = withTemplatePath(
       makeStuff(() => new Clade()),
-      '/obj/species/animalia'
+      '/lib/species/animalia'
     );
     const flesh = withTemplatePath(
       makeStuff(() => new Material()),
-      '/material/tissue/flesh'
+      '/lib/material/tissue/flesh'
     );
 
     const sapiens = makeStuff(() => new Species());
     sapiens.setBodyPlan(biped);
     sapiens.setParentClade(animalia);
     sapiens.setDefaultMaterial(flesh);
-    expect(sapiens._bodyPlanPath).toBe('/obj/body-plans/biped');
-    expect(sapiens._parentCladePath).toBe('/obj/species/animalia');
-    expect(sapiens._defaultMaterialPath).toBe('/material/tissue/flesh');
+    expect(sapiens._bodyPlanPath).toBe('/lib/body-plans/biped');
+    expect(sapiens._parentCladePath).toBe('/lib/species/animalia');
+    expect(sapiens._defaultMaterialPath).toBe('/lib/material/tissue/flesh');
     expect(sapiens.getBodyPlan()).toBe(biped);
     expect(sapiens.getParentClade()).toBe(animalia);
     expect(sapiens.getDefaultMaterial()).toBe(flesh);

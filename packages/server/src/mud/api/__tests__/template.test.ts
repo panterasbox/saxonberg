@@ -203,13 +203,13 @@ describe('TemplateApi.validateFolderLeafSave', () => {
 
   it('admits a non-spatial Zone (Clade) as a folder ancestor', async () => {
     await TemplateApi.saveTemplate(
-      '/obj/species/animalia',
+      '/lib/species/animalia',
       '/lib/species/Clade',
       { name: 'Animalia', rank: 'kingdom' }
     );
     await expect(
       TemplateApi.validateFolderLeafSave({
-        path: '/obj/species/animalia/foo',
+        path: '/lib/species/animalia/foo',
         class: '/lib/spatial/CartesianLocation',
       })
     ).resolves.toBeUndefined();

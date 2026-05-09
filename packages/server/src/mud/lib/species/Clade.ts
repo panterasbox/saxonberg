@@ -3,14 +3,14 @@
  *
  * `Clade` is the canonical first non-spatial Zone subclass: it inherits
  * the folder-of-templates contract from `Zone` (so Species templates
- * live under Clade folders, e.g. `/obj/species/animalia/.../sapiens`)
+ * live under Clade folders, e.g. `/lib/species/animalia/.../sapiens`)
  * but does NOT inherit any spatial behavior. A Clade has no Set of
  * Locations, no `deriveExit`; its members are `Species`.
  *
- * Why bare-`Zone` and not `SpatialZone`: the race-slate-locked
- * decision is "Stuff.zone is the nearest spatial zone, not a generic
- * folder reference." Clades participate in the folder/leaf invariant
- * (`ZoneApi.isFolderClass(/lib/species/Clade)` returns true via
+ * Why bare-`Zone` and not `SpatialZone`: `Stuff.zone` is the nearest
+ * spatial zone, not a generic folder reference. Clades participate
+ * in the folder/leaf invariant
+ * (`ZoneApi.isFolderClass('/lib/species/Clade')` returns true via
  * `prototype instanceof Zone`) but `ZoneApi.isSpatialZoneClass`
  * returns false — so a species member's `Stuff.zone` reads `null`
  * instead of pointing at its kingdom.
@@ -19,7 +19,7 @@
  * Constructa). Sub-clades, family ranks, and per-Clade defaults
  * (inheritable body plan) are deferred to follow-on builds.
  *
- * Singleton-by-templatePath: every `/obj/species/<kingdom>` template
+ * Singleton-by-templatePath: every `/lib/species/<kingdom>` template
  * resolves to the same instance via `StuffApi.singleton(path)`.
  */
 

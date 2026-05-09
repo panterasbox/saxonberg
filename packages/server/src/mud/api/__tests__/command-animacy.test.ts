@@ -42,14 +42,14 @@ function makeContext(
 function setupAnimaliaCharacter(): TestCharacter {
   const animalia = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/animalia'
+    '/lib/species/animalia'
   );
   animalia.setName('Animalia');
   animalia.setRank('kingdom');
 
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/animalia/.../sapiens'
+    '/lib/species/animalia/.../sapiens'
   );
   const character = makeStuff(() => new TestCharacter());
   character.setSpecies(sapiens);

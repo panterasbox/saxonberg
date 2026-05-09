@@ -1,5 +1,27 @@
 # Race / Species / Organism Requirements (working doc)
 
+> **Status: v1 shipped.** The implementation that this slate drove
+> is in the tree — see
+> [`docs/subsystems/race.md`](./subsystems/race.md) for the
+> current state of `Material`, `TangibleMixin`, `Clade`, `BodyPlan`,
+> `Species`, `OrganismMixin`, `SexedMixin`, `SpeciesApi`, the
+> animacy gating mechanism, and `RadioactiveMixin` (the
+> capability-mixin pattern demonstration).
+>
+> This slate retains: (a) **design rationale** for shipped decisions
+> (the "why we picked X over Y" context that doesn't live in the
+> subsystem doc), and (b) **forward-looking design** for v1-deferred
+> features (death/resurrection flow, DietApi + Edible + Portable,
+> tissue authoring at the Detail level, sleep/circadian, aging,
+> polymorph, genetics, character-creation UI, per-Clade defaults,
+> per-individual feature mixins, permission/rule machinery on
+> zones). Future implementors picking up those threads start here.
+>
+> Where this slate's "v1 ships X" claims diverge from what actually
+> shipped, the subsystem doc is authoritative.
+
+---
+
 Requirements for the race / species / organism subsystem (and, by
 virtue of organisms reaching for it, the `Material` substrate that
 all physical Stuff stands on). Intended audience: a planning agent

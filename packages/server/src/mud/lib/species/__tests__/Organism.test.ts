@@ -32,14 +32,14 @@ describe('OrganismMixin', () => {
     const sapiens = makeStuff(() => new Species());
     sapiens.setBinomial('Homo sapiens');
     sapiens.templatePath =
-      '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
     StuffApi.unregister(sapiens);
     StuffApi.register(sapiens);
 
     const organism = makeStuff(() => new OrganismThing());
     organism.setSpecies(sapiens);
     expect(organism._speciesPath).toBe(
-      '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
     );
     expect(organism.getSpecies()).toBe(sapiens);
   });

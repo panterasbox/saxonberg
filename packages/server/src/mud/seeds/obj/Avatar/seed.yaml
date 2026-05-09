@@ -27,5 +27,5 @@ data:
   # these values. Existing per-user templates predate this addition;
   # OrganismMixin's getSpecies() returns null and getLifecycleState()
   # returns '' for those, both safe no-ops.
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive

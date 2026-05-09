@@ -46,9 +46,10 @@ import { OrganismMixin } from '../species/Organism';
 // channel-side message receipt, Perception handles the subjective
 // interpretation seams that LightApi (and future hearing/etc.) ask
 // the viewer to modulate. See lib/perception/Perception.ts.
-// OrganismMixin sits between NamedMixin and GenderedMixin per the
-// race-slate-locked composition order. Avatars inherit a species/age/
-// lifecycle surface from this layer, alongside basic identity.
+// OrganismMixin sits between NamedMixin and GenderedMixin in the
+// composition chain — the slot puts a species/age/lifecycle surface
+// alongside basic identity, before the gender / sensory / perception
+// layers stack on top. See race.md for the rationale.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
     ContainerMixin(

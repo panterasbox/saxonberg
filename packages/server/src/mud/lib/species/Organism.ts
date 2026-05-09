@@ -9,8 +9,7 @@
  *
  * Detached tissue is NOT an Organism. The apple-on-the-ground case is
  * Tangible (made of fruit-flesh) but not Organism — its parent tree is
- * the organism, the apple is bulk material. This is the slate-locked
- * "tissue is not an organism" rule.
+ * the organism, the apple is bulk material. (See race.md.)
  *
  * **Cross-reference shape (LOCKED).** `_speciesPath` is the persistent
  * field; `getSpecies()` resolves on each call via
