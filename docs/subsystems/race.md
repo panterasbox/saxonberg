@@ -410,7 +410,7 @@ replacement of singletons.
   visionProfile feeds `LightApi`.
 - [mixins.md](./mixins.md) — composition mechanics for the new
   mixins.
-- [race-slate.md](../race-slate.md) — historical design rationale +
-  forward-looking notes for v1-deferred features (death/resurrection
+- [roadmap.md](../roadmap.md) — v1-deferred work (death/resurrection
   flow, DietApi, tissue authoring at the Detail level, sleep,
-  polymorph, genetics).
+  polymorph, genetics, character-creation UI). Each will land with
+  its own fresh slate when the build starts.
