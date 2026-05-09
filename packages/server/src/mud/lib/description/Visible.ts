@@ -46,12 +46,18 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'VisibleMixin';
 
     /**
-     * Command provider for visibility-related commands
+     * Command provider for visibility-related commands.
      *
-     * When an object is visible, others can "look" at it.
+     * Visible is "I can be seen" — so the contributions surface
+     * `look` on the buckets that mean "someone else has me in
+     * scope" (environment / inventory / peers). The actor-side
+     * contribution (`self`) lives on `PerceiverMixin`, which owns
+     * the "I can issue perception verbs" role. Splitting the two
+     * keeps Visible from claiming behaviour that's really the
+     * perceiver's.
      */
     static commandContributions: CommandContributions = {
-      self: ['look.yaml'],        // Can look at yourself
+      self: [],
       environment: ['look.yaml'], // Others can look at you in their environment
       inventory: ['look.yaml'],   // Others can look at you in their inventory
       peers: ['look.yaml'],       // Peers in the same environment can look at you

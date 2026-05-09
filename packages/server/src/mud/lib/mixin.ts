@@ -55,7 +55,8 @@ export const Mixins = {
   Radioactive: 'RadioactiveMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
-  Scry: 'ScryMixin',
+  Perceiver: 'PerceiverMixin',
+  Scryable: 'ScryableMixin',
 } as const;
 
 /**

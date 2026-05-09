@@ -84,7 +84,7 @@ export class ScryController extends CommandController<ScryModel> {
         commandGiver: giver as never,
         scope: 'reachable',
       });
-      if (r.stuff && isScryable(r.stuff)) return r.stuff;
+      if (r.stuff && MixinApi.isScryable(r.stuff)) return r.stuff;
       return null;
     }
     // Auto-resolve: walk the avatar's environment for any Scryable.
@@ -92,14 +92,14 @@ export class ScryController extends CommandController<ScryModel> {
       .getEnvironment?.();
     if (env && MixinApi.isContainer(env)) {
       for (const item of ContainmentApi.getContents(env)) {
-        if (isScryable(item)) {
+        if (MixinApi.isScryable(item)) {
           if (item.canScryFor(target).ok) return item;
         }
       }
     }
     if (MixinApi.isContainer(giver)) {
       for (const item of ContainmentApi.getContents(giver)) {
-        if (isScryable(item)) {
+        if (MixinApi.isScryable(item)) {
           if (item.canScryFor(target).ok) return item;
         }
       }
@@ -120,6 +120,3 @@ export class ScryController extends CommandController<ScryModel> {
   }
 }
 
-function isScryable(obj: Stuff): obj is Stuff & Scryable {
-  return (obj as unknown as { _isScryable?: boolean })._isScryable === true;
-}

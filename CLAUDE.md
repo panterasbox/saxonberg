@@ -117,10 +117,10 @@ behavior. Read the relevant doc before editing in its area.
     Stuff-wrapped sandbox, `forceX` parallel-API force-bypass
     shape, eval singleton lifecycle, future `--save` / `--mixin` /
     `--extends`
-  - [shell-scry.md](./docs/subsystems/shell-scry.md) —
-    `ScryMixin` at-a-distance perception (`scry`, `locate`),
-    `Scryable` / `ScryFocus` capability interfaces, instrument
-    auto-resolution
+  - [perceiver.md](./docs/subsystems/perceiver.md) —
+    `PerceiverMixin` (look / scry / locate verbs on the actor),
+    Sensor / Visible / Perceiver responsibility split,
+    `ScryableMixin` capability seam in `lib/perception/`
 
 ## Development Commands
 

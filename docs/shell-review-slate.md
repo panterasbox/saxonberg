@@ -283,12 +283,13 @@ plus whatever the spawn-location design lands.
 
 | Thread | Decision | Landed |
 |---|---|---|
-| H | `pickWorkspaceTree` standalone helper retired. Moved onto Workspace as `pickTree(flags)`. Added `getHome()` / `getPageSize()` accessors. `Workspace` interface extends `Environment` (compositional prereq). Controllers drop both `pickWorkspaceTree` and `resolveSetting` imports — call `giver.pickTree(model)` / `giver.getHome()` / `giver.getPageSize()` instead. `WorkspaceMixin`'s `TBase` constrains to `MixinConstructor<Stuff & Environment>`. The class drops `implements Workspace` because TS mixin-class typing doesn't merge inherited Base methods into the implements check; the `const w: Workspace = host` test assignment is the structural check. | ✓ pending commit |
+| H | `pickWorkspaceTree` standalone helper retired. Moved onto Workspace as `pickTree(flags)`. Added `getHome()` / `getPageSize()` accessors. `Workspace` interface extends `Environment` (compositional prereq). Controllers drop both `pickWorkspaceTree` and `resolveSetting` imports — call `giver.pickTree(model)` / `giver.getHome()` / `giver.getPageSize()` instead. `WorkspaceMixin`'s `TBase` constrains to `MixinConstructor<Stuff & Environment>`. The class drops `implements Workspace` because TS mixin-class typing doesn't merge inherited Base methods into the implements check; the `const w: Workspace = host` test assignment is the structural check. | ✓ c6bae78 |
+| C, F, G | New `PerceiverMixin` in `lib/description/Perceiver.ts` owns `look` / `scry` / `locate` on `self`. `Visible` keeps `look` only on `environment` / `inventory` / `peers` (target-side). Composed on `Character` adjacent to Sensor (Perceiver requires Sensor at the type level, mirrors the Workspace/Environment shape). `lib/shell/Scry.ts` retired; ScryMixin removed from ShelledCharacter. `Scryable` interface converted to `ScryableMixin` in `lib/perception/Scryable.ts`, extends `Visible` (anything scryable is visible). `ScryController` finds candidates via `MixinApi.isScryable(item)` instead of structural `_isScryable` marker. Doc retired: `shell-scry.md`. New doc: `subsystems/perceiver.md`. | ✓ pending commit |
 
 ## Cross-references
 
 - MR !15: feat(shell): WorkspaceMixin + AuthorMixin + ScryMixin + lifecycle refactor
 - [docs/subsystems/shell-workspace.md](./subsystems/shell-workspace.md)
 - [docs/subsystems/shell-author.md](./subsystems/shell-author.md)
-- [docs/subsystems/shell-scry.md](./subsystems/shell-scry.md) — likely deleted/renamed once the perceiver thread lands
+- [docs/subsystems/perceiver.md](./subsystems/perceiver.md) — new (replaces shell-scry.md)
 - [docs/subsystems/command-spec.md](./subsystems/command-spec.md) — `type: struct` section
