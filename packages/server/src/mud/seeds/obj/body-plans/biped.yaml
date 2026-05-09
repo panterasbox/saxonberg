@@ -1,0 +1,26 @@
+# Biped — two legs, two prehensile hands, upright. Shared by humans,
+# dwarves, elves, orcs, halflings. Sensory anatomy: two frontal eyes,
+# two lateral ears, one forward nose. Capability variance lives on
+# species, not here.
+class: /lib/species/BodyPlan
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: biped
+  wornSlots:
+    - head
+    - torso
+    - legs
+    - feet
+    - hands
+    - finger:left
+    - finger:right
+    - neck
+  heldSlots:
+    - hand:left
+    - hand:right
+  locomotionModes:
+    - walk
+  sensoryPorts:
+    - { modality: sight, count: 2, position: frontal }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: smell, count: 1, position: forward }

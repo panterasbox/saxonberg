@@ -15,8 +15,11 @@
  */
 
 import { Stuff } from './Stuff';
+import { TangibleMixin } from './Tangible';
 
-export class Agent extends Stuff {
+const AgentBase = TangibleMixin(Stuff);
+
+export class Agent extends AgentBase {
   constructor() {
     super();
   }

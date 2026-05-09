@@ -31,9 +31,10 @@ Sibling docs cover related ground without overlap:
 | `Location` | concrete class | Base for any Stuff that holds Stuff but isn't itself contained. `ContainerMixin(Stuff)`. |
 | `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits only. |
 | `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. |
-| `Zone` | abstract class | First-class subdivision of the world. Owns its rooms and a `deriveExit()` strategy. |
-| `CartesianZone` | concrete class | Same-size-cell grid. Derives cardinal exits from adjacency. |
-| `SphericalZone` | concrete class | Spheres-with-radius space. No implicit adjacency — every exit is authored. |
+| `Zone` | abstract class | Bare scope/folder unit of the template tree — name + folder-of-templates contract, nothing more. Subclasses (`SpatialZone`, `Clade`) layer behavior on top. |
+| `SpatialZone` | abstract class | Topographical Zone intermediate — owns the `Set<Location>` and the `deriveExit()` strategy. Lives between `Zone` and the concrete spatial Zones. |
+| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. |
+| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. |
 | `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
@@ -52,9 +53,11 @@ Sibling docs cover related ground without overlap:
 ```
 Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
-  │     ├── Zone (abstract)
-  │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
-  │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     ├── Zone (abstract scope/folder)
+  │     │     ├── SpatialZone (abstract topographical intermediate)
+  │     │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
+  │     │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     │     └── Clade (taxonomic — see race.md)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container, was Container only)
   │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible)

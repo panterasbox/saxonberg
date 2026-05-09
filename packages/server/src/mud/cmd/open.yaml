@@ -1,6 +1,8 @@
 verbs: [open]
 controller: OpenController
 description: "Open a door (by direction or by name)"
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
   - name: target
     type: object

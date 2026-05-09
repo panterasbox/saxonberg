@@ -23,8 +23,10 @@
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
+import { SpatialZone } from '../spatial/SpatialZone';
+import { TangibleMixin } from './Tangible';
 
-const LocationBase = AdornableMixin(ContainerMixin(Stuff));
+const LocationBase = TangibleMixin(AdornableMixin(ContainerMixin(Stuff)));
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
@@ -42,7 +44,7 @@ export class Location extends LocationBase {
    */
   protected override prepareDestroy(): void {
     const zone = this.getZone();
-    if (zone) {
+    if (zone instanceof SpatialZone) {
       zone.removeLocation(this);
     }
     (super.prepareDestroy as (() => void) | undefined)?.call(this);

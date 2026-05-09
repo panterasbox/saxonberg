@@ -1,0 +1,21 @@
+# Iron — workhorse metal. Dense, hard, ferromagnetic, mediocre fire
+# behavior at room temp. Standard slash/blunt resistance baseline for
+# weapon-grade materials.
+class: /lib/stuff/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: iron
+  density: 7874
+  hardness: 4
+  flammability: 0
+  opacity: 1
+  thermalConductivity: 80
+  electricalConductivity: 1.0e7
+  magneticSusceptibility: 0.99
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: ["iron-poisoning"]
+  damageResistance:
+    slash: 0.7
+    blunt: 0.4
+    pierce: 0.5

@@ -1,6 +1,8 @@
 verbs: [say, "'"]
 controller: SayController
 description: "Say something to everyone in your location"
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
   - name: message
     type: string

@@ -1,6 +1,8 @@
 verbs: [tell, whisper]
 controller: TellController
 description: "Send a private message to someone"
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
   - name: target
     type: string

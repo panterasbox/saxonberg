@@ -1,0 +1,19 @@
+# Quadruped — four legs, no prehensile hands. Shared by typical
+# mammals (dogs, cats, horses) and amphibians (frogs use this too in
+# v1; an `amphibian-quadruped` variant lands later if frogs need a
+# distinct one).
+class: /lib/species/BodyPlan
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: quadruped
+  wornSlots:
+    - head
+    - back
+    - collar
+  heldSlots: []
+  locomotionModes:
+    - walk
+  sensoryPorts:
+    - { modality: sight, count: 2, position: frontal }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: smell, count: 1, position: forward }

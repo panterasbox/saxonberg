@@ -201,6 +201,20 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     ).rejects.toThrow(/leaf template/i);
   });
 
+  it('admits a non-spatial Zone (Clade) as a folder ancestor', async () => {
+    await TemplateApi.saveTemplate(
+      '/obj/species/animalia',
+      '/lib/species/Clade',
+      { name: 'Animalia', rank: 'kingdom' }
+    );
+    await expect(
+      TemplateApi.validateFolderLeafSave({
+        path: '/obj/species/animalia/foo',
+        class: '/lib/spatial/CartesianLocation',
+      })
+    ).resolves.toBeUndefined();
+  });
+
   it('allows upgrading a parent path to a Zone template above an existing leaf', async () => {
     await TemplateApi.saveTemplate(
       '/orphanage/playroom',

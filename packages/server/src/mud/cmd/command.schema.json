@@ -36,6 +36,11 @@
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/option" },
       "description": "Verb-scoped options."
+    },
+    "validators": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validatorSpec" },
+      "description": "Verb-level validators that fire BEFORE field validators with `context.commandGiver` populated. Used for command-shape preconditions (animacy, mobility, vocal capacity) that don't tie to a specific arg."
     }
   },
   "not": { "required": ["args", "subcommands"] },

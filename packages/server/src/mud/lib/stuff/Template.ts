@@ -12,14 +12,32 @@
  * through the inherited `save`/`delete`/`findById`/`find` surface plus
  * the `findByPath` / `findDescendants` helpers below.
  *
- * The folder/leaf invariant on the `domain` collection (Phase 7
- * Decision 12) is enforced by `DomainHook` against the
- * `PersistenceManager` chokepoint, not on this class. See
+ * **Phase Z2 (folder/leaf type split).** `Template` is now abstract;
+ * concrete subclasses are `ZoneTemplate` (folders — anything in
+ * `FOLDER_CLASS_PATHS`) and `LeafTemplate` (everything else). The
+ * static helpers (`findByPath`, `findDescendants`, `findById`)
+ * discriminate at load time by inspecting the `class` field; callers
+ * that hold a `Template` get back the correct subclass without
+ * needing to know.
+ *
+ * The folder/leaf invariant on the `domain` collection is enforced by
+ * `DomainHook` against the `PersistenceManager` chokepoint — see
  * `TemplateApi.validateFolderLeafSave` / `validateFolderLeafDelete`.
+ * The Phase Z2 type split is the primary expression of the invariant;
+ * the hook is defense-in-depth at the persistence chokepoint.
  */
 import { Persistable } from '../persistence/Persistable';
+import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { StuffApi } from '../../api/stuff';
+import { FOLDER_CLASS_PATHS } from '../../api/zone';
 
-export class Template extends Persistable {
+/**
+ * Doc shape we pull off the `domain` collection. The `class` field drives
+ * which concrete `Template` subclass we materialize.
+ */
+type DomainDoc = Record<string, unknown> & { class?: unknown };
+
+export abstract class Template extends Persistable {
   static collectionName = 'domain';
   static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
 
@@ -41,15 +59,54 @@ export class Template extends Persistable {
   data: Record<string, unknown> = {};
 
   /**
+   * Materialize a doc as the right `Template` subclass.
+   *
+   * Folder classes (those in `FOLDER_CLASS_PATHS`) become `ZoneTemplate`;
+   * everything else becomes `LeafTemplate`. The two subclasses share fields
+   * and persistence; the type distinction is what lets callers reason
+   * about folder-vs-leaf without sniffing `class`.
+   *
+   * Constructed via `StuffApi.create` so the loaded record is registered
+   * + proxy-wrapped like any other Stuff.
+   */
+  protected static async _materialize(doc: DomainDoc): Promise<Template> {
+    const classPath = typeof doc.class === 'string' ? doc.class : '';
+    // Lazy imports to dodge the cycle: ZoneTemplate / LeafTemplate
+    // extend Template, but Template needs to construct them. Module
+    // initialization order makes the eager form unsafe.
+    const isFolder = FOLDER_CLASS_PATHS.has(classPath);
+    let instance: Template;
+    if (isFolder) {
+      const { ZoneTemplate } = await import('./ZoneTemplate');
+      instance = await StuffApi.create(() => new ZoneTemplate());
+    } else {
+      const { LeafTemplate } = await import('./LeafTemplate');
+      instance = await StuffApi.create(() => new LeafTemplate());
+    }
+    // Reflect persisted fields onto the instance via the public seam
+    // Persistable provides for hydration. (It's protected, so we cast.)
+    (instance as unknown as { fromDocument(d: DomainDoc): void }).fromDocument(
+      doc
+    );
+    return instance;
+  }
+
+  /**
    * Find the Template at `path`, or `null` if none exists.
    *
    * Templates are unique by path (enforced by convention; the folder/leaf
    * invariant prevents duplicates from making sense). Returns the first
-   * match if multiple somehow exist.
+   * match if multiple somehow exist. Returns the right concrete subclass
+   * (`ZoneTemplate` / `LeafTemplate`) based on the doc's `class` field.
    */
   static async findByPath(path: string): Promise<Template | null> {
-    const matches = await this.find({ path });
-    return matches[0] ?? null;
+    const docs = (await PersistenceManager.get().find(
+      Template.collectionName,
+      { path }
+    )) as DomainDoc[];
+    const doc = docs[0];
+    if (!doc) return null;
+    return await Template._materialize(doc);
   }
 
   /**
@@ -59,7 +116,32 @@ export class Template extends Persistable {
   static async findDescendants(basePath: string): Promise<Template[]> {
     const prefix = basePath.endsWith('/') ? basePath : basePath + '/';
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return this.find({ path: { $regex: `^${escaped}` } });
+    const docs = (await PersistenceManager.get().find(
+      Template.collectionName,
+      { path: { $regex: `^${escaped}` } }
+    )) as DomainDoc[];
+    return Promise.all(docs.map((d) => Template._materialize(d)));
+  }
+
+  /**
+   * Load a Template by `_id` and return it as the right subclass
+   * (`ZoneTemplate` / `LeafTemplate`).
+   *
+   * Distinct from the inherited `Persistable.findById<T>`: that method
+   * is generic over the calling class and does `new this()`, which is
+   * illegal on the abstract `Template` base. Concrete subclasses
+   * (`ZoneTemplate.findById(id)` / `LeafTemplate.findById(id)`) still
+   * work via the inherited generic — call them when you statically
+   * know the shape. Use `Template.loadById` when you have only the id
+   * and want subclass dispatch.
+   */
+  static async loadById(id: string): Promise<Template | null> {
+    const doc = (await PersistenceManager.get().findById(
+      Template.collectionName,
+      id
+    )) as DomainDoc | null;
+    if (!doc) return null;
+    return await Template._materialize(doc);
   }
 
   /**

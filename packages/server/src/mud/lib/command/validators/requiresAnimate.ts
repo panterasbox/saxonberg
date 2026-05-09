@@ -1,0 +1,39 @@
+/**
+ * requiresAnimate — verb-level precondition. Rejects the command when
+ * the giver isn't currently animate.
+ *
+ * "Animate" means the giver is a living/active organism (or
+ * powered-on Constructa) capable of acting in the world. Dead
+ * Animalia, unpowered Constructa, plants, and non-Organism givers all
+ * fail this check.
+ *
+ * Tagged on self-action verbs whose semantics genuinely require the
+ * actor to be doing something — `say`, `tell`, `go`, `get`, `drop`,
+ * `open`, `close`, `inventory`. Untagged on passive/meta verbs:
+ * `look`, `help`, `ping`, `alias`, `var`, `settings`, `player`,
+ * `focus`. (See the verb tagging audit in the implementation plan.)
+ */
+
+import type { CommandValidator } from '../../../api/command';
+import { SpeciesApi } from '../../../api/species';
+import { MixinApi } from '../../../api/mixin';
+import { DescribeApi } from '../../../api/describe';
+
+const validator: CommandValidator = (context) => {
+  const giver = context.commandGiver;
+  if (SpeciesApi.isAnimate(giver)) return undefined;
+
+  // Tailor the error message to what's actually wrong: a dead
+  // organism gets a different message from a non-organism caller.
+  const name = DescribeApi.getDisplayName(giver, 'you');
+  if (MixinApi.isOrganism(giver)) {
+    const state = giver.getLifecycleState();
+    if (state === 'dead' || state === 'destroyed' || state === 'unpowered') {
+      return `${name} can't do that — not currently animate (${state}).`;
+    }
+    return `${name} can't do that — not currently animate.`;
+  }
+  return `${name} can't do that.`;
+};
+
+export default validator;

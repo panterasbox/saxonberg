@@ -49,6 +49,9 @@ export const Mixins = {
   AmbientLit: 'AmbientLitMixin',
   LightSource: 'LightSourceMixin',
   Perception: 'PerceptionMixin',
+  Tangible: 'TangibleMixin',
+  Organism: 'OrganismMixin',
+  Sexed: 'SexedMixin',
 } as const;
 
 /**

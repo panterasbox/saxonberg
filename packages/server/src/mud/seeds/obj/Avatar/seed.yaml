@@ -23,3 +23,9 @@ class: /obj/Avatar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   pronouns: they
+  # Race-build defaults: every freshly-created Avatar template forks
+  # these values. Existing per-user templates predate this addition;
+  # OrganismMixin's getSpecies() returns null and getLifecycleState()
+  # returns '' for those, both safe no-ops.
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive

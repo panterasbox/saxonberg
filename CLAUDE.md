@@ -99,6 +99,15 @@ behavior. Read the relevant doc before editing in its area.
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — `HotReloadApi`
     state machine, `StuffApi.clone` integration, lifecycle events,
     controller dispatch (clone-per-execution), `reloadHookManifest`
+  - [race.md](./docs/subsystems/race.md) — Material substrate
+    (`TangibleMixin`, `MaterialApi`), Clade taxonomic scope,
+    `BodyPlan` + `Species` templates, `OrganismMixin`, `SexedMixin`,
+    `SpeciesApi` (kingdom resolution, lifecycle predicates,
+    `isAnimate`), animacy gating at the command layer
+  - [null-environment.md](./docs/subsystems/null-environment.md) —
+    behavior matrix for detached Stuff (`environment === null`)
+    across MQL, command scoping, perception, mudlog routing,
+    boundary, and locomotion
 
 ## Development Commands
 

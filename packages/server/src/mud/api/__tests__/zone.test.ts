@@ -158,6 +158,23 @@ describe('ZoneApi.resolveZoneForPath', () => {
     expect(direct).toBe(zone);
   });
 
+  it('skips a non-spatial folder ancestor (Clade) during the walk', async () => {
+    // Clade is in FOLDER_CLASS_PATHS but NOT in
+    // SPATIAL_ZONE_CLASS_PATHS. A species member at this path has no
+    // spatial zone ancestor, so the walk returns null even though
+    // /obj/species/animalia is a legal folder ancestor.
+    installInMemoryStore([
+      {
+        path: '/obj/species/animalia',
+        class: '/lib/species/Clade',
+        data: { name: 'Animalia', rank: 'kingdom' },
+      },
+    ]);
+    expect(
+      await ZoneApi.resolveZoneForPath('/obj/species/animalia/foo')
+    ).toBeNull();
+  });
+
   it('clone() of an already-instantiated singleton zone throws', async () => {
     installInMemoryStore([
       {

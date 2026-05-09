@@ -330,6 +330,21 @@ export type FieldValidator = (
 ) => string | undefined;
 
 /**
+ * Verb-level validator function type.
+ *
+ * Verb-level validators fire BEFORE field-level validators with
+ * `context.commandGiver` populated. They guard command-shape
+ * preconditions that don't tie to a specific arg — animacy, mobility,
+ * vocal capacity. Returns `undefined` when the precondition holds, or
+ * an error message string when it doesn't.
+ *
+ * Sync by design: the dispatch pipeline can't await mid-binding.
+ */
+export type CommandValidator = (
+  context: CommandContext
+) => string | undefined;
+
+/**
  * Shared shape between positional args and option-bound fields:
  * type, arity flags, validators, default. `name` is added by
  * `PositionalDefinition` (positionals carry their name in-band so
@@ -508,6 +523,11 @@ export interface SubcommandDefinition {
  * having both is a load-time error. Either may be absent (a verb
  * with no positionals and no subcommands is a zero-arg command like
  * `ping` or `inventory`).
+ *
+ * `validators` is the verb-level validator list — fires before field
+ * validators with `context.commandGiver` populated. Used for
+ * command-shape preconditions (animacy, future mobility / vocal
+ * checks).
  */
 export interface CommandView {
   verbs: string[];
@@ -516,6 +536,7 @@ export interface CommandView {
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
+  validators?: string[];
 }
 
 /**
@@ -765,6 +786,37 @@ export class CommandApi {
       );
     }
     return fn as FieldValidator;
+  }
+
+  /**
+   * Resolve a verb-level validator spec to a live `CommandValidator`.
+   * Same path-resolution as `resolveValidator`, but the runtime
+   * signature is `(context) => string | undefined` rather than the
+   * field-level `(value, field, context) => …`.
+   */
+  static async resolveCommandValidator(
+    spec: string,
+    fromYaml: string
+  ): Promise<CommandValidator> {
+    const absolutePath = resolveValidatorSpec(spec, fromYaml);
+    const fileUrl = pathToFileURL(absolutePath).href;
+    let mod: { default?: unknown };
+    try {
+      mod = (await import(fileUrl)) as { default?: unknown };
+    } catch (err) {
+      throw new Error(
+        `verb-level validator '${spec}' (resolved to ${absolutePath}) could not be loaded: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+    const fn = mod.default;
+    if (typeof fn !== 'function') {
+      throw new Error(
+        `verb-level validator '${spec}' (resolved to ${absolutePath}) must default-export a function; got ${typeof fn}`
+      );
+    }
+    return fn as CommandValidator;
   }
 
   /**
@@ -1059,6 +1111,16 @@ export class CommandApi {
           if (r.via) asMany.via = r.via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
+      }
+    }
+
+    // Verb-level validators run BEFORE field validators. They guard
+    // command-shape preconditions (animacy, mobility, vocal capacity)
+    // that don't tie to a specific arg. First failure short-circuits.
+    if (command._resolvedValidators) {
+      for (const v of command._resolvedValidators) {
+        const err = v(context);
+        if (err) return { result: { success: false, summary: err } };
       }
     }
 
@@ -1639,6 +1701,17 @@ async function resolveCommandValidators(
   }
   for (const opt of Object.values(cmd.verbOptions)) {
     await resolveOne(opt);
+  }
+
+  // Verb-level (top-level) validators — different signature, so the
+  // resolver dispatches to `resolveCommandValidator` (not the field
+  // form). Stored on `cmd._resolvedValidators` (not on a target).
+  if (cmd.validators.length > 0) {
+    const fns: CommandValidator[] = [];
+    for (const spec of cmd.validators) {
+      fns.push(await CommandApi.resolveCommandValidator(spec, yamlPath));
+    }
+    cmd._resolvedValidators = fns;
   }
 }
 

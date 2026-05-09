@@ -18,8 +18,10 @@
  *   - Leaves  = any non-Zone template. MUST NOT have descendant templates.
  */
 
-import { ZONE_CLASS_PATHS } from './zone';
+import { FOLDER_CLASS_PATHS } from './zone';
 import { Template } from '../lib/stuff/Template';
+import { ZoneTemplate } from '../lib/stuff/ZoneTemplate';
+import { LeafTemplate } from '../lib/stuff/LeafTemplate';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 
@@ -52,7 +54,9 @@ export class TemplateApi {
   ): Promise<string> {
     const tpl =
       (await Template.findByPath(path)) ??
-      (await StuffApi.create(() => new Template()));
+      (FOLDER_CLASS_PATHS.has(classPath)
+        ? await StuffApi.create(() => new ZoneTemplate())
+        : await StuffApi.create(() => new LeafTemplate()));
     tpl.path = path;
     tpl.class = classPath;
     tpl.data = data;
@@ -79,7 +83,7 @@ export class TemplateApi {
    *      template, not a zone folder."
    *
    * Zone classification uses the runtime `class` field (matched against
-   * `ZONE_CLASS_PATHS`); `hydratorClass` is orthogonal to zonehood.
+   * `FOLDER_CLASS_PATHS`); `hydratorClass` is orthogonal to zonehood.
    */
   public static async validateFolderLeafSave(
     doc: Record<string, unknown>
@@ -95,11 +99,11 @@ export class TemplateApi {
       throw new TemplateError(`Template path must start with '/': ${path}`);
     }
 
-    const isZone = ZONE_CLASS_PATHS.has(classPath);
+    const isZone = FOLDER_CLASS_PATHS.has(classPath);
 
     for (const ancestor of Template.ancestorPaths(path)) {
       const ancestorTpl = await Template.findByPath(ancestor);
-      if (ancestorTpl && !ZONE_CLASS_PATHS.has(ancestorTpl.class)) {
+      if (ancestorTpl && !FOLDER_CLASS_PATHS.has(ancestorTpl.class)) {
         throw new TemplateError(
           `Ancestor '${ancestor}' is a leaf template, not a zone folder; cannot place children under it.`
         );
@@ -125,9 +129,9 @@ export class TemplateApi {
    * discover its path and class — the delete primitive only carries an id.
    */
   public static async validateFolderLeafDelete(id: string): Promise<void> {
-    const tpl = await Template.findById(id);
+    const tpl = await Template.loadById(id);
     if (!tpl) return;
-    if (!ZONE_CLASS_PATHS.has(tpl.class)) return;
+    if (!FOLDER_CLASS_PATHS.has(tpl.class)) return;
     const children = await Template.findDescendants(tpl.path);
     if (children.length > 0) {
       throw new TemplateError(

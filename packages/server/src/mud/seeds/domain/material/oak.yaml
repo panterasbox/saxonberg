@@ -1,0 +1,20 @@
+# Oak — dense hardwood. Flammable, opaque, organic. Standard wood for
+# tool handles, doors, and furniture.
+class: /lib/stuff/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: oak
+  density: 750
+  hardness: 3
+  flammability: 0.4
+  opacity: 1
+  thermalConductivity: 0.17
+  electricalConductivity: 1.0e-13
+  magneticSusceptibility: 0.0
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  damageResistance:
+    slash: 0.5
+    blunt: 0.4
+    pierce: 0.45

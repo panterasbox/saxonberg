@@ -16,7 +16,7 @@
  * Derived exits are NEVER persisted — recomputed each boot.
  */
 
-import { Zone } from './Zone';
+import { SpatialZone } from './SpatialZone';
 import { Exit } from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
 import type { Location } from '../stuff/Location';
@@ -31,7 +31,7 @@ function gridKey(x: number, y: number, z: number): string {
   return `${x},${y},${z}`;
 }
 
-export class CartesianZone extends SingletonMixin(Zone) {
+export class CartesianZone extends SingletonMixin(SpatialZone) {
   /** Meters/units per cell. Drives `getSizeScale` on Cartesian Locations. */
   protected cellSize: number = 1.0;
 

@@ -156,6 +156,16 @@ disambiguation; Globbable scoping for quantity syntax.
 
 ### Race / species / organism subsystem
 
+**v1 shipped** *(have)* — see
+[docs/subsystems/race.md](./subsystems/race.md). Material substrate,
+Clade taxonomic scope, BodyPlan + Species templates, OrganismMixin,
+SexedMixin, SpeciesApi (kingdom resolution, lifecycle predicates,
+`isAnimate`), animacy gating at the command layer. v1 acceptance
+roster: Homo sapiens, Homo khazadicus, Lithobates catesbeianus,
+Spathiphyllum wallisii, Constructa metallica.
+
+What remains for follow-on builds:
+
 - **What**: A real biological-style standard-model layer for organic
   agents. `OrganismMixin` distinguishes organic from inorganic
   agents (constructs, robots, ghosts). `Species` modeled as
@@ -166,6 +176,15 @@ disambiguation; Globbable scoping for quantity syntax.
   drives equipment-slot taxonomy. `Sexed` as a separate biological
   axis from the existing `Gendered` *(have — social / pronoun)*.
   Eventually genetics: alleles, inheritance, mutation, evolution.
+
+  **Deferred from v1, sequenced for follow-on builds**:
+  death/resurrection FLOW (state-machine + predicates ship in v1,
+  the transition flow doesn't), `DietApi` + `Edible` + `Portable`
+  (Material toxicity is authored as data, no consumer reads it),
+  per-Detail materials and tissue authoring (v1 is bulk-only),
+  genetics, per-individual variation feature mixins, sleep/circadian,
+  aging, polymorph, character-creation UI, permission/rule machinery
+  on zones.
 - **Why**: Saxonberg's first audience is academic. STEM students
   studying biology should be able to *exercise* their classroom
   concepts inside the game — pathogens with realistic host ranges,
