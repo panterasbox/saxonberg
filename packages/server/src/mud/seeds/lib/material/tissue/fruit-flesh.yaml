@@ -15,10 +15,10 @@ data:
   edibility: true
   nutrients: ["sugar", "water", "fiber"]
   toxicity: []
-  damageResistance:
-    slash: 0.02
-    blunt: 0.05
-    pierce: 0.02
+  savedProps:
+    "resistance.slash": 0.02
+    "resistance.blunt": 0.05
+    "resistance.pierce": 0.02
   tags: ["tissue", "plant", "fruit", "mixture", "organic", "edible"]
   composition: []
   chemistry: null

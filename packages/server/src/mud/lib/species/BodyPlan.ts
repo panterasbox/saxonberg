@@ -22,6 +22,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
+import { PropertiedMixin } from '../stuff/Propertied';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -38,7 +39,7 @@ export interface SensoryPort {
   position: string;
 }
 
-export class BodyPlan extends SingletonMixin(Idea) {
+export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'biped'`, `'quadruped'`). */
   protected name: string = '';
 

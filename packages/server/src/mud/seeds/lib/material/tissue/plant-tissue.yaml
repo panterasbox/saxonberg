@@ -15,10 +15,10 @@ data:
   edibility: true
   nutrients: ["cellulose", "water"]
   toxicity: []
-  damageResistance:
-    slash: 0.05
-    blunt: 0.1
-    pierce: 0.05
+  savedProps:
+    "resistance.slash": 0.05
+    "resistance.blunt": 0.1
+    "resistance.pierce": 0.05
   tags: ["tissue", "plant", "mixture", "organic", "living", "edible"]
   composition: []
   chemistry: null

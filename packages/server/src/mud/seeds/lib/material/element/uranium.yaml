@@ -25,10 +25,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: ["radiation", "heavy-metal"]
-  damageResistance:
-    slash: 0.85
-    blunt: 0.5
-    pierce: 0.65
+  savedProps:
+    "resistance.slash": 0.85
+    "resistance.blunt": 0.5
+    "resistance.pierce": 0.65
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
   composition: []
   chemistry:

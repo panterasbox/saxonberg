@@ -123,6 +123,40 @@ level reads naturally; deeper when content earns it.
 
 These are leaf templates; Material isn't a folder class.
 
+### `PropertiedMixin` and damage resistance
+
+`Material`, `Species`, `BodyPlan`, and `Clade` all compose
+`PropertiedMixin` (`SingletonMixin(PropertiedMixin(Idea))`). Most
+fields stay first-class — they're part of the engine's vocabulary,
+all instances have them, the schema is stable. But where the keys
+are *content-defined* and the engine just stores/queries by name,
+the property bag is the right home. Damage resistance is the v1
+example:
+
+```ts
+material.setDamageResistance('slash', 0.7);   // → setProp('resistance.slash')
+material.getDamageResistance('slash');        // → getProp('resistance.slash')
+
+// Equipment / buff / curse can mask the effective value:
+shield.maskProp(
+  Property.of<number>('resistance.fire'),
+  (_p, v) => v + 0.2,
+);
+```
+
+Stored as `Property.of<number>('resistance.<damageType>')`. Damage
+type vocabulary (`'slash'`, `'blunt'`, `'pierce'`, `'fire'`,
+`'cold'`, …) is content-defined; the engine doesn't enumerate it.
+Free as a side effect: `maskProp` lets equipment / buffs / curses
+modify the effective resistance without touching the base, with
+ownership-keyed unmask for clean removal.
+
+The hydration story: PropertiedMixin reads `savedProps` from the
+template's `data` block. `getProp` lazily auto-initializes prop
+options on first read for hydrated entries, so seed YAML can
+populate `savedProps: { "resistance.slash": 0.7 }` directly without
+an explicit `initProp` call from the host.
+
 ### `MaterialApi` query surface
 
 - `materialOf(stuff, detailKey?)` — the bulk + per-Detail lookup.
@@ -137,8 +171,11 @@ These are leaf templates; Material isn't a folder class.
 - `findByElement(symbol)` — every registered Material whose
   composition contains the element. Combines the above.
 
-Future surfaces (`weightOf`, `damageResistance`, `flammabilityOf`,
-`canConduct`) land as their consumers do.
+Future surfaces (`weightOf`, `flammabilityOf`, `canConduct`) land
+as their consumers do. `damageResistance` is on `Material` directly
+(see above) — when combat lands, it'll likely promote to
+`MaterialApi.damageResistance(stuff, type, detailKey?)` threading
+through `materialOf` for per-Stuff dispatch.
 
 ---
 

@@ -21,10 +21,10 @@ data:
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []
-  damageResistance:
-    slash: 0.5
-    blunt: 0.4
-    pierce: 0.45
+  savedProps:
+    "resistance.slash": 0.5
+    "resistance.blunt": 0.4
+    "resistance.pierce": 0.45
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
   chemistry: null

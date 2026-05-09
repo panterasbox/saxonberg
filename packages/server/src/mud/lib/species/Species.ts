@@ -22,13 +22,14 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
+import { PropertiedMixin } from '../stuff/Propertied';
 import { StuffApi } from '../../api/stuff';
 import type { BodyPlan } from './BodyPlan';
 import type { Clade } from './Clade';
 import type { Material } from '../material/Material';
 import type { VisionProfile } from '../../api/light';
 
-export class Species extends SingletonMixin(Idea) {
+export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
 

@@ -21,10 +21,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  damageResistance:
-    slash: 0.8
-    blunt: 0.7
-    pierce: 0.6
+  savedProps:
+    "resistance.slash": 0.8
+    "resistance.blunt": 0.7
+    "resistance.pierce": 0.6
   tags: ["rock", "igneous", "mixture", "crystalline", "felsic"]
   composition: []
   chemistry: null

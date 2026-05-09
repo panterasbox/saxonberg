@@ -48,6 +48,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
+import { PropertiedMixin, Property } from '../stuff/Propertied';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -93,7 +94,7 @@ export interface BiologicalSource {
   tissueType: string;
 }
 
-export class Material extends SingletonMixin(Idea) {
+export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
   protected name: string = '';
 
@@ -132,13 +133,6 @@ export class Material extends SingletonMixin(Idea) {
    * `'oxalates'`). v1 has no consumer.
    */
   protected toxicity: string[] = [];
-
-  /**
-   * Damage-type → resistance scalar (0 = no resistance, 1 = full
-   * absorption). Decomposes onto a flat string-keyed scalar map; default
-   * hydration handles serialization.
-   */
-  protected damageResistance: Record<string, number> = {};
 
   /**
    * Free-form classification tags. See class header for layer-1
@@ -184,7 +178,6 @@ export class Material extends SingletonMixin(Idea) {
     'edibility',
     'nutrients',
     'toxicity',
-    'damageResistance',
     'tags',
     'composition',
     'chemistry',
@@ -234,11 +227,23 @@ export class Material extends SingletonMixin(Idea) {
   public getToxicity(): readonly string[] { return this.toxicity; }
   public setToxicity(value: string[]): void { this.toxicity = value; }
 
-  public getDamageResistance(): Readonly<Record<string, number>> {
-    return this.damageResistance;
+  /**
+   * Read damage resistance for `damageType` (`'slash'`, `'blunt'`,
+   * `'pierce'`, `'fire'`, …). Threads through `PropertiedMixin` —
+   * stored under `Property.of<number>('resistance.<damageType>')`. The
+   * property layer gives masking for free: an enchanted shield can
+   * `maskProp` a `resistance.fire` boost on its wearer's material
+   * surface without touching the base value.
+   *
+   * Returns `0` when no resistance is set for the type. Damage-type
+   * vocabulary is content-defined; the engine doesn't enumerate it.
+   */
+  public getDamageResistance(damageType: string): number {
+    return this.getProp(Property.of<number>(`resistance.${damageType}`)) ?? 0;
   }
-  public setDamageResistance(value: Record<string, number>): void {
-    this.damageResistance = value;
+
+  public setDamageResistance(damageType: string, value: number): void {
+    this.setProp(Property.of<number>(`resistance.${damageType}`), value);
   }
 
   public getTags(): readonly string[] { return this.tags; }
