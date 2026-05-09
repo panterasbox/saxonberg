@@ -83,7 +83,7 @@ export class GotoController extends CommandController<GotoModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.system.shell.movement)
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

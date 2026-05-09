@@ -89,7 +89,7 @@ export class TeleportController extends CommandController<TeleportModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.system.shell.author)
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

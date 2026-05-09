@@ -109,7 +109,7 @@ export class ScryController extends CommandController<ScryModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.world.perception.scry)
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

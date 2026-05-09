@@ -37,7 +37,7 @@ export class PwdController extends CommandController<PwdModel> {
         )
       : Mml.fromMarkup(`\n${giver.getActiveCwd()}\n`);
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.system.shell.fs)
       .toSelf(body)
       .send();
     return {

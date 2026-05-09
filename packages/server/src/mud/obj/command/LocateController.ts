@@ -58,7 +58,7 @@ export class LocateController extends CommandController<LocateModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.world.perception.locate)
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

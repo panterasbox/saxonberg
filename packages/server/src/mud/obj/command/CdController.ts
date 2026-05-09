@@ -141,7 +141,7 @@ export class CdController extends CommandController<CdModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic(MessageApi.Topics.system.shell.fs)
       .toSelf(Mml.fromMarkup(text))
       .send();
   }
