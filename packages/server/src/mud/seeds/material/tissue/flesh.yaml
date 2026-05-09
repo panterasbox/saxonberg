@@ -1,5 +1,10 @@
 # Flesh — generic animal tissue. Soft, flammable when dry, edible
 # (with carnivore/detrivore caveats; v1 has no DietApi consumer).
+# Composition is mostly water, protein (myofibrils, connective
+# tissue), and fat. v1 leaves the `composition` cross-refs empty
+# pending compound templates; species-specific flesh
+# (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
+# populates `biologicalSource`.
 class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -18,3 +23,7 @@ data:
     slash: 0.05
     blunt: 0.1
     pierce: 0.05
+  tags: ["tissue", "animal", "mixture", "organic", "living", "edible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

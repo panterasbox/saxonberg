@@ -13,14 +13,85 @@
  * (`edibility`, `nutrients`, `toxicity`) are authored here today; the
  * `DietApi` consumer is deferred.
  *
- * Singleton-by-templatePath: every `/material/<x>` template resolves to
- * the same instance via `StuffApi.singleton(path)` /
+ * **Layered classification.**
+ *
+ * Three orthogonal layers of metadata, all populated as data on the
+ * template, queried by `MaterialApi`:
+ *
+ * 1. **Tags** (`tags: string[]`) — free-form classification strings
+ *    (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
+ *    Vocabulary is not centrally registered — content devs may
+ *    introduce new tags as needed. Used for educational filtering
+ *    and orthogonal grouping.
+ * 2. **Composition** (`composition: CompositionEntry[]`) — for
+ *    mixtures and alloys, weight-fraction references to the
+ *    constituent Materials. Pure elements / non-mixtures have an
+ *    empty list.
+ * 3. **Chemistry** (`chemistry: ElementChemistry | null`) — atomic-
+ *    or molecular-level science data: element symbol, atomic
+ *    number, atomic mass for elements; chemical formula, molar mass
+ *    for compounds. Lower-division depth.
+ *
+ * Plus `biologicalSource` for organic Materials with a known parent
+ * Species (e.g., wood from a specific tree).
+ *
+ * Capability mixins layer on top via subclasses (see
+ * `RadioactiveMixin` / `RadioactiveMaterial`). Only Materials whose
+ * identity carries the capability compose the mixin; everything else
+ * stays plain `Material`.
+ *
+ * Singleton-by-templatePath: every `/material/<...>` template resolves
+ * to the same instance via `StuffApi.singleton(path)` /
  * `findByTemplatePath`. Cross-references on other Stuff store the path
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
+
+/**
+ * One constituent in a mixture / alloy. `materialPath` is the
+ * templatePath of the contained Material; `fraction` is the weight
+ * fraction (0–1; sum across composition entries should approach 1 for
+ * complete authoring, but the v1 model doesn't enforce). Mole-fraction
+ * authoring is a follow-on.
+ */
+export interface CompositionEntry {
+  materialPath: string;
+  fraction: number;
+}
+
+/**
+ * Atomic / molecular science data. Element fields (`symbol`,
+ * `atomicNumber`, `atomicMass`) populate for pure elements; compound
+ * fields (`formula`, `molarMass`) populate for chemical compounds.
+ * Mixtures and alloys typically leave this `null` and read composition
+ * via the `composition` field instead.
+ */
+export interface ElementChemistry {
+  /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
+  symbol?: string;
+  /** Atomic number (Z) — element-only. */
+  atomicNumber?: number;
+  /** Standard atomic weight (u) — element-only. */
+  atomicMass?: number;
+  /** Chemical formula (e.g. `'H2O'`, `'SiO2'`, `'(C6H10O5)n'`). Compound-only. */
+  formula?: string;
+  /** Molar mass (g/mol) — compound-only. */
+  molarMass?: number;
+}
+
+/**
+ * Link from a biological Material to the Species it came from, plus
+ * the kind of tissue (`'wood'`, `'flesh'`, `'leaf'`, `'fruit'`, …).
+ * Bidirectional with `Species._defaultMaterialPath` — the species
+ * points at its default Material, the material points back at the
+ * species. Both directions are authored.
+ */
+export interface BiologicalSource {
+  speciesPath: string;
+  tissueType: string;
+}
 
 export class Material extends SingletonMixin(Idea) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
@@ -69,6 +140,38 @@ export class Material extends SingletonMixin(Idea) {
    */
   protected damageResistance: Record<string, number> = {};
 
+  /**
+   * Free-form classification tags. See class header for layer-1
+   * description; vocabulary intentionally not centrally registered.
+   */
+  protected tags: string[] = [];
+
+  /**
+   * Constituent breakdown for mixtures / alloys / composite materials.
+   * Pure elements have an empty list. Each entry's `materialPath`
+   * resolves lazily through `StuffApi.findByTemplatePath` at query
+   * time; same shape as `_speciesPath` / `_materialPath` cross-refs.
+   */
+  protected composition: CompositionEntry[] = [];
+
+  /**
+   * Atomic / molecular science data. `null` when the material has no
+   * meaningful chemistry shape (e.g. a generic "flesh" stand-in).
+   * Population convention: elements get `symbol/atomicNumber/atomicMass`,
+   * compounds get `formula/molarMass`, mixtures leave this null and
+   * carry composition data instead.
+   */
+  protected chemistry: ElementChemistry | null = null;
+
+  /**
+   * Source-species link for biological materials. `null` for non-
+   * biological materials and for biological materials where the source
+   * species isn't modeled. The species side carries
+   * `_defaultMaterialPath` pointing back here — the link is
+   * bidirectional per slate.
+   */
+  protected biologicalSource: BiologicalSource | null = null;
+
   static persistentFields = [
     'name',
     'density',
@@ -82,6 +185,10 @@ export class Material extends SingletonMixin(Idea) {
     'nutrients',
     'toxicity',
     'damageResistance',
+    'tags',
+    'composition',
+    'chemistry',
+    'biologicalSource',
   ];
 
   public getName(): string { return this.name; }
@@ -132,5 +239,26 @@ export class Material extends SingletonMixin(Idea) {
   }
   public setDamageResistance(value: Record<string, number>): void {
     this.damageResistance = value;
+  }
+
+  public getTags(): readonly string[] { return this.tags; }
+  public setTags(value: string[]): void { this.tags = value; }
+  public hasTag(tag: string): boolean { return this.tags.includes(tag); }
+
+  public getComposition(): readonly CompositionEntry[] { return this.composition; }
+  public setComposition(value: CompositionEntry[]): void {
+    this.composition = value;
+  }
+
+  public getChemistry(): ElementChemistry | null { return this.chemistry; }
+  public setChemistry(value: ElementChemistry | null): void {
+    this.chemistry = value;
+  }
+
+  public getBiologicalSource(): BiologicalSource | null {
+    return this.biologicalSource;
+  }
+  public setBiologicalSource(value: BiologicalSource | null): void {
+    this.biologicalSource = value;
   }
 }

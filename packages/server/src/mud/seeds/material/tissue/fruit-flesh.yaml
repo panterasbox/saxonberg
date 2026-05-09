@@ -19,3 +19,7 @@ data:
     slash: 0.02
     blunt: 0.05
     pierce: 0.02
+  tags: ["tissue", "plant", "fruit", "mixture", "organic", "edible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

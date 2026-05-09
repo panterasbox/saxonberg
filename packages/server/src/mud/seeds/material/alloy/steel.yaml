@@ -1,0 +1,28 @@
+# Steel — iron-carbon alloy. Harder than iron, similarly conductive,
+# the standard for swords/armor. v1 ships a generic carbon steel
+# (~0.2% carbon by weight); higher-carbon steels and alloy steels
+# (stainless, tool steel, …) are content extensions.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: steel
+  density: 7850
+  hardness: 6
+  flammability: 0
+  opacity: 1
+  thermalConductivity: 50
+  electricalConductivity: 6.99e6
+  magneticSusceptibility: 0.95
+  edibility: false
+  nutrients: []
+  toxicity: []
+  damageResistance:
+    slash: 0.85
+    blunt: 0.5
+    pierce: 0.65
+  tags: ["alloy", "metal", "ferrous", "magnetic"]
+  composition:
+    - { materialPath: /material/element/iron, fraction: 0.998 }
+    - { materialPath: /material/element/carbon, fraction: 0.002 }
+  chemistry: null
+  biologicalSource: null

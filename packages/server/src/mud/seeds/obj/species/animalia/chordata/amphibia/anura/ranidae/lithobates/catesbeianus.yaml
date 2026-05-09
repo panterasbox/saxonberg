@@ -7,7 +7,7 @@ data:
   commonNames: ["bullfrog", "frog"]
   _bodyPlanPath: /obj/body-plans/quadruped
   _parentCladePath: /obj/species/animalia
-  _defaultMaterialPath: /material/flesh
+  _defaultMaterialPath: /material/tissue/flesh
   lifecycleStates: ["alive", "dead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

@@ -29,7 +29,7 @@ describe('MaterialApi.materialOf', () => {
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
     const oak = makeStuff(() => new Material());
     oak.setName('oak');
-    oak.templatePath = '/material/oak';
+    oak.templatePath = '/material/wood/oak';
     StuffApi.unregister(oak);
     StuffApi.register(oak);
 
@@ -42,11 +42,11 @@ describe('MaterialApi.materialOf', () => {
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
     const oak = makeStuff(() => new Material());
-    oak.templatePath = '/material/oak';
+    oak.templatePath = '/material/wood/oak';
     StuffApi.unregister(oak);
     StuffApi.register(oak);
     const iron = makeStuff(() => new Material());
-    iron.templatePath = '/material/iron';
+    iron.templatePath = '/material/element/iron';
     StuffApi.unregister(iron);
     StuffApi.register(iron);
 
@@ -59,5 +59,134 @@ describe('MaterialApi.materialOf', () => {
     expect(MaterialApi.materialOf(axe, 'head')).toBe(iron);
     // Unknown key falls through to bulk default.
     expect(MaterialApi.materialOf(axe, 'haft')).toBe(oak);
+  });
+});
+
+describe('MaterialApi v2 — classification queries', () => {
+  function withTemplatePath<T extends { templatePath: string | null }>(
+    obj: T,
+    path: string
+  ): T {
+    obj.templatePath = path;
+    StuffApi.unregister(obj as never);
+    StuffApi.register(obj as never);
+    return obj;
+  }
+
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  function setupSteel(): {
+    iron: Material;
+    carbon: Material;
+    steel: Material;
+  } {
+    const iron = withTemplatePath(
+      makeStuff(() => new Material()),
+      '/material/element/iron'
+    );
+    iron.setName('iron');
+    iron.setTags(['element', 'metal', 'ferrous']);
+    iron.setChemistry({ symbol: 'Fe', atomicNumber: 26, atomicMass: 55.845 });
+
+    const carbon = withTemplatePath(
+      makeStuff(() => new Material()),
+      '/material/element/carbon'
+    );
+    carbon.setName('carbon');
+    carbon.setTags(['element', 'non-metal']);
+    carbon.setChemistry({ symbol: 'C', atomicNumber: 6, atomicMass: 12.011 });
+
+    const steel = withTemplatePath(
+      makeStuff(() => new Material()),
+      '/material/alloy/steel'
+    );
+    steel.setName('steel');
+    steel.setTags(['alloy', 'metal', 'ferrous']);
+    steel.setComposition([
+      { materialPath: '/material/element/iron', fraction: 0.998 },
+      { materialPath: '/material/element/carbon', fraction: 0.002 },
+    ]);
+
+    return { iron, carbon, steel };
+  }
+
+  describe('compositionOf', () => {
+    it('a pure element credits its own symbol with full weight', () => {
+      const { iron } = setupSteel();
+      const result = MaterialApi.compositionOf(iron);
+      expect(result.direct).toEqual([]);
+      expect(result.flat).toEqual({ Fe: 1 });
+    });
+
+    it('an alloy expands to leaf-element fractions', () => {
+      const { steel } = setupSteel();
+      const result = MaterialApi.compositionOf(steel);
+      expect(result.direct).toHaveLength(2);
+      expect(result.flat.Fe).toBeCloseTo(0.998);
+      expect(result.flat.C).toBeCloseTo(0.002);
+    });
+
+    it('a mixture without composition refs yields an empty flat map', () => {
+      const granite = withTemplatePath(
+        makeStuff(() => new Material()),
+        '/material/rock/granite'
+      );
+      granite.setTags(['rock', 'igneous', 'mixture']);
+      // composition empty by default
+      const result = MaterialApi.compositionOf(granite);
+      expect(result.flat).toEqual({});
+    });
+  });
+
+  describe('containsElement', () => {
+    it('iron contains Fe; not C', () => {
+      const { iron } = setupSteel();
+      expect(MaterialApi.containsElement(iron, 'Fe')).toBe(true);
+      expect(MaterialApi.containsElement(iron, 'C')).toBe(false);
+    });
+
+    it('steel contains both Fe and C', () => {
+      const { steel } = setupSteel();
+      expect(MaterialApi.containsElement(steel, 'Fe')).toBe(true);
+      expect(MaterialApi.containsElement(steel, 'C')).toBe(true);
+      expect(MaterialApi.containsElement(steel, 'Au')).toBe(false);
+    });
+  });
+
+  describe('findByTag', () => {
+    it('returns every Material carrying the tag', () => {
+      const { iron, carbon, steel } = setupSteel();
+      const metals = MaterialApi.findByTag('metal');
+      const ferrous = MaterialApi.findByTag('ferrous');
+      const elements = MaterialApi.findByTag('element');
+
+      expect(new Set(metals)).toEqual(new Set([iron, steel]));
+      expect(new Set(ferrous)).toEqual(new Set([iron, steel]));
+      expect(new Set(elements)).toEqual(new Set([iron, carbon]));
+    });
+
+    it('unknown tag returns empty list', () => {
+      setupSteel();
+      expect(MaterialApi.findByTag('fantasy')).toEqual([]);
+    });
+  });
+
+  describe('findByElement', () => {
+    it('finds every Material whose recursive composition contains the symbol', () => {
+      const { iron, steel } = setupSteel();
+      const ironContaining = MaterialApi.findByElement('Fe');
+      expect(new Set(ironContaining)).toEqual(new Set([iron, steel]));
+    });
+
+    it('unknown element symbol returns empty', () => {
+      setupSteel();
+      expect(MaterialApi.findByElement('Au')).toEqual([]);
+    });
   });
 });

@@ -42,20 +42,20 @@ describe('TangibleMixin', () => {
     // Pretend the singleton is registered at this template path (the
     // makeStuff helper doesn't stamp templatePath; do it via the public
     // index seam).
-    iron.templatePath = '/material/iron';
+    iron.templatePath = '/material/element/iron';
     StuffApi.unregister(iron);
     StuffApi.register(iron);
 
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
-    expect(sword._materialPath).toBe('/material/iron');
+    expect(sword._materialPath).toBe('/material/element/iron');
     expect(sword.getMaterial()).toBe(iron);
   });
 
   it('setMaterial(null) clears the path', () => {
     const iron = makeStuff(() => new Material());
-    iron.templatePath = '/material/iron';
+    iron.templatePath = '/material/element/iron';
     StuffApi.unregister(iron);
     StuffApi.register(iron);
     const sword = makeStuff(() => new Thing());
@@ -80,11 +80,11 @@ describe('TangibleMixin', () => {
     it('per-Detail override wins over bulk default at that key', () => {
       const oak = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/oak'
+        '/material/wood/oak'
       );
       const iron = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/iron'
+        '/material/element/iron'
       );
       const axe = makeStuff(() => new Thing());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -98,7 +98,7 @@ describe('TangibleMixin', () => {
     it('unknown detail keys fall through to the bulk default', () => {
       const oak = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/oak'
+        '/material/wood/oak'
       );
       const axe = makeStuff(() => new Thing());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -111,11 +111,11 @@ describe('TangibleMixin', () => {
     it('setMaterial(null, key) removes the override; reads fall through again', () => {
       const oak = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/oak'
+        '/material/wood/oak'
       );
       const iron = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/iron'
+        '/material/element/iron'
       );
       const axe = makeStuff(() => new Thing());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -131,11 +131,11 @@ describe('TangibleMixin', () => {
     it('setMaterial(null) clears overrides too', () => {
       const oak = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/oak'
+        '/material/wood/oak'
       );
       const iron = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/iron'
+        '/material/element/iron'
       );
       const axe = makeStuff(() => new Thing());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -151,15 +151,15 @@ describe('TangibleMixin', () => {
     it('multiple Details each carry their own material', () => {
       const oak = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/oak'
+        '/material/wood/oak'
       );
       const iron = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/iron'
+        '/material/element/iron'
       );
       const flesh = withTemplatePath(
         makeStuff(() => new Material()),
-        '/material/flesh'
+        '/material/tissue/flesh'
       );
       const golem = makeStuff(() => new Thing());
       if (!MixinApi.isTangible(golem)) throw new Error('expected tangible');

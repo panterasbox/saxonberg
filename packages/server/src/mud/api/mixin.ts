@@ -55,6 +55,7 @@ import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
+import type { Radioactive } from '../lib/material/Radioactive';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -425,6 +426,10 @@ export class MixinApi {
 
   public static isSexed(obj: Stuff): obj is Stuff & Sexed {
     return this.hasMixin(obj, Mixins.Sexed);
+  }
+
+  public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
+    return this.hasMixin(obj, Mixins.Radioactive);
   }
 }
 

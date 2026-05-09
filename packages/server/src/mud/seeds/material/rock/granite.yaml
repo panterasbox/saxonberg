@@ -1,0 +1,31 @@
+# Granite — coarse-grained igneous rock. Heavy, hard, electrically
+# inert. The default stone for walls and statuary.
+#
+# Geologically a mixture of quartz (SiO2), feldspar
+# (KAlSi3O8/NaAlSi3O8), and mica plus minor accessories. v1 leaves
+# `composition` empty pending mineral templates — content extends by
+# adding `/material/mineral/quartz`, `.../feldspar`, `.../mica` and
+# populating composition entries here. The `igneous` tag carries the
+# rock-cycle classification meanwhile.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: granite
+  density: 2750
+  hardness: 7
+  flammability: 0
+  opacity: 1
+  thermalConductivity: 2.8
+  electricalConductivity: 1.0e-6
+  magneticSusceptibility: 0.001
+  edibility: false
+  nutrients: []
+  toxicity: []
+  damageResistance:
+    slash: 0.8
+    blunt: 0.7
+    pierce: 0.6
+  tags: ["rock", "igneous", "mixture", "crystalline", "felsic"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -34,14 +34,67 @@ follow-on builds:
 ## Material substrate
 
 `Material` is a singleton-by-templatePath `Idea` carrying physical
-properties (density, hardness, opacity, conductivity, …) plus
-edibility/nutrient/toxicity tags reserved for the future DietApi.
+properties (density, hardness, opacity, conductivity, …) plus three
+orthogonal layers of classification:
+
+- **Tags** (`tags: string[]`) — free-form classification strings
+  (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
+  Vocabulary is not centrally registered; content devs introduce new
+  tags as they need them. Used for educational filtering and any
+  orthogonal grouping.
+- **Composition** (`composition: { materialPath, fraction }[]`) — for
+  mixtures and alloys, weight-fraction references to constituent
+  Materials (steel → 0.998 iron + 0.002 carbon). `MaterialApi`
+  recursively expands these to leaf-element symbol fractions, so
+  "does this contain iron?" works regardless of how nested the
+  alloy/mixture chain is.
+- **Chemistry** (`chemistry: { symbol?, atomicNumber?, atomicMass?,
+  formula?, molarMass? } | null`) — atomic-/molecular-level science
+  data. Elements carry `symbol/atomicNumber/atomicMass`; compounds
+  carry `formula/molarMass`. Mixtures leave it null and rely on
+  composition.
+
+Plus `biologicalSource: { speciesPath, tissueType } | null` for
+organic materials linking back to a Species template (bidirectional
+with `Species._defaultMaterialPath`).
+
+### Capability mixins
+
+Most classification is metadata — flat strings or refs. Some
+classifications carry behavior. **`RadioactiveMixin`**
+(`/lib/material/Radioactive.ts`) is the v1 demonstration of the
+capability-mixin pattern:
+
+```ts
+export class RadioactiveMaterial extends RadioactiveMixin(Material) {}
+```
+
+The mixin adds `getHalfLife()`, `getDecayMode()` (alpha / beta-minus
+/ beta-plus / gamma / spontaneous-fission / electron-capture), and
+`getDecayProduct()` — a lazy cross-reference to the daughter
+Material. Templates that need it use `class:
+/lib/material/RadioactiveMaterial`; everything else stays on
+`class: /lib/material/Material`. `MixinApi.isRadioactive(m)` narrows
+the typed surface.
+
+Why a mixin and not a tag: radioactivity carries non-trivial
+behavioral surface (half-life arithmetic, decay chains, decay-mode
+taxonomy) and is sparse — most materials aren't radioactive, and the
+fields are meaningless on those that aren't. Future capability
+mixins (`SuperconductorMixin`, `PiezoelectricMixin`, …) layer the
+same way: one subclass per composed combination.
+
+Phase-of-matter (`solid/liquid/gas`) is not a capability mixin —
+it's state, not identity. Iron is solid at room temp, liquid at
+1538 °C; the material's identity is invariant to state.
+
+### `TangibleMixin` and per-Detail materials
 
 `TangibleMixin` is composed onto every physical Stuff base —
-`Thing`, `Location`, `Vessel`, `Agent`. The mixin's only state is
-`_materialPath: string | null` (the canonical
-[cross-reference shape](#cross-references)). `getMaterial()` resolves
-on each call via `StuffApi.findByTemplatePath` — HMR-safe.
+`Thing`, `Location`, `Vessel`, `Agent`. State: `_materialPath:
+string | null` (bulk default) plus `_detailMaterialPaths:
+Record<string, string>` (per-Detail overrides). `getMaterial()`
+resolves on each call via `StuffApi.findByTemplatePath` — HMR-safe.
 
 `MaterialApi.materialOf(stuff, detailKey?)` is the single dispatch
 point for "what is this made of?" — returns the singleton if
@@ -49,19 +102,43 @@ Tangible, `null` otherwise. With no `detailKey` it reads the Stuff's
 bulk default Material; with one, it reads the per-Detail override
 (falling through to the bulk default when no override is set). An
 axe with a wooden haft and an iron head: `setMaterial(oak)` for the
-bulk, `setMaterial(iron, 'head')` for the override; the head reads
-iron, everything else reads oak.
+bulk, `setMaterial(iron, 'head')` for the override.
 
-The v1 roster (`/material/<x>`):
+### v1 roster
 
-- `iron`, `steel`, `copper` — metals
-- `granite` — stone
-- `oak` — dead wood
-- `flesh` — animal tissue
-- `plant-tissue` — living plant
-- `fruit-flesh` — sugary plant tissue (an apple)
+Materials are organized under `/material/<category>/...`.
+Categories track everyday "what kind of stuff is this" rather than
+a single science's classification — chemistry, biology, geology
+all overlay via tags. Path depth varies by branch: shallow where one
+level reads naturally; deeper when content earns it.
+
+- `/material/element/iron, copper, carbon` — pure elements
+- `/material/element/uranium` — `RadioactiveMaterial` (the
+  capability-mixin demo)
+- `/material/alloy/steel` — Fe + C composition
+- `/material/rock/granite` — igneous; mineral composition unmodeled
+  in v1
+- `/material/wood/oak` — once-living plant tissue
+- `/material/tissue/flesh, plant-tissue, fruit-flesh` — biological
 
 These are leaf templates; Material isn't a folder class.
+
+### `MaterialApi` query surface
+
+- `materialOf(stuff, detailKey?)` — the bulk + per-Detail lookup.
+- `compositionOf(material)` — recursive weight-fraction expansion to
+  leaf elements. A pure element returns `{ Fe: 1 }`; steel returns
+  `{ Fe: 0.998, C: 0.002 }`; granite (no composition refs in v1)
+  returns `{}`.
+- `containsElement(material, symbol)` — "does this material's
+  recursive composition contain element `symbol`?" Walks
+  `compositionOf` and matches against leaf-element symbols.
+- `findByTag(tag)` — every registered Material carrying the tag.
+- `findByElement(symbol)` — every registered Material whose
+  composition contains the element. Combines the above.
+
+Future surfaces (`weightOf`, `damageResistance`, `flammabilityOf`,
+`canConduct`) land as their consumers do.
 
 ---
 

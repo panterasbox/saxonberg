@@ -67,7 +67,7 @@ describe('Species', () => {
     );
     const flesh = withTemplatePath(
       makeStuff(() => new Material()),
-      '/material/flesh'
+      '/material/tissue/flesh'
     );
 
     const sapiens = makeStuff(() => new Species());
@@ -76,7 +76,7 @@ describe('Species', () => {
     sapiens.setDefaultMaterial(flesh);
     expect(sapiens._bodyPlanPath).toBe('/obj/body-plans/biped');
     expect(sapiens._parentCladePath).toBe('/obj/species/animalia');
-    expect(sapiens._defaultMaterialPath).toBe('/material/flesh');
+    expect(sapiens._defaultMaterialPath).toBe('/material/tissue/flesh');
     expect(sapiens.getBodyPlan()).toBe(biped);
     expect(sapiens.getParentClade()).toBe(animalia);
     expect(sapiens.getDefaultMaterial()).toBe(flesh);

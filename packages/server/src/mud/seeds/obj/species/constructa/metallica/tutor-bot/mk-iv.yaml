@@ -9,7 +9,7 @@ data:
   commonNames: ["tutor-bot", "robot"]
   _bodyPlanPath: /obj/body-plans/biped
   _parentCladePath: /obj/species/constructa
-  _defaultMaterialPath: /material/steel
+  _defaultMaterialPath: /material/alloy/steel
   lifecycleStates: ["powered", "unpowered", "destroyed"]
   sexDeterminationSystem: none
   reproductiveMode: manufactured

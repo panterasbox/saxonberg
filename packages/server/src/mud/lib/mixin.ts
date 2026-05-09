@@ -52,6 +52,7 @@ export const Mixins = {
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
   Sexed: 'SexedMixin',
+  Radioactive: 'RadioactiveMixin',
 } as const;
 
 /**
