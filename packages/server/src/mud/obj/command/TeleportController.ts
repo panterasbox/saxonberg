@@ -7,6 +7,26 @@
  * if the polished path vetoes. Pre-check fires `canTeleport` on the
  * target itself; force still invokes the witness but skips the
  * assertion so observers see every call uniformly.
+ *
+ * Destination resolution: the yaml defaults `destination` to
+ * `$focus`, so a bare `teleport <thing>` lands the target where the
+ * player is currently focused. The resolved focus is then routed
+ * through {@link _resolveDestinationContainer}:
+ *
+ *   - Container (room, chest, vessel interior, avatar inventory) →
+ *     used as-is. Target lands inside.
+ *   - Containable-only (a non-container item like a sword) → walks
+ *     up to the item's environment. Target lands "next to" the
+ *     focused thing.
+ *   - Neither → error. The verb refuses with a clear message; the
+ *     player picks an explicit `to <where>` instead.
+ *
+ * The Container-wins precedence handles Avatars and Vessels (both
+ * Container + Containable) the way admins typically want: focus on
+ * bob, teleport sword → into bob's inventory; focus on wagon,
+ * teleport crate → into the wagon's interior. The override case
+ * ("put it next to bob, not in him") uses the explicit
+ * `to <here>` preposition.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -39,9 +59,25 @@ export class TeleportController extends CommandController<TeleportModel> {
       return this.fail(context, `no match for target`);
     }
     const tgt = target.stuff as Stuff & Containable;
-    const dest = (model.destination?.stuff ??
-      context.location) as Stuff & Container;
-    if (!dest) return this.fail(context, 'no destination');
+
+    // The yaml defaults destination to `$focus`. If the player has
+    // never focused, `$focus` resolves to `"here"` (the current
+    // location) — so model.destination.stuff is populated either
+    // way. Falling back to context.location is a safety net for
+    // hosts without Focused (NPCs scripted-invoking teleport, say).
+    const focused =
+      (model.destination?.stuff as Stuff | null | undefined) ??
+      context.location;
+    if (!focused) return this.fail(context, 'no destination');
+
+    const dest = _resolveDestinationContainer(focused);
+    if (!dest) {
+      return this.fail(
+        context,
+        `${DescribeApi.getDisplayName(focused, 'that')} is not a container ` +
+          `and has no environment to land in; use \`to <somewhere>\``,
+      );
+    }
 
     // 1. Verb-level pre-check. Force still fires the witness so
     // observers / audit hooks see every teleport invocation; only
@@ -112,4 +148,37 @@ function callTeleportHook(
 
 function isVetoError(err: unknown): boolean {
   return err instanceof ContainmentError;
+}
+
+/**
+ * Apply the focus-resolution rule:
+ *
+ *   - Container (room, chest, vessel interior, avatar inventory) →
+ *     return as-is. Container-wins precedence; Avatars and Vessels
+ *     (Container + Containable) fall in here, the way admins
+ *     typically want.
+ *   - Containable-only (a non-container item) → walk up to its
+ *     environment. The focused thing becomes a "point at" reference
+ *     and the target lands in the same room.
+ *   - Neither → null. Caller surfaces a clear error.
+ *
+ * Exported as `@internal` so the rule is unit-testable in
+ * isolation; consumers should call through the controller's
+ * `execute` rather than reaching for this directly.
+ *
+ * @internal
+ */
+export function _resolveDestinationContainer(
+  focused: Stuff,
+): (Stuff & Container) | null {
+  if (MixinApi.isContainer(focused)) {
+    return focused;
+  }
+  if (MixinApi.isContainable(focused)) {
+    const env = focused.getContainer();
+    if (env && MixinApi.isContainer(env)) {
+      return env;
+    }
+  }
+  return null;
 }
