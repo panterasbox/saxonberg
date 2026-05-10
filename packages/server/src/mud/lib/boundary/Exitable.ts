@@ -469,8 +469,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
       // Chain to super — Location overrides onDestruct to detach
       // from the owning zone, which then chains into Adornable for
-      // fixture teardown. Stuff itself declares no onDestruct.
-      (super.onDestruct as (() => void) | undefined)?.call(this);
+      // fixture teardown, bottoming out at Stuff's no-op terminal.
+      super.onDestruct();
     }
   };
 }

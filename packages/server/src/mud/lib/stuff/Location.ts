@@ -46,7 +46,7 @@ export class Location extends LocationBase {
     if (zone) {
       zone.removeLocation(this);
     }
-    (super.onDestruct as (() => void) | undefined)?.call(this);
+    super.onDestruct();
   }
 }
 

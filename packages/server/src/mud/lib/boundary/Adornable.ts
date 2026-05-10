@@ -142,7 +142,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         StuffApi.destruct(f as unknown as Stuff);
       }
       this.fixtures.clear();
-      (super.onDestruct as (() => void) | undefined)?.call(this);
+      super.onDestruct();
     }
   };
 }

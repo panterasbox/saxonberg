@@ -801,10 +801,71 @@ answer is meaningful on every subclass.
 For cartesian-only-on-the-cartesian-side cases, lean on the
 invariant and cast — don't pollute the base.
 
-## Summary
+## Cast-Chain to `super` for an Optional Inherited Method
 
-- Never call `setEnvironment()` or `addContainable()` directly — always
-  use `ContainmentApi.move()`.
+When a mixin or subclass overrides a hook that the parent type
+doesn't statically declare, calling `super.hook()` is a TypeScript
+error — even though it'd be safe at runtime if the prototype
+chain happens to have it. The instinctive workaround is the
+cast-and-optional-call dance:
+
+### BAD (cast through `(...) | undefined`)
+
+```typescript
+public override onDestruct(): void {
+  doMyCleanup();
+  // The cast lies about the static surface, then `?.call(this)`
+  // re-introduces the runtime guard that the cast just suppressed.
+  (super.onDestruct as (() => void) | undefined)?.call(this);
+}
+```
+
+Two things are wrong: the cast hides the missing declaration
+instead of fixing it, and reaching for `.call(this)` instead of
+`super.onDestruct()` is a tell that the static type was the
+problem all along.
+
+### GOOD (declare a no-op terminal on the root)
+
+Put a no-op implementation on the root class so the chain has a
+guaranteed terminal callee. Now every layer can `super.X()`
+without ceremony:
+
+```typescript
+// Stuff.ts
+public onDestruct(): void {}
+```
+
+```typescript
+// Subclass / mixin
+public override onDestruct(): void {
+  doMyCleanup();
+  super.onDestruct();
+}
+```
+
+The runtime call-shape doesn't change (any layer that wants to
+participate still defines the method); the static surface now
+matches what the cast was lying about.
+
+### When this fits
+
+The pattern works for hooks that are **universal to the root
+class's purpose** — every Stuff *can* be destructed, so an empty
+terminal `onDestruct` belongs on Stuff. It does NOT mean every
+hook should land on the root: a hook that only makes sense for a
+narrow capability belongs on the mixin's interface, and consumers
+narrow with `MixinApi.isX(obj)` before calling. The question is
+whether the root class is the natural terminal point for the
+chain — destruction is, "can-this-fly" isn't.
+
+Optional-method dispatchers in API code (the
+`typeof fn === 'function'` pattern in `StuffApi.destruct`,
+`ContainmentApi`, etc.) keep working — they were always defending
+against shadows / dynamic composition, not against missing
+prototype links.
+
+
 - Use the correct abstraction level: `traverse()` for creatures/vehicles,
   `ContainmentApi.move()` for all other object movement, low-level
   containment methods only from inside `ContainmentApi`.
@@ -839,3 +900,8 @@ invariant and cast — don't pollute the base.
   doesn't decompose (variable-key maps, structured composites),
   declare a `Marshaller` and register it in `static fieldMarshallers`
   on the mixin. Strict setters always.
+- Don't cast `super.hook` to `(... | undefined)?.call(this)` to
+  chain an optionally-inherited method. Declare a no-op terminal
+  on the root class (the way `Stuff.onDestruct` does for the
+  destruction chain) so `super.hook()` type-checks at every
+  layer. Pattern only fits hooks universal to the root's purpose.

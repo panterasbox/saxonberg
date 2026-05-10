@@ -311,7 +311,7 @@ describe('Destruct Witness hooks (StuffApi.destruct / forceDestruct)', () => {
     canDestruct?(): VetoResult {
       return this.veto ?? { ok: true };
     }
-    onDestruct?(): void {
+    override onDestruct(): void {
       this.destructCalled += 1;
     }
   }

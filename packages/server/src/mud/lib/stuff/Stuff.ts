@@ -395,6 +395,20 @@ export abstract class Stuff {
   }
 
   /**
+   * Terminal `onDestruct` no-op. Exists so subclasses and mixins
+   * overriding `onDestruct` can call `super.onDestruct()` without
+   * the cast-to-optional-callable dance — the chain is guaranteed
+   * to bottom out here. `StuffApi.destruct` invokes the hook via
+   * the optional-method dispatcher in `api/stuff.ts`; that path
+   * still works (always finds a function on the prototype).
+   *
+   * Override (not extend with `super`) at any layer that wants
+   * cleanup; chain to `super.onDestruct()` from the override so
+   * intermediate layers in a mixin chain run too.
+   */
+  public onDestruct(): void {}
+
+  /**
    * Get a string representation of this object (for debugging).
    */
   public toString(): string {
