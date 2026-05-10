@@ -511,6 +511,109 @@ export class Quantity<U extends Unit> {
     return defaultScaleByUnit.get(unit) ?? null;
   }
 
+  // ---------- tag-table introspection ----------
+
+  /**
+   * Ordered tag list for a `(unit, scaleName)` pair. Order is
+   * ascending by threshold (the registry sorts entries on register
+   * for `tagFor`'s descending walk; this helper exposes the same
+   * ordering as a plain string array for callers that need to do
+   * shift/compare arithmetic over tag bands).
+   *
+   * Returns an empty array when no table is registered for the
+   * pair. `scaleName` defaults to the unit's registered default
+   * scale.
+   *
+   * Cross-unit consumer pattern: `LightBand` is the lux scale's
+   * tag list; a future thermal-K scale would expose its own
+   * ordered tag list the same way.
+   */
+  public static tagsFor(
+    unit: Unit,
+    scaleName?: ScaleName
+  ): readonly string[] {
+    const scale = resolveScaleName(unit, scaleName);
+    if (scale === null) return [];
+    const table = tagTableRegistry.get(unit)?.get(scale);
+    if (!table) return [];
+    return table.map((entry) => entry.tag);
+  }
+
+  /**
+   * Shift a tag by integer band offset within its registered
+   * `(unit, scaleName)` ordering. Clamps to the [first, last] band
+   * range; non-finite shifts are treated as zero (the input tag
+   * passes through unchanged).
+   *
+   * Throws when:
+   *   - No table is registered for the (unit, scaleName) pair.
+   *   - `tag` isn't present in the resolved table.
+   *
+   * Worked example: `shiftTag('lux', 'lit', -2)` → `'very-dim'`
+   * (assuming the lux scale order pitch-black/very-dim/dim/lit/
+   * bright/blinding). `shiftTag('lux', 'pitch-black', -10)` →
+   * `'pitch-black'` (clamped at the floor).
+   */
+  public static shiftTag(
+    unit: Unit,
+    tag: string,
+    shift: number,
+    scaleName?: ScaleName
+  ): string {
+    const tags = Quantity.tagsFor(unit, scaleName);
+    if (tags.length === 0) {
+      throw new Error(
+        `Quantity.shiftTag: no tag table registered for unit '${unit}' ` +
+          `(scale '${scaleName ?? defaultScaleByUnit.get(unit) ?? '(none)'}')`
+      );
+    }
+    const idx = tags.indexOf(tag);
+    if (idx < 0) {
+      throw new Error(
+        `Quantity.shiftTag: tag '${tag}' is not registered for unit '${unit}' ` +
+          `(scale '${scaleName ?? defaultScaleByUnit.get(unit) ?? '(none)'}')`
+      );
+    }
+    if (!Number.isFinite(shift) || shift === 0) return tag;
+    const target = idx + Math.trunc(shift);
+    const clamped = Math.max(0, Math.min(tags.length - 1, target));
+    return tags[clamped]!;
+  }
+
+  /**
+   * Compare two tags by their position in a `(unit, scaleName)`'s
+   * registered ordering. Returns a sign-only integer (negative when
+   * `a` precedes `b`, zero when equal, positive when `a` follows
+   * `b`) — same shape as `Array.prototype.sort`'s comparator.
+   *
+   * Throws when no table is registered for the pair, or when either
+   * tag isn't present in the resolved table.
+   */
+  public static compareTag(
+    unit: Unit,
+    a: string,
+    b: string,
+    scaleName?: ScaleName
+  ): number {
+    const tags = Quantity.tagsFor(unit, scaleName);
+    if (tags.length === 0) {
+      throw new Error(
+        `Quantity.compareTag: no tag table registered for unit '${unit}' ` +
+          `(scale '${scaleName ?? defaultScaleByUnit.get(unit) ?? '(none)'}')`
+      );
+    }
+    const ai = tags.indexOf(a);
+    const bi = tags.indexOf(b);
+    if (ai < 0 || bi < 0) {
+      const missing = ai < 0 ? a : b;
+      throw new Error(
+        `Quantity.compareTag: tag '${missing}' is not registered for unit ` +
+          `'${unit}' (scale '${scaleName ?? defaultScaleByUnit.get(unit) ?? '(none)'}')`
+      );
+    }
+    return ai - bi;
+  }
+
   // ---------- inspection ----------
 
   public rawValue(): number {

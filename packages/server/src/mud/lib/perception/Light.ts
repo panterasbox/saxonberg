@@ -75,17 +75,28 @@ export const LIGHT_SOURCE_CAP = 3;
  * granularity controllers and prose check against — most code never
  * touches the raw illuminance number.
  *
- * The lux→band threshold function (`bandFor`) and the registered
- * `LUX_TAGS` tag table both live in `api/light.ts` so the api layer
- * doesn't import logic from lib.
+ * Single source of truth for the lux band vocabulary in TypeScript:
+ * the `as const` tuple drives the `LightBand` type union, the
+ * runtime membership check in `bandFor` (`api/light.ts`), and pairs
+ * with the lux tag-table thresholds authored in
+ * `mud/config/quantity-tags.yaml`. `bandFor` enforces drift between
+ * the YAML and this tuple at runtime.
+ *
+ * The lux thresholds and the `bandFor` adapter both live in
+ * `api/light.ts`; band shift / compare arithmetic is the generic
+ * `Quantity.shiftTag` / `compareTag` machinery applied to the lux
+ * unit.
  */
-export type LightBand =
-  | 'pitch-black'
-  | 'very-dim'
-  | 'dim'
-  | 'lit'
-  | 'bright'
-  | 'blinding';
+export const LIGHT_BANDS = [
+  'pitch-black',
+  'very-dim',
+  'dim',
+  'lit',
+  'bright',
+  'blinding',
+] as const;
+
+export type LightBand = (typeof LIGHT_BANDS)[number];
 
 /**
  * Coerce a tag string, a `Quantity<'K'>`, or null into a

@@ -83,6 +83,13 @@ class Quantity<U extends Unit> {
     entries: ReadonlyArray<TagTableEntry>,
   ): void
   static setDefaultScale(unit: Unit, scaleName: ScaleName): void
+
+  // Tag-table introspection — generic banded-arithmetic substrate
+  // for consumers that need to do shift / compare math over a
+  // unit's registered ordering (e.g. light-band perception shifts).
+  static tagsFor(unit: Unit, scaleName?: ScaleName): readonly string[]
+  static shiftTag(unit: Unit, tag: string, shift: number, scaleName?: ScaleName): string
+  static compareTag(unit: Unit, a: string, b: string, scaleName?: ScaleName): number
 }
 ```
 
@@ -211,6 +218,25 @@ The lookup machinery in `lib/quantity.ts`:
   the tag-string path.
 - Round-trip stability — every `{ tag, threshold }` row satisfies
   `fromTag(tag, unit, scale).tag(scale) === tag`. Tests pin this.
+
+### Banded-arithmetic helpers
+
+`tagsFor` / `shiftTag` / `compareTag` expose the registered
+ordering as a substrate for callers that need to shift or compare
+**by band**, not by raw numeric. The motivating consumer is
+per-viewer light perception — a low-light-vision species shifts
+the perceived `LightBand` up by N bands rather than scaling lux,
+which is the right semantic ("nightvision sees one band better"
+not "nightvision multiplies illuminance by 4×"). The same machinery
+applies to any unit/scale pair with an ordered vocabulary (a future
+thermal-K scale, a sound-dB band scale, etc.) — adding a per-channel
+shift/compare helper to each Api is no longer required.
+
+The compile-time vocabulary type union (e.g. `LightBand`) and the
+runtime registry are kept in sync by an `as const` tuple at the
+type-source side and the `bandFor`-style adapter on the api side
+(membership-checks the registered tag against the union; throws on
+drift). See `lib/perception/Light.ts` for the canonical pattern.
 
 ### Reload
 

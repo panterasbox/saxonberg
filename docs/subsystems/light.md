@@ -132,9 +132,23 @@ table (lux):
 | `>= 60`, `< 200`   | bright       |
 | `>= 200`           | blinding     |
 
-These thresholds are also registered as the `LUX_TAGS` tag table on
-`Quantity<'lux'>` (in `api/light.ts`), so
-`light.intensity.tag()` and `bandAt(loc)` agree by construction.
+These thresholds are authored in `mud/config/quantity-tags.yaml`
+under `lux/default` and load at boot via `QuantityApi.loadTagTables`.
+`light.intensity.tag()` and `bandAt(loc)` agree by construction —
+`bandFor` is a thin typed adapter that calls `Quantity.tag()` and
+narrows the result to the `LightBand` union (membership-checked
+against the `LIGHT_BANDS` `as const` tuple in
+`lib/perception/Light.ts`, which is the single in-code source for
+the band vocabulary).
+
+Band shift / compare arithmetic in `LightApi` (used by
+`perceivedBand`'s species-vision adjustment, `canSee`'s required-
+band threshold) delegates to the generic
+`Quantity.shiftTag('lux', band, n)` / `Quantity.compareTag('lux',
+a, b)` helpers — so a future thermal-K scale or sound-dB scale
+gets the same banded-arithmetic substrate without each channel
+re-implementing it. See
+[../subsystems/quantities.md § Banded-arithmetic helpers](./quantities.md).
 
 ### Calibration — MUD-game scale, not photometric scale
 

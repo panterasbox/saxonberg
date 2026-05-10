@@ -30,7 +30,7 @@ import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Perception } from '../lib/perception/Perception';
 import type { Adornment } from '../lib/boundary/Adornment';
-import { Light, type LightSourceRef } from '../lib/perception/Light';
+import { Light, LIGHT_BANDS, type LightSourceRef } from '../lib/perception/Light';
 import type { LightBand } from '../lib/perception/Light';
 
 /**
@@ -72,19 +72,19 @@ export const EXIT_TAU = 1.0;
 // ---------- Band lookup ----------
 
 /**
- * The set of valid `LightBand` values, used by `bandFor` to
- * defensively narrow the registered lux tag-table tag back to
- * the typed union. The lux tag table is authored to produce
- * exactly these strings — see `mud/config/quantity-tags.yaml`.
+ * Lux unit + scale the lux tag-table is registered under. Encoded
+ * once so all the `Quantity.*('lux', LUX_SCALE)` callers stay in
+ * sync if the scale name ever changes.
  */
-const LIGHT_BANDS: ReadonlySet<LightBand> = new Set<LightBand>([
-  'pitch-black',
-  'very-dim',
-  'dim',
-  'lit',
-  'bright',
-  'blinding',
-]);
+const LUX_SCALE = 'default';
+
+/**
+ * Membership set for runtime narrowing — derived from the
+ * type-system source of truth (`LIGHT_BANDS` in
+ * `lib/perception/Light.ts`) so there's no second copy to
+ * keep in sync.
+ */
+const LIGHT_BAND_SET: ReadonlySet<LightBand> = new Set<LightBand>(LIGHT_BANDS);
 
 /**
  * Map a lux numeric value to a `LightBand`. Consults the live
@@ -96,11 +96,11 @@ const LIGHT_BANDS: ReadonlySet<LightBand> = new Set<LightBand>([
  *
  * Throws if the lux table isn't registered (test setup gap) or if
  * the registered tags don't match `LightBand` (content-side bug —
- * the YAML tag list must equal the union by construction).
+ * the YAML tag list must equal the typed union by construction).
  */
 export function bandFor(luxValue: number): LightBand {
   const tag = Quantity.of(luxValue, 'lux').tag();
-  if (!LIGHT_BANDS.has(tag as LightBand)) {
+  if (!LIGHT_BAND_SET.has(tag as LightBand)) {
     throw new Error(
       `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
         `Either the lux tag table is not registered (call ` +
@@ -298,30 +298,20 @@ export class LightApi {
 }
 
 /**
- * Ordered band table for shift / compare arithmetic.
+ * Band shift / compare arithmetic delegates to the generic
+ * `Quantity.shiftTag` / `Quantity.compareTag` machinery applied to
+ * the lux unit. The runtime ordering comes from the registered tag
+ * table (`mud/config/quantity-tags.yaml § lux/default`); the
+ * compile-time `LightBand` union is the typed view of that same
+ * vocabulary (declared in `lib/perception/Light.ts` and pinned by
+ * `bandFor`'s membership check).
  */
-const BAND_ORDER: readonly LightBand[] = [
-  'pitch-black',
-  'very-dim',
-  'dim',
-  'lit',
-  'bright',
-  'blinding',
-];
-
-function bandIndex(band: LightBand): number {
-  return BAND_ORDER.indexOf(band);
-}
-
 function applyBandShift(band: LightBand, shift: number): LightBand {
-  if (!Number.isFinite(shift) || shift === 0) return band;
-  const idx = bandIndex(band) + Math.trunc(shift);
-  const clamped = Math.max(0, Math.min(BAND_ORDER.length - 1, idx));
-  return BAND_ORDER[clamped]!;
+  return Quantity.shiftTag('lux', band, shift, LUX_SCALE) as LightBand;
 }
 
 function compareBand(a: LightBand, b: LightBand): number {
-  return bandIndex(a) - bandIndex(b);
+  return Quantity.compareTag('lux', a, b, LUX_SCALE);
 }
 
 /** Detail level → minimum band required to discern at that level. */

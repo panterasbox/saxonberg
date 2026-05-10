@@ -232,4 +232,97 @@ describe('Quantity — core', () => {
       expect(out).toContain('>55.845 g/mol</quantity>');
     });
   });
+
+  describe('tag-table introspection — tagsFor / shiftTag / compareTag', () => {
+    it('tagsFor returns the registered ordering ascending by threshold', () => {
+      expect(Quantity.tagsFor('kg')).toEqual([
+        'feather',
+        'light',
+        'medium',
+        'heavy',
+        'enormous',
+      ]);
+    });
+
+    it('tagsFor returns [] for an unregistered (unit, scale) pair', () => {
+      expect(Quantity.tagsFor('g/mol')).toEqual([]);
+      expect(Quantity.tagsFor('kg', 'no-such-scale')).toEqual([]);
+    });
+
+    it('shiftTag walks the ordering by integer offset', () => {
+      expect(Quantity.shiftTag('kg', 'medium', 1)).toBe('heavy');
+      expect(Quantity.shiftTag('kg', 'medium', -1)).toBe('light');
+      expect(Quantity.shiftTag('kg', 'feather', 2)).toBe('medium');
+    });
+
+    it('shiftTag clamps to [first, last]', () => {
+      expect(Quantity.shiftTag('kg', 'feather', -10)).toBe('feather');
+      expect(Quantity.shiftTag('kg', 'enormous', 10)).toBe('enormous');
+    });
+
+    it('shiftTag treats zero / non-finite shifts as no-op', () => {
+      expect(Quantity.shiftTag('kg', 'medium', 0)).toBe('medium');
+      expect(Quantity.shiftTag('kg', 'medium', Number.NaN)).toBe('medium');
+      expect(
+        Quantity.shiftTag('kg', 'medium', Number.POSITIVE_INFINITY)
+      ).toBe('medium');
+    });
+
+    it('shiftTag truncates fractional shifts toward zero', () => {
+      expect(Quantity.shiftTag('kg', 'medium', 1.9)).toBe('heavy');
+      expect(Quantity.shiftTag('kg', 'medium', -1.9)).toBe('light');
+    });
+
+    it('shiftTag throws on missing table or unknown tag', () => {
+      expect(() => Quantity.shiftTag('g/mol', 'whatever', 1)).toThrow(
+        /no tag table registered/
+      );
+      expect(() => Quantity.shiftTag('kg', 'unknown', 1)).toThrow(
+        /not registered for unit/
+      );
+    });
+
+    it('compareTag returns sign-only ordering', () => {
+      expect(Quantity.compareTag('kg', 'feather', 'medium')).toBeLessThan(0);
+      expect(Quantity.compareTag('kg', 'medium', 'medium')).toBe(0);
+      expect(Quantity.compareTag('kg', 'enormous', 'medium')).toBeGreaterThan(
+        0
+      );
+    });
+
+    it('compareTag throws on missing table or unknown tag', () => {
+      expect(() => Quantity.compareTag('g/mol', 'a', 'b')).toThrow(
+        /no tag table registered/
+      );
+      expect(() => Quantity.compareTag('kg', 'unknown', 'medium')).toThrow(
+        /not registered for unit/
+      );
+      expect(() => Quantity.compareTag('kg', 'medium', 'unknown')).toThrow(
+        /not registered for unit/
+      );
+    });
+
+    it('tagsFor / shiftTag / compareTag are scale-aware', () => {
+      Quantity.registerTagTable('K', 'fixture-thermal', [
+        { tag: 'frozen', threshold: 0 },
+        { tag: 'room', threshold: 295 },
+        { tag: 'boiling', threshold: 373 },
+      ]);
+      try {
+        expect(Quantity.tagsFor('K', 'fixture-thermal')).toEqual([
+          'frozen',
+          'room',
+          'boiling',
+        ]);
+        expect(Quantity.shiftTag('K', 'room', 1, 'fixture-thermal')).toBe(
+          'boiling'
+        );
+        expect(
+          Quantity.compareTag('K', 'frozen', 'boiling', 'fixture-thermal')
+        ).toBeLessThan(0);
+      } finally {
+        Quantity._clearTagTable('K', 'fixture-thermal');
+      }
+    });
+  });
 });
