@@ -49,8 +49,10 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
     const lines: Mml[] = [];
     lines.push(Mml.compose`Light analysis at ${Mml.location(loc)}:`);
     lines.push(Mml.compose`  total: ${light.intensity.formatMml()}`);
-    if (light.color) {
-      lines.push(Mml.compose`  color temperature: ${light.color.formatMml()}`);
+    if (light.colorTemperature) {
+      lines.push(
+        Mml.compose`  color temperature: ${light.colorTemperature.formatMml()}`
+      );
     }
     if (light.sources.length === 0) {
       lines.push(Mml.compose`  contributing sources: none`);
@@ -62,10 +64,10 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
           ? Mml.name(src as Stuff)
           : Mml.fromMarkup(`<unknown>${s.stuffId}</unknown>`);
         const flux = Quantity.of(s.flux, 'lumen');
-        if (s.colorK !== null) {
-          const colorQ = Quantity.of(s.colorK, 'K');
+        if (s.colorTemperature !== null) {
+          const colorTempQ = Quantity.of(s.colorTemperature, 'K');
           lines.push(
-            Mml.compose`    - ${sourceName}: ${flux.formatMml()} @ ${colorQ.formatMml()}`
+            Mml.compose`    - ${sourceName}: ${flux.formatMml()} @ ${colorTempQ.formatMml()}`
           );
         } else {
           lines.push(

@@ -25,11 +25,15 @@
 import { Quantity } from '../quantity';
 
 /**
- * Atmospheric color tag — string alias retained for back-compat with
- * tagged-string call sites. `Quantity.parse('warm', 'K')` looks up the
- * registered Kelvin tag table and produces a `Quantity<'K'>` value;
- * callers that already typed `'warm'` continue to round-trip via the
- * setter coercion path.
+ * Abstract color tag — string alias for the stained-glass /
+ * atmospheric-tint family of things that aren't color
+ * temperatures. Concrete Kelvin values use `Quantity<'K'>`
+ * exclusively; bare `ColorTag` is reserved for the abstraction
+ * layer above color temperature (palette names, stylized tints).
+ *
+ * Today's only user is `Window.colorTint`. New abstract-color
+ * concepts plug in here without colliding with the color-temperature
+ * machinery on `Light` / `LightSource` / `AmbientLit`.
  */
 export type ColorTag = string;
 
@@ -38,13 +42,15 @@ export type ColorTag = string;
  * attribute prose to specific sources ("by the candlelight, the
  * fireplace…"). Carries the source's `stuffId` so the description
  * layer can resolve a display name on demand. `flux` is the source's
- * lumen contribution; `colorK` is its color temperature in Kelvin
- * (numeric, nullable).
+ * lumen contribution; `colorTemperature` is its color temperature
+ * in Kelvin (numeric, nullable). The naming reserves bare `color`
+ * for a future abstraction layer above color temperature; concrete
+ * Kelvin values always carry "temperature" in the name.
  */
 export interface LightSourceRef {
   readonly stuffId: string;
   readonly flux: number;
-  readonly colorK: number | null;
+  readonly colorTemperature: number | null;
 }
 
 /**
@@ -57,7 +63,7 @@ export interface LightSourceRef {
  */
 export interface LightDataShape {
   intensity: number | Quantity<'lux'>;
-  color?: ColorTag | Quantity<'K'> | null;
+  colorTemperature?: string | Quantity<'K'> | null;
   sources?: readonly LightSourceRef[];
 }
 
@@ -68,6 +74,10 @@ export const LIGHT_SOURCE_CAP = 3;
  * Bands for the `bandAt` lookup. Crossing-the-band boundaries is the
  * granularity controllers and prose check against — most code never
  * touches the raw illuminance number.
+ *
+ * The lux→band threshold function (`bandFor`) and the registered
+ * `LUX_TAGS` tag table both live in `api/light.ts` so the api layer
+ * doesn't import logic from lib.
  */
 export type LightBand =
   | 'pitch-black'
@@ -78,64 +88,20 @@ export type LightBand =
   | 'blinding';
 
 /**
- * Lux thresholds for the band lookup. Each entry is the LOWER bound
- * of its band: a value `>= threshold` lands in that band; below the
- * lowest threshold reads `'pitch-black'`. Mirrors the LUX_TAGS table
- * registered in `api/light.ts` so `lightAt(loc).intensity.tag()` and
- * `bandAt(loc)` agree by construction.
- *
- * **Calibration — MUD-game scale, NOT photometric scale.** Real-world
- * lux runs from ~0.01 (moonlight) through ~500 (office lighting) to
- * ~120,000 (direct sunlight). Our bands ([1, 5, 20, 60, 200]) are
- * compressed for fantasy-game ambient where authored flux values are
- * smaller (a candle is ~12 lumens, a torch ~50, a magic lantern
- * ~200). Authors writing real photometric values (8000 lumens for
- * sunlight) in small rooms (1 m²) read 'blinding' — close enough.
- * Authors writing fantasy values (40 lumens of "warm ambient") in a
- * 5 m² alcove read 'lit' — also close.
- *
- * Tuning is content-driven; revisit when world content actually
- * stresses the table.
- */
-const BAND_THRESHOLDS: ReadonlyArray<readonly [number, LightBand]> = [
-  [0, 'pitch-black'],
-  [1, 'very-dim'],
-  [5, 'dim'],
-  [20, 'lit'],
-  [60, 'bright'],
-  [200, 'blinding'],
-] as const;
-
-/**
- * Map a lux numeric value to a `LightBand`. Walks the table descending;
- * first threshold met-or-exceeded wins.
- */
-export function bandFor(luxValue: number): LightBand {
-  for (let i = BAND_THRESHOLDS.length - 1; i >= 0; i--) {
-    const [threshold, band] = BAND_THRESHOLDS[i]!;
-    if (luxValue >= threshold) return band;
-  }
-  return 'pitch-black';
-}
-
-/** Public threshold table for tag-table registration in api/light.ts. */
-export const LUX_BAND_THRESHOLDS: ReadonlyArray<{
-  tag: LightBand;
-  threshold: number;
-}> = BAND_THRESHOLDS.map(([threshold, tag]) => ({ tag, threshold }));
-
-/**
- * Coerce a `ColorTag` string, a `Quantity<'K'>`, or null into a
+ * Coerce a tag string, a `Quantity<'K'>`, or null into a
  * `Quantity<'K'> | null`. Used by `Light.of` and the mixin setters.
+ * String input resolves through the registered `KELVIN_TAGS` table
+ * (in `api/light.ts`), so author-friendly tags like `'warm'` and
+ * `'cool'` round-trip to their canonical Kelvin values.
  */
-export function coerceColor(
-  value: ColorTag | Quantity<'K'> | null | undefined
+export function coerceColorTemperature(
+  value: string | Quantity<'K'> | null | undefined
 ): Quantity<'K'> | null {
   if (value === null || value === undefined) return null;
   if (value instanceof Quantity) {
     if (value.unit !== 'K') {
       throw new TypeError(
-        `Light color must be Quantity<'K'>, got Quantity<'${value.unit}'>`
+        `Light color temperature must be Quantity<'K'>, got Quantity<'${value.unit}'>`
       );
     }
     return value;
@@ -144,7 +110,7 @@ export function coerceColor(
     return Quantity.parse(value, 'K');
   }
   throw new TypeError(
-    `Light color must be a string ColorTag, Quantity<'K'>, or null; got ${typeof value}`
+    `Light color temperature must be a string tag, Quantity<'K'>, or null; got ${typeof value}`
   );
 }
 
@@ -184,25 +150,25 @@ export class Light {
 
   /**
    * Public construct-with-defaults helper. Accepts numeric lux or a
-   * `Quantity<'lux'>` for intensity; string ColorTag, Quantity<'K'>,
-   * or null for color.
+   * `Quantity<'lux'>` for intensity; tag-string, Quantity<'K'>, or
+   * null for color temperature.
    */
   public static of(
     intensity: number | Quantity<'lux'>,
-    color: ColorTag | Quantity<'K'> | null = null,
+    colorTemperature: string | Quantity<'K'> | null = null,
     source?: LightSourceRef
   ): Light {
     const intensityQ = coerceLux(intensity);
-    const colorQ = coerceColor(color);
+    const colorTempQ = coerceColorTemperature(colorTemperature);
     if (
       intensityQ.rawValue() === 0 &&
-      colorQ === null &&
+      colorTempQ === null &&
       !source
     ) {
       return Light.ZERO;
     }
     const sources: LightSourceRef[] = source ? [source] : [];
-    return new Light(intensityQ, colorQ, sources);
+    return new Light(intensityQ, colorTempQ, sources);
   }
 
   /**
@@ -219,43 +185,44 @@ export class Light {
         !((value as LightDataShape).intensity instanceof Quantity))
     ) {
       throw new TypeError(
-        'Light.from: expected a Light or { intensity, color?, sources? } shape.'
+        'Light.from: expected a Light or { intensity, colorTemperature?, sources? } shape.'
       );
     }
     const data = value as LightDataShape;
     const intensityQ = coerceLux(data.intensity);
-    const colorQ = coerceColor(data.color ?? null);
+    const colorTempQ = coerceColorTemperature(data.colorTemperature ?? null);
     const sources: LightSourceRef[] = data.sources
       ? Array.from(data.sources)
       : [];
     if (
       intensityQ.rawValue() === 0 &&
-      colorQ === null &&
+      colorTempQ === null &&
       sources.length === 0
     ) {
       return Light.ZERO;
     }
-    return new Light(intensityQ, colorQ, sources);
+    return new Light(intensityQ, colorTempQ, sources);
   }
 
   public readonly intensity: Quantity<'lux'>;
-  public readonly color: Quantity<'K'> | null;
+  public readonly colorTemperature: Quantity<'K'> | null;
   public readonly sources: readonly LightSourceRef[];
 
   protected constructor(
     intensity: Quantity<'lux'>,
-    color: Quantity<'K'> | null,
+    colorTemperature: Quantity<'K'> | null,
     sources: readonly LightSourceRef[]
   ) {
     this.intensity = intensity;
-    this.color = color;
+    this.colorTemperature = colorTemperature;
     this.sources = sources;
   }
 
   /**
    * Sum two Lights. Lux intensities add. Color temperature blends as
    * the **flux-weighted average** across all contributing sources;
-   * sources whose `colorK` is null are excluded from the weighting.
+   * sources whose `colorTemperature` is null are excluded from the
+   * weighting.
    */
   public add(other: Light): Light {
     if (other === Light.ZERO || other.intensity.rawValue() === 0) return this;
@@ -263,8 +230,11 @@ export class Light {
 
     const intensity = this.intensity.add(other.intensity);
     const merged = mergeSources(this.sources, other.sources);
-    const color = mixColor(merged) ?? this.color ?? other.color;
-    return new Light(intensity, color, merged);
+    const colorTemp =
+      mixColorTemperature(merged) ??
+      this.colorTemperature ??
+      other.colorTemperature;
+    return new Light(intensity, colorTemp, merged);
   }
 
   /**
@@ -278,29 +248,39 @@ export class Light {
     const intensity = this.intensity.scale(factor);
     const sources: LightSourceRef[] = this.sources.map((s) => ({
       stuffId: s.stuffId,
-      colorK: s.colorK,
+      colorTemperature: s.colorTemperature,
       flux: s.flux * factor,
     }));
-    return new Light(intensity, this.color, sources);
+    return new Light(intensity, this.colorTemperature, sources);
   }
 
-  /** Return a copy with the color tag overridden. */
-  public withColor(color: ColorTag | Quantity<'K'> | null): Light {
-    const c = coerceColor(color);
-    if (c === null && this.color === null) return this;
-    if (c !== null && this.color !== null && c.equals(this.color)) return this;
+  /** Return a copy with the color temperature overridden. */
+  public withColorTemperature(
+    colorTemperature: string | Quantity<'K'> | null
+  ): Light {
+    const c = coerceColorTemperature(colorTemperature);
+    if (c === null && this.colorTemperature === null) return this;
+    if (
+      c !== null &&
+      this.colorTemperature !== null &&
+      c.equals(this.colorTemperature)
+    ) {
+      return this;
+    }
     return new Light(this.intensity, c, this.sources);
   }
 
   /** JSON serialization shape for tests / debugging. */
   public toJSON(): {
     intensity: { value: number; unit: 'lux' };
-    color: { value: number; unit: 'K' } | null;
+    colorTemperature: { value: number; unit: 'K' } | null;
     sources: LightSourceRef[];
   } {
     return {
       intensity: this.intensity.toJSON(),
-      color: this.color ? this.color.toJSON() : null,
+      colorTemperature: this.colorTemperature
+        ? this.colorTemperature.toJSON()
+        : null,
       sources: this.sources.map((s) => ({ ...s })),
     };
   }
@@ -322,10 +302,14 @@ function mergeSources(
     if (!existing) {
       byId.set(s.stuffId, { ...s });
     } else {
-      // Brighter contribution wins for the color tag too; flux sums.
+      // Brighter contribution wins for the color temperature too;
+      // flux sums.
       byId.set(s.stuffId, {
         stuffId: s.stuffId,
-        colorK: s.flux > existing.flux ? s.colorK : existing.colorK,
+        colorTemperature:
+          s.flux > existing.flux
+            ? s.colorTemperature
+            : existing.colorTemperature,
         flux: s.flux + existing.flux,
       });
     }
@@ -337,16 +321,19 @@ function mergeSources(
 
 /**
  * Compute the flux-weighted average color temperature across the
- * source list. Sources with a null `colorK` are excluded from the
- * numerator AND denominator; if no source carries color, returns
- * null. Single-color rooms reproduce that color exactly.
+ * source list. Sources with a null `colorTemperature` are excluded
+ * from the numerator AND denominator; if no source carries a
+ * color temperature, returns null. Single-source-color rooms
+ * reproduce that source's color exactly.
  */
-function mixColor(sources: readonly LightSourceRef[]): Quantity<'K'> | null {
+function mixColorTemperature(
+  sources: readonly LightSourceRef[]
+): Quantity<'K'> | null {
   let weightedSum = 0;
   let weight = 0;
   for (const s of sources) {
-    if (s.colorK === null) continue;
-    weightedSum += s.colorK * s.flux;
+    if (s.colorTemperature === null) continue;
+    weightedSum += s.colorTemperature * s.flux;
     weight += s.flux;
   }
   if (weight === 0) return null;

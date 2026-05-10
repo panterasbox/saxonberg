@@ -23,7 +23,11 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs === null) return `${field} must be an object`;
   for (const stuff of stuffs) {
     if (!MixinApi.isContainable(stuff as Stuff)) {
-      return `you can't pick up ${DescribeApi.getDisplayName(stuff, 'that')}`;
+      // Shape-descriptive — the validator doesn't know which verb
+      // is invoking it (drop / get / give / future). Controllers
+      // can synthesize verb-specific copy if they want; the field-
+      // level error stays neutral.
+      return `${DescribeApi.getDisplayName(stuff, 'that')} can't be carried`;
     }
   }
   return undefined;

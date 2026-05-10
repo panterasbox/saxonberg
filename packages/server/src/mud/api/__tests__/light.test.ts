@@ -27,16 +27,16 @@ describe('LightApi.lightAt — propagation core', () => {
     expect(LightApi.bandAt(loc)).toBe('pitch-black');
   });
 
-  it('room with setAmbientFlux + setAmbientColor reflects the band and color', () => {
+  it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
     const zone = makeStuff(() => new CartesianZone());
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
-    loc.setAmbientColor('warm');
+    loc.setAmbientColorTemperature('warm');
 
     const total = LightApi.lightAt(loc);
     expect(total.intensity.rawValue()).toBe(40);
-    expect(total.color!.rawValue()).toBe(2700);
+    expect(total.colorTemperature!.rawValue()).toBe(2700);
     expect(LightApi.bandAt(loc)).toBe('lit');
   });
 
@@ -194,18 +194,18 @@ describe('LightApi — Wave 2 acceptance (Step E §13.3)', () => {
 
     // Ambient warm at 2700K, 50 lumens.
     loc.setAmbientFlux(50);
-    loc.setAmbientColor('warm');
+    loc.setAmbientColorTemperature('warm');
 
     // Lamp emits 50 lumens at cool=5000K.
     const lamp = makeStuff(() => new Lamp());
     lamp.setEmittedFlux(50);
-    lamp.setEmittedColor('cool');
+    lamp.setEmittedColorTemperature('cool');
     ContainmentApi.move(lamp, loc);
 
     const total = LightApi.lightAt(loc);
     expect(total.intensity.rawValue()).toBe(100);
     // Flux-weighted average: (2700*50 + 5000*50) / 100 = 3850 K.
-    expect(total.color!.rawValue()).toBeCloseTo(3850, 5);
+    expect(total.colorTemperature!.rawValue()).toBeCloseTo(3850, 5);
   });
 
   it('color tag round-trip via Quantity.fromTag', async () => {

@@ -63,3 +63,22 @@ export function makeStuff<T extends Stuff>(factory: () => T): T {
 export function withRootContext<T>(target: unknown, method: string, fn: () => T): T {
   return ExecutionContextApi.runRoot(target, method, fn);
 }
+
+/**
+ * Register a marshaller singleton at its templatePath so
+ * `StuffApi.findByTemplatePath` resolves it. Tests that exercise
+ * marshaller-bound fields/props must call this once per marshaller
+ * before the first save / hydrate / setProp on a marshalled value.
+ *
+ * @internal
+ */
+export function registerMarshallerForTest<T extends Stuff>(
+  factory: () => T,
+  templatePath: string
+): T {
+  return makeStuff(() => {
+    const m = factory();
+    (m as unknown as { templatePath: string }).templatePath = templatePath;
+    return m;
+  });
+}

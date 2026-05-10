@@ -38,6 +38,19 @@
  * });
  * avatar.setProp(gold, 100);
  *
+ * // Persistent property holding a rich value object — bind a
+ * // marshaller so the savedProps record carries storage-shape and
+ * // getProp returns runtime-shape. The binding persists alongside
+ * // the value in `savedPropMarshallers`, so reload-after-restart
+ * // re-applies it without redeclaring.
+ * const mass = Property.of<Quantity<'kg'>>("mass");
+ * avatar.initProp(mass, {
+ *   transient: false,
+ *   marshaller: QuantityMarshaller.pathFor('kg'),
+ * });
+ * avatar.setProp(mass, Quantity.of(5, 'kg'));
+ * avatar.getProp(mass); // → Quantity.of(5, 'kg')
+ *
  * // Value transformation masks (e.g., equipment bonus). When called
  * // from inside the ring's own method, owner defaults to the ring.
  * class MagicRing extends SomeStuff {
@@ -60,7 +73,8 @@ import { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
 import { Unshadowable } from '../security/decorators';
 import { ExecutionContextApi } from '../../api/execution-context';
-import { Quantity } from '../quantity';
+import { StuffApi } from '../../api/stuff';
+import type { Marshaller } from '../persistence/Marshaller';
 
 /**
  * Property wrapper for type safety.
@@ -150,7 +164,14 @@ export type PropValueMask<T extends PropValue> = (
 ) => T;
 
 /**
- * Property configuration options.
+ * Property configuration options. Runtime-shape only — these are
+ * NOT persisted directly. The persistent counterpart is the
+ * `savedPropMarshallers` map (propName → marshaller templatePath),
+ * which carries the only piece of prop config that needs to round-
+ * trip through storage. `transient` is implicit from which bag
+ * holds the value (`savedProps` vs `transientProps`); `checkAccess`
+ * is a closure and reconstructed from `defaultPropAccess` on
+ * lazy auto-init after hydration.
  */
 export interface PropOptions<T extends PropValue> {
   /**
@@ -166,6 +187,24 @@ export interface PropOptions<T extends PropValue> {
    * If not provided, uses defaultPropAccess().
    */
   checkAccess: PropAccessCheck<T>;
+}
+
+/**
+ * Optional `marshaller` knob the author passes to `initProp` for
+ * persistent props that hold rich value objects (Quantity, future
+ * value classes). The path resolves through
+ * `StuffApi.findByTemplatePath` to a registered Marshaller; the
+ * mixin applies `toStored` on write and `fromStored` on read so
+ * setProp / getProp see the runtime type, while storage carries
+ * the raw shape.
+ *
+ * Persisted alongside `savedProps` as the per-prop marshaller
+ * binding so loaded data round-trips correctly across restarts
+ * without re-declaring the binding at every boot.
+ */
+export interface PropOptionsInput<T extends PropValue>
+  extends Partial<PropOptions<T>> {
+  marshaller?: string;
 }
 
 /**
@@ -190,11 +229,17 @@ export interface Propertied {
   /**
    * Initialize a new property with options.
    *
+   * Pass `marshaller: '/lib/persistence/QuantityMarshaller/kg'` (or
+   * any registered marshaller path) when the prop holds a rich
+   * value object that needs storage-shape conversion. The binding
+   * persists alongside `savedProps`, so loaded hosts round-trip
+   * through the same marshaller without redeclaring.
+   *
    * @returns true if successful, false if property already exists
    */
   initProp<T extends PropValue>(
     prop: Property<T>,
-    options?: Partial<PropOptions<T>>,
+    options?: PropOptionsInput<T>,
   ): boolean;
 
   /**
@@ -309,34 +354,23 @@ export interface Propertied {
 }
 
 /**
- * Recognize a `{ value: number, unit: string }` Quantity-shape and
- * reconstruct via `Quantity.fromJSON`. Narrow match — exactly two own
- * keys with the right types — so we don't reconstruct arbitrary
- * `{value, unit}` objects that callers might be storing.
+ * Resolve a marshaller by templatePath. Throws when the path is
+ * declared but the marshaller hasn't been loaded into the registry —
+ * marshallers must be seeded / registered before any host that
+ * binds them is hydrated.
  */
-function rehydratePropValue(value: PropValue): PropValue {
-  if (
-    value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    !(value instanceof Quantity)
-  ) {
-    const obj = value as Record<string, unknown>;
-    const keys = Object.keys(obj);
-    if (
-      keys.length === 2 &&
-      keys.includes('value') &&
-      keys.includes('unit') &&
-      typeof obj.value === 'number' &&
-      typeof obj.unit === 'string'
-    ) {
-      return Quantity.fromJSON({
-        value: obj.value as number,
-        unit: obj.unit as Parameters<typeof Quantity.fromJSON>[0]['unit'],
-      }) as unknown as PropValue;
-    }
+function resolveMarshaller(
+  path: string,
+  propName: string
+): Marshaller<unknown, unknown> {
+  const m = StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(path);
+  if (!m) {
+    throw new Error(
+      `PropertiedMixin: marshaller '${path}' for prop '${propName}' is not registered. ` +
+        `Marshallers must be loaded before set/getProp on a marshalled prop.`
+    );
   }
-  return value;
+  return m;
 }
 
 /**
@@ -383,47 +417,41 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'PropertiedMixin';
 
     /**
-     * Persistent fields declared by this mixin.
-     * Used by PersistApi for automatic synchronization.
+     * Persistent fields declared by this mixin. `savedProps` carries
+     * the raw stored shape of each persistent prop (Quantity round-
+     * trips as `{value, unit}`, etc.); `savedPropMarshallers` carries
+     * the per-prop binding from prop name to marshaller templatePath
+     * so loaded hosts know which marshaller to apply on read /
+     * write. The marshaller binding is persisted explicitly so it
+     * survives restarts without requiring the host class to re-
+     * declare the binding for every prop name.
      */
-    static persistentFields = ['savedProps'];
+    static persistentFields = ['savedProps', 'savedPropMarshallers'];
 
     /**
-     * Persistent properties (saved to MongoDB). Host-internal; the
-     * Hydrator's bracket-assign routes through the setter so any
-     * Quantity-shaped entries (`{ value, unit }`) are rehydrated to
-     * `Quantity<U>` instances at that boundary. External callers go
-     * through `setProp` / `getProp`.
-     *
-     * Stored on `_savedProps` so the accessor pair can run; the
-     * accessor's `?:` shape is preserved by lazy initialization on
-     * first read.
+     * Persistent properties — STORED SHAPE. Host-internal storage;
+     * `setProp` applies `marshaller.toStored` before writing here
+     * when a marshaller is bound for the prop, and `getProp`
+     * applies `marshaller.fromStored` on read so external callers
+     * see the runtime type. The hydrator's bracket-assign deposits
+     * the raw record directly without per-key conversion — the
+     * marshaller binding lives on `savedPropMarshallers` and runs
+     * lazily at access time.
      */
-    private _savedProps?: Record<string, PropValue> = {};
+    protected savedProps?: Record<string, PropValue> = {};
 
-    protected get savedProps(): Record<string, PropValue> | undefined {
-      return this._savedProps;
-    }
-
-    protected set savedProps(value: Record<string, PropValue> | undefined) {
-      if (value === undefined || value === null) {
-        this._savedProps = value as undefined;
-        return;
-      }
-      if (typeof value !== 'object') {
-        throw new TypeError(
-          `Propertied.savedProps: expected an object, got ${typeof value}`
-        );
-      }
-      // Walk the record and rehydrate Quantity-shapes. Leaves all
-      // other values untouched. Mutates a fresh record so the
-      // hydrator's source data isn't aliased.
-      const out: Record<string, PropValue> = {};
-      for (const key of Object.keys(value)) {
-        out[key] = rehydratePropValue(value[key]!);
-      }
-      this._savedProps = out;
-    }
+    /**
+     * Per-prop marshaller bindings. Maps prop name → marshaller
+     * templatePath. Persistent and arrives alongside `savedProps`
+     * during hydration. `setProp` / `getProp` consult this map to
+     * decide whether to invoke `toStored` / `fromStored` for a
+     * given value. Props without a binding here round-trip raw, the
+     * way scalar props always have.
+     *
+     * Auto-initialized to an empty object; populated by
+     * `initProp(prop, { marshaller: '/path' })`.
+     */
+    protected savedPropMarshallers: Record<string, string> = {};
 
     /**
      * Transient properties (memory only, lost on restart).
@@ -451,18 +479,37 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Read-only view combining saved + transient properties.
+     * Read-only view combining saved + transient properties. Saved
+     * props are returned in their RUNTIME form — marshalled props
+     * pass through `marshaller.fromStored` on the way out so callers
+     * see Quantity instances and friends, not the raw stored shape.
      */
     getProps(): Readonly<Record<string, PropValue>> {
-      return this.props;
+      const saved: Record<string, PropValue> = {};
+      if (this.savedProps) {
+        for (const [key, raw] of Object.entries(this.savedProps)) {
+          const path = this.savedPropMarshallers[key];
+          if (path) {
+            saved[key] = resolveMarshaller(path, key).fromStored(
+              raw
+            ) as PropValue;
+          } else {
+            saved[key] = raw;
+          }
+        }
+      }
+      return { ...saved, ...this.transientProps };
     }
 
     /**
-     * Initialize a new property with options.
+     * Initialize a new property with options. Pass `marshaller:`
+     * for props that hold rich value objects — the binding persists
+     * alongside `savedProps`, so the same marshaller will run on
+     * future loads of this host.
      */
     initProp<T extends PropValue>(
       prop: Property<T>,
-      options?: Partial<PropOptions<T>>,
+      options?: PropOptionsInput<T>,
     ): boolean {
       const propName = prop.toString();
 
@@ -479,6 +526,9 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
           ((p, op, special) => this.defaultPropAccess(p, op, special)),
       };
       this.propMasks[propName] = [];
+      if (options?.marshaller) {
+        this.savedPropMarshallers[propName] = options.marshaller;
+      }
       return true;
     }
 
@@ -503,23 +553,35 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Update configuration
       if (options.transient !== undefined) {
-        // If changing transient status, move value between storages
+        // If changing transient status, move value between storages.
+        // Account for the marshaller binding: savedProps holds
+        // storage-shape, transientProps holds runtime-shape, so
+        // crossing the boundary requires the appropriate
+        // toStored / fromStored conversion when one is bound.
         const oldTransient = config.transient;
         const newTransient = options.transient;
 
         if (oldTransient !== newTransient) {
-          const value = this.getPropValue(propName);
+          const path = this.savedPropMarshallers[propName];
+          const raw = this.getPropValue(propName);
 
-          if (value !== null) {
-            // Move from one storage to the other
+          if (raw !== null) {
             if (newTransient) {
-              // saved → transient
+              // saved → transient: move runtime-shape across.
+              const runtime = path
+                ? (resolveMarshaller(path, propName).fromStored(
+                    raw
+                  ) as PropValue)
+                : raw;
               delete this.savedProps![propName];
-              this.transientProps[propName] = value;
+              this.transientProps[propName] = runtime;
             } else {
-              // transient → saved
+              // transient → saved: move storage-shape across.
+              const stored = path
+                ? (resolveMarshaller(path, propName).toStored(raw) as PropValue)
+                : raw;
               delete this.transientProps[propName];
-              this.savedProps![propName] = value;
+              this.savedProps![propName] = stored;
             }
           }
 
@@ -559,11 +621,21 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
-      // Store in appropriate location (initProp above guarantees config exists)
+      // Store in appropriate location (initProp above guarantees config exists).
+      // Transient props store the raw runtime value (memory-only, never
+      // serialized). Persistent props apply `marshaller.toStored` if a
+      // marshaller is bound, so the savedProps record carries the
+      // storage-shape ready for serialization.
       if (this.propOptions[propName]!.transient) {
         this.transientProps[propName] = value;
       } else {
-        this.savedProps![propName] = value;
+        const path = this.savedPropMarshallers[propName];
+        if (path) {
+          const stored = resolveMarshaller(path, propName).toStored(value);
+          this.savedProps![propName] = stored as PropValue;
+        } else {
+          this.savedProps![propName] = value;
+        }
       }
 
       return true;
@@ -599,8 +671,24 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return null;
       }
 
-      // Get base value
-      let value = (this.getPropValue(propName) as T) ?? null;
+      // Get base value. Persistent props with a marshaller binding
+      // hold storage-shape in `savedProps`; convert to runtime form
+      // via `fromStored` here so callers (and mask functions) see
+      // the strict value-object type.
+      let value = this.getPropValue(propName);
+      if (value !== null) {
+        const path = this.savedPropMarshallers[propName];
+        if (
+          path !== undefined &&
+          this.savedProps &&
+          propName in this.savedProps
+        ) {
+          value = resolveMarshaller(path, propName).fromStored(
+            value
+          ) as PropValue;
+        }
+      }
+      let typed = (value as T) ?? null;
 
       // Apply masks in order, filtering out invalid ones
       const masks = this.propMasks[propName] ?? [];
@@ -608,9 +696,9 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       for (const maskEntry of masks) {
         try {
-          value = (maskEntry.mask as unknown as PropValueMask<T>)(
+          typed = (maskEntry.mask as unknown as PropValueMask<T>)(
             prop,
-            value!,
+            typed!,
             ...maskEntry.extra,
           );
           validMasks.push(maskEntry);
@@ -621,7 +709,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this.propMasks[propName] = validMasks;
 
-      return value;
+      return typed;
     }
 
     /**
@@ -639,11 +727,15 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
-      // Remove from storages and configuration
+      // Remove from storages and configuration. The marshaller
+      // binding goes with the prop — leaving it in
+      // `savedPropMarshallers` would attach a stale path to a
+      // future setProp under the same name.
       delete this.transientProps[propName];
       delete this.savedProps![propName];
       delete this.propOptions[propName];
       delete this.propMasks[propName];
+      delete this.savedPropMarshallers[propName];
 
       return true;
     }

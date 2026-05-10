@@ -71,12 +71,12 @@ describe('AnalyzeLightController', () => {
     const room = makeStuff(() => new AmbientLoc());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(20);
-    room.setAmbientColor('warm');
+    room.setAmbientColorTemperature('warm');
 
     const lamp = makeStuff(() => new Lamp());
     lamp.setName('brass lamp');
     lamp.setEmittedFlux(50);
-    lamp.setEmittedColor('cool');
+    lamp.setEmittedColorTemperature('cool');
     ContainmentApi.move(lamp, room);
 
     const avatar = makeStuff(() => new FakeAvatar());

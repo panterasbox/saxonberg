@@ -13,33 +13,37 @@
  * Persistence — scalar-default rule.
  *
  * Two scalar persistent fields: `ambientIntensity` (number, ≥ 0;
- * lumens) and `ambientColor` (number | null; Kelvin). Setter coercion
- * accepts numeric / string / Quantity input for ergonomics; storage
- * is always primitive scalars.
+ * lumens) and `ambientColorTemperature` (number | null; Kelvin).
+ * Setter coercion accepts numeric / string / Quantity input for
+ * ergonomics; storage is always primitive scalars.
  */
 
 import type { MixinConstructor } from '../mixin';
 import { Quantity } from '../quantity';
-import type { ColorTag } from './Light';
 
 /** Public shape added by AmbientLitMixin. */
 export interface AmbientLit {
   getAmbientFlux(): Quantity<'lumen'>;
   setAmbientFlux(value: Quantity<'lumen'> | number | string): void;
-  getAmbientColor(): Quantity<'K'> | null;
-  setAmbientColor(value: Quantity<'K'> | ColorTag | number | null): void;
+  getAmbientColorTemperature(): Quantity<'K'> | null;
+  setAmbientColorTemperature(
+    value: Quantity<'K'> | string | number | null
+  ): void;
 }
 
 export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class AmbientLitMixin extends Base {
     static _mixinName = 'AmbientLitMixin';
 
-    static persistentFields = ['ambientIntensity', 'ambientColor'];
+    static persistentFields = [
+      'ambientIntensity',
+      'ambientColorTemperature',
+    ];
 
     /** Backing storage for the lumen scalar. */
     private _ambientIntensity: number = 0;
     /** Backing storage for the Kelvin color-temperature scalar. */
-    private _ambientColorK: number | null = null;
+    private _ambientColorTemperature: number | null = null;
 
     /**
      * Host-internal accessor pair for the lumen scalar. The
@@ -64,29 +68,29 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
      * accepts numeric K, a tag string (`'warm'` resolves through the
      * Kelvin tag table), or null.
      */
-    protected get ambientColor(): number | null {
-      return this._ambientColorK;
+    protected get ambientColorTemperature(): number | null {
+      return this._ambientColorTemperature;
     }
-    protected set ambientColor(value: number | string | null) {
+    protected set ambientColorTemperature(value: number | string | null) {
       if (value === null || value === undefined) {
-        this._ambientColorK = null;
+        this._ambientColorTemperature = null;
         return;
       }
       if (typeof value === 'number') {
         if (!Number.isFinite(value)) {
           throw new TypeError(
-            `AmbientLitMixin.ambientColor: numeric value must be finite, got ${value}`
+            `AmbientLitMixin.ambientColorTemperature: numeric value must be finite, got ${value}`
           );
         }
-        this._ambientColorK = value;
+        this._ambientColorTemperature = value;
         return;
       }
       if (typeof value === 'string') {
-        this._ambientColorK = Quantity.parse(value, 'K').rawValue();
+        this._ambientColorTemperature = Quantity.parse(value, 'K').rawValue();
         return;
       }
       throw new TypeError(
-        `AmbientLitMixin.ambientColor must be number | string | null, got ${typeof value}`
+        `AmbientLitMixin.ambientColorTemperature must be number | string | null, got ${typeof value}`
       );
     }
 
@@ -128,18 +132,20 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Kelvin-typed runtime API for ambient color temperature. */
-    getAmbientColor(): Quantity<'K'> | null {
-      if (this._ambientColorK === null) return null;
-      return Quantity.of(this._ambientColorK, 'K');
+    getAmbientColorTemperature(): Quantity<'K'> | null {
+      if (this._ambientColorTemperature === null) return null;
+      return Quantity.of(this._ambientColorTemperature, 'K');
     }
 
     /**
      * Color temperature setter. Accepts Quantity<'K'>, numeric K,
      * a tag string, or null.
      */
-    setAmbientColor(value: Quantity<'K'> | ColorTag | number | null): void {
+    setAmbientColorTemperature(
+      value: Quantity<'K'> | string | number | null
+    ): void {
       if (value === null || value === undefined) {
-        this._ambientColorK = null;
+        this._ambientColorTemperature = null;
         return;
       }
       if (value instanceof Quantity) {
@@ -148,24 +154,24 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
             `AmbientLitMixin: expected Quantity<'K'>, got Quantity<'${value.unit}'>`
           );
         }
-        this._ambientColorK = value.rawValue();
+        this._ambientColorTemperature = value.rawValue();
         return;
       }
       if (typeof value === 'number') {
         if (!Number.isFinite(value)) {
           throw new TypeError(
-            `AmbientLitMixin.setAmbientColor: numeric value must be finite, got ${value}`
+            `AmbientLitMixin.setAmbientColorTemperature: numeric value must be finite, got ${value}`
           );
         }
-        this._ambientColorK = value;
+        this._ambientColorTemperature = value;
         return;
       }
       if (typeof value === 'string') {
-        this._ambientColorK = Quantity.parse(value, 'K').rawValue();
+        this._ambientColorTemperature = Quantity.parse(value, 'K').rawValue();
         return;
       }
       throw new TypeError(
-        `AmbientLitMixin.setAmbientColor: must be Quantity | string | number | null, got ${typeof value}`
+        `AmbientLitMixin.setAmbientColorTemperature: must be Quantity | string | number | null, got ${typeof value}`
       );
     }
   };

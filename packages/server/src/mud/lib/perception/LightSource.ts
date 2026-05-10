@@ -14,61 +14,49 @@
  * Locations. The propagation walk discovers emitters via
  * `getContents()` (contents-side) and
  * `Adornable.getFixtureLightSources()` (fixture-side), and reads
- * `getEmittedFlux()` + `getEmittedColor()` once per emitter.
+ * `getEmittedFlux()` + `getEmittedColorTemperature()` once per
+ * emitter.
  *
  * Persistence — scalar-default rule.
  *
  * The emission decomposes into two scalar persistent fields:
- * `emittedIntensity` (number, ≥ 0; lumens) and `emittedColor`
- * (number | null; Kelvin). The runtime API is strict on Quantity
- * value objects; setter coercion accepts numeric / string / Quantity
- * input for authoring ergonomics.
+ * `emittedIntensity` (number, ≥ 0; lumens) and
+ * `emittedColorTemperature` (number | null; Kelvin). The runtime API
+ * is strict on Quantity value objects; setter coercion accepts
+ * numeric / string / Quantity input for authoring ergonomics.
  *
- * Witness hook: `setEmittedFlux` and `setEmittedColor` fire
- * `onLightSourceChanged(source, oldFlux, newFlux, oldColor,
- * newColor)` on the immediate environment when the stored value
- * actually changes. v1 fans out to the IMMEDIATE environment only.
+ * Witness hook: `setEmittedFlux` and `setEmittedColorTemperature`
+ * fire `onLightSourceChanged` (defined in `api/light.ts`) on the
+ * immediate environment when the stored value actually changes. v1
+ * fans out to the IMMEDIATE environment only.
  */
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
-import type { ColorTag } from './Light';
-import { coerceColor } from './Light';
-
-/**
- * Witness hook fired on the source's immediate environment whenever
- * `setEmittedFlux` or `setEmittedColor` results in a different stored
- * emission. Optional — implement only the hosts that care.
- */
-export interface LightSourceObserver {
-  onLightSourceChanged?(
-    source: Stuff,
-    oldFlux: Quantity<'lumen'>,
-    newFlux: Quantity<'lumen'>,
-    oldColor: Quantity<'K'> | null,
-    newColor: Quantity<'K'> | null
-  ): void;
-}
+import { coerceColorTemperature } from './Light';
 
 /** Public shape added by LightSourceMixin. */
 export interface LightSource {
   getEmittedFlux(): Quantity<'lumen'>;
   setEmittedFlux(value: Quantity<'lumen'> | number | string): void;
-  getEmittedColor(): Quantity<'K'> | null;
-  setEmittedColor(value: Quantity<'K'> | ColorTag | null): void;
+  getEmittedColorTemperature(): Quantity<'K'> | null;
+  setEmittedColorTemperature(value: Quantity<'K'> | string | null): void;
 }
 
 export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LightSourceMixin extends Base {
     static _mixinName = 'LightSourceMixin';
 
-    static persistentFields = ['emittedIntensity', 'emittedColor'];
+    static persistentFields = [
+      'emittedIntensity',
+      'emittedColorTemperature',
+    ];
 
     /** Backing storage for the emitted flux scalar (lumens). */
     private _emittedIntensity: number = 0;
-    /** Backing storage for the emitted color temperature scalar (K). */
-    private _emittedColorK: number | null = null;
+    /** Backing storage for the emitted color-temperature scalar (K). */
+    private _emittedColorTemperature: number | null = null;
 
     /**
      * Host-internal accessor pair for the lumen scalar. Hydrator's
@@ -89,35 +77,35 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Host-internal accessor pair for the color scalar. Hydration
+     * Host-internal accessor pair for the Kelvin scalar. Hydration
      * accepts `number | null` (canonical Kelvin) or a tag string
      * (looked up via `Quantity.parse(s, 'K')` against the registered
      * KELVIN_TAGS table). Stored canonically as `number | null`.
      */
-    protected get emittedColor(): number | null {
-      return this._emittedColorK;
+    protected get emittedColorTemperature(): number | null {
+      return this._emittedColorTemperature;
     }
-    protected set emittedColor(value: number | string | null) {
+    protected set emittedColorTemperature(value: number | string | null) {
       if (value === null || value === undefined) {
-        this._emittedColorK = null;
+        this._emittedColorTemperature = null;
         return;
       }
       if (typeof value === 'number') {
         if (!Number.isFinite(value)) {
           throw new TypeError(
-            `LightSourceMixin.emittedColor: numeric value must be finite, got ${value}`
+            `LightSourceMixin.emittedColorTemperature: numeric value must be finite, got ${value}`
           );
         }
-        this._emittedColorK = value;
+        this._emittedColorTemperature = value;
         return;
       }
       if (typeof value === 'string') {
         // Tag-string authoring path — round-trips through KELVIN_TAGS.
-        this._emittedColorK = Quantity.parse(value, 'K').rawValue();
+        this._emittedColorTemperature = Quantity.parse(value, 'K').rawValue();
         return;
       }
       throw new TypeError(
-        `LightSourceMixin.emittedColor must be number | string | null, got ${typeof value}`
+        `LightSourceMixin.emittedColorTemperature must be number | string | null, got ${typeof value}`
       );
     }
 
@@ -128,42 +116,45 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Strict-shape runtime setter. Accepts a `Quantity<'lumen'>` or a
-     * non-negative numeric (interpreted as lumens). Fires the
-     * `onLightSourceChanged` Witness hook when the stored flux
-     * changes.
+     * non-negative numeric (interpreted as lumens) or a tag string.
+     * Fires the `onLightSourceChanged` Witness hook when the stored
+     * flux changes.
      */
     setEmittedFlux(value: Quantity<'lumen'> | number | string): void {
       const flux = coerceFlux(value);
       const prevFlux = this._emittedIntensity;
-      const prevColorK = this._emittedColorK;
+      const prevColorTemp = this._emittedColorTemperature;
       this._emittedIntensity = flux;
       if (prevFlux !== flux) {
         fireOnLightSourceChanged(
           this as unknown as Stuff,
           Quantity.of(prevFlux, 'lumen'),
           Quantity.of(flux, 'lumen'),
-          prevColorK === null ? null : Quantity.of(prevColorK, 'K'),
-          prevColorK === null ? null : Quantity.of(prevColorK, 'K')
+          prevColorTemp === null ? null : Quantity.of(prevColorTemp, 'K'),
+          prevColorTemp === null ? null : Quantity.of(prevColorTemp, 'K')
         );
       }
     }
 
     /** Kelvin-typed runtime API for the color temperature. */
-    getEmittedColor(): Quantity<'K'> | null {
-      if (this._emittedColorK === null) return null;
-      return Quantity.of(this._emittedColorK, 'K');
+    getEmittedColorTemperature(): Quantity<'K'> | null {
+      if (this._emittedColorTemperature === null) return null;
+      return Quantity.of(this._emittedColorTemperature, 'K');
     }
 
     /**
-     * Color temperature setter. Accepts a `Quantity<'K'>`, a numeric
-     * Kelvin value, a string ColorTag (`'warm'`, `'cool'`, …), or
-     * null. Fires the Witness hook when the stored color changes.
+     * Color temperature setter. Accepts `Quantity<'K'>`, a tag
+     * string (`'warm'`, `'cool'`, …; resolved through KELVIN_TAGS),
+     * a numeric Kelvin value, or null. Fires the Witness hook when
+     * the stored value changes.
      */
-    setEmittedColor(value: Quantity<'K'> | ColorTag | number | null): void {
-      const colorQ = value === null ? null : coerceColorTemp(value);
+    setEmittedColorTemperature(
+      value: Quantity<'K'> | string | number | null
+    ): void {
+      const colorQ = value === null ? null : coerceColorTempInput(value);
       const next = colorQ === null ? null : colorQ.rawValue();
-      const prev = this._emittedColorK;
-      this._emittedColorK = next;
+      const prev = this._emittedColorTemperature;
+      this._emittedColorTemperature = next;
       if (prev !== next) {
         const flux = Quantity.of(this._emittedIntensity, 'lumen');
         fireOnLightSourceChanged(
@@ -219,11 +210,11 @@ function coerceFlux(value: Quantity<'lumen'> | number | string): number {
   );
 }
 
-function coerceColorTemp(
-  value: Quantity<'K'> | ColorTag | number
+function coerceColorTempInput(
+  value: Quantity<'K'> | string | number
 ): Quantity<'K'> {
   if (value instanceof Quantity) {
-    return coerceColor(value)!;
+    return coerceColorTemperature(value)!;
   }
   if (typeof value === 'number') {
     return Quantity.of(value, 'K');
@@ -234,13 +225,14 @@ function coerceColorTemp(
 /**
  * Fire `onLightSourceChanged` on the source's immediate environment
  * if the host is Containable and the environment's hook is present.
+ * The hook contract is `LightSourceObserver` in `api/light.ts`.
  */
 function fireOnLightSourceChanged(
   source: Stuff,
   oldFlux: Quantity<'lumen'>,
   newFlux: Quantity<'lumen'>,
-  oldColor: Quantity<'K'> | null,
-  newColor: Quantity<'K'> | null
+  oldColorTemp: Quantity<'K'> | null,
+  newColorTemp: Quantity<'K'> | null
 ): void {
   const containerFn = (source as { getContainer?: () => unknown }).getContainer;
   if (typeof containerFn !== 'function') return;
@@ -253,8 +245,8 @@ function fireOnLightSourceChanged(
       s: Stuff,
       of: Quantity<'lumen'>,
       nf: Quantity<'lumen'>,
-      oc: Quantity<'K'> | null,
-      nc: Quantity<'K'> | null
+      oct: Quantity<'K'> | null,
+      nct: Quantity<'K'> | null
     ) => void
-  ).call(env, source, oldFlux, newFlux, oldColor, newColor);
+  ).call(env, source, oldFlux, newFlux, oldColorTemp, newColorTemp);
 }

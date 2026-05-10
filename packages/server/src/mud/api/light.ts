@@ -30,13 +30,31 @@ import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Perception } from '../lib/perception/Perception';
 import type { Adornment } from '../lib/boundary/Adornment';
-import {
-  Light,
-  bandFor,
-  LUX_BAND_THRESHOLDS,
-  type LightSourceRef,
-} from '../lib/perception/Light';
+import { Light, type LightSourceRef } from '../lib/perception/Light';
 import type { LightBand } from '../lib/perception/Light';
+
+/**
+ * Witness hook fired on a light source's immediate environment when
+ * `setEmittedFlux` or `setEmittedColorTemperature` results in a
+ * different stored emission. Optional — implement only the host
+ * Containers that care (typically a Location's caching layer or a
+ * Vessel's lit-state observer).
+ *
+ * Lives in api/light.ts because it's the cross-module contract
+ * between LightSourceMixin (the firer) and any Container (the
+ * consumer); keeping it next to LightSourceMixin made it
+ * lib-internal and harder to find for consumers writing the
+ * receiver side.
+ */
+export interface LightSourceObserver {
+  onLightSourceChanged?(
+    source: Stuff,
+    oldFlux: import('../lib/quantity').Quantity<'lumen'>,
+    newFlux: import('../lib/quantity').Quantity<'lumen'>,
+    oldColorTemperature: import('../lib/quantity').Quantity<'K'> | null,
+    newColorTemperature: import('../lib/quantity').Quantity<'K'> | null
+  ): void;
+}
 import { Quantity } from '../lib/quantity';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
@@ -50,6 +68,54 @@ export const MAX_HOPS = 2;
 
 /** Per-exit attenuation factor; 1.0 means "no extra dimming on exit traversal." */
 export const EXIT_TAU = 1.0;
+
+// ---------- Band thresholds + bandFor (api-side; was lib) ----------
+
+/**
+ * Lux thresholds for the band lookup. Each entry is the LOWER bound
+ * of its band: a value `>= threshold` lands in that band; below the
+ * lowest threshold reads `'pitch-black'`. Doubles as the `LUX_TAGS`
+ * tag-table data registered with `Quantity` so
+ * `lightAt(loc).intensity.tag()` and `bandAt(loc)` agree by
+ * construction.
+ *
+ * **Calibration — MUD-game scale, NOT photometric scale.** Real-world
+ * lux runs from ~0.01 (moonlight) through ~500 (office lighting) to
+ * ~120,000 (direct sunlight). Our bands ([1, 5, 20, 60, 200]) are
+ * compressed for fantasy-game ambient where authored flux values are
+ * smaller (a candle is ~12 lumens, a torch ~50, a magic lantern
+ * ~200). Authors writing real photometric values (8000 lumens for
+ * sunlight) in small rooms (1 m²) read 'blinding' — close enough.
+ * Authors writing fantasy values (40 lumens of "warm ambient") in a
+ * 5 m² alcove read 'lit' — also close.
+ *
+ * Tuning is content-driven; revisit when world content actually
+ * stresses the table.
+ */
+const LUX_BAND_THRESHOLDS: ReadonlyArray<{
+  tag: LightBand;
+  threshold: number;
+}> = [
+  { tag: 'pitch-black', threshold: 0 },
+  { tag: 'very-dim', threshold: 1 },
+  { tag: 'dim', threshold: 5 },
+  { tag: 'lit', threshold: 20 },
+  { tag: 'bright', threshold: 60 },
+  { tag: 'blinding', threshold: 200 },
+];
+
+/**
+ * Map a lux numeric value to a `LightBand`. Walks the table
+ * descending; first threshold met-or-exceeded wins. Below the
+ * lowest threshold reads `'pitch-black'`.
+ */
+export function bandFor(luxValue: number): LightBand {
+  for (let i = LUX_BAND_THRESHOLDS.length - 1; i >= 0; i--) {
+    const entry = LUX_BAND_THRESHOLDS[i]!;
+    if (luxValue >= entry.threshold) return entry.tag;
+  }
+  return 'pitch-black';
+}
 
 // ---------- Tag tables (registered at module-load) ----------
 
@@ -147,14 +213,16 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
 
 /**
  * Compute the flux-weighted color temperature across the source list.
- * Returns null when no source carries a color temp.
+ * Returns null when no source carries a color temperature.
  */
-function mixColor(sources: readonly LightSourceRef[]): Quantity<'K'> | null {
+function mixColorTemperature(
+  sources: readonly LightSourceRef[]
+): Quantity<'K'> | null {
   let weightedSum = 0;
   let weight = 0;
   for (const s of sources) {
-    if (s.colorK === null) continue;
-    weightedSum += s.colorK * s.flux;
+    if (s.colorTemperature === null) continue;
+    weightedSum += s.colorTemperature * s.flux;
     weight += s.flux;
   }
   if (weight === 0) return null;
@@ -177,10 +245,10 @@ export class LightApi {
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
     const sources = finalizeSources(acc.sources);
-    const color = mixColor(sources);
+    const colorTemperature = mixColorTemperature(sources);
     return Light.from({
       intensity: Quantity.of(lux, 'lux'),
-      color,
+      colorTemperature,
       sources,
     });
   }
@@ -317,15 +385,17 @@ function walkFluxAt(
   if (visited.has(id)) return acc;
   visited.add(id);
 
-  // (a) Ambient — the location itself contributes flux + color.
+  // (a) Ambient — the location itself contributes flux + color temp.
   if (MixinApi.isAmbientLit(loc)) {
     const ambientFlux = loc.getAmbientFlux().rawValue();
     if (ambientFlux > 0) {
-      const ambientColor = loc.getAmbientColor();
+      const ambientColorTemp = loc.getAmbientColorTemperature();
       addContribution(acc, ambientFlux, {
         stuffId: id,
         flux: ambientFlux,
-        colorK: ambientColor ? ambientColor.rawValue() : null,
+        colorTemperature: ambientColorTemp
+          ? ambientColorTemp.rawValue()
+          : null,
       });
     }
   }
@@ -335,11 +405,11 @@ function walkFluxAt(
     if (!MixinApi.isLightSource(item)) continue;
     const flux = item.getEmittedFlux().rawValue();
     if (flux <= 0) continue;
-    const colorQ = item.getEmittedColor();
+    const colorTempQ = item.getEmittedColorTemperature();
     addContribution(acc, flux, {
       stuffId: (item as unknown as Stuff).stuffId,
       flux,
-      colorK: colorQ ? colorQ.rawValue() : null,
+      colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
     });
   }
 
@@ -349,11 +419,11 @@ function walkFluxAt(
       if (!MixinApi.isLightSource(fx)) continue;
       const flux = fx.getEmittedFlux().rawValue();
       if (flux <= 0) continue;
-      const colorQ = fx.getEmittedColor();
+      const colorTempQ = fx.getEmittedColorTemperature();
       addContribution(acc, flux, {
         stuffId: (fx as unknown as Stuff).stuffId,
         flux,
-        colorK: colorQ ? colorQ.rawValue() : null,
+        colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
       });
     }
 
@@ -416,7 +486,7 @@ function mergeAttenuated(
     parent.sources.push({
       stuffId: s.stuffId,
       flux: s.flux * tau,
-      colorK: s.colorK,
+      colorTemperature: s.colorTemperature,
     });
   }
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { WeighController } from '../WeighController';
 import { TangibleMixin } from '../../../lib/material/Tangible';
+import { Quantity } from '../../../lib/quantity';
 import { Thing } from '../../../lib/stuff/Thing';
 import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
@@ -73,7 +74,7 @@ describe('WeighController', () => {
     zone.addLocation(room, 0, 0, 0);
     const sword = makeStuff(() => new TangibleThing());
     sword.setName('rusty sword');
-    sword.setMass(3);
+    sword.setMass(Quantity.of(3, 'kg'));
     ContainmentApi.move(sword, room);
 
     const avatar = makeStuff(() => new FakeAvatar());

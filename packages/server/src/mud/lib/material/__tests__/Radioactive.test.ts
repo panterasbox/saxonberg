@@ -4,6 +4,7 @@ import { Material } from '../Material';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';
+import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 function withTemplatePath<T extends { templatePath: string | null }>(
@@ -86,9 +87,13 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
   it('inherits the full Material surface (tags, composition, chemistry)', () => {
     const u = makeStuff(() => new RadioactiveMaterial());
     u.setName('uranium');
-    u.setDensity(19050);
+    u.setDensity(Quantity.of(19050, 'kg/m³'));
     u.setTags(['element', 'metal', 'actinide', 'radioactive']);
-    u.setChemistry({ symbol: 'U', atomicNumber: 92, molarMass: 238.029 });
+    u.setChemistry({
+      symbol: 'U',
+      atomicNumber: 92,
+      molarMass: Quantity.of(238.029, 'g/mol'),
+    });
 
     expect(u.getName()).toBe('uranium');
     expect(u.getDensity().rawValue()).toBe(19050);

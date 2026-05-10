@@ -26,17 +26,17 @@ describe('LightSourceMixin', () => {
   it('defaults to zero flux + null color and is detected by MixinApi', () => {
     const c = makeStuff(() => new Candle());
     expect(c.getEmittedFlux().rawValue()).toBe(0);
-    expect(c.getEmittedColor()).toBeNull();
+    expect(c.getEmittedColorTemperature()).toBeNull();
     expect(MixinApi.isLightSource(c)).toBe(true);
     expect(MixinApi.hasMixin(Candle, Mixins.LightSource)).toBe(true);
   });
 
-  it('setEmittedFlux + setEmittedColor store the canonical values', () => {
+  it('setEmittedFlux + setEmittedColorTemperature store the canonical values', () => {
     const c = makeStuff(() => new Candle());
     c.setEmittedFlux(Quantity.of(15, 'lumen'));
-    c.setEmittedColor('warm');
+    c.setEmittedColorTemperature('warm');
     expect(c.getEmittedFlux().rawValue()).toBe(15);
-    expect(c.getEmittedColor()!.rawValue()).toBe(2700);
+    expect(c.getEmittedColorTemperature()!.rawValue()).toBe(2700);
   });
 
   it('setEmittedFlux accepts numeric (lumen-canonical)', () => {
@@ -50,21 +50,21 @@ describe('LightSourceMixin', () => {
     expect(() => c.setEmittedFlux(-1)).toThrow();
   });
 
-  it('PersistentHydrator round-trips emittedIntensity + emittedColor', async () => {
+  it('PersistentHydrator round-trips emittedIntensity + emittedColorTemperature', async () => {
     const c = makeStuff(() => new Candle());
     await makeStuff(() => new PersistentHydrator()).hydrate(c, {
       emittedIntensity: 30,
-      emittedColor: 'warm',
+      emittedColorTemperature: 'warm',
     });
     expect(c.getEmittedFlux().rawValue()).toBe(30);
-    expect(c.getEmittedColor()!.rawValue()).toBe(2700);
+    expect(c.getEmittedColorTemperature()!.rawValue()).toBe(2700);
     const raw = ProxyApi.unwrap(c) as unknown as {
       emittedIntensity: number;
-      emittedColor: number | null;
+      emittedColorTemperature: number | null;
     };
     expect(raw.emittedIntensity).toBe(30);
     // Color storage is canonical Kelvin numeric.
-    expect(raw.emittedColor).toBe(2700);
+    expect(raw.emittedColorTemperature).toBe(2700);
   });
 
   it('fires onLightSourceChanged on the immediate environment when flux changes', () => {
@@ -105,13 +105,13 @@ describe('LightSourceMixin', () => {
       zone.addLocation(room, 0, 0, 0);
       const candle = makeStuff(() => new Candle());
       candle.setEmittedFlux(10);
-      candle.setEmittedColor('warm');
+      candle.setEmittedColorTemperature('warm');
       ContainmentApi.move(candle, room);
 
       const total = LightApi.lightAt(room);
       // Default sizeScale = 1 m² → 10 lumens / 1 m² = 10 lux.
       expect(total.intensity.rawValue()).toBe(10);
-      expect(total.color!.rawValue()).toBe(2700);
+      expect(total.colorTemperature!.rawValue()).toBe(2700);
     });
 
     it('moving a LightSource between rooms updates each room lazily', () => {

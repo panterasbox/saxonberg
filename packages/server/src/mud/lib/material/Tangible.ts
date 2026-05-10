@@ -45,6 +45,7 @@ import type { MixinConstructor } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type { Material } from './Material';
 import { Quantity } from '../quantity';
+import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
 export interface Tangible {
   /**
@@ -64,18 +65,20 @@ export interface Tangible {
   setMaterial(value: Material | null, detailKey?: string): void;
 
   /**
-   * Read the Stuff's mass as a `Quantity<'kg'>`. Reconstructed from
-   * the scalar storage on each call.
+   * Read the Stuff's mass as a `Quantity<'kg'>`. Strict on the
+   * runtime type — the marshaller absorbs persistence-shape
+   * coercion at the hydration boundary.
    */
   getMass(): Quantity<'kg'>;
 
   /**
-   * Set the Stuff's mass. Accepts numeric (kg canonical), a string
-   * literal (`"5 kg"`, `"5000 g"`, `"medium"` via KG_TAGS), or a
-   * `Quantity<'kg'>`. Bare-number authoring (`mass: 5`) is
-   * canonical-kg per the §13.4 rule.
+   * Set the Stuff's mass. Strict on `Quantity<'kg'>`; callers
+   * holding a raw number wrap via `Quantity.of(n, 'kg')`. YAML
+   * authoring shapes (tag string, alt-unit literal, bare number)
+   * are absorbed by the QuantityMarshaller for kg, not by this
+   * runtime API.
    */
-  setMass(value: Quantity<'kg'> | number | string): void;
+  setMass(value: Quantity<'kg'>): void;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -88,46 +91,38 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     /**
-     * Mass scalar (kg implicit). Accessor pair `mass` validates and
-     * coerces from string / Quantity / numeric input so YAML
-     * authoring (`mass: heavy`, `mass: "12 kg"`, `mass: "12000 g"`,
-     * bare numeric) all hydrate cleanly.
+     * Field-marshaller binding. `mass` round-trips via the kg-bound
+     * QuantityMarshaller; the runtime accessor pair stays strict on
+     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
+     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
+     * `fromStored` and only runs on the persistence path.
      */
-    private _mass: number = 0;
+    static fieldMarshallers = {
+      mass: QuantityMarshaller.pathFor('kg'),
+    };
 
     /**
-     * Persistent-field accessor. Hydrator's bracket-assign goes here;
-     * runtime callers use `getMass` / `setMass`.
+     * Runtime mass storage as a `Quantity<'kg'>`. The marshaller
+     * delivers a Quantity instance on hydrate; in-process callers
+     * use `getMass` / `setMass`.
      */
-    protected get mass(): number {
+    private _mass: Quantity<'kg'> = Quantity.of(0, 'kg');
+
+    protected get mass(): Quantity<'kg'> {
       return this._mass;
     }
-    protected set mass(value: number | string | { value: number; unit: 'kg' }) {
-      if (typeof value === 'number') {
-        if (!Number.isFinite(value) || value < 0) {
-          throw new TypeError(
-            `TangibleMixin.mass must be a non-negative finite number, got ${value}`
-          );
-        }
-        this._mass = value;
-        return;
+    protected set mass(value: Quantity<'kg'>) {
+      if (!(value instanceof Quantity) || value.unit !== 'kg') {
+        throw new TypeError(
+          `TangibleMixin.mass must be a Quantity<'kg'>; got ${value instanceof Quantity ? `Quantity<'${(value as Quantity<import('../quantity').Unit>).unit}'>` : typeof value}`
+        );
       }
-      if (typeof value === 'string') {
-        this._mass = Quantity.parse(value, 'kg').rawValue();
-        return;
+      if (value.rawValue() < 0) {
+        throw new RangeError(
+          `TangibleMixin.mass must be non-negative, got ${value.rawValue()}`
+        );
       }
-      if (
-        typeof value === 'object' &&
-        value !== null &&
-        typeof (value as { value?: unknown }).value === 'number' &&
-        (value as { unit?: unknown }).unit === 'kg'
-      ) {
-        this._mass = (value as { value: number }).value;
-        return;
-      }
-      throw new TypeError(
-        `TangibleMixin.mass must be number | string | {value,unit:'kg'}, got ${typeof value}`
-      );
+      this._mass = value;
     }
 
     /**
@@ -185,40 +180,16 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getMass(): Quantity<'kg'> {
-      return Quantity.of(this._mass, 'kg');
+      return this._mass;
     }
 
-    public setMass(value: Quantity<'kg'> | number | string): void {
-      if (value instanceof Quantity) {
-        if (value.unit !== 'kg') {
-          throw new TypeError(
-            `TangibleMixin.setMass: expected Quantity<'kg'>, got Quantity<'${value.unit}'>`
-          );
-        }
-        if (value.rawValue() < 0) {
-          throw new Error(
-            `TangibleMixin.setMass: mass must be non-negative, got ${value.rawValue()}`
-          );
-        }
-        this._mass = value.rawValue();
-        return;
-      }
-      if (typeof value === 'number') {
-        if (!Number.isFinite(value) || value < 0) {
-          throw new Error(
-            `TangibleMixin.setMass: mass must be non-negative finite, got ${value}`
-          );
-        }
-        this._mass = value;
-        return;
-      }
-      if (typeof value === 'string') {
-        this._mass = Quantity.parse(value, 'kg').rawValue();
-        return;
-      }
-      throw new TypeError(
-        `TangibleMixin.setMass: expected Quantity | number | string, got ${typeof value}`
-      );
+    /**
+     * Strict on `Quantity<'kg'>`. Callers holding a raw number wrap
+     * via `Quantity.of(n, 'kg')` at the call site; tag / alt-unit
+     * authoring is the marshaller's job, not a runtime API concern.
+     */
+    public setMass(value: Quantity<'kg'>): void {
+      this.mass = value;
     }
   };
 }

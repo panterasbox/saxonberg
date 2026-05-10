@@ -64,7 +64,7 @@ describe('field validators', () => {
     it("rejects a non-Containable (the location itself)", () => {
       expect(
         mustBeContainable({ stuff: world.location, raw: 'square' }, 'target', ctx),
-      ).toMatch(/can't pick up/);
+      ).toMatch(/can't be carried/);
     });
   });
 

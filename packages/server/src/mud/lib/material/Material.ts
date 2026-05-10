@@ -50,6 +50,8 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin, Property } from '../stuff/Propertied';
 import { Quantity } from '../quantity';
+import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { ChemistryMarshaller } from '../persistence/ChemistryMarshaller';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -73,6 +75,11 @@ export interface CompositionEntry {
  * `molarMass`) populate for chemical compounds. Mixtures and alloys
  * typically leave this `null` and read composition via the
  * `composition` field instead.
+ *
+ * `molarMass` is strictly `Quantity<'g/mol'>` at the runtime API.
+ * Authoring shapes (bare number, tag string, JSON `{value,unit}`)
+ * are absorbed by the `ChemistryMarshaller` at the persistence
+ * boundary — see `lib/persistence/ChemistryMarshaller.ts`.
  */
 export interface ElementChemistry {
   /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
@@ -81,30 +88,8 @@ export interface ElementChemistry {
   atomicNumber?: number;
   /** Chemical formula (e.g. `'H2O'`, `'SiO2'`, `'(C6H10O5)n'`). Compound-only. */
   formula?: string;
-  /**
-   * Molar mass in g/mol. Element-or-compound. Replaces the legacy
-   * `atomicMass` field; existing seeds re-key to `molarMass`. Stored
-   * as a `Quantity<'g/mol'>` value object — bare-number authoring
-   * (`molarMass: 55.845`) coerces through the setter.
-   */
+  /** Molar mass in g/mol. Element-or-compound. */
   molarMass?: Quantity<'g/mol'>;
-}
-
-/**
- * Input shape `setChemistry` accepts. The `molarMass` field admits
- * numeric / string / Quantity / JSON shapes for authoring ergonomics;
- * `getChemistry` always returns the strict `ElementChemistry` form
- * with `molarMass` as a `Quantity<'g/mol'>`.
- */
-export interface ElementChemistryInput {
-  symbol?: string;
-  atomicNumber?: number;
-  formula?: string;
-  molarMass?:
-    | Quantity<'g/mol'>
-    | number
-    | string
-    | { value: number; unit: 'g/mol' };
 }
 
 /**
@@ -124,11 +109,24 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   protected name: string = '';
 
   /**
-   * Density. Stored as a scalar (kg/m³) so the hydrator's
-   * bracket-assign stays primitive; runtime API exposes a
-   * `Quantity<'kg/m³'>` value object via `getDensity` / `setDensity`.
+   * Density as a `Quantity<'kg/m³'>`. The QuantityMarshaller for
+   * kg/m³ handles hydration coercion (numeric / string / JSON-shape
+   * inputs) at the persistence boundary; the runtime accessor pair
+   * stays strict on Quantity.
    */
-  protected density: number = 0;
+  private _density: Quantity<'kg/m³'> = Quantity.of(0, 'kg/m³');
+
+  protected get density(): Quantity<'kg/m³'> {
+    return this._density;
+  }
+  protected set density(value: Quantity<'kg/m³'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'kg/m³') {
+      throw new TypeError(
+        `Material.density must be a Quantity<'kg/m³'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._density = value;
+  }
 
   /** Mohs-scale-ish hardness (0–10). */
   protected hardness: number = 0;
@@ -213,49 +211,36 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
     'biologicalSource',
   ];
 
+  /**
+   * Field-marshaller bindings. The persistence pipeline routes
+   * hydration / save through these marshallers; setters stay
+   * strict on the runtime value type.
+   */
+  static fieldMarshallers = {
+    density: QuantityMarshaller.pathFor('kg/m³'),
+    chemistry: ChemistryMarshaller.templatePath,
+  };
+
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
 
   /**
-   * Read density as a `Quantity<'kg/m³'>`. Reconstructed from the
-   * scalar storage on each call — same pattern as
-   * `LightSource.getEmittedFlux`.
+   * Read density. Strict-shape on `Quantity<'kg/m³'>`; the
+   * QuantityMarshaller absorbed authoring-shape coercion at the
+   * persistence boundary, so callers see only the runtime type.
    */
   public getDensity(): Quantity<'kg/m³'> {
-    return Quantity.of(this.density, 'kg/m³');
+    return this._density;
   }
   /**
-   * Set density from a numeric (kg/m³ canonical), a string literal
-   * (`"2700 kg/m³"`, `"rock-like"` via DENSITY_TAGS), or a
-   * `Quantity<'kg/m³'>`. Authoring tolerant; storage is the canonical
-   * scalar.
+   * Set density. Strict on `Quantity<'kg/m³'>` — authors who hold a
+   * raw number wrap it via `Quantity.of(n, 'kg/m³')` at the call
+   * site. The QuantityMarshaller handles raw-shape coercion only on
+   * the persistence path; in-process callers commit to the typed
+   * value.
    */
-  public setDensity(value: Quantity<'kg/m³'> | number | string): void {
-    if (value instanceof Quantity) {
-      if (value.unit !== 'kg/m³') {
-        throw new TypeError(
-          `Material.setDensity: expected Quantity<'kg/m³'>, got Quantity<'${value.unit}'>`
-        );
-      }
-      this.density = value.rawValue();
-      return;
-    }
-    if (typeof value === 'number') {
-      if (!Number.isFinite(value) || value < 0) {
-        throw new Error(
-          `Material.setDensity: density must be non-negative finite, got ${value}`
-        );
-      }
-      this.density = value;
-      return;
-    }
-    if (typeof value === 'string') {
-      this.density = Quantity.parse(value, 'kg/m³').rawValue();
-      return;
-    }
-    throw new TypeError(
-      `Material.setDensity: expected Quantity | number | string, got ${typeof value}`
-    );
+  public setDensity(value: Quantity<'kg/m³'>): void {
+    this.density = value;
   }
 
   public getHardness(): number { return this.hardness; }
@@ -325,52 +310,24 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
 
   public getChemistry(): ElementChemistry | null { return this.chemistry; }
   /**
-   * Set the chemistry record. The `molarMass` field accepts numeric
-   * (g/mol canonical), string literal, or `Quantity<'g/mol'>` for
-   * authoring ergonomics; stored as a `Quantity` value object.
-   * Hydration also routes through here when the setter name matches
-   * the persistent field — so seed YAMLs with `molarMass: 55.845`
-   * coerce cleanly.
+   * Set the chemistry record. Strict on `ElementChemistry` —
+   * `molarMass` must be a `Quantity<'g/mol'>` if present.
+   * Authoring-shape coercion lives in `ChemistryMarshaller` and only
+   * runs on the persistence path.
    */
-  public setChemistry(value: ElementChemistryInput | null): void {
-    if (value === null) {
-      this.chemistry = null;
-      return;
-    }
-    const normalized: ElementChemistry = {
-      ...value,
-      molarMass: undefined,
-    };
-    const raw = (value as { molarMass?: unknown }).molarMass;
-    if (raw === undefined || raw === null) {
-      delete (normalized as { molarMass?: unknown }).molarMass;
-    } else if (raw instanceof Quantity) {
-      if (raw.unit !== 'g/mol') {
+  public setChemistry(value: ElementChemistry | null): void {
+    if (value !== null && value !== undefined) {
+      if (
+        value.molarMass !== undefined &&
+        (!(value.molarMass instanceof Quantity) ||
+          value.molarMass.unit !== 'g/mol')
+      ) {
         throw new TypeError(
-          `Material.chemistry.molarMass: expected Quantity<'g/mol'>, got Quantity<'${raw.unit}'>`
+          `Material.setChemistry: molarMass must be Quantity<'g/mol'>`
         );
       }
-      normalized.molarMass = raw;
-    } else if (typeof raw === 'number') {
-      normalized.molarMass = Quantity.of(raw, 'g/mol');
-    } else if (typeof raw === 'string') {
-      normalized.molarMass = Quantity.parse(raw, 'g/mol');
-    } else if (
-      typeof raw === 'object' &&
-      raw !== null &&
-      typeof (raw as { value?: unknown }).value === 'number' &&
-      (raw as { unit?: unknown }).unit === 'g/mol'
-    ) {
-      // {value, unit} JSON form — re-hydrate via Quantity.fromJSON.
-      normalized.molarMass = Quantity.fromJSON(
-        raw as { value: number; unit: 'g/mol' }
-      );
-    } else {
-      throw new TypeError(
-        `Material.chemistry.molarMass: expected Quantity | number | string | {value,unit} | null, got ${typeof raw}`
-      );
     }
-    this.chemistry = normalized;
+    this.chemistry = value;
   }
 
   public getBiologicalSource(): BiologicalSource | null {

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AnalyzeChemistryController } from '../AnalyzeChemistryController';
 import { TangibleMixin } from '../../../lib/material/Tangible';
 import { Material } from '../../../lib/material/Material';
@@ -17,6 +17,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../../lib/quantity';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type {
   CommandContext,
   CommandModel,
@@ -65,6 +66,9 @@ function makeModel(fields: ModelData, subcommand: string): CommandModel {
 }
 
 describe('AnalyzeChemistryController', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -79,11 +83,11 @@ describe('AnalyzeChemistryController', () => {
     // directly and stamp its templatePath via the Stuff API surface.
     const iron = makeStuff(() => new Material());
     iron.setName('iron');
-    iron.setDensity(7874);
+    iron.setDensity(Quantity.of(7874, 'kg/m³'));
     iron.setChemistry({
       symbol: 'Fe',
       atomicNumber: 26,
-      molarMass: 55.845,
+      molarMass: Quantity.of(55.845, 'g/mol'),
     });
     // Re-register under a templatePath so Tangible.getMaterial's
     // findByTemplatePath lookup resolves.
@@ -141,9 +145,9 @@ describe('AnalyzeChemistryController', () => {
     expect(result.success).toBe(false);
   });
 
-  it('round-trips a Quantity<g/mol> through Material seed-shape hydration', async () => {
+  it('accepts a Quantity<g/mol> on the strict setter path', async () => {
     const m = makeStuff(() => new Material());
-    m.setChemistry({ molarMass: 55.845 });
+    m.setChemistry({ molarMass: Quantity.of(55.845, 'g/mol') });
     const chem = m.getChemistry();
     expect(chem!.molarMass).toBeInstanceOf(Quantity);
     expect(chem!.molarMass!.unit).toBe('g/mol');

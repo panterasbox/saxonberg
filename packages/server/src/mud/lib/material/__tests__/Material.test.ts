@@ -3,13 +3,14 @@ import { Material } from '../Material';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { Property } from '../../stuff/Propertied';
+import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('Material', () => {
   it('round-trips bulk fields through getters/setters', () => {
     const m = makeStuff(() => new Material());
     m.setName('iron');
-    m.setDensity(7874);
+    m.setDensity(Quantity.of(7874, 'kg/m³'));
     m.setHardness(4);
     m.setFlammability(0);
     m.setOpacity(1);
