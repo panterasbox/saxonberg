@@ -16,6 +16,7 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
+import { QuantityApi } from '../mud/api/quantity';
 // Side-effecting import: registers the live `online`/`world` provider
 // so MQL queries against admin-tier seeds reflect connected
 // interactives. Pulled in here (off the eager command/MqlApi chain)
@@ -70,6 +71,17 @@ export class AppBootstrap {
     console.info('MongoDB connection successful');
 
     await SeederManager.run();
+
+    // Quantity tag tables — content-authored YAML at
+    // `mud/config/quantity-tags.yaml`. Must run before anything
+    // that uses `Quantity.tag()` / `Quantity.parse(tagString)`,
+    // which includes the marshallers' coercion paths and the
+    // light propagation walk's band lookups.
+    const tagsResult = QuantityApi.loadTagTables();
+    console.info(
+      `QuantityApi: ${tagsResult.registered.length} tag table(s) loaded ` +
+        `(units: ${tagsResult.registered.join(', ')})`
+    );
 
     await PersistenceManager.get().loadHooks();
 

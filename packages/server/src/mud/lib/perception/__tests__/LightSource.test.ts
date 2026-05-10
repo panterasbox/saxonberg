@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
 import { Thing } from '../../stuff/Thing';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
@@ -13,12 +13,15 @@ import { PersistentHydrator } from '../../persistence/PersistentHydrator';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
-// Already imports api/light above for LightApi tag-table registration.
+import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Candle extends LightSourceMixin(Thing) {}
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 
 describe('LightSourceMixin', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });

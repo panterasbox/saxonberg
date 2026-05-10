@@ -1,0 +1,82 @@
+# Tag tables for the Quantity substrate.
+#
+# Each top-level key is a unit string from the `Unit` type union
+# (`lib/quantity.ts`). The value is an ordered list of
+# `{ tag, threshold }` rows. `Quantity.tag()` walks the list and
+# returns the highest threshold the value meets-or-exceeds; the
+# inverse (`Quantity.fromTag` / `Quantity.parse(tagString, unit)`)
+# treats `threshold` as the canonical numeric for the tag.
+#
+# **One scale per unit.** The model is one tag table per unit. The
+# pedagogical-seam setting (deferred) picks rendering FLAVOR over
+# this single table — `tag()` vs `format()` vs raw — not different
+# tables for different audiences.
+#
+# Validation: `mud/config/quantity-tags.schema.json` runs at load
+# time. Authoring mistakes (negative thresholds, bad shapes,
+# unknown units) fail at boot with a clear error.
+#
+# **MUD-game-scale calibration, NOT photometric scale.** The lux
+# / lumen / Kelvin thresholds are tuned for fantasy ambient (a
+# candle is ~10 lumens, a torch ~50). Real-world lux ranges from
+# ~0.01 (moonlight) to ~120,000 (direct sunlight); ours top out at
+# 200. Tuning is content-driven.
+#
+# Reload: `QuantityApi.reloadTagTables()` re-reads this file and
+# replaces the registry per unit. Existing Quantity instances see
+# the new tags on their next `tag()` call — no caching to
+# invalidate. Edits to band thresholds change which band an
+# already-stored value reads as; storage is unaffected.
+
+# Light — illuminance at the receiving surface (lux). Thresholds
+# mirror `LightBand` by construction; `bandFor` casts the tag
+# string to `LightBand`. Authoring change in this list flows
+# through to `bandAt(loc)` everywhere.
+lux:
+  - { tag: pitch-black, threshold: 0 }
+  - { tag: very-dim,    threshold: 1 }
+  - { tag: dim,         threshold: 5 }
+  - { tag: lit,         threshold: 20 }
+  - { tag: bright,      threshold: 60 }
+  - { tag: blinding,    threshold: 200 }
+
+# Light — luminous flux (lumen). Coarse buckets keyed to common
+# light-source brightness levels.
+lumen:
+  - { tag: unlit,       threshold: 0 }
+  - { tag: glow,        threshold: 1 }       # candle-equivalent
+  - { tag: lamp,        threshold: 100 }     # small lamp
+  - { tag: bright,      threshold: 800 }     # standard bulb
+  - { tag: searchlight, threshold: 10000 }
+
+# Light — color temperature (Kelvin). Maps the existing ColorTag
+# vocabulary to canonical Kelvin values.
+K:
+  - { tag: warm,     threshold: 2700 }   # incandescent / candle
+  - { tag: neutral,  threshold: 4000 }   # halogen
+  - { tag: cool,     threshold: 5000 }   # daylight bulb
+  - { tag: daylight, threshold: 6500 }   # overcast sky
+  - { tag: blue,     threshold: 10000 }  # clear blue sky
+
+# Mass (kilograms). Casual-prose vocabulary for tangible objects.
+kg:
+  - { tag: feather,  threshold: 0.001 }
+  - { tag: light,    threshold: 0.5 }
+  - { tag: medium,   threshold: 5 }
+  - { tag: heavy,    threshold: 50 }
+  - { tag: enormous, threshold: 500 }
+
+# Density (kg/m³). Coarse — density is rarely surfaced to players
+# directly, so the buckets prioritize material-class intuition over
+# numeric precision.
+"kg/m³":
+  - { tag: gas-like,   threshold: 0 }
+  - { tag: water-like, threshold: 500 }
+  - { tag: rock-like,  threshold: 2000 }
+  - { tag: metal-like, threshold: 6000 }
+
+# Tagless units (declared in the Unit type but with no tag table):
+#   - g/mol, mol, mol/L — molar quantities don't have a casual
+#     vocabulary; analyze readouts use canonical format.
+#   - g, m, km, cm, mm, s, ms, dB, Hz, Pa, N, J, W — ditto.
+# `Quantity.tag()` falls back to canonical format for these.

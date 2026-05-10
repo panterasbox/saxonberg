@@ -17,6 +17,7 @@
  */
 
 import { QuantityMarshaller } from '../QuantityMarshaller';
+import { QuantityApi } from '../../../api/quantity';
 import type { Unit } from '../../quantity';
 import { registerMarshallerForTest } from '../../security/__tests__/test-setup';
 
@@ -42,4 +43,21 @@ export function installV1QuantityMarshallers(): void {
       return m;
     }, QuantityMarshaller.pathFor(unit));
   }
+}
+
+/**
+ * Load the v1 tag tables from the production YAML config. Tests
+ * that exercise tag lookup (`Quantity.tag()`,
+ * `Quantity.parse(tagString)`, `Quantity.fromTag()`,
+ * `bandFor(lux)`) call this in `beforeEach` so the registry is
+ * populated.
+ *
+ * In production, `AppBootstrap` does the same load. Splitting the
+ * helper from `installV1QuantityMarshallers` keeps the concerns
+ * orthogonal — a test that only exercises Quantity instances (no
+ * marshallers, no setProp paths) calls only this; a test that
+ * round-trips through marshalling calls both.
+ */
+export function installV1QuantityTagTables(): void {
+  QuantityApi.loadTagTables();
 }

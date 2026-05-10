@@ -28,28 +28,10 @@ import type {
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
-import { Quantity } from '../lib/quantity';
 
-// Material-side tag tables. Registered at module-load so authoring
-// shapes (`mass: heavy`, `density: rock-like`) round-trip cleanly
-// through `Quantity.parse(s, U)`.
-const KG_TAGS = [
-  { tag: 'feather', threshold: 0.001 },
-  { tag: 'light', threshold: 0.5 },
-  { tag: 'medium', threshold: 5 },
-  { tag: 'heavy', threshold: 50 },
-  { tag: 'enormous', threshold: 500 },
-];
-
-const DENSITY_TAGS = [
-  { tag: 'gas-like', threshold: 0 },
-  { tag: 'water-like', threshold: 500 },
-  { tag: 'rock-like', threshold: 2000 },
-  { tag: 'metal-like', threshold: 6000 },
-];
-
-Quantity.registerTagTable('kg', KG_TAGS);
-Quantity.registerTagTable('kg/m³', DENSITY_TAGS);
+// kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
+// and load at boot via `QuantityApi.loadTagTables`. Material doesn't
+// register them locally anymore.
 
 /**
  * Recursive composition expansion. `direct` is the material's own

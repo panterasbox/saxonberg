@@ -1,13 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { Light, LIGHT_SOURCE_CAP } from '../Light';
 import { Quantity } from '../../quantity';
 // `bandFor` moved to api/light.ts (was previously here in lib/) so
-// the api layer doesn't import logic from lib. Importing from api
-// also triggers tag-table registrations (KELVIN_TAGS, LUMEN_TAGS,
-// LUX_BAND_THRESHOLDS) so string color tags resolve in tests.
+// the api layer doesn't import logic from lib.
 import { bandFor } from '../../../api/light';
+import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 describe('Light value object', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
+
   it('Light.ZERO is the canonical zero', () => {
     expect(Light.ZERO.intensity.rawValue()).toBe(0);
     expect(Light.ZERO.colorTemperature).toBeNull();
@@ -114,6 +117,9 @@ describe('Light value object', () => {
 });
 
 describe('bandFor (threshold table)', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   it('maps the canonical thresholds', () => {
     expect(bandFor(0)).toBe('pitch-black');
     expect(bandFor(0.5)).toBe('pitch-black');

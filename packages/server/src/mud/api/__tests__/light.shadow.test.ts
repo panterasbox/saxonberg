@@ -1,5 +1,6 @@
-import { describe, it, expect, expectTypeOf, afterEach } from 'vitest';
+import { describe, it, expect, expectTypeOf, beforeEach, afterEach } from 'vitest';
 import { Shadow } from '../../lib/stuff/Shadow';
+import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Shadowing } from '../../lib/security/decorators';
 import type { LightBand } from '../../lib/perception/Light';
 import type { VisionProfile } from '../light';
@@ -76,6 +77,9 @@ describe('LightApi — type-level viewer constraint', () => {
 });
 
 describe('LightApi.perceivedBand — viewer-aware overrides', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -182,6 +186,9 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 });
 
 describe('LightApi.canSee — detail levels and overrides', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });

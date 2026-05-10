@@ -5,14 +5,16 @@ import { PersistentHydrator } from '../../persistence/PersistentHydrator';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-// Trigger MaterialApi tag-table registrations.
-import '../../../api/material';
+import {
+  installV1QuantityMarshallers,
+  installV1QuantityTagTables,
+} from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TangibleThing extends TangibleMixin(Thing) {}
 
 describe('TangibleMixin — mass', () => {
   beforeEach(() => {
+    installV1QuantityTagTables();
     installV1QuantityMarshallers();
   });
   afterEach(() => {

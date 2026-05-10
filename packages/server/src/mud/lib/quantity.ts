@@ -351,9 +351,23 @@ export class Quantity<U extends Unit> {
     tagTableRegistry.set(unit, sorted);
   }
 
-  /** Test-only: drop a registered table. Not exported on the public surface. */
+  /**
+   * Drop a registered table for `unit`. Used by `QuantityApi`'s
+   * reload path to delete entries that disappeared from the YAML
+   * since the last load, and by tests to reset registry state
+   * between cases.
+   */
   public static _clearTagTable(unit: Unit): void {
     tagTableRegistry.delete(unit);
+  }
+
+  /**
+   * Snapshot of the units currently carrying a registered tag
+   * table. Used by `QuantityApi.reloadTagTables` to compute which
+   * units to delete after a re-read.
+   */
+  public static _registeredTagTableUnits(): Unit[] {
+    return Array.from(tagTableRegistry.keys());
   }
 
   // ---------- inspection ----------

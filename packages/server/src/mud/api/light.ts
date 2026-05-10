@@ -69,85 +69,47 @@ export const MAX_HOPS = 2;
 /** Per-exit attenuation factor; 1.0 means "no extra dimming on exit traversal." */
 export const EXIT_TAU = 1.0;
 
-// ---------- Band thresholds + bandFor (api-side; was lib) ----------
+// ---------- Band lookup ----------
 
 /**
- * Lux thresholds for the band lookup. Each entry is the LOWER bound
- * of its band: a value `>= threshold` lands in that band; below the
- * lowest threshold reads `'pitch-black'`. Doubles as the `LUX_TAGS`
- * tag-table data registered with `Quantity` so
- * `lightAt(loc).intensity.tag()` and `bandAt(loc)` agree by
- * construction.
- *
- * **Calibration — MUD-game scale, NOT photometric scale.** Real-world
- * lux runs from ~0.01 (moonlight) through ~500 (office lighting) to
- * ~120,000 (direct sunlight). Our bands ([1, 5, 20, 60, 200]) are
- * compressed for fantasy-game ambient where authored flux values are
- * smaller (a candle is ~12 lumens, a torch ~50, a magic lantern
- * ~200). Authors writing real photometric values (8000 lumens for
- * sunlight) in small rooms (1 m²) read 'blinding' — close enough.
- * Authors writing fantasy values (40 lumens of "warm ambient") in a
- * 5 m² alcove read 'lit' — also close.
- *
- * Tuning is content-driven; revisit when world content actually
- * stresses the table.
+ * The set of valid `LightBand` values, used by `bandFor` to
+ * defensively narrow the registered lux tag-table tag back to
+ * the typed union. The lux tag table is authored to produce
+ * exactly these strings — see `mud/config/quantity-tags.yaml`.
  */
-const LUX_BAND_THRESHOLDS: ReadonlyArray<{
-  tag: LightBand;
-  threshold: number;
-}> = [
-  { tag: 'pitch-black', threshold: 0 },
-  { tag: 'very-dim', threshold: 1 },
-  { tag: 'dim', threshold: 5 },
-  { tag: 'lit', threshold: 20 },
-  { tag: 'bright', threshold: 60 },
-  { tag: 'blinding', threshold: 200 },
-];
+const LIGHT_BANDS: ReadonlySet<LightBand> = new Set<LightBand>([
+  'pitch-black',
+  'very-dim',
+  'dim',
+  'lit',
+  'bright',
+  'blinding',
+]);
 
 /**
- * Map a lux numeric value to a `LightBand`. Walks the table
- * descending; first threshold met-or-exceeded wins. Below the
- * lowest threshold reads `'pitch-black'`.
+ * Map a lux numeric value to a `LightBand`. Consults the live
+ * `Quantity` tag-table registry — the lux thresholds live in
+ * `mud/config/quantity-tags.yaml` and load at boot via
+ * `QuantityApi.loadTagTables`. `bandFor` is a thin typed adapter
+ * over `Quantity.tag()` for the lux unit; reload of the YAML
+ * propagates here transparently.
+ *
+ * Throws if the lux table isn't registered (test setup gap) or if
+ * the registered tags don't match `LightBand` (content-side bug —
+ * the YAML tag list must equal the union by construction).
  */
 export function bandFor(luxValue: number): LightBand {
-  for (let i = LUX_BAND_THRESHOLDS.length - 1; i >= 0; i--) {
-    const entry = LUX_BAND_THRESHOLDS[i]!;
-    if (luxValue >= entry.threshold) return entry.tag;
+  const tag = Quantity.of(luxValue, 'lux').tag();
+  if (!LIGHT_BANDS.has(tag as LightBand)) {
+    throw new Error(
+      `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
+        `Either the lux tag table is not registered (call ` +
+        `QuantityApi.loadTagTables / installV1QuantityTagTables) ` +
+        `or the registered entries don't match the LightBand union.`
+    );
   }
-  return 'pitch-black';
+  return tag as LightBand;
 }
-
-// ---------- Tag tables (registered at module-load) ----------
-
-/**
- * Lumen tag table used by authoring (`Quantity.parse('lamp', 'lumen')`)
- * and analyze output. Coarse buckets keyed to common light-source
- * brightness levels.
- */
-const LUMEN_TAGS = [
-  { tag: 'unlit', threshold: 0 },
-  { tag: 'glow', threshold: 1 },
-  { tag: 'lamp', threshold: 100 },
-  { tag: 'bright', threshold: 800 },
-  { tag: 'searchlight', threshold: 10000 },
-];
-
-/**
- * Color-temperature tag table. Maps the existing ColorTag vocabulary
- * onto canonical Kelvin values; existing seed authoring (`color: warm`)
- * round-trips via `Quantity.parse(s, 'K')`.
- */
-const KELVIN_TAGS = [
-  { tag: 'warm', threshold: 2700 },
-  { tag: 'neutral', threshold: 4000 },
-  { tag: 'cool', threshold: 5000 },
-  { tag: 'daylight', threshold: 6500 },
-  { tag: 'blue', threshold: 10000 },
-];
-
-Quantity.registerTagTable('lux', LUX_BAND_THRESHOLDS);
-Quantity.registerTagTable('lumen', LUMEN_TAGS);
-Quantity.registerTagTable('K', KELVIN_TAGS);
 
 /**
  * Visibility detail levels gated by `LightApi.canSee`.

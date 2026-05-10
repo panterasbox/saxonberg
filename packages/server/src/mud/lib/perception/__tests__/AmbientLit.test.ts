@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { AmbientLitMixin } from '../AmbientLit';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
@@ -7,13 +7,14 @@ import { PersistentHydrator } from '../../persistence/PersistentHydrator';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
-// Trigger LightApi tag-table registrations (KELVIN_TAGS, LUMEN_TAGS,
-// LUX_BAND_THRESHOLDS) so 'warm' / 'cool' string color tags resolve.
-import '../../../api/light';
+import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestAmbient extends AmbientLitMixin(Idea) {}
 
 describe('AmbientLitMixin', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   it('defaults to zero flux and null color', () => {
     const t = makeStuff(() => new TestAmbient());
     expect(t.getAmbientFlux().rawValue()).toBe(0);

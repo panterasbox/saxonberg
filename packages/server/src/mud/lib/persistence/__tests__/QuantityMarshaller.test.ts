@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { QuantityMarshaller } from '../QuantityMarshaller';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
-import { installV1QuantityMarshallers } from './quantity-marshaller-test-helpers';
-// Trigger MaterialApi tag-table registrations (KG_TAGS, etc.).
-import '../../../api/material';
-// Trigger LightApi tag-table registrations (LUMEN_TAGS, KELVIN_TAGS).
-import '../../../api/light';
+import {
+  installV1QuantityMarshallers,
+  installV1QuantityTagTables,
+} from './quantity-marshaller-test-helpers';
 
 describe('QuantityMarshaller', () => {
   beforeEach(() => {
+    installV1QuantityTagTables();
     installV1QuantityMarshallers();
   });
   afterEach(() => {

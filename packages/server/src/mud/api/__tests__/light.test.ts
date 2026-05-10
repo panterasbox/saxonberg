@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LightApi, MAX_HOPS, EXIT_TAU } from '../light';
 import { Light } from '../../lib/perception/Light';
 import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
@@ -9,11 +9,15 @@ import { Door } from '../../lib/boundary/Door';
 import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
 
 describe('LightApi.lightAt — propagation core', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -140,7 +144,10 @@ describe('LightApi.lightAt — propagation core', () => {
   });
 });
 
-describe('LightApi — Wave 2 acceptance (Step E §13.3)', () => {
+describe('LightApi — band / tag / mixing acceptance', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });

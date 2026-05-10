@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AnalyzeLightController } from '../AnalyzeLightController';
 import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
@@ -22,7 +22,7 @@ import type {
   ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
-import '../../../api/light';
+import { installV1QuantityTagTables } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
 class Lamp extends LightSourceMixin(NamedMixin(Thing)) {}
@@ -62,6 +62,9 @@ function makeModel(fields: ModelData, subcommand: string): CommandModel {
 }
 
 describe('AnalyzeLightController', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });

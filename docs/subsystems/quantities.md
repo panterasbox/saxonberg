@@ -123,21 +123,38 @@ typed accessors (e.g. `light.intensity` is statically
 
 ## Tag tables
 
-Each channel's Api owns its tag table — the data lives in TypeScript
-near the channel, not centrally. The shape:
+Tag tables are pure data — the API forces every consumer through
+`Quantity.tag()` / `Quantity.fromTag()` / `Quantity.parse(tag)`, so
+the tables don't need to live in TypeScript. They live in a single
+content-authorable YAML at `mud/config/quantity-tags.yaml`,
+validated against `mud/config/quantity-tags.schema.json`. One scale
+per unit (the pedagogical-seam setting picks rendering FLAVOR over
+the same table — tag vs canonical vs raw — not different scales).
 
-```ts
-[
-  { tag: 'feather', threshold: 0.001 },
-  { tag: 'light',   threshold: 0.5 },
-  { tag: 'medium',  threshold: 5 },
-  { tag: 'heavy',   threshold: 50 },
-  { tag: 'enormous',threshold: 500 },
-]
+```yaml
+# mud/config/quantity-tags.yaml (excerpt)
+kg:
+  - { tag: feather,  threshold: 0.001 }
+  - { tag: light,    threshold: 0.5 }
+  - { tag: medium,   threshold: 5 }
+  - { tag: heavy,    threshold: 50 }
+  - { tag: enormous, threshold: 500 }
+
+K:
+  - { tag: warm,     threshold: 2700 }
+  - { tag: neutral,  threshold: 4000 }
+  - { tag: cool,     threshold: 5000 }
+  ...
 ```
 
-Channel registers via `Quantity.registerTagTable(unit, table)` at
-module-load. The lookup machinery is in `lib/quantity.ts`:
+`QuantityApi.loadTagTables()` reads + validates the YAML and calls
+`Quantity.registerTagTable(unit, entries)` per declared unit at
+boot — `AppBootstrap` runs it after `SeederManager.run()` so the
+tables are available before any code that hits `tag()` /
+`parse(tagString)` runs (the marshallers, the propagation walks,
+controllers).
+
+The lookup machinery in `lib/quantity.ts`:
 
 - `Quantity.tag()` walks the table descending; first threshold
   met-or-exceeded wins. Falls back to canonical format when no
@@ -145,22 +162,36 @@ module-load. The lookup machinery is in `lib/quantity.ts`:
 - `Quantity.fromTag(tag, unit)` linear-scans for the tag and returns
   its threshold as the canonical numeric value.
 - Round-trip stability — every `{ tag, threshold }` row satisfies
-  `fromTag(tag, unit).tag() === tag`. Tests pin this for every
-  registered table.
+  `fromTag(tag, unit).tag() === tag`. Tests pin this.
 
-### v1 registered tables
+### Reload
 
-| Unit | Where registered | Tags |
-|---|---|---|
-| `'lux'` | `api/light.ts` | `pitch-black`/`very-dim`/`dim`/`lit`/`bright`/`blinding` (mirrors `LightBand`) |
-| `'lumen'` | `api/light.ts` | `unlit`/`glow`/`lamp`/`bright`/`searchlight` |
-| `'K'` | `api/light.ts` | `warm`/`neutral`/`cool`/`daylight`/`blue` |
-| `'kg'` | `api/material.ts` | `feather`/`light`/`medium`/`heavy`/`enormous` |
-| `'kg/m³'` | `api/material.ts` | `gas-like`/`water-like`/`rock-like`/`metal-like` |
+`QuantityApi.reloadTagTables()` re-reads the YAML and applies the
+diff to the live registry: tables for units present in the new file
+get re-registered (replacing prior entries), tables for units
+absent from the new file get cleared. Existing `Quantity` instances
+see new tags on their next `tag()` call — no caching layer to
+invalidate, no Quantity-instance migration. Edits to band thresholds
+change which band an already-stored value reads as; storage is
+unaffected (Quantity values store numerics, not tag strings).
 
-`'g/mol'` deliberately has no tag table — molar mass doesn't have a
-casual-prose vocabulary; `tag()` falls back to canonical format
-(`"55.845 g/mol"`).
+Production trigger for reload is a future admin slash command;
+v1 calls it from a test harness when needed.
+
+### v1 declared units
+
+| Unit | Tags |
+|---|---|
+| `lux` | `pitch-black`/`very-dim`/`dim`/`lit`/`bright`/`blinding` (mirrors `LightBand`) |
+| `lumen` | `unlit`/`glow`/`lamp`/`bright`/`searchlight` |
+| `K` | `warm`/`neutral`/`cool`/`daylight`/`blue` |
+| `kg` | `feather`/`light`/`medium`/`heavy`/`enormous` |
+| `kg/m³` | `gas-like`/`water-like`/`rock-like`/`metal-like` |
+
+Tagless units in the catalog (`g/mol`, `mol`, `mol/L`, `g`, `m`,
+`s`, `Pa`, `N`, `J`, `W`, `dB`, `Hz`, …) deliberately have no tag
+table — they don't have a casual-prose vocabulary. `Quantity.tag()`
+falls back to canonical format for them (`"55.845 g/mol"`).
 
 ## Mml emission — `<quantity>` markup
 
