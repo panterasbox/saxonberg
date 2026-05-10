@@ -4,8 +4,7 @@
  *
  * Resolves the template path (positional `<template>` or
  * `--mql <expr>`) cwd-relative against the avatar's content tree.
- * Dispatches to `StuffApi.clone` (default) or `StuffApi.forceClone`
- * when `-f` is set.
+ * Dispatches to `StuffApi.clone`.
  *
  * Destination resolution (precedence — explicit caller intent
  * wins over template defaults):
@@ -17,10 +16,11 @@
  *      See `docs/spawn-shape-slate.md`.
  *   4. fallback                — the avatar itself (inventory).
  *
- * v1 fires no `canClone` witness at this layer — `forceClone` is the
- * admin-gated bypass for whatever per-target veto a future witness
- * lands. Today its body is identical to `clone()`; tomorrow it
- * carries the witness invocation but skips the assertion.
+ * No `-f` / `forceClone`: clone is "willing something new into
+ * existence" — there's no per-target witness to bypass; permissions
+ * are the only gate (future). See `call-security.md § AdminOnly and
+ * the force-bypass shape` for the broader pattern (only destruct
+ * and move qualify).
  *
  * If placement fails (destination isn't a Container, the move
  * vetoes), the verb still reports success on the *clone* itself but
@@ -51,7 +51,6 @@ interface CloneModel extends CommandModel {
   mql?: MqlOneResult;
   into?: MqlOneResult;
   here?: boolean;
-  force?: boolean;
 }
 
 export class CloneController extends CommandController<CloneModel> {
@@ -94,13 +93,12 @@ export class CloneController extends CommandController<CloneModel> {
     }
     const dest = destResult.dest;
 
-    // 3. Clone (or forceClone), then place. Two phases — placement
-    // failure leaves the cloned Stuff alive but unplaced; the admin
-    // gets the stuffId to recover.
+    // 3. Clone, then place. Two phases — placement failure leaves
+    // the cloned Stuff alive but unplaced; the admin gets the
+    // stuffId to recover.
     let cloned: Stuff;
     try {
-      const fn = model.force ? StuffApi.forceClone : StuffApi.clone;
-      cloned = await fn(path);
+      cloned = await StuffApi.clone(path);
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }

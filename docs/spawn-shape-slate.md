@@ -179,10 +179,12 @@ options:
   here:
     type: boolean
     description: "Land the clone in the avatar's current environment"
-  force:
-    short: f
-    type: boolean
 ```
+
+(No `-f` / `forceClone`. Clone is "willing something new into
+existence" — there's no per-target witness to bypass; permissions
+are the only gate. See `call-security.md § AdminOnly and the
+force-bypass shape` for the broader pattern.)
 
 Precedence in the controller:
 1. `--into <dest>` resolves to a Stuff that must be Container.

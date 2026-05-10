@@ -20,8 +20,8 @@ dispatches.
 
 | Verb | Args | Force | Notes |
 |---|---|---|---|
-| `clone` | `<template>`, `--mql`, `--into`, `--here` | `-f` → `StuffApi.forceClone` | Destination precedence: `--into <dest>` > `--here` (avatar's environment) > inventory fallback (the giver). The slot for `template.environment` lookup sits between `--here` and the inventory fallback — see [spawn-shape-slate.md](../spawn-shape-slate.md) for the broader spawn design. Resolves template path cwd-relative. |
-| `reload` | `<target>`, `--mql` | `-f` → `HotReloadApi.forceReload` | v1 hot-reloads a path; the `canReload` witness lands at the verb-controller level when a use case appears. |
+| `clone` | `<template>`, `--mql`, `--into`, `--here` | (no force) | Destination precedence: `--into <dest>` > `--here` (avatar's environment) > inventory fallback (the giver). The slot for `template.environment` lookup sits between `--here` and the inventory fallback — see [spawn-shape-slate.md](../spawn-shape-slate.md) for the broader spawn design. Resolves template path cwd-relative. No force-bypass: clone is "willing something new into existence" — there's no per-target witness to bypass; permissions are the only gate (future). |
+| `reload` | `<target>`, `--mql` | (no force) | Hot-reloads a path. No force-bypass: reload operates on modules / prototypes, not on a Stuff target — there's no per-target witness to bypass. Permissions handle "are you allowed to reload this path?" |
 | `destruct` | `<target>` (object), `--mql` | `-f` → `StuffApi.forceDestruct` | Target is `type: object` so MQL resolves it; the path-atom extension (step 2) lets bare paths address templates with no live clones. |
 | `eval` | `<expr>?`, `--on <expr>`, `--all` | (none) | Eval has no per-target veto — the eval'd code's own logic + `@CallSecurity` decorators on whatever Apis it touches are the boundary. |
 | `teleport` | `<target>` (object), `<destination>?` (`to <dest>`) | `-f` → `forceMove` fallback | Tries `Mobile.teleport` first; on Mobile-level veto, falls back to `ContainmentApi.move` / `forceMove`. |

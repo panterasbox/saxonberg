@@ -2,8 +2,11 @@
  * ReloadController — hot-reload a template's backing class.
  *
  * Resolves a target path (positional or via `--mql <expr>`) and
- * dispatches to `HotReloadApi.reload` (default) or
- * `HotReloadApi.forceReload` (`-f`).
+ * dispatches to `HotReloadApi.reload`. No `-f` / `forceReload`
+ * — reload operates on modules and prototypes, not on Stuff
+ * targets, so there's no per-target witness to bypass. Permission
+ * gating is the right shape for "are you allowed to reload this
+ * path?" and lives in the future permission framework.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -22,7 +25,6 @@ import type { MqlOneResult } from '../../api/mql';
 interface ReloadModel extends CommandModel {
   target?: string;
   mql?: MqlOneResult;
-  force?: boolean;
 }
 
 export class ReloadController extends CommandController<ReloadModel> {
@@ -55,8 +57,7 @@ export class ReloadController extends CommandController<ReloadModel> {
     if (!path) return this.fail(context, 'no target path');
 
     try {
-      const fn = model.force ? HotReloadApi.forceReload : HotReloadApi.reload;
-      await fn(path);
+      await HotReloadApi.reload(path);
       this.tell(context, `\nreloaded ${path}\n`);
       return { success: true, summary: `reloaded ${path}` };
     } catch (err) {

@@ -10,7 +10,3 @@ options:
     type: object
     scope: [reachable]
     description: "MQL expression alternate to <target>"
-  force:
-    short: f
-    type: boolean
-    description: "Bypass canReload veto (admin only; v1 stub always denies)"

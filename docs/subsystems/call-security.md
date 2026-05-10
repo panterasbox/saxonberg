@@ -627,7 +627,7 @@ default) and runs it before invoking the body.
 | `SystemRoot` | `caller === null` only — the synthetic root frame planted by `runRoot`. |
 | `SelfOnly` | `caller === target` — only the target can call itself. |
 | `ApiOnly` | Sugar for `FromModule('mud/api/**', { includeSubclasses: true })`. |
-| `AdminOnly` | **v1 stub: always-deny.** Gates the lowest-layer force-bypass entries (`StuffApi.forceDestruct`, `StuffApi.forceClone`, `HotReloadApi.forceReload`, `ContainmentApi.forceMove`). Replaced by a real permissions-aware policy when the permission framework lands; no decorated method changes at swap time. |
+| `AdminOnly` | **v1 stub: always-deny.** Gates the lowest-layer force-bypass entries — `StuffApi.forceDestruct` and `ContainmentApi.forceMove`. Replaced by a real permissions-aware policy when the permission framework lands; no decorated method changes at swap time. |
 | `FromTemplate(glob)` | Caller's CMS template path matches `glob`. Template paths begin with `/`; module IDs don't — `FromTemplate` rejects module-id callers. |
 | `FromModule(glob, opts?)` | Caller's stamped module ID matches `glob`. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. |
 | `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean`. |
@@ -1325,9 +1325,8 @@ ordering.
 
 ## `AdminOnly` and the force-bypass shape
 
-Force-bypass entry points on lowest-layer Apis (`StuffApi.forceDestruct`,
-`StuffApi.forceClone`, `HotReloadApi.forceReload`,
-`ContainmentApi.forceMove`) carry a parallel-API shape: `forceX`
+Force-bypass entry points on lowest-layer Apis (`StuffApi.forceDestruct`
+and `ContainmentApi.forceMove`) carry a parallel-API shape: `forceX`
 lives alongside `X`, sharing a private core that invokes every
 witness identically and branches only on whether to `assertVetoOk`.
 
@@ -1338,6 +1337,16 @@ witness so any side effects the target attaches (audit hooks,
 observers, telemetry) see every call uniformly — `forceX` only
 skips the assertion, not the invocation. `onX` post-hooks fire
 unchanged.
+
+The pattern only fits operations that act on a **target** with state
+to consult. Destruct (target = the Stuff being destroyed) and move
+(target = the item + source + destination) both qualify. Clone and
+reload do not: clone is "willing something new into existence" with
+no instance to ask, and reload operates on modules / prototypes, not
+on Stuff. Both have failure paths (permissions, singleton
+enforcement, frozen blueprints, compile errors) but those live in
+the right places already; they don't shape into the witness pattern,
+so neither `clone` nor `reload` carries a force variant.
 
 `AdminOnly` is the **v1 stub** for this gate: an always-deny policy
 that throws `SecurityError: admin privilege required` from the

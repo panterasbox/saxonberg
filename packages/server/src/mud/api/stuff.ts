@@ -231,28 +231,6 @@ export class StuffApi {
     }
   }
 
-  /**
-   * Force-bypass variant of `clone()`. v1 ships with no `canClone`
-   * witness invocation inside this Api — clone has no per-target
-   * refusal seam at the lowest layer (the witness fires at the verb
-   * controller level when needed). `forceClone` exists today as the
-   * admin-gated entry the verb controller's `-f` path routes through;
-   * its body is identical to `clone()` for v1.
-   *
-   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
-   * always-deny stub: every call throws `SecurityError: admin
-   * privilege required` from the decorator gate before this body
-   * runs. The seam is in place; the real permissions-aware policy
-   * replaces the stub when the permission framework lands.
-   */
-  @CallSecurity(SecurityPolicies.AdminOnly)
-  public static async forceClone<T extends Stuff>(
-    templatePath: string,
-    context?: unknown
-  ): Promise<T> {
-    return StuffApi.clone<T>(templatePath, context);
-  }
-
   static async #cloneInner<T extends Stuff>(
     templatePath: string,
     context?: unknown

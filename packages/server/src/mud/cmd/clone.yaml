@@ -17,7 +17,3 @@ options:
   here:
     type: boolean
     description: "Land the clone in your current environment (sugar for --into here)"
-  force:
-    short: f
-    type: boolean
-    description: "Bypass canClone veto (admin only; v1 stub always denies)"
