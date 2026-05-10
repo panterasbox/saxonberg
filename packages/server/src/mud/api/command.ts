@@ -280,6 +280,7 @@ export type FieldValue =
   | Stuff
   | MqlOneResult
   | MqlManyResult
+  | Record<string, unknown> // `type: 'struct'` payload values
   | FieldValue[];
 
 /**
@@ -1631,7 +1632,18 @@ function coerceStructuredValue(
 const _structAjv = new Ajv({ allErrors: false, strict: false });
 const _compiledStructSchemas = new Map<string, ValidateFunction>();
 
-function validateAgainstJsonSchema(
+/**
+ * Validate `value` against a JSON Schema fragment. Returns a friendly
+ * error string on failure, `null` on success. Compiled validators are
+ * cached by JSON-stringified schema so repeated calls against the
+ * same fragment skip recompilation.
+ *
+ * Exported because some validation lives outside the matcher's sync
+ * struct path — e.g. `WriteController` reads a class's static
+ * `dataSchema` after the (async) class load and validates with the
+ * same machinery.
+ */
+export function validateAgainstJsonSchema(
   schema: Record<string, unknown>,
   value: unknown
 ): string | null {
