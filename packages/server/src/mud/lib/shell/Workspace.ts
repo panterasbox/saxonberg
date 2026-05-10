@@ -299,14 +299,19 @@ export function WorkspaceMixin<
      */
     public sourceCwd: string = DEFAULT_HOME;
 
+    /**
+     * Bridge `this` to the `Environment` surface that `TBase` is
+     * constrained to compose. TypeScript's mixin-inheritance of a
+     * generic-constrained `Base` doesn't expose Environment methods
+     * on `this` directly — the constraint guarantees the runtime
+     * shape, this getter is the mechanical type bridge.
+     */
+    private get _env(): Environment {
+      return this as unknown as Environment;
+    }
+
     getTreeMode(): WorkspaceTreeMode {
-      // TypeScript's mixin-inheritance of generic-constrained Base
-      // doesn't expose Environment methods on `this` directly; the
-      // constraint guarantees the runtime shape but the cast is the
-      // mechanical bridge.
-      const raw =
-        (this as unknown as Environment).getSetting<string>('workspace.tree') ??
-        'content';
+      const raw = this._env.getSetting<string>('workspace.tree') ?? 'content';
       if (raw === 'content' || raw === 'source' || raw === 'mirror') {
         return raw;
       }
@@ -329,18 +334,11 @@ export function WorkspaceMixin<
     }
 
     getHome(): string {
-      return (
-        (this as unknown as Environment).getSetting<string>('workspace.home') ??
-        DEFAULT_HOME
-      );
+      return this._env.getSetting<string>('workspace.home') ?? DEFAULT_HOME;
     }
 
     getPageSize(): number {
-      return (
-        (this as unknown as Environment).getSetting<number>(
-          'workspace.pageSize',
-        ) ?? 25
-      );
+      return this._env.getSetting<number>('workspace.pageSize') ?? 25;
     }
 
     getActiveCwd(): string {

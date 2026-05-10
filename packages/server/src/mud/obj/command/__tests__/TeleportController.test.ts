@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { _resolveDestinationContainer } from '../TeleportController';
+import { TeleportController } from '../TeleportController';
 import {
   makeWorld,
   type MqlWorld,
@@ -25,7 +25,7 @@ describe('TeleportController._resolveDestinationContainer', () => {
 
   it('Container-shaped focus is used as-is (room → room)', () => {
     expect(MixinApi.isContainer(world.location)).toBe(true);
-    const dest = _resolveDestinationContainer(world.location);
+    const dest = TeleportController._resolveDestinationContainer(world.location);
     expect(dest).toBe(world.location);
   });
 
@@ -35,7 +35,7 @@ describe('TeleportController._resolveDestinationContainer', () => {
     // precedence: focus on bob, teleport sword → into bob.
     expect(MixinApi.isContainer(world.giver)).toBe(true);
     expect(MixinApi.isContainable(world.giver)).toBe(true);
-    const dest = _resolveDestinationContainer(world.giver);
+    const dest = TeleportController._resolveDestinationContainer(world.giver);
     expect(dest).toBe(world.giver);
   });
 
@@ -45,7 +45,7 @@ describe('TeleportController._resolveDestinationContainer', () => {
     // currently is — the location.
     expect(MixinApi.isContainable(world.rose)).toBe(true);
     expect(MixinApi.isContainer(world.rose)).toBe(false);
-    const dest = _resolveDestinationContainer(world.rose);
+    const dest = TeleportController._resolveDestinationContainer(world.rose);
     expect(dest).toBe(world.location);
   });
 
@@ -56,6 +56,6 @@ describe('TeleportController._resolveDestinationContainer', () => {
     expect(MixinApi.isContainable(orphan)).toBe(true);
     // Detach via the standard chokepoint.
     ContainmentApi.move(orphan as never, null);
-    expect(_resolveDestinationContainer(orphan)).toBeNull();
+    expect(TeleportController._resolveDestinationContainer(orphan)).toBeNull();
   });
 });

@@ -706,6 +706,52 @@ export class StuffApi {
   }
 
   /**
+   * Stamp `obj.templatePath` and re-key the `byTemplatePath` index
+   * so the new path participates in `findByTemplatePath` lookups.
+   * Used for stuff that needs a content-tree identity but isn't
+   * the result of a normal clone — e.g. `EvalScript` singletons
+   * stamp their owning player's `_eval` path so `eval --on
+   * /home/<id>/_eval` MQL queries can address them. No-op when the
+   * value already matches.
+   *
+   * Caller responsibility: pick a path that doesn't collide with
+   * an existing template doc in Mongo. The index is runtime-only;
+   * persistence isn't touched.
+   */
+  public static setTemplatePath(obj: Stuff, path: string): void {
+    const slot = obj as unknown as { templatePath?: string };
+    if (slot.templatePath === path) return;
+    if (slot.templatePath) {
+      this.#indexes.byTemplatePath.remove(slot.templatePath, obj);
+    }
+    slot.templatePath = path;
+    this.#indexes.byTemplatePath.insert(path, obj);
+  }
+
+  /**
+   * The canonical content-tree path identifying `obj`'s template
+   * source — the single string callers use to address content in
+   * the domain collection. Returns:
+   *
+   *   - The runtime instance's `templatePath` (stamped at clone time)
+   *     when present.
+   *   - The Template's own `path` field when `obj` is a Template.
+   *   - `null` when neither is set (`create`-only objects with no
+   *     domain backing, or callers passing a non-template Stuff).
+   *
+   * Encapsulates the dual-shape lookup ("clone vs template doc")
+   * that workspace verbs (`cd --mql`, `clone --mql`, `rm --mql`,
+   * `reload --mql`) need so they don't open-code the cast pair.
+   */
+  public static getTemplatePath(obj: Stuff): string | null {
+    const tp = (obj as unknown as { templatePath?: string }).templatePath;
+    if (typeof tp === 'string' && tp.length > 0) return tp;
+    const p = (obj as unknown as { path?: string }).path;
+    if (typeof p === 'string' && p.length > 0) return p;
+    return null;
+  }
+
+  /**
    * Find every runtime instance whose `templatePath` matches `pattern`
    * under {@link PathPatternApi} glob syntax (`*`, `**`, `?`).
    *

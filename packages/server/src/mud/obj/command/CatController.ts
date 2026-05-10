@@ -113,7 +113,7 @@ export class CatController extends CommandController<CatModel> {
     }
     lines.push('data:');
     for (const [k, v] of Object.entries(tpl.data ?? {})) {
-      lines.push(`  ${k}: ${formatValue(v)}`);
+      lines.push(`  ${k}: ${this._formatValue(v)}`);
     }
     this.tell(context, `\n${lines.join('\n')}\n`);
     return { success: true, summary: tpl.path };
@@ -161,11 +161,11 @@ export class CatController extends CommandController<CatModel> {
     this.tell(context, `\n${summary}\n`);
     return { success: false, summary };
   }
-}
 
-function formatValue(v: unknown): string {
-  if (v === null) return 'null';
-  if (typeof v === 'string') return JSON.stringify(v);
-  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-  return JSON.stringify(v);
+  private _formatValue(v: unknown): string {
+    if (v === null) return 'null';
+    if (typeof v === 'string') return JSON.stringify(v);
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    return JSON.stringify(v);
+  }
 }

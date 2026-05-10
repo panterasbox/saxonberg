@@ -47,7 +47,7 @@ export class HelpController extends CommandController<HelpModel> {
   private listCommands(context: CommandContext): CommandResult {
     const commands = context.commandGiver.getAvailableCommands();
     if (commands.length === 0) {
-      this.send(context, Mml.compose`\nNo commands available.\n`);
+      this.tell(context, Mml.compose`\nNo commands available.\n`);
       return { success: true, summary: 'no commands' };
     }
     commands.sort((a, b) =>
@@ -63,7 +63,7 @@ export class HelpController extends CommandController<HelpModel> {
     lines.push('Type "help verb <command>" for verb-specific help, or');
     lines.push('"help api <Type>" for api docs, or "help search <q>".');
     lines.push('');
-    this.send(context, Mml.fromMarkup(lines.join('\n')));
+    this.tell(context, Mml.fromMarkup(lines.join('\n')));
     return { success: true, summary: `${commands.length} commands` };
   }
 
@@ -100,7 +100,7 @@ export class HelpController extends CommandController<HelpModel> {
       lines.push(helpText);
       lines.push('');
     }
-    this.send(context, Mml.fromMarkup(lines.join('\n')));
+    this.tell(context, Mml.fromMarkup(lines.join('\n')));
     return { success: true, summary: command.getPrimaryVerb() };
   }
 
@@ -109,7 +109,7 @@ export class HelpController extends CommandController<HelpModel> {
     context: CommandContext,
   ): CommandResult {
     if (!target) {
-      this.send(
+      this.tell(
         context,
         Mml.fromMarkup(
           `\nUsage: help api <Type>  or  help api <Type>.<member>\n\n` +
@@ -121,7 +121,7 @@ export class HelpController extends CommandController<HelpModel> {
     // v1 placeholder: the JSDoc-derived JSON index is a follow-on
     // landing; once it ships this branch reads from
     // `api/help-index.ts` and renders signatures + descriptions.
-    this.send(
+    this.tell(
       context,
       Mml.fromMarkup(
         `\nApi reference for '${target}' is not yet indexed.\n` +
@@ -136,7 +136,7 @@ export class HelpController extends CommandController<HelpModel> {
     context: CommandContext,
   ): CommandResult {
     if (!query) {
-      this.send(context, Mml.fromMarkup(`\nUsage: help search <query>\n`));
+      this.tell(context, Mml.fromMarkup(`\nUsage: help search <query>\n`));
       return { success: false, summary: 'no query' };
     }
     const needle = query.toLowerCase();
@@ -146,7 +146,7 @@ export class HelpController extends CommandController<HelpModel> {
       return blob.toLowerCase().includes(needle);
     });
     if (hits.length === 0) {
-      this.send(context, Mml.fromMarkup(`\nNo matches for '${query}'.\n`));
+      this.tell(context, Mml.fromMarkup(`\nNo matches for '${query}'.\n`));
       return { success: true, summary: 'no matches' };
     }
     const lines: string[] = ['', `Matches for '${query}':`, ''];
@@ -156,11 +156,11 @@ export class HelpController extends CommandController<HelpModel> {
       );
     }
     lines.push('');
-    this.send(context, Mml.fromMarkup(lines.join('\n')));
+    this.tell(context, Mml.fromMarkup(lines.join('\n')));
     return { success: true, summary: `${hits.length} matches` };
   }
 
-  private send(context: CommandContext, body: Mml): void {
+  private tell(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic(MessageApi.Topics.system.shell.help)
       .toSelf(body)

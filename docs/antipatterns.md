@@ -30,8 +30,8 @@ if (obj.environment) {
 if (typeof container.removeContainable === 'function') {
   container.removeContainable(item);
 }
-if (typeof target.setEnvironment === 'function') {
-  target.setEnvironment(newContainer);
+if (typeof target.setContainer === 'function') {
+  target.setContainer(newContainer);
 }
 ```
 
@@ -141,7 +141,7 @@ ContainmentApi.move(avatar, newRoom);
 teleportation.
 
 `move()` automatically determines the current container from
-`item.getEnvironment()`, so you only need to specify the destination.
+`item.getContainer()`, so you only need to specify the destination.
 
 **Contract**:
 - Parameters are typed `Stuff & Containable` (item) and `Stuff & Container`
@@ -156,18 +156,18 @@ teleportation.
   programmatic-bypass callers, not a user-facing check — they are NOT
   redundant.
 
-### Level 3: `setEnvironment()` / `addContainable()` — low level (NEVER call directly)
+### Level 3: `setContainer()` / `addContainable()` — low level (NEVER call directly)
 
 Only called by `ContainmentApi.move()`:
 
 ```typescript
 // NEVER do this
-const currentContainer = item.getEnvironment();
+const currentContainer = item.getContainer();
 if (currentContainer) {
   currentContainer.removeContainable(item);
 }
 newContainer.addContainable(item);
-item.setEnvironment(newContainer);
+item.setContainer(newContainer);
 
 // ALWAYS use this instead
 ContainmentApi.move(item, newContainer);
@@ -213,15 +213,15 @@ When you encounter duck typing in existing code:
 
 ```typescript
 // OLD CODE (duck typing)
-const currentContainer = item.getEnvironment();
+const currentContainer = item.getContainer();
 if (typeof currentContainer?.removeContainable === 'function') {
   currentContainer.removeContainable(item);
 }
 if (typeof newContainer.addContainable === 'function') {
   newContainer.addContainable(item);
 }
-if (typeof item.setEnvironment === 'function') {
-  item.setEnvironment(newContainer);
+if (typeof item.setContainer === 'function') {
+  item.setContainer(newContainer);
 }
 
 // NEW CODE (proper API layer)

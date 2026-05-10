@@ -34,6 +34,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import type { MqlManyResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
+import { Avatar } from '../Avatar';
 import { EvalScript } from '../../lib/script/EvalScript';
 
 interface EvalModel extends CommandModel {
@@ -51,11 +52,9 @@ export class EvalController extends CommandController<EvalModel> {
     // stomp each other's singleton across runtime sessions. Falls
     // back to stuffId for non-Avatar givers (scripted NPCs that
     // happen to compose CommandGiver).
-    const playerKey =
-      (giver as unknown as { getPlayerId?: () => string }).getPlayerId?.() ??
-      giver.stuffId;
+    const playerKey = giver instanceof Avatar ? giver.getPlayerId() : giver.stuffId;
     const singletonPath = `/home/${playerKey}/_eval`;
-    const existing = findExistingSingleton(singletonPath);
+    const existing = StuffApi.findByTemplatePath<EvalScript>(singletonPath);
 
     let evalStuff: EvalScript;
     if (model.expr) {
@@ -63,8 +62,7 @@ export class EvalController extends CommandController<EvalModel> {
       if (existing) StuffApi.destruct(existing);
       evalStuff = await StuffApi.create(() => new EvalScript());
       // Stamp templatePath so MQL path-atom can address it.
-      (evalStuff as unknown as { templatePath?: string }).templatePath =
-        singletonPath;
+      StuffApi.setTemplatePath(evalStuff, singletonPath);
       evalStuff.setCode(model.expr);
     } else {
       if (!existing) {
@@ -106,7 +104,7 @@ export class EvalController extends CommandController<EvalModel> {
     for (const t of targets) {
       try {
         const result = await evalStuff.run(t);
-        const repr = formatResult(result);
+        const repr = this._formatResult(result);
         const name = DescribeApi.getDisplayName(t, '?');
         this.tell(context, `\n${name}: ${repr}\n`);
         lastSummary = repr;
@@ -132,25 +130,16 @@ export class EvalController extends CommandController<EvalModel> {
     this.tell(context, `\n${summary}\n`);
     return { success: false, summary };
   }
-}
 
-function findExistingSingleton(path: string): EvalScript | undefined {
-  for (const obj of StuffApi.getAllObjects()) {
-    if ((obj as unknown as { templatePath?: string }).templatePath === path) {
-      return obj as unknown as EvalScript;
+  private _formatResult(v: unknown): string {
+    if (v === undefined) return 'undefined';
+    if (v === null) return 'null';
+    if (typeof v === 'string') return JSON.stringify(v);
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return Object.prototype.toString.call(v);
     }
-  }
-  return undefined;
-}
-
-function formatResult(v: unknown): string {
-  if (v === undefined) return 'undefined';
-  if (v === null) return 'null';
-  if (typeof v === 'string') return JSON.stringify(v);
-  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-  try {
-    return JSON.stringify(v);
-  } catch {
-    return Object.prototype.toString.call(v);
   }
 }

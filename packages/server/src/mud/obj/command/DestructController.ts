@@ -25,7 +25,6 @@ import { DescribeApi } from '../../api/describe';
 
 interface DestructModel extends CommandModel {
   target?: MqlOneResult;
-  mql?: string;
   force?: boolean;
 }
 

@@ -13,6 +13,7 @@ import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface LocateModel extends CommandModel {
@@ -23,23 +24,19 @@ export class LocateController extends CommandController<LocateModel> {
   execute(model: LocateModel, context: CommandContext): CommandResult {
     const target = model.target;
     if (!target || target.stuff === null) {
-      return this.fail(context, `no match for target`);
+      return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const chain: string[] = [];
     let cursor: Stuff | null = target.stuff;
     while (cursor) {
       chain.push(DescribeApi.getDisplayName(cursor, '?'));
-      const next: Stuff | null | undefined = (
-        cursor as unknown as {
-          getEnvironment?: () => Stuff | null;
-        }
-      ).getEnvironment?.();
+      const next: Stuff | null = MixinApi.isContainable(cursor)
+        ? cursor.getContainer()
+        : null;
       const prior = cursor;
-      cursor = next ?? null;
+      cursor = next;
       if (cursor === null) {
-        const zone = (prior as unknown as {
-          getZone?: () => Stuff | null;
-        }).getZone?.();
+        const zone = prior.getZone();
         if (zone && !chain.includes(DescribeApi.getDisplayName(zone, '?'))) {
           chain.push(DescribeApi.getDisplayName(zone, '?'));
         }

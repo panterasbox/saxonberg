@@ -24,7 +24,6 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
-import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -39,15 +38,16 @@ export class GotoController extends CommandController<GotoModel> {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
-      return this.fail(context, 'no match for target');
+      return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
-    const env = (target.stuff as unknown as {
-      getEnvironment?: () => Stuff | null;
-    }).getEnvironment?.();
-    if (!env) {
+    const targetStuff = target.stuff;
+    if (!MixinApi.isContainable(targetStuff)) {
       return this.fail(context, 'target has no location');
     }
-    const dest = env as Stuff & Container;
+    const dest = targetStuff.getContainer();
+    if (!dest) {
+      return this.fail(context, 'target has no location');
+    }
     const destName = DescribeApi.getDisplayName(dest, '?');
 
     if (!MixinApi.isContainable(giver)) {
@@ -74,6 +74,8 @@ export class GotoController extends CommandController<GotoModel> {
       return this.fail(context, (err as Error).message);
     }
     if (model.look && MixinApi.isMobile(giver)) {
+      // Fire-and-forget; same swallow rationale as in `Mobile.teleport`
+      // — an auto-look failure shouldn't cancel an already-completed move.
       void giver.autoLookOnArrival().catch(() => {});
     }
     this.tell(context, `\narrived at ${destName} (fallback)\n`);

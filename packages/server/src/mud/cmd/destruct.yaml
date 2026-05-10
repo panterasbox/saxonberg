@@ -7,9 +7,6 @@ args:
     required: false
     scope: ["reachable"]
 options:
-  mql:
-    type: string
-    description: "MQL expression alternate to <target>"
   force:
     short: f
     type: boolean

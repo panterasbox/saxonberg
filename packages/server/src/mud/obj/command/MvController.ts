@@ -22,7 +22,6 @@ import { Template } from '../../lib/stuff/Template';
 interface MvModel extends CommandModel {
   src?: string;
   dst?: string;
-  mql?: string;
   content?: boolean;
   source?: boolean;
 }

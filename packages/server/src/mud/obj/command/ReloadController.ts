@@ -20,6 +20,7 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { HotReloadApi } from '../../api/hot-reload';
 import { SourceTreeApi } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import type { MqlOneResult } from '../../api/mql';
 
 interface ReloadModel extends CommandModel {
@@ -37,10 +38,7 @@ export class ReloadController extends CommandController<ReloadModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      path =
-        (stuff as unknown as { templatePath?: string }).templatePath ??
-        (stuff as unknown as { path?: string }).path ??
-        null;
+      path = StuffApi.getTemplatePath(stuff);
     } else if (model.target) {
       if (MixinApi.isWorkspace(giver)) {
         path = SourceTreeApi.joinLogical(

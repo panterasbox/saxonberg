@@ -92,7 +92,7 @@ export class GrepController extends CommandController<GrepModel> {
     for (const tpl of all) {
       const tplSegments = tpl.path.split('/').length;
       if (!recursive && tplSegments !== baseSegments + 1) continue;
-      const text = stringifyData(tpl.data ?? {});
+      const text = this._stringifyData(tpl.data ?? {});
       const tplLines = text.split('\n');
       for (let i = 0; i < tplLines.length; i++) {
         const ln = tplLines[i]!;
@@ -143,19 +143,19 @@ export class GrepController extends CommandController<GrepModel> {
     this.tell(context, `\n${summary}\n`);
     return { success: false, summary };
   }
-}
 
-function stringifyData(data: Record<string, unknown>): string {
-  const lines: string[] = [];
-  for (const [k, v] of Object.entries(data)) {
-    lines.push(`${k}: ${formatValue(v)}`);
+  private _stringifyData(data: Record<string, unknown>): string {
+    const lines: string[] = [];
+    for (const [k, v] of Object.entries(data)) {
+      lines.push(`${k}: ${this._formatValue(v)}`);
+    }
+    return lines.join('\n');
   }
-  return lines.join('\n');
-}
 
-function formatValue(v: unknown): string {
-  if (v === null) return 'null';
-  if (typeof v === 'string') return v;
-  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-  return JSON.stringify(v);
+  private _formatValue(v: unknown): string {
+    if (v === null) return 'null';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    return JSON.stringify(v);
+  }
 }

@@ -64,10 +64,7 @@ export class CloneController extends CommandController<CloneModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      path =
-        (stuff as unknown as { path?: string; templatePath?: string }).path ??
-        (stuff as unknown as { templatePath?: string }).templatePath ??
-        null;
+      path = StuffApi.getTemplatePath(stuff);
     } else if (model.template) {
       if (MixinApi.isWorkspace(giver)) {
         const home = giver.getHome();

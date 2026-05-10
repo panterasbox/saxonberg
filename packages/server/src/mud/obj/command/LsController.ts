@@ -17,12 +17,15 @@ import type {
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
+import type { MqlOneResult } from '../../api/mql';
+import { PathPatternApi } from '../../api/path-pattern';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 
 interface LsModel extends CommandModel {
   path?: string;
-  mql?: string;
+  mql?: MqlOneResult;
   content?: boolean;
   source?: boolean;
   long?: boolean;
@@ -41,13 +44,32 @@ export class LsController extends CommandController<LsModel> {
     const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
+    // Resolve the path input. `--mql` (`type: object`, scope:
+    // reachable) wins when set; otherwise the positional `<path>`
+    // is the source of truth, defaulting to cwd.
+    let pathInput = model.path ?? '.';
+    if (model.mql) {
+      const stuff = model.mql.stuff;
+      if (!stuff) {
+        return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
+      }
+      const tp = StuffApi.getTemplatePath(stuff);
+      if (!tp) {
+        return this.fail(
+          context,
+          `--mql resolved to a runtime instance with no template path`,
+        );
+      }
+      pathInput = tp;
+    }
+
     let basePath: string;
     try {
       basePath =
         tree === 'content'
-          ? SourceTreeApi.joinLogical(cwd, model.path ?? '.', { home })
+          ? SourceTreeApi.joinLogical(cwd, pathInput, { home })
           : SourceTreeApi.toDisplayPath(
-              SourceTreeApi.resolvePath(cwd, model.path ?? '.', { home }),
+              SourceTreeApi.resolvePath(cwd, pathInput, { home }),
             );
     } catch (err) {
       if (err instanceof SourceTreeSandboxError) {
@@ -61,7 +83,7 @@ export class LsController extends CommandController<LsModel> {
       await this.listTemplateTree(basePath, !!model.recursive, lines);
     } else {
       await this.listCodeTree(
-        SourceTreeApi.resolvePath(cwd, model.path ?? '.', { home }),
+        SourceTreeApi.resolvePath(cwd, pathInput, { home }),
         !!model.recursive,
         lines,
         '',
@@ -86,11 +108,11 @@ export class LsController extends CommandController<LsModel> {
     const hasGlob = GLOB_RE.test(basePath);
     if (hasGlob) {
       // Glob over all templates (descendants of the longest non-glob
-      // prefix), filtered by PathPatternApi-style match. v1 keeps it
+      // prefix), filtered by PathPatternApi.matches. v1 keeps it
       // simple: walk all descendants of root and filter.
       const all = await Template.findDescendants('/');
       const matched = all
-        .filter((t) => simpleGlobMatch(t.path, basePath))
+        .filter((t) => PathPatternApi.matches(t.path, basePath))
         .map((t) => t.path)
         .sort();
       lines.push(...matched);
@@ -141,32 +163,4 @@ export class LsController extends CommandController<LsModel> {
     this.tell(context, `\n${summary}\n`);
     return { success: false, summary };
   }
-}
-
-/**
- * Cheap inline glob match — `*` matches non-slash, `**` matches any
- * run, `?` matches one non-slash. Mirrors PathPatternApi but lives
- * here as a one-shot helper to avoid round-tripping through that
- * Api's regex cache for an interactive command.
- */
-function simpleGlobMatch(path: string, pattern: string): boolean {
-  let body = '';
-  let i = 0;
-  while (i < pattern.length) {
-    if (pattern.startsWith('**', i)) {
-      body += '.*';
-      i += 2;
-    } else if (pattern[i] === '*') {
-      body += '[^/]*';
-      i += 1;
-    } else if (pattern[i] === '?') {
-      body += '[^/]';
-      i += 1;
-    } else {
-      const ch = pattern[i]!;
-      body += /[A-Za-z0-9/_-]/.test(ch) ? ch : '\\' + ch;
-      i += 1;
-    }
-  }
-  return new RegExp('^' + body + '$').test(path);
 }

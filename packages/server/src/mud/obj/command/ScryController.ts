@@ -34,7 +34,7 @@ export class ScryController extends CommandController<ScryModel> {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
-      return this.fail(context, `no match for target`);
+      return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const tgt = target.stuff;
 
@@ -64,8 +64,7 @@ export class ScryController extends CommandController<ScryModel> {
     } else {
       lines.push('', '(no visible description)');
     }
-    const env = (tgt as unknown as { getEnvironment?: () => Stuff | null })
-      .getEnvironment?.();
+    const env = MixinApi.isContainable(tgt) ? tgt.getContainer() : null;
     if (env) {
       lines.push('', `(in ${DescribeApi.getDisplayName(env, '?')})`);
     }
@@ -84,8 +83,7 @@ export class ScryController extends CommandController<ScryModel> {
       return null;
     }
     // Auto-resolve: walk the avatar's environment for any Scryable.
-    const env = (giver as unknown as { getEnvironment?: () => Stuff | null })
-      .getEnvironment?.();
+    const env = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (env && MixinApi.isContainer(env)) {
       for (const item of ContainmentApi.getContents(env)) {
         if (MixinApi.isScryable(item)) {

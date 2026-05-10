@@ -56,7 +56,7 @@ export class TeleportController extends CommandController<TeleportModel> {
   execute(model: TeleportModel, context: CommandContext): CommandResult {
     const target = model.target;
     if (!target || target.stuff === null) {
-      return this.fail(context, `no match for target`);
+      return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const tgt = target.stuff as Stuff & Containable;
 
@@ -70,7 +70,7 @@ export class TeleportController extends CommandController<TeleportModel> {
       context.location;
     if (!focused) return this.fail(context, 'no destination');
 
-    const dest = _resolveDestinationContainer(focused);
+    const dest = TeleportController._resolveDestinationContainer(focused);
     if (!dest) {
       return this.fail(
         context,
@@ -102,7 +102,7 @@ export class TeleportController extends CommandController<TeleportModel> {
         );
         return { success: true, summary: `${targetName} → ${destName}` };
       } catch (err) {
-        if (!isVetoError(err)) throw err;
+        if (!(err instanceof ContainmentError)) throw err;
         // Mobile-level veto: fall through to the move-op fallback.
       }
     }
@@ -134,6 +134,37 @@ export class TeleportController extends CommandController<TeleportModel> {
     this.tell(context, `\n${summary}\n`);
     return { success: false, summary };
   }
+
+  /**
+   * Apply the focus-resolution rule:
+   *
+   *   - Container (room, chest, vessel interior, avatar inventory) →
+   *     return as-is. Container-wins precedence; Avatars and Vessels
+   *     (Container + Containable) fall in here, the way admins
+   *     typically want.
+   *   - Containable-only (a non-container item) → walk up to its
+   *     environment. The focused thing becomes a "point at" reference
+   *     and the target lands in the same room.
+   *   - Neither → null. Caller surfaces a clear error.
+   *
+   * Static so the rule is unit-testable as
+   * `TeleportController._resolveDestinationContainer(...)` without
+   * a free-floating module export.
+   */
+  static _resolveDestinationContainer(
+    focused: Stuff,
+  ): (Stuff & Container) | null {
+    if (MixinApi.isContainer(focused)) {
+      return focused;
+    }
+    if (MixinApi.isContainable(focused)) {
+      const env = focused.getContainer();
+      if (env && MixinApi.isContainer(env)) {
+        return env;
+      }
+    }
+    return null;
+  }
 }
 
 /** Optional witness — fire if present, return undefined otherwise. */
@@ -144,41 +175,4 @@ function callTeleportHook(
   const fn = (target as unknown as Record<string, unknown>)['canTeleport'];
   if (typeof fn !== 'function') return undefined;
   return (fn as (d: Stuff) => VetoResult).call(target, destination);
-}
-
-function isVetoError(err: unknown): boolean {
-  return err instanceof ContainmentError;
-}
-
-/**
- * Apply the focus-resolution rule:
- *
- *   - Container (room, chest, vessel interior, avatar inventory) →
- *     return as-is. Container-wins precedence; Avatars and Vessels
- *     (Container + Containable) fall in here, the way admins
- *     typically want.
- *   - Containable-only (a non-container item) → walk up to its
- *     environment. The focused thing becomes a "point at" reference
- *     and the target lands in the same room.
- *   - Neither → null. Caller surfaces a clear error.
- *
- * Exported as `@internal` so the rule is unit-testable in
- * isolation; consumers should call through the controller's
- * `execute` rather than reaching for this directly.
- *
- * @internal
- */
-export function _resolveDestinationContainer(
-  focused: Stuff,
-): (Stuff & Container) | null {
-  if (MixinApi.isContainer(focused)) {
-    return focused;
-  }
-  if (MixinApi.isContainable(focused)) {
-    const env = focused.getContainer();
-    if (env && MixinApi.isContainer(env)) {
-      return env;
-    }
-  }
-  return null;
 }

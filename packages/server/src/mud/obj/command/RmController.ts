@@ -21,6 +21,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import type { MqlOneResult } from '../../api/mql';
 
@@ -48,10 +49,7 @@ export class RmController extends CommandController<RmModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      target =
-        (stuff as unknown as { path?: string; templatePath?: string }).path ??
-        (stuff as unknown as { templatePath?: string }).templatePath ??
-        null;
+      target = StuffApi.getTemplatePath(stuff);
     } else if (model.path) {
       try {
         target =
@@ -98,9 +96,12 @@ export class RmController extends CommandController<RmModel> {
       return { success: true, summary: target };
     }
 
+    // `target` is already a display path (`/server/...`) for both
+    // input shapes — re-resolve it back to an absolute OS path
+    // through the sandbox.
     let abs: string;
     try {
-      abs = SourceTreeApi.resolvePath(cwd, model.path!, { home });
+      abs = SourceTreeApi.resolvePath(cwd, target, { home });
     } catch (err) {
       if (err instanceof SourceTreeSandboxError) {
         return this.fail(context, err.message);

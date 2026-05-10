@@ -9,9 +9,6 @@ args:
     type: string
     required: true
 options:
-  mql:
-    type: string
-    description: "MQL expression alternate to <src>"
   content:
     short: c
     type: boolean
