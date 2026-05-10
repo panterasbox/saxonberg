@@ -8,10 +8,14 @@
  *   - `eval` (no code, with optional `--on`) → re-run the existing
  *     singleton's most-recent code against the new target.
  *
- * Singleton path: `/tpl/eval/<avatarId>/_singleton`. Each new
- * `eval <code>` destructs the prior singleton and clones a fresh
- * one, then `setCode` + `run`. Singletons do not persist across
- * server restarts.
+ * Singleton path: `/home/<playerId>/_eval` (falling back to
+ * `/home/<stuffId>/_eval` for givers that aren't player-shaped —
+ * e.g. scripted NPCs). Establishes the `/home/` branch of the
+ * template tree as the per-player namespace; future variants tag
+ * the basename (`_eval.<tag>`) instead of nesting deeper. Each
+ * new `eval <code>` destructs the prior singleton and clones a
+ * fresh one, then `setCode` + `run`. Singletons do not persist
+ * across server restarts.
  *
  * Multi-target dispatch: `--on <expr>` may resolve to many. Without
  * `--all` the controller errors with an ambiguity notice; with
@@ -42,9 +46,15 @@ export class EvalController extends CommandController<EvalModel> {
   async execute(model: EvalModel, context: CommandContext): Promise<CommandResult> {
     const giver = context.commandGiver;
 
-    // Singleton resolution. Per-avatar, so different players don't
-    // stomp each other's singleton.
-    const singletonPath = `/tpl/eval/${giver.stuffId}/_singleton`;
+    // Singleton resolution. Keyed by the player's persistent
+    // identity (Avatar.getPlayerId) so different players don't
+    // stomp each other's singleton across runtime sessions. Falls
+    // back to stuffId for non-Avatar givers (scripted NPCs that
+    // happen to compose CommandGiver).
+    const playerKey =
+      (giver as unknown as { getPlayerId?: () => string }).getPlayerId?.() ??
+      giver.stuffId;
+    const singletonPath = `/home/${playerKey}/_eval`;
     const existing = findExistingSingleton(singletonPath);
 
     let evalStuff: EvalScript;

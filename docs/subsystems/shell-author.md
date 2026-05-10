@@ -78,9 +78,13 @@ trivially escaping below the api layer.
 
 ### Singleton placement
 
-`/tpl/eval/<avatarId>/_singleton`. Each new `eval <code>` destructs
-the previous singleton and clones a fresh one, then `setCode` +
-`run`. The singleton is not persisted across server restarts.
+`/home/<playerId>/_eval` (with a fallback to
+`/home/<stuffId>/_eval` for non-Avatar givers). Establishes the
+`/home/` branch of the template tree as the per-player namespace;
+future variants tag the basename (`_eval.<tag>`) instead of
+nesting deeper. Each new `eval <code>` destructs the previous
+singleton and clones a fresh one, then `setCode` + `run`. The
+singleton is not persisted across server restarts.
 
 `eval` (no expr) reuses the existing singleton — re-runs its
 most-recent code against the supplied `--on` (or avatar by default).
