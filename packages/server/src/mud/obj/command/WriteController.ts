@@ -1,14 +1,21 @@
 /**
- * WriteController — author a content-tree template (default) or
- * source-tree file.
+ * WriteController — author a content-tree template or source-tree
+ * file.
  *
- * The body lands on `model.body` via either input path:
+ * Tree pick: `write` requires explicit `-c` (content) or `-s`
+ * (source). Unlike read-only verbs (cd / ls / cat) the
+ * `workspace.tree` setting is NOT consulted as a fallback —
+ * content templates and source files diverge by purpose, and
+ * silently defaulting to the wrong tree is the kind of mistake
+ * that's hard to undo. Spell it out per call.
  *
- *   - **Text input** (`msh write /path "content"`) — the yaml
- *     declares `body` as a greedy positional, so `msh`'s tokenizer
- *     consumes everything after the path. Fine for short bodies;
- *     multi-line content with embedded quotes is awkward through
- *     the shell tokenizer.
+ * Body delivery — two input paths landing on `model.body`:
+ *
+ *   - **Text input** (`msh write -s /server/foo "content"`) — the
+ *     yaml declares `body` as a greedy positional, so `msh`'s
+ *     tokenizer consumes everything after the path. Fine for
+ *     short bodies; multi-line content with embedded quotes is
+ *     awkward through the shell tokenizer.
  *   - **Structured input** — clients that hold a code-editor buffer
  *     (or any non-textual UI) reach the same model via
  *     `CommandApi.assembleFromStructured({ verb: 'write', fields: {
@@ -17,7 +24,9 @@
  *     escaping are non-issues. This is the path real authoring UIs
  *     use, and it is the slate's "command payload" channel — no
  *     separate accessor needed; the structured-form fields ARE the
- *     payload.
+ *     payload. The matcher's `coerceStructuredValue` accepts a
+ *     string for `type: string` fields, so the same `body` field
+ *     handles both paths.
  *
  * Stuff references on this path go through the same machinery as
  * text input: a string field carrying an MQL expression
@@ -40,10 +49,12 @@
  * convention.
  *
  * Content tree: writes a `LeafTemplate` at the resolved path via
- * `TemplateApi.saveTemplate`. The class field defaults to a
- * generic `/lib/persistence/PersistentHydrator`-shaped leaf; real
- * authoring will likely want a richer compose verb, but this gets
- * the wire working.
+ * `TemplateApi.saveTemplate`. The backing class and hydrator are
+ * customisable per call via `--class` / `--hydrator`; defaults are
+ * `/lib/stuff/Idea` and `/lib/persistence/PersistentHydrator` for
+ * a generic "data bag" template. Source tree: writes the body to
+ * the resolved file via `SourceTreeApi.write`; `--class` /
+ * `--hydrator` are ignored.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -57,14 +68,20 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { TemplateApi } from '../../api/template';
+import type { MqlOneResult } from '../../api/mql';
 
 interface WriteModel extends CommandModel {
   path?: string;
   body?: string;
-  mql?: string;
+  mql?: MqlOneResult;
   content?: boolean;
   source?: boolean;
+  class?: string;
+  hydrator?: string;
 }
+
+const DEFAULT_CONTENT_CLASS = '/lib/stuff/Idea';
+const DEFAULT_CONTENT_HYDRATOR = '/lib/persistence/PersistentHydrator';
 
 export class WriteController extends CommandController<WriteModel> {
   async execute(model: WriteModel, context: CommandContext): Promise<CommandResult> {
@@ -76,18 +93,43 @@ export class WriteController extends CommandController<WriteModel> {
     if (model.body === undefined) {
       return this.fail(context, 'write needs <body>');
     }
-    const tree = giver.pickTree(model);
+
+    // Require explicit -c or -s. write doesn't honor the
+    // workspace.tree fallback because content / source diverge by
+    // purpose and silently defaulting is too easy to mis-author.
+    if (!model.content && !model.source) {
+      return this.fail(
+        context,
+        'write requires -c (content) or -s (source)',
+      );
+    }
+    if (model.content && model.source) {
+      return this.fail(
+        context,
+        'write: -c and -s are mutually exclusive',
+      );
+    }
+    const tree = model.source ? 'source' : 'content';
     const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
     if (tree === 'content') {
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
+      const classPath = model.class ?? DEFAULT_CONTENT_CLASS;
+      // Empty string explicitly omits the hydrator; undefined uses
+      // the default.
+      const hydratorPath =
+        model.hydrator === undefined
+          ? DEFAULT_CONTENT_HYDRATOR
+          : model.hydrator.length === 0
+            ? undefined
+            : model.hydrator;
       try {
         await TemplateApi.saveTemplate(
           target,
-          '/lib/stuff/Idea',
+          classPath,
           { body: model.body },
-          '/lib/persistence/PersistentHydrator',
+          hydratorPath,
         );
       } catch (err) {
         return this.fail(context, (err as Error).message);

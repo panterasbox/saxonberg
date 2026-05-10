@@ -1,6 +1,6 @@
 verbs: [write]
 controller: WriteController
-description: "Author a content-tree template (default) or source-tree file"
+description: "Author a content-tree template or source-tree file (require -c / -s)"
 args:
   - name: path
     type: string
@@ -11,13 +11,20 @@ args:
     greedy: true
 options:
   mql:
-    type: string
+    type: object
+    scope: [reachable]
     description: "MQL expression alternate to <path>"
   content:
     short: c
     type: boolean
-    description: "Force the operation to the content tree (overrides workspace.tree)"
+    description: "Write to the content tree (mutually exclusive with -s)"
   source:
     short: s
     type: boolean
-    description: "Force the operation to the source tree (overrides workspace.tree)"
+    description: "Write to the source tree (mutually exclusive with -c)"
+  class:
+    type: string
+    description: "Backing class path for content writes (default /lib/stuff/Idea)"
+  hydrator:
+    type: string
+    description: "Hydrator class path for content writes (default /lib/persistence/PersistentHydrator); pass empty string to omit"
