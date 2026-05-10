@@ -196,9 +196,12 @@ Every `Stuff` carries:
   declare it to refuse destruction (`{ ok: false, reason }`); the
   default absence is treated as `{ ok: true }`. Bypassable via
   `StuffApi.forceDestruct` (admin-gated).
-- **`onDestruct?(): void`** — optional Witness hook. Cleanup runs
-  while the target is still live (mirror of how the retired
-  `prepareDestroy()` ran before `destroy()`).
+- **`onDestruct(): void`** — Witness hook. Cleanup runs while the
+  target is still live (mirror of how the retired `prepareDestroy()`
+  ran before `destroy()`). `Stuff` ships a no-op terminal so a
+  subclass overriding the hook can call `super.onDestruct()`
+  unconditionally — no cast-to-optional dance required. Subclasses
+  that have no cleanup to do simply don't override.
 - **`destroy(): void`** — `@Final @Unshadowable @CallSecurity(ApiOnly)`.
   The body is FINAL; the call is privileged.
 
@@ -289,9 +292,12 @@ can't even call it directly — they have to go through
 (canDestruct → onDestruct → shadow-detach → destroy).
 
 `canDestruct()` and `onDestruct()` are the safe extension points.
-Both are optional Witness hooks on the target — declare only the
-ones a class actually needs. Both run before any of the housekeeping
-in step 4, so they can touch `this` through the proxy.
+`canDestruct` is an optional Witness hook (declare only when the
+class needs to refuse). `onDestruct` is a guaranteed-present method
+on `Stuff` (no-op terminal); subclasses override and call
+`super.onDestruct()` to chain through layered cleanup. Both run
+before any of the housekeeping in step 4, so they can touch `this`
+through the proxy.
 
 ```typescript
 class Avatar extends AvatarBase {

@@ -157,7 +157,7 @@ hook vetoes from internal code. User-facing commands (`go`, `get`,
 `drop`) validate beforehand and produce friendly messages — the API
 never returns boolean success flags. See
 [antipatterns.md](../antipatterns.md) for the
-"don't manually call setEnvironment + addContainable" rule.
+"don't manually call setContainer + addContainable" rule.
 
 ### `zone` is NOT restamped on move
 
@@ -285,6 +285,29 @@ the engine today. Reserved for future scale-aware tooling.
 **Derived exits are never persisted.** They're a function of the grid
 plus `NavigationApi`'s offset table; rebuilding them on boot is
 trivial.
+
+### `HomeZone`
+
+`HomeZone.ts` (`lib/home/HomeZone.ts`). A bare `Zone` subclass with
+no body (v1) — exists to anchor the per-player namespace at
+`/home/`.
+
+The `/home/` Zone template is created at boot from `seeds/home.yaml`.
+The folder/leaf invariant requires a Zone-shaped template at every
+internal node of the content tree, so anything stored under
+`/home/<playerId>/...` needs `/home/` itself to be a real Zone
+template — `HomeZone` is the class behind it.
+
+Per-player sub-folders (`/home/<playerId>/`) are NOT seeded upfront.
+They're created lazily the first time a feature needs them — e.g.
+`EvalController` stamps its singleton at `/home/<playerId>/_eval`
+without first materialising a `/home/<playerId>` Zone (paths in
+`templatePath`-stamped Stuff don't go through the persistence
+chokepoint).
+
+The empty body is deliberate: future home-tier behaviour
+(per-player permissions, quotas, customisation hooks) layers onto
+this class without churning callers.
 
 ### `SphericalZone`
 
@@ -558,7 +581,7 @@ Two intentional non-persistents:
 - [architecture.md § Class Hierarchy](../architecture.md#class-hierarchy)
 - [architecture.md § Available Mixins](../architecture.md#available-mixins)
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move` over
-  raw `setEnvironment`, `creature.travel()` over `creature.move()`.
+  raw `setContainer`, `creature.travel()` over `creature.move()`.
 - [templates.md § Clone Pipeline](./templates.md#clone-pipeline) —
   zone resolution at clone time.
 - [state-model.md § Paths and Collections](./state-model.md#paths-and-collections)

@@ -179,7 +179,7 @@ pipeline.
    `look at Bob`.
 3. The look pipeline runs **with viewer = orc**, not Alice.
 4. Inside look:
-   - `LightApi.perceivedBand(orc, Bob.getEnvironment())` — the
+   - `LightApi.perceivedBand(orc, Bob.getContainer())` — the
      orc's perception of band.
    - `LightApi.canSee(orc, Bob, 'figure')` — orc's gate.
    - `DescribeApi.getDisplayName(orc, Bob)` — orc's renderer.

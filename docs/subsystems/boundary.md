@@ -411,5 +411,5 @@ two rooms.
 - [persistence.md](./persistence.md) — scalar-default rule the
   Boundary subclasses honor.
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move`
-  over raw `setEnvironment`; pre-asserted casts; instanceof
+  over raw `setContainer`; pre-asserted casts; instanceof
   vs. virtual methods vs. cast-by-invariant.

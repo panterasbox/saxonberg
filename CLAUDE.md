@@ -402,11 +402,13 @@ bypass it. Common cases:
 |---|---|
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
-| `item.setEnvironment(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
+| `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `mover.traverse(exit, mode)` (locomotion; commands resolve `mode` from the `movement.defaultMode` setting) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
+| `(stuff as unknown as { templatePath?, path? }).templatePath ?? .path` | `StuffApi.getTemplatePath(stuff)` |
+| `(stuff as { templatePath? }).templatePath = path` | `StuffApi.setTemplatePath(stuff, path)` (also re-keys `byTemplatePath`) |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
@@ -414,8 +416,12 @@ Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 Some specific reminders worth keeping in front of mind:
 
 - **Destroy via `StuffApi.destruct(obj)`** — never override `destroy()`.
-  Use the `prepareDestroy()` hook for cleanup. Enforced at runtime by
-  `@CallSecurity(SecurityPolicies.ApiOnly)` + `@Final` + `@Unshadowable`.
+  Use the `onDestruct()` witness for cleanup, `canDestruct()` to veto.
+  Enforced at runtime by
+  `@CallSecurity(SecurityPolicies.ApiOnly)` + `@Final` + `@Unshadowable`
+  on `Stuff.destroy()`. `Stuff.onDestruct()` ships a no-op terminal
+  so subclasses can `super.onDestruct()` without ceremony — see
+  [antipatterns.md § Cast-Chain to `super`](./docs/antipatterns.md).
 - **`ContainmentApi.move()`** takes typed `Stuff & Containable` /
   `Stuff & Container` parameters and returns `void`. Programmatic
   contract violations throw; there are no boolean success flags.

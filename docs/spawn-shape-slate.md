@@ -212,8 +212,9 @@ When `template.environment` lands later, it slots between (2) and
 
 ## Cross-references
 
-- MR !15 thread M: clone destination question
-- [docs/shell-review-slate.md](./shell-review-slate.md) — parent slate
+- MR !15 thread M: clone destination question (parent slate
+  retired with the MR; see commit history for the per-thread
+  decisions)
 - `PostRegistrationMixin` (`lib/stuff/PostRegistration.ts`) —
   existing escape hatch
 - `ContainmentApi.move` — the chokepoint everything routes through

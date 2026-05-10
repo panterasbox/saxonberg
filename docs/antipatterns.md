@@ -207,6 +207,21 @@ const container = ContainmentApi.getContainer(item);
 const contents = ContainmentApi.getContents(container);
 ```
 
+### StuffApi (template-path lookup)
+
+```typescript
+// Canonical content-tree path identifying obj's template source.
+// Returns templatePath (clones), Template.path (template docs),
+// or null. Replaces the
+// `(obj as unknown as { templatePath?, path? }).templatePath ?? .path`
+// pattern at workspace verb call sites.
+const cp = StuffApi.getTemplatePath(obj);
+
+// Stamp templatePath on a non-clone Stuff (e.g. EvalScript singletons)
+// AND re-key the byTemplatePath index. Don't write the field directly.
+StuffApi.setTemplatePath(stuff, '/home/<id>/_eval');
+```
+
 ## Migration Pattern
 
 When you encounter duck typing in existing code:

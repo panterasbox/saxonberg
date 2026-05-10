@@ -987,7 +987,7 @@ Two reasons for these rules:
 
 1. **Witness mixins make auto-enrolment unworkable.** A shadow that
    composes `Containable` to react to `onMoved` would otherwise
-   auto-intercept `setEnvironment` / `getEnvironment` / etc. as
+   auto-intercept `setContainer` / `getContainer` / etc. as
    no-op-defaults, masking the host's real behavior. Explicit
    declaration sidesteps the trap.
 2. **Accessors are field-shaped.** A getter is a typed, side-effecty
@@ -1310,7 +1310,7 @@ layer. They become `@CallSecurity(ApiOnly)` (often combined with
 |---|---|
 | `Stuff.destroy()` | `@Final @Unshadowable @CallSecurity(SecurityPolicies.ApiOnly)` |
 | `Stuff.isDestroyed()` | `@Final @Unshadowable` (read invariant) |
-| `Containable.setEnvironment()` (when exposed) | `ApiOnly` (only `ContainmentApi.move`) |
+| `Containable.setContainer()` (when exposed) | `ApiOnly` (only `ContainmentApi.move`) |
 | Manager-layer mutations | `ApiOnly` |
 
 Direct `obj.destroy()` from outside `mud/api/` throws `SecurityError`.
