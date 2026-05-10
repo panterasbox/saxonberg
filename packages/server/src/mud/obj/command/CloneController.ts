@@ -1,15 +1,31 @@
 /**
- * CloneController — instantiate a fresh Stuff from a template path.
+ * CloneController — instantiate a fresh Stuff from a template path
+ * and place it somewhere in the world.
  *
  * Resolves the template path (positional `<template>` or
- * `--mql <expr>`) cwd-relative against the avatar's template tree.
+ * `--mql <expr>`) cwd-relative against the avatar's content tree.
  * Dispatches to `StuffApi.clone` (default) or `StuffApi.forceClone`
  * when `-f` is set.
+ *
+ * Destination resolution (precedence — explicit caller intent
+ * wins over template defaults):
+ *
+ *   1. `--into <dest>`         — explicit Container.
+ *   2. `--here`                — sugar for "the avatar's environment."
+ *   3. `template.environment`  — TBD; lands when the field + the
+ *                                singleton-resolution wiring ship.
+ *      See `docs/spawn-shape-slate.md`.
+ *   4. fallback                — the avatar itself (inventory).
  *
  * v1 fires no `canClone` witness at this layer — `forceClone` is the
  * admin-gated bypass for whatever per-target veto a future witness
  * lands. Today its body is identical to `clone()`; tomorrow it
  * carries the witness invocation but skips the assertion.
+ *
+ * If placement fails (destination isn't a Container, the move
+ * vetoes), the verb still reports success on the *clone* itself but
+ * notes the placement failure so the admin can recover the dangling
+ * Stuff via stuffId.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -23,20 +39,27 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SourceTreeApi } from '../../api/source-tree';
+import { ContainmentApi } from '../../api/containment';
 import type { MqlOneResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
 
 interface CloneModel extends CommandModel {
   template?: string;
   mql?: MqlOneResult;
+  into?: MqlOneResult;
+  here?: boolean;
   force?: boolean;
 }
 
 export class CloneController extends CommandController<CloneModel> {
   async execute(model: CloneModel, context: CommandContext): Promise<CommandResult> {
     const giver = context.commandGiver;
-    let path: string | null = null;
 
+    // 1. Resolve the template path.
+    let path: string | null = null;
     if (model.mql) {
       const stuff = model.mql.stuff;
       if (!stuff) {
@@ -62,15 +85,107 @@ export class CloneController extends CommandController<CloneModel> {
     }
     if (!path) return this.fail(context, 'no template path');
 
+    // 2. Resolve the destination Container before cloning. If the
+    // destination shape is invalid, fail before producing a
+    // dangling instance.
+    const destResult = this.resolveDestination(model, giver, context);
+    if ('error' in destResult) {
+      return this.fail(context, destResult.error);
+    }
+    const dest = destResult.dest;
+
+    // 3. Clone (or forceClone), then place. Two phases — placement
+    // failure leaves the cloned Stuff alive but unplaced; the admin
+    // gets the stuffId to recover.
+    let cloned: Stuff;
     try {
       const fn = model.force ? StuffApi.forceClone : StuffApi.clone;
-      const cloned = await fn(path);
-      const name = DescribeApi.getDisplayName(cloned, '?');
-      this.tell(context, `\ncloned ${path} → ${name} (${cloned.stuffId})\n`);
-      return { success: true, summary: `cloned ${path}` };
+      cloned = await fn(path);
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
+    const name = DescribeApi.getDisplayName(cloned, '?');
+
+    if (!MixinApi.isContainable(cloned)) {
+      // Can't be placed at all. Surface but don't fail the clone —
+      // the instance exists; the admin can address it via stuffId.
+      this.tell(
+        context,
+        `\ncloned ${path} → ${name} (${cloned.stuffId}); not Containable, left unplaced\n`,
+      );
+      return {
+        success: true,
+        summary: `cloned ${path} (unplaced)`,
+      };
+    }
+
+    try {
+      ContainmentApi.move(cloned as Stuff & Containable, dest);
+    } catch (err) {
+      this.tell(
+        context,
+        `\ncloned ${path} → ${name} (${cloned.stuffId}); placement failed: ${(err as Error).message}\n`,
+      );
+      return {
+        success: true,
+        summary: `cloned ${path} (placement failed)`,
+      };
+    }
+
+    const destName = DescribeApi.getDisplayName(dest, 'somewhere');
+    this.tell(
+      context,
+      `\ncloned ${path} → ${name} (${cloned.stuffId}) into ${destName}\n`,
+    );
+    return { success: true, summary: `cloned ${path} → ${destName}` };
+  }
+
+  /**
+   * Apply the destination-resolution precedence. See file header
+   * for the full chain. Returns either the resolved Container or
+   * an error describing why none could be picked.
+   */
+  private resolveDestination(
+    model: CloneModel,
+    giver: Stuff,
+    context: CommandContext,
+  ):
+    | { dest: Stuff & Container }
+    | { error: string } {
+    // 1. --into <dest>.
+    if (model.into) {
+      const stuff = model.into.stuff;
+      if (!stuff) {
+        return { error: `no match for --into ${model.into.raw ?? ''}` };
+      }
+      if (!MixinApi.isContainer(stuff)) {
+        return {
+          error: `${DescribeApi.getDisplayName(stuff, 'that')} is not a container`,
+        };
+      }
+      return { dest: stuff };
+    }
+
+    // 2. --here → avatar's environment (the location they're in).
+    if (model.here) {
+      const env = context.location;
+      if (!env || !MixinApi.isContainer(env)) {
+        return { error: 'no environment to place into' };
+      }
+      return { dest: env };
+    }
+
+    // 3. template.environment — TBD; see spawn-shape-slate.md.
+    //    Slot reserved between (2) and (4) so the future addition is
+    //    a single insertion, no reordering.
+
+    // 4. Fallback — the giver themselves (inventory). Avatars
+    // compose Container, so this normally works; non-Container
+    // givers can't catch the fallback and fail explicitly.
+    if (!MixinApi.isContainer(giver)) {
+      return { error: 'no destination — pass --into or --here' };
+    }
+    return { dest: giver };
   }
 
   private tell(context: CommandContext, text: string): void {

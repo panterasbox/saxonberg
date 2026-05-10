@@ -20,7 +20,7 @@ dispatches.
 
 | Verb | Args | Force | Notes |
 |---|---|---|---|
-| `clone` | `<template>`, `--mql` | `-f` → `StuffApi.forceClone` | Resolves template path cwd-relative. Default uses `StuffApi.clone`. |
+| `clone` | `<template>`, `--mql`, `--into`, `--here` | `-f` → `StuffApi.forceClone` | Destination precedence: `--into <dest>` > `--here` (avatar's environment) > inventory fallback (the giver). The slot for `template.environment` lookup sits between `--here` and the inventory fallback — see [spawn-shape-slate.md](../spawn-shape-slate.md) for the broader spawn design. Resolves template path cwd-relative. |
 | `reload` | `<target>`, `--mql` | `-f` → `HotReloadApi.forceReload` | v1 hot-reloads a path; the `canReload` witness lands at the verb-controller level when a use case appears. |
 | `destruct` | `<target>` (object), `--mql` | `-f` → `StuffApi.forceDestruct` | Target is `type: object` so MQL resolves it; the path-atom extension (step 2) lets bare paths address templates with no live clones. |
 | `eval` | `<expr>?`, `--on <expr>`, `--all` | (none) | Eval has no per-target veto — the eval'd code's own logic + `@CallSecurity` decorators on whatever Apis it touches are the boundary. |
