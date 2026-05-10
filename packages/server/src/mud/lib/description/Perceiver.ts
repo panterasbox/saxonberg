@@ -21,9 +21,10 @@
  * Composition: requires `Sensor`. Composed on `Character` (so every
  * Avatar and NPC inherits the perception verbs). Verbs are
  * surfaced on the `self` bucket only — they're actor-side, not
- * target-side. (Compare `Visible`, which surfaces `look` on the
- * target-facing buckets so peers / inventory / environment can be
- * looked at.)
+ * target-side. `Visible` contributes no verbs at all; it's pure
+ * target shape (description state, keywords). The actor's stack
+ * gets `look` from being a Perceiver, then scope resolution picks
+ * any reachable Visible as the target at execution time.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -54,9 +55,11 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields: string[] = [];
 
     /**
-     * Verbs of perception. `self` only — the perceiver issues these;
-     * the target's `Visible` mixin handles target-facing
-     * environment/inventory/peers contributions for `look`.
+     * Verbs of perception. `self` only — the perceiver issues these.
+     * No target-side contributions: `Visible` is pure target shape,
+     * not a verb source. The looker has the verbs because they're
+     * a Perceiver; the lookable thing supplies a description and
+     * keywords.
      */
     static commandContributions: CommandContributions = {
       self: ['look.yaml', 'scry.yaml', 'locate.yaml'],

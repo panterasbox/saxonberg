@@ -9,7 +9,7 @@
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin provides: inventory, get, drop
- * - VisibleMixin provides: look
+ * - PerceiverMixin provides: look / scry / locate
  * - Avatar provides: ping, help, player (diagnostic commands)
  *
  * Key Design Points:
@@ -47,8 +47,8 @@ import { OrganismMixin } from '../species/Organism';
 // Order matters: ContainableMixin before MobileMixin (MobileMixin uses setContainer/getContainer)
 // Verbs come from mixins:
 //   - ContainerMixin → inventory / get / drop
-//   - VisibleMixin → look (target-side only — environment / inventory / peers)
 //   - PerceiverMixin → look / scry / locate (actor-side, on `self`)
+// VisibleMixin is target-shape only — description state, no verbs.
 // Sensor + Perception together = the full perceiver substrate:
 // Sensor handles channel-side message receipt, Perception handles
 // the subjective interpretation seams that LightApi (and future

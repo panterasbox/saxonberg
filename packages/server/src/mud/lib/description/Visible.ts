@@ -22,11 +22,21 @@ import type { CommandContributions } from '../../api/command';
 /**
  * Mixin that adds description properties for visible objects.
  *
- * Provides the "look" command for examining this visible object:
- * - When in someone's environment (they can look at it in the room)
- * - When in someone's inventory (they can look at what they're carrying)
- * - When the looker is one of this object's peers (same environment)
- * - On self (you can look at yourself)
+ * Visible is pure **target shape** — it owns the description state
+ * (`shortDescription` / `longDescription`) and contributes no
+ * verbs. The verbs of perception (`look` / `scry` / `locate`) live
+ * on `PerceiverMixin`'s `self` bucket; perceivers issue them, and
+ * scope resolution at execution time picks any reachable Visible
+ * as a target.
+ *
+ * The earlier shape — Visible adding `look.yaml` on
+ * `environment`/`inventory`/`peers` — granted the verb to the
+ * looker's stack *because there happened to be a visible thing
+ * nearby*, which inverts the contract: actor capability shouldn't
+ * come from a target's existence. Compare a `Throne` contributing
+ * `sit` on `environment` — that's correct because `sit` only
+ * exists as a verb-against-that-specific-target; `look` is a
+ * perceiver-side verb that takes any Visible as a target.
  */
 /**
  * Public shape provided by VisibleMixin.
@@ -46,21 +56,15 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'VisibleMixin';
 
     /**
-     * Command provider for visibility-related commands.
-     *
-     * Visible is "I can be seen" — so the contributions surface
-     * `look` on the buckets that mean "someone else has me in
-     * scope" (environment / inventory / peers). The actor-side
-     * contribution (`self`) lives on `PerceiverMixin`, which owns
-     * the "I can issue perception verbs" role. Splitting the two
-     * keeps Visible from claiming behaviour that's really the
-     * perceiver's.
+     * Visible is target-shape only — no verb contributions. See the
+     * mixin docstring for why `look.yaml` belongs on Perceiver's
+     * `self` bucket, not on Visible's target-side buckets.
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: ['look.yaml'], // Others can look at you in their environment
-      inventory: ['look.yaml'],   // Others can look at you in their inventory
-      peers: ['look.yaml'],       // Peers in the same environment can look at you
+      environment: [],
+      inventory: [],
+      peers: [],
     };
 
     /**

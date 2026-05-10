@@ -11,18 +11,25 @@ Character:
   `handleMessage(frame)`. The substrate any host needs to be on
   the receiving end of `MessageApi.scene(...)`.
 - **`Visible`** (`lib/description/Visible.ts`) — can be perceived.
-  Owns descriptions and contributes `look` on the **target-side**
-  buckets (`environment` / `inventory` / `peers`) so peers /
-  inventory / environment can be looked at.
+  Owns descriptions and keywords. Contributes **no verbs** — pure
+  target shape.
 - **`Perceiver`** (`lib/description/Perceiver.ts`) — issues
   perception verbs. Contributes `look` / `scry` / `locate` on the
   **actor-side** bucket (`self`).
 
-The split fixes a long-standing semantic conflation: `Visible` used
-to contribute `look` to `self` too, which read as "I can be looked
-at therefore I can look." That's wrong — being seen and seeing are
-different roles. The actor-side contribution moves to Perceiver;
-Visible keeps only the target-side surface.
+The split fixes a semantic conflation: `Visible` used to contribute
+`look` to both `self` and the target-side buckets
+(`environment` / `inventory` / `peers`). The `self` part read as
+"I can be looked at therefore I can look" — the role inversion
+that motivated splitting Perceiver out. The target-side part read
+as "a visible thing nearby grants me the verb to look" — a
+subtler inversion: the actor's capability shouldn't come from a
+target's existence. Compare a `Throne` contributing `sit` on
+`environment`: that one is correct because `sit` only exists as a
+verb-against-that-specific-target, whereas `look` is a
+perceiver-side verb that takes any reachable Visible as a target
+via scope resolution. So Visible drops verb contributions
+entirely; Perceiver is the sole source of `look`.
 
 ## Composition
 
@@ -48,15 +55,15 @@ Vocal → Visible → Containable → Container → Mobile → CommandGiver
 | Verb | Bucket | Lives where |
 |---|---|---|
 | `look` | `self` | PerceiverMixin |
-| `look` | `environment` / `inventory` / `peers` | VisibleMixin |
 | `scry` | `self` | PerceiverMixin |
 | `locate` | `self` | PerceiverMixin |
 
-`look` lives on both mixins because it has two roles: on the
-perceiver (I can issue `look`) and on the target (I'm in your
-scope, so `look` surfaces against me). The matcher's recency-stack
-discovery deduplicates by verb name; the controller is the same
-either way.
+All three are actor-side only. The verb lands on the giver's stack
+because they're a Perceiver, not because there happens to be a
+visible / scryable / locatable thing in scope. Target resolution
+runs at execution time through the verb's scope rules, narrowing
+to whatever Visible / Scryable / Locatable thing the binding
+resolves to.
 
 ## Methods
 
