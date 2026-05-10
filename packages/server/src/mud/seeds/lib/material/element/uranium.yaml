@@ -31,10 +31,9 @@ data:
     "resistance.pierce": 0.65
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
   composition: []
-  chemistry:
-    symbol: U
-    atomicNumber: 92
-    molarMass: 238.029
+  symbol: U
+  atomicNumber: 92
+  molarMass: 238.029
   biologicalSource: null
   halfLife: 4.468e9
   decayMode: alpha

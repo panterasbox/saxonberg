@@ -24,8 +24,7 @@ data:
     "resistance.pierce": 0.1
   tags: ["element", "non-metal", "organic-base"]
   composition: []
-  chemistry:
-    symbol: C
-    atomicNumber: 6
-    molarMass: 12.011
+  symbol: C
+  atomicNumber: 6
+  molarMass: 12.011
   biologicalSource: null

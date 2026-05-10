@@ -21,8 +21,7 @@ data:
     "resistance.pierce": 0.5
   tags: ["element", "metal", "ferrous", "magnetic", "crystalline", "conductor"]
   composition: []
-  chemistry:
-    symbol: Fe
-    atomicNumber: 26
-    molarMass: 55.845
+  symbol: Fe
+  atomicNumber: 26
+  molarMass: 55.845
   biologicalSource: null

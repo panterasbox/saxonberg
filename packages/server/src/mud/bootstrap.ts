@@ -29,5 +29,4 @@ export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/lib/persistence/QuantityMarshaller/lumen' },
   { templatePath: '/lib/persistence/QuantityMarshaller/lux' },
   { templatePath: '/lib/persistence/QuantityMarshaller/K' },
-  { templatePath: '/lib/persistence/ChemistryMarshaller' },
 ];

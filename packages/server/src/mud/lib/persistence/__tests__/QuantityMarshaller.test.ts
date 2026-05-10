@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { QuantityMarshaller } from '../QuantityMarshaller';
-import { ChemistryMarshaller } from '../ChemistryMarshaller';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { installV1QuantityMarshallers } from './quantity-marshaller-test-helpers';
@@ -103,55 +102,3 @@ describe('QuantityMarshaller', () => {
   });
 });
 
-describe('ChemistryMarshaller', () => {
-  beforeEach(() => {
-    installV1QuantityMarshallers();
-  });
-  afterEach(() => {
-    StuffApi.clearAll();
-  });
-
-  it('round-trips chemistry with a numeric molarMass', () => {
-    const m = StuffApi.findByTemplatePath<ChemistryMarshaller>(
-      ChemistryMarshaller.templatePath
-    )!;
-    const runtime = m.fromStored({
-      symbol: 'Fe',
-      atomicNumber: 26,
-      molarMass: 55.845,
-    });
-    expect(runtime).not.toBeNull();
-    expect(runtime!.symbol).toBe('Fe');
-    expect(runtime!.atomicNumber).toBe(26);
-    expect(runtime!.molarMass).toBeInstanceOf(Quantity);
-    expect(runtime!.molarMass!.rawValue()).toBe(55.845);
-    expect(runtime!.molarMass!.unit).toBe('g/mol');
-
-    const stored = m.toStored(runtime);
-    expect(stored).toEqual({
-      symbol: 'Fe',
-      atomicNumber: 26,
-      molarMass: { value: 55.845, unit: 'g/mol' },
-    });
-  });
-
-  it('null pass-through both directions', () => {
-    const m = StuffApi.findByTemplatePath<ChemistryMarshaller>(
-      ChemistryMarshaller.templatePath
-    )!;
-    expect(m.fromStored(null)).toBeNull();
-    expect(m.toStored(null)).toBeNull();
-  });
-
-  it('toStored rejects a chemistry record with a non-Quantity molarMass', () => {
-    const m = StuffApi.findByTemplatePath<ChemistryMarshaller>(
-      ChemistryMarshaller.templatePath
-    )!;
-    expect(() =>
-      m.toStored({
-        symbol: 'Fe',
-        molarMass: 55.845 as unknown as Quantity<'g/mol'>,
-      })
-    ).toThrow(TypeError);
-  });
-});

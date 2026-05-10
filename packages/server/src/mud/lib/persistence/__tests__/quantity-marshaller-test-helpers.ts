@@ -17,7 +17,6 @@
  */
 
 import { QuantityMarshaller } from '../QuantityMarshaller';
-import { ChemistryMarshaller } from '../ChemistryMarshaller';
 import type { Unit } from '../../quantity';
 import { registerMarshallerForTest } from '../../security/__tests__/test-setup';
 
@@ -31,9 +30,9 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
 ];
 
 /**
- * Register every v1 QuantityMarshaller + ChemistryMarshaller. Idempotent
- * within a single test (StuffApi rejects duplicate registrations); pair
- * with `StuffApi.clearAll()` between tests.
+ * Register every v1 QuantityMarshaller. Idempotent within a single
+ * test (StuffApi rejects duplicate registrations); pair with
+ * `StuffApi.clearAll()` between tests.
  */
 export function installV1QuantityMarshallers(): void {
   for (const unit of V1_QUANTITY_UNITS) {
@@ -43,8 +42,4 @@ export function installV1QuantityMarshallers(): void {
       return m;
     }, QuantityMarshaller.pathFor(unit));
   }
-  registerMarshallerForTest(
-    () => new ChemistryMarshaller(),
-    ChemistryMarshaller.templatePath
-  );
 }
