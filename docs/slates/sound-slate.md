@@ -14,27 +14,27 @@ the real values and the real math.
 
 See also:
 
-- [docs/quantities-slate.md](./quantities-slate.md) — the
+- [docs/subsystems/quantities.md](../subsystems/quantities.md) — the
   cross-cutting `Quantity<T>` pattern (real-units-underneath,
   friendly-tags-on-top, instruments-reveal). Sound is the second
   instance of the pattern after light. Consumed by every
   amplitude/frequency/timing field below.
-- [docs/subsystems/light.md](./subsystems/light.md) — light's
+- [docs/subsystems/light.md](../subsystems/light.md) — light's
   shipped propagation walk; sound's `SoundApi` mirrors `LightApi`.
-- [docs/subsystems/boundary.md](./subsystems/boundary.md) —
+- [docs/subsystems/boundary.md](../subsystems/boundary.md) —
   Adornable / Adornment / Boundary / Conduit substrate. Conduits
   get a channel-keyed transmissivity update.
-- [docs/locomotion-slate.md](./locomotion-slate.md) —
+- [docs/slates/locomotion-slate.md](./locomotion-slate.md) —
   `mode.noiseLevel` is the source data for activity-driven
   emission. The locomotion slate's table is consumed; no
   changes required there.
-- [docs/activity-slate.md](./activity-slate.md) — emission
+- [docs/slates/activity-slate.md](./activity-slate.md) — emission
   starts/stops on activity lifecycle hooks; `onTick` for
   sustained-emission activities.
-- [docs/subsystems/race.md](./subsystems/race.md) — `Species`
+- [docs/subsystems/race.md](../subsystems/race.md) — `Species`
   template gains a `hearingProfile` field, parallel to the
   existing `visionProfile`.
-- [docs/adjoining-systems.md](./adjoining-systems.md) — this
+- [docs/adjoining-systems.md](../adjoining-systems.md) — this
   slate graduates entry #3 ("Sound propagation as a physics
   channel").
 
@@ -85,7 +85,7 @@ interface Sound {
 ```
 
 `Quantity<T>` is the typed-units shape from
-[quantities-slate.md](./quantities-slate.md). `Quantity<dB>(75)`
+[docs/subsystems/quantities.md](../subsystems/quantities.md). `Quantity<dB>(75)`
 carries the canonical value, the unit, a friendly tag (`'loud'`),
 and formatters for both gameplay and instrumented rendering.
 
@@ -364,7 +364,7 @@ seam is a real curriculum touchpoint that falls out of
 physics-honest implementation.
 
 The full pattern (real units, friendly tags, instruments-reveal)
-lives in [docs/quantities-slate.md](./quantities-slate.md). What
+lives in [docs/subsystems/quantities.md](../subsystems/quantities.md). What
 sound contributes:
 
 ### Seam 1 — Decibels as a logarithmic scale
@@ -677,7 +677,7 @@ for it.
 9. **Default unit display — SPL or friendly tags?** Friendly tags
    by default; players opt into instrument readings via verb. A
    `pedagogicalSeam` setting could surface units globally for
-   student-mode players. (See quantities-slate.)
+   student-mode players. (See [docs/subsystems/quantities.md](../subsystems/quantities.md).)
 10. **Acoustic impedance from material — automatic or opt-in?**
     Lean opt-in; helper for explicit derivation, no surprise
     runtime errors when material lacks acoustic data.
@@ -707,7 +707,7 @@ review:
 - Conduit gains `transmissivity: Record<ChannelKind, number>`.
 - Light migrates from `lightTransmission` to `transmissivity['light']`.
 - Helper `MaterialApi.derivedTransmissivity(material, thickness, channel)`.
-- `Quantity<T>` shape lands (see quantities-slate.md).
+- `Quantity<T>` shape lands (see subsystems/quantities.md).
 
 **Wave 2** — `SoundApi` parallel to `LightApi`.
 

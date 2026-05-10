@@ -20,37 +20,37 @@ ships first.
 
 See also:
 
-- [docs/quantities-slate.md](./quantities-slate.md) — the
+- [docs/subsystems/quantities.md](../subsystems/quantities.md) — the
   **instruments-reveal** path is one branch of this slate's
-  taxonomy; quantities-slate retains the per-instrument roster
-  and the canonical-units-vs-tags pedagogical claim.
-- [docs/recognition-slate.md](./recognition-slate.md) — actor
+  taxonomy; the Quantities substrate holds the canonical-units-
+  vs-tags pedagogical claim and the per-instrument roster.
+- [docs/slates/recognition-slate.md](./recognition-slate.md) — actor
   recognition is one inspection verb; same shape with a
   per-viewer memory dimension.
-- [docs/identification-slate.md](./identification-slate.md) —
+- [docs/slates/identification-slate.md](./identification-slate.md) —
   item identification is another; the trigger-verb roster
   there (`read scroll of identify`, `analyze`, `taste`,
   `learn-from-teacher`) is exactly this slate's branching
   taxonomy applied to one verb family.
-- [docs/subsystems/perceiver.md](./subsystems/perceiver.md) —
+- [docs/subsystems/perceiver.md](../subsystems/perceiver.md) —
   the **innate** path is already shipped: `PerceiverMixin`
   contributes `look` / `scry` / `locate` to every Character.
   The wielded-instrument seam (`ScryableMixin.canScryFor`) is
   shipped as an ad-hoc one-off; this slate is the scaffold
   that says "this is one of N paths."
-- [docs/subsystems/command-routing.md](./subsystems/command-routing.md)
+- [docs/subsystems/command-routing.md](../subsystems/command-routing.md)
   — the per-giver recency stack and frame attribution already
   carry "where did this binding come from" data; the slate
   rests on those primitives.
-- [docs/subsystems/properties.md](./subsystems/properties.md) —
+- [docs/subsystems/properties.md](../subsystems/properties.md) —
   the shadow / mask mechanism is the per-path override seam.
-- [docs/subsystems/call-security.md](./subsystems/call-security.md)
+- [docs/subsystems/call-security.md](../subsystems/call-security.md)
   — paths gate at the source, not in the controller.
-- [docs/mixin-slate.md](./mixin-slate.md) — skill-as-mixin and
+- [docs/slates/mixin-slate.md](./mixin-slate.md) — skill-as-mixin and
   implant-as-Wearable both show up here as candidate mixins.
-- [docs/embodiment-slate.md](./embodiment-slate.md) — wearable
+- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — wearable
   body-slot mechanics underpin implants; same composition shape.
-- [docs/design-philosophy.md](./design-philosophy.md) — layered
+- [docs/design-philosophy.md](../design-philosophy.md) — layered
   presentation; same engine numbers, different prose framing.
 
 ---
@@ -119,7 +119,7 @@ implant, a sipped potion can each contribute the same verb on
 |---|---|---|---|---|
 | **Innate** | Mixin contributes verb on `self` from birth (`PerceiverMixin → look`) | Always available; species / clade-conditioned | Lifetime of the character | "you peer into…" |
 | **Skill** | `KnownSkillsMixin` (proposed) — contributes verbs whose definitions list it as a skill source. Rank thresholds may unlock more capable variants of the same verb. | Skill present + rank ≥ threshold | Persistent once learned (and not forgotten / atrophied) | "you draw on your knowledge of…" |
-| **Wielded instrument** | A `Stuff` composing `Wieldable` contributes the verb when in the giver's hand (today's `quantities-slate.md` pattern) | Wielded + instrument-functional (calibration, charge, intact) | While wielded | "the meter reads…", "the lens reveals…" |
+| **Wielded instrument** | A `Stuff` composing `Wieldable` contributes the verb when in the giver's hand (today's `subsystems/quantities.md` pattern) | Wielded + instrument-functional (calibration, charge, intact) | While wielded | "the meter reads…", "the lens reveals…" |
 | **Worn implant / wearable** | A `Stuff` composing `Wearable` in a body slot — including future implant slots like `body.implant.brain` — contributes the verb while installed | Installed + powered + biocompatible / licensed | While installed | "your retinal HUD reports…", "the implant whispers…" |
 | **Consumable / transient** | A potion / scroll / spell installs a buff (mixin or shadow) for a duration; the buff contributes the verb | Buff active + duration not elapsed | Duration-bounded | "for a moment you perceive…" |
 | **Ambient / world** | A location, aura, or piece of furniture contributes the verb on `self` while the giver is inside scope | Inside the contributing scope | While in scope | "the chamber's warding light shows you…" |
@@ -365,7 +365,7 @@ plumbing has a place to hang.
 When new slates / subsystems address verb-acquisition, link back
 here so the pattern stays one-stop. Specifically:
 
-- `quantities-slate.md § Pedagogical seam — instruments-reveal`
+- `subsystems/quantities.md` (instruments-reveal seam)
   → "one path in the verb-provisioning taxonomy"
 - `recognition-slate.md` recognition verbs → "actor-side reads
   through this slate's taxonomy"

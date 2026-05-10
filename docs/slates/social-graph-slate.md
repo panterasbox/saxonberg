@@ -13,14 +13,14 @@ matters.
 
 See also:
 
-- [docs/recognition-slate.md](./recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   substrate this slate builds on. Bucket data lives on
   recognition records.
-- [docs/communication-policy-slate.md](./communication-policy-slate.md)
+- [docs/slates/communication-policy-slate.md](./communication-policy-slate.md)
   — consumes bucket assignments for trust-tiered messaging.
-- [docs/vision.md](./vision.md) — the social/educational
+- [docs/vision.md](../vision.md) — the social/educational
   positioning that motivates this layer.
-- [docs/subsystems/shell-environment.md](./subsystems/shell-environment.md)
+- [docs/subsystems/shell-environment.md](../subsystems/shell-environment.md)
   — `EnvironmentMixin` keyspace; `social.*` settings live here.
 
 ---

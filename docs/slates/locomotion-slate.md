@@ -12,15 +12,15 @@ They're sibling subsystems and reference each other at the seams.
 
 See also:
 
-- [docs/embodiment-slate.md](./embodiment-slate.md) — slot
+- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — slot
   substrate, `Mountable` / `Drivable`, conveyance ripple. Layer 4
   there links here.
-- [docs/mixin-slate.md](./mixin-slate.md) — names `Climbable` /
+- [docs/slates/mixin-slate.md](./mixin-slate.md) — names `Climbable` /
   `Swimmable` / `Crawlable` / `Flyable` as the per-mode target
   mixins; this slate is where they actually get designed.
-- [docs/subsystems/race.md](./subsystems/race.md) — `BodyPlan`
+- [docs/subsystems/race.md](../subsystems/race.md) — `BodyPlan`
   carries `locomotionModes: string[]`, the per-species menu.
-- [docs/subsystems/spatial.md](./subsystems/spatial.md) — exits,
+- [docs/subsystems/spatial.md](../subsystems/spatial.md) — exits,
   `Mobile.traverse`, the existing locomotion entrypoint.
 
 ---

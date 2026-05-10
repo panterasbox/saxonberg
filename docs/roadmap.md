@@ -30,6 +30,12 @@ The substrate is in place. Major shipped surfaces:
   propagation walk via `LightApi.lightAt`, per-viewer perception
   (`LightApi.canSee`, `perceivedBand`), the Boundary substrate's
   channel-keyed transmissivity readied for future channels.
+- **Quantities substrate** — `Quantity<U>` value object,
+  per-unit math op table, tag-table registry, YAML-authored
+  scales, `<quantity>` Mml emission, marshaller integration.
+  Consumed by Light (lux/lumen/Kelvin), Material (kg/m³, g/mol),
+  Tangible (kg); future channels (sound, heat) plug in via the
+  same shape. See [docs/subsystems/quantities.md](./subsystems/quantities.md).
 - **Race / species / organism (v1)** — Material substrate, Clade
   taxonomy, BodyPlan + Species, OrganismMixin, SexedMixin,
   SpeciesApi (kingdoms, lifecycle predicates, `isAnimate`).
@@ -64,7 +70,7 @@ The substrate is in place. Major shipped surfaces:
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `PopulatesMixin`, escape hatch via
   `PostRegistrationMixin`. Working slate at
-  [docs/spawn-shape-slate.md](./spawn-shape-slate.md).
+  [docs/slates/spawn-shape-slate.md](./slates/spawn-shape-slate.md).
 
 See [docs/architecture.md](./architecture.md) for layout and
 [docs/subsystems/](./subsystems/) for individual references.
@@ -90,59 +96,56 @@ promoted to formal requirements.
 
 ### Substrate slates
 
-- [docs/quantities-slate.md](./quantities-slate.md) —
-  `Quantity<T>` pattern (real-units-underneath, friendly-tags-
-  on-top, instruments-reveal). The pedagogical seam.
-  Foundational; sound, mass, capacity, etc. all depend.
-- [docs/embodiment-slate.md](./embodiment-slate.md) — slot
+- [docs/slates/embodiment-slate.md](./slates/embodiment-slate.md) — slot
   substrate (`Slotted` / `Slottable`); body-side affordances
   (`Wearable`, `Wieldable`); world-side (`Postured`,
   `Mountable`, `Drivable`). Conveyance ripple via
   `Mobile.traverse`. Three worked examples.
-- [docs/locomotion-slate.md](./locomotion-slate.md) —
+- [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md) —
   `LocomotionMode` singletons; verb-as-mode dispatch
   (`walk`/`run`/`sneak`/`crawl`/`climb`/`swim`/`fly`/`ride`/
   `drive`); target mixins (`Climbable`/`Swimmable`); four
   consumer dives (traps, pathfinding, detection, validation).
-- [docs/activity-slate.md](./activity-slate.md) — durative-
+- [docs/slates/activity-slate.md](./slates/activity-slate.md) — durative-
   verb framework; engagement slots for concurrent activities;
   cancel semantics; transaction-style completion validation.
-- [docs/sound-slate.md](./sound-slate.md) — sound as the second
+- [docs/slates/sound-slate.md](./slates/sound-slate.md) — sound as the second
   physics channel after light; three source kinds; channel-
   keyed Conduit transmissivity; pedagogical seam threaded
   through (real dB, real Hz, real species hearing ranges,
   acoustic instruments).
-- [docs/collision-slate.md](./collision-slate.md) — capacity
+- [docs/slates/collision-slate.md](./slates/collision-slate.md) — capacity
   (typed-list-of-constraints), intentional blocking
   (`BlockerBehavior`), pushing (`Pushable` + `PushActivity`).
 
 ### Social / perception slates
 
-- [docs/recognition-slate.md](./recognition-slate.md) — per-
+- [docs/slates/recognition-slate.md](./slates/recognition-slate.md) — per-
   viewer perception state; `DescribeApi v2` pipeline; disguise
   as Wearable shadow; salient-feature rendering.
-- [docs/social-graph-slate.md](./social-graph-slate.md) —
+- [docs/slates/social-graph-slate.md](./slates/social-graph-slate.md) —
   buckets (friends/foes/custom); notification policies;
   bucket-keyed display verbosity (attention-management
   rendering).
-- [docs/communication-policy-slate.md](./communication-policy-slate.md)
+- [docs/slates/communication-policy-slate.md](./slates/communication-policy-slate.md)
   — trust-tiered moderation; `MessageGate`; sandboxed-zone
   NPC handling; emote-only / template-only constrained forms.
-- [docs/identification-slate.md](./identification-slate.md) —
+- [docs/slates/identification-slate.md](./slates/identification-slate.md) —
   parallel pattern for items; experiment-based identification;
   the pedagogical seam at its richest.
 
 ### Cross-cutting
 
-- [docs/mixin-slate.md](./mixin-slate.md) — broad mixin slate;
+- [docs/slates/mixin-slate.md](./slates/mixin-slate.md) — broad mixin slate;
   most affordance mixins now distributed into the substrate
   slates above.
-- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+- [docs/slates/verb-provisioning-slate.md](./slates/verb-provisioning-slate.md)
   — verb-acquisition pattern (innate / skill / instrument /
   implant / consumable / ambient). One verb, one controller, N
   provisioning paths each with its own gate and prose flavor.
-  Generalizes the instruments-reveal seam from quantities-slate
-  to skills, cybernetics, transient buffs, and ambient effects.
+  Generalizes the instruments-reveal seam from the Quantities
+  substrate to skills, cybernetics, transient buffs, and ambient
+  effects.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
@@ -183,7 +186,7 @@ opportunistically.
   `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
   `MudlogApi` exists but is incomplete.
 - **DescribeApi v2** — implements the design from
-  [recognition-slate.md](./recognition-slate.md). Composition
+  [recognition-slate.md](./slates/recognition-slate.md). Composition
   pipeline; `getDisplayParts`; MML-aware output.
 
 ---
@@ -193,8 +196,9 @@ opportunistically.
 The major slates each become a wave of work. Suggested order
 follows dependency stack:
 
-1. **Quantities** — `Quantity<T>` + per-unit math + tag tables.
-   Foundational; everything below uses it.
+1. **Quantities** — *shipped*. `Quantity<T>` + per-unit math +
+   tag tables. Foundational; everything below uses it. See
+   [docs/subsystems/quantities.md](./subsystems/quantities.md).
 2. **Embodiment** — slot substrate + first affordance mixins
    (Wearable / Wieldable). Slot capacity + containment-scope
    capacity from collision-slate.

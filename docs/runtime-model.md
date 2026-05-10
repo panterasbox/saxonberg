@@ -12,7 +12,7 @@ implicitly.
 
 See also:
 
-- [docs/activity-slate.md](./activity-slate.md) — explicit
+- [docs/slates/activity-slate.md](./slates/activity-slate.md) — explicit
   consumer; the activity framework's design pivots on the
   constraints captured here.
 - [docs/architecture.md](./architecture.md) — static architecture

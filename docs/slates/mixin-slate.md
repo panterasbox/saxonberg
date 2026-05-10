@@ -97,7 +97,7 @@ Real state machines, separate mixins:
 - `LightSource` *(have)* — emits light. Composes with anything; the
   emitted Light value is configured per-instance at template time.
   Persistent: `emittedIntensity` + `emittedColor` scalars (per the
-  scalar-default rule). See [subsystems/light.md](./subsystems/light.md).
+  scalar-default rule). See [docs/subsystems/light.md](../subsystems/light.md).
 - `AmbientLit` *(have)* — inherent ambient light a Container exposes
   regardless of contents. Composed onto outdoor / luminous-moss
   rooms. Same scalar shape.
@@ -109,7 +109,7 @@ Cross-room channels (windows, doors that block light) are handled
 by the Boundary substrate (`Adornable` *(have)* + `Adornment` *(have)*
 + `Boundary` + `BoundaryAnchor` + `Conduit` interfaces). `Window`
 and the retrofitted `Door` are the v1 Boundary users. See
-[subsystems/light.md § Boundary Substrate](./subsystems/light.md#boundary-substrate).
+[docs/subsystems/light.md § Boundary Substrate](../subsystems/light.md#boundary-substrate).
 
 ### Vehicles
 
@@ -157,7 +157,7 @@ methods rather than a property read — currently I don't see one.
 Material doesn't change at runtime in any case I can think of; "wet
 wood" is still wood with `wet: true`.
 
-### Light — landed; documented in [subsystems/light.md](./subsystems/light.md)
+### Light — landed; documented in [docs/subsystems/light.md](../subsystems/light.md)
 
 The Light & Boundary subsystem shipped. Summary of what exists:
 
@@ -206,7 +206,7 @@ Several mixins on this slate touch organic actors. Either the
 can wear, who gets diseased) or the mixin's own *shape* is
 constrained by species (which slots `Wearable` exposes, which body
 plans support `Mountable`). The race / species / organism subsystem
-(see [roadmap.md](./roadmap.md) § "Race / species / organism
+(see [roadmap.md](../roadmap.md) § "Race / species / organism
 subsystem") is a forthcoming design pass; mixins below should be
 built **neutral** to its eventual shape — no global slot enums, no
 "all agents are organic" assumptions, no single-material body
