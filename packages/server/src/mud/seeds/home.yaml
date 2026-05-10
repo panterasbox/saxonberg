@@ -1,0 +1,12 @@
+# /home — per-player namespace root in the template tree.
+# Holds player-scoped content: per-player draft templates, named
+# eval scripts (--save future landing), home-tier preferences.
+# Each player gets a /home/<playerId>/ sub-folder lazily on first
+# use; that's a future landing, not v1.
+#
+# A real Zone seed (not just a path string) is required so the
+# folder/leaf invariant accepts any future descendant template
+# under /home/...
+class: /lib/home/HomeZone
+data:
+  name: home
