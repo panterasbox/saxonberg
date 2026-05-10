@@ -1,381 +1,415 @@
 # Saxonberg 2.0 Roadmap
 
-This is a forward-looking roadmap. The foundation is shipped: auth,
-persistence (both `Persistable` and the template/clone track), the
-Standard Model + mixins, locations, command framework, navigation /
-exits / doors / Cartesian and Spherical zones, the unified state model
-(Shadow, PostRegistration), the call-security framework (interceptor
-pipeline, decorators, policies), the messaging subsystem (MML, scene
-composer, movement-message settings), and the say/tell controllers. See
-[architecture.md](./architecture.md) for the layout and
-[subsystems/](./subsystems/) for individual subsystem references.
+Forward-looking work, organized by area. The phase numbering from
+the legacy `PLAN.md` is no longer load-bearing; treat it as
+historical.
 
-What remains is organized below by topic, not by phase number — the
-old PLAN.md phase numbering is no longer load-bearing.
+This roadmap is a navigation aid. Concrete design lives in slates
+under `docs/`; implementation guidance lives in `docs/architecture.md`
+and the subsystem references under `docs/subsystems/`. The
+[design-philosophy.md](./design-philosophy.md) is the principle
+that shapes every slate.
 
-## Phase numbering note
+---
 
-The original `PLAN.md` defined Phases 0–10. Phases 5 and 6 in that doc
-map to:
+## Foundation (shipped)
 
-- **Phase 5 ("Communications")** — say/tell commands, `Sensor`/`Vocal`
-  mixins, `MessageApi`. **Effectively absorbed**: `Sensor`/`Vocal` shipped
-  in Phase 3, and `say.yaml` / `tell.yaml` plus `SayController` /
-  `TellController` are in `mud/cmd/` and `mud/obj/command/`.
-- **Phase 6 ("Extended Object Model & Mixins")** — `Thing`, `DetailedMixin`,
-  `PropertiedMixin`, `CartesianLocation`. **Effectively absorbed**:
-  `Thing.ts`, `Detailed.ts`, `Propertied.ts` are in `lib/stuff/`;
-  `CartesianLocation.ts` in `lib/spatial/`.
+The substrate is in place. Major shipped surfaces:
 
-Treat the legacy phase numbers as historical. The remaining work below is
-organized by area.
+- **Auth + persistence** — Google OAuth; `Persistable` track for
+  user-data; template/clone track for the Idea hierarchy;
+  Marshaller framework for non-default serialization.
+- **Standard Model + mixins** — class-factory mixin pattern,
+  `Mixins` registry, composition rules; `PropertiedMixin` for
+  typed properties.
+- **Spatial substrate** — `Stuff` / `Idea` / `Thing` /
+  `Location` / `Vessel`, `Cartesian` / `Spherical` zones, exits,
+  doors, windows, the Boundary substrate (Adornable +
+  Adornment + Conduit), Sealable.
+- **Light & Boundary subsystem** — Light value object,
+  propagation walk via `LightApi.lightAt`, per-viewer perception
+  (`LightApi.canSee`, `perceivedBand`), the Boundary substrate's
+  channel-keyed transmissivity readied for future channels.
+- **Race / species / organism (v1)** — Material substrate, Clade
+  taxonomy, BodyPlan + Species, OrganismMixin, SexedMixin,
+  SpeciesApi (kingdoms, lifecycle predicates, `isAnimate`).
+  Animacy gating on commands. v1 acceptance roster: Homo
+  sapiens, Homo khazadicus, Lithobates catesbeianus,
+  Spathiphyllum wallisii, Constructa metallica.
+- **Command framework** — YAML view + controller MVC, validators
+  (field + verb-level), MQL grammar (pronouns, multi-select,
+  chains, filters, focus), per-character aliases (`AliasMixin`).
+- **Shell** — `EnvironmentMixin` (settings keyspace),
+  `WorkspaceMixin` (`pwd`/`cd`/`ls`/`cat`/`grep`/`write`/
+  `mkdir`/`rm`/`cp`/`mv`), `AuthorMixin` (`clone`/`reload`/
+  `destruct`/`eval`/`teleport`), `PerceiverMixin` (`look` /
+  `scry` / `locate`), prose / liquid templating.
+- **Communications** — `Sensor` / `Vocal` / `Mobile` mixins;
+  `say` / `tell` controllers; messaging subsystem (MML, scene
+  composer, movement-message settings); `MudlogApi`.
+- **Event system** — `EventApi` global pub/sub bus, Witness
+  pattern, `EventRegistry` Idea bootstrapped via
+  `BootstrapManager`. Spatial-mixin lifecycle hooks dispatched
+  through `ContainmentApi.move`, `Mobile.traverse`,
+  `ConnectionApi`.
+- **Module hot-reload** — `HotReloadApi` with module registry,
+  dependency graph, admin `reload` verb,
+  `StuffApi.clone`-integrated lifecycle.
+- **Call security** — proxy interceptor pipeline, decorators,
+  policies, `@CallSecurity` / `@Final` / `@Unshadowable`,
+  `SecurityApi.decorateApiClass`.
+- **Bootstrap + state model** — `BootstrapManager`, unified
+  state model (Shadow, PostRegistration), HomeZone for
+  per-player namespace at `/home/<playerId>`.
+- **Spawn shape (declarative authoring)** — Template
+  `environment:` field, `PopulatesMixin`, escape hatch via
+  `PostRegistrationMixin`. Working slate at
+  [docs/spawn-shape-slate.md](./spawn-shape-slate.md).
 
-## What's left
+See [docs/architecture.md](./architecture.md) for layout and
+[docs/subsystems/](./subsystems/) for individual references.
 
-### Event System — DONE
+---
 
-The event subsystem shipped as the **EventApi** global pub/sub bus
-plus the **Witness pattern** for object-local hooks, backed by an
-`EventRegistry` Idea bootstrapped via `BootstrapManager`. See
-[subsystems/events.md](./subsystems/events.md) and
-[subsystems/bootstrap.md](./subsystems/bootstrap.md). The
-`MobileMixin` hook stubs that motivated this entry are now real
-optional methods on the spatial mixins (Containable / Mobile /
-Container / Exitable / HasInteractive) dispatched from
-`ContainmentApi.move`, `Mobile.traverse`, and `ConnectionApi`.
+## Active design slates
 
-### Interactive Prompt Stack (Framework 11)
+The exploratory design pass. Each slate is a working doc shaped
+for review; concrete implementation follows when a slate is
+promoted to formal requirements.
 
-- **What**: Per-`Interactive` prompt stack on the server
-  (`PromptApi.confirm`, choice, text, MQL-object), plus matching client UI
-  mode in `CommandBar.tsx` and a `prompt` / `prompt_clear` message protocol.
-- **Why**: Lets commands ask follow-up questions (`give sword` → "to
-  whom?"), enables confirmations and multi-step workflows like crafting/
-  character creation. Nothing exists for this today.
-- **Size**: medium (server) + small (client).
-- **Dependencies**: none.
+### Top-level guidance
 
-### Module hot-reload (Framework 12)
+- [docs/design-philosophy.md](./design-philosophy.md) — "model
+  the smallest fidelity content needs, do it honestly, present
+  in layers." Spatial-fidelity axis; ranged-action and capacity
+  worked examples.
+- [docs/runtime-model.md](./runtime-model.md) — Node event
+  loop, timing primitives, wire transmission, multi-client
+  reality, isolation tradeoffs. Reference doc consumed by
+  slates that schedule work.
 
-- **What**: `HotReloadApi.reload(modulePath)` with module registry,
-  dependency graph, admin `reload` command, `recreateClone` helper.
-- **Why**: Iterate on blueprints without restarting. Mostly an authoring
-  quality-of-life win, but it also unlocks the future modding workflow.
-- **Size**: medium.
-- **Dependencies**: works better with the Event System (emits
-  `ModuleReload`).
+### Substrate slates
 
-### MQL extensions
+- [docs/quantities-slate.md](./quantities-slate.md) —
+  `Quantity<T>` pattern (real-units-underneath, friendly-tags-
+  on-top, instruments-reveal). The pedagogical seam.
+  Foundational; sound, mass, capacity, etc. all depend.
+- [docs/embodiment-slate.md](./embodiment-slate.md) — slot
+  substrate (`Slotted` / `Slottable`); body-side affordances
+  (`Wearable`, `Wieldable`); world-side (`Postured`,
+  `Mountable`, `Drivable`). Conveyance ripple via
+  `Mobile.traverse`. Three worked examples.
+- [docs/locomotion-slate.md](./locomotion-slate.md) —
+  `LocomotionMode` singletons; verb-as-mode dispatch
+  (`walk`/`run`/`sneak`/`crawl`/`climb`/`swim`/`fly`/`ride`/
+  `drive`); target mixins (`Climbable`/`Swimmable`); four
+  consumer dives (traps, pathfinding, detection, validation).
+- [docs/activity-slate.md](./activity-slate.md) — durative-
+  verb framework; engagement slots for concurrent activities;
+  cancel semantics; transaction-style completion validation.
+- [docs/sound-slate.md](./sound-slate.md) — sound as the second
+  physics channel after light; three source kinds; channel-
+  keyed Conduit transmissivity; pedagogical seam threaded
+  through (real dB, real Hz, real species hearing ranges,
+  acoustic instruments).
+- [docs/collision-slate.md](./collision-slate.md) — capacity
+  (typed-list-of-constraints), intentional blocking
+  (`BlockerBehavior`), pushing (`Pushable` + `PushActivity`).
 
-The bulk of MQL shipped on the `mql` branch — pronouns (`me`, `here`,
-`it`/`him`/`her`/`them`, `$$`), multi-object selection (`type:
-objects` / `MqlMany`), the chain grammar (`:keyword`, `:i`/`:e`,
-brackets, set ops), filter expressions inside `[…]`, scope-as-MQL
-evaluation, drill-additive focus, the `focus` verb, the predicate
-registry, pronoun memory, the online-provider seam, and `PathTrie`-
-backed glob seeds. See [subsystems/mql.md](./subsystems/mql.md) and
-[mql-grammar.md](./mql-grammar.md).
+### Social / perception slates
 
-What's left:
+- [docs/recognition-slate.md](./recognition-slate.md) — per-
+  viewer perception state; `DescribeApi v2` pipeline; disguise
+  as Wearable shadow; salient-feature rendering.
+- [docs/social-graph-slate.md](./social-graph-slate.md) —
+  buckets (friends/foes/custom); notification policies;
+  bucket-keyed display verbosity (attention-management
+  rendering).
+- [docs/communication-policy-slate.md](./communication-policy-slate.md)
+  — trust-tiered moderation; `MessageGate`; sandboxed-zone
+  NPC handling; emote-only / template-only constrained forms.
+- [docs/identification-slate.md](./identification-slate.md) —
+  parallel pattern for items; experiment-based identification;
+  the pedagogical seam at its richest.
 
-- **Globbable / fungible items**. Quantity syntax (`drop 2 roses`,
-  `get all coins`) needs a `Globbable` flag on Stuff plus a
-  natural-language transform on the desugar pass. The cardinality
-  contract anticipates it; `MqlResult` may grow a `quantity` slot.
-- **Disambiguation prompts**. Single-cardinality fields with multiple
-  top-scored matches today pick by stable order. The future prompt
-  stack (Framework 11) turns `result.stuff.length > 1` into a UI
-  prompt.
-- **Sort / named-group operators** (`:sort.X`, `@@group`). Distinct
-  syntactic shapes; can be added without grammar churn when demand
-  is real.
-- **Real authoring-tier permission check**. Today's stub treats
-  `authoring` and `admin` identically against `_MqlAdminFlag`. Real
-  zone-aware logic lands with the player-authoring work.
+### Cross-cutting
 
-Size: medium-small per slice. Dependencies: prompt stack for
-disambiguation; Globbable scoping for quantity syntax.
+- [docs/mixin-slate.md](./mixin-slate.md) — broad mixin slate;
+  most affordance mixins now distributed into the substrate
+  slates above.
+- [docs/adjoining-systems.md](./adjoining-systems.md) —
+  catalog of unexplored subsystems (Tier 1 graduated; Tier
+  2/3 remain).
 
-### Markup language (Phase 5+/9+ tags)
+---
 
-- **What**: Extend MML (`api/mml.ts`, ~300 lines today) with semantic tags
-  (`<command>`, `<direction>`, `<item>`, `<exit>`, `<npc>`, `<player>`,
-  `<quantity>`), formal tags (`<color>`, `<size>`, `<link>`), and a
-  corresponding `MarkupApi`. Client-side rendering for the new tags.
-- **Why**: Enables clickable object links, colored output, and richer
-  terminal rendering — the foundation for "click name to target" and any
-  future GUI affordances.
-- **Size**: medium (server tags + helpers) + medium (client renderer).
-- **Dependencies**: none.
+## v1 punch list — small, concrete remaining items
 
-### Display-name composition (DescribeApi v2)
+Tactical work that doesn't need a slate. Pull these in
+opportunistically.
 
-- **What**: Extend `DescribeApi` beyond today's two-step
-  Named → Visible.shortDescription chain. Real-world display names
-  are *composed*: a sword in someone's hand reads as `sword (wielded)`,
-  an NPC currently scripted into a routine reads as
-  `Dave is tending bar`, a hooded thief reads as `a tall figure in a
-  black cloak` rather than the host's underlying short description.
-  Today's `DescribeApi.getDisplayName` returns the bare core string;
-  every surrounding decoration (state tags, shadow overrides,
-  status lines) lives in ad-hoc code paths or doesn't exist yet.
-- **Why**: As MQL settles and validators are routing more prose
-  through `DescribeApi.getDisplayName`, the lack of decoration
-  becomes structural. Old-school "You wield sword (wielded)." is
-  the relic case — controllers should be able to produce
-  `You wield the sword.` (no redundant tag) AND
-  `inventory` should produce `sword (wielded)` from the same
-  source of truth. The split between *core identity* and
-  *decoration* needs to be a first-class API distinction.
-- **Design constraints (informative, not committed)**:
-    - **Pull-apart access** so consumers can render selectively —
-      a `getDisplayParts(obj)` returning something like
-      `{ core, tags?, status?, override? }` lets a verb composer
-      choose which parts to include in which contexts.
-    - **Standard composed form** so casual callers don't have to
-      reassemble the parts — `getDisplayName(obj)` keeps doing
-      the right thing for the 95% case.
-    - **Decoration sources**: shadows (hood/disguise), worn-slot
-      mixins (wielded / equipped), per-character status lines
-      (NPCs running scripted routines), object-state tags
-      (broken / locked / lit).
-    - **MML-aware**: composition produces Mml fragments rather
-      than raw strings, so the `<item>` / `<npc>` / `<player>`
-      semantic tags from the Markup-language roadmap entry can
-      land naturally.
-- **Size**: medium (API + composition rules) + small per
-  decoration source as they're brought in (worn slots, status
-  lines, etc.).
-- **Dependencies**: none blocking; benefits from the Markup
-  language entry for the MML side.
-- **Caller migration**: every `DescribeApi.getDisplayName` call
-  site stays working — the v1 surface continues to return the
-  bare composed string. Verbs / inventory rendering / scene
-  bodies that want decoration switch to `getDisplayParts` or a
-  new composer when those land.
+- **Interactive prompt stack (Framework 11)** — per-Interactive
+  prompt stack (`PromptApi.confirm`, choice, text, MQL-object)
+  + matching client UI. Unlocks multi-step workflows
+  (disambiguation, character creation, crafting). Medium
+  server + small client.
+- **MQL globbable / fungible items** — `Globbable` flag on Stuff
+  + natural-language transform on the desugar pass. `MqlResult`
+  may grow a `quantity` slot.
+- **MQL disambiguation prompts** — depends on the prompt stack.
+  Multi-match cardinality checks turn into UI prompts.
+- **MQL sort / named-group operators** (`:sort.X`, `@@group`).
+  Add when demand is real.
+- **Real authoring-tier permission check** in MQL — replace the
+  current admin-flag stub with zone-aware logic. Lands with
+  player-authoring work.
+- **Markup language semantic tags + client renderer** — extend
+  MML with `<command>` / `<direction>` / `<item>` / `<exit>` /
+  `<npc>` / `<player>` / `<quantity>` and formal tags
+  (`<color>` / `<size>` / `<link>`). Foundation for clickable
+  links and richer rendering.
+- **Look fallback for non-Visible rooms** — current "You see
+  nothing special." reads wrong for plain locations like the
+  void.
+- **Model piping** (PowerShell-style) — foundational for
+  scripting; medium.
+- **Utility APIs** — `StringApi`, `TimeApi`, `ObjectApi`,
+  `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
+  `MudlogApi` exists but is incomplete.
+- **DescribeApi v2** — implements the design from
+  [recognition-slate.md](./recognition-slate.md). Composition
+  pipeline; `getDisplayParts`; MML-aware output.
 
-### Race / species / organism subsystem
+---
 
-**v1 shipped** *(have)* — see
-[docs/subsystems/race.md](./subsystems/race.md). Material substrate,
-Clade taxonomic scope, BodyPlan + Species templates, OrganismMixin,
-SexedMixin, SpeciesApi (kingdom resolution, lifecycle predicates,
-`isAnimate`), animacy gating at the command layer. v1 acceptance
-roster: Homo sapiens, Homo khazadicus, Lithobates catesbeianus,
-Spathiphyllum wallisii, Constructa metallica.
+## Substrate buildout — slate implementation
 
-What remains for follow-on builds:
+The major slates each become a wave of work. Suggested order
+follows dependency stack:
 
-- **What**: A real biological-style standard-model layer for organic
-  agents. `OrganismMixin` distinguishes organic from inorganic
-  agents (constructs, robots, ghosts). `Species` modeled as
-  `Idea`-shaped templates in a Linnaean taxonomy
-  (`/domain/species/animalia/chordata/…`), spanning real species
-  (frogs, lizards, fish, humans) and fantasy (dragons, dwarves,
-  elves) inside the same hierarchy. Body plan derived from species
-  drives equipment-slot taxonomy. `Sexed` as a separate biological
-  axis from the existing `Gendered` *(have — social / pronoun)*.
-  Eventually genetics: alleles, inheritance, mutation, evolution.
+1. **Quantities** — `Quantity<T>` + per-unit math + tag tables.
+   Foundational; everything below uses it.
+2. **Embodiment** — slot substrate + first affordance mixins
+   (Wearable / Wieldable). Slot capacity + containment-scope
+   capacity from collision-slate.
+3. **Locomotion** — mode singletons + verb controllers + target
+   mixins. Generalizes `Mobile.traverse(target, mode)` from
+   `(exit, mode)`.
+4. **Activity** — durative-verb framework + engagement slots +
+   cancel. Locomotion verbs become activities.
+5. **Sound** — channel-keyed Conduit transmissivity (light's
+   small migration); SoundApi propagation walk; ambient +
+   activity-driven + event sources; `analyze sound` +
+   SoundLevelMeter.
+6. **Collision** — block validators integrated with locomotion
+   pipeline; `Pushable` + `PushActivity`.
+7. **Recognition** — per-viewer state + DescribeApi v2 +
+   disguise mixin + salient-feature generation.
+8. **Social graph** — buckets + notifications + bucket-keyed
+   verbosity in DescribeApi step 4.
+9. **Communication policy** — `MessageGate` + trust tiers +
+   sandboxed-zone NPC handling + constrained forms.
+10. **Identification** — item-recognition + analyze verbs +
+    instrument-based ID (cross-cuts quantities for
+    pedagogical seam).
 
-  **Deferred from v1, sequenced for follow-on builds**:
-  death/resurrection FLOW (state-machine + predicates ship in v1,
-  the transition flow doesn't), `DietApi` + `Edible` + `Portable`
-  (Material toxicity is authored as data, no consumer reads it),
-  per-Detail materials and tissue authoring (v1 is bulk-only),
-  genetics, per-individual variation feature mixins, sleep/circadian,
-  aging, polymorph, character-creation UI, permission/rule machinery
-  on zones.
-- **Why**: Saxonberg's first audience is academic. STEM students
-  studying biology should be able to *exercise* their classroom
-  concepts inside the game — pathogens with realistic host ranges,
-  Punnett squares for breeding, real toxicity tables, real
-  metabolism. Not a model of reality (it's a fantasy game), but a
-  pedagogically honest substrate underneath the fantasy. Also
-  resolves several smaller design questions on its own: the
-  long-pending `isLiving()` predicate, equipment-slot taxonomy,
-  diet / edibility gating, who-gets-diseased.
-- **Size**: large. The `Organism` mixin + species-template tree is
-  medium; genetics is its own sub-subsystem on top.
-- **Dependencies**: none blocking, but several mixins on the
-  current slate are organism-shaped — see
-  [mixin-slate.md](./mixin-slate.md) § "Organism subsystem
-  awareness". Building those without awareness risks baking in
-  assumptions (global slot enums, single-material bodies, blanket
-  "all agents sleep") that the race system will then have to fight.
-- **Open questions**:
-  - How deep does the genetics layer go? (Mendelian basics,
-    polygenic traits, sex-linked inheritance, full genome?)
-  - How does evolution surface in play — long-running population
-    sim, per-character mutation as quest reward / hazard, both?
-  - Single-material vs. tissue-composition for `material` on
-    organisms.
-  - What's the construct (non-organic) hierarchy parallel to
-    `Species`? Robots, golems, ghosts — do they get a templated
-    `make` / `model` hierarchy?
-  - Sex-determination systems — XX/XY only for simplicity, or
-    model ZW/ZZ, environmental, haplodiploid for the relevant
-    real + fantasy species?
-  - Avatar customization at character creation vs.
-    phenotype-from-genotype: does the player pick traits and
-    the system derives a plausible genotype, or vice versa?
+The recognition family (7-10) ships best as a unit — the four
+slates compose tightly, and dispersed shipping creates
+hard-to-test partial states.
 
-### Command system polish
+---
 
-- **What**: Model piping (PowerShell-style), an admin `reload`
-  command plumbed into the framework, and an elegant fallback when
-  `look` lands on a non-Visible room (a bare `Location` like
-  `/domain/void` has no description by design — the current "You
-  see nothing special." fallback reads wrong for rooms). Per-character
-  command aliases (`AliasMixin`) shipped — see
-  [subsystems/shell-alias.md](./subsystems/shell-alias.md).
-- **Why**: Piping is foundational for future scripting; the look
-  fallback is a content-quality fix that lower-level developers will
-  hit any time they author a room without composing `VisibleMixin`.
-- **Size**: small (look fallback) + medium (piping).
-- **Dependencies**: hot-reload for the `reload` admin command.
+## Race subsystem follow-on
 
-### Utility APIs
+V1 shipped the substrate. Deferred work, sequenced as content
+demands:
 
-`GrammarApi` (pronoun conjugation, articles, ordinal/article
-lexicons used by the MQL desugar pass) and `ArrayApi` (`equal`,
-`isPrefix`) shipped with the MQL work. Still wanted on demand:
-`StringApi`, `TimeApi`, `ObjectApi`, `CallstackApi`, `FileApi`,
-`AssertApi`. `MudlogApi` exists but is incomplete.
+- **Death / resurrection flow** — state-machine present;
+  transition flow not. First content lifecycle event.
+- **DietApi + Edible + Portable** — material toxicity authored
+  but no consumer reads it. Needs eater-side diet check.
+- **Per-Detail materials and tissue authoring** — v1 is
+  bulk-only. Needed for tissue-zone seams (eye, wing, hand).
+- **Genetics** — alleles, inheritance, mutation, evolution. A
+  sub-subsystem of its own.
+- **Per-individual variation** — feature mixins for the
+  unique-individual layer above species.
+- **Sleep / circadian** — per-species rhythm; status mixins
+  for sleeping / resting.
+- **Aging** — life stages, species lifespans, per-stage
+  property changes.
+- **Polymorph** — runtime body-plan swap. Slot map
+  reconciliation across body-plan changes.
+- **Character-creation UI** — currently no UI for picking
+  species, sex, gender, body-plan-derived options.
 
-- **Why**: Clean utility surface so game/mod code stops re-implementing
-  these. Take them on demand as commands need them.
-- **Size**: small each — collectively medium.
-- **Dependencies**: none.
+---
 
-### Templates, mods, and isolated-vm sandboxing (Framework 13)
+## Adjoining systems still in queue
 
-- **What**: Mod base class with three flavors (Content / Capability /
-  Full), mod registry and dependency loader, `isolated-vm` integration,
-  bridged whitelisted APIs, resource limits (CPU/memory/timeout),
-  monitoring hooks.
-- **Why**: Required for v1.0. Also the security envelope for any
-  third-party content.
-- **Size**: large.
-- **Dependencies**: Event System helpful; templates and `api/module.ts`
-  already shipped, so the mod-loading half is partially scaffolded.
+From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
+1 graduated to slates; remainder by tier:
 
-### Guest accounts
+**Tier 2** — extends established patterns:
 
-- **What**: Guest account generator with random surname assignment;
-  bypasses Google OAuth.
-- **Why**: Lower the barrier to first-time exploration and demos.
-- **Size**: small.
-- **Dependencies**: none.
+- #4 Scent and persistent traces — temporal physics, parallel
+  to sound channel; needs activity emission hooks (deferred
+  in activity-slate).
+- #6 Visibility-within-room — what's visible at varying
+  containment depths; partial absorbance into DescribeApi v2
+  via recognition-slate.
+- #7 Memory of observed events — partially absorbed by
+  recognition + identification's per-viewer stores; broader
+  Witness-pattern memory is the unfinished part.
+- #10 Activity layer — non-locomotion sustained tasks (read,
+  forge, brew); largely covered by activity-slate; specific
+  content (a brewing recipe, a reading flow) lands as the
+  content asks.
 
-### GraphQL admin API
+**Tier 3** — peripheral / forcing-function-driven:
 
-- **What**: Type-GraphQL schema, resolvers over the running game state
-  for inspection/admin tooling.
-- **Why**: Replaces ad-hoc admin commands for richer tooling and
-  dashboards.
-- **Size**: medium.
-- **Dependencies**: utility APIs help; not on the MVP critical path.
+- #8 Multi-actor coordination — lift-the-log-together,
+  carry-the-stretcher, two-player levers. Stresses
+  activity-slate's single-actor model.
+- #9 Persistent location state — bloodstains, footprints,
+  soot. Temporal traces; pulls on #4.
+- #11 Heat as physics channel — third channel after light
+  and sound; forces the `PhysicsChannel` generalization.
+- #12 Pedagogical seam — largely absorbed by quantities-
+  slate; remaining work is content-team integration.
 
-### Production hardening (Phase 10)
+---
 
-- **What**: Test coverage to >80%, integration/E2E flows, sandbox escape
-  tests, MongoDB connection pooling, message batching, memory-leak audit,
-  load testing, error boundaries, admin commands (user management, object
-  inspection, sandbox dashboard).
-- **Why**: Required for v1.0 ship.
-- **Size**: large.
-- **Dependencies**: sandbox must exist first.
+## Platform / production
 
-### Deployment infrastructure
+Required for v1.0 ship. Most depend on the substrate slates
+landing first.
 
-- **What**: Docker image, AWS CodeDeploy + Parameter Store + Secrets
-  Manager + S3 + EC2 setup, GitLab CI pipeline, health-check endpoints.
-  PLAN.md has a fully-specified AWS section to crib from.
-- **Why**: Required to ship.
-- **Size**: medium.
-- **Dependencies**: Phase 10 hardening; can run in parallel with sandbox
-  work.
+- **Templates, mods, and isolated-vm sandboxing (Framework
+  13)** — mod base class (Content / Capability / Full), mod
+  registry, dependency loader, `isolated-vm` integration,
+  bridged whitelisted Apis, resource limits (CPU / memory /
+  timeout), monitoring hooks. The runtime-model
+  [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
+  is the framing.
+- **Persistence framework upgrade** — fine-grained per-record
+  access patterns. Recognition + identification + social-graph
+  stores need it; current `Persistable` is whole-document. May
+  fold in a parallel "social/memory store" using MongoDB
+  collections directly, with its own schema and indices.
+- **Idle eviction for Stuff lifecycle** — registry is forever-
+  growing. TTL / LRU / proxy-access-hooks design pass needed.
+  Subsystems/lifecycle.md § Open Design.
+- **Guest accounts** — random-surname generator that bypasses
+  Google OAuth. Lower the barrier to first-time exploration.
+- **GraphQL admin API** — `type-graphql` schema, resolvers
+  over running game state for inspection / dashboards.
+- **Production hardening (Phase 10)** — test coverage to >80%,
+  integration / E2E flows, sandbox escape tests, MongoDB
+  connection pooling, message batching, memory-leak audit,
+  load testing, error boundaries, admin commands.
+- **Deployment infrastructure** — Docker image, AWS CodeDeploy
+  + Parameter Store + Secrets Manager + S3 + EC2; GitLab CI;
+  health checks. Old PLAN.md AWS section has the spec.
 
-### Idle eviction for Stuff lifecycle
+---
 
-- **What**: A mechanism for Stuff to clean themselves up if not
-  accessed in a while. Triggering options (TTL on instance, per-class
-  default, global LRU on registry, proxy-access hooks), granularity
-  options (opt-in mixin vs opt-out decorator), interaction with
-  `prepareDestroy` and shadow detach all open.
-- **Why**: Today the registry is forever-growing. Acutely visible
-  after the Persistable refactor — loaded `User`/`Template`/`GoogleProfile`
-  instances stick around until explicit `StuffApi.destruct`.
-- **Size**: medium — design pass first, then probably small to
-  implement.
-- **Dependencies**: needs design discussion.
+## Client UX
 
-See `subsystems/lifecycle.md § Open Design` for the open questions.
+- **Near-term polish** — scroll-to-bottom button, message
+  filtering, timestamps, copy / search.
+- **Prompt-mode UI** — paired with Framework 11.
+- **Markup-tag rendering** — paired with markup language
+  extensions.
+- **Long-term layout** — split-pane (output + sidebar), tabs,
+  mini-map, theming, accessibility, mobile-responsive.
+- **Visual map generator** — 3D map from spatial subsystem
+  (cf. [design-philosophy.md](./design-philosophy.md) — text
+  prose for normal play, optional visualization in client).
 
-### Client UX enhancements
-
-- **What**: Scroll-to-bottom button, message filtering, timestamps,
-  copy/search; later split-pane layout (output + sidebar), tabs, mini-map,
-  theming, accessibility, mobile responsive.
-- **Why**: Quality-of-life on the existing terminal.
-- **Size**: small (near-term polish) — large (long-term layout).
-- **Dependencies**: prompt UI for the prompt-mode bar.
-
-## Suggested order
-
-1. ~~**Event System** — small, foundational, unblocks hooks and
-   hot-reload.~~ Done.
-2. **MQL `me`/`here` + multi-select + globbing** — visible UX win, no
-   dependencies, the existing MQL is the clearest user-facing wart.
-3. **Interactive Prompt Stack** — unlocks a class of commands and
-   meaningfully improves UX.
-4. **Markup language extensions + client renderer** — sets up clickable
-   links and richer output before more commands accrete plain-text habits.
-5. ~~**Command aliases** — small, high-value sit-up after MQL.~~ Shipped (`AliasMixin`).
-6. **Module hot-reload** — accelerates all subsequent iteration. Will
-   wire `Events.ModuleReloaded` once the subsystem lands.
-7. **Mods + isolated-vm sandbox** — large, required for v1.0; start once
-   core APIs feel stable.
-8. **Utility APIs / Guest accounts / GraphQL** — opportunistic; pull in
-   as needed.
-9. **Phase 10 hardening + AWS deployment** — once sandbox is in.
+---
 
 ## Aspirational / long-term
 
-- **Domain mods**: Education mod (adaptive learning, course/quiz events),
-  Retail mod, etc.
-- **AI-driven NPCs**: LLM-backed faculty, staff, student NPCs as a
-  Capability Mod.
-- **Modding marketplace / community content** with the sandboxed mod API.
-- **In-game scripting** for users (also sandboxed).
-- **Web forms for complex commands** (crafting UI, character sheet) and
-  graphical elements (avatar art, room illustrations).
-- **Learning platform integration** (LMS sync, progress tracking, adaptive
-  content).
-- **Phase 11+ persistence**: `Thing` persistence with location
-  reconstruction, advanced template diffing, distributed deployment.
+- **Domain mods** — Education (adaptive learning, course /
+  quiz events), Retail, others.
+- **AI-driven NPCs** — LLM-backed faculty, staff, student NPCs
+  as a Capability Mod.
+- **Modding marketplace / community content** with the
+  sandboxed mod API.
+- **In-game scripting** for users (sandboxed).
+- **Web forms for complex commands** (crafting UI, character
+  sheet) and graphical elements (avatar art, room
+  illustrations).
+- **LMS integration** — sync, progress tracking, adaptive
+  content.
+- **Distributed deployment** — sharded zones, cross-server
+  social-graph federation.
+- **Phase 11+ persistence** — full `Thing` persistence with
+  location reconstruction, advanced template diffing.
+
+---
+
+## Suggested order
+
+1. **v1 punch list (parallel; low-effort)** — prompt stack,
+   markup tags, look fallback, MQL extensions, utility APIs.
+   These land alongside substrate work without blocking it.
+2. **Quantities + Embodiment + Locomotion** — substrate that
+   unlocks slot-based affordances and mode-driven verbs. The
+   biggest authoring leverage.
+3. **Activity** — durative verbs become first-class. Sound and
+   downstream consume activity hooks.
+4. **Sound** — second physics channel; locks in the channel-
+   keyed Conduit shape; pedagogical seam first concrete
+   instance after light.
+5. **Collision** — small; lands alongside or just after
+   embodiment. Block-validators extend locomotion's pipeline.
+6. **Recognition family** (recognition + social-graph +
+   communication-policy + identification) — ship as a unit;
+   four slates compose tightly. Persistence-framework upgrade
+   probably needs to land alongside.
+7. **Race subsystem follow-on slices** — pull as content needs.
+   Death / DietApi / tissue probably the early ones; genetics
+   later.
+8. **Mods + isolated-vm + persistence upgrade** — v1.0 platform
+   work. Significant lift; start once substrate feels stable.
+9. **Production hardening + deployment** — once mods exist.
+10. **Aspirational** — opportunistic.
+
+---
 
 ## What got skipped or absorbed
 
-- **Light & Boundary subsystem** — shipped. The Light value object,
-  propagation walk, per-viewer perception, and the Boundary
-  substrate (Window, Door retrofit) all landed in v1. Documented in
-  [subsystems/light.md](./subsystems/light.md). Persistence followed
-  the scalar-default rule the same MR introduced; the Marshaller
-  framework landed alongside as the escape hatch
-  ([subsystems/persistence.md § Marshaller Framework](./subsystems/persistence.md#marshaller-framework)).
-- **Phase 5 ("Communications")**: absorbed into Phase 3 (mixins) + early
-  Phase 4 (commands). Already shipped.
-- **Phase 6 ("Extended Object Model")**: absorbed; `Thing`, `Detailed`,
-  `Propertied`, `CartesianLocation` all live in the tree.
-- **Phase 8 ("Advanced API Layer")**: partially shipped (`MqlApi`
-  simplified, `MudlogApi` skeleton, navigation/path/schedule APIs exist).
-  The remaining utility APIs are listed above as "Utility APIs."
-- **`MarkupApi`** — PLAN.md spec'd a server-side helper class; the current
-  code calls into `api/mml.ts` directly. Decide whether to keep that or
-  formalize a `MarkupApi` wrapper.
-- **VM2 alternative** to `isolated-vm` — PLAN.md compares the two and
-  concludes `isolated-vm` wins. No action needed.
-- **Phase 6-8 client features** (split-pane, tabs, mini-map, sound) —
-  listed as "Future Enhancements" in PLAN.md and not on any critical path;
-  rolled into "Client UX enhancements" above.
+For audit. Items from previous roadmaps that are done, absorbed,
+or no longer load-bearing:
+
+- **Phase 5 ("Communications")** — absorbed; `say` / `tell` +
+  `Sensor` / `Vocal` shipped.
+- **Phase 6 ("Extended Object Model")** — absorbed; `Thing`,
+  `Detailed`, `Propertied`, `CartesianLocation` all in tree.
+- **Phase 8 ("Advanced API Layer")** — partially shipped; rest
+  is the "Utility APIs" punch-list item.
+- **Light & Boundary subsystem** — shipped. The Light value
+  object, propagation walk, per-viewer perception, and the
+  Boundary substrate (Window, Door retrofit) all landed.
+- **Race subsystem v1** — shipped. Material substrate, Clade,
+  BodyPlan + Species, OrganismMixin, SexedMixin, SpeciesApi,
+  animacy gating.
+- **Event System** — shipped. EventApi + Witness pattern +
+  EventRegistry + lifecycle hooks.
+- **Module hot-reload** — shipped. HotReloadApi + admin
+  `reload` command + clone integration.
+- **AliasMixin** — shipped. Per-character verb aliases.
+- **Shell tooling** — shipped. Workspace + Author + Perceiver +
+  Environment mixins, the verb suite, HomeZone, spawn-shape.
+- **Bootstrap subsystem** — shipped. `BootstrapManager` for
+  ordered system-singleton creation.
+- **Marshaller framework** — shipped. Custom serialization
+  escape hatch.
+- **`MarkupApi`** — PLAN.md spec'd a server-side helper class;
+  current code calls into `api/mml.ts` directly. Decision
+  pending: keep direct or formalize wrapper. Punch-list item.
+- **VM2** — settled on `isolated-vm`. No action.
+- **Phase 6-8 client features** (split-pane, tabs, mini-map,
+  sound) — rolled into "Client UX."
