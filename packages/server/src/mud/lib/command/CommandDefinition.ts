@@ -144,9 +144,15 @@ export class CommandDefinition {
    */
   private normaliseShape(): void {
     for (const a of this.args) normalisePositionalScope(a);
+    for (const [, opt] of Object.entries(this.verbOptions)) {
+      normaliseOptionScope(opt);
+    }
     for (const [, sub] of Object.entries(this.subcommands)) {
       sub.options = normaliseOptions(sub.options);
       for (const a of sub.args ?? []) normalisePositionalScope(a);
+      for (const [, opt] of Object.entries(sub.options ?? {})) {
+        normaliseOptionScope(opt);
+      }
     }
   }
 
@@ -333,6 +339,26 @@ function normaliseOptions(
  * arrayed scope leaves it alone.
  */
 function normalisePositionalScope(def: PositionalDefinition): void {
+  const s = def.scope;
+  if (Array.isArray(s)) return;
+  if (typeof s !== 'string') {
+    delete def.scope;
+    return;
+  }
+  if (s.length === 0) {
+    delete def.scope;
+    return;
+  }
+  def.scope = [s];
+}
+
+/**
+ * Same shape as `normalisePositionalScope` but for an option's
+ * `scope` field. Options of `type: object` / `type: objects` ride
+ * through the same `resolveAndValidate` pipeline as positionals;
+ * having the field always-arrayed simplifies the dispatcher.
+ */
+function normaliseOptionScope(def: OptionDefinition): void {
   const s = def.scope;
   if (Array.isArray(s)) return;
   if (typeof s !== 'string') {

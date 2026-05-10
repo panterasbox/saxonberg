@@ -8,7 +8,8 @@ args:
     greedy: true
 options:
   on:
-    type: string
+    type: objects
+    scope: [reachable]
     description: "MQL expression for the target(s) to bind `this` to"
   all:
     type: boolean

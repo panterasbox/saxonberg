@@ -19,7 +19,6 @@ import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { ContainmentApi } from '../../api/containment';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -27,7 +26,7 @@ import type { Scryable } from '../../lib/perception/Scryable';
 
 interface ScryModel extends CommandModel {
   target?: MqlOneResult;
-  with?: string;
+  with?: MqlOneResult;
 }
 
 export class ScryController extends CommandController<ScryModel> {
@@ -75,16 +74,13 @@ export class ScryController extends CommandController<ScryModel> {
   }
 
   private resolveInstrument(
-    withMql: string | undefined,
+    withResolved: MqlOneResult | undefined,
     giver: Stuff,
     target: Stuff,
   ): Scryable | null {
-    if (withMql) {
-      const r = MqlApi.resolveOne(withMql, {
-        commandGiver: giver as never,
-        scope: 'reachable',
-      });
-      if (r.stuff && MixinApi.isScryable(r.stuff)) return r.stuff;
+    if (withResolved) {
+      const stuff = withResolved.stuff;
+      if (stuff && MixinApi.isScryable(stuff)) return stuff;
       return null;
     }
     // Auto-resolve: walk the avatar's environment for any Scryable.

@@ -23,13 +23,13 @@ import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
 import { ZoneApi } from '../../api/zone';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Workspace } from '../../lib/shell/Workspace';
 
 interface CatModel extends CommandModel {
   path?: string;
-  mql?: string;
+  mql?: MqlOneResult;
   content?: boolean;
   source?: boolean;
 }
@@ -47,16 +47,14 @@ export class CatController extends CommandController<CatModel> {
 
     let target: string | null = null;
     if (model.mql) {
-      const resolved = MqlApi.resolveOne(model.mql, {
-        commandGiver: giver,
-        scope: 'reachable',
-      });
-      const stuff = resolved.stuff;
+      const stuff = model.mql.stuff;
       if (!stuff) {
-        return this.fail(context, `no match for --mql ${model.mql}`);
+        return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
       target =
-        (stuff as unknown as { templatePath?: string }).templatePath ??
+        (stuff as unknown as { templatePath?: string; path?: string })
+          .templatePath ??
+        (stuff as unknown as { path?: string }).path ??
         null;
     } else if (model.path) {
       try {

@@ -23,12 +23,12 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SourceTreeApi } from '../../api/source-tree';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 
 interface CloneModel extends CommandModel {
   template?: string;
-  mql?: string;
+  mql?: MqlOneResult;
   force?: boolean;
 }
 
@@ -38,14 +38,13 @@ export class CloneController extends CommandController<CloneModel> {
     let path: string | null = null;
 
     if (model.mql) {
-      const r = MqlApi.resolveOne(model.mql, {
-        commandGiver: giver,
-        scope: 'reachable',
-      });
-      if (!r.stuff) return this.fail(context, `no match for --mql ${model.mql}`);
+      const stuff = model.mql.stuff;
+      if (!stuff) {
+        return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
+      }
       path =
-        (r.stuff as unknown as { path?: string }).path ??
-        (r.stuff as unknown as { templatePath?: string }).templatePath ??
+        (stuff as unknown as { path?: string; templatePath?: string }).path ??
+        (stuff as unknown as { templatePath?: string }).templatePath ??
         null;
     } else if (model.template) {
       if (MixinApi.isWorkspace(giver)) {

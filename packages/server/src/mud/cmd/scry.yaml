@@ -8,5 +8,6 @@ args:
     scope: ["online", "/obj/**"]
 options:
   with:
-    type: string
+    type: object
+    scope: [reachable]
     description: "MQL expression for an instrument that grants the scry"

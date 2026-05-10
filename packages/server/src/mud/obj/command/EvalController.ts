@@ -28,13 +28,13 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
-import { MqlApi } from '../../api/mql';
+import type { MqlManyResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import { EvalScript } from '../../lib/script/EvalScript';
 
 interface EvalModel extends CommandModel {
   expr?: string;
-  on?: string;
+  on?: MqlManyResult;
   all?: boolean;
 }
 
@@ -66,23 +66,27 @@ export class EvalController extends CommandController<EvalModel> {
       evalStuff = existing;
     }
 
-    // Resolve targets.
+    // Resolve targets. The matcher already ran MQL on `--on` (it's
+    // declared `type: objects` in the yaml), so model.on is an
+    // `MqlManyResult`. Empty result is the no-match case; >1 still
+    // requires `--all` for safety so a mistyped query doesn't
+    // silently apply to many targets.
     let targets: Stuff[];
     if (model.on) {
-      const r = MqlApi.resolveMany(model.on, {
-        commandGiver: giver,
-        scope: 'reachable',
-      });
-      if (r.stuff.length === 0) {
-        return this.fail(context, `no targets matched --on ${model.on}`);
-      }
-      if (r.stuff.length > 1 && !model.all) {
+      const stuff = model.on.stuff;
+      if (stuff.length === 0) {
         return this.fail(
           context,
-          `ambiguous --on (matched ${r.stuff.length}); use --all to apply to each`,
+          `no targets matched --on ${model.on.raw ?? ''}`,
         );
       }
-      targets = r.stuff;
+      if (stuff.length > 1 && !model.all) {
+        return this.fail(
+          context,
+          `ambiguous --on (matched ${stuff.length}); use --all to apply to each`,
+        );
+      }
+      targets = stuff;
     } else {
       targets = [giver];
     }

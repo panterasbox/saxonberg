@@ -505,16 +505,24 @@ export interface PositionalDefinition extends FieldDefinition {
 export interface OptionDefinition {
   short?: string;
   /**
-   * Same type taxonomy as positional fields, minus `objects` (options
-   * that need plural cardinality use `multiple: true`). `struct` is
+   * Same type taxonomy as positional fields. `struct` is
    * structured-input-only — text-input rejects it with a clear
-   * error.
+   * error. `object` / `objects` run through the matcher's MQL
+   * resolution (see `scope` below); the controller receives an
+   * `MqlOneResult` / `MqlManyResult` wrapper, not the raw string.
    */
-  type: 'boolean' | 'string' | 'number' | 'object' | 'struct';
+  type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
+  /**
+   * MQL scope fragment(s) the dispatcher tries when resolving this
+   * option's value. Same precedence + expander rules as a
+   * positional's `scope`. Only meaningful for `type: object` /
+   * `type: objects`. Default when omitted: `['$focus']`.
+   */
+  scope?: string | string[];
   /**
    * If true, repeated occurrences accumulate into an array. False
    * (the default) means a second occurrence is a bind error.
@@ -1063,6 +1071,10 @@ export class CommandApi {
 
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
+    // Resolve positional `type: object` / `type: objects` fields.
+    // Options of the same types are resolved in a parallel loop
+    // below — they share the resolution shape but live in a
+    // separate spec map.
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
@@ -1129,6 +1141,55 @@ export class CommandApi {
           if (focusMode !== 'none') {
             updatePlayerFocus(focused, raw, r.stuff, r.via, focusMode);
           }
+          const asMany: MqlMany = { stuff: [r.stuff] };
+          if (r.via) asMany.via = r.via;
+          focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
+        }
+      }
+    }
+
+    // Resolve `type: object` / `type: objects` options.
+    //
+    // Same shape as the positional loop above: walk the active
+    // option set, find string-typed values, run them through MQL
+    // with the option's `scope:` (default `['$focus']`). Options
+    // never update player focus — that's a positional-side
+    // concept (the player drilled INTO the target via that arg);
+    // an option saying `--mql foo` is a side-channel reference,
+    // not an inspection drill.
+    const optionDefs = collectActiveOptionDefs(subcommand, command);
+    for (const [fname, def] of Object.entries(optionDefs)) {
+      const raw = resolved[fname];
+      if (def.type !== 'object' && def.type !== 'objects') continue;
+      if (typeof raw !== 'string' || raw.length === 0) continue;
+
+      const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
+      const tries: string[] = yamlScopes.map((s) =>
+        ShellApi.expandVariables(s, giver)
+      );
+
+      if (def.type === 'objects') {
+        let r: MqlMany = { stuff: [] };
+        for (const scope of tries) {
+          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+          if (r.stuff.length > 0) break;
+        }
+        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        resolved[fname] = bound;
+        if (r.stuff.length > 0 && focused) {
+          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        }
+      } else {
+        let r: MqlOne = { stuff: null };
+        for (const scope of tries) {
+          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+          if (r.stuff !== null) break;
+        }
+        const bound: MqlOneResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        resolved[fname] = bound;
+        if (r.stuff !== null && focused) {
           const asMany: MqlMany = { stuff: [r.stuff] };
           if (r.via) asMany.via = r.via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
@@ -1421,6 +1482,12 @@ function coerceOptionValue(
   switch (type) {
     case 'string':
     case 'object':
+    case 'objects':
+      // object/objects keep the raw text — the matcher's
+      // resolveAndValidate runs MQL on it. Plural-cardinality for
+      // options (`type: objects`) comes from the resolution, not
+      // from `multiple: true` (which is for accumulating repeated
+      // `--opt v --opt v` tokens).
       return { ok: true, value: raw };
     case 'number': {
       const n = Number(raw);
@@ -1785,6 +1852,33 @@ function collectActiveFieldDefs(
     }
   } else {
     for (const a of command.args) out[a.name] = a;
+  }
+  return out;
+}
+
+/**
+ * Collect every option active for the current call, keyed by the
+ * option's effective field name (`opt.field ?? optName`). Verb-
+ * scoped options are always active; subcommand-scoped options are
+ * included only when the matched subcommand owns them.
+ *
+ * Used by `resolveAndValidate` to run MQL on `type: object` /
+ * `type: objects` options the same way it does for positional
+ * fields.
+ */
+function collectActiveOptionDefs(
+  subcommand: string | undefined,
+  command: CommandDefinition
+): Record<string, OptionDefinition> {
+  const out: Record<string, OptionDefinition> = {};
+  for (const [name, def] of Object.entries(command.verbOptions)) {
+    out[def.field ?? name] = def;
+  }
+  if (subcommand) {
+    const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+    for (const [name, def] of Object.entries(subOpts)) {
+      out[def.field ?? name] = def;
+    }
   }
   return out;
 }

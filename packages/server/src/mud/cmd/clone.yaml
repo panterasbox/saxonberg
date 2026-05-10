@@ -7,7 +7,8 @@ args:
     required: false
 options:
   mql:
-    type: string
+    type: object
+    scope: [reachable]
     description: "MQL expression alternate to <template>"
   force:
     short: f

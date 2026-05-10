@@ -438,12 +438,41 @@ options:
       - /lib/command/validators/notEmpty
 ```
 
-Option types: `boolean`, `string`, `number`, `object`. (No `objects`
-on options — multi-cardinality is `multiple: true` instead.)
+Option types: `boolean`, `string`, `number`, `object`, `objects`,
+`struct`. `multiple: true` accumulates repeated `--opt v --opt v`
+tokens into an array — orthogonal to `type: objects`, which makes
+the option's MQL resolution plural-cardinality.
 
 A second occurrence of a non-`multiple` option is a `bind` error
 (`option --xyz specified more than once`). A boolean option given a
 `=value` is also a bind error.
+
+### `type: object` / `type: objects` on options — MQL-resolved
+
+Options of `type: object` and `type: objects` ride through the same
+`resolveAndValidate` pipeline as positional fields: the matcher
+runs MQL on the option's text and lands an `MqlOneResult` /
+`MqlManyResult` wrapper on the model. The controller reads
+`model.<field>.stuff` directly — no `MqlApi.resolveOne` /
+`MqlApi.resolveMany` call needed.
+
+```yaml
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <path>"
+  on:
+    type: objects
+    scope: [reachable]
+    description: "MQL expression for the target(s) to bind `this` to"
+```
+
+Same `scope:` rules as a positional field: a string or string
+array, defaulting to `['$focus']` when omitted; each entry runs
+through `ShellApi.expandVariables`. Options never update player
+focus or pronoun memory's gender-routing slot — focus drilling is
+a positional-side concept.
 
 ## Controllers
 

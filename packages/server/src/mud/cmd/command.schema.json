@@ -125,11 +125,18 @@
           "description": "Single-character short alias (e.g. `-v` for `--verbose`)."
         },
         "type": {
-          "enum": ["boolean", "string", "number", "object", "struct"]
+          "enum": ["boolean", "string", "number", "object", "objects", "struct"]
         },
         "schema": {
           "type": "object",
           "description": "Optional JSON Schema fragment validated against the structured value before user-defined validators fire. Only meaningful for `type: struct`."
+        },
+        "scope": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+          ],
+          "description": "MQL fragment(s) the dispatcher tries when resolving this option's value. Same precedence + expander rules as a positional's `scope`. Only meaningful for `type: object` / `type: objects`."
         },
         "field": {
           "type": "string",

@@ -29,11 +29,11 @@ import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { ZoneApi } from '../../api/zone';
 import { Template } from '../../lib/stuff/Template';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 
 interface CdModel extends CommandModel {
   path?: string;
-  mql?: string;
+  mql?: MqlOneResult;
   content?: boolean;
   source?: boolean;
   mirror?: boolean;
@@ -59,17 +59,17 @@ export class CdController extends CommandController<CdModel> {
 
     // Path-then-MQL alternation. The yaml does not enforce mutual
     // exclusivity, so the controller picks: --mql wins when set.
+    // The matcher already resolved --mql via MQL → MqlOneResult;
+    // we just unwrap and pick out the template path.
     let target: string | null = null;
     if (model.mql) {
-      const resolved = MqlApi.resolveOne(model.mql, {
-        commandGiver: giver,
-        scope: 'reachable',
-      });
-      const stuff = resolved.stuff;
+      const stuff = model.mql.stuff;
       if (!stuff) {
-        return this.fail(context, `no match for --mql ${model.mql}`);
+        return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      const tp = (stuff as unknown as { templatePath?: string }).templatePath;
+      const tp = (stuff as unknown as { templatePath?: string; path?: string })
+        .templatePath ??
+        (stuff as unknown as { path?: string }).path;
       if (!tp) {
         return this.fail(
           context,
