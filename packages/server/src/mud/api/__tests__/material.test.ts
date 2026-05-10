@@ -5,6 +5,7 @@ import { Material } from '../../lib/material/Material';
 import { Thing } from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../mixin';
+import { Quantity } from '../../lib/quantity';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('MaterialApi.materialOf', () => {
@@ -92,7 +93,11 @@ describe('MaterialApi v2 — classification queries', () => {
     );
     iron.setName('iron');
     iron.setTags(['element', 'metal', 'ferrous']);
-    iron.setChemistry({ symbol: 'Fe', atomicNumber: 26, atomicMass: 55.845 });
+    iron.setChemistry({
+      symbol: 'Fe',
+      atomicNumber: 26,
+      molarMass: Quantity.of(55.845, 'g/mol'),
+    });
 
     const carbon = withTemplatePath(
       makeStuff(() => new Material()),
@@ -100,7 +105,11 @@ describe('MaterialApi v2 — classification queries', () => {
     );
     carbon.setName('carbon');
     carbon.setTags(['element', 'non-metal']);
-    carbon.setChemistry({ symbol: 'C', atomicNumber: 6, atomicMass: 12.011 });
+    carbon.setChemistry({
+      symbol: 'C',
+      atomicNumber: 6,
+      molarMass: Quantity.of(12.011, 'g/mol'),
+    });
 
     const steel = withTemplatePath(
       makeStuff(() => new Material()),

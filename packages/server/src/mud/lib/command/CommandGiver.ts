@@ -539,16 +539,33 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     /**
      * Clone-per-execution controller dispatch. The clone is destructed
      * in `finally` regardless of outcome.
+     *
+     * Option E (per-subcommand controller): when the bound model
+     * carries a `subcommand` and the subcommand declares its own
+     * `controller:`, that template wins; otherwise falls back to the
+     * verb-level controller. A subcommanded verb with no resolvable
+     * controller (subcommand omitted, no verb-level fallback) returns
+     * a player-facing failure rather than throwing.
      */
     async _executeOne(
       command: CommandDefinition,
       model: CommandModel,
       context: CommandContext
     ): Promise<CommandResult> {
+      const sub = (model as { subcommand?: string }).subcommand;
+      const controllerName = sub
+        ? command.controllerForSubcommand(sub)
+        : command.controller;
+      if (!controllerName) {
+        return {
+          success: false,
+          summary: `${command.getPrimaryVerb()} requires a subcommand`,
+        };
+      }
       let controller: CommandController | null = null;
       try {
         controller = await StuffApi.clone<CommandController>(
-          `/obj/command/${command.controller}`
+          `/obj/command/${controllerName}`
         );
         return await controller.execute(model, context);
       } catch (error: unknown) {

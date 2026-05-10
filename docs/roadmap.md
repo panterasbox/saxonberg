@@ -137,6 +137,12 @@ promoted to formal requirements.
 - [docs/mixin-slate.md](./mixin-slate.md) — broad mixin slate;
   most affordance mixins now distributed into the substrate
   slates above.
+- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+  — verb-acquisition pattern (innate / skill / instrument /
+  implant / consumable / ambient). One verb, one controller, N
+  provisioning paths each with its own gate and prose flavor.
+  Generalizes the instruments-reveal seam from quantities-slate
+  to skills, cybernetics, transient buffs, and ambient effects.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).

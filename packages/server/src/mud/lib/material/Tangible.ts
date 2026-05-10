@@ -6,19 +6,26 @@
  * Material singleton(s) via `getMaterial()`; un-composed Stuff (Ideas,
  * command-staging entities) carry no Material concept at all.
  *
- * **Bulk + per-Detail.** The Stuff carries a *bulk default* Material
- * (the substance of the bulk of the object) plus optional per-Detail
- * overrides. `getMaterial()` with no argument returns the bulk
- * default; `getMaterial(detailKey)` returns the override for that
- * Detail when one is set, falling through to the bulk default
- * otherwise. An axe with a wooden haft and an iron head looks like:
+ * **Bulk + per-Detail with prefix inheritance.** The Stuff carries a
+ * *bulk default* Material (the substance of the bulk of the object)
+ * plus optional per-Detail overrides keyed by the same dotted detail
+ * paths that `DetailedMixin` uses (`'blade.edge'` is the edge of the
+ * blade). `getMaterial()` with no argument returns the bulk default;
+ * `getMaterial(detailKey)` walks **longest dotted prefix first** down
+ * to the bulk default — so a sub-detail without its own override
+ * inherits whichever ancestor path most recently set one.
  *
  * ```typescript
  * axe.setMaterial(oak);              // bulk = oak (the haft)
  * axe.setMaterial(iron, 'head');     // override for the 'head' Detail
- * axe.getMaterial();                 // → oak (bulk)
- * axe.getMaterial('haft');           // → oak (no override → bulk)
- * axe.getMaterial('head');           // → iron (override)
+ * axe.setMaterial(steel, 'head.edge'); // sub-override on the edge
+ *
+ * axe.getMaterial();                 // → oak  (bulk)
+ * axe.getMaterial('haft');           // → oak  (no override → bulk)
+ * axe.getMaterial('head');           // → iron (exact override)
+ * axe.getMaterial('head.spine');     // → iron (no exact, inherits 'head')
+ * axe.getMaterial('head.edge');      // → steel (exact override)
+ * axe.getMaterial('head.edge.tip');  // → steel (no exact, inherits 'head.edge')
  * ```
  *
  * `detailKey` is whatever string a `DetailedMixin` host uses to
@@ -37,6 +44,8 @@
 import type { MixinConstructor } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type { Material } from './Material';
+import { Quantity } from '../quantity';
+import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
 export interface Tangible {
   /**
@@ -54,12 +63,67 @@ export interface Tangible {
    * AND every per-Detail override.
    */
   setMaterial(value: Material | null, detailKey?: string): void;
+
+  /**
+   * Read the Stuff's mass as a `Quantity<'kg'>`. Strict on the
+   * runtime type — the marshaller absorbs persistence-shape
+   * coercion at the hydration boundary.
+   */
+  getMass(): Quantity<'kg'>;
+
+  /**
+   * Set the Stuff's mass. Strict on `Quantity<'kg'>`; callers
+   * holding a raw number wrap via `Quantity.of(n, 'kg')`. YAML
+   * authoring shapes (tag string, alt-unit literal, bare number)
+   * are absorbed by the QuantityMarshaller for kg, not by this
+   * runtime API.
+   */
+  setMass(value: Quantity<'kg'>): void;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class TangibleMixin extends Base {
     static _mixinName = 'TangibleMixin';
-    static persistentFields = ['_materialPath', '_detailMaterialPaths'];
+    static persistentFields = [
+      '_materialPath',
+      '_detailMaterialPaths',
+      'mass',
+    ];
+
+    /**
+     * Field-marshaller binding. `mass` round-trips via the kg-bound
+     * QuantityMarshaller; the runtime accessor pair stays strict on
+     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
+     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
+     * `fromStored` and only runs on the persistence path.
+     */
+    static fieldMarshallers = {
+      mass: QuantityMarshaller.pathFor('kg'),
+    };
+
+    /**
+     * Runtime mass storage as a `Quantity<'kg'>`. The marshaller
+     * delivers a Quantity instance on hydrate; in-process callers
+     * use `getMass` / `setMass`.
+     */
+    private _mass: Quantity<'kg'> = Quantity.of(0, 'kg');
+
+    protected get mass(): Quantity<'kg'> {
+      return this._mass;
+    }
+    protected set mass(value: Quantity<'kg'>) {
+      if (!(value instanceof Quantity) || value.unit !== 'kg') {
+        throw new TypeError(
+          `TangibleMixin.mass must be a Quantity<'kg'>; got ${value instanceof Quantity ? `Quantity<'${(value as Quantity<import('../quantity').Unit>).unit}'>` : typeof value}`
+        );
+      }
+      if (value.rawValue() < 0) {
+        throw new RangeError(
+          `TangibleMixin.mass must be non-negative, got ${value.rawValue()}`
+        );
+      }
+      this._mass = value;
+    }
 
     /**
      * Path to the bulk default Material singleton. Resolved lazily on
@@ -78,11 +142,20 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getMaterial(detailKey?: string): Material | null {
       if (detailKey !== undefined) {
-        const override = this._detailMaterialPaths[detailKey];
-        if (override) {
-          return StuffApi.findByTemplatePath<Material>(override) ?? null;
+        // Walk dotted prefixes from longest to shortest; first match
+        // wins. Mirrors `DetailedMixin`'s parent-then-child path
+        // convention so a sub-detail inherits its ancestor's
+        // material when it has no override of its own.
+        let key: string | undefined = detailKey;
+        while (key !== undefined) {
+          const override = this._detailMaterialPaths[key];
+          if (override) {
+            return StuffApi.findByTemplatePath<Material>(override) ?? null;
+          }
+          const dot = key.lastIndexOf('.');
+          key = dot < 0 ? undefined : key.substring(0, dot);
         }
-        // No override at this key — fall through to bulk default.
+        // No override at any prefix — fall through to bulk default.
       }
       if (!this._materialPath) return null;
       return StuffApi.findByTemplatePath<Material>(this._materialPath) ?? null;
@@ -98,15 +171,25 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         return;
       }
-      // Bulk default. setMaterial(null) clears overrides too — the
-      // alternative (only clearing the bulk while keeping overrides)
-      // makes the defaultless Stuff observably weird.
       if (value === null) {
         this._materialPath = null;
         this._detailMaterialPaths = {};
         return;
       }
       this._materialPath = value.getTemplatePath() ?? null;
+    }
+
+    public getMass(): Quantity<'kg'> {
+      return this._mass;
+    }
+
+    /**
+     * Strict on `Quantity<'kg'>`. Callers holding a raw number wrap
+     * via `Quantity.of(n, 'kg')` at the call site; tag / alt-unit
+     * authoring is the marshaller's job, not a runtime API concern.
+     */
+    public setMass(value: Quantity<'kg'>): void {
+      this.mass = value;
     }
   };
 }

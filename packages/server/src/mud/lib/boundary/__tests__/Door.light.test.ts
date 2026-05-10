@@ -122,23 +122,23 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     a.addBidirectionalExit(b, 'north', { door, opposite: 'south' });
 
     const candle = makeStuff(() => new Candle());
-    candle.setEmittedLight(Light.of(40));
+    candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
 
-    expect(LightApi.lightAt(a).intensity).toBe(40);
+    expect(LightApi.lightAt(a).intensity.rawValue()).toBe(40);
     expect(LightApi.lightAt(b)).toBe(Light.ZERO);
 
     door.open();
-    expect(LightApi.lightAt(b).intensity).toBe(40);
+    expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('an exit with no door still leaks light fully', () => {
     const { a, b } = setupTwoRoomsAcrossZones();
     a.addBidirectionalExit(b, 'north', { opposite: 'south' });
     const candle = makeStuff(() => new Candle());
-    candle.setEmittedLight(Light.of(40));
+    candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
-    expect(LightApi.lightAt(b).intensity).toBe(40);
+    expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('shares neighbor across two paths only when no double-counting', () => {
@@ -157,10 +157,10 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     door.open();
 
     const candle = makeStuff(() => new Candle());
-    candle.setEmittedLight(Light.of(20));
+    candle.setEmittedFlux(20);
     ContainmentApi.move(candle, b);
 
     // Single contribution through the door — not 2×.
-    expect(LightApi.lightAt(a).intensity).toBe(20);
+    expect(LightApi.lightAt(a).intensity.rawValue()).toBe(20);
   });
 });

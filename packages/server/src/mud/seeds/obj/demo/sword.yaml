@@ -1,0 +1,14 @@
+# Demo sword — exercises the bare-number canonical kg authoring
+# shape (`mass: 3` ⇒ `Quantity<kg>(3)`).
+#
+# Material binding: iron (so `analyze chemistry of sword` reads the
+# Fe element data and the registered DENSITY_TAGS / KG_TAGS).
+#
+# Lives under /obj/demo/ as throwaway showcase content.
+class: /obj/demo/DemoItem
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: iron sword
+  long: A plain iron longsword with a leather-wrapped grip. Its blade is dull but serviceable.
+  _materialPath: /lib/material/element/iron
+  mass: 3

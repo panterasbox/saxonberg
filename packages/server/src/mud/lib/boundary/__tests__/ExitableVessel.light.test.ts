@@ -21,7 +21,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(60));
+    room.setAmbientFlux(60);
 
     const wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
@@ -35,14 +35,14 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     // The (vessel, env) anchor pair is now wired on `wardrobe` and
     // `room`. With the door open and base transmissivity 1, the
     // wardrobe interior reads the room's ambient.
-    expect(LightApi.lightAt(wardrobe).intensity).toBe(60);
+    expect(LightApi.lightAt(wardrobe).intensity.rawValue()).toBe(60);
   });
 
   it('a wardrobe with a closed door reads ZERO inside even when the room is bright', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(60));
+    room.setAmbientFlux(60);
 
     const wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
@@ -56,7 +56,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     expect(LightApi.lightAt(wardrobe)).toBe(Light.ZERO);
 
     door.open();
-    expect(LightApi.lightAt(wardrobe).intensity).toBe(60);
+    expect(LightApi.lightAt(wardrobe).intensity.rawValue()).toBe(60);
   });
 
   it('moving the wardrobe migrates the door anchor to the new environment', () => {
@@ -69,7 +69,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     const bright = makeStuff(() => new AmbientCartesianLocation());
     zoneA.addLocation(dim, 0, 0, 0);
     zoneB.addLocation(bright, 0, 0, 0);
-    bright.setAmbientLight(Light.of(80));
+    bright.setAmbientFlux(80);
 
     const wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
@@ -82,14 +82,14 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     expect(LightApi.lightAt(wardrobe)).toBe(Light.ZERO);
 
     ContainmentApi.move(wardrobe, bright);
-    expect(LightApi.lightAt(wardrobe).intensity).toBe(80);
+    expect(LightApi.lightAt(wardrobe).intensity.rawValue()).toBe(80);
   });
 
   it('setDoor swaps the boundary anchor from old door to new', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(60));
+    room.setAmbientFlux(60);
 
     const wardrobe = makeStuff(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
@@ -99,7 +99,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     wardrobe.setDoor(oldDoor);
 
     ContainmentApi.move(wardrobe, room);
-    expect(LightApi.lightAt(wardrobe).intensity).toBe(60);
+    expect(LightApi.lightAt(wardrobe).intensity.rawValue()).toBe(60);
 
     // Swap to a closed door — interior should go dark.
     const newDoor = makeStuff(() => new Door());

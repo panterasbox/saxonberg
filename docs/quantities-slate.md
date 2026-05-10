@@ -219,6 +219,14 @@ educational deployment might default to `'tags-visible'` or
 Instruments are **Stuff in the game world** that, when used,
 expose canonical-unit readings of engine state.
 
+> The wielded-instrument path is one branch of a broader
+> verb-acquisition pattern (innate / skill / instrument /
+> implant / consumable / ambient). See
+> [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+> for the full taxonomy and the unified-controller wiring; the
+> per-channel instrument roster below is this slate's
+> contribution to that taxonomy.
+
 ### Pattern
 
 A scientific-instrument `Stuff`:

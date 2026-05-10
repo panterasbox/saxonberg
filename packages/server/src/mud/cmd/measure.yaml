@@ -1,0 +1,14 @@
+verbs: [measure]
+description: "Measure a physical channel at a location"
+subcommands:
+  light:
+    description: "Measure light intensity at a location (lux)"
+    controller: MeasureLightController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer

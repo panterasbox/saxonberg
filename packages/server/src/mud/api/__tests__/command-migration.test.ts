@@ -25,9 +25,19 @@ describe('Command-YAML migration parity', () => {
     for (const file of files) {
       const cmd = CommandApi.getCommand(file);
       expect(cmd, `failed to load ${file}`).not.toBeNull();
-      // Every command has at least one verb and a controller path.
+      // Every command has at least one verb and either a verb-level
+      // controller OR per-subcommand controllers (Option E).
       expect(cmd!.verbs.length).toBeGreaterThan(0);
-      expect(cmd!.controller).toBeTruthy();
+      const hasVerbController = !!cmd!.controller;
+      const hasPerSubcommandControllers =
+        cmd!.hasSubcommands() &&
+        cmd!.getSubcommandNames().every(
+          (n) => !!cmd!.controllerForSubcommand(n)
+        );
+      expect(
+        hasVerbController || hasPerSubcommandControllers,
+        `${file}: must declare a verb-level or per-subcommand controller`
+      ).toBe(true);
       // Render a usage string — must not throw.
       const usage = cmd!.getUsage();
       expect(typeof usage).toBe('string');

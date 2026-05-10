@@ -61,7 +61,12 @@ function getSchemaValidator(): ValidateFunction {
  */
 export class CommandDefinition {
   public readonly verbs: string[];
-  public readonly controller: string;
+  /**
+   * Verb-level controller template name. May be undefined when the
+   * verb declares subcommands and every subcommand carries its own
+   * `controller:` (Option E — `analyze`, `measure`).
+   */
+  public readonly controller: string | undefined;
   public readonly description: string;
   /** Top-level positionals for flat verbs. Empty array for zero-arg verbs and subcommanded verbs. */
   public readonly args: PositionalDefinition[];
@@ -176,11 +181,6 @@ export class CommandDefinition {
         `Command definition ${this.filePath} must have at least one verb`
       );
     }
-    if (!this.controller) {
-      throw new Error(
-        `Command definition ${this.filePath} must specify a controller`
-      );
-    }
 
     const hasArgs = this.args.length > 0;
     const hasSubcommands = Object.keys(this.subcommands).length > 0;
@@ -189,6 +189,27 @@ export class CommandDefinition {
       throw new Error(
         `Command definition ${this.filePath} cannot have both args and subcommands`
       );
+    }
+
+    // Controller resolution rule: a verb must either have a top-level
+    // `controller:` OR declare subcommands where every subcommand has
+    // its own `controller:` (Option E). A verb with no controller and
+    // no subcommands has nothing to dispatch to.
+    if (!this.controller) {
+      if (!hasSubcommands) {
+        throw new Error(
+          `Command definition ${this.filePath} must specify a controller`
+        );
+      }
+      const missing: string[] = [];
+      for (const [name, sub] of Object.entries(this.subcommands)) {
+        if (!sub.controller) missing.push(name);
+      }
+      if (missing.length > 0) {
+        throw new Error(
+          `Command definition ${this.filePath} omits the verb-level controller, but subcommand(s) [${missing.join(', ')}] do not declare a per-subcommand controller`
+        );
+      }
     }
 
     if (hasArgs) {
@@ -202,6 +223,18 @@ export class CommandDefinition {
     }
 
     validateFieldNameUniqueness(this);
+  }
+
+  /**
+   * Resolve the controller template name for a given subcommand.
+   * Per-subcommand `controller:` wins; otherwise falls back to the
+   * verb-level controller. Returns undefined when neither is set
+   * (load-time validation prevents this for declared subcommands).
+   */
+  controllerForSubcommand(name: string): string | undefined {
+    const sub = this.subcommands[name];
+    if (sub?.controller) return sub.controller;
+    return this.controller;
   }
 
   hasSubcommands(): boolean {

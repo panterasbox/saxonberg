@@ -90,6 +90,14 @@ behavior. Read the relevant doc before editing in its area.
     `LightSourceMixin`, the Boundary substrate (`Adornable`,
     `Adornment`, `Boundary`, `BoundaryAnchor`, `Conduit`
     interfaces), `Window`, the Door retrofit, per-viewer perception
+  - [quantities.md](./docs/subsystems/quantities.md) —
+    `Quantity<U>` substrate (Unit catalog, tag-table registry,
+    same-unit math, parse/fromTag/Mml emission),
+    `QuantityMarshaller` for persistence round-trip, the
+    `static fieldMarshallers` and `initProp({ marshaller })`
+    integration patterns. Cross-cutting substrate consumed by
+    Light (lux/lumen/Kelvin), Material (kg/m³, g/mol), and
+    Tangible (kg).
   - [perception.md](./docs/subsystems/perception.md) — viewer-aware-
     query pattern (`Stuff & Sensor` always explicit, never inferred
     from execution context), Shadow seam for per-viewer overrides

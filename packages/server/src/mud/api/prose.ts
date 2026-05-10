@@ -121,6 +121,31 @@ engine.registerFilter('article', (v) => {
   return s ? GrammarApi.article(s) : '';
 });
 
+// Quantity rendering. Two flavors:
+//   - `quantity`           — tag-flavored markup (the default for
+//                            prose; inner text is the registered tag
+//                            string, or the canonical format for
+//                            tagless units).
+//   - `quantity_canonical` — canonical-flavored markup (instrument
+//                            and analyze readouts; inner text is
+//                            always the canonical "<n> <unit>"
+//                            form).
+// Both produce `<quantity unit value [tag]>inner</quantity>` markup.
+engine.registerFilter('quantity', (v) => {
+  if (v && typeof v === 'object' && 'toMml' in (v as object)) {
+    const fragment = (v as { toMml: () => unknown }).toMml();
+    return fragment instanceof Mml ? fragment : '';
+  }
+  return '';
+});
+engine.registerFilter('quantity_canonical', (v) => {
+  if (v && typeof v === 'object' && 'formatMml' in (v as object)) {
+    const fragment = (v as { formatMml: () => unknown }).formatMml();
+    return fragment instanceof Mml ? fragment : '';
+  }
+  return '';
+});
+
 /**
  * A compiled Liquid prose template. Created via `Prose.parse`; the
  * private constructor enforces that path so callers can't hand us

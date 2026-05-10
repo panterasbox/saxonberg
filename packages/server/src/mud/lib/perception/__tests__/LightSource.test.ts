@@ -1,5 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import { Light } from '../Light';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
 import { Thing } from '../../stuff/Thing';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
@@ -12,78 +11,82 @@ import { Mixins } from '../../mixin';
 import { ProxyApi } from '../../../api/proxy';
 import { PersistentHydrator } from '../../persistence/PersistentHydrator';
 import { StuffApi } from '../../../api/stuff';
+import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Candle extends LightSourceMixin(Thing) {}
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 
 describe('LightSourceMixin', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('defaults to Light.ZERO and is detected by MixinApi', () => {
+  it('defaults to zero flux + null color and is detected by MixinApi', () => {
     const c = makeStuff(() => new Candle());
-    expect(c.getEmittedLight()).toBe(Light.ZERO);
+    expect(c.getEmittedFlux().rawValue()).toBe(0);
+    expect(c.getEmittedColorTemperature()).toBeNull();
     expect(MixinApi.isLightSource(c)).toBe(true);
     expect(MixinApi.hasMixin(Candle, Mixins.LightSource)).toBe(true);
   });
 
-  it('setEmittedLight stores the Light value (decomposed into scalars)', () => {
+  it('setEmittedFlux + setEmittedColorTemperature store the canonical values', () => {
     const c = makeStuff(() => new Candle());
-    const l = Light.of(15, 'warm');
-    c.setEmittedLight(l);
-    const stored = c.getEmittedLight();
-    expect(stored).toBeInstanceOf(Light);
-    expect(stored.intensity).toBe(15);
-    expect(stored.color).toBe('warm');
+    c.setEmittedFlux(Quantity.of(15, 'lumen'));
+    c.setEmittedColorTemperature('warm');
+    expect(c.getEmittedFlux().rawValue()).toBe(15);
+    expect(c.getEmittedColorTemperature()!.rawValue()).toBe(2700);
   });
 
-  it('setEmittedLight rejects non-Light values with TypeError', () => {
+  it('setEmittedFlux accepts numeric (lumen-canonical)', () => {
     const c = makeStuff(() => new Candle());
-    expect(() =>
-      c.setEmittedLight({ intensity: 25, color: 'warm' } as unknown as Light)
-    ).toThrow(TypeError);
+    c.setEmittedFlux(50);
+    expect(c.getEmittedFlux().rawValue()).toBe(50);
   });
 
-  it('PersistentHydrator round-trips emittedIntensity + emittedColor', async () => {
+  it('setEmittedFlux rejects negative values', () => {
+    const c = makeStuff(() => new Candle());
+    expect(() => c.setEmittedFlux(-1)).toThrow();
+  });
+
+  it('PersistentHydrator round-trips emittedIntensity + emittedColorTemperature', async () => {
     const c = makeStuff(() => new Candle());
     await makeStuff(() => new PersistentHydrator()).hydrate(c, {
       emittedIntensity: 30,
-      emittedColor: 'warm',
+      emittedColorTemperature: 'warm',
     });
-    const stored = c.getEmittedLight();
-    expect(stored).toBeInstanceOf(Light);
-    expect(stored.intensity).toBe(30);
-    expect(stored.color).toBe('warm');
+    expect(c.getEmittedFlux().rawValue()).toBe(30);
+    expect(c.getEmittedColorTemperature()!.rawValue()).toBe(2700);
     const raw = ProxyApi.unwrap(c) as unknown as {
       emittedIntensity: number;
-      emittedColor: string | null;
+      emittedColorTemperature: number | null;
     };
     expect(raw.emittedIntensity).toBe(30);
-    expect(raw.emittedColor).toBe('warm');
+    // Color storage is canonical Kelvin numeric.
+    expect(raw.emittedColorTemperature).toBe(2700);
   });
 
-  it('fires onLightSourceChanged on the immediate environment when emission changes', () => {
+  it('fires onLightSourceChanged on the immediate environment when flux changes', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new CartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
-
-    // Witness hook on the room.
     const hook = vi.fn();
     (room as unknown as { onLightSourceChanged: typeof hook }).onLightSourceChanged = hook;
-
     ContainmentApi.move(candle, room);
 
-    candle.setEmittedLight(Light.of(10));
+    candle.setEmittedFlux(10);
     expect(hook).toHaveBeenCalledTimes(1);
     expect(hook.mock.calls[0]![0]).toBe(candle);
-    expect((hook.mock.calls[0]![1] as Light).intensity).toBe(0);
-    expect((hook.mock.calls[0]![2] as Light).intensity).toBe(10);
+    expect((hook.mock.calls[0]![1] as Quantity<'lumen'>).rawValue()).toBe(0);
+    expect((hook.mock.calls[0]![2] as Quantity<'lumen'>).rawValue()).toBe(10);
   });
 
-  it('does not fire when intensity and color are unchanged', () => {
+  it('does not fire when flux is unchanged', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new CartesianLocation());
     zone.addLocation(room, 0, 0, 0);
@@ -92,25 +95,26 @@ describe('LightSourceMixin', () => {
     (room as unknown as { onLightSourceChanged: typeof hook }).onLightSourceChanged = hook;
     ContainmentApi.move(candle, room);
 
-    candle.setEmittedLight(Light.of(10));
+    candle.setEmittedFlux(10);
     expect(hook).toHaveBeenCalledTimes(1);
-    // Different Light instance, but same intensity and color — no fire.
-    candle.setEmittedLight(Light.of(10));
+    candle.setEmittedFlux(10);
     expect(hook).toHaveBeenCalledTimes(1);
   });
 
   describe('integration with LightApi.lightAt', () => {
-    it('a candle in a room contributes to the room band', () => {
+    it('a candle in a room contributes lux to the room', () => {
       const zone = makeStuff(() => new CartesianZone());
       const room = makeStuff(() => new CartesianLocation());
       zone.addLocation(room, 0, 0, 0);
       const candle = makeStuff(() => new Candle());
-      candle.setEmittedLight(Light.of(10, 'warm'));
+      candle.setEmittedFlux(10);
+      candle.setEmittedColorTemperature('warm');
       ContainmentApi.move(candle, room);
 
       const total = LightApi.lightAt(room);
-      expect(total.intensity).toBe(10);
-      expect(total.color).toBe('warm');
+      // Default sizeScale = 1 m² → 10 lumens / 1 m² = 10 lux.
+      expect(total.intensity.rawValue()).toBe(10);
+      expect(total.colorTemperature!.rawValue()).toBe(2700);
     });
 
     it('moving a LightSource between rooms updates each room lazily', () => {
@@ -118,32 +122,31 @@ describe('LightSourceMixin', () => {
       const a = makeStuff(() => new CartesianLocation());
       const b = makeStuff(() => new CartesianLocation());
       zone.addLocation(a, 0, 0, 0);
-      zone.addLocation(b, 0, 5, 0); // far enough to not be cardinal-adjacent
+      zone.addLocation(b, 0, 5, 0);
       const candle = makeStuff(() => new Candle());
-      candle.setEmittedLight(Light.of(10));
+      candle.setEmittedFlux(10);
 
       ContainmentApi.move(candle, a);
-      expect(LightApi.lightAt(a).intensity).toBeGreaterThanOrEqual(10);
-      expect(LightApi.lightAt(b).intensity).toBe(0);
+      expect(LightApi.lightAt(a).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(LightApi.lightAt(b).intensity.rawValue()).toBe(0);
 
       ContainmentApi.move(candle, b);
-      expect(LightApi.lightAt(b).intensity).toBeGreaterThanOrEqual(10);
-      // a's contribution from candle is gone — only ambient (none) remains.
-      expect(LightApi.lightAt(a).intensity).toBe(0);
+      expect(LightApi.lightAt(b).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(LightApi.lightAt(a).intensity.rawValue()).toBe(0);
     });
 
-    it('setEmittedLight(Light.ZERO) zeroes the contribution', () => {
+    it('setEmittedFlux(0) zeroes the contribution', () => {
       const zone = makeStuff(() => new CartesianZone());
       const room = makeStuff(() => new AmbientCartesianLocation());
       zone.addLocation(room, 0, 0, 0);
-      room.setAmbientLight(Light.of(5));
+      room.setAmbientFlux(5);
       const candle = makeStuff(() => new Candle());
-      candle.setEmittedLight(Light.of(20));
+      candle.setEmittedFlux(20);
       ContainmentApi.move(candle, room);
 
-      expect(LightApi.lightAt(room).intensity).toBe(25);
-      candle.setEmittedLight(Light.ZERO);
-      expect(LightApi.lightAt(room).intensity).toBe(5);
+      expect(LightApi.lightAt(room).intensity.rawValue()).toBe(25);
+      candle.setEmittedFlux(0);
+      expect(LightApi.lightAt(room).intensity.rawValue()).toBe(5);
     });
   });
 });

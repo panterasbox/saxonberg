@@ -24,6 +24,12 @@ See also:
 - [docs/subsystems/perception.md](./subsystems/perception.md) —
   viewer-aware-query pattern. Recognition is the hardest
   per-viewer state to date.
+- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+  — the broader verb-acquisition pattern. Recognition's trigger
+  verbs are one column of that slate's taxonomy applied to the
+  recognize / look surface (skill paths like "face memory,"
+  instrument paths like "scrying mirror," implant paths like
+  "facial-recognition HUD").
 - [docs/adjoining-systems.md](./adjoining-systems.md) — this
   slate graduates entry #5.
 

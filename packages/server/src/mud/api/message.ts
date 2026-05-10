@@ -209,29 +209,40 @@ export class Scene {
 
     for (const af of this.#frames) {
       const tags = [`audience:${af.audience}`, ...this.#sharedTags];
-      const meta: MessageFrame['meta'] = { timestamp: Date.now() };
-      if (commandId !== undefined) meta.commandId = commandId;
-      if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
-
-      const frame: MessageFrame = {
-        id: nanoid(),
-        topic: this.#topic,
-        tags,
-        body:
-          af.body instanceof Mml ? af.body.toString() : af.body,
-        meta,
-      };
       const payload = af.payload ?? this.#sharedPayload;
-      if (payload !== undefined) frame.payload = payload;
+
+      // Build a fresh frame per recipient. The body is materialized
+      // against the recipient as the `viewer` so any per-recipient
+      // `toMml(viewer)` (Quantity, future pedagogical-seam-aware
+      // values) sees the right reader.
+      const buildFrame = (recipient: Stuff & Sensor): MessageFrame => {
+        const meta: MessageFrame['meta'] = { timestamp: Date.now() };
+        if (commandId !== undefined) meta.commandId = commandId;
+        if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
+        const body =
+          af.body instanceof Mml ? af.body.toString(recipient) : af.body;
+        const frame: MessageFrame = {
+          id: nanoid(),
+          topic: this.#topic!,
+          tags,
+          body,
+          meta,
+        };
+        if (payload !== undefined) frame.payload = payload;
+        return frame;
+      };
 
       switch (af.recipientKind) {
-        case 'self':
-          // af.target is the actor (must be a Sensor — checked at toSelf).
-          MessageApi.sendMessage(af.target!, frame);
+        case 'self': {
+          const recipient = af.target!;
+          MessageApi.sendMessage(recipient, buildFrame(recipient));
           break;
-        case 'target':
-          MessageApi.sendMessage(af.target!, frame);
+        }
+        case 'target': {
+          const recipient = af.target!;
+          MessageApi.sendMessage(recipient, buildFrame(recipient));
           break;
+        }
         case 'peers': {
           if (!actorAsContainable) break;
           const env = actorAsContainable.getContainer();
@@ -240,15 +251,16 @@ export class Scene {
           if (explicitTarget) skip.add(explicitTarget);
           for (const sensor of MessageApi.getSensors(env)) {
             if (skip.has(sensor as Stuff)) continue;
-            MessageApi.sendMessage(sensor, frame);
+            MessageApi.sendMessage(sensor, buildFrame(sensor));
           }
           break;
         }
         case 'contents': {
           if (!actorAsContainer) break;
-          MessageApi.messageContents(actorAsContainer, frame, {
-            exclude: this.#actor,
-          });
+          for (const sensor of MessageApi.getSensors(actorAsContainer)) {
+            if ((sensor as Stuff) === this.#actor) continue;
+            MessageApi.sendMessage(sensor, buildFrame(sensor));
+          }
           break;
         }
       }

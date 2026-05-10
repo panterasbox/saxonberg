@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LightApi, MAX_HOPS, EXIT_TAU } from '../light';
 import { Light } from '../../lib/perception/Light';
 import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
@@ -9,15 +9,15 @@ import { Door } from '../../lib/boundary/Door';
 import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-// AmbientLit is opt-in for content — outdoor rooms compose it,
-// underground rooms keep the Light.ZERO default (no mixin). The
-// tests use opt-in subclasses so the propagation walk has values
-// to add up.
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
 
-describe('LightApi.lightAt — Phase 2 propagation core', () => {
+describe('LightApi.lightAt — propagation core', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -31,15 +31,16 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     expect(LightApi.bandAt(loc)).toBe('pitch-black');
   });
 
-  it('room with setAmbientLight reflects the band', () => {
+  it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
     const zone = makeStuff(() => new CartesianZone());
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
-    loc.setAmbientLight(Light.of(40, 'warm'));
+    loc.setAmbientFlux(40);
+    loc.setAmbientColorTemperature('warm');
 
     const total = LightApi.lightAt(loc);
-    expect(total.intensity).toBe(40);
-    expect(total.color).toBe('warm');
+    expect(total.intensity.rawValue()).toBe(40);
+    expect(total.colorTemperature!.rawValue()).toBe(2700);
     expect(LightApi.bandAt(loc)).toBe('lit');
   });
 
@@ -49,12 +50,10 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
-    b.setAmbientLight(Light.of(60));
+    b.setAmbientFlux(60);
 
-    // a is dark; b is bright; the cardinal-derived exit between them
-    // leaks light into a (EXIT_TAU = 1.0, no door, no boundary).
     const totalA = LightApi.lightAt(a);
-    expect(totalA.intensity).toBe(60 * EXIT_TAU);
+    expect(totalA.intensity.rawValue()).toBe(60 * EXIT_TAU);
   });
 
   it('a closed door on an exit blocks light leakage', () => {
@@ -63,9 +62,8 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
-    b.setAmbientLight(Light.of(60));
+    b.setAmbientFlux(60);
 
-    // Replace the derived exit with an explicit one carrying a closed door.
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
     door.setIsOpen(false);
@@ -74,7 +72,7 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     expect(LightApi.lightAt(a)).toBe(Light.ZERO);
     door.open();
     const totalA = LightApi.lightAt(a);
-    expect(totalA.intensity).toBe(60);
+    expect(totalA.intensity.rawValue()).toBe(60);
   });
 
   it('MAX_HOPS truncates propagation past depth 2', () => {
@@ -87,12 +85,8 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 0, 2, 0);
     zone.addLocation(d, 0, 3, 0);
-    d.setAmbientLight(Light.of(100));
+    d.setAmbientFlux(100);
 
-    // a → b → c → d. With MAX_HOPS = 2, a sees d's contribution at
-    // depth 3 truncated to ZERO. c (depth 2 from a's start) is the
-    // furthest neighbor whose own walk completes; but c itself is
-    // empty, so a reads ZERO from this chain.
     expect(MAX_HOPS).toBe(2);
     expect(LightApi.lightAt(a)).toBe(Light.ZERO);
   });
@@ -103,14 +97,10 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
-    a.setAmbientLight(Light.of(10));
+    a.setAmbientFlux(10);
 
-    // The natural a↔b loop is bounded by MAX_HOPS, but the visited
-    // set ensures even pathological topologies don't recurse
-    // forever. Asking lightAt(a) terminates and includes a's own
-    // ambient.
     const total = LightApi.lightAt(a);
-    expect(total.intensity).toBeGreaterThanOrEqual(10);
+    expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);
   });
 
   it('CartesianLocation.getSizeScale uses zone.cellSize', () => {
@@ -118,12 +108,10 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
     zone.setCellSize(2.0);
-    loc.setAmbientLight(Light.of(40));
+    loc.setAmbientFlux(40);
 
-    // 40 / 2.0 = 20 → 'lit'. Without the size scale, 40 → 'lit' too,
-    // but we verify the divisor mechanically by going the other way.
     zone.setCellSize(8.0);
-    // 40 / 8 = 5 → 'dim'.
+    // flux 40 / sizeScale 8 → 5 lux → 'dim'.
     expect(LightApi.bandAt(loc)).toBe('dim');
   });
 
@@ -132,7 +120,7 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     const loc = makeStuff(() => new AmbientSphericalLocation());
     zone.addLocation(loc);
     loc.setRadius(8.0);
-    loc.setAmbientLight(Light.of(40));
+    loc.setAmbientFlux(40);
 
     expect(LightApi.bandAt(loc)).toBe('dim'); // 40/8 = 5
     loc.setRadius(2.0);
@@ -145,13 +133,94 @@ describe('LightApi.lightAt — Phase 2 propagation core', () => {
     zone.addLocation(loc, 0, 0, 0);
 
     expect(LightApi.shadowsAt(loc)).toBe('absolute');
-    loc.setAmbientLight(Light.of(2));
+    loc.setAmbientFlux(2);
     expect(LightApi.shadowsAt(loc)).toBe('deep');
-    loc.setAmbientLight(Light.of(10));
+    loc.setAmbientFlux(10);
     expect(LightApi.shadowsAt(loc)).toBe('partial');
-    loc.setAmbientLight(Light.of(40));
+    loc.setAmbientFlux(40);
     expect(LightApi.shadowsAt(loc)).toBe('faint');
-    loc.setAmbientLight(Light.of(100));
+    loc.setAmbientFlux(100);
     expect(LightApi.shadowsAt(loc)).toBe('none');
+  });
+});
+
+describe('LightApi — band / tag / mixing acceptance', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lightAt(loc).intensity.tag() matches bandAt(loc) across bands', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const loc = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(loc, 0, 0, 0);
+
+    const samples = [
+      { flux: 0, expected: 'pitch-black' },
+      { flux: 2, expected: 'very-dim' },
+      { flux: 10, expected: 'dim' },
+      { flux: 40, expected: 'lit' },
+      { flux: 100, expected: 'bright' },
+      { flux: 500, expected: 'blinding' },
+    ];
+    for (const { flux, expected } of samples) {
+      loc.setAmbientFlux(flux);
+      expect(LightApi.bandAt(loc)).toBe(expected);
+      expect(LightApi.lightAt(loc).intensity.tag()).toBe(expected);
+    }
+  });
+
+  it('flux/sizeScale → lux scales linearly', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const loc = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(loc, 0, 0, 0);
+
+    zone.setCellSize(1);
+    loc.setAmbientFlux(100);
+    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(100);
+
+    loc.setAmbientFlux(200);
+    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(200);
+
+    zone.setCellSize(2);
+    loc.setAmbientFlux(100);
+    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(50);
+  });
+
+  it('flux-weighted color mixing across two equal-flux sources', async () => {
+    const { LightSourceMixin } = await import('../../lib/perception/LightSource');
+    const { Thing } = await import('../../lib/stuff/Thing');
+    const { ContainmentApi } = await import('../containment');
+    class Lamp extends LightSourceMixin(Thing) {}
+
+    const zone = makeStuff(() => new CartesianZone());
+    const loc = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(loc, 0, 0, 0);
+
+    // Ambient warm at 2700K, 50 lumens.
+    loc.setAmbientFlux(50);
+    loc.setAmbientColorTemperature('warm');
+
+    // Lamp emits 50 lumens at cool=5000K.
+    const lamp = makeStuff(() => new Lamp());
+    lamp.setEmittedFlux(50);
+    lamp.setEmittedColorTemperature('cool');
+    ContainmentApi.move(lamp, loc);
+
+    const total = LightApi.lightAt(loc);
+    expect(total.intensity.rawValue()).toBe(100);
+    // Flux-weighted average: (2700*50 + 5000*50) / 100 = 3850 K.
+    expect(total.colorTemperature!.rawValue()).toBeCloseTo(3850, 5);
+  });
+
+  it('color tag round-trip via Quantity.fromTag', async () => {
+    const { Quantity } = await import('../../lib/quantity');
+    const tags = ['warm', 'neutral', 'cool', 'daylight', 'blue'];
+    for (const tag of tags) {
+      const q = Quantity.fromTag(tag, 'K');
+      expect(q.tag()).toBe(tag);
+    }
   });
 });

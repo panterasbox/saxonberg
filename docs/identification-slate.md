@@ -19,6 +19,11 @@ See also:
   shape; different keying.
 - [docs/quantities-slate.md](./quantities-slate.md) —
   measurement-based identification consumes typed quantities.
+- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+  — the trigger-verb roster (`read scroll of identify`,
+  `analyze`, `taste`, `learn-from-teacher`) is the verb-
+  provisioning taxonomy applied to the identify-an-item verb
+  family.
 - [docs/subsystems/race.md](./subsystems/race.md) — Material
   substrate already carries chemistry / composition data.
   Identification reveals it.

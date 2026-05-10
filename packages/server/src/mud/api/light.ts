@@ -1,34 +1,28 @@
 import { SecurityApi } from './security';
 /**
- * LightApi — viewer-agnostic and viewer-aware queries about how much
- * light a Container holds and what bands viewers perceive there.
+ * LightApi — viewer-agnostic and viewer-aware queries about light at a
+ * Container.
  *
- * The cross-cutting viewer-aware-query pattern is documented in
- * `docs/subsystems/perception.md`. This Api implements the first
- * concrete user.
+ * Wave 2 commits real units:
+ *   - `lightAt(loc)` returns a `Light` whose `intensity` is
+ *     `Quantity<'lux'>`. The walk accumulates lumen contributions
+ *     internally and divides by the receiving Container's
+ *     `getSizeScale()` (m²) before wrapping.
+ *   - `LightSource.getEmittedFlux()` returns lumens.
+ *   - `Light.color` is `Quantity<'K'> | null`; flux-weighted average
+ *     across contributing sources.
  *
  * Layered surface:
- *   - `lightAt(loc)` — total light at a location (raw `Light` value).
- *     Walks contents, fixtures, BoundaryAnchors (cross-boundary
- *     propagation), and `getObviousExits()` (cross-exit propagation),
- *     bounded by `MAX_HOPS` and defended by a per-call `visited` set
- *     against cycles. Fully lazy — no caches.
- *   - `bandAt(loc)` — `LightBand` derivation including each receiving
- *     location's `getSizeScale()` divisor.
+ *   - `lightAt(loc)` — total light at a location (lux Light value).
+ *   - `bandAt(loc)` — `LightBand` derivation directly from the lux
+ *     intensity (the divide-by-sizeScale step lives in `lightAt`).
  *   - `perceivedBand(viewer, loc)` / `canSee(viewer, target)` /
- *     `shadowsAt(loc)` / `viewerVisionProfile(viewer)` — Phase 6
- *     fleshes these out (Sensor / Shadow integration). Phase 2
- *     ships viable defaults.
+ *     `shadowsAt(loc)` / `viewerVisionProfile(viewer)` — viewer-aware
+ *     perception.
  *
  * Constants:
- *   - `MAX_HOPS = 2` — the propagation walk truncates two
- *     containers from the query origin (one boundary hop + one
- *     further-room hop). Bounds the walk and matches the v1
- *     "open door / window one room over" requirement.
- *   - `EXIT_TAU = 1.0` — exits don't attenuate by themselves in v1.
- *     A future Door subclass that varies on traversal mode could
- *     drop this; for now exits leak fully (modulo the exit's door's
- *     LightConduit which gates at the source by closing).
+ *   - `MAX_HOPS = 2` — propagation depth budget.
+ *   - `EXIT_TAU = 1.0` — per-exit attenuation factor.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -36,8 +30,32 @@ import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Perception } from '../lib/perception/Perception';
 import type { Adornment } from '../lib/boundary/Adornment';
-import { Light, bandFor } from '../lib/perception/Light';
+import { Light, LIGHT_BANDS, type LightSourceRef } from '../lib/perception/Light';
 import type { LightBand } from '../lib/perception/Light';
+
+/**
+ * Witness hook fired on a light source's immediate environment when
+ * `setEmittedFlux` or `setEmittedColorTemperature` results in a
+ * different stored emission. Optional — implement only the host
+ * Containers that care (typically a Location's caching layer or a
+ * Vessel's lit-state observer).
+ *
+ * Lives in api/light.ts because it's the cross-module contract
+ * between LightSourceMixin (the firer) and any Container (the
+ * consumer); keeping it next to LightSourceMixin made it
+ * lib-internal and harder to find for consumers writing the
+ * receiver side.
+ */
+export interface LightSourceObserver {
+  onLightSourceChanged?(
+    source: Stuff,
+    oldFlux: import('../lib/quantity').Quantity<'lumen'>,
+    newFlux: import('../lib/quantity').Quantity<'lumen'>,
+    oldColorTemperature: import('../lib/quantity').Quantity<'K'> | null,
+    newColorTemperature: import('../lib/quantity').Quantity<'K'> | null
+  ): void;
+}
+import { Quantity } from '../lib/quantity';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import type { LightConduit, BoundarySide } from '../lib/boundary/Conduit';
@@ -51,16 +69,56 @@ export const MAX_HOPS = 2;
 /** Per-exit attenuation factor; 1.0 means "no extra dimming on exit traversal." */
 export const EXIT_TAU = 1.0;
 
+// ---------- Band lookup ----------
+
 /**
- * Visibility detail levels gated by `LightApi.canSee`. Phase 6 maps
- * each level to a minimum band threshold.
+ * Lux unit + scale the lux tag-table is registered under. Encoded
+ * once so all the `Quantity.*('lux', LUX_SCALE)` callers stay in
+ * sync if the scale name ever changes.
+ */
+const LUX_SCALE = 'default';
+
+/**
+ * Membership set for runtime narrowing — derived from the
+ * type-system source of truth (`LIGHT_BANDS` in
+ * `lib/perception/Light.ts`) so there's no second copy to
+ * keep in sync.
+ */
+const LIGHT_BAND_SET: ReadonlySet<LightBand> = new Set<LightBand>(LIGHT_BANDS);
+
+/**
+ * Map a lux numeric value to a `LightBand`. Consults the live
+ * `Quantity` tag-table registry — the lux thresholds live in
+ * `mud/config/quantity-tags.yaml` and load at boot via
+ * `QuantityApi.loadTagTables`. `bandFor` is a thin typed adapter
+ * over `Quantity.tag()` for the lux unit; reload of the YAML
+ * propagates here transparently.
+ *
+ * Throws if the lux table isn't registered (test setup gap) or if
+ * the registered tags don't match `LightBand` (content-side bug —
+ * the YAML tag list must equal the typed union by construction).
+ */
+export function bandFor(luxValue: number): LightBand {
+  const tag = Quantity.of(luxValue, 'lux').tag();
+  if (!LIGHT_BAND_SET.has(tag as LightBand)) {
+    throw new Error(
+      `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
+        `Either the lux tag table is not registered (call ` +
+        `QuantityApi.loadTagTables / installV1QuantityTagTables) ` +
+        `or the registered entries don't match the LightBand union.`
+    );
+  }
+  return tag as LightBand;
+}
+
+/**
+ * Visibility detail levels gated by `LightApi.canSee`.
  */
 export type VisibilityDetail = 'shape' | 'figure' | 'detail' | 'fine';
 
 /**
  * Concealment qualities `shadowsAt` returns. Reserved surface for
- * Hidden / Stealthing — the band table maps directly into these
- * five tiers.
+ * Hidden / Stealthing.
  */
 export type ShadowQuality =
   | 'none'
@@ -72,8 +130,7 @@ export type ShadowQuality =
 /**
  * Per-species vision profile. v1 returns a constant (human-shaped)
  * regardless of viewer; the Organism subsystem populates this from
- * `Species` later. Documented as nullable so a viewer with no
- * species data falls through cleanly.
+ * `Species` later.
  */
 export interface VisionProfile {
   scotopicMin: LightBand;
@@ -87,47 +144,91 @@ const DEFAULT_VISION_PROFILE: VisionProfile = {
   bandShift: 0,
 };
 
+/** Internal accumulator the walk passes around — flux-shaped. */
+interface FluxAccumulator {
+  flux: number;
+  sources: LightSourceRef[];
+}
+
+function newAccumulator(): FluxAccumulator {
+  return { flux: 0, sources: [] };
+}
+
+function addContribution(
+  acc: FluxAccumulator,
+  flux: number,
+  source: LightSourceRef | null
+): void {
+  if (flux <= 0) return;
+  acc.flux += flux;
+  if (source) acc.sources.push(source);
+}
+
+/**
+ * Cap and sort an accumulator's source list to match the public
+ * `Light.sources` invariant: descending by flux, capped at 3.
+ */
+function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
+  if (sources.length === 0) return [];
+  return [...sources].sort((a, b) => b.flux - a.flux).slice(0, 3);
+}
+
+/**
+ * Compute the flux-weighted color temperature across the source list.
+ * Returns null when no source carries a color temperature.
+ */
+function mixColorTemperature(
+  sources: readonly LightSourceRef[]
+): Quantity<'K'> | null {
+  let weightedSum = 0;
+  let weight = 0;
+  for (const s of sources) {
+    if (s.colorTemperature === null) continue;
+    weightedSum += s.colorTemperature * s.flux;
+    weight += s.flux;
+  }
+  if (weight === 0) return null;
+  return Quantity.of(weightedSum / weight, 'K');
+}
+
 export class LightApi {
   /**
-   * Total light at `loc`, viewer-agnostic. Walks (a) ambient,
-   * (b) contents-side emitters, (c) fixture-side emitters,
-   * (d) cross-boundary propagation through fixture-anchored
-   * Boundaries, and (e) cross-exit propagation through obvious
-   * exits. Bounded by `MAX_HOPS`; defended against cycles via the
-   * `visited` set.
+   * Total light at `loc`. Walks ambient (a), contents-side emitters
+   * (b), fixture-side emitters (c), cross-boundary propagation (d),
+   * and cross-exit propagation (e). Bounded by `MAX_HOPS`; defended
+   * against cycles via the `visited` set.
+   *
+   * Returns a `Light` whose `intensity` is `Quantity<'lux'>`,
+   * computed as accumulated flux divided by `loc.getSizeScale()`.
    */
   public static lightAt(loc: Stuff & Container): Light {
-    return walkLightAt(loc, 0, new Set<string>());
+    const acc = walkFluxAt(loc, 0, new Set<string>());
+    if (acc.flux === 0 && acc.sources.length === 0) return Light.ZERO;
+    const scale = readSizeScale(loc);
+    const lux = scale > 0 ? acc.flux / scale : acc.flux;
+    const sources = finalizeSources(acc.sources);
+    const colorTemperature = mixColorTemperature(sources);
+    return Light.from({
+      intensity: Quantity.of(lux, 'lux'),
+      colorTemperature,
+      sources,
+    });
   }
 
   /**
-   * Map `lightAt(loc).intensity / loc.getSizeScale()` to a
-   * `LightBand`. Locations that don't override `getSizeScale()`
-   * default to `1.0` (no scaling).
+   * Map `lightAt(loc).intensity.rawValue()` to a `LightBand`. The
+   * divide-by-sizeScale step has already happened in `lightAt`.
    */
   public static bandAt(loc: Stuff & Container): LightBand {
-    const total = this.lightAt(loc);
-    const scale = readSizeScale(loc);
-    if (!Number.isFinite(scale) || scale <= 0) return bandFor(total.intensity);
-    return bandFor(total.intensity / scale);
+    return bandFor(this.lightAt(loc).intensity.rawValue());
   }
 
   /**
-   * Per-viewer band perception.
-   *
-   * Pipeline (`docs/subsystems/perception.md`):
+   * Per-viewer band perception. Pipeline:
    *   1. Compute raw `bandAt(loc)`.
-   *   2. Apply the viewer's species vision profile via
-   *      `viewerVisionProfile(viewer).bandShift` (v1 identity for
-   *      every viewer; the Organism subsystem populates this later
-   *      via a per-species shadow on `getVisionProfile`).
-   *   3. Dispatch `viewer.perceivedBandModifier(shifted, loc)` —
-   *      the host's identity default returns `shifted` unchanged;
-   *      Shadows on the viewer (BlindfoldShadow, NightVisionShadow,
-   *      DarknessCurseShadow) intercept this method through the
-   *      standard Stuff Shadow pipeline and modulate the answer.
-   *      `callDown` chains naturally when multiple shadows are
-   *      attached.
+   *   2. Apply species vision profile via
+   *      `viewerVisionProfile(viewer).bandShift`.
+   *   3. Dispatch `viewer.perceivedBandModifier(shifted, loc)`.
    */
   public static perceivedBand(
     viewer: Stuff & Sensor & Perception,
@@ -140,17 +241,11 @@ export class LightApi {
   }
 
   /**
-   * Per-viewer visibility gate.
-   *
-   * Pipeline:
-   *   1. Resolve the target's environment. Targets that aren't
-   *      Containable (Ideas, Zones) read true — they're queried
-   *      by reference, not by location.
+   * Per-viewer visibility gate. Pipeline:
+   *   1. Resolve the target's environment.
    *   2. Compute the raw answer: viewer's `perceivedBand(env)` ≥
    *      detail-level threshold.
-   *   3. Dispatch `viewer.canSeeOverride(target, detail, raw)` —
-   *      identity default returns `raw`; XRayShadow / BlindfoldShadow
-   *      style Shadows intercept to yes/no the answer outright.
+   *   3. Dispatch `viewer.canSeeOverride(target, detail, raw)`.
    */
   public static canSee(
     viewer: Stuff & Sensor & Perception,
@@ -160,7 +255,6 @@ export class LightApi {
     if (!MixinApi.isContainable(target)) {
       return viewer.canSeeOverride(target, detail, true);
     }
-    // `target` is narrowed to `Stuff & Containable` by the predicate above.
     const env = target.getContainer();
     if (!env) {
       return viewer.canSeeOverride(target, detail, false);
@@ -172,10 +266,8 @@ export class LightApi {
   }
 
   /**
-   * Concealment surface for Hidden / Stealthing. v1: maps the
-   * band into one of five tiers — darker rooms shadow more. Pure
-   * derivation; no viewer parameter (concealment is a property of
-   * the *room*, not of any one observer).
+   * Concealment surface for Hidden / Stealthing. Maps the band into
+   * one of five tiers — darker rooms shadow more.
    */
   public static shadowsAt(loc: Stuff & Container): ShadowQuality {
     const band = this.bandAt(loc);
@@ -196,9 +288,7 @@ export class LightApi {
   /**
    * Per-viewer vision profile. The host's identity default returns
    * `null`, in which case the framework falls back to the constant
-   * human-shaped profile. The Organism subsystem will populate
-   * per-species profiles via a shadow that intercepts
-   * `getVisionProfile` and reads from the species template.
+   * human-shaped profile.
    */
   public static viewerVisionProfile(
     viewer: Stuff & Sensor & Perception
@@ -208,31 +298,20 @@ export class LightApi {
 }
 
 /**
- * Ordered band table. Index ≈ "how lit." Used by `applyBandShift`
- * (vision profile) and `compareBand` (canSee threshold).
+ * Band shift / compare arithmetic delegates to the generic
+ * `Quantity.shiftTag` / `Quantity.compareTag` machinery applied to
+ * the lux unit. The runtime ordering comes from the registered tag
+ * table (`mud/config/quantity-tags.yaml § lux/default`); the
+ * compile-time `LightBand` union is the typed view of that same
+ * vocabulary (declared in `lib/perception/Light.ts` and pinned by
+ * `bandFor`'s membership check).
  */
-const BAND_ORDER: readonly LightBand[] = [
-  'pitch-black',
-  'very-dim',
-  'dim',
-  'lit',
-  'bright',
-  'blinding',
-];
-
-function bandIndex(band: LightBand): number {
-  return BAND_ORDER.indexOf(band);
-}
-
 function applyBandShift(band: LightBand, shift: number): LightBand {
-  if (!Number.isFinite(shift) || shift === 0) return band;
-  const idx = bandIndex(band) + Math.trunc(shift);
-  const clamped = Math.max(0, Math.min(BAND_ORDER.length - 1, idx));
-  return BAND_ORDER[clamped]!;
+  return Quantity.shiftTag('lux', band, shift, LUX_SCALE) as LightBand;
 }
 
 function compareBand(a: LightBand, b: LightBand): number {
-  return bandIndex(a) - bandIndex(b);
+  return Quantity.compareTag('lux', a, b, LUX_SCALE);
 }
 
 /** Detail level → minimum band required to discern at that level. */
@@ -243,55 +322,64 @@ const REQUIRED_BAND_FOR_DETAIL: Record<VisibilityDetail, LightBand> = {
   fine: 'bright',
 };
 
-
 /**
- * Internal recursive walk. Separate from the public
- * `LightApi.lightAt` so the security gate fires once at the
- * top-level call rather than at every recursive step.
+ * Internal recursive walk. Returns a flux accumulator (lumens +
+ * source list); the public `lightAt` divides by sizeScale and wraps.
  */
-function walkLightAt(
+function walkFluxAt(
   loc: Stuff & Container,
   depth: number,
   visited: Set<string>
-): Light {
-  if (depth > MAX_HOPS) return Light.ZERO;
+): FluxAccumulator {
+  const acc = newAccumulator();
+  if (depth > MAX_HOPS) return acc;
   const id = (loc as unknown as Stuff).stuffId;
-  if (visited.has(id)) return Light.ZERO;
+  if (visited.has(id)) return acc;
   visited.add(id);
 
-  let total = readAmbientLight(loc);
-
-  // (b) Contents-side emitters. Phase 3 swapped the structural marker
-  // walk for `MixinApi.isLightSource` so shadow-based emission (a
-  // future `IgnitedShadow`?) participates without changing the call
-  // site.
-  for (const item of loc.getContents()) {
-    if (!MixinApi.isLightSource(item)) continue;
-    const emitted = item.getEmittedLight();
-    if (emitted && emitted !== Light.ZERO && emitted.intensity > 0) {
-      total = total.add(emitted);
+  // (a) Ambient — the location itself contributes flux + color temp.
+  if (MixinApi.isAmbientLit(loc)) {
+    const ambientFlux = loc.getAmbientFlux().rawValue();
+    if (ambientFlux > 0) {
+      const ambientColorTemp = loc.getAmbientColorTemperature();
+      addContribution(acc, ambientFlux, {
+        stuffId: id,
+        flux: ambientFlux,
+        colorTemperature: ambientColorTemp
+          ? ambientColorTemp.rawValue()
+          : null,
+      });
     }
   }
 
-  // (c) Fixture-side emitters via `Adornable.getFixtureLightSources()`,
-  // narrowed back to `LightSource` for the emission read.
+  // (b) Contents-side emitters.
+  for (const item of loc.getContents()) {
+    if (!MixinApi.isLightSource(item)) continue;
+    const flux = item.getEmittedFlux().rawValue();
+    if (flux <= 0) continue;
+    const colorTempQ = item.getEmittedColorTemperature();
+    addContribution(acc, flux, {
+      stuffId: (item as unknown as Stuff).stuffId,
+      flux,
+      colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+    });
+  }
+
   if (MixinApi.isAdornable(loc)) {
+    // (c) Fixture-side emitters.
     for (const fx of loc.getFixtureLightSources()) {
-      // `fx` is `Stuff & Adornment` from `getFixtureLightSources`; the
-      // predicate narrows it to `Stuff & Adornment & LightSource` so
-      // `getEmittedLight()` resolves on the narrowed type — no cast.
       if (!MixinApi.isLightSource(fx)) continue;
-      const emitted = fx.getEmittedLight();
-      if (emitted && emitted !== Light.ZERO && emitted.intensity > 0) {
-        total = total.add(emitted);
-      }
+      const flux = fx.getEmittedFlux().rawValue();
+      if (flux <= 0) continue;
+      const colorTempQ = fx.getEmittedColorTemperature();
+      addContribution(acc, flux, {
+        stuffId: (fx as unknown as Stuff).stuffId,
+        flux,
+        colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+      });
     }
 
-    // (d) Cross-boundary propagation. Walk every BoundaryAnchor on
-    // this side; if the boundary exposes a LightConduit and its
-    // transmissivity from-other-to-here is non-zero, recurse and
-    // attenuate. Recursive call shares the visited Set and the
-    // depth budget.
+    // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
       const anchor = asBoundaryAnchor(fx);
       if (!anchor) continue;
@@ -304,59 +392,58 @@ function walkLightAt(
       const otherSide = boundary.getOtherSide(anchor);
       const tau = conduit.transmissivity(otherSide, anchor.getSide());
       if (!(tau > 0)) continue;
-      const contribution = walkLightAt(
+      const sub = walkFluxAt(
         otherHost as unknown as Stuff & Container,
         depth + 1,
         visited
-      ).attenuate(tau);
-      if (contribution !== Light.ZERO) total = total.add(contribution);
+      );
+      mergeAttenuated(acc, sub, tau);
     }
   }
 
-  // (e) Cross-exit propagation. Doors are Boundaries (Phase 5
-  // retrofit) and contribute via the cross-boundary walk above
-  // through their LightConduit. Skip doored exits here to avoid
-  // double-counting their neighbors.
+  // (e) Cross-exit propagation. Doored exits skip — the boundary
+  // walk handles those.
   if (MixinApi.isExitable(loc)) {
     for (const exit of loc.getObviousExits()) {
-      // Skip doored exits — handled by the boundary walk.
       if (exit.getDoor()) continue;
-
-      // Eviction defense: skip exits whose destination is path-only
-      // and not currently loaded. Future caching may pin neighbors
-      // within MAX_HOPS; v1 simply doesn't propagate through
-      // unloaded rooms.
       const destPath = exit.getDestinationTemplatePath();
       if (destPath && !StuffApi.findByTemplatePath(destPath)) continue;
-
       let dest: Stuff & Container;
       try {
         dest = exit.getDestination();
       } catch {
         continue;
       }
-      const contribution = walkLightAt(dest, depth + 1, visited).attenuate(
-        EXIT_TAU
-      );
-      if (contribution !== Light.ZERO) total = total.add(contribution);
+      const sub = walkFluxAt(dest, depth + 1, visited);
+      mergeAttenuated(acc, sub, EXIT_TAU);
     }
   }
 
-  return total;
+  return acc;
 }
 
 /**
- * Read `getAmbientLight()` if the loc composes AmbientLitMixin;
- * otherwise return `Light.ZERO`. Lets the walk treat ambient as
- * "first contribution" without hard-binding every Container to the
- * mixin.
+ * Merge a sub-walk's accumulator into the parent's, attenuating flux
+ * + per-source contributions by `tau`.
  */
-function readAmbientLight(loc: Stuff & Container): Light {
-  if (MixinApi.isAmbientLit(loc)) return loc.getAmbientLight();
-  return Light.ZERO;
+function mergeAttenuated(
+  parent: FluxAccumulator,
+  sub: FluxAccumulator,
+  tau: number
+): void {
+  if (sub.flux === 0 && sub.sources.length === 0) return;
+  if (tau <= 0) return;
+  parent.flux += sub.flux * tau;
+  for (const s of sub.sources) {
+    parent.sources.push({
+      stuffId: s.stuffId,
+      flux: s.flux * tau,
+      colorTemperature: s.colorTemperature,
+    });
+  }
 }
 
-/** Read `getSizeScale()` if exposed; default to 1.0. */
+/** Read `getSizeScale()` if exposed; default to 1.0 (m²). */
 function readSizeScale(loc: Stuff & Container): number {
   const fn = (loc as unknown as { getSizeScale?: () => number }).getSizeScale;
   if (typeof fn === 'function') return fn.call(loc);
@@ -364,9 +451,7 @@ function readSizeScale(loc: Stuff & Container): number {
 }
 
 /**
- * Narrow a fixture to a BoundaryAnchor without importing the class
- * (avoids tangled load order between `Adornable` / `Boundary` /
- * `BoundaryAnchor` and this Api).
+ * Narrow a fixture to a BoundaryAnchor without importing the class.
  */
 function asBoundaryAnchor(fx: Stuff & Adornment): BoundaryAnchor | null {
   if ((fx as unknown as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor) {
@@ -375,10 +460,6 @@ function asBoundaryAnchor(fx: Stuff & Adornment): BoundaryAnchor | null {
   return null;
 }
 
-/**
- * Locate the LightConduit on a Boundary's conduit registry. Returns
- * null if no conduit advertises light.
- */
 function findLightConduit(boundary: Boundary): LightConduit | null {
   const conduits = boundary.getConduits();
   for (const c of conduits) {
@@ -391,9 +472,6 @@ function isLightConduit(c: Conduit): c is LightConduit {
   return c.conduitKind === 'light';
 }
 
-// Force at least one direct reference so TS doesn't complain about
-// unused imports when the `BoundarySide` type only appears via
-// inference. The value-level reference is otherwise harmless.
 const _SIDE_TAG: BoundarySide = 'A';
 void _SIDE_TAG;
 

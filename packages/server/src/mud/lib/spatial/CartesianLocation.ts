@@ -74,12 +74,13 @@ export class CartesianLocation extends CartesianLocationBase {
   }
 
   /**
-   * Spatial scale used by `LightApi.bandAt` to map total intensity to
-   * a band: `effective = light.intensity / loc.getSizeScale()`. For
-   * a Cartesian room the scale is the owning zone's `cellSize` —
-   * larger cells mean the same total light reads dimmer. The
-   * fallback covers transient test state where the room hasn't been
-   * added to a zone yet.
+   * Effective receiving-surface area in m² used by `LightApi.lightAt`
+   * to convert accumulated lumens to lux: the walk divides the total
+   * flux at this room by `getSizeScale()`. For a Cartesian room the
+   * scale is the owning zone's `cellSize` (already in m²). Larger
+   * rooms read dimmer for the same total flux. The fallback covers
+   * transient test state where the room hasn't been added to a zone
+   * yet.
    */
   public getSizeScale(): number {
     return this.getZone()?.getCellSize() ?? 1.0;

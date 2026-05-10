@@ -177,3 +177,40 @@ describe('ProseApi.registerFilter', () => {
     ).toBe('HELLO');
   });
 });
+
+describe('ProseApi quantity filters (Step C)', () => {
+  // Lazy-load Quantity to keep this block independent of registration
+  // ordering elsewhere in the suite.
+  it('| quantity emits tag-flavored <quantity> markup', async () => {
+    const { Quantity } = await import('../../lib/quantity');
+    Quantity.registerTagTable('kg', 'default', [
+      { tag: 'feather', threshold: 0.001 },
+      { tag: 'medium', threshold: 5 },
+      { tag: 'heavy', threshold: 50 },
+    ]);
+    try {
+      const out = ProseApi.format('weight: {{ q | quantity }}', {
+        q: Quantity.of(5, 'kg'),
+      }).toString();
+      expect(out).toContain('<quantity unit="kg" value="5" tag="medium">');
+      expect(out).toContain('>medium</quantity>');
+    } finally {
+      Quantity._clearTagTable('kg');
+    }
+  });
+
+  it('| quantity_canonical emits canonical-flavored markup', async () => {
+    const { Quantity } = await import('../../lib/quantity');
+    const out = ProseApi.format('mol mass: {{ q | quantity_canonical }}', {
+      q: Quantity.of(55.845, 'g/mol'),
+    }).toString();
+    expect(out).toContain('unit="g/mol"');
+    expect(out).toContain('>55.845 g/mol</quantity>');
+    expect(out).not.toContain('tag=');
+  });
+
+  it('| quantity renders empty when the value is not a Quantity', () => {
+    const out = ProseApi.format('x: {{ q | quantity }}', { q: 'not-a-q' }).toString();
+    expect(out).toBe('x: ');
+  });
+});

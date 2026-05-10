@@ -414,6 +414,72 @@ Subcommanded verbs invoked without a subcommand reach the controller
 with `model.subcommand === undefined`. The controller decides what
 that means (`settings list`-style default, error, etc.).
 
+### Per-subcommand controllers
+
+When subcommand domains diverge significantly, each subcommand can
+declare its own `controller:` field. The framework clones THAT
+controller template instead of the verb-level controller for that
+subcommand; absent fields fall back to the verb-level controller as
+before.
+
+```yaml
+verbs: [analyze]
+description: "Analyze a physical channel in detail"
+subcommands:
+  light:
+    description: "Analyze light at a location with source breakdown"
+    controller: AnalyzeLightController     # per-subcommand
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer
+  chemistry:
+    description: "Analyze the chemistry of a target"
+    controller: AnalyzeChemistryController # per-subcommand
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeTangible
+```
+
+A verb whose subcommands all carry per-subcommand controllers may
+omit the verb-level `controller:` entirely (`analyze` is the
+canonical example — there's no meaningful bare-`analyze` behavior).
+The dispatcher's resolution rule:
+
+```
+controllerName =
+  (model.subcommand && command.controllerForSubcommand(model.subcommand))
+  || command.controller
+```
+
+Load-time validation requires either a verb-level controller OR
+every subcommand declaring its own — failing both is a load error.
+Existing subcommanded verbs (`settings`, `alias`, `var`, `help`,
+`player`) leave the per-subcommand field unset and continue to share
+their verb-level controller.
+
+When to reach for per-subcommand controllers vs. branch on
+`model.subcommand` in a single controller:
+
+- **Per-subcommand**: subcommand domains are largely independent
+  (light propagation vs chemistry analysis share nothing
+  meaningful). Each subcommand gets its own file, its own
+  validators, its own tests.
+- **Single controller, branch on subcommand**: subcommands are
+  variations on one theme (`settings list/get/set/unset` is one
+  concept with four user-facing operations).
+
+The choice is a content-shape question, not a framework question
+— both patterns are first-class.
+
 ## Options (`options:`)
 
 Options are an unordered map keyed by option name. They have

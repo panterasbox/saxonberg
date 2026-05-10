@@ -27,10 +27,14 @@
  *    mixtures and alloys, weight-fraction references to the
  *    constituent Materials. Pure elements / non-mixtures have an
  *    empty list.
- * 3. **Chemistry** (`chemistry: ElementChemistry | null`) — atomic-
- *    or molecular-level science data: element symbol, atomic
- *    number, atomic mass for elements; chemical formula, molar mass
- *    for compounds. Lower-division depth.
+ * 3. **Chemistry** — atomic / molecular science data, decomposed
+ *    into four flat scalar fields per the scalar-default rule:
+ *    `symbol` (element only), `atomicNumber` (element only),
+ *    `formula` (compound only), and `molarMass`
+ *    (`Quantity<'g/mol'>`; element or compound). The
+ *    `getChemistry` / `setChemistry` pair is a convenience aggregate
+ *    over those four fields. Mixtures / alloys leave them all
+ *    unset and rely on the composition layer.
  *
  * Plus `biologicalSource` for organic Materials with a known parent
  * Species (e.g., wood from a specific tree).
@@ -49,6 +53,8 @@
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin, Property } from '../stuff/Propertied';
+import { Quantity } from '../quantity';
+import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -63,23 +69,30 @@ export interface CompositionEntry {
 }
 
 /**
- * Atomic / molecular science data. Element fields (`symbol`,
- * `atomicNumber`, `atomicMass`) populate for pure elements; compound
- * fields (`formula`, `molarMass`) populate for chemical compounds.
- * Mixtures and alloys typically leave this `null` and read composition
- * via the `composition` field instead.
+ * Atomic / molecular science data — convenience aggregate of
+ * Material's chemistry-related fields. Material stores each field
+ * as its own scalar (`symbol`, `atomicNumber`, `formula`,
+ * `molarMass`) per the scalar-default rule; this interface is the
+ * holder shape for the `getChemistry` / `setChemistry` convenience
+ * pair. Population convention: elements get
+ * `symbol/atomicNumber/molarMass`, compounds get
+ * `formula/molarMass`, mixtures leave the chemistry fields unset
+ * and carry composition data instead.
+ *
+ * `molarMass` is strictly `Quantity<'g/mol'>` at the runtime API.
+ * Authoring-shape coercion (bare number, tag string, JSON
+ * `{value,unit}`) is absorbed by `QuantityMarshaller(g/mol)` at the
+ * persistence boundary for the `molarMass` scalar field.
  */
 export interface ElementChemistry {
   /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
   symbol?: string;
   /** Atomic number (Z) — element-only. */
   atomicNumber?: number;
-  /** Standard atomic weight (u) — element-only. */
-  atomicMass?: number;
   /** Chemical formula (e.g. `'H2O'`, `'SiO2'`, `'(C6H10O5)n'`). Compound-only. */
   formula?: string;
-  /** Molar mass (g/mol) — compound-only. */
-  molarMass?: number;
+  /** Molar mass in g/mol. Element-or-compound. */
+  molarMass?: Quantity<'g/mol'>;
 }
 
 /**
@@ -98,8 +111,25 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
   protected name: string = '';
 
-  /** kg/m^3. */
-  protected density: number = 0;
+  /**
+   * Density as a `Quantity<'kg/m³'>`. The QuantityMarshaller for
+   * kg/m³ handles hydration coercion (numeric / string / JSON-shape
+   * inputs) at the persistence boundary; the runtime accessor pair
+   * stays strict on Quantity.
+   */
+  private _density: Quantity<'kg/m³'> = Quantity.of(0, 'kg/m³');
+
+  protected get density(): Quantity<'kg/m³'> {
+    return this._density;
+  }
+  protected set density(value: Quantity<'kg/m³'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'kg/m³') {
+      throw new TypeError(
+        `Material.density must be a Quantity<'kg/m³'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._density = value;
+  }
 
   /** Mohs-scale-ish hardness (0–10). */
   protected hardness: number = 0;
@@ -148,14 +178,45 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected composition: CompositionEntry[] = [];
 
+  // ---------- Chemistry — flat scalar fields ----------
+  // Each chemistry field is its own scalar per the scalar-default
+  // rule. The `getChemistry` / `setChemistry` pair below is a
+  // convenience aggregate that decomposes / recomposes from these
+  // fields. Materials with no chemistry data leave all four at
+  // their unset defaults; `getChemistry` returns null in that case.
+
+  /** Element symbol (e.g. `'Fe'`, `'C'`, `'U'`). Element-only. */
+  protected symbol: string | null = null;
+
+  /** Atomic number (Z). Element-only. */
+  protected atomicNumber: number | null = null;
+
+  /** Chemical formula (e.g. `'H2O'`). Compound-only. */
+  protected formula: string | null = null;
+
   /**
-   * Atomic / molecular science data. `null` when the material has no
-   * meaningful chemistry shape (e.g. a generic "flesh" stand-in).
-   * Population convention: elements get `symbol/atomicNumber/atomicMass`,
-   * compounds get `formula/molarMass`, mixtures leave this null and
-   * carry composition data instead.
+   * Molar mass as a `Quantity<'g/mol'>`. Element-or-compound. The
+   * QuantityMarshaller for g/mol handles authoring-shape coercion
+   * (numeric / string / JSON-shape) at the persistence boundary;
+   * runtime accessors stay strict on Quantity.
    */
-  protected chemistry: ElementChemistry | null = null;
+  private _molarMass: Quantity<'g/mol'> | null = null;
+
+  protected get molarMass(): Quantity<'g/mol'> | null {
+    return this._molarMass;
+  }
+  protected set molarMass(value: Quantity<'g/mol'> | null) {
+    if (value === null || value === undefined) {
+      this._molarMass = null;
+      return;
+    }
+    if (!(value instanceof Quantity) || value.unit !== 'g/mol') {
+      throw new TypeError(
+        `Material.molarMass must be Quantity<'g/mol'> | null; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._molarMass = value;
+  }
 
   /**
    * Source-species link for biological materials. `null` for non-
@@ -180,15 +241,44 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
     'toxicity',
     'tags',
     'composition',
-    'chemistry',
+    'symbol',
+    'atomicNumber',
+    'formula',
+    'molarMass',
     'biologicalSource',
   ];
+
+  /**
+   * Field-marshaller bindings. The persistence pipeline routes
+   * hydration / save through these marshallers; setters stay
+   * strict on the runtime value type.
+   */
+  static fieldMarshallers = {
+    density: QuantityMarshaller.pathFor('kg/m³'),
+    molarMass: QuantityMarshaller.pathFor('g/mol'),
+  };
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
 
-  public getDensity(): number { return this.density; }
-  public setDensity(value: number): void { this.density = value; }
+  /**
+   * Read density. Strict-shape on `Quantity<'kg/m³'>`; the
+   * QuantityMarshaller absorbed authoring-shape coercion at the
+   * persistence boundary, so callers see only the runtime type.
+   */
+  public getDensity(): Quantity<'kg/m³'> {
+    return this._density;
+  }
+  /**
+   * Set density. Strict on `Quantity<'kg/m³'>` — authors who hold a
+   * raw number wrap it via `Quantity.of(n, 'kg/m³')` at the call
+   * site. The QuantityMarshaller handles raw-shape coercion only on
+   * the persistence path; in-process callers commit to the typed
+   * value.
+   */
+  public setDensity(value: Quantity<'kg/m³'>): void {
+    this.density = value;
+  }
 
   public getHardness(): number { return this.hardness; }
   public setHardness(value: number): void { this.hardness = value; }
@@ -255,9 +345,79 @@ export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
     this.composition = value;
   }
 
-  public getChemistry(): ElementChemistry | null { return this.chemistry; }
+  // ---------- Chemistry — per-field accessors ----------
+
+  public getSymbol(): string | null { return this.symbol; }
+  public setSymbol(value: string | null): void { this.symbol = value; }
+
+  public getAtomicNumber(): number | null { return this.atomicNumber; }
+  public setAtomicNumber(value: number | null): void {
+    this.atomicNumber = value;
+  }
+
+  public getFormula(): string | null { return this.formula; }
+  public setFormula(value: string | null): void { this.formula = value; }
+
+  /**
+   * Read molar mass. Strict on `Quantity<'g/mol'>`; the
+   * QuantityMarshaller for g/mol absorbs authoring-shape coercion
+   * at the persistence boundary.
+   */
+  public getMolarMass(): Quantity<'g/mol'> | null { return this._molarMass; }
+  /**
+   * Set molar mass. Strict on `Quantity<'g/mol'>` — wrap raw numbers
+   * via `Quantity.of(n, 'g/mol')` at the call site.
+   */
+  public setMolarMass(value: Quantity<'g/mol'> | null): void {
+    this.molarMass = value;
+  }
+
+  // ---------- Chemistry — convenience holder ----------
+
+  /**
+   * Aggregate chemistry view. Returns `null` when none of the
+   * chemistry fields are populated; otherwise returns an object
+   * carrying whichever subset is set. For programmatic chemistry
+   * inspection where reading a few fields at once is more
+   * convenient than four individual getters.
+   */
+  public getChemistry(): ElementChemistry | null {
+    if (
+      this.symbol === null &&
+      this.atomicNumber === null &&
+      this.formula === null &&
+      this._molarMass === null
+    ) {
+      return null;
+    }
+    const out: ElementChemistry = {};
+    if (this.symbol !== null) out.symbol = this.symbol;
+    if (this.atomicNumber !== null) out.atomicNumber = this.atomicNumber;
+    if (this.formula !== null) out.formula = this.formula;
+    if (this._molarMass !== null) out.molarMass = this._molarMass;
+    return out;
+  }
+
+  /**
+   * Bulk-set chemistry. `setChemistry(null)` clears all four
+   * chemistry fields; passing a partial record sets the named
+   * fields and leaves the others at their current values? No —
+   * the convenience setter REPLACES the whole chemistry block to
+   * keep the holder/component contract symmetric. Use the
+   * individual setters for partial updates.
+   */
   public setChemistry(value: ElementChemistry | null): void {
-    this.chemistry = value;
+    if (value === null || value === undefined) {
+      this.symbol = null;
+      this.atomicNumber = null;
+      this.formula = null;
+      this.molarMass = null;
+      return;
+    }
+    this.symbol = value.symbol ?? null;
+    this.atomicNumber = value.atomicNumber ?? null;
+    this.formula = value.formula ?? null;
+    this.molarMass = value.molarMass ?? null;
   }
 
   public getBiologicalSource(): BiologicalSource | null {

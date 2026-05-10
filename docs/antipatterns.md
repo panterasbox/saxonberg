@@ -353,10 +353,10 @@ opaque blob in MongoDB.
 
 ```typescript
 class AmbientLitMixin {
-  static persistentFields = ['ambientIntensity', 'ambientColor'];
+  static persistentFields = ['ambientIntensity', 'ambientColorTemperature'];
 
   protected _ambientIntensity = 0;
-  protected _ambientColor: ColorTag | null = null;
+  protected _ambientColorTemperature: number | null = null;
 
   // Each scalar accessor pair validates ONE shape:
   protected set ambientIntensity(v: number) {
@@ -365,30 +365,26 @@ class AmbientLitMixin {
     }
     this._ambientIntensity = v;
   }
-  protected set ambientColor(v: ColorTag | null) {
-    if (v !== null && typeof v !== 'string') {
-      throw new TypeError('ambientColor must be string or null');
-    }
-    this._ambientColor = v;
+  protected set ambientColorTemperature(v: number | string | null) {
+    /* normalize to numeric Kelvin or null */
   }
 
-  // Runtime API takes ONLY the value object:
-  getAmbientLight(): Light {
-    if (this._ambientIntensity === 0 && this._ambientColor === null) {
-      return Light.ZERO;
-    }
-    return Light.of(this._ambientIntensity, this._ambientColor);
+  // Runtime API surfaces typed Quantity values, reconstructed
+  // from the stored scalars on read. Strict on the value class:
+  getAmbientFlux(): Quantity<'lumen'> {
+    return Quantity.of(this._ambientIntensity, 'lumen');
   }
-  setAmbientLight(value: Light): void {
-    if (!(value instanceof Light)) throw new TypeError('expected Light');
-    this._ambientIntensity = value.intensity;
-    this._ambientColor = value.color;
-  }
+  setAmbientFlux(value: Quantity<'lumen'> | number | string): void { ... }
+
+  getAmbientColorTemperature(): Quantity<'K'> | null { ... }
+  setAmbientColorTemperature(value: Quantity<'K'> | string | null): void { ... }
 }
 ```
 
 Storage is two scalars. Each setter validates one primitive shape.
-The runtime API is strict on the value class.
+The runtime API is strict on the value class. (For Quantity-valued
+fields this is one of two valid patterns — see also the
+QuantityMarshaller route in `persistence.md` and `quantities.md`.)
 
 ### GOOD (escape hatch — Marshaller for genuinely composite fields)
 

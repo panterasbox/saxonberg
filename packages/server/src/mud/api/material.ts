@@ -29,6 +29,10 @@ import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 
+// kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
+// and load at boot via `QuantityApi.loadTagTables`. Material doesn't
+// register them locally anymore.
+
 /**
  * Recursive composition expansion. `direct` is the material's own
  * composition entries (one level). `flat` is the recursive walk down

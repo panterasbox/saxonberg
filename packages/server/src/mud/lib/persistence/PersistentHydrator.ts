@@ -59,15 +59,17 @@ export class PersistentHydrator extends Idea implements Hydrator {
       const raw = data[field];
       const path = marshallerPaths[field];
       if (path) {
-        const marshaller = StuffApi.findByTemplatePath<
+        // Lazy resolution: `singleton(path)` returns the cached
+        // marshaller if one exists, else clones from the seeded
+        // template. Mirrors how `StuffApi.clone` resolves
+        // `hydratorClass`. Tests bypass Mongo so they pre-register
+        // marshallers up-front (see
+        // `__tests__/quantity-marshaller-test-helpers.ts`); in
+        // production the seeder put the template doc in `domain`
+        // at boot, and singleton clones on first need.
+        const marshaller = await StuffApi.singleton<
           Marshaller<unknown, unknown>
         >(path);
-        if (!marshaller) {
-          throw new Error(
-            `PersistentHydrator: marshaller '${path}' for field '${field}' is not registered. ` +
-              `Marshallers must be loaded before hydration runs.`
-          );
-        }
         target[field] = marshaller.fromStored(raw);
       } else {
         // Default path: dumb bracket-assign. The setter (if any) on

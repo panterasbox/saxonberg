@@ -21,8 +21,7 @@ data:
     "resistance.pierce": 0.3
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
   composition: []
-  chemistry:
-    symbol: Cu
-    atomicNumber: 29
-    atomicMass: 63.546
+  symbol: Cu
+  atomicNumber: 29
+  molarMass: 63.546
   biologicalSource: null

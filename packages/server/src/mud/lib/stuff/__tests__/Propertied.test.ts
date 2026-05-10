@@ -2,7 +2,7 @@
  * PropertiedMixin tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Idea } from '../Idea';
 import {
   PropertiedMixin,
@@ -16,6 +16,7 @@ import { Stuff } from '../Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Quantity } from '../../quantity';
 
 // Test class with PropertiedMixin.
 // Subclass-level test seams: `peekSavedProps()` / `peekTransientProps()`
@@ -1195,6 +1196,114 @@ describe('PropertiedMixin', () => {
       expect(obj.peekSavedProps()!['saved']).toBe('persistent');
       expect(obj.peekTransientProps()['trans']).toBe('transient');
       expect(obj.peekTransientProps()['saved']).toBeUndefined();
+    });
+  });
+
+  describe('Quantity prop round-trip via marshaller binding', () => {
+    let installV1QuantityMarshallers: () => void;
+    let QuantityMarshaller: typeof import('../../persistence/QuantityMarshaller').QuantityMarshaller;
+
+    beforeEach(async () => {
+      ({ installV1QuantityMarshallers } = await import(
+        '../../persistence/__tests__/quantity-marshaller-test-helpers'
+      ));
+      ({ QuantityMarshaller } = await import(
+        '../../persistence/QuantityMarshaller'
+      ));
+      installV1QuantityMarshallers();
+    });
+
+    afterEach(() => {
+      StuffApi.clearAll();
+    });
+
+    it('initProp + setProp + getProp round-trips a Quantity via the marshaller binding', async () => {
+      const { Quantity } = await import('../../quantity');
+      const obj = makeStuff(() => new PropertiedThing());
+      const massProp = Property.of<object>('mass');
+      obj.initProp(massProp, {
+        transient: false,
+        marshaller: QuantityMarshaller.pathFor('kg'),
+      });
+      obj.setProp(massProp, Quantity.of(5, 'kg'));
+
+      // Storage holds the canonical {value, unit} shape (toStored ran).
+      const storage = obj.peekSavedProps();
+      expect(storage!['mass']).toEqual({ value: 5, unit: 'kg' });
+
+      // getProp converts back via fromStored — caller sees runtime type.
+      const got = obj.getProp(massProp);
+      expect(got).toBeInstanceOf(Quantity);
+      const q = got as Quantity<'kg'>;
+      expect(q.rawValue()).toBe(5);
+      expect(q.unit).toBe('kg');
+    });
+
+    it('hydrating a marshaller-bound prop into a fresh host round-trips correctly', async () => {
+      const { Quantity } = await import('../../quantity');
+      // Original host: declare binding, store a Quantity, capture
+      // both `savedProps` and `savedPropMarshallers` from the doc-shape.
+      const original = makeStuff(() => new PropertiedThing());
+      const massProp = Property.of<object>('mass');
+      original.initProp(massProp, {
+        transient: false,
+        marshaller: QuantityMarshaller.pathFor('kg'),
+      });
+      original.setProp(massProp, Quantity.of(12, 'kg'));
+
+      const savedProps = JSON.parse(JSON.stringify(original.peekSavedProps()));
+      const savedPropMarshallers = JSON.parse(
+        JSON.stringify(
+          (original as unknown as {
+            savedPropMarshallers: Record<string, string>;
+          }).savedPropMarshallers
+        )
+      );
+
+      // Restored host: replay the doc by bracket-assigning both
+      // persistent records (mimics what PersistentHydrator does).
+      const restored = makeStuff(() => new PropertiedThing());
+      (restored as unknown as {
+        savedProps: Record<string, unknown>;
+        savedPropMarshallers: Record<string, string>;
+      }).savedProps = savedProps;
+      (restored as unknown as {
+        savedProps: Record<string, unknown>;
+        savedPropMarshallers: Record<string, string>;
+      }).savedPropMarshallers = savedPropMarshallers;
+
+      const got = restored.getProp(massProp) as Quantity<'kg'>;
+      expect(got).toBeInstanceOf(Quantity);
+      expect(got.equals(Quantity.of(12, 'kg'))).toBe(true);
+    });
+
+    it('a {value, unit}-shaped prop without a marshaller binding passes through raw', () => {
+      const obj = makeStuff(() => new PropertiedThing());
+      (obj as unknown as { savedProps: Record<string, unknown> }).savedProps = {
+        opaque: { value: 5, unit: 'kg' },
+      };
+      // No initProp(..., {marshaller}) call — this prop has no
+      // binding, so getProp returns the raw object unchanged.
+      const v = obj.getProp(Property.of<object>('opaque'));
+      expect(v).toEqual({ value: 5, unit: 'kg' });
+    });
+
+    it('removeProp clears the marshaller binding too', async () => {
+      const { Quantity } = await import('../../quantity');
+      const obj = makeStuff(() => new PropertiedThing());
+      const massProp = Property.of<object>('mass');
+      obj.initProp(massProp, {
+        transient: false,
+        marshaller: QuantityMarshaller.pathFor('kg'),
+      });
+      obj.setProp(massProp, Quantity.of(5, 'kg'));
+      const marshallers = (obj as unknown as {
+        savedPropMarshallers: Record<string, string>;
+      }).savedPropMarshallers;
+      expect(marshallers['mass']).toBe(QuantityMarshaller.pathFor('kg'));
+
+      obj.removeProp(massProp);
+      expect(marshallers['mass']).toBeUndefined();
     });
   });
 });

@@ -4,7 +4,7 @@
   "title": "Saxonberg Command Definition",
   "description": "YAML command spec consumed by CommandApi. Each .yaml file in this directory must validate against this schema.",
   "type": "object",
-  "required": ["verbs", "controller", "description"],
+  "required": ["verbs", "description"],
   "additionalProperties": false,
   "properties": {
     "verbs": {
@@ -16,7 +16,7 @@
     "controller": {
       "type": "string",
       "minLength": 1,
-      "description": "Class name of the CommandController to dispatch to."
+      "description": "Class name of the CommandController to dispatch to. Optional only when every declared subcommand carries its own `controller:` (Option E — per-subcommand controller templates)."
     },
     "description": {
       "type": "string",
@@ -55,6 +55,11 @@
       "additionalProperties": false,
       "properties": {
         "description": { "type": "string" },
+        "controller": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional per-subcommand controller template name. When present, the framework clones THIS controller for the subcommand instead of the verb-level controller (Option E). Verbs whose subcommands all carry per-subcommand controllers may omit the verb-level `controller:` entirely."
+        },
         "args": {
           "type": "array",
           "items": { "$ref": "#/$defs/positional" }
