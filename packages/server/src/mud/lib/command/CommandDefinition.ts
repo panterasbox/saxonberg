@@ -68,6 +68,13 @@ export class CommandDefinition {
   public readonly subcommands: Record<string, SubcommandDefinition>;
   public readonly verbOptions: Record<string, OptionDefinition>;
   /**
+   * Structured-form-only fields. Populated exclusively through
+   * `CommandApi.assembleFromStructured` — the text-input path
+   * doesn't surface these to the matcher at all. See
+   * `command-spec.md § payload` for the full shape.
+   */
+  public readonly payload: Record<string, OptionDefinition>;
+  /**
    * Verb-level validator path specs from the YAML. Resolved into
    * `_resolvedValidators` by `CommandApi.preloadAll`; the dispatch
    * pipeline reads only the resolved form.
@@ -88,6 +95,7 @@ export class CommandDefinition {
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
     this.verbOptions = normaliseOptions(view.options);
+    this.payload = normaliseOptions(view.payload);
     this.validators = view.validators ?? [];
     this.filePath = filePath;
 
@@ -145,6 +153,9 @@ export class CommandDefinition {
   private normaliseShape(): void {
     for (const a of this.args) normalisePositionalScope(a);
     for (const [, opt] of Object.entries(this.verbOptions)) {
+      normaliseOptionScope(opt);
+    }
+    for (const [, opt] of Object.entries(this.payload)) {
       normaliseOptionScope(opt);
     }
     for (const [, sub] of Object.entries(this.subcommands)) {
@@ -252,6 +263,9 @@ export class CommandDefinition {
     for (const a of this.args) names.add(a.name);
     for (const [, def] of Object.entries(this.verbOptions)) {
       names.add(def.field ?? optionFieldName(this.verbOptions, def));
+    }
+    for (const [, def] of Object.entries(this.payload)) {
+      names.add(def.field ?? optionFieldName(this.payload, def));
     }
     for (const sub of Object.values(this.subcommands)) {
       for (const a of sub.args ?? []) names.add(a.name);
@@ -464,11 +478,23 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
     }
   }
 
-  // Verb-scoped option names — collisions with positionals or
-  // subcommand-scoped options are reportable.
+  // Verb-scoped option names — collisions with positionals,
+  // payload, or subcommand-scoped options are reportable.
   const verbOptionNames = new Set<string>();
   for (const [name, opt] of Object.entries(def.verbOptions)) {
     verbOptionNames.add(opt.field ?? name);
+  }
+
+  // Payload field names — same uniqueness story.
+  const payloadNames = new Set<string>();
+  for (const [name, opt] of Object.entries(def.payload)) {
+    const fname = opt.field ?? name;
+    if (verbOptionNames.has(fname)) {
+      throw new Error(
+        `payload field "${fname}" collides with verb-scoped option in ${def.filePath}`
+      );
+    }
+    payloadNames.add(fname);
   }
 
   // Top-level positional args.
@@ -484,6 +510,11 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
       if (verbOptionNames.has(a.name)) {
         throw new Error(
           `arg name "${a.name}" collides with verb-scoped option in ${def.filePath}`
+        );
+      }
+      if (payloadNames.has(a.name)) {
+        throw new Error(
+          `arg name "${a.name}" collides with payload field in ${def.filePath}`
         );
       }
     }

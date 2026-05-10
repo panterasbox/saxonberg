@@ -474,6 +474,77 @@ through `ShellApi.expandVariables`. Options never update player
 focus or pronoun memory's gender-routing slot — focus drilling is
 a positional-side concept.
 
+## `payload:` — structured-form-only fields
+
+A third top-level block, sibling of `args:` and `options:`. Fields
+declared under `payload:` are populated **exclusively** through
+`CommandApi.assembleFromStructured` — the text-input path
+(`msh`) doesn't surface them at all. Use for content the client
+composes via a GUI / editor buffer / non-textual UI: code bodies,
+JSON blobs, anything that doesn't ride well through tokenization.
+
+```yaml
+verbs: [author]
+controller: AuthorController
+description: "Author a thing with a body"
+args:
+  - name: path
+    type: string
+    required: true
+options:
+  language:
+    type: string
+    default: typescript
+payload:
+  body:
+    type: string
+    required: true
+    description: "File body — provided by the client, not typed"
+  metadata:
+    type: struct
+    schema:
+      type: object
+      properties: { author: { type: string } }
+```
+
+**Field shape**: payload entries are option-shaped (the same
+`OptionDefinition` taxonomy — `type` / `schema` / `scope` /
+`validators` / `multiple` / `default` / `field`). Payload fields
+add `required: boolean` for "the client MUST attach this key";
+`assembleFromStructured` enforces it after applying defaults.
+
+**Three rules**:
+
+- **Text input never sees them.** A `msh author /draft` invocation
+  with no structured payload binds only `path`. Body stays
+  `undefined`; if `required: true`, the structured-form ingress
+  fails with "missing required payload field: body" — but only
+  on the structured path. The text path doesn't reject the
+  invocation; it just leaves the field absent and the
+  controller decides what to do.
+- **Same coercion + resolution as options.** Payload fields of
+  `type: object` / `type: objects` ride the same MQL pipeline as
+  option-side fields; the result lands as
+  `MqlOneResult` / `MqlManyResult` on the model.
+- **Field-name uniqueness extends.** Payload field names can't
+  collide with positional args, verb-scoped option names, or
+  subcommand option names. The load-time validator catches it.
+
+**When to use payload vs. an option of `type: struct`**:
+
+- `type: struct` on an option: text-input rejects with
+  "requires structured input"; structured-input populates with a
+  single object. The field exists in the option set, the player
+  just can't bind it from text.
+- A `payload:` field: doesn't appear in the option set at all.
+  The text user has no way to know it exists from the
+  command-spec surface.
+
+Use `payload:` when the field is conceptually never typeable
+(code bodies, multi-megabyte blobs, editor-only data). Use
+`type: struct` on an option when the field is option-shaped but
+needs richer-than-string structure.
+
 ## Controllers
 
 A controller is a templated `Idea` (Stuff). One file per controller

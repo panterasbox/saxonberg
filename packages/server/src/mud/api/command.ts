@@ -524,6 +524,14 @@ export interface OptionDefinition {
    */
   scope?: string | string[];
   /**
+   * Used by payload fields (the structured-form-only family) to
+   * declare that the client MUST attach this key. Enforced by
+   * `assembleFromStructured` against `command.payload` only —
+   * verb-scoped options ignore it (options are by convention
+   * optional).
+   */
+  required?: boolean;
+  /**
    * If true, repeated occurrences accumulate into an array. False
    * (the default) means a second occurrence is a bind error.
    */
@@ -565,6 +573,19 @@ export interface CommandView {
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
+  /**
+   * Structured-form-only fields. Populated exclusively through
+   * `CommandApi.assembleFromStructured` (the `msh` text-input path
+   * doesn't see these). Use for content the client composes via a
+   * GUI / editor buffer / non-textual UI — code bodies, JSON
+   * blobs, anything that doesn't ride well through tokenization.
+   *
+   * Field shape mirrors `OptionDefinition` (type / schema /
+   * validators / scope / multiple / default / field). The
+   * `short` / `prepositions` / `greedy` ergonomics don't apply
+   * here — payload fields aren't keyboardable.
+   */
+  payload?: Record<string, OptionDefinition>;
   validators?: string[];
 }
 
@@ -579,6 +600,12 @@ export interface CommandSchemaPayload {
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
+  /**
+   * Structured-form-only fields. Surfaces to widget / editor
+   * clients so they know which keys to attach to their structured
+   * payloads.
+   */
+  payload?: Record<string, OptionDefinition>;
 }
 
 // Get path to command YAML directory
@@ -1033,6 +1060,7 @@ export class CommandApi {
     }
 
     applyOptionDefaults(command.verbOptions, fields);
+    applyOptionDefaults(command.payload, fields);
     if (payload.subcommand) {
       const subDef = command.getSubcommand(payload.subcommand);
       if (!subDef) {
@@ -1040,6 +1068,17 @@ export class CommandApi {
       }
       applyOptionDefaults(subDef.options ?? {}, fields);
       fields[SUBCOMMAND_FIELD] = payload.subcommand;
+    }
+
+    // Required-payload check: structured-form-only fields with
+    // `required: true` MUST be supplied by the client. Default
+    // (if any) already filled above; if still missing, error.
+    for (const [name, def] of Object.entries(command.payload)) {
+      if (!def.required) continue;
+      const fname = def.field ?? name;
+      if (fields[fname] === undefined) {
+        return { error: `missing required payload field: ${fname}` };
+      }
     }
 
     return { model: fields };
@@ -1219,6 +1258,13 @@ export class CommandApi {
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
       if (err) return { result: { success: false, summary: err } };
     }
+    // Payload-field validators — same shape as options (payload is
+    // option-shaped at the matcher level).
+    for (const [name, opt] of Object.entries(command.payload)) {
+      const fname = opt.field ?? name;
+      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      if (err) return { result: { success: false, summary: err } };
+    }
     if (subcommand) {
       const subOpts = command.getSubcommand(subcommand)?.options ?? {};
       for (const [name, opt] of Object.entries(subOpts)) {
@@ -1309,6 +1355,7 @@ export class CommandApi {
     if (cmd.args.length > 0) out.args = cmd.args;
     if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
     if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;
+    if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
     return out;
   }
 }
@@ -1832,6 +1879,12 @@ function lookupOptionDefinition(
   for (const [name, def] of Object.entries(command.verbOptions)) {
     if ((def.field ?? name) === fname) return def;
   }
+  // Payload fields share the OptionDefinition shape — same coercion
+  // and resolution treatment as a verb-scoped option, just only
+  // populated through the structured-form path.
+  for (const [name, def] of Object.entries(command.payload)) {
+    if ((def.field ?? name) === fname) return def;
+  }
   if (subcommand) {
     const sub = command.getSubcommand(subcommand);
     for (const [name, def] of Object.entries(sub?.options ?? {})) {
@@ -1874,6 +1927,12 @@ function collectActiveOptionDefs(
   for (const [name, def] of Object.entries(command.verbOptions)) {
     out[def.field ?? name] = def;
   }
+  // Payload fields participate in MQL resolution too — they're
+  // option-shaped at the matcher level, just populated through the
+  // structured-form path instead of via flag tokens.
+  for (const [name, def] of Object.entries(command.payload)) {
+    out[def.field ?? name] = def;
+  }
   if (subcommand) {
     const subOpts = command.getSubcommand(subcommand)?.options ?? {};
     for (const [name, def] of Object.entries(subOpts)) {
@@ -1913,6 +1972,9 @@ async function resolveCommandValidators(
     }
   }
   for (const opt of Object.values(cmd.verbOptions)) {
+    await resolveOne(opt);
+  }
+  for (const opt of Object.values(cmd.payload)) {
     await resolveOne(opt);
   }
 

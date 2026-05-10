@@ -9,42 +9,39 @@
  * silently defaulting to the wrong tree is the kind of mistake
  * that's hard to undo. Spell it out per call.
  *
- * Body delivery — two input paths landing on `model.body`:
+ * Body delivery — `body` lives in the yaml's `payload:` block,
+ * not in `args:` or `options:`. Structured-form-only: clients
+ * populate it via
+ * `CommandApi.assembleFromStructured({ verb: 'write', fields: {
+ * path, body, ... } })`. The text-input path (`msh`) doesn't see
+ * the `body` field at all — typing `msh write -s /server/foo`
+ * with no structured payload errors with "missing required field:
+ * body" because the structured channel never fired.
  *
- *   - **Text input** (`msh write -s /server/foo "content"`) — the
- *     yaml declares `body` as a greedy positional, so `msh`'s
- *     tokenizer consumes everything after the path. Fine for
- *     short bodies; multi-line content with embedded quotes is
- *     awkward through the shell tokenizer.
- *   - **Structured input** — clients that hold a code-editor buffer
- *     (or any non-textual UI) reach the same model via
- *     `CommandApi.assembleFromStructured({ verb: 'write', fields: {
- *     path, body, ... } })`. The buffer ships as a structured field
- *     with no command-line parsing in the way — quoting and
- *     escaping are non-issues. This is the path real authoring UIs
- *     use, and it is the slate's "command payload" channel — no
- *     separate accessor needed; the structured-form fields ARE the
- *     payload. The matcher's `coerceStructuredValue` accepts a
- *     string for `type: string` fields, so the same `body` field
- *     handles both paths.
+ * The choice is intentional: code bodies don't ride well through
+ * the shell tokenizer (multi-line, embedded quotes, etc.), and
+ * the cases where a developer types a literal short body in `msh`
+ * are rare enough that pushing the rare case to a different verb
+ * (or a quick eval-shaped paste) is fine. Real authoring is
+ * always going to be widget / editor-buffer driven; the spec
+ * shape reflects that.
  *
  * Stuff references on this path go through the same machinery as
- * text input: a string field carrying an MQL expression
- * (`'#abc123'`, `'/obj/Avatar/foo'`, etc.) is resolved by
- * `resolveAndValidate` for `type: object` fields. Raw Stuff object
- * references are NOT a valid payload shape — that would bypass
- * MQL's permission/visibility filters and the inter-stuff
- * "address via MQL" contract.
+ * positional MQL: a payload field of `type: object` (or
+ * `objects`) is resolved by `resolveAndValidate` to an
+ * `MqlOneResult` / `MqlManyResult`. Raw Stuff object references
+ * are NOT a valid payload shape — that would bypass MQL's
+ * permission/visibility filters and the inter-stuff "address via
+ * MQL" contract.
  *
  * Deferred sidecar: a separate `context.payload` channel for
  * non-field metadata (editor cursor position, draft id, binary
  * uploads) was considered and deferred. The structured-fields path
  * covers every v1 use case; if a real need for non-field metadata
  * emerges, the retrofit is additive — add the field on
- * `CommandContext`, opt controllers in. Don't reach for it
- * speculatively.
+ * `CommandContext`, opt controllers in.
  *
- * The arg is named `body` rather than `content` to leave the
+ * The field is named `body` rather than `content` to keep the
  * `--content` flag free for tree selection per the workspace verb
  * convention.
  *

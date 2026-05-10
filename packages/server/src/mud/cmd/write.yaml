@@ -5,10 +5,6 @@ args:
   - name: path
     type: string
     required: true
-  - name: body
-    type: string
-    required: true
-    greedy: true
 options:
   mql:
     type: object
@@ -28,3 +24,8 @@ options:
   hydrator:
     type: string
     description: "Hydrator class path for content writes (default /lib/persistence/PersistentHydrator); pass empty string to omit"
+payload:
+  body:
+    type: string
+    required: true
+    description: "File body. Structured-form-only — provided by the client via the structured payload channel; not bindable from the text shell."

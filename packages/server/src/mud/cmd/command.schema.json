@@ -37,6 +37,11 @@
       "additionalProperties": { "$ref": "#/$defs/option" },
       "description": "Verb-scoped options."
     },
+    "payload": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/option" },
+      "description": "Structured-form-only fields. Populated exclusively via CommandApi.assembleFromStructured — the text-input path doesn't surface these to the matcher. Same field shape as options (type / schema / scope / validators / multiple / default), minus the keyboard-focused fields (short / prepositions / greedy don't apply)."
+    },
     "validators": {
       "type": "array",
       "items": { "$ref": "#/$defs/validatorSpec" },
@@ -142,6 +147,10 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
           "description": "Field name the bound value lands on. Defaults to the option's own name."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Used by payload fields (the structured-form-only family) to declare that the client MUST attach this key. Verb-scoped options ignore this — options are by convention optional."
         },
         "multiple": { "type": "boolean" },
         "default": {},
