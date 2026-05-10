@@ -21,7 +21,7 @@ describe('Material', () => {
     m.setToxicity(['iron-poisoning']);
 
     expect(m.getName()).toBe('iron');
-    expect(m.getDensity()).toBe(7874);
+    expect(m.getDensity().rawValue()).toBe(7874);
     expect(m.getHardness()).toBe(4);
     expect(m.getOpacity()).toBe(1);
     expect(m.getThermalConductivity()).toBe(80);

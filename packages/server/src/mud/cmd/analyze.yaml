@@ -1,0 +1,24 @@
+verbs: [analyze]
+description: "Analyze a physical channel in detail"
+subcommands:
+  light:
+    description: "Analyze light at a location with source breakdown"
+    controller: AnalyzeLightController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer
+  chemistry:
+    description: "Analyze the chemistry of a target"
+    controller: AnalyzeChemistryController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeTangible

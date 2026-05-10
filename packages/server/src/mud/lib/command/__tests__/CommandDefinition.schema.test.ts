@@ -171,3 +171,98 @@ args:
     ).toThrow(/Schema validation failed/);
   });
 });
+
+describe('CommandDefinition Option E (per-subcommand controller)', () => {
+  it('accepts a subcommand with its own `controller:` field', () => {
+    expect(() =>
+      load(`
+verbs: [analyze]
+description: ok
+subcommands:
+  light:
+    controller: AnalyzeLightController
+    description: light
+  chemistry:
+    controller: AnalyzeChemistryController
+    description: chem
+`)
+    ).not.toThrow();
+  });
+
+  it('controllerForSubcommand returns the per-subcommand controller', () => {
+    const cmd = load(`
+verbs: [analyze]
+description: ok
+subcommands:
+  light:
+    controller: AnalyzeLightController
+    description: light
+`);
+    expect(cmd.controllerForSubcommand('light')).toBe('AnalyzeLightController');
+    expect(cmd.controller).toBeUndefined();
+  });
+
+  it('controllerForSubcommand falls back to verb-level controller', () => {
+    const cmd = load(`
+verbs: [settings]
+controller: SettingsController
+description: ok
+subcommands:
+  list:
+    description: list
+  set:
+    description: set
+`);
+    expect(cmd.controllerForSubcommand('list')).toBe('SettingsController');
+    expect(cmd.controllerForSubcommand('set')).toBe('SettingsController');
+  });
+
+  it('per-subcommand controller wins when both are declared', () => {
+    const cmd = load(`
+verbs: [test]
+controller: VerbLevel
+description: ok
+subcommands:
+  fast:
+    controller: SubFast
+    description: fast
+  slow:
+    description: slow
+`);
+    expect(cmd.controllerForSubcommand('fast')).toBe('SubFast');
+    expect(cmd.controllerForSubcommand('slow')).toBe('VerbLevel');
+  });
+
+  it('rejects a verb with no controller and no subcommands', () => {
+    expect(() =>
+      load(`
+verbs: [bogus]
+description: ok
+`)
+    ).toThrow(/must specify a controller/);
+  });
+
+  it('rejects a verb with subcommands that omit per-subcommand controller and no verb-level controller', () => {
+    expect(() =>
+      load(`
+verbs: [bogus]
+description: ok
+subcommands:
+  one:
+    description: one
+`)
+    ).toThrow(/do not declare a per-subcommand controller/);
+  });
+
+  it('still requires verbs even with per-subcommand controllers', () => {
+    expect(() =>
+      load(`
+description: ok
+subcommands:
+  light:
+    controller: X
+    description: light
+`)
+    ).toThrow(/Schema validation failed/);
+  });
+});

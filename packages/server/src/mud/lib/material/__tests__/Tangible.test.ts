@@ -171,5 +171,75 @@ describe('TangibleMixin', () => {
       expect(golem.getMaterial('heart')).toBe(flesh);
       expect(golem.getMaterial()).toBe(oak);
     });
+
+    describe('dotted-prefix inheritance', () => {
+      function withTemplatePath<T extends { templatePath: string | null }>(
+        obj: T,
+        path: string
+      ): T {
+        obj.templatePath = path;
+        StuffApi.unregister(obj as never);
+        StuffApi.register(obj as never);
+        return obj;
+      }
+
+      it('sub-detail without an override inherits its ancestor override', () => {
+        const oak = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/wood/oak'
+        );
+        const iron = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/element/iron'
+        );
+        const axe = makeStuff(() => new Thing());
+        if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
+        axe.setMaterial(oak); // bulk = oak
+        axe.setMaterial(iron, 'head'); // override on 'head'
+
+        // 'head.spine' has no exact override → inherits 'head' = iron.
+        expect(axe.getMaterial('head.spine')).toBe(iron);
+        // 'head.edge.tip' (deeper) inherits 'head' too.
+        expect(axe.getMaterial('head.edge.tip')).toBe(iron);
+      });
+
+      it('exact override wins over the ancestor', () => {
+        const oak = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/wood/oak'
+        );
+        const iron = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/element/iron'
+        );
+        const steel = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/alloy/steel'
+        );
+        const axe = makeStuff(() => new Thing());
+        if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
+        axe.setMaterial(oak);
+        axe.setMaterial(iron, 'head');
+        axe.setMaterial(steel, 'head.edge');
+
+        expect(axe.getMaterial('head')).toBe(iron);
+        expect(axe.getMaterial('head.edge')).toBe(steel);
+        // Sub-detail of the steel edge inherits steel.
+        expect(axe.getMaterial('head.edge.tip')).toBe(steel);
+        // Other branch under 'head' still inherits iron.
+        expect(axe.getMaterial('head.spine')).toBe(iron);
+      });
+
+      it('falls all the way through to the bulk default when no prefix matches', () => {
+        const oak = withTemplatePath(
+          makeStuff(() => new Material()),
+          '/lib/material/wood/oak'
+        );
+        const axe = makeStuff(() => new Thing());
+        if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
+        axe.setMaterial(oak);
+        expect(axe.getMaterial('handle.grip.wrap')).toBe(oak);
+      });
+    });
   });
 });

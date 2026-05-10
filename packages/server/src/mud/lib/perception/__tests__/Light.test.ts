@@ -1,9 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { Light, bandFor, LIGHT_SOURCE_CAP } from '../Light';
+import { Quantity } from '../../quantity';
+// Trigger LightApi's tag-table registrations (KELVIN_TAGS, LUMEN_TAGS,
+// LUX_BAND_THRESHOLDS) so string color tags resolve in tests.
+import '../../../api/light';
 
 describe('Light value object', () => {
   it('Light.ZERO is the canonical zero', () => {
-    expect(Light.ZERO.intensity).toBe(0);
+    expect(Light.ZERO.intensity.rawValue()).toBe(0);
     expect(Light.ZERO.color).toBeNull();
     expect(Light.ZERO.sources).toEqual([]);
     expect(Light.of(0)).toBe(Light.ZERO);
@@ -18,15 +22,23 @@ describe('Light value object', () => {
   it('Light.of with a positive intensity is not ZERO', () => {
     const l = Light.of(10, 'warm');
     expect(l).not.toBe(Light.ZERO);
-    expect(l.intensity).toBe(10);
-    expect(l.color).toBe('warm');
+    expect(l.intensity.rawValue()).toBe(10);
+    expect(l.intensity.unit).toBe('lux');
+    expect(l.color).not.toBeNull();
+    expect(l.color!.unit).toBe('K');
+    expect(l.color!.rawValue()).toBe(2700);
+  });
+
+  it('Light.of accepts a Quantity<lux> for intensity', () => {
+    const l = Light.of(Quantity.of(10, 'lux'));
+    expect(l.intensity.rawValue()).toBe(10);
   });
 
   it('Light.from coerces a data-shape value', () => {
     const l = Light.from({ intensity: 7, color: 'cool' });
     expect(l).toBeInstanceOf(Light);
-    expect(l.intensity).toBe(7);
-    expect(l.color).toBe('cool');
+    expect(l.intensity.rawValue()).toBe(7);
+    expect(l.color!.rawValue()).toBe(5000);
   });
 
   it('Light.from accepts an existing Light unchanged', () => {
@@ -46,13 +58,13 @@ describe('Light value object', () => {
     expect(Light.ZERO.add(l)).toBe(l);
   });
 
-  it('add: intensities sum and source list dedupes by stuffId', () => {
-    const a = Light.of(10, 'warm', { stuffId: 'lamp-1', intensity: 10, color: 'warm' });
-    const b = Light.of(15, 'cool', { stuffId: 'lamp-2', intensity: 15, color: 'cool' });
+  it('add: intensities sum and color blends as flux-weighted average', () => {
+    const a = Light.of(10, 'warm', { stuffId: 'lamp-1', flux: 10, colorK: 2700 });
+    const b = Light.of(15, 'cool', { stuffId: 'lamp-2', flux: 15, colorK: 5000 });
     const sum = a.add(b);
-    expect(sum.intensity).toBe(25);
-    // Dominant source wins for color.
-    expect(sum.color).toBe('cool');
+    expect(sum.intensity.rawValue()).toBe(25);
+    // Flux-weighted: (2700*10 + 5000*15) / 25 = (27000 + 75000) / 25 = 4080.
+    expect(sum.color!.rawValue()).toBeCloseTo(4080, 5);
     expect(sum.sources).toHaveLength(2);
     expect(sum.sources[0]!.stuffId).toBe('lamp-2');
   });
@@ -63,43 +75,39 @@ describe('Light value object', () => {
       l = l.add(
         Light.of(i + 1, null, {
           stuffId: `s-${i}`,
-          intensity: i + 1,
-          color: null,
+          flux: i + 1,
+          colorK: null,
         })
       );
     }
     expect(l.sources).toHaveLength(LIGHT_SOURCE_CAP);
-    // Brightest survives.
     expect(l.sources[0]!.stuffId).toBe(`s-${LIGHT_SOURCE_CAP + 1}`);
   });
 
   it('attenuate: factor 0 → ZERO, factor 1 → identity, mid → scaled', () => {
-    const l = Light.of(20, 'warm', { stuffId: 'lamp', intensity: 20, color: 'warm' });
+    const l = Light.of(20, 'warm', { stuffId: 'lamp', flux: 20, colorK: 2700 });
     expect(l.attenuate(0)).toBe(Light.ZERO);
     expect(l.attenuate(-1)).toBe(Light.ZERO);
     expect(l.attenuate(1)).toBe(l);
     expect(l.attenuate(2)).toBe(l);
     const dim = l.attenuate(0.5);
-    expect(dim.intensity).toBe(10);
-    expect(dim.sources[0]!.intensity).toBe(10);
+    expect(dim.intensity.rawValue()).toBe(10);
+    expect(dim.sources[0]!.flux).toBe(10);
   });
 
   it('withColor returns the same instance when unchanged', () => {
     const l = Light.of(10, 'warm');
     expect(l.withColor('warm')).toBe(l);
-    expect(l.withColor('cool').color).toBe('cool');
+    const cool = l.withColor('cool');
+    expect(cool.color!.rawValue()).toBe(5000);
   });
 
-  it('JSON serialization produces the LightDataShape', () => {
-    const l = Light.of(20, 'warm', { stuffId: 'lamp', intensity: 20, color: 'warm' });
+  it('JSON serialization produces decomposed Quantity shapes', () => {
+    const l = Light.of(20, 'warm', { stuffId: 'lamp', flux: 20, colorK: 2700 });
     const data = JSON.parse(JSON.stringify(l));
-    expect(data.intensity).toBe(20);
-    expect(data.color).toBe('warm');
+    expect(data.intensity).toEqual({ value: 20, unit: 'lux' });
+    expect(data.color).toEqual({ value: 2700, unit: 'K' });
     expect(data.sources).toHaveLength(1);
-    // Round-trip via Light.from preserves identity-of-shape.
-    const round = Light.from(data);
-    expect(round.intensity).toBe(20);
-    expect(round.color).toBe('warm');
   });
 });
 

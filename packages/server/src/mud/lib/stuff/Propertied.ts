@@ -60,6 +60,7 @@ import { Stuff } from './Stuff';
 import { nanoid } from 'nanoid';
 import { Unshadowable } from '../security/decorators';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { Quantity } from '../quantity';
 
 /**
  * Property wrapper for type safety.
@@ -308,6 +309,37 @@ export interface Propertied {
 }
 
 /**
+ * Recognize a `{ value: number, unit: string }` Quantity-shape and
+ * reconstruct via `Quantity.fromJSON`. Narrow match — exactly two own
+ * keys with the right types — so we don't reconstruct arbitrary
+ * `{value, unit}` objects that callers might be storing.
+ */
+function rehydratePropValue(value: PropValue): PropValue {
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    !(value instanceof Quantity)
+  ) {
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (
+      keys.length === 2 &&
+      keys.includes('value') &&
+      keys.includes('unit') &&
+      typeof obj.value === 'number' &&
+      typeof obj.unit === 'string'
+    ) {
+      return Quantity.fromJSON({
+        value: obj.value as number,
+        unit: obj.unit as Parameters<typeof Quantity.fromJSON>[0]['unit'],
+      }) as unknown as PropValue;
+    }
+  }
+  return value;
+}
+
+/**
  * Resolve a mask `owner` from explicit argument or call-stack walk.
  *
  * When `explicit` is provided, returns it. Otherwise walks the
@@ -358,10 +390,40 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Persistent properties (saved to MongoDB). Host-internal; the
-     * Hydrator's bracket-assign goes through this slot, and external
-     * callers go through `setProp` / `getProp`.
+     * Hydrator's bracket-assign routes through the setter so any
+     * Quantity-shaped entries (`{ value, unit }`) are rehydrated to
+     * `Quantity<U>` instances at that boundary. External callers go
+     * through `setProp` / `getProp`.
+     *
+     * Stored on `_savedProps` so the accessor pair can run; the
+     * accessor's `?:` shape is preserved by lazy initialization on
+     * first read.
      */
-    protected savedProps?: Record<string, PropValue> = {};
+    private _savedProps?: Record<string, PropValue> = {};
+
+    protected get savedProps(): Record<string, PropValue> | undefined {
+      return this._savedProps;
+    }
+
+    protected set savedProps(value: Record<string, PropValue> | undefined) {
+      if (value === undefined || value === null) {
+        this._savedProps = value as undefined;
+        return;
+      }
+      if (typeof value !== 'object') {
+        throw new TypeError(
+          `Propertied.savedProps: expected an object, got ${typeof value}`
+        );
+      }
+      // Walk the record and rehydrate Quantity-shapes. Leaves all
+      // other values untouched. Mutates a fresh record so the
+      // hydrator's source data isn't aliased.
+      const out: Record<string, PropValue> = {};
+      for (const key of Object.keys(value)) {
+        out[key] = rehydratePropValue(value[key]!);
+      }
+      this._savedProps = out;
+    }
 
     /**
      * Transient properties (memory only, lost on restart).

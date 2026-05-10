@@ -82,103 +82,166 @@ keep working unchanged.
 
 ## The Light Value Object
 
-`Light` is immutable, factory-constructed, and not a Stuff. It
-carries:
+Wave 2 commits real units. `Light` is immutable, factory-constructed,
+not a Stuff. It carries:
 
-- `intensity: number` — abstract lumens, ≥ 0.
-- `color: ColorTag | null` — atmospheric only. Highest-intensity
-  contributor wins on blend.
+- `intensity: Quantity<'lux'>` — illuminance at the receiving
+  surface. The propagation walk's lumen contributions are divided
+  by the receiving Container's `getSizeScale()` (m²) before being
+  wrapped here.
+- `color: Quantity<'K'> | null` — color temperature, atmospheric
+  only. Multi-source mixing uses the **flux-weighted average**.
 - `sources: readonly LightSourceRef[]` — capped list (3) of
-  contributing sources for prose attribution. **Runtime-only** —
-  populated during the propagation walk for "by the lamp and
-  candle" descriptions; never persisted.
+  contributing sources for prose attribution. Each entry carries
+  `{ stuffId, flux, colorK }`. **Runtime-only** — populated during
+  the propagation walk; never persisted.
 
 Operations:
 
 - `Light.of(intensity, color?, source?)` — primary constructor.
-  `Light.of(0)` returns the canonical `Light.ZERO` singleton.
+  Accepts `number | Quantity<'lux'>` for intensity; string ColorTag
+  / `Quantity<'K'>` / null for color (string ColorTag resolves
+  through KELVIN_TAGS via `Quantity.parse(s, 'K')`). `Light.of(0)`
+  returns the canonical `Light.ZERO`.
 - `Light.from(value)` — coercion utility for externally-sourced
   data shapes (test fixtures, JSON over the wire). NOT used in the
-  persistence path — see "Persistence" below.
-- `add(other)` — sum two Lights. Intensities add; sources merge,
-  cap-3 by intensity; color tracks the dominant source.
+  persistence path.
+- `add(other)` — sum two Lights. Intensities (lux) add via
+  `Quantity.add`; sources merge, cap-3 by flux; color is the
+  flux-weighted average across the merged source list.
 - `attenuate(factor)` — multiply intensity by a 0..1 factor (a
   Boundary's transmissivity, or `EXIT_TAU` for cross-exit
   propagation). `factor ≤ 0 → Light.ZERO`; `factor ≥ 1 → this`.
 - `withColor(color)` — copy with the color overridden.
 
-`LightBand` derivation lives in `bandFor(effective)`. The threshold
-table (initial; tunable):
+`LightBand` derivation lives in `bandFor(luxValue)`. The threshold
+table (lux):
 
-| Effective intensity | Band         |
-|---------------------|--------------|
-| `< 1`               | pitch-black  |
-| `< 5`               | very-dim     |
-| `< 20`              | dim          |
-| `< 60`              | lit          |
-| `< 200`             | bright       |
-| `≥ 200`             | blinding     |
+| Lux value          | Band         |
+|--------------------|--------------|
+| `< 1`              | pitch-black  |
+| `>= 1`, `< 5`      | very-dim     |
+| `>= 5`, `< 20`     | dim          |
+| `>= 20`, `< 60`    | lit          |
+| `>= 60`, `< 200`   | bright       |
+| `>= 200`           | blinding     |
 
-"Effective" means `light.intensity / loc.getSizeScale()` — the
-divisor accounts for room volume so the same total intensity reads
-dimmer in a bigger room.
+These thresholds are also registered as the `LUX_TAGS` tag table on
+`Quantity<'lux'>` (in `api/light.ts`), so
+`light.intensity.tag()` and `bandAt(loc)` agree by construction.
+
+### Calibration — MUD-game scale, not photometric scale
+
+The band thresholds are deliberately compressed for fantasy ambient.
+Real-world lux runs from ~0.01 (moonlight) through ~500 (office
+lighting) to ~120,000 (direct sunlight); ours top out at ~200. This
+keeps fantasy-flux authoring (a candle ~12 lumens, a torch ~50, a
+magic lantern ~200) reading as expected without authors having to
+reach for hundreds of lumens to bump out of the dim bands.
+
+Authoring guidance:
+
+- Storage units are real (lumens for emission and ambient, m² for
+  receiving area, Kelvin for color temperature).
+- Thresholds are MUD-tuned. Tuning is content-driven; revisit when
+  world content stresses the table.
 
 ### `getSizeScale()` per location kind
 
+`getSizeScale()` returns the **effective receiving-surface area in
+m²**. The propagation walk divides accumulated lumens by this scalar
+to produce lux.
+
 - `CartesianLocation.getSizeScale()` — reads its zone's `cellSize`
-  via `getZone()?.getCellSize() ?? 1.0`. The override on
+  (in m²) via `getZone()?.getCellSize() ?? 1.0`. The override on
   `CartesianLocation.getZone()` narrows the return type to
-  `CartesianZone | null` by invariant (a CartesianLocation lives
-  in a CartesianZone — `CartesianZone.addLocation` rejects
-  non-Cartesian locations), so the read site is cast-free.
-- `SphericalLocation.getSizeScale()` — returns its own radius
-  (per-room, not per-zone; spherical zones don't have a cell
-  concept).
+  `CartesianZone | null` by invariant.
+- `SphericalLocation.getSizeScale()` — returns its own radius (in
+  m²; v1 uses the radius scalar directly rather than computing a
+  spherical-shell area, deferring exact-physics fidelity until
+  content needs it).
+
+`cellSize` is interpreted as **area, not linear extent**: a 5m × 5m
+room is `cellSize: 25`, an outdoor plaza `cellSize: 100`, a tight
+alcove `cellSize: 1`. Default is `1.0` m².
+
+### Authoring calibration (typical defaults)
+
+| Room shape                | Suggested `cellSize` (m²) |
+|---------------------------|----------------------------|
+| Tight alcove / closet     | 1                          |
+| Small room (3m × 3m)      | 9                          |
+| Standard room (5m × 5m)   | 25                         |
+| Hall (10m × 6m)           | 60                         |
+| Outdoor plaza             | 100                        |
+
+| Light source                     | Suggested flux (lumens) |
+|----------------------------------|--------------------------|
+| Single candle                    | 10                       |
+| Oil lamp / lantern               | 50                       |
+| Modern bulb (room light)         | 800                      |
+| Magic lantern (fantasy bright)   | 200                      |
+| Direct sunlight (ambient slot)   | 8000                     |
+
+Sample math:
+- Two candles in a tight alcove (cellSize 1): 20 / 1 = 20 lux → `lit`.
+- One candle in a standard room (cellSize 25): 10 / 25 = 0.4 lux → `pitch-black`.
+- A modern bulb in a standard room: 800 / 25 = 32 lux → `lit`.
+- Direct sunlight on a plaza: 8000 / 100 = 80 lux → `bright`.
 
 ## Propagation: `LightApi.lightAt`
 
-The single recursive walk. Bounded, defended against cycles, fully
-lazy.
+The single recursive walk. Internally accumulates **flux** (lumens)
+plus per-source attribution; the public `lightAt` divides by the
+receiving Container's `getSizeScale()` (m²) and wraps as a Light
+with `Quantity<'lux'>` intensity.
 
 ```
-lightAt(loc, depth = 0, visited = new Set<stuffId>()):
-  if depth > MAX_HOPS: return Light.ZERO              // depth budget
-  if visited.has(loc.stuffId): return Light.ZERO       // cycle guard
+walkFluxAt(loc, depth, visited) -> { flux, sources }:
+  if depth > MAX_HOPS: return empty                   // depth budget
+  if visited.has(loc.stuffId): return empty            // cycle guard
   visited.add(loc.stuffId)
+  acc = empty
 
-  total = readAmbientLight(loc)                        // (a) ambient
+  if MixinApi.isAmbientLit(loc):                       // (a) ambient
+    add(acc, loc.getAmbientFlux().rawValue(),
+        loc.getAmbientColor()?.rawValue())
 
   for item in loc.getContents():                       // (b) contents-side emitters
     if MixinApi.isLightSource(item):
-      total = total.add(item.getEmittedLight())
+      add(acc, item.getEmittedFlux().rawValue(),
+          item.getEmittedColor()?.rawValue())
 
   if MixinApi.isAdornable(loc):
     for fx in loc.getFixtureLightSources():            // (c) fixture-side emitters
       if MixinApi.isLightSource(fx):
-        total = total.add(fx.getEmittedLight())
+        add(acc, fx.getEmittedFlux().rawValue(),
+            fx.getEmittedColor()?.rawValue())
 
     for anchor in BoundaryAnchors among loc.getFixtures():
       boundary = anchor.getBoundary()                  // (d) cross-boundary propagation
       conduit  = boundary.getConduits().find(c => c.kind === 'light')
-      otherHost = anchor.getOtherHost()
-      otherSide = boundary.getOtherSide(anchor)
       tau = conduit.transmissivity(otherSide, anchor.side)
       if tau > 0:
-        contribution = lightAt(otherHost, depth+1, visited).attenuate(tau)
-        total = total.add(contribution)
+        sub = walkFluxAt(otherHost, depth+1, visited)
+        merge(acc, sub, tau)                            // flux scales by tau
 
   if MixinApi.isExitable(loc):
     for exit in loc.getObviousExits():                 // (e) cross-exit propagation
       if exit.getDoor(): continue                      //   (skip — Door's Boundary handles it)
-      // eviction defense:
-      if path-only && not loaded: continue
-      contribution = lightAt(exit.getDestination(), depth+1, visited).attenuate(EXIT_TAU)
-      total = total.add(contribution)
+      sub = walkFluxAt(exit.getDestination(), depth+1, visited)
+      merge(acc, sub, EXIT_TAU)
 
-  return total
+  return acc
+
+lightAt(loc):
+  acc = walkFluxAt(loc, 0, new Set<stuffId>())
+  lux = acc.flux / loc.getSizeScale()                   // lumens / m²
+  color = fluxWeightedAverage(acc.sources)              // Quantity<'K'> | null
+  return Light.from({ intensity: Quantity.of(lux, 'lux'), color, sources })
 
 bandAt(loc):
-  return bandFor(lightAt(loc).intensity / loc.getSizeScale())
+  return bandFor(lightAt(loc).intensity.rawValue())
 ```
 
 Constants:
@@ -219,35 +282,43 @@ currently loaded — reads as ZERO rather than paging in.
 
 ## `LightSourceMixin` and `AmbientLitMixin`
 
-Both follow the same shape: a Light value object exposed at the
+Both follow the same shape: typed Quantity values exposed at the
 runtime API, decomposed into named scalar fields for storage per
-the persistence subsystem's scalar-default rule.
+the persistence subsystem's scalar-default rule. The setter
+accepts numeric / string / Quantity input for authoring ergonomics;
+storage is always primitive scalars.
 
 **`AmbientLitMixin`:**
 
-- Persistent: `ambientIntensity: number`, `ambientColor: ColorTag | null`.
-- Runtime: `getAmbientLight(): Light` reconstructs via
-  `Light.of(intensity, color)`. `setAmbientLight(value: Light)` is
-  strict — rejects anything but a `Light` instance. Decomposes
-  into the two stored scalars.
-- The `Light.sources` array is dropped on store — sources are
-  attribution data accumulated during the walk, not authoring
-  input on a stored ambient.
+- Persistent: `ambientIntensity: number` (lumens),
+  `ambientColor: number | null` (Kelvin).
+- Runtime:
+  - `getAmbientFlux(): Quantity<'lumen'>`
+  - `setAmbientFlux(Quantity<'lumen'> | number | string)` — string
+    routes through `Quantity.parse(s, 'lumen')` so LUMEN_TAGS
+    (`'glow'`, `'lamp'`, `'bright'`, …) round-trip via authoring.
+  - `getAmbientColor(): Quantity<'K'> | null`
+  - `setAmbientColor(Quantity<'K'> | string | number | null)` —
+    string routes through `Quantity.parse(s, 'K')` so KELVIN_TAGS
+    (`'warm'`, `'neutral'`, `'cool'`, …) round-trip.
 
 **`LightSourceMixin`:**
 
-- Persistent: `emittedIntensity: number`, `emittedColor: ColorTag | null`.
-- Runtime: same shape.
-- Witness hook: `setEmittedLight` fires `onLightSourceChanged(source,
-  oldEmission, newEmission)` on the immediate environment when the
-  reconstructed Light differs (intensity OR color changed). v1
-  fans out to the IMMEDIATE environment only — no walk-up to outer
-  Containers. A future caching layer may widen this radius.
+- Persistent: `emittedIntensity: number` (lumens),
+  `emittedColor: number | null` (Kelvin).
+- Runtime: `getEmittedFlux` / `setEmittedFlux` /
+  `getEmittedColor` / `setEmittedColor` — same shapes as ambient.
+- Witness hook: `setEmittedFlux` and `setEmittedColor` fire
+  `onLightSourceChanged(source, oldFlux, newFlux, oldColor,
+  newColor)` on the immediate environment when the stored value
+  actually changes. v1 fans out to the IMMEDIATE environment only —
+  no walk-up to outer Containers. A future caching layer may widen
+  this radius.
 
-To "extinguish" a source: `source.setEmittedLight(Light.ZERO)`.
-To "ignite": `source.setEmittedLight(Light.of(...))`. There is no
-`Switchable` composition, no fuel state, no `light X` verb in v1 —
-that's content-authoring layered on top of this physics surface.
+To "extinguish" a source: `source.setEmittedFlux(0)`. To "ignite":
+`source.setEmittedFlux(50)` (or any positive lumen value). There is
+no `Switchable` composition, no fuel state, no `light X` verb in
+v1 — that's content-authoring layered on top of this physics surface.
 
 ## Boundary Substrate
 

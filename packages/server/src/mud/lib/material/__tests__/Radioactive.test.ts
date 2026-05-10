@@ -88,10 +88,10 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     u.setName('uranium');
     u.setDensity(19050);
     u.setTags(['element', 'metal', 'actinide', 'radioactive']);
-    u.setChemistry({ symbol: 'U', atomicNumber: 92, atomicMass: 238.029 });
+    u.setChemistry({ symbol: 'U', atomicNumber: 92, molarMass: 238.029 });
 
     expect(u.getName()).toBe('uranium');
-    expect(u.getDensity()).toBe(19050);
+    expect(u.getDensity().rawValue()).toBe(19050);
     expect(u.hasTag('radioactive')).toBe(true);
     expect(u.getChemistry()?.symbol).toBe('U');
   });

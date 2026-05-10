@@ -2,40 +2,32 @@
  * AmbientLitMixin — inherent ambient light a Container exposes
  * regardless of what's inside it.
  *
- * The propagation walk uses each receiving location's
- * `getAmbientLight()` as a starting point before adding contributions
- * from contents, fixtures, and cross-boundary propagation. Underground
- * rooms keep `Light.ZERO` (the default); outdoor rooms author a stored
- * value. The method form (not a property) leaves room for a future
- * outdoor-time-of-day override on the same name without churning the
- * call sites.
+ * The propagation walk reads `getAmbientFlux()` (lumens) at each
+ * receiving location and aggregates with contents-side / fixture-side
+ * emitter contributions. The walk divides by the receiving
+ * Container's `getSizeScale()` (m²) to produce a `Quantity<'lux'>`
+ * for the public `Light` shape; ambient storage stays in flux units
+ * for direct accumulation. Underground rooms keep `0 lumen` (the
+ * default); outdoor rooms author a stored value.
  *
  * Persistence — scalar-default rule.
  *
- * The ambient `Light` value decomposes into two scalar persistent
- * fields: `ambientIntensity` (number, ≥ 0) and `ambientColor`
- * (`ColorTag | null`). The `Light.sources` array is runtime-only —
- * sources accumulate during the propagation walk, never on stored
- * ambient — so it doesn't appear in storage at all. The
- * `getAmbientLight()` getter reconstructs a `Light` instance on
- * read; `setAmbientLight(value: Light)` is strict (rejects anything
- * but a `Light`) and decomposes the value into the two scalars for
- * storage.
- *
- * The runtime-vs-storage split keeps the `PersistentHydrator`'s
- * bracket-assign dumb — it lands two scalars through their accessor
- * pairs, each setter validating shape independently. No marshaller
- * needed; no `LightDataShape` union on the public setter.
+ * Two scalar persistent fields: `ambientIntensity` (number, ≥ 0;
+ * lumens) and `ambientColor` (number | null; Kelvin). Setter coercion
+ * accepts numeric / string / Quantity input for ergonomics; storage
+ * is always primitive scalars.
  */
 
 import type { MixinConstructor } from '../mixin';
-import { Light } from './Light';
+import { Quantity } from '../quantity';
 import type { ColorTag } from './Light';
 
 /** Public shape added by AmbientLitMixin. */
 export interface AmbientLit {
-  getAmbientLight(): Light;
-  setAmbientLight(value: Light): void;
+  getAmbientFlux(): Quantity<'lumen'>;
+  setAmbientFlux(value: Quantity<'lumen'> | number | string): void;
+  getAmbientColor(): Quantity<'K'> | null;
+  setAmbientColor(value: Quantity<'K'> | ColorTag | number | null): void;
 }
 
 export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -44,18 +36,16 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['ambientIntensity', 'ambientColor'];
 
-    /** Backing storage for the `ambientIntensity` accessor pair. */
+    /** Backing storage for the lumen scalar. */
     private _ambientIntensity: number = 0;
-    /** Backing storage for the `ambientColor` accessor pair. */
-    private _ambientColor: ColorTag | null = null;
+    /** Backing storage for the Kelvin color-temperature scalar. */
+    private _ambientColorK: number | null = null;
 
     /**
-     * Host-internal accessor pair (Pattern D) for the intensity
-     * scalar. The hydrator's bracket-assign
-     * `target['ambientIntensity'] = data.ambientIntensity` fires this
-     * setter, so a malformed template (negative, NaN, non-number)
-     * crashes loudly at hydrate time rather than corrupting runtime
-     * state.
+     * Host-internal accessor pair for the lumen scalar. The
+     * hydrator's bracket-assign fires this setter, so a malformed
+     * template (negative, NaN, non-number) crashes loudly at hydrate
+     * time rather than corrupting runtime state.
      */
     protected get ambientIntensity(): number {
       return this._ambientIntensity;
@@ -70,48 +60,113 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Host-internal accessor pair for the color tag. Setter validates
-     * the runtime shape — string-or-null only.
+     * Host-internal accessor pair for the Kelvin scalar. Hydration
+     * accepts numeric K, a tag string (`'warm'` resolves through the
+     * Kelvin tag table), or null.
      */
-    protected get ambientColor(): ColorTag | null {
-      return this._ambientColor;
+    protected get ambientColor(): number | null {
+      return this._ambientColorK;
     }
-    protected set ambientColor(value: ColorTag | null) {
-      if (value !== null && typeof value !== 'string') {
-        throw new TypeError(
-          `AmbientLitMixin.ambientColor must be a string ColorTag or null, got ${typeof value}`
-        );
+    protected set ambientColor(value: number | string | null) {
+      if (value === null || value === undefined) {
+        this._ambientColorK = null;
+        return;
       }
-      this._ambientColor = value;
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+          throw new TypeError(
+            `AmbientLitMixin.ambientColor: numeric value must be finite, got ${value}`
+          );
+        }
+        this._ambientColorK = value;
+        return;
+      }
+      if (typeof value === 'string') {
+        this._ambientColorK = Quantity.parse(value, 'K').rawValue();
+        return;
+      }
+      throw new TypeError(
+        `AmbientLitMixin.ambientColor must be number | string | null, got ${typeof value}`
+      );
+    }
+
+    /** Lumen-typed runtime API. Reads the stored scalar each call. */
+    getAmbientFlux(): Quantity<'lumen'> {
+      return Quantity.of(this._ambientIntensity, 'lumen');
     }
 
     /**
-     * Reconstruct a `Light` instance from the stored scalars. Returns
-     * `Light.ZERO` when both scalars are at their defaults — keeps
-     * the canonical-zero singleton property of the value class.
+     * Strict-shape setter. Accepts Quantity<'lumen'>, numeric
+     * lumens, or a tag string (LUMEN_TAGS lookup).
      */
-    getAmbientLight(): Light {
-      if (this._ambientIntensity === 0 && this._ambientColor === null) {
-        return Light.ZERO;
+    setAmbientFlux(value: Quantity<'lumen'> | number | string): void {
+      if (value instanceof Quantity) {
+        if (value.unit !== 'lumen') {
+          throw new TypeError(
+            `AmbientLitMixin: expected Quantity<'lumen'>, got Quantity<'${value.unit}'>`
+          );
+        }
+        this._ambientIntensity = value.rawValue();
+        return;
       }
-      return Light.of(this._ambientIntensity, this._ambientColor);
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value) || value < 0) {
+          throw new Error(
+            `AmbientLitMixin: ambient flux must be non-negative finite, got ${value}`
+          );
+        }
+        this._ambientIntensity = value;
+        return;
+      }
+      if (typeof value === 'string') {
+        this._ambientIntensity = Quantity.parse(value, 'lumen').rawValue();
+        return;
+      }
+      throw new TypeError(
+        `AmbientLitMixin: ambient flux must be Quantity | number | string, got ${typeof value}`
+      );
+    }
+
+    /** Kelvin-typed runtime API for ambient color temperature. */
+    getAmbientColor(): Quantity<'K'> | null {
+      if (this._ambientColorK === null) return null;
+      return Quantity.of(this._ambientColorK, 'K');
     }
 
     /**
-     * Strict runtime API — accepts only a `Light` value object.
-     * Decomposes into the two stored scalars. `Light.sources` is
-     * runtime-only and dropped here (ambient lights never carry
-     * source attribution; sources accumulate during the propagation
-     * walk).
+     * Color temperature setter. Accepts Quantity<'K'>, numeric K,
+     * a tag string, or null.
      */
-    setAmbientLight(value: Light): void {
-      if (!(value instanceof Light)) {
-        throw new TypeError(
-          `AmbientLitMixin.setAmbientLight: expected a Light, got ${typeof value}`
-        );
+    setAmbientColor(value: Quantity<'K'> | ColorTag | number | null): void {
+      if (value === null || value === undefined) {
+        this._ambientColorK = null;
+        return;
       }
-      this._ambientIntensity = value.intensity;
-      this._ambientColor = value.color;
+      if (value instanceof Quantity) {
+        if (value.unit !== 'K') {
+          throw new TypeError(
+            `AmbientLitMixin: expected Quantity<'K'>, got Quantity<'${value.unit}'>`
+          );
+        }
+        this._ambientColorK = value.rawValue();
+        return;
+      }
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+          throw new TypeError(
+            `AmbientLitMixin.setAmbientColor: numeric value must be finite, got ${value}`
+          );
+        }
+        this._ambientColorK = value;
+        return;
+      }
+      if (typeof value === 'string') {
+        this._ambientColorK = Quantity.parse(value, 'K').rawValue();
+        return;
+      }
+      throw new TypeError(
+        `AmbientLitMixin.setAmbientColor: must be Quantity | string | number | null, got ${typeof value}`
+      );
     }
   };
 }

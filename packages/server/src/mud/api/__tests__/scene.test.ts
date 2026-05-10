@@ -325,3 +325,57 @@ describe('Scene attribution stamping', () => {
     expect(alice.received[0]!.meta.causingCommandId).toBeUndefined();
   });
 });
+
+describe('Scene per-recipient body materialization (Step B)', () => {
+  it('renders Mml body once per recipient with the recipient as viewer', () => {
+    const location = makeStuff(() => new Location());
+    const alice = makeStuff(() => new CapSensor());
+    alice.setName('Alice');
+    const bob = makeStuff(() => new CapSensor());
+    bob.setName('Bob');
+    const carol = makeStuff(() => new CapSensor());
+    carol.setName('Carol');
+    ContainmentApi.move(alice, location);
+    ContainmentApi.move(bob, location);
+    ContainmentApi.move(carol, location);
+
+    // A value whose toMml output depends on the viewer.
+    const viewerAware = {
+      toMml: (viewer?: unknown) => {
+        const id = (viewer as { stuffId?: string } | undefined)?.stuffId;
+        return Mml.fromMarkup(`<v>${id ?? 'none'}</v>`);
+      },
+    };
+
+    MessageApi.scene(alice)
+      .topic('x')
+      .toPeers(Mml.compose`hi ${viewerAware}`)
+      .send();
+
+    expect(alice.received).toHaveLength(0);
+    expect(bob.received).toHaveLength(1);
+    expect(carol.received).toHaveLength(1);
+    // Each peer's body carries their own stuffId — proves per-recipient
+    // body materialization with the recipient as `viewer`.
+    expect(bob.received[0]!.body).toBe(`hi <v>${bob.stuffId}</v>`);
+    expect(carol.received[0]!.body).toBe(`hi <v>${carol.stuffId}</v>`);
+  });
+
+  it('threads viewer to toSelf body', () => {
+    const location = makeStuff(() => new Location());
+    const alice = makeStuff(() => new CapSensor());
+    ContainmentApi.move(alice, location);
+
+    const viewerAware = {
+      toMml: (viewer?: unknown) =>
+        Mml.fromMarkup(
+          `<v>${(viewer as { stuffId?: string } | undefined)?.stuffId ?? 'none'}</v>`
+        ),
+    };
+    MessageApi.scene(alice)
+      .topic('x')
+      .toSelf(Mml.compose`self ${viewerAware}`)
+      .send();
+    expect(alice.received[0]!.body).toBe(`self <v>${alice.stuffId}</v>`);
+  });
+});

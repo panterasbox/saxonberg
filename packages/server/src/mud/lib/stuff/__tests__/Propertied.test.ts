@@ -16,6 +16,7 @@ import { Stuff } from '../Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Quantity } from '../../quantity';
 
 // Test class with PropertiedMixin.
 // Subclass-level test seams: `peekSavedProps()` / `peekTransientProps()`
@@ -1195,6 +1196,54 @@ describe('PropertiedMixin', () => {
       expect(obj.peekSavedProps()!['saved']).toBe('persistent');
       expect(obj.peekTransientProps()['trans']).toBe('transient');
       expect(obj.peekTransientProps()['saved']).toBeUndefined();
+    });
+  });
+
+  describe('Quantity round-trip (Step C)', () => {
+    it('rehydrates {value, unit} entries to Quantity instances on savedProps assign', async () => {
+      const { Quantity } = await import('../../quantity');
+      // Simulate what the PersistentHydrator does: bracket-assign a
+      // raw record onto `savedProps`, with one entry shaped like the
+      // JSON form Quantity.toJSON produces.
+      const restored = makeStuff(() => new PropertiedThing());
+      // Bracket-assign through the protected setter.
+      (restored as unknown as { savedProps: Record<string, unknown> }).savedProps = {
+        'test.mass': { value: 5, unit: 'kg' },
+        'unrelated.scalar': 42,
+      };
+      const massProp = Property.of<object>('test.mass');
+      const massValue = restored.getProp(massProp);
+      expect(massValue).toBeInstanceOf(Quantity);
+      const q = massValue as Quantity<'kg'>;
+      expect(q.rawValue()).toBe(5);
+      expect(q.unit).toBe('kg');
+      // Non-Quantity entries pass through unchanged.
+      const scalar = restored.getProp(Property.of<number>('unrelated.scalar'));
+      expect(scalar).toBe(42);
+    });
+
+    it('round-trips a Quantity through JSON.stringify + savedProps assign', async () => {
+      const { Quantity } = await import('../../quantity');
+      const original = makeStuff(() => new PropertiedThing());
+      const massProp = Property.of<object>('test.mass');
+      original.initProp(massProp, { transient: false });
+      original.setProp(massProp, Quantity.of(12, 'kg'));
+      const json = JSON.parse(JSON.stringify(original.peekSavedProps()));
+      const restored = makeStuff(() => new PropertiedThing());
+      (restored as unknown as { savedProps: Record<string, unknown> }).savedProps = json;
+      const restoredQ = restored.getProp(massProp) as Quantity<'kg'>;
+      expect(restoredQ).toBeInstanceOf(Quantity);
+      expect(restoredQ.equals(Quantity.of(12, 'kg'))).toBe(true);
+    });
+
+    it('does not reconstruct arbitrary {value, unit} objects', async () => {
+      // Narrow shape: rejects extra keys.
+      const restored = makeStuff(() => new PropertiedThing());
+      (restored as unknown as { savedProps: Record<string, unknown> }).savedProps = {
+        'foo': { value: 5, unit: 'kg', extra: true },
+      };
+      const v = restored.getProp(Property.of<object>('foo'));
+      expect(v).toEqual({ value: 5, unit: 'kg', extra: true });
     });
   });
 });

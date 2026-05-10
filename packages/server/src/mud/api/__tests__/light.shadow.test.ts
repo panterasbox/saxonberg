@@ -84,7 +84,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(40));
+    room.setAmbientFlux(40);
     const viewer = await StuffApi.create(() => new TestObserver());
 
     expect(LightApi.perceivedBand(viewer, room)).toBe('lit');
@@ -94,7 +94,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(60));
+    room.setAmbientFlux(60);
     const viewer = await StuffApi.create(() => new TestObserver());
     const target = makeStuff(() => new Candle());
     ContainmentApi.move(target, room);
@@ -111,7 +111,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(2)); // very-dim raw
+    room.setAmbientFlux(2); // very-dim raw
 
     const viewer = await StuffApi.create(() => new TestObserver());
     expect(LightApi.perceivedBand(viewer, room)).toBe('very-dim');
@@ -128,7 +128,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(60)); // 'lit' raw
+    room.setAmbientFlux(60); // 'lit' raw
 
     const viewer = await StuffApi.create(() => new TestObserver());
 
@@ -168,7 +168,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    room.setAmbientLight(Light.of(40));
+    room.setAmbientFlux(40);
 
     const a = await StuffApi.create(() => new TestObserver());
     const b = await StuffApi.create(() => new TestObserver());
@@ -198,19 +198,19 @@ describe('LightApi.canSee — detail levels and overrides', () => {
     expect(LightApi.canSee(viewer, target, 'shape')).toBe(false);
     expect(LightApi.canSee(viewer, target, 'fine')).toBe(false);
 
-    room.setAmbientLight(Light.of(2)); // very-dim
+    room.setAmbientFlux(2); // very-dim
     expect(LightApi.canSee(viewer, target, 'shape')).toBe(true);
     expect(LightApi.canSee(viewer, target, 'figure')).toBe(false);
 
-    room.setAmbientLight(Light.of(10)); // dim
+    room.setAmbientFlux(10); // dim
     expect(LightApi.canSee(viewer, target, 'figure')).toBe(true);
     expect(LightApi.canSee(viewer, target, 'detail')).toBe(false);
 
-    room.setAmbientLight(Light.of(40)); // lit
+    room.setAmbientFlux(40); // lit
     expect(LightApi.canSee(viewer, target, 'detail')).toBe(true);
     expect(LightApi.canSee(viewer, target, 'fine')).toBe(false);
 
-    room.setAmbientLight(Light.of(100)); // bright
+    room.setAmbientFlux(100); // bright
     expect(LightApi.canSee(viewer, target, 'fine')).toBe(true);
   });
 

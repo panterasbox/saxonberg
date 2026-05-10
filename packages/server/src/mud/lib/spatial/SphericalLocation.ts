@@ -45,10 +45,12 @@ export class SphericalLocation extends SphericalLocationBase {
   }
 
   /**
-   * Spatial scale used by `LightApi.bandAt`. For a spherical room
-   * the scale is the room's own radius (the focus index of a
-   * spherical zone is purely positional). A bigger sphere means
-   * the same total light reads dimmer.
+   * Effective receiving-surface area used by `LightApi.lightAt` to
+   * convert accumulated lumens to lux. v1 commits to the room's own
+   * radius (interpreted as m²) — bigger spheres read dimmer for the
+   * same total flux. The exact-physics version (full surface area
+   * `4πr²` or a cross-section) is deferred until content needs the
+   * fidelity; a single scalar keeps the propagation walk simple.
    */
   public getSizeScale(): number {
     return this.getRadius();

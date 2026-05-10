@@ -25,6 +25,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Sensor } from '../lib/message/Sensor';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 
@@ -43,43 +44,59 @@ function escapeText(text: string): string {
 
 /**
  * Render an interpolated value into its escaped, MML-safe string form.
- * Mml fragments emit verbatim; everything else is coerced and escaped.
+ * Mml fragments emit verbatim; objects with `toMml(viewer?)` get
+ * unwrapped (viewer threaded through for per-recipient late binding —
+ * Quantity, future pedagogical-seam-aware values); everything else is
+ * coerced and escaped.
  */
-function renderValue(value: unknown): string {
+function renderValue(value: unknown, viewer?: Stuff & Sensor): string {
   if (value === null || value === undefined) return '';
-  if (value instanceof Mml) return value.toString();
+  if (value instanceof Mml) return value.toString(viewer);
   if (
     typeof value === 'object' &&
     value !== null &&
     typeof (value as { toMml?: unknown }).toMml === 'function'
   ) {
-    const fragment = (value as { toMml: () => unknown }).toMml();
-    if (fragment instanceof Mml) return fragment.toString();
+    const fragment = (value as { toMml: (v?: unknown) => unknown }).toMml(viewer);
+    if (fragment instanceof Mml) return fragment.toString(viewer);
     return escapeText(String(fragment));
   }
   return escapeText(String(value));
 }
+
+/**
+ * Internal payload — `Mml` carries one of these. `'eager'` is the
+ * existing pre-rendered-string path (used by `fromMarkup` and the
+ * vocabulary helpers, both of which already produced markup at
+ * construction time). `'lazy'` is the `compose`-time deferred form:
+ * holds the template parts and value list, materializes per-call in
+ * `toString(viewer?)` so per-value `toMml(viewer)` runs at
+ * serialization rather than composition.
+ */
+type MmlPayload =
+  | { kind: 'eager'; raw: string }
+  | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] };
 
 export class Mml {
   /**
    * Private constructor. Use `Mml.compose` for value-driven composition
    * (escapes raw strings) or `Mml.fromMarkup` for trusted MML input.
    */
-  private constructor(private readonly raw: string) {}
+  private constructor(private readonly payload: MmlPayload) {}
 
   /**
    * Compose from values via tagged template. Raw strings are escaped;
-   * Mml fragments emit verbatim; objects with `toMml()` get unwrapped.
+   * Mml fragments emit verbatim; objects with `toMml(viewer?)` get
+   * unwrapped at `toString(viewer?)` time — composition is lazy so a
+   * per-recipient render path threads the viewer through to value-side
+   * `toMml`.
    */
   static compose(strings: TemplateStringsArray, ...values: unknown[]): Mml {
-    let out = '';
-    for (let i = 0; i < strings.length; i++) {
-      out += strings[i];
-      if (i < values.length) {
-        out += renderValue(values[i]);
-      }
-    }
-    return new Mml(out);
+    return new Mml({
+      kind: 'lazy',
+      strings: Array.from(strings),
+      values,
+    });
   }
 
   /**
@@ -88,7 +105,7 @@ export class Mml {
    * assembly. Misuse = injection. Grep `Mml.fromMarkup` to audit.
    */
   static fromMarkup(raw: string): Mml {
-    return new Mml(raw);
+    return new Mml({ kind: 'eager', raw });
   }
 
   /**
@@ -101,14 +118,14 @@ export class Mml {
    */
   static name(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'something');
-    return new Mml(
+    return Mml.fromMarkup(
       `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
     );
   }
 
   /** Wrap text in `<speech>"..."</speech>`, escaping the inner text. */
   static speech(text: string): Mml {
-    return new Mml(`<speech>"${escapeText(text)}"</speech>`);
+    return Mml.fromMarkup(`<speech>"${escapeText(text)}"</speech>`);
   }
 
   /**
@@ -117,14 +134,14 @@ export class Mml {
    */
   static location(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'somewhere');
-    return new Mml(
+    return Mml.fromMarkup(
       `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
     );
   }
 
   /** Render a direction (e.g., 'north') inside `<direction>` tags. */
   static direction(d: string): Mml {
-    return new Mml(`<direction>${escapeText(d)}</direction>`);
+    return Mml.fromMarkup(`<direction>${escapeText(d)}</direction>`);
   }
 
   /**
@@ -134,7 +151,7 @@ export class Mml {
    */
   static object(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'something');
-    return new Mml(
+    return Mml.fromMarkup(
       `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
     );
   }
@@ -145,7 +162,7 @@ export class Mml {
    */
   static item(stuff: Stuff): Mml {
     const display = DescribeApi.getDisplayName(stuff, 'an item');
-    return new Mml(
+    return Mml.fromMarkup(
       `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
     );
   }
@@ -155,13 +172,13 @@ export class Mml {
    * Empty list emits `nothing`. Single item emits as-is.
    */
   static list(items: Mml[]): Mml {
-    if (items.length === 0) return new Mml('nothing');
-    if (items.length === 1) return new Mml(items[0]!.toString());
+    if (items.length === 0) return Mml.fromMarkup('nothing');
+    if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
     if (items.length === 2) {
-      return new Mml(`${items[0]!.toString()} and ${items[1]!.toString()}`);
+      return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
     }
     const head = items.slice(0, -1).map((i) => i.toString()).join(', ');
-    return new Mml(`${head}, and ${items[items.length - 1]!.toString()}`);
+    return Mml.fromMarkup(`${head}, and ${items[items.length - 1]!.toString()}`);
   }
 
   /**
@@ -221,12 +238,39 @@ export class Mml {
     return out;
   }
 
-  toString(): string {
-    return this.raw;
+  /**
+   * Materialize this Mml fragment to a wire string. Eager fragments
+   * return their pre-rendered markup; lazy fragments (built via
+   * `Mml.compose`) walk the template parts and resolve each value
+   * through `renderValue(value, viewer)` so per-recipient `toMml`
+   * implementations see the recipient.
+   *
+   * Viewer is forward-compatible with the deferred pedagogical-seam
+   * setting and with any future per-viewer prose differentiation. v1
+   * propagates the parameter without consulting it inside the
+   * shipped `toMml` implementations.
+   */
+  toString(viewer?: Stuff & Sensor): string {
+    if (this.payload.kind === 'eager') return this.payload.raw;
+    let out = '';
+    const { strings, values } = this.payload;
+    for (let i = 0; i < strings.length; i++) {
+      out += strings[i];
+      if (i < values.length) {
+        out += renderValue(values[i], viewer);
+      }
+    }
+    return out;
   }
 
+  /**
+   * `JSON.stringify` hook. Materializes with no viewer (the same
+   * viewer-less default a no-arg `toString()` produces). Persistence
+   * paths reach `toJSON()` only on already-eager strings; treat as
+   * the viewer-agnostic snapshot.
+   */
   toJSON(): string {
-    return this.raw;
+    return this.toString();
   }
 }
 

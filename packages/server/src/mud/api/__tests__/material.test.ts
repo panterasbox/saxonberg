@@ -92,7 +92,7 @@ describe('MaterialApi v2 — classification queries', () => {
     );
     iron.setName('iron');
     iron.setTags(['element', 'metal', 'ferrous']);
-    iron.setChemistry({ symbol: 'Fe', atomicNumber: 26, atomicMass: 55.845 });
+    iron.setChemistry({ symbol: 'Fe', atomicNumber: 26, molarMass: 55.845 });
 
     const carbon = withTemplatePath(
       makeStuff(() => new Material()),
@@ -100,7 +100,7 @@ describe('MaterialApi v2 — classification queries', () => {
     );
     carbon.setName('carbon');
     carbon.setTags(['element', 'non-metal']);
-    carbon.setChemistry({ symbol: 'C', atomicNumber: 6, atomicMass: 12.011 });
+    carbon.setChemistry({ symbol: 'C', atomicNumber: 6, molarMass: 12.011 });
 
     const steel = withTemplatePath(
       makeStuff(() => new Material()),

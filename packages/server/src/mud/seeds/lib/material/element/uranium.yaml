@@ -34,7 +34,7 @@ data:
   chemistry:
     symbol: U
     atomicNumber: 92
-    atomicMass: 238.029
+    molarMass: 238.029
   biologicalSource: null
   halfLife: 4.468e9
   decayMode: alpha

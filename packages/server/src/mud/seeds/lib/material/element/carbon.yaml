@@ -27,5 +27,5 @@ data:
   chemistry:
     symbol: C
     atomicNumber: 6
-    atomicMass: 12.011
+    molarMass: 12.011
   biologicalSource: null

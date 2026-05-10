@@ -211,3 +211,71 @@ describe('Mml — escaping precedence', () => {
   });
 });
 
+describe('Mml.compose — lazy evaluation (Step B)', () => {
+  it('defers value materialization to toString', () => {
+    let calls = 0;
+    const value = {
+      toMml: () => {
+        calls += 1;
+        return Mml.fromMarkup('<x>v</x>');
+      },
+    };
+    const m = Mml.compose`a ${value} b`;
+    // Composition is lazy: nothing rendered until toString.
+    expect(calls).toBe(0);
+    expect(m.toString()).toBe('a <x>v</x> b');
+    expect(calls).toBe(1);
+    // Re-rendering re-invokes — that's the per-recipient seam.
+    m.toString();
+    expect(calls).toBe(2);
+  });
+
+  it('threads viewer through to toMml on values', () => {
+    const seen: unknown[] = [];
+    const value = {
+      toMml: (viewer?: unknown) => {
+        seen.push(viewer);
+        return Mml.fromMarkup(`<seen>${viewer ? 'with' : 'no'}</seen>`);
+      },
+    };
+    const m = Mml.compose`hi ${value}`;
+    const fakeViewer = { stuffId: 'v-1' } as unknown as Parameters<
+      typeof m.toString
+    >[0];
+    expect(m.toString()).toBe('hi <seen>no</seen>');
+    expect(m.toString(fakeViewer)).toBe('hi <seen>with</seen>');
+    expect(seen).toEqual([undefined, fakeViewer]);
+  });
+
+  it('threads viewer through nested Mml.compose', () => {
+    const value = {
+      toMml: (viewer?: { stuffId?: string }) =>
+        Mml.fromMarkup(`<v>${viewer?.stuffId ?? 'none'}</v>`),
+    };
+    const inner = Mml.compose`leaf:${value}`;
+    const outer = Mml.compose`outer{${inner}}`;
+    const v = { stuffId: 'r-1' } as unknown as Parameters<
+      typeof outer.toString
+    >[0];
+    expect(outer.toString(v)).toBe('outer{leaf:<v>r-1</v>}');
+  });
+
+  it('toJSON snapshots without a viewer', () => {
+    const value = {
+      toMml: (viewer?: { stuffId?: string }) =>
+        Mml.fromMarkup(`<v>${viewer?.stuffId ?? 'none'}</v>`),
+    };
+    const m = Mml.compose`x:${value}`;
+    expect(JSON.stringify(m)).toBe('"x:<v>none</v>"');
+  });
+
+  it('eager fromMarkup ignores viewer', () => {
+    const m = Mml.fromMarkup('<x>raw</x>');
+    const v = { stuffId: 'v-1' } as unknown as Parameters<
+      typeof m.toString
+    >[0];
+    expect(m.toString()).toBe('<x>raw</x>');
+    expect(m.toString(v)).toBe('<x>raw</x>');
+  });
+});
+

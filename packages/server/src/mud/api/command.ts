@@ -547,9 +547,16 @@ export interface OptionDefinition {
 /**
  * YAML subcommand definition. Positionals come from the ordered
  * `args:` array; options are an unordered map keyed by option name.
+ *
+ * `controller:` (Option E) is the per-subcommand override — when
+ * present the framework clones that controller template instead of
+ * the verb-level `controller`. Existing subcommanded verbs
+ * (`settings`, `alias`, `var`, `help`, `player`) leave it absent
+ * and continue to share their verb-level controller.
  */
 export interface SubcommandDefinition {
   description?: string;
+  controller?: string;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
 }
@@ -569,7 +576,12 @@ export interface SubcommandDefinition {
  */
 export interface CommandView {
   verbs: string[];
-  controller: string;
+  /**
+   * Verb-level controller template name. Optional only when every
+   * subcommand declares its own `controller:` (Option E — the verb
+   * has no meaningful bare-verb behavior).
+   */
+  controller?: string;
   description: string;
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
@@ -596,7 +608,7 @@ export interface CommandView {
  */
 export interface CommandSchemaPayload {
   verbs: string[];
-  controller: string;
+  controller?: string;
   description: string;
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
