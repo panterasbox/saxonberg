@@ -1,6 +1,6 @@
 verbs: [write]
 controller: WriteController
-description: "Author a content-tree template or source-tree file (require -c / -s)"
+description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
 args:
   - name: path
     type: string

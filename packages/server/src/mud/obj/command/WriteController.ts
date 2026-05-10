@@ -2,12 +2,12 @@
  * WriteController — author a content-tree template or source-tree
  * file.
  *
- * Tree pick: `write` requires explicit `-c` (content) or `-s`
- * (source). Unlike read-only verbs (cd / ls / cat) the
- * `workspace.tree` setting is NOT consulted as a fallback —
- * content templates and source files diverge by purpose, and
- * silently defaulting to the wrong tree is the kind of mistake
- * that's hard to undo. Spell it out per call.
+ * Tree pick: honors the player's `workspace.tree` setting when
+ * it points at a single tree (`content` or `source`) — same as
+ * read-only verbs. Under `mirror` mode the setting doesn't pick
+ * a tree, and writing the same body to both trees is nonsensical,
+ * so `write` requires explicit `-c` (content) or `-s` (source) in
+ * that case. The two flags are mutually exclusive when both supplied.
  *
  * Body delivery — `body` lives in the yaml's `payload:` block,
  * not in `args:` or `options:`. Structured-form-only: clients
@@ -91,22 +91,26 @@ export class WriteController extends CommandController<WriteModel> {
       return this.fail(context, 'write needs <body>');
     }
 
-    // Require explicit -c or -s. write doesn't honor the
-    // workspace.tree fallback because content / source diverge by
-    // purpose and silently defaulting is too easy to mis-author.
-    if (!model.content && !model.source) {
-      return this.fail(
-        context,
-        'write requires -c (content) or -s (source)',
-      );
-    }
     if (model.content && model.source) {
       return this.fail(
         context,
         'write: -c and -s are mutually exclusive',
       );
     }
-    const tree = model.source ? 'source' : 'content';
+    // Under `mirror` mode the setting doesn't pick a single tree, and
+    // writing the same body to both is nonsensical — force the
+    // author to pick. In single-tree modes the setting decides.
+    if (
+      !model.content &&
+      !model.source &&
+      giver.getTreeMode() === 'mirror'
+    ) {
+      return this.fail(
+        context,
+        'write requires -c (content) or -s (source) when workspace.tree is mirror',
+      );
+    }
+    const tree = giver.pickTree(model);
     const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
