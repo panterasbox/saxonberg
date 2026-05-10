@@ -201,13 +201,40 @@ export class Persistable extends Stuff {
 
   /**
    * Save this object to MongoDB. Updates `updatedAt` automatically.
+   *
+   * Pre-resolves any registered field marshallers via the async
+   * singleton cache before the sync `toDocument` walk; the sync
+   * `findByTemplatePath` lookup inside `toDocument` then always
+   * hits a populated cache. Marshallers without a runtime instance
+   * yet are lazy-cloned from their seeded template at this point.
    */
   public async save(): Promise<void> {
     this.updatedAt = new Date();
+    await this.preloadFieldMarshallers();
     const collection = this.getCollectionName();
     const doc = this.toDocument();
     const savedId = await PersistenceManager.get().save(collection, doc);
     if (!this._id) this._id = savedId;
+  }
+
+  /**
+   * Pre-warm the marshaller cache for this instance's class. Each
+   * registered field marshaller's `templatePath` resolves through
+   * `StuffApi.singleton`, which returns the cached instance if
+   * registered or lazy-clones from the seeded template.
+   *
+   * Static counterpart for the `findById` / `find` paths is
+   * inlined at those call sites; both resolve to the same single
+   * Promise.all over `MixinApi.getAllFieldMarshallers(constructor)`.
+   */
+  protected async preloadFieldMarshallers(): Promise<void> {
+    const paths = Object.values(
+      MixinApi.getAllFieldMarshallers(
+        this.constructor as new (...args: unknown[]) => Stuff
+      )
+    );
+    if (paths.length === 0) return;
+    await Promise.all(paths.map((p) => StuffApi.singleton(p)));
   }
 
   /**
@@ -250,6 +277,7 @@ export class Persistable extends Stuff {
     if (!doc) return null;
     const Ctor = this;
     const instance = await StuffApi.create<T>(() => new Ctor() as T);
+    await preloadFieldMarshallersFor(Ctor as new (...args: unknown[]) => Stuff);
     instance.fromDocument(doc);
     return instance;
   }
@@ -268,6 +296,7 @@ export class Persistable extends Stuff {
     }
     const docs = await PersistenceManager.get().find(this.collectionName, query);
     const Ctor = this;
+    await preloadFieldMarshallersFor(Ctor as new (...args: unknown[]) => Stuff);
     const instances = await Promise.all(
       docs.map((doc) =>
         StuffApi.create<T>(() => new Ctor() as T).then((instance) => {
@@ -282,6 +311,19 @@ export class Persistable extends Stuff {
   public toString(): string {
     return `[${this.constructor.name} ${this._id ?? '(unsaved)'}]`;
   }
+}
+
+/**
+ * Static-context preload helper. Used by `findById` / `find` where
+ * there's no instance to call `preloadFieldMarshallers` on yet.
+ * Symmetric with the protected instance method.
+ */
+async function preloadFieldMarshallersFor(
+  ctor: new (...args: unknown[]) => Stuff
+): Promise<void> {
+  const paths = Object.values(MixinApi.getAllFieldMarshallers(ctor));
+  if (paths.length === 0) return;
+  await Promise.all(paths.map((p) => StuffApi.singleton(p)));
 }
 
 Stuff._registerTopLevelBranch(Persistable);

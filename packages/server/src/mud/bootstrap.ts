@@ -19,14 +19,4 @@ import type { BootstrapEntry } from '../backend/BootstrapManager';
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },
-
-  // Persistence marshallers. Must be cloned before any host that
-  // binds them is hydrated (Material, Tangible) — the hydrator
-  // throws when a declared marshaller is unregistered.
-  { templatePath: '/lib/persistence/QuantityMarshaller/kg' },
-  { templatePath: '/lib/persistence/QuantityMarshaller/g-per-mol' },
-  { templatePath: '/lib/persistence/QuantityMarshaller/kg-per-m3' },
-  { templatePath: '/lib/persistence/QuantityMarshaller/lumen' },
-  { templatePath: '/lib/persistence/QuantityMarshaller/lux' },
-  { templatePath: '/lib/persistence/QuantityMarshaller/K' },
 ];
