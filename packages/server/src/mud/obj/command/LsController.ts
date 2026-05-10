@@ -20,7 +20,6 @@ import { MixinApi } from '../../api/mixin';
 import type { MqlOneResult } from '../../api/mql';
 import { PathPatternApi } from '../../api/path-pattern';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
-import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 
 interface LsModel extends CommandModel {
@@ -53,7 +52,9 @@ export class LsController extends CommandController<LsModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      const tp = StuffApi.getTemplatePath(stuff);
+      // Live clone → templatePath stamp; Template doc → .path
+      // identity field. Two distinct lookups, hence the split.
+      const tp = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
       if (!tp) {
         return this.fail(
           context,

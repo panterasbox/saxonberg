@@ -207,19 +207,32 @@ const container = ContainmentApi.getContainer(item);
 const contents = ContainmentApi.getContents(container);
 ```
 
-### StuffApi (template-path lookup)
+### Stuff template-path read / stamp
 
 ```typescript
-// Canonical content-tree path identifying obj's template source.
-// Returns templatePath (clones), Template.path (template docs),
-// or null. Replaces the
-// `(obj as unknown as { templatePath?, path? }).templatePath ?? .path`
-// pattern at workspace verb call sites.
-const cp = StuffApi.getTemplatePath(obj);
+// Read the templatePath stamp on a runtime instance (the "I was
+// cloned from /obj/Avatar/foo" identity). Returns null when the
+// Stuff was created via StuffApi.create with no template.
+const tp = stuff.getTemplatePath();
 
-// Stamp templatePath on a non-clone Stuff (e.g. EvalScript singletons)
-// AND re-key the byTemplatePath index. Don't write the field directly.
-StuffApi.setTemplatePath(stuff, '/home/<id>/_eval');
+// Stamp templatePath on a non-clone Stuff (e.g. EvalScript
+// singletons) and re-key the byTemplatePath index. ApiOnly-gated;
+// only call from Api code. Don't write the field directly.
+stuff.setTemplatePath('/home/<id>/_eval');
+```
+
+**Don't conflate** `runtime.getTemplatePath()` with `template.path`.
+A runtime Stuff's `templatePath` is the **stamp** linking it to its
+template source. A `Template`'s `path` is the template's **own**
+location in the content hierarchy. Code that took an arbitrary
+Stuff from MQL (which can resolve to either a clone or a Template
+doc) and wants the canonical content-tree string handles both
+explicitly:
+
+```typescript
+const path = stuff instanceof Template
+  ? stuff.path                  // template's hierarchy location
+  : stuff.getTemplatePath();    // clone's source-template stamp
 ```
 
 ## Migration Pattern

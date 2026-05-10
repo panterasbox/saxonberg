@@ -26,7 +26,6 @@ import type {
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { ZoneApi } from '../../api/zone';
 import { Template } from '../../lib/stuff/Template';
@@ -68,7 +67,11 @@ export class CdController extends CommandController<CdModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      const tp = StuffApi.getTemplatePath(stuff);
+      // MQL can return either a live clone (read templatePath
+      // stamp) or a Template doc (read .path identity field) —
+      // these are conceptually distinct lookups, hence the
+      // explicit instanceof split.
+      const tp = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
       if (!tp) {
         return this.fail(
           context,

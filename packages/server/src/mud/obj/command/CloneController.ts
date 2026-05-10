@@ -43,6 +43,7 @@ import { ContainmentApi } from '../../api/containment';
 import type { MqlOneResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { Template } from '../../lib/stuff/Template';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 
@@ -64,7 +65,10 @@ export class CloneController extends CommandController<CloneModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      path = StuffApi.getTemplatePath(stuff);
+      // Live clone → templatePath stamp; Template doc → .path
+      // identity field. Two distinct lookups, hence the
+      // explicit split.
+      path = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
     } else if (model.template) {
       if (MixinApi.isWorkspace(giver)) {
         const home = giver.getHome();

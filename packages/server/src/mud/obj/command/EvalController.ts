@@ -61,8 +61,10 @@ export class EvalController extends CommandController<EvalModel> {
       // New code → replace singleton.
       if (existing) StuffApi.destruct(existing);
       evalStuff = await StuffApi.create(() => new EvalScript());
-      // Stamp templatePath so MQL path-atom can address it.
-      StuffApi.setTemplatePath(evalStuff, singletonPath);
+      // Stamp templatePath so MQL path-atom can address it. The
+      // setter on Stuff (ApiOnly-gated) updates byTemplatePath
+      // for us; no need to re-key by hand.
+      evalStuff.setTemplatePath(singletonPath);
       evalStuff.setCode(model.expr);
     } else {
       if (!existing) {

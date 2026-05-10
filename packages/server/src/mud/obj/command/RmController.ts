@@ -21,7 +21,6 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
-import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import type { MqlOneResult } from '../../api/mql';
 
@@ -49,7 +48,9 @@ export class RmController extends CommandController<RmModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      target = StuffApi.getTemplatePath(stuff);
+      // Live clone → templatePath stamp; Template doc → .path
+      // identity field. Two distinct lookups, hence the split.
+      target = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
     } else if (model.path) {
       try {
         target =

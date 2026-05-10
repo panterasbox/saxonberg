@@ -407,8 +407,8 @@ bypass it. Common cases:
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `mover.traverse(exit, mode)` (locomotion; commands resolve `mode` from the `movement.defaultMode` setting) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
-| `(stuff as unknown as { templatePath?, path? }).templatePath ?? .path` | `StuffApi.getTemplatePath(stuff)` |
-| `(stuff as { templatePath? }).templatePath = path` | `StuffApi.setTemplatePath(stuff, path)` (also re-keys `byTemplatePath`) |
+| `(stuff as unknown as { templatePath? }).templatePath` | `stuff.getTemplatePath()` (runtime stamp). For `Template` docs use `template.path` — the two are distinct. |
+| `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated method on `Stuff`; re-keys `byTemplatePath` for you) |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).

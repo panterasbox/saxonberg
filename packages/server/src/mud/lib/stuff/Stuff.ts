@@ -66,20 +66,49 @@ export abstract class Stuff {
 
   /**
    * CMS template path this object was cloned from, or null when the
-   * object was constructed directly via `StuffApi.create`. Stamped at
-   * clone time by `StuffApi.clone()` via the bracket-write framework
-   * carve-out below; **immutable post-stamp** for everyone else.
+   * object was constructed directly via `StuffApi.create`. Stamped
+   * at clone time by `StuffApi.clone()` and (rare cases) by Api code
+   * that wants MQL path-atom addressability for an ad-hoc runtime
+   * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`.
    *
-   * Storage is public as a framework carve-out: SecurityPolicies and
-   * StuffApi indexes read it directly through the Proxy via
-   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`. There
-   * is intentionally **no `setTemplatePath()`** — flipping a Stuff's
-   * identity post-clone would break `FromTemplate` policies and the
-   * `byTemplatePath` index.
+   * Storage is public as a framework carve-out: SecurityPolicies
+   * and StuffApi indexes read it directly through the Proxy via
+   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()` and
+   * writes via `setTemplatePath()` (ApiOnly-gated below).
+   *
+   * Note this is the **stamp** identifying the source template a
+   * runtime instance was cloned from — not the same as a
+   * `Template`'s own `path` field, which records that template's
+   * own location in the content hierarchy. A `Template` instance
+   * (also a Stuff) typically leaves `templatePath` null because
+   * templates aren't themselves cloned.
    */
   public templatePath: string | null = null;
   public getTemplatePath(): string | null {
     return this.templatePath;
+  }
+
+  /**
+   * Stamp this Stuff's `templatePath` and re-key the
+   * `byTemplatePath` index so future `findByTemplatePath` lookups
+   * see the new path. No-op when `path` matches the current value.
+   *
+   * Locked down by `@CallSecurity(ApiOnly)` because flipping a
+   * Stuff's identity post-clone would break `FromTemplate`
+   * policies and any caller-side caching of template-path
+   * identity. `@Final @Unshadowable` because the index update has
+   * to run for every successful set — a subclass override that
+   * forgot the index call (or a shadow that intercepted) would
+   * silently desync `byTemplatePath`.
+   */
+  @Final
+  @Unshadowable
+  @CallSecurity(SecurityPolicies.ApiOnly)
+  public setTemplatePath(path: string): void {
+    if (this.templatePath === path) return;
+    const prev = this.templatePath;
+    this.templatePath = path;
+    StuffApi._reindexTemplatePath(this, prev, path);
   }
 
   /**

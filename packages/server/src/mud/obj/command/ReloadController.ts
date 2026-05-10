@@ -20,7 +20,7 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { HotReloadApi } from '../../api/hot-reload';
 import { SourceTreeApi } from '../../api/source-tree';
-import { StuffApi } from '../../api/stuff';
+import { Template } from '../../lib/stuff/Template';
 import type { MqlOneResult } from '../../api/mql';
 
 interface ReloadModel extends CommandModel {
@@ -38,7 +38,9 @@ export class ReloadController extends CommandController<ReloadModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      path = StuffApi.getTemplatePath(stuff);
+      // Live clone → templatePath stamp; Template doc → .path
+      // identity field. Two distinct lookups, hence the split.
+      path = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
     } else if (model.target) {
       if (MixinApi.isWorkspace(giver)) {
         path = SourceTreeApi.joinLogical(
