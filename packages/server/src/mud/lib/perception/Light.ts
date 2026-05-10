@@ -2,7 +2,7 @@
  * Light — immutable value object describing the ambient illuminance at
  * a location.
  *
- * Saxonberg's light model carries real units after Wave 2:
+ * Saxonberg's light model carries real units:
  *   - `intensity: Quantity<'lux'>` — illuminance at the receiving
  *     surface. The propagation walk's lumen contributions are
  *     divided by the receiving Container's `getSizeScale()` (m²)

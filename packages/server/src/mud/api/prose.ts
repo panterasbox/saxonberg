@@ -121,11 +121,15 @@ engine.registerFilter('article', (v) => {
   return s ? GrammarApi.article(s) : '';
 });
 
-// Quantity rendering. Two flavors mirror the call-site intent split
-// in `quantities-requirements.md` §6.4:
-//   - `quantity`           — tag-flavored markup (default for prose).
-//   - `quantity_canonical` — canonical-flavored markup (instrument /
-//                            analyze readouts).
+// Quantity rendering. Two flavors:
+//   - `quantity`           — tag-flavored markup (the default for
+//                            prose; inner text is the registered tag
+//                            string, or the canonical format for
+//                            tagless units).
+//   - `quantity_canonical` — canonical-flavored markup (instrument
+//                            and analyze readouts; inner text is
+//                            always the canonical "<n> <unit>"
+//                            form).
 // Both produce `<quantity unit value [tag]>inner</quantity>` markup.
 engine.registerFilter('quantity', (v) => {
   if (v && typeof v === 'object' && 'toMml' in (v as object)) {

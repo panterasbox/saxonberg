@@ -30,9 +30,9 @@ import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import { Quantity } from '../lib/quantity';
 
-// Wave 4 tag tables. Registered at module-load so authoring shapes
-// (`mass: heavy`, `density: rock-like`) round-trip cleanly through
-// `Quantity.parse(s, U)`.
+// Material-side tag tables. Registered at module-load so authoring
+// shapes (`mass: heavy`, `density: rock-like`) round-trip cleanly
+// through `Quantity.parse(s, U)`.
 const KG_TAGS = [
   { tag: 'feather', threshold: 0.001 },
   { tag: 'light', threshold: 0.5 },

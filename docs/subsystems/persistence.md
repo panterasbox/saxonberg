@@ -214,7 +214,7 @@ Canonical example — `AmbientLitMixin`:
 
 ```ts
 class AmbientLitMixin {
-  static persistentFields = ['ambientIntensity', 'ambientColor'];
+  static persistentFields = ['ambientIntensity', 'ambientColorTemperature'];
 
   // Stored scalars — accessor pairs validate primitive shape:
   protected set ambientIntensity(v: number) {
@@ -223,27 +223,35 @@ class AmbientLitMixin {
     }
     this._ambientIntensity = v;
   }
-  protected set ambientColor(v: ColorTag | null) {
-    if (v !== null && typeof v !== 'string') throw new TypeError(/* … */);
-    this._ambientColor = v;
+  // ambientColorTemperature accepts numeric Kelvin or a tag string
+  // (resolved through KELVIN_TAGS via Quantity.parse(s, 'K')).
+  protected set ambientColorTemperature(v: number | string | null) {
+    /* normalize to numeric Kelvin or null; throw on bad shape */
   }
 
-  // Runtime API — strict on Light, decomposes into the two scalars:
-  setAmbientLight(value: Light): void {
-    if (!(value instanceof Light)) throw new TypeError(/* … */);
-    this._ambientIntensity = value.intensity;
-    this._ambientColor = value.color;
+  // Runtime API — strict on Quantity value objects, reconstructed
+  // from the stored scalars on read:
+  getAmbientFlux(): Quantity<'lumen'> {
+    return Quantity.of(this._ambientIntensity, 'lumen');
   }
-  getAmbientLight(): Light {
-    return Light.of(this._ambientIntensity, this._ambientColor);
-  }
+  setAmbientFlux(value: Quantity<'lumen'> | number | string): void { ... }
+
+  getAmbientColorTemperature(): Quantity<'K'> | null { ... }
+  setAmbientColorTemperature(value: Quantity<'K'> | string | null): void { ... }
 }
 ```
 
 Same shape for `LightSourceMixin` (`emittedIntensity`,
-`emittedColor`) and for `Window`'s directional override pair
-(`aToBOverride`, `bToAOverride` — the structured `{aToB?, bToA?}`
-shape lives only at the runtime API layer).
+`emittedColorTemperature`) and for `Window`'s directional override
+pair (`aToBOverride`, `bToAOverride` — the structured
+`{aToB?, bToA?}` shape lives only at the runtime API layer).
+
+For value-class fields like `Quantity<U>`, the typed setter shape
+is achievable two ways: setter coercion (the AmbientLit pattern
+above) OR a per-field Marshaller. The marshaller route keeps the
+runtime setter strict on `Quantity<U>` and pushes shape coercion
+to the persistence boundary — see § Marshaller Framework below
+and [quantities.md § Persistence](./quantities.md#persistence).
 
 When NOT to flatten: a small number of fields genuinely don't
 decompose into named scalars — variable-key maps
@@ -301,30 +309,102 @@ key.
 
 ### Resolution
 
-`PersistentHydrator.hydrate` and `Persistable.toDocument` /
-`Persistable.fromDocument` look up the marshaller per field via
-`StuffApi.findByTemplatePath`, then apply `fromStored` (read path)
-or `toStored` (write path) around the bracket-assign /
-bracket-read. Sync resolution because `Persistable.toDocument` is
-sync; the marshaller must be loaded into the Stuff registry
-before any save / hydrate runs.
+`PersistentHydrator.hydrate` resolves marshallers via
+`StuffApi.singleton(path)` — lazy. The async path mirrors how
+`StuffApi.clone` resolves `hydratorClass`: returns the cached
+instance if registered, or clones from the seeded template on first
+need. No bootstrap manifest entry is required for marshallers; they
+self-organize when first used.
 
-In production, the marshaller's CMS template is seeded at boot
-(same shape `PersistentHydrator` uses today). In tests, a small
-helper (see `Marshaller.test.ts`) constructs the marshaller via
-`makeStuff` and stamps `templatePath` so the standard
-`StuffApi.findByTemplatePath` lookup resolves it.
+`Persistable.save` / `findById` / `find` pre-resolve any registered
+field marshallers (`preloadFieldMarshallers` / the static
+counterpart used by `findById`/`find`) before the sync
+`toDocument` / `fromDocument` walk. Pre-warming the singleton
+cache lets the sync `findByTemplatePath` lookup inside those
+methods always hit a populated cache. The async barrier sits in
+the already-async `save`/`findById`/`find` boundary; `toDocument`
+/ `fromDocument` keep their sync contract.
+
+In production, the marshaller's CMS template is seeded into the
+`domain` collection by `SeederManager` at boot; the first save /
+hydrate that needs it triggers `singleton(path)` to clone the
+template. In tests there's no Mongo to clone from, so tests
+register marshallers in-memory before use — see
+`lib/persistence/__tests__/quantity-marshaller-test-helpers.ts`
+for the v1 quantity-marshaller install helper, or
+`registerMarshallerForTest` in
+`lib/security/__tests__/test-setup.ts` for the lower-level
+primitive.
+
+### `QuantityMarshaller` — the production user
+
+The first real production marshaller, shipping alongside the
+[Quantity substrate](./quantities.md). Round-trips
+`Quantity<U>` value objects through the storage shape
+`{ value, unit }`, with `fromStored` liberally accepting numeric
+/ string / JSON shapes for authoring ergonomics.
+
+One class, parameterized by target unit at the instance level
+(`unit` is a persistent field on the marshaller itself). Each unit
+gets its own templatePath — call
+`QuantityMarshaller.pathFor(unit)` rather than hardcoding the
+encoded form (composite units encode `'/'` → `'-per-'`).
+
+```ts
+class Material extends ... {
+  static persistentFields = [..., 'density', 'molarMass'];
+  static fieldMarshallers = {
+    density:   QuantityMarshaller.pathFor('kg/m³'),
+    molarMass: QuantityMarshaller.pathFor('g/mol'),
+  };
+  // Strict accessor pair on Quantity<U>; the marshaller
+  // absorbed coercion at the persistence boundary.
+}
+```
+
+Today's adopters: `Material.density` (kg/m³),
+`Material.molarMass` (g/mol), and `TangibleMixin.mass` (kg).
+
+### Marshalled props — `PropertiedMixin`
+
+PropertiedMixin's `savedProps` is a heterogeneous record with
+runtime-only keys, so the per-field-marshaller pattern doesn't fit
+directly. Instead, PropertiedMixin grows a sibling persistent
+field, `savedPropMarshallers: Record<string, string>`, that maps
+prop name → marshaller templatePath. The binding lands via
+`initProp`:
+
+```ts
+const mass = Property.of<Quantity<'kg'>>('mass');
+avatar.initProp(mass, {
+  transient: false,
+  marshaller: QuantityMarshaller.pathFor('kg'),
+});
+avatar.setProp(mass, Quantity.of(5, 'kg'));
+avatar.getProp(mass);  // → Quantity.of(5, 'kg')
+```
+
+`setProp` applies `marshaller.toStored` before writing to
+`savedProps`; `getProp` applies `marshaller.fromStored` on read.
+Storage carries the canonical `{value, unit}` shape; runtime callers
+see the strict `Quantity<U>` instance. The binding persists alongside
+the value, so reload-after-restart re-applies it without
+redeclaration.
+
+`removeProp` clears both the value and the marshaller binding.
+`configureProp`'s transient↔persistent flip routes through
+`fromStored` / `toStored` as appropriate so values move across the
+boundary correctly.
 
 ### Don't reach for it as a first move
 
-The framework lands ahead of any production user. The only
-consumer in v1 is the contrived `MoneyBag` test fixture
-(`Marshaller.test.ts`) — a variable-key
-`Record<currency, number>` storage shape that exercises the
-framework end-to-end. The first real production marshaller will
-arrive when a content author hits a field that genuinely needs an
-object-shaped storage and confirms it doesn't decompose. Most
-fields decompose; flatten them.
+For fields whose runtime shape is a primitive or a primitive tuple,
+flatten — the scalar-default rule above. The marshaller framework
+is for the rare field whose storage shape genuinely doesn't
+decompose: variable-key maps (`Record<currency, amount>`) or
+specialized value objects with a canonical wire shape
+(`Quantity<U>`'s `{value, unit}`). Most fields decompose; flatten
+them.
 
 ## Design Decisions
 
@@ -419,3 +499,8 @@ Index creation is best-effort (logs and continues on failure).
 - [light.md](./light.md) — first major user of the scalar-default
   rule; `AmbientLitMixin` / `LightSourceMixin` / `Window`
   decompose Light value objects into scalar fields.
+- [quantities.md](./quantities.md) — first production user of the
+  Marshaller framework. `QuantityMarshaller` round-trips
+  `Quantity<U>` through `{value, unit}` JSON; PropertiedMixin's
+  per-prop marshaller binding (`savedPropMarshallers`) lets host
+  Stuff store rich Quantity props without a per-class declaration.

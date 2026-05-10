@@ -13,8 +13,11 @@
  * module-load.
  *
  * Persistence shape: `{ value, unit }` JSON via `toJSON` /
- * `fromJSON`. PropertiedMixin's hydration recognizes this shape and
- * reconstructs to a `Quantity<U>` instance (Step C).
+ * `fromJSON`. Round-trip through a registered `QuantityMarshaller`
+ * for the unit — see `lib/persistence/QuantityMarshaller.ts`. The
+ * marshaller is wired via `static fieldMarshallers` for first-class
+ * fields and via `initProp(prop, { marshaller: ... })` for
+ * PropertiedMixin props.
  *
  * Mml: `toMml(viewer?)` and `formatMml(viewer?)` emit
  * `<quantity unit="..." value="..." [tag="..."]>inner</quantity>`
@@ -30,7 +33,7 @@ import { Mml } from '../api/mml';
  * The full v1 unit catalog. Mass, length, time, temperature, light,
  * sound, chemistry, pressure/force/energy/power. Sound-side units
  * (`dB`, `Hz`) are declared here so the type union doesn't churn
- * when Wave 3 lands; their math/tag-tables register at that point.
+ * when sound lands; their math / tag-tables register at that point.
  */
 export type Unit =
   // Mass / weight
@@ -43,7 +46,7 @@ export type Unit =
   | 'K'
   // Light
   | 'lux' | 'lumen'
-  // Sound (declared now, populated in Wave 3)
+  // Sound (declared now, channel ships later)
   | 'dB' | 'Hz'
   // Chemistry / material
   | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³'
@@ -106,9 +109,10 @@ export interface TagTableEntry {
 const tagTableRegistry: Map<Unit, ReadonlyArray<TagTableEntry>> = new Map();
 
 /**
- * Cross-unit converters keyed by source unit. Sparse — populated for
- * the unit pairs Wave 2 / Wave 4 actually need. `parse` consults
- * this when the input literal's unit differs from the target.
+ * Cross-unit converters keyed by source unit. Sparse — populated
+ * for the unit pairs the engine actually needs today (mass-side
+ * `g ↔ kg`). `parse` consults this when the input literal's unit
+ * differs from the target.
  */
 const unitConverters: Map<Unit, Map<Unit, (n: number) => number>> = new Map();
 
@@ -125,7 +129,7 @@ function registerConverter(
   row.set(to, fn);
 }
 
-// Wave 4 needs `g ↔ kg` for mass authoring (`mass: "12000 g"` → 12 kg).
+// `g ↔ kg` for mass authoring (`mass: "12000 g"` → 12 kg).
 registerConverter('g', 'kg', (n) => n / 1000);
 registerConverter('kg', 'g', (n) => n * 1000);
 
@@ -244,12 +248,14 @@ export class Quantity<U extends Unit> {
   }
 
   /**
-   * Authoring-friendly parse. Three input shapes:
+   * Authoring-friendly parse. Four input shapes:
    *   - tag: `"heavy"` → registered threshold for the target unit.
    *   - canonical literal: `"12 kg"` → `Quantity<kg>(12)`.
    *   - alt-unit literal: `"12000 g"` (target `kg`) → `Quantity<kg>(12)`.
-   *   - bare number: `"5"` → canonical-unit interpretation per §13.4
-   *     (`mass: 5` on a `Quantity<kg>` field is 5 kg).
+   *   - bare number / bare-number string: `5` or `"5"` →
+   *     canonical-unit interpretation. `mass: 5` on a `Quantity<kg>`
+   *     field is 5 kg, not 5 g.
+   *
    * Throws on unrecognized tag, unparseable literal, or alt-unit
    * with no registered converter to the target.
    */

@@ -11,7 +11,7 @@ import '../../../api/material';
 
 class TangibleThing extends TangibleMixin(Thing) {}
 
-describe('TangibleMixin — mass (Step G)', () => {
+describe('TangibleMixin — mass', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
   });

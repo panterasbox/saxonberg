@@ -35,9 +35,9 @@ export class CartesianZone extends SingletonMixin(SpatialZone) {
   /**
    * Effective receiving-surface area per cell, in m². Drives
    * `CartesianLocation.getSizeScale()` directly (NOT squared) — the
-   * value is interpreted as area, not linear extent. Wave 2 made
-   * this commitment explicit: `LightApi.lightAt` divides accumulated
-   * lumens by this scalar to produce illuminance in lux.
+   * value is interpreted as area, not linear extent. The light
+   * subsystem divides accumulated lumens by this scalar to produce
+   * illuminance in lux (see `LightApi.lightAt`).
    *
    * Default 1.0 m² is a small alcove. Author larger values for
    * rooms — see `docs/subsystems/light.md` for calibration guidance

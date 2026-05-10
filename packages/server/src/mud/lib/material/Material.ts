@@ -27,10 +27,14 @@
  *    mixtures and alloys, weight-fraction references to the
  *    constituent Materials. Pure elements / non-mixtures have an
  *    empty list.
- * 3. **Chemistry** (`chemistry: ElementChemistry | null`) — atomic-
- *    or molecular-level science data: element symbol, atomic
- *    number, atomic mass for elements; chemical formula, molar mass
- *    for compounds. Lower-division depth.
+ * 3. **Chemistry** — atomic / molecular science data, decomposed
+ *    into four flat scalar fields per the scalar-default rule:
+ *    `symbol` (element only), `atomicNumber` (element only),
+ *    `formula` (compound only), and `molarMass`
+ *    (`Quantity<'g/mol'>`; element or compound). The
+ *    `getChemistry` / `setChemistry` pair is a convenience aggregate
+ *    over those four fields. Mixtures / alloys leave them all
+ *    unset and rely on the composition layer.
  *
  * Plus `biologicalSource` for organic Materials with a known parent
  * Species (e.g., wood from a specific tree).

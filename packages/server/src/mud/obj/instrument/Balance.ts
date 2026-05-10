@@ -2,8 +2,8 @@
  * Balance — handheld balance/scale instrument that grants the
  * `weigh <target>` verb to its carrier.
  *
- * v1 reports exact mass — calibration / accuracy is deferred per
- * requirements §15.
+ * v1 reports exact mass — per-instrument calibration / accuracy
+ * is a future axis (deferred until content motivates it).
  */
 
 import { Thing } from '../../lib/stuff/Thing';

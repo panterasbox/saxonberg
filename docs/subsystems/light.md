@@ -44,11 +44,12 @@ Sibling docs cover related ground without overlap:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Light` | value object | Immutable `intensity` + `color` + `sources`. `Light.ZERO`, `add`, `attenuate`, `withColor`, `Light.of`, `Light.from`. Not Stuff. |
+| `Light` | value object | Immutable `intensity` (`Quantity<'lux'>`) + `colorTemperature` (`Quantity<'K'> \| null`) + `sources`. `Light.ZERO`, `add`, `attenuate`, `withColorTemperature`, `Light.of`, `Light.from`. Not Stuff. |
 | `LightBand` | string union | `'pitch-black'` / `'very-dim'` / `'dim'` / `'lit'` / `'bright'` / `'blinding'`. The granularity controllers and prose check against. |
-| `AmbientLitMixin` | mixin | Inherent ambient light a Container exposes. Persistent: `ambientIntensity`, `ambientColor`. |
-| `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity`, `emittedColor`. Fires `onLightSourceChanged` Witness hook on the immediate environment when emission changes. |
-| `LightApi` | static API | `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`. |
+| `AmbientLitMixin` | mixin | Inherent ambient light a Container exposes. Persistent: `ambientIntensity` (lumens), `ambientColorTemperature` (Kelvin). Runtime API surfaces `Quantity` values via `getAmbientFlux` / `getAmbientColorTemperature`. |
+| `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity` (lumens), `emittedColorTemperature` (Kelvin). Runtime: `getEmittedFlux` / `getEmittedColorTemperature`. Fires `onLightSourceChanged` Witness hook (contract in `api/light.ts`) on the immediate environment when emission changes. |
+| `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `api/light.ts` so consumer Containers (the receiver side) don't have to reach into `lib/perception/` to implement it. |
+| `LightApi` | static API | `lightAt(loc)`, `bandAt(loc)`, `bandFor(luxValue)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`. |
 | `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
 | `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Composes `VisibleMixin(PerceptibleMixin(Thing))`. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
@@ -82,37 +83,42 @@ keep working unchanged.
 
 ## The Light Value Object
 
-Wave 2 commits real units. `Light` is immutable, factory-constructed,
-not a Stuff. It carries:
+`Light` is immutable, factory-constructed, not a Stuff. It carries
+real units throughout (see [quantities.md](./quantities.md) for
+the substrate):
 
 - `intensity: Quantity<'lux'>` — illuminance at the receiving
   surface. The propagation walk's lumen contributions are divided
   by the receiving Container's `getSizeScale()` (m²) before being
   wrapped here.
-- `color: Quantity<'K'> | null` — color temperature, atmospheric
-  only. Multi-source mixing uses the **flux-weighted average**.
+- `colorTemperature: Quantity<'K'> | null` — color temperature,
+  atmospheric only. Multi-source mixing uses the **flux-weighted
+  average**. The naming reserves bare `color` for a future
+  abstraction layer above color temperature; concrete Kelvin
+  values always carry "temperature" in the name.
 - `sources: readonly LightSourceRef[]` — capped list (3) of
   contributing sources for prose attribution. Each entry carries
-  `{ stuffId, flux, colorK }`. **Runtime-only** — populated during
-  the propagation walk; never persisted.
+  `{ stuffId, flux, colorTemperature }`. **Runtime-only** —
+  populated during the propagation walk; never persisted.
 
 Operations:
 
-- `Light.of(intensity, color?, source?)` — primary constructor.
-  Accepts `number | Quantity<'lux'>` for intensity; string ColorTag
-  / `Quantity<'K'>` / null for color (string ColorTag resolves
-  through KELVIN_TAGS via `Quantity.parse(s, 'K')`). `Light.of(0)`
-  returns the canonical `Light.ZERO`.
+- `Light.of(intensity, colorTemperature?, source?)` — primary
+  constructor. Accepts `number | Quantity<'lux'>` for intensity;
+  tag string / `Quantity<'K'>` / null for color temperature (string
+  resolves through KELVIN_TAGS via `Quantity.parse(s, 'K')`).
+  `Light.of(0)` returns the canonical `Light.ZERO`.
 - `Light.from(value)` — coercion utility for externally-sourced
   data shapes (test fixtures, JSON over the wire). NOT used in the
   persistence path.
 - `add(other)` — sum two Lights. Intensities (lux) add via
-  `Quantity.add`; sources merge, cap-3 by flux; color is the
-  flux-weighted average across the merged source list.
+  `Quantity.add`; sources merge, cap-3 by flux; color temperature
+  is the flux-weighted average across the merged source list.
 - `attenuate(factor)` — multiply intensity by a 0..1 factor (a
   Boundary's transmissivity, or `EXIT_TAU` for cross-exit
   propagation). `factor ≤ 0 → Light.ZERO`; `factor ≥ 1 → this`.
-- `withColor(color)` — copy with the color overridden.
+- `withColorTemperature(value)` — copy with the color temperature
+  overridden.
 
 `LightBand` derivation lives in `bandFor(luxValue)`. The threshold
 table (lux):
@@ -205,18 +211,18 @@ walkFluxAt(loc, depth, visited) -> { flux, sources }:
 
   if MixinApi.isAmbientLit(loc):                       // (a) ambient
     add(acc, loc.getAmbientFlux().rawValue(),
-        loc.getAmbientColor()?.rawValue())
+        loc.getAmbientColorTemperature()?.rawValue())
 
   for item in loc.getContents():                       // (b) contents-side emitters
     if MixinApi.isLightSource(item):
       add(acc, item.getEmittedFlux().rawValue(),
-          item.getEmittedColor()?.rawValue())
+          item.getEmittedColorTemperature()?.rawValue())
 
   if MixinApi.isAdornable(loc):
     for fx in loc.getFixtureLightSources():            // (c) fixture-side emitters
       if MixinApi.isLightSource(fx):
         add(acc, fx.getEmittedFlux().rawValue(),
-            fx.getEmittedColor()?.rawValue())
+            fx.getEmittedColorTemperature()?.rawValue())
 
     for anchor in BoundaryAnchors among loc.getFixtures():
       boundary = anchor.getBoundary()                  // (d) cross-boundary propagation
@@ -237,8 +243,9 @@ walkFluxAt(loc, depth, visited) -> { flux, sources }:
 lightAt(loc):
   acc = walkFluxAt(loc, 0, new Set<stuffId>())
   lux = acc.flux / loc.getSizeScale()                   // lumens / m²
-  color = fluxWeightedAverage(acc.sources)              // Quantity<'K'> | null
-  return Light.from({ intensity: Quantity.of(lux, 'lux'), color, sources })
+  colorTemperature = fluxWeightedAverage(acc.sources)   // Quantity<'K'> | null
+  return Light.from({ intensity: Quantity.of(lux, 'lux'),
+                      colorTemperature, sources })
 
 bandAt(loc):
   return bandFor(lightAt(loc).intensity.rawValue())
@@ -291,29 +298,33 @@ storage is always primitive scalars.
 **`AmbientLitMixin`:**
 
 - Persistent: `ambientIntensity: number` (lumens),
-  `ambientColor: number | null` (Kelvin).
+  `ambientColorTemperature: number | null` (Kelvin).
 - Runtime:
   - `getAmbientFlux(): Quantity<'lumen'>`
   - `setAmbientFlux(Quantity<'lumen'> | number | string)` — string
     routes through `Quantity.parse(s, 'lumen')` so LUMEN_TAGS
     (`'glow'`, `'lamp'`, `'bright'`, …) round-trip via authoring.
-  - `getAmbientColor(): Quantity<'K'> | null`
-  - `setAmbientColor(Quantity<'K'> | string | number | null)` —
-    string routes through `Quantity.parse(s, 'K')` so KELVIN_TAGS
+  - `getAmbientColorTemperature(): Quantity<'K'> | null`
+  - `setAmbientColorTemperature(Quantity<'K'> | string | number | null)`
+    — string routes through `Quantity.parse(s, 'K')` so KELVIN_TAGS
     (`'warm'`, `'neutral'`, `'cool'`, …) round-trip.
 
 **`LightSourceMixin`:**
 
 - Persistent: `emittedIntensity: number` (lumens),
-  `emittedColor: number | null` (Kelvin).
+  `emittedColorTemperature: number | null` (Kelvin).
 - Runtime: `getEmittedFlux` / `setEmittedFlux` /
-  `getEmittedColor` / `setEmittedColor` — same shapes as ambient.
-- Witness hook: `setEmittedFlux` and `setEmittedColor` fire
-  `onLightSourceChanged(source, oldFlux, newFlux, oldColor,
-  newColor)` on the immediate environment when the stored value
-  actually changes. v1 fans out to the IMMEDIATE environment only —
-  no walk-up to outer Containers. A future caching layer may widen
-  this radius.
+  `getEmittedColorTemperature` / `setEmittedColorTemperature` —
+  same shapes as ambient.
+- Witness hook: `setEmittedFlux` and `setEmittedColorTemperature`
+  fire `onLightSourceChanged(source, oldFlux, newFlux,
+  oldColorTemperature, newColorTemperature)` on the immediate
+  environment when the stored value actually changes. The hook
+  contract is `LightSourceObserver` in `api/light.ts` (api-side so
+  consumer Containers don't have to import from `lib/perception/`
+  to write the receiver). v1 fans out to the IMMEDIATE environment
+  only — no walk-up to outer Containers. A future caching layer
+  may widen this radius.
 
 To "extinguish" a source: `source.setEmittedFlux(0)`. To "ignite":
 `source.setEmittedFlux(50)` (or any positive lumen value). There is
@@ -571,9 +582,14 @@ accordingly. Future enhancement is one helper in `LookController`.
 Light value-objects do NOT round-trip as plain objects in MongoDB.
 Per the [persistence.md](./persistence.md) scalar-default rule:
 
-- `AmbientLitMixin` persists `ambientIntensity` + `ambientColor` as
-  two scalar fields.
-- `LightSourceMixin` persists `emittedIntensity` + `emittedColor`.
+- `AmbientLitMixin` persists `ambientIntensity` (lumens) and
+  `ambientColorTemperature` (Kelvin) as two scalar fields. The
+  runtime API surfaces `Quantity<'lumen'>` and `Quantity<'K'> | null`
+  via `getAmbientFlux` / `getAmbientColorTemperature` — string-tag
+  authoring (`'warm'`, `'glow'`) coerces through the setter via
+  `Quantity.parse(s, U)`.
+- `LightSourceMixin` persists `emittedIntensity` +
+  `emittedColorTemperature` with the same shape.
 - `Window` persists `baseTransmissivity` + `aToBOverride` +
   `bToAOverride` + `colorTint` + (from Sealable) `isOpen`. The
   pre-flatten `directionalOverrides: { aToB?, bToA? }` object is
@@ -589,10 +605,16 @@ Per the [persistence.md](./persistence.md) scalar-default rule:
 
 Each setter on a flat scalar field validates its primitive shape
 independently — non-finite or negative intensity throws TypeError
-at hydrate time; non-string color throws; out-of-range
+at hydrate time; non-string color tag throws; out-of-range
 transmissivity throws RangeError. The `PersistentHydrator`'s
 bracket-assign is dumb — coercion lives at the setter, validation
 fires early.
+
+`Light` itself is a runtime-only value object; the propagation walk
+constructs it from the stored scalars and never persists the
+`Light` instance directly. See
+[quantities.md § Persistence](./quantities.md#persistence) for the
+broader Quantity persistence story.
 
 ## Out of scope (v1)
 
@@ -603,12 +625,16 @@ fires early.
 - Schedule integration.
 - Sound conduit / `Audible` mixin / sound propagation.
 - Eager cache invalidation; v1 is fully lazy.
-- Mechanical effects of `color`.
+- Abstract color tints layered over color temperature (the
+  `ColorTag` type alias is reserved for this future surface;
+  `Window.colorTint` is the only current consumer).
 - Mechanical penalties for fine actions in dim/blinding light
   (controller's call, not Light's concern).
 
 ## Cross-References
 
+- [quantities.md](./quantities.md) — `Quantity<U>` substrate;
+  the lux / lumen / Kelvin tag tables registered in `api/light.ts`.
 - [perception.md](./perception.md) — viewer-aware-query pattern.
 - [spatial.md](./spatial.md) — Door, Exit, Sealable, Vessel,
   Adornable composition on Location/Vessel.

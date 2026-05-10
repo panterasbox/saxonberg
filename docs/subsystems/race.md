@@ -48,11 +48,26 @@ orthogonal layers of classification:
   recursively expands these to leaf-element symbol fractions, so
   "does this contain iron?" works regardless of how nested the
   alloy/mixture chain is.
-- **Chemistry** (`chemistry: { symbol?, atomicNumber?, atomicMass?,
-  formula?, molarMass? } | null`) — atomic-/molecular-level science
-  data. Elements carry `symbol/atomicNumber/atomicMass`; compounds
-  carry `formula/molarMass`. Mixtures leave it null and rely on
-  composition.
+- **Chemistry** — atomic-/molecular-level science data, decomposed
+  into four flat scalar persistent fields per the scalar-default
+  rule:
+  - `symbol: string | null` (element-only)
+  - `atomicNumber: number | null` (element-only)
+  - `formula: string | null` (compound-only)
+  - `molarMass: Quantity<'g/mol'> | null` (element-or-compound;
+    round-trips through `QuantityMarshaller.pathFor('g/mol')`)
+
+  Elements populate `symbol/atomicNumber/molarMass`; compounds
+  populate `formula/molarMass`; mixtures leave all four unset and
+  rely on the composition layer.
+
+  `getChemistry` / `setChemistry` is a convenience aggregate over
+  the four fields — `getChemistry` returns null when none are
+  populated, otherwise returns an `ElementChemistry` view; the
+  setter REPLACES the whole chemistry block (use the per-field
+  setters for partial updates). See
+  [quantities.md](./quantities.md) for the `Quantity<'g/mol'>`
+  substrate.
 
 Plus `biologicalSource: { speciesPath, tissueType } | null` for
 organic materials linking back to a Species template (bidirectional
@@ -91,18 +106,46 @@ it's state, not identity. Iron is solid at room temp, liquid at
 ### `TangibleMixin` and per-Detail materials
 
 `TangibleMixin` is composed onto every physical Stuff base —
-`Thing`, `Location`, `Vessel`, `Agent`. State: `_materialPath:
-string | null` (bulk default) plus `_detailMaterialPaths:
-Record<string, string>` (per-Detail overrides). `getMaterial()`
-resolves on each call via `StuffApi.findByTemplatePath` — HMR-safe.
+`Thing`, `Location`, `Vessel`, `Agent`. State:
+
+- `_materialPath: string | null` — bulk default Material's
+  templatePath.
+- `_detailMaterialPaths: Record<string, string>` — per-Detail
+  Material overrides.
+- `mass: Quantity<'kg'>` — the Stuff's mass. Round-trips through
+  `QuantityMarshaller.pathFor('kg')`; setter is strict on
+  `Quantity<'kg'>`. The kg marshaller absorbs YAML authoring shapes
+  (numeric, tag string, alt-unit literal, JSON `{value,unit}`) at
+  the persistence boundary.
+
+`getMaterial()` resolves on each call via
+`StuffApi.findByTemplatePath` — HMR-safe.
 
 `MaterialApi.materialOf(stuff, detailKey?)` is the single dispatch
 point for "what is this made of?" — returns the singleton if
-Tangible, `null` otherwise. With no `detailKey` it reads the Stuff's
-bulk default Material; with one, it reads the per-Detail override
-(falling through to the bulk default when no override is set). An
-axe with a wooden haft and an iron head: `setMaterial(oak)` for the
-bulk, `setMaterial(iron, 'head')` for the override.
+Tangible, `null` otherwise.
+
+`getMaterial(detailKey)` walks **longest dotted prefix first** down
+to the bulk default — so a sub-detail without its own override
+inherits whichever ancestor path most recently set one. Mirrors the
+parent-then-child path convention `DetailedMixin` uses (`'blade.edge'`
+is the edge of the blade).
+
+```ts
+axe.setMaterial(oak);              // bulk = oak
+axe.setMaterial(iron, 'head');     // override on 'head'
+axe.setMaterial(steel, 'head.edge'); // sub-override on the edge
+
+axe.getMaterial();                 // → oak  (bulk)
+axe.getMaterial('haft');           // → oak  (no override → bulk)
+axe.getMaterial('head');           // → iron (exact)
+axe.getMaterial('head.spine');     // → iron (no exact, inherits 'head')
+axe.getMaterial('head.edge');      // → steel (exact)
+axe.getMaterial('head.edge.tip');  // → steel (no exact, inherits 'head.edge')
+```
+
+`getMass()` returns the typed `Quantity<'kg'>`. The `weigh <target>`
+verb (Balance instrument) reads it directly.
 
 ### v1 roster
 
@@ -410,6 +453,9 @@ replacement of singletons.
   visionProfile feeds `LightApi`.
 - [mixins.md](./mixins.md) — composition mechanics for the new
   mixins.
+- [quantities.md](./quantities.md) — `Quantity<U>` substrate;
+  `Material.density` (`Quantity<'kg/m³'>`), `Material.molarMass`
+  (`Quantity<'g/mol'>`), `TangibleMixin.mass` (`Quantity<'kg'>`).
 - [roadmap.md](../roadmap.md) — v1-deferred work (death/resurrection
   flow, DietApi, tissue authoring at the Detail level, sleep,
   polymorph, genetics, character-creation UI). Each will land with

@@ -16,7 +16,7 @@ const FIXTURE_KG_TAGS = [
   { tag: 'enormous', threshold: 500 },
 ];
 
-describe('Quantity — core (Wave 1)', () => {
+describe('Quantity — core', () => {
   beforeAll(() => {
     Quantity.registerTagTable('kg', FIXTURE_KG_TAGS);
   });
@@ -88,7 +88,8 @@ describe('Quantity — core (Wave 1)', () => {
     });
 
     it('parses bare-number strings as canonical-unit', () => {
-      // §13.4: bare number on a Quantity<kg> field is interpreted as kg.
+      // Bare number on a Quantity<kg> field is interpreted as kg
+      // (the canonical-unit-of-the-target rule).
       expect(Quantity.parse('5', 'kg').rawValue()).toBe(5);
       expect(Quantity.parse('5000', 'kg').rawValue()).toBe(5000);
     });
@@ -207,7 +208,7 @@ describe('Quantity — core (Wave 1)', () => {
     });
   });
 
-  describe('Mml emission (Step A: structural test)', () => {
+  describe('Mml emission — structural', () => {
     it('toMml() produces <quantity> markup with tag attribute when registered', () => {
       const out = Quantity.of(5, 'kg').toMml().toString();
       expect(out).toContain('unit="kg"');
