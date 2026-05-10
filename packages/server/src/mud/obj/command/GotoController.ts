@@ -23,7 +23,6 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
-import { autoLookOnArrival } from '../../lib/spatial/Mobile';
 import { DescribeApi } from '../../api/describe';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -74,8 +73,8 @@ export class GotoController extends CommandController<GotoModel> {
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
-    if (model.look) {
-      void autoLookOnArrival(giver).catch(() => {});
+    if (model.look && MixinApi.isMobile(giver)) {
+      void giver.autoLookOnArrival().catch(() => {});
     }
     this.tell(context, `\narrived at ${destName} (fallback)\n`);
     return { success: true, summary: `arrived at ${destName}` };
