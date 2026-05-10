@@ -1,7 +1,7 @@
 # Design philosophy
 
 Top-level guidance doc for the engine's design philosophy. Sits
-alongside [roadmap.md](./roadmap.md) and [mixin-slate.md](./mixin-slate.md)
+alongside [roadmap.md](./roadmap.md) and [mixin-slate.md](./slates/mixin-slate.md)
 as a forward-referenced principle that shapes every slate.
 
 This is **not a slate**. Nothing here is being designed; this
@@ -15,12 +15,12 @@ See also:
   this philosophy serves.
 - [docs/architecture.md](./architecture.md) — static architecture
   of the codebase. This doc is the design-discipline complement.
-- [docs/quantities-slate.md](./quantities-slate.md) — the
+- [docs/subsystems/quantities.md](./subsystems/quantities.md) — the
   cross-cutting `Quantity<T>` pattern that operationalizes
   Principle 2 ("model honestly").
-- [docs/sound-slate.md](./sound-slate.md), [docs/locomotion-slate.md](./locomotion-slate.md),
-  [docs/embodiment-slate.md](./embodiment-slate.md),
-  [docs/activity-slate.md](./activity-slate.md) — slates that
+- [docs/slates/sound-slate.md](./slates/sound-slate.md), [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md),
+  [docs/slates/embodiment-slate.md](./slates/embodiment-slate.md),
+  [docs/slates/activity-slate.md](./slates/activity-slate.md) — slates that
   apply this philosophy.
 
 ---
@@ -62,7 +62,7 @@ so much spatial information before they become unreadable.
 It's also an *educational* game. We've established that the
 engine doesn't lie about physics — real dB SPL, real Hz, real
 species hearing ranges, real molarity, real masses. The
-pedagogical seam from `quantities-slate.md` says: under the
+pedagogical seam from `subsystems/quantities.md` says: under the
 curtain, the science is honest.
 
 These pull against each other:
@@ -200,7 +200,7 @@ What we do model uses real units and real math.
 
 No "0–100 percent" or "1–5 stars" in the substrate. Friendly
 tags map to canonical values via documented tables (see
-quantities-slate.md). Authors keep using tags; the framework
+subsystems/quantities.md). Authors keep using tags; the framework
 keeps the math honest.
 
 The honesty discipline is the **pedagogical claim**. Lying about
@@ -232,7 +232,7 @@ Players see prose. Students see physics. Same engine.
 ```
 
 The MML composer reads the player's `pedagogical.seam` setting
-(see quantities-slate.md) and chooses tag vs. canonical
+(see subsystems/quantities.md) and chooses tag vs. canonical
 formatting. The engine's calculation is identical; only the
 serialization differs.
 
@@ -476,7 +476,7 @@ philosophy's defaults:
   `BlockerBehavior` registers a block predicate against an
   exit; the locomotion validation chain runs it. No sub-room
   positioning needed.
-- **Pushing** — `Pushable` mixin (mixin-slate.md) on objects
+- **Pushing** — `Pushable` mixin (slates/mixin-slate.md) on objects
   and unconscious actors. Conscious-actor shoving is combat-
   adjacent, deferred.
 
@@ -485,7 +485,7 @@ to go around") is **explicitly deferred**. The bag-of-stuff
 default plus block-validators handles the same content cases
 without committing to sub-room geometry.
 
-Full design in [collision-slate.md](./collision-slate.md) (when
+Full design in [collision-slate.md](./slates/collision-slate.md) (when
 drafted).
 
 ---
@@ -495,7 +495,7 @@ drafted).
 Hiding-as-status, not hiding-as-position. A `Stealthing` actor
 emits a perception-shadow that lowers their visibility for
 others; no sub-room geometry required. Cover behind objects is
-similar — the Concealing mixin from mixin-slate.md.
+similar — the Concealing mixin from slates/mixin-slate.md.
 
 For high-fidelity tactical content (a duel, a heist) — opt-in
 range bands or regions. The framework supports both; the

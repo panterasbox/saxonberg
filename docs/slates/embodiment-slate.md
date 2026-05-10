@@ -12,11 +12,11 @@ penalties / damage-reduction are explicitly out of scope.
 
 See also:
 
-- [docs/mixin-slate.md](./mixin-slate.md) — the broader mixin slate;
+- [docs/slates/mixin-slate.md](./mixin-slate.md) — the broader mixin slate;
   this doc expands the "Affordance / use" cluster.
-- [docs/subsystems/race.md](./subsystems/race.md) — `BodyPlan`,
+- [docs/subsystems/race.md](../subsystems/race.md) — `BodyPlan`,
   `Species`, `OrganismMixin`, the v1 acceptance roster.
-- [docs/subsystems/boundary.md](./subsystems/boundary.md) —
+- [docs/subsystems/boundary.md](../subsystems/boundary.md) —
   `Adornable` / `Adornment`. Closely related slot-shaped substrate;
   see § "Relationship to Adornable" below.
 
@@ -943,6 +943,6 @@ This slate should boil into a requirements doc that names:
 
 The planning agent then turns the requirements into an
 implementation plan against the architecture (see
-[docs/architecture.md](./architecture.md) and the module-categories
+[docs/architecture.md](../architecture.md) and the module-categories
 list in CLAUDE.md). Anything that requires inventing a new module
 category is a flag.

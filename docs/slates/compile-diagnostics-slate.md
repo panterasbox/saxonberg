@@ -14,19 +14,19 @@ bottom are resolved.
 
 See also:
 
-- [docs/subsystems/hot-reload.md](./subsystems/hot-reload.md) —
+- [docs/subsystems/hot-reload.md](../subsystems/hot-reload.md) —
   the existing reload pipeline that tsx serves; this slate adds
   the missing typecheck signal alongside it.
-- [docs/subsystems/messaging.md](./subsystems/messaging.md) and
+- [docs/subsystems/messaging.md](../subsystems/messaging.md) and
   `mud/api/mudlog.ts` — the delivery channel for diagnostics.
-- [docs/subsystems/shell-environment.md](./subsystems/shell-environment.md)
+- [docs/subsystems/shell-environment.md](../subsystems/shell-environment.md)
   — where the per-author `compile.subscribe` setting lives.
-- [docs/subsystems/shell-workspace.md](./subsystems/shell-workspace.md)
+- [docs/subsystems/shell-workspace.md](../subsystems/shell-workspace.md)
   — `cwd`, `SourceTreeApi.resolvePath`, the `$cwd` synthetic
   channel hook.
-- [docs/subsystems/shell-author.md](./subsystems/shell-author.md)
+- [docs/subsystems/shell-author.md](../subsystems/shell-author.md)
   — `AuthorMixin` is the home for the new settings entries.
-- [docs/subsystems/persistence.md](./subsystems/persistence.md) —
+- [docs/subsystems/persistence.md](../subsystems/persistence.md) —
   `PersistenceManager` owns the Mongo collection used for the
   diagnostic store.
 

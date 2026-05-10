@@ -13,14 +13,14 @@ authority overrides for safety warnings.
 
 See also:
 
-- [docs/recognition-slate.md](./recognition-slate.md) —
+- [docs/slates/recognition-slate.md](./recognition-slate.md) —
   recognition state is the primary input.
-- [docs/social-graph-slate.md](./social-graph-slate.md) —
+- [docs/slates/social-graph-slate.md](./social-graph-slate.md) —
   bucket assignments map to trust tiers.
-- [docs/subsystems/messaging.md](./subsystems/messaging.md) —
+- [docs/subsystems/messaging.md](../subsystems/messaging.md) —
   MML, scene composer, message routing. The MessageGate sits
   in this pipeline.
-- [docs/vision.md](./vision.md) — Saxonberg's safety
+- [docs/vision.md](../vision.md) — Saxonberg's safety
   positioning. This slate makes the safety claim concrete.
 
 ---

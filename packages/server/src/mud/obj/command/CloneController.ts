@@ -13,7 +13,7 @@
  *   2. `--here`                — sugar for "the avatar's environment."
  *   3. `template.environment`  — TBD; lands when the field + the
  *                                singleton-resolution wiring ship.
- *      See `docs/spawn-shape-slate.md`.
+ *      See `docs/slates/spawn-shape-slate.md`.
  *   4. fallback                — the avatar itself (inventory).
  *
  * No `-f` / `forceClone`: clone is "willing something new into
@@ -174,7 +174,7 @@ export class CloneController extends CommandController<CloneModel> {
       return { dest: env };
     }
 
-    // 3. template.environment — TBD; see spawn-shape-slate.md.
+    // 3. template.environment — TBD; see slates/spawn-shape-slate.md.
     //    Slot reserved between (2) and (4) so the future addition is
     //    a single insertion, no reordering.
 

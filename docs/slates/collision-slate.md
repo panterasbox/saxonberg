@@ -3,7 +3,7 @@
 Working slate for collisions, blocking, and pushing — the small
 cluster of design questions that sit between locomotion's "can I
 move?" and embodiment's "what's where?". The design philosophy
-([docs/design-philosophy.md](./design-philosophy.md)) handles the
+([docs/design-philosophy.md](../design-philosophy.md)) handles the
 big tradeoffs (sub-room geometry deferred, layered fidelity); this
 slate spells out the v1 mechanics.
 
@@ -13,18 +13,18 @@ unit* before that disperses.
 
 See also:
 
-- [docs/design-philosophy.md](./design-philosophy.md) — the
+- [docs/design-philosophy.md](../design-philosophy.md) — the
   philosophy this slate operates within (bag-of-stuff default,
   opt-in finer fidelity, layered presentation).
-- [docs/locomotion-slate.md](./locomotion-slate.md) — block-
+- [docs/slates/locomotion-slate.md](./locomotion-slate.md) — block-
   validators extend the locomotion validation chain.
-- [docs/embodiment-slate.md](./embodiment-slate.md) — `Pushable`
+- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — `Pushable`
   fits with other Layer-3 affordance mixins; slot-capacity
   story stays as-designed.
-- [docs/activity-slate.md](./activity-slate.md) — `PushActivity`
+- [docs/slates/activity-slate.md](./activity-slate.md) — `PushActivity`
   is one more concrete activity type with engagement-slot
   semantics.
-- [docs/adjoining-systems.md](./adjoining-systems.md) — this
+- [docs/adjoining-systems.md](../adjoining-systems.md) — this
   slate graduates entry #2 ("Collisions, blocking, and pushing").
 
 ---

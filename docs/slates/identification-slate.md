@@ -14,22 +14,22 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/recognition-slate.md](./recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   parallel substrate for actors. Same `PerceptionMemoryRecord`
   shape; different keying.
-- [docs/quantities-slate.md](./quantities-slate.md) —
+- [docs/subsystems/quantities.md](../subsystems/quantities.md) —
   measurement-based identification consumes typed quantities.
-- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+- [docs/slates/verb-provisioning-slate.md](./verb-provisioning-slate.md)
   — the trigger-verb roster (`read scroll of identify`,
   `analyze`, `taste`, `learn-from-teacher`) is the verb-
   provisioning taxonomy applied to the identify-an-item verb
   family.
-- [docs/subsystems/race.md](./subsystems/race.md) — Material
+- [docs/subsystems/race.md](../subsystems/race.md) — Material
   substrate already carries chemistry / composition data.
   Identification reveals it.
-- [docs/design-philosophy.md](./design-philosophy.md) —
+- [docs/design-philosophy.md](../design-philosophy.md) —
   layered presentation; same pattern at the item level.
-- [docs/adjoining-systems.md](./adjoining-systems.md) — this
+- [docs/adjoining-systems.md](../adjoining-systems.md) — this
   slate graduates the item-id thread that emerged during the
   recognition discussion.
 
@@ -465,7 +465,8 @@ short ones (quick reading) might be near-instant.
 
 - **Magical scroll content / authoring** — content packages.
 - **Specific instrument inventories** — content; first set
-  ships with quantities-slate's instruments roster.
+  ships alongside the Quantities substrate
+  ([docs/subsystems/quantities.md](../subsystems/quantities.md)).
 - **Pedagogical curriculum mapping** — which compounds in
   which courses; content-team / educational-mod concern.
 - **Item economy / pricing** — based on identification but

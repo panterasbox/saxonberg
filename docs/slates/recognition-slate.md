@@ -8,29 +8,29 @@ figure," or as "the tall stranger from yesterday").
 
 This is the substrate. Three sibling slates build on it:
 
-- [docs/social-graph-slate.md](./social-graph-slate.md) —
+- [docs/slates/social-graph-slate.md](./social-graph-slate.md) —
   buckets, notifications, attention-management rendering.
-- [docs/communication-policy-slate.md](./communication-policy-slate.md)
+- [docs/slates/communication-policy-slate.md](./communication-policy-slate.md)
   — trust-tiered moderation built on recognition + buckets.
-- [docs/identification-slate.md](./identification-slate.md) —
+- [docs/slates/identification-slate.md](./identification-slate.md) —
   the parallel pattern for items.
 
 See also:
 
-- [docs/roadmap.md](./roadmap.md) — DescribeApi v2 entry. This
+- [docs/roadmap.md](../roadmap.md) — DescribeApi v2 entry. This
   slate is the concrete design for that work.
-- [docs/embodiment-slate.md](./embodiment-slate.md) — disguise
+- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — disguise
   as a Wearable mixin with a perceptual shadow.
-- [docs/subsystems/perception.md](./subsystems/perception.md) —
+- [docs/subsystems/perception.md](../subsystems/perception.md) —
   viewer-aware-query pattern. Recognition is the hardest
   per-viewer state to date.
-- [docs/verb-provisioning-slate.md](./verb-provisioning-slate.md)
+- [docs/slates/verb-provisioning-slate.md](./verb-provisioning-slate.md)
   — the broader verb-acquisition pattern. Recognition's trigger
   verbs are one column of that slate's taxonomy applied to the
   recognize / look surface (skill paths like "face memory,"
   instrument paths like "scrying mirror," implant paths like
   "facial-recognition HUD").
-- [docs/adjoining-systems.md](./adjoining-systems.md) — this
+- [docs/adjoining-systems.md](../adjoining-systems.md) — this
   slate graduates entry #5.
 
 ---

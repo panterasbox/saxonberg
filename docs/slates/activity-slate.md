@@ -12,18 +12,18 @@ fitting it into a paragraph in another slate.
 
 See also:
 
-- [docs/runtime-model.md](./runtime-model.md) — Node.js event
+- [docs/runtime-model.md](../runtime-model.md) — Node.js event
   loop, timing precision, wire transmission, multi-client reality,
   isolation tradeoffs. This slate consumes that reference; the
   decisions here are constrained by the runtime constraints there.
-- [docs/locomotion-slate.md](./locomotion-slate.md) — verb-as-mode
+- [docs/slates/locomotion-slate.md](./locomotion-slate.md) — verb-as-mode
   dispatch; `Mobile.traverse(target, mode)` becomes the
   *resolution* of a `TraverseActivity`, not the verb's primary
   action.
-- [docs/embodiment-slate.md](./embodiment-slate.md) — slot
+- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — slot
   substrate. Slot occupancy and posture changes commit at activity
   *completion*, not start.
-- [docs/adjoining-systems.md](./adjoining-systems.md) — this slate
+- [docs/adjoining-systems.md](../adjoining-systems.md) — this slate
   graduates entry #1 ("Time and sustained actions") into its own
   document.
 
@@ -448,7 +448,7 @@ before.
 
 ## Wire model implications
 
-(Reference: [docs/runtime-model.md](./runtime-model.md).)
+(Reference: [docs/runtime-model.md](../runtime-model.md).)
 
 Three concrete wire-design decisions:
 
@@ -480,7 +480,7 @@ time, not a stream.
 ## Forward compatibility with isolation
 
 (Reference: [docs/runtime-model.md § Isolation
-options](./runtime-model.md#isolation-options).)
+options](../runtime-model.md#isolation-options).)
 
 v1 doesn't put first-party controllers or activities in isolates.
 But the `Activity` interface should be **shaped to allow future
