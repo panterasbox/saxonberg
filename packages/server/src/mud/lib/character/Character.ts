@@ -9,7 +9,7 @@
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin provides: inventory, get, drop
- * - VisibleMixin provides: look
+ * - PerceiverMixin provides: look / scry / locate
  * - Avatar provides: ping, help, player (diagnostic commands)
  *
  * Key Design Points:
@@ -34,18 +34,28 @@ import { ContainerMixin } from '../spatial/Container';
 import { VisibleMixin } from '../description/Visible';
 import { MobileMixin } from '../spatial/Mobile';
 import { SensorMixin } from '../message/Sensor';
+import { PerceiverMixin } from '../description/Perceiver';
 import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { OrganismMixin } from '../species/Organism';
 
-// Compose mixins: CommandGiver + Mobile + Container + Containable + Visible + Vocal + Perception + Sensor + Gendered + Organism + Named + Agent
+// Compose mixins:
+//   CommandGiver + Mobile + Container + Containable + Visible +
+//   Vocal + Perception + Perceiver + Sensor + Gendered + Organism +
+//   Named + Agent
 // Order matters: ContainableMixin before MobileMixin (MobileMixin uses setContainer/getContainer)
-// Commands are provided by mixins (ContainerMixin provides inventory/get/drop, VisibleMixin provides look)
-// Sensor + Perception together = the full perceiver: Sensor handles
-// channel-side message receipt, Perception handles the subjective
-// interpretation seams that LightApi (and future hearing/etc.) ask
-// the viewer to modulate. See lib/perception/Perception.ts.
+// Verbs come from mixins:
+//   - ContainerMixin → inventory / get / drop
+//   - PerceiverMixin → look / scry / locate (actor-side, on `self`)
+// VisibleMixin is target-shape only — description state, no verbs.
+// Sensor + Perception together = the full perceiver substrate:
+// Sensor handles channel-side message receipt, Perception handles
+// the subjective interpretation seams that LightApi (and future
+// hearing/etc.) ask the viewer to modulate. PerceiverMixin sits
+// directly above Sensor (it requires Sensor for output routing)
+// and owns the perception verb surface as a separate role from
+// Sensor's "I receive scene output."
 // OrganismMixin sits between NamedMixin and GenderedMixin in the
 // composition chain — the slot puts a species/age/lifecycle surface
 // alongside basic identity, before the gender / sensory / perception
@@ -57,7 +67,11 @@ const CharacterBase = CommandGiverMixin(
         VisibleMixin(
           VocalMixin(
             PerceptionMixin(
-              SensorMixin(GenderedMixin(OrganismMixin(NamedMixin(Agent))))
+              PerceiverMixin(
+                SensorMixin(
+                  GenderedMixin(OrganismMixin(NamedMixin(Agent)))
+                )
+              )
             )
           )
         )

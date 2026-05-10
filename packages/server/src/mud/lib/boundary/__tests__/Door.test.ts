@@ -194,7 +194,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     expect(c.getExits().get('west')!.getDoor()).toBe(door);
   });
 
-  it('Exit.prepareDestroy unhooks itself from door.attachedTo', () => {
+  it('Exit.onDestruct unhooks itself from door.attachedTo', () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());

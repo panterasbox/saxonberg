@@ -33,7 +33,7 @@
  *   - `callDown` walks down the dispatch stack via ALS state.
  *   - `callBypass` sets an ALS bypass marker the proxy honours.
  *   - lifecycle: privileged detach during `StuffApi.destruct(host)`
- *     happens AFTER `prepareDestroy` and BEFORE `destroy`.
+ *     happens AFTER `onDestruct` and BEFORE `destroy`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';

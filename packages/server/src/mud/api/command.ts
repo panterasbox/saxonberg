@@ -26,6 +26,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, isAbsolute, join, resolve as resolvePath } from 'path';
 import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
+import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from './security';
 import {
@@ -279,6 +280,7 @@ export type FieldValue =
   | Stuff
   | MqlOneResult
   | MqlManyResult
+  | Record<string, unknown> // `type: 'struct'` payload values
   | FieldValue[];
 
 /**
@@ -365,8 +367,20 @@ export interface FieldDefinition {
    * - `objects` — plural MQL field; the dispatcher resolves via
    *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
    *   fields — the cardinality is the type.
+   * - `struct` — structured-input-only blob (`Record<string, unknown>`).
+   *   Cannot be bound from text — `msh` returns a clear error if a
+   *   verb's positional or option of this type appears in tokenised
+   *   input. Used by widget/editor clients via
+   *   `assembleFromStructured`. Validated against the optional
+   *   `schema` (JSON Schema) before user-defined validators fire.
    */
-  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects';
+  type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  /**
+   * Optional JSON Schema fragment for `type: 'struct'` fields. Run
+   * by ajv during the structured-input coercion step; failure yields
+   * a friendly error pointing at the offending property.
+   */
+  schema?: Record<string, unknown>;
   required?: boolean;
   /**
    * Greedy positional: consumes the remainder of the original input
@@ -491,9 +505,33 @@ export interface PositionalDefinition extends FieldDefinition {
  */
 export interface OptionDefinition {
   short?: string;
-  type: 'boolean' | 'string' | 'number' | 'object';
+  /**
+   * Same type taxonomy as positional fields. `struct` is
+   * structured-input-only — text-input rejects it with a clear
+   * error. `object` / `objects` run through the matcher's MQL
+   * resolution (see `scope` below); the controller receives an
+   * `MqlOneResult` / `MqlManyResult` wrapper, not the raw string.
+   */
+  type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
+  /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
+  schema?: Record<string, unknown>;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
+  /**
+   * MQL scope fragment(s) the dispatcher tries when resolving this
+   * option's value. Same precedence + expander rules as a
+   * positional's `scope`. Only meaningful for `type: object` /
+   * `type: objects`. Default when omitted: `['$focus']`.
+   */
+  scope?: string | string[];
+  /**
+   * Used by payload fields (the structured-form-only family) to
+   * declare that the client MUST attach this key. Enforced by
+   * `assembleFromStructured` against `command.payload` only —
+   * verb-scoped options ignore it (options are by convention
+   * optional).
+   */
+  required?: boolean;
   /**
    * If true, repeated occurrences accumulate into an array. False
    * (the default) means a second occurrence is a bind error.
@@ -536,6 +574,19 @@ export interface CommandView {
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
+  /**
+   * Structured-form-only fields. Populated exclusively through
+   * `CommandApi.assembleFromStructured` (the `msh` text-input path
+   * doesn't see these). Use for content the client composes via a
+   * GUI / editor buffer / non-textual UI — code bodies, JSON
+   * blobs, anything that doesn't ride well through tokenization.
+   *
+   * Field shape mirrors `OptionDefinition` (type / schema /
+   * validators / scope / multiple / default / field). The
+   * `short` / `prepositions` / `greedy` ergonomics don't apply
+   * here — payload fields aren't keyboardable.
+   */
+  payload?: Record<string, OptionDefinition>;
   validators?: string[];
 }
 
@@ -550,6 +601,12 @@ export interface CommandSchemaPayload {
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
+  /**
+   * Structured-form-only fields. Surfaces to widget / editor
+   * clients so they know which keys to attach to their structured
+   * payloads.
+   */
+  payload?: Record<string, OptionDefinition>;
 }
 
 // Get path to command YAML directory
@@ -995,7 +1052,8 @@ export class CommandApi {
       const fdef = lookupFieldDefinition(command, payload.subcommand, k);
       const odef = lookupOptionDefinition(command, payload.subcommand, k);
       const type = fdef?.type ?? odef?.type;
-      const coerceResult = coerceStructuredValue(type, v);
+      const schema = fdef?.schema ?? odef?.schema;
+      const coerceResult = coerceStructuredValue(type, v, schema, k);
       if (!coerceResult.ok) {
         return { error: `field ${k}: ${coerceResult.error}` };
       }
@@ -1003,6 +1061,7 @@ export class CommandApi {
     }
 
     applyOptionDefaults(command.verbOptions, fields);
+    applyOptionDefaults(command.payload, fields);
     if (payload.subcommand) {
       const subDef = command.getSubcommand(payload.subcommand);
       if (!subDef) {
@@ -1010,6 +1069,17 @@ export class CommandApi {
       }
       applyOptionDefaults(subDef.options ?? {}, fields);
       fields[SUBCOMMAND_FIELD] = payload.subcommand;
+    }
+
+    // Required-payload check: structured-form-only fields with
+    // `required: true` MUST be supplied by the client. Default
+    // (if any) already filled above; if still missing, error.
+    for (const [name, def] of Object.entries(command.payload)) {
+      if (!def.required) continue;
+      const fname = def.field ?? name;
+      if (fields[fname] === undefined) {
+        return { error: `missing required payload field: ${fname}` };
+      }
     }
 
     return { model: fields };
@@ -1041,6 +1111,10 @@ export class CommandApi {
 
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
+    // Resolve positional `type: object` / `type: objects` fields.
+    // Options of the same types are resolved in a parallel loop
+    // below — they share the resolution shape but live in a
+    // separate spec map.
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
@@ -1114,6 +1188,55 @@ export class CommandApi {
       }
     }
 
+    // Resolve `type: object` / `type: objects` options.
+    //
+    // Same shape as the positional loop above: walk the active
+    // option set, find string-typed values, run them through MQL
+    // with the option's `scope:` (default `['$focus']`). Options
+    // never update player focus — that's a positional-side
+    // concept (the player drilled INTO the target via that arg);
+    // an option saying `--mql foo` is a side-channel reference,
+    // not an inspection drill.
+    const optionDefs = collectActiveOptionDefs(subcommand, command);
+    for (const [fname, def] of Object.entries(optionDefs)) {
+      const raw = resolved[fname];
+      if (def.type !== 'object' && def.type !== 'objects') continue;
+      if (typeof raw !== 'string' || raw.length === 0) continue;
+
+      const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
+      const tries: string[] = yamlScopes.map((s) =>
+        ShellApi.expandVariables(s, giver)
+      );
+
+      if (def.type === 'objects') {
+        let r: MqlMany = { stuff: [] };
+        for (const scope of tries) {
+          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+          if (r.stuff.length > 0) break;
+        }
+        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        resolved[fname] = bound;
+        if (r.stuff.length > 0 && focused) {
+          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        }
+      } else {
+        let r: MqlOne = { stuff: null };
+        for (const scope of tries) {
+          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+          if (r.stuff !== null) break;
+        }
+        const bound: MqlOneResult = { stuff: r.stuff, raw };
+        if (r.via) bound.via = r.via;
+        resolved[fname] = bound;
+        if (r.stuff !== null && focused) {
+          const asMany: MqlMany = { stuff: [r.stuff] };
+          if (r.via) asMany.via = r.via;
+          focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
+        }
+      }
+    }
+
     // Verb-level validators run BEFORE field validators. They guard
     // command-shape preconditions (animacy, mobility, vocal capacity)
     // that don't tie to a specific arg. First failure short-circuits.
@@ -1132,6 +1255,13 @@ export class CommandApi {
 
     // Verb-option validators.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
+      const fname = opt.field ?? name;
+      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      if (err) return { result: { success: false, summary: err } };
+    }
+    // Payload-field validators — same shape as options (payload is
+    // option-shaped at the matcher level).
+    for (const [name, opt] of Object.entries(command.payload)) {
       const fname = opt.field ?? name;
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
       if (err) return { result: { success: false, summary: err } };
@@ -1226,6 +1356,7 @@ export class CommandApi {
     if (cmd.args.length > 0) out.args = cmd.args;
     if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
     if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;
+    if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
     return out;
   }
 }
@@ -1399,6 +1530,12 @@ function coerceOptionValue(
   switch (type) {
     case 'string':
     case 'object':
+    case 'objects':
+      // object/objects keep the raw text — the matcher's
+      // resolveAndValidate runs MQL on it. Plural-cardinality for
+      // options (`type: objects`) comes from the resolution, not
+      // from `multiple: true` (which is for accumulating repeated
+      // `--opt v --opt v` tokens).
       return { ok: true, value: raw };
     case 'number': {
       const n = Number(raw);
@@ -1410,12 +1547,21 @@ function coerceOptionValue(
       // value is rejected upstream). If we still got here, it's a
       // bug; surface as error.
       return { ok: false, error: 'boolean cannot take a value' };
+    case 'struct':
+      // struct options require structured input; the text path can't
+      // meaningfully bind them.
+      return {
+        ok: false,
+        error: 'requires structured input; cannot bind from text',
+      };
   }
 }
 
 function coerceStructuredValue(
   type: FieldDefinition['type'] | OptionDefinition['type'] | undefined,
-  raw: unknown
+  raw: unknown,
+  schema?: Record<string, unknown>,
+  fieldName?: string
 ): CoerceOk | CoerceErr {
   if (type === undefined) {
     // No declared type — accept as-is.
@@ -1439,10 +1585,85 @@ function coerceStructuredValue(
     }
     return { ok: true, value: raw };
   }
-  // type: 'object' — accept strings (MQL string) or pre-resolved
-  // values (Stuff/array). The structured path can carry pre-resolved
-  // objects for forms.
+  if (type === 'struct') {
+    if (
+      raw === null ||
+      typeof raw !== 'object' ||
+      Array.isArray(raw)
+    ) {
+      return {
+        ok: false,
+        error: `expected struct (plain object), got ${
+          raw === null ? 'null' : Array.isArray(raw) ? 'array' : typeof raw
+        }`,
+      };
+    }
+    if (schema) {
+      const schemaErr = validateAgainstJsonSchema(schema, raw);
+      if (schemaErr !== null) {
+        return {
+          ok: false,
+          error: fieldName
+            ? `field '${fieldName}' failed schema: ${schemaErr}`
+            : `failed schema: ${schemaErr}`,
+        };
+      }
+    }
+    // Cast through — `Record<string, unknown>` doesn't fit FieldValue's
+    // narrower union, but struct values are by contract opaque to the
+    // matcher and narrowed by the controller via its typed model
+    // interface.
+    return { ok: true, value: raw as FieldValue };
+  }
+  // type: 'object' / 'objects' — accept strings (MQL string) or
+  // pre-resolved values (Stuff/array). The structured path can carry
+  // pre-resolved objects for forms.
   return { ok: true, value: raw as FieldValue };
+}
+
+/**
+ * Validate a structured value against a JSON Schema fragment. Returns
+ * a friendly error string on failure, `null` on success.
+ *
+ * Compiled validators are cached by JSON-stringified schema so
+ * repeated invocations against the same struct field skip
+ * recompilation.
+ */
+const _structAjv = new Ajv({ allErrors: false, strict: false });
+const _compiledStructSchemas = new Map<string, ValidateFunction>();
+
+/**
+ * Validate `value` against a JSON Schema fragment. Returns a friendly
+ * error string on failure, `null` on success. Compiled validators are
+ * cached by JSON-stringified schema so repeated calls against the
+ * same fragment skip recompilation.
+ *
+ * Exported because some validation lives outside the matcher's sync
+ * struct path — e.g. `WriteController` reads a class's static
+ * `dataSchema` after the (async) class load and validates with the
+ * same machinery.
+ */
+export function validateAgainstJsonSchema(
+  schema: Record<string, unknown>,
+  value: unknown
+): string | null {
+  const key = JSON.stringify(schema);
+  let validate = _compiledStructSchemas.get(key);
+  if (!validate) {
+    try {
+      validate = _structAjv.compile(schema);
+      _compiledStructSchemas.set(key, validate);
+    } catch (e) {
+      return `invalid JSON Schema: ${(e as Error).message}`;
+    }
+  }
+  const ok = validate(value);
+  if (ok) return null;
+  const errs = validate.errors ?? [];
+  const first = errs[0];
+  if (!first) return 'schema validation failed';
+  const path = first.instancePath || '<root>';
+  return `${path}: ${first.message ?? 'invalid'}`;
 }
 
 type WordToken = Extract<RawToken, { kind: 'word' }>;
@@ -1487,12 +1708,21 @@ function bindPositionals(
         if (def.required !== false) {
           return {
             error: 'shape',
-            summary: `missing required arg: ${name}`,
+            summary:
+              def.type === 'struct'
+                ? `field '${name}' requires structured input; cannot bind from text`
+                : `missing required arg: ${name}`,
           };
         }
         // Greedy must be last per the load-time invariant; we
         // don't loop further.
         return { bound, prep };
+      }
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
+        };
       }
       const first = positionals[pi]!;
       // Greedy fields stop at the next *later* field's declared
@@ -1559,7 +1789,16 @@ function bindPositionals(
         }
         return {
           error: 'shape',
-          summary: `missing required arg: ${name}`,
+          summary:
+            def.type === 'struct'
+              ? `field '${name}' requires structured input; cannot bind from text`
+              : `missing required arg: ${name}`,
+        };
+      }
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
         };
       }
       bound[name] = expand(positionals[pi]!.value);
@@ -1569,6 +1808,12 @@ function bindPositionals(
 
     // Optional positional.
     if (pi < positionals.length && !nextBelongsToLater) {
+      if (def.type === 'struct') {
+        return {
+          error: 'shape',
+          summary: `field '${name}' requires structured input; cannot bind from text`,
+        };
+      }
       bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
@@ -1646,6 +1891,12 @@ function lookupOptionDefinition(
   for (const [name, def] of Object.entries(command.verbOptions)) {
     if ((def.field ?? name) === fname) return def;
   }
+  // Payload fields share the OptionDefinition shape — same coercion
+  // and resolution treatment as a verb-scoped option, just only
+  // populated through the structured-form path.
+  for (const [name, def] of Object.entries(command.payload)) {
+    if ((def.field ?? name) === fname) return def;
+  }
   if (subcommand) {
     const sub = command.getSubcommand(subcommand);
     for (const [name, def] of Object.entries(sub?.options ?? {})) {
@@ -1666,6 +1917,39 @@ function collectActiveFieldDefs(
     }
   } else {
     for (const a of command.args) out[a.name] = a;
+  }
+  return out;
+}
+
+/**
+ * Collect every option active for the current call, keyed by the
+ * option's effective field name (`opt.field ?? optName`). Verb-
+ * scoped options are always active; subcommand-scoped options are
+ * included only when the matched subcommand owns them.
+ *
+ * Used by `resolveAndValidate` to run MQL on `type: object` /
+ * `type: objects` options the same way it does for positional
+ * fields.
+ */
+function collectActiveOptionDefs(
+  subcommand: string | undefined,
+  command: CommandDefinition
+): Record<string, OptionDefinition> {
+  const out: Record<string, OptionDefinition> = {};
+  for (const [name, def] of Object.entries(command.verbOptions)) {
+    out[def.field ?? name] = def;
+  }
+  // Payload fields participate in MQL resolution too — they're
+  // option-shaped at the matcher level, just populated through the
+  // structured-form path instead of via flag tokens.
+  for (const [name, def] of Object.entries(command.payload)) {
+    out[def.field ?? name] = def;
+  }
+  if (subcommand) {
+    const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+    for (const [name, def] of Object.entries(subOpts)) {
+      out[def.field ?? name] = def;
+    }
   }
   return out;
 }
@@ -1700,6 +1984,9 @@ async function resolveCommandValidators(
     }
   }
   for (const opt of Object.values(cmd.verbOptions)) {
+    await resolveOne(opt);
+  }
+  for (const opt of Object.values(cmd.payload)) {
     await resolveOne(opt);
   }
 

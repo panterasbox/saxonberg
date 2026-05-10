@@ -30,8 +30,8 @@ if (obj.environment) {
 if (typeof container.removeContainable === 'function') {
   container.removeContainable(item);
 }
-if (typeof target.setEnvironment === 'function') {
-  target.setEnvironment(newContainer);
+if (typeof target.setContainer === 'function') {
+  target.setContainer(newContainer);
 }
 ```
 
@@ -141,7 +141,7 @@ ContainmentApi.move(avatar, newRoom);
 teleportation.
 
 `move()` automatically determines the current container from
-`item.getEnvironment()`, so you only need to specify the destination.
+`item.getContainer()`, so you only need to specify the destination.
 
 **Contract**:
 - Parameters are typed `Stuff & Containable` (item) and `Stuff & Container`
@@ -156,18 +156,18 @@ teleportation.
   programmatic-bypass callers, not a user-facing check — they are NOT
   redundant.
 
-### Level 3: `setEnvironment()` / `addContainable()` — low level (NEVER call directly)
+### Level 3: `setContainer()` / `addContainable()` — low level (NEVER call directly)
 
 Only called by `ContainmentApi.move()`:
 
 ```typescript
 // NEVER do this
-const currentContainer = item.getEnvironment();
+const currentContainer = item.getContainer();
 if (currentContainer) {
   currentContainer.removeContainable(item);
 }
 newContainer.addContainable(item);
-item.setEnvironment(newContainer);
+item.setContainer(newContainer);
 
 // ALWAYS use this instead
 ContainmentApi.move(item, newContainer);
@@ -207,21 +207,49 @@ const container = ContainmentApi.getContainer(item);
 const contents = ContainmentApi.getContents(container);
 ```
 
+### Stuff template-path read / stamp
+
+```typescript
+// Read the templatePath stamp on a runtime instance (the "I was
+// cloned from /obj/Avatar/foo" identity). Returns null when the
+// Stuff was created via StuffApi.create with no template.
+const tp = stuff.getTemplatePath();
+
+// Stamp templatePath on a non-clone Stuff (e.g. EvalScript
+// singletons) and re-key the byTemplatePath index. ApiOnly-gated;
+// only call from Api code. Don't write the field directly.
+stuff.setTemplatePath('/home/<id>/_eval');
+```
+
+**Don't conflate** `runtime.getTemplatePath()` with `template.path`.
+A runtime Stuff's `templatePath` is the **stamp** linking it to its
+template source. A `Template`'s `path` is the template's **own**
+location in the content hierarchy. Code that took an arbitrary
+Stuff from MQL (which can resolve to either a clone or a Template
+doc) and wants the canonical content-tree string handles both
+explicitly:
+
+```typescript
+const path = stuff instanceof Template
+  ? stuff.path                  // template's hierarchy location
+  : stuff.getTemplatePath();    // clone's source-template stamp
+```
+
 ## Migration Pattern
 
 When you encounter duck typing in existing code:
 
 ```typescript
 // OLD CODE (duck typing)
-const currentContainer = item.getEnvironment();
+const currentContainer = item.getContainer();
 if (typeof currentContainer?.removeContainable === 'function') {
   currentContainer.removeContainable(item);
 }
 if (typeof newContainer.addContainable === 'function') {
   newContainer.addContainable(item);
 }
-if (typeof item.setEnvironment === 'function') {
-  item.setEnvironment(newContainer);
+if (typeof item.setContainer === 'function') {
+  item.setContainer(newContainer);
 }
 
 // NEW CODE (proper API layer)
@@ -801,10 +829,71 @@ answer is meaningful on every subclass.
 For cartesian-only-on-the-cartesian-side cases, lean on the
 invariant and cast — don't pollute the base.
 
-## Summary
+## Cast-Chain to `super` for an Optional Inherited Method
 
-- Never call `setEnvironment()` or `addContainable()` directly — always
-  use `ContainmentApi.move()`.
+When a mixin or subclass overrides a hook that the parent type
+doesn't statically declare, calling `super.hook()` is a TypeScript
+error — even though it'd be safe at runtime if the prototype
+chain happens to have it. The instinctive workaround is the
+cast-and-optional-call dance:
+
+### BAD (cast through `(...) | undefined`)
+
+```typescript
+public override onDestruct(): void {
+  doMyCleanup();
+  // The cast lies about the static surface, then `?.call(this)`
+  // re-introduces the runtime guard that the cast just suppressed.
+  (super.onDestruct as (() => void) | undefined)?.call(this);
+}
+```
+
+Two things are wrong: the cast hides the missing declaration
+instead of fixing it, and reaching for `.call(this)` instead of
+`super.onDestruct()` is a tell that the static type was the
+problem all along.
+
+### GOOD (declare a no-op terminal on the root)
+
+Put a no-op implementation on the root class so the chain has a
+guaranteed terminal callee. Now every layer can `super.X()`
+without ceremony:
+
+```typescript
+// Stuff.ts
+public onDestruct(): void {}
+```
+
+```typescript
+// Subclass / mixin
+public override onDestruct(): void {
+  doMyCleanup();
+  super.onDestruct();
+}
+```
+
+The runtime call-shape doesn't change (any layer that wants to
+participate still defines the method); the static surface now
+matches what the cast was lying about.
+
+### When this fits
+
+The pattern works for hooks that are **universal to the root
+class's purpose** — every Stuff *can* be destructed, so an empty
+terminal `onDestruct` belongs on Stuff. It does NOT mean every
+hook should land on the root: a hook that only makes sense for a
+narrow capability belongs on the mixin's interface, and consumers
+narrow with `MixinApi.isX(obj)` before calling. The question is
+whether the root class is the natural terminal point for the
+chain — destruction is, "can-this-fly" isn't.
+
+Optional-method dispatchers in API code (the
+`typeof fn === 'function'` pattern in `StuffApi.destruct`,
+`ContainmentApi`, etc.) keep working — they were always defending
+against shadows / dynamic composition, not against missing
+prototype links.
+
+
 - Use the correct abstraction level: `traverse()` for creatures/vehicles,
   `ContainmentApi.move()` for all other object movement, low-level
   containment methods only from inside `ContainmentApi`.
@@ -839,3 +928,8 @@ invariant and cast — don't pollute the base.
   doesn't decompose (variable-key maps, structured composites),
   declare a `Marshaller` and register it in `static fieldMarshallers`
   on the mixin. Strict setters always.
+- Don't cast `super.hook` to `(... | undefined)?.call(this)` to
+  chain an optionally-inherited method. Declare a no-op terminal
+  on the root class (the way `Stuff.onDestruct` does for the
+  destruction chain) so `super.hook()` type-checks at every
+  layer. Pattern only fits hooks universal to the root's purpose.

@@ -64,6 +64,16 @@ export interface Mobile {
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
+  /**
+   * Fire `look` on this mover as a forced command. Used by the
+   * traversal pipeline (after a successful move) and by the goto
+   * verb's raw-move fallback (`-l` flag re-fires this when
+   * Mobile.teleport's polished path was bypassed). No-op for
+   * movers that aren't CommandGivers — scripted NPCs can move
+   * without auto-looking. Errors are swallowed: a flaky look
+   * shouldn't fail the movement.
+   */
+  autoLookOnArrival(): Promise<void>;
 
   /** Optional pre-traversal veto on the mover. */
   canTraverse?(via: Exit): VetoResult;
@@ -113,7 +123,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `close`.
      */
     static commandContributions: CommandContributions = {
-      self: ['go.yaml', 'open.yaml', 'close.yaml'],
+      self: ['go.yaml', 'open.yaml', 'close.yaml', 'goto.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -263,12 +273,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // Auto-look on arrival. Fired through the dispatcher so the
       // resulting Command frame is tagged `forced: true` and `look`'s
       // `updates_focus: extend` re-anchors the mover's focus chain
-      // for the new room (the `clearFocus()` call below resets the
-      // chain to "here" first, so extend simply produces "here"
-      // again — focus is well-defined on arrival). Only CommandGivers
-      // participate; non-givers (NPCs without command surfaces) move
-      // silently.
-      await autoLookOnArrival(this);
+      // for the new room (the `clearFocus()` call inside
+      // `autoLookOnArrival` resets the chain to "here" first, so
+      // extend simply produces "here" again — focus is well-defined
+      // on arrival).
+      await this.autoLookOnArrival();
     }
 
     /**
@@ -293,7 +302,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // Auto-look on arrival, same as `traverse`. Fire-and-forget
         // because `teleport` keeps a synchronous signature; failures
         // in the look (rare — same room rendering) are swallowed.
-        void autoLookOnArrival(this).catch(() => {});
+        void this.autoLookOnArrival().catch(() => {});
       }
     }
 
@@ -314,6 +323,39 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     announceArrival(to: Stuff & Container, exit?: Exit): void {
       const bodies = this.resolveArrivalMessage(to, exit);
       this.dispatchMovementScene(bodies, exit);
+    }
+
+    /**
+     * Fire `look` on this mover as a forced command. Used after a
+     * successful traversal to render the new room, and by the goto
+     * verb's raw-move fallback (`-l` flag) when Mobile.teleport's
+     * polished path was bypassed.
+     *
+     * No-op for movers that aren't CommandGivers — scripted NPCs
+     * can move without auto-looking. Errors are swallowed: a flaky
+     * look shouldn't fail the movement; the mover already received
+     * an arrival narration from `announceArrival`, so the
+     * auto-look is additive context.
+     *
+     * Resets focus to "here" first when the mover is Focused —
+     * bare `look` is `default: "$focus"`, so without the reset the
+     * auto-look would carry stale drilled focus from the prior
+     * room into the new one (typical case: focus was on `widget`,
+     * the player walks into a room with no widget, the auto-look
+     * comes up empty).
+     */
+    async autoLookOnArrival(): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isCommandGiver(self)) return;
+      if (MixinApi.isFocused(self)) self.clearFocus();
+      try {
+        await CommandApi.forceCommand(
+          self as Stuff & CommandGiver,
+          'look',
+        );
+      } catch {
+        // Swallow — see jsdoc.
+      }
     }
 
     /**
@@ -551,34 +593,3 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
   );
 }
 
-/**
- * Fire `look` on `mover` as a forced command, so the resulting
- * Command frame carries `forced: true` and `look`'s
- * `updates_focus: extend` re-anchors the mover's focus chain to the
- * new room. Skips silently when `mover` isn't a CommandGiver — non-
- * giver NPCs can move without auto-looking.
- *
- * Resets the mover's focus to `"here"` first when the mover is
- * Focused. Bare `look` is `default: "$focus"` now, so without
- * this reset the auto-look would carry stale drilled focus from
- * the prior room into the new one — typical case is "focus was
- * `widget`, you walk into a room without a widget, the auto-look
- * comes up empty." The reset is a side effect of *moving*, not
- * of *looking*; the auto-look itself stays a normal forced
- * bare-look.
- *
- * Errors are caught and dropped: a flaky look shouldn't prevent
- * the movement from completing. The mover already received an
- * arrival narration from `announceArrival`; the auto-look is
- * additive context, not a critical step.
- */
-async function autoLookOnArrival(mover: object): Promise<void> {
-  const m = mover as Stuff;
-  if (!MixinApi.isCommandGiver(m)) return;
-  if (MixinApi.isFocused(m)) m.clearFocus();
-  try {
-    await CommandApi.forceCommand(m as Stuff & CommandGiver, 'look');
-  } catch {
-    // Swallow — see jsdoc.
-  }
-}

@@ -268,7 +268,7 @@ export class Exit extends Idea {
    *     no-op).
    *   - Drops the local door reference.
    */
-  protected override prepareDestroy(): void {
+  public onDestruct(): void {
     if (this.inverse) {
       this.inverse.setInverse(undefined);
       this.inverse = undefined;

@@ -17,7 +17,7 @@
  * `PlayerApi`.
  *
  * Lifetime: created when a user connects, destroyed when the connection
- * drops. `prepareDestroy` detaches from the current holder via
+ * drops. `onDestruct` detaches from the current holder via
  * `ConnectionApi.detach`.
  */
 
@@ -81,7 +81,7 @@ export class Interactive extends Idea {
     return Date.now() - this.connectedAt.getTime();
   }
 
-  protected prepareDestroy(): void {
+  public onDestruct(): void {
     ConnectionApi.detach(this);
   }
 

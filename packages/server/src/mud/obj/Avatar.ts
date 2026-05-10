@@ -143,7 +143,7 @@ export class Avatar extends AvatarBase {
    * to the persist direction of the unified model (not implemented
    * this phase).
    */
-  protected prepareDestroy(): void {
+  public onDestruct(): void {
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {

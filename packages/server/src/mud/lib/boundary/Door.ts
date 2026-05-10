@@ -70,10 +70,10 @@ export class Door extends DoorBase {
    * Runtime back-reference: every Exit whose `door` currently points
    * at this Door. Maintained by `Exit`'s `door` setter — adding the
    * door to a new Exit registers; clearing the door (or
-   * `Exit.prepareDestroy`) unregisters.
+   * `Exit.onDestruct`) unregisters.
    *
    * Not persistent: the relationship is rebuilt at load time as
-   * Exits are constructed. Wiping it on destroy is `prepareDestroy`'s
+   * Exits are constructed. Wiping it on destroy is `onDestruct`'s
    * job (via `detach()`).
    *
    * Host-internal storage; external callers go through `attachExit`
@@ -168,7 +168,7 @@ export class Door extends DoorBase {
     super.detach();
   }
 
-  // prepareDestroy is inherited from Boundary, which calls our
+  // onDestruct is inherited from Boundary, which calls our
   // overridden detach() (clearing both attachedTo and Boundary
   // anchors) and then destructs the anchors. No override needed
   // here — the Boundary chain is the single source of truth for

@@ -19,9 +19,14 @@
  * 2. Object Destruction:
  * - Call StuffApi.destruct(obj) to destroy objects — it is the canonical
  *   destruction entry point. The call-security framework's `ApiOnly`
- *   policy now enforces this at runtime; direct obj.destroy() throws
+ *   policy enforces this at runtime; direct obj.destroy() throws
  *   `SecurityError`.
- * - Override prepareDestroy() in subclasses for cleanup logic.
+ * - Subclasses customize destruction via two optional Witness hooks:
+ *     `canDestruct(): VetoResult` — refusal seam (return
+ *       `{ ok: false, reason }` to abort). Bypassable via
+ *       `StuffApi.forceDestruct` (admin-gated).
+ *     `onDestruct(): void` — cleanup hook, runs while the target is
+ *       still live. Replaces the retired `prepareDestroy()` hook.
  * - destroy() carries `@Final @Unshadowable @CallSecurity(ApiOnly)`.
  *   Subclass overrides throw `FinalViolationError` at import time;
  *   shadows attempting to attach throw `ShadowError`. Together these
@@ -61,20 +66,49 @@ export abstract class Stuff {
 
   /**
    * CMS template path this object was cloned from, or null when the
-   * object was constructed directly via `StuffApi.create`. Stamped at
-   * clone time by `StuffApi.clone()` via the bracket-write framework
-   * carve-out below; **immutable post-stamp** for everyone else.
+   * object was constructed directly via `StuffApi.create`. Stamped
+   * at clone time by `StuffApi.clone()` and (rare cases) by Api code
+   * that wants MQL path-atom addressability for an ad-hoc runtime
+   * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`.
    *
-   * Storage is public as a framework carve-out: SecurityPolicies and
-   * StuffApi indexes read it directly through the Proxy via
-   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()`. There
-   * is intentionally **no `setTemplatePath()`** — flipping a Stuff's
-   * identity post-clone would break `FromTemplate` policies and the
-   * `byTemplatePath` index.
+   * Storage is public as a framework carve-out: SecurityPolicies
+   * and StuffApi indexes read it directly through the Proxy via
+   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()` and
+   * writes via `setTemplatePath()` (ApiOnly-gated below).
+   *
+   * Note this is the **stamp** identifying the source template a
+   * runtime instance was cloned from — not the same as a
+   * `Template`'s own `path` field, which records that template's
+   * own location in the content hierarchy. A `Template` instance
+   * (also a Stuff) typically leaves `templatePath` null because
+   * templates aren't themselves cloned.
    */
   public templatePath: string | null = null;
   public getTemplatePath(): string | null {
     return this.templatePath;
+  }
+
+  /**
+   * Stamp this Stuff's `templatePath` and re-key the
+   * `byTemplatePath` index so future `findByTemplatePath` lookups
+   * see the new path. No-op when `path` matches the current value.
+   *
+   * Locked down by `@CallSecurity(ApiOnly)` because flipping a
+   * Stuff's identity post-clone would break `FromTemplate`
+   * policies and any caller-side caching of template-path
+   * identity. `@Final @Unshadowable` because the index update has
+   * to run for every successful set — a subclass override that
+   * forgot the index call (or a shadow that intercepted) would
+   * silently desync `byTemplatePath`.
+   */
+  @Final
+  @Unshadowable
+  @CallSecurity(SecurityPolicies.ApiOnly)
+  public setTemplatePath(path: string): void {
+    if (this.templatePath === path) return;
+    const prev = this.templatePath;
+    this.templatePath = path;
+    StuffApi._reindexTemplatePath(this, prev, path);
   }
 
   /**
@@ -357,24 +391,6 @@ export abstract class Stuff {
   }
 
   /**
-   * Hook for subclass cleanup logic.
-   * Called by destroy() before marking object as destroyed and unregistering.
-   *
-   * Override this method in subclasses to add cleanup logic.
-   * DO NOT call super.prepareDestroy() unless parent class needs it.
-   *
-   * Examples:
-   * - Unlink references to other objects
-   * - Close file handles
-   * - Cancel timers
-   * - Release resources
-   */
-  protected prepareDestroy(): void {
-    // Default: no-op
-    // Subclasses override this for cleanup
-  }
-
-  /**
    * Destroy this object.
    *
    * Locked down by `@CallSecurity(ApiOnly)` — only callers under
@@ -385,7 +401,10 @@ export abstract class Stuff {
    * defeat the same invariant — the loader hook throws
    * `FinalViolationError` at import time on any subclass redefinition.
    *
-   * Cleanup logic belongs in `prepareDestroy()`, not here.
+   * Subclass cleanup belongs on the optional `onDestruct()` witness
+   * (consulted by `StuffApi.destruct` while the target is still live);
+   * refusal logic belongs on `canDestruct()`. This terminal `destroy()`
+   * is the unshadowable mark-and-unregister step only.
    */
   @Final
   @Unshadowable
@@ -396,16 +415,27 @@ export abstract class Stuff {
       return;
     }
 
-    // Step 1: Call subclass cleanup hook
-    this.prepareDestroy();
-
-    // Step 2: Mark as destroyed (prevents double-destroy)
+    // Mark as destroyed (prevents double-destroy)
     this._isDestroyed = true;
 
-    // Step 3: Critical housekeeping - unregister from StuffApi
+    // Critical housekeeping - unregister from StuffApi
     // This MUST happen for garbage collection to work properly
     StuffApi.unregister(this);
   }
+
+  /**
+   * Terminal `onDestruct` no-op. Exists so subclasses and mixins
+   * overriding `onDestruct` can call `super.onDestruct()` without
+   * the cast-to-optional-callable dance — the chain is guaranteed
+   * to bottom out here. `StuffApi.destruct` invokes the hook via
+   * the optional-method dispatcher in `api/stuff.ts`; that path
+   * still works (always finds a function on the prototype).
+   *
+   * Override (not extend with `super`) at any layer that wants
+   * cleanup; chain to `super.onDestruct()` from the override so
+   * intermediate layers in a mixin chain run too.
+   */
+  public onDestruct(): void {}
 
   /**
    * Get a string representation of this object (for debugging).

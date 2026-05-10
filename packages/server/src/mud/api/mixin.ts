@@ -56,6 +56,10 @@ import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Workspace } from '../lib/shell/Workspace';
+import type { Author } from '../lib/shell/Author';
+import type { Perceiver } from '../lib/description/Perceiver';
+import type { Scryable } from '../lib/perception/Scryable';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -386,6 +390,22 @@ export class MixinApi {
 
   public static isAlias(obj: Stuff): obj is Stuff & Alias {
     return this.hasMixin(obj, Mixins.Alias);
+  }
+
+  public static isWorkspace(obj: Stuff): obj is Stuff & Workspace {
+    return this.hasMixin(obj, Mixins.Workspace);
+  }
+
+  public static isAuthor(obj: Stuff): obj is Stuff & Author {
+    return this.hasMixin(obj, Mixins.Author);
+  }
+
+  public static isPerceiver(obj: Stuff): obj is Stuff & Perceiver {
+    return this.hasMixin(obj, Mixins.Perceiver);
+  }
+
+  public static isScryable(obj: Stuff): obj is Stuff & Scryable {
+    return this.hasMixin(obj, Mixins.Scryable);
   }
 
   public static isSingleton(obj: Stuff): obj is Stuff & Singleton {

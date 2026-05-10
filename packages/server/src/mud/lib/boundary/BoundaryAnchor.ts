@@ -46,7 +46,7 @@ export class BoundaryAnchor extends BoundaryAnchorBase {
   /**
    * The shared Boundary this anchor proxies for. Maintained by
    * `BoundaryApi.attachExistingBoundary` (set) and
-   * `Boundary.detach` / this anchor's own `prepareDestroy` (clear).
+   * `Boundary.detach` / this anchor's own `onDestruct` (clear).
    * Not persistent — see file header.
    */
   protected boundary: Boundary | null = null;
@@ -100,12 +100,12 @@ export class BoundaryAnchor extends BoundaryAnchorBase {
    * Cleanup hook fired by `StuffApi.destruct(this)`. Clears the
    * boundary's slot for this anchor (so the boundary's
    * `getAnchorA()`/`B` no longer dangle). Removal from the host's
-   * `getFixtures()` is the host's `Adornable.prepareDestroy`
+   * `getFixtures()` is the host's `Adornable.onDestruct`
    * responsibility — when an Adornable destructs, it walks its
    * fixtures and calls `StuffApi.destruct` on each — so this hook
    * doesn't need to call `removeFixture` itself.
    */
-  protected override prepareDestroy(): void {
+  public onDestruct(): void {
     if (this.boundary) {
       this.boundary._clearAnchor(this);
       this.boundary = null;

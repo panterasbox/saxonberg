@@ -6,12 +6,21 @@ specified lifecycle that no class is allowed to bypass:
 ```
 construct → wrap (Proxy) → register → hydrate → postRegister →
             (live) →
-destruct → prepareDestroy → shadow detach → destroy → unregister
+destruct → canDestruct (veto) → onDestruct (cleanup) →
+           shadow detach → destroy → unregister
 ```
 
 The whole sequence runs inside `StuffApi`. Subclasses participate via
-two narrow extension points: `postRegister(context?)` for setup, and
-`prepareDestroy()` for cleanup. Everything else is locked down.
+three narrow extension points: `postRegister(context?)` for setup,
+`canDestruct(): VetoResult` for refusing destruction, and
+`onDestruct()` for cleanup. Everything else is locked down.
+
+`forceDestruct(target)` is the admin-gated bypass: it invokes the
+`canDestruct` witness identically (so observers / audit hooks see the
+call) but ignores the veto. v1 the gate is an always-deny stub —
+the seam is in place, real permission-aware enforcement lands when
+the permission framework does. See
+[call-security.md](./call-security.md#admin-only-and-the-force-bypass-shape).
 
 This doc covers the lifecycle mechanics. The clone-side hydration
 detail (templates, `Hydrator`, `hydratorClass`) lives in
@@ -183,8 +192,16 @@ Every `Stuff` carries:
   currently sits in.
 - **`isDestroyed(): boolean`** — `@Final @Unshadowable`. Reads a
   private `_isDestroyed` flag.
-- **`prepareDestroy(): void`** — `protected`. Default no-op. Subclass
-  override hook.
+- **`canDestruct?(): VetoResult`** — optional Witness hook. Subclasses
+  declare it to refuse destruction (`{ ok: false, reason }`); the
+  default absence is treated as `{ ok: true }`. Bypassable via
+  `StuffApi.forceDestruct` (admin-gated).
+- **`onDestruct(): void`** — Witness hook. Cleanup runs while the
+  target is still live (mirror of how the retired `prepareDestroy()`
+  ran before `destroy()`). `Stuff` ships a no-op terminal so a
+  subclass overriding the hook can call `super.onDestruct()`
+  unconditionally — no cast-to-optional dance required. Subclasses
+  that have no cleanup to do simply don't override.
 - **`destroy(): void`** — `@Final @Unshadowable @CallSecurity(ApiOnly)`.
   The body is FINAL; the call is privileged.
 
@@ -194,15 +211,31 @@ Destroy via `StuffApi.destruct(obj)`. The Api-layer entry point runs:
 
 ```typescript
 public static destruct(object: Stuff): void {
-  // 1. prepareDestroy through the proxy (shadow chain observes it)
-  const prep = (object as { prepareDestroy?: () => void }).prepareDestroy;
-  if (typeof prep === 'function') prep.call(object);
+  StuffApi.#destructCore(object, /* force */ false);
+}
 
-  // 2. Privileged shadow detach (bypasses @ShadowSecurity per spec —
+@CallSecurity(SecurityPolicies.AdminOnly)
+public static forceDestruct(object: Stuff): void {
+  StuffApi.#destructCore(object, /* force */ true);
+}
+
+static #destructCore(object: Stuff, force: boolean): void {
+  // 1. canDestruct witness (refusal seam). Force still INVOKES the
+  //    hook so observers / audit fire identically — only the
+  //    assertion is skipped.
+  const veto = callHook(object, 'canDestruct');
+  if (!force) assertVetoOk(veto, 'canDestruct');
+
+  // 2. onDestruct witness (cleanup). Runs while the target is still
+  //    live — the proxy's destroyed-object guard fires only after
+  //    `_isDestroyed` is set in step 4.
+  callHook(object, 'onDestruct');
+
+  // 3. Privileged shadow detach (bypasses @ShadowSecurity per spec —
   //    destruction is non-negotiable)
   ShadowApi._detachAllForHost(object);
 
-  // 3. destroy() runs straight to the original body
+  // 4. destroy() runs straight to the original body
   object.destroy();
 }
 ```
@@ -215,7 +248,6 @@ And `Stuff.destroy()`:
 @CallSecurity(SecurityPolicies.ApiOnly)
 public destroy(): void {
   if (this._isDestroyed) return;     // double-destroy guard
-  this.prepareDestroy();             // safety net — also called by destruct
   this._isDestroyed = true;
   StuffApi.unregister(this);         // critical housekeeping
 }
@@ -223,12 +255,18 @@ public destroy(): void {
 
 Order is rigid:
 
-1. **`prepareDestroy()`** through any installed shadow chain. Shadows
-   may wrap, observe, or replace cleanup logic.
-2. **Privileged shadow detach** removes every shadow from the host.
-   Bypasses `@ShadowSecurity({ detach })` because host destruction is
-   unconditional.
-3. **`destroy()`** runs. By the time the body executes, the host is
+1. **`canDestruct()`** (optional Witness on the target). Vetoing
+   shapes the same `VetoResult` discipline as `canMove` /
+   `canEnter`; absence = `{ ok: true }`. `forceDestruct` skips
+   only the assertion, not the invocation.
+2. **`onDestruct()`** (optional Witness on the target). Cleanup
+   hook — runs while the target is still live so it can touch
+   `this` through the proxy. Replaces the retired
+   `prepareDestroy()` hook.
+3. **Privileged shadow detach** removes every shadow from the host.
+   Bypasses `@ShadowSecurity({ detach })` because host destruction
+   is unconditional.
+4. **`destroy()`** runs. By the time the body executes, the host is
    shadow-free, so the call goes straight to the original body — no
    shadow can intercept and skip the unregister.
 
@@ -239,7 +277,7 @@ validation). Shadows attempting to attach to `destroy()` throw
 `ShadowError` (via `@Unshadowable`). Together these guarantee that
 `StuffApi.unregister()` always runs — essential for GC.
 
-## Why `prepareDestroy()` is the Override Point
+## Why `onDestruct()` and `canDestruct()` are the Override Points
 
 `destroy()` carries critical housekeeping that the system depends on:
 mark the object destroyed, unregister from the global map. If a
@@ -249,23 +287,47 @@ the registry would leak forever.
 Making `destroy()` `@Final` means the language refuses to compile the
 override. Making it `@Unshadowable` means a runtime shadow can't
 intercept it. Making it `@CallSecurity(ApiOnly)` means non-Api code
-can't even call it directly — they have to go through `StuffApi.destruct()`,
-which guarantees the full sequence (prepareDestroy → shadow-detach → destroy).
+can't even call it directly — they have to go through
+`StuffApi.destruct()`, which guarantees the full sequence
+(canDestruct → onDestruct → shadow-detach → destroy).
 
-`prepareDestroy()` is the safe extension point. It runs before any of
-the housekeeping and can do anything a subclass needs:
+`canDestruct()` and `onDestruct()` are the safe extension points.
+`canDestruct` is an optional Witness hook (declare only when the
+class needs to refuse). `onDestruct` is a guaranteed-present method
+on `Stuff` (no-op terminal); subclasses override and call
+`super.onDestruct()` to chain through layered cleanup. Both run
+before any of the housekeeping in step 4, so they can touch `this`
+through the proxy.
 
 ```typescript
 class Avatar extends AvatarBase {
-  protected override prepareDestroy(): void {
+  // Cleanup only — no refusal reason for an avatar.
+  public onDestruct(): void {
     PlayerApi.unregisterAvatar(this);
     this.interactives.clear();
   }
 }
+
+class SpatialZone extends Zone {
+  // Refusal — drain locations before destruct.
+  public canDestruct(): VetoResult {
+    if (this.locations.size > 0) {
+      return {
+        ok: false,
+        reason: `cannot destruct zone '${this.getName()}' with `
+              + `${this.locations.size} live location(s); `
+              + `destruct locations first`,
+      };
+    }
+    return { ok: true };
+  }
+}
 ```
 
-Don't call `super.prepareDestroy()` unless the parent actually needs
-it (the base default is a no-op).
+Mixin-side overrides chain via `super.onDestruct?.call(this)` — the
+hook is optional, so the chain bottoms out cleanly at any class
+that doesn't declare one. Don't call `super` unless an ancestor
+mixin actually defines `onDestruct`.
 
 ## Failure Rollback
 
@@ -318,7 +380,7 @@ designed:
 - **Granularity.** Opt-in via mixin or opt-out via decorator? Some
   Stuff (game-world objects loaded into a live zone) should never
   expire; some (admin loaded a User to look at) should.
-- **Ordering vs `prepareDestroy`.** Idle eviction needs to fire the
+- **Ordering vs `onDestruct`.** Idle eviction needs to fire the
   same cleanup path as explicit destruct, including shadow detach.
 - **Visibility.** Destroyed objects look the same to consumers
   whether destruct was explicit or auto. Does "destroyed" need a

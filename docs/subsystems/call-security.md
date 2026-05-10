@@ -627,6 +627,7 @@ default) and runs it before invoking the body.
 | `SystemRoot` | `caller === null` only — the synthetic root frame planted by `runRoot`. |
 | `SelfOnly` | `caller === target` — only the target can call itself. |
 | `ApiOnly` | Sugar for `FromModule('mud/api/**', { includeSubclasses: true })`. |
+| `AdminOnly` | **v1 stub: always-deny.** Gates the lowest-layer force-bypass entries — `StuffApi.forceDestruct` and `ContainmentApi.forceMove`. Replaced by a real permissions-aware policy when the permission framework lands; no decorated method changes at swap time. |
 | `FromTemplate(glob)` | Caller's CMS template path matches `glob`. Template paths begin with `/`; module IDs don't — `FromTemplate` rejects module-id callers. |
 | `FromModule(glob, opts?)` | Caller's stamped module ID matches `glob`. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. |
 | `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean`. |
@@ -986,7 +987,7 @@ Two reasons for these rules:
 
 1. **Witness mixins make auto-enrolment unworkable.** A shadow that
    composes `Containable` to react to `onMoved` would otherwise
-   auto-intercept `setEnvironment` / `getEnvironment` / etc. as
+   auto-intercept `setContainer` / `getContainer` / etc. as
    no-op-defaults, masking the host's real behavior. Explicit
    declaration sidesteps the trap.
 2. **Accessors are field-shaped.** A getter is a typed, side-effecty
@@ -1190,15 +1191,19 @@ opting out of effects).
 
 `StuffApi.destruct(host)`:
 
-1. **`host.prepareDestroy()`** runs through the proxy. If the host has
-   shadows on `prepareDestroy`, the chain runs (since `prepareDestroy`
-   is shadowable). Shadows can wrap, observe, or replace the cleanup
-   logic.
-2. **Privileged shadow detach.** `ShadowApi._detachAllForHost(host)`
+1. **`host.canDestruct()`** Witness fires through the proxy. If the
+   host has shadows on `canDestruct`, the chain runs (the hook is
+   shadowable). A `{ ok: false, reason }` result throws
+   `DestructError`. The `forceDestruct` admin entry invokes the
+   witness identically (so observers / audit fire) but ignores the
+   veto.
+2. **`host.onDestruct()`** Witness fires through the proxy. Cleanup
+   hook — runs while the host is still live.
+3. **Privileged shadow detach.** `ShadowApi._detachAllForHost(host)`
    reads every shadow attached to the host (snapshot, deduplicated)
    and removes each via `#removeAtomic`. Bypasses `@ShadowSecurity({
    detach })` because host destruction is unconditional.
-3. **`host.destroy()`** runs through the proxy. `@CallSecurity(ApiOnly)`
+4. **`host.destroy()`** runs through the proxy. `@CallSecurity(ApiOnly)`
    enforces that only Api-layer code can reach it.
    `@Unshadowable` guarantees no shadows can ever have been attached,
    so dispatch finds an empty shadow array and proceeds straight to
@@ -1305,7 +1310,7 @@ layer. They become `@CallSecurity(ApiOnly)` (often combined with
 |---|---|
 | `Stuff.destroy()` | `@Final @Unshadowable @CallSecurity(SecurityPolicies.ApiOnly)` |
 | `Stuff.isDestroyed()` | `@Final @Unshadowable` (read invariant) |
-| `Containable.setEnvironment()` (when exposed) | `ApiOnly` (only `ContainmentApi.move`) |
+| `Containable.setContainer()` (when exposed) | `ApiOnly` (only `ContainmentApi.move`) |
 | Manager-layer mutations | `ApiOnly` |
 
 Direct `obj.destroy()` from outside `mud/api/` throws `SecurityError`.
@@ -1315,7 +1320,56 @@ Together these guarantee that `StuffApi.unregister()` always runs —
 essential for GC.
 
 See [lifecycle.md § Destruction](./lifecycle.md#destruction) for the
-full destruct → prepareDestroy → shadow-detach → destroy ordering.
+full destruct → canDestruct → onDestruct → shadow-detach → destroy
+ordering.
+
+## `AdminOnly` and the force-bypass shape
+
+Force-bypass entry points on lowest-layer Apis (`StuffApi.forceDestruct`
+and `ContainmentApi.forceMove`) carry a parallel-API shape: `forceX`
+lives alongside `X`, sharing a private core that invokes every
+witness identically and branches only on whether to `assertVetoOk`.
+
+The witness itself is **force-unaware**: `canX(): VetoResult` takes
+no force argument. Every `forceX` is decorated with
+`@CallSecurity(SecurityPolicies.AdminOnly)`. Force still fires the
+witness so any side effects the target attaches (audit hooks,
+observers, telemetry) see every call uniformly — `forceX` only
+skips the assertion, not the invocation. `onX` post-hooks fire
+unchanged.
+
+The pattern only fits operations that act on a **target** with state
+to consult. Destruct (target = the Stuff being destroyed) and move
+(target = the item + source + destination) both qualify. Clone and
+reload do not: clone is "willing something new into existence" with
+no instance to ask, and reload operates on modules / prototypes, not
+on Stuff. Both have failure paths (permissions, singleton
+enforcement, frozen blueprints, compile errors) but those live in
+the right places already; they don't shape into the witness pattern,
+so neither `clone` nor `reload` carries a force variant.
+
+`AdminOnly` is the **v1 stub** for this gate: an always-deny policy
+that throws `SecurityError: admin privilege required` from the
+decorator gate before the body runs. The seam is in place; the real
+permissions-aware policy replaces the stub when the permission
+framework lands. No decorated method needs to change at swap time.
+
+Why parallel methods rather than `{ force: true }` options:
+
+- Auditable. `forceX` calls grep cleanly; flag arguments don't.
+- Greppable. The policy decorator sits on the method, not the
+  argument list.
+- Policy-replaceable. Swap `AdminOnly` once; every `forceX` re-gates
+  uniformly.
+
+Why one force entry per operation, not parallel at every wrapping
+layer (e.g., not `Mobile.forceTeleport`, no `MobileApi.forceGoto`):
+duplicating the seam at every wrapper doubles the security-decorator
+surface and gives admins multiple bypass entries that must each be
+audited separately. One enforcement point per operation, composed by
+verb controllers, is the cleaner shape. Verb controllers orchestrate
+"try the polished/high-level path; on veto, fall back to `forceX`
+when `-f` is set and admin allows."
 
 ## Hydrator is Not an Exception
 
@@ -1380,8 +1434,9 @@ yet drives the priority.
 
 - [lifecycle.md](./lifecycle.md) — construction sentinel, synthetic
   constructor frame (`FrameKind.Constructor`), destruct →
-  prepareDestroy → shadow detach → destroy ordering, `Stuff.destroy`
-  decorator stack, `prepareDestroy` extension point
+  canDestruct → onDestruct → shadow detach → destroy ordering,
+  `Stuff.destroy` decorator stack, `canDestruct` / `onDestruct`
+  extension points
 - [templates.md](./templates.md) — `ProxyApi.wrap` in the clone
   pipeline, `templatePath` stamping (feeds `FromTemplate` policies),
   Hydrator's role

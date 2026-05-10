@@ -282,6 +282,12 @@ const TOPICS = {
     perception: {
       look: 'world.perception.look',
       inventory: 'world.perception.inventory',
+      // scry / locate are in-fiction perception verbs — the avatar
+      // uses an instrument (or privilege) to perceive a remote
+      // target. Output from `world.perception.*` is what the
+      // perceiver sees.
+      scry: 'world.perception.scry',
+      locate: 'world.perception.locate',
     },
     narration: {
       movement: 'world.narration.movement',
@@ -314,6 +320,22 @@ const TOPICS = {
       added: 'system.commands.added',
       removed: 'system.commands.removed',
       reset: 'system.commands.reset',
+    },
+    // Shell-tier output: the engine talking back to the avatar
+    // about what just happened, distinct from in-fiction
+    // narration. Grouped by category rather than per-verb so the
+    // constants table doesn't fan out — consumers that want to
+    // filter on a specific verb match against `meta` instead.
+    //
+    // Pre-existing controllers (alias / player / settings / var)
+    // currently fire on `world.perception.look` for the same
+    // shell-output role; migrating them is out of scope for the
+    // shell-tooling MR. Future taxonomy review picks them up.
+    shell: {
+      fs: 'system.shell.fs',           // pwd/cd/ls/cat/grep/write/mkdir/rm/cp/mv
+      author: 'system.shell.author',   // clone/reload/destruct/eval/teleport (actor-side)
+      help: 'system.shell.help',       // help
+      movement: 'system.shell.movement', // goto (actor-side; peers see world.narration.movement)
     },
   },
 } as const;

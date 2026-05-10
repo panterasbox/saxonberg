@@ -31,7 +31,7 @@ export class SphericalLocation extends SphericalLocationBase {
     this.verifyOutboundExits();
   }
 
-  // prepareDestroy inherited from ExitableMixin → Location chain.
+  // onDestruct inherited from ExitableMixin → Location chain.
 
   /**
    * Narrowed override: a `SphericalLocation` lives in a `SphericalZone`

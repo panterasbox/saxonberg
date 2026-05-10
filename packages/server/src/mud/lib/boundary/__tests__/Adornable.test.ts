@@ -75,7 +75,7 @@ describe('AdornableMixin (composed on Location)', () => {
     expect(fx.getAdornedTo()).toBe(b);
   });
 
-  it('AdornableMixin.prepareDestroy destructs every fixture', () => {
+  it('AdornableMixin.onDestruct destructs every fixture', () => {
     const zone = makeStuff(() => new CartesianZone());
     const loc = makeStuff(() => new CartesianLocation());
     zone.addLocation(loc, 0, 0, 0);

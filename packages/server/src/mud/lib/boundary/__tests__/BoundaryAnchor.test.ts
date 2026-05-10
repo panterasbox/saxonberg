@@ -67,7 +67,7 @@ describe('BoundaryAnchor', () => {
     expect(() => ContainmentApi.move(anchorA, trash)).toThrow(ContainmentError);
   });
 
-  it('prepareDestroy clears the boundary slot for this anchor', () => {
+  it('onDestruct clears the boundary slot for this anchor', () => {
     const zone = makeStuff(() => new CartesianZone());
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());

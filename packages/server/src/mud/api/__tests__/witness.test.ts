@@ -17,7 +17,7 @@ import {
   ContainableMixin,
   type Containable,
 } from '../../lib/spatial/Containable';
-import type { VetoResult } from '../../lib/errors';
+import { DestructError, type VetoResult } from '../../lib/errors';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
 import { ExitableMixin, type Exitable } from '../../lib/boundary/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';
@@ -295,5 +295,77 @@ describe('Witness hooks via shadows', () => {
     expect(shadow.seen).toEqual([[null, dest]]);
     // Host's own hook didn't fire — shadow replaced it.
     expect(item.called).toEqual([]);
+  });
+});
+
+describe('Destruct Witness hooks (StuffApi.destruct / forceDestruct)', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  class DestructHookable extends Idea {
+    public veto: VetoResult | null = null;
+    public destructCalled = 0;
+
+    canDestruct?(): VetoResult {
+      return this.veto ?? { ok: true };
+    }
+    override onDestruct(): void {
+      this.destructCalled += 1;
+    }
+  }
+
+  it('canDestruct veto throws DestructError and aborts the destroy chain', () => {
+    const target = makeStuff(() => new DestructHookable());
+    target.veto = { ok: false, reason: 'pinned' };
+    expect(() => StuffApi.destruct(target)).toThrow(DestructError);
+    expect(() => StuffApi.destruct(target)).toThrow(/pinned/);
+    // The witness vetoed, so onDestruct never ran and the object
+    // remains live in the registry.
+    expect(target.destructCalled).toBe(0);
+    expect(target.isDestroyed()).toBe(false);
+  });
+
+  it('onDestruct fires while target is still live, then destroy unregisters', () => {
+    const target = makeStuff(() => new DestructHookable());
+    StuffApi.destruct(target);
+    expect(target.destructCalled).toBe(1);
+    expect(target.isDestroyed()).toBe(true);
+  });
+
+  it('forceDestruct is admin-gated — v1 always-deny stub throws', () => {
+    // The seam exists; the policy is a stub. Update this test when
+    // SecurityPolicies.AdminOnly is replaced by a real policy.
+    const target = makeStuff(() => new DestructHookable());
+    target.veto = { ok: false, reason: 'pinned' };
+    expect(() => StuffApi.forceDestruct(target)).toThrow(/admin/i);
+    // Stuff was not destroyed — the gate fired before the body ran.
+    expect(target.isDestroyed()).toBe(false);
+    expect(target.destructCalled).toBe(0);
+  });
+
+  it('canDestruct absent → destruct proceeds normally', () => {
+    class Bare extends Idea {}
+    const target = makeStuff(() => new Bare());
+    expect(() => StuffApi.destruct(target)).not.toThrow();
+    expect(target.isDestroyed()).toBe(true);
+  });
+});
+
+describe('forceMove admin gating (ContainmentApi.forceMove)', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('v1 always-deny stub throws on every call', () => {
+    // Update this test when SecurityPolicies.AdminOnly is replaced
+    // by a real policy.
+    const item = makeStuff(() => new HookableThing());
+    const dest = makeStuff(() => new HookableBox());
+    expect(() => ContainmentApi.forceMove(item, dest)).toThrow(/admin/i);
+    // Stuff did not move — the gate fired before the body ran.
+    expect(item.getContainer()).toBeNull();
   });
 });

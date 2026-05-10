@@ -31,6 +31,9 @@ import { ShadowApi } from './shadow';
 import { EventApi } from './event';
 import { Events } from '../lib/events';
 import { HotReloadApi } from './hot-reload';
+import { DestructError, type VetoResult } from '../lib/errors';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -332,10 +335,12 @@ export class StuffApi {
       Stuff._endConstruction(prevSentinel);
     }
     if (zone) obj.setZone(zone);
-    // Stamp the template path onto the instance so identity-keyed
-    // policies (`FromTemplate`, etc.) can match against it. The
-    // proxy reads `templatePath` directly via the get-trap; we use
-    // a plain property so test code can also see it.
+    // Stamp the template path BEFORE register, so #updateIndexes
+    // sees it and adds the byTemplatePath entry as part of the
+    // single register pass. Direct field-write (not the
+    // ApiOnly-gated `setTemplatePath` setter) because the setter's
+    // contract is "stamp-and-reindex on a registered Stuff" — at
+    // this point the object isn't registered yet.
     (obj as unknown as { templatePath?: string }).templatePath = templatePath;
     return this.#registerAndInit(
       obj,
@@ -549,34 +554,69 @@ export class StuffApi {
    * Destroy an object.
    *
    * This is the canonical destruction entry point — `Stuff.destroy()`
-   * is now `@CallSecurity(ApiOnly)` and rejects calls from outside
-   * the Api layer. Lifecycle ordering matches §3.10 of the spec:
+   * is `@CallSecurity(ApiOnly)` and rejects calls from outside the Api
+   * layer. Lifecycle ordering:
    *
-   *   1. `prepareDestroy()` runs through any installed shadow chain.
-   *      Shadows can wrap, observe, or replace cleanup logic.
-   *   2. Privileged shadow detach removes every shadow from the host.
+   *   1. `canDestruct()` Witness fires on the target. A
+   *      `{ ok: false, reason }` result throws `DestructError` and
+   *      aborts the rest of the chain. (Force-bypass via
+   *      `forceDestruct()` invokes the witness identically but skips
+   *      the assertion — observers still see the call.)
+   *   2. `onDestruct()` Witness fires on the target. Cleanup hook,
+   *      runs while the target is still live (mirror of how the
+   *      retired `prepareDestroy()` ran before `destroy()`).
+   *   3. Privileged shadow detach removes every shadow from the host.
    *      Bypasses `@ShadowSecurity({ detach })` because host
    *      destruction is unconditional.
-   *   3. `destroy()` runs (FINAL, unshadowable) — marks
+   *   4. `destroy()` runs (FINAL, unshadowable) — marks
    *      `_isDestroyed`, unregisters from `StuffApi`.
+   *   5. `Events.StuffDestructed` fires.
    *
    * @param object - The object to destroy
    */
   public static destruct(object: Stuff): void {
+    StuffApi.#destructCore(object, false);
+  }
+
+  /**
+   * Force-bypass variant of `destruct()` — invokes the `canDestruct`
+   * witness identically (so audit hooks / observers fire as usual)
+   * but ignores the veto result. The `onDestruct` cleanup hook still
+   * runs.
+   *
+   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
+   * always-deny stub: every call throws `SecurityError: admin
+   * privilege required` from the decorator gate before this body
+   * runs. The seam is in place; the policy will swap to a real
+   * permissions-aware shape when the permission framework lands.
+   */
+  @CallSecurity(SecurityPolicies.AdminOnly)
+  public static forceDestruct(object: Stuff): void {
+    StuffApi.#destructCore(object, true);
+  }
+
+  /**
+   * Shared body for `destruct` / `forceDestruct`. Force only changes
+   * whether a `canDestruct` veto throws; the witness itself fires
+   * uniformly across both paths so any side effects the target
+   * attaches (audit hooks, observers) see every call.
+   */
+  static #destructCore(object: Stuff, force: boolean): void {
     if (!object) {
       throw new Error('StuffApi.destruct(): Invalid object');
     }
     const stuffId = object.stuffId;
-    // Fire-and-forget the prepare hook through the proxy so any
-    // shadow chain observes it. Cast for direct invocation; the
-    // proxy mediates the call regardless.
-    const prep = (object as unknown as { prepareDestroy?: () => void })
-      .prepareDestroy;
-    if (typeof prep === 'function') {
-      prep.call(object);
-    }
-    // Privileged detach bypasses @ShadowSecurity per spec — destruction
-    // is non-negotiable.
+
+    const veto = callDestructHook<VetoResult>(object, 'canDestruct');
+    if (!force) assertDestructVetoOk(veto, 'canDestruct');
+
+    // Cleanup hook — runs while the target is still live so it can
+    // touch `this`. After `destroy()` marks `_isDestroyed`, every
+    // proxy method call throws `DestroyedObjectError`.
+    callDestructHook(object, 'onDestruct');
+
+    // Privileged detach bypasses @ShadowSecurity per spec —
+    // destruction is non-negotiable.
     ShadowApi._detachAllForHost(object);
     // Now shadow-free — destroy() runs straight to the original body.
     object.destroy();
@@ -585,6 +625,7 @@ export class StuffApi {
     // registry. EventApi silently drops emits before bootstrap.
     EventApi.emit(Events.StuffDestructed, { stuffId });
   }
+
 
   /**
    * Unregister an object from the registry.
@@ -667,6 +708,29 @@ export class StuffApi {
   }
 
   /**
+   * Index re-key for `Stuff.setTemplatePath`. Removes the old
+   * binding from `byTemplatePath` and inserts the new one. **Only**
+   * called from `Stuff.setTemplatePath` (which carries the
+   * ApiOnly + Final + Unshadowable lock that authorizes stamping);
+   * not for general use.
+   *
+   * `oldPath` may be null (first-time stamp); `newPath` is always
+   * a non-empty string at the call site.
+   *
+   * @internal
+   */
+  public static _reindexTemplatePath(
+    obj: Stuff,
+    oldPath: string | null,
+    newPath: string
+  ): void {
+    if (oldPath) {
+      this.#indexes.byTemplatePath.remove(oldPath, obj);
+    }
+    this.#indexes.byTemplatePath.insert(newPath, obj);
+  }
+
+  /**
    * Find every runtime instance whose `templatePath` matches `pattern`
    * under {@link PathPatternApi} glob syntax (`*`, `**`, `?`).
    *
@@ -676,6 +740,32 @@ export class StuffApi {
    */
   public static findByPathGlob<T extends Stuff = Stuff>(pattern: string): T[] {
     return this.#indexes.byTemplatePath.glob(pattern) as T[];
+  }
+
+  /**
+   * Sync lookup for live Template-shaped Stuff (Persistables that
+   * carry a `path` field) by exact `path`. Backs the MQL path-atom
+   * fallback: when `findByPathGlob` returns no clones, the resolver
+   * falls back to this so a non-glob path can address the template
+   * record itself (e.g. `destruct /obj/Avatar/foo` to remove the
+   * template doc when no live clone exists).
+   *
+   * Walks the registry and structurally matches via `obj.path` —
+   * avoids importing `Template` here, which would close the
+   * `StuffApi → Template → Stuff → StuffApi` cycle. Templates are in
+   * the registry by virtue of `Template._materialize` going through
+   * `StuffApi.create`. O(N) walk; called only on path-atom miss.
+   */
+  public static findTemplatesByPath<T extends Stuff = Stuff>(path: string): T[] {
+    const out: T[] = [];
+    for (const obj of this.#indexes.byId.values()) {
+      if (obj.isDestroyed()) continue;
+      const candidatePath = (obj as unknown as { path?: unknown }).path;
+      if (typeof candidatePath !== 'string') continue;
+      if (candidatePath !== path) continue;
+      out.push(obj as T);
+    }
+    return out;
   }
 
   /**
@@ -790,6 +880,33 @@ export class StuffApi {
     }
     return ClassConstructor;
   }
+}
+
+/**
+ * Optional-method dispatcher for the destruct witness pair. Uses
+ * `typeof === 'function'` so a shadow defining `canDestruct` or
+ * `onDestruct` participates without a `MixinApi.hasMixin` pre-check
+ * on the host. Mirror of the helpers in `containment.ts` and
+ * `Mobile.ts`.
+ */
+function callDestructHook<T>(
+  obj: object,
+  hookName: string
+): T | undefined {
+  const fn = (obj as Record<string, unknown>)[hookName];
+  if (typeof fn !== 'function') return undefined;
+  return (fn as () => T).apply(obj);
+}
+
+function assertDestructVetoOk(
+  result: VetoResult | undefined,
+  hookName: string
+): void {
+  if (!result) return;
+  if (result.ok) return;
+  throw new DestructError(`${hookName} veto: ${result.reason}`, {
+    cause: { hookVeto: result, hookName },
+  });
 }
 
 SecurityApi.decorateApiClass(StuffApi);

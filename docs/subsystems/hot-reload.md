@@ -89,6 +89,23 @@ Concurrent `reload(path)` calls share one in-flight promise — the
 second caller waits for the first instead of starting a parallel
 import.
 
+### TypeScript transpilation
+
+The cache-busted `import()` does no compilation of its own — it
+relies on whatever loader hook the host runtime has installed. In
+dev that's `tsx` (the server runs under `tsx watch src/index.ts`);
+in tests it's Vitest's loader. Both transpile `.ts` on import,
+including dynamic imports, so paths like `/abs/.../Foo.ts?hmr=N`
+work without a separate `tsc` step or built artifact.
+
+The implication for prod: a `node dist/index.js` deploy has no TS
+loader in the chain, and the only files on disk under that layout
+are the compiled `.js`. If a future admin / in-game reload trigger
+ships into prod, callers must resolve template paths to the running
+module set (`.js` under `dist/`), not blindly to `.ts` sources. v1
+has no prod trigger, so this is a known-shape future concern, not a
+v1 bug.
+
 ## Integration
 
 ### `StuffApi.clone` (the only HMR-aware site)

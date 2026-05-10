@@ -129,9 +129,21 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return resolveKeywordSeed(node, ctx);
     case 'literal':
       return resolveLiteralSeed(node.value, ctx);
-    case 'path':
+    case 'path': {
       checkTier('authoring', node.pattern, ctx.commandGiver);
-      return matchesFromStuff(StuffApi.findByPathGlob(node.pattern));
+      // First: live clones whose `templatePath` matches under glob
+      // semantics. Existing pre-Phase behavior.
+      const clones = StuffApi.findByPathGlob(node.pattern);
+      if (clones.length > 0) return matchesFromStuff(clones);
+      // Fallback for non-glob paths: the addressable Template record
+      // itself, so verbs can act on a template that has no live
+      // clones (e.g., `destruct /obj/Avatar/foo`). Glob patterns
+      // (`*`, `**`, `?`) skip this — they're search-shaped queries
+      // and the empty-result is meaningful.
+      const isGlob = /[*?]/.test(node.pattern);
+      if (isGlob) return [];
+      return matchesFromStuff(StuffApi.findTemplatesByPath(node.pattern));
+    }
     case 'stuffId': {
       checkTier('authoring', `#${node.id}`, ctx.commandGiver);
       const found = StuffApi.findById(node.id);

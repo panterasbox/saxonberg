@@ -100,6 +100,7 @@ export class HotReloadApi {
     return promise;
   }
 
+
   /**
    * Swap `current` and `previous` for `path`. Throws when there is no
    * `previous` (states Empty and V1).

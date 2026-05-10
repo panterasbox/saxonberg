@@ -168,7 +168,7 @@ both. The Mobile-side hooks deliberately drop the "Mover" prefix
 that an earlier draft used — Mobile is the receiver here, no
 prefix is needed for disambiguation.
 
-**State-mutation chokepoint**: `Containable.setEnvironment` is the
+**State-mutation chokepoint**: `Containable.setContainer` is the
 atomic chokepoint that orchestrates `removeContainable` (old
 container) → `addContainable` (new container) → field set. It is
 `@CallSecurity`-gated to `ContainmentApi` callers only and `@Final
@@ -176,7 +176,7 @@ container) → `addContainable` (new container) → field set. It is
 catastrophic. `ContainmentApi.move` is the public surface that adds
 policy + Witness dispatch above. `Container`'s `addContainable` /
 `removeContainable` are similarly locked down — only callable from
-inside `setEnvironment`. See `mud/api/containment.ts` and
+inside `setContainer`. See `mud/api/containment.ts` and
 `mud/lib/spatial/Containable.ts` / `Container.ts` for the call
 graph.
 
@@ -523,7 +523,7 @@ prototype" + any `@Shadowing` decorations. Methods inherited from
 composed mixin layers are part of the shadow's *type contract* but
 NOT its *intercept set*. A shadow that composes `Containable` to
 satisfy the type interface but only declares its own `onMoved`
-intercepts only `onMoved`; the inherited `setEnvironment` from
+intercepts only `onMoved`; the inherited `setContainer` from
 ContainableMixin doesn't enrol.
 
 This was a behavior change from an earlier rule that walked the
@@ -627,7 +627,7 @@ The subsystem shipped in seven phases:
    well-known events declared.
 5. **Witness hook surface** — optional methods on Containable /
    Mobile / Container / Exitable / HasInteractive; the
-   `setEnvironment` chokepoint refactor; renames; lockdown
+   `setContainer` chokepoint refactor; renames; lockdown
    decorators on the containment trio.
 6. **EventApi production wiring** — emit sites in `StuffApi`,
    `ConnectionApi`, `Application`, `PersistenceManager`.

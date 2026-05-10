@@ -313,7 +313,7 @@ prototype dispatch resolves through the chain.
 
 ### Order matters when one mixin's body calls another
 
-`MobileMixin` calls `setEnvironment` / `getEnvironment` from
+`MobileMixin` calls `setContainer` / `getContainer` from
 `ContainableMixin`, so `MobileMixin` must wrap `ContainableMixin`, not
 the other way around. The call chain is "outer mixin's body calls into
 inner mixin's body via `this.foo()`."
@@ -538,7 +538,7 @@ auto-enroled every method a composed mixin contributed. That
 collapses badly with Witness mixins (the `canX` / `onX` optional
 hooks `ContainmentApi.move` and friends fire). A shadow that
 composed `Containable` purely to react to `onMoved` would
-auto-intercept `setEnvironment` / `getEnvironment` with the mixin's
+auto-intercept `setContainer` / `getContainer` with the mixin's
 defaults, masking the host's real behavior. Explicit declaration
 sidesteps the trap: mixins on a shadow give you the *type* without
 silently hijacking the host.

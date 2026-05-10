@@ -15,6 +15,7 @@
 import { Zone } from './Zone';
 import type { Location } from '../stuff/Location';
 import type { Exit } from '../boundary/Exit';
+import type { VetoResult } from '../errors';
 
 /**
  * Abstract base for all topographical Zone subtypes.
@@ -95,17 +96,24 @@ export abstract class SpatialZone extends Zone {
   }
 
   /**
-   * Refuse to destruct a non-empty SpatialZone. Caller must drain the member
-   * locations (destruct or relocate) before destructing the zone itself.
-   * Subclasses may extend (e.g. `CartesianZone` clears its derived-exit
-   * cache on top of this).
+   * Refuse to destruct a non-empty SpatialZone. Caller must drain the
+   * member locations (destruct or relocate) before destructing the
+   * zone itself. Refusal is bypassable via `StuffApi.forceDestruct`
+   * (admin-gated).
+   *
+   * Witness shape: `canDestruct` returns `VetoResult` per the
+   * destruct hook contract in `StuffApi.destruct`.
    */
-  protected override prepareDestroy(): void {
+  public canDestruct(): VetoResult {
     if (this.locations.size > 0) {
-      throw new Error(
-        `SpatialZone.prepareDestroy: cannot destruct zone '${this.getName()}' with ` +
-          `${this.locations.size} live location(s); destruct locations first.`
-      );
+      return {
+        ok: false,
+        reason:
+          `cannot destruct zone '${this.getName()}' with ` +
+          `${this.locations.size} live location(s); ` +
+          `destruct locations first`,
+      };
     }
+    return { ok: true };
   }
 }
