@@ -39,6 +39,7 @@ Sibling docs:
 |---|---|---|
 | `Quantity<U>` | value class | `value: number` + `unit: U`. Immutable. Same-unit math; cross-unit conversion via registered converters. |
 | `Unit` | string-literal union | The full v1 unit catalog. New units extend the union. |
+| `ScaleName` | string alias | Names a tag-vocabulary scale within a unit (e.g. `'default'`, `'color'`, `'thermal'`). Pure rendering choice — units are units regardless of scale. |
 | `TagTableEntry` | `{ tag, threshold }` | A single row in a unit's tag table. |
 | `QuantityUnitMismatchError` | error | Thrown by same-unit math when a runtime cast bypassed the compile-time guard. |
 | `QuantityMarshaller<U>` | `Marshaller` subclass | Round-trips a Quantity field through the persistence boundary. One singleton per unit, registered at `pathFor(unit)`. |
@@ -49,11 +50,11 @@ Sibling docs:
 class Quantity<U extends Unit> {
   // Inspection
   rawValue(): number
-  format(): string                 // "5 kg", "320 lux"
-  tag(): string                    // "medium" / "lit" — falls back to format() for tagless units
+  format(): string                                   // "5 kg", "320 lux"
+  tag(scaleName?: ScaleName): string                 // "medium" / "lit" — falls back to format() for tagless units
   toJSON(): { value, unit }
-  toMml(viewer?): Mml              // <quantity>tag-text</quantity>
-  formatMml(viewer?): Mml          // <quantity>5 kg</quantity>
+  toMml(viewer?, scaleName?: ScaleName): Mml         // <quantity>tag-text</quantity>
+  formatMml(viewer?, scaleName?: ScaleName): Mml     // <quantity>5 kg</quantity>
 
   // Math (same-unit only; throws on mismatch)
   add(other): Quantity<U>
@@ -70,12 +71,18 @@ class Quantity<U extends Unit> {
 
   // Construction (private constructor; entry shapes below)
   static of<U>(value: number, unit: U): Quantity<U>
-  static parse<U>(input: string | number, unit: U): Quantity<U>
-  static fromTag<U>(tag: string, unit: U): Quantity<U>
+  static parse<U>(input: string | number, unit: U, scaleName?: ScaleName): Quantity<U>
+  static fromTag<U>(tag: string, unit: U, scaleName?: ScaleName): Quantity<U>
   static fromJSON<U>(json: { value, unit }): Quantity<U>
 
-  // Tag-table registration (channel Apis call this at module-load)
-  static registerTagTable(unit: Unit, entries: ReadonlyArray<TagTableEntry>): void
+  // Tag-table registration (`QuantityApi.loadTagTables` calls this
+  // for every (unit, scale) pair declared in the YAML at boot)
+  static registerTagTable(
+    unit: Unit,
+    scaleName: ScaleName,
+    entries: ReadonlyArray<TagTableEntry>,
+  ): void
+  static setDefaultScale(unit: Unit, scaleName: ScaleName): void
 }
 ```
 
@@ -127,66 +134,112 @@ Tag tables are pure data — the API forces every consumer through
 `Quantity.tag()` / `Quantity.fromTag()` / `Quantity.parse(tag)`, so
 the tables don't need to live in TypeScript. They live in a single
 content-authorable YAML at `mud/config/quantity-tags.yaml`,
-validated against `mud/config/quantity-tags.schema.json`. One scale
-per unit (the pedagogical-seam setting picks rendering FLAVOR over
-the same table — tag vs canonical vs raw — not different scales).
+validated against `mud/config/quantity-tags.schema.json`.
+
+The registry is double-keyed by `(unit, scaleName)`. Most units
+ship a single scale named `default`; units that carry multiple
+authoring vocabularies for the same numerics (notably `K`, where
+color-temperature and thermal-temperature read with different
+tags) register one scale per vocabulary.
 
 ```yaml
 # mud/config/quantity-tags.yaml (excerpt)
 kg:
-  - { tag: feather,  threshold: 0.001 }
-  - { tag: light,    threshold: 0.5 }
-  - { tag: medium,   threshold: 5 }
-  - { tag: heavy,    threshold: 50 }
-  - { tag: enormous, threshold: 500 }
+  default:
+    - { tag: feather,  threshold: 0.001 }
+    - { tag: light,    threshold: 0.5 }
+    - { tag: medium,   threshold: 5 }
+    - { tag: heavy,    threshold: 50 }
+    - { tag: enormous, threshold: 500 }
 
 K:
-  - { tag: warm,     threshold: 2700 }
-  - { tag: neutral,  threshold: 4000 }
-  - { tag: cool,     threshold: 5000 }
-  ...
+  color:
+    - { tag: warm,     threshold: 2700 }
+    - { tag: neutral,  threshold: 4000 }
+    - { tag: cool,     threshold: 5000 }
+    - { tag: daylight, threshold: 6500 }
+    - { tag: blue,     threshold: 10000 }
+  # A future thermal scale slots in here:
+  # thermal:
+  #   - { tag: frozen,  threshold: 0 }
+  #   - { tag: room,    threshold: 295 }
+  #   - { tag: boiling, threshold: 373 }
 ```
 
 `QuantityApi.loadTagTables()` reads + validates the YAML and calls
-`Quantity.registerTagTable(unit, entries)` per declared unit at
-boot — `AppBootstrap` runs it after `SeederManager.run()` so the
-tables are available before any code that hits `tag()` /
-`parse(tagString)` runs (the marshallers, the propagation walks,
-controllers).
+`Quantity.registerTagTable(unit, scaleName, entries)` for every
+declared `(unit, scale)` pair at boot — `AppBootstrap` runs it
+after `SeederManager.run()` so the tables are available before
+any code that hits `tag()` / `parse(tagString)` runs (the
+marshallers, the propagation walks, controllers).
+
+### Scales
+
+Scales are RENDERING choices, not type distinctions. `Quantity<'K'>`
+carries no semantic — the same instance can render with EITHER
+scale at the call site:
+
+```ts
+const q = Quantity.of(3000, 'K');
+q.tag();          // → 'warm'    (default scale: 'color')
+q.tag('color');   // → 'warm'
+q.tag('thermal'); // → 'boiling' (if thermal scale registered)
+```
+
+The pedagogical principle: science students playing the game know
+"a unit is a unit is a unit." Color temperature for a blackbody
+emitter IS thermal temperature — the engine refuses to fork the
+type system on what is, fundamentally, vocabulary preference. Math,
+equality, and conversion are unit-only.
+
+**Default scale.** The first scale registered for a unit becomes
+its default; `Quantity.tag()` / `parse()` / `fromTag()` consult it
+when no scale name is passed. Author the intended default first
+in the YAML, or call `Quantity.setDefaultScale(unit, scaleName)`
+to switch deliberately. Removing the default scale via reload
+auto-promotes the next remaining scale.
 
 The lookup machinery in `lib/quantity.ts`:
 
-- `Quantity.tag()` walks the table descending; first threshold
-  met-or-exceeded wins. Falls back to canonical format when no
-  table is registered.
-- `Quantity.fromTag(tag, unit)` linear-scans for the tag and returns
-  its threshold as the canonical numeric value.
+- `Quantity.tag(scaleName?)` walks the resolved table descending;
+  first threshold met-or-exceeded wins. Falls back to canonical
+  format when no table is registered for the (unit, scale) pair.
+- `Quantity.fromTag(tag, unit, scaleName?)` linear-scans for the
+  tag and returns its threshold as the canonical numeric value.
+- `Quantity.parse(input, unit, scaleName?)` accepts numerics,
+  literals, and tag strings; the optional scale name only affects
+  the tag-string path.
 - Round-trip stability — every `{ tag, threshold }` row satisfies
-  `fromTag(tag, unit).tag() === tag`. Tests pin this.
+  `fromTag(tag, unit, scale).tag(scale) === tag`. Tests pin this.
 
 ### Reload
 
 `QuantityApi.reloadTagTables()` re-reads the YAML and applies the
-diff to the live registry: tables for units present in the new file
-get re-registered (replacing prior entries), tables for units
-absent from the new file get cleared. Existing `Quantity` instances
-see new tags on their next `tag()` call — no caching layer to
-invalidate, no Quantity-instance migration. Edits to band thresholds
-change which band an already-stored value reads as; storage is
-unaffected (Quantity values store numerics, not tag strings).
+diff at `(unit, scaleName)` granularity: pairs present in the new
+file get re-registered (replacing prior entries), pairs absent from
+the new file get cleared. Existing `Quantity` instances see new
+tags on their next `tag()` call — no caching layer to invalidate,
+no Quantity-instance migration. Edits to band thresholds change
+which band an already-stored value reads as; storage is unaffected
+(Quantity values store numerics, not tag strings).
+
+Removing a unit's default scale promotes the next remaining scale
+to default automatically. Removing the last scale for a unit drops
+the unit's registry entry entirely — `tag()` then falls back to
+canonical format.
 
 Production trigger for reload is a future admin slash command;
 v1 calls it from a test harness when needed.
 
 ### v1 declared units
 
-| Unit | Tags |
-|---|---|
-| `lux` | `pitch-black`/`very-dim`/`dim`/`lit`/`bright`/`blinding` (mirrors `LightBand`) |
-| `lumen` | `unlit`/`glow`/`lamp`/`bright`/`searchlight` |
-| `K` | `warm`/`neutral`/`cool`/`daylight`/`blue` |
-| `kg` | `feather`/`light`/`medium`/`heavy`/`enormous` |
-| `kg/m³` | `gas-like`/`water-like`/`rock-like`/`metal-like` |
+| Unit | Scale(s) | Tags |
+|---|---|---|
+| `lux` | `default` | `pitch-black`/`very-dim`/`dim`/`lit`/`bright`/`blinding` (mirrors `LightBand`) |
+| `lumen` | `default` | `unlit`/`glow`/`lamp`/`bright`/`searchlight` |
+| `K` | `color` | `warm`/`neutral`/`cool`/`daylight`/`blue` |
+| `kg` | `default` | `feather`/`light`/`medium`/`heavy`/`enormous` |
+| `kg/m³` | `default` | `gas-like`/`water-like`/`rock-like`/`metal-like` |
 
 Tagless units in the catalog (`g/mol`, `mol`, `mol/L`, `g`, `m`,
 `s`, `Pa`, `N`, `J`, `W`, `dB`, `Hz`, …) deliberately have no tag

@@ -96,17 +96,49 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
 };
 
 /**
- * Registry of `{ tag, threshold }` tables, keyed by unit. Populated
- * via `Quantity.registerTagTable` from each channel's Api at
- * module-load. Reading: `tagFor` walks descending — the highest
- * threshold met-or-exceeded wins.
+ * One row in a tag table.
  */
 export interface TagTableEntry {
   readonly tag: string;
   readonly threshold: number;
 }
 
-const tagTableRegistry: Map<Unit, ReadonlyArray<TagTableEntry>> = new Map();
+/**
+ * Scale name — disambiguates multiple tag vocabularies registered
+ * for the same unit. Examples: `'color'` and `'thermal'` for K
+ * (color temperature vs thermal temperature, same Kelvin numerics
+ * but different prose vocabulary). Single-scale units use the
+ * conventional name `'default'`.
+ *
+ * Scale selection is a RENDERING choice, not a typing distinction.
+ * `Quantity<'K'>` carries no semantic — the same instance can
+ * render with EITHER scale at call time. See
+ * `docs/subsystems/quantities.md § Scales` for the principle.
+ */
+export type ScaleName = string;
+
+export const DEFAULT_SCALE: ScaleName = 'default';
+
+/**
+ * Registry of tag tables, double-keyed by unit and scale name. Each
+ * unit's inner map can hold any number of scales — the canonical
+ * example is `'K'` with both a color-temperature scale (warm /
+ * neutral / cool) and a future thermal-temperature scale (frozen /
+ * room / boiling). `Quantity.tag(scaleName?)` consults the right
+ * scale; no-arg calls fall back to the unit's default scale.
+ */
+const tagTableRegistry: Map<
+  Unit,
+  Map<ScaleName, ReadonlyArray<TagTableEntry>>
+> = new Map();
+
+/**
+ * Per-unit default-scale picker. First scale registered for a unit
+ * is auto-set as the default; explicit `setDefaultScale` overrides.
+ * `Quantity.tag()` / `parse()` / `fromTag()` without a scale name
+ * consult this map.
+ */
+const defaultScaleByUnit: Map<Unit, ScaleName> = new Map();
 
 /**
  * Cross-unit converters keyed by source unit. Sparse — populated
@@ -153,14 +185,30 @@ export class QuantityUnitMismatchError extends Error {
 }
 
 /**
+ * Resolve a scale name for the given unit. Explicit name wins;
+ * otherwise the unit's registered default. Returns `null` when no
+ * scale is registered for the unit at all.
+ */
+function resolveScaleName(unit: Unit, scaleName?: ScaleName): ScaleName | null {
+  if (scaleName !== undefined) return scaleName;
+  return defaultScaleByUnit.get(unit) ?? null;
+}
+
+/**
  * Sorted-table tag lookup by descending threshold; first row whose
  * threshold the value meets-or-exceeds wins. Returns `null` when no
- * table is registered (caller falls back to canonical format).
+ * table is registered for the (unit, scale) pair (caller falls back
+ * to canonical format).
  */
-function tagFor(unit: Unit, value: number): string | null {
-  const table = tagTableRegistry.get(unit);
+function tagFor(
+  unit: Unit,
+  value: number,
+  scaleName?: ScaleName
+): string | null {
+  const scale = resolveScaleName(unit, scaleName);
+  if (scale === null) return null;
+  const table = tagTableRegistry.get(unit)?.get(scale);
   if (!table) return null;
-  // Descending walk — picks the highest band whose threshold is met.
   for (let i = table.length - 1; i >= 0; i--) {
     const entry = table[i]!;
     if (value >= entry.threshold) return entry.tag;
@@ -171,10 +219,17 @@ function tagFor(unit: Unit, value: number): string | null {
 /**
  * Reverse lookup — tag string → canonical numeric value (the
  * registered threshold). Linear scan; tag tables are short (≤ 6).
- * Returns `null` for tags absent from the table.
+ * Returns `null` for tags absent from the table or for
+ * unit/scale pairs with no registered table.
  */
-function thresholdFor(unit: Unit, tag: string): number | null {
-  const table = tagTableRegistry.get(unit);
+function thresholdFor(
+  unit: Unit,
+  tag: string,
+  scaleName?: ScaleName
+): number | null {
+  const scale = resolveScaleName(unit, scaleName);
+  if (scale === null) return null;
+  const table = tagTableRegistry.get(unit)?.get(scale);
   if (!table) return null;
   for (const entry of table) {
     if (entry.tag === tag) return entry.threshold;
@@ -232,16 +287,27 @@ export class Quantity<U extends Unit> {
   }
 
   /**
-   * Tag-table reverse lookup. `Quantity.fromTag('heavy', 'kg')`
-   * resolves through `KG_TAGS` to a canonical kg value. Throws
-   * for tags absent from the unit's table (or units without a
-   * registered table).
+   * Tag-table reverse lookup. Resolves through the registered
+   * table to a canonical numeric value. The optional `scaleName`
+   * picks which vocabulary to consult when the unit has multiple
+   * registered scales (e.g. `'color'` vs `'thermal'` for K).
+   * Without `scaleName`, falls back to the unit's default scale.
+   *
+   * Throws for tags absent from the resolved table, or for unit /
+   * scale pairs with no registered table.
    */
-  public static fromTag<U extends Unit>(tag: string, unit: U): Quantity<U> {
-    const value = thresholdFor(unit, tag);
+  public static fromTag<U extends Unit>(
+    tag: string,
+    unit: U,
+    scaleName?: ScaleName
+  ): Quantity<U> {
+    const value = thresholdFor(unit, tag, scaleName);
     if (value === null) {
+      const scaleHint = scaleName
+        ? `scale '${scaleName}'`
+        : `default scale (${defaultScaleByUnit.get(unit) ?? 'none'})`;
       throw new Error(
-        `Quantity.fromTag: unknown tag '${tag}' for unit '${unit}'`
+        `Quantity.fromTag: unknown tag '${tag}' for unit '${unit}' (${scaleHint})`
       );
     }
     return new Quantity<U>(value, unit);
@@ -256,12 +322,17 @@ export class Quantity<U extends Unit> {
    *     canonical-unit interpretation. `mass: 5` on a `Quantity<kg>`
    *     field is 5 kg, not 5 g.
    *
+   * The optional `scaleName` selects which tag table to consult when
+   * the input is a tag string and the target unit has multiple
+   * scales registered.
+   *
    * Throws on unrecognized tag, unparseable literal, or alt-unit
    * with no registered converter to the target.
    */
   public static parse<U extends Unit>(
     input: string | number,
-    targetUnit: U
+    targetUnit: U,
+    scaleName?: ScaleName
   ): Quantity<U> {
     if (typeof input === 'number') {
       return Quantity.of(input, targetUnit);
@@ -302,7 +373,7 @@ export class Quantity<U extends Unit> {
       return Quantity.of(converter(n), targetUnit);
     }
     // Tag literal — registered table lookup.
-    const tagValue = thresholdFor(targetUnit, trimmed);
+    const tagValue = thresholdFor(targetUnit, trimmed, scaleName);
     if (tagValue !== null) {
       return Quantity.of(tagValue, targetUnit);
     }
@@ -334,40 +405,110 @@ export class Quantity<U extends Unit> {
   }
 
   /**
-   * Channel-Api hook: register a tag table for the given unit. Each
-   * channel calls this at module-load; later registrations replace
-   * earlier ones for the same unit (by design — content-team
-   * iteration without restart-required code edits, once YAML
-   * tables ship).
+   * Register a tag table for `(unit, scaleName)`. Replaces any
+   * prior table at that pair. First scale registered for a unit
+   * becomes that unit's default scale (the one `tag()` /
+   * `parse()` / `fromTag()` consult when no scale name is given);
+   * `setDefaultScale` overrides explicitly.
+   *
+   * `scaleName` defaults to `DEFAULT_SCALE` (`'default'`) for
+   * single-vocabulary units like `kg` or `lux`. Units with
+   * multiple vocabularies (`K`'s color vs thermal) register each
+   * scale by an explicit name.
    */
   public static registerTagTable(
     unit: Unit,
+    scaleName: ScaleName,
     entries: ReadonlyArray<TagTableEntry>
   ): void {
     // Sort ascending by threshold so `tagFor` can walk descending
     // deterministically and `thresholdFor` reads the registered
     // values back unchanged.
     const sorted = [...entries].sort((a, b) => a.threshold - b.threshold);
-    tagTableRegistry.set(unit, sorted);
+    let scales = tagTableRegistry.get(unit);
+    if (!scales) {
+      scales = new Map();
+      tagTableRegistry.set(unit, scales);
+    }
+    const isFirstScaleForUnit = scales.size === 0;
+    scales.set(scaleName, sorted);
+    // First registered scale auto-takes the default slot. Later
+    // scales added to the same unit don't shift the default — use
+    // `setDefaultScale` to switch deliberately.
+    if (isFirstScaleForUnit) {
+      defaultScaleByUnit.set(unit, scaleName);
+    }
   }
 
   /**
-   * Drop a registered table for `unit`. Used by `QuantityApi`'s
-   * reload path to delete entries that disappeared from the YAML
-   * since the last load, and by tests to reset registry state
-   * between cases.
+   * Pick which scale `tag()` / `parse()` / `fromTag()` consult for
+   * `unit` when no `scaleName` is passed. Throws if the scale
+   * isn't registered for that unit.
    */
-  public static _clearTagTable(unit: Unit): void {
-    tagTableRegistry.delete(unit);
+  public static setDefaultScale(
+    unit: Unit,
+    scaleName: ScaleName
+  ): void {
+    const scales = tagTableRegistry.get(unit);
+    if (!scales || !scales.has(scaleName)) {
+      throw new Error(
+        `Quantity.setDefaultScale: scale '${scaleName}' is not registered for unit '${unit}'`
+      );
+    }
+    defaultScaleByUnit.set(unit, scaleName);
   }
 
   /**
-   * Snapshot of the units currently carrying a registered tag
-   * table. Used by `QuantityApi.reloadTagTables` to compute which
-   * units to delete after a re-read.
+   * Drop a registered scale for `unit`. When `scaleName` is
+   * omitted, removes every scale registered for the unit. Used by
+   * `QuantityApi`'s reload path to handle entries that disappeared
+   * from the YAML, and by tests to reset registry state.
    */
-  public static _registeredTagTableUnits(): Unit[] {
-    return Array.from(tagTableRegistry.keys());
+  public static _clearTagTable(unit: Unit, scaleName?: ScaleName): void {
+    if (scaleName === undefined) {
+      tagTableRegistry.delete(unit);
+      defaultScaleByUnit.delete(unit);
+      return;
+    }
+    const scales = tagTableRegistry.get(unit);
+    if (!scales) return;
+    scales.delete(scaleName);
+    if (defaultScaleByUnit.get(unit) === scaleName) {
+      // Default fell away — pick the next remaining scale as the
+      // new default, or drop the entry if none remain.
+      const next = scales.keys().next();
+      if (next.done) {
+        defaultScaleByUnit.delete(unit);
+        tagTableRegistry.delete(unit);
+      } else {
+        defaultScaleByUnit.set(unit, next.value);
+      }
+    } else if (scales.size === 0) {
+      tagTableRegistry.delete(unit);
+    }
+  }
+
+  /**
+   * Snapshot of the (unit, scaleName) pairs currently carrying a
+   * registered table. Used by `QuantityApi.reloadTagTables` to
+   * compute which scales to delete after a re-read.
+   */
+  public static _registeredScales(): Array<{
+    unit: Unit;
+    scaleName: ScaleName;
+  }> {
+    const out: Array<{ unit: Unit; scaleName: ScaleName }> = [];
+    for (const [unit, scales] of tagTableRegistry) {
+      for (const scaleName of scales.keys()) {
+        out.push({ unit, scaleName });
+      }
+    }
+    return out;
+  }
+
+  /** Inspect the registered default scale for a unit; null if unset. */
+  public static _defaultScaleFor(unit: Unit): ScaleName | null {
+    return defaultScaleByUnit.get(unit) ?? null;
   }
 
   // ---------- inspection ----------
@@ -382,13 +523,18 @@ export class Quantity<U extends Unit> {
   }
 
   /**
-   * Tag-table lookup. Returns the registered tag string when one is
-   * defined for the unit; otherwise falls back to the canonical
+   * Tag-table lookup. Returns the registered tag string when one
+   * is defined for the unit; otherwise falls back to the canonical
    * format (so `Quantity<g/mol>.tag()` reads "55.845 g/mol", not
    * "" or null).
+   *
+   * The optional `scaleName` selects which vocabulary to consult
+   * when the unit has multiple registered scales (e.g. `'color'`
+   * vs `'thermal'` for K). Without `scaleName`, falls back to the
+   * unit's default scale.
    */
-  public tag(): string {
-    const tag = tagFor(this.unit, this.value);
+  public tag(scaleName?: ScaleName): string {
+    const tag = tagFor(this.unit, this.value, scaleName);
     if (tag !== null) return tag;
     return this.format();
   }
@@ -475,18 +621,22 @@ export class Quantity<U extends Unit> {
   /**
    * Default-prose emission. Inner text is the tag (or canonical
    * format for tagless units). Viewer parameter is forward-compat
-   * for the deferred pedagogical-seam setting.
+   * for the deferred pedagogical-seam setting. Optional
+   * `scaleName` picks the vocabulary when multiple scales are
+   * registered for the unit; default scale otherwise.
    */
-  public toMml(_viewer?: unknown): Mml {
-    return Mml.fromMarkup(this.buildMarkup(this.tag()));
+  public toMml(_viewer?: unknown, scaleName?: ScaleName): Mml {
+    return Mml.fromMarkup(this.buildMarkup(this.tag(scaleName), scaleName));
   }
 
   /**
    * Instrument / analyze emission. Same wrapper, canonical text
-   * inside.
+   * inside. The optional `scaleName` flows through to the
+   * `<quantity tag="...">` attribute when a tag table is
+   * registered for the unit at that scale.
    */
-  public formatMml(_viewer?: unknown): Mml {
-    return Mml.fromMarkup(this.buildMarkup(this.format()));
+  public formatMml(_viewer?: unknown, scaleName?: ScaleName): Mml {
+    return Mml.fromMarkup(this.buildMarkup(this.format(), scaleName));
   }
 
   /**
@@ -495,11 +645,11 @@ export class Quantity<U extends Unit> {
    * and are unlikely to contain `<` or `&`, but escape is
    * defense-in-depth.
    */
-  private buildMarkup(innerText: string): string {
+  private buildMarkup(innerText: string, scaleName?: ScaleName): string {
     const unitAttr = escapeText(this.unit);
     const valueAttr = escapeText(String(this.value));
     const inner = escapeText(innerText);
-    const tag = tagFor(this.unit, this.value);
+    const tag = tagFor(this.unit, this.value, scaleName);
     if (tag !== null) {
       const tagAttr = escapeText(tag);
       return `<quantity unit="${unitAttr}" value="${valueAttr}" tag="${tagAttr}">${inner}</quantity>`;

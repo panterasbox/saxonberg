@@ -2,15 +2,23 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://saxonberg.dev/schemas/quantity-tags.schema.json",
   "title": "Quantity Tag Tables",
-  "description": "Top-level keys are unit strings from the `Unit` type union; values are ordered tag tables consulted by `Quantity.tag()` / `Quantity.fromTag()` / `Quantity.parse()`.",
+  "description": "Top-level keys are unit strings from the `Unit` type union. Each unit's value is a map of scale-name → ordered tag table consulted by `Quantity.tag(scaleName?)` / `Quantity.fromTag(_, _, scaleName?)` / `Quantity.parse(_, _, scaleName?)`. Single-vocabulary units use `default` as the scale name by convention; multi-vocabulary units (e.g. `K` with color + thermal) name each scale explicitly. The FIRST scale defined for each unit is the auto-default for no-scale-name calls.",
   "type": "object",
   "additionalProperties": false,
   "patternProperties": {
     "^(kg|g|m|km|cm|mm|s|ms|K|lux|lumen|dB|Hz|mol|g/mol|mol/L|kg/m³|Pa|N|J|W)$": {
-      "$ref": "#/$defs/tagTable"
+      "$ref": "#/$defs/unitScales"
     }
   },
   "$defs": {
+    "unitScales": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/tagTable"
+      },
+      "description": "Map of scale-name → tag table. Scale names are arbitrary strings (`default`, `color`, `thermal`, etc.)."
+    },
     "tagTable": {
       "type": "array",
       "minItems": 1,
@@ -30,7 +38,7 @@
         "threshold": {
           "type": "number",
           "minimum": 0,
-          "description": "The lower bound of the band, in canonical units. `Quantity.fromTag(tag, unit)` treats this as the canonical numeric value."
+          "description": "The lower bound of the band, in canonical units. `Quantity.fromTag(tag, unit, scaleName)` treats this as the canonical numeric value."
         }
       }
     }

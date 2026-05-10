@@ -183,7 +183,7 @@ describe('ProseApi quantity filters (Step C)', () => {
   // ordering elsewhere in the suite.
   it('| quantity emits tag-flavored <quantity> markup', async () => {
     const { Quantity } = await import('../../lib/quantity');
-    Quantity.registerTagTable('kg', [
+    Quantity.registerTagTable('kg', 'default', [
       { tag: 'feather', threshold: 0.001 },
       { tag: 'medium', threshold: 5 },
       { tag: 'heavy', threshold: 50 },

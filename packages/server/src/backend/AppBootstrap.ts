@@ -78,9 +78,12 @@ export class AppBootstrap {
     // which includes the marshallers' coercion paths and the
     // light propagation walk's band lookups.
     const tagsResult = QuantityApi.loadTagTables();
+    const tagSummary = tagsResult.registered
+      .map(({ unit, scaleName }) => `${unit}/${scaleName}`)
+      .join(', ');
     console.info(
       `QuantityApi: ${tagsResult.registered.length} tag table(s) loaded ` +
-        `(units: ${tagsResult.registered.join(', ')})`
+        `(${tagSummary})`
     );
 
     await PersistenceManager.get().loadHooks();

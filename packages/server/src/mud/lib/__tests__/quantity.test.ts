@@ -18,7 +18,7 @@ const FIXTURE_KG_TAGS = [
 
 describe('Quantity — core', () => {
   beforeAll(() => {
-    Quantity.registerTagTable('kg', FIXTURE_KG_TAGS);
+    Quantity.registerTagTable('kg', 'default', FIXTURE_KG_TAGS);
   });
 
   afterAll(() => {
