@@ -20,7 +20,7 @@ export class KneelController extends CommandController<KneelModel> {
       target: model.target,
       context,
       successSelf: 'You kneel down.',
-      successPeers: '{name} kneels down.',
+      successPeersTail: 'kneels down.',
     });
   }
 }

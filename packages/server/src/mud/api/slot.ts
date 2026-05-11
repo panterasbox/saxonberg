@@ -13,10 +13,9 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Slotted, SlotSpec } from '../lib/slot/Slotted';
+import type { Slotted } from '../lib/slot/Slotted';
 import type { Slottable } from '../lib/slot/Slottable';
 import { MixinApi } from './mixin';
-import { Mixins } from '../lib/mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 
@@ -103,15 +102,16 @@ export class SlotApi {
   public static findOccupiedSlots(
     candidate: Stuff & Slottable
   ): ReadonlyMap<Stuff & Slotted, readonly string[]> {
+    // O(N) over the global Stuff registry — fine for v1's world sizes;
+    // promote to an inverse index if profiling demands.
     const out = new Map<Stuff & Slotted, string[]>();
     for (const obj of StuffApi.getAllObjects()) {
       if (!MixinApi.isSlotted(obj)) continue;
-      const host = obj as Stuff & Slotted;
       const slotNames: string[] = [];
-      for (const [name, occupants] of host.getAllOccupants().entries()) {
+      for (const [name, occupants] of obj.getAllOccupants().entries()) {
         if (occupants.has(candidate)) slotNames.push(name);
       }
-      if (slotNames.length > 0) out.set(host, slotNames);
+      if (slotNames.length > 0) out.set(obj, slotNames);
     }
     return out;
   }
@@ -236,24 +236,6 @@ export class SlotApi {
     }
   }
 
-  /**
-   * Export of the SlotSpec type for callers that need to manipulate
-   * spec arrays before handing them to a Slotted host. Re-export
-   * convenience — the canonical declaration lives in lib/slot/Slotted.
-   */
-  public static get SlotSpec(): symbol {
-    // Marker; TypeScript types don't have runtime values. This getter
-    // exists so the import surface is symmetric. Callers should
-    // import the type via `import type { SlotSpec } from '../lib/slot/Slotted'`.
-    return Symbol.for('SlotApi.SlotSpec');
-  }
 }
-
-// Reference Mixins to keep the import non-elided and to make the
-// validateSlotSpecs runtime check against the registry aware of new
-// entries added in this file's siblings (this is a no-op at runtime
-// but documents the dependency).
-void Mixins;
-void ({} as SlotSpec);
 
 SecurityApi.decorateApiClass(SlotApi);

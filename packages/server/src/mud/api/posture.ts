@@ -47,11 +47,10 @@ export interface PostureTransferOpts {
   /** Self-facing narration ("You sit down."). */
   successSelf: string;
   /**
-   * Peers-facing narration template. A leading `{name}` is replaced
-   * by the Mml-rendered actor name (the helper inserts `Mml.name`
-   * before the rest of the template).
+   * Peers-facing predicate ("sits down.") — the helper prepends the
+   * Mml-rendered actor name automatically. Pass just the verb-tail.
    */
-  successPeers: string;
+  successPeersTail: string;
 }
 
 export class PostureApi {
@@ -126,9 +125,7 @@ export class PostureApi {
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.narration.action)
       .toSelf(Mml.compose`${opts.successSelf}`)
-      .toPeers(
-        Mml.compose`${Mml.name(giver)} ${stripNamePrefix(opts.successPeers)}`
-      )
+      .toPeers(Mml.compose`${Mml.name(giver)} ${opts.successPeersTail}`)
       .send();
     return { success: true };
   }
@@ -142,14 +139,13 @@ export class PostureApi {
    */
   public static vacatePostureBearingSlots(actor: Stuff & Posed): number {
     if (!MixinApi.isSlottable(actor)) return 0;
-    const slottable = actor as Stuff & Slottable;
-    const occupied = SlotApi.findOccupiedSlots(slottable);
+    const occupied = SlotApi.findOccupiedSlots(actor);
     let vacated = 0;
     for (const [host, slotNames] of occupied.entries()) {
       for (const slotName of slotNames) {
         const spec = host.getSlotSpec(slotName);
         if (!spec?.postures || spec.postures.length === 0) continue;
-        if (host.vacate(slotName, slottable)) vacated++;
+        if (host.vacate(slotName, actor)) vacated++;
       }
     }
     return vacated;
@@ -178,13 +174,6 @@ export class PostureApi {
     }
     return null;
   }
-}
-
-function stripNamePrefix(template: string): string {
-  // The peers-template uses `{name}` as a placeholder for the
-  // Mml-rendered actor name. The Mml.compose template already
-  // includes Mml.name(giver) before this string is appended.
-  return template.replace(/^\{name\}\s*/, '');
 }
 
 SecurityApi.decorateApiClass(PostureApi);

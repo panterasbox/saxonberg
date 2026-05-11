@@ -226,8 +226,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           `— use getOccupants() for multi-capacity slots`
         );
       }
-      const sole = set.values().next().value;
-      return sole ?? null;
+      return set.values().next().value as Stuff & Slottable;
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {

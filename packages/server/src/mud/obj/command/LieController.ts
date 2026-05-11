@@ -20,7 +20,7 @@ export class LieController extends CommandController<LieModel> {
       target: model.target,
       context,
       successSelf: 'You lie down.',
-      successPeers: '{name} lies down.',
+      successPeersTail: 'lies down.',
     });
   }
 }

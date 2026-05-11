@@ -27,7 +27,7 @@ export class SitController extends CommandController<SitModel> {
       target: model.target,
       context,
       successSelf: 'You sit down.',
-      successPeers: '{name} sits down.',
+      successPeersTail: 'sits down.',
     });
   }
 }

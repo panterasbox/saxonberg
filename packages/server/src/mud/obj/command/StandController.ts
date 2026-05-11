@@ -36,7 +36,7 @@ export class StandController extends CommandController<StandModel> {
         target: model.target,
         context,
         successSelf: 'You stand on it.',
-        successPeers: '{name} stands on it.',
+        successPeersTail: 'stands on it.',
       });
     }
     // Slot-less form: just vacate any current posture-bearing slot.

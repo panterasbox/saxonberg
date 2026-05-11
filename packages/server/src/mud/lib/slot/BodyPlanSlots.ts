@@ -15,13 +15,14 @@
  * `getSlotNames` / `getSlotSpec` from `Slotted` and re-routes them
  * through `species → bodyPlan → slots`. Consumers that hold a
  * `Stuff & Slotted` reference get the body-plan-driven universe
- * without any branch on their side. The exported `BodyPlanSlots`
- * marker interface lets `MixinApi.hasMixin(host, 'BodyPlanSlotsMixin')`
- * narrow callers that need to distinguish body-plan-driven hosts
- * (e.g. authoring tools listing "Stuffs whose slot universe is
- * derived from anatomy"). v1 has no such caller; the interface
- * exists for the symmetry-with-other-mixins reason raised in
- * MR review.
+ * without any branch on their side.
+ *
+ * The exported `BodyPlanSlots` type is a `Slotted` alias kept for
+ * symmetry with the other slot-family mixin interfaces (`Wearable`,
+ * `Wieldable`, `Postured`, …). v1 has no caller that needs to
+ * type-narrow on "this host's slots come from a body plan" — if
+ * that arrives, register `BodyPlanSlots: 'BodyPlanSlotsMixin'` in
+ * `Mixins` and add a `MixinApi.isBodyPlanSlots` predicate.
  */
 
 import type { MixinConstructor } from '../mixin';

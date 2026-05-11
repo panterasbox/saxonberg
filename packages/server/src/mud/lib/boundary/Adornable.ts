@@ -42,7 +42,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
 import type { Slottable } from '../slot/Slottable';
-import type { SlotSpec } from '../slot/Slotted';
+import type { Slotted, SlotSpec } from '../slot/Slotted';
 import { StuffApi } from '../../api/stuff';
 import { SlottedMixin } from '../slot/Slotted';
 
@@ -172,12 +172,12 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      * consistent. The Slotted base's own `slots` Map stays unused.
      */
     occupy(candidate: Stuff & Slottable, slot: string): void {
-      // Adornments must compose Slottable to satisfy the substrate
-      // type, but the slot-side check requires AdornmentMixin via
-      // `accepts: 'AdornmentMixin'`. canOccupy enforces this.
-      const can = (this as unknown as {
-        canOccupy(c: Stuff & Slottable, s: string): boolean;
-      }).canOccupy(candidate, slot);
+      // Slot-side check: the synthetic spec sets `accepts:
+      // 'AdornmentMixin'`, so canOccupy admits only Adornments. Cast
+      // to reach the inherited Slotted method — same TypeScript-mixin-
+      // constraint reason as in Drivable.resolveControllerSlot.
+      const can = (this as unknown as Stuff & Slotted)
+        .canOccupy(candidate, slot);
       if (!can) {
         throw new Error(
           `Adornable.occupy: candidate doesn't fit slot '${slot}'`
