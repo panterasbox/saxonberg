@@ -196,6 +196,26 @@ time.
 missing input. The "missing required arg" error only fires when the
 field is required AND has no default AND the player typed nothing.
 
+**The default is parsed as if the player had typed it.** After
+`$variable` expansion, the substituted string runs through the field's
+normal validators / MQL resolution / type coercion pipeline. The
+controller never knows whether the populated field came from a typed
+arg or from `default:` — uniform call surface.
+
+If `default:` resolution fails (MQL no-match, validator veto, etc.),
+the field's standard failure surface fires; the framework does NOT
+silently treat a failed default as "no input." Authors who need
+"fall back to slot-less behavior on no-input" write that branch in
+the controller, not via `default:`.
+
+Embodiment verbs use this pathway: `sit` declares `default: "ground"`
+so `sit` (no arg) becomes `sit ground` after substitution, which
+MQL resolves to the Location's floor Adornment via the Detail-keyword
+pathway (see [slot.md](./slot.md) on detail-targeted slot resolution).
+In a void Location with no floor, MQL no-match surfaces "you can't
+sit on the ground here" — the standard failure mode, no controller
+branch needed.
+
 ### `scope:` — where MQL searches
 
 Only meaningful for `type: object` / `type: objects`.

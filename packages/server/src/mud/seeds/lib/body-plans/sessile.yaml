@@ -1,12 +1,11 @@
-# Sessile — no agency anatomy. Plants, corals, mushrooms. Zero worn
-# slots, zero held slots, zero locomotion, zero sensory ports.
-# Plant-default: Species reading `getBodyPlan()` never null-checks,
-# the result is a real BodyPlan whose surfaces are all empty.
+# Sessile — no agency anatomy. Plants, corals, mushrooms. Zero
+# slots, zero locomotion, zero sensory ports. Plant-default: Species
+# reading `getBodyPlan()` never null-checks, the result is a real
+# BodyPlan whose surfaces are all empty.
 class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: sessile
-  wornSlots: []
-  heldSlots: []
+  slots: []
   locomotionModes: []
   sensoryPorts: []

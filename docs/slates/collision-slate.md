@@ -18,9 +18,9 @@ See also:
   opt-in finer fidelity, layered presentation).
 - [docs/slates/locomotion-slate.md](./locomotion-slate.md) — block-
   validators extend the locomotion validation chain.
-- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — `Pushable`
-  fits with other Layer-3 affordance mixins; slot-capacity
-  story stays as-designed.
+- [docs/subsystems/embodiment.md](../subsystems/embodiment.md),
+  [docs/subsystems/slot.md](../subsystems/slot.md) — `Pushable`
+  fits with the other affordance mixins on the slot substrate.
 - [docs/slates/activity-slate.md](./activity-slate.md) — `PushActivity`
   is one more concrete activity type with engagement-slot
   semantics.

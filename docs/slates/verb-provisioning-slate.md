@@ -48,8 +48,8 @@ See also:
   — paths gate at the source, not in the controller.
 - [docs/slates/mixin-slate.md](./mixin-slate.md) — skill-as-mixin and
   implant-as-Wearable both show up here as candidate mixins.
-- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — wearable
-  body-slot mechanics underpin implants; same composition shape.
+- [docs/subsystems/embodiment.md](../subsystems/embodiment.md) —
+  wearable body-slot mechanics underpin implants; same composition shape.
 - [docs/design-philosophy.md](../design-philosophy.md) — layered
   presentation; same engine numbers, different prose framing.
 

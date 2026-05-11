@@ -129,6 +129,24 @@ behavior. Read the relevant doc before editing in its area.
     `PerceiverMixin` (look / scry / locate verbs on the actor),
     Sensor / Visible / Perceiver responsibility split,
     `ScryableMixin` capability seam in `lib/perception/`
+  - [slot.md](./docs/subsystems/slot.md) — `Slotted` / `Slottable`
+    substrate, three universe patterns (static / body-plan /
+    dynamic), `accepts` + `fitsSlot`, capacity (incl.
+    `UNBOUNDED_CAPACITY`), `SlotApi` reference, Detail-targeted
+    resolution
+  - [embodiment.md](./docs/subsystems/embodiment.md) —
+    `Wearable` / `Wieldable` body-side affordances, per-body-plan
+    `slotClaims`, multi-slot atomicity via `SlotApi.occupyAll`,
+    wear/remove/wield/unwield verb suite
+  - [posture.md](./docs/subsystems/posture.md) —
+    `Postured` (host) + `Posed` (actor) + the `Postures` constants
+    vocabulary, posture-bearing slot definition, floor adornments
+    + per-Location authoring, sit/lie/stand/kneel verbs,
+    atomicity invariant via `SlotApi.transferOccupancy`
+  - [conveyance.md](./docs/subsystems/conveyance.md) —
+    `Mountable` / `Drivable` / `SeatedDrivableMixin`, the
+    `Mobile.traverse` conveyance ripple (depth-16 cycle guard),
+    mount/dismount verbs, vehicle design space coverage
 
 ## Development Commands
 

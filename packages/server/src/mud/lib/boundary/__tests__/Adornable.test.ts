@@ -116,4 +116,40 @@ describe('AdornableMixin (composed on Location)', () => {
     expect(() => ContainmentApi.move(fx, loc)).not.toThrow();
     expect(loc.getContents()).toContain(fx);
   });
+
+  it('Slotted retrofit: synthetic slot names assigned in order', () => {
+    const loc = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new TestFixture());
+    const b = makeStuff(() => new TestFixture());
+    const c = makeStuff(() => new TestFixture());
+    loc.addFixture(a);
+    loc.addFixture(b);
+    loc.addFixture(c);
+    const slots = loc.getSlotNames();
+    expect(slots).toEqual(['fixture:1', 'fixture:2', 'fixture:3']);
+  });
+
+  it('Slotted retrofit: addFixture honors explicit slotName', () => {
+    const loc = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new TestFixture());
+    loc.addFixture(a, 'seatbelt:driver');
+    expect(loc.getSlotNames()).toEqual(['seatbelt:driver']);
+    expect(loc.getOccupants('seatbelt:driver').size).toBe(1);
+  });
+
+  it('Slotted retrofit: getSlotSpec returns synthetic AdornmentMixin spec', () => {
+    const loc = makeStuff(() => new CartesianLocation());
+    const fx = makeStuff(() => new TestFixture());
+    loc.addFixture(fx);
+    expect(loc.getSlotSpec('fixture:1')).toEqual({
+      name: 'fixture:1',
+      accepts: 'AdornmentMixin',
+    });
+    expect(loc.getSlotSpec('nope')).toBeNull();
+  });
+
+  it('Slotted retrofit: Adornments pass MixinApi.isSlottable', () => {
+    const fx = makeStuff(() => new TestFixture());
+    expect(MixinApi.isSlottable(fx)).toBe(true);
+  });
 });

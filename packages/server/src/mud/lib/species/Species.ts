@@ -129,6 +129,17 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
     this._bodyPlanPath = value?.getTemplatePath() ?? null;
   }
 
+  /**
+   * The body-plan template path, without resolving the BodyPlan
+   * instance. Useful for callers that key off the path directly
+   * (e.g. `Wearable.fitsSlot` looking up `slotClaims[bodyPlanPath]`)
+   * — saves the path-resolution round-trip when the BodyPlan
+   * Stuff itself isn't needed.
+   */
+  public getBodyPlanPath(): string | null {
+    return this._bodyPlanPath;
+  }
+
   public getParentClade(): Clade | null {
     if (!this._parentCladePath) return null;
     return StuffApi.findByTemplatePath<Clade>(this._parentCladePath) ?? null;

@@ -1,16 +1,16 @@
 # Quadruped — four legs, no prehensile hands. Shared by typical
 # mammals (dogs, cats, horses) and amphibians (frogs use this too in
 # v1; an `amphibian-quadruped` variant lands later if frogs need a
-# distinct one).
+# distinct one). The `back:1` slot accepts any Slottable — saddles
+# claim it via Wearable's slot claim, riders occupy it bareback.
 class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: quadruped
-  wornSlots:
-    - head
-    - back
-    - collar
-  heldSlots: []
+  slots:
+    - { name: head,    accepts: WearableMixin }
+    - { name: collar,  accepts: WearableMixin }
+    - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
   locomotionModes:
     - walk
   sensoryPorts:

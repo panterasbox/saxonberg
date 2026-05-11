@@ -60,6 +60,14 @@ import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
+import type { Slotted } from '../lib/slot/Slotted';
+import type { Slottable } from '../lib/slot/Slottable';
+import type { Wearable } from '../lib/slot/Wearable';
+import type { Wieldable } from '../lib/slot/Wieldable';
+import type { Postured } from '../lib/slot/Postured';
+import type { Posed } from '../lib/character/Posed';
+import type { Mountable } from '../lib/slot/Mountable';
+import type { Drivable } from '../lib/slot/Drivable';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -450,6 +458,38 @@ export class MixinApi {
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
     return this.hasMixin(obj, Mixins.Radioactive);
+  }
+
+  public static isSlotted(obj: Stuff): obj is Stuff & Slotted {
+    return this.hasMixin(obj, Mixins.Slotted);
+  }
+
+  public static isSlottable(obj: Stuff): obj is Stuff & Slottable {
+    return this.hasMixin(obj, Mixins.Slottable);
+  }
+
+  public static isWearable(obj: Stuff): obj is Stuff & Wearable {
+    return this.hasMixin(obj, Mixins.Wearable);
+  }
+
+  public static isWieldable(obj: Stuff): obj is Stuff & Wieldable {
+    return this.hasMixin(obj, Mixins.Wieldable);
+  }
+
+  public static isPostured(obj: Stuff): obj is Stuff & Postured {
+    return this.hasMixin(obj, Mixins.Postured);
+  }
+
+  public static isPosed(obj: Stuff): obj is Stuff & Posed {
+    return this.hasMixin(obj, Mixins.Posed);
+  }
+
+  public static isMountable(obj: Stuff): obj is Stuff & Mountable {
+    return this.hasMixin(obj, Mixins.Mountable);
+  }
+
+  public static isDrivable(obj: Stuff): obj is Stuff & Drivable {
+    return this.hasMixin(obj, Mixins.Drivable);
   }
 }
 

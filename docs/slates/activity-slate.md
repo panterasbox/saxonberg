@@ -20,9 +20,10 @@ See also:
   dispatch; `Mobile.traverse(target, mode)` becomes the
   *resolution* of a `TraverseActivity`, not the verb's primary
   action.
-- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — slot
-  substrate. Slot occupancy and posture changes commit at activity
-  *completion*, not start.
+- [docs/subsystems/slot.md](../subsystems/slot.md),
+  [posture.md](../subsystems/posture.md) — slot substrate. Slot
+  occupancy and posture changes commit at activity *completion*,
+  not start.
 - [docs/adjoining-systems.md](../adjoining-systems.md) — this slate
   graduates entry #1 ("Time and sustained actions") into its own
   document.

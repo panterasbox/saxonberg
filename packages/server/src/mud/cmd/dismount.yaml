@@ -1,0 +1,8 @@
+verbs: [dismount]
+controller: DismountController
+description: "Dismount the creature or vehicle you're currently mounted on"
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresPosed
+  - /lib/command/validators/requiresSlottable
+  - /lib/command/validators/requiresMounted

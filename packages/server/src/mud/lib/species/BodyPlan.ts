@@ -1,8 +1,8 @@
 /**
  * BodyPlan — anatomical layout shared across species.
  *
- * A `BodyPlan` declares the physical anatomy: equipment slots
- * (`wornSlots`, `heldSlots`), locomotion modes, and sensory port
+ * A `BodyPlan` declares the physical anatomy: equipment / mount / hold
+ * slots (`slots: SlotSpec[]`), locomotion modes, and sensory port
  * positions. **Anatomy only** — capability (vision range, hearing
  * acuity, etc.) lives on the Species, not here. So humans, dwarves,
  * elves, and orcs all share the canonical `biped` body plan even
@@ -15,14 +15,22 @@
  * novel topology arrives (centaur, octopod humanoid).
  *
  * `sessile` is the stand-in for organisms with no agency anatomy — a
- * plant, a coral. Zero held slots, zero locomotion modes, zero sensory
+ * plant, a coral. Empty slots, zero locomotion modes, zero sensory
  * ports. Default plants reference it so code reading `species.bodyPlan`
  * never null-checks.
+ *
+ * **Slot vocabulary** is unified — a single `slots: SlotSpec[]`
+ * supersedes the older `wornSlots` / `heldSlots` split. Each spec's
+ * `accepts` declares the mixin its occupant must compose
+ * (`'WearableMixin'`, `'WieldableMixin'`, `'SlottableMixin'`); slot
+ * routing flows from there. See `lib/slot/Slotted.ts` for the SlotSpec
+ * shape.
  */
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
+import type { SlotSpec } from '../slot/Slotted';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -44,17 +52,17 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   protected name: string = '';
 
   /**
-   * Worn slot names for this body plan: `'head'`, `'torso'`,
-   * `'finger:left'`, etc. The set is the universe of equipment
-   * positions a wearer of this body plan can fill.
+   * Unified slot universe for this body plan. Each spec carries the
+   * canonical slot name (e.g. `'hand:left'`, `'back:1'`), the mixin
+   * an occupant must compose, optional capacity, optional posture
+   * decoration, and optional user-facing detail keyword. See
+   * `lib/slot/Slotted.ts` for the SlotSpec shape.
+   *
+   * Replaces the older `wornSlots: string[]` + `heldSlots: string[]`
+   * pair (deleted outright per the no-shim policy). Migration script:
+   * `packages/server/scripts/migrate-bodyplan-slots.ts`.
    */
-  protected wornSlots: string[] = [];
-
-  /**
-   * Prehensile slot names: `'hand:left'`, `'hand:right'`, `'tentacle:1'`.
-   * Drives `Wieldable` capacity. Sessile plans have zero.
-   */
-  protected heldSlots: string[] = [];
+  public slots: SlotSpec[] = [];
 
   /**
    * Locomotion modes the body plan supports: `['walk']`,
@@ -71,8 +79,7 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
 
   static persistentFields = [
     'name',
-    'wornSlots',
-    'heldSlots',
+    'slots',
     'locomotionModes',
     'sensoryPorts',
   ];
@@ -80,11 +87,28 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
 
-  public getWornSlots(): readonly string[] { return this.wornSlots; }
-  public setWornSlots(value: string[]): void { this.wornSlots = value; }
-
-  public getHeldSlots(): readonly string[] { return this.heldSlots; }
-  public setHeldSlots(value: string[]): void { this.heldSlots = value; }
+  public getSlots(): readonly SlotSpec[] { return this.slots; }
+  public setSlots(value: SlotSpec[]): void {
+    // Per-field invariant: each spec must carry name + accepts. The
+    // `accepts` mixin-name validation against the Mixins registry lives
+    // on `SlottedMixin.setStaticSlots` — when a Slotted host pulls
+    // these specs through `BodyPlanSlotsMixin`, the host's own
+    // canOccupy / occupy machinery surfaces typos at use time. We
+    // do the cheap shape check here.
+    for (const spec of value) {
+      if (!spec.name || typeof spec.name !== 'string') {
+        throw new Error(
+          `BodyPlan.setSlots: spec missing 'name' (${JSON.stringify(spec)})`
+        );
+      }
+      if (!spec.accepts || typeof spec.accepts !== 'string') {
+        throw new Error(
+          `BodyPlan.setSlots: spec '${spec.name}' missing 'accepts'`
+        );
+      }
+    }
+    this.slots = value;
+  }
 
   public getLocomotionModes(): readonly string[] { return this.locomotionModes; }
   public setLocomotionModes(value: string[]): void {

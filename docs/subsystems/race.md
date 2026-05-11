@@ -7,7 +7,7 @@ biologically. It splits cleanly into:
   flesh).
 - **Clade** — the taxonomic scope an organism *belongs to*
   (Animalia, Plantae, Fungi, Constructa).
-- **BodyPlan** — the *anatomical layout* (slots, locomotion modes,
+- **BodyPlan** — the *anatomical layout* (unified `slots: SlotSpec[]`, locomotion modes,
   sensory ports) shared across many species.
 - **Species** — the *biological capability* attached to membership
   in a species (binomial, lifespan, vision profile, sex-determination
@@ -263,11 +263,25 @@ deferred until a sub-clade lands and earns the inheritance machinery.
 
 `BodyPlan` is a singleton `Idea` declaring the physical anatomy:
 
-- `wornSlots` — the universe of equipment positions a member can fill
-- `heldSlots` — prehensile slot names; drives `Wieldable` capacity
+- `slots: SlotSpec[]` — the unified slot universe. Each spec carries
+  the canonical slot name (`hand:left`, `back:1`), the mixin an
+  occupant must compose (`'WearableMixin'`, `'WieldableMixin'`,
+  `'SlottableMixin'`), optional capacity, optional posture
+  decoration, and optional user-facing detail keyword. Replaces the
+  older `wornSlots: string[]` + `heldSlots: string[]` split (deleted
+  outright in the embodiment MR — no shims). See
+  [slot.md](./slot.md) for the SlotSpec shape.
 - `locomotionModes` — `walk`, `fly`, `swim`, `burrow`, `crawl`,
   `climb`, …
 - `sensoryPorts` — anatomy only: `{ modality, count, position }`
+
+The unified slot universe lets all body-side affordances flow from
+one declaration. A quadruped's `back:1` slot
+(`accepts: 'SlottableMixin'`) is the slot a saddle's Wearable claim
+targets and the slot a rider occupies bareback — same slot, two
+consumers. `BodyPlanSlotsMixin` (Pattern B in slot.md) is the
+sibling mixin Avatars / NPCs compose to expose the body-plan's
+slots through their `Slotted` surface.
 
 **Anatomy only.** Capability — vision range, hearing acuity, scent
 acuity — does NOT live here. Humans, dwarves, elves, and orcs all
