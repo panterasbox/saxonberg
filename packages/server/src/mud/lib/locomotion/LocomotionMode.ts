@@ -13,7 +13,7 @@
  *   - Full templatePath (`/lib/locomotion/walk`) — what
  *     `_engagedModePath` / `_vehicularModePath` / `setTemplatePath`
  *     store.
- *   - Short name (`walk`) — what `Exit.allowedModes`,
+ *   - Short name (`walk`) — what `Exit.media` (via mode-medium lookup),
  *     `BodyPlan.locomotionModes`, `LocomotionMode.requiresBodyPlanMode`,
  *     and Mml prose use. The short name lives on `name` and is read
  *     via `getName()`.
@@ -123,6 +123,23 @@ export class LocomotionMode extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected enablementMixin: string | null = null;
 
+  /**
+   * Locomotion medium — the surface / element a mode consumes (e.g.
+   * `'ground'`, `'water'`, `'air'`, `'vertical'`). Exits declare which
+   * media they admit via `Exit.media`; `Exit.allowsMode(name)` resolves
+   * the mode and matches its medium against the exit's set. Grouping by
+   * medium lets a corridor admit walk + run + crawl + sneak with a
+   * single `media: ['ground']` rather than enumerating every mode.
+   *
+   * `null` for passthrough modes (ride / drive) — those don't consume a
+   * medium directly; the conveyance host does, and the host's medium
+   * applies via `resolveHostMode`.
+   *
+   * Open vocabulary (not enum-bounded) so content authors can introduce
+   * new media without a substrate edit (`'plasma'`, `'web'`, etc.).
+   */
+  protected medium: string | null = null;
+
   static persistentFields = [
     'name',
     'speed',
@@ -135,6 +152,7 @@ export class LocomotionMode extends SingletonMixin(PropertiedMixin(Idea)) {
     'passthrough',
     'conveyanceMixin',
     'enablementMixin',
+    'medium',
   ];
 
   public getName(): string {
@@ -243,6 +261,20 @@ export class LocomotionMode extends SingletonMixin(PropertiedMixin(Idea)) {
   }
   public setEnablementMixin(value: string | null): void {
     this.enablementMixin = value;
+  }
+
+  public getMedium(): string | null {
+    return this.medium;
+  }
+  public setMedium(value: string | null): void {
+    if (value !== null) {
+      if (typeof value !== 'string' || value.length === 0) {
+        throw new TypeError(
+          'LocomotionMode.setMedium: must be null or a non-empty string',
+        );
+      }
+    }
+    this.medium = value;
   }
 }
 

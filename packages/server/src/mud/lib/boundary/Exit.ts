@@ -33,6 +33,7 @@ import type { Containable } from '../spatial/Containable';
 import type { Door } from './Door';
 import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';
+import { LocomotionApi } from '../../api/locomotion';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -91,12 +92,14 @@ export interface ExitOptions {
   messageIn?: string | null;
   messageOut?: string | null;
   /**
-   * Whitelist of `LocomotionMode` short names this exit accepts (e.g.
-   * `['walk', 'climb']`). Default `[]` — interpreted as
-   * "walk-only" by `allowsMode`. See `allowsMode` / `canTraverse` for
-   * the lookup semantics.
+   * Locomotion media this exit admits (e.g. `['ground']`,
+   * `['water', 'ground']`). An exit admits any `LocomotionMode` whose
+   * `getMedium()` is in this list. Default `[]` — legacy walk-only
+   * behavior (see `allowsMode`). Grouping by medium lets a normal
+   * corridor admit walk + run + crawl + sneak via `['ground']` rather
+   * than enumerating every mode name.
    */
-  allowedModes?: string[];
+  media?: string[];
 }
 
 export class Exit extends Idea {
@@ -224,43 +227,58 @@ export class Exit extends Idea {
   public setMessageOut(value: string | null): void { this.messageOut = value; }
 
   /**
-   * Locomotion-mode whitelist (short names from
-   * `LocomotionMode.getName()`). Default `[]` is interpreted by
-   * `allowsMode` as "walk-only" — preserves backcompat for existing
-   * exits authored without a locomotion-aware whitelist. Authors
-   * declaring this set explicitly opt in to mode-gating; the actor's
-   * mode must appear here for `canTraverse(mover, mode)` to admit it.
+   * Locomotion media this exit admits (e.g. `['ground']`,
+   * `['water', 'ground']`). The exit admits any `LocomotionMode` whose
+   * `getMedium()` is in this list. Default `[]` is treated by
+   * `allowsMode` as legacy walk-only — preserves backcompat for exits
+   * authored before the medium refactor. Authors group modes by medium
+   * to keep declarations terse: a normal corridor's `['ground']` admits
+   * every ground-locomotion mode without enumerating each verb.
    */
-  protected allowedModes: string[] = [];
+  protected media: string[] = [];
 
-  public getAllowedModes(): readonly string[] {
-    return this.allowedModes;
+  public getMedia(): readonly string[] {
+    return this.media;
   }
-  public setAllowedModes(value: string[]): void {
+  public setMedia(value: string[]): void {
     const seen = new Set<string>();
     for (const v of value) {
       if (typeof v !== 'string' || v.length === 0) {
         throw new TypeError(
-          'Exit.setAllowedModes: entries must be non-empty strings'
+          'Exit.setMedia: entries must be non-empty strings'
         );
       }
       if (seen.has(v)) {
-        throw new TypeError(`Exit.setAllowedModes: duplicate '${v}'`);
+        throw new TypeError(`Exit.setMedia: duplicate '${v}'`);
       }
       seen.add(v);
     }
-    this.allowedModes = value;
+    this.media = value;
   }
 
   /**
-   * True iff `modeName` is permitted by this exit's whitelist. Empty
-   * `allowedModes` is the legacy default — walk-only. Authors who want
-   * "this exit accepts anything" set `allowedModes` to the full set
-   * explicitly.
+   * True iff a mode named `modeName` is admitted by this exit. Resolution:
+   *   - Empty `media` → legacy default; admits only `'walk'`. Preserves
+   *     pre-refactor behavior for exits constructed without an explicit
+   *     medium set.
+   *   - Non-empty `media` → resolve the mode singleton via
+   *     `LocomotionApi.modeOf(modeName)`. If unloaded, reject (matches
+   *     the strict-resolution contract elsewhere in the substrate). If
+   *     resolved, admit iff the mode's `getMedium()` is in `media`.
+   *
+   * Passthrough modes (ride / drive) have `medium === null`; they're
+   * never admitted by an exit's `media` list directly — the conveyance
+   * host's mode is what gets gated. Player flow always routes through
+   * `LocomotionControllerBase`, which substitutes the host's mode at
+   * the exit-gate call site (see `LocomotionControllerBase.execute`).
    */
   public allowsMode(modeName: string): boolean {
-    if (this.allowedModes.length === 0) return modeName === 'walk';
-    return this.allowedModes.includes(modeName);
+    if (this.media.length === 0) return modeName === 'walk';
+    const mode = LocomotionApi.modeOf(modeName);
+    if (!mode) return false;
+    const medium = mode.getMedium();
+    if (medium === null) return false;
+    return this.media.includes(medium);
   }
 
   /**
@@ -299,7 +317,7 @@ export class Exit extends Idea {
     this.messageOut = opts.messageOut ?? null;
     // Reuse the same validator the public setter does. The `?? []`
     // default preserves backcompat for callers that don't pass it.
-    this.setAllowedModes(opts.allowedModes ?? []);
+    this.setMedia(opts.media ?? []);
   }
 
   /**

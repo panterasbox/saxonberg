@@ -12,3 +12,4 @@ data:
   passthrough: true
   conveyanceMixin: MountableMixin
   enablementMixin: null
+  medium: null

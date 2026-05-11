@@ -272,6 +272,11 @@ describe('Mobile.onSlotReleased witness', () => {
 
 describe('Mobile.traverse mode-gate', () => {
   it('throws when exit.canTraverse returns ok=false (mode rejected)', async () => {
+    // allowsMode resolves the LocomotionMode singleton to look up
+    // its medium; the rejection still works without walk loaded
+    // (since walk would have medium ground, not vertical), but
+    // we seed walk to exercise the full lookup path.
+    buildMode('walk');
     const zone = makeStuff(() => new CartesianZone());
     const locA = makeStuff(() => new CartesianLocation());
     const locB = makeStuff(() => new CartesianLocation());
@@ -279,7 +284,7 @@ describe('Mobile.traverse mode-gate', () => {
     zone.addLocation(locB, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
-      allowedModes: ['climb'],
+      media: ['vertical'],
     }));
     const mover = makeStuff(() => new MobileObject());
     ContainmentApi.move(mover, locA);

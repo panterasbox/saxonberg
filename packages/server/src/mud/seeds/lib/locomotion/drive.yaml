@@ -10,3 +10,4 @@ data:
   passthrough: true
   conveyanceMixin: DrivableMixin
   enablementMixin: null
+  medium: null

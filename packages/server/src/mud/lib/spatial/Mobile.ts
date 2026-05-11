@@ -292,7 +292,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       exit: Exit,
       mode: string
     ): Promise<void> {
-      // Mode-gate: enforce Exit.allowedModes against the caller's mode.
+      // Mode-gate: enforce Exit.media (via mode-medium lookup) against
+      // the caller's mode.
       // Programmatic-violation policy (Q12.4): throws on rejection.
       // Player-input paths short-circuit upstream via LocomotionApi.
       // canTraverseExit before this method is reached, so this throw is

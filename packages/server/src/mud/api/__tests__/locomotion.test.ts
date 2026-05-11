@@ -55,6 +55,26 @@ class TestMount extends MobileMount {}
 const MobileCart = MobileMixin(DrivableMixin(SlottedMixin(ContainableMixin(Idea))));
 class TestCart extends MobileCart {}
 
+// An Organism + Mobile + Containable actor (NPC-shaped) for the
+// body-plan default chain.
+import { OrganismMixin } from '../../lib/species/Organism';
+import { Species } from '../../lib/species/Species';
+import { BodyPlan } from '../../lib/species/BodyPlan';
+import { StuffApi } from '../stuff';
+const OrganismMover = OrganismMixin(MobileMixin(ContainableMixin(Idea)));
+class TestOrganismMover extends OrganismMover {}
+
+function makeAtPath<T extends import('../../lib/stuff/Stuff').Stuff>(
+  factory: () => T,
+  path: string,
+): T {
+  const obj = makeStuff(factory);
+  StuffApi.unregister(obj);
+  (obj as unknown as { templatePath: string }).templatePath = path;
+  StuffApi.register(obj);
+  return obj;
+}
+
 describe('LocomotionApi', () => {
   describe('modeOf / modeOfOrThrow', () => {
     beforeEach(() => {
@@ -114,9 +134,19 @@ describe('LocomotionApi', () => {
       expect(LocomotionApi.resolveHostMode(cart)).toBe(wheeled);
     });
 
-    it('falls back to walk when neither is set', () => {
+    it('falls back to walk for a non-Drivable Mobile with no engagedMode', () => {
+      // A Mountable horse without engagedMode set: not Drivable, so
+      // the bodyplan-throw path doesn't apply; falls back to walk.
+      const horse = makeStuff(() => new TestMount());
+      expect(LocomotionApi.resolveHostMode(horse)).toBe(walk);
+    });
+
+    it('throws when a Drivable host has no vehicularMode authored', () => {
       const cart = makeStuff(() => new TestCart());
-      expect(LocomotionApi.resolveHostMode(cart)).toBe(walk);
+      // engagedMode null, vehicularMode null — Drivable bug.
+      expect(() => LocomotionApi.resolveHostMode(cart)).toThrow(
+        /no vehicularMode authored/,
+      );
     });
   });
 
@@ -434,6 +464,62 @@ describe('LocomotionApi', () => {
       expect(Mixins.Climbable).toBe('ClimbableMixin');
       expect(Mixins.Swimmable).toBe('SwimmableMixin');
       expect(Mixins.Flyable).toBe('FlyableMixin');
+    });
+  });
+
+  describe('defaultModeFor (chain)', () => {
+    beforeEach(() => {
+      buildMode('walk');
+    });
+
+    it('returns universe-default "walk" for a bare non-Organism actor', () => {
+      const actor = makeStuff(() => new Actor());
+      expect(LocomotionApi.defaultModeFor(actor)).toBe('walk');
+    });
+
+    it('returns the bodyplan default for an Organism whose bodyplan declares one', () => {
+      // Set up a bird-shaped bodyplan with default='fly'.
+      const bodyplan = makeAtPath(
+        () => new BodyPlan(),
+        '/lib/species/bodyplan/test-avian',
+      );
+      bodyplan.setName('test-avian');
+      bodyplan.setLocomotionModes(['walk', 'fly']);
+      bodyplan.setDefaultLocomotionMode('fly');
+
+      const species = makeAtPath(
+        () => new Species(),
+        '/lib/species/test-bird',
+      );
+      species.setBodyPlan(bodyplan);
+
+      const npc = makeStuff(() => new TestOrganismMover());
+      npc.setSpecies(species);
+      expect(LocomotionApi.defaultModeFor(npc)).toBe('fly');
+    });
+
+    it('falls back to "walk" for an Organism whose bodyplan has no default', () => {
+      const bodyplan = makeAtPath(
+        () => new BodyPlan(),
+        '/lib/species/bodyplan/test-bareplan',
+      );
+      bodyplan.setName('test-bareplan');
+      // defaultLocomotionMode stays at default null.
+
+      const species = makeAtPath(
+        () => new Species(),
+        '/lib/species/test-noplan',
+      );
+      species.setBodyPlan(bodyplan);
+
+      const npc = makeStuff(() => new TestOrganismMover());
+      npc.setSpecies(species);
+      expect(LocomotionApi.defaultModeFor(npc)).toBe('walk');
+    });
+
+    it('falls back to "walk" for an Organism without a species', () => {
+      const npc = makeStuff(() => new TestOrganismMover());
+      expect(LocomotionApi.defaultModeFor(npc)).toBe('walk');
     });
   });
 });

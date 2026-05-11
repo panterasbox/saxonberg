@@ -32,6 +32,7 @@ describe('LocomotionMode', () => {
         'passthrough',
         'conveyanceMixin',
         'enablementMixin',
+        'medium',
       ]);
     });
 
@@ -48,6 +49,7 @@ describe('LocomotionMode', () => {
       expect(mode.getPassthrough()).toBe(false);
       expect(mode.getConveyanceMixin()).toBe(null);
       expect(mode.getEnablementMixin()).toBe(null);
+      expect(mode.getMedium()).toBe(null);
     });
 
     it('round-trips walk-shaped property values', () => {
@@ -253,6 +255,25 @@ describe('LocomotionMode', () => {
       const m = makeStuff(() => new LocomotionMode());
       m.setEnablementMixin(null);
       expect(m.getEnablementMixin()).toBe(null);
+    });
+  });
+
+  describe('setMedium', () => {
+    it('round-trips a non-empty string', () => {
+      const m = makeStuff(() => new LocomotionMode());
+      m.setMedium('ground');
+      expect(m.getMedium()).toBe('ground');
+    });
+
+    it('round-trips null (passthrough modes)', () => {
+      const m = makeStuff(() => new LocomotionMode());
+      m.setMedium(null);
+      expect(m.getMedium()).toBe(null);
+    });
+
+    it('throws on empty string', () => {
+      const m = makeStuff(() => new LocomotionMode());
+      expect(() => m.setMedium('')).toThrow(TypeError);
     });
   });
 });

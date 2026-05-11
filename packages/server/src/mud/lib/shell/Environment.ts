@@ -98,6 +98,16 @@ export interface SettingsSnapshotEntry {
  */
 export interface Environment {
   getSetting<T>(key: string): T | undefined;
+  /**
+   * Return the user-explicit override for `key` without falling back to
+   * the schema default. `undefined` when nothing has been
+   * `setSetting`'d — even when the schema declares a default. Lets
+   * consumers distinguish "user explicitly set this" from "schema
+   * default is in effect" for chain-resolution flows (e.g.,
+   * `LocomotionApi.defaultModeFor` defers to the bodyplan default
+   * only when there's no explicit override).
+   */
+  getOwnSetting<T>(key: string): T | undefined;
   setSetting<T>(key: string, value: T, actor: Stuff): void;
   unsetSetting(key: string, actor: Stuff): void;
   listSettings(): SettingsSnapshotEntry[];
@@ -272,6 +282,18 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       return found.entry.default as T;
     }
 
+    getOwnSetting<T>(key: string): T | undefined {
+      const found = findSchema(this, key);
+      if (!found) return undefined;
+      const lifetime = found.entry.lifetime ?? 'persistent';
+      const store =
+        lifetime === 'persistent' ? this.persistentStore : this.sessionStore;
+      if (store && Object.prototype.hasOwnProperty.call(store, key)) {
+        return store[key] as T;
+      }
+      return undefined;
+    }
+
     @Unshadowable
     setSetting<T>(key: string, value: T, actor: Stuff): void {
       const found = findSchema(this, key);
@@ -396,4 +418,16 @@ export function resolveSetting<T>(host: Stuff, key: string): T | undefined {
     return host.getSetting<T>(key);
   }
   return findSchema(host, key)?.entry.default as T | undefined;
+}
+
+/**
+ * Cross-host explicit-override resolution. Returns the user-explicit
+ * override for `key` (no schema-default fallback), or `undefined` when
+ * the host can't carry overrides (non-Environment) OR hasn't set the
+ * key. Companion to `resolveSetting`; chain-resolution consumers use
+ * this to distinguish "user set X" from "schema default is X".
+ */
+export function ownSetting<T>(host: Stuff, key: string): T | undefined {
+  if (!MixinApi.isEnvironment(host)) return undefined;
+  return host.getOwnSetting<T>(key);
 }

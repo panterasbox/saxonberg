@@ -14,3 +14,4 @@ data:
   passthrough: false
   conveyanceMixin: null
   enablementMixin: null
+  medium: water

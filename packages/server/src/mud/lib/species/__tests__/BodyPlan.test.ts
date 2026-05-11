@@ -76,4 +76,29 @@ describe('BodyPlan', () => {
     bp.setSlots(ordered);
     expect(bp.getSlots().map(s => s.name)).toEqual(['a', 'b', 'c']);
   });
+
+  describe('defaultLocomotionMode', () => {
+    it('defaults to null', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      expect(bp.getDefaultLocomotionMode()).toBeNull();
+    });
+
+    it('round-trips a non-empty string', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setDefaultLocomotionMode('fly');
+      expect(bp.getDefaultLocomotionMode()).toBe('fly');
+    });
+
+    it('round-trips null', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setDefaultLocomotionMode('walk');
+      bp.setDefaultLocomotionMode(null);
+      expect(bp.getDefaultLocomotionMode()).toBeNull();
+    });
+
+    it('throws on empty string', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      expect(() => bp.setDefaultLocomotionMode('')).toThrow(TypeError);
+    });
+  });
 });

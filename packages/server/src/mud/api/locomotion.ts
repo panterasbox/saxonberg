@@ -27,7 +27,7 @@ import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 import { SlotApi } from './slot';
 import { Postures } from '../lib/slot/Postured';
-import { resolveSetting } from '../lib/shell/Environment';
+import { ownSetting } from '../lib/shell/Environment';
 
 /**
  * Aggregated emission data exposed to trap / detection / sound
@@ -89,10 +89,17 @@ export class LocomotionApi {
   }
 
   /**
-   * Pick the mode a host is currently moving under. Priority:
+   * Pick the mode a host is currently moving under. Resolution:
    *   1. The host's `engagedMode` (when non-null).
-   *   2. The host's `vehicularMode` (when Drivable).
-   *   3. Walk (fallback).
+   *   2. The host's `vehicularMode` (when Drivable). If the host IS
+   *      Drivable but `vehicularMode` is `null`, throw — Drivables
+   *      that ship without an authored vehicular mode are a content
+   *      authoring bug (e.g., a cart with no idea how it moves). Fail
+   *      loudly so the bug surfaces in dev rather than silently
+   *      walk-traversing a wheeled vehicle.
+   *   3. Walk (universe-default) for non-Drivable Mobile hosts that
+   *      aren't engaged — covers idle NPCs, parked Mountables, etc.,
+   *      where walk is the sensible neutral.
    */
   public static resolveHostMode(host: Stuff & Mobile): LocomotionMode {
     const engaged = host.getEngagedMode();
@@ -100,6 +107,11 @@ export class LocomotionApi {
     if (MixinApi.isDrivable(host)) {
       const veh = host.getVehicularMode();
       if (veh) return veh;
+      throw new Error(
+        `LocomotionApi.resolveHostMode: Drivable host ${host.stuffId} has ` +
+          `no vehicularMode authored — set one via setVehicularMode at ` +
+          `template-time (e.g., wheeled for carts, sailed for boats)`,
+      );
     }
     return LocomotionApi.modeOfOrThrow('walk');
   }
@@ -352,10 +364,21 @@ export class LocomotionApi {
 
   /**
    * Walk the passthrough chain to the host whose engaged mode is
-   * non-passthrough, and return its emission data. The chain is
-   * cycle-guarded by `MAX_PASSTHROUGH_DEPTH`. Returns `null` if the
-   * mover isn't Mobile, isn't engaged in anything, or the chain
+   * non-passthrough, and return its emission data. Returns `null` if
+   * the mover isn't Mobile, isn't engaged in anything, or the chain
    * runs out of valid hosts.
+   *
+   * Cycle guard: `MAX_PASSTHROUGH_DEPTH` (16, mirrors `Mobile.traverse`'s
+   * conveyance ripple guard). Cycles aren't possible from any *valid*
+   * runtime state — slot occupancy is a tree by construction — but
+   * authored content can goof and produce a circular shape: e.g., two
+   * Stuff that are each both `Slotted` and `Slottable`, where A's
+   * mount slot holds B and B's mount slot holds A, both engaged in
+   * `ride`. `findConveyanceHost(A, ride) → B`, then `findConveyanceHost
+   * (B, ride) → A`, etc. The guard caps the walk at 16 hops and
+   * returns `null` rather than spinning forever — the legitimate
+   * passthrough depths Saxonberg cares about (rider → horse → cart →
+   * road, etc.) are nowhere near that bound.
    */
   public static emissionAt(mover: Stuff): EmissionData | null {
     if (!MixinApi.isMobile(mover)) return null;
@@ -463,11 +486,39 @@ export class LocomotionApi {
     return true;
   }
 
+  // ── default-mode resolution ──────────────────────────────────────
+
+  /**
+   * Three-layer chain for "what mode should this actor default to?":
+   *
+   *   1. User-explicit `movement.defaultMode` setting (only for hosts
+   *      composing `EnvironmentMixin` — players who've customized).
+   *   2. The actor's body-plan default (`BodyPlan.defaultLocomotionMode`)
+   *      — meaningful for NPCs (bird → fly, fish → swim, etc.). Skipped
+   *      for non-Organism actors.
+   *   3. Universe default `'walk'`.
+   *
+   * `resolveSetting('movement.defaultMode')` is deliberately NOT used —
+   * its built-in schema-default fallback to `'walk'` would short-
+   * circuit the bodyplan layer. `ownSetting` returns the explicit
+   * override only.
+   */
+  public static defaultModeFor(actor: Stuff): string {
+    const explicit = ownSetting<string>(actor, 'movement.defaultMode');
+    if (explicit) return explicit;
+    if (MixinApi.isOrganism(actor)) {
+      const planDefault =
+        actor.getSpecies()?.getBodyPlan()?.getDefaultLocomotionMode();
+      if (planDefault) return planDefault;
+    }
+    return 'walk';
+  }
+
   // ── default-mode convenience ─────────────────────────────────────
 
   /**
-   * Resolve the actor's `movement.defaultMode` setting (default
-   * `'walk'`) into the corresponding `LocomotionMode` singleton, then
+   * Resolve the actor's default mode (see `defaultModeFor` for the
+   * chain) into the corresponding `LocomotionMode` singleton, then
    * traverse `exit` with full engagement bookkeeping via
    * `engageAround`. Convenience for programmatic callers that want
    * "use the actor's preferred mode" without resolving the singleton
@@ -479,9 +530,9 @@ export class LocomotionApi {
     actor: Stuff & Mobile & Containable,
     exit: Exit,
   ): Promise<void> {
-    const modeName =
-      resolveSetting<string>(actor, 'movement.defaultMode') ?? 'walk';
-    const mode = LocomotionApi.modeOfOrThrow(modeName);
+    const mode = LocomotionApi.modeOfOrThrow(
+      LocomotionApi.defaultModeFor(actor),
+    );
     await LocomotionApi.engageAround(actor, mode, exit, () =>
       actor.traverse(exit, mode.getName()),
     );

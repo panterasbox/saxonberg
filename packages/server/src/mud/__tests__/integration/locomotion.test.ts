@@ -87,7 +87,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     ContainmentApi.move(ladder, locA);
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
-      allowedModes: ['climb'],
+      media: ['vertical'],
     }));
     locA.addExit(exit);
     const actor = makeStuff(() => new Mover());
@@ -110,7 +110,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const locB = makeStuff(() => new CartesianLocation());
     const exit = makeStuff(() => new Exit({
       direction: 'up', source: locA, destination: locB,
-      allowedModes: ['climb'],
+      media: ['vertical'],
     }));
     const actor = makeStuff(() => new Mover());
     ContainmentApi.move(actor, locA);
@@ -130,7 +130,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     zone.addLocation(beach, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
       direction: 'north', source: pond, destination: beach,
-      allowedModes: ['swim'],
+      media: ['water'],
     }));
     pond.addExit(exit);
     const swimmer = makeStuff(() => new Mover());
@@ -158,7 +158,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     zone.addLocation(pond2, 0, 1, 0);
     const exit = makeStuff(() => new Exit({
       direction: 'north', source: pond1, destination: pond2,
-      allowedModes: ['swim'],
+      media: ['water'],
     }));
     pond1.addExit(exit);
     const swimmer = makeStuff(() => new Mover());
@@ -233,7 +233,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     ContainmentApi.move(driver, locA);
     const exit = makeStuff(() => new Exit({
       direction: 'east', source: locA, destination: locB,
-      allowedModes: ['walk', 'wheeled'],
+      media: ['ground'],
     }));
     locA.addExit(exit);
 

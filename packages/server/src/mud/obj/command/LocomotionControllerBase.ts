@@ -93,7 +93,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     }
     const direction = exit.getDirection();
 
-    // Run the remaining gates: body-plan, posture, exit-allowedModes,
+    // Run the remaining gates: body-plan, posture, exit-media,
     // enablement (with capability). MQL's canReach validator already
     // confirmed the exit is reachable; canTraverseExit adds the
     // mode-specific gates.

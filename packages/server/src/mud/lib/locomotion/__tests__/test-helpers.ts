@@ -44,6 +44,7 @@ interface ModeData {
   passthrough?: boolean;
   conveyanceMixin?: string | null;
   enablementMixin?: string | null;
+  medium?: string | null;
 }
 
 const MODE_DEFAULTS: Record<string, ModeData> = {
@@ -57,6 +58,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 1.0,
     passthrough: false,
     enablementMixin: null,
+    medium: 'ground',
   },
   climb: {
     name: 'climb',
@@ -68,6 +70,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 2.0,
     passthrough: false,
     enablementMixin: 'ClimbableMixin',
+    medium: 'vertical',
   },
   swim: {
     name: 'swim',
@@ -79,6 +82,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 2.0,
     passthrough: false,
     enablementMixin: 'SwimmableMixin',
+    medium: 'water',
   },
   fly: {
     name: 'fly',
@@ -90,6 +94,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 0.7,
     passthrough: false,
     enablementMixin: 'FlyableMixin',
+    medium: 'air',
   },
   ride: {
     name: 'ride',
@@ -98,6 +103,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     passthrough: true,
     conveyanceMixin: 'MountableMixin',
     enablementMixin: null,
+    medium: null,
   },
   drive: {
     name: 'drive',
@@ -106,6 +112,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     passthrough: true,
     conveyanceMixin: 'DrivableMixin',
     enablementMixin: null,
+    medium: null,
   },
   wheeled: {
     name: 'wheeled',
@@ -116,6 +123,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 0.5,
     passthrough: false,
     enablementMixin: null,
+    medium: 'ground',
   },
   sailed: {
     name: 'sailed',
@@ -126,6 +134,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 0.6,
     passthrough: false,
     enablementMixin: null,
+    medium: 'water',
   },
   aerial: {
     name: 'aerial',
@@ -136,6 +145,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
     costMultiplier: 0.4,
     passthrough: false,
     enablementMixin: null,
+    medium: 'air',
   },
 };
 
@@ -173,6 +183,9 @@ export function buildMode(
   }
   if (data.enablementMixin !== undefined) {
     mode.setEnablementMixin(data.enablementMixin);
+  }
+  if (data.medium !== undefined) {
+    mode.setMedium(data.medium);
   }
   return mode;
 }
