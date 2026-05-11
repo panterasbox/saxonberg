@@ -21,6 +21,10 @@ behavior. Read the relevant doc before editing in its area.
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
   with the correct alternative for each (lookup-table style)
+- [docs/ref-shapes.md](./docs/ref-shapes.md) — three reference shapes
+  for fields pointing at other Stuff (string-by-path for singletons /
+  live Stuff ref for instances / lazy materialization), method-surface
+  conventions, exemplars, antipatterns
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar
@@ -147,6 +151,14 @@ behavior. Read the relevant doc before editing in its area.
     `Mountable` / `Drivable` / `SeatedDrivableMixin`, the
     `Mobile.traverse` conveyance ripple (depth-16 cycle guard),
     mount/dismount verbs, vehicle design space coverage
+  - [locomotion.md](./docs/subsystems/locomotion.md) —
+    `LocomotionMode` singletons (walk / climb / swim / fly / ride /
+    drive / wheeled / sailed / aerial), `Climbable` / `Swimmable` /
+    `Flyable` enablement mixins, `LocomotionApi` (mode resolution,
+    eligibility cascade, engagement lifecycle, passthrough emission
+    walk), per-mode verb controllers, `Exit.media`,
+    `Mobile.engagedMode`, `Drivable.vehicularMode`,
+    `BodyPlan.defaultLocomotionMode` chain
 
 ## Development Commands
 
@@ -431,7 +443,9 @@ bypass it. Common cases:
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
-| `creature.move(loc)` (raw containment) | `mover.traverse(exit, mode)` (locomotion; commands resolve `mode` from the `movement.defaultMode` setting) |
+| `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |
+| `actor.setEngagedMode(mode); await actor.traverse(exit, …); if (transient) actor.setEngagedMode(null)` | `LocomotionApi.engageAround(actor, mode, exit, action)` — handles transient/persistent decision + error-path cleanup |
+| `resolveSetting(actor, 'movement.defaultMode') ?? 'walk'` | `LocomotionApi.defaultModeFor(actor)` — three-tier chain: explicit setting → bodyplan default → universe 'walk' (the raw resolveSetting skips the bodyplan layer for NPCs) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
 | `(stuff as unknown as { templatePath? }).templatePath` | `stuff.getTemplatePath()` (runtime stamp). For `Template` docs use `template.path` — the two are distinct. |
 | `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated method on `Stuff`; re-keys `byTemplatePath` for you) |

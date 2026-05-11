@@ -72,6 +72,20 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   protected locomotionModes: string[] = [];
 
   /**
+   * Preferred default mode for organisms of this body plan, used by
+   * `LocomotionApi.defaultModeFor` when an actor has no explicit
+   * `movement.defaultMode` setting (NPCs without `EnvironmentMixin`,
+   * players who haven't customized the setting). `null` for sessile
+   * body plans (they have no locomotion at all). Resolution chain:
+   * actor's explicit setting → bodyplan default → universe `'walk'`.
+   *
+   * Authoring should pick from `locomotionModes` — substrate doesn't
+   * cross-check, but a default-mode not in the body plan's modes will
+   * fail the body-plan gate at traversal time.
+   */
+  protected defaultLocomotionMode: string | null = null;
+
+  /**
    * Sensory port anatomy. Position, count, modality only — capability
    * is species-side.
    */
@@ -81,6 +95,7 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     'name',
     'slots',
     'locomotionModes',
+    'defaultLocomotionMode',
     'sensoryPorts',
   ];
 
@@ -113,6 +128,20 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getLocomotionModes(): readonly string[] { return this.locomotionModes; }
   public setLocomotionModes(value: string[]): void {
     this.locomotionModes = value;
+  }
+
+  public getDefaultLocomotionMode(): string | null {
+    return this.defaultLocomotionMode;
+  }
+  public setDefaultLocomotionMode(value: string | null): void {
+    if (value !== null) {
+      if (typeof value !== 'string' || value.length === 0) {
+        throw new TypeError(
+          'BodyPlan.setDefaultLocomotionMode: must be null or a non-empty string',
+        );
+      }
+    }
+    this.defaultLocomotionMode = value;
   }
 
   public getSensoryPorts(): readonly SensoryPort[] { return this.sensoryPorts; }

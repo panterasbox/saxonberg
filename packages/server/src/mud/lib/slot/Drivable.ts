@@ -23,6 +23,8 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
+import type { LocomotionMode } from '../locomotion/LocomotionMode';
+import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { Property } from '../stuff/Propertied';
 
@@ -41,6 +43,16 @@ export interface Drivable {
   getDriver(): (Stuff & Slottable) | null;
   getControllerSlot(): string;
   setControllerSlot(value: string): void;
+  /**
+   * Vehicular `LocomotionMode` this conveyance engages when driven
+   * (e.g., `wheeled` for a cart, `sailed` for a rowboat). Authoring is
+   * required: `LocomotionApi.resolveHostMode` throws on a Drivable
+   * with `null` vehicularMode — surfacing the content-author bug
+   * rather than silently walk-traversing a wheeled vehicle. Stored as
+   * templatePath (ref-shapes Pattern A).
+   */
+  getVehicularMode(): LocomotionMode | null;
+  setVehicularMode(value: LocomotionMode | null): void;
 }
 
 export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
@@ -48,9 +60,36 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
-    static persistentFields = ['controllerSlot'];
+    static persistentFields = ['controllerSlot', '_vehicularModePath'];
 
-    public controllerSlot: string = 'mount:1';
+    /**
+     * Default `'driver:1'` (not `'mount:1'`) — distinct from
+     * `Mountable.mountSlot`'s default so a Stuff composing both
+     * Mountable and Drivable doesn't collide rider and driver on the
+     * same slot name. Authors can override to any `<role>:N` form.
+     */
+    public controllerSlot: string = 'driver:1';
+
+    /**
+     * Persistent path to the vehicular `LocomotionMode` singleton.
+     * Defaults to `null` (unauthored); `setVehicularMode` writes the
+     * mode's templatePath. `LocomotionApi.resolveHostMode` requires a
+     * non-null value when the host has no `engagedMode` — driving
+     * traversal flows always go through that resolver, so authoring
+     * vehicularMode at template-time is mandatory for any Drivable
+     * that's expected to actually be driven.
+     */
+    protected _vehicularModePath: string | null = null;
+
+    public getVehicularMode(): LocomotionMode | null {
+      if (this._vehicularModePath === null) return null;
+      return LocomotionApi.modeOf(this._vehicularModePath);
+    }
+
+    public setVehicularMode(value: LocomotionMode | null): void {
+      this._vehicularModePath =
+        value === null ? null : (value.getTemplatePath() ?? null);
+    }
 
     public getControllerSlot(): string {
       return this.controllerSlot;

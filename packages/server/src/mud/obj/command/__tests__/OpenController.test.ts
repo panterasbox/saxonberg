@@ -23,6 +23,7 @@ import type {
   ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
+import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 
 function makeModel(
   fields: ModelData = {},
@@ -132,6 +133,7 @@ describe('OpenController / CloseController / doors integration', () => {
   let door: Door;
 
   beforeEach(() => {
+    buildMode('walk');
     zone = makeStuff(() => new CartesianZone());
     locA = makeStuff(() => new CartesianLocation());
     locA.setShortDescription('Location A');

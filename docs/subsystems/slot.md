@@ -101,6 +101,16 @@ returns `count > 0`.
 - `Slottable.onDestruct()` walks every host the candidate is slotted
   into and vacates from each slot, before chaining. Guarantees no
   host holds a stale reference to a destructed Stuff.
+- `Slottable.onSlotReleased?(host, slotName)` — optional witness fired
+  synchronously by `Slotted.vacate(slot, candidate)` and
+  `Slotted.vacateSole(slot)` immediately after the candidate is
+  removed from the occupant set. v1's `Mobile.onSlotReleased` clears
+  `engagedMode` for passthrough modes (ride / drive) so a dismounting
+  rider's engagement clears automatically. The invocation lives in
+  `Slotted.vacate` (not `SlotApi.vacate`) so direct callers like
+  `DismountController.execute` also trigger it. Future witnesses
+  (polymorph revert on dismount, status-clear, etc.) compose the same
+  optional-method shape.
 
 ## Detail-targeted resolution
 

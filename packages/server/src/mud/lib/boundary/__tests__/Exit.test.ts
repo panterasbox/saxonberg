@@ -13,6 +13,7 @@ import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 
 function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
   const prev = Stuff._beginConstruction();
@@ -265,5 +266,211 @@ describe('Exit lazy destination resolution', () => {
       destinationPath: '/zone/a',
     }));
     expect(pathExit.getDestinationTemplatePath()).toBe('/zone/a');
+  });
+});
+
+describe('Exit.media', () => {
+  let zone: CartesianZone;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
+  let mover: TestMover;
+
+  beforeEach(() => {
+    // allowsMode now resolves the LocomotionMode singleton when media
+    // is non-empty, so the seeds need to be loaded for the medium
+    // lookup to work. Empty-media exits still short-circuit to
+    // walk-only without needing a loaded singleton.
+    buildAllModes();
+    zone = makeStuff(() => new CartesianZone());
+    locA = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    mover = makeStuff(() => new TestMover());
+    ContainmentApi.move(mover, locA);
+  });
+
+  describe('default behavior (empty media → walk-only)', () => {
+    it('allowsMode("walk") returns true on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('walk')).toBe(true);
+    });
+
+    it('allowsMode("climb") returns false on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('climb')).toBe(false);
+    });
+
+    it('allowsMode("fly") returns false on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('fly')).toBe(false);
+    });
+  });
+
+  describe('medium-grouped behavior', () => {
+    it('ground media admits walk and wheeled', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'east', source: locA, destination: locB,
+        media: ['ground'],
+      }));
+      expect(exit.allowsMode('walk')).toBe(true);
+      expect(exit.allowsMode('wheeled')).toBe(true);
+      expect(exit.allowsMode('climb')).toBe(false);
+      expect(exit.allowsMode('swim')).toBe(false);
+    });
+
+    it('vertical media admits climb but not walk', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'up', source: locA, destination: locB,
+        media: ['vertical'],
+      }));
+      expect(exit.allowsMode('climb')).toBe(true);
+      expect(exit.allowsMode('walk')).toBe(false);
+    });
+
+    it('water media admits swim and sailed', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'south', source: locA, destination: locB,
+        media: ['water'],
+      }));
+      expect(exit.allowsMode('swim')).toBe(true);
+      expect(exit.allowsMode('sailed')).toBe(true);
+      expect(exit.allowsMode('walk')).toBe(false);
+    });
+
+    it('air media admits fly and aerial', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'up', source: locA, destination: locB,
+        media: ['air'],
+      }));
+      expect(exit.allowsMode('fly')).toBe(true);
+      expect(exit.allowsMode('aerial')).toBe(true);
+    });
+
+    it('mixed media admits modes from each listed medium', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'east', source: locA, destination: locB,
+        media: ['ground', 'water'],
+      }));
+      expect(exit.allowsMode('walk')).toBe(true);
+      expect(exit.allowsMode('swim')).toBe(true);
+      expect(exit.allowsMode('fly')).toBe(false);
+    });
+
+    it('passthrough modes (ride/drive) are never admitted by media match', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'east', source: locA, destination: locB,
+        media: ['ground', 'water', 'air', 'vertical'],
+      }));
+      // Passthrough modes have medium=null — they're never gated by
+      // an exit's media list (the host's mode is gated instead).
+      expect(exit.allowsMode('ride')).toBe(false);
+      expect(exit.allowsMode('drive')).toBe(false);
+    });
+
+    it('unknown mode names reject when media is non-empty', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'east', source: locA, destination: locB,
+        media: ['ground'],
+      }));
+      expect(exit.allowsMode('rocketpack')).toBe(false);
+    });
+  });
+
+  describe('setMedia validation', () => {
+    let exit: Exit;
+    beforeEach(() => {
+      exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    });
+
+    it('accepts unique non-empty strings', () => {
+      exit.setMedia(['ground', 'water']);
+      expect(exit.getMedia()).toEqual(['ground', 'water']);
+    });
+
+    it('throws on duplicates', () => {
+      expect(() => exit.setMedia(['ground', 'ground'])).toThrow(/duplicate/);
+    });
+
+    it('throws on empty-string entries', () => {
+      expect(() => exit.setMedia([''])).toThrow(/non-empty/);
+    });
+  });
+});
+
+describe('Exit.canTraverse with mode', () => {
+  let zone: CartesianZone;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
+  let mover: TestMover;
+
+  beforeEach(() => {
+    buildAllModes();
+    zone = makeStuff(() => new CartesianZone());
+    locA = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    mover = makeStuff(() => new TestMover());
+    ContainmentApi.move(mover, locA);
+  });
+
+  it('returns ok when mode is admitted by media', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      media: ['vertical'],
+    }));
+    expect(exit.canTraverse(mover, 'climb')).toEqual({ ok: true });
+  });
+
+  it('returns gate=exitMode when mode is not admitted by media', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      media: ['vertical'],
+    }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('exitMode');
+    expect(result.mode).toBe('walk');
+    expect(result.reason).toMatch(/walk/);
+  });
+
+  it('returns ok for mode="walk" when media is empty', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    expect(exit.canTraverse(mover, 'walk')).toEqual({ ok: true });
+  });
+
+  it('returns gate=exitMode for mode="climb" when media is empty', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    const result = exit.canTraverse(mover, 'climb');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('exitMode');
+  });
+
+  it('returns gate=blocked when blocked, even with matching media', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      blocked: true, media: ['vertical'],
+    }));
+    const result = exit.canTraverse(mover, 'climb');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('blocked');
+  });
+
+  it('returns gate=door when door is closed', () => {
+    const door = makeStuff(() => new Door());
+    door.setShortDescription('iron gate');
+    const exit = makeStuff(() => new Exit({
+      direction: 'n', source: locA, destination: locB, door,
+    }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('door');
+  });
+
+  it('omits gate when ok=true', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result).toEqual({ ok: true });
   });
 });

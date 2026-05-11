@@ -13,6 +13,8 @@ data:
     - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
   locomotionModes:
     - walk
+    - swim
+  defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: sight, count: 2, position: frontal }
     - { modality: hearing, count: 2, position: lateral }

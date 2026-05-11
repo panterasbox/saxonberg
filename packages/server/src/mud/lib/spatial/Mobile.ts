@@ -37,6 +37,8 @@ import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
 import type { Exitable } from '../boundary/Exitable';
 import type { Exit } from '../boundary/Exit';
+import type { Slotted } from '../slot/Slotted';
+import type { LocomotionMode } from '../locomotion/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -44,6 +46,7 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
+import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
 import {
   resolveSetting,
@@ -79,6 +82,37 @@ export interface Mobile {
   canTraverse?(via: Exit): VetoResult;
   /** Fired after the mover has crossed `via`. */
   onTraversed?(via: Exit): void;
+
+  /**
+   * Resolve the actor's currently-engaged `LocomotionMode` (the
+   * persisted singleton-by-path). `null` when the actor is not engaged
+   * in any mode. The backing storage is `_engagedModePath: string |
+   * null` — a runtime-only field (NOT in `persistentFields`); a fresh
+   * actor / a reloaded actor wakes up unengaged.
+   */
+  getEngagedMode(): LocomotionMode | null;
+
+  /**
+   * Set the engaged mode by reference. Stores the mode's
+   * templatePath; `null` clears.
+   */
+  setEngagedMode(mode: LocomotionMode | null): void;
+
+  /**
+   * Predicate that accepts either the LocomotionMode singleton OR a
+   * short-name / full-path string. Compares against the stored
+   * templatePath.
+   */
+  isEngagedIn(mode: LocomotionMode | string): boolean;
+
+  /**
+   * Witness invoked by `Slotted.vacate` when this actor releases
+   * occupancy on `host`'s slot. v1: clears `engagedMode` when the
+   * mode is passthrough and the vacated host composes the mode's
+   * `conveyanceMixin`. A dismounting rider's engagement clears
+   * automatically without any controller-side bookkeeping.
+   */
+  onSlotReleased(host: Stuff & Slotted, slotName: string): void;
 }
 
 /**
@@ -115,6 +149,44 @@ export interface MovementHookProvider {
 export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>(Base: TBase) {
   return class MobileMixin extends Base {
     static _mixinName = 'MobileMixin';
+
+    /**
+     * Backing storage for `engagedMode`. Runtime-only — deliberately
+     * NOT in `persistentFields`. A reloaded actor wakes up unengaged
+     * (players re-engage each session); the mode singleton itself
+     * persists by templatePath via the standard singleton cache.
+     */
+    private _engagedModePath: string | null = null;
+
+    public getEngagedMode(): LocomotionMode | null {
+      if (this._engagedModePath === null) return null;
+      return LocomotionApi.modeOf(this._engagedModePath);
+    }
+
+    public setEngagedMode(mode: LocomotionMode | null): void {
+      this._engagedModePath =
+        mode === null ? null : (mode.getTemplatePath() ?? null);
+    }
+
+    public isEngagedIn(mode: LocomotionMode | string): boolean {
+      if (this._engagedModePath === null) return false;
+      if (typeof mode === 'string') {
+        if (mode === this._engagedModePath) return true;
+        const resolved = LocomotionApi.modeOf(this._engagedModePath);
+        return resolved?.getName() === mode;
+      }
+      return this._engagedModePath === (mode.getTemplatePath() ?? null);
+    }
+
+    public onSlotReleased(host: Stuff & Slotted, _slotName: string): void {
+      void _slotName;
+      const mode = this.getEngagedMode();
+      if (!mode || !mode.getPassthrough()) return;
+      const conveyance = mode.getConveyanceMixin();
+      if (conveyance && MixinApi.hasMixin(host, conveyance as never)) {
+        this.setEngagedMode(null);
+      }
+    }
 
     /**
      * Commands the mover itself supplies — locomotion and door
@@ -220,11 +292,20 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       exit: Exit,
       mode: string
     ): Promise<void> {
-      // TODO(locomotion): mode threads through but isn't wired into
-      // narration ('walks in', 'runs in', 'climbs down') or per-exit
-      // validation (a 'climb' exit may reject 'walk') yet. The mode
-      // taxonomy and downstream consumption land in a future phase.
-      void mode;
+      // Mode-gate: enforce Exit.media (via mode-medium lookup) against
+      // the caller's mode.
+      // Programmatic-violation policy (Q12.4): throws on rejection.
+      // Player-input paths short-circuit upstream via LocomotionApi.
+      // canTraverseExit before this method is reached, so this throw is
+      // reached only by misbehaving callers or test code that walks
+      // through a mode-gated exit.
+      const guard = exit.canTraverse(this, mode);
+      if (!guard.ok) {
+        throw new ContainmentError(
+          `Mobile.traverse: ${guard.reason ?? "can't go that way"}`,
+          { cause: { traversalGuard: guard } }
+        );
+      }
       const mover = this;
       const source = exit.getSource();
       // Lazy-resolve the destination via the singleton cache. For Exits

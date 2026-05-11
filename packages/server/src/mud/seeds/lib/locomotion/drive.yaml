@@ -1,0 +1,13 @@
+# Drive — passthrough mode. The driver doesn't traverse on their own;
+# the Drivable host engages its vehicularMode for the traversal.
+class: /lib/locomotion/LocomotionMode
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: drive
+  requiresBodyPlanMode: []
+  requiresPosture: []
+  costMultiplier: 1.0
+  passthrough: true
+  conveyanceMixin: DrivableMixin
+  enablementMixin: null
+  medium: null

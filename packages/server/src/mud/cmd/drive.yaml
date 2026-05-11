@@ -1,0 +1,11 @@
+verbs: [drive]
+controller: DriveController
+description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    validators:
+      - /lib/command/validators/canReach

@@ -384,29 +384,35 @@ thing that cannot be contained is nonsensical.
 ### Two modes: `traverse` and `teleport`
 
 **`traverse(exit, mode)`** — exit-driven movement under a named
-locomotion mode (`'walk'`, `'run'`, `'climb'`, …). `mode` is required
-at the API; `go` resolves its value from the `movement.defaultMode`
-setting (declared on `MobileMixin`, schema-defaulted to `'walk'`),
-explicit-verb controllers pass their own verb. Mode threads through
-the call but isn't yet wired into narration or per-exit validation —
-see the TODO in `Mobile.traverse`.
-Two-layer hook dispatch:
+locomotion mode (short name: `'walk'`, `'climb'`, `'swim'`, …). `mode`
+is required at the API. Pipeline:
 
-1. **Traversal vetoes:** `canTraverse` on the mover, `canExit` on the
+1. **Mode-gate:** `exit.canTraverse(this, mode)` — checks blocked /
+   door / `Exit.allowsMode(mode)` (mode's medium ∈ exit's `media`).
+   Throws `ContainmentError` on rejection (programmatic-violation
+   policy; player-input paths pre-check via
+   `LocomotionApi.canTraverseExit`).
+2. **Traversal vetoes:** `canTraverse` on the mover, `canExit` on the
    source room, `canEnter` on the destination room. First veto throws
    `ContainmentError`.
-2. **Departure narration:** `announceDeparture(source, exit)`.
-3. **State change:** `ContainmentApi.move(mover, destination)` —
+3. **Departure narration:** `announceDeparture(source, exit)`.
+4. **State change:** `ContainmentApi.move(mover, destination)` —
    which fires its own containment-layer hooks (`canMove` /
    `canRemoveContainable` / `canAddContainable` / etc.).
-4. **Arrival narration:** `announceArrival(destination, exit)`.
-5. **Traversal post-hooks:** `onExited` (source), `onEntered`
+5. **Arrival narration:** `announceArrival(destination, exit)`.
+6. **Conveyance ripple:** for each occupant of the mover's slots,
+   recursively `traverse(exit, mode)` if Mobile+Containable, else
+   `ContainmentApi.move(occupant, destination)`. See
+   [conveyance.md § Conveyance ripple](./conveyance.md#conveyance-ripple).
+7. **Traversal post-hooks:** `onExited` (source), `onEntered`
    (destination), `onTraversed` (mover).
 
-The Phase 7 contract: callers (typically `GoController`) have already
-validated traversal via `exit.canTraverse(mover)` — that's the door's
-"is this passable?" gate. The Witness hooks here layer additional
-pre-move vetoes, not a replacement.
+The `go` verb routes through `LocomotionApi.defaultModeFor(actor)` —
+a three-tier chain (explicit setting → bodyplan default → `'walk'`)
+— rather than the older `resolveSetting` shape. Literal mode verbs
+(`walk`, `climb`, `swim`, `fly`, `ride`, `drive`) extend
+`LocomotionControllerBase` with a one-line `modeName()` override. See
+[locomotion.md](./locomotion.md).
 
 **`teleport(destination, opts?)`** — Exit-less
 move. Default narrates departure + arrival; pass `{ silent: true }`
@@ -485,6 +491,29 @@ The ripple makes mounts work: a horse moving carries any rider in
 its mount slot, and a saddle on a horse with a rider in the saddle
 ripples through both layers. See
 [conveyance.md](./conveyance.md) for the full story.
+
+### `engagedMode` and the slot-release witness
+
+`MobileMixin` carries a runtime-only `_engagedModePath: string | null`
+field (NOT in `persistentFields` — a reloaded actor wakes up
+unengaged). `getEngagedMode()` resolves it via the singleton cache;
+`setEngagedMode(mode)` stores `mode.getTemplatePath()`.
+`isEngagedIn(mode | name)` is polymorphic — accepts either the
+singleton or a short-name / full-path string.
+
+`LocomotionApi.engageAround(actor, mode, exit, action)` is the
+canonical engagement scope: it sets engagedMode, runs the inner
+traversal, then conditionally clears engagedMode based on
+`isTransientEngagement(mode, exit)` — passthrough modes (ride / drive)
+stay set; walk / vehicular modes clear; climb / swim / fly clear if
+the destination doesn't still expose the relevant enablement.
+
+`Mobile.onSlotReleased(host, slotName)` is the witness invoked
+synchronously by `Slotted.vacate`. The default body clears
+engagedMode when the mode is passthrough AND the vacated host
+composes the engaged mode's `conveyanceMixin`. A dismounting rider's
+engagement clears automatically without controller-side bookkeeping.
+See [locomotion.md § Engagement lifecycle](./locomotion.md#engagement-lifecycle).
 
 ### Location floors
 

@@ -1,0 +1,17 @@
+# Aerial — vehicular mode authored on airships / gliders. Loud,
+# fully airborne, fastest in v1.
+class: /lib/locomotion/LocomotionMode
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: aerial
+  speed: 3.0
+  noiseLevel: loud
+  bodyProfile: varied
+  groundContact: none
+  requiresBodyPlanMode: []
+  requiresPosture: []
+  costMultiplier: 0.4
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
+  medium: air

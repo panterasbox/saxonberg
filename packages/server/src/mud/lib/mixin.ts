@@ -65,6 +65,9 @@ export const Mixins = {
   Posed: 'PosedMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
+  Climbable: 'ClimbableMixin',
+  Swimmable: 'SwimmableMixin',
+  Flyable: 'FlyableMixin',
 } as const;
 
 /**

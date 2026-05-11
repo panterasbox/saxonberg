@@ -271,8 +271,17 @@ deferred until a sub-clade lands and earns the inheritance machinery.
   older `wornSlots: string[]` + `heldSlots: string[]` split (deleted
   outright in the embodiment MR — no shims). See
   [slot.md](./slot.md) for the SlotSpec shape.
-- `locomotionModes` — `walk`, `fly`, `swim`, `burrow`, `crawl`,
-  `climb`, …
+- `locomotionModes` — short names of `LocomotionMode` singletons this
+  body plan supports: `walk`, `climb`, `swim`, `fly`, … Drives the
+  body-plan gate in `LocomotionApi.canTraverseExit`. v1 ships biped
+  = `[walk, climb, swim]`, quadruped = `[walk, swim]`, sessile = `[]`.
+  See [locomotion.md](./locomotion.md).
+- `defaultLocomotionMode` — short name of the mode an organism of
+  this body plan defaults to when `movement.defaultMode` isn't set
+  (NPCs without `EnvironmentMixin`, fresh avatars). Layer 2 of the
+  three-tier chain `LocomotionApi.defaultModeFor(actor)` consults
+  (layer 1 is the explicit setting, layer 3 is universe `'walk'`).
+  `null` for sessile body plans.
 - `sensoryPorts` — anatomy only: `{ modality, count, position }`
 
 The unified slot universe lets all body-side affordances flow from

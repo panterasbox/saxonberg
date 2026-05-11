@@ -33,16 +33,42 @@ import type { Containable } from '../spatial/Containable';
 import type { Door } from './Door';
 import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';
+import { LocomotionApi } from '../../api/locomotion';
+
+/**
+ * Discriminator naming which gate failed during `canTraverse`. Backcompat
+ * additive — pre-locomotion callers reading only `reason` continue to
+ * work. New consumers (locomotion controllers, programmatic callers)
+ * branch on `gate` to compose verb-templated rejection prose.
+ */
+export type TraversalGate =
+  | 'blocked'
+  | 'door'
+  | 'exitMode'
+  | 'bodyPlan'
+  | 'posture'
+  | 'enablement'
+  | 'capability'
+  | 'noConveyance';
 
 /**
  * Result of `Exit.canTraverse()`.
  *
- * `reason` is a player-facing error string when `ok === false`. When `ok` is
- * true the reason is absent.
+ * `reason` is a player-facing error string when `ok === false`. When `ok`
+ * is true the reason is absent.
+ *
+ * `gate` / `mode` / `context` are additive: pre-locomotion callers that
+ * only read `reason` keep working; new consumers branch on `gate` to
+ * compose verb-templated rejection prose without re-parsing `reason`.
  */
 export interface TraversalGuard {
   ok: boolean;
   reason?: string;
+  gate?: TraversalGate;
+  /** Short mode name (e.g. `'walk'`) when the gate is mode-related. */
+  mode?: string;
+  /** Gate-specific context (e.g. `{ missing: 'ClimbableMixin' }`). */
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -65,6 +91,15 @@ export interface ExitOptions {
   oneWay?: boolean;
   messageIn?: string | null;
   messageOut?: string | null;
+  /**
+   * Locomotion media this exit admits (e.g. `['ground']`,
+   * `['water', 'ground']`). An exit admits any `LocomotionMode` whose
+   * `getMedium()` is in this list. Default `[]` — legacy walk-only
+   * behavior (see `allowsMode`). Grouping by medium lets a normal
+   * corridor admit walk + run + crawl + sneak via `['ground']` rather
+   * than enumerating every mode name.
+   */
+  media?: string[];
 }
 
 export class Exit extends Idea {
@@ -192,6 +227,61 @@ export class Exit extends Idea {
   public setMessageOut(value: string | null): void { this.messageOut = value; }
 
   /**
+   * Locomotion media this exit admits (e.g. `['ground']`,
+   * `['water', 'ground']`). The exit admits any `LocomotionMode` whose
+   * `getMedium()` is in this list. Default `[]` is treated by
+   * `allowsMode` as legacy walk-only — preserves backcompat for exits
+   * authored before the medium refactor. Authors group modes by medium
+   * to keep declarations terse: a normal corridor's `['ground']` admits
+   * every ground-locomotion mode without enumerating each verb.
+   */
+  protected media: string[] = [];
+
+  public getMedia(): readonly string[] {
+    return this.media;
+  }
+  public setMedia(value: string[]): void {
+    const seen = new Set<string>();
+    for (const v of value) {
+      if (typeof v !== 'string' || v.length === 0) {
+        throw new TypeError(
+          'Exit.setMedia: entries must be non-empty strings'
+        );
+      }
+      if (seen.has(v)) {
+        throw new TypeError(`Exit.setMedia: duplicate '${v}'`);
+      }
+      seen.add(v);
+    }
+    this.media = value;
+  }
+
+  /**
+   * True iff a mode named `modeName` is admitted by this exit. Resolution:
+   *   - Empty `media` → legacy default; admits only `'walk'`. Preserves
+   *     pre-refactor behavior for exits constructed without an explicit
+   *     medium set.
+   *   - Non-empty `media` → resolve the mode singleton via
+   *     `LocomotionApi.modeOf(modeName)`. If unloaded, reject (matches
+   *     the strict-resolution contract elsewhere in the substrate). If
+   *     resolved, admit iff the mode's `getMedium()` is in `media`.
+   *
+   * Passthrough modes (ride / drive) have `medium === null`; they're
+   * never admitted by an exit's `media` list directly — the conveyance
+   * host's mode is what gets gated. Player flow always routes through
+   * `LocomotionControllerBase`, which substitutes the host's mode at
+   * the exit-gate call site (see `LocomotionControllerBase.execute`).
+   */
+  public allowsMode(modeName: string): boolean {
+    if (this.media.length === 0) return modeName === 'walk';
+    const mode = LocomotionApi.modeOf(modeName);
+    if (!mode) return false;
+    const medium = mode.getMedium();
+    if (medium === null) return false;
+    return this.media.includes(medium);
+  }
+
+  /**
    * Counterpart Exit on the destination side, when this exit is part
    * of a bidirectional pair. `undefined` for one-way exits, vessel-
    * synthesized `'out'` exits, or pairs that haven't been wired (lazy-
@@ -225,6 +315,9 @@ export class Exit extends Idea {
     this.oneWay = opts.oneWay ?? false;
     this.messageIn = opts.messageIn ?? null;
     this.messageOut = opts.messageOut ?? null;
+    // Reuse the same validator the public setter does. The `?? []`
+    // default preserves backcompat for callers that don't pass it.
+    this.setMedia(opts.media ?? []);
   }
 
   /**
@@ -280,17 +373,40 @@ export class Exit extends Idea {
   /**
    * Can `mover` traverse this exit right now?
    *
-   * Returns `{ ok: false, reason }` when blocked or the door is shut. Returns
-   * `{ ok: true }` otherwise. The mover argument is accepted for future hooks
-   * (stamina / permissions / etc.) but is unused today.
+   * Returns `{ ok: false, reason, gate }` on the first failing gate
+   * (blocked / closed door / mode rejection); `{ ok: true }` otherwise.
+   *
+   * `mode` is the short name of the actor's intended `LocomotionMode`
+   * (e.g. `'walk'`, `'climb'`). When supplied, this method consults
+   * `allowsMode(mode)`. When omitted (pre-locomotion callers, admin
+   * tools), the mode gate is skipped — backcompat-additive.
    */
-  public canTraverse(_mover: Stuff & Containable): TraversalGuard {
+  public canTraverse(
+    _mover: Stuff & Containable,
+    mode?: string,
+  ): TraversalGuard {
     if (this.blocked) {
-      return { ok: false, reason: 'The way is blocked.' };
+      return {
+        ok: false,
+        gate: 'blocked',
+        reason: 'The way is blocked.',
+      };
     }
     if (this.door && !this.door.getIsOpen()) {
       const doorName = DescribeApi.getDisplayName(this.door, 'door');
-      return { ok: false, reason: `The ${doorName} is closed.` };
+      return {
+        ok: false,
+        gate: 'door',
+        reason: `The ${doorName} is closed.`,
+      };
+    }
+    if (mode != null && !this.allowsMode(mode)) {
+      return {
+        ok: false,
+        gate: 'exitMode',
+        mode,
+        reason: `You can't ${mode} that way.`,
+      };
     }
     return { ok: true };
   }

@@ -41,6 +41,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../lib/stuff/Idea";
+import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 
 /**
  * Resolve a target string through MQL exactly as the dispatcher
@@ -117,6 +118,11 @@ describe('GoController', () => {
   let controller: GoController;
 
   beforeEach(() => {
+    // GoController now extends LocomotionControllerBase, which resolves
+    // the walk LocomotionMode singleton via LocomotionApi.modeOfOrThrow.
+    // Seed the singleton up-front (in production the SeederManager does this).
+    buildMode('walk');
+
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());
@@ -191,17 +197,19 @@ describe('GoController', () => {
     it('returns an error when no direction is given', async () => {
       const result = await controller.execute(makeModel(), makeContext(avatar, locA, ''));
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/where/i);
+      // Post-locomotion: rejection prose is mode-templated and lands
+      // through the exitMode gate.
+      expect(result.summary).toMatch(/can't walk that way/i);
     });
 
-    it("returns \"can't go that way\" when the input doesn't resolve", async () => {
+    it("returns rejection prose when the input doesn't resolve", async () => {
       // Post-wrapper cutover: the dispatcher lands an `MqlOneResult`
       // wrapper on `model.target` with `stuff: null` for an
-      // unresolved input. Controller fires its null-stuff branch
-      // and reports "can't go that way".
+      // unresolved input. LocomotionControllerBase's exitMode gate
+      // fires with verb-templated prose.
       const result = await goCmd(controller, avatar, locA, 'south');
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/can't go that way/i);
+      expect(result.summary).toMatch(/can't walk that way/i);
     });
 
     it('blocks traversal through a closed door', async () => {
