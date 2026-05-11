@@ -1,133 +1,98 @@
 /**
- * PostureApi — workflow helper for posture verbs (sit / lie / kneel /
- * stand-on).
+ * PostureApi — slot+state mechanics for posture verbs.
  *
- * `transferPosture` consolidates the standard four-step pattern
- * shared by every posture-changing verb:
+ * Pure mechanism — no messaging. Verb controllers (Sit, Lie, Kneel,
+ * Stand, Mount, …) own their own `MessageApi.scene(...).send()` calls
+ * because narration is verb-specific and controllers are the right
+ * layer for verb-specific surface. PostureApi just does the slot
+ * swap and posture-string flip; callers shape success/failure prose.
  *
- *   1. Validate target is Postured + actor is Posed + Slottable.
- *   2. Find a posture-accepting slot on the target.
- *   3. Atomically vacate the actor's current posture-bearing slot
- *      and occupy the new one (`SlotApi.transferOccupancy` carries
- *      the rollback semantics).
- *   4. Set the actor's `Posed` posture string and emit the verb's
- *      narration scene.
- *
- * Returns a `CommandResult` so verb controllers can pass it through
- * directly. The narration text is caller-supplied — controllers own
- * the verb-specific surface ("You sit down." vs "You kneel down.")
- * while the slot+state machinery lives here.
+ * `transferPosture` is the workflow consolidator: atomically vacate
+ * the actor's current posture-bearing slot, find a posture-accepting
+ * slot on the target, occupy it, set the actor's `Posed` posture
+ * string. Returns a discriminated result so callers can shape their
+ * own failure summary.
  */
 
-import type {
-  CommandContext,
-  CommandResult,
-} from './command';
-import type { MqlOneResult } from './mql';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Slottable } from '../lib/slot/Slottable';
 import type { Slotted } from '../lib/slot/Slotted';
+import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
-import { MessageApi } from './message';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
-import { Mml } from './mml';
 import { SlotApi } from './slot';
 import { SecurityApi } from './security';
 
-export interface PostureTransferOpts {
-  /** Verb name for failure-message phrasing ("you can't `sit` on …"). */
-  verb: string;
-  /** The posture string to set on the actor (typically a `Postures.*`). */
-  posture: string;
-  /** MQL resolution of the verb's target argument. */
-  target: MqlOneResult;
-  /** Command context; supplies `commandGiver`. */
-  context: CommandContext;
-  /** Self-facing narration ("You sit down."). */
-  successSelf: string;
-  /**
-   * Peers-facing predicate ("sits down.") — the helper prepends the
-   * Mml-rendered actor name automatically. Pass just the verb-tail.
-   */
-  successPeersTail: string;
-}
+/**
+ * Outcome of `transferPosture`. On success the controller emits its
+ * verb-specific narration; on failure the summary is user-facing
+ * and bubbles through `CommandResult`. `verb` is folded into the
+ * "no-accepting-slot" message ("you can't `sit` on the wallpaper")
+ * since that's the one failure mode where verb name reads naturally.
+ */
+export type PostureTransferResult =
+  | { ok: true; host: Stuff & Slotted; slot: string }
+  | { ok: false; summary: string };
 
 export class PostureApi {
   /**
-   * Run the full posture-transfer workflow against an MQL-resolved
-   * target. Returns a CommandResult — verb controllers typically
-   * `return PostureApi.transferPosture(opts)` directly.
+   * Atomic posture transfer. Vacates any current posture-bearing
+   * slot, finds a slot on `target` accepting `posture`, occupies
+   * it, and sets the actor's `Posed` posture string.
+   *
+   * `verb` is used only for the "no posture-accepting slot" failure
+   * surface ("you can't `sit` on …") — every other failure phrases
+   * itself naturally without the verb name.
+   *
+   * Throws on type-shape violations (target not Postured, actor not
+   * Posed/Slottable) — those are validator-should-have-caught cases,
+   * not user-facing failures.
    */
-  public static transferPosture(opts: PostureTransferOpts): CommandResult {
-    const target = opts.target.stuff;
-    if (!target) {
-      return {
-        success: false,
-        summary: `you don't see any '${opts.target.raw}' here`,
-      };
-    }
-    if (!MixinApi.isPostured(target)) {
-      throw new Error(
-        `PostureApi.transferPosture: target ${target.stuffId} is not Postured`
-      );
-    }
-    const giver = opts.context.commandGiver;
-    if (!MixinApi.isPosed(giver)) {
-      throw new Error(
-        `PostureApi.transferPosture: commandGiver ${giver.stuffId} is not Posed`
-      );
-    }
-    if (!MixinApi.isSlottable(giver)) {
-      throw new Error(
-        `PostureApi.transferPosture: commandGiver ${giver.stuffId} is not Slottable`
-      );
-    }
-
+  public static transferPosture(
+    actor: Stuff & Posed & Slottable,
+    target: Stuff & Postured,
+    posture: string,
+    verb: string
+  ): PostureTransferResult {
     // Find a slot on the target accepting this posture.
-    const candidates = target.getSlotsAcceptingPosture(opts.posture);
+    const candidates = target.getSlotsAcceptingPosture(posture);
     let chosen: string | null = null;
     for (const slot of candidates) {
       if (target.isSlotFull(slot)) continue;
-      if (!target.canOccupy(giver, slot)) continue;
+      if (!target.canOccupy(actor, slot)) continue;
       chosen = slot;
       break;
     }
     if (!chosen) {
       if (candidates.length === 0) {
         return {
-          success: false,
+          ok: false,
           summary:
-            `you can't ${opts.verb} on ` +
+            `you can't ${verb} on ` +
             `${DescribeApi.getDisplayName(target, 'that')}`,
         };
       }
       return {
-        success: false,
+        ok: false,
         summary:
           `${DescribeApi.getDisplayName(target, 'that')} is occupied`,
       };
     }
 
-    const from = PostureApi.findCurrentPostureBearingSlot(giver);
+    const from = PostureApi.findCurrentPostureBearingSlot(actor);
 
     try {
       SlotApi.transferOccupancy(
-        giver,
+        actor,
         from,
         { host: target, slot: chosen }
       );
     } catch (err) {
-      return { success: false, summary: (err as Error).message };
+      return { ok: false, summary: (err as Error).message };
     }
-    giver.setPosture(opts.posture);
-
-    MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.narration.action)
-      .toSelf(Mml.compose`${opts.successSelf}`)
-      .toPeers(Mml.compose`${Mml.name(giver)} ${opts.successPeersTail}`)
-      .send();
-    return { success: true };
+    actor.setPosture(posture);
+    return { ok: true, host: target, slot: chosen };
   }
 
   /**

@@ -1,3 +1,8 @@
+/**
+ * LieController — `sit`'s `Postures.Lie` sibling. See SitController
+ * for the validation + workflow shape.
+ */
+
 import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -5,6 +10,9 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
+import { MessageApi } from '../../api/message';
+import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
 import { PostureApi } from '../../api/posture';
 import { Postures } from '../../lib/slot/Postured';
 
@@ -14,13 +22,38 @@ interface LieModel extends CommandModel {
 
 export class LieController extends CommandController<LieModel> {
   execute(model: LieModel, context: CommandContext): CommandResult {
-    return PostureApi.transferPosture({
-      verb: 'lie',
-      posture: Postures.Lie,
-      target: model.target,
-      context,
-      successSelf: 'You lie down.',
-      successPeersTail: 'lies down.',
-    });
+    const target = model.target.stuff;
+    if (!target) {
+      return {
+        success: false,
+        summary: `you don't see any '${model.target.raw}' here`,
+      };
+    }
+    if (!MixinApi.isPostured(target)) {
+      throw new Error(
+        `LieController: mustBePostured validator should have caught ${target.stuffId}`
+      );
+    }
+    const giver = context.commandGiver;
+    if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {
+      throw new Error(
+        `LieController: requiresPosed/Slottable validators should have caught ${giver.stuffId}`
+      );
+    }
+
+    const result = PostureApi.transferPosture(
+      giver,
+      target,
+      Postures.Lie,
+      'lie'
+    );
+    if (!result.ok) return { success: false, summary: result.summary };
+
+    MessageApi.scene(giver)
+      .topic(MessageApi.Topics.world.narration.action)
+      .toSelf(Mml.compose`You lie down.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} lies down.`)
+      .send();
+    return { success: true };
   }
 }

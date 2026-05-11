@@ -11,7 +11,7 @@ constants vocabulary. Verb suite: `sit`, `lie`, `kneel`, `stand`.
 | `Posed` | `lib/character/Posed.ts` | Actor capability — carries `getPosture()` / `setPosture()` |
 | `Postures` | `lib/slot/Postured.ts` | Frozen const-object: `Stand`, `Sit`, `Lie`, `Kneel`, `Mounted` |
 | `Posture` | `lib/slot/Postured.ts` | Derived type union of `Postures` values |
-| `PostureApi` | `api/posture.ts` | Workflow helper (`transferPosture`, `vacatePostureBearingSlots`, `findCurrentPostureBearingSlot`) — consolidates the vacate-then-occupy-then-flip pattern shared by every posture verb |
+| `PostureApi` | `api/posture.ts` | Slot+state mechanics (`transferPosture`, `vacatePostureBearingSlots`, `findCurrentPostureBearingSlot`). Pure mechanism — no messaging; callers (controllers) own the narration |
 
 `PosturedMixin` composes on `Stuff & Slotted`. `PosedMixin` composes
 on `Stuff` and is composed by `Character`, so every PC and NPC
@@ -88,12 +88,22 @@ suppresses the migration script and any future auto-floor tooling.
 
 ## Verbs
 
-All posture verbs go through `PostureApi.transferPosture` (the
-shared workflow helper). It in turn calls
-`SlotApi.transferOccupancy` for the atomic vacate-then-occupy with
-rollback. The asymmetric `stand` no-arg form calls
+The four with-arg posture verbs (`sit X`, `lie X`, `kneel X`,
+`stand X`) and `stand X` call `PostureApi.transferPosture(actor,
+target, posture, verb)` for the slot+state mechanics; the
+controller emits the verb-specific message scene on success. The
+asymmetric `stand` no-arg form calls
 `PostureApi.vacatePostureBearingSlots` directly (no occupy step —
-posture flips to `Stand`, the actor stays free of any slot).
+posture flips to `Stand`, the actor stays free of any slot) and
+fires its own "you stand up" scene.
+
+Layering: PostureApi is pure mechanism, no `MessageApi.send`
+inside. Narration is verb-specific surface so it lives in the
+controller, matching how MountController, GetController,
+DropController etc. work. The exception in the codebase is the
+movement subsystem, where the message text is settings-driven and
+the substrate (`MobileMixin`) owns the send — posture verbs are
+the standard non-configurable case.
 
 | Verb | Form | Action |
 |---|---|---|
