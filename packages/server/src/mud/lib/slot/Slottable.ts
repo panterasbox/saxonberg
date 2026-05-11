@@ -46,6 +46,18 @@ export interface Slottable {
    * per-body-plan slot claims.
    */
   fitsSlot(host: Stuff & Slotted, slot: string): boolean;
+
+  /**
+   * Optional witness fired by `Slotted.vacate(slot, candidate)` and
+   * `Slotted.vacateSole(slot)` immediately after the candidate is
+   * removed from the host's occupant set. Synchronous, in the same
+   * transaction as the vacate. v1's `Mobile.onSlotReleased` clears
+   * `engagedMode` for passthrough modes (ride / drive) so a
+   * dismounting rider's engagement clears automatically. Future
+   * witnesses (polymorph revert, status-clear, etc.) compose on the
+   * same shape.
+   */
+  onSlotReleased?(host: Stuff & Slotted, slotName: string): void;
 }
 
 export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(

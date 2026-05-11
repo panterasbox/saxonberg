@@ -228,4 +228,37 @@ describe('SlottedMixin', () => {
       expect(host.getStaticSlots()).toEqual(specs);
     });
   });
+
+  describe('vacate slot-release witness', () => {
+    class WitnessOcc extends SlottableMixin(Idea) {
+      public events: { host: unknown; slot: string }[] = [];
+      public onSlotReleased(host: unknown, slot: string): void {
+        this.events.push({ host, slot });
+      }
+    }
+
+    it('invokes candidate.onSlotReleased(host, slotName) after the delete', () => {
+      host.setStaticSlots([{ name: 'sit:1', accepts: 'SlottableMixin' }]);
+      const w = makeStuff(() => new WitnessOcc());
+      host.occupy(w, 'sit:1');
+      host.vacate('sit:1', w);
+      expect(w.events).toEqual([{ host, slot: 'sit:1' }]);
+    });
+
+    it('does NOT invoke when candidate has no onSlotReleased method', () => {
+      host.setStaticSlots([{ name: 'sit:1', accepts: 'SlottableMixin' }]);
+      // SlottableMixin's default doesn't supply onSlotReleased — the
+      // method is optional on the interface.
+      host.occupy(occupant, 'sit:1');
+      expect(() => host.vacate('sit:1', occupant)).not.toThrow();
+    });
+
+    it('vacateSole also fires the witness', () => {
+      host.setStaticSlots([{ name: 'sit:1', accepts: 'SlottableMixin' }]);
+      const w = makeStuff(() => new WitnessOcc());
+      host.occupy(w, 'sit:1');
+      host.vacateSole('sit:1');
+      expect(w.events).toEqual([{ host, slot: 'sit:1' }]);
+    });
+  });
 });

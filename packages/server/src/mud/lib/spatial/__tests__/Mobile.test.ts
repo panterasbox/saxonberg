@@ -140,3 +140,164 @@ describe('MobileMixin', () => {
     });
   });
 });
+
+import { buildMode } from '../../locomotion/__tests__/test-helpers';
+import { SlottedMixin } from '../../slot/Slotted';
+import { SlottableMixin } from '../../slot/Slottable';
+import { MountableMixin } from '../../slot/Mountable';
+import { CartesianZone } from '../CartesianZone';
+import { CartesianLocation } from '../CartesianLocation';
+import { Exit } from '../../boundary/Exit';
+import { ContainmentApi } from '../../../api/containment';
+
+const MountSlottedBase = MountableMixin(SlottedMixin(Idea));
+class TestMount extends MountSlottedBase {}
+
+const SlottableMobileBase = MobileMixin(SlottableMixin(ContainableMixin(Idea)));
+class SlottableMobile extends SlottableMobileBase {}
+
+describe('Mobile.engagedMode', () => {
+  describe('default state', () => {
+    it('getEngagedMode returns null on a fresh Mobile', () => {
+      const m = makeStuff(() => new MobileObject());
+      expect(m.getEngagedMode()).toBeNull();
+    });
+  });
+
+  describe('setEngagedMode / getEngagedMode', () => {
+    it('accepts a LocomotionMode singleton and resolves it back', () => {
+      const walk = buildMode('walk');
+      const m = makeStuff(() => new MobileObject());
+      m.setEngagedMode(walk);
+      expect(m.getEngagedMode()).toBe(walk);
+    });
+
+    it('accepts null and clears', () => {
+      const walk = buildMode('walk');
+      const m = makeStuff(() => new MobileObject());
+      m.setEngagedMode(walk);
+      m.setEngagedMode(null);
+      expect(m.getEngagedMode()).toBeNull();
+    });
+  });
+
+  describe('isEngagedIn polymorphism', () => {
+    it('accepts a LocomotionMode singleton', () => {
+      const walk = buildMode('walk');
+      const m = makeStuff(() => new MobileObject());
+      m.setEngagedMode(walk);
+      expect(m.isEngagedIn(walk)).toBe(true);
+    });
+
+    it('accepts a short name string', () => {
+      const walk = buildMode('walk');
+      const m = makeStuff(() => new MobileObject());
+      m.setEngagedMode(walk);
+      expect(m.isEngagedIn('walk')).toBe(true);
+    });
+
+    it('accepts a full templatePath string', () => {
+      const walk = buildMode('walk');
+      const m = makeStuff(() => new MobileObject());
+      m.setEngagedMode(walk);
+      expect(m.isEngagedIn('/lib/locomotion/walk')).toBe(true);
+    });
+
+    it('returns false when not engaged', () => {
+      const m = makeStuff(() => new MobileObject());
+      expect(m.isEngagedIn('walk')).toBe(false);
+    });
+  });
+
+  describe('not persistent', () => {
+    it('_engagedModePath is not in persistentFields', () => {
+      // MobileMixin extends ContainableMixin which has its own
+      // persistentFields; _engagedModePath should not appear on the
+      // composed list (runtime-only by design).
+      const cls = MobileObject as unknown as { persistentFields?: string[] };
+      const fields = cls.persistentFields ?? [];
+      expect(fields).not.toContain('_engagedModePath');
+    });
+  });
+});
+
+describe('Mobile.onSlotReleased witness', () => {
+  it('clears engagedMode when host composes the mode\'s conveyanceMixin', () => {
+    const ride = buildMode('ride');
+    const horse = makeStuff(() => new TestMount());
+    horse.setStaticSlots([{ name: 'mount:1', accepts: 'SlottableMixin' }]);
+    const rider = makeStuff(() => new SlottableMobile());
+    horse.occupy(rider, 'mount:1');
+    rider.setEngagedMode(ride);
+    horse.vacate('mount:1', rider);
+    expect(rider.getEngagedMode()).toBeNull();
+  });
+
+  it('does not clear when host does not compose the conveyanceMixin', () => {
+    const ride = buildMode('ride');
+    // A bare Slotted that's neither Mountable nor Drivable.
+    class BareSlotted extends SlottedMixin(Idea) {}
+    const chair = makeStuff(() => new BareSlotted());
+    chair.setStaticSlots([{ name: 'sit:1', accepts: 'SlottableMixin' }]);
+    const sitter = makeStuff(() => new SlottableMobile());
+    chair.occupy(sitter, 'sit:1');
+    sitter.setEngagedMode(ride);
+    chair.vacate('sit:1', sitter);
+    // 'ride' wants a MountableMixin host; chair is not Mountable, so
+    // engagement persists.
+    expect(sitter.getEngagedMode()).toBe(ride);
+  });
+
+  it('does not clear when mode is not passthrough', () => {
+    const walk = buildMode('walk');
+    const horse = makeStuff(() => new TestMount());
+    horse.setStaticSlots([{ name: 'mount:1', accepts: 'SlottableMixin' }]);
+    const rider = makeStuff(() => new SlottableMobile());
+    horse.occupy(rider, 'mount:1');
+    rider.setEngagedMode(walk);
+    horse.vacate('mount:1', rider);
+    expect(rider.getEngagedMode()).toBe(walk);
+  });
+
+  it('does not clear when engagedMode is null', () => {
+    const horse = makeStuff(() => new TestMount());
+    horse.setStaticSlots([{ name: 'mount:1', accepts: 'SlottableMixin' }]);
+    const rider = makeStuff(() => new SlottableMobile());
+    horse.occupy(rider, 'mount:1');
+    expect(rider.getEngagedMode()).toBeNull();
+    horse.vacate('mount:1', rider);
+    expect(rider.getEngagedMode()).toBeNull();
+  });
+});
+
+describe('Mobile.traverse mode-gate', () => {
+  it('throws when exit.canTraverse returns ok=false (mode rejected)', async () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const locA = makeStuff(() => new CartesianLocation());
+    const locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      allowedModes: ['climb'],
+    }));
+    const mover = makeStuff(() => new MobileObject());
+    ContainmentApi.move(mover, locA);
+    await expect(mover.traverse(exit, 'walk')).rejects.toThrow(/walk that way/);
+  });
+
+  it('admits walk through a default exit', async () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const locA = makeStuff(() => new CartesianLocation());
+    const locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    const exit = makeStuff(() => new Exit({
+      direction: 'north', source: locA, destination: locB,
+    }));
+    const mover = makeStuff(() => new MobileObject());
+    ContainmentApi.move(mover, locA);
+    await expect(mover.traverse(exit, 'walk')).resolves.toBeUndefined();
+    expect(mover.getContainer()).toBe(locB);
+  });
+});

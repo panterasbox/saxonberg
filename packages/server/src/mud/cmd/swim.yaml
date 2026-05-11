@@ -1,0 +1,11 @@
+verbs: [swim]
+controller: SwimController
+description: "Swim through a named exit (must be Swimmable-enabled)."
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    validators:
+      - /lib/command/validators/canReach

@@ -35,14 +35,39 @@ import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';
 
 /**
+ * Discriminator naming which gate failed during `canTraverse`. Backcompat
+ * additive — pre-locomotion callers reading only `reason` continue to
+ * work. New consumers (locomotion controllers, programmatic callers)
+ * branch on `gate` to compose verb-templated rejection prose.
+ */
+export type TraversalGate =
+  | 'blocked'
+  | 'door'
+  | 'exitMode'
+  | 'bodyPlan'
+  | 'posture'
+  | 'enablement'
+  | 'capability'
+  | 'noConveyance';
+
+/**
  * Result of `Exit.canTraverse()`.
  *
- * `reason` is a player-facing error string when `ok === false`. When `ok` is
- * true the reason is absent.
+ * `reason` is a player-facing error string when `ok === false`. When `ok`
+ * is true the reason is absent.
+ *
+ * `gate` / `mode` / `context` are additive: pre-locomotion callers that
+ * only read `reason` keep working; new consumers branch on `gate` to
+ * compose verb-templated rejection prose without re-parsing `reason`.
  */
 export interface TraversalGuard {
   ok: boolean;
   reason?: string;
+  gate?: TraversalGate;
+  /** Short mode name (e.g. `'walk'`) when the gate is mode-related. */
+  mode?: string;
+  /** Gate-specific context (e.g. `{ missing: 'ClimbableMixin' }`). */
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -65,6 +90,13 @@ export interface ExitOptions {
   oneWay?: boolean;
   messageIn?: string | null;
   messageOut?: string | null;
+  /**
+   * Whitelist of `LocomotionMode` short names this exit accepts (e.g.
+   * `['walk', 'climb']`). Default `[]` — interpreted as
+   * "walk-only" by `allowsMode`. See `allowsMode` / `canTraverse` for
+   * the lookup semantics.
+   */
+  allowedModes?: string[];
 }
 
 export class Exit extends Idea {
@@ -192,6 +224,46 @@ export class Exit extends Idea {
   public setMessageOut(value: string | null): void { this.messageOut = value; }
 
   /**
+   * Locomotion-mode whitelist (short names from
+   * `LocomotionMode.getName()`). Default `[]` is interpreted by
+   * `allowsMode` as "walk-only" — preserves backcompat for existing
+   * exits authored without a locomotion-aware whitelist. Authors
+   * declaring this set explicitly opt in to mode-gating; the actor's
+   * mode must appear here for `canTraverse(mover, mode)` to admit it.
+   */
+  protected allowedModes: string[] = [];
+
+  public getAllowedModes(): readonly string[] {
+    return this.allowedModes;
+  }
+  public setAllowedModes(value: string[]): void {
+    const seen = new Set<string>();
+    for (const v of value) {
+      if (typeof v !== 'string' || v.length === 0) {
+        throw new TypeError(
+          'Exit.setAllowedModes: entries must be non-empty strings'
+        );
+      }
+      if (seen.has(v)) {
+        throw new TypeError(`Exit.setAllowedModes: duplicate '${v}'`);
+      }
+      seen.add(v);
+    }
+    this.allowedModes = value;
+  }
+
+  /**
+   * True iff `modeName` is permitted by this exit's whitelist. Empty
+   * `allowedModes` is the legacy default — walk-only. Authors who want
+   * "this exit accepts anything" set `allowedModes` to the full set
+   * explicitly.
+   */
+  public allowsMode(modeName: string): boolean {
+    if (this.allowedModes.length === 0) return modeName === 'walk';
+    return this.allowedModes.includes(modeName);
+  }
+
+  /**
    * Counterpart Exit on the destination side, when this exit is part
    * of a bidirectional pair. `undefined` for one-way exits, vessel-
    * synthesized `'out'` exits, or pairs that haven't been wired (lazy-
@@ -225,6 +297,9 @@ export class Exit extends Idea {
     this.oneWay = opts.oneWay ?? false;
     this.messageIn = opts.messageIn ?? null;
     this.messageOut = opts.messageOut ?? null;
+    // Reuse the same validator the public setter does. The `?? []`
+    // default preserves backcompat for callers that don't pass it.
+    this.setAllowedModes(opts.allowedModes ?? []);
   }
 
   /**
@@ -280,17 +355,40 @@ export class Exit extends Idea {
   /**
    * Can `mover` traverse this exit right now?
    *
-   * Returns `{ ok: false, reason }` when blocked or the door is shut. Returns
-   * `{ ok: true }` otherwise. The mover argument is accepted for future hooks
-   * (stamina / permissions / etc.) but is unused today.
+   * Returns `{ ok: false, reason, gate }` on the first failing gate
+   * (blocked / closed door / mode rejection); `{ ok: true }` otherwise.
+   *
+   * `mode` is the short name of the actor's intended `LocomotionMode`
+   * (e.g. `'walk'`, `'climb'`). When supplied, this method consults
+   * `allowsMode(mode)`. When omitted (pre-locomotion callers, admin
+   * tools), the mode gate is skipped — backcompat-additive.
    */
-  public canTraverse(_mover: Stuff & Containable): TraversalGuard {
+  public canTraverse(
+    _mover: Stuff & Containable,
+    mode?: string,
+  ): TraversalGuard {
     if (this.blocked) {
-      return { ok: false, reason: 'The way is blocked.' };
+      return {
+        ok: false,
+        gate: 'blocked',
+        reason: 'The way is blocked.',
+      };
     }
     if (this.door && !this.door.getIsOpen()) {
       const doorName = DescribeApi.getDisplayName(this.door, 'door');
-      return { ok: false, reason: `The ${doorName} is closed.` };
+      return {
+        ok: false,
+        gate: 'door',
+        reason: `The ${doorName} is closed.`,
+      };
+    }
+    if (mode != null && !this.allowsMode(mode)) {
+      return {
+        ok: false,
+        gate: 'exitMode',
+        mode,
+        reason: `You can't ${mode} that way.`,
+      };
     }
     return { ok: true };
   }

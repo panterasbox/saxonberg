@@ -284,6 +284,13 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       if (!set || !set.has(candidate)) return null;
       set.delete(candidate);
       if (set.size === 0) this.slots.delete(slot);
+      // Synchronous slot-release witness — declared as an optional
+      // method on the Slottable interface. v1 consumer: Mobile clears
+      // engagedMode for passthrough modes when the vacated host is
+      // its conveyance (rider dismounting, driver leaving a cart).
+      if (candidate.onSlotReleased) {
+        candidate.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
       return candidate;
     }
 
@@ -304,6 +311,10 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       const sole = set.values().next().value as Stuff & Slottable;
       set.delete(sole);
       this.slots.delete(slot);
+      // Same witness fires from the single-occupant convenience path.
+      if (sole.onSlotReleased) {
+        sole.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
       return sole;
     }
 

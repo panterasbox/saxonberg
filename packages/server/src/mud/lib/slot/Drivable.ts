@@ -23,6 +23,8 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
+import type { LocomotionMode } from '../locomotion/LocomotionMode';
+import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { Property } from '../stuff/Propertied';
 
@@ -41,6 +43,14 @@ export interface Drivable {
   getDriver(): (Stuff & Slottable) | null;
   getControllerSlot(): string;
   setControllerSlot(value: string): void;
+  /**
+   * Vehicular `LocomotionMode` this conveyance engages when driven
+   * (e.g., `wheeled` for a cart, `sailed` for a rowboat). `null` →
+   * resolveHostMode falls back to `walk`. Stored as templatePath
+   * (ref-shapes Pattern A).
+   */
+  getVehicularMode(): LocomotionMode | null;
+  setVehicularMode(value: LocomotionMode | null): void;
 }
 
 export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
@@ -48,9 +58,32 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
-    static persistentFields = ['controllerSlot'];
+    static persistentFields = ['controllerSlot', '_vehicularModePath'];
 
-    public controllerSlot: string = 'mount:1';
+    /**
+     * Default `'driver:1'` (not `'mount:1'`) — distinct from
+     * `Mountable.mountSlot`'s default so a Stuff composing both
+     * Mountable and Drivable doesn't collide rider and driver on the
+     * same slot name. Authors can override to any `<role>:N` form.
+     */
+    public controllerSlot: string = 'driver:1';
+
+    /**
+     * Persistent path to the vehicular `LocomotionMode` singleton.
+     * `null` means "no declared vehicular mode" — Drivable still
+     * functions; `resolveHostMode` falls back to walk.
+     */
+    protected _vehicularModePath: string | null = null;
+
+    public getVehicularMode(): LocomotionMode | null {
+      if (this._vehicularModePath === null) return null;
+      return LocomotionApi.modeOf(this._vehicularModePath);
+    }
+
+    public setVehicularMode(value: LocomotionMode | null): void {
+      this._vehicularModePath =
+        value === null ? null : (value.getTemplatePath() ?? null);
+    }
 
     public getControllerSlot(): string {
       return this.controllerSlot;

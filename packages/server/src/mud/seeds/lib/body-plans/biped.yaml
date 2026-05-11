@@ -19,6 +19,8 @@ data:
     - { name: 'hand:right',   accepts: WieldableMixin }
   locomotionModes:
     - walk
+    - climb
+    - swim
   sensoryPorts:
     - { modality: sight, count: 2, position: frontal }
     - { modality: hearing, count: 2, position: lateral }

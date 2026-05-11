@@ -267,3 +267,162 @@ describe('Exit lazy destination resolution', () => {
     expect(pathExit.getDestinationTemplatePath()).toBe('/zone/a');
   });
 });
+
+describe('Exit.allowedModes', () => {
+  let zone: CartesianZone;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
+  let mover: TestMover;
+
+  beforeEach(() => {
+    zone = makeStuff(() => new CartesianZone());
+    locA = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    mover = makeStuff(() => new TestMover());
+    ContainmentApi.move(mover, locA);
+  });
+
+  describe('default behavior', () => {
+    it('allowsMode("walk") returns true on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('walk')).toBe(true);
+    });
+
+    it('allowsMode("climb") returns false on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('climb')).toBe(false);
+    });
+
+    it('allowsMode("fly") returns false on a fresh Exit', () => {
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('fly')).toBe(false);
+    });
+  });
+
+  describe('whitelist behavior', () => {
+    it('allowsMode returns true for whitelist members', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'up', source: locA, destination: locB,
+        allowedModes: ['climb', 'fly'],
+      }));
+      expect(exit.allowsMode('climb')).toBe(true);
+      expect(exit.allowsMode('fly')).toBe(true);
+    });
+
+    it('allowsMode returns false for non-whitelist modes', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'up', source: locA, destination: locB,
+        allowedModes: ['climb'],
+      }));
+      expect(exit.allowsMode('walk')).toBe(false);
+      expect(exit.allowsMode('fly')).toBe(false);
+    });
+
+    it('an empty whitelist falls back to walk-only behavior', () => {
+      const exit = makeStuff(() => new Exit({
+        direction: 'n', source: locA, destination: locB,
+        allowedModes: [],
+      }));
+      expect(exit.allowsMode('walk')).toBe(true);
+      expect(exit.allowsMode('climb')).toBe(false);
+    });
+  });
+
+  describe('setAllowedModes validation', () => {
+    let exit: Exit;
+    beforeEach(() => {
+      exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    });
+
+    it('accepts unique non-empty strings', () => {
+      exit.setAllowedModes(['walk', 'climb']);
+      expect(exit.getAllowedModes()).toEqual(['walk', 'climb']);
+    });
+
+    it('throws on duplicates', () => {
+      expect(() => exit.setAllowedModes(['walk', 'walk'])).toThrow(/duplicate/);
+    });
+
+    it('throws on empty-string entries', () => {
+      expect(() => exit.setAllowedModes([''])).toThrow(/non-empty/);
+    });
+  });
+});
+
+describe('Exit.canTraverse with mode', () => {
+  let zone: CartesianZone;
+  let locA: CartesianLocation;
+  let locB: CartesianLocation;
+  let mover: TestMover;
+
+  beforeEach(() => {
+    zone = makeStuff(() => new CartesianZone());
+    locA = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new CartesianLocation());
+    zone.addLocation(locA, 0, 0, 0);
+    zone.addLocation(locB, 0, 1, 0);
+    mover = makeStuff(() => new TestMover());
+    ContainmentApi.move(mover, locA);
+  });
+
+  it('returns ok when mode is in allowedModes', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      allowedModes: ['climb'],
+    }));
+    expect(exit.canTraverse(mover, 'climb')).toEqual({ ok: true });
+  });
+
+  it('returns gate=exitMode when mode is not in allowedModes', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      allowedModes: ['climb'],
+    }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('exitMode');
+    expect(result.mode).toBe('walk');
+    expect(result.reason).toMatch(/walk/);
+  });
+
+  it('returns ok for mode="walk" when allowedModes is empty', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    expect(exit.canTraverse(mover, 'walk')).toEqual({ ok: true });
+  });
+
+  it('returns gate=exitMode for mode="climb" when allowedModes is empty', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    const result = exit.canTraverse(mover, 'climb');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('exitMode');
+  });
+
+  it('returns gate=blocked when blocked, even with allowedModes', () => {
+    const exit = makeStuff(() => new Exit({
+      direction: 'up', source: locA, destination: locB,
+      blocked: true, allowedModes: ['climb'],
+    }));
+    const result = exit.canTraverse(mover, 'climb');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('blocked');
+  });
+
+  it('returns gate=door when door is closed', () => {
+    const door = makeStuff(() => new Door());
+    door.setShortDescription('iron gate');
+    const exit = makeStuff(() => new Exit({
+      direction: 'n', source: locA, destination: locB, door,
+    }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('door');
+  });
+
+  it('omits gate when ok=true', () => {
+    const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+    const result = exit.canTraverse(mover, 'walk');
+    expect(result).toEqual({ ok: true });
+  });
+});

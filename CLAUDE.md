@@ -21,6 +21,10 @@ behavior. Read the relevant doc before editing in its area.
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
   with the correct alternative for each (lookup-table style)
+- [docs/ref-shapes.md](./docs/ref-shapes.md) — three reference shapes
+  for fields pointing at other Stuff (string-by-path for singletons /
+  live Stuff ref for instances / lazy materialization), method-surface
+  conventions, exemplars, antipatterns
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar

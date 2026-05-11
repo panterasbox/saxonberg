@@ -1,0 +1,17 @@
+# Wheeled — vehicular mode authored on cart/wagon Drivables. Loud,
+# wheels-on-ground; reads as walk-shaped from the body-plan side (no
+# requires).
+class: /lib/locomotion/LocomotionMode
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: wheeled
+  speed: 2.0
+  noiseLevel: loud
+  bodyProfile: upright
+  groundContact: full
+  requiresBodyPlanMode: []
+  requiresPosture: []
+  costMultiplier: 0.5
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
