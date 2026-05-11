@@ -15,14 +15,13 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Slottable } from './Slottable';
-import type { Slotted, SlotFittable } from './Slotted';
+import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
 
-export interface Wieldable extends Slottable, SlotFittable {
+export interface Wieldable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];
   setSlotClaim(bodyPlanPath: string, slots: string[]): void;
   getEligibleBodyPlans(): readonly string[];
-  fitsSlot(host: Stuff & Slotted, slot: string): boolean;
 
   getSlotClaims(): Readonly<Record<string, readonly string[]>>;
   setSlotClaims(value: Record<string, string[]>): void;

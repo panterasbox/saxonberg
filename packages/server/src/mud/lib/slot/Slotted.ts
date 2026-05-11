@@ -60,17 +60,6 @@ export interface SlotSpec {
 }
 
 /**
- * Optional candidate-side per-slot acceptance test. When present,
- * `Slotted.canOccupy` calls it after the mixin check. Wearable /
- * Wieldable use this to consult their per-body-plan claims; bare
- * Slottables don't implement it and are always accepted by the
- * mixin check alone.
- */
-export interface SlotFittable {
-  fitsSlot(host: Stuff & Slotted, slot: string): boolean;
-}
-
-/**
  * Public shape provided by SlottedMixin.
  */
 export interface Slotted {
@@ -249,12 +238,9 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {
         return false;
       }
-      // Part 2 — candidate's own per-slot test, if any.
-      const c = candidate as Slottable & Partial<SlotFittable>;
-      if (typeof c.fitsSlot === 'function') {
-        return c.fitsSlot(this as unknown as Stuff & Slotted, slot);
-      }
-      return true;
+      // Part 2 — candidate's per-slot test. SlottableMixin provides
+      // a default `() => true`; Wearable / Wieldable override.
+      return candidate.fitsSlot(this as unknown as Stuff & Slotted, slot);
     }
 
     public occupy(candidate: Stuff & Slottable, slot: string): void {

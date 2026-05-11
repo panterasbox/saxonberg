@@ -18,6 +18,17 @@ import { SlotApi } from '../../api/slot';
 
 /**
  * Public shape provided by SlottableMixin.
+ *
+ * `fitsSlot` is the candidate-side per-slot acceptance test consulted
+ * by `Slotted.canOccupy` after the slot-side mixin check passes.
+ * Bare Slottables (avatars sitting in chairs, riders mounting horses)
+ * default to "always fits" — `WearableMixin` and `WieldableMixin`
+ * override it to consult their per-body-plan claim records.
+ *
+ * Hoisted here (rather than living on a separate `SlotFittable`
+ * optional shape) so `canOccupy` is a virtual call against a known
+ * method, not a runtime "does this Stuff happen to have a fitsSlot
+ * field" duck-type check.
  */
 export interface Slottable {
   /**
@@ -28,6 +39,13 @@ export interface Slottable {
    * same wearer is one host; cross-host is the violation).
    */
   getOccupiedHost(): (Stuff & Slotted) | null;
+
+  /**
+   * Per-slot acceptance test. Default impl always returns true.
+   * `WearableMixin` / `WieldableMixin` override to walk their
+   * per-body-plan slot claims.
+   */
+  fitsSlot(host: Stuff & Slotted, slot: string): boolean;
 }
 
 export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -38,6 +56,12 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getOccupiedHost(): (Stuff & Slotted) | null {
       return SlotApi.findOccupiedHost(this as unknown as Stuff & Slottable);
+    }
+
+    public fitsSlot(_host: Stuff & Slotted, _slot: string): boolean {
+      void _host;
+      void _slot;
+      return true;
     }
 
     onDestruct(): void {

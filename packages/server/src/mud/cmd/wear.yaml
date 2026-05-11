@@ -3,6 +3,7 @@ controller: WearController
 description: "Put on a wearable item from your inventory"
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresSlotted
 args:
   - name: target
     type: object

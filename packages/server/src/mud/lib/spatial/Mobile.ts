@@ -44,8 +44,6 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
-import { SlotApi } from '../../api/slot';
-import type { Slottable } from '../slot/Slottable';
 import type { CommandGiver } from '../command/CommandGiver';
 import {
   resolveSetting,
@@ -265,30 +263,44 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
 
       // Conveyance ripple: anything occupying a slot on the mover
       // (rider in mount:1, saddle on horse with rider, etc.) moves
-      // with it. SlotApi.walkOccupants visits each unique occupant
-      // once and recurses into nested Slotted occupants automatically,
-      // so the saddle-on-horse-with-rider case ripples both. Cycle
-      // guard: walkOccupants tracks visited hosts internally.
+      // with the host.
+      //
+      // Mobile occupants `traverse(exit, mode)` so they announce their
+      // own arrival ("Joe arrives from the west") and run their normal
+      // traversal hooks — and recursively ripple THEIR own slot
+      // occupants. The ride/walk message distinction lives in the
+      // future locomotion-plurality slate; for v1 the rider produces
+      // the same exit message as a normal traverser. A veto on the
+      // rider's canTraverse leaves them behind silently rather than
+      // tanking the host's traverse.
+      //
+      // Non-Mobile occupants (a saddlebag fixture, an immobile crash
+      // test dummy on a bicycle) fall back to ContainmentApi.move,
+      // which carries them silently — the container model.
+      //
+      // Walk only the immediate level of the mover's slots; nested
+      // ripple lives inside the occupant's own traverse() call.
       if (MixinApi.isSlotted(mover)) {
-        const RIPPLE_DEPTH_LIMIT = 16;
-        let visits = 0;
-        SlotApi.walkOccupants(mover, (_host, _slot, occupant) => {
-          if (++visits > RIPPLE_DEPTH_LIMIT) {
-            throw new Error(
-              `conveyance ripple exceeded depth ${RIPPLE_DEPTH_LIMIT} ` +
-              `starting from ${mover.stuffId}`
-            );
+        const seen = new Set<Stuff>();
+        for (const [, occupants] of mover.getAllOccupants().entries()) {
+          for (const occupant of occupants) {
+            if (seen.has(occupant)) continue;
+            seen.add(occupant);
+            if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
+              try {
+                await occupant.traverse(exit, mode);
+              } catch (err) {
+                console.warn(
+                  `conveyance ripple: rider ${occupant.stuffId} ` +
+                  `failed to traverse with host ${mover.stuffId}: ${(err as Error).message}`
+                );
+              }
+            } else if (MixinApi.isContainable(occupant)) {
+              ContainmentApi.move(occupant, destination);
+            }
           }
-          if (MixinApi.isContainable(occupant)) {
-            ContainmentApi.move(
-              occupant as unknown as Stuff & Containable,
-              destination
-            );
-          }
-        });
+        }
       }
-      void ({} as Slottable);
-
       // Post-move traversal notifications.
       if (MixinApi.isExitable(source)) {
         callTraverseHook(source, 'onExited', [mover, exit]);

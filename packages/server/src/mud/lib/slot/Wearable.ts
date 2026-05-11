@@ -19,14 +19,13 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Slottable } from './Slottable';
-import type { Slotted, SlotFittable } from './Slotted';
+import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
 
-export interface Wearable extends Slottable, SlotFittable {
+export interface Wearable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];
   setSlotClaim(bodyPlanPath: string, slots: string[]): void;
   getEligibleBodyPlans(): readonly string[];
-  fitsSlot(host: Stuff & Slotted, slot: string): boolean;
 
   // Persistence-shape accessor pair (default Hydrator).
   getSlotClaims(): Readonly<Record<string, readonly string[]>>;

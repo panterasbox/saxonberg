@@ -1,5 +1,9 @@
 /**
  * RemoveController — vacate the slots a Wearable currently claims.
+ *
+ * Validation surface (from `cmd/remove.yaml`):
+ *   - requiresAnimate, requiresSlotted (verb-level)
+ *   - mustBeInInventory, mustBeWearable (target-level)
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -9,12 +13,10 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
-import { SlotApi } from '../../api/slot';
 import { SpeciesApi } from '../../api/species';
 
 interface RemoveModel extends CommandModel {
@@ -31,16 +33,17 @@ export class RemoveController extends CommandController<RemoveModel> {
       };
     }
     if (!MixinApi.isWearable(target)) {
-      return {
-        success: false,
-        summary: `${DescribeApi.getDisplayName(target, 'that')} isn't a wearable`,
-      };
+      throw new Error(
+        `RemoveController: mustBeWearable validator should have caught ${target.stuffId}`
+      );
     }
     const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
-      return { success: false, summary: `you have no body slots` };
+      throw new Error(
+        `RemoveController: requiresSlotted validator should have caught ${giver.stuffId}`
+      );
     }
-    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver as Stuff);
+    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
       return { success: false, summary: `you have no body plan` };
     }

@@ -193,7 +193,7 @@ export class SlotApi {
           visitedOccupants.add(occupant);
           visit(host, slotName, occupant);
           if (MixinApi.isSlotted(occupant)) {
-            walk(occupant as unknown as Stuff & Slotted);
+            walk(occupant);
           }
         }
       }

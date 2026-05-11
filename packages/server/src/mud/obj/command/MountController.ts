@@ -6,6 +6,10 @@
  * SlotApi.resolveSlot pathway when the target is a Stuff with a
  * detail-decorated slot. The MQL resolver hands us the host (e.g.,
  * the horse); we resolve the matching slot here.
+ *
+ * Validation surface (from `cmd/mount.yaml`):
+ *   - requiresAnimate, requiresPosed, requiresSlottable (verb-level)
+ *   - mustBeVisible, mustBeMountable (target-level)
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -15,8 +19,6 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Slottable } from '../../lib/slot/Slottable';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
@@ -39,15 +41,20 @@ export class MountController extends CommandController<MountModel> {
       };
     }
     if (!MixinApi.isMountable(target)) {
-      return {
-        success: false,
-        summary:
-          `you can't mount ${DescribeApi.getDisplayName(target, 'that')}`,
-      };
+      throw new Error(
+        `MountController: mustBeMountable validator should have caught ${target.stuffId}`
+      );
     }
     const giver = context.commandGiver;
-    if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {
-      return { success: false, summary: `you can't mount` };
+    if (!MixinApi.isPosed(giver)) {
+      throw new Error(
+        `MountController: requiresPosed validator should have caught ${giver.stuffId}`
+      );
+    }
+    if (!MixinApi.isSlottable(giver)) {
+      throw new Error(
+        `MountController: requiresSlottable validator should have caught ${giver.stuffId}`
+      );
     }
 
     const mountSlot = target.getMountSlot();
@@ -58,27 +65,22 @@ export class MountController extends CommandController<MountModel> {
           `${DescribeApi.getDisplayName(target, 'that')} is already mounted`,
       };
     }
-    if (!target.canOccupy(giver as Stuff & Slottable, mountSlot)) {
+    if (!target.canOccupy(giver, mountSlot)) {
       return { success: false, summary: `you can't fit on it` };
     }
 
-    // Find any current posture-bearing slot to vacate atomically.
-    const from = PostureApi.findCurrentPostureBearingSlot(
-      giver as Stuff & Slottable
-    );
+    const from = PostureApi.findCurrentPostureBearingSlot(giver);
 
     try {
       SlotApi.transferOccupancy(
-        giver as Stuff & Slottable,
+        giver,
         from,
         { host: target, slot: mountSlot }
       );
     } catch (err) {
       return { success: false, summary: (err as Error).message };
     }
-    (giver as unknown as { setPosture(p: string): void }).setPosture(
-      Postures.Mounted
-    );
+    giver.setPosture(Postures.Mounted);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.narration.action)
       .toSelf(Mml.compose`You mount ${Mml.item(target)}.`)

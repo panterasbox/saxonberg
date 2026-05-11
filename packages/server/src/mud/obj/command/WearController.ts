@@ -2,6 +2,13 @@
  * WearController — claim a Wearable's body-plan slots on the actor.
  *
  * Multi-slot claims are atomic via `SlotApi.occupyAll`.
+ *
+ * Validation surface (from `cmd/wear.yaml`):
+ *   - requiresAnimate, requiresSlotted (verb-level)
+ *   - mustBeInInventory, mustBeWearable (target-level)
+ *
+ * The TypeScript narrows below throw if reached — meaning a validator
+ * failed to do its job. They're not user-facing failure paths.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -11,7 +18,6 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
@@ -33,24 +39,19 @@ export class WearController extends CommandController<WearModel> {
       };
     }
     if (!MixinApi.isWearable(target)) {
-      return {
-        success: false,
-        summary: `${DescribeApi.getDisplayName(target, 'that')} can't be worn`,
-      };
+      throw new Error(
+        `WearController: mustBeWearable validator should have caught ${target.stuffId}`
+      );
     }
     const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
-      return {
-        success: false,
-        summary: `you have no body slots`,
-      };
+      throw new Error(
+        `WearController: requiresSlotted validator should have caught ${giver.stuffId}`
+      );
     }
-    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver as Stuff);
+    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
-      return {
-        success: false,
-        summary: `you have no body plan`,
-      };
+      return { success: false, summary: `you have no body plan` };
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     if (slots.length === 0) {
@@ -60,22 +61,15 @@ export class WearController extends CommandController<WearModel> {
           `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your body`,
       };
     }
-    // Pre-flight check: every slot must be free.
     for (const slot of slots) {
       if (giver.isSlotFull(slot)) {
-        return {
-          success: false,
-          summary: `your ${slot} is occupied`,
-        };
+        return { success: false, summary: `your ${slot} is occupied` };
       }
     }
     try {
       SlotApi.occupyAll(giver, target, [...slots]);
     } catch (err) {
-      return {
-        success: false,
-        summary: (err as Error).message,
-      };
+      return { success: false, summary: (err as Error).message };
     }
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)

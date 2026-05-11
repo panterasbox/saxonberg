@@ -101,7 +101,7 @@ export class SpeciesApi {
     if (!MixinApi.isOrganism(host)) return null;
     const species = (host as Stuff & Organism).getSpecies();
     if (!species) return null;
-    return species._bodyPlanPath ?? null;
+    return species.getBodyPlanPath();
   }
 
   /**

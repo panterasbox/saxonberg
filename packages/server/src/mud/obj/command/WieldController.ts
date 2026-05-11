@@ -1,5 +1,9 @@
 /**
  * WieldController — claim a Wieldable's body-plan held slots on the actor.
+ *
+ * Validation surface (from `cmd/wield.yaml`):
+ *   - requiresAnimate, requiresSlotted (verb-level)
+ *   - mustBeInInventory, mustBeWieldable (target-level)
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -9,7 +13,6 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { MixinApi } from '../../api/mixin';
@@ -31,16 +34,17 @@ export class WieldController extends CommandController<WieldModel> {
       };
     }
     if (!MixinApi.isWieldable(target)) {
-      return {
-        success: false,
-        summary: `${DescribeApi.getDisplayName(target, 'that')} can't be wielded`,
-      };
+      throw new Error(
+        `WieldController: mustBeWieldable validator should have caught ${target.stuffId}`
+      );
     }
     const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
-      return { success: false, summary: `you have no body slots` };
+      throw new Error(
+        `WieldController: requiresSlotted validator should have caught ${giver.stuffId}`
+      );
     }
-    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver as Stuff);
+    const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
       return { success: false, summary: `you have no body plan` };
     }

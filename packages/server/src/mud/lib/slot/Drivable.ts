@@ -24,6 +24,7 @@ import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { MixinApi } from '../../api/mixin';
+import { Property } from '../stuff/Propertied';
 
 /**
  * Internal SlotRef — naming the (host, slot-name) pair the controller
@@ -65,30 +66,31 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * overrides this to point at a driver-role seat in the host's
      * contents.
      */
-    protected resolveControllerSlot(this: Stuff & Slotted): SlotRef {
+    protected resolveControllerSlot(): SlotRef {
       return {
-        host: this,
-        name: (this as unknown as { controllerSlot: string }).controllerSlot,
+        host: this as unknown as Stuff & Slotted,
+        name: this.controllerSlot,
       };
     }
 
-    public isDriven(this: Stuff & Slotted & Drivable): boolean {
-      const ref = (this as unknown as {
-        resolveControllerSlot(): SlotRef;
-      }).resolveControllerSlot();
+    public isDriven(): boolean {
+      const ref = this.resolveControllerSlot();
       return ref.host.isSlotOccupied(ref.name);
     }
 
-    public getDriver(
-      this: Stuff & Slotted & Drivable
-    ): (Stuff & Slottable) | null {
-      const ref = (this as unknown as {
-        resolveControllerSlot(): SlotRef;
-      }).resolveControllerSlot();
+    public getDriver(): (Stuff & Slottable) | null {
+      const ref = this.resolveControllerSlot();
       return ref.host.getOccupant(ref.name);
     }
   };
 }
+
+/**
+ * The `role` property a `SeatedDrivableMixin` host expects on each
+ * seat in its contents. The seat whose role is `'driver'` becomes the
+ * controller slot's host.
+ */
+const ROLE_PROP = Property.of<string>('role');
 
 /**
  * Sibling override for cross-Stuff Drivables (cars, sedans, carriages
@@ -103,17 +105,10 @@ export function SeatedDrivableMixin<
   return class SeatedDrivableMixin extends Base {
     static _mixinName = 'SeatedDrivableMixin';
 
-    protected resolveControllerSlot(
-      this: Stuff & Drivable & Container
-    ): SlotRef {
+    protected resolveControllerSlot(this: Stuff & Drivable & Container): SlotRef {
       const driverSeat = this.getContents().find(s => {
         if (!MixinApi.isPropertied(s)) return false;
-        // Use the Property convention by string key — avoids importing
-        // the Property class here.
-        const role = (s as unknown as {
-          getProp?(p: { name: string }): unknown;
-        }).getProp?.({ name: 'role' });
-        return role === 'driver';
+        return s.getProp(ROLE_PROP) === 'driver';
       });
       if (!driverSeat) {
         throw new Error(
@@ -125,7 +120,7 @@ export function SeatedDrivableMixin<
           `SeatedDrivable ${this.stuffId}: driver seat is not Slotted`
         );
       }
-      return { host: driverSeat as Stuff & Slotted, name: 'sit:1' };
+      return { host: driverSeat, name: 'sit:1' };
     }
   };
 }

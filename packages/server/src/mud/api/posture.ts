@@ -69,19 +69,23 @@ export class PostureApi {
       };
     }
     if (!MixinApi.isPostured(target)) {
-      return {
-        success: false,
-        summary:
-          `you can't ${opts.verb} on ` +
-          `${DescribeApi.getDisplayName(target, 'that')}`,
-      };
+      throw new Error(
+        `PostureApi.transferPosture: mustBePostured validator should ` +
+        `have caught ${target.stuffId}`
+      );
     }
     const giver = opts.context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
-      return { success: false, summary: `you can't change posture` };
+      throw new Error(
+        `PostureApi.transferPosture: requiresPosed validator should ` +
+        `have caught ${giver.stuffId}`
+      );
     }
     if (!MixinApi.isSlottable(giver)) {
-      return { success: false, summary: `you can't fit in a slot` };
+      throw new Error(
+        `PostureApi.transferPosture: requiresSlottable validator should ` +
+        `have caught ${giver.stuffId}`
+      );
     }
 
     // Find a slot on the target accepting this posture.
@@ -89,7 +93,7 @@ export class PostureApi {
     let chosen: string | null = null;
     for (const slot of candidates) {
       if (target.isSlotFull(slot)) continue;
-      if (!target.canOccupy(giver as Stuff & Slottable, slot)) continue;
+      if (!target.canOccupy(giver, slot)) continue;
       chosen = slot;
       break;
     }
@@ -109,13 +113,11 @@ export class PostureApi {
       };
     }
 
-    const from = PostureApi.findCurrentPostureBearingSlot(
-      giver as Stuff & Slottable
-    );
+    const from = PostureApi.findCurrentPostureBearingSlot(giver);
 
     try {
       SlotApi.transferOccupancy(
-        giver as Stuff & Slottable,
+        giver,
         from,
         { host: target, slot: chosen }
       );

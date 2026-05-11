@@ -4,6 +4,10 @@
  * With an argument (`stand <X>`), occupies a slot on X accepting the
  * Stand posture (e.g., standing on a chair or table) via
  * `PostureApi.transferPosture`.
+ *
+ * Validation surface (from `cmd/stand.yaml`):
+ *   - requiresAnimate, requiresPosed (verb-level)
+ *   - mustBeVisible, mustBePostured (target-level — only with arg)
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -38,7 +42,9 @@ export class StandController extends CommandController<StandModel> {
     // Slot-less form: just vacate any current posture-bearing slot.
     const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
-      return { success: false, summary: `you can't change posture` };
+      throw new Error(
+        `StandController: requiresPosed validator should have caught ${giver.stuffId}`
+      );
     }
     PostureApi.vacatePostureBearingSlots(giver);
     giver.setPosture(Postures.Stand);
