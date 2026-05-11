@@ -70,21 +70,18 @@ export class PostureApi {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `PostureApi.transferPosture: mustBePostured validator should ` +
-        `have caught ${target.stuffId}`
+        `PostureApi.transferPosture: target ${target.stuffId} is not Postured`
       );
     }
     const giver = opts.context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
       throw new Error(
-        `PostureApi.transferPosture: requiresPosed validator should ` +
-        `have caught ${giver.stuffId}`
+        `PostureApi.transferPosture: commandGiver ${giver.stuffId} is not Posed`
       );
     }
     if (!MixinApi.isSlottable(giver)) {
       throw new Error(
-        `PostureApi.transferPosture: requiresSlottable validator should ` +
-        `have caught ${giver.stuffId}`
+        `PostureApi.transferPosture: commandGiver ${giver.stuffId} is not Slottable`
       );
     }
 

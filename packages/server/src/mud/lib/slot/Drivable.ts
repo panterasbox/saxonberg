@@ -65,6 +65,13 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * `{ host: this, name: this.controllerSlot }`. SeatedDrivableMixin
      * overrides this to point at a driver-role seat in the host's
      * contents.
+     *
+     * Cast: the mixin's `TBase extends MixinConstructor<Stuff & Slotted>`
+     * constraint guarantees `this` IS `Stuff & Slotted`, but TypeScript
+     * doesn't propagate that into the instance method's `this` type.
+     * The cast bridges that gap. Removing it via `this:` annotations
+     * cascades to every caller method and to a module-internal helper
+     * type — net more ceremony than the single cast.
      */
     protected resolveControllerSlot(): SlotRef {
       return {
