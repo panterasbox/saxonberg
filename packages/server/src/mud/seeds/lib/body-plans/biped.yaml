@@ -6,18 +6,17 @@ class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: biped
-  wornSlots:
-    - head
-    - torso
-    - legs
-    - feet
-    - hands
-    - finger:left
-    - finger:right
-    - neck
-  heldSlots:
-    - hand:left
-    - hand:right
+  slots:
+    - { name: head,           accepts: WearableMixin }
+    - { name: torso,          accepts: WearableMixin }
+    - { name: legs,           accepts: WearableMixin }
+    - { name: feet,           accepts: WearableMixin }
+    - { name: hands,          accepts: WearableMixin }
+    - { name: 'finger:left',  accepts: WearableMixin }
+    - { name: 'finger:right', accepts: WearableMixin }
+    - { name: neck,           accepts: WearableMixin }
+    - { name: 'hand:left',    accepts: WieldableMixin }
+    - { name: 'hand:right',   accepts: WieldableMixin }
   locomotionModes:
     - walk
   sensoryPorts:

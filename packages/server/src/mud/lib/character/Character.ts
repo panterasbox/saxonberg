@@ -39,6 +39,7 @@ import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { OrganismMixin } from '../species/Organism';
+import { PosedMixin } from './Posed';
 
 // Compose mixins:
 //   CommandGiver + Mobile + Container + Containable + Visible +
@@ -69,7 +70,7 @@ const CharacterBase = CommandGiverMixin(
             PerceptionMixin(
               PerceiverMixin(
                 SensorMixin(
-                  GenderedMixin(OrganismMixin(NamedMixin(Agent)))
+                  GenderedMixin(PosedMixin(OrganismMixin(NamedMixin(Agent))))
                 )
               )
             )

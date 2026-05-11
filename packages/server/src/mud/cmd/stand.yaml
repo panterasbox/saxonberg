@@ -1,0 +1,12 @@
+verbs: [stand]
+controller: StandController
+description: "Stand up. With no argument, vacate any current posture-bearing slot."
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    validators:
+      - /lib/command/validators/mustBeVisible

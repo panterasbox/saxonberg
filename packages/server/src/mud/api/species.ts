@@ -89,6 +89,22 @@ export class SpeciesApi {
   }
 
   /**
+   * Resolve the body-plan template path for a Stuff. Walks
+   * `host → OrganismMixin.getSpecies() → Species._bodyPlanPath`.
+   * Returns null when the host isn't an Organism, has no species,
+   * or the species has no body plan reference.
+   *
+   * Used by `Wearable.fitsSlot` / `Wieldable.fitsSlot` to look up the
+   * per-body-plan claim on the candidate.
+   */
+  public static tryGetBodyPlanPath(host: Stuff): string | null {
+    if (!MixinApi.isOrganism(host)) return null;
+    const species = (host as Stuff & Organism).getSpecies();
+    if (!species) return null;
+    return species._bodyPlanPath ?? null;
+  }
+
+  /**
    * Animate iff the Organism's kingdom + lifecycle state combine to
    * "currently capable of acting in the world." Slate's table:
    *

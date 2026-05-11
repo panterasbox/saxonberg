@@ -1,0 +1,13 @@
+verbs: [wield]
+controller: WieldController
+description: "Wield a weapon or held item from your inventory"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "inventory"
+    validators:
+      - /lib/command/validators/mustBeInInventory
+      - /lib/command/validators/mustBeWieldable

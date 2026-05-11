@@ -44,6 +44,8 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
+import { SlotApi } from '../../api/slot';
+import type { Slottable } from '../slot/Slottable';
 import type { CommandGiver } from '../command/CommandGiver';
 import {
   resolveSetting,
@@ -260,6 +262,32 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       this.announceDeparture(source, exit);
       ContainmentApi.move(mover, destination);
       this.announceArrival(destination, exit);
+
+      // Conveyance ripple: anything occupying a slot on the mover
+      // (rider in mount:1, saddle on horse with rider, etc.) moves
+      // with it. SlotApi.walkOccupants visits each unique occupant
+      // once and recurses into nested Slotted occupants automatically,
+      // so the saddle-on-horse-with-rider case ripples both. Cycle
+      // guard: walkOccupants tracks visited hosts internally.
+      if (MixinApi.isSlotted(mover)) {
+        const RIPPLE_DEPTH_LIMIT = 16;
+        let visits = 0;
+        SlotApi.walkOccupants(mover, (_host, _slot, occupant) => {
+          if (++visits > RIPPLE_DEPTH_LIMIT) {
+            throw new Error(
+              `conveyance ripple exceeded depth ${RIPPLE_DEPTH_LIMIT} ` +
+              `starting from ${mover.stuffId}`
+            );
+          }
+          if (MixinApi.isContainable(occupant)) {
+            ContainmentApi.move(
+              occupant as unknown as Stuff & Containable,
+              destination
+            );
+          }
+        });
+      }
+      void ({} as Slottable);
 
       // Post-move traversal notifications.
       if (MixinApi.isExitable(source)) {

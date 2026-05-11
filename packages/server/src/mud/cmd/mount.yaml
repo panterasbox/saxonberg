@@ -1,0 +1,12 @@
+verbs: [mount]
+controller: MountController
+description: "Mount a rideable creature or vehicle"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    validators:
+      - /lib/command/validators/mustBeVisible

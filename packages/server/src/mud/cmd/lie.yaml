@@ -1,0 +1,13 @@
+verbs: [lie]
+controller: LieController
+description: "Lie down on something. With no argument, lie on the ground."
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    default: "ground"
+    scope: ["$focus", "reachable"]
+    validators:
+      - /lib/command/validators/mustBeVisible

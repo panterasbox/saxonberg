@@ -25,6 +25,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Adornable } from './Adornable';
+import { SlottableMixin } from '../slot/Slottable';
 
 /** Public shape added by AdornmentMixin. */
 export interface Adornment {
@@ -32,8 +33,10 @@ export interface Adornment {
   setAdornedTo(host: (Stuff & Adornable) | null): void;
 }
 
-export function AdornmentMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class AdornmentMixin extends Base {
+export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
+  Base: TBase
+) {
+  return class AdornmentMixin extends SlottableMixin(Base) {
     static _mixinName = 'AdornmentMixin';
 
     /**

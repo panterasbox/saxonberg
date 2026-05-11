@@ -469,6 +469,50 @@ The containment layer fires from `ContainmentApi.move` and runs
 regardless of whether an Exit was involved (so `teleport` and
 `StuffApi.clone`-then-place still trigger the containment hooks).
 
+### Conveyance ripple
+
+After `ContainmentApi.move(mover, destination)` and
+`announceArrival`, `Mobile.traverse` walks the mover's slot map and
+ripples slot occupants to the same destination:
+
+```ts
+if (MixinApi.isSlotted(mover)) {
+  SlotApi.walkOccupants(mover, (host, slot, occupant) => {
+    if (MixinApi.isContainable(occupant)) {
+      ContainmentApi.move(occupant, destination);
+    }
+  });
+}
+```
+
+`SlotApi.walkOccupants` recurses into nested Slotted occupants and
+deduplicates by occupant identity (Wearable claiming foot:left +
+foot:right ripples once, not twice). Cycle guard: depth 16 — abort
+on saddle-on-saddle abuse.
+
+The ripple makes mounts work: a horse moving carries any rider in
+its mount slot, and a saddle on a horse with a rider in the saddle
+ripples both. See [conveyance.md](./conveyance.md) for the full
+story.
+
+### Location floors
+
+Floors are first-class entities — `Adornment`s on the Location's
+`Adornable` surface, composing `Postured` (see
+[posture.md](./posture.md)). v1 ships no class-level default;
+floor presence is authored per-Location in the `adornments` map.
+
+```yaml
+# Default Location includes the default floor:
+adornments:
+  floor: { extends: '/idea/surface/default-floor' }
+
+# Voids omit it, marked with the `noDefaultFloor` opt-out so the
+# migration script doesn't auto-add one:
+data:
+  noDefaultFloor: true
+```
+
 ## Direction Vocabulary: `NavigationApi`
 
 `api/navigation.ts`. The canonical direction table for cartesian

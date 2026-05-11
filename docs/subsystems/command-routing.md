@@ -496,6 +496,13 @@ supplied nothing. See [shell-environment.md § Variable
 interpolation](./shell-environment.md#variable-interpolation) for
 the expansion machinery.
 
+The substitution happens at the parse-to-bind transition, before
+field validators run. After substitution the default string flows
+through the field's normal validator / MQL pipeline as if the
+player had typed it, so the controller sees a uniform call
+surface. Embodiment verbs use this for the no-arg posture forms
+(`sit` becomes `sit ground`); see [posture.md](./posture.md).
+
 The first validator to return a non-undefined string fails the command
 with that summary. On success, the dispatcher hands the resolved
 model to `_executeOne`.

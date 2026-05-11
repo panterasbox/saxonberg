@@ -57,6 +57,14 @@ export const Mixins = {
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',
   Scryable: 'ScryableMixin',
+  Slotted: 'SlottedMixin',
+  Slottable: 'SlottableMixin',
+  Wearable: 'WearableMixin',
+  Wieldable: 'WieldableMixin',
+  Postured: 'PosturedMixin',
+  Posed: 'PosedMixin',
+  Mountable: 'MountableMixin',
+  Drivable: 'DrivableMixin',
 } as const;
 
 /**
