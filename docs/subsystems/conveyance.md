@@ -33,10 +33,16 @@ points at it.
 
 ## Drivable
 
-Public surface (interface — two methods):
+Public surface (interface):
 
 - `isDriven(): boolean`
 - `getDriver(): (Stuff & Slottable) | null`
+- `getVehicularMode() / setVehicularMode(LocomotionMode | null)` —
+  Pattern A path-by-string field for the `LocomotionMode` this
+  conveyance engages when driven. Authoring is required:
+  `LocomotionApi.resolveHostMode` throws on a driven host with `null`
+  vehicularMode rather than silently walk-traversing. See
+  [locomotion.md](./locomotion.md#drivablevehicularmode--fail-loud).
 
 The slot-resolution logic is a `protected resolveControllerSlot(): SlotRef`
 extension method on the class — not part of the public Drivable
@@ -52,6 +58,10 @@ The field accessor pair `getControllerSlot(): string` /
 and is intentionally distinct from the protected
 `resolveControllerSlot()` method (they used to share a name; the
 collision has been resolved per resolved-decision #4).
+
+The default `controllerSlot` is `'driver:1'` (changed from `'mount:1'`
+during the locomotion build to avoid colliding with
+`Mountable.mountSlot`'s default for hosts that compose both).
 
 ## Vehicle design space coverage
 
@@ -121,8 +131,18 @@ that `traverse()` doesn't itself bound.
 
 **Ride-vs-walk message distinction.** v1 produces the same "arrives
 from the west" message regardless of how the occupant got there.
-The locomotion-plurality slate (downstream) is where mode-specific
-phrasing ("rides" / "walks" / "rolls") lives.
+Mode-specific phrasing ("rides" / "walks" / "rolls") consumes
+`LocomotionApi.emissionAt(mover)` — the substrate is in place; the
+narration polish lands separately.
+
+**Slot-release witness clears engagement.** When a rider dismounts
+(`Slotted.vacate` on the mount slot), the `Slottable.onSlotReleased`
+witness fires synchronously and `Mobile.onSlotReleased` clears the
+rider's `engagedMode` when the vacated host composes the engaged
+mode's `conveyanceMixin`. The witness invocation lives inside
+`Slotted.vacate` itself (not `SlotApi.vacate`) so direct callers like
+`DismountController.execute` also trigger it. See
+[locomotion.md](./locomotion.md#slot-release-witness).
 
 ## Verbs
 

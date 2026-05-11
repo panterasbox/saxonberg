@@ -25,9 +25,6 @@ import type {
   CommandResult,
 } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Containable } from '../../lib/spatial/Containable';
-import type { Mobile } from '../../lib/spatial/Mobile';
 import type { Exit, TraversalGuard } from '../../lib/boundary/Exit';
 import { ExitableVessel } from '../../lib/boundary/ExitableVessel';
 import { LocomotionApi } from '../../api/locomotion';
@@ -72,15 +69,17 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     }
 
     // Resolve to an Exit. MQL's `target.via?.exit` is the primary path
-    // (typed-direction or door-alias). The ExitableVessel entry-exit
-    // fallback handles sibling-vessel entry (`walk cabin`) where MQL
-    // resolved to the vessel Stuff but not via a direction. Mirrors
-    // GoController's pre-locomotion behavior for all six verbs.
-    let exit: Exit | null =
-      (target.via as { exit?: Exit } | undefined)?.exit ?? null;
-    if (!exit && target.stuff instanceof ExitableVessel) {
-      exit = target.stuff.getEntryExit() ?? null;
-    }
+    // (typed-direction or door-alias; `MqlMatchVia` is augmented with
+    // `exit?: Exit` by `lib/boundary/Exit.ts` via declaration merging).
+    // The ExitableVessel entry-exit fallback handles sibling-vessel
+    // entry (`walk cabin`) where MQL resolved to the vessel Stuff but
+    // not via a direction.
+    const viaExit = target.via?.exit;
+    const exit: Exit | null =
+      viaExit ??
+      (target.stuff instanceof ExitableVessel
+        ? target.stuff.getEntryExit() ?? null
+        : null);
     if (!exit) {
       return {
         success: false,
@@ -125,21 +124,12 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         };
       }
       const hostMode = LocomotionApi.resolveHostMode(host);
-      const exitRef: Exit = exit;
-      await LocomotionApi.engageAround(host, hostMode, exitRef, () =>
-        host.traverse(exitRef, hostMode.getName()),
+      await LocomotionApi.engageAround(host, hostMode, exit, () =>
+        host.traverse(exit, hostMode.getName()),
       );
     } else {
-      const exitRef: Exit = exit;
-      await LocomotionApi.engageAround(
-        actor as Stuff & Containable & Mobile,
-        mode,
-        exitRef,
-        () =>
-          (actor as Stuff & Containable & Mobile).traverse(
-            exitRef,
-            mode.getName(),
-          ),
+      await LocomotionApi.engageAround(actor, mode, exit, () =>
+        actor.traverse(exit, mode.getName()),
       );
     }
 

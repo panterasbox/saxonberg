@@ -94,35 +94,55 @@ the mixin's public interface into TypeScript's control-flow narrowing.
 
 ## Movement Hierarchy
 
-There are three levels of movement abstraction. NEVER skip levels.
+Four levels of movement abstraction, listed from highest to lowest.
+NEVER skip levels.
 
-### Level 1: `traverse(exit, mode)` — high level (MobileMixin)
+### Level 0: `LocomotionApi.traverseWithDefault(actor, exit)` — top level
 
-For creatures and vehicles crossing an Exit under a locomotion mode:
+The most ergonomic entry point. Resolves the actor's default mode via
+`LocomotionApi.defaultModeFor` (explicit `movement.defaultMode`
+setting → bodyplan `defaultLocomotionMode` → universe `'walk'`), then
+threads engagement bookkeeping (`engageAround`) around an inner
+`traverse`. Use from scripted NPC AI, activity-driven movement, or
+any caller that wants "this actor moves under whatever its preferred
+mode is" without resolving the singleton themselves.
+
+### Level 1: `LocomotionApi.engageAround(actor, mode, exit, action)` — engagement scope
+
+For callers that know the mode but want the engagement lifecycle
+managed (set `engagedMode`, run the action, conditionally clear
+based on `isTransientEngagement`). The verb controllers all route
+through this:
 
 ```typescript
-avatar.traverse(exit, 'walk');     // explicit verb (run/climb/swim controllers)
-vehicle.traverse(exit, 'drive');
+await LocomotionApi.engageAround(actor, mode, exit, () =>
+  actor.traverse(exit, mode.getName()),
+);
 ```
 
-`mode` is the verb the mover is using right now (`'walk'`, `'run'`,
-`'climb'`, …) and is required at the API. Explicit-verb controllers
-pass their own verb. The `go` command has no verb of its own — it
-dispatches "whatever the mover's current mode is" by reading the
-`movement.defaultMode` setting (declared on `MobileMixin`,
-schema-defaulted to `'walk'`):
+**When to use**: any traversal where engaged-mode state should be
+established for the duration. Don't manually `setEngagedMode` /
+`setEngagedMode(null)` around a traversal — use `engageAround` so the
+transient/persistent decision and the error-path cleanup happen for
+you.
 
-```typescript
-const mode = resolveSetting<string>(mover, 'movement.defaultMode') ?? 'walk';
-await mover.traverse(exit, mode);
-```
+### Level 2: `Mobile.traverse(exit, mode)` — raw locomotion
 
-There is no destination-based variant — callers that have a Location
-in hand resolve it to an Exit (typically by direction) and pass that.
+For creatures and vehicles crossing an Exit under a locomotion mode.
+The signature takes the **short name** (`'walk'`, `'climb'`) to
+match `Exit.canTraverse`'s vocabulary; controllers pass
+`mode.getName()` from a resolved `LocomotionMode` singleton. The body
+enforces the mode-gate (throws `ContainmentError` on rejection), then
+runs the traversal-hook pipeline + the conveyance ripple.
 
-**When to use**: player/NPC movement commands, AI pathfinding.
+Skip the engagement layer (Level 1) only when you're inside the
+ripple's recursive `occupant.traverse(exit, mode)` call — the host's
+engageAround already wraps the whole thing.
 
-### Level 2: `ContainmentApi.move()` — mid level (the correct layer)
+**When to use**: very rarely directly. Usually go through Level 0 or
+Level 1.
+
+### Level 3: `ContainmentApi.move()` — mid level (the correct layer)
 
 For ANY containable object movement with hooks:
 
@@ -156,7 +176,7 @@ teleportation.
   programmatic-bypass callers, not a user-facing check — they are NOT
   redundant.
 
-### Level 3: `setContainer()` / `addContainable()` — low level (NEVER call directly)
+### Level 4: `setContainer()` / `addContainable()` — low level (NEVER call directly)
 
 Only called by `ContainmentApi.move()`:
 
@@ -307,7 +327,12 @@ description/short/long/article/list-formatting helpers belong in
 ### Rule of thumb
 
 - **Movement operations** (pick up, drop, teleport): use `ContainmentApi.move()`
-- **Locomotion** (walk, run, fly): use `traverse(exit, mode)` from `MobileMixin`
+- **Locomotion** (walk, climb, swim, fly, ride, drive): use
+  `LocomotionApi.traverseWithDefault(actor, exit)` for default-mode
+  dispatch, or `LocomotionApi.engageAround(actor, mode, exit, action)`
+  when the mode is known. Don't manually
+  `setEngagedMode` around a `Mobile.traverse` call — `engageAround`
+  handles the transient/persistent decision + error-path cleanup.
 - **Container access** (get contents): use `ContainmentApi.getContents()`
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
@@ -890,9 +915,10 @@ against shadows / dynamic composition, not against missing
 prototype links.
 
 
-- Use the correct abstraction level: `traverse()` for creatures/vehicles,
-  `ContainmentApi.move()` for all other object movement, low-level
-  containment methods only from inside `ContainmentApi`.
+- Use the correct abstraction level: `LocomotionApi.traverseWithDefault` /
+  `engageAround` for locomotion (creatures, vehicles), `ContainmentApi.move()`
+  for all other object movement, low-level containment methods only from
+  inside `ContainmentApi`.
 - Never duck-type mixins, even for display. Display-name lookup lives in
   `DescribeApi.getDisplayName()`; mixin presence checks use
   `MixinApi.isX()` predicates (preferred) or `MixinApi.hasMixin()`

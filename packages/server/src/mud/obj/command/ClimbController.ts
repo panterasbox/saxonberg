@@ -7,7 +7,7 @@
 import { LocomotionControllerBase, type LocomotionModel } from './LocomotionControllerBase';
 import type { CommandContext } from '../../api/command';
 import type { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
-import type { Exit, TraversalGuard } from '../../lib/boundary/Exit';
+import type { TraversalGuard } from '../../lib/boundary/Exit';
 
 export class ClimbController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
@@ -20,8 +20,7 @@ export class ClimbController extends LocomotionControllerBase {
     model: LocomotionModel,
   ): string {
     if (guard.gate === 'enablement') {
-      const exit = (model.target?.via as { exit?: Exit } | undefined)?.exit;
-      const direction = exit?.getDirection() ?? 'that way';
+      const direction = model.target?.via?.exit?.getDirection() ?? 'that way';
       return `There's nothing to climb ${direction}.`;
     }
     if (guard.gate === 'capability') {

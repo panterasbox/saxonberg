@@ -124,6 +124,8 @@ semantics across all singleton refs.
 | `Species` | `_parentCladePath` | `getParentClade()` / `setParentClade(value)` |
 | `Species` | `_defaultMaterialPath` | `getDefaultMaterial()` / `setDefaultMaterial(value)` |
 | `Mobile` | `_engagedModePath` (runtime-only) | `getEngagedMode()` / `setEngagedMode(value)` / `isEngagedIn(value)` |
+| `Drivable` | `_vehicularModePath` | `getVehicularMode()` / `setVehicularMode(value)` |
+| `BodyPlan` | `defaultLocomotionMode` (short-name variant; no `_xxxPath`, no leading slash) | `getDefaultLocomotionMode()` / `setDefaultLocomotionMode(value)` |
 
 ---
 

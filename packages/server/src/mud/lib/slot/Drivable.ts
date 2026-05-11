@@ -45,9 +45,11 @@ export interface Drivable {
   setControllerSlot(value: string): void;
   /**
    * Vehicular `LocomotionMode` this conveyance engages when driven
-   * (e.g., `wheeled` for a cart, `sailed` for a rowboat). `null` →
-   * resolveHostMode falls back to `walk`. Stored as templatePath
-   * (ref-shapes Pattern A).
+   * (e.g., `wheeled` for a cart, `sailed` for a rowboat). Authoring is
+   * required: `LocomotionApi.resolveHostMode` throws on a Drivable
+   * with `null` vehicularMode — surfacing the content-author bug
+   * rather than silently walk-traversing a wheeled vehicle. Stored as
+   * templatePath (ref-shapes Pattern A).
    */
   getVehicularMode(): LocomotionMode | null;
   setVehicularMode(value: LocomotionMode | null): void;
@@ -70,8 +72,12 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 
     /**
      * Persistent path to the vehicular `LocomotionMode` singleton.
-     * `null` means "no declared vehicular mode" — Drivable still
-     * functions; `resolveHostMode` falls back to walk.
+     * Defaults to `null` (unauthored); `setVehicularMode` writes the
+     * mode's templatePath. `LocomotionApi.resolveHostMode` requires a
+     * non-null value when the host has no `engagedMode` — driving
+     * traversal flows always go through that resolver, so authoring
+     * vehicularMode at template-time is mandatory for any Drivable
+     * that's expected to actually be driven.
      */
     protected _vehicularModePath: string | null = null;
 

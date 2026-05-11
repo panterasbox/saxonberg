@@ -26,6 +26,7 @@ import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 import { SlotApi } from './slot';
+import type { MixinName } from '../lib/mixin';
 import { Postures } from '../lib/slot/Postured';
 import { ownSetting } from '../lib/shell/Environment';
 
@@ -56,7 +57,7 @@ export class LocomotionApi {
    * singletons in the bootstrap manifest).
    */
   public static modeOf(nameOrPath: string): LocomotionMode | null {
-    const path = LocomotionApi.toModePath(nameOrPath);
+    const path = LocomotionApi.#toModePath(nameOrPath);
     return StuffApi.findByTemplatePath<LocomotionMode>(path) ?? null;
   }
 
@@ -64,14 +65,14 @@ export class LocomotionApi {
     const mode = LocomotionApi.modeOf(nameOrPath);
     if (!mode) {
       throw new Error(
-        `LocomotionMode not loaded: ${LocomotionApi.toModePath(nameOrPath)}`,
+        `LocomotionMode not loaded: ${LocomotionApi.#toModePath(nameOrPath)}`,
       );
     }
     return mode;
   }
 
   /** Short name → full path; full path passes through. */
-  private static toModePath(nameOrPath: string): string {
+  static #toModePath(nameOrPath: string): string {
     if (nameOrPath.startsWith('/')) return nameOrPath;
     return `/lib/locomotion/${nameOrPath}`;
   }
@@ -217,11 +218,11 @@ export class LocomotionApi {
     direction: string,
   ): TraversalGuard {
     if (mode.getPassthrough()) {
-      return LocomotionApi.checkConveyance(actor, mode);
+      return LocomotionApi.#checkConveyance(actor, mode);
     }
     const mixinName = mode.getEnablementMixin();
     if (!mixinName) return { ok: true };
-    return LocomotionApi.checkEnablementScope(
+    return LocomotionApi.#checkEnablementScope(
       actor,
       mode,
       direction,
@@ -229,13 +230,13 @@ export class LocomotionApi {
     );
   }
 
-  private static checkEnablementScope(
+  static #checkEnablementScope(
     actor: Stuff & Containable,
     mode: LocomotionMode,
     direction: string,
     mixinName: string,
   ): TraversalGuard {
-    const host = LocomotionApi.findEnablementHost(
+    const host = LocomotionApi.#findEnablementHost(
       actor,
       mixinName,
       direction,
@@ -267,7 +268,7 @@ export class LocomotionApi {
    * accepts `direction`. No mode name appears — dispatch is by mixin
    * registry constant, per the substrate-uniform shape.
    */
-  private static findEnablementHost(
+  static #findEnablementHost(
     actor: Stuff & Containable,
     mixinName: string,
     direction: string,
@@ -279,7 +280,7 @@ export class LocomotionApi {
       for (const item of container.getContents()) candidates.push(item);
     }
     for (const c of candidates) {
-      const enablement = LocomotionApi.asEnablement(c, mixinName);
+      const enablement = LocomotionApi.#asEnablement(c, mixinName);
       if (enablement && enablement.canEngageAxis(direction)) {
         return enablement;
       }
@@ -289,26 +290,28 @@ export class LocomotionApi {
 
   /**
    * Runtime-checked narrow from `Stuff` to `Stuff & Enablement`.
-   * The check (`MixinApi.hasMixin(c, mixinName)`) is the runtime
-   * guard; the cast is safe by construction because the only mixin
-   * names passed here come from `LocomotionMode.getEnablementMixin()`
-   * — a field whose values are guaranteed (by spec) to name mixins
-   * that implement the `Enablement` interface (Climbable / Swimmable
-   * / Flyable today; future enablement mixins must as well).
+   * The runtime check is `MixinApi.hasMixin(c, mixinName)`; the cast
+   * is safe by construction because the only mixin names passed here
+   * come from `LocomotionMode.getEnablementMixin()` — a field whose
+   * values are guaranteed (by spec) to name mixins that implement the
+   * `Enablement` interface (Climbable / Swimmable / Flyable today;
+   * future enablement mixins must as well).
+   *
+   * Cast on `mixinName`: the stored value is plain `string`, but
+   * `MixinName` is a union of registry-branded literals. Casting to
+   * the union is the conventional way to bridge that gap; the runtime
+   * check still rejects strings that don't name a real mixin.
    */
-  private static asEnablement(
+  static #asEnablement(
     c: Stuff,
     mixinName: string,
   ): (Stuff & Enablement) | null {
-    // The mixin name comes from LocomotionMode authoring; narrow via
-    // structural cast since the registry's MixinName branding is
-    // checked by setEnablementMixin validation at template-load time.
-    if (!MixinApi.hasMixin(c, mixinName as never)) return null;
+    if (!MixinApi.hasMixin(c, mixinName as MixinName)) return null;
     return c as Stuff & Enablement;
   }
 
   // Passthrough conveyance check (ride / drive).
-  private static checkConveyance(
+  static #checkConveyance(
     actor: Stuff,
     mode: LocomotionMode,
   ): TraversalGuard {
@@ -324,7 +327,7 @@ export class LocomotionApi {
     }
     const occupied = SlotApi.findOccupiedSlots(actor);
     for (const [host] of occupied.entries()) {
-      if (MixinApi.hasMixin(host, conveyance as never)) return { ok: true };
+      if (MixinApi.hasMixin(host, conveyance as MixinName)) return { ok: true };
     }
     return {
       ok: false,
@@ -357,7 +360,7 @@ export class LocomotionApi {
     if (!mixinName) return null;
     const occupied = SlotApi.findOccupiedSlots(actor);
     for (const [host] of occupied.entries()) {
-      if (MixinApi.hasMixin(host, mixinName as never)) return host;
+      if (MixinApi.hasMixin(host, mixinName as MixinName)) return host;
     }
     return null;
   }
@@ -383,17 +386,15 @@ export class LocomotionApi {
   public static emissionAt(mover: Stuff): EmissionData | null {
     if (!MixinApi.isMobile(mover)) return null;
     const chain: Stuff[] = [];
-    let cursor: Stuff = mover;
-    let mode = (cursor as Stuff & Mobile).getEngagedMode();
+    let cursor: Stuff & Mobile = mover;
+    let mode = cursor.getEngagedMode();
     let guard = MAX_PASSTHROUGH_DEPTH;
     while (mode && mode.getPassthrough() && guard-- > 0) {
       chain.push(cursor);
       const host = LocomotionApi.findConveyanceHost(cursor, mode);
       if (!host || !MixinApi.isMobile(host)) return null;
       cursor = host;
-      mode =
-        (cursor as Stuff & Mobile).getEngagedMode() ??
-        LocomotionApi.resolveHostMode(cursor as Stuff & Mobile);
+      mode = cursor.getEngagedMode() ?? LocomotionApi.resolveHostMode(cursor);
     }
     if (!mode) return null;
     return {
@@ -477,10 +478,10 @@ export class LocomotionApi {
     const mixinName = mode.getEnablementMixin();
     if (!mixinName) return true;
     const dest = exit.getDestination();
-    if (MixinApi.hasMixin(dest, mixinName as never)) return false;
+    if (MixinApi.hasMixin(dest, mixinName as MixinName)) return false;
     if (MixinApi.isContainer(dest)) {
       for (const item of dest.getContents()) {
-        if (MixinApi.hasMixin(item, mixinName as never)) return false;
+        if (MixinApi.hasMixin(item, mixinName as MixinName)) return false;
       }
     }
     return true;

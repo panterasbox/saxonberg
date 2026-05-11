@@ -60,13 +60,24 @@ Carries:
   movement narration.
 - `inverse?: Exit` — counterpart on the other side, wired by
   `addBidirectionalExit` or by the mutual-exit verifier.
+- `media: string[]` — locomotion media this exit admits (`'ground'`,
+  `'water'`, etc.). Empty list = walk-only (legacy default). See
+  [locomotion.md](./locomotion.md#exitmedia).
 
-`Exit.canTraverse(mover)` rejects when `blocked` or when an
-attached door is shut. After the Door retrofit
-`Exit.canTraverse` still consults `door.getIsOpen()` directly
-(rather than going through `MovementConduit.canPassThrough`) —
-they return the same answer. Routing through the conduit is
-deferred to a future Door subclass that varies on traversal mode.
+`Exit.canTraverse(mover, mode?)` rejects when `blocked`, when an
+attached door is shut, or — when `mode` is supplied — when
+`allowsMode(mode)` returns false (mode's medium not in `media`). The
+result is a `TraversalGuard` carrying `gate` / `mode` / `context`
+fields so locomotion controllers can compose verb-templated rejection
+prose without re-parsing `reason` (`gate: 'blocked' | 'door' |
+'exitMode' | 'bodyPlan' | 'posture' | 'enablement' | 'capability' |
+'noConveyance'`). Pre-locomotion callers omit `mode` and skip the
+mode gate — additive, no breakage.
+
+Door routing still consults `door.getIsOpen()` directly (rather than
+going through `MovementConduit.canPassThrough`) — they return the
+same answer. Routing through the conduit is deferred to a future Door
+subclass that varies on traversal mode.
 
 ### `ExitableMixin` lookup precedence
 
