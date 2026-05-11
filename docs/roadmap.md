@@ -96,11 +96,16 @@ promoted to formal requirements.
 
 ### Substrate slates
 
-- [docs/slates/embodiment-slate.md](./slates/embodiment-slate.md) — slot
-  substrate (`Slotted` / `Slottable`); body-side affordances
+- **Embodiment subsystem (shipped)** — see
+  [docs/subsystems/slot.md](./subsystems/slot.md),
+  [embodiment.md](./subsystems/embodiment.md),
+  [posture.md](./subsystems/posture.md),
+  [conveyance.md](./subsystems/conveyance.md). Slot substrate
+  (`Slotted` / `Slottable`); body-side affordances
   (`Wearable`, `Wieldable`); world-side (`Postured`,
   `Mountable`, `Drivable`). Conveyance ripple via
-  `Mobile.traverse`. Three worked examples.
+  `Mobile.traverse`. Floor adornments and the
+  ground-targeting path for sit/lie/kneel.
 - [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md) —
   `LocomotionMode` singletons; verb-as-mode dispatch
   (`walk`/`run`/`sneak`/`crawl`/`climb`/`swim`/`fly`/`ride`/

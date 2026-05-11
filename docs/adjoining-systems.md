@@ -17,8 +17,11 @@ reorder as judgment shifts.
 
 See also:
 
-- [docs/slates/embodiment-slate.md](./slates/embodiment-slate.md) — slot
-  substrate, conveyance.
+- [docs/subsystems/slot.md](./subsystems/slot.md),
+  [embodiment.md](./subsystems/embodiment.md),
+  [posture.md](./subsystems/posture.md),
+  [conveyance.md](./subsystems/conveyance.md) — slot substrate,
+  body-side affordances, posture, conveyance (shipped).
 - [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md) — mode
   singletons, verb controllers, four consumer dives (traps,
   pathfinding, detection, validation).

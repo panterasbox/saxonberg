@@ -19,8 +19,8 @@ See also:
 
 - [docs/roadmap.md](../roadmap.md) — DescribeApi v2 entry. This
   slate is the concrete design for that work.
-- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — disguise
-  as a Wearable mixin with a perceptual shadow.
+- [docs/subsystems/embodiment.md](../subsystems/embodiment.md) —
+  disguise as a Wearable mixin with a perceptual shadow.
 - [docs/subsystems/perception.md](../subsystems/perception.md) —
   viewer-aware-query pattern. Recognition is the hardest
   per-viewer state to date.

@@ -69,29 +69,60 @@ collision has been resolved per resolved-decision #4).
 
 Lives in `Mobile.traverse` (not in Mountable / Drivable). After
 `ContainmentApi.move(mover, destination)` and `announceArrival`,
-walks the mover's slot map and ripples occupants:
+the host walks the immediate level of its own slot map and ripples
+each occupant according to its capability:
 
 ```ts
 if (MixinApi.isSlotted(mover)) {
-  SlotApi.walkOccupants(mover, (host, slot, occupant) => {
-    if (MixinApi.isContainable(occupant)) {
-      ContainmentApi.move(occupant, destination);
+  const seen = new Set<Stuff>();
+  for (const [, occupants] of mover.getAllOccupants().entries()) {
+    for (const occupant of occupants) {
+      if (seen.has(occupant)) continue;
+      seen.add(occupant);
+      if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
+        try {
+          await occupant.traverse(exit, mode);
+        } catch (err) {
+          // rider whose canTraverse vetoes is left behind silently
+        }
+      } else if (MixinApi.isContainable(occupant)) {
+        ContainmentApi.move(occupant, destination);
+      }
     }
-  });
+  }
 }
 ```
 
-`SlotApi.walkOccupants` recurses into nested Slotted occupants
-automatically. Saddle-on-horse-with-rider case: the horse moves,
-saddle ripples (Wearable-claimed back:1), saddle's mount:1 occupant
-(rider) ripples too.
+**Mobile vs. inert occupants.** A rider on a horse is itself a
+`Mobile` — calling its `traverse(exit, mode)` produces the rider's
+own arrival narration ("Joe arrives from the west") and, because
+`traverse` runs the same ripple, recursively ripples whatever the
+rider has in its own slots (so the saddle-on-horse-with-rider-and-
+backpack chain just works without an explicit recursion here).
+Inert occupants (a saddlebag fixture, a crash-test dummy strapped
+to a bicycle) fall back to `ContainmentApi.move` so they ride
+along silently — the container model.
 
-**Cycle guard.** Depth limit 16. Triggers on saddle-on-saddle
-abuse.
+**Veto handling.** If a rider's `canTraverse` veto throws, the
+ripple swallows the error and the rider stays behind. The host's
+traverse never aborts because of a rider's refusal.
 
-**Once-per-occupant semantics.** A Wearable claiming two slots on
-the same host (boots on foot:left + foot:right) ripples once, not
-twice. `walkOccupants` deduplicates by occupant identity.
+**Once-per-occupant within a host.** The local `seen` set
+deduplicates a Wearable claiming two slots on the same mover
+(boots on foot:left + foot:right ripple once).
+
+**Cycle guard.** The recursive depth is bounded by `traverse`'s
+own per-call cost; the slot-occupancy graph is a forest in practice
+(a Stuff belongs to one host-of-hosts chain at a time). Saddle-on-
+saddle abuse would surface as an excessively deep call stack —
+the explicit depth limit was dropped along with the recursive walker
+because the per-host single-level walk has nowhere to recurse into
+that `traverse()` doesn't itself bound.
+
+**Ride-vs-walk message distinction.** v1 produces the same "arrives
+from the west" message regardless of how the occupant got there.
+The locomotion-plurality slate (downstream) is where mode-specific
+phrasing ("rides" / "walks" / "rolls") lives.
 
 ## Verbs
 

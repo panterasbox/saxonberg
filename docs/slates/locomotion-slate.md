@@ -6,15 +6,18 @@ that consume mode data (traps, pathfinding, detection, validation).
 Drafted as a comment-able design doc; the next pass shapes this
 into formal requirements before going to a planning agent.
 
-The embodiment slate (`docs/embodiment-slate.md`) handles slots and
-conveyance; this slate handles *how movement actually happens*.
-They're sibling subsystems and reference each other at the seams.
+The embodiment subsystem (slot.md / embodiment.md / posture.md /
+conveyance.md) handles slots and conveyance; this slate handles
+*how movement actually happens*. They're sibling subsystems and
+reference each other at the seams.
 
 See also:
 
-- [docs/slates/embodiment-slate.md](./embodiment-slate.md) — slot
-  substrate, `Mountable` / `Drivable`, conveyance ripple. Layer 4
-  there links here.
+- [docs/subsystems/slot.md](../subsystems/slot.md) — slot substrate,
+  `Slotted` / `Slottable`, capacity, Detail-targeted resolution.
+- [docs/subsystems/conveyance.md](../subsystems/conveyance.md) —
+  `Mountable` / `Drivable`, conveyance ripple inside
+  `Mobile.traverse`. This slate's mode taxonomy hooks into it.
 - [docs/slates/mixin-slate.md](./mixin-slate.md) — names `Climbable` /
   `Swimmable` / `Crawlable` / `Flyable` as the per-mode target
   mixins; this slate is where they actually get designed.

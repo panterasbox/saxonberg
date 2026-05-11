@@ -11,9 +11,8 @@ boundary fixture system (post-retrofit `Adornable`).
 | Name | Location | Role |
 |---|---|---|
 | `Slotted` | `lib/slot/Slotted.ts` | Host mixin — exposes slots that things can occupy |
-| `Slottable` | `lib/slot/Slottable.ts` | Marker mixin — anything that can sit in a slot |
+| `Slottable` | `lib/slot/Slottable.ts` | Marker mixin — anything that can sit in a slot. Carries `fitsSlot(host, slot)` with a default `() => true`; Wearable/Wieldable override |
 | `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail) |
-| `SlotFittable` | `lib/slot/Slotted.ts` | Optional candidate-side per-slot acceptance test |
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
 | `BodyPlanSlotsMixin` | `lib/slot/BodyPlanSlots.ts` | Sibling provider — Pattern B, derives universe from species → bodyPlan |
 | `SlotApi` | `api/slot.ts` | Cross-cutting helpers (multi-slot transactional ops, inverse lookups, slot resolution, conveyance ripple walker) |
@@ -47,7 +46,7 @@ A new host whose universe is computed differently ships a new
 sibling mixin that overrides the surface. No change to `Slotted`,
 no change to consumers.
 
-## `canOccupy` algorithm — `accepts` + optional `fitsSlot`
+## `canOccupy` algorithm — `accepts` + `fitsSlot`
 
 Two-part check:
 
@@ -55,10 +54,12 @@ Two-part check:
    constant (`'WearableMixin'`, `'SlottableMixin'`,
    `'AdornmentMixin'`, …). The candidate's constructor must compose
    the named mixin.
-2. **Candidate side.** If the candidate implements
-   `fitsSlot(host, slot): boolean`, it gets the final say. Wearable
-   / Wieldable's defaults walk `slotClaims[bodyPlanPath]`; bare
-   Slottables don't implement it and always accept.
+2. **Candidate side.** Every Slottable implements
+   `fitsSlot(host, slot): boolean`. `SlottableMixin` ships a default
+   `() => true`; `WearableMixin` / `WieldableMixin` override it to
+   walk their per-body-plan `slotClaims`. The candidate gets the
+   final say — `canOccupy` returns its result after the slot-side
+   mixin check passes.
 
 Future affordance mixins ship a new mixin, register it in `Mixins`,
 and slots that want it declare `accepts: 'NewMixin'`. No central

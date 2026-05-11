@@ -31,12 +31,14 @@ slotClaims:
 A body plan that doesn't appear in `slotClaims` is ineligible —
 `fitsSlot` returns false.
 
-## `fitsSlot` default
+## `fitsSlot` overrides
 
-`Wearable.fitsSlot(host, slot)` walks `host → species → bodyPlan`
-via `SpeciesApi.tryGetBodyPlanPath`, then checks
-`slotClaims[bodyPlanPath].includes(slot)`. Wieldable's default is
-the same shape against held positions.
+`Slottable` ships a default `fitsSlot(host, slot) => true`.
+`WearableMixin` and `WieldableMixin` override it: walk
+`host → species → bodyPlan` via `SpeciesApi.tryGetBodyPlanPath`,
+then check `slotClaims[bodyPlanPath].includes(slot)`. The host's
+`Slotted.canOccupy` calls this after the slot-side mixin check
+passes, so the candidate gets the final say.
 
 Subclasses override `fitsSlot` for richer rules (a magic boot that
 only fits Elven feet, etc.).
@@ -64,12 +66,18 @@ side. No umbrella mixin.
 | `wield <X>` | Same shape as `wear` for held positions |
 | `unwield <X>` | Same shape as `remove` |
 
-Validators per verb:
+Validators per verb (the controllers fail-fast on type narrows that
+shouldn't be reachable post-validator; user-facing rejection lives in
+these):
 
-- `wear` / `wield`: `mustBeInInventory`, `mustBeWearable` /
-  `mustBeWieldable`.
-- `remove` / `unwield`: `mustBeInInventory` (synthesizable from
-  inventory MQL).
+- All four verbs: verb-level `requiresAnimate`, `requiresSlotted`
+  (the actor's body needs slots to claim into).
+- `wear` / `wield`: target-level `mustBeInInventory`,
+  `mustBeWearable` / `mustBeWieldable`.
+- `remove` / `unwield`: same target-level shape — `mustBeWearable` /
+  `mustBeWieldable` is sufficient for "this is a wearable kind of
+  thing"; the controller's own per-slot scan surfaces "you aren't
+  wearing that" when nothing actually vacated.
 
 ## Cross-references
 

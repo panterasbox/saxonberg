@@ -11,6 +11,7 @@ constants vocabulary. Verb suite: `sit`, `lie`, `kneel`, `stand`.
 | `Posed` | `lib/character/Posed.ts` | Actor capability — carries `getPosture()` / `setPosture()` |
 | `Postures` | `lib/slot/Postured.ts` | Frozen const-object: `Stand`, `Sit`, `Lie`, `Kneel`, `Mounted` |
 | `Posture` | `lib/slot/Postured.ts` | Derived type union of `Postures` values |
+| `PostureApi` | `api/posture.ts` | Workflow helper (`transferPosture`, `vacatePostureBearingSlots`, `findCurrentPostureBearingSlot`) — consolidates the vacate-then-occupy-then-flip pattern shared by every posture verb |
 
 `PosturedMixin` composes on `Stuff & Slotted`. `PosedMixin` composes
 on `Stuff` and is composed by `Character`, so every PC and NPC
@@ -49,10 +50,9 @@ constants module.
 
 ## Floor adornments
 
-Per § 7.5 of the embodiment requirements: floors are first-class
-entities — `Adornment`s on the Location's `Adornable` surface,
-composing `Postured`. v1 ships no class-level default; floor
-presence is authored per-Location.
+Floors are first-class entities — `Adornment`s on the Location's
+`Adornable` surface, composing `Postured`. v1 ships no class-level
+default; floor presence is authored per-Location.
 
 The default-floor template (`/idea/surface/default-floor`) declares
 one slot:
@@ -88,10 +88,12 @@ suppresses the migration script and any future auto-floor tooling.
 
 ## Verbs
 
-All posture verbs go through the centralized
-`SlotApi.transferOccupancy` helper for atomicity — vacate any
-current posture-bearing slot atomically before occupying the new
-one.
+All posture verbs go through `PostureApi.transferPosture` (the
+shared workflow helper). It in turn calls
+`SlotApi.transferOccupancy` for the atomic vacate-then-occupy with
+rollback. The asymmetric `stand` no-arg form calls
+`PostureApi.vacatePostureBearingSlots` directly (no occupy step —
+posture flips to `Stand`, the actor stays free of any slot).
 
 | Verb | Form | Action |
 |---|---|---|

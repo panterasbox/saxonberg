@@ -18,10 +18,12 @@ See also:
 - [docs/subsystems/quantities.md](./subsystems/quantities.md) — the
   cross-cutting `Quantity<T>` pattern that operationalizes
   Principle 2 ("model honestly").
-- [docs/slates/sound-slate.md](./slates/sound-slate.md), [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md),
-  [docs/slates/embodiment-slate.md](./slates/embodiment-slate.md),
-  [docs/slates/activity-slate.md](./slates/activity-slate.md) — slates that
-  apply this philosophy.
+- [docs/slates/sound-slate.md](./slates/sound-slate.md),
+  [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md),
+  [docs/slates/activity-slate.md](./slates/activity-slate.md) — slates
+  applying this philosophy. The embodiment subsystem (now shipped) is
+  another instance — see [slot.md](./subsystems/slot.md) /
+  [conveyance.md](./subsystems/conveyance.md).
 
 ---
 
@@ -554,9 +556,10 @@ re-derive them.
   Composed from existing primitives + one new Conduit
   transmissivity dimension; small.
 - **Capacity-typed-constraints integration** — extends the
-  embodiment slate's slot capacity story to containment scopes
-  with the typed-constraint shape; could land as a small
-  embodiment-slate-extension or fold into the collision slate.
+  embodiment subsystem's slot capacity story (see
+  [slot.md](./subsystems/slot.md)) to containment scopes with the
+  typed-constraint shape; could land as its own slate or fold into
+  the collision slate.
 
 ---
 

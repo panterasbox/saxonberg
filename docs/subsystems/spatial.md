@@ -472,28 +472,19 @@ regardless of whether an Exit was involved (so `teleport` and
 ### Conveyance ripple
 
 After `ContainmentApi.move(mover, destination)` and
-`announceArrival`, `Mobile.traverse` walks the mover's slot map and
-ripples slot occupants to the same destination:
-
-```ts
-if (MixinApi.isSlotted(mover)) {
-  SlotApi.walkOccupants(mover, (host, slot, occupant) => {
-    if (MixinApi.isContainable(occupant)) {
-      ContainmentApi.move(occupant, destination);
-    }
-  });
-}
-```
-
-`SlotApi.walkOccupants` recurses into nested Slotted occupants and
-deduplicates by occupant identity (Wearable claiming foot:left +
-foot:right ripples once, not twice). Cycle guard: depth 16 — abort
-on saddle-on-saddle abuse.
+`announceArrival`, `Mobile.traverse` walks the immediate level of
+the mover's slot map and ripples each occupant by capability:
+Mobile occupants `traverse(exit, mode)` so they announce their own
+arrival; non-Mobile occupants fall back to `ContainmentApi.move`
+silently (the container model). A veto on a rider's `canTraverse`
+leaves them behind without aborting the host. The chain self-
+recurses through each Mobile occupant's own `traverse()` call, so
+the saddle-on-horse-with-rider-with-backpack case just works.
 
 The ripple makes mounts work: a horse moving carries any rider in
 its mount slot, and a saddle on a horse with a rider in the saddle
-ripples both. See [conveyance.md](./conveyance.md) for the full
-story.
+ripples through both layers. See
+[conveyance.md](./conveyance.md) for the full story.
 
 ### Location floors
 
