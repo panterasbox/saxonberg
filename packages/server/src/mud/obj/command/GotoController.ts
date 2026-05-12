@@ -38,20 +38,24 @@ export class GotoController extends CommandController<GotoModel> {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
-      return this.fail(context, `no match for ${target?.raw ?? '?'}`);
+      return this.fail(
+        context,
+        'unknown-target',
+        `no match for ${target?.raw ?? '?'}`,
+      );
     }
     const targetStuff = target.stuff;
     if (!MixinApi.isContainable(targetStuff)) {
-      return this.fail(context, 'target has no location');
+      return this.fail(context, 'no-location', 'target has no location');
     }
     const dest = targetStuff.getContainer();
     if (!dest) {
-      return this.fail(context, 'target has no location');
+      return this.fail(context, 'no-location', 'target has no location');
     }
     const destName = DescribeApi.getDisplayName(dest, '?');
 
     if (!MixinApi.isContainable(giver)) {
-      return this.fail(context, 'cannot move yourself');
+      return this.fail(context, 'cannot-move', 'cannot move yourself');
     }
 
     // 1. Polished path.
@@ -71,7 +75,7 @@ export class GotoController extends CommandController<GotoModel> {
         : ContainmentApi.move;
       op(giver as Stuff & Containable, dest);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, 'move-failed', (err as Error).message);
     }
     if (model.look && MixinApi.isMobile(giver)) {
       // Fire-and-forget; same swallow rationale as in `Mobile.teleport`
@@ -89,8 +93,13 @@ export class GotoController extends CommandController<GotoModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    reason: string,
+    detail: string,
+  ): CommandResult {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return { success: false };
   }
 }

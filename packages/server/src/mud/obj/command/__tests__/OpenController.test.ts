@@ -161,8 +161,16 @@ describe('OpenController / CloseController / doors integration', () => {
     const go = makeStuff(() => new GoController());
     const result = await goCmd(go, avatar, locA, 'north');
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/closed/i);
-    expect(result.summary).toContain('heavy oak door');
+    // Locomotion rejection prose now arrives via Scene.send at
+    // `system.shell.movement` instead of result.summary.
+    const shellFrames = avatar.received.filter((f) =>
+      ((f as { topic?: string })?.topic ?? '').startsWith(
+        'system.shell.movement',
+      ),
+    );
+    const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /closed/i.test(b))).toBe(true);
+    expect(bodies.some((b) => b.includes('heavy oak door'))).toBe(true);
   });
 
   it('open <keyword> resolves via MQL and opens the door', async () => {
@@ -220,6 +228,7 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(door.getIsOpen()).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
+    avatar.received.length = 0;
     const goBack = await goCmd(
       makeStuff(() => new GoController()),
       avatar,
@@ -227,7 +236,13 @@ describe('OpenController / CloseController / doors integration', () => {
       'south'
     );
     expect(goBack.success).toBe(false);
-    expect(goBack.summary).toMatch(/closed|way/i);
+    const shellFrames = avatar.received.filter((f) =>
+      ((f as { topic?: string })?.topic ?? '').startsWith(
+        'system.shell.movement',
+      ),
+    );
+    const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /closed|way/i.test(b))).toBe(true);
   });
 
   it('already-closed door on close returns friendly error', async () => {

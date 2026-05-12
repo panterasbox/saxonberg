@@ -196,11 +196,28 @@ describe('GoController', () => {
 
   describe('guards and errors', () => {
     it('returns an error when no direction is given', async () => {
-      const result = await controller.execute(makeModel(), makeContext(avatar, locA, ''));
+      const ctx = makeContext(avatar, locA, '');
+      const result = await controller.execute(makeModel(), ctx);
       expect(result.success).toBe(false);
       // Post-locomotion: rejection prose is mode-templated and lands
-      // through the exitMode gate.
-      expect(result.summary).toMatch(/can't walk that way/i);
+      // through the exitMode gate. The summary field is gone — read
+      // it off the actor's Scene frames + the ctx note.
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/can't walk that way/i),
+        ),
+      ).toBe(true);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({
+          kind: 'locomotion-gate-failed',
+          gate: 'exit-mode',
+        }),
+      );
     });
 
     it("returns rejection prose when the input doesn't resolve", async () => {
@@ -210,7 +227,16 @@ describe('GoController', () => {
       // fires with verb-templated prose.
       const result = await goCmd(controller, avatar, locA, 'south');
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/can't walk that way/i);
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/can't walk that way/i),
+        ),
+      ).toBe(true);
     });
 
     it('blocks traversal through a closed door', async () => {
@@ -221,7 +247,16 @@ describe('GoController', () => {
       );
       const result = await goCmd(controller, avatar, locA, 'east');
       expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/closed/i);
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/closed/i),
+        ),
+      ).toBe(true);
       expect(avatar.getContainer()).toBe(locA);
     });
   });
