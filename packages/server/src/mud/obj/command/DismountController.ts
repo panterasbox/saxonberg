@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -20,7 +19,7 @@ import { Postures } from '../../lib/slot/Postured';
 import { SlotApi } from '../../api/slot';
 
 export class DismountController extends CommandController<CommandModel> {
-  execute(_model: CommandModel, context: CommandContext): CommandResult {
+  execute(_model: CommandModel, context: CommandContext): void {
     void _model;
     const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
@@ -56,6 +55,6 @@ export class DismountController extends CommandController<CommandModel> {
         )
         .send();
     }
-    return { success: true };
+    return;
   }
 }

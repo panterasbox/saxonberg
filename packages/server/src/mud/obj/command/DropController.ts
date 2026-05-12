@@ -30,8 +30,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -54,7 +53,7 @@ export class DropController extends CommandController<DropModel> {
   async execute(
     model: DropModel,
     context: CommandContext
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const { stuff, quantity, raw } = model.targets;
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
@@ -97,14 +96,14 @@ export class DropController extends CommandController<DropModel> {
     inventory: readonly Stuff[],
     raw: string,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
         .topic(MessageApi.Topics.world.perception.inventory)
         .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
-      return { success: false };
+      return;
     }
     const droppedNames: string[] = [];
     for (const target of targets) {
@@ -124,9 +123,9 @@ export class DropController extends CommandController<DropModel> {
         reason: 'nothing-dropped',
         detail: 'nothing dropped',
       });
-      return { success: false };
+      return;
     }
-    return { success: true, summary: droppedNames.join(', ') };
+    return;
   }
 
   private renderResult(
@@ -144,7 +143,7 @@ export class DropController extends CommandController<DropModel> {
     },
     raw: string,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     let clampedSuffix = '';
     for (const note of result.notes) {
       switch (note.kind) {
@@ -158,7 +157,7 @@ export class DropController extends CommandController<DropModel> {
             field: 'targets',
             query: raw,
           });
-          return { success: false };
+          return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
             .topic(MessageApi.Topics.world.perception.inventory)
@@ -172,7 +171,7 @@ export class DropController extends CommandController<DropModel> {
             requested: note.requested,
             available: note.available,
           });
-          return { success: false };
+          return;
         case 'quantity-clamped':
           clampedSuffix = ` (only ${note.applied} available)`;
           context.note({
@@ -205,16 +204,13 @@ export class DropController extends CommandController<DropModel> {
         reason: 'nothing-dropped',
         detail: 'nothing dropped',
       });
-      return { success: false };
+      return;
     }
 
     const droppedNames = result.payloads
       .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
       .join(', ');
-    return {
-      success: true,
-      summary: `${droppedNames}${clampedSuffix}`,
-    };
+    return;
   }
 
   /**

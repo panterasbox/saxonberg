@@ -16,8 +16,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -32,7 +31,7 @@ interface MountModel extends CommandModel {
 }
 
 export class MountController extends CommandController<MountModel> {
-  execute(model: MountModel, context: CommandContext): CommandResult {
+  execute(model: MountModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -45,7 +44,7 @@ export class MountController extends CommandController<MountModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isMountable(target)) {
       throw new Error(
@@ -74,7 +73,7 @@ export class MountController extends CommandController<MountModel> {
         host: MessageApi.refOf(target),
         slot: mountSlot,
       });
-      return { success: false };
+      return;
     }
     if (!target.canOccupy(giver, mountSlot)) {
       MessageApi.scene(giver)
@@ -86,7 +85,7 @@ export class MountController extends CommandController<MountModel> {
         reason: 'wrong-size',
         detail: 'target.canOccupy returned false',
       });
-      return { success: false };
+      return;
     }
 
     const from = PostureApi.findCurrentPostureBearingSlot(giver);
@@ -107,6 +106,6 @@ export class MountController extends CommandController<MountModel> {
         Mml.compose`${Mml.name(giver)} mounts ${Mml.item(target)}.`
       )
       .send();
-    return { success: true };
+    return;
   }
 }

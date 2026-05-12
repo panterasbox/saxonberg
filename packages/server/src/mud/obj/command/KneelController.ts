@@ -7,8 +7,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -21,7 +20,7 @@ interface KneelModel extends CommandModel {
 }
 
 export class KneelController extends CommandController<KneelModel> {
-  execute(model: KneelModel, context: CommandContext): CommandResult {
+  execute(model: KneelModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -34,7 +33,7 @@ export class KneelController extends CommandController<KneelModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
@@ -63,7 +62,7 @@ export class KneelController extends CommandController<KneelModel> {
         reason: result.reason,
         detail: result.summary,
       });
-      return { success: false };
+      return;
     }
 
     MessageApi.scene(giver)
@@ -71,6 +70,6 @@ export class KneelController extends CommandController<KneelModel> {
       .toSelf(Mml.compose`You kneel down.`)
       .toPeers(Mml.compose`${Mml.name(giver)} kneels down.`)
       .send();
-    return { success: true };
+    return;
   }
 }

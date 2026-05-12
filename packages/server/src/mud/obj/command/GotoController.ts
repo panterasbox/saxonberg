@@ -16,8 +16,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -34,7 +33,7 @@ interface GotoModel extends CommandModel {
 }
 
 export class GotoController extends CommandController<GotoModel> {
-  async execute(model: GotoModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: GotoModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -62,7 +61,7 @@ export class GotoController extends CommandController<GotoModel> {
     if (MixinApi.isMobile(giver)) {
       try {
         giver.teleport(dest);
-        return { success: true, summary: `arrived at ${destName}` };
+        return;
       } catch (err) {
         if (!(err instanceof ContainmentError)) throw err;
       }
@@ -83,7 +82,7 @@ export class GotoController extends CommandController<GotoModel> {
       void giver.autoLookOnArrival().catch(() => {});
     }
     this.tell(context, `\narrived at ${destName} (fallback)\n`);
-    return { success: true, summary: `arrived at ${destName}` };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -97,9 +96,9 @@ export class GotoController extends CommandController<GotoModel> {
     context: CommandContext,
     reason: string,
     detail: string,
-  ): CommandResult {
+  ): void {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false };
+    return;
   }
 }

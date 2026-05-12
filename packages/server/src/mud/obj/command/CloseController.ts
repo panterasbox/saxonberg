@@ -22,8 +22,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
@@ -37,7 +36,7 @@ interface CloseModel extends CommandModel {
 }
 
 export class CloseController extends CommandController<CloseModel> {
-  execute(model: CloseModel, context: CommandContext): CommandResult {
+  execute(model: CloseModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
@@ -50,7 +49,7 @@ export class CloseController extends CommandController<CloseModel> {
         reason: 'missing-target',
         detail: 'close what?',
       });
-      return { success: false };
+      return;
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
@@ -62,7 +61,7 @@ export class CloseController extends CommandController<CloseModel> {
         field: 'target',
         query: target.raw,
       });
-      return { success: false };
+      return;
     }
 
     // Direct hit (close oak) → target.stuff; direction match
@@ -84,7 +83,7 @@ export class CloseController extends CommandController<CloseModel> {
         reason: 'not-sealable',
         detail: "can't close that",
       });
-      return { success: false };
+      return;
     }
 
     if (!sealable.getIsOpen()) {
@@ -97,7 +96,7 @@ export class CloseController extends CommandController<CloseModel> {
         reason: 'already-closed',
         detail: 'already closed',
       });
-      return { success: false };
+      return;
     }
 
     sealable.close();
@@ -110,9 +109,6 @@ export class CloseController extends CommandController<CloseModel> {
       )
       .send();
 
-    return {
-      success: true,
-      summary: `closed ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
-    };
+    return;
   }
 }

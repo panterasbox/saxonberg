@@ -13,8 +13,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -27,7 +26,7 @@ interface SitModel extends CommandModel {
 }
 
 export class SitController extends CommandController<SitModel> {
-  execute(model: SitModel, context: CommandContext): CommandResult {
+  execute(model: SitModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -40,7 +39,7 @@ export class SitController extends CommandController<SitModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
@@ -69,7 +68,7 @@ export class SitController extends CommandController<SitModel> {
         reason: result.reason,
         detail: result.summary,
       });
-      return { success: false };
+      return;
     }
 
     MessageApi.scene(giver)
@@ -77,6 +76,6 @@ export class SitController extends CommandController<SitModel> {
       .toSelf(Mml.compose`You sit down.`)
       .toPeers(Mml.compose`${Mml.name(giver)} sits down.`)
       .send();
-    return { success: true };
+    return;
   }
 }

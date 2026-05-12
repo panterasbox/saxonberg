@@ -6,15 +6,14 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
 export class InventoryController extends CommandController {
-  execute(_model: CommandModel, context: CommandContext): CommandResult {
+  execute(_model: CommandModel, context: CommandContext): void {
     const actor = context.commandGiver;
     if (!MixinApi.isContainer(actor)) {
       MessageApi.scene(actor)
@@ -22,7 +21,7 @@ export class InventoryController extends CommandController {
         .toSelf(Mml.compose`You have no inventory.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
-      return { success: false };
+      return;
     }
     const contents = ContainmentApi.getContents(actor);
 
@@ -40,9 +39,6 @@ export class InventoryController extends CommandController {
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `carrying ${contents.length} items`,
-    };
+    return;
   }
 }

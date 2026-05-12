@@ -9,8 +9,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -25,12 +24,12 @@ interface VarModel extends CommandModel {
 }
 
 export class VarController extends CommandController<VarModel> {
-  execute(model: VarModel, context: CommandContext): CommandResult {
+  execute(model: VarModel, context: CommandContext): void {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       this.send(context, Mml.fromMarkup('\nthis character has no session storage\n'));
       context.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
-      return { success: false };
+      return;
     }
 
     const sub = model.subcommand ?? 'list';
@@ -44,23 +43,23 @@ export class VarController extends CommandController<VarModel> {
       case 'unset':
         return this.executeUnset(avatar, name, context);
       default:
-        return { success: false, summary: `unknown subcommand: ${sub}` };
+        return;
     }
   }
 
   private executeList(
     avatar: EnvHost,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     const vars = avatar.listVars();
     const entries = Object.entries(vars);
     if (entries.length === 0) {
       this.send(context, Mml.compose`\nNo session variables.\n`);
-      return { success: true, summary: 'no vars' };
+      return;
     }
     const lines = ['', ...entries.map(([k, v]) => `  ${k} = ${v}`), ''];
     this.send(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${entries.length} vars` };
+    return;
   }
 
   private executeSet(
@@ -68,7 +67,7 @@ export class VarController extends CommandController<VarModel> {
     name: string | undefined,
     value: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!name) return this.fail(context, 'name required');
     if (value === undefined) return this.fail(context, 'value required');
     try {
@@ -77,14 +76,14 @@ export class VarController extends CommandController<VarModel> {
       return this.fail(context, (err as Error).message);
     }
     this.send(context, Mml.fromMarkup(`\n${name} = ${value}\n`));
-    return { success: true, summary: `${name} set` };
+    return;
   }
 
   private executeUnset(
     avatar: EnvHost,
     name: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!name) return this.fail(context, 'name required');
     try {
       avatar.unsetVar(name);
@@ -92,17 +91,17 @@ export class VarController extends CommandController<VarModel> {
       return this.fail(context, (err as Error).message);
     }
     this.send(context, Mml.fromMarkup(`\n${name} cleared.\n`));
-    return { success: true, summary: `${name} cleared` };
+    return;
   }
 
   private fail(
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 
   private send(context: CommandContext, body: Mml): void {

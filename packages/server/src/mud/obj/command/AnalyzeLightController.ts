@@ -11,8 +11,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -29,7 +28,7 @@ interface AnalyzeLightModel extends CommandModel {
 }
 
 export class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
-  execute(model: AnalyzeLightModel, context: CommandContext): CommandResult {
+  execute(model: AnalyzeLightModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
@@ -39,7 +38,7 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'location', query: raw });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isContainer(target.stuff)) {
       const detail = `${DescribeApi.getDisplayName(target.stuff, 'that')} isn't a place`;
@@ -52,7 +51,7 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
         reason: 'not-a-place',
         detail,
       });
-      return { success: false };
+      return;
     }
     const loc = target.stuff as Stuff & Container;
     const light = LightApi.lightAt(loc);
@@ -98,9 +97,6 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `analyzed light at ${DescribeApi.getDisplayName(loc, 'somewhere')}`,
-    };
+    return;
   }
 }

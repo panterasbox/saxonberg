@@ -45,7 +45,6 @@ import {
   createCommandContext,
   type CommandContext,
   type CommandModel,
-  type CommandResult,
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
@@ -88,7 +87,7 @@ export interface CommandGiver {
   executeCommand(
     commandText: string,
     opts?: ExecuteCommandOpts
-  ): Promise<CommandResult>;
+  ): Promise<void>;
   pushCommandSource(
     source: RecencySource,
     bucket: RecencyBucket,
@@ -354,7 +353,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     async executeCommand(
       commandText: string,
       opts: ExecuteCommandOpts = {}
-    ): Promise<CommandResult> {
+    ): Promise<void> {
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
       // Derive the dispatch context. `verb` and `command` are
@@ -370,10 +369,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         ? giver.getContainer()
         : null;
       if (!location) {
-        return {
-          success: false,
-          summary: 'No location for command',
-        };
+        // No location — no dispatch. This is a programmatic-shape
+        // error (commands fire from inside a Container); nothing
+        // user-actionable to surface.
+        return;
       }
       const commandId = nanoid();
       const originInteractiveId = opts.interactive?.stuffId;
@@ -399,7 +398,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // claiming attempt's ctx wins. Failures before/after the
       // claim use the outer ctx.
       let claimingCtx: CommandContext = outer;
-      let result: CommandResult;
       try {
         const parser = await resolveActorParser(outer.commandGiver);
         const parserCtx = {
@@ -421,7 +419,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             dispatchId: outer.commandId,
             originInteractiveId,
           });
-          result = { success: false, summary: parseResult.error };
         } else if (parseResult.parsed) {
           let parsed = parseResult.parsed;
           let expandedText: string | undefined;
@@ -449,9 +446,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             dispatchId: outer.commandId,
             originInteractiveId,
           });
-          const chain = await this._runChain(parsed, outer);
-          claimingCtx = chain.ctx;
-          result = chain.result;
+          claimingCtx = await this._runChain(parsed, outer);
         } else if (parseResult.bound) {
           // Parser already chose the command and built the model;
           // skip parse + match. Run resolve + execute only.
@@ -467,10 +462,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             parseResult.bound.model,
             outer
           );
-          if ('result' in validated) {
-            result = validated.result;
-          } else {
-            result = await this._executeOne(
+          if (!('result' in validated)) {
+            await this._executeOne(
               parseResult.bound.command,
               validated.resolved,
               outer
@@ -482,7 +475,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             reason: 'parse-failed',
             detail: 'Parser returned no result',
           });
-          result = { success: false, summary: 'Parser returned no result' };
         }
       } catch (error: unknown) {
         const detail =
@@ -495,24 +487,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           controller: outer.command?.controller ?? '?',
           detail,
         });
-        result = { success: false, summary: detail };
-      }
-
-      // Framework bridge — transitional. Controllers that still
-      // return `success: false` without emitting an escalating note
-      // get pinned to `declined` so the envelope reflects the
-      // failure. The dev warning highlights migration debt.
-      // Removed in Chunk 5 once every controller emits its own note.
-      if (!result.success && claimingCtx.getStatus() === 'ok') {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn(
-            `[response-envelope bridge] controller=${
-              outer.command?.controller ?? '?'
-            } verb=${outer.verb} returned success:false without an escalating ` +
-              `note. Pinning status='declined'.`
-          );
-        }
-        claimingCtx.setStatus('declined');
       }
 
       // Assemble the dispatch-response envelope template. No
@@ -532,8 +506,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (MixinApi.isSensor(giverAsStuff)) {
         MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
       }
-
-      return result;
     }
 
     /**
@@ -590,20 +562,25 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     }
 
     /**
-     * Walk the verb's match list in recency order. Shape errors fall
-     * through, bind/resolve errors stop, controller `pass: true`
-     * cascades.
+     * Walk the verb's match list at the assemble stage. Shape
+     * errors fall through to the next match; the first claiming
+     * match (bind succeeds + validators pass) runs `_executeOne`
+     * exclusively. Bind errors stop the chain on the outer ctx.
      *
-     * Returns `{ ctx, result }`: per slate § Dispatch context, each
-     * `_executeOne` attempt gets a fresh `CommandContext` so the
-     * accumulator captures exactly the claiming attempt's notes.
-     * Failures before any attempt (unknown verb, all-shape-fall-
-     * through) report on the outer ctx.
+     * Returns the `CommandContext` whose accumulator the dispatcher
+     * uses for the dispatch-response envelope: a fresh per-attempt
+     * ctx for the claiming match, or the outer ctx for pre-match
+     * failures (unknown verb, all-shape-fall-through, bind error).
+     *
+     * Chain-of-responsibility lives at the assemble stage only;
+     * `pass: true` retired with ``. Content patterns
+     * that need "I might handle this depending on state" use
+     * dynamic contributions on the recency stack.
      */
     async _runChain(
       parsed: ReturnType<typeof CommandLineApi.parsePipeline>['commands'][0],
       outer: CommandContext
-    ): Promise<{ ctx: CommandContext; result: CommandResult }> {
+    ): Promise<CommandContext> {
       const matches = CommandApi.matchVerbContextual(
         parsed.verb,
         this.getAvailableCommands()
@@ -614,13 +591,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           reason: 'unknown-verb',
           detail: parsed.verb,
         });
-        return {
-          ctx: outer,
-          result: {
-            success: false,
-            summary: `Unknown command: ${parsed.verb}`,
-          },
-        };
+        return outer;
       }
 
       for (const command of matches) {
@@ -639,10 +610,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           });
           outer.verb = parsed.verb;
           outer.command = command;
-          return {
-            ctx: outer,
-            result: { success: false, summary: built.summary },
-          };
+          return outer;
         }
         // Mint a fresh CommandContext for this attempt. Identity
         // fields (commandId, executionId) ride through from the
@@ -666,30 +634,17 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           attempt,
           built.prep
         );
-        if ('result' in validated) {
-          return { ctx: attempt, result: validated.result };
-        }
-        const interim = await this._executeOne(
-          command,
-          validated.resolved,
-          attempt
-        );
-        if (interim.pass !== true) return { ctx: attempt, result: interim };
-        // pass:true — discard this attempt's accumulator, try next match.
+        if ('result' in validated) return attempt;
+        await this._executeOne(command, validated.resolved, attempt);
+        return attempt;
       }
-      // Every match returned a shape error. Report on the outer ctx.
+      // Every match returned a shape error.
       outer.note({
         kind: 'command-rejected',
         reason: 'shape-fall-through',
         detail: parsed.verb,
       });
-      return {
-        ctx: outer,
-        result: {
-          success: false,
-          summary: `No handler claimed '${parsed.verb}'`,
-        },
-      };
+      return outer;
     }
 
     /**
@@ -707,7 +662,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       command: CommandDefinition,
       model: CommandModel,
       context: CommandContext
-    ): Promise<CommandResult> {
+    ): Promise<void> {
       const sub = (model as { subcommand?: string }).subcommand;
       const controllerName = sub
         ? command.controllerForSubcommand(sub)
@@ -718,17 +673,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           reason: 'missing-subcommand',
           detail: command.getPrimaryVerb(),
         });
-        return {
-          success: false,
-          summary: `${command.getPrimaryVerb()} requires a subcommand`,
-        };
+        return;
       }
       let controller: CommandController | null = null;
       try {
         controller = await StuffApi.clone<CommandController>(
           `/obj/command/${controllerName}`
         );
-        return await controller.execute(model, context);
+        await controller.execute(model, context);
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         context.note({
@@ -736,10 +688,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           controller: controllerName,
           detail: message,
         });
-        return {
-          success: false,
-          summary: `Failed to execute command: ${message}`,
-        };
       } finally {
         if (controller) StuffApi.destruct(controller);
       }

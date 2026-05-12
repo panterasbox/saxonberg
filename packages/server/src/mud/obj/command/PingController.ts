@@ -9,11 +9,10 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 
 export class PingController extends CommandController {
-  execute(_model: CommandModel, _context: CommandContext): CommandResult {
-    return { success: true, summary: 'pong' };
+  execute(_model: CommandModel, _context: CommandContext): void {
+    return;
   }
 }

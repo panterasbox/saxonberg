@@ -7,8 +7,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -21,7 +20,7 @@ interface LieModel extends CommandModel {
 }
 
 export class LieController extends CommandController<LieModel> {
-  execute(model: LieModel, context: CommandContext): CommandResult {
+  execute(model: LieModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -34,7 +33,7 @@ export class LieController extends CommandController<LieModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
@@ -63,7 +62,7 @@ export class LieController extends CommandController<LieModel> {
         reason: result.reason,
         detail: result.summary,
       });
-      return { success: false };
+      return;
     }
 
     MessageApi.scene(giver)
@@ -71,6 +70,6 @@ export class LieController extends CommandController<LieModel> {
       .toSelf(Mml.compose`You lie down.`)
       .toPeers(Mml.compose`${Mml.name(giver)} lies down.`)
       .send();
-    return { success: true };
+    return;
   }
 }

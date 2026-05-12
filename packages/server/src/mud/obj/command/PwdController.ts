@@ -9,8 +9,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -20,7 +19,7 @@ interface PwdModel extends CommandModel {
 }
 
 export class PwdController extends CommandController<PwdModel> {
-  execute(model: PwdModel, context: CommandContext): CommandResult {
+  execute(model: PwdModel, context: CommandContext): void {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
       MessageApi.scene(giver)
@@ -28,7 +27,7 @@ export class PwdController extends CommandController<PwdModel> {
         .toSelf(Mml.fromMarkup('\nthis character has no workspace\n'))
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
-      return { success: false };
+      return;
     }
     const cpwd = giver.getCwd('content');
     const spwd = giver.getCwd('source');
@@ -42,9 +41,5 @@ export class PwdController extends CommandController<PwdModel> {
       .topic(MessageApi.Topics.system.shell.fs)
       .toSelf(body)
       .send();
-    return {
-      success: true,
-      summary: model.all ? `${cpwd} ${spwd}` : giver.getActiveCwd(),
-    };
   }
 }

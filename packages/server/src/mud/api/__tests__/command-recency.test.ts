@@ -37,8 +37,14 @@ class TestGiver extends TestGiverBase {
     inventory: [],
     peers: [],
   };
+  public envelopes: Array<import('@saxonberg/types').EnvelopeTemplate> = [];
   protected override handleMessage(_frame: unknown): void {
     // discard
+  }
+  protected override handleEnvelope(
+    envelope: import('@saxonberg/types').EnvelopeTemplate,
+  ): void {
+    this.envelopes.push(envelope);
   }
 }
 
@@ -212,20 +218,34 @@ describe('CommandGiverMixin recency stack', () => {
     expect(walkedBuckets[walkedBuckets.length - 1]).toBe('self');
   });
 
-  it('returns "Unknown command" when the verb is not on the stack at all', async () => {
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+  it('returns "unknown-verb" envelope when the verb is not on the stack at all', async () => {
+    const giver = makeStuff(() => new TestGiver()) as TestGiver;
     ContainmentApi.move(giver, makeStuff(() => new Location()));
-    const result = await giver.executeCommand('gibberishverb');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/Unknown command/);
+    await (giver as unknown as CommandGiver).executeCommand('gibberishverb');
+    expect(giver.envelopes).toHaveLength(1);
+    const env = giver.envelopes[0] as import('@saxonberg/types').DispatchResponseEnvelope;
+    expect(env.outcome.status).toBe('declined');
+    expect(env.outcome.notes).toContainEqual(
+      expect.objectContaining({
+        kind: 'command-rejected',
+        reason: 'unknown-verb',
+      }),
+    );
   });
 
-  it('Pipe NYI surfaces a friendly summary on the auto-emit', async () => {
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+  it('Pipe NYI surfaces a friendly envelope on the actor', async () => {
+    const giver = makeStuff(() => new TestGiver()) as TestGiver;
     const loc = makeStuff(() => new Location());
     ContainmentApi.move(giver, loc);
-    const result = await giver.executeCommand('ping | ping');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/piping is not yet implemented/);
+    await (giver as unknown as CommandGiver).executeCommand('ping | ping');
+    expect(giver.envelopes).toHaveLength(1);
+    const env = giver.envelopes[0] as import('@saxonberg/types').DispatchResponseEnvelope;
+    expect(env.outcome.status).toBe('declined');
+    expect(env.outcome.notes).toContainEqual(
+      expect.objectContaining({
+        kind: 'command-rejected',
+        reason: 'parse-failed',
+      }),
+    );
   });
 });

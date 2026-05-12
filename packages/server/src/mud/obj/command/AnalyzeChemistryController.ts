@@ -13,8 +13,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -31,7 +30,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
   execute(
     model: AnalyzeChemistryModel,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -41,7 +40,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
       const detail = `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff, 'that')}`;
@@ -54,7 +53,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
         reason: 'not-tangible',
         detail,
       });
-      return { success: false };
+      return;
     }
     const material = MaterialApi.materialOf(target.stuff as Stuff);
     if (!material) {
@@ -68,7 +67,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
         reason: 'no-material-data',
         detail,
       });
-      return { success: false };
+      return;
     }
 
     const lines: Mml[] = [];
@@ -118,9 +117,6 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `analyzed ${material.getName()}`,
-    };
+    return;
   }
 }

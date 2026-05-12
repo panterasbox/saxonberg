@@ -24,8 +24,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
@@ -39,7 +38,7 @@ interface OpenModel extends CommandModel {
 }
 
 export class OpenController extends CommandController<OpenModel> {
-  execute(model: OpenModel, context: CommandContext): CommandResult {
+  execute(model: OpenModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
@@ -52,7 +51,7 @@ export class OpenController extends CommandController<OpenModel> {
         reason: 'missing-target',
         detail: 'open what?',
       });
-      return { success: false };
+      return;
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
@@ -64,7 +63,7 @@ export class OpenController extends CommandController<OpenModel> {
         field: 'target',
         query: target.raw,
       });
-      return { success: false };
+      return;
     }
 
     // Direct hit (open oak) → the door is target.stuff;
@@ -87,7 +86,7 @@ export class OpenController extends CommandController<OpenModel> {
         reason: 'not-sealable',
         detail: "can't open that",
       });
-      return { success: false };
+      return;
     }
 
     if (sealable.getIsOpen()) {
@@ -100,7 +99,7 @@ export class OpenController extends CommandController<OpenModel> {
         reason: 'already-open',
         detail: 'already open',
       });
-      return { success: false };
+      return;
     }
 
     sealable.open();
@@ -113,9 +112,6 @@ export class OpenController extends CommandController<OpenModel> {
       )
       .send();
 
-    return {
-      success: true,
-      summary: `opened ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
-    };
+    return;
   }
 }

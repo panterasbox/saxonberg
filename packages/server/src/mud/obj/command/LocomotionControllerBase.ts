@@ -22,8 +22,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { LocomotionGateFailedNote } from '@saxonberg/types';
 import type { MqlOneResult } from '../../api/mql';
 import type { Exit, TraversalGuard } from '../../lib/boundary/Exit';
@@ -51,7 +50,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   async execute(
     model: LocomotionModel,
     context: CommandContext,
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const actor = context.commandGiver;
     if (!MixinApi.isContainable(actor) || !MixinApi.isMobile(actor)) {
       // No body-plan-shaped affordance at all — surface as a
@@ -62,7 +61,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         .topic(MessageApi.Topics.system.shell.movement)
         .toSelf(Mml.fromMarkup("You can't move."))
         .send();
-      return { success: false };
+      return;
     }
 
     const mode = LocomotionApi.modeOfOrThrow(this.modeName(context));
@@ -75,7 +74,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         model,
         context,
       );
-      return { success: false };
+      return;
     }
 
     // Resolve to an Exit. MQL's `target.via?.exit` is the primary path
@@ -97,7 +96,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         model,
         context,
       );
-      return { success: false };
+      return;
     }
     const direction = exit.getDirection();
 
@@ -108,7 +107,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
     if (!guard.ok) {
       this.emitRejection(guard, mode, model, context);
-      return { success: false };
+      return;
     }
 
     const destination = exit.getDestination();
@@ -127,7 +126,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
           model,
           context,
         );
-        return { success: false };
+        return;
       }
       const hostMode = LocomotionApi.resolveHostMode(host);
       await LocomotionApi.engageAround(host, hostMode, exit, () =>
@@ -139,7 +138,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       );
     }
 
-    return { success: true, summary: `to ${destName}` };
+    return;
   }
 
   /**

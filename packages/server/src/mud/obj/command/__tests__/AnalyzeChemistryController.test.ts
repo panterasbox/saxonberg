@@ -109,11 +109,10 @@ describe('AnalyzeChemistryController', () => {
     const ctrl = await StuffApi.create(
       () => new AnalyzeChemistryController()
     );
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ target: { stuff: sword, raw: 'sword' } }, 'chemistry'),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(true);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('Chemistry of');
     expect(frame.body).toContain('material: iron');
@@ -139,11 +138,10 @@ describe('AnalyzeChemistryController', () => {
     const ctrl = await StuffApi.create(
       () => new AnalyzeChemistryController()
     );
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ target: { stuff: idea, raw: 'thought' } }, 'chemistry'),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(false);
   });
 
   it('accepts a Quantity<g/mol> on the strict setter path', async () => {

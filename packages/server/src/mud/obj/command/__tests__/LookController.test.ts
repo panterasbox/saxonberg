@@ -16,7 +16,7 @@ import {
   createCommandContext,
   type CommandContext,
   type CommandModel,
-  type CommandResult,
+
   type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
@@ -68,13 +68,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase']);
 
     const controller = makeStuff(() => new LookController());
-    const result: CommandResult = controller.execute(
+    const result: void = controller.execute(
       makeModel(target),
       makeContext(world, 'look bookcase'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined bookcase/);
   });
 
   it('look bookcase:book renders the nested book detail', () => {
@@ -84,13 +81,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase', 'book']);
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
+    controller.execute(
       makeModel(target),
       makeContext(world, 'look bookcase:book'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined book/);
   });
 
   it('look at a detail on an inventory item (host=apple, via=engraving)', () => {
@@ -106,13 +100,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['engraving']);
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
+    controller.execute(
       makeModel(target),
       makeContext(world, 'look engraving'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined engraving/);
   });
 
   it("falls back politely when the host isn't Detailed", () => {
@@ -129,9 +120,7 @@ describe('LookController — detail rendering', () => {
 
     const controller = makeStuff(() => new LookController());
     const ctx = makeContext(world, 'look whatever');
-    const result = controller.execute(makeModel(target), ctx);
-
-    expect(result.success).toBe(false);
+    controller.execute(makeModel(target), ctx);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'controller-rejected',

@@ -150,10 +150,8 @@ describe('GoController', () => {
 
   describe('golden path (cartesian)', () => {
     it('go north moves the avatar and emits departure/arrival messages', async () => {
-      const result = await goCmd(controller, avatar, locA, 'north');
-      expect(result.success).toBe(true);
+      await goCmd(controller, avatar, locA, 'north');
       expect(avatar.getContainer()).toBe(locB);
-      expect(result.summary).toContain('Location B');
 
       const depText = JSON.stringify(peerInA.received);
       expect(depText).toContain('leaves to the');
@@ -165,8 +163,7 @@ describe('GoController', () => {
 
     it('round trip with south returns avatar to location A', async () => {
       await goCmd(controller, avatar, locA, 'north');
-      const back = await goCmd(controller, avatar, locB, 'south');
-      expect(back.success).toBe(true);
+      await goCmd(controller, avatar, locB, 'south');
       expect(avatar.getContainer()).toBe(locA);
     });
 
@@ -197,8 +194,7 @@ describe('GoController', () => {
   describe('guards and errors', () => {
     it('returns an error when no direction is given', async () => {
       const ctx = makeContext(avatar, locA, '');
-      const result = await controller.execute(makeModel(), ctx);
-      expect(result.success).toBe(false);
+      await controller.execute(makeModel(), ctx);
       // Post-locomotion: rejection prose is mode-templated and lands
       // through the exitMode gate. The summary field is gone — read
       // it off the actor's Scene frames + the ctx note.
@@ -225,8 +221,7 @@ describe('GoController', () => {
       // wrapper on `model.target` with `stuff: null` for an
       // unresolved input. LocomotionControllerBase's exitMode gate
       // fires with verb-templated prose.
-      const result = await goCmd(controller, avatar, locA, 'south');
-      expect(result.success).toBe(false);
+      await goCmd(controller, avatar, locA, 'south');
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(
           'system.shell.movement',
@@ -245,8 +240,7 @@ describe('GoController', () => {
       locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
-      const result = await goCmd(controller, avatar, locA, 'east');
-      expect(result.success).toBe(false);
+      await goCmd(controller, avatar, locA, 'east');
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(
           'system.shell.movement',
@@ -279,8 +273,7 @@ describe('GoController', () => {
       const spherePeer = makeStuff(() => new PeerSensor());
       ContainmentApi.move(spherePeer, office);
 
-      const result = await goCmd(controller, visitor, plaza, 'office');
-      expect(result.success).toBe(true);
+      await goCmd(controller, visitor, plaza, 'office');
       expect(visitor.getContainer()).toBe(office);
 
       const arrText = JSON.stringify(spherePeer.received);
@@ -295,8 +288,7 @@ describe('GoController', () => {
       wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
 
-      const result = await goCmd(controller, avatar, locA, 'wardrobe');
-      expect(result.success).toBe(true);
+      await goCmd(controller, avatar, locA, 'wardrobe');
       expect(avatar.getContainer()).toBe(wardrobe);
     });
 
@@ -306,13 +298,12 @@ describe('GoController', () => {
       ContainmentApi.move(wardrobe, locA);
       ContainmentApi.move(avatar, wardrobe);
 
-      const result = await goCmd(
+      await goCmd(
         controller,
         avatar,
         wardrobe as unknown as Location,
         'out'
       );
-      expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(locA);
     });
 

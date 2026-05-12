@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -24,7 +23,7 @@ interface RemoveModel extends CommandModel {
 }
 
 export class RemoveController extends CommandController<RemoveModel> {
-  execute(model: RemoveModel, context: CommandContext): CommandResult {
+  execute(model: RemoveModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -37,7 +36,7 @@ export class RemoveController extends CommandController<RemoveModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isWearable(target)) {
       throw new Error(
@@ -56,7 +55,7 @@ export class RemoveController extends CommandController<RemoveModel> {
         .toSelf(Mml.compose`You have no body plan.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
-      return { success: false };
+      return;
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     let any = false;
@@ -73,7 +72,7 @@ export class RemoveController extends CommandController<RemoveModel> {
         reason: 'not-wearing',
         detail: `you aren't wearing ${DescribeApi.getDisplayName(target, 'that')}`,
       });
-      return { success: false };
+      return;
     }
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
@@ -82,6 +81,6 @@ export class RemoveController extends CommandController<RemoveModel> {
         Mml.compose`${Mml.name(giver)} takes off ${Mml.item(target)}.`
       )
       .send();
-    return { success: true };
+    return;
   }
 }

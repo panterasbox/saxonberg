@@ -116,11 +116,10 @@ describe('GetController — bareword path (no quantity)', () => {
     ContainmentApi.move(sword, loc);
 
     const controller = makeStuff(() => new GetController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(makeResult([sword], 'sword')),
       makeContext(giver, loc)
     );
-    expect(result.success).toBe(true);
     expect(sword.getContainer()).toBe(giver);
   });
 
@@ -131,11 +130,10 @@ describe('GetController — bareword path (no quantity)', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(makeResult([], 'turnips')),
       ctx,
     );
-    expect(result.success).toBe(false);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -170,7 +168,7 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 5 },
@@ -179,8 +177,6 @@ describe('GetController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
     // 5 ended up in inventory; remaining 25 are still on the floor.
     expect(pile.getQuantity()).toBe(25);
   });
@@ -199,7 +195,7 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 99 },
@@ -208,8 +204,6 @@ describe('GetController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/only 10 available/);
     expect(pile.getContainer()).toBe(giver);
   });
 
@@ -228,7 +222,7 @@ describe('GetController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 99 },
@@ -237,7 +231,6 @@ describe('GetController — quantity-bearing path', () => {
       ),
       ctx,
     );
-    expect(result.success).toBe(false);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'quantity-clamped-rejected',
@@ -256,7 +249,7 @@ describe('GetController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([], 'turnips', {
           value: { kind: 'count', n: 2 },
@@ -265,7 +258,6 @@ describe('GetController — quantity-bearing path', () => {
       ),
       ctx,
     );
-    expect(result.success).toBe(false);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -289,7 +281,7 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'all' },
@@ -298,7 +290,6 @@ describe('GetController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-    expect(result.success).toBe(true);
     expect(pile.getContainer()).toBe(giver);
     expect(pile.getQuantity()).toBe(7);
   });

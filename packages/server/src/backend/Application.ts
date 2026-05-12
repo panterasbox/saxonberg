@@ -292,7 +292,7 @@ export class Application {
       return;
     }
 
-    // Discard the result; CommandResult is purely semantic now. Any
+    // Discard the result;  is purely semantic now. Any
     // prose the controller wanted the actor to see is fired via Scene
     // inside the controller body, and the auto-emitted MudlogApi
     // command-outcome entry surfaces success/failure with `summary`.

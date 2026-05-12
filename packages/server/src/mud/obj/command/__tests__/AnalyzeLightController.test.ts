@@ -88,12 +88,10 @@ describe('AnalyzeLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new AnalyzeLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: room, raw: 'here' } }, 'light'),
       makeContext(avatar, room)
     );
-
-    expect(result.success).toBe(true);
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     // Aggregate lux + color appear as canonical quantity markup.
@@ -115,11 +113,10 @@ describe('AnalyzeLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new AnalyzeLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: room, raw: 'here' } }, 'light'),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(true);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('contributing sources: none');
   });

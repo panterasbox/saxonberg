@@ -8,8 +8,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -27,14 +26,14 @@ interface SettingsModel extends CommandModel {
 }
 
 export class SettingsController extends CommandController<SettingsModel> {
-  execute(model: SettingsModel, context: CommandContext): CommandResult {
+  execute(model: SettingsModel, context: CommandContext): void {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
       if (MixinApi.isSensor(avatar)) {
         this.send(context, Mml.fromMarkup('\nthis character has no settings\n'));
       }
       context.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
-      return { success: false };
+      return;
     }
 
     const sub = model.subcommand ?? 'list';
@@ -52,18 +51,18 @@ export class SettingsController extends CommandController<SettingsModel> {
       case 'describe':
         return this.executeDescribe(avatar, key, context);
       default:
-        return { success: false, summary: `unknown subcommand: ${sub}` };
+        return;
     }
   }
 
   private executeList(
     avatar: EnvHost,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     const snapshot = avatar.listSettings();
     if (snapshot.length === 0) {
       this.send(context, Mml.compose`\nNo settings declared.\n`);
-      return { success: true, summary: 'no settings' };
+      return;
     }
 
     const grouped = new Map<string, typeof snapshot>();
@@ -83,14 +82,14 @@ export class SettingsController extends CommandController<SettingsModel> {
       lines.push('');
     }
     this.send(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${snapshot.length} settings` };
+    return;
   }
 
   private executeGet(
     avatar: EnvHost,
     key: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!key) return this.fail(context, 'key required');
     const schema = avatar.describeSetting(key);
     if (!schema) return this.fail(context, `no such setting: ${key}`);
@@ -99,7 +98,7 @@ export class SettingsController extends CommandController<SettingsModel> {
       context,
       Mml.fromMarkup(`\n${key} = ${formatValue(value)}\n`),
     );
-    return { success: true, summary: `${key} = ${formatValue(value)}` };
+    return;
   }
 
   private executeSet(
@@ -107,7 +106,7 @@ export class SettingsController extends CommandController<SettingsModel> {
     key: string | undefined,
     rawValue: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!key) return this.fail(context, 'key required');
     if (rawValue === undefined)
       return this.fail(context, 'value required');
@@ -130,14 +129,14 @@ export class SettingsController extends CommandController<SettingsModel> {
       context,
       Mml.fromMarkup(`\n${key} set to ${formatValue(coerced)}.\n`),
     );
-    return { success: true, summary: `${key} set` };
+    return;
   }
 
   private executeUnset(
     avatar: EnvHost,
     key: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!key) return this.fail(context, 'key required');
     const schema = avatar.describeSetting(key);
     if (!schema) return this.fail(context, `no such setting: ${key}`);
@@ -150,14 +149,14 @@ export class SettingsController extends CommandController<SettingsModel> {
       context,
       Mml.fromMarkup(`\n${key} cleared (default applies).\n`),
     );
-    return { success: true, summary: `${key} cleared` };
+    return;
   }
 
   private executeDescribe(
     avatar: EnvHost,
     key: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!key) return this.fail(context, 'key required');
     const schema = avatar.describeSetting(key);
     if (!schema) return this.fail(context, `no such setting: ${key}`);
@@ -175,17 +174,17 @@ export class SettingsController extends CommandController<SettingsModel> {
       lines.splice(3, 0, `  values:      ${schema.enumValues.join(', ')}`);
     }
     this.send(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${key}: ${schema.type}` };
+    return;
   }
 
   private fail(
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 
   private send(context: CommandContext, body: Mml): void {

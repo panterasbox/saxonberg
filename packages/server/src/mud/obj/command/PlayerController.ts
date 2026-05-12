@@ -6,8 +6,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -20,7 +19,7 @@ interface PlayerModel extends CommandModel {
 }
 
 export class PlayerController extends CommandController<PlayerModel> {
-  execute(model: PlayerModel, context: CommandContext): CommandResult {
+  execute(model: PlayerModel, context: CommandContext): void {
     const avatar = context.commandGiver;
     if (!(avatar instanceof Avatar)) {
       this.send(
@@ -32,7 +31,7 @@ export class PlayerController extends CommandController<PlayerModel> {
         reason: 'player-only',
         detail: 'commandGiver is not an Avatar',
       });
-      return { success: false };
+      return;
     }
 
     switch (model.subcommand) {
@@ -50,7 +49,7 @@ export class PlayerController extends CommandController<PlayerModel> {
           reason: 'unknown-subcommand',
           detail: sub,
         });
-        return { success: false };
+        return;
       }
     }
   }
@@ -59,7 +58,7 @@ export class PlayerController extends CommandController<PlayerModel> {
     model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     const name = model.name;
     const surname = model.surname;
     if (!name) {
@@ -69,7 +68,7 @@ export class PlayerController extends CommandController<PlayerModel> {
         reason: 'name-required',
         detail: 'name required',
       });
-      return { success: false };
+      return;
     }
     avatar.setName(name);
     if (surname !== undefined) {
@@ -81,14 +80,14 @@ export class PlayerController extends CommandController<PlayerModel> {
       Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`,
       MessageApi.Topics.world.identity.change
     );
-    return { success: true, summary: `name set to ${avatar.getFullName()}` };
+    return;
   }
 
   private executePronouns(
     model: PlayerModel,
     avatar: Avatar,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     const pronouns = model.pronouns;
     if (!pronouns) {
       this.send(context, Mml.fromMarkup('\npronouns required\n'));
@@ -97,7 +96,7 @@ export class PlayerController extends CommandController<PlayerModel> {
         reason: 'pronouns-required',
         detail: 'pronouns required',
       });
-      return { success: false };
+      return;
     }
 
     const validPronouns: string[] = [
@@ -118,7 +117,7 @@ export class PlayerController extends CommandController<PlayerModel> {
         reason: 'invalid-pronouns',
         detail,
       });
-      return { success: false };
+      return;
     }
 
     avatar.setPronouns(pronounsLower as Pronouns);
@@ -127,10 +126,10 @@ export class PlayerController extends CommandController<PlayerModel> {
       Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`,
       MessageApi.Topics.world.identity.change
     );
-    return { success: true, summary: `pronouns set to ${avatar.getPronouns()}` };
+    return;
   }
 
-  private executeShow(avatar: Avatar, context: CommandContext): CommandResult {
+  private executeShow(avatar: Avatar, context: CommandContext): void {
     const body = Mml.fromMarkup(
       [
         '',
@@ -142,10 +141,7 @@ export class PlayerController extends CommandController<PlayerModel> {
       ].join('\n')
     );
     this.send(context, body);
-    return {
-      success: true,
-      summary: `${avatar.getFullName()} (${avatar.getPronouns()})`,
-    };
+    return;
   }
 
   private send(

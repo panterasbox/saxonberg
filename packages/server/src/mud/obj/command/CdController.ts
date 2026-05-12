@@ -21,8 +21,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -40,12 +39,12 @@ interface CdModel extends CommandModel {
 }
 
 export class CdController extends CommandController<CdModel> {
-  async execute(model: CdModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: CdModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
       this.tell(context, '\nthis character has no workspace\n');
       context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
-      return { success: false };
+      return;
     }
     if (model.mirror) {
       giver.mirrorCwd();
@@ -53,7 +52,7 @@ export class CdController extends CommandController<CdModel> {
         context,
         `\nmirrored: source cwd is now ${giver.getCwd('source')}\n`,
       );
-      return { success: true, summary: 'cwd mirrored' };
+      return;
     }
 
     const tree = giver.pickTree(model);
@@ -146,7 +145,7 @@ export class CdController extends CommandController<CdModel> {
     }
 
     this.tell(context, `\n${target}\n`);
-    return { success: true, summary: target };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -160,9 +159,9 @@ export class CdController extends CommandController<CdModel> {
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 }

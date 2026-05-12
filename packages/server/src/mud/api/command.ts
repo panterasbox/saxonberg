@@ -8,8 +8,8 @@
  * peers), there is no "global" command registry.
  *
  * Type surface lives here deliberately: controllers and MQL consumers
- * depend on this file to get `CommandContext`, `CommandResult`, etc., and
- * the view/model/field shapes that describe YAML-declared commands.
+ * depend on this file to get `CommandContext` and the view/model/field
+ * shapes that describe YAML-declared commands.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -328,25 +328,6 @@ export interface CommandContributions {
   inventory?: string[];
   environment?: string[];
   peers?: string[];
-}
-
-/**
- * Command execution result.
- *
- * Purely semantic — `success` answers "did the command achieve its
- * goal?" without coupling to messaging. All prose is fired via Scene
- * inside the controller body. `summary`, when present, decorates the
- * auto-emitted MudlogApi command-outcome entry — the default tail is
- * `'ok'` (success) or `'failed'` (failure).
- *
- * `pass: true` opts the controller out of the dispatch — the chain
- * tries the next match. A passing controller MUST NOT have observable
- * side effects (no Scene firing, no world-state mutation).
- */
-export interface CommandResult {
-  success: boolean;
-  pass?: boolean;
-  summary?: Mml | string;
 }
 
 /**
@@ -1195,9 +1176,10 @@ export class CommandApi {
   /**
    * Run MQL resolution on `type: object` fields and execute
    * validators. On success the resolved model is returned; on
-   * failure the matcher emits a `CommandResult` with the failure
-   * summary and the chain treats it as a stop (this stage NEVER
-   * yields `pass: true` — only `controller.execute` does).
+   * failure the matcher emits a structured note onto the
+   * dispatch context (mql-error / validator-failed) and returns
+   * `{ result: 'failed' }` so the dispatcher can short-circuit
+   * without re-inspecting the context.
    *
    * Reads `command` from `context`; the active subcommand (if any)
    * is read from `model.subcommand`, which the matcher stamped at
@@ -1207,7 +1189,7 @@ export class CommandApi {
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: CommandResult } {
+  ): { resolved: CommandModel } | { result: 'failed' } {
     const command = context.command;
     const subcommand =
       typeof model[SUBCOMMAND_FIELD] === 'string'
@@ -1266,12 +1248,7 @@ export class CommandApi {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
-          return {
-            result: {
-              success: false,
-              summary: err instanceof Error ? err.message : String(err),
-            },
-          };
+          return { result: 'failed' };
         }
         // Empty results are a normal outcome — pass `[]` through
         // on the wrapper and let the controller decide what
@@ -1303,12 +1280,7 @@ export class CommandApi {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
-          return {
-            result: {
-              success: false,
-              summary: err instanceof Error ? err.message : String(err),
-            },
-          };
+          return { result: 'failed' };
         }
         // `null` (empty) is a normal outcome — pass it through on
         // the wrapper and let the controller decide what no-match
@@ -1364,12 +1336,7 @@ export class CommandApi {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
-          return {
-            result: {
-              success: false,
-              summary: err instanceof Error ? err.message : String(err),
-            },
-          };
+          return { result: 'failed' };
         }
         const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1393,12 +1360,7 @@ export class CommandApi {
             stage: 'resolve',
             detail: err instanceof Error ? err.message : String(err),
           });
-          return {
-            result: {
-              success: false,
-              summary: err instanceof Error ? err.message : String(err),
-            },
-          };
+          return { result: 'failed' };
         }
         const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1424,7 +1386,7 @@ export class CommandApi {
             validator: 'verb',
             detail: err,
           });
-          return { result: { success: false, summary: err } };
+          return { result: 'failed' };
         }
       }
     }
@@ -1439,7 +1401,7 @@ export class CommandApi {
           validator: 'field',
           detail: err,
         });
-        return { result: { success: false, summary: err } };
+        return { result: 'failed' };
       }
     }
 
@@ -1454,7 +1416,7 @@ export class CommandApi {
           validator: 'option',
           detail: err,
         });
-        return { result: { success: false, summary: err } };
+        return { result: 'failed' };
       }
     }
     // Payload-field validators — same shape as options (payload is
@@ -1469,7 +1431,7 @@ export class CommandApi {
           validator: 'payload',
           detail: err,
         });
-        return { result: { success: false, summary: err } };
+        return { result: 'failed' };
       }
     }
     if (subcommand) {
@@ -1484,7 +1446,7 @@ export class CommandApi {
             validator: `subcommand:${subcommand}`,
             detail: err,
           });
-          return { result: { success: false, summary: err } };
+          return { result: 'failed' };
         }
       }
     }
@@ -1552,7 +1514,7 @@ export class CommandApi {
     giver: Stuff & CommandGiver,
     text: string,
     opts: ExecuteCommandOpts = {}
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     return giver.executeCommand(text, { ...opts, forced: true });
   }
 

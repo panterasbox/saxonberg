@@ -124,9 +124,10 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('emits an input echo at system.log.command.info for parseable input', async () => {
-    const result = await giver.executeCommand('ping');
+    await giver.executeCommand('ping');
 
-    expect(result.success).toBe(true);
+    expect(giver.envelopes).toHaveLength(1);
+    expect((giver.envelopes[0] as DispatchResponseEnvelope).outcome.status).toBe('ok');
     expect(giver.received).toHaveLength(1);
     expect(giver.received[0]!.topic).toBe('system.log.command.info');
     expect(giver.received[0]!.body).toContain('ping');
@@ -172,9 +173,8 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('unknown verb produces a command-rejected envelope with reason unknown-verb', async () => {
-    const result = await giver.executeCommand('nope');
+    await giver.executeCommand('nope');
 
-    expect(result.success).toBe(false);
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
     expect(env.outcome.status).toBe('declined');
@@ -225,7 +225,9 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // ExecutionContextApi from inside a controller body — the
     // baseline test below uses getCommandStack within a custom
     // `peek` command added on a sibling avatar.
-    const result = await CommandApi.forceCommand(giver, 'ping');
-    expect(result.success).toBe(true);
+    await CommandApi.forceCommand(giver, 'ping');
+    // forceCommand returns void in v1; envelope on the giver
+    // is the source of outcome truth.
+    expect((giver.envelopes.at(-1) as DispatchResponseEnvelope).outcome.status).toBe('ok');
   });
 });

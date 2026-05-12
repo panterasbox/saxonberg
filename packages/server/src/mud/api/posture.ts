@@ -27,7 +27,7 @@ import { SecurityApi } from './security';
 /**
  * Outcome of `transferPosture`. On success the controller emits its
  * verb-specific narration; on failure the summary is user-facing
- * and bubbles through `CommandResult`. `verb` is folded into the
+ * and bubbles through ``. `verb` is folded into the
  * "no-accepting-slot" message ("you can't `sit` on the wallpaper")
  * since that's the one failure mode where verb name reads naturally.
  *

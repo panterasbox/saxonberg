@@ -83,12 +83,10 @@ describe('WeighController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new WeighController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ target: { stuff: sword, raw: 'sword' } }),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(true);
-    expect(String(result.summary)).toContain('3 kg');
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity unit="kg"');
     expect(frame.body).toContain('value="3"');

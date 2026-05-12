@@ -14,8 +14,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -38,7 +37,7 @@ export class GetController extends CommandController<GetModel> {
   async execute(
     model: GetModel,
     context: CommandContext
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const { stuff, quantity, raw } = model.targets;
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
@@ -84,14 +83,14 @@ export class GetController extends CommandController<GetModel> {
     here: readonly Stuff[],
     raw: string,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
         .topic(MessageApi.Topics.world.perception.inventory)
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
-      return { success: false };
+      return;
     }
     const pickedNames: string[] = [];
     for (const target of targets) {
@@ -114,9 +113,9 @@ export class GetController extends CommandController<GetModel> {
         reason: 'nothing-picked-up',
         detail: 'nothing picked up',
       });
-      return { success: false };
+      return;
     }
-    return { success: true, summary: pickedNames.join(', ') };
+    return;
   }
 
   private renderResult(
@@ -134,7 +133,7 @@ export class GetController extends CommandController<GetModel> {
     },
     raw: string,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     let clampedSuffix = '';
     for (const note of result.notes) {
       switch (note.kind) {
@@ -148,7 +147,7 @@ export class GetController extends CommandController<GetModel> {
             field: 'targets',
             query: raw,
           });
-          return { success: false };
+          return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
             .topic(MessageApi.Topics.world.perception.inventory)
@@ -160,7 +159,7 @@ export class GetController extends CommandController<GetModel> {
             requested: note.requested,
             available: note.available,
           });
-          return { success: false };
+          return;
         case 'quantity-clamped':
           clampedSuffix = ` (only ${note.applied} available)`;
           context.note({
@@ -190,16 +189,13 @@ export class GetController extends CommandController<GetModel> {
         reason: 'nothing-picked-up',
         detail: 'nothing picked up',
       });
-      return { success: false };
+      return;
     }
 
     const pickedNames = result.payloads
       .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
       .join(', ');
-    return {
-      success: true,
-      summary: `${pickedNames}${clampedSuffix}`,
-    };
+    return;
   }
 
   /**

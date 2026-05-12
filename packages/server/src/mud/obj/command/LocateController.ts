@@ -7,8 +7,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -21,7 +20,7 @@ interface LocateModel extends CommandModel {
 }
 
 export class LocateController extends CommandController<LocateModel> {
-  execute(model: LocateModel, context: CommandContext): CommandResult {
+  execute(model: LocateModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
@@ -50,7 +49,7 @@ export class LocateController extends CommandController<LocateModel> {
       context,
       `\n${chain[0]}\n${display}\n`,
     );
-    return { success: true, summary: chain.join(' > ') };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -64,9 +63,9 @@ export class LocateController extends CommandController<LocateModel> {
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 }

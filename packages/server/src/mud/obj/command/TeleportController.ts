@@ -33,8 +33,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -53,7 +52,7 @@ interface TeleportModel extends CommandModel {
 }
 
 export class TeleportController extends CommandController<TeleportModel> {
-  execute(model: TeleportModel, context: CommandContext): CommandResult {
+  execute(model: TeleportModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
@@ -100,7 +99,7 @@ export class TeleportController extends CommandController<TeleportModel> {
           context,
           `\nteleported ${targetName} to ${destName}\n`,
         );
-        return { success: true, summary: `${targetName} → ${destName}` };
+        return;
       } catch (err) {
         if (!(err instanceof ContainmentError)) throw err;
         // Mobile-level veto: fall through to the move-op fallback.
@@ -120,7 +119,7 @@ export class TeleportController extends CommandController<TeleportModel> {
       context,
       `\nrelocated ${targetName} to ${destName} (fallback path)\n`,
     );
-    return { success: true, summary: `${targetName} → ${destName}` };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -134,10 +133,10 @@ export class TeleportController extends CommandController<TeleportModel> {
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 
   /**

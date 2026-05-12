@@ -15,8 +15,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
@@ -28,7 +27,7 @@ interface HelpModel extends CommandModel {
 }
 
 export class HelpController extends CommandController<HelpModel> {
-  execute(model: HelpModel, context: CommandContext): CommandResult {
+  execute(model: HelpModel, context: CommandContext): void {
     switch (model.subcommand) {
       case 'verb':
         return model.name
@@ -44,11 +43,11 @@ export class HelpController extends CommandController<HelpModel> {
     }
   }
 
-  private listCommands(context: CommandContext): CommandResult {
+  private listCommands(context: CommandContext): void {
     const commands = context.commandGiver.getAvailableCommands();
     if (commands.length === 0) {
       this.tell(context, Mml.compose`\nNo commands available.\n`);
-      return { success: true, summary: 'no commands' };
+      return;
     }
     commands.sort((a, b) =>
       a.getPrimaryVerb().localeCompare(b.getPrimaryVerb()),
@@ -64,13 +63,13 @@ export class HelpController extends CommandController<HelpModel> {
     lines.push('"help api <Type>" for api docs, or "help search <q>".');
     lines.push('');
     this.tell(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${commands.length} commands` };
+    return;
   }
 
   private showVerbHelp(
     commandName: string,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     const commands = context.commandGiver.getAvailableCommands();
     const command = commands.find((cmd) => {
       const verbs = cmd.verbs || [cmd.getPrimaryVerb()];
@@ -83,7 +82,7 @@ export class HelpController extends CommandController<HelpModel> {
         reason: 'unknown-command',
         detail: commandName,
       });
-      return { success: false };
+      return;
     }
     const lines: string[] = ['', `Command: ${command.getPrimaryVerb()}`, ''];
     if (command.description) {
@@ -107,13 +106,13 @@ export class HelpController extends CommandController<HelpModel> {
       lines.push('');
     }
     this.tell(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: command.getPrimaryVerb() };
+    return;
   }
 
   private showApiHelp(
     target: string | undefined,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!target) {
       this.tell(
         context,
@@ -122,7 +121,7 @@ export class HelpController extends CommandController<HelpModel> {
             `(api index pipeline pending — see docs/subsystems/ for now)\n`,
         ),
       );
-      return { success: true };
+      return;
     }
     // v1 placeholder: the JSDoc-derived JSON index is a follow-on
     // landing; once it ships this branch reads from
@@ -134,13 +133,13 @@ export class HelpController extends CommandController<HelpModel> {
           `Browse the source under packages/server/src/mud/api/ for now.\n`,
       ),
     );
-    return { success: true, summary: `api ${target}` };
+    return;
   }
 
   private showSearchResults(
     query: string,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!query) {
       this.tell(context, Mml.fromMarkup(`\nUsage: help search <query>\n`));
       context.note({
@@ -148,7 +147,7 @@ export class HelpController extends CommandController<HelpModel> {
         reason: 'missing-query',
         detail: 'no query',
       });
-      return { success: false };
+      return;
     }
     const needle = query.toLowerCase();
     const commands = context.commandGiver.getAvailableCommands();
@@ -158,7 +157,7 @@ export class HelpController extends CommandController<HelpModel> {
     });
     if (hits.length === 0) {
       this.tell(context, Mml.fromMarkup(`\nNo matches for '${query}'.\n`));
-      return { success: true, summary: 'no matches' };
+      return;
     }
     const lines: string[] = ['', `Matches for '${query}':`, ''];
     for (const cmd of hits) {
@@ -168,7 +167,7 @@ export class HelpController extends CommandController<HelpModel> {
     }
     lines.push('');
     this.tell(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${hits.length} matches` };
+    return;
   }
 
   private tell(context: CommandContext, body: Mml): void {

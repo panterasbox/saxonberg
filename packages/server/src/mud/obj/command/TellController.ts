@@ -6,8 +6,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
@@ -20,7 +19,7 @@ interface TellModel extends CommandModel {
 }
 
 export class TellController extends CommandController<TellModel> {
-  execute(model: TellModel, context: CommandContext): CommandResult {
+  execute(model: TellModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     const targetName = model.target;
     const message = model.message;
@@ -36,7 +35,7 @@ export class TellController extends CommandController<TellModel> {
         field: 'target',
         query: targetName,
       });
-      return { success: false };
+      return;
     }
 
     const speechFragment = Mml.speech(message);
@@ -54,7 +53,7 @@ export class TellController extends CommandController<TellModel> {
       })
       .send();
 
-    return { success: true, summary: `told ${target.getFullName()}` };
+    return;
   }
 
   private findAvatarByName(

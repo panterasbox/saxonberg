@@ -477,8 +477,15 @@ describe('AliasMixin — pipeline integration', () => {
 
   it('alias l = ping, then `l` invokes ping (alias fired)', async () => {
     giver.setAlias('l', 'ping', { actor: giver });
-    const result = await giver.executeCommand('l');
-    expect(result.success).toBe(true);
+    await giver.executeCommand('l');
+    // executeCommand returns void; the input-echo frame is the
+    // proof the dispatch ran the expanded form. ping's success path
+    // produces no controller failure — the implicit assertion is
+    // that the call completed without throwing.
+    const cmdFrame = giver.received.find((f) =>
+      String(f.topic ?? '').startsWith('system.log.command'),
+    );
+    expect(cmdFrame).toBeDefined();
   });
 
   it('input-echo payload carries expandedText when an alias fires', async () => {
@@ -527,7 +534,12 @@ describe('AliasMixin — pipeline integration', () => {
     }
     const npc = makeStuff(() => new Npc());
     ContainmentApi.move(npc, location);
-    const result = await npc.executeCommand('ping');
-    expect(result.success).toBe(true);
+    await npc.executeCommand('ping');
+    // No alias on the NPC, dispatch flows through directly. The
+    // input-echo frame proves the call ran.
+    const cmdFrame = npc.received.find((f) =>
+      String(f.topic ?? '').startsWith('system.log.command'),
+    );
+    expect(cmdFrame).toBeDefined();
   });
 });

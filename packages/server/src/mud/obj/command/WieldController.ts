@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -25,7 +24,7 @@ interface WieldModel extends CommandModel {
 }
 
 export class WieldController extends CommandController<WieldModel> {
-  execute(model: WieldModel, context: CommandContext): CommandResult {
+  execute(model: WieldModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
@@ -38,7 +37,7 @@ export class WieldController extends CommandController<WieldModel> {
         field: 'target',
         query: model.target.raw,
       });
-      return { success: false };
+      return;
     }
     if (!MixinApi.isWieldable(target)) {
       throw new Error(
@@ -57,7 +56,7 @@ export class WieldController extends CommandController<WieldModel> {
         .toSelf(Mml.compose`You have no body plan.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
-      return { success: false };
+      return;
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     if (slots.length === 0) {
@@ -72,7 +71,7 @@ export class WieldController extends CommandController<WieldModel> {
         reason: 'wrong-fit',
         detail: `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your hands`,
       });
-      return { success: false };
+      return;
     }
     for (const slot of slots) {
       if (giver.isSlotFull(slot)) {
@@ -85,7 +84,7 @@ export class WieldController extends CommandController<WieldModel> {
           host: MessageApi.refOf(giver),
           slot,
         });
-        return { success: false };
+        return;
       }
     }
     // SlotApi.occupyAll may throw on race or shape violations;
@@ -98,6 +97,6 @@ export class WieldController extends CommandController<WieldModel> {
         Mml.compose`${Mml.name(giver)} wields ${Mml.item(target)}.`
       )
       .send();
-    return { success: true };
+    return;
   }
 }

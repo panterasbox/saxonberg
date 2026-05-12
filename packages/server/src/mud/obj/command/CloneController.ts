@@ -32,8 +32,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -55,7 +54,7 @@ interface CloneModel extends CommandModel {
 }
 
 export class CloneController extends CommandController<CloneModel> {
-  async execute(model: CloneModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: CloneModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
     // 1. Resolve the template path.
@@ -112,10 +111,7 @@ export class CloneController extends CommandController<CloneModel> {
         context,
         `\ncloned ${path} → ${name} (${cloned.stuffId}); not Containable, left unplaced\n`,
       );
-      return {
-        success: true,
-        summary: `cloned ${path} (unplaced)`,
-      };
+      return;
     }
 
     try {
@@ -125,10 +121,7 @@ export class CloneController extends CommandController<CloneModel> {
         context,
         `\ncloned ${path} → ${name} (${cloned.stuffId}); placement failed: ${(err as Error).message}\n`,
       );
-      return {
-        success: true,
-        summary: `cloned ${path} (placement failed)`,
-      };
+      return;
     }
 
     const destName = DescribeApi.getDisplayName(dest, 'somewhere');
@@ -136,7 +129,7 @@ export class CloneController extends CommandController<CloneModel> {
       context,
       `\ncloned ${path} → ${name} (${cloned.stuffId}) into ${destName}\n`,
     );
-    return { success: true, summary: `cloned ${path} → ${destName}` };
+    return;
   }
 
   /**
@@ -198,9 +191,9 @@ export class CloneController extends CommandController<CloneModel> {
     context: CommandContext,
     detail: string,
     reason: string = 'unspecified',
-  ): CommandResult {
+  ): void {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
-    return { success: false, summary: detail };
+    return;
   }
 }
