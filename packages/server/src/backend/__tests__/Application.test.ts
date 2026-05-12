@@ -27,7 +27,10 @@ import type { IBackend } from '../IBackend';
 import type { Interactive } from '../../mud/obj/Interactive';
 import type { Container } from '../../mud/lib/spatial/Container';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
-import type { PassportGoogleProfile } from '@saxonberg/types';
+import type {
+  MessageFrame,
+  PassportGoogleProfile,
+} from '@saxonberg/types';
 
 interface FakeBackend extends IBackend {
   sent: Array<{ socketId: string; message: unknown }>;
@@ -117,24 +120,34 @@ describe('Application', () => {
   });
 
   describe('sendMessageToInteractive', () => {
-    it('forwards the message to the interactive\'s socket via Backend', () => {
+    const makeFrame = (topic: string, body: string): MessageFrame => ({
+      id: 'test-frame-id',
+      topic,
+      body,
+      meta: { timestamp: 0 },
+    });
+
+    it('forwards the frame to the interactive\'s socket via Backend with frameId stamped', () => {
       const ix = makeFakeInteractive('sock-1');
-      app.sendMessageToInteractive(ix, { hello: 'world' });
-      expect(backend.sent).toEqual([
-        { socketId: 'sock-1', message: { hello: 'world' } },
-      ]);
+      app.sendMessageToInteractive(ix, makeFrame('test', 'hello'));
+      expect(backend.sent).toHaveLength(1);
+      const stamped = backend.sent[0]!.message as MessageFrame;
+      expect(backend.sent[0]!.socketId).toBe('sock-1');
+      expect(stamped.topic).toBe('test');
+      expect(stamped.body).toBe('hello');
+      expect(stamped.meta.frameId).toBe(1);
     });
 
     it('is a no-op when the interactive\'s socketId is empty', () => {
       const ix = makeFakeInteractive('');
-      app.sendMessageToInteractive(ix, { hello: 'world' });
+      app.sendMessageToInteractive(ix, makeFrame('test', 'hello'));
       expect(backend.sent).toEqual([]);
     });
 
     it('is a no-op when backend is not initialized', () => {
       app.initialize(null as unknown as IBackend);
       const ix = makeFakeInteractive('sock-1');
-      app.sendMessageToInteractive(ix, { hello: 'world' });
+      app.sendMessageToInteractive(ix, makeFrame('test', 'hello'));
       // No backend to send to — no throw, no observable effect.
       expect(backend.sent).toEqual([]);
     });

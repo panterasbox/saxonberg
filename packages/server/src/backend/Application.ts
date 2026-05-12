@@ -33,25 +33,6 @@ interface InboundClientMessage {
   payload?: unknown;
   id?: string;
 }
-
-/**
- * Best-effort discriminator: is `message` shaped like a `MessageFrame`?
- * Used by `sendMessageToInteractive` to decide whether to stamp
- * `meta.frameId`. Raw `{type, payload}` envelopes (error / auth
- * notifications) fall through untouched.
- */
-function isMessageFrame(message: unknown): message is MessageFrame {
-  if (typeof message !== 'object' || message === null) return false;
-  const m = message as Partial<MessageFrame>;
-  return (
-    typeof m.id === 'string' &&
-    typeof m.topic === 'string' &&
-    typeof m.body === 'string' &&
-    typeof m.meta === 'object' &&
-    m.meta !== null &&
-    typeof m.meta.timestamp === 'number'
-  );
-}
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
@@ -96,27 +77,28 @@ export class Application {
   }
 
   /**
-   * Send a message to a specific Interactive's client. Sole gateway for
-   * game objects to reach Backend — Application owns Backend communication.
+   * Send a `MessageFrame` to a specific Interactive's client. Sole
+   * gateway for game objects to reach Backend — Application owns
+   * Backend communication. Stamps `meta.frameId` per-Interactive at
+   * send-time so multi-device Avatars receive monotonic streams from
+   * each Interactive's perspective.
    *
-   * For `MessageFrame` payloads the meta gets a `frameId` stamped
-   * per-Interactive at send-time, so multi-device Avatars receive
-   * monotonic streams from each Interactive's perspective. Non-frame
-   * payloads (raw `{type, payload}` shapes used by error/auth) pass
-   * through unchanged.
+   * Error / auth notifications (raw `{type, payload}` shapes) go
+   * directly through `Backend.sendMessageToSocket` and bypass this
+   * chokepoint — they're not Sensor-pipeline frames and have no
+   * `frameId` to stamp.
    */
-  public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
+  public sendMessageToInteractive(
+    interactive: Interactive,
+    frame: MessageFrame,
+  ): void {
     const socketId = interactive.getSocketId();
     if (!this.backend || !socketId) return;
-    if (isMessageFrame(message)) {
-      const stamped: MessageFrame = {
-        ...message,
-        meta: { ...message.meta, frameId: interactive.nextFrameId() },
-      };
-      this.backend.sendMessageToSocket(socketId, stamped);
-      return;
-    }
-    this.backend.sendMessageToSocket(socketId, message);
+    const stamped: MessageFrame = {
+      ...frame,
+      meta: { ...frame.meta, frameId: interactive.nextFrameId() },
+    };
+    this.backend.sendMessageToSocket(socketId, stamped);
   }
 
   /**
