@@ -109,17 +109,13 @@ export abstract class Stuff {
   #templatePath: string | null = null;
 
   /**
-   * Read seam. Instance method, but unwraps via `RAW_TARGET` before
-   * reaching the `#` slot — `this` inside an instance method called
-   * through the proxy is the proxy, and the `#` slot lives on the
-   * raw target.
+   * Read seam. Instance method, but unwraps via `ProxyApi.unwrap`
+   * before reaching the `#` slot — `this` inside an instance method
+   * called through the proxy is the proxy, and the `#` slot lives
+   * on the raw target.
    */
   public getTemplatePath(): string | null {
-    const raw =
-      ((this as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? (this as unknown as Stuff);
-    return raw.#templatePath;
+    return ProxyApi.unwrap(this as unknown as Stuff).#templatePath;
   }
 
   /**
@@ -135,17 +131,14 @@ export abstract class Stuff {
    * forgot the index call (or a shadow that intercepted) would
    * silently desync `byTemplatePath`.
    *
-   * Unwraps via `RAW_TARGET` so the `#`-slot access lands on the
-   * raw target (see comment on `#templatePath` above).
+   * Unwraps via `ProxyApi.unwrap` so the `#`-slot access lands on
+   * the raw target (see comment on `#templatePath` above).
    */
   @Final
   @Unshadowable
   @CallSecurity(SecurityPolicies.ApiOnly)
   public setTemplatePath(path: string): void {
-    const raw =
-      ((this as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? (this as unknown as Stuff);
+    const raw = ProxyApi.unwrap(this as unknown as Stuff);
     if (raw.#templatePath === path) return;
     const prev = raw.#templatePath;
     raw.#templatePath = path;
@@ -175,11 +168,7 @@ export abstract class Stuff {
     path: string | null
   ): void {
     Stuff.#assertStampGateAllowed('_stampTemplatePath');
-    const raw =
-      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? stuff;
-    raw.#templatePath = path;
+    ProxyApi.unwrap(stuff).#templatePath = path;
   }
 
   /**
@@ -275,11 +264,7 @@ export abstract class Stuff {
    * instance method called through the proxy is the proxy.
    */
   public getZone(): SpatialZone | null {
-    const raw =
-      ((this as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? (this as unknown as Stuff);
-    return raw.#zone;
+    return ProxyApi.unwrap(this as unknown as Stuff).#zone;
   }
 
   /**
@@ -305,11 +290,7 @@ export abstract class Stuff {
   @Unshadowable
   @CallSecurity(FromSpatialZone)
   public setZone(value: SpatialZone | null): void {
-    const raw =
-      ((this as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? (this as unknown as Stuff);
-    raw.#zone = value;
+    ProxyApi.unwrap(this as unknown as Stuff).#zone = value;
   }
 
   /**
@@ -328,11 +309,7 @@ export abstract class Stuff {
    */
   public static _stampZone(stuff: Stuff, zone: SpatialZone | null): void {
     Stuff.#assertStampGateAllowed('_stampZone');
-    const raw =
-      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? stuff;
-    raw.#zone = zone;
+    ProxyApi.unwrap(stuff).#zone = zone;
   }
 
   /**
@@ -381,23 +358,15 @@ export abstract class Stuff {
    * because the slot's invariants depend on this single call site.
    */
   public static touch(stuff: Stuff): void {
-    const raw =
-      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? stuff;
-    raw.#lastTouchMs = Date.now();
+    ProxyApi.unwrap(stuff).#lastTouchMs = Date.now();
   }
 
   /**
    * Read seam for `#lastTouchMs`. Used by the future GC sweep.
-   * Same unwrap-via-RAW_TARGET pattern as `touch`.
+   * Same `ProxyApi.unwrap` pattern as `touch`.
    */
   public static getLastTouchMs(stuff: Stuff): number {
-    const raw =
-      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
-        ProxyApi.RAW_TARGET
-      ] ?? stuff;
-    return raw.#lastTouchMs;
+    return ProxyApi.unwrap(stuff).#lastTouchMs;
   }
 
   /**

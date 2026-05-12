@@ -23,6 +23,11 @@
  *     orphans and invites self-destruct per the spawn's own policy.
  *     Subclasses may override `onDestruct` on the Spawner side to
  *     opt in to cascade-destruct or transfer behavior.
+ *   - **Singular-Spawner invariant.** A Spawned has at most one
+ *     Spawner at a time. `trackSpawn` auto-untracks from any prior
+ *     Spawner atomically — keeps the back-pointer and the
+ *     collection in sync; closes the leak window where the previous
+ *     Spawner would silently retain the entry after a hand-off.
  *
  * The method surface uses gameplay-aware names (`trackSpawn` /
  * `untrackSpawn`) rather than the generic `addX` / `removeX` /
@@ -73,9 +78,21 @@ export function SpawnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public trackSpawn(spawned: Stuff & Spawned): void {
       if (this._spawned.has(spawned)) return;
+      // Singular-Spawner invariant: a Spawned has at most one
+      // Spawner at a time. If the spawn already names a different
+      // Spawner, untrack from that one first — otherwise the
+      // previous Spawner's collection would silently leak the
+      // entry, and R2.4 cleanup on destruct wouldn't reach it
+      // (only the current `getSpawner()` is consulted). Same shape
+      // as a "recruiter steals a wild monster" gameplay pattern:
+      // ownership transfers atomically.
+      const existing = spawned.getSpawner();
+      const self = this as unknown as Stuff & Spawner;
+      if (existing !== null && existing !== self) {
+        existing.untrackSpawn(spawned);
+      }
       this._spawned.add(spawned);
-      // Mirror to the held side; idempotent setter on Spawned.
-      spawned.setSpawner(this as unknown as Stuff & Spawner);
+      spawned.setSpawner(self);
     }
 
     public untrackSpawn(spawned: Stuff & Spawned): boolean {

@@ -22,8 +22,10 @@ behavior. Read the relevant doc before editing in its area.
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
   with the correct alternative for each (lookup-table style)
 - [docs/ref-shapes.md](./docs/ref-shapes.md) — three reference shapes
-  for fields pointing at other Stuff (string-by-path for singletons /
-  live Stuff ref for instances / lazy materialization), method-surface
+  for fields pointing at other Stuff (Pattern A path-string for
+  singletons, Pattern B live ref for within-session instances,
+  Pattern C resolve-on-read for cross-scope singletons), the
+  R2.1–R2.4 cleanup rules for live-ref fields, method-surface
   conventions, exemplars, antipatterns
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
@@ -448,7 +450,8 @@ bypass it. Common cases:
 | `resolveSetting(actor, 'movement.defaultMode') ?? 'walk'` | `LocomotionApi.defaultModeFor(actor)` — three-tier chain: explicit setting → bodyplan default → universe 'walk' (the raw resolveSetting skips the bodyplan layer for NPCs) |
 | `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
 | `(stuff as unknown as { templatePath? }).templatePath` | `stuff.getTemplatePath()` (runtime stamp). For `Template` docs use `template.path` — the two are distinct. |
-| `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated method on `Stuff`; re-keys `byTemplatePath` for you) |
+| `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated, re-keys `byTemplatePath`). The slot is hard-private (`#templatePath`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampTemplatePath` seam. |
+| `(stuff as { zone? }).zone = z` | `stuff.setZone(z)` (gated by `FromSpatialZone` — only `SpatialZone` subclasses may call). Slot is hard-private (`#zone`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampZone` seam. |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).

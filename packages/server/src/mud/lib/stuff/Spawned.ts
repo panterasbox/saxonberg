@@ -56,20 +56,19 @@ export function SpawnedMixin<TBase extends MixinConstructor<Stuff>>(
      * (`Spawner.untrackSpawn`) clears the back-pointer too — but
      * we read `getSpawner()` before the untrack call so the lookup
      * doesn't itself depend on the back-pointer being intact.
+     *
+     * Single-op handler: no internal try/catch. The dispatcher's
+     * outer per-handler try/catch in `StuffApi.#destructCore`
+     * logs-and-continues if `untrackSpawn` throws. Same shape as
+     * `Containable.cleanupOnDestruct`. Collection-walking handlers
+     * (`Container`, `Slottable`, `Slotted`) wrap per-iteration
+     * because one bad item must not strand the rest.
      */
     static cleanupOnDestruct(stuff: Stuff): void {
       const self = stuff as Stuff & Spawned;
       const spawner = self.getSpawner();
       if (spawner) {
-        try {
-          spawner.untrackSpawn(self);
-        } catch (err) {
-          console.error(
-            `SpawnedMixin.cleanupOnDestruct: failed to untrack ` +
-              `${self.stuffId} from spawner ${spawner.stuffId}`,
-            err
-          );
-        }
+        spawner.untrackSpawn(self);
       }
     }
 

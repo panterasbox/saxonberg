@@ -179,6 +179,10 @@ export class Exit extends Idea {
    * the ref in `_destination` (Pattern B within-session). NEVER
    * caches a previous path-resolution into the live-ref slot — that
    * was the rule the ref-shapes design dropped.
+   *
+   * Both slots are written symmetrically: whichever branch the new
+   * destination takes, the other slot is cleared so the getter's
+   * resolution order can never see stale conflicting state.
    */
   protected set destination(value: Stuff & Container) {
     const path = value.getTemplatePath();
@@ -187,6 +191,7 @@ export class Exit extends Idea {
       this._destination = null;
     } else {
       this._destination = value;
+      this._destinationPath = null;
     }
   }
 

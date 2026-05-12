@@ -213,7 +213,7 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   public override onDestruct(): void {
     const clade = this.getParentClade();
     if (clade) {
-      clade.removeSpecies(this as unknown as Species);
+      clade.removeSpecies(this);
     }
     super.onDestruct();
   }

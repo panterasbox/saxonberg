@@ -95,21 +95,41 @@ describe('Spawner / Spawned cleanup', () => {
     expect(nest.hasSpawned(baby)).toBe(false);
   });
 
-  it('a Spawned re-tracked by a different Spawner keeps the new back-pointer', () => {
+  it('singular-Spawner invariant: re-tracking transfers ownership atomically', () => {
+    // Hand-off scenario (e.g., a recruiter steals a wild monster).
+    // `trackSpawn` on the new owner auto-untracks from the previous
+    // owner so the previous collection doesn't silently leak the
+    // entry and R2.4 cleanup remains correct.
     const nestA = makeStuff(() => new Nest());
     const nestB = makeStuff(() => new Nest());
     const baby = makeStuff(() => new Hatchling());
 
     nestA.trackSpawn(baby);
-    // Simulate a hand-off: nestB starts tracking; baby's spawner
-    // is now nestB. Removing baby from nestA at this point must
-    // not clear baby's back-pointer (it now names nestB).
-    nestB.trackSpawn(baby);
-    expect(baby.getSpawner()).toBe(nestB);
+    expect(nestA.hasSpawned(baby)).toBe(true);
 
-    nestA.untrackSpawn(baby);
+    nestB.trackSpawn(baby);
+    // Ownership has fully transferred.
     expect(baby.getSpawner()).toBe(nestB);
     expect(nestB.hasSpawned(baby)).toBe(true);
+    // A's collection no longer contains baby — auto-untrack ran.
+    expect(nestA.hasSpawned(baby)).toBe(false);
+  });
+
+  it('destruct after ownership transfer cleans the new owner (not the old)', () => {
+    // Regression for the pre-auto-untrack bug: if baby destructed
+    // while A still listed it, A's collection would leak the dead
+    // entry because R2.4 cleanup only consults baby.getSpawner().
+    const nestA = makeStuff(() => new Nest());
+    const nestB = makeStuff(() => new Nest());
+    const baby = makeStuff(() => new Hatchling());
+
+    nestA.trackSpawn(baby);
+    nestB.trackSpawn(baby); // auto-untracks from nestA
+
+    StuffApi.destruct(baby);
+
+    expect(nestB.hasSpawned(baby)).toBe(false);
+    expect(nestA.hasSpawned(baby)).toBe(false);
   });
 
   // Silence unused-import warnings when test refactors strip Stuff
