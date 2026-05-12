@@ -118,14 +118,25 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      *
      * Enforces:
      *   - `Globbable ⊥ Container` — globs aren't containers.
+     *   - `Globbable ⊥ Singleton` — singletons are one-instance-per-
+     *     templatePath; splitting would need a second instance at
+     *     the same path and `StuffApi.clone` would refuse it.
      *   - `globIdentityFields ⊂ persistentFields` — identity fields
      *     must survive save/load.
      */
     static __validateComposition__(ctor: AnyConstructor): void {
+      const name = (ctor as { name?: string }).name ?? 'class';
       if (MixinApi.hasMixin(ctor, Mixins.Container)) {
         throw new Error(
-          `${(ctor as { name?: string }).name ?? 'class'} composes ` +
-            `GlobbableMixin and ContainerMixin; globs cannot be containers.`
+          `${name} composes GlobbableMixin and ContainerMixin; ` +
+            `globs cannot be containers.`
+        );
+      }
+      if (MixinApi.hasMixin(ctor, Mixins.Singleton)) {
+        throw new Error(
+          `${name} composes GlobbableMixin and SingletonMixin; ` +
+            `globs split into siblings at the same templatePath, ` +
+            `which SingletonMixin rejects.`
         );
       }
       const idFields = MixinApi.getAllGlobIdentityFields(ctor);
@@ -134,9 +145,9 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
       for (const f of idFields) {
         if (!persisted.has(f)) {
           throw new Error(
-            `${(ctor as { name?: string }).name ?? 'class'}: ` +
-              `globIdentityFields entry '${f}' is not in persistentFields. ` +
-              `Glob-identity fields must round-trip through hydration.`
+            `${name}: globIdentityFields entry '${f}' is not in ` +
+              `persistentFields. Glob-identity fields must round-trip ` +
+              `through hydration.`
           );
         }
       }

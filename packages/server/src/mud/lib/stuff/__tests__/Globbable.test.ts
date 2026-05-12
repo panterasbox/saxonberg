@@ -15,6 +15,7 @@ import { Shadow } from '../Shadow';
 import { Shadowing } from '../../security/decorators';
 import { GlobbableMixin } from '../Globbable';
 import { ContainerMixin } from '../../spatial/Container';
+import { SingletonMixin } from '../Singleton';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -168,6 +169,15 @@ describe('GlobbableMixin', () => {
       }
       expect(() => makeStuff(() => new BadStack())).toThrow(
         /globs cannot be containers/
+      );
+    });
+
+    it('throws when a class composes both Globbable and Singleton (splits collide)', () => {
+      class SingletonGlob extends GlobbableMixin(SingletonMixin(Idea)) {
+        static _mixinName = 'SingletonGlob';
+      }
+      expect(() => makeStuff(() => new SingletonGlob())).toThrow(
+        /SingletonMixin/
       );
     });
 

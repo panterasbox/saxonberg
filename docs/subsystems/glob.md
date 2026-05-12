@@ -16,8 +16,12 @@ Pieces:
 - **`Mixins.Globbable` / `MixinApi.isGlobbable`** — registry constant
   and predicate, same pattern as every other mixin.
 - **`GlobbableApi`** (`api/glob.ts`) — `split`, `merge`, `canMerge`,
-  `formatName`, and the `applyQuantity` workhorse used by every
-  quantity-bearing controller.
+  and the `applyQuantity` workhorse used by every quantity-bearing
+  controller.
+- **`DescribeApi.formatName`** — count-aware display naming
+  (`"30 coins"`); pluralization defers to `GrammarApi.pluralize`.
+  Lives on the description Api, not Globbable, because presentation
+  is its concern.
 - **`ContainmentApi.placeDirect`** — fresh-placement primitive used
   by split. Bypasses arrival/leave witnesses, capacity validators,
   and the merge-on-arrival ripple. Gated `ApiOnly`.
@@ -89,10 +93,19 @@ reload).
 
 ### Composition constraints
 
-`Globbable ⊥ Container` — a glob is not a container, so composing
-both at the class level throws at first registration. The same
-`__validateComposition__` hook runs `globIdentityFields ⊂
-persistentFields`.
+Three constraints enforced at first registration via
+`__validateComposition__` (called by `MixinApi.assertComposable`):
+
+- `Globbable ⊥ Container` — a glob is not a container.
+- `Globbable ⊥ Singleton` — singletons are one-instance-per-
+  templatePath; `split` produces a sibling at the same path that
+  `StuffApi.clone` would refuse for a singleton class.
+- `globIdentityFields ⊂ persistentFields` — identity fields must
+  round-trip through hydration.
+
+All three throw at first instance registration; the check is
+memoized per concrete class identity (HMR-aware: replacing a class
+binding re-validates against the new chain).
 
 ### Defaults
 
@@ -120,6 +133,9 @@ GlobbableApi.split(source, n): Promise<Stuff & Globbable>
     onto the splitoff via the public method surface (`getX` / `setX`
     if present, falling back to direct property access).
   - Sets `splitoff.setQuantity(n)`; `source.setQuantity(M - n)`.
+  - The per-field copy goes through `StuffApi.copyField` — a general
+    Stuff-to-Stuff inter-stuff-contract primitive (`getX` / `setX`
+    when present, property access fallback).
   - **Places the splitoff via `ContainmentApi.placeDirect`** into
     `source.getContainer()` (codebase method name — the slate calls
     it `getEnvironment` colloquially). No arrival witnesses fire.
@@ -271,16 +287,20 @@ a loud explicit signal; v1 has no such verbs.
 
 ---
 
-## `GlobbableApi.formatName`
+## Display rendering — `DescribeApi.formatName`
+
+Count-aware naming lives on `DescribeApi`, not `GlobbableApi` —
+presentation belongs with the description Api:
 
 ```ts
-formatName(stuff: Stuff, fallback?: string): string
+DescribeApi.formatName(stuff: Stuff, fallback?: string): string
 ```
 
 Returns `count + " " + plural` when `stuff` is globbable with
 `getQuantity() > 1`; falls through to `DescribeApi.getDisplayName`
-otherwise. The naive plural is `name + 's'`; hosts declare a
-`getPluralForm()` override for irregulars (`"mouse"` → `"mice"`).
+otherwise. Pluralization defers to `GrammarApi.pluralize`, which
+respects host-side `getPluralForm()` overrides for irregulars
+(`"mouse"` → `"mice"`).
 
 ```
 1-stack coin   → "coin"

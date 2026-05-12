@@ -35,6 +35,7 @@ import type {
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
+import { DescribeApi } from '../../api/describe';
 import { GlobbableApi } from '../../api/glob';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -66,7 +67,9 @@ export class DropController extends CommandController<DropModel> {
       return this.executeWholeSet(stuff, raw, context);
     }
 
-    // Quantity present — defer to the helper.
+    // Quantity present — defer to the helper. Both paths drop each
+    // operand through `dropOperand`, so the move + scene-emission
+    // pair stays in one place.
     const inventory = ContainmentApi.getContents(giver);
     const inInventory = stuff.filter((s) =>
       inventory.some((it) => it.stuffId === s.stuffId)
@@ -76,18 +79,13 @@ export class DropController extends CommandController<DropModel> {
       inInventory,
       quantity,
       async (operand, applied) => {
-        if (!MixinApi.isContainable(operand)) {
-          throw new Error(
-            `DropController: operand ${operand.stuffId} is not Containable`
-          );
-        }
-        ContainmentApi.move(operand, context.location);
+        this.dropOperand(operand, context);
         return { ok: true, payload: { operand, applied } };
       },
       { query: raw }
     );
 
-    return this.renderResult(result, raw, giver, context);
+    return this.renderResult(result, raw);
   }
 
   private executeWholeSet(
@@ -101,15 +99,17 @@ export class DropController extends CommandController<DropModel> {
         summary: `you don't have any '${raw}' to drop`,
       };
     }
-    let successCount = 0;
+    const giver = context.commandGiver as Stuff;
+    const inventory = ContainmentApi.getContents(giver as never);
     const droppedNames: string[] = [];
     for (const target of targets) {
-      if (this.dropObject(target, context)) {
-        successCount++;
-        droppedNames.push(GlobbableApi.formatName(target, 'something'));
+      if (!inventory.some((item) => item.stuffId === target.stuffId)) {
+        continue;
       }
+      this.dropOperand(target, context);
+      droppedNames.push(DescribeApi.formatName(target, 'something'));
     }
-    if (successCount === 0) {
+    if (droppedNames.length === 0) {
       return { success: false, summary: 'nothing dropped' };
     }
     return { success: true, summary: droppedNames.join(', ') };
@@ -128,9 +128,7 @@ export class DropController extends CommandController<DropModel> {
       >;
       payloads: DropPayload[];
     },
-    raw: string,
-    giver: Stuff,
-    _context: CommandContext
+    raw: string
   ): CommandResult {
     // Inspect notes inline (envelope substrate stub per G1). The
     // kind-switch is exhaustive so future note kinds force a compile
@@ -163,13 +161,8 @@ export class DropController extends CommandController<DropModel> {
       return { success: false, summary: 'nothing dropped' };
     }
 
-    // Fire one scene per successful operand, then summarize.
-    for (const { operand } of result.payloads) {
-      this.fireDropScene(giver, operand);
-    }
-
     const droppedNames = result.payloads
-      .map(({ operand }) => GlobbableApi.formatName(operand, 'something'))
+      .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
       .join(', ');
     return {
       success: true,
@@ -177,32 +170,25 @@ export class DropController extends CommandController<DropModel> {
     };
   }
 
-  private dropObject(target: Stuff, context: CommandContext): boolean {
-    if (!MixinApi.isContainable(target)) {
+  /**
+   * Move one operand into the location and emit the per-operand
+   * scene. Shared by both the bareword whole-set path and the
+   * quantity-bearing `applyQuantity` action callback so the move +
+   * scene pair stays in one place.
+   */
+  private dropOperand(operand: Stuff, context: CommandContext): void {
+    if (!MixinApi.isContainable(operand)) {
       throw new Error(
-        `DropController: target ${target.stuffId} is not Containable`
+        `DropController: operand ${operand.stuffId} is not Containable`
       );
     }
-    const giver = context.commandGiver;
-    if (!MixinApi.isContainer(giver)) {
-      throw new Error(
-        `DropController: commandGiver ${giver.stuffId} is not a Container`
-      );
-    }
-    const inventory = ContainmentApi.getContents(giver);
-    if (!inventory.some((item) => item.stuffId === target.stuffId)) {
-      return false;
-    }
-    ContainmentApi.move(target, context.location);
-    this.fireDropScene(giver, target);
-    return true;
-  }
-
-  private fireDropScene(giver: Stuff, target: Stuff): void {
-    MessageApi.scene(giver)
+    ContainmentApi.move(operand, context.location);
+    MessageApi.scene(context.commandGiver)
       .topic(MessageApi.Topics.world.perception.inventory)
-      .toSelf(Mml.compose`You drop ${Mml.item(target)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} drops ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You drop ${Mml.item(operand)}.`)
+      .toPeers(
+        Mml.compose`${Mml.name(context.commandGiver)} drops ${Mml.item(operand)}.`
+      )
       .send();
   }
 }

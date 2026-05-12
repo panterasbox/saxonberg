@@ -45,14 +45,6 @@ class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
 }
 
-class Mouse extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
-  static _mixinName = 'Mouse';
-  // Irregular plural via getPluralForm override.
-  public getPluralForm(): string {
-    return 'mice';
-  }
-}
-
 class PlainItem extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'PlainItem';
 }
@@ -62,7 +54,6 @@ class TestContainer extends ContainerMixin(ContainableMixin(Idea)) {
 }
 
 const COIN_PATH = '/obj/item/Coin';
-const MOUSE_PATH = '/obj/item/Mouse';
 
 function makeCoinAt(path: string, qty: number, denom: Coin['denomination'] = 'copper'): Coin {
   const c = makeStuffAtPath(() => {
@@ -130,42 +121,6 @@ describe('GlobbableApi.canMerge', () => {
     const a = makeCoinAt(COIN_PATH, 3, 'gold');
     const b = makeCoinAt(COIN_PATH, 5, 'silver');
     expect(GlobbableApi.canMerge(a, b)).toBe(false);
-  });
-});
-
-describe('GlobbableApi.formatName', () => {
-  beforeEach(() => {
-    ShadowApi._clearAllForTesting();
-    StuffApi.clearAll();
-  });
-
-  it('returns singular form for quantity 1', () => {
-    const c = makeCoinAt(COIN_PATH, 1);
-    expect(GlobbableApi.formatName(c)).toBe('coin');
-  });
-
-  it('returns count-prefixed plural for quantity > 1', () => {
-    const c = makeCoinAt(COIN_PATH, 30);
-    expect(GlobbableApi.formatName(c)).toBe('30 coins');
-  });
-
-  it('falls through to DescribeApi.getDisplayName for non-Globbable', () => {
-    const p = makeStuff(() => {
-      const x = new PlainItem();
-      x.setName('rock');
-      return x;
-    });
-    expect(GlobbableApi.formatName(p)).toBe('rock');
-  });
-
-  it('uses getPluralForm override for irregular plurals', () => {
-    const m = makeStuff(() => {
-      const x = new Mouse();
-      x.setName('mouse');
-      return x;
-    });
-    m.setQuantity(3);
-    expect(GlobbableApi.formatName(m)).toBe('3 mice');
   });
 });
 
@@ -707,5 +662,3 @@ describe('GlobbableApi.applyQuantity', () => {
   });
 });
 
-// Silence unused-import lint for MOUSE_PATH (kept for symmetry).
-void MOUSE_PATH;

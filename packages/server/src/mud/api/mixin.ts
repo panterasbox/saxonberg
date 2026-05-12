@@ -542,14 +542,50 @@ export class MixinApi {
    *
    * Walks the prototype chain calling each level's static
    * `__validateComposition__(ctor)` method exactly once per concrete
-   * class. Mixins that want to enforce composition constraints (e.g.,
-   * "Globbable ⊥ Container") declare the static; everyone else is a
-   * no-op.
+   * class. Mixins that want to enforce composition constraints
+   * declare the static; everyone else is a no-op.
    *
    * Called from `StuffApi.register` so the check fires the first time
    * an instance of a given class lands in the registry. Subsequent
    * registrations of the same class short-circuit on the WeakSet
    * memo.
+   *
+   * ## HMR behavior
+   *
+   * The memo is keyed on **constructor identity**, not class name.
+   * `HotReloadApi.reload` re-evaluates a module and produces a NEW
+   * class binding (per `ModuleApi.stamp`'s "first-stamp-wins" rule —
+   * same name, fresh identity). The new class is not in the WeakSet,
+   * so the next first-instance-of-class registration re-runs the
+   * validation against the reloaded mixin chain. Old class identities
+   * stay memoized — fine, because nothing creates new instances of a
+   * post-HMR-retired class.
+   *
+   * If a mixin's `__validateComposition__` itself changes during HMR,
+   * the new check applies to subsequent first-instance-of-class
+   * registrations. Instances of classes already validated against the
+   * old check stay validated — same trade-off the rest of the HMR
+   * surface makes.
+   *
+   * ## Current opt-ins
+   *
+   * - `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
+   *   `globIdentityFields ⊂ persistentFields`.
+   *
+   * ## Candidates for future opt-in
+   *
+   * Existing mixins document composition constraints in JSDoc that
+   * could be promoted to a runtime check via this hook when the
+   * informal pattern starts failing in practice:
+   *
+   * - `AdornableMixin` — "composed on `Stuff & Container`."
+   * - `AdornmentMixin` — paired with `Containable`.
+   * - `WearableMixin` / `WieldableMixin` — must compose `Slottable`.
+   * - `BoundaryAnchor` — adornment-anchored; expects `Adornment`.
+   * - `Perceiver` — pairs with `Sensor` / `CommandGiver`.
+   *
+   * None are urgent — the JSDoc convention has held — but the seam is
+   * here for the day one of them needs runtime enforcement.
    */
   public static assertComposable(constructor: AnyConstructor): void {
     if (this.#validatedClasses.has(constructor)) return;

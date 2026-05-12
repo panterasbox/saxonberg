@@ -164,8 +164,9 @@ behavior. Read the relevant doc before editing in its area.
   - [glob.md](./docs/subsystems/glob.md) — fungible stacks:
     `GlobbableMixin` (single Stuff carrying integer `quantity`,
     `globIdentityFields ⊂ persistentFields`), `GlobbableApi`
-    (`split` / `merge` / `canMerge` / `formatName` / `applyQuantity`
-    workhorse), `ContainmentApi.placeDirect` fresh-placement
+    (`split` / `merge` / `canMerge` / `applyQuantity` workhorse;
+    count-aware naming lives on `DescribeApi.formatName`),
+    `ContainmentApi.placeDirect` fresh-placement
     primitive, merge-on-arrival ripple in `ContainmentApi.move`,
     MQL quantity surface (`:{N}` / `:{*}`, `MqlResult.quantity`,
     natural-language `5 X` / `all X` prefix), v1 note shape

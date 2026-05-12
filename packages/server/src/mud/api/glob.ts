@@ -1,8 +1,8 @@
 /**
- * GlobbableApi — split / merge / canMerge / formatName / applyQuantity
- * for fungible-stack hosts (`GlobbableMixin`).
+ * GlobbableApi — split / merge / canMerge / applyQuantity for
+ * fungible-stack hosts (`GlobbableMixin`).
  *
- * Three concerns:
+ * Two concerns:
  *
  *   - **Mechanics** (`split`, `merge`, `canMerge`): the two-Stuff
  *     transitions that produce or consume a stack. `split` and
@@ -10,15 +10,16 @@
  *     bypassing the merge-on-arrival ripple and the matter-was-
  *     already-there semantics of `placeDirect` is too powerful for
  *     player- or author-tier code.
- *   - **Display** (`formatName`): cheap count-prefixed naming that
- *     stand-ins for `DescribeApi v2` when rendering glob targets. v2
- *     supersedes this in the recognition slate; v1 lives here so
- *     controllers can ship a usable identity now.
  *   - **Dispatch helper** (`applyQuantity`): the workhorse every
  *     quantity-bearing verb routes through. Owns empty-list /
  *     pre-check / scored-order walk / split-and-reglob / clamp-note
  *     emission. The action callback runs per-operand; the helper
  *     handles the rest.
+ *
+ * Display rendering (`"30 coins"`) lives on
+ * {@link DescribeApi.formatName} — presentation concerns belong with
+ * the rest of the description Api. `DescribeApi v2` (recognition
+ * slate) supersedes the seam.
  *
  * Notes are returned as a plain list of typed objects in v1 (no
  * response-envelope substrate yet). When the envelope lands,
@@ -34,12 +35,11 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { AnyConstructor } from './mixin';
-import type { MqlQuantity } from './mql/types';
+import type { MqlQuantity } from './mql';
 import {
   ContainmentApi,
   _registerMergeOnArrivalHook,
 } from './containment';
-import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
@@ -238,7 +238,7 @@ export class GlobbableApi {
       source.constructor as AnyConstructor
     );
     for (const f of fields) {
-      copyField(source, splitoff, f);
+      StuffApi.copyField(source, splitoff, f);
     }
 
     splitoff.setQuantity(n);
@@ -299,31 +299,6 @@ export class GlobbableApi {
     survivor.setQuantity(survivor.getQuantity() + absorbed.getQuantity());
     StuffApi.destruct(absorbed);
     survivor.onMerged(absorbed);
-  }
-
-  /**
-   * Display helper: `"30 coins"` for `n > 1`, falling through to
-   * `DescribeApi.getDisplayName(stuff, fallback)` for `n === 1` or
-   * non-Globbable hosts. The naive plural is `name + 's'`; hosts
-   * with irregular plurals override `getPluralForm()` (e.g.,
-   * `"mouse"` → `"mice"`).
-   *
-   * `DescribeApi v2` (recognition slate) supersedes this — it
-   * composes the count into the identity layer with viewer-side
-   * perception and recognition state. v1 ships this thin helper so
-   * controllers can render usable identity now.
-   */
-  static formatName(stuff: Stuff, fallback: string = 'something'): string {
-    if (!MixinApi.isGlobbable(stuff)) {
-      return DescribeApi.getDisplayName(stuff, fallback);
-    }
-    const n = stuff.getQuantity();
-    if (n === 1) {
-      return DescribeApi.getDisplayName(stuff, fallback);
-    }
-    const base = DescribeApi.getDisplayName(stuff, fallback);
-    const plural = pluralize(stuff, base);
-    return `${n} ${plural}`;
   }
 
   /**
@@ -503,48 +478,6 @@ function sumUnits(candidates: Stuff[]): number {
   let total = 0;
   for (const c of candidates) total += unitCount(c);
   return total;
-}
-
-/**
- * Copy a field by name from `src` to `dst` through the
- * inter-stuff-contract method surface when available, falling back to
- * direct property access. Same shape as the field-comparison helper
- * in `Globbable.canMergeWith`.
- */
-function copyField(src: Stuff, dst: Stuff, name: string): void {
-  const cap = name.charAt(0).toUpperCase() + name.slice(1);
-  const getter = (src as unknown as Record<string, unknown>)[`get${cap}`];
-  const value =
-    typeof getter === 'function'
-      ? (getter as (...args: unknown[]) => unknown).call(src)
-      : (src as unknown as Record<string, unknown>)[name];
-  const setter = (dst as unknown as Record<string, unknown>)[`set${cap}`];
-  if (typeof setter === 'function') {
-    (setter as (...args: unknown[]) => unknown).call(dst, value);
-    return;
-  }
-  (dst as unknown as Record<string, unknown>)[name] = value;
-}
-
-/**
- * Plural form for a globbable's display name. Hosts may declare a
- * `getPluralForm()` method to handle irregulars (`"mouse"` →
- * `"mice"`); the default is the naive `name + 's'`. GrammarApi
- * doesn't ship `pluralize` in v1, so the irregular-escape-hatch
- * lives here.
- */
-function pluralize(stuff: Stuff, name: string): string {
-  const override = (stuff as unknown as { getPluralForm?: () => string })
-    .getPluralForm;
-  if (typeof override === 'function') {
-    try {
-      const plural = override.call(stuff);
-      if (typeof plural === 'string' && plural.length > 0) return plural;
-    } catch {
-      // Fall through to naive.
-    }
-  }
-  return `${name}s`;
 }
 
 SecurityApi.decorateApiClass(GlobbableApi);
