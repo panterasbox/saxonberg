@@ -13,26 +13,11 @@
  */
 
 import type {
+  ConnectionEstablishedPayload,
+  Envelope,
   MessageFrame,
-  Pronouns,
-  AlternateName,
 } from '@saxonberg/types';
 import { useStore } from '../store/index';
-
-interface ConnectionEstablishedPayload {
-  userId: string;
-  socketId: string;
-  sessionId: string;
-  player: {
-    _id: string;
-    honorific?: string;
-    name: string;
-    surname?: string;
-    nameSuffix?: string;
-    alternateNames?: AlternateName[];
-    pronouns: Pronouns;
-  };
-}
 
 interface OutboundClientMessage {
   type: string;
@@ -40,6 +25,7 @@ interface OutboundClientMessage {
 }
 
 type FrameHandler = (frame: MessageFrame) => void;
+type EnvelopeHandler = (envelope: Envelope) => void;
 
 class WebSocketClient {
   private ws: WebSocket | null = null;
@@ -48,6 +34,7 @@ class WebSocketClient {
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 2000;
   private topicHandlers: Map<string, FrameHandler[]> = new Map();
+  private envelopeHandlers: Map<Envelope['type'], EnvelopeHandler[]> = new Map();
 
   public connect(url: string): void {
     this.url = url;
@@ -143,28 +130,74 @@ class WebSocketClient {
     if (index !== -1) handlers.splice(index, 1);
   }
 
+  /**
+   * Register a handler for a specific envelope type. Parallel to
+   * `onTopic` for `MessageFrame`s — envelope frames discriminate on
+   * `type` (`dispatch-response` | `activity-update` | `prompt`),
+   * not `topic`.
+   */
+  public onEnvelope(type: Envelope['type'], handler: EnvelopeHandler): void {
+    if (!this.envelopeHandlers.has(type)) {
+      this.envelopeHandlers.set(type, []);
+    }
+    this.envelopeHandlers.get(type)!.push(handler);
+  }
+
+  public offEnvelope(type: Envelope['type'], handler: EnvelopeHandler): void {
+    const handlers = this.envelopeHandlers.get(type);
+    if (!handlers) return;
+    const index = handlers.indexOf(handler);
+    if (index !== -1) handlers.splice(index, 1);
+  }
+
   private handleMessage(data: string): void {
     try {
-      const frame: MessageFrame = JSON.parse(data);
+      const frame: unknown = JSON.parse(data);
+
+      // Envelope frames carry `type` + numeric `frameId`; MessageFrames
+      // carry `topic`. Two channels, two shapes — discriminate
+      // structurally.
+      if (
+        typeof frame === 'object' &&
+        frame !== null &&
+        typeof (frame as { type?: unknown }).type === 'string' &&
+        typeof (frame as { frameId?: unknown }).frameId === 'number'
+      ) {
+        const envelope = frame as Envelope;
+        console.debug(
+          `WebSocketClient: Received envelope type='${envelope.type}' frameId=${envelope.frameId}`
+        );
+        const handlers = this.envelopeHandlers.get(envelope.type);
+        if (handlers) {
+          for (const handler of handlers) handler(envelope);
+        } else {
+          console.debug(
+            `WebSocketClient: No handler for envelope type='${envelope.type}'`
+          );
+        }
+        return;
+      }
+
+      const messageFrame = frame as MessageFrame;
       console.debug(
-        `WebSocketClient: Received frame topic='${frame.topic}'`
+        `WebSocketClient: Received frame topic='${messageFrame.topic}'`
       );
 
       // Built-in routing by topic.
-      switch (frame.topic) {
+      switch (messageFrame.topic) {
         case 'system.connection.established':
           this.handleConnectionEstablished(
-            frame.payload as ConnectionEstablishedPayload
+            messageFrame.payload as ConnectionEstablishedPayload
           );
           break;
         default:
           break;
       }
 
-      const handlers = this.topicHandlers.get(frame.topic);
+      const handlers = this.topicHandlers.get(messageFrame.topic);
       if (handlers) {
         for (const handler of handlers) {
-          handler(frame);
+          handler(messageFrame);
         }
       }
     } catch (error) {
