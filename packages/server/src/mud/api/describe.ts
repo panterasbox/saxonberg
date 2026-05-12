@@ -96,8 +96,8 @@ export class DescribeApi {
    * with viewer-side recognition / perception state. Until then,
    * keeping the seam here (rather than on `GlobbableApi`) keeps the
    * "presentation logic lives in DescribeApi" rule intact — see
-   * CLAUDE.md "Module categories" + globbable-slate § Display
-   * rendering.
+   * CLAUDE.md "Module categories" + `docs/subsystems/glob.md` §
+   * Display rendering.
    */
   static formatName(obj: Stuff, fallback: string = 'something'): string {
     const base = DescribeApi.getDisplayName(obj, fallback);

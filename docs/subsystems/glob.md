@@ -33,10 +33,12 @@ Pieces:
   a `QuantityNode`; natural-language `5 coins` / `all coins` rides
   on desugar's side-channel hint.
 
-The full design (including bulk-form extension and the response-
-envelope interaction) lives in
-[../slates/globbable-slate.md](../slates/globbable-slate.md);
-this file is the operational reference once it's shipped.
+This file is the operational reference. The bulk-form extension
+lives in [bulkable-slate.md](../slates/bulkable-slate.md); the
+structured-notes substrate (`quantity-clamped`,
+`quantity-clamped-rejected`, `empty-result`, `target-declined`) lands
+properly in [response-envelope-slate.md](../slates/response-envelope-slate.md)
+when that work ships.
 
 ---
 
@@ -418,6 +420,64 @@ arrives with the collision slate.
 
 ---
 
+## Limitations / open questions
+
+Trade-offs and deferred work documented for future maintainers:
+
+- **Merge-on-arrival is O(siblings).** Every `ContainmentApi.move`
+  into a container holding any Globbable contents walks the contents
+  list looking for a mergeable sibling. Fine at v1 scale; if a
+  container ends up with many distinct glob kinds (a treasury), a
+  per-container index keyed on `templatePath` takes the scan to
+  O(1) — cheap to maintain on add/remove. Land that index when
+  measurement shows the scan biting.
+- **Initial-state merge sweep is deferred.** When bootstrap loads a
+  world whose YAML seeds two mergeable stacks into the same
+  container, they aren't merged on load — the merge-on-arrival
+  ripple fires on `move`, and the seeded objects don't move. The
+  honest fix is a `PostRegistration` sweep keyed by container. Until
+  then the contract is "don't seed two mergeable stacks in the same
+  container"; content-authoring tools should warn (separate work).
+- **Sibling visibility during the split-active transient.** Between
+  `GlobbableApi.split` and the action's downstream `move`, the
+  source's environment momentarily contains two mergeable siblings.
+  Event-driven subscribers don't observe this — split bypasses
+  arrival witnesses by design. *Static* observers (anyone querying
+  the env's contents collection directly during the window) see
+  both stacks; counts add up correctly, so the existing-state view
+  is consistent. Subscribers that want to react specifically to
+  splits hook `onSplit` on the source instead of trying to observe
+  the transient.
+- **MQL `coin:[5]` indexes the match set, not units within a stack.**
+  Stacks are single Stuffs, so `coin:[5]` against a 30-stack
+  produces nothing (there's only one match in the set). Players
+  don't have an ordinal intuition for "the 5th coin in a pile";
+  `5 coins` / `coin:{5}` are the supported shapes for "five units
+  from the pile." Documented in [mql-grammar.md](../mql-grammar.md).
+
+## Future extensions
+
+- **Bulk form** — `Quantity<U>`-valued matter (flour, water, sand,
+  bread) plugs into the same substrate: `placeDirect` is
+  unit-agnostic, the `MqlQuantity` discriminated union already
+  reserves a `value.kind: 'measure'` slot, the `:{N}` body grammar
+  extends to `:{N unit}`, and the distribution algorithm
+  substitutes Quantity arithmetic for integer arithmetic. Bulk
+  diverges on: `quantity` type (`Quantity<U>` not `number`),
+  arithmetic (unit propagation), a `static destructThreshold`
+  (floating-point residue handling), and the divisibility default
+  (bulk is *not* trivially splittable — most bulk needs a tool /
+  vessel / target to subdivide). Full design and the `Bulkable` vs
+  `Bulkable + Subdivisible` factoring fork:
+  [bulkable-slate.md](../slates/bulkable-slate.md).
+- **`DescribeApi v2`** supersedes `DescribeApi.formatName`. v2
+  composes count, perception-filtered visibility, viewer-side
+  recognition, and bucket-keyed verbosity in one pipeline.
+  Globbable contributes data (`getQuantity`, host's
+  `getDisplayName` and optional `getPluralForm`) to the pipeline;
+  it doesn't know about viewer state. See
+  [recognition-slate.md](../slates/recognition-slate.md).
+
 ## Antipatterns
 
 - **Glob inside a glob.** Globs aren't `Container`; the composition
@@ -446,8 +506,6 @@ arrives with the collision slate.
 
 ## Cross-references
 
-- [../slates/globbable-slate.md](../slates/globbable-slate.md) — the
-  original design slate.
 - [mql.md](./mql.md) — pipeline (`QuantityNode`, desugar signature,
   resolver passthrough).
 - [../mql-grammar.md](../mql-grammar.md) — user-facing grammar:
@@ -457,3 +515,9 @@ arrives with the collision slate.
 - [../slates/bulkable-slate.md](../slates/bulkable-slate.md) — the
   bulk-form sibling (Quantity-valued globs); shares this
   subsystem's substrate.
+- [../slates/response-envelope-slate.md](../slates/response-envelope-slate.md)
+  — the structured-notes substrate `applyQuantity` will thread into
+  once it ships (v1 returns notes as a plain list).
+- [../slates/recognition-slate.md](../slates/recognition-slate.md) —
+  where `DescribeApi v2` composes count + perception + recognition;
+  this subsystem's `formatName` is the v1 stand-in.

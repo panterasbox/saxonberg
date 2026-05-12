@@ -343,8 +343,9 @@ export interface GroupNode {
  * as a chain head (no current set to address). The resolver does NOT
  * modify the candidate set when it sees a `QuantityNode` — it just
  * threads the quantity forward onto the final `MqlMany` / `MqlOne`
- * wrapper, marked `mode: 'strict'`. See {@link MqlQuantity} and
- * `docs/slates/globbable-slate.md § Formal syntax`.
+ * wrapper, marked `mode: 'strict'`. See {@link MqlQuantity},
+ * `docs/mql-grammar.md § Formal quantity` (user-facing surface), and
+ * `docs/subsystems/glob.md § MQL touchpoints` (runtime hookup).
  */
 export interface QuantityNode {
   kind: 'quantity';

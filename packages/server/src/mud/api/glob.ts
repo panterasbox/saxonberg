@@ -26,8 +26,8 @@
  * controllers switch from "fold into summary Mml" to `ctx.note(n)`;
  * `applyQuantity`'s return shape is stable across that swap.
  *
- * Operational reference: `docs/subsystems/glob.md`. Design rationale
- * and the bulk-form extension story: `docs/slates/globbable-slate.md`.
+ * Operational reference: `docs/subsystems/glob.md`. The bulk-form
+ * extension story lives in `docs/slates/bulkable-slate.md`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -186,7 +186,7 @@ export class GlobbableApi {
    * `placeDirect` is what makes split silent on movement events —
    * subdividing matter already in the room is not the same as
    * matter arriving there. See
-   * [`docs/slates/globbable-slate.md § Split`](../../../docs/slates/globbable-slate.md).
+   * [`docs/subsystems/glob.md § GlobbableApi.split`](../../../docs/subsystems/glob.md).
    */
   @CallSecurity(SecurityPolicies.ApiOnly)
   static async split(
@@ -307,8 +307,8 @@ export class GlobbableApi {
    * matches contribute up to their full `getQuantity()`. The
    * action callback runs per operand with the contribution applied.
    *
-   * See `docs/slates/globbable-slate.md § GlobbableApi.applyQuantity`
-   * for the full contract.
+   * See `docs/subsystems/glob.md § GlobbableApi.applyQuantity` for
+   * the full contract.
    *
    * Behavior:
    *   - **Empty candidate list**: immediate `{ ok: false, status:

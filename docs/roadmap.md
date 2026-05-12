@@ -151,13 +151,6 @@ promoted to formal requirements.
   Generalizes the instruments-reveal seam from the Quantities
   substrate to skills, cybernetics, transient buffs, and ambient
   effects.
-- [docs/slates/globbable-slate.md](./slates/globbable-slate.md) —
-  fungible item stacks; `Globbable` mixin, MQL quantity syntax
-  (natural-language `2 coins` + formal `coins:{N}` / `coins:{*}`),
-  split/merge containment ripple. **v1 shipped** — operational
-  reference at [subsystems/glob.md](./subsystems/glob.md). The
-  slate stays as design rationale and as carry-forward for bulk
-  (`Quantity<U>`-valued) which extends the same contract later.
 - [docs/slates/bulkable-slate.md](./slates/bulkable-slate.md) —
   bulk-form sibling to globbable. Continuous mass/volume measured
   matter (flour, water, bread). Exploratory; ships when content
