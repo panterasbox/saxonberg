@@ -556,16 +556,39 @@ export class MixinApi {
    * `HotReloadApi.reload` re-evaluates a module and produces a NEW
    * class binding (per `ModuleApi.stamp`'s "first-stamp-wins" rule —
    * same name, fresh identity). The new class is not in the WeakSet,
-   * so the next first-instance-of-class registration re-runs the
-   * validation against the reloaded mixin chain. Old class identities
-   * stay memoized — fine, because nothing creates new instances of a
-   * post-HMR-retired class.
+   * so the next first-instance-of-class registration re-runs
+   * validation against whatever `__validateComposition__` is on the
+   * NEW chain. Old class identities stay memoized — fine, because
+   * nothing creates new instances of a post-HMR-retired class.
    *
-   * If a mixin's `__validateComposition__` itself changes during HMR,
-   * the new check applies to subsequent first-instance-of-class
-   * registrations. Instances of classes already validated against the
-   * old check stay validated — same trade-off the rest of the HMR
-   * surface makes.
+   * **Leaf reload required.** Reloading a mixin module alone is NOT
+   * enough to pick up a new check. JS class inheritance is bound at
+   * class-definition time: `class Coin extends GlobbableMixin(Idea)`
+   * captures whatever `GlobbableMixin` returned at that expression's
+   * evaluation. Reloading `Globbable.ts` produces a new mixin
+   * function and registers it with `HotReloadApi`, but `Coin`'s
+   * prototype chain still points at the OLD mixin output. Since
+   * `Coin`'s constructor identity hasn't changed, the WeakSet hit
+   * memoizes the old validation forever.
+   *
+   * To rotate the validation: reload the **leaf class** too. That
+   * re-evaluates its `class Coin extends GlobbableMixin(Idea)`
+   * expression against the new mixin output, produces a fresh
+   * `Coin` constructor identity, and the next first-instance triggers
+   * the new check.
+   *
+   * No auto-cascade — there's no machinery that reloads leaves when
+   * a mixin reloads. That's intentional: bulk re-instantiation while
+   * a player is mid-action would be jarring. The right tool for
+   * "refresh every Globbable in the world" is an MQL query (e.g.,
+   * `world:[mixin.GlobbableMixin]`) plus an explicit reload, run by
+   * the dev when they're ready. Forgetting to reload leaves doesn't
+   * create inconsistency — the old check just keeps applying; the
+   * new constraint silently doesn't tighten, but nothing breaks.
+   *
+   * Cross-reference: `docs/subsystems/mixins.md` §Composition
+   * validation, `docs/subsystems/hot-reload.md` §Composition
+   * validation.
    *
    * ## Current opt-ins
    *

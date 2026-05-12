@@ -409,6 +409,88 @@ plain JS. The interesting case (intercepting from outside the class
 hierarchy) is shadows; see [call-security.md § Shadow
 Subsystem](./call-security.md#shadow-subsystem).
 
+### Composition validation (`__validateComposition__`)
+
+When a mixin has a hard composition rule that the TypeScript bound
+can't express — `Globbable ⊥ Container`, `Globbable ⊥ Singleton`,
+"every glob-identity field must also be persistent" — it can opt
+into a runtime check that fires once per concrete class:
+
+```typescript
+export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
+  Base: TBase
+) {
+  return class GlobbableMixin extends Base {
+    static _mixinName = 'GlobbableMixin';
+
+    static __validateComposition__(ctor: AnyConstructor): void {
+      if (MixinApi.hasMixin(ctor, Mixins.Container)) {
+        throw new Error(`${ctor.name} composes Globbable + Container; not allowed.`);
+      }
+      // …
+    }
+  };
+}
+```
+
+`MixinApi.assertComposable(ctor)` walks the prototype chain calling
+every `__validateComposition__` it finds (`hasOwnProperty`-filtered,
+so each level only fires for the mixin that declared it). It's
+called from `StuffApi.register` the first time an instance of a
+given class lands in the registry; the result is memoized in a
+`WeakSet` keyed on constructor identity.
+
+#### When a TypeScript bound suffices, prefer it
+
+The validation hook is the runtime fallback for rules that don't fit
+the bound. Specifically:
+
+- **Use the bound** when the rule is "mixin A requires mixin B in
+  the base" (`MobileMixin` over `Containable` — covered earlier in
+  this doc). The error is at compile time, the diagnostic is
+  precise, and refactors that break the chain fail loudly.
+- **Use `__validateComposition__`** when the rule is "mixin A
+  cannot co-exist with mixin B at the same level" (Globbable ⊥
+  Container), or when the rule reads other static data on the class
+  (`globIdentityFields ⊂ persistentFields`). The bound can't reject
+  "extends both" — at the type level both are present, the conflict
+  is semantic.
+
+Don't use the runtime hook as a replacement for a documented bound;
+the bound is cheaper, earlier, and more specific.
+
+#### HMR semantics
+
+`HotReloadApi.reload(path)` re-evaluates a module and registers a
+new class binding (same name, fresh constructor identity). The
+WeakSet doesn't have the new identity, so the next first-instance
+registration triggers `assertComposable` against the new chain.
+Existing instances of the old class keep their old check — that's
+the same "old objects keep old behavior" trade-off the rest of HMR
+makes.
+
+**Leaf reload is required for a new check to fire.** Reloading a
+mixin module alone doesn't retroactively rewire the leaf classes
+that import it — `class Coin extends GlobbableMixin(Idea)`
+captures the mixin function that existed at class-evaluation time.
+Reloading `Globbable.ts` produces a new mixin function but doesn't
+touch `Coin`; since `Coin`'s identity hasn't changed, the WeakSet
+hit memoizes the old validation indefinitely. The dev has to reload
+the leaf module too (`Coin.ts`) — which re-evaluates the class
+expression against the new mixin and produces a fresh identity.
+
+There's no auto-cascade. Reloading `Globbable.ts` doesn't fan out
+to every leaf that imports it. That's intentional: bulk
+re-instantiation while a player is mid-action would shock the world.
+For "rotate every class that composes Globbable," use an MQL query
+to find the population and reload deliberately — `world:[mixin.GlobbableMixin]`
+plus an explicit `reload` per class. Forgetting to reload leaves is
+*not* a correctness bug — the old check just keeps applying and the
+new constraint silently doesn't tighten. Worst case: the dev
+notices a constraint isn't taking and re-reloads the leaf.
+
+Cross-reference: [hot-reload.md § Composition validation](./hot-reload.md#composition-validation).
+
 ## Detection at Runtime
 
 Three operations, ranked by frequency.
