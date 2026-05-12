@@ -25,19 +25,25 @@ interface UnwieldModel extends CommandModel {
 
 export class UnwieldController extends CommandController<UnwieldModel> {
   execute(model: UnwieldModel, context: CommandContext): CommandResult {
+    const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
-      return {
-        success: false,
-        summary: `you don't have any '${model.target.raw}'`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: model.target.raw,
+      });
+      return { success: false };
     }
     if (!MixinApi.isWieldable(target)) {
       throw new Error(
         `UnwieldController: mustBeWieldable validator should have caught ${target.stuffId}`
       );
     }
-    const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
       throw new Error(
         `UnwieldController: requiresSlotted validator should have caught ${giver.stuffId}`
@@ -45,7 +51,12 @@ export class UnwieldController extends CommandController<UnwieldModel> {
     }
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
-      return { success: false, summary: `you have no body plan` };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You have no body plan.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
+      return { success: false };
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     let any = false;
@@ -53,10 +64,16 @@ export class UnwieldController extends CommandController<UnwieldModel> {
       if (giver.vacate(slot, target)) any = true;
     }
     if (!any) {
-      return {
-        success: false,
-        summary: `you aren't wielding ${DescribeApi.getDisplayName(target, 'that')}`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You aren't wielding ${Mml.item(target)}.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-wielding',
+        detail: `you aren't wielding ${DescribeApi.getDisplayName(target, 'that')}`,
+      });
+      return { success: false };
     }
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)

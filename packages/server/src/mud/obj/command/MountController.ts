@@ -33,19 +33,25 @@ interface MountModel extends CommandModel {
 
 export class MountController extends CommandController<MountModel> {
   execute(model: MountModel, context: CommandContext): CommandResult {
+    const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
-      return {
-        success: false,
-        summary: `you don't see any '${model.target.raw}' here`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: model.target.raw,
+      });
+      return { success: false };
     }
     if (!MixinApi.isMountable(target)) {
       throw new Error(
         `MountController: mustBeMountable validator should have caught ${target.stuffId}`
       );
     }
-    const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
       throw new Error(
         `MountController: requiresPosed validator should have caught ${giver.stuffId}`
@@ -59,27 +65,40 @@ export class MountController extends CommandController<MountModel> {
 
     const mountSlot = target.getMountSlot();
     if (target.isSlotFull(mountSlot)) {
-      return {
-        success: false,
-        summary:
-          `${DescribeApi.getDisplayName(target, 'that')} is already mounted`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`${Mml.item(target)} is already mounted.`)
+        .send();
+      context.note({
+        kind: 'slot-occupied',
+        host: MessageApi.refOf(target),
+        slot: mountSlot,
+      });
+      return { success: false };
     }
     if (!target.canOccupy(giver, mountSlot)) {
-      return { success: false, summary: `you can't fit on it` };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You can't fit on it.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'wrong-size',
+        detail: 'target.canOccupy returned false',
+      });
+      return { success: false };
     }
 
     const from = PostureApi.findCurrentPostureBearingSlot(giver);
 
-    try {
-      SlotApi.transferOccupancy(
-        giver,
-        from,
-        { host: target, slot: mountSlot }
-      );
-    } catch (err) {
-      return { success: false, summary: (err as Error).message };
-    }
+    // SlotApi.transferOccupancy may throw on race or shape
+    // violations; dispatcher's outer catch emits controller-error
+    // uniformly.
+    SlotApi.transferOccupancy(
+      giver,
+      from,
+      { host: target, slot: mountSlot }
+    );
     giver.setPosture(Postures.Mounted);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.narration.action)

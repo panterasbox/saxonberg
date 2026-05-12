@@ -31,19 +31,25 @@ interface WearModel extends CommandModel {
 
 export class WearController extends CommandController<WearModel> {
   execute(model: WearModel, context: CommandContext): CommandResult {
+    const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
-      return {
-        success: false,
-        summary: `you don't have any '${model.target.raw}'`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: model.target.raw,
+      });
+      return { success: false };
     }
     if (!MixinApi.isWearable(target)) {
       throw new Error(
         `WearController: mustBeWearable validator should have caught ${target.stuffId}`
       );
     }
-    const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
       throw new Error(
         `WearController: requiresSlotted validator should have caught ${giver.stuffId}`
@@ -51,26 +57,46 @@ export class WearController extends CommandController<WearModel> {
     }
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
-      return { success: false, summary: `you have no body plan` };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You have no body plan.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
+      return { success: false };
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     if (slots.length === 0) {
-      return {
-        success: false,
-        summary:
-          `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your body`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(
+          Mml.compose`${Mml.item(target)} doesn't fit your body.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'wrong-fit',
+        detail: `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your body`,
+      });
+      return { success: false };
     }
     for (const slot of slots) {
       if (giver.isSlotFull(slot)) {
-        return { success: false, summary: `your ${slot} is occupied` };
+        MessageApi.scene(giver)
+          .topic(MessageApi.Topics.world.perception.inventory)
+          .toSelf(Mml.compose`Your ${slot} is occupied.`)
+          .send();
+        context.note({
+          kind: 'slot-occupied',
+          host: MessageApi.refOf(giver),
+          slot,
+        });
+        return { success: false };
       }
     }
-    try {
-      SlotApi.occupyAll(giver, target, [...slots]);
-    } catch (err) {
-      return { success: false, summary: (err as Error).message };
-    }
+    // SlotApi.occupyAll may throw on race conditions or shape
+    // violations; the dispatcher's outer catch emits
+    // controller-error uniformly — no try/catch here per plan.
+    SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
       .toSelf(Mml.compose`You put on ${Mml.item(target)}.`)

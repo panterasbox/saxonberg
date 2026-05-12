@@ -22,19 +22,25 @@ interface KneelModel extends CommandModel {
 
 export class KneelController extends CommandController<KneelModel> {
   execute(model: KneelModel, context: CommandContext): CommandResult {
+    const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
-      return {
-        success: false,
-        summary: `you don't see any '${model.target.raw}' here`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: model.target.raw,
+      });
+      return { success: false };
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
         `KneelController: mustBePostured validator should have caught ${target.stuffId}`
       );
     }
-    const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {
       throw new Error(
         `KneelController: requiresPosed/Slottable validators should have caught ${giver.stuffId}`
@@ -47,7 +53,18 @@ export class KneelController extends CommandController<KneelModel> {
       Postures.Kneel,
       'kneel'
     );
-    if (!result.ok) return { success: false, summary: result.summary };
+    if (!result.ok) {
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`${result.summary}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: result.reason,
+        detail: result.summary,
+      });
+      return { success: false };
+    }
 
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.narration.action)

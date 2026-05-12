@@ -56,7 +56,18 @@ export class StandController extends CommandController<StandModel> {
         Postures.Stand,
         'stand'
       );
-      if (!result.ok) return { success: false, summary: result.summary };
+      if (!result.ok) {
+        MessageApi.scene(giver)
+          .topic(MessageApi.Topics.world.narration.action)
+          .toSelf(Mml.compose`${result.summary}`)
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: result.reason,
+          detail: result.summary,
+        });
+        return { success: false };
+      }
       const name = DescribeApi.getDisplayName(target, 'it');
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.narration.action)
