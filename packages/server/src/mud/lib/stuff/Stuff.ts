@@ -57,6 +57,23 @@ export interface DestroyedObjectMetadata {
 }
 
 /**
+ * `setZone` is callable only from `SpatialZone` and its subclasses.
+ * The legitimate writers are `SpatialZone.addLocation` /
+ * `removeLocation` (and their CartesianZone/SphericalZone overrides
+ * via `super`). Clone-time seeding from `StuffApi.#cloneInner`
+ * uses the `_stampZone` seam instead, not this policy.
+ *
+ * Mirrors the `FromContainmentApi` pattern in `Containable.ts`.
+ * `includeSubclasses: true` walks the prototype chain so
+ * CartesianZone / SphericalZone (and any future SpatialZone
+ * subclass) pass through.
+ */
+const FromSpatialZone = SecurityPolicies.FromModule(
+  'mud/lib/spatial/SpatialZone#SpatialZone',
+  { includeSubclasses: true }
+);
+
+/**
  * Base class for all game objects.
  */
 export abstract class Stuff {
@@ -157,7 +174,7 @@ export abstract class Stuff {
     stuff: Stuff,
     path: string | null
   ): void {
-    Stuff.#assertStampGateAllowed();
+    Stuff.#assertStampGateAllowed('_stampTemplatePath');
     const raw =
       ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
         ProxyApi.RAW_TARGET
@@ -166,58 +183,60 @@ export abstract class Stuff {
   }
 
   /**
-   * File-URL patterns whose code may call `_stampTemplatePath`.
-   * Same machinery as `#constructionGateAllowlist` /
-   * `#branchRegistrationAllowlist`. Adding a new legitimate
-   * stamp site is a deliberate edit here AND its callsite.
+   * File-URL patterns whose code may call the private-slot stamp
+   * seams (`_stampTemplatePath`, `_stampZone`). Same machinery as
+   * `#constructionGateAllowlist` / `#branchRegistrationAllowlist`.
+   * Adding a new legitimate stamp site is a deliberate edit here
+   * AND its callsite.
    *
-   * Narrower than the construction-gate allowlist on purpose:
-   * `_stampTemplatePath` skips the `byTemplatePath` reindex, so
-   * stamping a Stuff that's already registered would desync the
-   * index — only the clone pipeline's pre-register stamp site
-   * is a legitimate production caller.
+   * Narrower than the construction-gate allowlist on purpose: the
+   * stamp seams skip the public setter's gates (e.g.
+   * `byTemplatePath` reindex, `FromSpatialZone` policy), so the
+   * only legitimate production caller is the clone pipeline.
    */
   static #stampGateAllowlist: ReadonlyArray<RegExp> = [
     /\/mud\/api\/stuff\.(ts|js)$/, // StuffApi.#cloneInner pre-register stamp
-    /\/mud\/lib\/security\/__tests__\/test-setup\.(ts|js)$/, // stampTemplatePathForTest / makeStuffAtPath
+    /\/mud\/lib\/security\/__tests__\/test-setup\.(ts|js)$/, // stamp*ForTest helpers
     /\.test\.(ts|js)$/, // direct test usage
   ];
 
   static #stampGateCache: Map<string, boolean> = new Map();
 
   /**
-   * Throw if the immediate caller of `_stampTemplatePath` isn't on
-   * the allowlist. Per-URL cached after the first walk, so the
+   * Throw if the immediate caller of the named stamp seam isn't
+   * on the allowlist. Per-URL cached after the first walk, so the
    * cost is one stack walk per file ever; after warmup it's a Map
    * lookup. Mirrors the construction-gate shape.
+   *
+   * `op` is the seam name (e.g. `'_stampTemplatePath'`,
+   * `'_stampZone'`); included in the error message so the
+   * offender sees which seam was misused.
    */
-  static #assertStampGateAllowed(): void {
+  static #assertStampGateAllowed(op: string): void {
     const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
     if (url === null) {
       throw new Error(
-        `Stuff._stampTemplatePath refused: caller URL could not be determined`
+        `Stuff.${op} refused: caller URL could not be determined`
       );
     }
     const cached = Stuff.#stampGateCache.get(url);
     if (cached === true) return;
     if (cached === false) {
       throw new Error(
-        `Stuff._stampTemplatePath refused from ${url}: only StuffApi ` +
+        `Stuff.${op} refused from ${url}: only StuffApi ` +
           `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
           `__tests__/test-setup), and *.test.ts files may stamp ` +
-          `templatePath without going through the ApiOnly-gated ` +
-          `setTemplatePath setter.`
+          `private slots without going through the gated public setter.`
       );
     }
     const allowed = Stuff.#stampGateAllowlist.some((re) => re.test(url));
     Stuff.#stampGateCache.set(url, allowed);
     if (!allowed) {
       throw new Error(
-        `Stuff._stampTemplatePath refused from ${url}: only StuffApi ` +
+        `Stuff.${op} refused from ${url}: only StuffApi ` +
           `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
           `__tests__/test-setup), and *.test.ts files may stamp ` +
-          `templatePath without going through the ApiOnly-gated ` +
-          `setTemplatePath setter.`
+          `private slots without going through the gated public setter.`
       );
     }
   }
@@ -238,17 +257,82 @@ export abstract class Stuff {
    * Runtime-only: not auto-persisted (the authoritative source is the
    * `domain` template path at clone time).
    *
-   * Framework carve-out: domain code uses `getZone()` / `setZone()`;
-   * framework code reads via bracket cast (PASSTHROUGH_KEYS in
-   * `proxy.ts` skips the proxy pipeline for this slot). Same shape
-   * as `templatePath` above.
+   * Hard-private (`#`) for tamper-resistance — same shape as
+   * `#templatePath`. Bracket writes don't reach the slot; the only
+   * writers are `setZone()` (proxy-gated to SpatialZone subclasses
+   * only) and the caller-allowlisted `_stampZone` seam. Forgery
+   * matters because `ContainmentApi.move` enforces
+   * "Exitables can't cross zones via containment" by reading
+   * `item.getZone()` / `to.getZone()`; a forged zone breaks that
+   * invariant, and any future `FromZone`-style policy would
+   * inherit the same risk.
    */
-  protected zone: SpatialZone | null = null;
+  #zone: SpatialZone | null = null;
+
+  /**
+   * Get the spatial zone. Unwraps via `RAW_TARGET` because the
+   * `#` slot lives on the raw target only and `this` inside an
+   * instance method called through the proxy is the proxy.
+   */
   public getZone(): SpatialZone | null {
-    return this.zone;
+    const raw =
+      ((this as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? (this as unknown as Stuff);
+    return raw.#zone;
   }
+
+  /**
+   * Set the spatial zone. Gated by `FromSpatialZone` — only the
+   * `SpatialZone` class and its subclasses (`CartesianZone`,
+   * `SphericalZone`) may call this through the proxy. The
+   * `addLocation` / `removeLocation` chokepoints on the zone side
+   * are the legitimate callers; everyone else is rejected.
+   *
+   * Clone-time seeding from `StuffApi.#cloneInner` doesn't go
+   * through this method — it uses the caller-allowlisted
+   * `_stampZone` seam below.
+   *
+   * `@Final @Unshadowable` because the index of substrate
+   * invariants that consult `getZone()` (containment's
+   * cross-zone gate, Mobile.traverse, MQL scope walks) trusts
+   * the slot's value; a subclass override or shadow that lied
+   * about it could break those invariants. No legitimate
+   * subclass needs to extend this anyway — the only legitimate
+   * write paths are the `SpatialZone` chokepoints and clone-time.
+   */
+  @Final
+  @Unshadowable
+  @CallSecurity(FromSpatialZone)
   public setZone(value: SpatialZone | null): void {
-    this.zone = value;
+    const raw =
+      ((this as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? (this as unknown as Stuff);
+    raw.#zone = value;
+  }
+
+  /**
+   * Pre-register stamp seam — used by `StuffApi.#cloneInner` to
+   * seed `zone` at clone time, BEFORE the proxy wrap. The clone
+   * pipeline runs before any SpatialZone-side chokepoint fires;
+   * if it went through the gated public setter, the proxy gate
+   * (which on the raw target wouldn't fire anyway, but at runtime
+   * would reject the StuffApi caller) would be the wrong shape.
+   *
+   * Caller-gated identically to `_stampTemplatePath` — only
+   * `mud/api/stuff.ts`, the test-setup helper, and `*.test.ts`
+   * files may invoke this. Anyone else trying to forge a zone
+   * stamp through this seam is rejected.
+   * @internal
+   */
+  public static _stampZone(stuff: Stuff, zone: SpatialZone | null): void {
+    Stuff.#assertStampGateAllowed('_stampZone');
+    const raw =
+      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? stuff;
+    raw.#zone = zone;
   }
 
   /**

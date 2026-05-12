@@ -6,6 +6,7 @@ import { PersistenceManager, Collections } from '../../../backend/PersistenceMan
 import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
 import { Thing } from '../../lib/stuff/Thing';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Stuff } from '../../lib/stuff/Stuff';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -200,7 +201,7 @@ describe('Zone is set at clone time, not on move', () => {
     const park = makeStuff(() => new CartesianLocation());
 
     const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/SpatialZone').SpatialZone;
-    park.setZone(zoneRef);
+    Stuff._stampZone(park, zoneRef);
 
     // Item created without a zone — `ContainmentApi.move` does NOT
     // back-fill it. Zone identity belongs to whichever template

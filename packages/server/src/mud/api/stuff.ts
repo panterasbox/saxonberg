@@ -333,7 +333,13 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction(prevSentinel);
     }
-    if (zone) obj.setZone(zone);
+    // Seed zone via the caller-allowlisted stamp seam (mirrors the
+    // templatePath stamp below). Going through `obj.setZone(zone)`
+    // would fail the `FromSpatialZone` gate at runtime — StuffApi
+    // is not a SpatialZone subclass. The seam writes the `#zone`
+    // slot directly; only `mud/api/stuff.ts` and test seams may
+    // call it.
+    if (zone) Stuff._stampZone(obj, zone);
     // Stamp the template path BEFORE register, so #updateIndexes
     // sees it and adds the byTemplatePath entry as part of the
     // single register pass. `_stampTemplatePath` writes the `#`

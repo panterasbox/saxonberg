@@ -132,7 +132,7 @@ describe('ExitableVessel', () => {
     it('can move between Exitables when zones agree', () => {
       // Pre-stamp the wardrobe (clone-time would do this); move
       // does not back-fill or restamp.
-      wardrobe.setZone(zone);
+      Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park);
       ContainmentApi.move(wardrobe, park2);
       expect(wardrobe.getContainer()).toBe(park2);
@@ -144,7 +144,7 @@ describe('ExitableVessel', () => {
       const otherPark = makeStuff(() => new CartesianLocation());
       otherZone.addLocation(otherPark, 0, 0, 0);
 
-      wardrobe.setZone(zone);
+      Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park);
       expect(() => ContainmentApi.move(wardrobe, otherPark)).toThrow(ContainmentError);
     });
@@ -228,7 +228,7 @@ describe('ExitableVessel', () => {
       const firstOut = wardrobe.getExit('out')!;
       expect(door.hasAttached(firstOut)).toBe(true);
 
-      wardrobe.setZone(zone);
+      Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park2);
       const secondOut = wardrobe.getExit('out')!;
       expect(secondOut).not.toBe(firstOut);
