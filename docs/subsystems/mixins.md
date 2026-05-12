@@ -489,6 +489,22 @@ plus an explicit `reload` per class. Forgetting to reload leaves is
 new constraint silently doesn't tighten. Worst case: the dev
 notices a constraint isn't taking and re-reloads the leaf.
 
+#### Current opt-ins
+
+- `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
+  `globIdentityFields ⊂ persistentFields`.
+- `PerceiverMixin` — requires `Sensor` on the chain. The TS bound is
+  loose (`MixinConstructor`); the `Perceiver extends Sensor`
+  interface narrows the type but doesn't enforce composition.
+
+Everything else with a documented constraint is enforced at compile
+time through the `MixinConstructor<Stuff & X>` bound (`Adornable`,
+`Mobile`, `Wearable` / `Wieldable`, `Postured` / `Mountable` /
+`Drivable`, `Workspace`). When you add a new mixin, prefer the
+bound; reach for `__validateComposition__` only for `⊥` (mutual-
+exclusion) rules and for cross-static-data checks the bound can't
+express (`globIdentityFields ⊂ persistentFields`).
+
 Cross-reference: [hot-reload.md § Composition validation](./hot-reload.md#composition-validation).
 
 ## Detection at Runtime

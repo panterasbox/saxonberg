@@ -30,6 +30,9 @@
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
+import type { AnyConstructor } from '../../api/mixin';
+import { Mixins } from '../mixin';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Public shape provided by `PerceiverMixin`. v1 has no methods —
@@ -67,6 +70,31 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       inventory: [],
       peers: [],
     };
+
+    /**
+     * Composition constraint: `Perceiver` requires `Sensor` to be
+     * present on the same host. The perception verbs (`look` /
+     * `scry` / `locate`) render scenes to the perceiver's own
+     * channel via `handleMessage`, which lives on `Sensor`. The
+     * public-shape interface declares `Perceiver extends Sensor`
+     * so the type narrowing in `MixinApi.isPerceiver` exposes the
+     * Sensor surface; without runtime co-composition the narrowing
+     * would lie. `MixinConstructor` doesn't carry an enforceable
+     * bound here (loose by design — see `lib/mixin.ts`), so the
+     * check rides on `__validateComposition__` and fires at first
+     * registration.
+     */
+    static __validateComposition__(ctor: AnyConstructor): void {
+      if (!MixinApi.hasMixin(ctor, Mixins.Sensor)) {
+        throw new Error(
+          `${(ctor as { name?: string }).name ?? 'class'} composes ` +
+            `PerceiverMixin without SensorMixin; the perception verbs ` +
+            `render scenes through the host's own Sensor channel, and ` +
+            `MixinApi.isPerceiver narrows to Stuff & Perceiver (which ` +
+            `extends Sensor) — runtime co-composition is required.`
+        );
+      }
+    }
   }
   return PerceiverMixin;
 }

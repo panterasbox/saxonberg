@@ -594,21 +594,31 @@ export class MixinApi {
    *
    * - `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
    *   `globIdentityFields ⊂ persistentFields`.
+   * - `PerceiverMixin` — requires `Sensor` on the chain. The TS
+   *   bound is loose (`MixinConstructor`); the `Perceiver extends
+   *   Sensor` interface relationship narrows the type but doesn't
+   *   enforce composition. Without runtime co-composition,
+   *   `MixinApi.isPerceiver` would lie.
    *
-   * ## Candidates for future opt-in
+   * ## Not migrated (TypeScript bound already covers)
    *
-   * Existing mixins document composition constraints in JSDoc that
-   * could be promoted to a runtime check via this hook when the
-   * informal pattern starts failing in practice:
+   * A bound is cheaper and more specific — see the principle in
+   * `docs/subsystems/mixins.md` §Composition validation. These
+   * mixins document a constraint, but the constraint is enforced at
+   * compile time and doesn't need the runtime hook:
    *
-   * - `AdornableMixin` — "composed on `Stuff & Container`."
-   * - `AdornmentMixin` — paired with `Containable`.
-   * - `WearableMixin` / `WieldableMixin` — must compose `Slottable`.
-   * - `BoundaryAnchor` — adornment-anchored; expects `Adornment`.
-   * - `Perceiver` — pairs with `Sensor` / `CommandGiver`.
+   * - `AdornableMixin` — `MixinConstructor<Stuff & Container>`.
+   * - `WearableMixin` / `WieldableMixin` —
+   *   `MixinConstructor<Stuff & Slottable & Containable>`.
+   * - `MobileMixin` — `MixinConstructor<Stuff & Containable>`.
+   * - `PosturedMixin` / `MountableMixin` / `DrivableMixin` —
+   *   `MixinConstructor<Stuff & Slotted>`.
+   * - `WorkspaceMixin` — `MixinConstructor<Stuff & Environment>`.
    *
-   * None are urgent — the JSDoc convention has held — but the seam is
-   * here for the day one of them needs runtime enforcement.
+   * Soft pairings documented in JSDoc but not strictly required
+   * (e.g., `AdornmentMixin` typically composed with `Containable` so
+   * it can become inventory after detach — but a never-detached
+   * adornment is fine without it) are not modeled here either.
    */
   public static assertComposable(constructor: AnyConstructor): void {
     if (this.#validatedClasses.has(constructor)) return;
