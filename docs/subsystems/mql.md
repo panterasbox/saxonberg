@@ -102,39 +102,76 @@ preposition:
 interface MqlOneResult extends MqlOne {
   raw: string;        // post-desugar player input (always present)
   prep?: string;      // consumed preposition for this field, lowercased
+  quantity?: MqlQuantity;  // from natural-language `2 X` or formal `:{N}`
 }
 
 interface MqlManyResult extends MqlMany {
   raw: string;
   prep?: string;
+  quantity?: MqlQuantity;
+}
+
+interface MqlQuantity {
+  value: { kind: 'count'; n: number } | { kind: 'all' };
+  mode: 'strict' | 'lenient';
 }
 ```
 
 Controllers destructure directly:
 
 ```ts
-const { stuff, via, raw, prep } = model.target;
+const { stuff, via, raw, prep, quantity } = model.target;
 ```
 
 `raw` is the source string for "you don't see any '<raw>' here"-style
 messaging. `prep` is what the matcher consumed off this field's
 `prepositions:` list — `look at flower` → `prep === 'at'`.
 
+`quantity` carries the leading-number or formal `:{N}` hint when the
+query supplied one — `5 coins`, `coins:{5}`, `all coins`,
+`coins:{*}`. The `mode` discriminator is transport-only: controllers
+pass the whole `MqlQuantity` through to `GlobbableApi.applyQuantity`
+without branching on it. See [glob.md](./glob.md) for the helper's
+distribution algorithm.
+
 ## Pipeline stages
 
 ### Stage 1 — Desugar (`mql/desugar.ts`)
 
 Translates common English phrasing to formal MQL **before** the
-lexer. Two transforms:
+lexer. Three transforms:
 
 1. **Article stripping.** Leading `the` / `a` / `an` are dropped.
 2. **Ordinal prefix.** A leading ordinal marker rewrites the rest as
    a chain index — `second rose` → `rose:[2]`, `2nd rose` →
    `rose:[2]`, `last rose` → `rose:[-1]`.
+3. **Quantity prefix.** A leading positive integer or the literal
+   `all` followed by at least one keyword token rides on a
+   side-channel quantity hint — `5 coins` → `{ rewritten: 'coins',
+   quantityHint: { value: { kind: 'count', n: 5 }, mode: 'lenient' } }`.
+   `all coins` → `{ kind: 'all' }`. The natural-language path is
+   always lenient; strict-mode hints come from the parser's
+   `QuantityNode` (formal `:{N}`).
 
 The pass is **bypassed** when the input contains any formal-MQL
-signal character (`:`, `[`, `,`, `'`). The `looksFormal()` guard
+signal character (`:`, `[`, `,`, `'`, `{`). The `looksFormal()` guard
 keeps dev-typed queries from getting their intent silently rewritten.
+
+The desugar **return shape** is now structured (not just a string):
+
+```ts
+interface DesugarResult {
+  rewritten: string;
+  quantityHint?: MqlQuantityHint;
+  error?: string;
+}
+```
+
+When `error` is set (quantity + ordinal collision detected),
+`rewritten` is the original input and `quantityHint` is undefined;
+the resolver wraps the message in an `MqlDesugarError` that the
+dispatcher surfaces as the command's "couldn't resolve" failure
+prose.
 
 The lexicon (articles, ordinal words, numeric ordinal pattern) lives
 on `GrammarApi` (`api/grammar.ts`) — the natural home for English
@@ -144,6 +181,15 @@ The **conflict-fallback rule** (retry as a literal-keyword form when
 ordinal interpretation hits zero matches) lives in the resolver, not
 here, because match-count is observable only post-resolve.
 
+#### Quantity + ordinal collision
+
+Combining a quantity prefix with an ordinal in the same query
+(`2nd 3 roses`, `3 2nd roses`, `all 2nd roses`) is ambiguous —
+there's no unambiguous unbracketed reading. Desugar refuses with a
+canonical error message that names three rephrasings (range, single
+ordinal, plain count). The resolver throws `MqlDesugarError` with
+that message; the dispatcher renders it as command failure prose.
+
 ### Stage 2 — Lex (`mql/lexer.ts`)
 
 Tokenizes raw query text into a stream of typed `Token`s.
@@ -151,9 +197,13 @@ Tokenizes raw query text into a stream of typed `Token`s.
 Reserved character set:
 
 ```
-,  :  (  )  [  ]  .  -  #  $  *  /  '
+,  :  (  )  [  ]  {  }  .  -  #  $  *  /  '
 =  !=  >  <  >=  <=
 ```
+
+`{`, `}`, and `*` (at top level — `*` inside a path is consumed by
+the path scan) gained dedicated token kinds when the formal-quantity
+syntax landed: `lbrace`, `rbrace`, `star`.
 
 Tricky cases the lexer handles:
 
@@ -187,11 +237,12 @@ chain        = seed (":" chainElement)*
 seed         = pronoun | keywords | literal | path
              | stuffId | "$$" | "(" query ")"
 chainElement = transform | keywords | predicate | ordinal
-             | bracket | group | seed-shaped
+             | bracket | group | quantity | seed-shaped
 transform    = "i" | "I" | "e" | "E"
 ordinal      = "#" int
 bracket      = "[" bracketBody "]"
 bracketBody  = ( "-"? int ) ranges? | filterExpr
+quantity     = "{" ( int | "*" ) "}"
 
 filterExpr   = orExpr
 orExpr       = andExpr ("or" andExpr)*
@@ -211,6 +262,11 @@ Positional rules the parser enforces (not reflected in the grammar):
   to index. Allowed mid-chain as a synonym for `[5]`.
 - `[…]` is rejected at chain head — brackets index/filter an existing
   set.
+- `{…}` (quantity) is rejected at chain head — quantities apply to
+  an existing set. Body grammar is `int` or `*` only in v1; `{1..3}`,
+  `{half}`, `{N unit}` (bulk) have real estate reserved but no
+  implementation yet. Parsed into `QuantityNode { value:
+  { kind: 'count' | 'all' } }`.
 - Multi-bareword runs (`red rose`) collapse into one `KeywordsNode`.
 - The `.X` detail-drill operator is gone; `.` is reserved for
   namespaced atoms inside bracket bodies (`prop.X`, `mixin.X`). The
@@ -235,9 +291,27 @@ The resolver is the largest module. Key entry points:
 
 - `resolve(query, ctx)` — full pipeline: desugar → lex → parse →
   resolveQuery → finalize.
+- `resolveWithQuantity(query, ctx)` — same, plus surfaces any
+  quantity hint (from desugar's `quantityHint` or a parser-produced
+  `QuantityNode`). `MqlApi.resolveOne` / `resolveMany` call this
+  variant to populate `MqlOne.quantity` / `MqlMany.quantity`.
 - `resolveQuery(ast, ctx)` — same, skipping desugar/lex/parse.
 - `resolveSublist`, `resolveChain`, `resolveSeed`, `applyChainOp`,
   `applyTransform`, `filterByKeywords`, `intersectBySeed`, etc.
+
+#### Quantity passthrough
+
+When a chain contains a `QuantityNode` (formal `:{N}` / `:{*}`),
+`applyChainOp` is a **no-op for candidate selection** — the resolver
+does not slice the match list. The quantity hint is harvested
+out-of-band by `extractQuantityFromAst` and attached to the wrapper
+returned by `MqlApi`. Distribution is a controller/helper concern;
+the resolver hands back the unmodified match list.
+
+Strict-mode hints (from a parser `QuantityNode`) win over lenient
+hints (from desugar). In practice both never co-occur — `looksFormal`
+rejects the desugar pass entirely when the input contains `{`, so
+the formal path always sees the hint slot empty.
 
 Each operator/seed declares its permission tier in `permissions.ts`
 or `predicates.ts`; `checkTier` throws `MqlPermissionError` when the
@@ -706,9 +780,6 @@ Documented decisions worth not re-litigating:
   (`prop.X`, `mixin.X`). Direct field access would leak the JS
   surface to players and contradict the inter-stuff contract
   (CLAUDE.md).
-- **No globbable / fungible item stacks.** Roadmap entry; the
-  cardinality contract anticipates it but quantity syntax (`drop 2
-  roses`) is deferred.
 - **No sort operations** (`:sort.X`). Distinct syntactic shape; can
   be added without grammar churn.
 - **No named groups** (`@@group`). Authored or player-saved object

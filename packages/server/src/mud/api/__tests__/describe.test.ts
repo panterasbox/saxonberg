@@ -11,11 +11,14 @@
  * Location adopted NamedMixin.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { DescribeApi } from '../describe';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
+import { GlobbableMixin } from '../../lib/stuff/Globbable';
+import { ShadowApi } from '../shadow';
+import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
 
@@ -71,5 +74,63 @@ describe('DescribeApi.getDisplayName', () => {
     expect(
       DescribeApi.getDisplayName(makeStuff(() => new Plain()))
     ).toBe('');
+  });
+});
+
+describe('DescribeApi.formatName (count-aware)', () => {
+  class Coin extends GlobbableMixin(NamedMixin(Idea)) {
+    static _mixinName = 'Coin';
+  }
+  class Mouse extends GlobbableMixin(NamedMixin(Idea)) {
+    static _mixinName = 'Mouse';
+    public getPluralForm(): string {
+      return 'mice';
+    }
+  }
+  class Rock extends NamedMixin(Idea) {
+    static _mixinName = 'Rock';
+  }
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('returns the bare name for a quantity-1 globbable', () => {
+    const c = makeStuff(() => {
+      const coin = new Coin();
+      coin.setName('coin');
+      return coin;
+    });
+    expect(DescribeApi.formatName(c)).toBe('coin');
+  });
+
+  it('prefixes count + naive plural for quantity > 1', () => {
+    const c = makeStuff(() => {
+      const coin = new Coin();
+      coin.setName('coin');
+      return coin;
+    });
+    c.setQuantity(30);
+    expect(DescribeApi.formatName(c)).toBe('30 coins');
+  });
+
+  it('respects host-side getPluralForm for irregulars', () => {
+    const m = makeStuff(() => {
+      const mouse = new Mouse();
+      mouse.setName('mouse');
+      return mouse;
+    });
+    m.setQuantity(3);
+    expect(DescribeApi.formatName(m)).toBe('3 mice');
+  });
+
+  it('falls through to getDisplayName for non-globbable hosts', () => {
+    const r = makeStuff(() => {
+      const rock = new Rock();
+      rock.setName('rock');
+      return rock;
+    });
+    expect(DescribeApi.formatName(r)).toBe('rock');
   });
 });

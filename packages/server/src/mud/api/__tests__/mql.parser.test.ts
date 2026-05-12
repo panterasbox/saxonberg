@@ -437,3 +437,52 @@ describe('MQL parser — error positions', () => {
     expect(() => parse('rose)')).toThrow(/after query/);
   });
 });
+
+describe('MQL parser — quantity (:{N} / :{*})', () => {
+  it('parses coin:{5} into a chain with a QuantityNode count', () => {
+    const q = parse('coin:{5}');
+    const chain = singleChain(q);
+    expect(chain.head).toEqual<KeywordsNode>({
+      kind: 'keywords',
+      words: ['coin'],
+    });
+    expect(chain.rest).toHaveLength(1);
+    expect(chain.rest[0]!.element).toEqual({
+      kind: 'quantity',
+      value: { kind: 'count', n: 5 },
+    });
+  });
+
+  it('parses coin:{*} into a chain with a QuantityNode all', () => {
+    const q = parse('coin:{*}');
+    const chain = singleChain(q);
+    expect(chain.rest[0]!.element).toEqual({
+      kind: 'quantity',
+      value: { kind: 'all' },
+    });
+  });
+
+  it('rejects :{0} — positive integer required', () => {
+    expect(() => parse('coin:{0}')).toThrow(/positive integer/);
+  });
+
+  it('rejects :{[5]} — body must be int or *, not bracket', () => {
+    expect(() => parse('coin:{[5]}')).toThrow(/expected an integer or '\*'/);
+  });
+
+  it('rejects empty :{}', () => {
+    expect(() => parse('coin:{}')).toThrow(/expected an integer or '\*'/);
+  });
+
+  it('rejects :{abc} — bareword inside quantity body', () => {
+    expect(() => parse('coin:{abc}')).toThrow(/expected an integer or '\*'/);
+  });
+
+  it('rejects unterminated :{5', () => {
+    expect(() => parse('coin:{5')).toThrow(/expected '\}'/);
+  });
+
+  it('rejects { at chain head', () => {
+    expect(() => parse('{5}')).toThrow(/cannot start a chain/);
+  });
+});

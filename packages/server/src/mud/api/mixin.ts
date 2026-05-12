@@ -70,6 +70,7 @@ import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
+import type { Globbable } from '../lib/stuff/Globbable';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -81,8 +82,13 @@ export { Mixins } from '../lib/mixin';
  * Intentionally loose: mixin-decorated classes carry additional static markers
  * (_mixinName, persistentFields, commands) that are checked via
  * property access rather than declared on this type.
+ *
+ * Exported so callers that thread a constructor into MixinApi
+ * (composition validation hooks, glob-identity helpers) can name the
+ * type without redeclaring the `Function & ...` shape locally.
  */
-type AnyConstructor = Function & { prototype: unknown };
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type AnyConstructor = Function & { prototype: unknown };
 
 /** Shape of a mixin constructor — what queryMixins() returns elements of. */
 interface MixinClass {
@@ -501,6 +507,138 @@ export class MixinApi {
   public static isSpawned(obj: Stuff): obj is Stuff & Spawned {
     return this.hasMixin(obj, Mixins.Spawned);
   }
+
+  public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
+    return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  /**
+   * Walk the prototype chain unioning the static `globIdentityFields`
+   * arrays declared at each level. Deduplicates. Mirrors the shape of
+   * {@link getAllPersistentFields}.
+   *
+   * A glob's "kind" is defined by the values of these fields plus
+   * `templatePath`; two globs merge iff their templatePath matches and
+   * every glob-identity field has equal values.
+   */
+  public static getAllGlobIdentityFields(constructor: AnyConstructor): string[] {
+    const fields: string[] = [];
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & { globIdentityFields?: string[] };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'globIdentityFields') &&
+        Array.isArray(c.globIdentityFields)
+      ) {
+        fields.push(...c.globIdentityFields);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    return Array.from(new Set(fields));
+  }
+
+  /**
+   * Once-per-class composition validation hook.
+   *
+   * Walks the prototype chain calling each level's static
+   * `__validateComposition__(ctor)` method exactly once per concrete
+   * class. Mixins that want to enforce composition constraints
+   * declare the static; everyone else is a no-op.
+   *
+   * Called from `StuffApi.register` so the check fires the first time
+   * an instance of a given class lands in the registry. Subsequent
+   * registrations of the same class short-circuit on the WeakSet
+   * memo.
+   *
+   * ## HMR behavior
+   *
+   * The memo is keyed on **constructor identity**, not class name.
+   * `HotReloadApi.reload` re-evaluates a module and produces a NEW
+   * class binding (per `ModuleApi.stamp`'s "first-stamp-wins" rule —
+   * same name, fresh identity). The new class is not in the WeakSet,
+   * so the next first-instance-of-class registration re-runs
+   * validation against whatever `__validateComposition__` is on the
+   * NEW chain. Old class identities stay memoized — fine, because
+   * nothing creates new instances of a post-HMR-retired class.
+   *
+   * **Leaf reload required.** Reloading a mixin module alone is NOT
+   * enough to pick up a new check. JS class inheritance is bound at
+   * class-definition time: `class Coin extends GlobbableMixin(Idea)`
+   * captures whatever `GlobbableMixin` returned at that expression's
+   * evaluation. Reloading `Globbable.ts` produces a new mixin
+   * function and registers it with `HotReloadApi`, but `Coin`'s
+   * prototype chain still points at the OLD mixin output. Since
+   * `Coin`'s constructor identity hasn't changed, the WeakSet hit
+   * memoizes the old validation forever.
+   *
+   * To rotate the validation: reload the **leaf class** too. That
+   * re-evaluates its `class Coin extends GlobbableMixin(Idea)`
+   * expression against the new mixin output, produces a fresh
+   * `Coin` constructor identity, and the next first-instance triggers
+   * the new check.
+   *
+   * No auto-cascade — there's no machinery that reloads leaves when
+   * a mixin reloads. That's intentional: bulk re-instantiation while
+   * a player is mid-action would be jarring. The right tool for
+   * "refresh every Globbable in the world" is an MQL query (e.g.,
+   * `world:[mixin.GlobbableMixin]`) plus an explicit reload, run by
+   * the dev when they're ready. Forgetting to reload leaves doesn't
+   * create inconsistency — the old check just keeps applying; the
+   * new constraint silently doesn't tighten, but nothing breaks.
+   *
+   * Cross-reference: `docs/subsystems/mixins.md` §Composition
+   * validation, `docs/subsystems/hot-reload.md` §Composition
+   * validation.
+   *
+   * ## Current opt-ins
+   *
+   * - `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
+   *   `globIdentityFields ⊂ persistentFields`.
+   * - `PerceiverMixin` — requires `Sensor` on the chain. The TS
+   *   bound is loose (`MixinConstructor`); the `Perceiver extends
+   *   Sensor` interface relationship narrows the type but doesn't
+   *   enforce composition. Without runtime co-composition,
+   *   `MixinApi.isPerceiver` would lie.
+   *
+   * ## Not migrated (TypeScript bound already covers)
+   *
+   * A bound is cheaper and more specific — see the principle in
+   * `docs/subsystems/mixins.md` §Composition validation. These
+   * mixins document a constraint, but the constraint is enforced at
+   * compile time and doesn't need the runtime hook:
+   *
+   * - `AdornableMixin` — `MixinConstructor<Stuff & Container>`.
+   * - `WearableMixin` / `WieldableMixin` —
+   *   `MixinConstructor<Stuff & Slottable & Containable>`.
+   * - `MobileMixin` — `MixinConstructor<Stuff & Containable>`.
+   * - `PosturedMixin` / `MountableMixin` / `DrivableMixin` —
+   *   `MixinConstructor<Stuff & Slotted>`.
+   * - `WorkspaceMixin` — `MixinConstructor<Stuff & Environment>`.
+   *
+   * Soft pairings documented in JSDoc but not strictly required
+   * (e.g., `AdornmentMixin` typically composed with `Containable` so
+   * it can become inventory after detach — but a never-detached
+   * adornment is fine without it) are not modeled here either.
+   */
+  public static assertComposable(constructor: AnyConstructor): void {
+    if (this.#validatedClasses.has(constructor)) return;
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        __validateComposition__?: (ctor: AnyConstructor) => void;
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, '__validateComposition__') &&
+        typeof c.__validateComposition__ === 'function'
+      ) {
+        c.__validateComposition__(constructor);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    this.#validatedClasses.add(constructor);
+  }
+
+  static #validatedClasses = new WeakSet<AnyConstructor>();
 }
 
 

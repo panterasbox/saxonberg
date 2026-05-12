@@ -62,6 +62,7 @@ character (part of a bareword, path segment, or quoted string).
 | `:` | Chain operator (filter / transform / intersection) |
 | `(` `)` | Grouping |
 | `[` `]` | Filter expression / ordinal index (overloaded) |
+| `{` `}` | Formal quantity body (`:{N}` strict count, `:{*}` strict all) — see [subsystems/glob.md](./subsystems/glob.md). |
 | `'…'` | Literal string (preserves whitespace, no MQL parsing inside) |
 | `-` | Set difference (only between expressions; literal inside barewords) |
 | `#` | Identifier prefix: `#5` ordinal, `#abc123` stuff id |
@@ -87,6 +88,9 @@ keywords:
   environment)
 - **Ordinal hints** (in the natural-language layer): `first`,
   `second`, …, `tenth`, `last`, plus `1st` / `2nd` / … / `Nth`
+- **Quantity hint** (in the natural-language layer): `all` followed
+  by at least one keyword token (`all coins`); a leading positive
+  integer in the same position (`5 coins`) is also a quantity hint.
 - **Articles** (stripped before parsing): `the`, `a`, `an`
 
 ## Three layers of quoting
@@ -407,6 +411,38 @@ want.
 > seek, `[keyword.X]` for author-grade assertions and composition
 > (`[keyword.rusty and keyword.broken]`).
 
+## Formal quantity `:{N}` / `:{*}`
+
+Composer-grade quantity syntax. Strict by construction — the
+dispatcher pre-checks the requested count against the available
+supply and declines without acting if the supply is short.
+
+```
+coin:{5}           5 of the coin (strict — composer-grade)
+coin:{*}           all of the coin (strict)
+coin:[5]           ordinal — the 5th coin (existing, unchanged)
+```
+
+The body is `int` or `*` only in v1. `{1..3}` (range),
+`{half}` / fractional, and bulk-form `{N unit}` all have real estate
+reserved.
+
+The strict assertion is "N units total." Non-globbable matches
+contribute 1 unit each; globbable matches contribute up to their full
+quantity. `swords:{3}` is a legal assertion against three separate
+non-globbable swords *or* a 3-stack of globbable swords. Shortfall
+declines without acting.
+
+Why curly: `{` / `}` are unclaimed elsewhere; the shape is visually
+distinct from `[N]` (ordinal) so composers don't have to remember
+which-bracket-does-what — different shape, different operation.
+
+Mid-chain only. `{5}` at chain head has no current set to address.
+
+See [subsystems/glob.md](./subsystems/glob.md) for the runtime
+mechanics (split-on-take, merge-on-arrival, the `applyQuantity`
+distribution algorithm).
+
 ## Set operations
 
 | Form | Means |
@@ -458,8 +494,8 @@ fails)` then `tell him hello` still hits bob.
 
 A pre-parse pass translates common English phrasing into formal MQL.
 **Bypassed entirely** when the input contains any formal-MQL signal
-character (`:`, `[`, `,`, `'`) — a query that already uses MQL syntax
-is taken at face value.
+character (`:`, `[`, `,`, `'`, `{`) — a query that already uses MQL
+syntax is taken at face value.
 
 ### Article stripping
 
@@ -489,6 +525,37 @@ Recognized markers:
 
 A standalone ordinal token (no following word) is treated as a
 literal keyword. `drop second` searches for keyword "second."
+
+### Quantity prefix
+
+A leading positive integer or the literal `all` followed by at least
+one keyword token rides on a side-channel quantity hint:
+
+| Input | Means |
+|---|---|
+| `5 coins` | quantity = 5 (lenient), rewritten = `coins` |
+| `all coins` | quantity = all (lenient), rewritten = `coins` |
+| `2 red roses` | quantity = 2 (lenient), rewritten = `red roses` |
+
+Lenient means: clamp on shortfall and emit a `quantity-clamped`
+note. The dispatcher's helper (`GlobbableApi.applyQuantity`)
+distributes the count across matches in scored order — see
+[subsystems/glob.md](./subsystems/glob.md).
+
+Composers who want strict (decline-on-shortfall) semantics use
+`coin:{5}` instead.
+
+### Quantity + ordinal collision
+
+Combining a quantity prefix with an ordinal in the same query
+(`2nd 3 roses`, `3 2nd roses`, `all 2nd roses`) is ambiguous —
+"three roses starting at the 2nd one" doesn't have a clean unbracketed
+form. Desugar rejects with a friendly error pointing at three
+unambiguous rephrasings:
+
+- A range: `roses:[4..6]` (the 2nd group of three).
+- A single ordinal: `2nd rose`.
+- A plain count: `3 roses`.
 
 ### Conflict fallback
 
@@ -599,6 +666,18 @@ me:i:[mixin.Burnable]                   (authoring)
 # Doors anywhere in the world
 world:[mixin.Door]                      (admin)
 
+# Take 5 of a coin pile
+get 5 coins                             (lenient — clamps if short)
+
+# Drop everything matching the keyword
+drop all coins                          (lenient — sentinel for full supply)
+
+# Strictly assert exactly 5 coins available, decline otherwise
+get coins:{5}                           (composer-grade)
+
+# Drop every coin in the pile
+drop coins:{*}                          (composer-grade)
+
 # Items with hp > 0 in inventory
 me:i:[prop.hp > 0]                      (authoring; comparison
                                          against undefined is false,
@@ -631,9 +710,6 @@ Some things MQL deliberately doesn't do:
   non-goal — admin scripting belongs in a different language.
 - **No direct field access** (`obj.field`). `.` is namespace-only
   inside `[…]`.
-- **No globbable / fungible quantities** (`drop 2 roses`). Roadmap
-  entry; today `drop 2 roses` searches for the keyword "2 roses"
-  (and finds nothing).
 - **No sort operations** (`:sort.X`).
 - **No named groups** (`@@group`).
 - **No locale support.** Reserved words are English.

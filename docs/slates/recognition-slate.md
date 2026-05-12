@@ -93,6 +93,18 @@ Every perception-rendering call routes through this pipeline:
 Step 4 is where social-graph integration happens; the bucket
 substrate is detailed in [social-graph-slate.md](./social-graph-slate.md).
 
+**Globbable contributes to the identity side**, not decoration.
+When the target carries the `Globbable` mixin, the count enters the
+noun phrase produced by step 2/3 ("30 coins" vs "a coin"), and step
+5's decorations wrap that identity intact ("30 burning coins", not
+"burning 30 coins"). The mixin exposes `getQuantity()` + the host's
+singular `getDisplayName()` and optional `getPluralForm()`;
+pluralization runs through `GrammarApi`. Globbable doesn't know
+about viewer state — DescribeApi v2 negotiates recognition,
+perception, and bucket-verbosity, then asks Globbable for the
+data it needs to build the count-bearing identity. See
+[subsystems/glob.md § Display rendering](../subsystems/glob.md#display-rendering--describeapiformatname).
+
 ---
 
 ## The recognition store — viewer-side

@@ -151,6 +151,35 @@ export class GrammarApi {
     const first = display.charAt(0).toLowerCase();
     return VOWELS.has(first) ? 'an' : 'a';
   }
+
+  /**
+   * Plural form of `singular`.
+   *
+   * Defers to the host's `getPluralForm()` method when present so
+   * irregulars (`mouse` → `mice`, `child` → `children`) can override
+   * the rule. Falls back to the naive `singular + 's'` — good enough
+   * for English-content v1. Real morphology (`-y → -ies`, `-s/-x/-z
+   * /-ch/-sh → -es`, etc.) lands when a Locale or richer
+   * pluralization rule arrives.
+   *
+   * The host-side opt-in shape is a single `getPluralForm(): string`
+   * method on the Stuff. Empty / non-string returns fall through to
+   * the naive rule so a misbehaving override doesn't crash the
+   * caller.
+   */
+  static pluralize(stuff: Stuff, singular: string): string {
+    const override = (stuff as unknown as { getPluralForm?: () => string })
+      .getPluralForm;
+    if (typeof override === 'function') {
+      try {
+        const plural = override.call(stuff);
+        if (typeof plural === 'string' && plural.length > 0) return plural;
+      } catch {
+        // Fall through to naive.
+      }
+    }
+    return `${singular}s`;
+  }
 }
 
 SecurityApi.decorateApiClass(GrammarApi);

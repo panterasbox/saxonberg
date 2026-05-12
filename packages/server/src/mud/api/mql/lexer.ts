@@ -40,6 +40,9 @@ export type TokenKind =
   | 'rparen'
   | 'lbracket'
   | 'rbracket'
+  | 'lbrace'
+  | 'rbrace'
+  | 'star'
   | 'dot'
   | 'dotdot'
   | 'dash'
@@ -99,6 +102,9 @@ const SINGLE_CHAR_TOKENS: Readonly<Record<string, TokenKind>> = {
   ')': 'rparen',
   '[': 'lbracket',
   ']': 'rbracket',
+  '{': 'lbrace',
+  '}': 'rbrace',
+  '*': 'star',
   '=': 'eq',
 };
 

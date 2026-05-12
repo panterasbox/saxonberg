@@ -553,6 +553,10 @@ export class StuffApi {
       return;
     }
 
+    MixinApi.assertComposable(
+      object.constructor as Parameters<typeof MixinApi.assertComposable>[0]
+    );
+
     this.#updateIndexes(object, 'add');
   }
 
@@ -858,6 +862,43 @@ export class StuffApi {
   public static clearAll(): void {
     this.#indexes.byId.clear();
     this.#indexes.byTemplatePath.clear();
+  }
+
+  /**
+   * Copy a single named field's value from `src` to `dst` through
+   * the inter-stuff method surface.
+   *
+   * Prefers `src.getX()` / `dst.setX(value)` (`X = name` with the
+   * first letter uppercased) — the canonical inter-stuff contract
+   * (per CLAUDE.md). Falls back to direct property access on either
+   * side when the accessor pair isn't defined, which covers the
+   * common case of bare persisted scalars that don't expose a custom
+   * getter / setter (a `tarnished: boolean` field on Coin).
+   *
+   * Used by `GlobbableApi.split` to clone the glob-identity field
+   * set onto the split-off; general enough to live on the Stuff
+   * registry rather than buried in glob.
+   *
+   * Doesn't validate the destination Stuff actually owns the field —
+   * the caller is responsible for picking field names that make
+   * sense for `dst`'s class. Mismatched casing or typos write a
+   * dynamic property that nobody reads, silently. Treat as a
+   * framework primitive: the callers are short, well-typed lists of
+   * known fields (e.g., `static globIdentityFields`).
+   */
+  public static copyField(src: Stuff, dst: Stuff, name: string): void {
+    const cap = name.charAt(0).toUpperCase() + name.slice(1);
+    const getter = (src as unknown as Record<string, unknown>)[`get${cap}`];
+    const value =
+      typeof getter === 'function'
+        ? (getter as (...args: unknown[]) => unknown).call(src)
+        : (src as unknown as Record<string, unknown>)[name];
+    const setter = (dst as unknown as Record<string, unknown>)[`set${cap}`];
+    if (typeof setter === 'function') {
+      (setter as (...args: unknown[]) => unknown).call(dst, value);
+      return;
+    }
+    (dst as unknown as Record<string, unknown>)[name] = value;
   }
 
   /**

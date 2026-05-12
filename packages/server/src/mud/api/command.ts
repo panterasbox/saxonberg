@@ -1168,6 +1168,7 @@ export class CommandApi {
         // pronoun memory on empty (no anchor to anchor on).
         const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
+        if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (r.stuff.length > 0 && focused) {
@@ -1187,6 +1188,7 @@ export class CommandApi {
         // means.
         const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
+        if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (r.stuff !== null && focused) {
@@ -1228,6 +1230,7 @@ export class CommandApi {
         }
         const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
+        if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
         if (r.stuff.length > 0 && focused) {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
@@ -1240,6 +1243,7 @@ export class CommandApi {
         }
         const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
+        if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
         if (r.stuff !== null && focused) {
           const asMany: MqlMany = { stuff: [r.stuff] };

@@ -205,6 +205,36 @@ objects normally via the cache-busted `?hmr=N` query. `ModuleApi`'s
 WeakMap is keyed by class object, so each reload's distinct class
 objects each get their own `ModuleId` entry; nothing collides.
 
+### Composition validation
+
+`MixinApi.assertComposable` (the runtime hook for mixin composition
+rules like `Globbable ⊥ Container`) memoizes on **constructor
+identity**, so HMR-produced class bindings re-validate
+automatically — a reload that changes a class's identity gets a
+fresh first-instance-of-class registration and a fresh check.
+
+The subtle case: reloading the **mixin** alone is not enough.
+`class Coin extends GlobbableMixin(Idea)` captures the mixin
+function at evaluation time; reloading `Globbable.ts` produces a
+new mixin function but doesn't rewire `Coin`'s prototype chain.
+`Coin`'s constructor identity is unchanged, the WeakSet hit
+short-circuits, and the new check never fires. To rotate the
+validation, reload the **leaf** module too — that re-evaluates the
+class expression against the new mixin and produces a fresh
+`Coin` identity.
+
+No cascade. Editing a mixin doesn't fan out to every dependent
+leaf — that would re-instantiate live state while a player is
+mid-action. The pattern when a dev does want to rotate dependents:
+an MQL query (`world:[mixin.GlobbableMixin]`) to find the
+population plus an explicit reload of each leaf class. Forgetting
+this step is not a correctness bug — the old check keeps applying
+and the new constraint silently doesn't tighten, but nothing
+breaks.
+
+See [mixins.md § Composition validation](./mixins.md#composition-validation-__validatecomposition__)
+for the full mixin-side story.
+
 ## Lifecycle events
 
 Four well-known events declared in `lib/events.ts`, all sharing the

@@ -39,6 +39,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import { GrammarApi } from './grammar';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -78,6 +79,32 @@ export class DescribeApi {
       if (short) return short;
     }
     return fallback;
+  }
+
+  /**
+   * Count-aware display name. For a `Globbable` with `quantity > 1`
+   * returns `"<count> <plural>"` (`"30 coins"`); for everything else
+   * falls through to {@link getDisplayName}.
+   *
+   * Pluralization defers to {@link GrammarApi.pluralize}, which
+   * respects host-side `getPluralForm()` overrides for irregulars
+   * (`mouse` → `mice`).
+   *
+   * This is the v1 thin shim — controllers reach for it when
+   * rendering quantity-bearing prose. `DescribeApi v2` (recognition
+   * slate) will absorb the same shape into the composition pipeline
+   * with viewer-side recognition / perception state. Until then,
+   * keeping the seam here (rather than on `GlobbableApi`) keeps the
+   * "presentation logic lives in DescribeApi" rule intact — see
+   * CLAUDE.md "Module categories" + `docs/subsystems/glob.md` §
+   * Display rendering.
+   */
+  static formatName(obj: Stuff, fallback: string = 'something'): string {
+    const base = DescribeApi.getDisplayName(obj, fallback);
+    if (!MixinApi.isGlobbable(obj)) return base;
+    const n = obj.getQuantity();
+    if (n === 1) return base;
+    return `${n} ${GrammarApi.pluralize(obj, base)}`;
   }
 }
 

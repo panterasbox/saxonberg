@@ -63,6 +63,7 @@ import type {
   KeywordsNode,
   PronounName,
   PronounNode,
+  QuantityNode,
   QueryNode,
   SublistNode,
   TransformNode,
@@ -238,6 +239,11 @@ class Parser {
           '[…] cannot start a chain — brackets index or filter an existing set',
           t.start
         );
+      case 'lbrace':
+        throw new MqlParseError(
+          "'{…}' (quantity) cannot start a chain — chain it after a base seed (e.g., 'coin:{5}')",
+          t.start
+        );
       case 'int':
         // Naked int at seed position is meaningless. Consume to give
         // a useful error message.
@@ -331,12 +337,57 @@ class Parser {
         return this.parseGroup();
       case 'lbracket':
         return this.parseBracket();
+      case 'lbrace':
+        return this.parseQuantity();
       default:
         throw new MqlParseError(
           `expected a chain element after ':' but got ${describe(t)}`,
           t.start
         );
     }
+  }
+
+  /**
+   * Parse `:{N}` (strict count) or `:{*}` (strict all). The
+   * resolver doesn't filter on QuantityNode; it threads the value
+   * onto the final result wrapper marked `mode: 'strict'`. Body
+   * grammar is intentionally minimal in v1 — `{N}` and `{*}` only.
+   * `{1..3}` ranges, `{half}`, `{N unit}` (bulk) all have real
+   * estate reserved.
+   */
+  private parseQuantity(): QuantityNode {
+    const open = this.expect('lbrace', "'{'");
+    const t = this.peek();
+    let value: QuantityNode['value'];
+    if (t.kind === 'int') {
+      this.advance();
+      const n = Number.parseInt(t.value, 10);
+      if (n < 1) {
+        throw new MqlParseError(
+          `quantity must be a positive integer (got ${n})`,
+          t.start
+        );
+      }
+      value = { kind: 'count', n };
+    } else if (t.kind === 'star') {
+      this.advance();
+      value = { kind: 'all' };
+    } else {
+      throw new MqlParseError(
+        `expected an integer or '*' inside '{...}' but got ${describe(t)}`,
+        t.start
+      );
+    }
+    if (!this.peekKind('rbrace')) {
+      const next = this.peek();
+      throw new MqlParseError(
+        `expected '}' after quantity body but got ${describe(next)}`,
+        next.start
+      );
+    }
+    this.advance();
+    void open;
+    return { kind: 'quantity', value };
   }
 
   /**
