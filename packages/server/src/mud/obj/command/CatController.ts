@@ -52,8 +52,7 @@ export class CatController extends CommandController<CatModel> {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
       target =
-        (stuff as unknown as { templatePath?: string; path?: string })
-          .templatePath ??
+        stuff.getTemplatePath() ??
         (stuff as unknown as { path?: string }).path ??
         null;
     } else if (model.path) {

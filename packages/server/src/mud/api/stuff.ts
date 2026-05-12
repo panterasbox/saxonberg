@@ -87,8 +87,7 @@ export class StuffApi {
    */
   static #updateIndexes(obj: Stuff, action: 'add' | 'remove'): void {
     const id = obj.stuffId;
-    const templatePath = (obj as unknown as { templatePath?: string })
-      .templatePath;
+    const templatePath = obj.getTemplatePath();
     if (action === 'add') {
       this.#indexes.byId.set(id, obj);
       if (templatePath) {
@@ -334,14 +333,22 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction(prevSentinel);
     }
-    if (zone) obj.setZone(zone);
+    // Seed zone via the caller-allowlisted stamp seam (mirrors the
+    // templatePath stamp below). Going through `obj.setZone(zone)`
+    // would fail the `FromSpatialZone` gate at runtime — StuffApi
+    // is not a SpatialZone subclass. The seam writes the `#zone`
+    // slot directly; only `mud/api/stuff.ts` and test seams may
+    // call it.
+    if (zone) Stuff._stampZone(obj, zone);
     // Stamp the template path BEFORE register, so #updateIndexes
     // sees it and adds the byTemplatePath entry as part of the
-    // single register pass. Direct field-write (not the
-    // ApiOnly-gated `setTemplatePath` setter) because the setter's
-    // contract is "stamp-and-reindex on a registered Stuff" — at
-    // this point the object isn't registered yet.
-    (obj as unknown as { templatePath?: string }).templatePath = templatePath;
+    // single register pass. `_stampTemplatePath` writes the `#`
+    // slot without re-indexing (the setter's reindex-on-set
+    // contract assumes a registered Stuff — at this point the
+    // object isn't registered yet). The seam is caller-gated:
+    // only this file (`mud/api/stuff.ts`) and the test-setup
+    // helper may invoke it; any other caller throws.
+    Stuff._stampTemplatePath(obj, templatePath);
     return this.#registerAndInit(
       obj,
       hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
@@ -519,8 +526,7 @@ export class StuffApi {
     // Lifecycle event. EventApi silently drops the emit during early
     // boot (e.g. when the EventRegistry itself is being created),
     // so the call is safe at every point in the registration order.
-    const templatePath = (proxy as unknown as { templatePath?: string })
-      .templatePath;
+    const templatePath = proxy.getTemplatePath();
     EventApi.emit(Events.StuffCreated, {
       stuffId: proxy.stuffId,
       templatePath,
@@ -600,6 +606,21 @@ export class StuffApi {
    * whether a `canDestruct` veto throws; the witness itself fires
    * uniformly across both paths so any side effects the target
    * attaches (audit hooks, observers) see every call.
+   *
+   * Slot order (locked by the ref-shapes design):
+   *   1. `canDestruct` witness (force ignores veto).
+   *   2. `onDestruct` user witness — subclass-customizable.
+   *   3. Mixin-registry cleanup walk: each mixin's static
+   *      `cleanupOnDestruct(proxy)`, most-derived-first.
+   *      Substrate-invariant cleanup; subclass overrides cannot
+   *      bypass (statics aren't on the prototype chain).
+   *   4. `ShadowApi._detachAllForHost`.
+   *   5. `Stuff.destroy()` — terminal mark + unregister.
+   *
+   * Cleanup-handler exception policy: log-and-continue per mixin. A
+   * thrown handler is logged with mixin name + stuff id; the loop
+   * continues; `destroy()` always runs. The caller of
+   * `StuffApi.destruct` never sees cleanup-handler failures.
    */
   static #destructCore(object: Stuff, force: boolean): void {
     if (!object) {
@@ -614,6 +635,39 @@ export class StuffApi {
     // touch `this`. After `destroy()` marks `_isDestroyed`, every
     // proxy method call throws `DestroyedObjectError`.
     callDestructHook(object, 'onDestruct');
+
+    // Framework cleanup walk. Mixin authors register a static
+    // `cleanupOnDestruct(stuff)` on the mixin class for invariant-
+    // critical work that must not be skippable by a subclass override
+    // or shadow. Discovery is structural: own static + function shape.
+    // queryMixins walks most-derived-first naturally.
+    const mixinChain = MixinApi.queryMixins(
+      object.constructor as { prototype: unknown } &
+        ((...args: unknown[]) => unknown)
+    );
+    for (const mixinCtor of mixinChain) {
+      if (
+        !Object.prototype.hasOwnProperty.call(mixinCtor, 'cleanupOnDestruct')
+      ) {
+        continue;
+      }
+      const handler = (mixinCtor as { cleanupOnDestruct?: unknown })
+        .cleanupOnDestruct;
+      if (typeof handler !== 'function') continue;
+      try {
+        (handler as (stuff: Stuff) => void).call(mixinCtor, object);
+      } catch (err) {
+        const mixinName =
+          (mixinCtor as { _mixinName?: string })._mixinName ?? '<unknown>';
+        console.error(
+          `StuffApi.destruct: ${mixinName}.cleanupOnDestruct threw for ` +
+            `stuff ${stuffId}`,
+          err
+        );
+        // continue — substrate cleanup is best-effort bookkeeping;
+        // partial state recovers via R2.3 self-heal + GC sweep.
+      }
+    }
 
     // Privileged detach bypasses @ShadowSecurity per spec —
     // destruction is non-negotiable.

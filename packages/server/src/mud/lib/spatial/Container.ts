@@ -33,6 +33,7 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
 import type { CommandContributions } from '../../api/command';
 
 /**
@@ -89,6 +90,46 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainerMixin';
+
+    /**
+     * Framework cleanup (S1 — evacuate to outer container).
+     * When a Container destructs, every Containable currently held
+     * is re-parented to the destructing Container's own outer
+     * container via `ContainmentApi.move`. Top-of-containment
+     * (Container that isn't also Containable, or whose
+     * `getContainer()` is null) evacuates to `null` — those items
+     * end up "in limbo." `onMoved(from, to)` witnesses fire for
+     * each item.
+     *
+     * Walk order matters: this fires BEFORE `Containable.
+     * cleanupOnDestruct` for a Container+Containable composition,
+     * so the evacuation completes while `getContainer()` still
+     * returns the outer. Snapshot first — `removeContainable`
+     * mutates the live set during iteration.
+     */
+    static cleanupOnDestruct(stuff: Stuff): void {
+      const host = stuff as Stuff & Container;
+      // Snapshot via getContents() (returns Array.from(this.contents)
+      // — already a fresh array). Safe to iterate while mutating
+      // the underlying set via ContainmentApi.move.
+      const snapshot = host.getContents();
+      const outer = MixinApi.isContainable(host)
+        ? (host as Stuff & Containable).getContainer()
+        : null;
+      for (const item of snapshot) {
+        try {
+          ContainmentApi.move(item, outer);
+        } catch (err) {
+          // Log-and-continue (same policy as the dispatcher).
+          // One stuck item must not strand the rest.
+          console.error(
+            `ContainerMixin.cleanupOnDestruct: failed to evacuate ` +
+              `${item.stuffId} from ${host.stuffId}`,
+            err
+          );
+        }
+      }
+    }
 
     /**
      * Command provider for inventory management commands

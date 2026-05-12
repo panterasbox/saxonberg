@@ -57,7 +57,12 @@ describe('FromTemplate (real, set at clone time)', () => {
   // Without a live MongoDB the clone path doesn't exercise; we
   // simulate the post-clone state by stamping templatePath manually.
   it('matches an instance whose templatePath matches the glob', () => {
-    const fake = { templatePath: '/domain/narnia/cair-paravel' };
+    // Post-lockdown: templatePath is hard-private. Stand-in callers
+    // must expose the path via `getTemplatePath()`, the inter-Stuff
+    // contract shape resolveCallerPath uses.
+    const fake = {
+      getTemplatePath: () => '/domain/narnia/cair-paravel',
+    };
     const policy = SecurityPolicies.FromTemplate('/domain/narnia/**');
     expect(policy.allows(fake, null, 'm')).toBe(true);
   });
@@ -68,7 +73,9 @@ describe('FromTemplate (real, set at clone time)', () => {
   });
 
   it('denies when templatePath does not match', () => {
-    const fake = { templatePath: '/domain/other/place' };
+    const fake = {
+      getTemplatePath: () => '/domain/other/place',
+    };
     const policy = SecurityPolicies.FromTemplate('/domain/narnia/**');
     expect(policy.allows(fake, null, 'm')).toBe(false);
   });

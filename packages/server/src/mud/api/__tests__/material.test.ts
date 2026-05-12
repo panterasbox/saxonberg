@@ -6,7 +6,11 @@ import { Thing } from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../mixin';
 import { Quantity } from '../../lib/quantity';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../lib/security/__tests__/test-setup';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 describe('MaterialApi.materialOf', () => {
   beforeEach(() => {
@@ -30,9 +34,7 @@ describe('MaterialApi.materialOf', () => {
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
     const oak = makeStuff(() => new Material());
     oak.setName('oak');
-    oak.templatePath = '/lib/material/wood/oak';
-    StuffApi.unregister(oak);
-    StuffApi.register(oak);
+    stampTemplatePathForTest(oak, '/lib/material/wood/oak');
 
     const log = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(log)) throw new Error('expected tangible');
@@ -43,13 +45,9 @@ describe('MaterialApi.materialOf', () => {
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
     const oak = makeStuff(() => new Material());
-    oak.templatePath = '/lib/material/wood/oak';
-    StuffApi.unregister(oak);
-    StuffApi.register(oak);
+    stampTemplatePathForTest(oak, '/lib/material/wood/oak');
     const iron = makeStuff(() => new Material());
-    iron.templatePath = '/lib/material/element/iron';
-    StuffApi.unregister(iron);
-    StuffApi.register(iron);
+    stampTemplatePathForTest(iron, '/lib/material/element/iron');
 
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -64,13 +62,8 @@ describe('MaterialApi.materialOf', () => {
 });
 
 describe('MaterialApi v2 — classification queries', () => {
-  function withTemplatePath<T extends { templatePath: string | null }>(
-    obj: T,
-    path: string
-  ): T {
-    obj.templatePath = path;
-    StuffApi.unregister(obj as never);
-    StuffApi.register(obj as never);
+  function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+    stampTemplatePathForTest(obj, path);
     return obj;
   }
 

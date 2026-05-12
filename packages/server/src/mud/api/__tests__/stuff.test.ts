@@ -273,7 +273,12 @@ describe('StuffApi', () => {
     class Stamped extends Idea {}
 
     function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
-      (obj as unknown as { templatePath?: string }).templatePath = path;
+      // The `#templatePath` slot is hard-private — direct field
+      // assignment is a no-op. Use the caller-gated stamp seam so
+      // the slot is set on the raw target before the wrapping
+      // Proxy is built. The seam allows `.test.ts` callers; see
+      // `Stuff.#stampGateAllowlist`.
+      Stuff._stampTemplatePath(obj, path);
       return obj;
     }
 

@@ -33,6 +33,7 @@ import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -83,6 +84,28 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'ContainableMixin';
 
     /**
+     * Framework cleanup (R2.4 collection-symmetric). When a
+     * Containable destructs, unhook it from its container's
+     * `contents` set via the canonical chokepoint so `onMoved` /
+     * `onContainableRemoved` witnesses fire. Discovered by the
+     * dispatcher in `StuffApi.#destructCore` via the
+     * `MixinApi.queryMixins` walk + own-static filter.
+     *
+     * The Container-side cleanup (most-derived) for a
+     * Container+Containable composition fires BEFORE this — it
+     * evacuates contents while `_container` is still set, then
+     * this hook completes the unhook for the destructing item's
+     * own membership in its outer container.
+     */
+    static cleanupOnDestruct(stuff: Stuff): void {
+      const self = stuff as Stuff & Containable;
+      const env = self.getContainer();
+      if (env) {
+        ContainmentApi.move(self, null);
+      }
+    }
+
+    /**
      * Note: environment is a complex type (reference to another object).
      * It is NOT included in persistentFields - instead, classes using
      * this mixin must declare a custom persistenceHandler.
@@ -119,9 +142,19 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Get the current container.
+     *
+     * R2.3 self-heal: if `environment` points at a destroyed
+     * Container (a path bypassed the eager evacuation in
+     * `Container.cleanupOnDestruct`), clear the slot and return
+     * `null`. Cheap one-liner backstop for S1 / S8.
      */
     getContainer(): (Stuff & Container) | null {
-      return this.environment;
+      const env = this.environment;
+      if (env !== null && env.isDestroyed()) {
+        this.environment = null;
+        return null;
+      }
+      return env;
     }
 
     /**

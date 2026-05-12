@@ -319,13 +319,44 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * Vacate every slot before chaining to super. Vacated occupants do
-     * NOT auto-destruct — they detach and their host's super-chain
-     * handles their ultimate fate.
+     * R2.4 framework cleanup on the holder side. When a Slotted
+     * host destructs, actively vacate every occupied slot via the
+     * canonical `Slotted.vacate(slot, candidate)` chokepoint so
+     * the held side's witness chain (`onSlotReleased`, posture
+     * transitions, `onUnwielded`, …) fires. A naked
+     * `slots.clear()` would leave occupants with a stale
+     * `getOccupiedHost()` until lazy self-heal and would skip the
+     * witness traffic.
+     *
+     * Walk order: for a Container+Slotted+Containable host
+     * (avatar with a Wieldable in hand), the Container cleanup
+     * (most-derived) evacuates contents first, then THIS step
+     * vacates slots. A wielded sword that's also in the avatar's
+     * contents ends up in the outer container (via Container
+     * cleanup) AND cleanly unwielded (via this step).
+     *
+     * Iteration safety: snapshot the (host, slot, candidate)
+     * tuples first because `host.vacate` mutates the live map.
      */
-    onDestruct(): void {
-      this.slots.clear();
-      super.onDestruct();
+    static cleanupOnDestruct(stuff: Stuff): void {
+      const host = stuff as Stuff & Slotted;
+      const snapshot: Array<[string, Stuff & Slottable]> = [];
+      for (const [slotName, occupants] of host.getAllOccupants().entries()) {
+        for (const occupant of occupants) {
+          snapshot.push([slotName, occupant]);
+        }
+      }
+      for (const [slotName, occupant] of snapshot) {
+        try {
+          host.vacate(slotName, occupant);
+        } catch (err) {
+          console.error(
+            `SlottedMixin.cleanupOnDestruct: failed to vacate ` +
+              `${occupant.stuffId} from ${host.stuffId}.${slotName}`,
+            err
+          );
+        }
+      }
     }
   };
 }

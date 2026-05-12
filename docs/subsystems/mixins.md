@@ -199,9 +199,68 @@ specific static. Three are recognized today:
 | `static persistentFields: string[]` | `PersistentHydrator`, `Persistable.toDocument` | Field names to round-trip through the persistence pipeline |
 | `static commandProvider: CommandProviderRegistry` | `CommandGiverMixin.getAvailableCommands` | YAML command files exposed when this mixin is in scope |
 | `static _mixinName: string` | `MixinApi.queryMixins` | Identity (above) |
+| `static cleanupOnDestruct(stuff: Stuff): void` | `StuffApi.destruct` dispatcher | Substrate-invariant cleanup when an instance of this mixin destructs (see below) |
 
 Subsystems extend this list by reading additional statics on the same
 mixin object — the convention scales.
+
+### `cleanupOnDestruct` — framework cleanup hook
+
+A mixin can register substrate-invariant cleanup work as a `static
+cleanupOnDestruct(stuff)`. The destruct dispatcher in
+`StuffApi.#destructCore` walks the host's mixin chain via
+`MixinApi.queryMixins`, filters for layers whose own static has this
+method (own-property — not inherited), and invokes each with the
+destructing proxy. Walk order is most-derived first / base last; per-
+handler try/catch is log-and-continue.
+
+Slot order in `#destructCore`:
+
+```
+canDestruct veto  →  user onDestruct witness  →  cleanupOnDestruct walk
+                  →  ShadowApi._detachAllForHost  →  Stuff.destroy()
+```
+
+This is the load-bearing R2.4 enforcement point: a subclass `onDestruct`
+override that omits `super.onDestruct()` CANNOT bypass the framework
+cleanup because statics aren't on the prototype chain. The hook is
+opt-in — mixins that don't hold cross-Stuff refs simply don't declare
+it.
+
+```typescript
+export function FactionMembershipMixin<TBase>(Base: TBase) {
+  return class extends Base {
+    static _mixinName = 'FactionMembershipMixin';
+    static cleanupOnDestruct(stuff: Stuff): void {
+      const faction = (stuff as any).getFaction?.();
+      faction?.removeMember(stuff);
+    }
+    // …
+  };
+}
+```
+
+Author guidance:
+- If your mixin owns a collection of live Stuff refs OR is the held
+  side of one, write a `cleanupOnDestruct`.
+- If your mixin owns refs whose failure would just leak objects, put
+  your cleanup in `onDestruct` — convention-chained.
+- If your mixin doesn't hold cross-Stuff refs at all, don't write
+  either — destruct works without ceremony.
+
+The hook is **mixin-only by design**: a concrete leaf class doesn't
+appear in `queryMixins` output (it has no `_mixinName`). Concrete-class
+cleanup uses the `onDestruct` witness instead.
+
+HMR note: the dispatcher reads `mixinCtor.cleanupOnDestruct` per
+invocation, not per class-load — so a hot-reload that replaces the
+static is observed immediately, with the small caveat that a class
+replaced mid-destruct (between dispatcher entry and the call) is a
+corner case the hot-reload subsystem owns.
+
+See [`docs/ref-shapes.md`](../ref-shapes.md) for the cleanup rules
+(R2.1–R2.4) and how `cleanupOnDestruct` fits into the substrate's
+ref-cleanup contract.
 
 ### Putting it together
 

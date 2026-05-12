@@ -36,6 +36,8 @@
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
 import { ModuleApi } from '../../api/module';
+import { ProxyApi } from '../../api/proxy';
+import { SecurityApi } from '../../api/security';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -55,6 +57,23 @@ export interface DestroyedObjectMetadata {
 }
 
 /**
+ * `setZone` is callable only from `SpatialZone` and its subclasses.
+ * The legitimate writers are `SpatialZone.addLocation` /
+ * `removeLocation` (and their CartesianZone/SphericalZone overrides
+ * via `super`). Clone-time seeding from `StuffApi.#cloneInner`
+ * uses the `_stampZone` seam instead, not this policy.
+ *
+ * Mirrors the `FromContainmentApi` pattern in `Containable.ts`.
+ * `includeSubclasses: true` walks the prototype chain so
+ * CartesianZone / SphericalZone (and any future SpatialZone
+ * subclass) pass through.
+ */
+const FromSpatialZone = SecurityPolicies.FromModule(
+  'mud/lib/spatial/SpatialZone#SpatialZone',
+  { includeSubclasses: true }
+);
+
+/**
  * Base class for all game objects.
  */
 export abstract class Stuff {
@@ -71,10 +90,14 @@ export abstract class Stuff {
    * that wants MQL path-atom addressability for an ad-hoc runtime
    * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`.
    *
-   * Storage is public as a framework carve-out: SecurityPolicies
-   * and StuffApi indexes read it directly through the Proxy via
-   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()` and
-   * writes via `setTemplatePath()` (ApiOnly-gated below).
+   * Hard-private (`#`) for tamper-resistance: the slot lives on the
+   * raw target only and is unreachable from outside this class body
+   * — not via bracket access, not via reflection, not via a wrapping
+   * Proxy. The only writers are `setTemplatePath` (ApiOnly-gated
+   * below) and the symbol-keyed pre-register stamp seam
+   * (`Stuff[STAMP_TEMPLATE_PATH_SEAM]`). Forging the field through
+   * `(stuff as any).templatePath = X` is a no-op on the `#` slot,
+   * which keeps the `byTemplatePath` index honest.
    *
    * Note this is the **stamp** identifying the source template a
    * runtime instance was cloned from — not the same as a
@@ -83,9 +106,16 @@ export abstract class Stuff {
    * (also a Stuff) typically leaves `templatePath` null because
    * templates aren't themselves cloned.
    */
-  public templatePath: string | null = null;
+  #templatePath: string | null = null;
+
+  /**
+   * Read seam. Instance method, but unwraps via `ProxyApi.unwrap`
+   * before reaching the `#` slot — `this` inside an instance method
+   * called through the proxy is the proxy, and the `#` slot lives
+   * on the raw target.
+   */
   public getTemplatePath(): string | null {
-    return this.templatePath;
+    return ProxyApi.unwrap(this as unknown as Stuff).#templatePath;
   }
 
   /**
@@ -100,15 +130,104 @@ export abstract class Stuff {
    * to run for every successful set — a subclass override that
    * forgot the index call (or a shadow that intercepted) would
    * silently desync `byTemplatePath`.
+   *
+   * Unwraps via `ProxyApi.unwrap` so the `#`-slot access lands on
+   * the raw target (see comment on `#templatePath` above).
    */
   @Final
   @Unshadowable
   @CallSecurity(SecurityPolicies.ApiOnly)
   public setTemplatePath(path: string): void {
-    if (this.templatePath === path) return;
-    const prev = this.templatePath;
-    this.templatePath = path;
+    const raw = ProxyApi.unwrap(this as unknown as Stuff);
+    if (raw.#templatePath === path) return;
+    const prev = raw.#templatePath;
+    raw.#templatePath = path;
     StuffApi._reindexTemplatePath(this, prev, path);
+  }
+
+  /**
+   * Pre-register stamp seam — used by `StuffApi.#cloneInner` to
+   * stamp `templatePath` on a freshly-constructed backing BEFORE
+   * the register pass.
+   *
+   * Skips the reindex on purpose: the caller is responsible for
+   * ensuring the Stuff isn't in the `byTemplatePath` index when
+   * this fires, so the regular register pass picks it up cleanly.
+   *
+   * Caller-gated by `#stampGateAllowlist` below: only StuffApi
+   * (`mud/api/stuff.ts`), the test-setup helper, and `.test.ts`
+   * files may invoke this. Any other caller throws — without this
+   * gate, any in-tree module could forge a Stuff's `templatePath`
+   * and bypass `FromTemplate`-based call-security policies. The
+   * symbol-keyed shape this replaces was defense-by-obscurity;
+   * this is the actual capability check.
+   * @internal
+   */
+  public static _stampTemplatePath(
+    stuff: Stuff,
+    path: string | null
+  ): void {
+    Stuff.#assertStampGateAllowed('_stampTemplatePath');
+    ProxyApi.unwrap(stuff).#templatePath = path;
+  }
+
+  /**
+   * File-URL patterns whose code may call the private-slot stamp
+   * seams (`_stampTemplatePath`, `_stampZone`). Same machinery as
+   * `#constructionGateAllowlist` / `#branchRegistrationAllowlist`.
+   * Adding a new legitimate stamp site is a deliberate edit here
+   * AND its callsite.
+   *
+   * Narrower than the construction-gate allowlist on purpose: the
+   * stamp seams skip the public setter's gates (e.g.
+   * `byTemplatePath` reindex, `FromSpatialZone` policy), so the
+   * only legitimate production caller is the clone pipeline.
+   */
+  static #stampGateAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/api\/stuff\.(ts|js)$/, // StuffApi.#cloneInner pre-register stamp
+    /\/mud\/lib\/security\/__tests__\/test-setup\.(ts|js)$/, // stamp*ForTest helpers
+    /\.test\.(ts|js)$/, // direct test usage
+  ];
+
+  static #stampGateCache: Map<string, boolean> = new Map();
+
+  /**
+   * Throw if the immediate caller of the named stamp seam isn't
+   * on the allowlist. Per-URL cached after the first walk, so the
+   * cost is one stack walk per file ever; after warmup it's a Map
+   * lookup. Mirrors the construction-gate shape.
+   *
+   * `op` is the seam name (e.g. `'_stampTemplatePath'`,
+   * `'_stampZone'`); included in the error message so the
+   * offender sees which seam was misused.
+   */
+  static #assertStampGateAllowed(op: string): void {
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
+    if (url === null) {
+      throw new Error(
+        `Stuff.${op} refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#stampGateCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff.${op} refused from ${url}: only StuffApi ` +
+          `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
+          `__tests__/test-setup), and *.test.ts files may stamp ` +
+          `private slots without going through the gated public setter.`
+      );
+    }
+    const allowed = Stuff.#stampGateAllowlist.some((re) => re.test(url));
+    Stuff.#stampGateCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff.${op} refused from ${url}: only StuffApi ` +
+          `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
+          `__tests__/test-setup), and *.test.ts files may stamp ` +
+          `private slots without going through the gated public setter.`
+      );
+    }
   }
 
   /**
@@ -127,17 +246,70 @@ export abstract class Stuff {
    * Runtime-only: not auto-persisted (the authoritative source is the
    * `domain` template path at clone time).
    *
-   * Framework carve-out: domain code uses `getZone()` / `setZone()`;
-   * framework code reads via bracket cast (PASSTHROUGH_KEYS in
-   * `proxy.ts` skips the proxy pipeline for this slot). Same shape
-   * as `templatePath` above.
+   * Hard-private (`#`) for tamper-resistance — same shape as
+   * `#templatePath`. Bracket writes don't reach the slot; the only
+   * writers are `setZone()` (proxy-gated to SpatialZone subclasses
+   * only) and the caller-allowlisted `_stampZone` seam. Forgery
+   * matters because `ContainmentApi.move` enforces
+   * "Exitables can't cross zones via containment" by reading
+   * `item.getZone()` / `to.getZone()`; a forged zone breaks that
+   * invariant, and any future `FromZone`-style policy would
+   * inherit the same risk.
    */
-  protected zone: SpatialZone | null = null;
+  #zone: SpatialZone | null = null;
+
+  /**
+   * Get the spatial zone. Unwraps via `RAW_TARGET` because the
+   * `#` slot lives on the raw target only and `this` inside an
+   * instance method called through the proxy is the proxy.
+   */
   public getZone(): SpatialZone | null {
-    return this.zone;
+    return ProxyApi.unwrap(this as unknown as Stuff).#zone;
   }
+
+  /**
+   * Set the spatial zone. Gated by `FromSpatialZone` — only the
+   * `SpatialZone` class and its subclasses (`CartesianZone`,
+   * `SphericalZone`) may call this through the proxy. The
+   * `addLocation` / `removeLocation` chokepoints on the zone side
+   * are the legitimate callers; everyone else is rejected.
+   *
+   * Clone-time seeding from `StuffApi.#cloneInner` doesn't go
+   * through this method — it uses the caller-allowlisted
+   * `_stampZone` seam below.
+   *
+   * `@Final @Unshadowable` because the index of substrate
+   * invariants that consult `getZone()` (containment's
+   * cross-zone gate, Mobile.traverse, MQL scope walks) trusts
+   * the slot's value; a subclass override or shadow that lied
+   * about it could break those invariants. No legitimate
+   * subclass needs to extend this anyway — the only legitimate
+   * write paths are the `SpatialZone` chokepoints and clone-time.
+   */
+  @Final
+  @Unshadowable
+  @CallSecurity(FromSpatialZone)
   public setZone(value: SpatialZone | null): void {
-    this.zone = value;
+    ProxyApi.unwrap(this as unknown as Stuff).#zone = value;
+  }
+
+  /**
+   * Pre-register stamp seam — used by `StuffApi.#cloneInner` to
+   * seed `zone` at clone time, BEFORE the proxy wrap. The clone
+   * pipeline runs before any SpatialZone-side chokepoint fires;
+   * if it went through the gated public setter, the proxy gate
+   * (which on the raw target wouldn't fire anyway, but at runtime
+   * would reject the StuffApi caller) would be the wrong shape.
+   *
+   * Caller-gated identically to `_stampTemplatePath` — only
+   * `mud/api/stuff.ts`, the test-setup helper, and `*.test.ts`
+   * files may invoke this. Anyone else trying to forge a zone
+   * stamp through this seam is rejected.
+   * @internal
+   */
+  public static _stampZone(stuff: Stuff, zone: SpatialZone | null): void {
+    Stuff.#assertStampGateAllowed('_stampZone');
+    ProxyApi.unwrap(stuff).#zone = zone;
   }
 
   /**
@@ -145,6 +317,57 @@ export abstract class Stuff {
    * Once destroyed, the object should not be used.
    */
   private _isDestroyed: boolean = false;
+
+  /**
+   * Last successful method-dispatch timestamp. Maintained by the
+   * security gate (`SecurityApi.#securityGate`) — every successful
+   * (non-denied) dispatch writes `Date.now()` here via the static
+   * `Stuff.touch(stuff)` write seam below.
+   *
+   * Used by the future GC sweep's `considerSelfDestruct(context)` to
+   * decide whether an orphan-eligible Stuff is cold enough to drop.
+   * Initialized to construction time so freshly-created Stuff start
+   * "touched."
+   *
+   * Hard-private (`#`) for tamper-resistance: the `#` slot lives on
+   * the raw target only and is unreachable from outside the Stuff
+   * class body — not via bracket access, not via reflection, not via
+   * a wrapping Proxy. The only write site is `Stuff.touch(stuff)`,
+   * which is timestamp-fixed (no caller-supplied value), so even
+   * code that imports `Stuff` can only refresh a Stuff to the
+   * current time — never inject a sentinel or future value.
+   *
+   * Not in `PASSTHROUGH_KEYS`, not in `persistentFields`. Transient
+   * by definition; resets at every clone/hydrate to the new
+   * construction time.
+   */
+  #lastTouchMs: number = Date.now();
+
+  /**
+   * Write seam for `#lastTouchMs`. Called once per successful
+   * method dispatch from the security gate. Timestamp-fixed (no
+   * caller-supplied value) so no one — not a shadow, not a
+   * subclass, not a buff — can forge an immortality value.
+   *
+   * Accepts either a raw target or a proxy; unwraps via
+   * `RAW_TARGET` before reaching the `#` slot (the slot lives on
+   * the raw target only, and `this` inside an instance method
+   * called through the proxy is the proxy).
+   *
+   * @internal — only called by the security gate; documented here
+   * because the slot's invariants depend on this single call site.
+   */
+  public static touch(stuff: Stuff): void {
+    ProxyApi.unwrap(stuff).#lastTouchMs = Date.now();
+  }
+
+  /**
+   * Read seam for `#lastTouchMs`. Used by the future GC sweep.
+   * Same `ProxyApi.unwrap` pattern as `touch`.
+   */
+  public static getLastTouchMs(stuff: Stuff): number {
+    return ProxyApi.unwrap(stuff).#lastTouchMs;
+  }
 
   /**
    * Construction sentinel. Set to `true` immediately before
@@ -444,3 +667,11 @@ export abstract class Stuff {
     return `[Stuff ${this.stuffId}${this._isDestroyed ? ' (destroyed)' : ''}]`;
   }
 }
+
+// Wire the GC last-touch instrumentation into the security gate.
+// SecurityApi calls this on every successful method dispatch; we
+// register the static here (after the class body finishes) so the
+// gate can fire it without taking a value-binding on Stuff (which
+// would form a `security → stuff → api/stuff → security` load
+// cycle).
+SecurityApi._registerTouchFn(Stuff.touch);

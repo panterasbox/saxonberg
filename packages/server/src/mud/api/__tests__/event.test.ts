@@ -24,8 +24,7 @@ import { SecurityError } from '../../lib/security/errors';
 async function makeRegistry(): Promise<EventRegistry> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    (r as unknown as { templatePath?: string }).templatePath =
-      '/obj/EventRegistry';
+    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
     return r;
   });
   // The templatePath stamp landed AFTER register, so re-register so

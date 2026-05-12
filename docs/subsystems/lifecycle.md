@@ -6,14 +6,18 @@ specified lifecycle that no class is allowed to bypass:
 ```
 construct → wrap (Proxy) → register → hydrate → postRegister →
             (live) →
-destruct → canDestruct (veto) → onDestruct (cleanup) →
+destruct → canDestruct (veto) → onDestruct (user cleanup) →
+           cleanupOnDestruct walk (framework cleanup) →
            shadow detach → destroy → unregister
 ```
 
 The whole sequence runs inside `StuffApi`. Subclasses participate via
 three narrow extension points: `postRegister(context?)` for setup,
 `canDestruct(): VetoResult` for refusing destruction, and
-`onDestruct()` for cleanup. Everything else is locked down.
+`onDestruct()` for cleanup. Mixin authors have a fourth extension
+point — `static cleanupOnDestruct(stuff)` — for substrate-invariant
+cleanup that subclass overrides cannot bypass. Everything else is
+locked down.
 
 `forceDestruct(target)` is the admin-gated bypass: it invokes the
 `canDestruct` witness identically (so observers / audit hooks see the
@@ -228,14 +232,29 @@ static #destructCore(object: Stuff, force: boolean): void {
 
   // 2. onDestruct witness (cleanup). Runs while the target is still
   //    live — the proxy's destroyed-object guard fires only after
-  //    `_isDestroyed` is set in step 4.
+  //    `_isDestroyed` is set in step 5.
   callHook(object, 'onDestruct');
 
-  // 3. Privileged shadow detach (bypasses @ShadowSecurity per spec —
+  // 3. Framework cleanup walk. Each mixin whose constructor has
+  //    its OWN `static cleanupOnDestruct(stuff)` runs, most-derived
+  //    first. Substrate-invariant cleanup (containment unhook,
+  //    slot vacate, Spawner untrack) — subclass `onDestruct`
+  //    overrides cannot bypass it because statics aren't on the
+  //    prototype chain. Per-handler try/catch: a throw is logged
+  //    and the loop continues. See `docs/ref-shapes.md` (R2.4) and
+  //    `docs/subsystems/mixins.md`.
+  for (const mixinCtor of MixinApi.queryMixins(object.constructor)) {
+    if (Object.prototype.hasOwnProperty.call(mixinCtor, 'cleanupOnDestruct')) {
+      try { mixinCtor.cleanupOnDestruct(object); }
+      catch (err) { /* log + continue */ }
+    }
+  }
+
+  // 4. Privileged shadow detach (bypasses @ShadowSecurity per spec —
   //    destruction is non-negotiable)
   ShadowApi._detachAllForHost(object);
 
-  // 4. destroy() runs straight to the original body
+  // 5. destroy() runs straight to the original body
   object.destroy();
 }
 ```
@@ -262,11 +281,21 @@ Order is rigid:
 2. **`onDestruct()`** (optional Witness on the target). Cleanup
    hook — runs while the target is still live so it can touch
    `this` through the proxy. Replaces the retired
-   `prepareDestroy()` hook.
-3. **Privileged shadow detach** removes every shadow from the host.
+   `prepareDestroy()` hook. User customization first; framework
+   cleanup second.
+3. **`cleanupOnDestruct` walk** over the mixin chain. Each mixin
+   whose constructor carries its OWN `static cleanupOnDestruct`
+   runs, most-derived-first. Substrate-invariant cleanup that
+   subclass `onDestruct` overrides cannot bypass (statics aren't
+   on the prototype chain). Force and non-force paths run this
+   identically. Per-handler try/catch: a throwing handler is
+   logged and the loop continues; `destroy()` still runs. See
+   [`docs/ref-shapes.md`](../ref-shapes.md) (R2.4) and
+   [`docs/subsystems/mixins.md`](./mixins.md) for the contract.
+4. **Privileged shadow detach** removes every shadow from the host.
    Bypasses `@ShadowSecurity({ detach })` because host destruction
    is unconditional.
-4. **`destroy()`** runs. By the time the body executes, the host is
+5. **`destroy()`** runs. By the time the body executes, the host is
    shadow-free, so the call goes straight to the original body — no
    shadow can intercept and skip the unregister.
 

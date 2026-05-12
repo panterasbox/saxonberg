@@ -31,6 +31,7 @@ import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 import { ExecutionContextApi } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
+import type { Stuff } from '../lib/stuff/Stuff';
 import {
   SecurityError,
   DestroyedObjectError,
@@ -474,6 +475,27 @@ export class SecurityApi {
   static #shadowApi: ShadowApiLike | null = null;
 
   /**
+   * Late-bound `Stuff.touch` reference. `Stuff.ts` calls
+   * `SecurityApi._registerTouchFn(Stuff.touch)` at its module-bottom
+   * so the security gate can invoke the GC last-touch instrumentation
+   * without importing the Stuff class value (which would form a
+   * `security → stuff → api/stuff → security` cycle).
+   *
+   * The interceptor reads this slot at runtime only — same load-order
+   * shape as `#shadowApi`.
+   */
+  static #touchFn: ((stuff: Stuff) => void) | null = null;
+
+  /**
+   * Slot for `Stuff` to register its `touch(stuff)` static with the
+   * security gate. Called once from the bottom of `Stuff.ts`;
+   * idempotent. @internal
+   */
+  public static _registerTouchFn(fn: (stuff: Stuff) => void): void {
+    SecurityApi.#touchFn = fn;
+  }
+
+  /**
    * Slot for `ShadowApi` to register itself with the security gate.
    * Called once at `shadow.ts`'s module-bottom; idempotent.
    * @internal
@@ -512,10 +534,15 @@ export class SecurityApi {
       return next();
     }
 
-    // 1. destroyed-object guard
+    // 1. destroyed-object guard. `getTemplatePath` is exempt because
+    // the unregister path reads it on a freshly-destroyed Stuff to
+    // drop the byTemplatePath index entry — and the slot is
+    // hard-private + read-only from outside, so a post-destruct read
+    // is harmless.
     if (
       ctx.prop !== 'isDestroyed' &&
       ctx.prop !== 'toString' &&
+      ctx.prop !== 'getTemplatePath' &&
       ctx.target.isDestroyed()
     ) {
       throw new DestroyedObjectError(ctx.target.stuffId, ctx.prop);
@@ -534,6 +561,14 @@ export class SecurityApi {
         }
       );
     }
+
+    // 2a. GC last-touch instrumentation. Only fires on successful
+    // (non-denied) dispatch — denied calls don't count as "touches."
+    // Write goes through the tamper-proof static seam, not a public
+    // field. Passing the raw target avoids one unwrap. The touch
+    // function is late-bound (see `_registerTouchFn`) to avoid the
+    // security → stuff value-import cycle.
+    SecurityApi.#touchFn?.(ctx.target);
 
     // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
     // stored the proxy, so lookup must use the same identity. When

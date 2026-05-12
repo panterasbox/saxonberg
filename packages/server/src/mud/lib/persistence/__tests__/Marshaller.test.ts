@@ -7,7 +7,10 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
 import type { MixinConstructor } from '../../mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
 
 /**
  * Contrived value object used to exercise the Marshaller framework.
@@ -59,11 +62,7 @@ function registerMarshaller<T extends Marshaller<unknown, unknown>>(
   factory: () => T,
   templatePath: string
 ): T {
-  return makeStuff(() => {
-    const m = factory();
-    (m as unknown as { templatePath: string }).templatePath = templatePath;
-    return m;
-  });
+  return makeStuffAtPath(factory, templatePath);
 }
 
 /** Test mixin that uses MoneyBagMarshaller for its `wallet` field. */

@@ -24,8 +24,7 @@ import { Idea } from "../../lib/stuff/Idea";
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    (r as unknown as { templatePath?: string }).templatePath =
-      '/obj/EventRegistry';
+    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

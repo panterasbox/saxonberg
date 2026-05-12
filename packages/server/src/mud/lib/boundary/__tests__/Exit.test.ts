@@ -5,29 +5,16 @@ import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
-import { ProxyApi } from '../../../api/proxy';
-import { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
-
-function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
-  const prev = Stuff._beginConstruction();
-  let raw: T;
-  try {
-    raw = factory();
-  } finally {
-    Stuff._endConstruction(prev);
-  }
-  const proxy = ProxyApi.wrap(raw);
-  (proxy as unknown as { templatePath?: string }).templatePath = path;
-  StuffApi.register(proxy);
-  return proxy;
-}
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))));
 class TestMover extends SensorBase {
@@ -235,7 +222,7 @@ describe('Exit lazy destination resolution', () => {
     expect(() => exit.getDestination()).toThrow(/not yet loaded/);
   });
 
-  it('returns cached live destination once resolved', () => {
+  it('resolves the path-form destination via findByTemplatePath each call', () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
 
@@ -247,6 +234,30 @@ describe('Exit lazy destination resolution', () => {
 
     expect(exit.getDestination()).toBe(b);
     expect(exit.getDestination()).toBe(b);
+  });
+
+  it('resolves on every read — hot-swap of the registered singleton is observed on the next call', () => {
+    // Pre-cache-drop, the Exit would have cached the first resolved
+    // ref and returned it forever, even if the singleton was
+    // re-registered (hot-reload, admin swap, etc.). After the
+    // cache drop, every read goes through `findByTemplatePath`.
+    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const b1 = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+
+    const exit = makeStuff(() => new Exit({
+      direction: 'east',
+      source: a,
+      destinationPath: '/zone/b',
+    }));
+    expect(exit.getDestination()).toBe(b1);
+
+    // Swap the singleton at /zone/b: unregister b1, register b2.
+    StuffApi.unregister(b1);
+    const b2 = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+
+    // Next read observes the swap.
+    expect(exit.getDestination()).toBe(b2);
+    expect(exit.getDestination()).not.toBe(b1);
   });
 
   it('getDestinationTemplatePath returns the path regardless of resolution', () => {

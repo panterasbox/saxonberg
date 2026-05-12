@@ -167,6 +167,30 @@ would collide semantically; classes named after distinct
 relationships stay distinguishable. The same applies to any other
 capability-shaped collection that comes later.
 
+## Gameplay-named mutator pairs: the `Spawner` exception
+
+`SpawnerMixin` exposes its collection with `trackSpawn` /
+`untrackSpawn` instead of the canonical `addSpawned` /
+`removeSpawned`. The "Spawner" gameplay pattern (Unity, Unreal,
+Minecraft, etc.) means specifically "creates and tracks progeny";
+the verb pair reads better at game-author call sites than a generic
+`add` / `remove`, and the established naming carries gameplay
+intent that a generic verb pair would erase.
+
+This is an intentional one-off exception, not a license to invent
+gameplay verbs for any collection. Add an exception only when:
+
+1. The mutator action carries domain meaning beyond add/remove
+   (track vs. untrack, recruit vs. discharge, enlist vs. release)
+   AND
+2. The domain term is established in published gameplay literature
+   or a sibling engine's API surface.
+
+If you're tempted to coin a verb pair because it "sounds nice," fall
+back to the canonical surface. The collision-with-future-mixins risk
+called out above still applies — gameplay verbs collide harder than
+generic ones.
+
 ## The model / parlance / prose layer split
 
 `Container.contents` is the model noun. Player-facing language

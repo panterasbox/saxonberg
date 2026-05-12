@@ -17,13 +17,25 @@
  * the action and the mover is what the messaging and containment update
  * are parameterized on.
  *
- * Lazy destination: the Exit's destination may be supplied either as a
- * live `Stuff & Container` reference (the common runtime case) or as a
- * `destinationPath` templatePath string (authored exits whose destination
- * may not yet be loaded). Synchronous reads via the `destination` getter
- * resolve from the singleton cache when possible; if the path-only form
- * is unloaded, the getter throws and the caller must `await
- * exit.getDestination()` first. `MobileMixin.traverse` does this.
+ * Destination storage shape:
+ *
+ *   - **Pattern C** (cross-zone, singleton-by-templatePath): only
+ *     `_destinationPath` is set. The getter resolves on every call
+ *     via `StuffApi.findByTemplatePath` — O(1) hashtable lookup, no
+ *     runtime cache. If the target zone isn't loaded yet, the sync
+ *     getter throws and the caller must `await
+ *     exit.resolveDestination()` to fault in the zone.
+ *   - **Pattern B** (within-session live ref to a non-templated
+ *     Location): `_destination` is set; resolution returns it
+ *     directly. The S11 case: "Within-session, a live ref works as
+ *     long as the target's zone stays loaded."
+ *
+ * Either slot may be populated independently. The getter prefers
+ * the live ref when present; otherwise falls back to the
+ * path-resolution path. Setters write the slot that matches their
+ * argument shape — a live ref does NOT cache a previous path
+ * resolution (the "drop the resolved-ref cache" rule from the
+ * ref-shapes design).
  */
 
 import { Idea } from '../stuff/Idea';
@@ -112,41 +124,47 @@ export class Exit extends Idea {
   public setSource(value: Stuff & Container): void { this.source = value; }
 
   /**
-   * Resolved destination (live ref). Populated lazily by
-   * `resolveDestination()` when the Exit was constructed with
-   * `destinationPath` only.
+   * Within-session live ref (Pattern B). Set when the Exit was
+   * constructed with a runtime-only Container (no templatePath) or
+   * when `setDestination` was called with such a Container. The
+   * getter prefers this over the path-resolution path.
+   *
+   * NOT populated by the path-resolution path — see the comment on
+   * the protected getter below.
    */
   private _destination: (Stuff & Container) | null;
 
   /**
-   * Unresolved destination by templatePath. Populated when the Exit was
-   * constructed with a path-only destination. Null once a live ref has
-   * been supplied directly. Use {@link getDestinationTemplatePath} for
-   * the verifier-friendly accessor that returns the path regardless of
-   * resolution state.
+   * Destination templatePath (Pattern C). Set when the Exit was
+   * authored with a templated destination. The getter resolves on
+   * every call via `StuffApi.findByTemplatePath` — no runtime cache.
+   *
+   * Hydrators / framework brackets writing `exit['destinationPath'] = X`
+   * land directly on the field; the public method form
+   * (`setDestination(loc)`) is the inter-Stuff contract.
    */
   private _destinationPath: string | null;
 
   /**
-   * Host-internal accessor pair (Pattern D). External callers go
-   * through `getDestination()` / `setDestination()`. The getter throws
-   * if the destination is path-only and not yet loaded — callers in
-   * that situation must `await exit.resolveDestination()`.
+   * Host-internal getter.
    *
-   * The accessor is kept (private) so that hydrators / framework
-   * brackets writing `exit['destination'] = X` continue to fire the
-   * setter; the public method form is the inter-Stuff contract.
+   * Resolution order:
+   *   1. `_destination` (live ref) — present for Pattern B and for
+   *      Pattern-C-with-direct-live-ref constructor calls.
+   *   2. `_destinationPath` resolved via `StuffApi.findByTemplatePath`
+   *      — re-resolved every call, no cache.
+   *
+   * Throws if no destination is set, or if the path is set but the
+   * target zone isn't loaded yet. Callers in the latter case must
+   * `await exit.resolveDestination()` to fault in the zone.
    */
   protected get destination(): Stuff & Container {
     if (this._destination) return this._destination;
     if (this._destinationPath) {
-      const cached = StuffApi.findByTemplatePath<Stuff & Container>(
+      const resolved = StuffApi.findByTemplatePath<Stuff & Container>(
         this._destinationPath
       );
-      if (cached) {
-        this._destination = cached;
-        return cached;
-      }
+      if (resolved) return resolved;
       throw new Error(
         `Exit destination '${this._destinationPath}' is not yet loaded; ` +
           `await exit.resolveDestination() first.`
@@ -155,8 +173,26 @@ export class Exit extends Idea {
     throw new Error('Exit has no destination');
   }
 
+  /**
+   * Setter accepts a live Container. Stamps `_destinationPath` from
+   * the target's templatePath if available (Pattern C), else stores
+   * the ref in `_destination` (Pattern B within-session). NEVER
+   * caches a previous path-resolution into the live-ref slot — that
+   * was the rule the ref-shapes design dropped.
+   *
+   * Both slots are written symmetrically: whichever branch the new
+   * destination takes, the other slot is cleared so the getter's
+   * resolution order can never see stale conflicting state.
+   */
   protected set destination(value: Stuff & Container) {
-    this._destination = value;
+    const path = value.getTemplatePath();
+    if (path) {
+      this._destinationPath = path;
+      this._destination = null;
+    } else {
+      this._destination = value;
+      this._destinationPath = null;
+    }
   }
 
   public getDestination(): Stuff & Container { return this.destination; }
@@ -300,8 +336,27 @@ export class Exit extends Idea {
     }
     this.direction = opts.direction;
     this.source = opts.source;
-    this._destination = opts.destination ?? null;
+    // Initialize both slots; one ends up populated depending on
+    // which form the caller passed (or both, if the caller already
+    // has the template-resolved live ref).
     this._destinationPath = opts.destinationPath ?? null;
+    if (opts.destination) {
+      // Constructor mirror of the setter logic: prefer the path
+      // form when the live ref has a templatePath, else keep the
+      // live ref directly. Either way, no path-resolution cache
+      // between calls.
+      const path = opts.destination.getTemplatePath();
+      if (path) {
+        // Only stamp from the live ref if the caller didn't pass an
+        // explicit destinationPath (which takes precedence).
+        if (!this._destinationPath) this._destinationPath = path;
+        this._destination = null;
+      } else {
+        this._destination = opts.destination;
+      }
+    } else {
+      this._destination = null;
+    }
     // Set `_door` directly (not through the setter) to avoid registering
     // `this` in `door.attachedTo` while still raw — pre-Proxy. The
     // Proxy-aware registration happens post-construction in
@@ -321,33 +376,35 @@ export class Exit extends Idea {
   }
 
   /**
-   * Resolve the destination, awaiting a singleton clone when the Exit was
-   * authored with `destinationPath` only and the target hasn't been
-   * loaded yet. Caches the resolved live reference for subsequent calls.
+   * Resolve the destination, awaiting a singleton clone when the
+   * target zone hasn't been loaded yet. Use this from async paths
+   * (`MobileMixin.traverse`) that need to fault in the zone before
+   * the cross-boundary move.
+   *
+   * No runtime cache — every call re-reads via
+   * `StuffApi.singleton(path)` (or returns the within-session live
+   * ref if one was supplied via `setDestination`). The cache slot
+   * the ref-shapes design dropped used to silently turn path
+   * resolutions into stale Pattern-B refs across hot-reload churn.
    */
   public async resolveDestination(): Promise<Stuff & Container> {
     if (this._destination) return this._destination;
-    if (this._destinationPath) {
-      const resolved = await StuffApi.singleton<Stuff & Container>(
-        this._destinationPath
-      );
-      this._destination = resolved;
-      return resolved;
+    if (!this._destinationPath) {
+      throw new Error('Exit has no destination');
     }
-    throw new Error('Exit has no destination');
+    return await StuffApi.singleton<Stuff & Container>(this._destinationPath);
   }
 
   /**
-   * Return the destination's templatePath regardless of resolution state.
-   * Returns `null` if the destination was constructed with a live ref
-   * that itself has no templatePath (e.g., a runtime-only Stuff). Used
-   * by the mutual-exit verifier to identify the destination by path.
+   * Return the destination's templatePath. Returns `null` only when
+   * the Exit was constructed with a live-ref destination that itself
+   * has no templatePath (the within-session Pattern B case).
+   * Used by the mutual-exit verifier to identify the destination
+   * by path.
    */
   public getDestinationTemplatePath(): string | null {
     if (this._destinationPath) return this._destinationPath;
-    if (this._destination) {
-      return this._destination.getTemplatePath() ?? null;
-    }
+    if (this._destination) return this._destination.getTemplatePath() ?? null;
     return null;
   }
 

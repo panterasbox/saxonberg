@@ -1201,7 +1201,7 @@ function hasMixinByLowercaseName(stuff: Stuff, name: string): boolean {
 }
 
 function matchesTemplate(stuff: Stuff, pattern: string): boolean {
-  const path = (stuff as unknown as { templatePath?: string }).templatePath;
+  const path = stuff.getTemplatePath();
   if (!path) return false;
   return PathPatternApi.matches(path, pattern);
 }

@@ -15,6 +15,13 @@ Three reference shapes. Choose based on three axes:
 - **Frequent or rare access?** Does code read the target's
   properties in hot paths, or occasionally through an Api?
 
+Foundational constraint: **`stuffId` (the per-instance stamp) does
+not persist across reboots.** Persistent cross-reboot refs must key
+off `templatePath` (singletons) or template authoring, not instance
+identity. Live Stuff refs are therefore **transient by definition**
+— either runtime-only or, when they need cross-save survival, owned
+by a higher-layer mixin that rebuilds the relationship at hydrate.
+
 ---
 
 ## Pattern A — string-stored singleton ref
@@ -139,12 +146,13 @@ semantics across all singleton refs.
   whose identity-as-instance matters.
 - The consumer reads target properties **frequently** in hot paths
   (containment walks, slot occupancy checks, perception scans).
-- The field's persistence (if any) is handled by a marshaller that
-  writes templatePath+stamp and resolves on hydrate.
+- The field is **runtime-only**. Live refs are transient by
+  definition — see the foundational constraint at the top of this
+  doc; persisted "live ref" fields don't exist in the substrate.
 
 **Why this shape**: direct property access without Api lookup;
-TypeScript types catch mistakes; persistence-via-marshaller is the
-established carve-out for live refs.
+TypeScript types catch mistakes; substrate invariants enforce
+cleanup through the dispatcher.
 
 ### Field naming
 
@@ -180,76 +188,181 @@ RETURN type, not the method names. A caller writing `obj.getMaterial()`
 doesn't know (or care) whether it's resolved from a stored path or
 returned from a live ref; the contract is the same.
 
-### Persistence
+### Persistence (or lack thereof)
 
-Live refs that need to survive across saves go through the marshaller
-framework (see [docs/subsystems/persistence.md](./subsystems/persistence.md)).
-The marshaller writes the target's templatePath + a stamp; on hydrate,
-it resolves back to a live ref via `StuffApi.findByTemplatePath`.
+Live refs are **transient by definition**. They reset on clone /
+hydrate to whatever default the field declares (null for a single
+ref; empty collection for Set/Map). The substrate doesn't ship a
+marshaller-for-live-refs path because no field in `lib/` needs one
+— every container-shaped relationship rebuilds at hydrate via
+template seeding (and per-character session state, for inventory).
 
-Runtime-only live refs (slot occupancy, transient event subscriptions)
-have no persistence story — they reset on clone/hydrate, same as
-runtime-only Pattern A fields.
+If a relationship genuinely needs to survive saves, it lives one
+layer up: either (a) the field stores a path string (Pattern A or
+C), or (b) a higher-layer mixin owns the persistent shape and
+hydrates the live refs from that.
+
+### Pattern B sub-flavors (cleanup story)
+
+Within Pattern B there are four structural sub-flavors,
+distinguished by the cleanup rule that applies when one of the two
+sides destructs. These are the **R2.1–R2.4 cleanup rules**:
+
+#### R2.1 — Owning cascade
+
+When the held side's lifetime is bounded by the holder's (the
+held thing has no independent existence outside the holder), the
+holder's `onDestruct` destructs each owned thing before chaining
+`super.onDestruct()`.
+
+- **Mechanism**: eager, convention-based.
+- **Enforcement**: convention. Failure-mode is "owned objects
+  leak" — caught later by GC; doesn't corrupt invariants.
+- **Exemplars**: `Exitable.onDestruct` (outbound Exits),
+  `Adornable.onDestruct` (fixtures).
+
+#### R2.2 — Symmetric two-way pair
+
+For paired bidirectional refs (both sides hold each other), each
+side's setter atomically updates both sides; each side's
+`onDestruct` clears the back-ref on the other.
+
+- **Mechanism**: eager via setter; eager on destruct.
+- **Enforcement**: convention. Failure on one side is recoverable
+  from the other side's surviving reference.
+- **Exemplars**: `Boundary` ↔ `BoundaryAnchor`, `Exit` ↔ `Door`,
+  `Adornment` ↔ `Adornable`.
+
+#### R2.3 — Asymmetric single self-heal
+
+For a single live ref where the target doesn't track the holder
+back, the public getter MUST self-heal on `isDestroyed`:
+
+```ts
+public getX(): (Stuff & XxxType) | null {
+  if (this._x === null) return null;
+  if (this._x.isDestroyed()) {
+    this._x = null;
+    return null;
+  }
+  return this._x;
+}
+```
+
+- **Mechanism**: lazy self-heal.
+- **Enforcement**: in-code; the getter does it inline.
+- **Exemplars**: `Containable.getContainer()` (when the Container
+  destructs without first evacuating — backstop for S1/S2),
+  `Spawned.getSpawner()`.
+
+#### R2.4 — Collection symmetric cleanup (framework-enforced)
+
+For any Pattern B collection of live refs (Set/Map of `Stuff & X`),
+the held side MUST register a framework `static cleanupOnDestruct`
+on its mixin that unhooks itself from every collection it's a
+member of, via the canonical mutation chokepoint
+(`ContainmentApi.move`, `Slotted.vacate`, `Spawner.untrackSpawn`,
+etc.).
+
+- **Mechanism**: eager, framework-enforced.
+- **Enforcement**: framework. `StuffApi.destruct` dispatches via
+  the mixin chain; subclass `onDestruct` overrides cannot bypass.
+- **Walk order**: most-derived first / base last. For a host
+  composing `ContainerMixin(ContainableMixin(Stuff))`, Container
+  fires first (evacuates contents while `_container` is still
+  set), then Containable (unhooks the destructed item from any
+  outer container).
+- **Exemplars**:
+  - `Containable.cleanupOnDestruct` → `Container.contents`
+  - `Container.cleanupOnDestruct` → evacuate contents to outer
+  - `Slottable.cleanupOnDestruct` → `Slotted.slots` on every host
+  - `Slotted.cleanupOnDestruct` → active vacate of every occupant
+  - `Spawned.cleanupOnDestruct` → `Spawner._spawned`
+  - `Species.onDestruct` (concrete-class form) → `Clade.species`
+
+R2.4 is the load-bearing rule of the cleanup story — it's the
+reason `StuffApi.destruct` grows the mixin-registry dispatch step,
+and it's the only one of the four where the framework actively
+enforces correctness rather than trusting authoring discipline.
+
+See [`docs/subsystems/mixins.md` § `cleanupOnDestruct`](./subsystems/mixins.md)
+for the static-shape convention.
 
 ### Existing exemplars
 
-| Site | Field | Notes |
-|---|---|---|
-| `Container` | `contents` | Live refs; persisted via marshaller |
-| `Containable` | `_container` | Single live ref; persisted via marshaller |
-| `Slotted` | `slots: Map<string, Set<Stuff & Slottable>>` | Runtime-only; resets on hydrate |
-| `Exit` | `_door` | Optional live ref |
-| `Clade` | `species: Set<Species>` | Runtime-only registration (the species themselves are persisted; this is the inverse-index) |
+| Site | Field | Cleanup rule | Notes |
+|---|---|---|---|
+| `Container` | `contents` | R2.4 (Container side) | Runtime-only; evacuates on destruct |
+| `Containable` | `_container` (`environment`) | R2.3 + R2.4 (held side) | Runtime-only; self-heal getter + framework cleanup |
+| `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
+| `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
+| `Adornable` | `fixtureSlots` | R2.1 (owning cascade) | Holder destructs each fixture |
+| `Exitable` | `exits` | R2.1 (owning cascade) | Holder destructs each outbound Exit |
+| `Boundary` ↔ `BoundaryAnchor` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |
+| `Spawned` | `_spawner` | R2.3 + R2.4 | Self-heal getter + static unhook |
+| `Clade` | `species` | R2.4 (held side via `Species`) | `Species.onDestruct` chains the unhook |
 
 ---
 
-## Pattern C — lazy ref (templatePath persisted, materialized on read)
+## Pattern C — path-resolved cross-scope ref (singleton-only)
 
-**Stores**: templatePath string AS the persistent field; a private
-`_resolved` slot holds the materialized live ref after first access.
+**Stores**: a templatePath string. The getter resolves on every
+read via `StuffApi.findByTemplatePath`. **No runtime cache slot.**
 
 **Use when**:
 
-- The target is a singleton OR instance, but the live ref may not
-  exist at construction time (cyclic dependencies, lazy template
-  load).
-- After resolution, consumers want **live-ref ergonomics** (frequent
-  property access).
-- Persistence shape should stay as a simple string (no marshaller
-  ceremony for the persistent path).
+- The target is a **singleton-by-convention** Stuff (one instance
+  per templatePath) that may live in a different load scope
+  (different zone, hot-reload churn).
+- The holder shouldn't hold a live ref because cross-scope identity
+  is unstable: hot-reload churns the singleton; zone loading is
+  lazy.
+- Construction-time cyclic resolution is a concern.
+
+Pattern C stays **singleton-only**. The "Pattern C generalized to
+instances" idea is dropped under the foundational stuffId
+constraint — a cross-scope ref to a multi-clone instance can't be
+keyed by stuffId (doesn't persist), and a live ref doesn't survive
+target unload. Within-session live refs to non-templated targets
+are Pattern B; cross-reboot is unsupported until full game-state
+dump exists.
 
 ### Field shape
 
 ```ts
 protected _xxxPath: string | null = null;
-private _xxxResolved: (Stuff & XxxType) | null = null;
 ```
 
-- Persistent: just the path.
-- Runtime-only resolve cache.
+That's it. No `_resolved` cache slot. The resolved-cache pattern
+was dropped: the `byTemplatePath` index is O(1), the cache added a
+self-heal complication for no measurable gain, and a stale cache
+slot was a real hot-reload hazard.
 
 ### Method surface
 
 ```ts
-interface LazyXxxed {
-  async resolveXxx(): Promise<Stuff & XxxType>;  // explicit resolve (async, may fault in template)
-  getXxx(): Stuff & XxxType;                      // throws if not yet resolved
-  getXxxPath(): string | null;                    // raw path (verifier-friendly)
-  setXxx(value: Stuff & XxxType): void;           // sets both path and resolve cache
-  setXxxPath(path: string | null): void;          // sets just the path; clears resolve cache
+interface PathRefXxxed {
+  getXxx(): (Stuff & XxxType) | null;   // resolves on every call
+  setXxx(value: Stuff & XxxType): void;  // stamps the path
+  // Optional, only when zone-faulting is needed:
+  async resolveXxx(): Promise<Stuff & XxxType>;  // async load on miss
+  // Optional, only when a real caller needs the raw form:
+  getXxxPath(): string | null;
 }
 ```
 
-The `resolveXxx()` is async because resolution may need to clone
-from template (via `StuffApi.singleton(path)` → `clone(path)`). The
-sync `getXxx()` returns the cached live ref or throws — callers
-must `await resolveXxx()` first if the ref isn't warm.
+The async `resolveXxx()` is an **Exit-specific affordance**, not a
+Pattern C requirement. It exists because Exit destinations may
+trigger zone-load faults during `Mobile.traverse`. Pattern C fields
+that target already-loaded singletons should skip it.
 
 ### Existing exemplars
 
 | Site | Field | Notes |
 |---|---|---|
-| `Exit` | `_destinationPath` + lazy `_destination` | Lazy because authored exits may reference destinations not yet loaded |
+| `Exit` | `_destinationPath` | Cross-zone exits; resolves via `findByTemplatePath` every read; `resolveDestination()` for the zone-fault async path. No runtime cache. |
 
 ---
 
@@ -257,17 +370,17 @@ must `await resolveXxx()` first if the ref isn't warm.
 
 | Question | Pattern A | Pattern B | Pattern C |
 |---|---|---|---|
-| Target is a singleton (one per path)? | Best fit | OK | OK |
-| Target is a specific instance? | Wrong shape | Best fit | OK if lazy needed |
-| Field is runtime-only? | Cheap (no marshaller) | Cheap | Cheap |
-| Field is persisted? | Trivial (string) | Marshaller required | Trivial (string) |
-| Frequent property access? | One Api call per read | Direct | Direct after warm |
-| Hot-reload stability of target? | Best (path stable) | Risk of stale | Stable (re-resolves) |
+| Target is a singleton (one per path)? | Best fit | OK | Best fit when cross-scope |
+| Target is a specific instance? | Wrong shape | Best fit (within-scope) | Wrong shape (singleton-only) |
+| Field is runtime-only? | Cheap (no marshaller) | Required (live refs are transient) | Cheap |
+| Field is persisted? | Trivial (string) | Not supported — use Pattern A/C or move up a layer | Trivial (string) |
+| Frequent property access? | One Api call per read | Direct | One Api call per read |
+| Hot-reload stability of target? | Best (path stable) | Risk of stale (R2.3 self-heal compensates) | Best (re-resolves) |
 | Construction-time cyclic deps? | No issue | Issue (may not have ref yet) | Handles |
 
 **Default to Pattern A for singletons.** Promote to Pattern C only
-when a real consumer needs sync property access AND construction-time
-acquisition is a real problem.
+when the target lives across load scopes AND the field's holder
+shouldn't hold a live ref.
 
 **Default to Pattern B for instances.** Patterns A and C are wrong
 for non-singleton instances because "the templatePath of this chair"
@@ -276,7 +389,7 @@ runtime identity.
 
 ## Antipatterns
 
-Things to avoid when working with singleton refs:
+Things to avoid when working with refs to other Stuff.
 
 ### A.1 — Naming a string-storing field after the singleton type
 
@@ -339,16 +452,69 @@ Singletons should be referenced by path, not by live ref. Reasons:
 
 Use Pattern A.
 
-### B.1 — Persisting a live ref without a marshaller
+### B.1 — Persisting a live ref
 
 ```ts
-// WRONG: live ref in persistentFields, no marshaller
+// WRONG: live refs are transient by definition
 public persistentFields = ['_container'];  // _container is Stuff & Container
 ```
 
-Persistence layer doesn't know how to write a live Stuff ref by
-default — it'd write the whole object graph (cycles) or fail. Either
-register a marshaller or convert to Pattern A.
+Live refs are runtime-only. Persistence needs either Pattern A/C
+(store a path) or a higher-layer mixin that owns the persistent
+shape (e.g., a templated `populates` manifest that re-creates the
+relationship at hydrate).
+
+### B.2 — Using a live ref for a cross-scope singleton
+
+```ts
+// WRONG: live ref to something that lives in another load scope
+protected _destination: Stuff & Container;
+```
+
+If the holder and target may load separately (different zones,
+hot-reload), a live ref goes stale or holds a destroyed instance.
+Use Pattern C — store the path, resolve on read.
+
+### B.3 — Holding an asymmetric single without R2.3 self-heal
+
+```ts
+// WRONG: getter returns potentially-destroyed ref
+public getCage(): (Stuff & Cage) | null {
+  return this._cage;
+}
+```
+
+When the holder doesn't get framework cleanup notification (the
+target doesn't track who points at it), the holder must self-heal
+on read:
+
+```ts
+public getCage(): (Stuff & Cage) | null {
+  if (this._cage === null) return null;
+  if (this._cage.isDestroyed()) {
+    this._cage = null;
+    return null;
+  }
+  return this._cage;
+}
+```
+
+### B.4 — Holding a collection of live refs without R2.4 symmetric cleanup
+
+```ts
+// WRONG: collection accumulates destroyed entries; iteration walks
+// destroyed objects; substrate invariants drift.
+class FactionMembership extends ... {
+  private members: Set<Character> = new Set();
+  // (no static cleanupOnDestruct — collection leaks dead refs)
+}
+```
+
+Mixins that hold a collection of live Stuff refs (or that are the
+held side of one) MUST register a `static cleanupOnDestruct(stuff)`
+that unhooks via the canonical mutation chokepoint. The dispatcher
+walks the mixin chain on every destruct; subclass overrides cannot
+bypass it.
 
 ---
 
@@ -373,12 +539,14 @@ When introducing a new singleton-ref field:
 When introducing a new live-ref field:
 
 1. Pick the field name: `_xxx` (private, no suffix).
-2. If the field is persisted, register a marshaller (see
-   [docs/subsystems/persistence.md](./subsystems/persistence.md)).
-3. Implement `getXxx(): Xxx` and `setXxx(value: Xxx)`.
+2. The field is runtime-only — do NOT add to `persistentFields`.
+3. Implement `getXxx(): Xxx` and `setXxx(value: Xxx)`. For
+   asymmetric singles, fold R2.3 self-heal into the getter.
 4. For collections, follow the patterns in
-   [docs/subsystems/collections.md](./subsystems/collections.md).
+   [docs/subsystems/collections.md](./subsystems/collections.md)
+   AND register `static cleanupOnDestruct` per R2.4.
 
 When in doubt: Pattern A for singleton Ideas (Material / Species /
 BodyPlan / Clade / LocomotionMode), Pattern B for everything else
-unless you specifically need lazy materialization.
+unless you specifically need cross-scope addressability for a
+singleton — in which case Pattern C.
