@@ -47,17 +47,20 @@ export class GetController extends CommandController<GetModel> {
       );
     }
 
+    // `giver` is narrowed to `Stuff & Container`; carry the inventory
+    // / location snapshots into both paths so neither has to re-cast.
+    const inventory = ContainmentApi.getContents(giver);
+    const here = ContainmentApi.getContents(context.location);
+
     if (!quantity) {
-      return this.executeWholeSet(stuff, raw, context);
+      return this.executeWholeSet(stuff, inventory, here, raw, context);
     }
 
     // Source: location contents. Filter to candidates actually
     // present here and not already in inventory.
-    const here = ContainmentApi.getContents(context.location);
     const inLocation = stuff.filter((s) =>
       here.some((it) => it.stuffId === s.stuffId)
     );
-    const inventory = ContainmentApi.getContents(giver);
     const candidates = inLocation.filter(
       (s) => !inventory.some((it) => it.stuffId === s.stuffId)
     );
@@ -77,6 +80,8 @@ export class GetController extends CommandController<GetModel> {
 
   private executeWholeSet(
     targets: Stuff[],
+    inventory: readonly Stuff[],
+    here: readonly Stuff[],
     raw: string,
     context: CommandContext
   ): CommandResult {
@@ -86,15 +91,12 @@ export class GetController extends CommandController<GetModel> {
         summary: `you don't see any '${raw}' here`,
       };
     }
-    const giver = context.commandGiver as Stuff;
-    const inventory = ContainmentApi.getContents(giver as never);
-    const locationContents = ContainmentApi.getContents(context.location);
     const pickedNames: string[] = [];
     for (const target of targets) {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      if (!locationContents.some((item) => item.stuffId === target.stuffId)) {
+      if (!here.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
       this.pickUpOperand(target, context);

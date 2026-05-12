@@ -151,6 +151,32 @@ promoted to formal requirements.
   Generalizes the instruments-reveal seam from the Quantities
   substrate to skills, cybernetics, transient buffs, and ambient
   effects.
+- [docs/slates/globbable-slate.md](./slates/globbable-slate.md) —
+  fungible item stacks; `Globbable` mixin, MQL quantity syntax
+  (natural-language `2 coins` + formal `coins:{N}` / `coins:{*}`),
+  split/merge containment ripple. **v1 shipped** — operational
+  reference at [subsystems/glob.md](./subsystems/glob.md). The
+  slate stays as design rationale and as carry-forward for bulk
+  (`Quantity<U>`-valued) which extends the same contract later.
+- [docs/slates/bulkable-slate.md](./slates/bulkable-slate.md) —
+  bulk-form sibling to globbable. Continuous mass/volume measured
+  matter (flour, water, bread). Exploratory; ships when content
+  demands. Shares globbable's substrate (placeDirect, MqlQuantity
+  union, distribution algorithm). Central design fork: divisibility
+  decomposition (single mixin vs Bulkable + Subdivisible).
+- [docs/slates/response-envelope-slate.md](./slates/response-envelope-slate.md)
+  — structured machine-channel sibling to MML on every server→client
+  message. `outcome.status` + typed `notes`. Universal envelope
+  shape for dispatch responses, witnesses, activity pushes, prompts.
+  Substrate consumed by globbable, look fallback, MQL disambiguation,
+  prompt stack, activity completion. Sibling to state-sync below.
+- [docs/slates/state-sync-slate.md](./slates/state-sync-slate.md) —
+  parallel wire channel for world state deltas (containment,
+  property, slot, lifecycle). Sourced from `EventApi`, filtered
+  per-client by perception scope, delivered as `state-delta` frames.
+  Deliberately separate from the response envelope so self-actions
+  and witnessed actions share one state-delivery code path.
+  Implementation deferred to its own working session.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
@@ -167,9 +193,6 @@ opportunistically.
   + matching client UI. Unlocks multi-step workflows
   (disambiguation, character creation, crafting). Medium
   server + small client.
-- **MQL globbable / fungible items** — `Globbable` flag on Stuff
-  + natural-language transform on the desugar pass. `MqlResult`
-  may grow a `quantity` slot.
 - **MQL disambiguation prompts** — depends on the prompt stack.
   Multi-match cardinality checks turn into UI prompts.
 - **MQL sort / named-group operators** (`:sort.X`, `@@group`).

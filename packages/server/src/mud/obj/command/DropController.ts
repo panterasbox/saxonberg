@@ -63,14 +63,18 @@ export class DropController extends CommandController<DropModel> {
       );
     }
 
+    // `giver` is narrowed to `Stuff & Container` from here on — the
+    // narrowing has to survive across the two paths because each
+    // wants the inventory snapshot.
+    const inventory = ContainmentApi.getContents(giver);
+
     if (!quantity) {
-      return this.executeWholeSet(stuff, raw, context);
+      return this.executeWholeSet(stuff, inventory, raw, context);
     }
 
     // Quantity present — defer to the helper. Both paths drop each
     // operand through `dropOperand`, so the move + scene-emission
     // pair stays in one place.
-    const inventory = ContainmentApi.getContents(giver);
     const inInventory = stuff.filter((s) =>
       inventory.some((it) => it.stuffId === s.stuffId)
     );
@@ -90,6 +94,7 @@ export class DropController extends CommandController<DropModel> {
 
   private executeWholeSet(
     targets: Stuff[],
+    inventory: readonly Stuff[],
     raw: string,
     context: CommandContext
   ): CommandResult {
@@ -99,8 +104,6 @@ export class DropController extends CommandController<DropModel> {
         summary: `you don't have any '${raw}' to drop`,
       };
     }
-    const giver = context.commandGiver as Stuff;
-    const inventory = ContainmentApi.getContents(giver as never);
     const droppedNames: string[] = [];
     for (const target of targets) {
       if (!inventory.some((item) => item.stuffId === target.stuffId)) {

@@ -26,8 +26,8 @@
  * controllers switch from "fold into summary Mml" to `ctx.note(n)`;
  * `applyQuantity`'s return shape is stable across that swap.
  *
- * See `docs/slates/globbable-slate.md` and `docs/slates/globbable-plan.md`
- * for the full design.
+ * Operational reference: `docs/subsystems/glob.md`. Design rationale
+ * and the bulk-form extension story: `docs/slates/globbable-slate.md`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';

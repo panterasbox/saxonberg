@@ -4,8 +4,9 @@
  * A `Globbable` Stuff carries an integer `quantity` and is treated by
  * the framework as if it were `quantity` separate instances at the
  * contract surface (`drop 5 coins`, "30 coins are here"), while
- * storing only one row. See `docs/slates/globbable-slate.md` and
- * `docs/slates/globbable-plan.md` for the full design.
+ * storing only one row. Operational reference:
+ * `docs/subsystems/glob.md`. Design rationale and the bulk-form
+ * extension story: `docs/slates/globbable-slate.md`.
  *
  * Three guarantees:
  *
