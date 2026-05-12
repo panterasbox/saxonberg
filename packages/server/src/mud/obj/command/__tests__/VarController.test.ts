@@ -22,7 +22,7 @@ import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
   type ModelData,
@@ -75,7 +75,7 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,

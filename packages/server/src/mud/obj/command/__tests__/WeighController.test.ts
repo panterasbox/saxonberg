@@ -17,7 +17,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
   type ModelData,
@@ -48,7 +48,7 @@ function makeContext(
   avatar: FakeAvatar,
   location: CartesianLocation
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,

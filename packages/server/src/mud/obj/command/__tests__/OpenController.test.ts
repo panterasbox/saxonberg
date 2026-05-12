@@ -17,7 +17,7 @@ import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
 
@@ -65,7 +65,7 @@ function makeContext(
   location: Location,
   commandText: string
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,

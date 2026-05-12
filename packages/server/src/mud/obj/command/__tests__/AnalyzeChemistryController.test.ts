@@ -22,7 +22,7 @@ import {
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
   type ModelData,
@@ -53,7 +53,7 @@ function makeContext(
   avatar: FakeAvatar,
   location: CartesianLocation
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,

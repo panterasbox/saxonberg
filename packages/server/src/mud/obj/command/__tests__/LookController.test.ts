@@ -13,7 +13,7 @@ import {
   type MqlWorld,
 } from '../../../api/__tests__/fixtures/mql-world';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
 
@@ -31,7 +31,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(world: MqlWorld, text: string): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: world.giver,
     location: world.location as never,
     commandText: text,

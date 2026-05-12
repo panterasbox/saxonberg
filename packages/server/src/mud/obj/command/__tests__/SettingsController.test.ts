@@ -22,7 +22,7 @@ import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
   type ModelData,
@@ -94,7 +94,7 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -239,7 +239,7 @@ describe('SettingsController', () => {
       // A bare Stuff without EnvironmentMixin should be rejected at
       // the surface, not crash with an undefined-method error.
       const bare = makeStuff(() => new (class extends Idea {})());
-      const ctx = createCommandContext({
+      const ctx = CommandApi.createCommandContext({
         commandGiver: bare as unknown as CommandContext['commandGiver'],
         interactive: {} as Interactive,
         location,

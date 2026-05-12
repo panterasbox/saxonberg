@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import requiresAnimate from '../../lib/command/validators/requiresAnimate';
-import { createCommandContext, type CommandContext } from '../command';
+import { CommandApi, type CommandContext } from '../command';
 import { StuffApi } from '../stuff';
 import { Species } from '../../lib/species/Species';
 import { Clade } from '../../lib/species/Clade';
@@ -27,7 +27,7 @@ function makeContext(
   // `commandGiver`. Other fields are set to plausible-but-unused values
   // so the type checks.
   const location = makeStuff(() => new Location());
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: giver as CommandContext['commandGiver'],
     location: location as CommandContext['location'],
     commandText: '',

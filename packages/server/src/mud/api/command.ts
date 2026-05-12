@@ -29,7 +29,6 @@ import { nanoid } from 'nanoid';
 import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import { SecurityApi } from './security';
-import { DispatchApi } from './dispatch';
 import {
   MqlApi,
   type MqlMany,
@@ -116,8 +115,8 @@ export interface CommandContext {
   aliasExpansion?: AliasExpansionInfo;
 
   /**
-   * Accumulate a structured note. Auto-escalates status per
-   * {@link DispatchApi.autoEscalation} unless `setStatus` was already
+   * Accumulate a structured note. Auto-escalates status per the
+   * {@link autoEscalationFor} table unless `setStatus` was already
    * called explicitly (in which case the explicit value sticks).
    */
   note(n: Note): void;
@@ -132,12 +131,11 @@ export interface CommandContext {
 }
 
 /**
- * Construct a fresh `CommandContext` for one dispatch attempt.
- * The dispatcher uses this for each `_executeOne` attempt; only the
- * claiming attempt's context becomes the envelope, contexts from
- * passing attempts are discarded.
+ * Constructor args for `CommandApi.createCommandContext`. Pulled out
+ * so the factory's signature and the implementation's constructor
+ * can share one shape definition.
  */
-export function createCommandContext(args: {
+export interface CreateCommandContextArgs {
   commandGiver: Stuff & CommandGiver;
   location: Stuff & Container;
   commandText: string;
@@ -146,9 +144,52 @@ export function createCommandContext(args: {
   verb: string;
   command: CommandDefinition;
   interactive?: Interactive;
-}): CommandContext {
-  return new CommandContextImpl(args);
 }
+
+/**
+ * Status auto-escalation table. A note of the given kind implies
+ * at least the returned status; the accumulator keeps the
+ * strongest-seen status by rank. Internal — consumed only by
+ * `CommandContextImpl.note`.
+ */
+function autoEscalationFor(kind: Note['kind']): Status | undefined {
+  switch (kind) {
+    case 'quantity-clamped':
+      return 'partial';
+    case 'target-declined':
+      return 'partial';
+    case 'quantity-clamped-rejected':
+      return 'declined';
+    case 'empty-result':
+      return 'declined';
+    case 'controller-rejected':
+      return 'declined';
+    case 'mixin-missing':
+      return 'declined';
+    case 'locomotion-gate-failed':
+      return 'declined';
+    case 'slot-occupied':
+      return 'declined';
+    case 'command-rejected':
+      return 'declined';
+    case 'mql-error':
+      return 'declined';
+    case 'validator-failed':
+      return 'declined';
+    case 'controller-error':
+      return 'error';
+    // match-ambiguous, engagement-*: no escalation
+    default:
+      return undefined;
+  }
+}
+
+const STATUS_RANK: Record<Status, number> = {
+  ok: 0,
+  partial: 1,
+  declined: 2,
+  error: 3,
+};
 
 class CommandContextImpl implements CommandContext {
   public commandGiver: Stuff & CommandGiver;
@@ -165,16 +206,7 @@ class CommandContextImpl implements CommandContext {
   private _status: Status = 'ok';
   private _statusExplicit = false;
 
-  constructor(args: {
-    commandGiver: Stuff & CommandGiver;
-    location: Stuff & Container;
-    commandText: string;
-    executionId: string;
-    commandId: string;
-    verb: string;
-    command: CommandDefinition;
-    interactive?: Interactive;
-  }) {
+  constructor(args: CreateCommandContextArgs) {
     this.commandGiver = args.commandGiver;
     this.location = args.location;
     this.commandText = args.commandText;
@@ -188,10 +220,10 @@ class CommandContextImpl implements CommandContext {
   note(n: Note): void {
     this._notes.push(n);
     if (this._statusExplicit) return;
-    const implied = DispatchApi.autoEscalation(n.kind);
+    const implied = autoEscalationFor(n.kind);
     if (
       implied !== undefined &&
-      DispatchApi.rank(implied) > DispatchApi.rank(this._status)
+      STATUS_RANK[implied] > STATUS_RANK[this._status]
     ) {
       this._status = implied;
     }
@@ -865,6 +897,19 @@ export class CommandApi {
    *         or the module's default export isn't a Parser-shaped
    *         object.
    */
+  /**
+   * Construct a fresh `CommandContext` for one dispatch attempt.
+   * The dispatcher mints a per-`_executeOne` context so the
+   * accumulator captures exactly the claiming attempt's notes —
+   * see {@link CommandGiverMixin._runChain}. Tests use this to
+   * drive controllers directly with a synthetic ctx.
+   */
+  static createCommandContext(
+    args: CreateCommandContextArgs,
+  ): CommandContext {
+    return new CommandContextImpl(args);
+  }
+
   static async resolveParser(spec: string): Promise<Parser> {
     const absolutePath = resolveParserSpec(spec);
     const fileUrl = pathToFileURL(absolutePath).href;

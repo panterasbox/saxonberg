@@ -21,7 +21,7 @@ import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type ModelData,
 } from '../../../api/command';
@@ -71,7 +71,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(giver: TestGiver, location: Location): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
     commandText: 'get',

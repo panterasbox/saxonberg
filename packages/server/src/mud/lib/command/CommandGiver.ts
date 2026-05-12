@@ -42,7 +42,6 @@ import { nanoid } from 'nanoid';
 import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
-  createCommandContext,
   type CommandContext,
   type CommandModel,
   type ExecuteCommandOpts,
@@ -376,7 +375,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       }
       const commandId = nanoid();
       const originInteractiveId = opts.interactive?.stuffId;
-      const outer = createCommandContext({
+      const outer = CommandApi.createCommandContext({
         commandGiver: giver,
         location,
         commandText,
@@ -616,7 +615,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // fields (commandId, executionId) ride through from the
         // outer ctx so attribution stays stable; the accumulator
         // and verb/command are per-attempt.
-        const attempt = createCommandContext({
+        const attempt = CommandApi.createCommandContext({
           commandGiver: outer.commandGiver,
           location: outer.location,
           commandText: outer.commandText,

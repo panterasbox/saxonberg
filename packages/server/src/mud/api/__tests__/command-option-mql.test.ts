@@ -12,7 +12,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CommandApi,
-  createCommandContext,
   type CommandContext,
 } from '../command';
 import type { MqlOneResult, MqlManyResult } from '../mql';
@@ -73,7 +72,7 @@ function makeContext(
   cmd: CommandDefinition,
   text: string,
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location,
     commandText: text,

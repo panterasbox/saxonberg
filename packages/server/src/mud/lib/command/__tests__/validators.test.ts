@@ -13,7 +13,7 @@ import mustBeInLocation from '../validators/mustBeInLocation';
 import mustBeVisible from '../validators/mustBeVisible';
 import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-world';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
 } from '../../../api/command';
 import type { Stuff } from '../../stuff/Stuff';
@@ -32,7 +32,7 @@ describe('field validators', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = createCommandContext({
+    ctx = CommandApi.createCommandContext({
       commandGiver: world.giver,
       location: world.location as never,
       commandText: '',

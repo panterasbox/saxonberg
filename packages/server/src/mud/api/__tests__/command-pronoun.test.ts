@@ -22,7 +22,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import {
   CommandApi,
-  createCommandContext,
   type CommandContext,
 } from '../command';
 import type { MqlOneResult } from '../mql';
@@ -77,7 +76,7 @@ function makeContext(
   command: CommandDefinition,
   text: string
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,

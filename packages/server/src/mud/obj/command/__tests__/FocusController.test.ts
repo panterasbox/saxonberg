@@ -33,7 +33,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
 import {
-  createCommandContext,
+  CommandApi,
   type CommandContext,
   type CommandModel,
   type ModelData,
@@ -70,7 +70,7 @@ function makeContext(
   location: Location,
   raw?: string
 ): CommandContext {
-  return createCommandContext({
+  return CommandApi.createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
