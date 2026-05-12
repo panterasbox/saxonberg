@@ -5,11 +5,11 @@
  *   - executeCommand stamps a fresh commandId onto context.
  *   - The Command frame metadata carries commandContext +
  *     causingCommandId so Scene/MudlogApi calls auto-attribute.
- *   - The auto-emitted MudlogApi command-outcome entry fires once
- *     per executeCommand, addressed to the giver.
- *   - Topic is `system.log.command.info` on success and
- *     `system.log.command.warn` on failure; body uses the supplied
- *     summary tail.
+ *   - Every dispatch fires exactly one `_emitInputEcho` frame at
+ *     `system.log.command.{info|warn}` with payload `kind:'issued'`.
+ *   - Every dispatch fires exactly one dispatch-response envelope
+ *     through the Sensor pipeline (captured here via the
+ *     `handleEnvelope` override).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -23,7 +23,11 @@ import { ContainmentApi } from '../../../api/containment';
 import { CommandApi } from '../../../api/command';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import type { MessageFrame } from '@saxonberg/types';
+import type {
+  EnvelopeTemplate,
+  DispatchResponseEnvelope,
+  MessageFrame,
+} from '@saxonberg/types';
 import { Idea } from "../../stuff/Idea";
 import {
   PersistenceManager,
@@ -43,8 +47,12 @@ class TestGiver extends TestGiverBase {
   };
 
   public received: MessageFrame[] = [];
+  public envelopes: EnvelopeTemplate[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
+  }
+  protected override handleEnvelope(envelope: EnvelopeTemplate): void {
+    this.envelopes.push(envelope);
   }
 }
 
@@ -94,7 +102,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     vi.restoreAllMocks();
   });
 
-  it('stamps a fresh commandId per call (visible on the auto-emit frame)', async () => {
+  it('stamps a fresh commandId per call (visible on the input-echo frame)', async () => {
     await giver.executeCommand('ping');
     await giver.executeCommand('ping');
 
@@ -115,39 +123,89 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     expect(frame.meta.causingCommandId).toBe(frame.meta.commandId);
   });
 
-  it('auto-emits at system.log.command.info on success', async () => {
+  it('emits an input echo at system.log.command.info for parseable input', async () => {
     const result = await giver.executeCommand('ping');
 
     expect(result.success).toBe(true);
     expect(giver.received).toHaveLength(1);
     expect(giver.received[0]!.topic).toBe('system.log.command.info');
     expect(giver.received[0]!.body).toContain('ping');
-    expect(giver.received[0]!.body).toContain('pong');
   });
 
-  it('auto-emits at system.log.command.warn on failure', async () => {
-    const result = await giver.executeCommand('nope');
+  it('emits an input echo at system.log.command.warn on parse failure', async () => {
+    // Empty input fails msh parse ("No command entered"). Unknown
+    // verbs parse fine and only fail at the matcher stage, so they
+    // ride the info channel.
+    await giver.executeCommand('');
 
-    expect(result.success).toBe(false);
     expect(giver.received).toHaveLength(1);
     expect(giver.received[0]!.topic).toBe('system.log.command.warn');
-    expect(giver.received[0]!.body).toContain('nope');
+    const payload = giver.received[0]!.payload as Record<string, unknown>;
+    expect(payload.parseError).toBeTruthy();
   });
 
-  it('auto-emit body carries the verb prefix', async () => {
+  it('input-echo body carries the raw input text', async () => {
     await giver.executeCommand('ping');
-    expect(giver.received[0]!.body).toMatch(/^ping:/);
+    expect(giver.received[0]!.body).toContain('ping');
   });
 
-  it('the auto-emit payload exposes verb + success + commandText', async () => {
+  it('input-echo payload has shape { kind: "issued", rawText, verb, dispatchId }', async () => {
     await giver.executeCommand('ping');
     const payload = giver.received[0]!.payload as Record<string, unknown>;
     expect(payload).toMatchObject({
+      kind: 'issued',
+      rawText: 'ping',
       verb: 'ping',
-      success: true,
-      commandText: 'ping',
     });
-    expect(typeof payload.executionId).toBe('string');
+    expect(typeof payload.dispatchId).toBe('string');
+  });
+
+  it('emits one dispatch-response envelope per executeCommand (ok)', async () => {
+    await giver.executeCommand('ping');
+
+    expect(giver.envelopes).toHaveLength(1);
+    const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.type).toBe('dispatch-response');
+    expect(typeof env.dispatchId).toBe('string');
+    expect(env.outcome.status).toBe('ok');
+    expect(env.outcome.notes).toEqual([]);
+  });
+
+  it('unknown verb produces a command-rejected envelope with reason unknown-verb', async () => {
+    const result = await giver.executeCommand('nope');
+
+    expect(result.success).toBe(false);
+    expect(giver.envelopes).toHaveLength(1);
+    const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.outcome.status).toBe('declined');
+    expect(env.outcome.notes).toContainEqual(
+      expect.objectContaining({
+        kind: 'command-rejected',
+        reason: 'unknown-verb',
+      })
+    );
+  });
+
+  it('parse-failed envelope carries reason parse-failed', async () => {
+    await giver.executeCommand('');
+
+    expect(giver.envelopes).toHaveLength(1);
+    const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.outcome.status).toBe('declined');
+    expect(env.outcome.notes).toContainEqual(
+      expect.objectContaining({
+        kind: 'command-rejected',
+        reason: 'parse-failed',
+      })
+    );
+  });
+
+  it('dispatchId on the envelope equals the input-echo payload.dispatchId', async () => {
+    await giver.executeCommand('ping');
+
+    const echoPayload = giver.received[0]!.payload as Record<string, unknown>;
+    const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.dispatchId).toBe(echoPayload.dispatchId);
   });
 
   it('Command frame is gone after executeCommand returns', async () => {

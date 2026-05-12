@@ -40,6 +40,29 @@ export class Interactive extends Idea {
   public getConnectedAt(): Date { return this.connectedAt; }
 
   /**
+   * Per-Interactive monotonic frame counter. Shared by every
+   * server→client frame (prose MessageFrame + dispatch-response
+   * Envelope alike). State-sync, when it ships, reads the same
+   * counter — single ordering primitive across all wire traffic
+   * per Interactive. Resets naturally on reconnect because the
+   * client gets a fresh `Interactive`.
+   *
+   * Hard-private: Interactive lives in the mediator-tier
+   * connection layer, and the counter is invariant-critical
+   * (gaps mean state-sync resyncs).
+   */
+  #frameCounter = 0;
+
+  /**
+   * Allocate the next frame id. Returns 1 on the first call after
+   * connection; monotonic from there. Stamped per-Interactive by
+   * `Application.sendMessageToInteractive` / `sendEnvelopeToInteractive`.
+   */
+  public nextFrameId(): number {
+    return ++this.#frameCounter;
+  }
+
+  /**
    * Whoever currently owns this connection. Set via
    * `ConnectionApi.transfer`; cleared via `ConnectionApi.detach`. Always
    * a Stuff at runtime — `HasInteractiveMixin` only composes onto Stuff

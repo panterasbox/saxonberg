@@ -12,7 +12,10 @@ import mustBeInInventory from '../validators/mustBeInInventory';
 import mustBeInLocation from '../validators/mustBeInLocation';
 import mustBeVisible from '../validators/mustBeVisible';
 import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-world';
-import type { CommandContext } from '../../../api/command';
+import {
+  createCommandContext,
+  type CommandContext,
+} from '../../../api/command';
 import type { Stuff } from '../../stuff/Stuff';
 import { CommandDefinition } from '../CommandDefinition';
 
@@ -29,7 +32,7 @@ describe('field validators', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = {
+    ctx = createCommandContext({
       commandGiver: world.giver,
       location: world.location as never,
       commandText: '',
@@ -37,7 +40,7 @@ describe('field validators', () => {
       commandId: 'test',
       verb: 'test',
       command: stubCommand('test'),
-    };
+    });
   });
 
   describe('mustBeVisible', () => {

@@ -16,10 +16,11 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 import '../../../api/material';
@@ -47,7 +48,7 @@ function makeContext(
   avatar: FakeAvatar,
   location: CartesianLocation
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -56,7 +57,7 @@ function makeContext(
     commandId: 'c',
     verb: 'weigh',
     command: stubCommand('weigh'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData): CommandModel {

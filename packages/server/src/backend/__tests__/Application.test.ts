@@ -31,14 +31,20 @@ import type { PassportGoogleProfile } from '@saxonberg/types';
 
 interface FakeBackend extends IBackend {
   sent: Array<{ socketId: string; message: unknown }>;
+  envelopes: Array<{ socketId: string; envelope: unknown }>;
 }
 
 function makeFakeBackend(): FakeBackend {
   const sent: FakeBackend['sent'] = [];
+  const envelopes: FakeBackend['envelopes'] = [];
   return {
     sent,
+    envelopes,
     sendMessageToSocket(socketId, message) {
       sent.push({ socketId, message });
+    },
+    sendEnvelopeToSocket(socketId, envelope) {
+      envelopes.push({ socketId, envelope });
     },
     async handleAuthenticationSuccess() {
       // unused in Application tests
@@ -50,9 +56,11 @@ function makeFakeInteractive(
   socketId: string,
   holder: unknown = null,
 ): Interactive {
+  let counter = 0;
   return {
     getSocketId: () => socketId,
     getHolder: () => holder,
+    nextFrameId: () => ++counter,
   } as unknown as Interactive;
 }
 

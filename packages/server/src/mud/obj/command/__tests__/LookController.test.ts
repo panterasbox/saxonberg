@@ -12,11 +12,12 @@ import {
   makeWorld,
   type MqlWorld,
 } from '../../../api/__tests__/fixtures/mql-world';
-import type {
-  CommandContext,
-  CommandModel,
-  CommandResult,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type CommandResult,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -30,7 +31,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(world: MqlWorld, text: string): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: world.giver,
     location: world.location as never,
     commandText: text,
@@ -38,7 +39,7 @@ function makeContext(world: MqlWorld, text: string): CommandContext {
     commandId: 'test',
     verb: 'look',
     command: stubCommand('look'),
-  };
+  });
 }
 
 function buildResult(world: MqlWorld, raw: string, scope: string): MqlOneResult {

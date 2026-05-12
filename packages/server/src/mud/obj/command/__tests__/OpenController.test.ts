@@ -16,11 +16,12 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  CommandResult,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type CommandResult,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
@@ -64,16 +65,16 @@ function makeContext(
   location: Location,
   commandText: string
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
-  verb: 'open',
-  command: stubCommand('open'),
-  };
+    verb: 'open',
+    command: stubCommand('open'),
+  });
 }
 
 /**

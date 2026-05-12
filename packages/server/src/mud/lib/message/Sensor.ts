@@ -21,13 +21,14 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { MessageFrame } from '@saxonberg/types';
+import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 
 /**
  * Public shape provided by SensorMixin.
  */
 export interface Sensor {
   onMessage(frame: MessageFrame): void;
+  onEnvelope(envelope: EnvelopeTemplate): void;
 }
 
 export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -63,6 +64,37 @@ export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
      * default is a no-op.
      */
     protected handleMessage(_frame: MessageFrame): void {
+      // Default: no-op.
+    }
+
+    /**
+     * Envelope template method — DO NOT override. Override
+     * `handleEnvelope` instead, or shadow `filterEnvelope` for
+     * content-driven interception. Parallels {@link onMessage}.
+     */
+    onEnvelope(envelope: EnvelopeTemplate): void {
+      const transformed = this.filterEnvelope(envelope);
+      if (transformed === null) return;
+      this.handleEnvelope(transformed);
+    }
+
+    /**
+     * Shadowable extension point for envelope frames. Default
+     * returns the envelope unchanged. Treat the input as
+     * immutable; return a fresh copy when transforming.
+     */
+    protected filterEnvelope(
+      envelope: EnvelopeTemplate
+    ): EnvelopeTemplate | null {
+      return envelope;
+    }
+
+    /**
+     * Subclass-override delivery hook for envelope frames. Avatar
+     * overrides to multiplex to its connected Interactives; NPCs and
+     * other Sensors default to no-op.
+     */
+    protected handleEnvelope(_envelope: EnvelopeTemplate): void {
       // Default: no-op.
     }
   };

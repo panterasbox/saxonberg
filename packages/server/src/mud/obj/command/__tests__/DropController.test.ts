@@ -22,9 +22,10 @@ import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
-import type {
-  CommandContext,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type ModelData,
 } from '../../../api/command';
 import type { MqlManyResult, MqlQuantity } from '../../../api/mql';
 import {
@@ -74,7 +75,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(giver: TestGiver, location: Location): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: giver as never,
     location: location as never,
     commandText: 'drop',
@@ -82,7 +83,7 @@ function makeContext(giver: TestGiver, location: Location): CommandContext {
     commandId: 'test',
     verb: 'drop',
     command: stubCommand('drop'),
-  };
+  });
 }
 
 type DropExecModel = Parameters<DropController['execute']>[0];

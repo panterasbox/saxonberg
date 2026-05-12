@@ -15,7 +15,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CommandApi, type CommandContext } from '../command';
+import {
+  CommandApi,
+  createCommandContext,
+  type CommandContext,
+} from '../command';
 import type { MqlOneResult, MqlManyResult } from '../mql';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
@@ -79,7 +83,7 @@ function makeContext(
   command: CommandDefinition,
   text: string
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -88,7 +92,7 @@ function makeContext(
     commandId: 'test-cmd',
     verb: command.getPrimaryVerb(),
     command,
-  };
+  });
 }
 
 describe('Dispatcher empty-resolution passthrough', () => {

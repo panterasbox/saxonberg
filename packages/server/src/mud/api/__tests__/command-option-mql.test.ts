@@ -10,7 +10,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CommandApi, type CommandContext } from '../command';
+import {
+  CommandApi,
+  createCommandContext,
+  type CommandContext,
+} from '../command';
 import type { MqlOneResult, MqlManyResult } from '../mql';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
@@ -69,7 +73,7 @@ function makeContext(
   cmd: CommandDefinition,
   text: string,
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: giver as never,
     location,
     commandText: text,
@@ -77,7 +81,7 @@ function makeContext(
     commandId: 'test',
     verb: cmd.getPrimaryVerb(),
     command: cmd,
-  };
+  });
 }
 
 describe('CommandApi.resolveAndValidate — option-side MQL', () => {

@@ -17,10 +17,11 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -80,16 +81,16 @@ function makeContext(
   location: Location,
   commandText: string
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
-  verb: 'go',
-  command: stubCommand('go'),
-  };
+    verb: 'go',
+    command: stubCommand('go'),
+  });
 }
 
 /**

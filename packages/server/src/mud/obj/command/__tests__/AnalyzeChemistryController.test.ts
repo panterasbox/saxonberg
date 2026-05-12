@@ -21,10 +21,11 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 import '../../../api/material';
@@ -52,7 +53,7 @@ function makeContext(
   avatar: FakeAvatar,
   location: CartesianLocation
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -61,7 +62,7 @@ function makeContext(
     commandId: 'c',
     verb: 'analyze',
     command: stubCommand('analyze'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData, subcommand: string): CommandModel {

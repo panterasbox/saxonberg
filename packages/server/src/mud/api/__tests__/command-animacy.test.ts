@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import requiresAnimate from '../../lib/command/validators/requiresAnimate';
-import type { CommandContext } from '../command';
+import { createCommandContext, type CommandContext } from '../command';
 import { StuffApi } from '../stuff';
 import { Species } from '../../lib/species/Species';
 import { Clade } from '../../lib/species/Clade';
@@ -27,7 +27,7 @@ function makeContext(
   // `commandGiver`. Other fields are set to plausible-but-unused values
   // so the type checks.
   const location = makeStuff(() => new Location());
-  return {
+  return createCommandContext({
     commandGiver: giver as CommandContext['commandGiver'],
     location: location as CommandContext['location'],
     commandText: '',
@@ -35,7 +35,7 @@ function makeContext(
     commandId: 'test-cmd',
     verb: 'test',
     command: undefined as unknown as CommandContext['command'],
-  };
+  });
 }
 
 function setupAnimaliaCharacter(): TestCharacter {

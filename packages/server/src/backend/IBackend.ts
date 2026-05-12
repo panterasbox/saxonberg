@@ -9,7 +9,7 @@
  * - User authentication callbacks
  */
 
-import type { PassportGoogleProfile } from '@saxonberg/types';
+import type { Envelope, PassportGoogleProfile } from '@saxonberg/types';
 
 /**
  * Backend interface for Application callbacks.
@@ -22,6 +22,13 @@ export interface IBackend {
    * @param message - The message object to send
    */
   sendMessageToSocket(socketId: string, message: unknown): void;
+
+  /**
+   * Send a fully-stamped envelope to a specific WebSocket
+   * connection. Parallel to {@link sendMessageToSocket}; carries
+   * its `frameId` already (stamped per-Interactive by Application).
+   */
+  sendEnvelopeToSocket(socketId: string, envelope: Envelope): void;
 
   /**
    * Handle successful Google authentication.

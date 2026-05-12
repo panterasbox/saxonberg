@@ -21,10 +21,11 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -74,16 +75,16 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
-  verb: 'var',
-  command: stubCommand('var'),
-  };
+    verb: 'var',
+    command: stubCommand('var'),
+  });
 }
 
 describe('VarController', () => {

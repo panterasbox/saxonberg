@@ -32,10 +32,11 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -69,7 +70,7 @@ function makeContext(
   location: Location,
   raw?: string
 ): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -78,7 +79,7 @@ function makeContext(
     commandId: 'test-command',
     verb: 'focus',
     command: stubCommand('focus'),
-  };
+  });
 }
 
 /** Build the MqlManyResult wrapper the dispatcher would land on the

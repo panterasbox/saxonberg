@@ -21,10 +21,11 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -93,16 +94,16 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
-  verb: 'settings',
-  command: stubCommand('settings'),
-  };
+    verb: 'settings',
+    command: stubCommand('settings'),
+  });
 }
 
 describe('SettingsController', () => {
@@ -261,7 +262,7 @@ describe('SettingsController', () => {
       const bare = makeStuff(() => new (class extends Idea {})());
       const result = controller.execute(
         makeModel({}, 'list'),
-        {
+        createCommandContext({
           commandGiver: bare as unknown as CommandContext['commandGiver'],
           interactive: {} as Interactive,
           location,
@@ -270,7 +271,7 @@ describe('SettingsController', () => {
           commandId: 'c',
           verb: 'settings',
           command: stubCommand('settings'),
-        },
+        }),
       );
       expect(result.success).toBe(false);
       expect(result.summary).toMatch(/no settings/);

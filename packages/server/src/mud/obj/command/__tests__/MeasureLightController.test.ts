@@ -14,10 +14,11 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  createCommandContext,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 // Trigger LightApi tag-table registrations.
@@ -43,7 +44,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
-  return {
+  return createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -52,7 +53,7 @@ function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
     commandId: 'c',
     verb: 'measure',
     command: stubCommand('measure'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData, subcommand: string): CommandModel {

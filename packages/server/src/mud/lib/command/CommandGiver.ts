@@ -42,11 +42,14 @@ import { nanoid } from 'nanoid';
 import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
+  createCommandContext,
   type CommandContext,
   type CommandModel,
   type CommandResult,
   type ExecuteCommandOpts,
 } from '../../api/command';
+import { MessageApi } from '../../api/message';
+import type { EnvelopeTemplate } from '@saxonberg/types';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
@@ -372,64 +375,97 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           summary: 'No location for command',
         };
       }
-      const context: CommandContext = {
+      const commandId = nanoid();
+      const originInteractiveId = opts.interactive?.stuffId;
+      const outer = createCommandContext({
         commandGiver: giver,
         location,
         commandText,
         executionId: nanoid(),
-        commandId: nanoid(),
+        commandId,
         verb: '',
         command: undefined as unknown as CommandDefinition,
-      };
-      if (opts.interactive !== undefined) context.interactive = opts.interactive;
+        interactive: opts.interactive,
+      });
       ExecutionContextApi.updateCurrentFrameMetadata({
-        commandContext: context,
-        causingCommandId: context.commandId,
+        commandContext: outer,
+        causingCommandId: outer.commandId,
         forced: opts.forced ?? false,
       });
 
-      let verb = '';
+      // `claimingCtx` is the CommandContext whose accumulator becomes
+      // the envelope. Per slate § Dispatch context: the dispatcher
+      // mints a fresh ctx per `_executeOne` attempt, and the
+      // claiming attempt's ctx wins. Failures before/after the
+      // claim use the outer ctx.
+      let claimingCtx: CommandContext = outer;
       let result: CommandResult;
       try {
-        const parser = await resolveActorParser(context.commandGiver);
+        const parser = await resolveActorParser(outer.commandGiver);
         const parserCtx = {
-          commandGiver: context.commandGiver,
-          location: context.location,
+          commandGiver: outer.commandGiver,
+          location: outer.location,
           available: this.getAvailableCommands(),
         };
         const parseResult = await parser.parse(commandText, parserCtx);
 
         if (parseResult.error !== undefined) {
+          outer.note({
+            kind: 'command-rejected',
+            reason: 'parse-failed',
+            detail: parseResult.error,
+          });
+          this._emitInputEcho({
+            rawText: commandText,
+            parseError: parseResult.error,
+            dispatchId: outer.commandId,
+            originInteractiveId,
+          });
           result = { success: false, summary: parseResult.error };
         } else if (parseResult.parsed) {
           let parsed = parseResult.parsed;
+          let expandedText: string | undefined;
           // Alias expansion: only on the parsed branch (the bound /
           // LLM short-circuit picked the verb directly), only when
           // the giver carries AliasMixin. NPCs without aliases skip.
-          if (MixinApi.isAlias(context.commandGiver)) {
+          if (MixinApi.isAlias(outer.commandGiver)) {
             const expanded = ShellApi.expandAliases(
               parsed,
-              context.commandGiver as Stuff & Alias,
+              outer.commandGiver as Stuff & Alias,
             );
             parsed = expanded.parsed;
             if (expanded.expansion) {
-              context.aliasExpansion = {
+              outer.aliasExpansion = {
                 ...expanded.expansion,
                 originalText: commandText,
               };
+              expandedText = expanded.expansion.expandedText;
             }
           }
-          verb = parsed.verb;
-          result = await this._runChain(parsed, context);
+          this._emitInputEcho({
+            rawText: commandText,
+            expandedText,
+            verb: parsed.verb,
+            dispatchId: outer.commandId,
+            originInteractiveId,
+          });
+          const chain = await this._runChain(parsed, outer);
+          claimingCtx = chain.ctx;
+          result = chain.result;
         } else if (parseResult.bound) {
           // Parser already chose the command and built the model;
           // skip parse + match. Run resolve + execute only.
-          context.command = parseResult.bound.command;
-          context.verb = parseResult.bound.command.getPrimaryVerb();
-          verb = context.verb;
+          outer.command = parseResult.bound.command;
+          outer.verb = parseResult.bound.command.getPrimaryVerb();
+          this._emitInputEcho({
+            rawText: commandText,
+            verb: outer.verb,
+            dispatchId: outer.commandId,
+            originInteractiveId,
+          });
           const validated = CommandApi.resolveAndValidate(
             parseResult.bound.model,
-            context
+            outer
           );
           if ('result' in validated) {
             result = validated.result;
@@ -437,102 +473,222 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             result = await this._executeOne(
               parseResult.bound.command,
               validated.resolved,
-              context
+              outer
             );
           }
         } else {
+          outer.note({
+            kind: 'command-rejected',
+            reason: 'parse-failed',
+            detail: 'Parser returned no result',
+          });
           result = { success: false, summary: 'Parser returned no result' };
         }
       } catch (error: unknown) {
-        result = {
-          success: false,
-          summary:
-            error instanceof Error
-              ? error.message
-              : 'Command execution failed',
-        };
+        const detail =
+          error instanceof Error ? error.message : String(error);
+        // The throw can originate inside a controller's execute(),
+        // inside resolveAndValidate, or anywhere else. Attribute to
+        // whichever context is currently flowing through the chain.
+        claimingCtx.note({
+          kind: 'controller-error',
+          controller: outer.command?.controller ?? '?',
+          detail,
+        });
+        result = { success: false, summary: detail };
       }
 
-      // Auto-emit MudlogApi command-outcome entry. Recipient defaults
-      // to the giver — only if it's a Sensor.
-      const giverAsStuff = context.commandGiver as unknown as Stuff;
+      // Framework bridge — transitional. Controllers that still
+      // return `success: false` without emitting an escalating note
+      // get pinned to `declined` so the envelope reflects the
+      // failure. The dev warning highlights migration debt.
+      // Removed in Chunk 5 once every controller emits its own note.
+      if (!result.success && claimingCtx.getStatus() === 'ok') {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(
+            `[response-envelope bridge] controller=${
+              outer.command?.controller ?? '?'
+            } verb=${outer.verb} returned success:false without an escalating ` +
+              `note. Pinning status='declined'.`
+          );
+        }
+        claimingCtx.setStatus('declined');
+      }
+
+      // Assemble the dispatch-response envelope template. No
+      // `frameId` — that's stamped per-Interactive at the wire
+      // delivery layer in `Application.sendEnvelopeToInteractive`.
+      // Sensor pipeline (Avatar.handleEnvelope) multiplexes the
+      // template to every connected Interactive.
+      const envelopeTemplate: EnvelopeTemplate = {
+        type: 'dispatch-response',
+        dispatchId: outer.commandId,
+        outcome: {
+          status: claimingCtx.getStatus(),
+          notes: [...claimingCtx.getNotes()],
+        },
+      };
+      const giverAsStuff = outer.commandGiver as unknown as Stuff;
       if (MixinApi.isSensor(giverAsStuff)) {
-        const tail =
-          result.summary !== undefined && result.summary !== ''
-            ? result.summary
-            : result.success
-              ? 'ok'
-              : 'failed';
-        const level: LogLevel = result.success ? 'info' : 'warn';
-        MudlogApi[level]('command', Mml.compose`${verb}: ${tail}`, {
-          to: giverAsStuff as Stuff & Sensor,
-          payload: {
-            verb,
-            success: result.success,
-            commandText,
-            executionId: context.executionId,
-            ...(context.aliasExpansion
-              ? { aliasExpansion: context.aliasExpansion }
-              : {}),
-          },
-        });
+        MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
       }
 
       return result;
     }
 
     /**
+     * Emit the input-echo MudlogApi frame at start-of-dispatch.
+     * Fires exactly once per `executeCommand` regardless of the
+     * branch taken (parsed / bound / parse-error). Topic
+     * `system.log.command.{info|warn}`; payload `kind: 'issued'`.
+     * Multi-device echo, audit trail, replay capture all consume
+     * this; clients filter their own echo by comparing
+     * `originInteractiveId` against their stashed
+     * `selfInteractiveId`.
+     */
+    private _emitInputEcho(args: {
+      rawText: string;
+      expandedText?: string;
+      verb?: string;
+      parseError?: string;
+      dispatchId: string;
+      originInteractiveId?: string;
+    }): void {
+      const giverAsStuff = this as unknown as Stuff;
+      if (!MixinApi.isSensor(giverAsStuff)) return;
+
+      const level: LogLevel = args.parseError !== undefined ? 'warn' : 'info';
+      const body =
+        args.expandedText !== undefined
+          ? Mml.compose`${args.rawText} → ${args.expandedText}`
+          : Mml.compose`${args.rawText}`;
+
+      const payload: {
+        kind: 'issued';
+        rawText: string;
+        expandedText?: string;
+        verb?: string;
+        parseError?: string;
+        dispatchId: string;
+        originInteractiveId?: string;
+      } = {
+        kind: 'issued',
+        rawText: args.rawText,
+        dispatchId: args.dispatchId,
+      };
+      if (args.expandedText !== undefined) payload.expandedText = args.expandedText;
+      if (args.verb !== undefined) payload.verb = args.verb;
+      if (args.parseError !== undefined) payload.parseError = args.parseError;
+      if (args.originInteractiveId !== undefined) {
+        payload.originInteractiveId = args.originInteractiveId;
+      }
+
+      MudlogApi[level]('command', body, {
+        to: giverAsStuff as Stuff & Sensor,
+        payload,
+      });
+    }
+
+    /**
      * Walk the verb's match list in recency order. Shape errors fall
      * through, bind/resolve errors stop, controller `pass: true`
-     * cascades. Final unmatched returns "No handler claimed".
+     * cascades.
+     *
+     * Returns `{ ctx, result }`: per slate § Dispatch context, each
+     * `_executeOne` attempt gets a fresh `CommandContext` so the
+     * accumulator captures exactly the claiming attempt's notes.
+     * Failures before any attempt (unknown verb, all-shape-fall-
+     * through) report on the outer ctx.
      */
     async _runChain(
       parsed: ReturnType<typeof CommandLineApi.parsePipeline>['commands'][0],
-      context: CommandContext
-    ): Promise<CommandResult> {
+      outer: CommandContext
+    ): Promise<{ ctx: CommandContext; result: CommandResult }> {
       const matches = CommandApi.matchVerbContextual(
         parsed.verb,
         this.getAvailableCommands()
       );
       if (matches.length === 0) {
+        outer.note({
+          kind: 'command-rejected',
+          reason: 'unknown-verb',
+          detail: parsed.verb,
+        });
         return {
-          success: false,
-          summary: `Unknown command: ${parsed.verb}`,
+          ctx: outer,
+          result: {
+            success: false,
+            summary: `Unknown command: ${parsed.verb}`,
+          },
         };
       }
 
       for (const command of matches) {
         const built = CommandApi.assemble(parsed, command, {
-          commandGiver: context.commandGiver,
-          location: context.location,
+          commandGiver: outer.commandGiver,
+          location: outer.location,
         });
         if ('error' in built) {
           if (built.error === 'shape') continue; // fall through
-          return { success: false, summary: built.summary }; // bind error stops
+          // Bind error stops the chain. Emit on the outer ctx —
+          // we never reached _executeOne for any attempt.
+          outer.note({
+            kind: 'command-rejected',
+            reason: 'bind-failed',
+            detail: built.summary,
+          });
+          outer.verb = parsed.verb;
+          outer.command = command;
+          return {
+            ctx: outer,
+            result: { success: false, summary: built.summary },
+          };
         }
-        // Populate dispatch identity on the context for resolve /
-        // validate / execute. The active subcommand (if any) is
-        // already stamped onto `built.model.subcommand` by the
-        // matcher.
-        context.verb = parsed.verb;
-        context.command = command;
+        // Mint a fresh CommandContext for this attempt. Identity
+        // fields (commandId, executionId) ride through from the
+        // outer ctx so attribution stays stable; the accumulator
+        // and verb/command are per-attempt.
+        const attempt = createCommandContext({
+          commandGiver: outer.commandGiver,
+          location: outer.location,
+          commandText: outer.commandText,
+          executionId: outer.executionId,
+          commandId: outer.commandId,
+          verb: parsed.verb,
+          command,
+          interactive: outer.interactive,
+        });
+        if (outer.aliasExpansion !== undefined) {
+          attempt.aliasExpansion = outer.aliasExpansion;
+        }
         const validated = CommandApi.resolveAndValidate(
           built.model,
-          context,
+          attempt,
           built.prep
         );
-        if ('result' in validated) return validated.result;
+        if ('result' in validated) {
+          return { ctx: attempt, result: validated.result };
+        }
         const interim = await this._executeOne(
           command,
           validated.resolved,
-          context
+          attempt
         );
-        if (interim.pass !== true) return interim;
-        // pass:true — try next match.
+        if (interim.pass !== true) return { ctx: attempt, result: interim };
+        // pass:true — discard this attempt's accumulator, try next match.
       }
+      // Every match returned a shape error. Report on the outer ctx.
+      outer.note({
+        kind: 'command-rejected',
+        reason: 'shape-fall-through',
+        detail: parsed.verb,
+      });
       return {
-        success: false,
-        summary: `No handler claimed '${parsed.verb}'`,
+        ctx: outer,
+        result: {
+          success: false,
+          summary: `No handler claimed '${parsed.verb}'`,
+        },
       };
     }
 
@@ -557,6 +713,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         ? command.controllerForSubcommand(sub)
         : command.controller;
       if (!controllerName) {
+        context.note({
+          kind: 'command-rejected',
+          reason: 'missing-subcommand',
+          detail: command.getPrimaryVerb(),
+        });
         return {
           success: false,
           summary: `${command.getPrimaryVerb()} requires a subcommand`,
@@ -570,6 +731,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return await controller.execute(model, context);
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
+        context.note({
+          kind: 'controller-error',
+          controller: controllerName,
+          detail: message,
+        });
         return {
           success: false,
           summary: `Failed to execute command: ${message}`,

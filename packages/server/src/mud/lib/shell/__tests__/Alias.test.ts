@@ -481,29 +481,31 @@ describe('AliasMixin — pipeline integration', () => {
     expect(result.success).toBe(true);
   });
 
-  it('auto-emit payload carries aliasExpansion when an alias fires', async () => {
+  it('input-echo payload carries expandedText when an alias fires', async () => {
     giver.setAlias('l', 'ping', { actor: giver });
     await giver.executeCommand('l');
     const cmdFrame = giver.received.find((f) =>
       String(f.topic ?? '').startsWith('system.log.command'),
     );
     expect(cmdFrame).toBeDefined();
-    const payload = (cmdFrame as { payload?: { aliasExpansion?: unknown } })
-      .payload;
-    expect(payload?.aliasExpansion).toMatchObject({
-      aliasName: 'l',
-      originalText: 'l',
-    });
+    const payload = (cmdFrame as {
+      payload?: { kind?: string; rawText?: string; expandedText?: string };
+    }).payload;
+    expect(payload?.kind).toBe('issued');
+    expect(payload?.rawText).toBe('l');
+    expect(payload?.expandedText).toBe('ping');
   });
 
-  it('payload.aliasExpansion is absent when no alias fires', async () => {
+  it('input-echo payload.expandedText is absent when no alias fires', async () => {
     await giver.executeCommand('ping');
     const cmdFrame = giver.received.find((f) =>
       String(f.topic ?? '').startsWith('system.log.command'),
     );
-    const payload = (cmdFrame as { payload?: { aliasExpansion?: unknown } })
-      .payload;
-    expect(payload?.aliasExpansion).toBeUndefined();
+    const payload = (cmdFrame as {
+      payload?: { kind?: string; rawText?: string; expandedText?: string };
+    }).payload;
+    expect(payload?.kind).toBe('issued');
+    expect(payload?.expandedText).toBeUndefined();
   });
 
   it('NPCs without AliasMixin skip expansion and dispatch normally', async () => {

@@ -20,7 +20,11 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { MessageFrame, StuffRef } from '@saxonberg/types';
+import type {
+  EnvelopeTemplate,
+  MessageFrame,
+  StuffRef,
+} from '@saxonberg/types';
 import { nanoid } from 'nanoid';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
@@ -409,6 +413,23 @@ export class MessageApi {
    */
   static sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
     recipient.onMessage(frame);
+  }
+
+  /**
+   * Envelope delivery chokepoint, parallel to {@link sendMessage}.
+   * The envelope `template` carries no `frameId` — stamping happens
+   * per-Interactive at the wire-delivery layer in
+   * `Application.sendEnvelopeToInteractive`. Avatar's
+   * `handleEnvelope` is what fans the template out to connected
+   * Interactives; NPCs' default no-op `handleEnvelope` means an NPC
+   * envelope is server-side observable (shadows, audit) but never
+   * reaches a wire.
+   */
+  static sendEnvelope(
+    recipient: SensorStuff,
+    template: EnvelopeTemplate
+  ): void {
+    recipient.onEnvelope(template);
   }
 
   /**

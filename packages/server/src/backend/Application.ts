@@ -17,7 +17,12 @@
  */
 
 import type { IBackend } from './IBackend';
-import type { PassportGoogleProfile } from '@saxonberg/types';
+import type {
+  Envelope,
+  EnvelopeTemplate,
+  MessageFrame,
+  PassportGoogleProfile,
+} from '@saxonberg/types';
 
 /**
  * Local minimal type for inbound client → server messages. Kept simple
@@ -27,6 +32,25 @@ interface InboundClientMessage {
   type: string;
   payload?: unknown;
   id?: string;
+}
+
+/**
+ * Best-effort discriminator: is `message` shaped like a `MessageFrame`?
+ * Used by `sendMessageToInteractive` to decide whether to stamp
+ * `meta.frameId`. Raw `{type, payload}` envelopes (error / auth
+ * notifications) fall through untouched.
+ */
+function isMessageFrame(message: unknown): message is MessageFrame {
+  if (typeof message !== 'object' || message === null) return false;
+  const m = message as Partial<MessageFrame>;
+  return (
+    typeof m.id === 'string' &&
+    typeof m.topic === 'string' &&
+    typeof m.body === 'string' &&
+    typeof m.meta === 'object' &&
+    m.meta !== null &&
+    typeof m.meta.timestamp === 'number'
+  );
 }
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
@@ -74,12 +98,44 @@ export class Application {
   /**
    * Send a message to a specific Interactive's client. Sole gateway for
    * game objects to reach Backend — Application owns Backend communication.
+   *
+   * For `MessageFrame` payloads the meta gets a `frameId` stamped
+   * per-Interactive at send-time, so multi-device Avatars receive
+   * monotonic streams from each Interactive's perspective. Non-frame
+   * payloads (raw `{type, payload}` shapes used by error/auth) pass
+   * through unchanged.
    */
   public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
     const socketId = interactive.getSocketId();
-    if (this.backend && socketId) {
-      this.backend.sendMessageToSocket(socketId, message);
+    if (!this.backend || !socketId) return;
+    if (isMessageFrame(message)) {
+      const stamped: MessageFrame = {
+        ...message,
+        meta: { ...message.meta, frameId: interactive.nextFrameId() },
+      };
+      this.backend.sendMessageToSocket(socketId, stamped);
+      return;
     }
+    this.backend.sendMessageToSocket(socketId, message);
+  }
+
+  /**
+   * Envelope counterpart to {@link sendMessageToInteractive}. Stamps
+   * `frameId` per-Interactive from the same `Interactive.nextFrameId`
+   * counter used for prose frames — one ordering primitive across all
+   * server→client traffic.
+   */
+  public sendEnvelopeToInteractive(
+    interactive: Interactive,
+    template: EnvelopeTemplate
+  ): void {
+    const socketId = interactive.getSocketId();
+    if (!this.backend || !socketId) return;
+    const stamped: Envelope = {
+      ...template,
+      frameId: interactive.nextFrameId(),
+    } as Envelope;
+    this.backend.sendEnvelopeToSocket(socketId, stamped);
   }
 
   /**

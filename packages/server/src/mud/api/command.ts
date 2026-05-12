@@ -27,8 +27,9 @@ import { dirname, isAbsolute, join, resolve as resolvePath } from 'path';
 import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import Ajv, { type ValidateFunction } from 'ajv';
-import type { MessageFrame } from '@saxonberg/types';
+import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import { SecurityApi } from './security';
+import { DispatchApi } from './dispatch';
 import {
   MqlApi,
   type MqlMany,
@@ -110,10 +111,104 @@ export interface CommandContext {
    * Populated by `ShellApi.expandAliases` when the command's verb was
    * resolved through one or more alias hops. Absent when the verb was
    * typed directly. Controllers that branch on alias-vs-direct read
-   * this; everyone else ignores it. The audit log's auto-emit picks
-   * it up onto the structured payload.
+   * this; everyone else ignores it.
    */
   aliasExpansion?: AliasExpansionInfo;
+
+  /**
+   * Accumulate a structured note. Auto-escalates status per
+   * {@link DispatchApi.autoEscalation} unless `setStatus` was already
+   * called explicitly (in which case the explicit value sticks).
+   */
+  note(n: Note): void;
+  /**
+   * Pin the status explicitly. Subsequent `note()` calls will NOT
+   * auto-escalate past the pinned value.
+   */
+  setStatus(s: Status): void;
+  /** Read accumulator state. Returned arrays are snapshot-safe. */
+  getNotes(): readonly Note[];
+  getStatus(): Status;
+}
+
+/**
+ * Construct a fresh `CommandContext` for one dispatch attempt.
+ * The dispatcher uses this for each `_executeOne` attempt; only the
+ * claiming attempt's context becomes the envelope, contexts from
+ * passing attempts are discarded.
+ */
+export function createCommandContext(args: {
+  commandGiver: Stuff & CommandGiver;
+  location: Stuff & Container;
+  commandText: string;
+  executionId: string;
+  commandId: string;
+  verb: string;
+  command: CommandDefinition;
+  interactive?: Interactive;
+}): CommandContext {
+  return new CommandContextImpl(args);
+}
+
+class CommandContextImpl implements CommandContext {
+  public commandGiver: Stuff & CommandGiver;
+  public location: Stuff & Container;
+  public commandText: string;
+  public executionId: string;
+  public commandId: string;
+  public verb: string;
+  public command: CommandDefinition;
+  public interactive?: Interactive;
+  public aliasExpansion?: AliasExpansionInfo;
+
+  private _notes: Note[] = [];
+  private _status: Status = 'ok';
+  private _statusExplicit = false;
+
+  constructor(args: {
+    commandGiver: Stuff & CommandGiver;
+    location: Stuff & Container;
+    commandText: string;
+    executionId: string;
+    commandId: string;
+    verb: string;
+    command: CommandDefinition;
+    interactive?: Interactive;
+  }) {
+    this.commandGiver = args.commandGiver;
+    this.location = args.location;
+    this.commandText = args.commandText;
+    this.executionId = args.executionId;
+    this.commandId = args.commandId;
+    this.verb = args.verb;
+    this.command = args.command;
+    if (args.interactive !== undefined) this.interactive = args.interactive;
+  }
+
+  note(n: Note): void {
+    this._notes.push(n);
+    if (this._statusExplicit) return;
+    const implied = DispatchApi.autoEscalation(n.kind);
+    if (
+      implied !== undefined &&
+      DispatchApi.rank(implied) > DispatchApi.rank(this._status)
+    ) {
+      this._status = implied;
+    }
+  }
+
+  setStatus(s: Status): void {
+    this._status = s;
+    this._statusExplicit = true;
+  }
+
+  getNotes(): readonly Note[] {
+    return this._notes;
+  }
+
+  getStatus(): Status {
+    return this._status;
+  }
 }
 
 /**
@@ -1157,10 +1252,26 @@ export class CommandApi {
       const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
-        let r: MqlMany = { stuff: [] };
-        for (const scope of tries) {
-          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-          if (r.stuff.length > 0) break;
+        let r: MqlMany;
+        try {
+          r = { stuff: [] };
+          for (const scope of tries) {
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (r.stuff.length > 0) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return {
+            result: {
+              success: false,
+              summary: err instanceof Error ? err.message : String(err),
+            },
+          };
         }
         // Empty results are a normal outcome — pass `[]` through
         // on the wrapper and let the controller decide what
@@ -1178,10 +1289,26 @@ export class CommandApi {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne = { stuff: null };
-        for (const scope of tries) {
-          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-          if (r.stuff !== null) break;
+        let r: MqlOne;
+        try {
+          r = { stuff: null };
+          for (const scope of tries) {
+            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+            if (r.stuff !== null) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return {
+            result: {
+              success: false,
+              summary: err instanceof Error ? err.message : String(err),
+            },
+          };
         }
         // `null` (empty) is a normal outcome — pass it through on
         // the wrapper and let the controller decide what no-match
@@ -1223,10 +1350,26 @@ export class CommandApi {
       );
 
       if (def.type === 'objects') {
-        let r: MqlMany = { stuff: [] };
-        for (const scope of tries) {
-          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-          if (r.stuff.length > 0) break;
+        let r: MqlMany;
+        try {
+          r = { stuff: [] };
+          for (const scope of tries) {
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (r.stuff.length > 0) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return {
+            result: {
+              success: false,
+              summary: err instanceof Error ? err.message : String(err),
+            },
+          };
         }
         const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1236,10 +1379,26 @@ export class CommandApi {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne = { stuff: null };
-        for (const scope of tries) {
-          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-          if (r.stuff !== null) break;
+        let r: MqlOne;
+        try {
+          r = { stuff: null };
+          for (const scope of tries) {
+            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+            if (r.stuff !== null) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return {
+            result: {
+              success: false,
+              summary: err instanceof Error ? err.message : String(err),
+            },
+          };
         }
         const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1259,35 +1418,74 @@ export class CommandApi {
     if (command._resolvedValidators) {
       for (const v of command._resolvedValidators) {
         const err = v(context);
-        if (err) return { result: { success: false, summary: err } };
+        if (err) {
+          context.note({
+            kind: 'validator-failed',
+            validator: 'verb',
+            detail: err,
+          });
+          return { result: { success: false, summary: err } };
+        }
       }
     }
 
     // Field validators.
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const err = runValidators(def._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'field',
+          detail: err,
+        });
+        return { result: { success: false, summary: err } };
+      }
     }
 
     // Verb-option validators.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'option',
+          detail: err,
+        });
+        return { result: { success: false, summary: err } };
+      }
     }
     // Payload-field validators — same shape as options (payload is
     // option-shaped at the matcher level).
     for (const [name, opt] of Object.entries(command.payload)) {
       const fname = opt.field ?? name;
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'payload',
+          detail: err,
+        });
+        return { result: { success: false, summary: err } };
+      }
     }
     if (subcommand) {
       const subOpts = command.getSubcommand(subcommand)?.options ?? {};
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-        if (err) return { result: { success: false, summary: err } };
+        if (err) {
+          context.note({
+            kind: 'validator-failed',
+            field: fname,
+            validator: `subcommand:${subcommand}`,
+            detail: err,
+          });
+          return { result: { success: false, summary: err } };
+        }
       }
     }
 

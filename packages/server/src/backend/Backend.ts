@@ -17,7 +17,7 @@
 
 import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
-import type { PassportGoogleProfile } from '@saxonberg/types';
+import type { Envelope, PassportGoogleProfile } from '@saxonberg/types';
 import { Application } from './Application';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 
@@ -85,6 +85,32 @@ export class Backend implements IBackend {
       ws.send(json);
     } catch (error) {
       console.error(`Backend.sendMessageToSocket(): Error sending message:`, error);
+    }
+  }
+
+  /**
+   * Send an envelope (dispatch-response, activity-update, prompt)
+   * to a specific WebSocket connection. The wire layer is JSON
+   * stringify; envelope and MessageFrame share the same transport.
+   * The client discriminates on the `type` field.
+   */
+  public sendEnvelopeToSocket(socketId: string, envelope: Envelope): void {
+    const ws = this.socketsBySocketId.get(socketId);
+
+    if (!ws) {
+      console.error(`Backend.sendEnvelopeToSocket(): Socket ${socketId} not found`);
+      return;
+    }
+
+    if (ws.readyState !== ws.OPEN) {
+      console.error(`Backend.sendEnvelopeToSocket(): Socket ${socketId} not open`);
+      return;
+    }
+
+    try {
+      ws.send(JSON.stringify(envelope));
+    } catch (error) {
+      console.error(`Backend.sendEnvelopeToSocket(): Error sending envelope:`, error);
     }
   }
 
