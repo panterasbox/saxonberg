@@ -15,11 +15,7 @@
 import { nanoid } from 'nanoid';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import {
-  Stuff,
-  STAMP_TEMPLATE_PATH_SEAM,
-  type DestroyedObjectMetadata,
-} from '../lib/stuff/Stuff';
+import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi } from './mixin';
 import { Mixins } from '../lib/mixin';
@@ -340,12 +336,13 @@ export class StuffApi {
     if (zone) obj.setZone(zone);
     // Stamp the template path BEFORE register, so #updateIndexes
     // sees it and adds the byTemplatePath entry as part of the
-    // single register pass. The symbol-keyed seam writes the `#`
+    // single register pass. `_stampTemplatePath` writes the `#`
     // slot without re-indexing (the setter's reindex-on-set
     // contract assumes a registered Stuff — at this point the
-    // object isn't registered yet). Symbol is module-local; only
-    // imports of STAMP_TEMPLATE_PATH_SEAM can reach the seam.
-    Stuff[STAMP_TEMPLATE_PATH_SEAM](obj, templatePath);
+    // object isn't registered yet). The seam is caller-gated:
+    // only this file (`mud/api/stuff.ts`) and the test-setup
+    // helper may invoke it; any other caller throws.
+    Stuff._stampTemplatePath(obj, templatePath);
     return this.#registerAndInit(
       obj,
       hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,

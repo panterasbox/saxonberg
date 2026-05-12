@@ -22,7 +22,7 @@
  */
 
 import type { Stuff } from '../../stuff/Stuff';
-import { Stuff as StuffClass, STAMP_TEMPLATE_PATH_SEAM } from '../../stuff/Stuff';
+import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { ProxyApi } from '../../../api/proxy';
 import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -68,10 +68,10 @@ export function withRootContext<T>(target: unknown, method: string, fn: () => T)
  * Stamp a Stuff's `templatePath` from test code. The slot is
  * hard-private (`Stuff.#templatePath`) since the ref-shapes
  * lockdown; the only writers are `Stuff.setTemplatePath`
- * (ApiOnly-gated) and the symbol-keyed seam
- * `Stuff[STAMP_TEMPLATE_PATH_SEAM]`. Test code uses this helper to
- * stamp + re-index without bracket-casting onto a non-existent
- * field.
+ * (ApiOnly-gated) and `Stuff._stampTemplatePath` (caller-gated
+ * — only `mud/api/stuff.ts`, this file, and `.test.ts` files
+ * may invoke it). Test code uses this helper to stamp +
+ * re-index without bracket-casting onto a non-existent field.
  *
  * Pass `register=true` to atomically unregister + re-register the
  * stuff so the `byTemplatePath` index picks it up. Pass `false`
@@ -88,7 +88,7 @@ export function stampTemplatePathForTest(
   if (register) {
     StuffApi.unregister(stuff);
   }
-  StuffClass[STAMP_TEMPLATE_PATH_SEAM](stuff, path);
+  StuffClass._stampTemplatePath(stuff, path);
   if (register) {
     StuffApi.register(stuff);
   }
@@ -113,7 +113,7 @@ export function makeStuffAtPath<T extends Stuff>(
     StuffClass._endConstruction(prevSentinel);
   }
   const proxy = ProxyApi.wrap(raw);
-  StuffClass[STAMP_TEMPLATE_PATH_SEAM](proxy, path);
+  StuffClass._stampTemplatePath(proxy, path);
   StuffApi.register(proxy);
   return proxy;
 }

@@ -12,7 +12,7 @@ import { Events } from '../../lib/events';
 import { EventRegistry } from '../../obj/EventRegistry';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
-import { Stuff, STAMP_TEMPLATE_PATH_SEAM } from '../../lib/stuff/Stuff';
+import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   Property,
@@ -24,7 +24,7 @@ import { SecurityError } from '../../lib/security/errors';
 async function makeRegistry(): Promise<EventRegistry> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff[STAMP_TEMPLATE_PATH_SEAM](r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
     return r;
   });
   // The templatePath stamp landed AFTER register, so re-register so

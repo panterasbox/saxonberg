@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
-import { Stuff, STAMP_TEMPLATE_PATH_SEAM } from '../../lib/stuff/Stuff';
+import { Stuff } from '../../lib/stuff/Stuff';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
@@ -274,10 +274,11 @@ describe('StuffApi', () => {
 
     function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
       // The `#templatePath` slot is hard-private — direct field
-      // assignment is a no-op. Use the symbol-keyed pre-register
-      // seam so the slot is set on the raw target before the
-      // wrapping Proxy is built.
-      Stuff[STAMP_TEMPLATE_PATH_SEAM](obj, path);
+      // assignment is a no-op. Use the caller-gated stamp seam so
+      // the slot is set on the raw target before the wrapping
+      // Proxy is built. The seam allows `.test.ts` callers; see
+      // `Stuff.#stampGateAllowlist`.
+      Stuff._stampTemplatePath(obj, path);
       return obj;
     }
 

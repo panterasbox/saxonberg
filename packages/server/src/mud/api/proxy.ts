@@ -86,7 +86,7 @@ const RAW_TARGET = Symbol.for('saxonberg.proxy.rawTarget');
  * `templatePath` is NOT here: the slot is hard-private
  * (`Stuff.#templatePath`) since the ref-shapes lockdown. Access goes
  * through `Stuff.getTemplatePath()` and (for the pre-register stamp)
- * the symbol-keyed `Stuff[STAMP_TEMPLATE_PATH_SEAM]` seam.
+ * the caller-gated `Stuff._stampTemplatePath` static.
  *
  * Add to this list ONLY for fields/getters that genuinely belong
  * outside the framework's mediation surface.

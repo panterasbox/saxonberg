@@ -57,22 +57,6 @@ export interface DestroyedObjectMetadata {
 }
 
 /**
- * Pre-register stamp seam for `Stuff.#templatePath`. Used by
- * `StuffApi.#cloneInner` to stamp the path on a freshly-constructed
- * backing BEFORE the register pass so `#updateIndexes` sees it and
- * adds the `byTemplatePath` entry in one shot.
- *
- * Symbol-keyed (and exported only from this module): eval scripts /
- * shadows / content code that doesn't import the symbol can't reach
- * the seam. The static method skips the reindex (the caller is
- * responsible for ensuring the Stuff isn't yet registered when
- * called).
- */
-export const STAMP_TEMPLATE_PATH_SEAM = Symbol(
-  'saxonberg.stuff.stampTemplatePath'
-);
-
-/**
  * Base class for all game objects.
  */
 export abstract class Stuff {
@@ -154,24 +138,88 @@ export abstract class Stuff {
   /**
    * Pre-register stamp seam — used by `StuffApi.#cloneInner` to
    * stamp `templatePath` on a freshly-constructed backing BEFORE
-   * the register pass. Symbol-keyed (and the symbol is a
-   * module-local export — eval scripts that don't import it can't
-   * reach this).
+   * the register pass.
    *
    * Skips the reindex on purpose: the caller is responsible for
    * ensuring the Stuff isn't in the `byTemplatePath` index when
    * this fires, so the regular register pass picks it up cleanly.
+   *
+   * Caller-gated by `#stampGateAllowlist` below: only StuffApi
+   * (`mud/api/stuff.ts`), the test-setup helper, and `.test.ts`
+   * files may invoke this. Any other caller throws — without this
+   * gate, any in-tree module could forge a Stuff's `templatePath`
+   * and bypass `FromTemplate`-based call-security policies. The
+   * symbol-keyed shape this replaces was defense-by-obscurity;
+   * this is the actual capability check.
    * @internal
    */
-  public static [STAMP_TEMPLATE_PATH_SEAM](
+  public static _stampTemplatePath(
     stuff: Stuff,
     path: string | null
   ): void {
+    Stuff.#assertStampGateAllowed();
     const raw =
       ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
         ProxyApi.RAW_TARGET
       ] ?? stuff;
     raw.#templatePath = path;
+  }
+
+  /**
+   * File-URL patterns whose code may call `_stampTemplatePath`.
+   * Same machinery as `#constructionGateAllowlist` /
+   * `#branchRegistrationAllowlist`. Adding a new legitimate
+   * stamp site is a deliberate edit here AND its callsite.
+   *
+   * Narrower than the construction-gate allowlist on purpose:
+   * `_stampTemplatePath` skips the `byTemplatePath` reindex, so
+   * stamping a Stuff that's already registered would desync the
+   * index — only the clone pipeline's pre-register stamp site
+   * is a legitimate production caller.
+   */
+  static #stampGateAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/api\/stuff\.(ts|js)$/, // StuffApi.#cloneInner pre-register stamp
+    /\/mud\/lib\/security\/__tests__\/test-setup\.(ts|js)$/, // stampTemplatePathForTest / makeStuffAtPath
+    /\.test\.(ts|js)$/, // direct test usage
+  ];
+
+  static #stampGateCache: Map<string, boolean> = new Map();
+
+  /**
+   * Throw if the immediate caller of `_stampTemplatePath` isn't on
+   * the allowlist. Per-URL cached after the first walk, so the
+   * cost is one stack walk per file ever; after warmup it's a Map
+   * lookup. Mirrors the construction-gate shape.
+   */
+  static #assertStampGateAllowed(): void {
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
+    if (url === null) {
+      throw new Error(
+        `Stuff._stampTemplatePath refused: caller URL could not be determined`
+      );
+    }
+    const cached = Stuff.#stampGateCache.get(url);
+    if (cached === true) return;
+    if (cached === false) {
+      throw new Error(
+        `Stuff._stampTemplatePath refused from ${url}: only StuffApi ` +
+          `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
+          `__tests__/test-setup), and *.test.ts files may stamp ` +
+          `templatePath without going through the ApiOnly-gated ` +
+          `setTemplatePath setter.`
+      );
+    }
+    const allowed = Stuff.#stampGateAllowlist.some((re) => re.test(url));
+    Stuff.#stampGateCache.set(url, allowed);
+    if (!allowed) {
+      throw new Error(
+        `Stuff._stampTemplatePath refused from ${url}: only StuffApi ` +
+          `(mud/api/stuff.ts), the test-setup helper (mud/lib/security/` +
+          `__tests__/test-setup), and *.test.ts files may stamp ` +
+          `templatePath without going through the ApiOnly-gated ` +
+          `setTemplatePath setter.`
+      );
+    }
   }
 
   /**

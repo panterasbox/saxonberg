@@ -20,7 +20,7 @@ import { fileURLToPath } from 'url';
 import { HotReloadApi } from '../hot-reload';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
-import { Stuff, STAMP_TEMPLATE_PATH_SEAM } from '../../lib/stuff/Stuff';
+import { Stuff } from '../../lib/stuff/Stuff';
 import { ShadowApi } from '../shadow';
 import { Events, type ReloadEvent } from '../../lib/events';
 import { EventRegistry } from '../../obj/EventRegistry';
@@ -35,7 +35,7 @@ let workDir: string;
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff[STAMP_TEMPLATE_PATH_SEAM](r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
