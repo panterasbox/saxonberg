@@ -68,12 +68,25 @@ const SelfOnlyPolicy: SecurityPolicy = {
 function resolveCallerPath(caller: unknown | null): string | null {
   if (caller === null || caller === undefined) return null;
   // (1) Template path — set at clone time on the Stuff instance.
-  // Read defensively: the proxy may strip the field, so try both
-  // direct and via `getTemplatePath()` if it exists.
+  // Read via `getTemplatePath()` since the slot is hard-private
+  // (Stuff.#templatePath) post-lockdown; the method unwraps RAW_TARGET
+  // internally. The try/catch handles the rare reflection-test case
+  // where `caller` carries Stuff's prototype but wasn't constructed
+  // via the Stuff constructor (e.g., `Object.create(Sub.prototype)`)
+  // — the `#templatePath` slot doesn't exist on such objects and a
+  // direct read throws "Cannot read private member."
   if (typeof caller === 'object') {
-    const obj = caller as { templatePath?: unknown; constructor?: object };
-    if (typeof obj.templatePath === 'string' && obj.templatePath.length > 0) {
-      return obj.templatePath;
+    const obj = caller as {
+      getTemplatePath?: () => string | null;
+      constructor?: object;
+    };
+    if (typeof obj.getTemplatePath === 'function') {
+      try {
+        const path = obj.getTemplatePath();
+        if (typeof path === 'string' && path.length > 0) return path;
+      } catch {
+        // Fall through to constructor-based lookup.
+      }
     }
     // (2a) Caller is an instance — look up its class.
     if (obj.constructor) {

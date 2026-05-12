@@ -1,6 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Stuff } from '../../stuff/Stuff';
-import { ProxyApi } from '../../../api/proxy';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { SphericalLocation } from '../../spatial/SphericalLocation';
@@ -9,27 +7,11 @@ import { Exit } from '../Exit';
 import { Door } from '../Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
-
-/**
- * Test helper: construct + register a Stuff at a known templatePath
- * so the singleton index can find it. Mirrors the stamping that
- * `StuffApi.clone()` does at runtime.
- */
-function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
-  const prev = Stuff._beginConstruction();
-  let raw: T;
-  try {
-    raw = factory();
-  } finally {
-    Stuff._endConstruction(prev);
-  }
-  const proxy = ProxyApi.wrap(raw);
-  (proxy as unknown as { templatePath?: string }).templatePath = path;
-  StuffApi.register(proxy);
-  return proxy;
-}
 
 describe('ExitableMixin', () => {
   let zone: CartesianZone;

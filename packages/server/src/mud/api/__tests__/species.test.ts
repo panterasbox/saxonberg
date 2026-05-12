@@ -6,18 +6,17 @@ import { Clade } from '../../lib/species/Clade';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { Thing } from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../lib/security/__tests__/test-setup';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 const OrganismThingBase = OrganismMixin(Thing);
 class OrganismThing extends OrganismThingBase {}
 
-function withTemplatePath<T extends { templatePath: string | null }>(
-  obj: T,
-  path: string
-): T {
-  obj.templatePath = path;
-  StuffApi.unregister(obj as never);
-  StuffApi.register(obj as never);
+function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
   return obj;
 }
 

@@ -6,7 +6,11 @@ import { Thing } from '../../stuff/Thing';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../stuff/Stuff';
 
 const SexedOrganismThingBase = SexedMixin(OrganismMixin(Thing));
 class SexedOrganismThing extends SexedOrganismThingBase {}
@@ -14,13 +18,8 @@ class SexedOrganismThing extends SexedOrganismThingBase {}
 const SexedOnlyBase = SexedMixin(Thing);
 class SexedOnlyThing extends SexedOnlyBase {}
 
-function withTemplatePath<T extends { templatePath: string | null }>(
-  obj: T,
-  path: string
-): T {
-  obj.templatePath = path;
-  StuffApi.unregister(obj as never);
-  StuffApi.register(obj as never);
+function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
   return obj;
 }
 

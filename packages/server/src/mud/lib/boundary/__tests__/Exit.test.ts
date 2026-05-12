@@ -5,29 +5,16 @@ import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
-import { ProxyApi } from '../../../api/proxy';
-import { Stuff } from '../../stuff/Stuff';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
-
-function makeStuffAtPath<T extends Stuff>(factory: () => T, path: string): T {
-  const prev = Stuff._beginConstruction();
-  let raw: T;
-  try {
-    raw = factory();
-  } finally {
-    Stuff._endConstruction(prev);
-  }
-  const proxy = ProxyApi.wrap(raw);
-  (proxy as unknown as { templatePath?: string }).templatePath = path;
-  StuffApi.register(proxy);
-  return proxy;
-}
 
 const SensorBase = NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))));
 class TestMover extends SensorBase {

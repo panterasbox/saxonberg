@@ -7,17 +7,16 @@ import { Clade } from '../../lib/species/Clade';
 import { Character } from '../../lib/character/Character';
 import { Idea } from '../../lib/stuff/Idea';
 import { Location } from '../../lib/stuff/Location';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../lib/security/__tests__/test-setup';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 class TestCharacter extends Character {}
 
-function withTemplatePath<T extends { templatePath: string | null }>(
-  obj: T,
-  path: string
-): T {
-  obj.templatePath = path;
-  StuffApi.unregister(obj as never);
-  StuffApi.register(obj as never);
+function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
   return obj;
 }
 

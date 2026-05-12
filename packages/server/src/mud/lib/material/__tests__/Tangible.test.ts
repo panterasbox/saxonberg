@@ -7,7 +7,11 @@ import { Agent } from '../../stuff/Agent';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../stuff/Stuff';
 
 describe('TangibleMixin', () => {
   beforeEach(() => {
@@ -39,12 +43,10 @@ describe('TangibleMixin', () => {
 
   it('setMaterial stores the path; getMaterial resolves lazily', () => {
     const iron = makeStuff(() => new Material());
-    // Pretend the singleton is registered at this template path (the
-    // makeStuff helper doesn't stamp templatePath; do it via the public
-    // index seam).
-    iron.templatePath = '/lib/material/element/iron';
-    StuffApi.unregister(iron);
-    StuffApi.register(iron);
+    // Pretend the singleton is registered at this template path
+    // (the `#templatePath` slot is locked; the test seam handles
+    // the unregister-stamp-register dance).
+    stampTemplatePathForTest(iron, '/lib/material/element/iron');
 
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
@@ -55,9 +57,7 @@ describe('TangibleMixin', () => {
 
   it('setMaterial(null) clears the path', () => {
     const iron = makeStuff(() => new Material());
-    iron.templatePath = '/lib/material/element/iron';
-    StuffApi.unregister(iron);
-    StuffApi.register(iron);
+    stampTemplatePathForTest(iron, '/lib/material/element/iron');
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
@@ -67,13 +67,8 @@ describe('TangibleMixin', () => {
   });
 
   describe('per-Detail materials', () => {
-    function withTemplatePath<T extends { templatePath: string | null }>(
-      obj: T,
-      path: string
-    ): T {
-      obj.templatePath = path;
-      StuffApi.unregister(obj as never);
-      StuffApi.register(obj as never);
+    function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+      stampTemplatePathForTest(obj, path);
       return obj;
     }
 
@@ -173,13 +168,8 @@ describe('TangibleMixin', () => {
     });
 
     describe('dotted-prefix inheritance', () => {
-      function withTemplatePath<T extends { templatePath: string | null }>(
-        obj: T,
-        path: string
-      ): T {
-        obj.templatePath = path;
-        StuffApi.unregister(obj as never);
-        StuffApi.register(obj as never);
+      function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+        stampTemplatePathForTest(obj, path);
         return obj;
       }
 

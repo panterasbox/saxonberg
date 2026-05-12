@@ -193,4 +193,28 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   public setVisionProfile(value: VisionProfile | null): void {
     this.visionProfile = value;
   }
+
+  /**
+   * R2.4 cleanup on the held side of `Clade.species`.
+   *
+   * Species is a concrete leaf class, not a mixin (no
+   * `_mixinName`), so the framework `cleanupOnDestruct` dispatch
+   * — which walks `MixinApi.queryMixins` — wouldn't discover a
+   * static here. Use the `onDestruct` witness instead, chaining
+   * `super.onDestruct()` so SingletonMixin / PropertiedMixin
+   * layers further up the chain still run.
+   *
+   * TODO: production wire-up is pending. `Clade.addSpecies` is
+   * called only by tests today; once Species template hydration
+   * registers itself with its parent Clade, this handler is
+   * automatically correct. Until then it's a no-op for
+   * production but exercised by the OPEN-4 regression test.
+   */
+  public override onDestruct(): void {
+    const clade = this.getParentClade();
+    if (clade) {
+      clade.removeSpecies(this as unknown as Species);
+    }
+    super.onDestruct();
+  }
 }

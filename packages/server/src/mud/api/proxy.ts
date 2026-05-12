@@ -77,11 +77,16 @@ const RAW_TARGET = Symbol.for('saxonberg.proxy.rawTarget');
  *   - `then`: would break Promise resolution if mediated.
  *   - `constructor`: mixin introspection (`obj.constructor`) must see
  *     the raw class.
- *   - `stuffId`, `zone`, `templatePath`: instance fields the framework
- *     itself reads constantly; mediation would add noise.
+ *   - `stuffId`, `zone`: instance fields the framework itself reads
+ *     constantly; mediation would add noise.
  *   - `host`, `interceptedMethods`: shadow-side framework getters;
  *     mediation would dispatch them through the shadow chain (wrong).
  *   - `RAW_TARGET`: the introspection escape hatch.
+ *
+ * `templatePath` is NOT here: the slot is hard-private
+ * (`Stuff.#templatePath`) since the ref-shapes lockdown. Access goes
+ * through `Stuff.getTemplatePath()` and (for the pre-register stamp)
+ * the symbol-keyed `Stuff[STAMP_TEMPLATE_PATH_SEAM]` seam.
  *
  * Add to this list ONLY for fields/getters that genuinely belong
  * outside the framework's mediation surface.
@@ -91,7 +96,6 @@ const PASSTHROUGH_KEYS: ReadonlySet<string | symbol> = new Set<string | symbol>(
   'constructor',
   'stuffId',
   'zone',
-  'templatePath',
   'host',
   'interceptedMethods',
   RAW_TARGET,

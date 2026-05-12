@@ -7,15 +7,14 @@ import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../stuff/Stuff';
 
-function withTemplatePath<T extends { templatePath: string | null }>(
-  obj: T,
-  path: string
-): T {
-  obj.templatePath = path;
-  StuffApi.unregister(obj as never);
-  StuffApi.register(obj as never);
+function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
   return obj;
 }
 
@@ -100,5 +99,31 @@ describe('Species', () => {
       photopicMax: 'blinding',
       bandShift: -1,
     });
+  });
+
+  // ────────────────────────────────────────────────────────────
+  // R2.4 cleanup on destruct (OPEN-4 resolution).
+  // ────────────────────────────────────────────────────────────
+  //
+  // Species is a concrete leaf class (no `_mixinName`), so the
+  // mixin-registry cleanup dispatcher doesn't reach it. Instead
+  // `Species.onDestruct` chains via `super.onDestruct()` and
+  // unhooks from its parent Clade's `species` set. The
+  // production wire-up (Clade.addSpecies at template hydrate) is
+  // pending; the test seeds the relationship explicitly.
+  it('destruct unhooks Species from its parent Clade.species set', () => {
+    const animalia = withTemplatePath(
+      makeStuff(() => new Clade()),
+      '/lib/species/animalia'
+    );
+    const sapiens = makeStuff(() => new Species());
+    sapiens.setParentClade(animalia);
+    animalia.addSpecies(sapiens);
+    expect(animalia.getSpecies().has(sapiens)).toBe(true);
+
+    StuffApi.destruct(sapiens);
+
+    expect(animalia.getSpecies().has(sapiens)).toBe(false);
+    expect(sapiens.isDestroyed()).toBe(true);
   });
 });

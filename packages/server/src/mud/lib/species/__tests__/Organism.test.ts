@@ -6,7 +6,10 @@ import { Thing } from '../../stuff/Thing';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
 
 const OrganismThingBase = OrganismMixin(Thing);
 class OrganismThing extends OrganismThingBase {}
@@ -31,10 +34,10 @@ describe('OrganismMixin', () => {
   it('lazy species resolution via templatePath', () => {
     const sapiens = makeStuff(() => new Species());
     sapiens.setBinomial('Homo sapiens');
-    sapiens.templatePath =
-      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
-    StuffApi.unregister(sapiens);
-    StuffApi.register(sapiens);
+    stampTemplatePathForTest(
+      sapiens,
+      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+    );
 
     const organism = makeStuff(() => new OrganismThing());
     organism.setSpecies(sapiens);

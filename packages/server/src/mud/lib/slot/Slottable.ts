@@ -6,9 +6,11 @@
  * Stuff (avatars) compose `Slottable` directly so they can be slotted
  * into a `sit:1` / `mount:1` / `ground:1`.
  *
- * Lifecycle: `onDestruct` walks every host the candidate is currently
- * slotted into and vacates from each slot, before chaining to super.
- * Guarantees no host holds a stale reference to a destructed Stuff.
+ * Lifecycle (R2.4): the framework cleanup `cleanupOnDestruct` walks
+ * every host the candidate is currently slotted into and vacates
+ * from each slot. Static dispatch — subclass `onDestruct` overrides
+ * cannot bypass it. Guarantees no host holds a stale reference to a
+ * destructed Stuff.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -66,6 +68,36 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
   return class SlottableMixin extends Base {
     static _mixinName = 'SlottableMixin';
 
+    /**
+     * R2.4 framework cleanup. Walks every host the candidate is
+     * currently in a slot of, vacates each slot via the canonical
+     * `Slotted.vacate(slot, candidate)` chokepoint so witnesses
+     * (`onSlotReleased`, etc.) fire on the held side. Static
+     * dispatch — a subclass `onDestruct` that omits
+     * `super.onDestruct()` cannot bypass this.
+     *
+     * `findOccupiedSlots` returns a freshly-built Map each call;
+     * the inner Set of slot names is a snapshot view. Safe to
+     * mutate the host's live slot map during iteration.
+     */
+    static cleanupOnDestruct(stuff: Stuff): void {
+      const candidate = stuff as Stuff & Slottable;
+      const occupied = SlotApi.findOccupiedSlots(candidate);
+      for (const [host, slotNames] of occupied.entries()) {
+        for (const slotName of slotNames) {
+          try {
+            host.vacate(slotName, candidate);
+          } catch (err) {
+            console.error(
+              `SlottableMixin.cleanupOnDestruct: failed to vacate ` +
+                `${candidate.stuffId} from ${host.stuffId}.${slotName}`,
+              err
+            );
+          }
+        }
+      }
+    }
+
     public getOccupiedHost(): (Stuff & Slotted) | null {
       return SlotApi.findOccupiedHost(this as unknown as Stuff & Slottable);
     }
@@ -74,18 +106,6 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
       void _host;
       void _slot;
       return true;
-    }
-
-    onDestruct(): void {
-      const occupied = SlotApi.findOccupiedSlots(
-        this as unknown as Stuff & Slottable
-      );
-      for (const [host, slotNames] of occupied.entries()) {
-        for (const slotName of slotNames) {
-          host.vacate(slotName, this as unknown as Stuff & Slottable);
-        }
-      }
-      super.onDestruct();
     }
   };
 }

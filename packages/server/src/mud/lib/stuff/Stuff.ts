@@ -36,6 +36,8 @@
 import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
 import { ModuleApi } from '../../api/module';
+import { ProxyApi } from '../../api/proxy';
+import { SecurityApi } from '../../api/security';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -55,6 +57,22 @@ export interface DestroyedObjectMetadata {
 }
 
 /**
+ * Pre-register stamp seam for `Stuff.#templatePath`. Used by
+ * `StuffApi.#cloneInner` to stamp the path on a freshly-constructed
+ * backing BEFORE the register pass so `#updateIndexes` sees it and
+ * adds the `byTemplatePath` entry in one shot.
+ *
+ * Symbol-keyed (and exported only from this module): eval scripts /
+ * shadows / content code that doesn't import the symbol can't reach
+ * the seam. The static method skips the reindex (the caller is
+ * responsible for ensuring the Stuff isn't yet registered when
+ * called).
+ */
+export const STAMP_TEMPLATE_PATH_SEAM = Symbol(
+  'saxonberg.stuff.stampTemplatePath'
+);
+
+/**
  * Base class for all game objects.
  */
 export abstract class Stuff {
@@ -71,10 +89,14 @@ export abstract class Stuff {
    * that wants MQL path-atom addressability for an ad-hoc runtime
    * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`.
    *
-   * Storage is public as a framework carve-out: SecurityPolicies
-   * and StuffApi indexes read it directly through the Proxy via
-   * PASSTHROUGH_KEYS. Domain code reads via `getTemplatePath()` and
-   * writes via `setTemplatePath()` (ApiOnly-gated below).
+   * Hard-private (`#`) for tamper-resistance: the slot lives on the
+   * raw target only and is unreachable from outside this class body
+   * — not via bracket access, not via reflection, not via a wrapping
+   * Proxy. The only writers are `setTemplatePath` (ApiOnly-gated
+   * below) and the symbol-keyed pre-register stamp seam
+   * (`Stuff[STAMP_TEMPLATE_PATH_SEAM]`). Forging the field through
+   * `(stuff as any).templatePath = X` is a no-op on the `#` slot,
+   * which keeps the `byTemplatePath` index honest.
    *
    * Note this is the **stamp** identifying the source template a
    * runtime instance was cloned from — not the same as a
@@ -83,9 +105,20 @@ export abstract class Stuff {
    * (also a Stuff) typically leaves `templatePath` null because
    * templates aren't themselves cloned.
    */
-  public templatePath: string | null = null;
+  #templatePath: string | null = null;
+
+  /**
+   * Read seam. Instance method, but unwraps via `RAW_TARGET` before
+   * reaching the `#` slot — `this` inside an instance method called
+   * through the proxy is the proxy, and the `#` slot lives on the
+   * raw target.
+   */
   public getTemplatePath(): string | null {
-    return this.templatePath;
+    const raw =
+      ((this as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? (this as unknown as Stuff);
+    return raw.#templatePath;
   }
 
   /**
@@ -100,15 +133,45 @@ export abstract class Stuff {
    * to run for every successful set — a subclass override that
    * forgot the index call (or a shadow that intercepted) would
    * silently desync `byTemplatePath`.
+   *
+   * Unwraps via `RAW_TARGET` so the `#`-slot access lands on the
+   * raw target (see comment on `#templatePath` above).
    */
   @Final
   @Unshadowable
   @CallSecurity(SecurityPolicies.ApiOnly)
   public setTemplatePath(path: string): void {
-    if (this.templatePath === path) return;
-    const prev = this.templatePath;
-    this.templatePath = path;
+    const raw =
+      ((this as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? (this as unknown as Stuff);
+    if (raw.#templatePath === path) return;
+    const prev = raw.#templatePath;
+    raw.#templatePath = path;
     StuffApi._reindexTemplatePath(this, prev, path);
+  }
+
+  /**
+   * Pre-register stamp seam — used by `StuffApi.#cloneInner` to
+   * stamp `templatePath` on a freshly-constructed backing BEFORE
+   * the register pass. Symbol-keyed (and the symbol is a
+   * module-local export — eval scripts that don't import it can't
+   * reach this).
+   *
+   * Skips the reindex on purpose: the caller is responsible for
+   * ensuring the Stuff isn't in the `byTemplatePath` index when
+   * this fires, so the regular register pass picks it up cleanly.
+   * @internal
+   */
+  public static [STAMP_TEMPLATE_PATH_SEAM](
+    stuff: Stuff,
+    path: string | null
+  ): void {
+    const raw =
+      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? stuff;
+    raw.#templatePath = path;
   }
 
   /**
@@ -145,6 +208,65 @@ export abstract class Stuff {
    * Once destroyed, the object should not be used.
    */
   private _isDestroyed: boolean = false;
+
+  /**
+   * Last successful method-dispatch timestamp. Maintained by the
+   * security gate (`SecurityApi.#securityGate`) — every successful
+   * (non-denied) dispatch writes `Date.now()` here via the static
+   * `Stuff.touch(stuff)` write seam below.
+   *
+   * Used by the future GC sweep's `considerSelfDestruct(context)` to
+   * decide whether an orphan-eligible Stuff is cold enough to drop.
+   * Initialized to construction time so freshly-created Stuff start
+   * "touched."
+   *
+   * Hard-private (`#`) for tamper-resistance: the `#` slot lives on
+   * the raw target only and is unreachable from outside the Stuff
+   * class body — not via bracket access, not via reflection, not via
+   * a wrapping Proxy. The only write site is `Stuff.touch(stuff)`,
+   * which is timestamp-fixed (no caller-supplied value), so even
+   * code that imports `Stuff` can only refresh a Stuff to the
+   * current time — never inject a sentinel or future value.
+   *
+   * Not in `PASSTHROUGH_KEYS`, not in `persistentFields`. Transient
+   * by definition; resets at every clone/hydrate to the new
+   * construction time.
+   */
+  #lastTouchMs: number = Date.now();
+
+  /**
+   * Write seam for `#lastTouchMs`. Called once per successful
+   * method dispatch from the security gate. Timestamp-fixed (no
+   * caller-supplied value) so no one — not a shadow, not a
+   * subclass, not a buff — can forge an immortality value.
+   *
+   * Accepts either a raw target or a proxy; unwraps via
+   * `RAW_TARGET` before reaching the `#` slot (the slot lives on
+   * the raw target only, and `this` inside an instance method
+   * called through the proxy is the proxy).
+   *
+   * @internal — only called by the security gate; documented here
+   * because the slot's invariants depend on this single call site.
+   */
+  public static touch(stuff: Stuff): void {
+    const raw =
+      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? stuff;
+    raw.#lastTouchMs = Date.now();
+  }
+
+  /**
+   * Read seam for `#lastTouchMs`. Used by the future GC sweep.
+   * Same unwrap-via-RAW_TARGET pattern as `touch`.
+   */
+  public static getLastTouchMs(stuff: Stuff): number {
+    const raw =
+      ((stuff as unknown) as Record<symbol, Stuff | undefined>)[
+        ProxyApi.RAW_TARGET
+      ] ?? stuff;
+    return raw.#lastTouchMs;
+  }
 
   /**
    * Construction sentinel. Set to `true` immediately before
@@ -444,3 +566,11 @@ export abstract class Stuff {
     return `[Stuff ${this.stuffId}${this._isDestroyed ? ' (destroyed)' : ''}]`;
   }
 }
+
+// Wire the GC last-touch instrumentation into the security gate.
+// SecurityApi calls this on every successful method dispatch; we
+// register the static here (after the class body finishes) so the
+// gate can fire it without taking a value-binding on Stuff (which
+// would form a `security → stuff → api/stuff → security` load
+// cycle).
+SecurityApi._registerTouchFn(Stuff.touch);

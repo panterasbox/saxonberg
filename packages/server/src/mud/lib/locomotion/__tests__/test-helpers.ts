@@ -10,7 +10,10 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
 import { LocomotionMode } from '../LocomotionMode';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
@@ -23,12 +26,10 @@ function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
     StuffApi.unregister(prior);
   }
   // `makeStuff` flips the construction sentinel via test-setup (the
-  // allowlisted helper). After the proxy is built we stamp templatePath
-  // by direct field-write and re-register so byTemplatePath picks it up.
+  // allowlisted helper). The seam-based stamp + re-register lands the
+  // templatePath on the `#templatePath` slot and updates the index.
   const proxy = makeStuff(factory);
-  StuffApi.unregister(proxy);
-  (proxy as unknown as { templatePath?: string }).templatePath = path;
-  StuffApi.register(proxy);
+  stampTemplatePathForTest(proxy, path);
   return proxy;
 }
 

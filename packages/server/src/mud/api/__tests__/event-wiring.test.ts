@@ -16,7 +16,7 @@ import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { HotReloadApi } from '../hot-reload';
 import { EventRegistry } from '../../obj/EventRegistry';
-import { Stuff } from '../../lib/stuff/Stuff';
+import { Stuff, STAMP_TEMPLATE_PATH_SEAM } from '../../lib/stuff/Stuff';
 import { Interactive } from '../../obj/Interactive';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import { Idea } from "../../lib/stuff/Idea";
@@ -24,8 +24,7 @@ import { Idea } from "../../lib/stuff/Idea";
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    (r as unknown as { templatePath?: string }).templatePath =
-      '/obj/EventRegistry';
+    Stuff[STAMP_TEMPLATE_PATH_SEAM](r, '/obj/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

@@ -22,7 +22,7 @@
  */
 
 import type { Stuff } from '../../stuff/Stuff';
-import { Stuff as StuffClass } from '../../stuff/Stuff';
+import { Stuff as StuffClass, STAMP_TEMPLATE_PATH_SEAM } from '../../stuff/Stuff';
 import { ProxyApi } from '../../../api/proxy';
 import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -65,6 +65,60 @@ export function withRootContext<T>(target: unknown, method: string, fn: () => T)
 }
 
 /**
+ * Stamp a Stuff's `templatePath` from test code. The slot is
+ * hard-private (`Stuff.#templatePath`) since the ref-shapes
+ * lockdown; the only writers are `Stuff.setTemplatePath`
+ * (ApiOnly-gated) and the symbol-keyed seam
+ * `Stuff[STAMP_TEMPLATE_PATH_SEAM]`. Test code uses this helper to
+ * stamp + re-index without bracket-casting onto a non-existent
+ * field.
+ *
+ * Pass `register=true` to atomically unregister + re-register the
+ * stuff so the `byTemplatePath` index picks it up. Pass `false`
+ * when the stuff isn't yet registered (e.g., when stamping inside
+ * a factory body before `makeStuff` runs).
+ *
+ * @internal
+ */
+export function stampTemplatePathForTest(
+  stuff: Stuff,
+  path: string,
+  register = true
+): void {
+  if (register) {
+    StuffApi.unregister(stuff);
+  }
+  StuffClass[STAMP_TEMPLATE_PATH_SEAM](stuff, path);
+  if (register) {
+    StuffApi.register(stuff);
+  }
+}
+
+/**
+ * Make a Stuff and stamp its `templatePath` before registering, so
+ * the `byTemplatePath` index picks it up on the initial register
+ * pass. Equivalent to `makeStuff` plus an inline stamp.
+ *
+ * @internal
+ */
+export function makeStuffAtPath<T extends Stuff>(
+  factory: () => T,
+  path: string
+): T {
+  const prevSentinel = StuffClass._beginConstruction();
+  let raw: T;
+  try {
+    raw = factory();
+  } finally {
+    StuffClass._endConstruction(prevSentinel);
+  }
+  const proxy = ProxyApi.wrap(raw);
+  StuffClass[STAMP_TEMPLATE_PATH_SEAM](proxy, path);
+  StuffApi.register(proxy);
+  return proxy;
+}
+
+/**
  * Register a marshaller singleton at its templatePath so
  * `StuffApi.findByTemplatePath` resolves it. Tests that exercise
  * marshaller-bound fields/props must call this once per marshaller
@@ -76,9 +130,5 @@ export function registerMarshallerForTest<T extends Stuff>(
   factory: () => T,
   templatePath: string
 ): T {
-  return makeStuff(() => {
-    const m = factory();
-    (m as unknown as { templatePath: string }).templatePath = templatePath;
-    return m;
-  });
+  return makeStuffAtPath(factory, templatePath);
 }

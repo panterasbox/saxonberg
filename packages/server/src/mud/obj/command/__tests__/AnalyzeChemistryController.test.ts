@@ -16,7 +16,10 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../../lib/quantity';
-import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type {
   CommandContext,
@@ -91,10 +94,7 @@ describe('AnalyzeChemistryController', () => {
     });
     // Re-register under a templatePath so Tangible.getMaterial's
     // findByTemplatePath lookup resolves.
-    (iron as unknown as { templatePath: string }).templatePath =
-      '/lib/material/element/iron';
-    StuffApi.unregister(iron as never);
-    StuffApi.register(iron as never);
+    stampTemplatePathForTest(iron, '/lib/material/element/iron');
 
     const sword = makeStuff(() => new TangibleThing());
     sword.setName('iron sword');

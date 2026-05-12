@@ -22,7 +22,10 @@ import { DrivableMixin } from '../../lib/slot/Drivable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { ContainmentApi } from '../containment';
 import { Exit } from '../../lib/boundary/Exit';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import {
   buildAllModes,
   buildMode,
@@ -68,11 +71,7 @@ function makeAtPath<T extends import('../../lib/stuff/Stuff').Stuff>(
   factory: () => T,
   path: string,
 ): T {
-  const obj = makeStuff(factory);
-  StuffApi.unregister(obj);
-  (obj as unknown as { templatePath: string }).templatePath = path;
-  StuffApi.register(obj);
-  return obj;
+  return makeStuffAtPath(factory, path);
 }
 
 describe('LocomotionApi', () => {

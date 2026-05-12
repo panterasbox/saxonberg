@@ -68,6 +68,8 @@ export const Mixins = {
   Climbable: 'ClimbableMixin',
   Swimmable: 'SwimmableMixin',
   Flyable: 'FlyableMixin',
+  Spawner: 'SpawnerMixin',
+  Spawned: 'SpawnedMixin',
 } as const;
 
 /**
