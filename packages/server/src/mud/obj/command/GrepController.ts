@@ -35,7 +35,9 @@ export class GrepController extends CommandController<GrepModel> {
   async execute(model: GrepModel, context: CommandContext): Promise<CommandResult> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return { success: false };
     }
     if (!model.pattern) {
       return this.fail(context, 'grep needs a <pattern>');
@@ -139,9 +141,14 @@ export class GrepController extends CommandController<GrepModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): CommandResult {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return { success: false, summary: detail };
   }
 
   private _stringifyData(data: Record<string, unknown>): string {

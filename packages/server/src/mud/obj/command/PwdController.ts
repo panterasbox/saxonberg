@@ -23,10 +23,12 @@ export class PwdController extends CommandController<PwdModel> {
   execute(model: PwdModel, context: CommandContext): CommandResult {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return {
-        success: false,
-        summary: 'this character has no workspace',
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.system.shell.fs)
+        .toSelf(Mml.fromMarkup('\nthis character has no workspace\n'))
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return { success: false };
     }
     const cpwd = giver.getCwd('content');
     const spwd = giver.getCwd('source');

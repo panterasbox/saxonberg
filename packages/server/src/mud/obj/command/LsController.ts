@@ -37,7 +37,9 @@ export class LsController extends CommandController<LsModel> {
   async execute(model: LsModel, context: CommandContext): Promise<CommandResult> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return { success: false };
     }
     const tree = giver.pickTree(model);
     const home = giver.getHome();
@@ -160,8 +162,13 @@ export class LsController extends CommandController<LsModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): CommandResult {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return { success: false, summary: detail };
   }
 }
