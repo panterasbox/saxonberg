@@ -389,4 +389,38 @@ describe('MQL lexer', () => {
       expect(() => lex('@')).toThrow(/unexpected character '@'/);
     });
   });
+
+  describe('quantity braces and star (globbable syntax)', () => {
+    it('lexes { and } as lbrace / rbrace', () => {
+      expect(kinds('{}')).toEqual(['lbrace', 'rbrace']);
+    });
+
+    it('lexes * as star at top level', () => {
+      expect(kinds('*')).toEqual(['star']);
+    });
+
+    it('lexes coin:{5} as bareword colon lbrace int rbrace', () => {
+      expect(kinds('coin:{5}')).toEqual([
+        'bareword',
+        'colon',
+        'lbrace',
+        'int',
+        'rbrace',
+      ]);
+    });
+
+    it('lexes coin:{*} as bareword colon lbrace star rbrace', () => {
+      expect(kinds('coin:{*}')).toEqual([
+        'bareword',
+        'colon',
+        'lbrace',
+        'star',
+        'rbrace',
+      ]);
+    });
+
+    it('does not change path lexing — /obj/* still lexes as a single path token', () => {
+      expect(kinds('/obj/*')).toEqual(['path']);
+    });
+  });
 });

@@ -27,6 +27,7 @@ import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import { desugar } from './desugar';
+import type { MqlQuantity } from './types';
 import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
 import { checkTier } from './permissions';
@@ -68,6 +69,19 @@ export class MqlResolveError extends Error {
   }
 }
 
+/**
+ * Desugar-side errors (e.g., the quantity + ordinal collision).
+ * Subclass of `MqlResolveError` so existing catch-MqlResolveError
+ * sites pick it up; the message is the rephrase guidance the
+ * dispatcher renders as the command's failure prose.
+ */
+export class MqlDesugarError extends MqlResolveError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MqlDesugarError';
+  }
+}
+
 /** Public re-export so test code and callers can catch resolver-side
  *  errors without importing each leaf module. */
 export { MqlPermissionError } from './permissions';
@@ -80,12 +94,70 @@ export type { MqlParseError };
  *
  * `MqlApi.resolveOne` picks `[0]` (or null); `MqlApi.resolveMany`
  * returns the full array. Both call this same code path.
+ *
+ * Quantity hints (natural-language `2 X` lenient and formal `:{N}`
+ * strict) are carried out-of-band via {@link resolveWithQuantity};
+ * `resolve` exists for callers that don't need the quantity and just
+ * want the match list.
  */
 export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
+  return resolveWithQuantity(query, ctx).matches;
+}
+
+/**
+ * Resolve plus surface any quantity hint that came through the
+ * desugar side-channel or a parser-produced `QuantityNode`. The
+ * MqlApi layer threads `quantity` onto the returned `MqlOne` /
+ * `MqlMany` wrapper.
+ *
+ * Strict-mode hints (from a `QuantityNode`) win over lenient hints
+ * (from desugar) — `looksFormal` rejects desugar entirely when the
+ * input contains `{`, so in practice both are never present.
+ */
+export function resolveWithQuantity(
+  query: string,
+  ctx: MqlContext
+): { matches: MqlMatch[]; quantity?: MqlQuantity } {
   const desugared = desugar(query);
-  const ast = parse(desugared);
+  if (desugared.error) {
+    throw new MqlDesugarError(desugared.error);
+  }
+  const ast = parse(desugared.rewritten);
+  const parserQuantity = extractQuantityFromAst(ast);
   const matches = resolveQuery(ast, ctx);
-  return finalize(matches);
+  const finalized = finalize(matches);
+  const quantity: MqlQuantity | undefined =
+    parserQuantity ?? desugared.quantityHint;
+  if (quantity) return { matches: finalized, quantity };
+  return { matches: finalized };
+}
+
+/**
+ * Walk the AST looking for the first `QuantityNode`. The parser
+ * accepts at most one per query in v1 (mid-chain only); subsequent
+ * `:{N}` mid-chain would still parse, but only the first is read
+ * onto the result. The slate doesn't define a layered semantics, so
+ * "first wins" is the conservative choice.
+ */
+function extractQuantityFromAst(ast: QueryNode): MqlQuantity | undefined {
+  for (const sub of ast.sublists) {
+    const q = quantityInChain(sub.base);
+    if (q) return q;
+    for (const sub2 of sub.subtract) {
+      const q2 = quantityInChain(sub2);
+      if (q2) return q2;
+    }
+  }
+  return undefined;
+}
+
+function quantityInChain(chain: ChainNode): MqlQuantity | undefined {
+  for (const op of chain.rest) {
+    if (op.element.kind === 'quantity') {
+      return { value: op.element.value, mode: 'strict' };
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -158,6 +230,7 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'bracket-ordinal':
     case 'bracket-range':
     case 'bracket-filter':
+    case 'quantity':
       throw new MqlResolveError(
         `'${describeKind(node.kind)}' is not valid as a seed — chain it after a base seed`
       );
@@ -632,6 +705,13 @@ function applyColon(
       return applyRange(input, el);
     case 'bracket-filter':
       return filterByExpression(input, el.expr, ctx);
+    case 'quantity':
+      // No-op for candidate selection. The quantity hint is harvested
+      // by `extractQuantityFromAst` and threaded onto the result
+      // wrapper. The resolver deliberately does NOT slice the match
+      // list to N here — distribution is a controller/helper concern
+      // (see `GlobbableApi.applyQuantity`).
+      return input;
     default: {
       const exhaustive: never = el;
       throw new Error(`unhandled chain element kind: ${JSON.stringify(exhaustive)}`);

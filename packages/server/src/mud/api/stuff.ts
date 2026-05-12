@@ -553,6 +553,10 @@ export class StuffApi {
       return;
     }
 
+    MixinApi.assertComposable(
+      object.constructor as Parameters<typeof MixinApi.assertComposable>[0]
+    );
+
     this.#updateIndexes(object, 'add');
   }
 

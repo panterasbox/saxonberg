@@ -73,14 +73,52 @@ export interface MqlMatch {
 }
 
 /**
+ * A resolved quantity hint riding on an MQL result.
+ *
+ * `value.kind` is what the quantity *is*: a discrete count (v1) or
+ * sentinel `'all'` (v1) — the bulk-form `'measure'` shape is reserved
+ * but not implemented.
+ *
+ * `mode` is **transport-only**: it carries the syntax-form signal
+ * (formal `:{N}` → strict; natural-language `2 X` → lenient) from
+ * the resolver to the helper. `GlobbableApi.applyQuantity` is its
+ * only legitimate consumer. **Controllers don't read `mode`** — they
+ * pass the whole `MqlQuantity` through to the helper without
+ * branching. The one exception is a controller that wants to
+ * deliberately override policy
+ * (`applyQuantity(stuff, { ...quantity, mode: 'strict' }, action)`),
+ * which is a loud, explicit signal; v1 has no such verbs.
+ */
+export type MqlQuantity = {
+  value: { kind: 'count'; n: number } | { kind: 'all' };
+  mode: 'strict' | 'lenient';
+};
+
+/**
+ * Alias used by the desugar pass — same shape as the resolved
+ * quantity that ends up on `MqlOne` / `MqlMany`. Kept distinct from
+ * `MqlQuantity` so the path-from-input transformations read
+ * cleanly: desugar produces a *hint*, the resolver promotes it to a
+ * *result quantity* (potentially merging with a parser-produced
+ * `QuantityNode`).
+ */
+export type MqlQuantityHint = MqlQuantity;
+
+/**
  * Result of `MqlApi.resolveOne`. `stuff` is null when there were no
  * matches; otherwise it's the highest-scored candidate. `via` is the
  * sub-feature attribution for that candidate, or undefined when the
  * match was direct.
+ *
+ * `quantity` carries the leading-number or formal `:{N}` hint when
+ * the query supplied one; controllers thread it into
+ * `GlobbableApi.applyQuantity` to distribute the action across
+ * candidates.
  */
 export interface MqlOne {
   stuff: Stuff | null;
   via?: MqlMatchVia;
+  quantity?: MqlQuantity;
 }
 
 /**
@@ -88,10 +126,14 @@ export interface MqlOne {
  * (empty array when none). `via` describes the attribution at the
  * query level, present only when every match arrived through the same
  * sub-feature path; mixed paths produce `via: undefined`.
+ *
+ * `quantity` carries the leading-number or formal `:{N}` hint when
+ * the query supplied one. See {@link MqlQuantity}.
  */
 export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
+  quantity?: MqlQuantity;
 }
 
 /**
@@ -131,6 +173,8 @@ export interface MqlOneResult extends MqlOne {
  * array when MQL produced no match — still a valid outcome the
  * controller decides about); `via` is the query-level attribution
  * (only when every match arrived through the same path).
+ *
+ * Inherits `quantity` from {@link MqlMany} — see {@link MqlQuantity}.
  */
 export interface MqlManyResult extends MqlMany {
   raw: string;
@@ -206,7 +250,8 @@ export type ChainElement =
   | TransformNode
   | OrdinalNode
   | BracketNode
-  | GroupNode;
+  | GroupNode
+  | QuantityNode;
 
 export interface PronounNode {
   kind: 'pronoun';
@@ -291,6 +336,19 @@ export type BracketNode =
 export interface GroupNode {
   kind: 'group';
   query: QueryNode;
+}
+
+/**
+ * Formal quantity syntax — `:{N}` or `:{*}`. Mid-chain only; rejected
+ * as a chain head (no current set to address). The resolver does NOT
+ * modify the candidate set when it sees a `QuantityNode` — it just
+ * threads the quantity forward onto the final `MqlMany` / `MqlOne`
+ * wrapper, marked `mode: 'strict'`. See {@link MqlQuantity} and
+ * `docs/slates/globbable-slate.md § Formal syntax`.
+ */
+export interface QuantityNode {
+  kind: 'quantity';
+  value: { kind: 'count'; n: number } | { kind: 'all' };
 }
 
 // Filter expression AST (inside `[…]`).

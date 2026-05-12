@@ -11,9 +11,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { resolve } from '../mql/resolver';
+import { resolve, MqlDesugarError } from '../mql/resolver';
 import { _MqlAdminFlag, MqlPermissionError } from '../mql/permissions';
 import { makeWorld, type MqlWorld } from './fixtures/mql-world';
+import { MqlApi } from '../mql';
 import type { MqlContext } from '../mql/types';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -917,5 +918,69 @@ describe('MQL resolver — desugar integration', () => {
   it("'last' resolves to the last match", () => {
     const out = resolve('last flower', ctx);
     expect(out).toHaveLength(1);
+  });
+});
+
+describe('MQL resolver — quantity threading', () => {
+  let world: MqlWorld;
+  let ctx: MqlContext;
+
+  beforeEach(() => {
+    world = makeWorld();
+    ctx = { commandGiver: world.giver, scope: 'reachable' };
+  });
+
+  it('threads a natural-language count onto MqlApi.resolveMany as lenient', () => {
+const out = MqlApi.resolveMany('2 flower', ctx);
+    expect(out.quantity).toEqual({
+      value: { kind: 'count', n: 2 },
+      mode: 'lenient',
+    });
+    expect(out.stuff.length).toBeGreaterThan(0);
+  });
+
+  it('threads a natural-language "all" onto MqlApi.resolveMany as lenient', () => {
+const out = MqlApi.resolveMany('all flower', ctx);
+    expect(out.quantity).toEqual({
+      value: { kind: 'all' },
+      mode: 'lenient',
+    });
+  });
+
+  it('threads a formal :{N} onto MqlApi.resolveMany as strict', () => {
+const out = MqlApi.resolveMany('flower:{2}', ctx);
+    expect(out.quantity).toEqual({
+      value: { kind: 'count', n: 2 },
+      mode: 'strict',
+    });
+  });
+
+  it('threads a formal :{*} onto MqlApi.resolveMany as strict', () => {
+const out = MqlApi.resolveMany('flower:{*}', ctx);
+    expect(out.quantity).toEqual({
+      value: { kind: 'all' },
+      mode: 'strict',
+    });
+  });
+
+  it('threads quantity onto resolveOne even when stuff is null', () => {
+// Use a key that won't match anything but carry a strict count
+    // through the formal syntax.
+    const out = MqlApi.resolveOne('zzznomatch:{3}', ctx);
+    expect(out.stuff).toBeNull();
+    expect(out.quantity).toEqual({
+      value: { kind: 'count', n: 3 },
+      mode: 'strict',
+    });
+  });
+
+  it('omits quantity when the query carried no hint', () => {
+const out = MqlApi.resolveMany('flower', ctx);
+    expect(out.quantity).toBeUndefined();
+  });
+
+  it('surfaces a quantity+ordinal collision as a desugar error', () => {
+    expect(() => resolve('2nd 3 flower', ctx)).toThrow(MqlDesugarError);
+    expect(() => resolve('2nd 3 flower', ctx)).toThrow(/ambiguous/);
   });
 });

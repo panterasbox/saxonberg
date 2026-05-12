@@ -52,6 +52,35 @@ export class ContainmentError extends Error {
 }
 
 /**
+ * Late-bound merge-on-arrival hook. `GlobbableApi` registers a
+ * function at module load that handles the "moved Globbable arrived
+ * in a container holding a mergeable sibling" ripple. Lives here as
+ * a slot rather than a direct import to avoid the
+ * containment → glob → containment cycle.
+ *
+ * The hook fires AFTER post-move `on*` witnesses so subscribers see
+ * the arrival before the absorbed Stuff destructs. Hook implementor
+ * is responsible for the `MixinApi.isGlobbable` skip path.
+ */
+type MergeOnArrivalHook = (
+  moved: Stuff,
+  to: Stuff & Container
+) => void;
+
+let _mergeOnArrivalHook: MergeOnArrivalHook | null = null;
+
+/**
+ * Install (or replace) the merge-on-arrival hook. Called once by
+ * `GlobbableApi` at module load. Public via the `_` prefix because
+ * it's framework-internal — same shape as `SecurityApi._registerShadowApi`.
+ *
+ * @internal
+ */
+export function _registerMergeOnArrivalHook(hook: MergeOnArrivalHook): void {
+  _mergeOnArrivalHook = hook;
+}
+
+/**
  * Static API for containment and movement operations.
  */
 export class ContainmentApi {
@@ -175,6 +204,79 @@ export class ContainmentApi {
     if (from) callHook(from, 'onContainableRemoved', [item]);
     if (to) callHook(to, 'onContainableAdded', [item]);
     callHook(item, 'onMoved', [from, to]);
+
+    // Merge-on-arrival ripple (globbable substrate). Fires after the
+    // arrival witnesses so subscribers see the arriving Stuff before
+    // it's absorbed and destructed. The hook is responsible for its
+    // own `isGlobbable` skip path.
+    if (to !== null && _mergeOnArrivalHook !== null) {
+      _mergeOnArrivalHook(item, to);
+    }
+  }
+
+  /**
+   * Place `item` in `env` without firing movement witnesses, running
+   * capacity validators, or triggering the glob merge-on-arrival
+   * ripple. The matter is treated as if it were already in `env`;
+   * this call just records the topological fact.
+   *
+   * **Precondition**: `item.getContainer() === null`. This is NOT a
+   * relocation primitive — existing-env Stuffs go through
+   * `ContainmentApi.move`. Throws when violated.
+   *
+   * Use when the placement is semantically NOT an arrival:
+   *   - Glob split (splitoff is freshly cloned, has no container).
+   *   - First-placement bootstrap paths after `StuffApi.clone` that
+   *     deliberately bypass arrival hooks.
+   *   - Hot-reload re-attachment (post-clone, pre-relink).
+   *
+   * Use `ContainmentApi.move` when the placement IS movement (an
+   * existing Stuff genuinely entered `env` from elsewhere).
+   *
+   * What's preserved (always):
+   *   - Containment graph integrity (atomic three-update via
+   *     `setContainer`).
+   *   - Mixin compatibility — `item` must be `Containable`, `env`
+   *     must be `Container`. Putting a non-Containable somewhere or
+   *     accepting contents into a non-Container would corrupt the
+   *     graph regardless of who's observing.
+   *   - Fresh-placement precondition.
+   *
+   * What's bypassed:
+   *   - Capacity validators (matter-was-already-there assumption).
+   *   - `can*` / `on*` witnesses (placement is not movement).
+   *   - Merge-on-arrival ripple for globs.
+   *   - Recency-stack bookkeeping (no command-contribution delta —
+   *     the matter is treated as already-present).
+   *
+   * Security: gated by `SecurityPolicies.ApiOnly` because the
+   * skipped checks make this primitive more powerful than `move`.
+   * The fresh-placement precondition rules out the obvious abuse
+   * (smuggling, teleport-past-guard) — existing-env Stuffs must go
+   * through `move`, period.
+   */
+  @CallSecurity(SecurityPolicies.ApiOnly)
+  public static placeDirect(
+    item: ContainableStuff,
+    env: ContainerStuff
+  ): void {
+    if (!MixinApi.isContainable(item)) {
+      throw new ContainmentError(
+        'ContainmentApi.placeDirect: item is not Containable.'
+      );
+    }
+    if (!MixinApi.isContainer(env)) {
+      throw new ContainmentError(
+        'ContainmentApi.placeDirect: env is not a Container.'
+      );
+    }
+    if (item.getContainer() !== null) {
+      throw new ContainmentError(
+        'ContainmentApi.placeDirect: item already has a container; ' +
+          'use ContainmentApi.move for relocations.'
+      );
+    }
+    item.setContainer(env);
   }
 
   /**

@@ -21,7 +21,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import { resolve as resolvePipeline } from './mql/resolver';
+import { resolveWithQuantity } from './mql/resolver';
 import { SecurityApi } from './security';
 
 import type {
@@ -31,6 +31,7 @@ import type {
   MqlManyResult,
   MqlOne,
   MqlMany,
+  MqlQuantity,
 } from './mql/types';
 
 export type {
@@ -40,6 +41,7 @@ export type {
   MqlManyResult,
   MqlOne,
   MqlMany,
+  MqlQuantity,
 };
 
 // `PronounMemory` is the one mql/ class the non-api layer consumes
@@ -71,11 +73,16 @@ export class MqlApi {
    * down the stack" — also use this.
    */
   static resolveOne(query: string, ctx: MqlContext): MqlOne {
-    const matches = resolvePipeline(query, ctx);
-    if (matches.length === 0) return { stuff: null };
+    const { matches, quantity } = resolveWithQuantity(query, ctx);
+    if (matches.length === 0) {
+      const empty: MqlOne = { stuff: null };
+      if (quantity) empty.quantity = quantity;
+      return empty;
+    }
     const top = matches[0]!;
     const out: MqlOne = { stuff: top.stuff };
     if (top.via) out.via = top.via;
+    if (quantity) out.quantity = quantity;
     return out;
   }
 
@@ -89,11 +96,12 @@ export class MqlApi {
    * surface.
    */
   static resolveMany(query: string, ctx: MqlContext): MqlMany {
-    const matches = resolvePipeline(query, ctx);
+    const { matches, quantity } = resolveWithQuantity(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
     if (via) out.via = via;
+    if (quantity) out.quantity = quantity;
     return out;
   }
 

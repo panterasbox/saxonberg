@@ -70,6 +70,7 @@ import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
+import type { Globbable } from '../lib/stuff/Globbable';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -81,8 +82,13 @@ export { Mixins } from '../lib/mixin';
  * Intentionally loose: mixin-decorated classes carry additional static markers
  * (_mixinName, persistentFields, commands) that are checked via
  * property access rather than declared on this type.
+ *
+ * Exported so callers that thread a constructor into MixinApi
+ * (composition validation hooks, glob-identity helpers) can name the
+ * type without redeclaring the `Function & ...` shape locally.
  */
-type AnyConstructor = Function & { prototype: unknown };
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type AnyConstructor = Function & { prototype: unknown };
 
 /** Shape of a mixin constructor — what queryMixins() returns elements of. */
 interface MixinClass {
@@ -501,6 +507,69 @@ export class MixinApi {
   public static isSpawned(obj: Stuff): obj is Stuff & Spawned {
     return this.hasMixin(obj, Mixins.Spawned);
   }
+
+  public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
+    return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  /**
+   * Walk the prototype chain unioning the static `globIdentityFields`
+   * arrays declared at each level. Deduplicates. Mirrors the shape of
+   * {@link getAllPersistentFields}.
+   *
+   * A glob's "kind" is defined by the values of these fields plus
+   * `templatePath`; two globs merge iff their templatePath matches and
+   * every glob-identity field has equal values.
+   */
+  public static getAllGlobIdentityFields(constructor: AnyConstructor): string[] {
+    const fields: string[] = [];
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & { globIdentityFields?: string[] };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'globIdentityFields') &&
+        Array.isArray(c.globIdentityFields)
+      ) {
+        fields.push(...c.globIdentityFields);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    return Array.from(new Set(fields));
+  }
+
+  /**
+   * Once-per-class composition validation hook.
+   *
+   * Walks the prototype chain calling each level's static
+   * `__validateComposition__(ctor)` method exactly once per concrete
+   * class. Mixins that want to enforce composition constraints (e.g.,
+   * "Globbable ⊥ Container") declare the static; everyone else is a
+   * no-op.
+   *
+   * Called from `StuffApi.register` so the check fires the first time
+   * an instance of a given class lands in the registry. Subsequent
+   * registrations of the same class short-circuit on the WeakSet
+   * memo.
+   */
+  public static assertComposable(constructor: AnyConstructor): void {
+    if (this.#validatedClasses.has(constructor)) return;
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        __validateComposition__?: (ctor: AnyConstructor) => void;
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, '__validateComposition__') &&
+        typeof c.__validateComposition__ === 'function'
+      ) {
+        c.__validateComposition__(constructor);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    this.#validatedClasses.add(constructor);
+  }
+
+  static #validatedClasses = new WeakSet<AnyConstructor>();
 }
 
 
