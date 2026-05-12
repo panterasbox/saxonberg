@@ -35,7 +35,7 @@ import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
-import { GlobbableApi } from '../../api/glob';
+import { GlobbableApi, type ApplyQuantityResult } from '../../api/glob';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
@@ -85,7 +85,7 @@ export class DropController extends CommandController<DropModel> {
         this.dropOperand(operand, context);
         return { ok: true, payload: { operand, applied } };
       },
-      { query: raw }
+      { field: 'targets', query: raw }
     );
 
     return this.renderResult(result, raw, context);
@@ -129,34 +129,21 @@ export class DropController extends CommandController<DropModel> {
   }
 
   private renderResult(
-    result: {
-      ok: boolean;
-      applied: number;
-      status?: 'partial' | 'declined';
-      notes: ReadonlyArray<
-        | { kind: 'quantity-clamped'; requested: number; applied: number }
-        | { kind: 'quantity-clamped-rejected'; requested: number; available: number }
-        | { kind: 'empty-result'; query: string; reason: 'no-matches' }
-        | { kind: 'target-declined'; target: Stuff; reason: string }
-      >;
-      payloads: DropPayload[];
-    },
+    result: ApplyQuantityResult<DropPayload>,
     raw: string,
     context: CommandContext,
   ): void {
-    let clampedSuffix = '';
     for (const note of result.notes) {
+      // Glob already constructed canonical-shape notes — forward
+      // straight through. Per-kind prose decides whether the player
+      // sees a Scene frame.
+      context.note(note);
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
             .topic(MessageApi.Topics.world.perception.inventory)
             .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
             .send();
-          context.note({
-            kind: 'empty-result',
-            field: 'targets',
-            query: raw,
-          });
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
@@ -165,31 +152,10 @@ export class DropController extends CommandController<DropModel> {
               Mml.compose`You only have ${String(note.available)} of those.`,
             )
             .send();
-          context.note({
-            kind: 'quantity-clamped-rejected',
-            field: 'targets',
-            requested: note.requested,
-            available: note.available,
-          });
           return;
         case 'quantity-clamped':
-          clampedSuffix = ` (only ${note.applied} available)`;
-          context.note({
-            kind: 'quantity-clamped',
-            field: 'targets',
-            requested: note.requested,
-            applied: note.applied,
-          });
-          break;
         case 'target-declined':
-          // No-op in v1. Action callback always returns ok:true here,
-          // so this branch is dead code. The collision slate's
-          // capacity-driven decline will land here.
-          context.note({
-            kind: 'target-declined',
-            target: MessageApi.refOf(note.target),
-            reason: note.reason,
-          });
+          // Notes forwarded; nothing more to render here.
           break;
       }
     }
@@ -204,13 +170,7 @@ export class DropController extends CommandController<DropModel> {
         reason: 'nothing-dropped',
         detail: 'nothing dropped',
       });
-      return;
     }
-
-    const droppedNames = result.payloads
-      .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
-      .join(', ');
-    return;
   }
 
   /**

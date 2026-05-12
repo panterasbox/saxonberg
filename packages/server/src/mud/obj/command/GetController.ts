@@ -19,7 +19,7 @@ import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
-import { GlobbableApi } from '../../api/glob';
+import { GlobbableApi, type ApplyQuantityResult } from '../../api/glob';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
@@ -71,7 +71,7 @@ export class GetController extends CommandController<GetModel> {
         this.pickUpOperand(operand, context);
         return { ok: true, payload: { operand, applied } };
       },
-      { query: raw }
+      { field: 'targets', query: raw }
     );
 
     return this.renderResult(result, raw, context);
@@ -119,62 +119,33 @@ export class GetController extends CommandController<GetModel> {
   }
 
   private renderResult(
-    result: {
-      ok: boolean;
-      applied: number;
-      status?: 'partial' | 'declined';
-      notes: ReadonlyArray<
-        | { kind: 'quantity-clamped'; requested: number; applied: number }
-        | { kind: 'quantity-clamped-rejected'; requested: number; available: number }
-        | { kind: 'empty-result'; query: string; reason: 'no-matches' }
-        | { kind: 'target-declined'; target: Stuff; reason: string }
-      >;
-      payloads: GetPayload[];
-    },
+    result: ApplyQuantityResult<GetPayload>,
     raw: string,
     context: CommandContext,
   ): void {
-    let clampedSuffix = '';
     for (const note of result.notes) {
+      // Glob already constructed canonical-shape notes — forward
+      // straight through. Prose for the kinds that the controller
+      // surfaces to the player rides alongside.
+      context.note(note);
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
             .topic(MessageApi.Topics.world.perception.inventory)
             .toSelf(Mml.compose`You don't see any '${raw}' here.`)
             .send();
-          context.note({
-            kind: 'empty-result',
-            field: 'targets',
-            query: raw,
-          });
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
             .topic(MessageApi.Topics.world.perception.inventory)
             .toSelf(Mml.compose`Only ${String(note.available)} of those here.`)
             .send();
-          context.note({
-            kind: 'quantity-clamped-rejected',
-            field: 'targets',
-            requested: note.requested,
-            available: note.available,
-          });
           return;
         case 'quantity-clamped':
-          clampedSuffix = ` (only ${note.applied} available)`;
-          context.note({
-            kind: 'quantity-clamped',
-            field: 'targets',
-            requested: note.requested,
-            applied: note.applied,
-          });
-          break;
         case 'target-declined':
-          context.note({
-            kind: 'target-declined',
-            target: MessageApi.refOf(note.target),
-            reason: note.reason,
-          });
+          // Notes already forwarded above; clamp suffix or per-
+          // target prose decisions live on the controller's
+          // success-path rendering.
           break;
       }
     }
@@ -189,13 +160,7 @@ export class GetController extends CommandController<GetModel> {
         reason: 'nothing-picked-up',
         detail: 'nothing picked up',
       });
-      return;
     }
-
-    const pickedNames = result.payloads
-      .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
-      .join(', ');
-    return;
   }
 
   /**

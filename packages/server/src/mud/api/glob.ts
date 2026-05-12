@@ -21,15 +21,22 @@
  * the rest of the description Api. `DescribeApi v2` (recognition
  * slate) supersedes the seam.
  *
- * Notes are returned as a plain list of typed objects in v1 (no
- * response-envelope substrate yet). When the envelope lands,
- * controllers switch from "fold into summary Mml" to `ctx.note(n)`;
- * `applyQuantity`'s return shape is stable across that swap.
+ * Notes use the canonical `@saxonberg/types` shapes — `applyQuantity`
+ * stamps `field` from the caller's opts so glob notes drop into
+ * `ctx.note(...)` without re-shaping at the controller. The four
+ * kinds re-export here so controllers that already import
+ * `QuantityClampedNote` / `TargetDeclinedNote` keep working.
  *
  * Operational reference: `docs/subsystems/glob.md`. The bulk-form
  * extension story lives in `docs/slates/bulkable-slate.md`.
  */
 
+import type {
+  EmptyResultNote,
+  QuantityClampedNote,
+  QuantityClampedRejectedNote,
+  TargetDeclinedNote,
+} from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
@@ -40,6 +47,7 @@ import {
   ContainmentApi,
   _registerMergeOnArrivalHook,
 } from './containment';
+import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
@@ -47,53 +55,15 @@ import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 // ---------------------------------------------------------------------------
-// Note types (v1 inline; will fold into the response-envelope slate later).
+// Note types — re-exported from the canonical wire surface.
 // ---------------------------------------------------------------------------
 
-/**
- * Lenient overflow: the requested count was higher than the available
- * supply; the helper clamped and ran the action against everything
- * available.
- */
-export interface QuantityClampedNote {
-  kind: 'quantity-clamped';
-  requested: number;
-  applied: number;
-}
-
-/**
- * Strict pre-check decline: the requested count was higher than the
- * available supply under `mode: 'strict'`. No actions ran.
- */
-export interface QuantityClampedRejectedNote {
-  kind: 'quantity-clamped-rejected';
-  requested: number;
-  available: number;
-}
-
-/**
- * The candidate list was empty going into `applyQuantity` — no
- * actions ran. `query` is the post-desugar text the resolver saw,
- * paralleling `MqlOneResult.raw` / `MqlManyResult.raw`.
- */
-export interface EmptyResultNote {
-  kind: 'empty-result';
-  query: string;
-  reason: 'no-matches';
-}
-
-/**
- * An action callback returned `{ ok: false, reason }` for a specific
- * candidate. `target` is the **candidate** (not the post-split
- * operand) so subscribers can pair the decline with the player's
- * intent. `reason` is open-enumeration per controller — e.g.,
- * `'cursed'`, `'too-heavy'`, `'destination-full'`.
- */
-export interface TargetDeclinedNote {
-  kind: 'target-declined';
-  target: Stuff;
-  reason: string;
-}
+export type {
+  EmptyResultNote,
+  QuantityClampedNote,
+  QuantityClampedRejectedNote,
+  TargetDeclinedNote,
+};
 
 export type GlobNote =
   | QuantityClampedNote
@@ -346,16 +316,17 @@ export class GlobbableApi {
       operand: Stuff,
       applied: number
     ) => Promise<GlobActionResult<R>>,
-    opts: { query?: string } = {}
+    opts: { field: string; query?: string }
   ): Promise<ApplyQuantityResult<R>> {
+    const field = opts.field;
     const notes: GlobNote[] = [];
     const payloads: R[] = [];
 
     if (candidates.length === 0) {
       notes.push({
         kind: 'empty-result',
+        field,
         query: opts.query ?? '',
-        reason: 'no-matches',
       });
       return {
         ok: false,
@@ -379,6 +350,7 @@ export class GlobbableApi {
       if (total < requested) {
         notes.push({
           kind: 'quantity-clamped-rejected',
+          field,
           requested,
           available: total,
         });
@@ -421,7 +393,7 @@ export class GlobbableApi {
         anyDecline = true;
         notes.push({
           kind: 'target-declined',
-          target: c,
+          target: MessageApi.refOf(c),
           reason: result.reason,
         });
         if (splitInto !== null && MixinApi.isGlobbable(c)) {
@@ -445,6 +417,7 @@ export class GlobbableApi {
     ) {
       notes.push({
         kind: 'quantity-clamped',
+        field,
         requested,
         applied,
       });
