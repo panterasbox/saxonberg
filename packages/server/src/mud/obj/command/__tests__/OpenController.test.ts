@@ -195,16 +195,24 @@ describe('OpenController / CloseController / doors integration', () => {
   it('already-open door returns a friendly error', async () => {
     door.open();
     const open = makeStuff(() => new OpenController());
+    avatar.received.length = 0;
     const result = await openCmd(open, avatar, locA, 'oak');
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/already open/i);
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /already open/i.test(b))).toBe(true);
   });
 
   it('no sealable matching the name: clear error', async () => {
     const open = makeStuff(() => new OpenController());
+    avatar.received.length = 0;
     const result = await openCmd(open, avatar, locA, 'bathtub');
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't see/i);
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /don't see/i.test(b))).toBe(true);
   });
 
   it('go north succeeds after opening; close from destination closes same door', async () => {
@@ -247,9 +255,13 @@ describe('OpenController / CloseController / doors integration', () => {
 
   it('already-closed door on close returns friendly error', async () => {
     const close = makeStuff(() => new CloseController());
+    avatar.received.length = 0;
     const result = await closeCmd(close, avatar, locA, 'oak');
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/already closed/i);
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /already closed/i.test(b))).toBe(true);
   });
 
   it('open north resolves via direction and opens the exit door', async () => {

@@ -13,7 +13,9 @@ import type {
   CommandModel,
   CommandResult,
 } from '../../api/command';
+import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
 
 interface SayModel extends CommandModel {
   message: string;
@@ -23,7 +25,12 @@ export class SayController extends CommandController<SayModel> {
   execute(model: SayModel, context: CommandContext): CommandResult {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
-      return { success: false, summary: 'You cannot speak.' };
+      MessageApi.scene(speaker)
+        .topic(MessageApi.Topics.world.speech.say)
+        .toSelf(Mml.compose`You cannot speak.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });
+      return { success: false };
     }
     speaker.say(model.message);
     return { success: true };

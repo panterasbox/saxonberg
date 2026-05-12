@@ -77,7 +77,13 @@ export class HelpController extends CommandController<HelpModel> {
       return verbs.some((v) => v.toLowerCase() === commandName.toLowerCase());
     });
     if (!command) {
-      return { success: false, summary: `unknown command: ${commandName}` };
+      this.tell(context, Mml.fromMarkup(`\nunknown command: ${commandName}\n`));
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'unknown-command',
+        detail: commandName,
+      });
+      return { success: false };
     }
     const lines: string[] = ['', `Command: ${command.getPrimaryVerb()}`, ''];
     if (command.description) {
@@ -137,7 +143,12 @@ export class HelpController extends CommandController<HelpModel> {
   ): CommandResult {
     if (!query) {
       this.tell(context, Mml.fromMarkup(`\nUsage: help search <query>\n`));
-      return { success: false, summary: 'no query' };
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'missing-query',
+        detail: 'no query',
+      });
+      return { success: false };
     }
     const needle = query.toLowerCase();
     const commands = context.commandGiver.getAvailableCommands();

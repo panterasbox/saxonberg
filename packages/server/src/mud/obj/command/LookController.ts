@@ -50,10 +50,13 @@ export class LookController extends CommandController<LookModel> {
     // hands us a wrapper. Empty (`null`) is the only honest "no
     // match" signal; we don't fabricate another fallback here.
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target?.raw ?? ''}' here`,
-      };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return { success: false };
     }
     // Detail-via dispatch: when MQL's chain narrowed into the host's
     // detail tree, render the detail rather than the host itself.
@@ -92,18 +95,30 @@ export class LookController extends CommandController<LookModel> {
     context: CommandContext,
   ): CommandResult {
     if (!MixinApi.isDetailed(host)) {
-      return {
-        success: false,
-        summary: `you can't make out any detail there`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You can't make out any detail there.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-detail-here',
+        detail: 'host is not Detailed',
+      });
+      return { success: false };
     }
     const dotted = detailPath.join('.');
     const description = host.getDetail(dotted);
     if (description === null) {
-      return {
-        success: false,
-        summary: `you can't make out any '${dotted}' there`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You can't make out any '${dotted}' there.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'detail-not-found',
+        detail: dotted,
+      });
+      return { success: false };
     }
     const tip = detailPath[detailPath.length - 1]!;
     const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;

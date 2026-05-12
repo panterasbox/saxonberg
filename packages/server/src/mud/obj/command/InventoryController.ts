@@ -17,7 +17,12 @@ export class InventoryController extends CommandController {
   execute(_model: CommandModel, context: CommandContext): CommandResult {
     const actor = context.commandGiver;
     if (!MixinApi.isContainer(actor)) {
-      return { success: false, summary: 'no inventory' };
+      MessageApi.scene(actor)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You have no inventory.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
+      return { success: false };
     }
     const contents = ContainmentApi.getContents(actor);
 

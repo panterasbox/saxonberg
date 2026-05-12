@@ -75,7 +75,7 @@ export class GetController extends CommandController<GetModel> {
       { query: raw }
     );
 
-    return this.renderResult(result, raw);
+    return this.renderResult(result, raw, context);
   }
 
   private executeWholeSet(
@@ -86,10 +86,12 @@ export class GetController extends CommandController<GetModel> {
     context: CommandContext
   ): CommandResult {
     if (targets.length === 0) {
-      return {
-        success: false,
-        summary: `you don't see any '${raw}' here`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'targets', query: raw });
+      return { success: false };
     }
     const pickedNames: string[] = [];
     for (const target of targets) {
@@ -103,7 +105,16 @@ export class GetController extends CommandController<GetModel> {
       pickedNames.push(DescribeApi.formatName(target, 'something'));
     }
     if (pickedNames.length === 0) {
-      return { success: false, summary: 'nothing picked up' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing picked up.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-picked-up',
+        detail: 'nothing picked up',
+      });
+      return { success: false };
     }
     return { success: true, summary: pickedNames.join(', ') };
   }
@@ -121,31 +132,65 @@ export class GetController extends CommandController<GetModel> {
       >;
       payloads: GetPayload[];
     },
-    raw: string
+    raw: string,
+    context: CommandContext,
   ): CommandResult {
     let clampedSuffix = '';
     for (const note of result.notes) {
       switch (note.kind) {
         case 'empty-result':
-          return {
-            success: false,
-            summary: `you don't see any '${raw}' here`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+            .send();
+          context.note({
+            kind: 'empty-result',
+            field: 'targets',
+            query: raw,
+          });
+          return { success: false };
         case 'quantity-clamped-rejected':
-          return {
-            success: false,
-            summary: `only ${note.available} of those here`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(Mml.compose`Only ${String(note.available)} of those here.`)
+            .send();
+          context.note({
+            kind: 'quantity-clamped-rejected',
+            field: 'targets',
+            requested: note.requested,
+            available: note.available,
+          });
+          return { success: false };
         case 'quantity-clamped':
           clampedSuffix = ` (only ${note.applied} available)`;
+          context.note({
+            kind: 'quantity-clamped',
+            field: 'targets',
+            requested: note.requested,
+            applied: note.applied,
+          });
           break;
         case 'target-declined':
+          context.note({
+            kind: 'target-declined',
+            target: MessageApi.refOf(note.target),
+            reason: note.reason,
+          });
           break;
       }
     }
 
     if (!result.ok || result.payloads.length === 0) {
-      return { success: false, summary: 'nothing picked up' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing picked up.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-picked-up',
+        detail: 'nothing picked up',
+      });
+      return { success: false };
     }
 
     const pickedNames = result.payloads

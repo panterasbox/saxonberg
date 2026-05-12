@@ -32,25 +32,43 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
     model: AnalyzeChemistryModel,
     context: CommandContext
   ): CommandResult {
+    const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target?.raw ?? ''}' here`,
-      };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return { success: false };
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      return {
-        success: false,
-        summary: `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff, 'that')}`,
-      };
+      const detail = `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff, 'that')}`;
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-tangible',
+        detail,
+      });
+      return { success: false };
     }
     const material = MaterialApi.materialOf(target.stuff as Stuff);
     if (!material) {
-      return {
-        success: false,
-        summary: `there's no material data for ${DescribeApi.getDisplayName(target.stuff, 'that')}`,
-      };
+      const detail = `there's no material data for ${DescribeApi.getDisplayName(target.stuff, 'that')}`;
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-material-data',
+        detail,
+      });
+      return { success: false };
     }
 
     const lines: Mml[] = [];

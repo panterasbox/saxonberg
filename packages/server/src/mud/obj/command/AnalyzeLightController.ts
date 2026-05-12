@@ -30,18 +30,29 @@ interface AnalyzeLightModel extends CommandModel {
 
 export class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
   execute(model: AnalyzeLightModel, context: CommandContext): CommandResult {
+    const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target?.raw ?? ''}' here`,
-      };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'location', query: raw });
+      return { success: false };
     }
     if (!MixinApi.isContainer(target.stuff)) {
-      return {
-        success: false,
-        summary: `${DescribeApi.getDisplayName(target.stuff, 'that')} isn't a place`,
-      };
+      const detail = `${DescribeApi.getDisplayName(target.stuff, 'that')} isn't a place`;
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-a-place',
+        detail,
+      });
+      return { success: false };
     }
     const loc = target.stuff as Stuff & Container;
     const light = LightApi.lightAt(loc);

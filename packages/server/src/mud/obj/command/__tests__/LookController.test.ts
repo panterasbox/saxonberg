@@ -128,12 +128,15 @@ describe('LookController — detail rendering', () => {
     };
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
-      makeModel(target),
-      makeContext(world, 'look whatever'),
-    );
+    const ctx = makeContext(world, 'look whatever');
+    const result = controller.execute(makeModel(target), ctx);
 
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/can't make out any detail/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'controller-rejected',
+        reason: 'no-detail-here',
+      }),
+    );
   });
 });

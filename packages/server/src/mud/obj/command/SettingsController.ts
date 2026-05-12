@@ -30,10 +30,11 @@ export class SettingsController extends CommandController<SettingsModel> {
   execute(model: SettingsModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isEnvironment(avatar)) {
-      return {
-        success: false,
-        summary: 'this character has no settings',
-      };
+      if (MixinApi.isSensor(avatar)) {
+        this.send(context, Mml.fromMarkup('\nthis character has no settings\n'));
+      }
+      context.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
+      return { success: false };
     }
 
     const sub = model.subcommand ?? 'list';
@@ -177,9 +178,14 @@ export class SettingsController extends CommandController<SettingsModel> {
     return { success: true, summary: `${key}: ${schema.type}` };
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.send(context, Mml.fromMarkup(`\n${summary}\n`));
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): CommandResult {
+    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return { success: false, summary: detail };
   }
 
   private send(context: CommandContext, body: Mml): void {

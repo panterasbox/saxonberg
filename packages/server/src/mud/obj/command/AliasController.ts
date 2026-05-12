@@ -32,7 +32,9 @@ export class AliasController extends CommandController<AliasModel> {
   execute(model: AliasModel, context: CommandContext): CommandResult {
     const avatar = context.commandGiver;
     if (!MixinApi.isAlias(avatar)) {
-      return { success: false, summary: 'this character has no aliases' };
+      this.send(context, Mml.fromMarkup('\nthis character has no aliases\n'));
+      context.note({ kind: 'mixin-missing', mixin: 'AliasMixin' });
+      return { success: false };
     }
 
     const sub = model.subcommand ?? 'list';
@@ -177,9 +179,14 @@ export class AliasController extends CommandController<AliasModel> {
     return { success: true, summary: `${entry.name}: ${entry.source}` };
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.send(context, Mml.fromMarkup(`\n${summary}\n`));
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): CommandResult {
+    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return { success: false, summary: detail };
   }
 
   private send(context: CommandContext, body: Mml): void {

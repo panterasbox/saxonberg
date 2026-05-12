@@ -260,21 +260,24 @@ describe('SettingsController', () => {
       // A bare Stuff without EnvironmentMixin should be rejected at
       // the surface, not crash with an undefined-method error.
       const bare = makeStuff(() => new (class extends Idea {})());
-      const result = controller.execute(
-        makeModel({}, 'list'),
-        createCommandContext({
-          commandGiver: bare as unknown as CommandContext['commandGiver'],
-          interactive: {} as Interactive,
-          location,
-          commandText: '',
-          executionId: 'e',
-          commandId: 'c',
-          verb: 'settings',
-          command: stubCommand('settings'),
+      const ctx = createCommandContext({
+        commandGiver: bare as unknown as CommandContext['commandGiver'],
+        interactive: {} as Interactive,
+        location,
+        commandText: '',
+        executionId: 'e',
+        commandId: 'c',
+        verb: 'settings',
+        command: stubCommand('settings'),
+      });
+      const result = controller.execute(makeModel({}, 'list'), ctx);
+      expect(result.success).toBe(false);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({
+          kind: 'mixin-missing',
+          mixin: 'EnvironmentMixin',
         }),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/no settings/);
     });
   });
 });

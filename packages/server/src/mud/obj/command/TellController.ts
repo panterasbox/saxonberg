@@ -27,10 +27,16 @@ export class TellController extends CommandController<TellModel> {
 
     const target = this.findAvatarByName(targetName, context);
     if (!target) {
-      return {
-        success: false,
-        summary: `no one named '${targetName}' available`,
-      };
+      MessageApi.scene(speaker)
+        .topic(MessageApi.Topics.world.speech.tell)
+        .toSelf(Mml.compose`No one named '${targetName}' is available.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: targetName,
+      });
+      return { success: false };
     }
 
     const speechFragment = Mml.speech(message);

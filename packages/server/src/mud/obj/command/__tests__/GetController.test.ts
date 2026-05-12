@@ -130,12 +130,19 @@ describe('GetController — bareword path (no quantity)', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(makeResult([], 'turnips')),
-      makeContext(giver, loc)
+      ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't see any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 });
 
@@ -220,6 +227,7 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
@@ -227,10 +235,16 @@ describe('GetController — quantity-bearing path', () => {
           mode: 'strict',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/only 10 of those here/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'quantity-clamped-rejected',
+        field: 'targets',
+        available: 10,
+      }),
+    );
     expect(pile.getQuantity()).toBe(10);
     expect(pile.getContainer()).toBe(loc);
   });
@@ -241,6 +255,7 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(
         makeResult([], 'turnips', {
@@ -248,10 +263,16 @@ describe('GetController — quantity-bearing path', () => {
           mode: 'lenient',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't see any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 
   it('all-kind picks up everything available', async () => {

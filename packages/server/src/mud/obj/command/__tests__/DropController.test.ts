@@ -135,12 +135,19 @@ describe('DropController — bareword path (no quantity)', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new DropController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(makeResult([], 'turnips')),
-      makeContext(giver, loc)
+      ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't have any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 });
 
@@ -225,6 +232,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
@@ -232,11 +240,17 @@ describe('DropController — quantity-bearing path', () => {
           mode: 'strict',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
 
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/you only have 10 of those/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'quantity-clamped-rejected',
+        field: 'targets',
+        available: 10,
+      }),
+    );
     // Strict rejects without acting — the stack stays intact.
     expect(stack.getQuantity()).toBe(10);
     expect(stack.getContainer()).toBe(giver);
@@ -277,6 +291,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new DropController());
+    const ctx = makeContext(giver, loc);
     const result = await controller.execute(
       makeModel(
         makeResult([], 'turnips', {
@@ -284,10 +299,16 @@ describe('DropController — quantity-bearing path', () => {
           mode: 'lenient',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't have any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 
   it('distributes a multi-match count across two stacks (apples + oranges shape)', async () => {
