@@ -22,7 +22,7 @@ See also:
 - [docs/subsystems/quantities.md](../subsystems/quantities.md) —
   `Quantity<U>` substrate that backs Bulkable's storage. Read this
   first — bulk's design depends on the quantity machinery.
-- [docs/slates/response-envelope-slate.md](./response-envelope-slate.md)
+- [docs/subsystems/response-envelope.md](../subsystems/response-envelope.md)
   — same notes carry over with measure-typed payloads.
 - [docs/slates/collision-slate.md](./collision-slate.md) — capacity
   in mass/volume terms is where bulk-bearing containers fit naturally.
@@ -374,7 +374,7 @@ You cut a 100g piece of cheese.               (status = ok)
   re-documenting them.
 - [docs/subsystems/quantities.md](../subsystems/quantities.md) —
   the `Quantity<U>` substrate that backs everything here.
-- [docs/slates/response-envelope-slate.md](./response-envelope-slate.md)
+- [docs/subsystems/response-envelope.md](../subsystems/response-envelope.md)
   — note kinds carry over.
 - [docs/slates/collision-slate.md](./collision-slate.md) — capacity
   in mass/volume terms fits naturally.

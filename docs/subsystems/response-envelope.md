@@ -142,6 +142,27 @@ wire contract; no v1 producer):
   lands; v1's empty registry → `AbortReason = never` (harmless,
   no producer).
 
+### Note kind versioning
+
+Kinds are **append-only and per-kind-frozen**. A note's payload
+shape is fixed once shipped — clients pattern-match by kind name and
+rely on every payload field being present in the documented form. If
+a kind's information shape needs to evolve, ship a new kind name
+under which the new shape lives; the two coexist on the wire until
+old producers retire. This keeps wire compatibility manageable
+without a discriminator-version field on every note.
+
+### Note ordering
+
+The `notes` array is emission-ordered: a producer that emits notes
+A then B has them at indices 0 and 1 respectively. No other
+ordering guarantee — clients should treat the list as **semantically
+unordered for rendering** and rely on the note kind + payload shape
+to drive per-note behavior. Cross-note correlation (e.g., a
+`quantity-clamped` and a `target-declined` from the same
+`applyQuantity`) goes through payload fields, not through array
+position.
+
 ### Auto-escalation
 
 `outcome.status` follows the strongest-seen note unless a controller
@@ -256,9 +277,11 @@ those retired in Chunk 5 of the response-envelope build.
 Stable across releases. The detail string is human-prose; the reason
 is machine-pattern-matchable.
 
-Audited v1 reasons live in `docs/plans/response-envelope-audit-manifest.md`
-(retiring once this doc fully supersedes it; see "Retired docs"
-below).
+The v1 reason vocabulary is whatever's grep-able in
+`packages/server/src/mud/obj/command/` and the `LocomotionControllerBase`
+gate names — `git grep "reason: '"` gives the inventory. New
+controllers should reuse existing reasons where the semantics
+match.
 
 ### `controller-error` is the dispatcher's catch — controllers don't try/catch
 
@@ -556,16 +579,19 @@ shipped subsystem:
 - `docs/slates/state-sync-slate.md` — will share the
   `Interactive.nextFrameId` counter for its own ordering primitive
 
-## Retired docs
+## History
 
-- `docs/slates/response-envelope-slate.md` — requirements doc;
-  superseded by this subsystem doc. The slate's "Resolved" section
-  was the design ledger; the load-bearing decisions land in
-  "Architectural decisions" above.
-- `docs/plans/response-envelope-plan.md` — build plan; the build
-  shipped (see the `response` branch's commit history a063ffb /
-  7e7cb1f / cd3abd8 / ae33c30 / 1761be8 for the chunked rollout).
-- `docs/plans/response-envelope-audit-manifest.md` — per-controller
-  migration table; the migration is complete. The reason vocabulary
-  table in Deliverable 2 stays useful as an inventory snapshot for
-  any future code review against reason consistency.
+The slate (requirements), build plan, and per-controller audit
+manifest were deleted once the build shipped — their load-bearing
+content is in this doc and the architectural-decisions section
+above. Git history preserves them for archaeology:
+
+```
+git log --oneline a94be73^..ad984ed -- docs/slates/response-envelope-slate.md
+git log --oneline a94be73^..ad984ed -- docs/plans/response-envelope-plan.md
+git log --oneline a94be73^..ad984ed -- docs/plans/response-envelope-audit-manifest.md
+```
+
+The build itself rolled out in 13 commits on the `response` branch
+between a94be73 and ad984ed; `git log` gives the chunk-by-chunk
+narrative.

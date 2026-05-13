@@ -157,7 +157,7 @@ promoted to formal requirements.
   demands. Shares globbable's substrate (placeDirect, MqlQuantity
   union, distribution algorithm). Central design fork: divisibility
   decomposition (single mixin vs Bulkable + Subdivisible).
-- [docs/slates/response-envelope-slate.md](./slates/response-envelope-slate.md)
+- [docs/subsystems/response-envelope.md](./subsystems/response-envelope.md)
   — structured machine-channel sibling to MML on every server→client
   message. `outcome.status` + typed `notes`. Universal envelope
   shape for dispatch responses, witnesses, activity pushes, prompts.
