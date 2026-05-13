@@ -23,9 +23,7 @@
  *
  * Notes use the canonical `@saxonberg/types` shapes — `applyQuantity`
  * stamps `field` from the caller's opts so glob notes drop into
- * `ctx.note(...)` without re-shaping at the controller. The four
- * kinds re-export here so controllers that already import
- * `QuantityClampedNote` / `TargetDeclinedNote` keep working.
+ * `ctx.note(...)` without re-shaping at the controller.
  *
  * Operational reference: `docs/subsystems/glob.md`. The bulk-form
  * extension story lives in `docs/slates/bulkable-slate.md`.
@@ -54,18 +52,13 @@ import { StuffApi } from './stuff';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
-// ---------------------------------------------------------------------------
-// Note types — re-exported from the canonical wire surface.
-// ---------------------------------------------------------------------------
-
-export type {
-  EmptyResultNote,
-  QuantityClampedNote,
-  QuantityClampedRejectedNote,
-  TargetDeclinedNote,
-};
-
-export type GlobNote =
+/**
+ * The four note kinds `applyQuantity` ever emits. Internal alias —
+ * controllers consume the canonical types directly from
+ * `@saxonberg/types` and forward `result.notes` into
+ * `ctx.note(...)` without naming the kinds individually.
+ */
+type GlobNote =
   | QuantityClampedNote
   | QuantityClampedRejectedNote
   | EmptyResultNote
