@@ -21,8 +21,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -40,10 +39,12 @@ interface CdModel extends CommandModel {
 }
 
 export class CdController extends CommandController<CdModel> {
-  async execute(model: CdModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: CdModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     if (model.mirror) {
       giver.mirrorCwd();
@@ -51,7 +52,7 @@ export class CdController extends CommandController<CdModel> {
         context,
         `\nmirrored: source cwd is now ${giver.getCwd('source')}\n`,
       );
-      return { success: true, summary: 'cwd mirrored' };
+      return;
     }
 
     const tree = giver.pickTree(model);
@@ -65,7 +66,11 @@ export class CdController extends CommandController<CdModel> {
     if (model.mql) {
       const stuff = model.mql.stuff;
       if (!stuff) {
-        return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
+        return this.fail(
+          context,
+          `no match for --mql ${model.mql.raw ?? ''}`,
+          'mql-no-match',
+        );
       }
       // MQL can return either a live clone (read templatePath
       // stamp) or a Template doc (read .path identity field) —
@@ -76,6 +81,7 @@ export class CdController extends CommandController<CdModel> {
         return this.fail(
           context,
           `--mql resolved to a runtime instance with no template path`,
+          'no-template-path',
         );
       }
       target = tp;
@@ -90,7 +96,7 @@ export class CdController extends CommandController<CdModel> {
               );
       } catch (err) {
         if (err instanceof SourceTreeSandboxError) {
-          return this.fail(context, err.message);
+          return this.fail(context, err.message, 'invalid-path');
         }
         throw err;
       }
@@ -100,7 +106,7 @@ export class CdController extends CommandController<CdModel> {
     }
 
     if (target === null) {
-      return this.fail(context, 'no target');
+      return this.fail(context, 'no target', 'missing-target');
     }
 
     if (tree === 'content') {
@@ -108,12 +114,13 @@ export class CdController extends CommandController<CdModel> {
       if (target !== '/') {
         const tpl = await Template.findByPath(target);
         if (!tpl) {
-          return this.fail(context, `no template at ${target}`);
+          return this.fail(context, `no template at ${target}`, 'no-template');
         }
         if (!(await ZoneApi.isFolderClass(tpl.class))) {
           return this.fail(
             context,
             `${target} is a leaf template, not a folder`,
+            'not-a-folder',
           );
         }
       }
@@ -122,7 +129,7 @@ export class CdController extends CommandController<CdModel> {
         home,
       });
       if (!(await SourceTreeApi.isDir(abs))) {
-        return this.fail(context, `${target} is not a directory`);
+        return this.fail(context, `${target} is not a directory`, 'not-a-directory');
       }
     }
 
@@ -138,7 +145,7 @@ export class CdController extends CommandController<CdModel> {
     }
 
     this.tell(context, `\n${target}\n`);
-    return { success: true, summary: target };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -148,8 +155,13 @@ export class CdController extends CommandController<CdModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

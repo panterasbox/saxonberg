@@ -26,8 +26,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -44,7 +43,7 @@ interface EvalModel extends CommandModel {
 }
 
 export class EvalController extends CommandController<EvalModel> {
-  async execute(model: EvalModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: EvalModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
     // Singleton resolution. Keyed by the player's persistent
@@ -118,7 +117,7 @@ export class EvalController extends CommandController<EvalModel> {
         );
       }
     }
-    return { success: true, summary: lastSummary };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -128,9 +127,14 @@ export class EvalController extends CommandController<EvalModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 
   private _formatResult(v: unknown): string {

@@ -11,21 +11,27 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
+import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
 
 interface SayModel extends CommandModel {
   message: string;
 }
 
 export class SayController extends CommandController<SayModel> {
-  execute(model: SayModel, context: CommandContext): CommandResult {
+  execute(model: SayModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
-      return { success: false, summary: 'You cannot speak.' };
+      MessageApi.scene(speaker)
+        .topic(MessageApi.Topics.world.speech.say)
+        .toSelf(Mml.compose`You cannot speak.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });
+      return;
     }
     speaker.say(model.message);
-    return { success: true };
+    return;
   }
 }

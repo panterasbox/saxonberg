@@ -15,8 +15,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -29,7 +28,7 @@ interface DestructModel extends CommandModel {
 }
 
 export class DestructController extends CommandController<DestructModel> {
-  execute(model: DestructModel, context: CommandContext): CommandResult {
+  execute(model: DestructModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
@@ -40,7 +39,7 @@ export class DestructController extends CommandController<DestructModel> {
       const fn = model.force ? StuffApi.forceDestruct : StuffApi.destruct;
       fn(stuff);
       this.tell(context, `\ndestructed ${name} (${stuff.stuffId})\n`);
-      return { success: true, summary: `destructed ${name}` };
+      return;
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
@@ -53,8 +52,13 @@ export class DestructController extends CommandController<DestructModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

@@ -28,8 +28,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -43,17 +42,20 @@ interface LookModel extends CommandModel {
 }
 
 export class LookController extends CommandController<LookModel> {
-  execute(model: LookModel, context: CommandContext): CommandResult {
+  execute(model: LookModel, context: CommandContext): void {
     const target = model.target;
     // `look.yaml` declares `default: "$focus"` and the scope fallback
     // chain `["$focus", "reachable"]`, so the dispatcher always
     // hands us a wrapper. Empty (`null`) is the only honest "no
     // match" signal; we don't fabricate another fallback here.
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target?.raw ?? ''}' here`,
-      };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return;
     }
     // Detail-via dispatch: when MQL's chain narrowed into the host's
     // detail tree, render the detail rather than the host itself.
@@ -90,20 +92,32 @@ export class LookController extends CommandController<LookModel> {
     host: Stuff,
     detailPath: string[],
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     if (!MixinApi.isDetailed(host)) {
-      return {
-        success: false,
-        summary: `you can't make out any detail there`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You can't make out any detail there.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-detail-here',
+        detail: 'host is not Detailed',
+      });
+      return;
     }
     const dotted = detailPath.join('.');
     const description = host.getDetail(dotted);
     if (description === null) {
-      return {
-        success: false,
-        summary: `you can't make out any '${dotted}' there`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You can't make out any '${dotted}' there.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'detail-not-found',
+        detail: dotted,
+      });
+      return;
     }
     const tip = detailPath[detailPath.length - 1]!;
     const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;
@@ -113,10 +127,10 @@ export class LookController extends CommandController<LookModel> {
       .toSelf(body)
       .send();
 
-    return { success: true, summary: `examined ${tip}` };
+    return;
   }
 
-  private lookAtLocation(context: CommandContext): CommandResult {
+  private lookAtLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
     const description = this.getObjectDescription(location);
@@ -137,13 +151,10 @@ export class LookController extends CommandController<LookModel> {
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `examined ${DescribeApi.getDisplayName(location, 'somewhere')}`,
-    };
+    return;
   }
 
-  private lookAtTarget(target: Stuff, context: CommandContext): CommandResult {
+  private lookAtTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
     const description = this.getObjectDescription(target);
     const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(description)}\n`;
@@ -153,10 +164,7 @@ export class LookController extends CommandController<LookModel> {
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `examined ${DescribeApi.getDisplayName(target, 'something')}`,
-    };
+    return;
   }
 
   private getObjectDescription(obj: Stuff): string {

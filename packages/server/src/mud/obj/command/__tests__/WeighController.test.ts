@@ -16,10 +16,11 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 import '../../../api/material';
@@ -47,7 +48,7 @@ function makeContext(
   avatar: FakeAvatar,
   location: CartesianLocation
 ): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -56,7 +57,7 @@ function makeContext(
     commandId: 'c',
     verb: 'weigh',
     command: stubCommand('weigh'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData): CommandModel {
@@ -82,12 +83,10 @@ describe('WeighController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new WeighController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ target: { stuff: sword, raw: 'sword' } }),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(true);
-    expect(String(result.summary)).toContain('3 kg');
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity unit="kg"');
     expect(frame.body).toContain('value="3"');

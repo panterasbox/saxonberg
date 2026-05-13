@@ -155,8 +155,28 @@ a `userFacingDetail`.
 two-step API is "use the convenience instance method by default;
 go through SlotApi when you need the verbose form."
 
+## Wear / wield / mount failure notes
+
+The slot-claiming verbs (`wear`, `wield`, `mount`) emit a
+`slot-occupied { host: StuffRef, slot: string, occupant?: StuffRef }`
+note onto the dispatch context when the required slot is already
+taken. `host` identifies who owns the slot — the actor for `wear` /
+`wield`, the mount target for `mount`. `slot` is the canonical
+body-plan slot name (`'hand:left'`, `'mount:1'`, …). `occupant` is
+the current occupant when known, omitted otherwise.
+
+The note rides through the dispatcher's standard auto-escalation
+(`declined`) — see
+[response-envelope.md § Notes](./response-envelope.md). The
+controller's accompanying `Scene.send` carries the human-readable
+prose; the note is the machine signal for clients that want to
+surface a "your left hand is full (holding the dagger)" affordance
+without re-parsing prose.
+
 ## Cross-references
 
+- [response-envelope.md](./response-envelope.md) — `slot-occupied`
+  note shape; wear / wield / mount audit.
 - [embodiment.md](./embodiment.md) — Wearable / Wieldable, body-side
   affordances.
 - [posture.md](./posture.md) — Postured + Posed + floor adornments.

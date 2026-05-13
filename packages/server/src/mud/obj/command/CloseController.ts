@@ -22,12 +22,10 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sealable } from '../../lib/spatial/Sealable';
@@ -37,17 +35,32 @@ interface CloseModel extends CommandModel {
 }
 
 export class CloseController extends CommandController<CloseModel> {
-  execute(model: CloseModel, context: CommandContext): CommandResult {
+  execute(model: CloseModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
-      return { success: false, summary: 'close what?' };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`Close what?`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'missing-target',
+        detail: 'close what?',
+      });
+      return;
     }
     if (target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target.raw}' here`,
-      };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: target.raw,
+      });
+      return;
     }
 
     // Direct hit (close oak) → target.stuff; direction match
@@ -60,11 +73,29 @@ export class CloseController extends CommandController<CloseModel> {
       (s): s is Stuff & Sealable => MixinApi.isSealable(s),
     );
     if (!sealable) {
-      return { success: false, summary: "can't close that" };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You can't close that.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-sealable',
+        detail: "can't close that",
+      });
+      return;
     }
 
     if (!sealable.getIsOpen()) {
-      return { success: false, summary: 'already closed' };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`It is already closed.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'already-closed',
+        detail: 'already closed',
+      });
+      return;
     }
 
     sealable.close();
@@ -77,9 +108,6 @@ export class CloseController extends CommandController<CloseModel> {
       )
       .send();
 
-    return {
-      success: true,
-      summary: `closed ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
-    };
+    return;
   }
 }

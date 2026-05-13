@@ -24,6 +24,7 @@ import { Mml } from '../api/mml';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
+import type { ConnectionEstablishedPayload } from '@saxonberg/types';
 import type { Interactive } from './Interactive';
 import type { Avatar } from './Avatar';
 
@@ -84,23 +85,25 @@ export class Login extends LoginBase {
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
+    const payload: ConnectionEstablishedPayload = {
+      userId: interactive.getUserId() ?? '',
+      socketId: interactive.getSocketId(),
+      sessionId: interactive.getSessionId(),
+      interactiveStuffId: interactive.stuffId,
+      player: {
+        _id: avatar.getPlayerId(),
+        honorific: avatar.getHonorific(),
+        name: avatar.getName(),
+        surname: avatar.getSurname(),
+        nameSuffix: avatar.getNameSuffix(),
+        alternateNames: avatar.getAlternateNames(),
+        pronouns: avatar.getPronouns(),
+      },
+    };
     MessageApi.scene(avatar)
       .topic(MessageApi.Topics.system.connection.established)
       .toSelf(Mml.compose`Welcome back, ${avatar.getFullName()}!`)
-      .payload({
-        userId: interactive.getUserId(),
-        socketId: interactive.getSocketId(),
-        sessionId: interactive.getSessionId(),
-        player: {
-          _id: avatar.getPlayerId(),
-          honorific: avatar.getHonorific(),
-          name: avatar.getName(),
-          surname: avatar.getSurname(),
-          nameSuffix: avatar.getNameSuffix(),
-          alternateNames: avatar.getAlternateNames(),
-          pronouns: avatar.getPronouns(),
-        },
-      })
+      .payload(payload)
       .send();
 
     this.sendLookDescription(avatar);

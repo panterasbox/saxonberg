@@ -13,8 +13,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -30,7 +29,7 @@ interface ScryModel extends CommandModel {
 }
 
 export class ScryController extends CommandController<ScryModel> {
-  execute(model: ScryModel, context: CommandContext): CommandResult {
+  execute(model: ScryModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -69,7 +68,7 @@ export class ScryController extends CommandController<ScryModel> {
       lines.push('', `(in ${DescribeApi.getDisplayName(env, '?')})`);
     }
     this.tell(context, lines.join('\n') + '\n');
-    return { success: true, summary: `scryed ${name}` };
+    return;
   }
 
   private resolveInstrument(
@@ -108,9 +107,14 @@ export class ScryController extends CommandController<ScryModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }
 

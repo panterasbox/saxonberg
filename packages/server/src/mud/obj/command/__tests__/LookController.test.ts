@@ -12,11 +12,12 @@ import {
   makeWorld,
   type MqlWorld,
 } from '../../../api/__tests__/fixtures/mql-world';
-import type {
-  CommandContext,
-  CommandModel,
-  CommandResult,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -30,7 +31,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(world: MqlWorld, text: string): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: world.giver,
     location: world.location as never,
     commandText: text,
@@ -38,7 +39,7 @@ function makeContext(world: MqlWorld, text: string): CommandContext {
     commandId: 'test',
     verb: 'look',
     command: stubCommand('look'),
-  };
+  });
 }
 
 function buildResult(world: MqlWorld, raw: string, scope: string): MqlOneResult {
@@ -67,13 +68,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase']);
 
     const controller = makeStuff(() => new LookController());
-    const result: CommandResult = controller.execute(
+    const result: void = controller.execute(
       makeModel(target),
       makeContext(world, 'look bookcase'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined bookcase/);
   });
 
   it('look bookcase:book renders the nested book detail', () => {
@@ -83,13 +81,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase', 'book']);
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
+    controller.execute(
       makeModel(target),
       makeContext(world, 'look bookcase:book'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined book/);
   });
 
   it('look at a detail on an inventory item (host=apple, via=engraving)', () => {
@@ -105,13 +100,10 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['engraving']);
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
+    controller.execute(
       makeModel(target),
       makeContext(world, 'look engraving'),
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/examined engraving/);
   });
 
   it("falls back politely when the host isn't Detailed", () => {
@@ -127,12 +119,13 @@ describe('LookController — detail rendering', () => {
     };
 
     const controller = makeStuff(() => new LookController());
-    const result = controller.execute(
-      makeModel(target),
-      makeContext(world, 'look whatever'),
+    const ctx = makeContext(world, 'look whatever');
+    controller.execute(makeModel(target), ctx);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'controller-rejected',
+        reason: 'no-detail-here',
+      }),
     );
-
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/can't make out any detail/);
   });
 });

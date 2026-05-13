@@ -12,8 +12,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -29,10 +28,12 @@ interface AliasModel extends CommandModel {
 }
 
 export class AliasController extends CommandController<AliasModel> {
-  execute(model: AliasModel, context: CommandContext): CommandResult {
+  execute(model: AliasModel, context: CommandContext): void {
     const avatar = context.commandGiver;
     if (!MixinApi.isAlias(avatar)) {
-      return { success: false, summary: 'this character has no aliases' };
+      this.send(context, Mml.fromMarkup('\nthis character has no aliases\n'));
+      context.note({ kind: 'mixin-missing', mixin: 'AliasMixin' });
+      return;
     }
 
     const sub = model.subcommand ?? 'list';
@@ -51,14 +52,14 @@ export class AliasController extends CommandController<AliasModel> {
       case 'describe':
         return this.executeDescribe(avatar, name, context);
       default:
-        return { success: false, summary: `unknown subcommand: ${sub}` };
+        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 
   private executeList(
     avatar: AliasHost,
     context: CommandContext,
-  ): CommandResult {
+  ): void {
     const resolved = avatar.getAliases();
     const overrides = avatar.listOverrides();
     const tombstones = Object.entries(overrides.persistent)
@@ -68,7 +69,7 @@ export class AliasController extends CommandController<AliasModel> {
 
     if (resolved.size === 0 && tombstones.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo aliases.\n`));
-      return { success: true, summary: 'no aliases' };
+      return;
     }
 
     const sortedNames = Array.from(resolved.keys()).sort();
@@ -94,25 +95,22 @@ export class AliasController extends CommandController<AliasModel> {
     }
     lines.push('');
     this.send(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${resolved.size} aliases` };
+    return;
   }
 
   private executeGet(
     avatar: AliasHost,
     name: string | undefined,
     context: CommandContext,
-  ): CommandResult {
-    if (!name) return this.fail(context, 'name required');
+  ): void {
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const entry = avatar.getAlias(name);
-    if (!entry) return this.fail(context, `no such alias: ${name}`);
+    if (!entry) return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     this.send(
       context,
       Mml.fromMarkup(`\n${entry.name} = ${entry.body}    [${entry.source}]\n`),
     );
-    return {
-      success: true,
-      summary: `${entry.name} = ${entry.body}`,
-    };
+    return;
   }
 
   private executeSet(
@@ -121,48 +119,48 @@ export class AliasController extends CommandController<AliasModel> {
     body: string | undefined,
     session: boolean,
     context: CommandContext,
-  ): CommandResult {
-    if (!name) return this.fail(context, 'name required');
+  ): void {
+    if (!name) return this.fail(context, 'name required', 'name-required');
     if (body === undefined || body === '')
-      return this.fail(context, 'body required');
+      return this.fail(context, 'body required', 'body-required');
     try {
       avatar.setAlias(name, body, {
         lifetime: session ? 'session' : 'persistent',
         actor: avatar,
       });
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'set-failed');
     }
     const tier = session ? 'session' : 'persistent';
     this.send(
       context,
       Mml.fromMarkup(`\n${name} set [${tier}].\n`),
     );
-    return { success: true, summary: `${name} set` };
+    return;
   }
 
   private executeUnset(
     avatar: AliasHost,
     name: string | undefined,
     context: CommandContext,
-  ): CommandResult {
-    if (!name) return this.fail(context, 'name required');
+  ): void {
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const removed = avatar.removeAlias(name, avatar);
     if (!removed) {
       return this.fail(context, `no such alias: ${name}`);
     }
     this.send(context, Mml.fromMarkup(`\n${name} cleared.\n`));
-    return { success: true, summary: `${name} cleared` };
+    return;
   }
 
   private executeDescribe(
     avatar: AliasHost,
     name: string | undefined,
     context: CommandContext,
-  ): CommandResult {
-    if (!name) return this.fail(context, 'name required');
+  ): void {
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const entry = avatar.getAlias(name);
-    if (!entry) return this.fail(context, `no such alias: ${name}`);
+    if (!entry) return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     const lines = [
       '',
       entry.name,
@@ -174,12 +172,17 @@ export class AliasController extends CommandController<AliasModel> {
     }
     lines.push('');
     this.send(context, Mml.fromMarkup(lines.join('\n')));
-    return { success: true, summary: `${entry.name}: ${entry.source}` };
+    return;
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.send(context, Mml.fromMarkup(`\n${summary}\n`));
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 
   private send(context: CommandContext, body: Mml): void {

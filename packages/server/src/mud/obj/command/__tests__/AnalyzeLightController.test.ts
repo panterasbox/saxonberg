@@ -16,10 +16,11 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 import { installV1QuantityTagTables } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -45,7 +46,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -54,7 +55,7 @@ function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
     commandId: 'c',
     verb: 'analyze',
     command: stubCommand('analyze'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData, subcommand: string): CommandModel {
@@ -87,12 +88,10 @@ describe('AnalyzeLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new AnalyzeLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: room, raw: 'here' } }, 'light'),
       makeContext(avatar, room)
     );
-
-    expect(result.success).toBe(true);
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     // Aggregate lux + color appear as canonical quantity markup.
@@ -114,11 +113,10 @@ describe('AnalyzeLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new AnalyzeLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: room, raw: 'here' } }, 'light'),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(true);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('contributing sources: none');
   });

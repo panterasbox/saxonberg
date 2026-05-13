@@ -8,8 +8,8 @@
  * peers), there is no "global" command registry.
  *
  * Type surface lives here deliberately: controllers and MQL consumers
- * depend on this file to get `CommandContext`, `CommandResult`, etc., and
- * the view/model/field shapes that describe YAML-declared commands.
+ * depend on this file to get `CommandContext` and the view/model/field
+ * shapes that describe YAML-declared commands.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -27,7 +27,7 @@ import { dirname, isAbsolute, join, resolve as resolvePath } from 'path';
 import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import Ajv, { type ValidateFunction } from 'ajv';
-import type { MessageFrame } from '@saxonberg/types';
+import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import { SecurityApi } from './security';
 import {
   MqlApi,
@@ -110,10 +110,137 @@ export interface CommandContext {
    * Populated by `ShellApi.expandAliases` when the command's verb was
    * resolved through one or more alias hops. Absent when the verb was
    * typed directly. Controllers that branch on alias-vs-direct read
-   * this; everyone else ignores it. The audit log's auto-emit picks
-   * it up onto the structured payload.
+   * this; everyone else ignores it.
    */
   aliasExpansion?: AliasExpansionInfo;
+
+  /**
+   * Accumulate a structured note. Auto-escalates status per the
+   * {@link autoEscalationFor} table unless `setStatus` was already
+   * called explicitly (in which case the explicit value sticks).
+   */
+  note(n: Note): void;
+  /**
+   * Pin the status explicitly. Subsequent `note()` calls will NOT
+   * auto-escalate past the pinned value.
+   */
+  setStatus(s: Status): void;
+  /** Read accumulator state. Returned arrays are snapshot-safe. */
+  getNotes(): readonly Note[];
+  getStatus(): Status;
+}
+
+/**
+ * Constructor args for `CommandApi.createCommandContext`. Pulled out
+ * so the factory's signature and the implementation's constructor
+ * can share one shape definition.
+ */
+export interface CreateCommandContextArgs {
+  commandGiver: Stuff & CommandGiver;
+  location: Stuff & Container;
+  commandText: string;
+  executionId: string;
+  commandId: string;
+  verb: string;
+  command: CommandDefinition;
+  interactive?: Interactive;
+}
+
+/**
+ * Status auto-escalation table. A note of the given kind implies
+ * at least the returned status; the accumulator keeps the
+ * strongest-seen status by rank. Internal — consumed only by
+ * `CommandContextImpl.note`.
+ */
+function autoEscalationFor(kind: Note['kind']): Status | undefined {
+  switch (kind) {
+    case 'quantity-clamped':
+      return 'partial';
+    case 'target-declined':
+      return 'partial';
+    case 'quantity-clamped-rejected':
+      return 'declined';
+    case 'empty-result':
+      return 'declined';
+    case 'controller-rejected':
+      return 'declined';
+    case 'mixin-missing':
+      return 'declined';
+    case 'locomotion-gate-failed':
+      return 'declined';
+    case 'slot-occupied':
+      return 'declined';
+    case 'command-rejected':
+      return 'declined';
+    case 'mql-error':
+      return 'declined';
+    case 'validator-failed':
+      return 'declined';
+    case 'controller-error':
+      return 'error';
+    // match-ambiguous, engagement-*: no escalation
+    default:
+      return undefined;
+  }
+}
+
+const STATUS_RANK: Record<Status, number> = {
+  ok: 0,
+  partial: 1,
+  declined: 2,
+  error: 3,
+};
+
+class CommandContextImpl implements CommandContext {
+  public commandGiver: Stuff & CommandGiver;
+  public location: Stuff & Container;
+  public commandText: string;
+  public executionId: string;
+  public commandId: string;
+  public verb: string;
+  public command: CommandDefinition;
+  public interactive?: Interactive;
+  public aliasExpansion?: AliasExpansionInfo;
+
+  private _notes: Note[] = [];
+  private _status: Status = 'ok';
+  private _statusExplicit = false;
+
+  constructor(args: CreateCommandContextArgs) {
+    this.commandGiver = args.commandGiver;
+    this.location = args.location;
+    this.commandText = args.commandText;
+    this.executionId = args.executionId;
+    this.commandId = args.commandId;
+    this.verb = args.verb;
+    this.command = args.command;
+    if (args.interactive !== undefined) this.interactive = args.interactive;
+  }
+
+  note(n: Note): void {
+    this._notes.push(n);
+    if (this._statusExplicit) return;
+    const implied = autoEscalationFor(n.kind);
+    if (
+      implied !== undefined &&
+      STATUS_RANK[implied] > STATUS_RANK[this._status]
+    ) {
+      this._status = implied;
+    }
+  }
+
+  setStatus(s: Status): void {
+    this._status = s;
+    this._statusExplicit = true;
+  }
+
+  getNotes(): readonly Note[] {
+    return this._notes;
+  }
+
+  getStatus(): Status {
+    return this._status;
+  }
 }
 
 /**
@@ -177,8 +304,9 @@ export interface ParserContext {
  *                 parser. Dispatcher skips match/assemble and runs
  *                 only resolve + execute. Used by NL/LLM parsers
  *                 that decide intent themselves.
- *   - `error`   — input couldn't be parsed; the summary surfaces
- *                 to the actor via the standard auto-emit path.
+ *   - `error`   — input couldn't be parsed; the dispatcher emits a
+ *                 `command-rejected { reason: 'parse-failed' }` note
+ *                 onto the dispatch-response envelope.
  */
 export interface ParseResult {
   parsed?: ParsedCommand;
@@ -233,25 +361,6 @@ export interface CommandContributions {
   inventory?: string[];
   environment?: string[];
   peers?: string[];
-}
-
-/**
- * Command execution result.
- *
- * Purely semantic — `success` answers "did the command achieve its
- * goal?" without coupling to messaging. All prose is fired via Scene
- * inside the controller body. `summary`, when present, decorates the
- * auto-emitted MudlogApi command-outcome entry — the default tail is
- * `'ok'` (success) or `'failed'` (failure).
- *
- * `pass: true` opts the controller out of the dispatch — the chain
- * tries the next match. A passing controller MUST NOT have observable
- * side effects (no Scene firing, no world-state mutation).
- */
-export interface CommandResult {
-  success: boolean;
-  pass?: boolean;
-  summary?: Mml | string;
 }
 
 /**
@@ -789,6 +898,19 @@ export class CommandApi {
    *         or the module's default export isn't a Parser-shaped
    *         object.
    */
+  /**
+   * Construct a fresh `CommandContext` for one dispatch attempt.
+   * The dispatcher mints a per-`_executeOne` context so the
+   * accumulator captures exactly the claiming attempt's notes —
+   * see {@link CommandGiverMixin._runChain}. Tests use this to
+   * drive controllers directly with a synthetic ctx.
+   */
+  static createCommandContext(
+    args: CreateCommandContextArgs,
+  ): CommandContext {
+    return new CommandContextImpl(args);
+  }
+
   static async resolveParser(spec: string): Promise<Parser> {
     const absolutePath = resolveParserSpec(spec);
     const fileUrl = pathToFileURL(absolutePath).href;
@@ -892,9 +1014,11 @@ export class CommandApi {
    * Filter the available command list down to those whose verb
    * matches `verb` (case-insensitive). The input list comes from the
    * giver's recency stack, top-of-stack first; the output preserves
-   * order so chain-of-responsibility dispatch tries the newest match
-   * first. Multiple matches are NOT deduped — that's the job of the
-   * `pass: true` mechanic.
+   * order so the assemble-stage chain-of-responsibility tries the
+   * newest match first. The execute-stage `pass: true` deferral is
+   * gone; same-verb collisions are resolved at the assemble stage
+   * (shape vs bind), or via dynamic contributions on the recency
+   * stack — see `command-routing.md`.
    */
   static matchVerbContextual(
     verb: string,
@@ -1100,9 +1224,10 @@ export class CommandApi {
   /**
    * Run MQL resolution on `type: object` fields and execute
    * validators. On success the resolved model is returned; on
-   * failure the matcher emits a `CommandResult` with the failure
-   * summary and the chain treats it as a stop (this stage NEVER
-   * yields `pass: true` — only `controller.execute` does).
+   * failure the matcher emits a structured note onto the
+   * dispatch context (mql-error / validator-failed) and returns
+   * `{ result: 'failed' }` so the dispatcher can short-circuit
+   * without re-inspecting the context.
    *
    * Reads `command` from `context`; the active subcommand (if any)
    * is read from `model.subcommand`, which the matcher stamped at
@@ -1112,7 +1237,7 @@ export class CommandApi {
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: CommandResult } {
+  ): { resolved: CommandModel } | { result: 'failed' } {
     const command = context.command;
     const subcommand =
       typeof model[SUBCOMMAND_FIELD] === 'string'
@@ -1157,10 +1282,21 @@ export class CommandApi {
       const fieldPrep = prep[fname];
 
       if (def.type === 'objects') {
-        let r: MqlMany = { stuff: [] };
-        for (const scope of tries) {
-          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-          if (r.stuff.length > 0) break;
+        let r: MqlMany;
+        try {
+          r = { stuff: [] };
+          for (const scope of tries) {
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (r.stuff.length > 0) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return { result: 'failed' };
         }
         // Empty results are a normal outcome — pass `[]` through
         // on the wrapper and let the controller decide what
@@ -1178,10 +1314,21 @@ export class CommandApi {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne = { stuff: null };
-        for (const scope of tries) {
-          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-          if (r.stuff !== null) break;
+        let r: MqlOne;
+        try {
+          r = { stuff: null };
+          for (const scope of tries) {
+            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+            if (r.stuff !== null) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return { result: 'failed' };
         }
         // `null` (empty) is a normal outcome — pass it through on
         // the wrapper and let the controller decide what no-match
@@ -1223,10 +1370,21 @@ export class CommandApi {
       );
 
       if (def.type === 'objects') {
-        let r: MqlMany = { stuff: [] };
-        for (const scope of tries) {
-          r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-          if (r.stuff.length > 0) break;
+        let r: MqlMany;
+        try {
+          r = { stuff: [] };
+          for (const scope of tries) {
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (r.stuff.length > 0) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return { result: 'failed' };
         }
         const bound: MqlManyResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1236,10 +1394,21 @@ export class CommandApi {
           focused.getPronounMemory().update(r, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne = { stuff: null };
-        for (const scope of tries) {
-          r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-          if (r.stuff !== null) break;
+        let r: MqlOne;
+        try {
+          r = { stuff: null };
+          for (const scope of tries) {
+            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+            if (r.stuff !== null) break;
+          }
+        } catch (err) {
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return { result: 'failed' };
         }
         const bound: MqlOneResult = { stuff: r.stuff, raw };
         if (r.via) bound.via = r.via;
@@ -1259,35 +1428,74 @@ export class CommandApi {
     if (command._resolvedValidators) {
       for (const v of command._resolvedValidators) {
         const err = v(context);
-        if (err) return { result: { success: false, summary: err } };
+        if (err) {
+          context.note({
+            kind: 'validator-failed',
+            validator: 'verb',
+            detail: err,
+          });
+          return { result: 'failed' };
+        }
       }
     }
 
     // Field validators.
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const err = runValidators(def._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'field',
+          detail: err,
+        });
+        return { result: 'failed' };
+      }
     }
 
     // Verb-option validators.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'option',
+          detail: err,
+        });
+        return { result: 'failed' };
+      }
     }
     // Payload-field validators — same shape as options (payload is
     // option-shaped at the matcher level).
     for (const [name, opt] of Object.entries(command.payload)) {
       const fname = opt.field ?? name;
       const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-      if (err) return { result: { success: false, summary: err } };
+      if (err) {
+        context.note({
+          kind: 'validator-failed',
+          field: fname,
+          validator: 'payload',
+          detail: err,
+        });
+        return { result: 'failed' };
+      }
     }
     if (subcommand) {
       const subOpts = command.getSubcommand(subcommand)?.options ?? {};
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
         const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
-        if (err) return { result: { success: false, summary: err } };
+        if (err) {
+          context.note({
+            kind: 'validator-failed',
+            field: fname,
+            validator: `subcommand:${subcommand}`,
+            detail: err,
+          });
+          return { result: 'failed' };
+        }
       }
     }
 
@@ -1354,7 +1562,7 @@ export class CommandApi {
     giver: Stuff & CommandGiver,
     text: string,
     opts: ExecuteCommandOpts = {}
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     return giver.executeCommand(text, { ...opts, forced: true });
   }
 

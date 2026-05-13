@@ -14,8 +14,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -32,10 +31,12 @@ interface GrepModel extends CommandModel {
 }
 
 export class GrepController extends CommandController<GrepModel> {
-  async execute(model: GrepModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: GrepModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     if (!model.pattern) {
       return this.fail(context, 'grep needs a <pattern>');
@@ -75,10 +76,10 @@ export class GrepController extends CommandController<GrepModel> {
 
     if (lines.length === 0) {
       this.tell(context, `\n(no matches)\n`);
-      return { success: true, summary: 'no matches' };
+      return;
     }
     this.tell(context, `\n${lines.join('\n')}\n`);
-    return { success: true, summary: `${lines.length} matches` };
+    return;
   }
 
   private async grepTemplates(
@@ -139,9 +140,14 @@ export class GrepController extends CommandController<GrepModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 
   private _stringifyData(data: Record<string, unknown>): string {

@@ -15,8 +15,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -35,10 +34,12 @@ interface CatModel extends CommandModel {
 }
 
 export class CatController extends CommandController<CatModel> {
-  async execute(model: CatModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: CatModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     const tree = giver.pickTree(model);
     const home = giver.getHome();
@@ -92,7 +93,7 @@ export class CatController extends CommandController<CatModel> {
   private async catTemplate(
     context: CommandContext,
     path: string,
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const tpl = await Template.findByPath(path);
     if (!tpl) return this.fail(context, `no template at ${path}`);
     const isFolder = await ZoneApi.isFolderClass(tpl.class);
@@ -101,7 +102,7 @@ export class CatController extends CommandController<CatModel> {
         context,
         `\n${path} is a folder (${tpl.class}); use \`ls ${path}\` to view children.\n`,
       );
-      return { success: true, summary: 'folder' };
+      return;
     }
     const lines = [
       `path:          ${tpl.path}`,
@@ -115,7 +116,7 @@ export class CatController extends CommandController<CatModel> {
       lines.push(`  ${k}: ${this._formatValue(v)}`);
     }
     this.tell(context, `\n${lines.join('\n')}\n`);
-    return { success: true, summary: tpl.path };
+    return;
   }
 
   private async catCode(
@@ -123,7 +124,7 @@ export class CatController extends CommandController<CatModel> {
     giver: Stuff & Workspace,
     displayPath: string,
     pageSize: number,
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const abs = SourceTreeApi.resolvePath(
       giver.getCwd('source'),
       displayPath,
@@ -140,13 +141,6 @@ export class CatController extends CommandController<CatModel> {
     const footer =
       remaining > 0 ? `\n\n(truncated, ${remaining} more lines)` : '';
     this.tell(context, `\n${shown}${footer}\n`);
-    return {
-      success: true,
-      summary:
-        remaining > 0
-          ? `${displayPath} (${cap}/${allLines.length} lines)`
-          : displayPath,
-    };
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -156,9 +150,14 @@ export class CatController extends CommandController<CatModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 
   private _formatValue(v: unknown): string {

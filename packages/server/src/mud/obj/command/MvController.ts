@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -27,10 +26,12 @@ interface MvModel extends CommandModel {
 }
 
 export class MvController extends CommandController<MvModel> {
-  async execute(model: MvModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: MvModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     if (!model.src || !model.dst) {
       return this.fail(context, 'mv needs <src> and <dst>');
@@ -56,7 +57,7 @@ export class MvController extends CommandController<MvModel> {
         return this.fail(context, (err as Error).message);
       }
       this.tell(context, `\nmoved ${src} → ${dst}\n`);
-      return { success: true, summary: `${src} → ${dst}` };
+      return;
     }
 
     let absSrc: string, absDst: string;
@@ -74,7 +75,7 @@ export class MvController extends CommandController<MvModel> {
       context,
       `\nmoved ${SourceTreeApi.toDisplayPath(absSrc)} → ${SourceTreeApi.toDisplayPath(absDst)}\n`,
     );
-    return { success: true };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -84,8 +85,13 @@ export class MvController extends CommandController<MvModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

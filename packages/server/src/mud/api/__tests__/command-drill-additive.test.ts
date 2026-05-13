@@ -12,7 +12,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CommandApi, type CommandContext } from '../command';
+import {
+  CommandApi,
+  type CommandContext,
+} from '../command';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
 import { Idea } from '../../lib/stuff/Idea';
@@ -98,7 +101,7 @@ function makeContext(
   command: CommandDefinition,
   text: string
 ): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -107,7 +110,7 @@ function makeContext(
     commandId: 'test-cmd',
     verb: command.getPrimaryVerb(),
     command,
-  };
+  });
 }
 
 describe('Drill-additive focus (extend mode)', () => {

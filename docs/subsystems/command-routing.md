@@ -12,8 +12,10 @@ environment, peer CommandGivers — can contribute commands. The
 contributions ride on a per-giver **recency stack** maintained by
 `CommandGiverMixin`; `ContainmentApi.move` and `ShadowApi.attach` /
 `detach` push and pop entries as the world changes. Dispatch walks the
-stack newest-first, filters by verb, and runs a chain-of-responsibility:
-each match's controller can return `pass: true` to defer to the next.
+stack newest-first, filters by verb, and resolves same-verb collisions
+at the assemble stage (shape vs bind) — see "Dynamic contributions"
+below for the runtime-decline pattern that replaces the retired
+`pass: true` chain-of-responsibility.
 
 For tokenization, parser pluggability, and the `msh` shell, see
 [command-parsing.md](./command-parsing.md).
@@ -21,8 +23,10 @@ For tokenization, parser pluggability, and the `msh` shell, see
 The shape lives in:
 
 - `packages/server/src/mud/api/command.ts` — `CommandApi`,
-  `CommandContext`, `CommandResult`, `CommandModel`, the YAML view
-  types, validator path resolver, recency-stack orchestration helpers.
+  `CommandContext` (incl. the accumulator factory
+  `createCommandContext`), `CommandModel`, the YAML view types,
+  validator path resolver, recency-stack orchestration helpers,
+  auto-escalation table.
 - `packages/server/src/mud/lib/command/CommandGiver.ts` — the
   `CommandGiverMixin` (per-giver recency stack and `executeCommand`
   dispatch loop).
@@ -68,28 +72,32 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     when an alias fires) — see shell-alias.md. Skipped on the bound
    │     branch (LLM parsers chose the verb directly).
    │
+   ├─ emit input echo MessageFrame at system.log.command.{info|warn}
+   │     (payload kind: 'issued'; see messaging.md)
+   │
    ├─ if ParseResult.parsed: _runChain
    │     CommandApi.matchVerbContextual(verb, available)  → CommandDefinition[]
    │     for each match (newest first):
-   │       CommandApi.assemble(parsed, command)           → ModelData | error
-   │       on shape error → continue (try next match)
-   │       on bind error  → stop (return summary)
-   │       CommandApi.resolveAndValidate(model, ctx)      → MQL + validators
+   │       ctx = CommandApi.createCommandContext({ ... })  ← fresh per attempt
+   │       CommandApi.assemble(parsed, command)            → ModelData | error
+   │       on shape error → discard ctx; continue (try next match)
+   │       on bind error  → emit command-rejected note on outer ctx; stop
+   │       CommandApi.resolveAndValidate(model, ctx)       → MQL + validators
    │       _executeOne:
    │         StuffApi.clone('/obj/command/' + cmd.controller)
-   │         await controller.execute(model, ctx)
+   │         await controller.execute(model, ctx)          ← returns void
    │         StuffApi.destruct(controller)
-   │         on `pass: true` → continue; else return result
+   │         (controller-error caught by outer try/catch → controller-error note)
    │
    ├─ if ParseResult.bound: skip parse + match,
    │     run resolveAndValidate + _executeOne directly.
    │
    ▼
-result: CommandResult { success, summary?, pass? }
+dispatcher reads accumulator on the claiming ctx
    │
    ▼
-auto-emit MudlogApi.{info|warn}('command', `${verb}: ${tail}`, { to: giver })
-   tail = result.summary ?? (success ? 'ok' : 'failed')
+MessageApi.sendEnvelope(actor, { type: 'dispatch-response', dispatchId,
+                                  outcome: { status, notes } })
 ```
 
 The MVC mapping inside that pipeline:
@@ -98,7 +106,7 @@ The MVC mapping inside that pipeline:
 |---|---|---|
 | **View** | YAML file declaring verbs, args, options, subcommands | `mud/cmd/*.yaml` |
 | **Model** | `CommandModel` — `Record<string, FieldValue \| undefined> & { subcommand? }` | runtime only |
-| **Controller** | `CommandController<T>` subclass extending `Idea` | `mud/obj/command/*Controller.ts` |
+| **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/obj/command/*Controller.ts` |
 
 Controllers are templated `Idea` Stuff. Each controller file has a
 matching seed YAML at `mud/seeds/obj/command/<Name>.yaml` so
@@ -113,13 +121,14 @@ commands; the destruct keeps `StuffApi`'s indexes from accumulating.
 
 ### `CommandContext`
 
-The read-only reference bundle threaded through the pipeline. The
-giver, location, and ids are populated up-front by
-`CommandGiverMixin.executeCommand`; `verb` and `command` are
-overwritten once the matcher binds.
+The **request context** threaded through the pipeline: both the
+read-only data bundle controllers and validators inspect AND the
+accumulator they emit signals onto. One interface; the methods are
+the contract.
 
 ```ts
 interface CommandContext {
+  // Data (populated by the dispatcher before execute()):
   commandGiver: Stuff & CommandGiver;
   interactive?: Interactive;        // optional — cascaded/NPC commands omit
   location: Location;
@@ -128,8 +137,26 @@ interface CommandContext {
   commandId: string;                // attribution id (frame metadata)
   verb: string;                     // populated by matcher
   command: CommandDefinition;       // populated by matcher
+  aliasExpansion?: AliasExpansionInfo;
+
+  // Accumulator:
+  note(n: Note): void;              // append a note; auto-escalates status
+  setStatus(s: Status): void;       // pin status explicitly
+  getNotes(): readonly Note[];      // dispatcher reads after execute()
+  getStatus(): Status;              // current escalated/pinned status
 }
 ```
+
+Construction is via `CommandApi.createCommandContext({ ... })` — the
+factory hides the accumulator state behind a private impl class so
+tests and production code share one shape.
+
+**Lifetime: per-`_executeOne` attempt.** `_runChain` mints a fresh
+context for each assemble-stage match; only the claiming attempt's
+context becomes the dispatch-response envelope. Shape-fall-through
+attempts are discarded along with their (untouched) contexts.
+Pre-match failures (unknown verb, parse error, bind error) report on
+the outer ctx.
 
 `commandGiver` is typed as `Stuff & CommandGiver` rather than
 `Avatar`. Controllers narrow with `MixinApi.isX(obj)` predicates when
@@ -138,10 +165,26 @@ NPC issuing commands programmatically or a future "disembodied
 executor."
 
 `executionId` and `commandId` are both `nanoid()`s but serve different
-roles. `executionId` rides on the auto-emit's payload so log consumers
+roles. `executionId` rides on the input echo's payload so log consumers
 can correlate diagnostics back to one keystroke. `commandId` rides on
-every frame composed during the synchronous span of the call; see
-[call-security.md § Command Attribution](./call-security.md).
+every frame composed during the synchronous span of the call AND
+becomes the `dispatchId` on the response envelope; see
+[call-security.md § Command Attribution](./call-security.md) and
+[response-envelope.md](./response-envelope.md).
+
+The four accumulator methods:
+
+- `note(n: Note)` — append a typed note to the dispatch's outcome.
+  Each `Note` is one of the 16 v1 kinds (see
+  [response-envelope.md § Notes](./response-envelope.md)); status
+  auto-escalates by the strongest-seen rank unless `setStatus` pinned
+  a value.
+- `setStatus(s: Status)` — pin `'ok' | 'partial' | 'declined' |
+  'error'` explicitly. Subsequent notes still accumulate but won't
+  override the pinned value. Rare — auto-escalation is usually right.
+- `getNotes()` / `getStatus()` — accessors the dispatcher uses after
+  `execute()` returns to assemble the envelope. Controllers don't
+  typically read these themselves.
 
 ### `CommandModel`
 
@@ -167,7 +210,7 @@ interface DropModel extends CommandModel {
 }
 
 class DropController extends CommandController<DropModel> {
-  execute(model: DropModel, ctx: CommandContext): CommandResult {
+  execute(model: DropModel, ctx: CommandContext): void {
     for (const target of model.targets) { /* ... */ }
   }
 }
@@ -178,24 +221,37 @@ are present, and that `type: object` fields arrive as `Stuff` (or
 `Stuff[]` for `multiple: true`) — MQL resolution and zero-hits failure
 both happen in `resolveAndValidate` before the controller fires.
 
-### `CommandResult`
+### Pre-controller failure paths
 
-Purely semantic. Prose lives in Scenes the controller fires; the
-result decorates the auto-emit:
+The dispatcher emits structured notes for every failure path before
+the controller's `execute()` runs. The five `command-rejected`
+reasons:
 
-```ts
-interface CommandResult {
-  success: boolean;
-  pass?: boolean;       // chain-of-responsibility: defer to next match
-  summary?: Mml | string;
-}
-```
+| Reason                | Emitted at                                                       | ctx       |
+|-----------------------|------------------------------------------------------------------|-----------|
+| `parse-failed`        | `executeCommand` parse-error branch                              | outer     |
+| `unknown-verb`        | `_runChain` empty match list                                     | outer     |
+| `shape-fall-through`  | `_runChain` after every match's `assemble` returned a shape error | outer     |
+| `bind-failed`         | `_runChain` on assemble's bind error                             | outer     |
+| `missing-subcommand`  | `_executeOne` when a subcommand was needed but absent            | attempt   |
 
-`success` answers "did the command achieve its goal?" `summary`, when
-present, replaces the auto-emit tail (`'ok'` for success, `'failed'`
-for failure). `pass: true` opts the controller out — the dispatcher
-tries the next match. A passing controller must not have observable
-side effects.
+Plus two pre-execute kinds from `resolveAndValidate`:
+
+- `mql-error { field, stage, detail }` — wraps MQL resolve calls; on
+  throw the dispatcher emits the note and short-circuits the
+  dispatch. `stage` is `'desugar' | 'lex' | 'parse' | 'resolve'`.
+- `validator-failed { field?, validator, detail }` — every time a
+  validator returns a string. The `validator` label is the scope
+  (`'verb'` / `'field'` / `'option'` / `'payload'` / `'subcommand:X'`).
+
+Controller exceptions are caught by the dispatcher's outer try/catch
+around `_executeOne` and emitted as
+`controller-error { controller, detail }`. Controllers don't need
+their own try/catch for this — they're free to throw on programmatic-
+contract violations.
+
+Full note shapes and the auto-escalation table live in
+[response-envelope.md](./response-envelope.md).
 
 ### `CommandContributions`
 
@@ -372,19 +428,23 @@ type AssembleResult =
 3. Subcommand-scoped options + remaining positionals.
 4. Positional binding against the active `args:` array.
 
-**Shape vs bind is the chain-of-responsibility hinge.** A `shape`
-error means "this YAML's grammar didn't fit" (pattern mismatch,
-missing required positional, unknown subcommand, leftover positionals)
-— the dispatcher falls through to the next match. A `bind` error
-means "user typed something that fits the shape but not the spec"
-(unknown option at scope, malformed option value, repeated non-multi
-option, boolean given a value) — the chain stops and the user sees
-the error. The split is what lets a room override a verb without
-breaking the original: if the user's input doesn't fit the override's
-shape, the chain naturally finds the original; if it fits the
-override's shape but the override has a real binding problem, the
-user gets a real error rather than silently re-binding against
-something else.
+**Shape vs bind is the chain-of-responsibility hinge.** The assemble
+stage is now the *only* chain-of-responsibility tier — the
+execute-stage `pass: true` retired with the response-envelope
+landing. A `shape` error means "this YAML's grammar didn't fit"
+(pattern mismatch, missing required positional, unknown subcommand,
+leftover positionals) — the dispatcher falls through to the next
+match. A `bind` error means "user typed something that fits the shape
+but not the spec" (unknown option at scope, malformed option value,
+repeated non-multi option, boolean given a value) — the chain stops
+and the user sees the error (emitted as a `command-rejected
+{ reason: 'bind-failed' }` note). The split is what lets a room
+override a verb without breaking the original: if the user's input
+doesn't fit the override's shape, the chain naturally finds the
+original; if it fits the override's shape but the override has a real
+binding problem, the user gets a real error rather than silently
+re-binding against something else. Runtime-decline cases (the Throne
+example) ride on **dynamic contributions** instead — see Stage 5.
 
 The `args:` array is ordered: index 0 is positional slot 0, index 1
 is slot 1, etc. Each arg carries its own `name`, so YAML-formatter
@@ -504,8 +564,22 @@ surface. Embodiment verbs use this for the no-arg posture forms
 (`sit` becomes `sit ground`); see [posture.md](./posture.md).
 
 The first validator to return a non-undefined string fails the command
-with that summary. On success, the dispatcher hands the resolved
-model to `_executeOne`.
+and emits a `validator-failed { field?, validator, detail }` note on
+the outer ctx (the `validator` label is the scope — `'verb'` /
+`'field'` / `'option'` / `'payload'` / `'subcommand:X'`). On success,
+the dispatcher hands the resolved model to `_executeOne`.
+
+Validators MAY also call `ctx.note(...)` with richer kinds
+(`controller-rejected { reason: 'cant-afford' }`,
+`controller-rejected { reason: 'on-cooldown' }`, etc.) *in addition*
+to returning a string — the dispatcher's `validator-failed` rides
+alongside as the framework-tier fallback. Generic framework
+validators (`mustBeContainable`, `mustBeVisible`, `canReach`,
+`mustBeNumber`, `notEmpty`) stay note-silent; specialized domain
+validators (`canAfford`, `notOnCooldown`, etc.) opt into the richer
+signal. Validators may also emit informational notes without
+returning a string. See
+[response-envelope.md § Pre-controller failure paths](./response-envelope.md).
 
 Validators are file-based modules that default-export a
 `FieldValidator` function. YAML references them by path:
@@ -555,73 +629,59 @@ Controllers do three things:
 2. **Fire prose** via `MessageApi.scene(actor).topic(…)
    .to{Self,Peers,Witnesses,Target}(body).send()`. See
    [messaging.md](./messaging.md) for the Scene composer.
-3. **Return `CommandResult`.**
+3. **Emit notes via `ctx.note(...)`** for structured outcome signal
+   on the dispatch-response envelope.
+
+`execute()` returns `void`. There is no `CommandResult`, no
+`success: boolean`, no `summary` — those retired. The dispatcher
+reads `ctx.getNotes()` / `ctx.getStatus()` after the call returns
+and assembles the envelope. The canonical failure pattern is
+**Scene.send + ctx.note** at every failure site — prose for the
+player to read, note for the structured channel.
 
 ```ts
 interface DropModel extends CommandModel { targets: Stuff[] }
 
 class DropController extends CommandController<DropModel> {
-  execute(model: DropModel, ctx: CommandContext): CommandResult {
-    let dropped: Stuff[] = [];
-    for (const target of model.targets) {
-      if (this.dropOne(target, ctx)) dropped.push(target);
-    }
-    if (dropped.length === 0) return { success: false, summary: 'nothing dropped' };
-    return { success: true, summary: dropped.map(d => d.getName()).join(', ') };
+  execute(model: DropModel, ctx: CommandContext): void {
+    for (const target of model.targets) { this.dropOne(target, ctx); }
+    // No return value. Failure prose + ctx.note(...) ride through
+    // the Scene channel and the envelope channel respectively.
   }
 }
 ```
 
-Throws inside the controller bubble out and get caught at
-`_executeOne`'s boundary — caught throws turn into
-`{ success: false, summary: error.message }`.
+Throws bubble out and are caught at `_executeOne`'s outer try/catch,
+which emits a uniform `controller-error { controller, detail }` note.
+Controllers don't need to wrap throwing primitives (e.g.
+`SlotApi.occupyAll`) themselves — throwing is the right shape for
+programmatic-contract violations.
 
-Returning `{ success: false, pass: true }` defers to the next match.
-The Throne example: a Throne in the room contributes `sit.yaml` under
-`environment`. The avatar's own `sit.yaml` (from a hypothetical
-`SitterMixin` on Avatar) is on `self`. Newest-first order puts the
-Throne first; `ThroneSitController` claims (success). If the Throne
-refuses with `pass: true` (by design — "you can't sit on this throne,
-it's already taken"), the avatar's intrinsic `sit` runs next.
+### Dynamic contributions (the retired `pass: true` replacement)
 
-A passing controller MUST NOT have observable side effects: no
-`Scene.send()`, no world-state mutation. The pre-execute resolve/
-validate stage **does** run for the passing controller — that's how
-a controller can decide it's not applicable based on resolved object
-state.
+The execute-stage chain-of-responsibility (`pass: true`) is gone.
+Same-verb collisions now resolve at the **assemble stage** (shape vs
+bind — see Stage 3) or via **dynamic contributions** on the recency
+stack: contributors push/pop their YAML based on world state so that
+the stack at dispatch time already reflects who's eligible.
 
-## Stage 6 — Auto-emit
+The Throne illustrates the pattern:
 
-After the controller returns (or the pipeline fails earlier),
-`executeCommand` emits one MudlogApi entry summarizing the outcome.
-This is what the player reads in the console for "command done"
-feedback:
+- **Old (retired)**: Throne always contributed `sit.yaml` on its
+  `environment` bucket. When occupied, `ThroneSitController` returned
+  `pass: true`; the dispatcher walked to the avatar's intrinsic `sit`
+  next.
+- **New**: Throne pushes its `sit.yaml` contribution onto its
+  environment-bucket recency entry *only when unoccupied*; pops the
+  contribution when occupied. With the throne occupied, the recency
+  stack contains only the avatar's intrinsic `sit`, which runs
+  directly. State transitions push/pop the contribution via
+  `CommandApi.applyContainmentDelta` / `applyShadowDelta`.
 
-```ts
-const tail = result.summary ?? (result.success ? 'ok' : 'failed');
-const level: LogLevel = result.success ? 'info' : 'warn';
-MudlogApi[level]('command', Mml.compose`${verb}: ${tail}`, {
-  to: giver as Stuff & Sensor,
-  payload: { verb, success, commandText, executionId },
-});
-```
-
-The frame's topic is `system.log.command.info` /
-`system.log.command.warn`. The body is `${verb}: ${tail}` — short by
-design. The payload carries the structured details for log consumers;
-the body is the human-readable face.
-
-The recipient is the giver, but only if it's a `Sensor`. A
-disembodied executor that isn't a Sensor is a coherent case; the
-auto-emit is skipped silently. The downstream effect is still visible
-— the controller's own `Scene.send()` calls already delivered any
-prose.
-
-The auto-emit is the framework's contract for "ok / not-ok." A
-controller wanting different wording overrides via `summary`. A
-controller wanting no extra surface (e.g. one whose prose already
-conveys success) returns `summary: ''` — usually it's simpler to let
-`'ok'` ride.
+Dispatchability is decided at the discovery layer rather than
+after-the-fact at the controller. Each controller is unconditionally
+responsible for its match; `help` output and the verb actually
+dispatched stay in lockstep.
 
 ## YAML view shape
 
@@ -768,22 +828,25 @@ validators. None of it needs runtime control flow. YAML keeps it data:
   same as Avatar templates) is mechanical: read a string field,
   parse, cache.
 
-### Why CommandResult is purely semantic
+### Why outcome flows through the ctx accumulator (and not a return value)
 
-Earlier sketches had `CommandResult` carry the prose to render on the
-client. That coupled controllers to the messaging layer's wire shape
-and made multi-audience commands awkward (`say` produces different
-prose for the speaker, the room, and a remote listener). The shipped
-position:
+Earlier sketches had a `CommandResult` return value carrying
+`success` / `summary` / `pass`. The shipped position separates the
+two channels entirely:
 
-- Prose is a Scene, fired inside the controller via `MessageApi`.
+- **Prose** is a Scene, fired inside the controller via `MessageApi`.
   Scenes know how to address self / peers / witnesses / target; one
   `Scene.send()` produces the right per-audience frames.
-- `CommandResult` answers the *semantic* question: was the goal met?
-  The auto-emit then stamps a single short summary frame for the
-  giver only — the "ok / failed" tail.
+- **Structured outcome** lives on the `CommandContext` accumulator
+  (`ctx.note(...)`, `ctx.getStatus()`) and is assembled by the
+  dispatcher into the `dispatch-response` envelope after `execute()`
+  returns.
 
-Two separate signals, neither overloaded.
+Two separate channels, neither overloaded. `execute()` returns
+`void` because there is no single right return shape — the wire
+already has dedicated places for prose and for outcome. See
+[response-envelope.md](./response-envelope.md) for the envelope
+shape and note kinds.
 
 ### Why discovery is a per-giver recency stack
 
@@ -801,9 +864,11 @@ The two layers stack: discovery filters out verbs the giver has no
 business issuing; controllers handle situation-specific "can't right
 now" cases.
 
-The chain-of-responsibility (`pass: true`) is the override mechanic:
-two contributors of the same verb run in recency order; either claims
-or passes.
+Same-verb collisions resolve at the **assemble stage** (shape vs
+bind — see Stage 3) or via **dynamic contributions** that push/pop a
+contribution based on world state. The execute-stage `pass: true`
+chain-of-responsibility retired with the response-envelope landing;
+see Stage 5 § Dynamic contributions.
 
 ### Why validators are file-based, not registered
 
@@ -834,6 +899,9 @@ from accumulating ephemeral entries.
 
 - [command-parsing.md](./command-parsing.md) — tokenization, parser
   pluggability, `RawToken`, `format()` round-trip, the `msh` shell.
+- [response-envelope.md](./response-envelope.md) — dispatch-response
+  envelope shape, note kinds, auto-escalation table, the
+  `CommandContext` accumulator surface from the consumer side.
 - [call-security.md § Command Attribution](./call-security.md) —
   `FrameKind.Command`, `commandId`, `causingCommandId`,
   `getCurrentCommandGiver`, `getCurrentCommandContext`,

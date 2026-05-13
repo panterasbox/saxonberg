@@ -385,13 +385,14 @@ describe('GlobbableApi.applyQuantity', () => {
     const result = await GlobbableApi.applyQuantity(
       [],
       { value: { kind: 'count', n: 3 }, mode: 'lenient' },
-      async () => ({ ok: true, payload: null })
+      async () => ({ ok: true, payload: null }),
+      { field: "test" }
     );
     expect(result.ok).toBe(false);
     expect(result.applied).toBe(0);
     expect(result.status).toBe('declined');
     expect(result.notes).toEqual([
-      { kind: 'empty-result', query: '', reason: 'no-matches' },
+      { kind: 'empty-result', field: 'test', query: '' },
     ]);
   });
 
@@ -405,13 +406,15 @@ describe('GlobbableApi.applyQuantity', () => {
       async (_op, n) => {
         calls.push(n);
         return { ok: true, payload: null };
-      }
+      },
+      { field: 'test' }
     );
     expect(result.ok).toBe(false);
     expect(result.applied).toBe(0);
     expect(result.status).toBe('declined');
     expect(result.notes).toContainEqual({
       kind: 'quantity-clamped-rejected',
+      field: 'test',
       requested: 10,
       available: 5,
     });
@@ -427,7 +430,8 @@ describe('GlobbableApi.applyQuantity', () => {
       GlobbableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 3 }, mode: 'strict' },
-        async () => ({ ok: true, payload: 'acted' })
+        async () => ({ ok: true, payload: 'acted' }),
+        { field: "test" }
       )
     );
     expect(result.ok).toBe(true);
@@ -446,7 +450,8 @@ describe('GlobbableApi.applyQuantity', () => {
       GlobbableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 10 }, mode: 'lenient' },
-        async () => ({ ok: true, payload: null })
+        async () => ({ ok: true, payload: null }),
+        { field: "test" }
       )
     );
     expect(result.ok).toBe(true);
@@ -454,6 +459,7 @@ describe('GlobbableApi.applyQuantity', () => {
     expect(result.status).toBe('partial');
     expect(result.notes).toContainEqual({
       kind: 'quantity-clamped',
+      field: 'test',
       requested: 10,
       applied: 4,
     });
@@ -474,7 +480,8 @@ describe('GlobbableApi.applyQuantity', () => {
         async (_op, n) => {
           actions.push(n);
           return { ok: true, payload: n };
-        }
+        },
+        { field: 'test' }
       )
     );
     expect(result.applied).toBe(3);
@@ -500,7 +507,8 @@ describe('GlobbableApi.applyQuantity', () => {
       GlobbableApi.applyQuantity(
         [singleton, stack],
         { value: { kind: 'count', n: 3 }, mode: 'lenient' },
-        async (op, n) => ({ ok: true, payload: { op, n } })
+        async (op, n) => ({ ok: true, payload: { op, n } }),
+        { field: 'test' }
       )
     );
     // Singleton contributes 1, stack contributes the remaining 2.
@@ -523,7 +531,8 @@ describe('GlobbableApi.applyQuantity', () => {
         async (_op, n) => {
           ns.push(n);
           return { ok: true, payload: null };
-        }
+        },
+        { field: 'test' }
       )
     );
     expect(result.applied).toBe(7);
@@ -540,17 +549,20 @@ describe('GlobbableApi.applyQuantity', () => {
       GlobbableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 3 }, mode: 'lenient' },
-        async () => ({ ok: false, reason: 'cursed' })
+        async () => ({ ok: false, reason: 'cursed' }),
+        { field: "test" }
       )
     );
     expect(result.applied).toBe(0);
     expect(result.status).toBe('declined');
     expect(a.getQuantity()).toBe(10); // reglob restored
-    expect(result.notes).toContainEqual({
-      kind: 'target-declined',
-      target: a,
-      reason: 'cursed',
-    });
+    expect(result.notes).toContainEqual(
+      expect.objectContaining({
+        kind: 'target-declined',
+        target: expect.objectContaining({ stuffId: a.stuffId }),
+        reason: 'cursed',
+      }),
+    );
   });
 
   it('action ok:false on some + supply OK → partial + targetDeclined only', async () => {
@@ -571,7 +583,8 @@ describe('GlobbableApi.applyQuantity', () => {
           return calls === 1
             ? { ok: false, reason: 'cursed' }
             : { ok: true, payload: null };
-        }
+        },
+        { field: 'test' }
       )
     );
     expect(result.applied).toBe(4);
@@ -599,7 +612,8 @@ describe('GlobbableApi.applyQuantity', () => {
           return calls === 1
             ? { ok: false, reason: 'cursed' }
             : { ok: true, payload: null };
-        }
+        },
+        { field: 'test' }
       )
     );
     expect(result.applied).toBe(3);
@@ -619,7 +633,8 @@ describe('GlobbableApi.applyQuantity', () => {
       GlobbableApi.applyQuantity(
         [a, b],
         { value: { kind: 'count', n: 4 }, mode: 'lenient' },
-        async () => ({ ok: false, reason: 'cursed' })
+        async () => ({ ok: false, reason: 'cursed' }),
+        { field: "test" }
       )
     );
     expect(result.applied).toBe(0);
@@ -641,7 +656,8 @@ describe('GlobbableApi.applyQuantity', () => {
           { value: { kind: 'count', n: 3 }, mode: 'lenient' },
           async () => {
             throw new Error('boom');
-          }
+          },
+          { field: 'test' }
         )
       )
     ).rejects.toThrow(/boom/);
@@ -652,12 +668,12 @@ describe('GlobbableApi.applyQuantity', () => {
       [],
       { value: { kind: 'count', n: 1 }, mode: 'lenient' },
       async () => ({ ok: true, payload: null }),
-      { query: 'turnips' }
+      { field: 'test', query: 'turnips' }
     );
     expect(result.notes[0]).toEqual({
       kind: 'empty-result',
+      field: 'test',
       query: 'turnips',
-      reason: 'no-matches',
     });
   });
 });

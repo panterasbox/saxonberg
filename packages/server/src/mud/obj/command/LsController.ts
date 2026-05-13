@@ -12,8 +12,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -34,10 +33,12 @@ interface LsModel extends CommandModel {
 const GLOB_RE = /[*?]/;
 
 export class LsController extends CommandController<LsModel> {
-  async execute(model: LsModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: LsModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     const tree = giver.pickTree(model);
     const home = giver.getHome();
@@ -93,12 +94,12 @@ export class LsController extends CommandController<LsModel> {
 
     if (lines.length === 0) {
       this.tell(context, `\n(empty)\n`);
-      return { success: true, summary: 'empty' };
+      return;
     }
 
     const body = model.long ? lines.join('\n') : lines.join('  ');
     this.tell(context, `\n${body}\n`);
-    return { success: true, summary: `${lines.length} entries` };
+    return;
   }
 
   private async listTemplateTree(
@@ -160,8 +161,13 @@ export class LsController extends CommandController<LsModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

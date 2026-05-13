@@ -32,10 +32,11 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -43,7 +44,10 @@ const TestGiverBase = FocusedMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
 );
 class TestGiver extends TestGiverBase {
-  protected override handleMessage(): void {}
+  public received: Array<{ topic?: string; body?: string }> = [];
+  protected override handleMessage(frame: unknown): void {
+    this.received.push(frame as { topic?: string; body?: string });
+  }
 }
 
 class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -69,7 +73,7 @@ function makeContext(
   location: Location,
   raw?: string
 ): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: giver as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -78,7 +82,7 @@ function makeContext(
     commandId: 'test-command',
     verb: 'focus',
     command: stubCommand('focus'),
-  };
+  });
 }
 
 /** Build the MqlManyResult wrapper the dispatcher would land on the
@@ -102,57 +106,57 @@ describe('FocusController', () => {
 
   it('reports the current focus when no fragment is given', () => {
     giver.setFocus('bookcase:book');
-    const result = controller.execute(makeModel(), makeContext(giver, location));
-    expect(result.success).toBe(true);
-    expect(result.summary).toContain('bookcase:book');
+    controller.execute(makeModel(), makeContext(giver, location));
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('bookcase:book');
   });
 
   it("defaults to 'here' focus when nothing has set it", () => {
-    const result = controller.execute(makeModel(), makeContext(giver, location));
-    expect(result.success).toBe(true);
-    expect(result.summary).toContain('here');
+    controller.execute(makeModel(), makeContext(giver, location));
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('here');
   });
 
   it('sets focus to the player-typed fragment', () => {
-    const result = controller.execute(
+    controller.execute(
       makeModel({ fragment: fragmentField([], 'inventory') } as ModelData),
       makeContext(giver, location, 'inventory')
     );
-    expect(result.success).toBe(true);
     expect(giver.getFocus()).toBe('inventory');
   });
 
   it('reports the resolved match count alongside the focus', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
     const b = makeStuff(() => new TestThing()) as Stuff;
-    const result = controller.execute(
+    controller.execute(
       makeModel({ fragment: fragmentField([a, b], 'flowers') } as ModelData),
       makeContext(giver, location, 'flowers')
     );
-    expect(result.success).toBe(true);
-    expect(result.summary).toContain('flowers');
-    expect(result.summary).toContain('2 objects');
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('flowers');
+    expect(body).toContain('2 objects');
   });
 
   it('"1 object" when exactly one resolves', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
-    const result = controller.execute(
+    controller.execute(
       makeModel({ fragment: fragmentField([a], 'rose') } as ModelData),
       makeContext(giver, location, 'rose')
     );
-    expect(result.success).toBe(true);
-    expect(result.summary).toContain('1 object');
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('1 object');
+    expect(body).not.toContain('1 objects');
   });
 
   it('still sets focus when the fragment resolves to nothing now', () => {
     // `focus online` when no one's online — the dispatcher's
     // resolveMany returns []; controller still anchors focus.
-    const result = controller.execute(
+    controller.execute(
       makeModel({ fragment: fragmentField([], 'online') } as ModelData),
       makeContext(giver, location, 'online')
     );
-    expect(result.success).toBe(true);
     expect(giver.getFocus()).toBe('online');
-    expect(result.summary).toContain('0 objects');
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('0 objects');
   });
 });

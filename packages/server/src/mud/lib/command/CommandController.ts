@@ -9,11 +9,11 @@
  * (execution)
  *
  * Messaging is the controller's responsibility — fire all prose via
- * `MessageApi.scene(...)`. The returned `CommandResult` is purely
- * semantic: `success` answers "did the command achieve its goal?",
- * `pass: true` opts the controller out of the dispatch (the chain
- * tries the next match), and the optional `summary` decorates the
- * auto-emitted MudlogApi command-outcome entry.
+ * `MessageApi.scene(...)`. The outcome flows through the dispatch
+ * context: `context.note(...)` for structured failure signals,
+ * `context.setStatus(...)` for explicit status pinning. The
+ * dispatcher assembles the dispatch-response envelope from the
+ * context's accumulator state.
  *
  * Subclasses may narrow the model type by passing a more specific
  * `T extends CommandModel` parameter — e.g.
@@ -25,7 +25,6 @@
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
 
@@ -44,17 +43,16 @@ export abstract class CommandController<
    *
    * Controllers should:
    *   1. Fire any prose via `MessageApi.scene(...)` or mixin sugar.
-   *   2. Return `{ success: true }` (with optional `summary` to
-   *      override the auto-emit's default `'ok'` tail) when the
-   *      command achieved its goal.
-   *   3. Return `{ success: false, summary }` on failure — the
-   *      summary feeds the auto-emit's body.
-   *   4. Return `{ pass: true, success: false }` to defer to the next
-   *      handler in the chain. A passing controller MUST NOT have
-   *      observable side effects.
+   *   2. On failure, emit a structured `context.note(...)` so the
+   *      dispatch-response envelope carries the failure signal.
+   *      Auto-escalation handles the status; controllers may call
+   *      `context.setStatus(...)` explicitly when needed.
+   *   3. Return — there is no return value. The outcome of the
+   *      command is what the dispatcher sees on the context's
+   *      accumulator at the end of execute().
    */
   abstract execute(
     model: T,
     context: CommandContext
-  ): CommandResult | Promise<CommandResult>;
+  ): void | Promise<void>;
 }

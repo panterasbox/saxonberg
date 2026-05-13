@@ -14,13 +14,12 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
-import { GlobbableApi } from '../../api/glob';
+import { GlobbableApi, type ApplyQuantityResult } from '../../api/glob';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
@@ -38,7 +37,7 @@ export class GetController extends CommandController<GetModel> {
   async execute(
     model: GetModel,
     context: CommandContext
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const { stuff, quantity, raw } = model.targets;
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
@@ -72,10 +71,10 @@ export class GetController extends CommandController<GetModel> {
         this.pickUpOperand(operand, context);
         return { ok: true, payload: { operand, applied } };
       },
-      { query: raw }
+      { field: 'targets', query: raw }
     );
 
-    return this.renderResult(result, raw);
+    return this.renderResult(result, raw, context);
   }
 
   private executeWholeSet(
@@ -84,12 +83,14 @@ export class GetController extends CommandController<GetModel> {
     here: readonly Stuff[],
     raw: string,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     if (targets.length === 0) {
-      return {
-        success: false,
-        summary: `you don't see any '${raw}' here`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'targets', query: raw });
+      return;
     }
     const pickedNames: string[] = [];
     for (const target of targets) {
@@ -103,58 +104,63 @@ export class GetController extends CommandController<GetModel> {
       pickedNames.push(DescribeApi.formatName(target, 'something'));
     }
     if (pickedNames.length === 0) {
-      return { success: false, summary: 'nothing picked up' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing picked up.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-picked-up',
+        detail: 'nothing picked up',
+      });
+      return;
     }
-    return { success: true, summary: pickedNames.join(', ') };
+    return;
   }
 
   private renderResult(
-    result: {
-      ok: boolean;
-      applied: number;
-      status?: 'partial' | 'declined';
-      notes: ReadonlyArray<
-        | { kind: 'quantity-clamped'; requested: number; applied: number }
-        | { kind: 'quantity-clamped-rejected'; requested: number; available: number }
-        | { kind: 'empty-result'; query: string; reason: 'no-matches' }
-        | { kind: 'target-declined'; target: Stuff; reason: string }
-      >;
-      payloads: GetPayload[];
-    },
-    raw: string
-  ): CommandResult {
-    let clampedSuffix = '';
+    result: ApplyQuantityResult<GetPayload>,
+    raw: string,
+    context: CommandContext,
+  ): void {
     for (const note of result.notes) {
+      // Glob already constructed canonical-shape notes — forward
+      // straight through. Prose for the kinds that the controller
+      // surfaces to the player rides alongside.
+      context.note(note);
       switch (note.kind) {
         case 'empty-result':
-          return {
-            success: false,
-            summary: `you don't see any '${raw}' here`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+            .send();
+          return;
         case 'quantity-clamped-rejected':
-          return {
-            success: false,
-            summary: `only ${note.available} of those here`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(Mml.compose`Only ${String(note.available)} of those here.`)
+            .send();
+          return;
         case 'quantity-clamped':
-          clampedSuffix = ` (only ${note.applied} available)`;
-          break;
         case 'target-declined':
+          // Notes already forwarded above; clamp suffix or per-
+          // target prose decisions live on the controller's
+          // success-path rendering.
           break;
       }
     }
 
     if (!result.ok || result.payloads.length === 0) {
-      return { success: false, summary: 'nothing picked up' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing picked up.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-picked-up',
+        detail: 'nothing picked up',
+      });
     }
-
-    const pickedNames = result.payloads
-      .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
-      .join(', ');
-    return {
-      success: true,
-      summary: `${pickedNames}${clampedSuffix}`,
-    };
   }
 
   /**

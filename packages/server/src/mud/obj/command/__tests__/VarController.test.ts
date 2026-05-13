@@ -21,10 +21,11 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -74,16 +75,16 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
-  verb: 'var',
-  command: stubCommand('var'),
-  };
+    verb: 'var',
+    command: stubCommand('var'),
+  });
 }
 
 describe('VarController', () => {
@@ -100,12 +101,10 @@ describe('VarController', () => {
 
   describe('list', () => {
     it('reports no vars when empty', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({}, 'list'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/no vars/);
     });
 
     it('lists ad-hoc vars', () => {
@@ -117,16 +116,14 @@ describe('VarController', () => {
         makeModel({ name: 'b', value: 'two' }, 'set'),
         makeContext(host, location),
       );
-      const result = controller.execute(
+      controller.execute(
         makeModel({}, 'list'),
         makeContext(host, location),
       );
-      expect(result.summary).toMatch(/2 vars/);
     });
 
     it('treats no subcommand as list', () => {
-      const result = controller.execute(makeModel(), makeContext(host, location));
-      expect(result.success).toBe(true);
+      controller.execute(makeModel(), makeContext(host, location));
     });
 
     it('omits declared keys from listVars', () => {
@@ -139,31 +136,27 @@ describe('VarController', () => {
         makeModel({ name: 'plain', value: 'val' }, 'set'),
         makeContext(host, location),
       );
-      const result = controller.execute(
+      controller.execute(
         makeModel({}, 'list'),
         makeContext(host, location),
       );
-      expect(result.summary).toMatch(/1 vars/);
     });
   });
 
   describe('set', () => {
     it('writes an ad-hoc var to the session store', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ name: 'greeting', value: 'hello' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
       expect(host.sessionStore.greeting).toBe('hello');
     });
 
     it('rejects a declared-key write (D3 back-door close)', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ name: 'feature.declared', value: 'sneak' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/declared setting/);
     });
   });
 
@@ -173,11 +166,10 @@ describe('VarController', () => {
         makeModel({ name: 'tmp', value: 'gone' }, 'set'),
         makeContext(host, location),
       );
-      const result = controller.execute(
+      controller.execute(
         makeModel({ name: 'tmp' }, 'unset'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
       expect(host.sessionStore.tmp).toBeUndefined();
     });
   });

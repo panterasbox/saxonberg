@@ -16,11 +16,12 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  CommandResult,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
@@ -64,16 +65,16 @@ function makeContext(
   location: Location,
   commandText: string
 ): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
-  verb: 'open',
-  command: stubCommand('open'),
-  };
+    verb: 'open',
+    command: stubCommand('open'),
+  });
 }
 
 /**
@@ -96,7 +97,7 @@ async function openCmd(
   avatar: FakeAvatar,
   location: Location,
   raw: string
-): Promise<CommandResult> {
+): Promise<void> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
@@ -107,7 +108,7 @@ async function closeCmd(
   avatar: FakeAvatar,
   location: Location,
   raw: string
-): Promise<CommandResult> {
+): Promise<void> {
   const ctx = makeContext(avatar, location, `close ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
@@ -118,7 +119,7 @@ async function goCmd(
   avatar: FakeAvatar,
   location: Location,
   raw: string
-): Promise<CommandResult> {
+): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'here');
   return controller.execute(makeModel({ target } as ModelData), ctx);
@@ -158,18 +159,23 @@ describe('OpenController / CloseController / doors integration', () => {
 
   it('go north fails while door is closed', async () => {
     const go = makeStuff(() => new GoController());
-    const result = await goCmd(go, avatar, locA, 'north');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/closed/i);
-    expect(result.summary).toContain('heavy oak door');
+    await goCmd(go, avatar, locA, 'north');
+    // Locomotion rejection prose now arrives via Scene.send at
+    // `system.shell.movement` instead of result.summary.
+    const shellFrames = avatar.received.filter((f) =>
+      ((f as { topic?: string })?.topic ?? '').startsWith(
+        'system.shell.movement',
+      ),
+    );
+    const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /closed/i.test(b))).toBe(true);
+    expect(bodies.some((b) => b.includes('heavy oak door'))).toBe(true);
   });
 
   it('open <keyword> resolves via MQL and opens the door', async () => {
     const open = makeStuff(() => new OpenController());
-    const result = await openCmd(open, avatar, locA, 'oak');
-    expect(result.success).toBe(true);
+    await openCmd(open, avatar, locA, 'oak');
     expect(door.getIsOpen()).toBe(true);
-    expect(result.summary).toContain('heavy oak door');
 
     const peerText = JSON.stringify(peerInA.received);
     expect(peerText).toContain('Alice');
@@ -186,71 +192,81 @@ describe('OpenController / CloseController / doors integration', () => {
   it('already-open door returns a friendly error', async () => {
     door.open();
     const open = makeStuff(() => new OpenController());
-    const result = await openCmd(open, avatar, locA, 'oak');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/already open/i);
+    avatar.received.length = 0;
+    await openCmd(open, avatar, locA, 'oak');
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /already open/i.test(b))).toBe(true);
   });
 
   it('no sealable matching the name: clear error', async () => {
     const open = makeStuff(() => new OpenController());
-    const result = await openCmd(open, avatar, locA, 'bathtub');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't see/i);
+    avatar.received.length = 0;
+    await openCmd(open, avatar, locA, 'bathtub');
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /don't see/i.test(b))).toBe(true);
   });
 
   it('go north succeeds after opening; close from destination closes same door', async () => {
     await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
-    const go = await goCmd(
+    await goCmd(
       makeStuff(() => new GoController()),
       avatar,
       locA,
       'north'
     );
-    expect(go.success).toBe(true);
     expect(avatar.getContainer()).toBe(locB);
 
-    const close = await closeCmd(
+    await closeCmd(
       makeStuff(() => new CloseController()),
       avatar,
       locB,
       'oak'
     );
-    expect(close.success).toBe(true);
     expect(door.getIsOpen()).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
-    const goBack = await goCmd(
+    avatar.received.length = 0;
+    await goCmd(
       makeStuff(() => new GoController()),
       avatar,
       locB,
       'south'
     );
-    expect(goBack.success).toBe(false);
-    expect(goBack.summary).toMatch(/closed|way/i);
+    const shellFrames = avatar.received.filter((f) =>
+      ((f as { topic?: string })?.topic ?? '').startsWith(
+        'system.shell.movement',
+      ),
+    );
+    const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /closed|way/i.test(b))).toBe(true);
   });
 
   it('already-closed door on close returns friendly error', async () => {
     const close = makeStuff(() => new CloseController());
-    const result = await closeCmd(close, avatar, locA, 'oak');
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/already closed/i);
+    avatar.received.length = 0;
+    await closeCmd(close, avatar, locA, 'oak');
+    const bodies = avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+    expect(bodies.some((b) => /already closed/i.test(b))).toBe(true);
   });
 
   it('open north resolves via direction and opens the exit door', async () => {
     // The direction match lands on the location with via.exit; the
     // controller fetches the door from via.exit.getDoor().
     const open = makeStuff(() => new OpenController());
-    const result = await openCmd(open, avatar, locA, 'north');
-    expect(result.success).toBe(true);
+    await openCmd(open, avatar, locA, 'north');
     expect(door.getIsOpen()).toBe(true);
-    expect(result.summary).toContain('heavy oak door');
   });
 
   it('close north resolves via direction and closes the exit door', async () => {
     door.open();
     const close = makeStuff(() => new CloseController());
-    const result = await closeCmd(close, avatar, locA, 'north');
-    expect(result.success).toBe(true);
+    await closeCmd(close, avatar, locA, 'north');
     expect(door.getIsOpen()).toBe(false);
   });
 });

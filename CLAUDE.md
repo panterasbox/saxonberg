@@ -169,9 +169,19 @@ behavior. Read the relevant doc before editing in its area.
     `ContainmentApi.placeDirect` fresh-placement
     primitive, merge-on-arrival ripple in `ContainmentApi.move`,
     MQL quantity surface (`:{N}` / `:{*}`, `MqlResult.quantity`,
-    natural-language `5 X` / `all X` prefix), v1 note shape
-    (`quantity-clamped`, `quantity-clamped-rejected`,
-    `empty-result`, `target-declined`)
+    natural-language `5 X` / `all X` prefix). Notes use the canonical
+    `@saxonberg/types` shapes; `applyQuantity` opts take `{field, query?}`.
+  - [response-envelope.md](./docs/subsystems/response-envelope.md) —
+    `DispatchResponseEnvelope` wire frame alongside `MessageFrame`:
+    16 `Note` kinds, `Status` auto-escalation, `CommandContext`
+    accumulator (`note` / `setStatus` / `getNotes` / `getStatus`),
+    `SensorMixin.onEnvelope` triad parallel to `onMessage`,
+    `Interactive.nextFrameId` per-connection ordering primitive
+    shared by both channels, input-echo MessageFrame at
+    `system.log.command.{info|warn}` with `kind: 'issued'` payload.
+    Controllers emit failure signals via `Scene.send + ctx.note`;
+    `execute()` returns `void`. `CommandResult` / `success` /
+    `summary` / `pass` retired.
 
 ## Development Commands
 
@@ -464,6 +474,8 @@ bypass it. Common cases:
 | `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated, re-keys `byTemplatePath`). The slot is hard-private (`#templatePath`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampTemplatePath` seam. |
 | `(stuff as { zone? }).zone = z` | `stuff.setZone(z)` (gated by `FromSpatialZone` — only `SpatialZone` subclasses may call). Slot is hard-private (`#zone`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampZone` seam. |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
+| `return { success: false, summary: 'foo' }` from a controller | `ctx.note({ kind: 'controller-rejected', reason: 'foo-reason', detail: 'foo' })` + `MessageApi.scene(...).toSelf(...).send()` — controllers return `void`; outcome rides the dispatch-response envelope. See [response-envelope.md](./docs/subsystems/response-envelope.md). |
+| `new CommandContext({ ... })` / `createCommandContext({ ... })` | `CommandApi.createCommandContext({ ... })` — tests + dispatcher use the same factory; the constructor + accumulator state are not external surface |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 

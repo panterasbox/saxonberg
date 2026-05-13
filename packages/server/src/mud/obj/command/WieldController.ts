@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -25,20 +24,26 @@ interface WieldModel extends CommandModel {
 }
 
 export class WieldController extends CommandController<WieldModel> {
-  execute(model: WieldModel, context: CommandContext): CommandResult {
+  execute(model: WieldModel, context: CommandContext): void {
+    const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
-      return {
-        success: false,
-        summary: `you don't have any '${model.target.raw}'`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: model.target.raw,
+      });
+      return;
     }
     if (!MixinApi.isWieldable(target)) {
       throw new Error(
         `WieldController: mustBeWieldable validator should have caught ${target.stuffId}`
       );
     }
-    const giver = context.commandGiver;
     if (!MixinApi.isSlotted(giver)) {
       throw new Error(
         `WieldController: requiresSlotted validator should have caught ${giver.stuffId}`
@@ -46,26 +51,45 @@ export class WieldController extends CommandController<WieldModel> {
     }
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
-      return { success: false, summary: `you have no body plan` };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You have no body plan.`)
+        .send();
+      context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
+      return;
     }
     const slots = target.getSlotClaim(bodyPlanPath);
     if (slots.length === 0) {
-      return {
-        success: false,
-        summary:
-          `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your hands`,
-      };
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(
+          Mml.compose`${Mml.item(target)} doesn't fit your hands.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'wrong-fit',
+        detail: `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your hands`,
+      });
+      return;
     }
     for (const slot of slots) {
       if (giver.isSlotFull(slot)) {
-        return { success: false, summary: `your hands are full` };
+        MessageApi.scene(giver)
+          .topic(MessageApi.Topics.world.perception.inventory)
+          .toSelf(Mml.compose`Your hands are full.`)
+          .send();
+        context.note({
+          kind: 'slot-occupied',
+          host: MessageApi.refOf(giver),
+          slot,
+        });
+        return;
       }
     }
-    try {
-      SlotApi.occupyAll(giver, target, [...slots]);
-    } catch (err) {
-      return { success: false, summary: (err as Error).message };
-    }
+    // SlotApi.occupyAll may throw on race or shape violations;
+    // dispatcher's outer catch emits controller-error uniformly.
+    SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
       .toSelf(Mml.compose`You wield ${Mml.item(target)}.`)
@@ -73,6 +97,6 @@ export class WieldController extends CommandController<WieldModel> {
         Mml.compose`${Mml.name(giver)} wields ${Mml.item(target)}.`
       )
       .send();
-    return { success: true };
+    return;
   }
 }

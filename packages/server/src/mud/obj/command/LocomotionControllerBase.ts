@@ -22,15 +22,17 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
+import type { LocomotionGateFailedNote } from '@saxonberg/types';
 import type { MqlOneResult } from '../../api/mql';
 import type { Exit, TraversalGuard } from '../../lib/boundary/Exit';
 import { ExitableVessel } from '../../lib/boundary/ExitableVessel';
 import { LocomotionApi } from '../../api/locomotion';
 import type { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
+import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { DescribeApi } from '../../api/describe';
+import { Mml } from '../../api/mml';
 
 export interface LocomotionModel extends CommandModel {
   target?: MqlOneResult;
@@ -48,24 +50,31 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   async execute(
     model: LocomotionModel,
     context: CommandContext,
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const actor = context.commandGiver;
     if (!MixinApi.isContainable(actor) || !MixinApi.isMobile(actor)) {
-      return { success: false, summary: "can't move" };
+      // No body-plan-shaped affordance at all — surface as a
+      // mixin-missing note. Same `Scene.send` + ctx.note pairing as
+      // any other failure.
+      context.note({ kind: 'mixin-missing', mixin: 'MobileMixin' });
+      MessageApi.scene(actor)
+        .topic(MessageApi.Topics.system.shell.movement)
+        .toSelf(Mml.fromMarkup("You can't move."))
+        .send();
+      return;
     }
 
     const mode = LocomotionApi.modeOfOrThrow(this.modeName(context));
 
     const target = model.target;
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: this.composeRejection(
-          { ok: false, gate: 'exitMode', mode: mode.getName() },
-          mode,
-          model,
-        ),
-      };
+      this.emitRejection(
+        { ok: false, gate: 'exitMode', mode: mode.getName() },
+        mode,
+        model,
+        context,
+      );
+      return;
     }
 
     // Resolve to an Exit. MQL's `target.via?.exit` is the primary path
@@ -81,14 +90,13 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         ? target.stuff.getEntryExit() ?? null
         : null);
     if (!exit) {
-      return {
-        success: false,
-        summary: this.composeRejection(
-          { ok: false, gate: 'exitMode', mode: mode.getName() },
-          mode,
-          model,
-        ),
-      };
+      this.emitRejection(
+        { ok: false, gate: 'exitMode', mode: mode.getName() },
+        mode,
+        model,
+        context,
+      );
+      return;
     }
     const direction = exit.getDirection();
 
@@ -98,10 +106,8 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // mode-specific gates.
     const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
     if (!guard.ok) {
-      return {
-        success: false,
-        summary: this.composeRejection(guard, mode, model),
-      };
+      this.emitRejection(guard, mode, model, context);
+      return;
     }
 
     const destination = exit.getDestination();
@@ -114,14 +120,13 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         !MixinApi.isMobile(host) ||
         !MixinApi.isContainable(host)
       ) {
-        return {
-          success: false,
-          summary: this.composeRejection(
-            { ok: false, gate: 'noConveyance', mode: mode.getName() },
-            mode,
-            model,
-          ),
-        };
+        this.emitRejection(
+          { ok: false, gate: 'noConveyance', mode: mode.getName() },
+          mode,
+          model,
+          context,
+        );
+        return;
       }
       const hostMode = LocomotionApi.resolveHostMode(host);
       await LocomotionApi.engageAround(host, hostMode, exit, () =>
@@ -133,7 +138,31 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       );
     }
 
-    return { success: true, summary: `to ${destName}` };
+    return;
+  }
+
+  /**
+   * Centralized failure emission for the locomotion family: fire
+   * the rejection prose at `system.shell.movement` (actor-side
+   * shell channel) AND emit a structured `locomotion-gate-failed`
+   * note onto the dispatch context. One pairing, every gate.
+   */
+  protected emitRejection(
+    guard: TraversalGuard,
+    mode: LocomotionMode,
+    model: LocomotionModel,
+    context: CommandContext,
+  ): void {
+    const prose = this.composeRejection(guard, mode, model);
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.system.shell.movement)
+      .toSelf(Mml.fromMarkup(prose))
+      .send();
+    context.note({
+      kind: 'locomotion-gate-failed',
+      gate: mapGate(guard.gate),
+      mode: mode.getName(),
+    });
   }
 
   /**
@@ -168,5 +197,24 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       default:
         return guard.reason ?? "You can't go that way.";
     }
+  }
+}
+
+/**
+ * Map TraversalGuard's camelCase gate names to the note's
+ * kebab-case vocabulary. Two sources of truth would be worse;
+ * this mapper is the seam.
+ */
+function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
+  switch (gate) {
+    case 'bodyPlan': return 'body-plan';
+    case 'exitMode': return 'exit-mode';
+    case 'noConveyance': return 'no-conveyance';
+    case 'posture': return 'posture';
+    case 'enablement': return 'enablement';
+    case 'capability': return 'capability';
+    case 'blocked': return 'blocked';
+    case 'door': return 'door';
+    default: return 'exit-mode';
   }
 }

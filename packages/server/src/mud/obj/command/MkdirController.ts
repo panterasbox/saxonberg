@@ -11,8 +11,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -26,10 +25,12 @@ interface MkdirModel extends CommandModel {
 }
 
 export class MkdirController extends CommandController<MkdirModel> {
-  async execute(model: MkdirModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: MkdirModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     if (!model.path) return this.fail(context, 'mkdir needs a <path>');
     const tree = giver.pickTree(model);
@@ -44,7 +45,7 @@ export class MkdirController extends CommandController<MkdirModel> {
         return this.fail(context, (err as Error).message);
       }
       this.tell(context, `\ncreated folder ${target}\n`);
-      return { success: true, summary: target };
+      return;
     }
 
     let abs: string;
@@ -58,7 +59,7 @@ export class MkdirController extends CommandController<MkdirModel> {
     }
     await SourceTreeApi.mkdir(abs);
     this.tell(context, `\ncreated ${SourceTreeApi.toDisplayPath(abs)}\n`);
-    return { success: true, summary: SourceTreeApi.toDisplayPath(abs) };
+    return;
   }
 
   private tell(context: CommandContext, text: string): void {
@@ -68,8 +69,13 @@ export class MkdirController extends CommandController<MkdirModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

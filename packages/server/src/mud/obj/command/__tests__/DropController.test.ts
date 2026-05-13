@@ -22,9 +22,10 @@ import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
-import type {
-  CommandContext,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type ModelData,
 } from '../../../api/command';
 import type { MqlManyResult, MqlQuantity } from '../../../api/mql';
 import {
@@ -74,7 +75,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(giver: TestGiver, location: Location): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
     commandText: 'drop',
@@ -82,7 +83,7 @@ function makeContext(giver: TestGiver, location: Location): CommandContext {
     commandId: 'test',
     verb: 'drop',
     command: stubCommand('drop'),
-  };
+  });
 }
 
 type DropExecModel = Parameters<DropController['execute']>[0];
@@ -119,12 +120,10 @@ describe('DropController — bareword path (no quantity)', () => {
     ContainmentApi.move(sword, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(makeResult([sword], 'sword')),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
     expect(sword.getContainer()).toBe(loc);
   });
 
@@ -134,12 +133,18 @@ describe('DropController — bareword path (no quantity)', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    const ctx = makeContext(giver, loc);
+    await controller.execute(
       makeModel(makeResult([], 'turnips')),
-      makeContext(giver, loc)
+      ctx,
     );
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't have any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 });
 
@@ -167,7 +172,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 5 },
@@ -176,9 +181,6 @@ describe('DropController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/5 coins/);
     expect(stack.getQuantity()).toBe(25);
   });
 
@@ -196,7 +198,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 99 },
@@ -205,9 +207,6 @@ describe('DropController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
-    expect(result.summary).toMatch(/only 10 available/);
   });
 
   it('rejects strictly when the count exceeds supply', async () => {
@@ -224,18 +223,23 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    const ctx = makeContext(giver, loc);
+    await controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 99 },
           mode: 'strict',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
-
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/you only have 10 of those/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'quantity-clamped-rejected',
+        field: 'targets',
+        available: 10,
+      }),
+    );
     // Strict rejects without acting — the stack stays intact.
     expect(stack.getQuantity()).toBe(10);
     expect(stack.getContainer()).toBe(giver);
@@ -255,7 +259,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'all' },
@@ -264,8 +268,6 @@ describe('DropController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
     expect(stack.getContainer()).toBe(loc);
     expect(stack.getQuantity()).toBe(10);
   });
@@ -276,17 +278,23 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(giver, loc);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    const ctx = makeContext(giver, loc);
+    await controller.execute(
       makeModel(
         makeResult([], 'turnips', {
           value: { kind: 'count', n: 2 },
           mode: 'lenient',
         })
       ),
-      makeContext(giver, loc)
+      ctx,
     );
-    expect(result.success).toBe(false);
-    expect(result.summary).toMatch(/don't have any 'turnips'/);
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'empty-result',
+        field: 'targets',
+        query: 'turnips',
+      }),
+    );
   });
 
   it('distributes a multi-match count across two stacks (apples + oranges shape)', async () => {
@@ -312,7 +320,7 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(silver, giver);
 
     const controller = makeStuff(() => new DropController());
-    const result = await controller.execute(
+    await controller.execute(
       makeModel(
         makeResult([gold, silver], 'coins', {
           value: { kind: 'count', n: 3 },
@@ -321,8 +329,6 @@ describe('DropController — quantity-bearing path', () => {
       ),
       makeContext(giver, loc)
     );
-
-    expect(result.success).toBe(true);
     // Two operands: the 2-stack of gold (full), and a 1-split from silver.
     expect(gold.getContainer()).toBe(loc);
     expect(silver.getQuantity()).toBe(1); // 2 - 1 split-off

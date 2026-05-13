@@ -24,12 +24,10 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sealable } from '../../lib/spatial/Sealable';
@@ -39,17 +37,32 @@ interface OpenModel extends CommandModel {
 }
 
 export class OpenController extends CommandController<OpenModel> {
-  execute(model: OpenModel, context: CommandContext): CommandResult {
+  execute(model: OpenModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
-      return { success: false, summary: 'open what?' };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`Open what?`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'missing-target',
+        detail: 'open what?',
+      });
+      return;
     }
     if (target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target.raw}' here`,
-      };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: target.raw,
+      });
+      return;
     }
 
     // Direct hit (open oak) → the door is target.stuff;
@@ -63,11 +76,29 @@ export class OpenController extends CommandController<OpenModel> {
       (s): s is Stuff & Sealable => MixinApi.isSealable(s),
     );
     if (!sealable) {
-      return { success: false, summary: "can't open that" };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`You can't open that.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-sealable',
+        detail: "can't open that",
+      });
+      return;
     }
 
     if (sealable.getIsOpen()) {
-      return { success: false, summary: 'already open' };
+      MessageApi.scene(commandGiver)
+        .topic(MessageApi.Topics.world.narration.action)
+        .toSelf(Mml.compose`It is already open.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'already-open',
+        detail: 'already open',
+      });
+      return;
     }
 
     sealable.open();
@@ -80,9 +111,6 @@ export class OpenController extends CommandController<OpenModel> {
       )
       .send();
 
-    return {
-      success: true,
-      summary: `opened ${DescribeApi.getDisplayName(sealable as unknown as Stuff, 'it')}`,
-    };
+    return;
   }
 }

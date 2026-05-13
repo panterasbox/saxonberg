@@ -10,25 +10,9 @@
 import { create } from 'zustand';
 import type {
   AuthState,
+  ConnectionEstablishedPayload,
   ConnectionState,
-  Pronouns,
-  AlternateName,
 } from '@saxonberg/types';
-
-interface ConnectionEstablishedPayload {
-  userId: string;
-  socketId: string;
-  sessionId: string;
-  player: {
-    _id: string;
-    honorific?: string;
-    name: string;
-    surname?: string;
-    nameSuffix?: string;
-    alternateNames?: AlternateName[];
-    pronouns: Pronouns;
-  };
-}
 
 /**
  * Combined store state.
@@ -41,6 +25,13 @@ interface StoreState {
 
   // Connection state
   connection: ConnectionState;
+  /**
+   * The stuffId of the local Interactive — stamped onto the input
+   * echoes the server fires for THIS connection. Compared against
+   * `payload.originInteractiveId` to recognize our own echo for
+   * filtering in multi-device deployments.
+   */
+  selfInteractiveId: string | null;
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
@@ -84,6 +75,7 @@ export const useStore = create<StoreState>((set) => ({
 
   // Connection state
   connection: initialConnectionState,
+  selfInteractiveId: null,
 
   setConnection: (connection) =>
     set((state) => ({
@@ -98,6 +90,7 @@ export const useStore = create<StoreState>((set) => ({
         sessionId: payload.sessionId,
         error: null,
       },
+      selfInteractiveId: payload.interactiveStuffId,
       auth: {
         isAuthenticated: true,
         user: {
@@ -125,5 +118,6 @@ export const useStore = create<StoreState>((set) => ({
         sessionId: null,
         error: error || null,
       },
+      selfInteractiveId: null,
     }),
 }));

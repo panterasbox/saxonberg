@@ -29,38 +29,46 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
 } from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Focused } from '../../lib/command/Focused';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
 interface FocusModel extends CommandModel {
   fragment?: MqlManyResult;
 }
 
 export class FocusController extends CommandController<FocusModel> {
-  execute(model: FocusModel, context: CommandContext): CommandResult {
+  execute(model: FocusModel, context: CommandContext): void {
     // `focus.yaml` is a self-bucket contribution from FocusedMixin,
     // so the verb only lands on a Focused giver's recency stack —
     // the cast is sound by construction.
     const giver = context.commandGiver as unknown as Stuff & Focused;
     const wrapper = model.fragment;
 
+    // No fragment → report current focus state.
     if (!wrapper || wrapper.raw.trim().length === 0) {
-      return {
-        success: true,
-        summary: `focus: ${giver.getFocus()}`,
-      };
+      const current = giver.getFocus();
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(`focus: ${current}\n`))
+        .send();
+      return;
     }
 
     const fragmentText = wrapper.raw.trim();
     giver.setFocus(fragmentText);
     const matches = wrapper.stuff.length;
     const noun = matches === 1 ? 'object' : 'objects';
-    return {
-      success: true,
-      summary: `focus: ${fragmentText} (${matches} ${noun})`,
-    };
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(
+        Mml.fromMarkup(
+          `focus set to '${fragmentText}' (${matches} ${noun})\n`,
+        ),
+      )
+      .send();
   }
 }

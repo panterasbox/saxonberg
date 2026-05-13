@@ -13,8 +13,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -29,7 +28,7 @@ interface ReloadModel extends CommandModel {
 }
 
 export class ReloadController extends CommandController<ReloadModel> {
-  async execute(model: ReloadModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: ReloadModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     let path: string | null = null;
 
@@ -59,7 +58,7 @@ export class ReloadController extends CommandController<ReloadModel> {
     try {
       await HotReloadApi.reload(path);
       this.tell(context, `\nreloaded ${path}\n`);
-      return { success: true, summary: `reloaded ${path}` };
+      return;
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
@@ -72,8 +71,13 @@ export class ReloadController extends CommandController<ReloadModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

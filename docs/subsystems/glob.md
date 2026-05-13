@@ -36,9 +36,8 @@ Pieces:
 This file is the operational reference. The bulk-form extension
 lives in [bulkable-slate.md](../slates/bulkable-slate.md); the
 structured-notes substrate (`quantity-clamped`,
-`quantity-clamped-rejected`, `empty-result`, `target-declined`) lands
-properly in [response-envelope-slate.md](../slates/response-envelope-slate.md)
-when that work ships.
+`quantity-clamped-rejected`, `empty-result`, `target-declined`) is
+defined in [response-envelope.md](./response-envelope.md).
 
 ---
 
@@ -225,15 +224,21 @@ applyQuantity<R>(
     | { ok: true; payload: R }
     | { ok: false; reason: string }
   >,
-  opts?: { query?: string }
+  opts: { field: string; query?: string }
 ): Promise<{
   ok: boolean;
   applied: number;
   status?: 'partial' | 'declined';
-  notes: GlobNote[];
+  notes: Note[];        // canonical @saxonberg/types shape
   payloads: R[];
 }>
 ```
+
+`opts.field` is **required** — it stamps the originating field name
+onto every emitted note so controllers can forward `result.notes`
+straight into `ctx.note(...)` without re-shaping. `opts.query`
+carries the raw user-typed query string for `empty-result` /
+`match-ambiguous` notes.
 
 Behavior:
 
@@ -264,17 +269,20 @@ soft-failure signal.
 
 ### Note shape
 
-```ts
-type GlobNote =
-  | { kind: 'quantity-clamped'; requested: number; applied: number }
-  | { kind: 'quantity-clamped-rejected'; requested: number; available: number }
-  | { kind: 'empty-result'; query: string; reason: 'no-matches' }
-  | { kind: 'target-declined'; target: Stuff; reason: string };
-```
+`applyQuantity` emits four canonical `Note` kinds from
+`@saxonberg/types`, pre-stamped with `field` from `opts.field`:
 
-v1 returns notes as a plain list. When the response-envelope
-substrate lands, controllers swap from "fold into summary Mml" to
-`ctx.note(n)`; `applyQuantity`'s shape stays.
+- `quantity-clamped { field, requested, applied }`
+- `quantity-clamped-rejected { field, requested, available }`
+- `empty-result { field, query }`
+- `target-declined { target: StuffRef, reason }`
+
+`target-declined.target` is a `StuffRef` (constructed via
+`MessageApi.refOf`) — never a raw `Stuff` object — so the note is
+wire-safe out of the box. Controllers forward `result.notes`
+straight into `ctx.note(...)`; no re-shaping. Full shapes and
+auto-escalation rules live in
+[response-envelope.md § Notes](./response-envelope.md).
 
 ### Mode is transport-only
 
@@ -392,10 +400,11 @@ Controllers that want to participate in quantity-bearing input
 follow the two-phase shape:
 
 ```ts
-async execute(model, context) {
+async execute(model, context): Promise<void> {
   const { stuff, quantity, raw } = model.targets;
   if (!quantity) {
-    return this.executeWholeSet(stuff, raw, context);
+    await this.executeWholeSet(stuff, raw, context);
+    return;
   }
   const result = await GlobbableApi.applyQuantity(
     candidates,
@@ -404,9 +413,10 @@ async execute(model, context) {
       ContainmentApi.move(operand, context.location);
       return { ok: true, payload: { operand, applied } };
     },
-    { query: raw }
+    { field: 'targets', query: raw }
   );
-  return this.renderResult(result, raw, context);
+  for (const note of result.notes) context.note(note);
+  this.renderProse(result, raw, context);
 }
 ```
 
@@ -515,9 +525,9 @@ Trade-offs and deferred work documented for future maintainers:
 - [../slates/bulkable-slate.md](../slates/bulkable-slate.md) — the
   bulk-form sibling (Quantity-valued globs); shares this
   subsystem's substrate.
-- [../slates/response-envelope-slate.md](../slates/response-envelope-slate.md)
-  — the structured-notes substrate `applyQuantity` will thread into
-  once it ships (v1 returns notes as a plain list).
+- [response-envelope.md](./response-envelope.md) — the
+  structured-notes substrate `applyQuantity` emits into; canonical
+  shapes for the four glob note kinds.
 - [../slates/recognition-slate.md](../slates/recognition-slate.md) —
   where `DescribeApi v2` composes count + perception + recognition;
   this subsystem's `formatName` is the v1 stand-in.

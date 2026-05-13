@@ -6,8 +6,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { PlayerApi } from '../../api/player';
@@ -20,17 +19,23 @@ interface TellModel extends CommandModel {
 }
 
 export class TellController extends CommandController<TellModel> {
-  execute(model: TellModel, context: CommandContext): CommandResult {
+  execute(model: TellModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     const targetName = model.target;
     const message = model.message;
 
     const target = this.findAvatarByName(targetName, context);
     if (!target) {
-      return {
-        success: false,
-        summary: `no one named '${targetName}' available`,
-      };
+      MessageApi.scene(speaker)
+        .topic(MessageApi.Topics.world.speech.tell)
+        .toSelf(Mml.compose`No one named '${targetName}' is available.`)
+        .send();
+      context.note({
+        kind: 'empty-result',
+        field: 'target',
+        query: targetName,
+      });
+      return;
     }
 
     const speechFragment = Mml.speech(message);
@@ -48,7 +53,7 @@ export class TellController extends CommandController<TellModel> {
       })
       .send();
 
-    return { success: true, summary: `told ${target.getFullName()}` };
+    return;
   }
 
   private findAvatarByName(

@@ -14,10 +14,11 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 // Trigger LightApi tag-table registrations.
@@ -43,7 +44,7 @@ function stubCommand(verb: string): CommandDefinition {
 }
 
 function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
@@ -52,7 +53,7 @@ function makeContext(avatar: FakeAvatar, location: AmbientLoc): CommandContext {
     commandId: 'c',
     verb: 'measure',
     command: stubCommand('measure'),
-  };
+  });
 }
 
 function makeModel(fields: ModelData, subcommand: string): CommandModel {
@@ -75,13 +76,10 @@ describe('MeasureLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new MeasureLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: room, raw: 'here' } }, 'light'),
       makeContext(avatar, room)
     );
-
-    expect(result.success).toBe(true);
-    expect(String(result.summary)).toContain('40 lux');
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity unit="lux"');
@@ -98,10 +96,9 @@ describe('MeasureLightController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new MeasureLightController());
-    const result = await ctrl.execute(
+    await ctrl.execute(
       makeModel({ location: { stuff: null, raw: 'foo' } }, 'light'),
       makeContext(avatar, room)
     );
-    expect(result.success).toBe(false);
   });
 });

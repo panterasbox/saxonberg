@@ -26,14 +26,22 @@ import { SecurityApi } from './security';
 
 /**
  * Outcome of `transferPosture`. On success the controller emits its
- * verb-specific narration; on failure the summary is user-facing
- * and bubbles through `CommandResult`. `verb` is folded into the
- * "no-accepting-slot" message ("you can't `sit` on the wallpaper")
- * since that's the one failure mode where verb name reads naturally.
+ * verb-specific narration; on failure the controller emits the
+ * summary as a Scene frame and `ctx.note({kind: 'controller-rejected',
+ * reason})` so the dispatch-response envelope carries the structured
+ * signal. `verb` is folded into the "no-accepting-slot" message
+ * ("you can't `sit` on the wallpaper") since that's the one failure
+ * mode where verb name reads naturally.
+ *
+ * `reason` is a stable kebab-case identifier that controllers
+ * forward into the `controller-rejected` note kind: `'no-posture-slot'`
+ * when the target accepts no slot for this posture, `'occupied'` when
+ * every candidate slot is full, `'transfer-failed'` when the
+ * underlying `SlotApi.transferOccupancy` throws.
  */
 export type PostureTransferResult =
   | { ok: true; host: Stuff & Slotted; slot: string }
-  | { ok: false; summary: string };
+  | { ok: false; reason: string; summary: string };
 
 export class PostureApi {
   /**
@@ -68,6 +76,7 @@ export class PostureApi {
       if (candidates.length === 0) {
         return {
           ok: false,
+          reason: 'no-posture-slot',
           summary:
             `you can't ${verb} on ` +
             `${DescribeApi.getDisplayName(target, 'that')}`,
@@ -75,6 +84,7 @@ export class PostureApi {
       }
       return {
         ok: false,
+        reason: 'occupied',
         summary:
           `${DescribeApi.getDisplayName(target, 'that')} is occupied`,
       };
@@ -89,7 +99,11 @@ export class PostureApi {
         { host: target, slot: chosen }
       );
     } catch (err) {
-      return { ok: false, summary: (err as Error).message };
+      return {
+        ok: false,
+        reason: 'transfer-failed',
+        summary: (err as Error).message,
+      };
     }
     actor.setPosture(posture);
     return { ok: true, host: target, slot: chosen };

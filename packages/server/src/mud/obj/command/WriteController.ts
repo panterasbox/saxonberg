@@ -59,7 +59,6 @@ import {
   validateAgainstJsonSchema,
   type CommandContext,
   type CommandModel,
-  type CommandResult,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -94,10 +93,12 @@ const DEFAULT_CONTENT_CLASS = '/lib/stuff/Idea';
 const DEFAULT_CONTENT_HYDRATOR = '/lib/persistence/PersistentHydrator';
 
 export class WriteController extends CommandController<WriteModel> {
-  async execute(model: WriteModel, context: CommandContext): Promise<CommandResult> {
+  async execute(model: WriteModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
-      return { success: false, summary: 'this character has no workspace' };
+      this.tell(context, '\nthis character has no workspace\n');
+      context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
+      return;
     }
     if (!model.path) return this.fail(context, 'write needs a <path>');
 
@@ -157,7 +158,7 @@ export class WriteController extends CommandController<WriteModel> {
         return this.fail(context, (err as Error).message);
       }
       this.tell(context, `\nwrote ${target}\n`);
-      return { success: true, summary: target };
+      return;
     }
 
     if (model.body === undefined) {
@@ -174,7 +175,7 @@ export class WriteController extends CommandController<WriteModel> {
     }
     await SourceTreeApi.write(abs, model.body);
     this.tell(context, `\nwrote ${SourceTreeApi.toDisplayPath(abs)}\n`);
-    return { success: true, summary: SourceTreeApi.toDisplayPath(abs) };
+    return;
   }
 
   /**
@@ -207,8 +208,13 @@ export class WriteController extends CommandController<WriteModel> {
       .send();
   }
 
-  private fail(context: CommandContext, summary: string): CommandResult {
-    this.tell(context, `\n${summary}\n`);
-    return { success: false, summary };
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string = 'unspecified',
+  ): void {
+    this.tell(context, `\n${detail}\n`);
+    context.note({ kind: 'controller-rejected', reason, detail });
+    return;
   }
 }

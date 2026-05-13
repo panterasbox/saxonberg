@@ -10,8 +10,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -24,19 +23,30 @@ interface WeighModel extends CommandModel {
 }
 
 export class WeighController extends CommandController<WeighModel> {
-  execute(model: WeighModel, context: CommandContext): CommandResult {
+  execute(model: WeighModel, context: CommandContext): void {
+    const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
-      return {
-        success: false,
-        summary: `you don't see any '${target?.raw ?? ''}' here`,
-      };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      return {
-        success: false,
-        summary: `${DescribeApi.getDisplayName(target.stuff, 'that')} can't be weighed`,
-      };
+      const detail = `${DescribeApi.getDisplayName(target.stuff, 'that')} can't be weighed`;
+      MessageApi.scene(giver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-tangible',
+        detail,
+      });
+      return;
     }
     const mass = (target.stuff as Stuff & { getMass(): import('../../lib/quantity').Quantity<'kg'> }).getMass();
 
@@ -47,9 +57,6 @@ export class WeighController extends CommandController<WeighModel> {
       .toSelf(body)
       .send();
 
-    return {
-      success: true,
-      summary: `${DescribeApi.getDisplayName(target.stuff, 'it')}: ${mass.format()}`,
-    };
+    return;
   }
 }

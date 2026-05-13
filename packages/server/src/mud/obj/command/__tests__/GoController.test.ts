@@ -17,10 +17,11 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -80,29 +81,30 @@ function makeContext(
   location: Location,
   commandText: string
 ): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText,
     executionId: 'test-execution',
     commandId: 'test-command-id',
-  verb: 'go',
-  command: stubCommand('go'),
-  };
+    verb: 'go',
+    command: stubCommand('go'),
+  });
 }
 
 /**
  * Resolve `raw` through MQL and run GoController as the dispatcher
  * would: build the `MqlOneResult` wrapper for `model.target` and run the
- * controller. Returns the controller's CommandResult.
+ * controller. Returns void; tests assert on world state and on
+ * frames captured by `avatar.received`.
  */
 async function goCmd(
   controller: GoController,
   avatar: FakeAvatar,
   location: Location,
   raw: string
-): Promise<ReturnType<GoController['execute']> extends Promise<infer T> ? T : never> {
+): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
   const target = resolveTarget(avatar as unknown as Stuff, raw);
   return controller.execute(makeModel({ target } as ModelData), ctx);
@@ -149,10 +151,8 @@ describe('GoController', () => {
 
   describe('golden path (cartesian)', () => {
     it('go north moves the avatar and emits departure/arrival messages', async () => {
-      const result = await goCmd(controller, avatar, locA, 'north');
-      expect(result.success).toBe(true);
+      await goCmd(controller, avatar, locA, 'north');
       expect(avatar.getContainer()).toBe(locB);
-      expect(result.summary).toContain('Location B');
 
       const depText = JSON.stringify(peerInA.received);
       expect(depText).toContain('leaves to the');
@@ -164,8 +164,7 @@ describe('GoController', () => {
 
     it('round trip with south returns avatar to location A', async () => {
       await goCmd(controller, avatar, locA, 'north');
-      const back = await goCmd(controller, avatar, locB, 'south');
-      expect(back.success).toBe(true);
+      await goCmd(controller, avatar, locB, 'south');
       expect(avatar.getContainer()).toBe(locA);
     });
 
@@ -195,11 +194,27 @@ describe('GoController', () => {
 
   describe('guards and errors', () => {
     it('returns an error when no direction is given', async () => {
-      const result = await controller.execute(makeModel(), makeContext(avatar, locA, ''));
-      expect(result.success).toBe(false);
+      const ctx = makeContext(avatar, locA, '');
+      await controller.execute(makeModel(), ctx);
       // Post-locomotion: rejection prose is mode-templated and lands
-      // through the exitMode gate.
-      expect(result.summary).toMatch(/can't walk that way/i);
+      // through the exitMode gate. The summary field is gone — read
+      // it off the actor's Scene frames + the ctx note.
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/can't walk that way/i),
+        ),
+      ).toBe(true);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({
+          kind: 'locomotion-gate-failed',
+          gate: 'exit-mode',
+        }),
+      );
     });
 
     it("returns rejection prose when the input doesn't resolve", async () => {
@@ -207,9 +222,17 @@ describe('GoController', () => {
       // wrapper on `model.target` with `stuff: null` for an
       // unresolved input. LocomotionControllerBase's exitMode gate
       // fires with verb-templated prose.
-      const result = await goCmd(controller, avatar, locA, 'south');
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/can't walk that way/i);
+      await goCmd(controller, avatar, locA, 'south');
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/can't walk that way/i),
+        ),
+      ).toBe(true);
     });
 
     it('blocks traversal through a closed door', async () => {
@@ -218,9 +241,17 @@ describe('GoController', () => {
       locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
-      const result = await goCmd(controller, avatar, locA, 'east');
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/closed/i);
+      await goCmd(controller, avatar, locA, 'east');
+      const shellFrames = avatar.received.filter((f) =>
+        ((f as { topic?: string })?.topic ?? '').startsWith(
+          'system.shell.movement',
+        ),
+      );
+      expect(
+        shellFrames.some((f) =>
+          ((f as { body?: string }).body ?? '').match(/closed/i),
+        ),
+      ).toBe(true);
       expect(avatar.getContainer()).toBe(locA);
     });
   });
@@ -243,8 +274,7 @@ describe('GoController', () => {
       const spherePeer = makeStuff(() => new PeerSensor());
       ContainmentApi.move(spherePeer, office);
 
-      const result = await goCmd(controller, visitor, plaza, 'office');
-      expect(result.success).toBe(true);
+      await goCmd(controller, visitor, plaza, 'office');
       expect(visitor.getContainer()).toBe(office);
 
       const arrText = JSON.stringify(spherePeer.received);
@@ -259,8 +289,7 @@ describe('GoController', () => {
       wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
 
-      const result = await goCmd(controller, avatar, locA, 'wardrobe');
-      expect(result.success).toBe(true);
+      await goCmd(controller, avatar, locA, 'wardrobe');
       expect(avatar.getContainer()).toBe(wardrobe);
     });
 
@@ -270,13 +299,12 @@ describe('GoController', () => {
       ContainmentApi.move(wardrobe, locA);
       ContainmentApi.move(avatar, wardrobe);
 
-      const result = await goCmd(
+      await goCmd(
         controller,
         avatar,
         wardrobe as unknown as Location,
         'out'
       );
-      expect(result.success).toBe(true);
       expect(avatar.getContainer()).toBe(locA);
     });
 

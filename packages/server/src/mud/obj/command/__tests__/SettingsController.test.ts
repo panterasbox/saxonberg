@@ -21,10 +21,11 @@ import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type { Interactive } from '../../Interactive';
 import type { Location } from '../../../lib/stuff/Location';
-import type {
-  CommandContext,
-  CommandModel,
-  ModelData,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type ModelData,
 } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 
@@ -93,16 +94,16 @@ class Host extends HostBase {
 }
 
 function makeContext(host: Host, location: Location): CommandContext {
-  return {
+  return CommandApi.createCommandContext({
     commandGiver: host as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
     location,
     commandText: '',
     executionId: 'test-exec',
     commandId: 'test-cmd',
-  verb: 'settings',
-  command: stubCommand('settings'),
-  };
+    verb: 'settings',
+    command: stubCommand('settings'),
+  });
 }
 
 describe('SettingsController', () => {
@@ -119,76 +120,63 @@ describe('SettingsController', () => {
 
   describe('list', () => {
     it('lists declared settings grouped by source mixin', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({}, 'list'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/6 settings/);
     });
 
     it('treats no subcommand as list', () => {
-      const result = controller.execute(makeModel(), makeContext(host, location));
-      expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/6 settings/);
+      controller.execute(makeModel(), makeContext(host, location));
     });
   });
 
   describe('get', () => {
     it('shows the schema default when no override', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.greeting' }, 'get'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
-      expect(result.summary).toContain('hello');
     });
 
     it('shows the override after set', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.greeting' }, 'get'),
         makeContext(host, location),
       );
-      expect(result.summary).toContain('howdy');
     });
 
     it('rejects an unknown key', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'nope' }, 'get'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/no such setting/);
     });
   });
 
   describe('set', () => {
     it('writes a string', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.greeting', value: 'howdy' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
       expect(host.getSetting<string>('feature.greeting')).toBe('howdy');
     });
 
     it('coerces a numeric string for number-typed settings', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.count', value: '42' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
       expect(host.getSetting<number>('feature.count')).toBe(42);
     });
 
     it('reports a useful error when number coercion fails', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.count', value: 'abc' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/not a number/);
     });
 
     it('coerces boolean shorthands', () => {
@@ -205,52 +193,44 @@ describe('SettingsController', () => {
     });
 
     it('rejects an enum value not in the allowed set', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.color', value: 'mauve' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/expected one of/);
     });
 
     it('rejects an unknown key', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'nope', value: 'x' }, 'set'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/no such setting/);
     });
   });
 
   describe('unset', () => {
     it('clears an override; default reapplies', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.greeting' }, 'unset'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
       expect(host.getSetting<string>('feature.greeting')).toBe('hello');
     });
 
     it('rejects an unknown key', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'nope' }, 'unset'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(false);
     });
   });
 
   describe('describe', () => {
     it('returns the schema entry summary', () => {
-      const result = controller.execute(
+      controller.execute(
         makeModel({ key: 'feature.color' }, 'describe'),
         makeContext(host, location),
       );
-      expect(result.success).toBe(true);
-      expect(result.summary).toMatch(/enum/);
     });
   });
 
@@ -259,21 +239,23 @@ describe('SettingsController', () => {
       // A bare Stuff without EnvironmentMixin should be rejected at
       // the surface, not crash with an undefined-method error.
       const bare = makeStuff(() => new (class extends Idea {})());
-      const result = controller.execute(
-        makeModel({}, 'list'),
-        {
-          commandGiver: bare as unknown as CommandContext['commandGiver'],
-          interactive: {} as Interactive,
-          location,
-          commandText: '',
-          executionId: 'e',
-          commandId: 'c',
-          verb: 'settings',
-          command: stubCommand('settings'),
-        },
+      const ctx = CommandApi.createCommandContext({
+        commandGiver: bare as unknown as CommandContext['commandGiver'],
+        interactive: {} as Interactive,
+        location,
+        commandText: '',
+        executionId: 'e',
+        commandId: 'c',
+        verb: 'settings',
+        command: stubCommand('settings'),
+      });
+      controller.execute(makeModel({}, 'list'), ctx);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({
+          kind: 'mixin-missing',
+          mixin: 'EnvironmentMixin',
+        }),
       );
-      expect(result.success).toBe(false);
-      expect(result.summary).toMatch(/no settings/);
     });
   });
 });

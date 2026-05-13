@@ -18,7 +18,7 @@ import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
-import type { MessageFrame } from '@saxonberg/types';
+import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
 
@@ -133,6 +133,21 @@ export class Avatar extends AvatarBase {
     const app = Avatar.getApplicationInstance();
     for (const interactive of this.interactives) {
       app.sendMessageToInteractive(interactive, frame);
+    }
+  }
+
+  /**
+   * SensorMixin.handleEnvelope override — multiplex the envelope to
+   * every connected Interactive. Reached after `filterEnvelope` (the
+   * shadowable extension point on SensorMixin). When `interactives`
+   * is empty (netdead Avatar) the for-each is a no-op but the
+   * `handleEnvelope` body itself runs, so server-side reactions
+   * (shadows, scripted behavior) fire regardless of wire state.
+   */
+  protected override handleEnvelope(envelope: EnvelopeTemplate): void {
+    const app = Avatar.getApplicationInstance();
+    for (const interactive of this.interactives) {
+      app.sendEnvelopeToInteractive(interactive, envelope);
     }
   }
 

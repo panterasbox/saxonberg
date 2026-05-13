@@ -15,28 +15,23 @@
  *     (no soft failure to signal). Capacity-driven `ok: false`
  *     arrives with the collision slate.
  *
- * Response-envelope substrate isn't landed yet (separate slate). v1
- * folds the helper's notes into the `summary` Mml inline:
- *
- *   - `quantity-clamped` → append `" (only N available)"`.
- *   - `quantity-clamped-rejected` → return `{ success: false }` with
- *     `"you only have N of those"`.
- *   - `empty-result` → existing "you don't have any '<raw>'" form.
- *   - `target-declined` → no-op branch (TypeScript exhaustiveness;
- *     dead code in v1 because the v1 action always returns ok:true).
+ * Glob emits canonical `@saxonberg/types` note shapes pre-stamped
+ * with `field: 'targets'`; `renderResult` forwards each into
+ * `ctx.note(...)` and pairs the player-facing kinds with their
+ * Scene.send prose. Status auto-escalates via the dispatch-response
+ * envelope — no `success`/`summary` mediation.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
-import { GlobbableApi } from '../../api/glob';
+import { GlobbableApi, type ApplyQuantityResult } from '../../api/glob';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
@@ -54,7 +49,7 @@ export class DropController extends CommandController<DropModel> {
   async execute(
     model: DropModel,
     context: CommandContext
-  ): Promise<CommandResult> {
+  ): Promise<void> {
     const { stuff, quantity, raw } = model.targets;
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
@@ -86,10 +81,10 @@ export class DropController extends CommandController<DropModel> {
         this.dropOperand(operand, context);
         return { ok: true, payload: { operand, applied } };
       },
-      { query: raw }
+      { field: 'targets', query: raw }
     );
 
-    return this.renderResult(result, raw);
+    return this.renderResult(result, raw, context);
   }
 
   private executeWholeSet(
@@ -97,12 +92,14 @@ export class DropController extends CommandController<DropModel> {
     inventory: readonly Stuff[],
     raw: string,
     context: CommandContext
-  ): CommandResult {
+  ): void {
     if (targets.length === 0) {
-      return {
-        success: false,
-        summary: `you don't have any '${raw}' to drop`,
-      };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'targets', query: raw });
+      return;
     }
     const droppedNames: string[] = [];
     for (const target of targets) {
@@ -113,64 +110,63 @@ export class DropController extends CommandController<DropModel> {
       droppedNames.push(DescribeApi.formatName(target, 'something'));
     }
     if (droppedNames.length === 0) {
-      return { success: false, summary: 'nothing dropped' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing dropped.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-dropped',
+        detail: 'nothing dropped',
+      });
+      return;
     }
-    return { success: true, summary: droppedNames.join(', ') };
+    return;
   }
 
   private renderResult(
-    result: {
-      ok: boolean;
-      applied: number;
-      status?: 'partial' | 'declined';
-      notes: ReadonlyArray<
-        | { kind: 'quantity-clamped'; requested: number; applied: number }
-        | { kind: 'quantity-clamped-rejected'; requested: number; available: number }
-        | { kind: 'empty-result'; query: string; reason: 'no-matches' }
-        | { kind: 'target-declined'; target: Stuff; reason: string }
-      >;
-      payloads: DropPayload[];
-    },
-    raw: string
-  ): CommandResult {
-    // Inspect notes inline (envelope substrate stub per G1). The
-    // kind-switch is exhaustive so future note kinds force a compile
-    // error here when added.
-    let clampedSuffix = '';
+    result: ApplyQuantityResult<DropPayload>,
+    raw: string,
+    context: CommandContext,
+  ): void {
     for (const note of result.notes) {
+      // Glob already constructed canonical-shape notes — forward
+      // straight through. Per-kind prose decides whether the player
+      // sees a Scene frame.
+      context.note(note);
       switch (note.kind) {
         case 'empty-result':
-          return {
-            success: false,
-            summary: `you don't have any '${raw}' to drop`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
+            .send();
+          return;
         case 'quantity-clamped-rejected':
-          return {
-            success: false,
-            summary: `you only have ${note.available} of those`,
-          };
+          MessageApi.scene(context.commandGiver)
+            .topic(MessageApi.Topics.world.perception.inventory)
+            .toSelf(
+              Mml.compose`You only have ${String(note.available)} of those.`,
+            )
+            .send();
+          return;
         case 'quantity-clamped':
-          clampedSuffix = ` (only ${note.applied} available)`;
-          break;
         case 'target-declined':
-          // No-op in v1. Action callback always returns ok:true here,
-          // so this branch is dead code. The collision slate's
-          // capacity-driven decline will land here.
+          // Notes forwarded; nothing more to render here.
           break;
       }
     }
 
     if (!result.ok || result.payloads.length === 0) {
-      return { success: false, summary: 'nothing dropped' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.inventory)
+        .toSelf(Mml.compose`Nothing dropped.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-dropped',
+        detail: 'nothing dropped',
+      });
     }
-
-    const droppedNames = result.payloads
-      .map(({ operand }) => DescribeApi.formatName(operand, 'something'))
-      .join(', ');
-    return {
-      success: true,
-      summary: `${droppedNames}${clampedSuffix}`,
-    };
   }
 
   /**

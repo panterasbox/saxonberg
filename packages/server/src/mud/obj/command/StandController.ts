@@ -14,8 +14,7 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  CommandResult,
-} from '../../api/command';
+  } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
@@ -29,7 +28,7 @@ interface StandModel extends CommandModel {
 }
 
 export class StandController extends CommandController<StandModel> {
-  execute(model: StandModel, context: CommandContext): CommandResult {
+  execute(model: StandModel, context: CommandContext): void {
     const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {
       throw new Error(
@@ -56,7 +55,18 @@ export class StandController extends CommandController<StandModel> {
         Postures.Stand,
         'stand'
       );
-      if (!result.ok) return { success: false, summary: result.summary };
+      if (!result.ok) {
+        MessageApi.scene(giver)
+          .topic(MessageApi.Topics.world.narration.action)
+          .toSelf(Mml.compose`${result.summary}`)
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: result.reason,
+          detail: result.summary,
+        });
+        return;
+      }
       const name = DescribeApi.getDisplayName(target, 'it');
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.narration.action)
@@ -65,7 +75,7 @@ export class StandController extends CommandController<StandModel> {
           Mml.compose`${Mml.name(giver)} stands on ${Mml.item(target)}.`
         )
         .send();
-      return { success: true, summary: `standing on ${name}` };
+      return;
     }
 
     // Slot-less form: just vacate any current posture-bearing slot.
@@ -76,6 +86,6 @@ export class StandController extends CommandController<StandModel> {
       .toSelf(Mml.compose`You stand up.`)
       .toPeers(Mml.compose`${Mml.name(giver)} stands up.`)
       .send();
-    return { success: true };
+    return;
   }
 }

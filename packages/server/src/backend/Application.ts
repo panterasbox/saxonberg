@@ -17,7 +17,12 @@
  */
 
 import type { IBackend } from './IBackend';
-import type { PassportGoogleProfile } from '@saxonberg/types';
+import type {
+  Envelope,
+  EnvelopeTemplate,
+  MessageFrame,
+  PassportGoogleProfile,
+} from '@saxonberg/types';
 
 /**
  * Local minimal type for inbound client → server messages. Kept simple
@@ -72,14 +77,47 @@ export class Application {
   }
 
   /**
-   * Send a message to a specific Interactive's client. Sole gateway for
-   * game objects to reach Backend — Application owns Backend communication.
+   * Send a `MessageFrame` to a specific Interactive's client. Sole
+   * gateway for game objects to reach Backend — Application owns
+   * Backend communication. Stamps `meta.frameId` per-Interactive at
+   * send-time so multi-device Avatars receive monotonic streams from
+   * each Interactive's perspective.
+   *
+   * Error / auth notifications (raw `{type, payload}` shapes) go
+   * directly through `Backend.sendMessageToSocket` and bypass this
+   * chokepoint — they're not Sensor-pipeline frames and have no
+   * `frameId` to stamp.
    */
-  public sendMessageToInteractive(interactive: Interactive, message: unknown): void {
+  public sendMessageToInteractive(
+    interactive: Interactive,
+    frame: MessageFrame,
+  ): void {
     const socketId = interactive.getSocketId();
-    if (this.backend && socketId) {
-      this.backend.sendMessageToSocket(socketId, message);
-    }
+    if (!this.backend || !socketId) return;
+    const stamped: MessageFrame = {
+      ...frame,
+      meta: { ...frame.meta, frameId: interactive.nextFrameId() },
+    };
+    this.backend.sendMessageToSocket(socketId, stamped);
+  }
+
+  /**
+   * Envelope counterpart to {@link sendMessageToInteractive}. Stamps
+   * `frameId` per-Interactive from the same `Interactive.nextFrameId`
+   * counter used for prose frames — one ordering primitive across all
+   * server→client traffic.
+   */
+  public sendEnvelopeToInteractive(
+    interactive: Interactive,
+    template: EnvelopeTemplate
+  ): void {
+    const socketId = interactive.getSocketId();
+    if (!this.backend || !socketId) return;
+    const stamped: Envelope = {
+      ...template,
+      frameId: interactive.nextFrameId(),
+    } as Envelope;
+    this.backend.sendEnvelopeToSocket(socketId, stamped);
   }
 
   /**
@@ -236,10 +274,11 @@ export class Application {
       return;
     }
 
-    // Discard the result; CommandResult is purely semantic now. Any
-    // prose the controller wanted the actor to see is fired via Scene
-    // inside the controller body, and the auto-emitted MudlogApi
-    // command-outcome entry surfaces success/failure with `summary`.
+    // executeCommand returns void; the dispatch-response envelope
+    // (fired through the Sensor pipeline to every connected
+    // Interactive) is the sole outcome carrier. Any prose the
+    // controller wanted the player to see fires via Scene inside
+    // the controller body.
     await avatar.executeCommand(commandText, { interactive });
   }
 
