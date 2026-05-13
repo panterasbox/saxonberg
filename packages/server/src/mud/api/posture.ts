@@ -26,10 +26,12 @@ import { SecurityApi } from './security';
 
 /**
  * Outcome of `transferPosture`. On success the controller emits its
- * verb-specific narration; on failure the summary is user-facing
- * and bubbles through ``. `verb` is folded into the
- * "no-accepting-slot" message ("you can't `sit` on the wallpaper")
- * since that's the one failure mode where verb name reads naturally.
+ * verb-specific narration; on failure the controller emits the
+ * summary as a Scene frame and `ctx.note({kind: 'controller-rejected',
+ * reason})` so the dispatch-response envelope carries the structured
+ * signal. `verb` is folded into the "no-accepting-slot" message
+ * ("you can't `sit` on the wallpaper") since that's the one failure
+ * mode where verb name reads naturally.
  *
  * `reason` is a stable kebab-case identifier that controllers
  * forward into the `controller-rejected` note kind: `'no-posture-slot'`

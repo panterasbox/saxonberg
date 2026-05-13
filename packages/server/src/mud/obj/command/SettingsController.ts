@@ -51,7 +51,7 @@ export class SettingsController extends CommandController<SettingsModel> {
       case 'describe':
         return this.executeDescribe(avatar, key, context);
       default:
-        return;
+        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 
@@ -90,9 +90,9 @@ export class SettingsController extends CommandController<SettingsModel> {
     key: string | undefined,
     context: CommandContext,
   ): void {
-    if (!key) return this.fail(context, 'key required');
+    if (!key) return this.fail(context, 'key required', 'key-required');
     const schema = avatar.describeSetting(key);
-    if (!schema) return this.fail(context, `no such setting: ${key}`);
+    if (!schema) return this.fail(context, `no such setting: ${key}`, 'no-such-setting');
     const value = avatar.getSetting(key);
     this.send(
       context,
@@ -107,23 +107,23 @@ export class SettingsController extends CommandController<SettingsModel> {
     rawValue: string | undefined,
     context: CommandContext,
   ): void {
-    if (!key) return this.fail(context, 'key required');
+    if (!key) return this.fail(context, 'key required', 'key-required');
     if (rawValue === undefined)
-      return this.fail(context, 'value required');
+      return this.fail(context, 'value required', 'value-required');
     const schema = avatar.describeSetting(key);
-    if (!schema) return this.fail(context, `no such setting: ${key}`);
+    if (!schema) return this.fail(context, `no such setting: ${key}`, 'no-such-setting');
 
     let coerced: unknown;
     try {
       coerced = coerceToType(rawValue, schema);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'coercion-failed');
     }
 
     try {
       avatar.setSetting(key, coerced, avatar);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'set-failed');
     }
     this.send(
       context,
@@ -137,13 +137,13 @@ export class SettingsController extends CommandController<SettingsModel> {
     key: string | undefined,
     context: CommandContext,
   ): void {
-    if (!key) return this.fail(context, 'key required');
+    if (!key) return this.fail(context, 'key required', 'key-required');
     const schema = avatar.describeSetting(key);
-    if (!schema) return this.fail(context, `no such setting: ${key}`);
+    if (!schema) return this.fail(context, `no such setting: ${key}`, 'no-such-setting');
     try {
       avatar.unsetSetting(key, avatar);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'unset-failed');
     }
     this.send(
       context,
@@ -157,9 +157,9 @@ export class SettingsController extends CommandController<SettingsModel> {
     key: string | undefined,
     context: CommandContext,
   ): void {
-    if (!key) return this.fail(context, 'key required');
+    if (!key) return this.fail(context, 'key required', 'key-required');
     const schema = avatar.describeSetting(key);
-    if (!schema) return this.fail(context, `no such setting: ${key}`);
+    if (!schema) return this.fail(context, `no such setting: ${key}`, 'no-such-setting');
     const lines = [
       '',
       `${schema.key}`,

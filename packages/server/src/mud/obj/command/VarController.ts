@@ -43,7 +43,7 @@ export class VarController extends CommandController<VarModel> {
       case 'unset':
         return this.executeUnset(avatar, name, context);
       default:
-        return;
+        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 
@@ -68,12 +68,12 @@ export class VarController extends CommandController<VarModel> {
     value: string | undefined,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
-    if (value === undefined) return this.fail(context, 'value required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
+    if (value === undefined) return this.fail(context, 'value required', 'value-required');
     try {
       avatar.setVar(name, value);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'set-failed');
     }
     this.send(context, Mml.fromMarkup(`\n${name} = ${value}\n`));
     return;
@@ -84,11 +84,11 @@ export class VarController extends CommandController<VarModel> {
     name: string | undefined,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
     try {
       avatar.unsetVar(name);
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'unset-failed');
     }
     this.send(context, Mml.fromMarkup(`\n${name} cleared.\n`));
     return;

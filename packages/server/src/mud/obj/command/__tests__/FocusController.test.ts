@@ -44,7 +44,10 @@ const TestGiverBase = FocusedMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
 );
 class TestGiver extends TestGiverBase {
-  protected override handleMessage(): void {}
+  public received: Array<{ topic?: string; body?: string }> = [];
+  protected override handleMessage(frame: unknown): void {
+    this.received.push(frame as { topic?: string; body?: string });
+  }
 }
 
 class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -104,10 +107,14 @@ describe('FocusController', () => {
   it('reports the current focus when no fragment is given', () => {
     giver.setFocus('bookcase:book');
     controller.execute(makeModel(), makeContext(giver, location));
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('bookcase:book');
   });
 
   it("defaults to 'here' focus when nothing has set it", () => {
     controller.execute(makeModel(), makeContext(giver, location));
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('here');
   });
 
   it('sets focus to the player-typed fragment', () => {
@@ -125,6 +132,9 @@ describe('FocusController', () => {
       makeModel({ fragment: fragmentField([a, b], 'flowers') } as ModelData),
       makeContext(giver, location, 'flowers')
     );
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('flowers');
+    expect(body).toContain('2 objects');
   });
 
   it('"1 object" when exactly one resolves', () => {
@@ -133,6 +143,9 @@ describe('FocusController', () => {
       makeModel({ fragment: fragmentField([a], 'rose') } as ModelData),
       makeContext(giver, location, 'rose')
     );
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('1 object');
+    expect(body).not.toContain('1 objects');
   });
 
   it('still sets focus when the fragment resolves to nothing now', () => {
@@ -143,5 +156,7 @@ describe('FocusController', () => {
       makeContext(giver, location, 'online')
     );
     expect(giver.getFocus()).toBe('online');
+    const body = giver.received[0]?.body ?? '';
+    expect(body).toContain('0 objects');
   });
 });

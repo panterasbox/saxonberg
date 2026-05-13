@@ -304,8 +304,9 @@ export interface ParserContext {
  *                 parser. Dispatcher skips match/assemble and runs
  *                 only resolve + execute. Used by NL/LLM parsers
  *                 that decide intent themselves.
- *   - `error`   — input couldn't be parsed; the summary surfaces
- *                 to the actor via the standard auto-emit path.
+ *   - `error`   — input couldn't be parsed; the dispatcher emits a
+ *                 `command-rejected { reason: 'parse-failed' }` note
+ *                 onto the dispatch-response envelope.
  */
 export interface ParseResult {
   parsed?: ParsedCommand;
@@ -1013,9 +1014,11 @@ export class CommandApi {
    * Filter the available command list down to those whose verb
    * matches `verb` (case-insensitive). The input list comes from the
    * giver's recency stack, top-of-stack first; the output preserves
-   * order so chain-of-responsibility dispatch tries the newest match
-   * first. Multiple matches are NOT deduped — that's the job of the
-   * `pass: true` mechanic.
+   * order so the assemble-stage chain-of-responsibility tries the
+   * newest match first. The execute-stage `pass: true` deferral is
+   * gone; same-verb collisions are resolved at the assemble stage
+   * (shape vs bind), or via dynamic contributions on the recency
+   * stack — see `command-routing.md`.
    */
   static matchVerbContextual(
     verb: string,

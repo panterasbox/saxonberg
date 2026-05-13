@@ -96,14 +96,15 @@ function makeContext(
 /**
  * Resolve `raw` through MQL and run GoController as the dispatcher
  * would: build the `MqlOneResult` wrapper for `model.target` and run the
- * controller. Returns the controller's CommandResult.
+ * controller. Returns void; tests assert on world state and on
+ * frames captured by `avatar.received`.
  */
 async function goCmd(
   controller: GoController,
   avatar: FakeAvatar,
   location: Location,
   raw: string
-): Promise<ReturnType<GoController['execute']> extends Promise<infer T> ? T : never> {
+): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
   const target = resolveTarget(avatar as unknown as Stuff, raw);
   return controller.execute(makeModel({ target } as ModelData), ctx);

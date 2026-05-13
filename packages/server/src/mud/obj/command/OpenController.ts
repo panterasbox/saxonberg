@@ -28,7 +28,6 @@ import type {
 import { MqlApi, type MqlOneResult } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sealable } from '../../lib/spatial/Sealable';

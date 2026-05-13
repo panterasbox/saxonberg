@@ -274,10 +274,11 @@ export class Application {
       return;
     }
 
-    // Discard the result;  is purely semantic now. Any
-    // prose the controller wanted the actor to see is fired via Scene
-    // inside the controller body, and the auto-emitted MudlogApi
-    // command-outcome entry surfaces success/failure with `summary`.
+    // executeCommand returns void; the dispatch-response envelope
+    // (fired through the Sensor pipeline to every connected
+    // Interactive) is the sole outcome carrier. Any prose the
+    // controller wanted the player to see fires via Scene inside
+    // the controller body.
     await avatar.executeCommand(commandText, { interactive });
   }
 

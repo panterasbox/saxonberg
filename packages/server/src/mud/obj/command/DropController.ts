@@ -15,15 +15,11 @@
  *     (no soft failure to signal). Capacity-driven `ok: false`
  *     arrives with the collision slate.
  *
- * Response-envelope substrate isn't landed yet (separate slate). v1
- * folds the helper's notes into the `summary` Mml inline:
- *
- *   - `quantity-clamped` → append `" (only N available)"`.
- *   - `quantity-clamped-rejected` → return `{ success: false }` with
- *     `"you only have N of those"`.
- *   - `empty-result` → existing "you don't have any '<raw>'" form.
- *   - `target-declined` → no-op branch (TypeScript exhaustiveness;
- *     dead code in v1 because the v1 action always returns ok:true).
+ * Glob emits canonical `@saxonberg/types` note shapes pre-stamped
+ * with `field: 'targets'`; `renderResult` forwards each into
+ * `ctx.note(...)` and pairs the player-facing kinds with their
+ * Scene.send prose. Status auto-escalates via the dispatch-response
+ * envelope — no `success`/`summary` mediation.
  */
 
 import { CommandController } from '../../lib/command/CommandController';

@@ -29,10 +29,12 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  } from '../../api/command';
+} from '../../api/command';
 import type { MqlManyResult } from '../../api/mql';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Focused } from '../../lib/command/Focused';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
 interface FocusModel extends CommandModel {
   fragment?: MqlManyResult;
@@ -46,7 +48,13 @@ export class FocusController extends CommandController<FocusModel> {
     const giver = context.commandGiver as unknown as Stuff & Focused;
     const wrapper = model.fragment;
 
+    // No fragment → report current focus state.
     if (!wrapper || wrapper.raw.trim().length === 0) {
+      const current = giver.getFocus();
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.fromMarkup(`focus: ${current}\n`))
+        .send();
       return;
     }
 
@@ -54,6 +62,13 @@ export class FocusController extends CommandController<FocusModel> {
     giver.setFocus(fragmentText);
     const matches = wrapper.stuff.length;
     const noun = matches === 1 ? 'object' : 'objects';
-    return;
+    MessageApi.scene(context.commandGiver)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(
+        Mml.fromMarkup(
+          `focus set to '${fragmentText}' (${matches} ${noun})\n`,
+        ),
+      )
+      .send();
   }
 }

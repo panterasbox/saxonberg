@@ -572,7 +572,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * failures (unknown verb, all-shape-fall-through, bind error).
      *
      * Chain-of-responsibility lives at the assemble stage only;
-     * `pass: true` retired with ``. Content patterns
+     * `pass: true` retired with `CommandResult`. Content patterns
      * that need "I might handle this depending on state" use
      * dynamic contributions on the recency stack.
      */

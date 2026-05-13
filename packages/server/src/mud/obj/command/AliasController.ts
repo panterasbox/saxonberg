@@ -52,7 +52,7 @@ export class AliasController extends CommandController<AliasModel> {
       case 'describe':
         return this.executeDescribe(avatar, name, context);
       default:
-        return;
+        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 
@@ -103,9 +103,9 @@ export class AliasController extends CommandController<AliasModel> {
     name: string | undefined,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const entry = avatar.getAlias(name);
-    if (!entry) return this.fail(context, `no such alias: ${name}`);
+    if (!entry) return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     this.send(
       context,
       Mml.fromMarkup(`\n${entry.name} = ${entry.body}    [${entry.source}]\n`),
@@ -120,16 +120,16 @@ export class AliasController extends CommandController<AliasModel> {
     session: boolean,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
     if (body === undefined || body === '')
-      return this.fail(context, 'body required');
+      return this.fail(context, 'body required', 'body-required');
     try {
       avatar.setAlias(name, body, {
         lifetime: session ? 'session' : 'persistent',
         actor: avatar,
       });
     } catch (err) {
-      return this.fail(context, (err as Error).message);
+      return this.fail(context, (err as Error).message, 'set-failed');
     }
     const tier = session ? 'session' : 'persistent';
     this.send(
@@ -144,7 +144,7 @@ export class AliasController extends CommandController<AliasModel> {
     name: string | undefined,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const removed = avatar.removeAlias(name, avatar);
     if (!removed) {
       return this.fail(context, `no such alias: ${name}`);
@@ -158,9 +158,9 @@ export class AliasController extends CommandController<AliasModel> {
     name: string | undefined,
     context: CommandContext,
   ): void {
-    if (!name) return this.fail(context, 'name required');
+    if (!name) return this.fail(context, 'name required', 'name-required');
     const entry = avatar.getAlias(name);
-    if (!entry) return this.fail(context, `no such alias: ${name}`);
+    if (!entry) return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     const lines = [
       '',
       entry.name,
