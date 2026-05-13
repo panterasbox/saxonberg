@@ -31,6 +31,14 @@ The Sensor → MessageApi → Application → Backend skeleton is the entire
 delivery path. There are no parallel channels, no log sinks, no bus-level
 sidecars. Anything wanting to consume a frame is, or shadows, a Sensor.
 
+The response-envelope channel follows the same pipeline shape, with
+parallel surfaces at every tier: `MessageApi.sendEnvelope` is the lone
+delivery chokepoint, `Sensor.onEnvelope` / `filterEnvelope` /
+`handleEnvelope` mirror the message triad, and the fan-out runs through
+`Application.sendEnvelopeToInteractive` →
+`Backend.sendEnvelopeToSocket`. See
+[response-envelope.md](./response-envelope.md).
+
 ## Nomenclature
 
 These terms have specific meanings; code, comments, and docs use them
@@ -90,9 +98,18 @@ interface MessageFrame<T = unknown> {
     timestamp: number;
     commandId?: string;
     causingCommandId?: string;
+    frameId?: number;    // per-Interactive monotonic; absent at compose-time,
+                         // stamped at Application.sendMessageToInteractive
   };
 }
 ```
+
+`meta.frameId` is absent at compose-time (`Scene.send` and `MudlogApi`
+don't set it) and populated per-Interactive at the
+`Application.sendMessageToInteractive` send-time chokepoint. Producers
+ignore it; consumers (the client) use it for gap detection across both
+channels — see [response-envelope.md](./response-envelope.md) for the
+shared ordering primitive.
 
 `StuffRef` is the wire-safe Stuff reference. Direct Stuff objects never
 cross the boundary:
@@ -115,6 +132,21 @@ single-method utility doesn't pay for itself.
 When per-audience payloads diverge, the topic's payload type is a
 discriminated union keyed by `audience`; the frame's `audience:` tag
 discriminates and consumer code narrows via TS pattern matching.
+
+## Response envelope
+
+Alongside `MessageFrame`, the wire carries a second frame shape: the
+**response envelope**, a structured machine-readable signal for
+dispatch outcomes (`type: 'dispatch-response'` and reserved
+`'activity-update'` / `'prompt'` siblings). Envelopes carry no prose
+— their payload is `outcome.status` plus a typed `notes` list — and
+travel through a parallel Sensor pipeline (`onEnvelope` /
+`filterEnvelope` / `handleEnvelope`) with `MessageApi.sendEnvelope` as
+the lone delivery chokepoint. Both channels share the
+`Interactive.nextFrameId` counter so the client sees gap-free monotonic
+ordering across all server → client traffic on a single Interactive.
+Full shape, note kinds, and the auto-escalation table live in
+[response-envelope.md](./response-envelope.md).
 
 ## Topics
 
@@ -153,9 +185,9 @@ Conventions:
 - Adding a new topic requires no framework changes — producers just emit
   the new topic string.
 - Failed commands aren't a special topic. A `look` that found nothing
-  still composes prose at `world.perception.look`; the failure is
-  captured by the auto-emitted bland MudlogApi entry and the controller's
-  `success: false` return.
+  still composes prose at `world.perception.look`; failure is captured
+  in the dispatch-response envelope's `outcome.status` + `notes`, not
+  on a special topic. See [response-envelope.md](./response-envelope.md).
 
 `MessageApi.Topics` exposes the canonical constants so call sites get
 autocomplete, grep-ability, and rename safety:
@@ -168,8 +200,8 @@ MessageApi.scene(speaker)
 
 `MessageApi.Topics.system.log.root` (`'system.log'`) is the prefix used
 for "all log frames" matching; `system.log.command` is the
-framework-emitted bland command-outcome topic (see "Auto-emit on command
-completion" below).
+framework-emitted **input-echo** topic (see "Input echo at
+`system.log.command.*`" below).
 
 ## Tags
 
@@ -510,20 +542,43 @@ MudlogApi.info('admin',
 The standard level constants are exported as `MUDLOG_LEVELS` for
 diagnostic UIs that want to render every level.
 
-### Auto-emit on command completion
+### Input echo at `system.log.command.*`
 
-`CommandGiverMixin.executeCommand` automatically emits a MudlogApi
-entry per command, addressed to the actor. This is the uniform,
-hidable, structured log that complements the controller's prose Scenes.
+`CommandGiverMixin.executeCommand` fires an **input-echo** MessageFrame
+at the *start* of every dispatch — before parsing, matching, or
+controller execution. The frame carries topic
+`system.log.command.info` when the parser succeeded or
+`system.log.command.warn` when it failed; payload is:
 
-The frame carries topic `system.log.command.info` (success) or
-`system.log.command.warn` (failure). Body is `<verb>: <tail>` where
-`tail` is `result.summary` if provided, otherwise `'ok'` / `'failed'`.
+```typescript
+{
+  kind: 'issued';
+  rawText: string;
+  expandedText?: string;     // present when alias expansion fired
+  verb?: string;
+  parseError?: string;       // present iff parse failed
+  dispatchId: string;        // = the originating commandId
+  originInteractiveId?: string;  // absent for programmatic dispatch
+}
+```
 
-Both this MudlogApi entry AND any prose Scenes the controller fired
-share the same `commandId` (auto-stamped from `ExecutionContextApi`). UI
-can correlate, group, filter, route to different panels — whatever it
-wants.
+The frame is multiplexed via `Avatar.handleMessage` to every connected
+Interactive on the actor. Use cases:
+
+- **Multi-device echo** — an Avatar's other Interactives see what
+  their sibling typed; the client filters its own echo by comparing
+  `payload.originInteractiveId` against the `interactiveStuffId` it
+  stashed from `system.connection.established`.
+- **Audit trail** — server-side audit Sensors observe player input
+  independently of any dispatch outcome.
+- **Replay capture** — structured `kind: 'issued'` records replay
+  cleanly.
+
+The echo is the entry-time signal; the dispatch-response envelope is
+the outcome carrier. Both share `dispatchId` (= the originating
+`commandId`) for correlation. See
+[response-envelope.md](./response-envelope.md) for the envelope shape
+and the wire-correlation table.
 
 ## Movement-message defaults — `MobileMixin.settings`
 
@@ -583,11 +638,12 @@ and carries `commandId: string` for attribution.
 2. Builds the CommandContext, stamping `commandId`.
 3. Pushes the CommandContext onto `ExecutionContextApi.commandContext`
    AND sets `causingCommandId` to the same id.
-4. Invokes the controller.
-5. Pops on return (including error paths). `causingCommandId` clears
+4. Emits the input-echo MessageFrame (see "Input echo at
+   `system.log.command.*`" above) and the dispatch-response envelope
+   carries the outcome.
+5. Invokes the controller.
+6. Pops on return (including error paths). `causingCommandId` clears
    unless propagated by a scheduler.
-6. Auto-emits the bland MudlogApi command entry per "Auto-emit on command
-   completion".
 
 Inside the controller, ANY frame composed via `Scene.send()` or
 `MudlogApi.*` — directly, via mixin sugar, or transitively via deeper

@@ -119,6 +119,28 @@ Each rejection carries `gate` / `mode` / optional `context` so
 controllers can render verb-templated prose without re-parsing
 `reason`.
 
+### Rejection emission
+
+`LocomotionControllerBase.emitRejection(guard, mode, model, context)`
+is the centralized fix point for all six per-mode controllers and the
+refactored `go`. It does two things:
+
+1. Fires `Scene.send` at `system.shell.movement` with the
+   verb-templated rejection prose (per the concrete controller's
+   `composeRejection` override).
+2. Emits a `locomotion-gate-failed { gate, mode }` note onto the
+   dispatch context.
+
+The note's `gate` vocabulary is the closed eight-value union
+`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door'`.
+The `mode` is the short LocomotionMode name (`'walk'`, `'climb'`, …).
+
+The gate names are kebab-case on the wire even though
+`TraversalGuard.gate` uses camelCase internally (`bodyPlan`,
+`exitMode`, `noConveyance`); `emitRejection` does the mapping. See
+[response-envelope.md § Notes](./response-envelope.md) for the full
+note shape and auto-escalation rule.
+
 ## Engagement lifecycle
 
 `engageAround(actor, mode, exit, action)` sets `actor.engagedMode = mode`,
@@ -239,6 +261,8 @@ Adding a new mode (e.g., `slither`):
 
 ## Cross-references
 
+- [response-envelope.md](./response-envelope.md) —
+  `locomotion-gate-failed` note shape and the gate vocabulary.
 - [conveyance.md](./conveyance.md) — Mountable / Drivable hosts,
   conveyance ripple, vehicle design space.
 - [spatial.md](./spatial.md) — `Mobile.traverse`, conveyance ripple
