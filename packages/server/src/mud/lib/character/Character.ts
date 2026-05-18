@@ -5,7 +5,7 @@
  * and non-player characters (NPCs), enforcing consistent interface while allowing
  * different implementations for progression logic.
  *
- * Composition: CommandGiver + Mobile + Container + Containable + Visible + Vocal + Sensor + Gendered + Named + Agent
+ * Composition: CommandGiver + Mobile + Engaged + Container + Containable + Visible + Vocal + Sensor + Gendered + Named + Agent
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin provides: inventory, get, drop
@@ -40,6 +40,7 @@ import { VocalMixin } from '../message/Vocal';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { OrganismMixin } from '../species/Organism';
 import { PosedMixin } from './Posed';
+import { EngagedMixin } from '../activity/Engaged';
 
 // Compose mixins:
 //   CommandGiver + Mobile + Container + Containable + Visible +
@@ -61,16 +62,25 @@ import { PosedMixin } from './Posed';
 // composition chain — the slot puts a species/age/lifecycle surface
 // alongside basic identity, before the gender / sensory / perception
 // layers stack on top. See race.md for the rationale.
+//
+// EngagedMixin sits immediately below MobileMixin so the body-slot
+// engagement (Wave 2's source of truth for `Mobile.getEngagedMode`)
+// can be read without forward references. Engagement is orthogonal
+// to mobility — a stationary forge-bound creature is Engaged but not
+// Mobile — but co-composing on Character gets both surfaces on every
+// PC and NPC in one shot.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
-    ContainerMixin(
-      ContainableMixin(
-        VisibleMixin(
-          VocalMixin(
-            PerceptionMixin(
-              PerceiverMixin(
-                SensorMixin(
-                  GenderedMixin(PosedMixin(OrganismMixin(NamedMixin(Agent))))
+    EngagedMixin(
+      ContainerMixin(
+        ContainableMixin(
+          VisibleMixin(
+            VocalMixin(
+              PerceptionMixin(
+                PerceiverMixin(
+                  SensorMixin(
+                    GenderedMixin(PosedMixin(OrganismMixin(NamedMixin(Agent))))
+                  )
                 )
               )
             )
