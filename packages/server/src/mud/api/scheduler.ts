@@ -61,10 +61,6 @@ import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { ModuleApi } from './module';
 import { SecurityApi } from './security';
-// Side-effect import: lands the five framework-intrinsic
-// AbortReasonRegistry augmentations before any consumer types
-// against `keyof AbortReasonRegistry`.
-import '../lib/activity/abort-reasons';
 
 /* ─────────────────────────── Shape types ─────────────────────────── */
 

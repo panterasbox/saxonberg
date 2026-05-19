@@ -55,7 +55,7 @@ class TestActor extends SensorMixin(EngagedMixin(Idea)) {
  */
 function makeDurative(
   actor: TestActor,
-  opts: Partial<DurativeActivity> & {
+  opts: {
     duration?: number;
     slots?: Iterable<'body' | 'hands' | 'attention' | 'voice'>;
     onComplete?: () => void;

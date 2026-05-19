@@ -29,6 +29,28 @@ import type { CommandContributions } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
+/**
+ * Framework-intrinsic `AbortReasonRegistry` augmentations — the five
+ * reasons the scheduler itself fires. Colocated with the activity-
+ * subsystem code so the declaration merge lands whenever anything in
+ * the subsystem (mixin or SchedulerApi) imports from this module.
+ * Other subsystems that emit their own abort reasons (combat,
+ * communication, posture, …) augment from their own modules.
+ *
+ * The empty `AbortReasonRegistry` interface lives in `@saxonberg/types`
+ * so the wire-side `EngagementCancelledNote.reason` typechecks across
+ * the package boundary.
+ */
+declare module '@saxonberg/types' {
+  interface AbortReasonRegistry {
+    cancelled: true;
+    replaced: true;
+    'preconditions-changed': true;
+    'host-destroyed': true;
+    thrown: true;
+  }
+}
+
 export type EngagementSlot = 'body' | 'hands' | 'attention' | 'voice';
 
 export const ENGAGEMENT_SLOTS: readonly EngagementSlot[] = [
