@@ -71,6 +71,7 @@ import type { Drivable } from '../lib/slot/Drivable';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
+import type { Engaged } from '../lib/activity/Engaged';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -510,6 +511,10 @@ export class MixinApi {
 
   public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
     return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  public static isEngaged(obj: Stuff): obj is Stuff & Engaged {
+    return this.hasMixin(obj, Mixins.Engaged);
   }
 
   /**

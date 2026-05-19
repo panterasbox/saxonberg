@@ -182,6 +182,20 @@ behavior. Read the relevant doc before editing in its area.
     Controllers emit failure signals via `Scene.send + ctx.note`;
     `execute()` returns `void`. `CommandResult` / `success` /
     `summary` / `pass` retired.
+  - [activity.md](./docs/subsystems/activity.md) — engagement
+    framework substrate: `SchedulerApi` (`start` returning a
+    five-outcome `StartResult`, `cancel` family, activity-class
+    registry with HMR-aware lifecycle dispatch), `EngagedMixin` on
+    `Character` (engagement slot map; runtime-only; ApiOnly-gated
+    `_setEngagement`/`_clearEngagement`), the four engagement slots
+    (`body`, `hands`, `attention`, `voice`), the five
+    framework-intrinsic `AbortReason`s (`cancelled`, `replaced`,
+    `preconditions-changed`, `host-destroyed`, `thrown`),
+    `DurativeActivity` vs `SustainedEngagement`, `ScheduledEmission`
+    cadenced side-effects, 100ms duration floor with wire-silent
+    `completed-sync`, host-destruction subscription on
+    `Events.StuffDestructed`, `cancel` / `stop` verb. Wave 1 ships
+    the substrate inert; v1 controllers stay synchronous.
 
 ## Development Commands
 

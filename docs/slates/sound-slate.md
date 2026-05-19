@@ -28,9 +28,10 @@ See also:
   `mode.noiseLevel` is the source data for activity-driven
   emission. The locomotion slate's table is consumed; no
   changes required there.
-- [docs/slates/activity-slate.md](./activity-slate.md) — emission
-  starts/stops on activity lifecycle hooks; `onTick` for
-  sustained-emission activities.
+- [docs/subsystems/activity.md](../subsystems/activity.md) —
+  emission starts/stops on activity lifecycle hooks;
+  `ScheduledEmission` for cadenced side effects on
+  `DurativeActivity` / `SustainedEngagement`.
 - [docs/subsystems/race.md](../subsystems/race.md) — `Species`
   template gains a `hearingProfile` field, parallel to the
   existing `visionProfile`.
@@ -169,7 +170,7 @@ from `mode.noiseLevel` (locomotion-slate property table). For
 non-locomotion activities, the activity declares its emission.
 
 ```ts
-// Added to the Activity interface — see activity-slate
+// Added to the Activity interface — see subsystems/activity.md
 interface Activity {
   // ...
   emittedSound?: Sound | null;   // null while running = silent

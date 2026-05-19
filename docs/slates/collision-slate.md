@@ -21,9 +21,9 @@ See also:
 - [docs/subsystems/embodiment.md](../subsystems/embodiment.md),
   [docs/subsystems/slot.md](../subsystems/slot.md) — `Pushable`
   fits with the other affordance mixins on the slot substrate.
-- [docs/slates/activity-slate.md](./activity-slate.md) — `PushActivity`
-  is one more concrete activity type with engagement-slot
-  semantics.
+- [docs/subsystems/activity.md](../subsystems/activity.md) —
+  `PushActivity` would be one more concrete activity type with
+  engagement-slot semantics on the shipped framework.
 - [docs/adjoining-systems.md](../adjoining-systems.md) — this
   slate graduates entry #2 ("Collisions, blocking, and pushing").
 

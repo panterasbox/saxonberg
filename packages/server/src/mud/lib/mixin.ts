@@ -71,6 +71,7 @@ export const Mixins = {
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
   Globbable: 'GlobbableMixin',
+  Engaged: 'EngagedMixin',
 } as const;
 
 /**

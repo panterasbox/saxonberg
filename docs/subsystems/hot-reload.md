@@ -198,6 +198,79 @@ its old class; the in-place fix is `HotReloadApi.reloadHookManifest()`,
 which calls `pm.clearHooks() + pm.loadHooks()` to rebuild the chain
 against the current HMR blueprints.
 
+### Activity framework
+
+Activities are plain TS classes (not Stuff-templated), so they
+don't pick up HMR through `StuffApi.clone`'s blueprint dance.
+`SchedulerApi` (`api/scheduler.ts`) carries its own type-keyed
+class registry (`#activityRegistry: Map<string, ActivityClass>`)
+as the HMR seam.
+
+Each activity file ends with a module-load side-effect block:
+
+```typescript
+export class MountActivity { /* ... */ }
+SchedulerApi.registerActivity('mount', MountActivity);
+```
+
+When `HotReloadApi.reload()` re-evaluates the file, the
+side-effect runs again and overwrites the registry entry. Two
+consequences:
+
+- **Newly-constructed engagements use the new class.** Callers
+  resolve activity classes via `SchedulerApi.getActivityClass(type)`
+  rather than static `import`, so a freshly-issued `walk west`
+  after a reload uses the new class without reloading the
+  controller too.
+- **In-flight engagements pick up the new code on their next
+  lifecycle fire.** `SchedulerApi`'s internal
+  `#dispatchOnComplete` / `#dispatchOnAbort` / `#dispatchGetHost`
+  helpers look up the class through `#activityRegistry` and call
+  `cls.prototype.onComplete.call(engagement)` — bound to the
+  instance, but resolved through the latest class.
+
+`onStart` is the exception. It runs once at start time against
+the just-constructed instance (which was constructed from the
+class that was registered at that moment), so direct instance
+dispatch is fine.
+
+`SchedulerApi.reloadActivity(type)` rounds out the surface as a
+wizard convenience: it resolves the activity class's source path
+via `ModuleApi.lookup`, strips the `#exportName` suffix, and calls
+`HotReloadApi.reload`. Intended for use via the `eval` verb until
+a dedicated reload verb ships.
+
+**Caveats** (accepted v1 limitations):
+
+- **Emission closures pin to construction.** An engagement's
+  `emissions` array was populated by the old constructor; closures
+  inside captured old-class lexical scope. Editing emission
+  factories has no effect on in-flight engagements. Code-only
+  `onComplete` / `onAbort` body edits work cleanly because those
+  go through the registry dispatch.
+- **Field additions don't backfill old instances.** If new code
+  reads `this.someNewField` that wasn't set by the old
+  constructor, it gets `undefined`. Typical edits (changing
+  behavior, not shape) are unaffected.
+- **`SchedulerApi` internal edits still need a reboot.** Ghost
+  timers from old-class registrations fire into the new code with
+  stale state. Same for `EngagedMixin` storage shape.
+- **Registry miss recovers gracefully.** If a class is
+  unregistered between `start()` and a lifecycle fire (file
+  deleted, type renamed),
+  `#dispatchOnComplete` forces `onAbort('thrown')` so timers and
+  slot state get cleared, and the engagement degrades cleanly.
+
+**Future: drain-and-reload wizard verb.** Composes
+`SchedulerApi.cancelByType(actor, type)` (per actor) +
+`SchedulerApi.reloadActivity(type)` for the case where new code
+can't safely resume from old engagement state. The infrastructure
+exists in v1; the verb is a small future addition tied to the
+wizard subsystem's `'hotreload'` `AbortReason` augmentation.
+
+See [activity.md § The Scheduler — Lifecycle dispatch
+(HMR-aware)](./activity.md) for the full producer-side framework.
+
 ### `ModuleApi`
 
 Untouched. The existing source transform stamps reloaded class

@@ -12,8 +12,8 @@ implicitly.
 
 See also:
 
-- [docs/slates/activity-slate.md](./slates/activity-slate.md) — explicit
-  consumer; the activity framework's design pivots on the
+- [docs/subsystems/activity.md](./subsystems/activity.md) —
+  explicit consumer; the activity framework's design pivots on the
   constraints captured here.
 - [docs/architecture.md](./architecture.md) — static architecture
   of the codebase. This doc is the dynamic complement.

@@ -77,10 +77,15 @@ type EnvelopeTemplate =
   | Omit<PromptEnvelope, 'frameId'>;
 ```
 
-`activity-update` and `prompt` are **reserved** in v1 — defined in the
-union for stable wire contract, but no producer ships them. The
-activity-slate's `Engagement` framework (Wave 1) plugs into
-`activity-update`; the prompt-stack slate plugs into `prompt`.
+`activity-update` ships in v1, produced by `SchedulerApi`'s
+out-of-band lifecycle path (engagement completion, abort, replace).
+The dispatch path stays the controller's `ctx.note(result.note)` for
+the start case. See [activity.md](./activity.md) for the
+producer-side framework.
+
+`prompt` is **reserved** in v1 — defined in the union for stable
+wire contract, but no producer ships it. The prompt-stack slate
+plugs into it.
 
 ### Notes
 
@@ -131,16 +136,31 @@ forwarded by controllers via `ctx.note`):
   inside the controller (caught by the dispatcher's outer
   try/catch).
 
-**Engagement lifecycle** (reserved in v1 — types defined for stable
-wire contract; no v1 producer):
+**Engagement lifecycle** (produced by `SchedulerApi` — see
+[activity.md](./activity.md)):
 
 - `engagement-started { engagementId, engagementType, startedAt, duration?, cancelable }`
-- `engagement-completed { engagementId }`
-- `engagement-cancelled { engagementId, reason: AbortReason }` —
+  rides on the originating command's `dispatch-response` envelope.
+  Controllers push it via `ctx.note(result.note)` on a
+  `SchedulerApi.start()` outcome of `'started'` or `'replaced'`.
+- `engagement-completed { engagementId }` rides on an
+  out-of-band `activity-update` envelope, emitted by the scheduler
+  when a `DurativeActivity`'s timer fires and `onComplete` runs
+  cleanly. Mutation deltas flow through state-sync, NOT this note.
+- `engagement-cancelled { engagementId, reason: AbortReason }` rides
+  on an out-of-band `activity-update` envelope, emitted on every
+  abort path (player cancel, replace, host destruction,
+  precondition revalidation failure, `'thrown'` watchdog).
   `AbortReason = keyof AbortReasonRegistry`. The activity framework
-  augments `AbortReasonRegistry` via declaration merging when it
-  lands; v1's empty registry → `AbortReason = never` (harmless,
-  no producer).
+  augments the registry with five framework-intrinsic reasons
+  (`cancelled`, `replaced`, `preconditions-changed`,
+  `host-destroyed`, `thrown`); other subsystems augment with their
+  own reasons via their own modules.
+
+The sub-100ms `completed-sync` path is **wire-silent** — no
+envelope, no note. Controllers render completion prose directly
+when they observe `SchedulerApi.start()` returning
+`{ status: 'completed-sync' }`.
 
 ### Note kind versioning
 
@@ -552,8 +572,11 @@ shipped subsystem:
    signal earns it (NPC reactions, audit Sensors, LLM-agent
    observers).
 9. **`engagement-cancelled.reason` is type-extended via the activity
-   slate's `AbortReasonRegistry` declaration-merging surface.** Same
-   open-enum-with-compile-time-extension pattern as `MqlMatchVia`.
+   framework's `AbortReasonRegistry` declaration-merging surface.**
+   Same open-enum-with-compile-time-extension pattern as
+   `MqlMatchVia`. The empty interface lives in `@saxonberg/types`;
+   the activity framework augments with five framework-intrinsic
+   reasons. See [activity.md § The Abort taxonomy](./activity.md).
 
 ## Cross-references
 
@@ -573,9 +596,9 @@ shipped subsystem:
 - [connection.md](./connection.md) — `Interactive` lifecycle (the
   `nextFrameId` counter lives here; resets on reconnect),
   `ConnectionEstablishedPayload.interactiveStuffId`
-- `docs/slates/activity-slate.md` — `Engagement` framework; will
-  produce `activity-update` envelopes and augment
-  `AbortReasonRegistry`
+- [activity.md](./activity.md) — `Engagement` framework; the
+  producer behind `activity-update` envelopes and the
+  `AbortReasonRegistry` augmentations
 - `docs/slates/state-sync-slate.md` — will share the
   `Interactive.nextFrameId` counter for its own ordering primitive
 

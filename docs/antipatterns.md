@@ -955,3 +955,71 @@ prototype links.
   on the root class (the way `Stuff.onDestruct` does for the
   destruction chain) so `super.hook()` type-checks at every
   layer. Pattern only fits hooks universal to the root's purpose.
+
+## Engagement Lifecycle — Go Through SchedulerApi
+
+**ANTIPATTERN**: starting, mutating, or terminating an `Engagement`
+without going through `SchedulerApi`. The framework owns the active
+set, the timers, the host-destruction subscription, and the wire
+envelope; anything that bypasses it leaks timers, leaves the slot
+map out of sync, or skips the call-security gate on
+`EngagedMixin._setEngagement` / `_clearEngagement`.
+
+### BAD (direct lifecycle calls)
+
+```typescript
+// Construct and "start" by hand:
+const e = new MountActivity(actor, horse);
+actor._setEngagement('body', e);   // SecurityError: ApiOnly
+e.onComplete();                    // bypasses watchdog, no envelope
+
+// "Cancel" by directly invoking onAbort:
+engagement.onAbort('cancelled');   // bypasses timer cleanup,
+                                   // host-subscription teardown,
+                                   // and the wire envelope
+
+// Static `import` an activity class instead of resolving through
+// the registry:
+import { MountActivity } from '.../MountActivity';
+new MountActivity(actor, horse);   // pins to the old class on HMR
+```
+
+### GOOD (Api-mediated)
+
+```typescript
+// Construction goes through the activity-class registry so HMR
+// rotates the binding under callers:
+const cls = SchedulerApi.getActivityClass('mount');
+const e = new cls(actor, horse);
+
+// Start through SchedulerApi — handles slot-conflict resolution,
+// onStart try/catch, timer scheduling, wire envelope, host-
+// destruction subscription:
+const result = SchedulerApi.start(e);
+ctx.note(result.note);             // on { ok:true, status:'started' }
+
+// Cancel through SchedulerApi — fires onAbort, clears timers,
+// unsubscribes from host destruction, ships the cancelled envelope:
+SchedulerApi.cancel(e, 'cancelled');
+
+// Or by type:
+SchedulerApi.cancelByType(actor, 'walk');
+
+// All-at-once (panic button):
+SchedulerApi.cancelAll(actor);
+```
+
+### Lookup table
+
+| Don't | Do |
+|---|---|
+| `actor._setEngagement(slot, e)` from non-Api code | `SchedulerApi.start(e)` — registers atomically through the privileged gate |
+| `actor._clearEngagement(slot)` from non-Api code | `SchedulerApi.cancel(e, reason)` (or `cancelAll` / `cancelByType` / `cancelByPredicate`) |
+| `e.onComplete()` directly | Let the scheduler's timer (or sub-100ms in-place path) fire it — only `SchedulerApi` runs lifecycle hooks |
+| `e.onAbort(reason)` directly | `SchedulerApi.cancel(e, reason)` — pairs the call with timer cleanup and the wire envelope |
+| `import { MountActivity }; new MountActivity(...)` | `SchedulerApi.getActivityClass('mount')` then `new` — rotates with HMR reloads |
+| `engagement.actor.engagements` field access | `SchedulerApi.getEngagements(actor)` / `actor.getEngagements()` |
+
+See [subsystems/activity.md](./subsystems/activity.md) for the full
+producer-side framework, including the five `StartResult` outcomes
+controllers must switch on.
