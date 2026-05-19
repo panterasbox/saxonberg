@@ -111,9 +111,13 @@ promoted to formal requirements.
   (`walk`/`run`/`sneak`/`crawl`/`climb`/`swim`/`fly`/`ride`/
   `drive`); target mixins (`Climbable`/`Swimmable`); four
   consumer dives (traps, pathfinding, detection, validation).
-- [docs/slates/activity-slate.md](./slates/activity-slate.md) — durative-
-  verb framework; engagement slots for concurrent activities;
-  cancel semantics; transaction-style completion validation.
+- [docs/subsystems/activity.md](./subsystems/activity.md) — Wave 1
+  substrate shipped: `SchedulerApi`, `EngagedMixin` on `Character`,
+  engagement slots, the five framework-intrinsic abort reasons,
+  HMR-aware lifecycle dispatch, `cancel` verb. Locomotion-as-
+  activity (Wave 2) and host-slot activities (Wave 3) deferred —
+  see [docs/plans/activity-plan.md](./plans/activity-plan.md) for
+  the design sketches.
 - [docs/slates/sound-slate.md](./slates/sound-slate.md) — sound as the second
   physics channel after light; three source kinds; channel-
   keyed Conduit transmissivity; pedagogical seam threaded

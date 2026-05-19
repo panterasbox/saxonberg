@@ -35,7 +35,7 @@ See also:
 Tier 1 — highest leverage; likely to surface real holes in current
 slates:
 
-1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [activity-slate.md](./slates/activity-slate.md)**
+1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity + host-slot activities deferred to Wave 2/3 in [plans/activity-plan.md](./plans/activity-plan.md))
 2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [sound-slate.md](./slates/sound-slate.md)** (also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
 3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
 4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/social-graph-slate.md), [communication-policy-slate.md](./slates/communication-policy-slate.md), [identification-slate.md](./slates/identification-slate.md))
@@ -46,7 +46,7 @@ without churn:
 5. [Scent and persistent traces](#4-scent-and-persistent-traces)
 6. [What's actually visible in a room](#6-whats-actually-visible-in-a-room)
 7. [Memory of observed events](#7-memory-of-observed-events)
-8. [The activity layer](#10-the-activity-layer)
+8. [The activity layer](#10-the-activity-layer--folded-into-1) — **FOLDED INTO #1**
 
 Tier 3 — peripheral / further-out / forcing-function for content:
 
@@ -63,13 +63,19 @@ the working order.)
 
 ## 1. Time and sustained actions — GRADUATED
 
-**Status**: graduated to its own slate at
-[docs/slates/activity-slate.md](./slates/activity-slate.md). The activity
-framework, engagement-slot model for concurrent activities,
-cancel semantics, and transaction-style completion validation
-all live there. Forward-compatibility with isolation noted;
-runtime constraints captured separately in
-[docs/runtime-model.md](./runtime-model.md).
+**Status**: graduated to a shipped subsystem doc at
+[docs/subsystems/activity.md](./subsystems/activity.md). Wave 1
+shipped the engagement framework substrate — `SchedulerApi`,
+`EngagedMixin` on `Character`, the four engagement slots, the
+five framework-intrinsic abort reasons, the activity-class
+registry with HMR-aware lifecycle dispatch, and the `cancel`
+verb. No v1 controllers register activities yet; the framework
+lands inert per current direction on game responsiveness.
+Locomotion-as-activity (Wave 2) and host-slot activities
+(Wave 3) are preserved as design reference in
+[docs/plans/activity-plan.md](./plans/activity-plan.md) for when
+genuinely-durative content earns the slot. Runtime constraints
+captured separately in [docs/runtime-model.md](./runtime-model.md).
 
 Original framing kept here for cross-reference:
 
@@ -291,19 +297,25 @@ time).
 
 ---
 
-## 10. The activity layer
+## 10. The activity layer — FOLDED INTO #1
 
-Reading a 200-page book. Building a wall stone-by-stone.
-Performing surgery. Brewing a potion. None of these are
-locomotion, but they share the same time/interruption shape.
+The framework #1 produces is the answer here too. Reading a
+200-page book, building a wall stone-by-stone, performing surgery,
+brewing a potion — none are locomotion, but they all reduce to
+`DurativeActivity` (timed, completes on its own) or
+`SustainedEngagement` (untimed, ends only on explicit abort) on
+the engagement framework. The Wave 1 substrate is shipped; content
+authors plug in by writing an activity class and registering it
+under a `type` string (see
+[docs/subsystems/activity.md](./subsystems/activity.md) and
+[docs/plans/activity-plan.md § 4](./plans/activity-plan.md) for
+the deferred-Wave-3 `ReadActivity` sketch as the first non-
+locomotion-non-host-slot example).
 
-**Stresses**: not its own slate yet, but every long-form game uses
-one; the prompt-stack on the roadmap is part of the answer; events
-from events.md likely the substrate; interruption semantics (your
-reading is interrupted by an attack — does the book remember your
-page?). May fold cleanly into #1's framework.
-
-**Pulls on**: #1 (this might *be* the framework #1 produces).
+Per-activity bookmark-on-abort, content-author prose customization,
+and per-activity opt-in to broader eager revalidation are deferred
+questions on the activity framework itself; each lands when a
+content case earns it.
 
 ---
 

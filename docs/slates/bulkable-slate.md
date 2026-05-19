@@ -288,8 +288,9 @@ Stacks ship with `drop`, `get`, `give`. Bulk verbs are different:
   `pour` where the destination is the source's environment)
 
 Many of these are activity-shaped (durative): pouring takes time,
-eating is a sustained action. The activity-slate framework consumes
-applyMeasure as the discrete underlying operation.
+eating is a sustained action. The activity framework
+(`subsystems/activity.md`) consumes `applyMeasure` as the discrete
+underlying operation.
 
 ---
 
@@ -378,6 +379,6 @@ You cut a 100g piece of cheese.               (status = ok)
   — note kinds carry over.
 - [docs/slates/collision-slate.md](./collision-slate.md) — capacity
   in mass/volume terms fits naturally.
-- [docs/slates/activity-slate.md](./activity-slate.md) — many bulk
-  verbs are durative; activity framework wraps applyMeasure as the
-  discrete underlying operation.
+- [docs/subsystems/activity.md](../subsystems/activity.md) — many
+  bulk verbs are durative; the activity framework wraps
+  `applyMeasure` as the discrete underlying operation.

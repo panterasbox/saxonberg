@@ -93,9 +93,10 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 `ContainmentApi`, `MqlApi`, `MudlogApi`, `CommandApi`,
 `CommandLineApi`, `ProxyApi`, `SecurityApi`, `ShadowApi`,
 `ExecutionContextApi`, `ModuleApi`, `NavigationApi`, `PathPatternApi`,
-`ScheduleApi`, `TemplateApi`, `ZoneApi`, `DescribeApi`, `MmlApi`,
-`PlayerApi`, `PersistApi`-equivalent (no separate class today —
-persistence helpers live on the relevant Apis directly).
+`ScheduleApi`, `SchedulerApi`, `TemplateApi`, `ZoneApi`,
+`DescribeApi`, `MmlApi`, `PlayerApi`, `PersistApi`-equivalent (no
+separate class today — persistence helpers live on the relevant
+Apis directly).
 
 ### When to Create a New One
 
@@ -277,6 +278,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/persistence/` | `AroundSaveHookMixin` | middleware-style PM save hook |
 | `lib/persistence/` | `AroundDeleteHookMixin` | middleware-style PM delete hook |
 | `lib/connection/` | `HasInteractiveMixin` | "this Stuff has connected `Interactive`s" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`. Composed by `Avatar` (multiplexing) and `Login` (singleton). |
+| `lib/activity/` | `EngagedMixin` | actor-side engagement slot map (`body`/`hands`/`attention`/`voice`); runtime-only. `_setEngagement` / `_clearEngagement` are ApiOnly-gated; only `SchedulerApi` may mutate. Composed by `Character`. Provides the `cancel` verb and `stop` default alias. |
 
 ### Mixin Composition Constraints
 
