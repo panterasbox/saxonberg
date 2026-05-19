@@ -11,7 +11,12 @@ import {
   afterEach,
   vi,
 } from 'vitest';
+import type { AbortReason } from '@saxonberg/types';
 import { CancelController } from '../CancelController';
+import type {
+  Engaged,
+  EngagementSlot,
+} from '../../../lib/activity/Engaged';
 import { EngagedMixin } from '../../../lib/activity/Engaged';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -19,8 +24,8 @@ import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
 import { Location } from '../../../lib/stuff/Location';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SchedulerApi } from '../../../api/scheduler';
-import type { DurativeActivity } from '../../../api/scheduler';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
@@ -66,25 +71,36 @@ function makeModel(type?: string): unknown {
   return { type } as ModelData;
 }
 
-/** Build a fixture engagement with a configurable type/duration. */
-function makeEngagement(
-  actor: TestActor,
-  type: string,
-): DurativeActivity {
-  return {
-    engagementId: '',
-    type,
-    actor: actor as unknown as DurativeActivity['actor'],
-    startedAt: Date.now(),
-    slots: new Set([type === 'reading' ? 'attention' : 'body']),
-    interruptibleBy: new Set(),
-    cancelable: true,
-    duration: 5000,
-    replaceableBy: [],
-    onStart: () => undefined,
-    onComplete: () => undefined,
-    onAbort: () => undefined,
-  };
+/**
+ * Class-shaped fixture activity — registry-routed lifecycle dispatch
+ * needs the class on `#activityRegistry`. The CancelController test
+ * only cares about cancellation reaching the engagement, so the
+ * lifecycle bodies are no-ops.
+ */
+class TestEngagement {
+  engagementId = '';
+  readonly type: string;
+  readonly actor: Stuff & Engaged;
+  readonly startedAt: number = Date.now();
+  readonly slots: ReadonlySet<EngagementSlot>;
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set();
+  readonly cancelable = true;
+  readonly duration = 5000;
+  readonly replaceableBy: readonly string[] = [];
+
+  constructor(actor: TestActor, type: string) {
+    this.type = type;
+    this.actor = actor as unknown as Stuff & Engaged;
+    this.slots = new Set([type === 'reading' ? 'attention' : 'body']);
+  }
+  onStart(): void {}
+  onComplete(): void {}
+  onAbort(): void {}
+}
+
+function makeEngagement(actor: TestActor, type: string): TestEngagement {
+  SchedulerApi.registerActivity(type, TestEngagement as never);
+  return new TestEngagement(actor, type);
 }
 
 describe('CancelController', () => {
@@ -107,8 +123,8 @@ describe('CancelController', () => {
 
     const a = makeEngagement(actor, 'walking');
     const b = makeEngagement(actor, 'reading');
-    SchedulerApi.start(a);
-    SchedulerApi.start(b);
+    SchedulerApi.start(a as never);
+    SchedulerApi.start(b as never);
     expect(SchedulerApi.getEngagements(actor).length).toBe(2);
 
     const controller = makeStuff(() => new CancelController());
@@ -129,8 +145,8 @@ describe('CancelController', () => {
 
     const a = makeEngagement(actor, 'walking');
     const b = makeEngagement(actor, 'reading');
-    SchedulerApi.start(a);
-    SchedulerApi.start(b);
+    SchedulerApi.start(a as never);
+    SchedulerApi.start(b as never);
 
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
@@ -140,7 +156,9 @@ describe('CancelController', () => {
     );
 
     expect(SchedulerApi.getEngagementBySlot(actor, 'body')).toBeUndefined();
-    expect(SchedulerApi.getEngagementBySlot(actor, 'attention')).toBe(b);
+    expect(SchedulerApi.getEngagementBySlot(actor, 'attention')).toBe(
+      b as never,
+    );
   });
 
   it('cancel <type> with no matching engagement emits empty-result', async () => {

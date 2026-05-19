@@ -20,6 +20,15 @@
  * `onAbort('thrown')`, force-clears every timer for the engagement,
  * and the server keeps running.
  *
+ * HMR-aware lifecycle dispatch: post-construction lifecycle hooks
+ * (`onComplete`, `onAbort`, `getHost?`) route through
+ * `#activityRegistry.get(engagement.type)` rather than instance
+ * prototype, so a `HotReloadApi.reload()` of an activity-class file
+ * propagates to in-flight engagements on their next fire. `onStart`
+ * stays direct — the instance was just constructed from the latest
+ * class. The registry is keyed on the `type` string each activity
+ * self-registers under at module load.
+ *
  * Host-destruction discipline: when an engagement exposes a
  * `getHost()` that returns a Stuff, the scheduler subscribes via
  * `EventApi` to `Events.StuffDestructed` for that stuffId and fires
@@ -485,8 +494,10 @@ export class SchedulerApi {
     }
     SchedulerApi.#engagementsById.set(e.engagementId, e);
 
-    // Host-destruction hook.
-    const host = typeof e.getHost === 'function' ? e.getHost() : null;
+    // Host-destruction hook. Resolve `getHost` through the
+    // activity-class registry so a wizard-reloaded activity that
+    // changes its host accessor picks up on the next call.
+    const host = SchedulerApi.#dispatchGetHost(e);
     if (host) {
       const hostId = host.stuffId;
       const id = e.engagementId;
@@ -569,7 +580,7 @@ export class SchedulerApi {
    */
   static #runOnCompleteInPlace(e: DurativeActivity): void {
     try {
-      e.onComplete();
+      SchedulerApi.#dispatchOnComplete(e);
     } catch (err) {
       console.error(
         `SchedulerApi: onComplete threw for sub-100ms engagement ` +
@@ -577,7 +588,7 @@ export class SchedulerApi {
         err,
       );
       try {
-        e.onAbort('thrown');
+        SchedulerApi.#dispatchOnAbort(e, 'thrown');
       } catch (abortErr) {
         console.error(
           `SchedulerApi: onAbort('thrown') threw for sub-100ms ` +
@@ -619,7 +630,7 @@ export class SchedulerApi {
     SchedulerApi.#clearTimersAndSubs(e.engagementId);
     SchedulerApi.#deregister(e);
     try {
-      e.onAbort(reason);
+      SchedulerApi.#dispatchOnAbort(e, reason);
     } catch (err) {
       // Recursive onAbort throw: logged, not retried. Engagement
       // and timers are already cleared above.
@@ -640,7 +651,7 @@ export class SchedulerApi {
    */
   static #safeInvokeComplete(e: DurativeActivity): void {
     try {
-      e.onComplete();
+      SchedulerApi.#dispatchOnComplete(e);
     } catch (err) {
       console.error(
         `SchedulerApi: onComplete threw for engagement ` +
@@ -648,7 +659,7 @@ export class SchedulerApi {
         err,
       );
       try {
-        e.onAbort('thrown');
+        SchedulerApi.#dispatchOnAbort(e, 'thrown');
       } catch (abortErr) {
         console.error(
           `SchedulerApi: onAbort('thrown') threw for engagement ` +
@@ -660,6 +671,67 @@ export class SchedulerApi {
       return;
     }
     SchedulerApi.#sendCompletedEnvelope(e);
+  }
+
+  /**
+   * Resolve `e.type` against the activity-class registry and call
+   * `cls.prototype.onComplete.call(e)` — so in-flight engagements
+   * pick up newly-reloaded code on their next fire.
+   *
+   * Registry miss → log + abort with `'thrown'`. The registry-miss
+   * case shouldn't happen in production (every activity class
+   * self-registers at module load) but recovers cleanly when it
+   * does, e.g. after `_unregisterActivityForTesting` between start
+   * and timer fire.
+   */
+  static #dispatchOnComplete(e: DurativeActivity): void {
+    const cls = SchedulerApi.#activityRegistry.get(e.type);
+    if (!cls) {
+      console.warn(
+        `SchedulerApi: activity class for type '${e.type}' is not ` +
+          `registered at completion; aborting engagement ` +
+          `'${e.engagementId}' with 'thrown'.`,
+      );
+      SchedulerApi.#dispatchOnAbort(e, 'thrown');
+      return;
+    }
+    (cls.prototype as DurativeActivity).onComplete.call(e);
+  }
+
+  /**
+   * Resolve `e.type` against the activity-class registry and call
+   * `cls.prototype.onAbort.call(e, reason)`. Registry miss → log
+   * and continue (timers are cancelled by the caller; the only
+   * thing the missing class-level method would have done is
+   * activity-specific cleanup, which the absent class can't tell
+   * us about).
+   */
+  static #dispatchOnAbort(e: Engagement, reason: AbortReason): void {
+    const cls = SchedulerApi.#activityRegistry.get(e.type);
+    if (!cls) {
+      console.warn(
+        `SchedulerApi: activity class for type '${e.type}' is not ` +
+          `registered; skipping onAbort('${reason}') for ` +
+          `engagement '${e.engagementId}'.`,
+      );
+      return;
+    }
+    (cls.prototype as Engagement).onAbort.call(e, reason);
+  }
+
+  /**
+   * Resolve `e.type` against the activity-class registry and call
+   * `cls.prototype.getHost?.call(e)`. Returns null when the class
+   * isn't registered or the prototype doesn't define `getHost` —
+   * the engagement opts out of the eager host-destruction
+   * subscription in either case.
+   */
+  static #dispatchGetHost(e: Engagement): Stuff | null {
+    const cls = SchedulerApi.#activityRegistry.get(e.type);
+    if (!cls) return null;
+    const proto = cls.prototype as Engagement;
+    if (typeof proto.getHost !== 'function') return null;
+    return proto.getHost.call(e) ?? null;
   }
 
   /**

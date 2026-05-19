@@ -1,14 +1,15 @@
 /**
  * SchedulerApi tests — exercises the engagement-lifecycle surface
- * exhaustively against a fixture activity class. Wave 1 ships no
- * real activities, so the suite uses an internal `TestActivity` and
- * `TestSustained` plus a `TestActor` that composes EngagedMixin +
- * SensorMixin (so the envelope path lights up).
+ * exhaustively against class-shaped fixture activities. Wave 1 ships
+ * no real activities; the suite uses `TestDurativeActivity` and
+ * `TestSustainedEngagement` registered on the activity-class
+ * registry, with per-instance closures for the customizable hooks.
  *
  * Covers: start (five outcomes), cancel family, completion-on-timer,
  * watchdog (throw inside onComplete / onAbort / emission), emissions
- * cadence, activity-class registry HMR, sub-100ms completed-sync
- * being wire-silent.
+ * cadence, activity-class registry HMR (registry-routed lifecycle
+ * dispatch picks up reloaded code), sub-100ms completed-sync being
+ * wire-silent.
  *
  * Host-destruction is exercised in `SchedulerApi.hostDestruction.test.ts`
  * because it requires the EventRegistry singleton to be bootstrapped.
@@ -22,18 +23,17 @@ import {
   afterEach,
   vi,
 } from 'vitest';
-import type { EnvelopeTemplate } from '@saxonberg/types';
+import type { AbortReason, EnvelopeTemplate } from '@saxonberg/types';
+import type { Engaged, EngagementSlot } from '../Engaged';
 import { EngagedMixin } from '../Engaged';
 import { SchedulerApi } from '../../../api/scheduler';
 import type {
-  DurativeActivity,
   Engagement,
   ScheduledEmission,
-  StartResult,
-  SustainedEngagement,
 } from '../../../api/scheduler';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
+import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 /* ─────────────────────────── Fixtures ─────────────────────────── */
@@ -48,65 +48,160 @@ class TestActor extends SensorMixin(EngagedMixin(Idea)) {
   }
 }
 
+const noop = (): void => undefined;
+
+interface DurativeOpts {
+  type?: string;
+  duration?: number;
+  slots?: Iterable<EngagementSlot>;
+  cancelable?: boolean;
+  replaceableBy?: readonly string[];
+  emissions?: readonly ScheduledEmission[];
+  onStart?: () => void;
+  onComplete?: () => void;
+  onAbort?: (reason: AbortReason) => void;
+  getHost?: () => Stuff | null;
+}
+
 /**
- * Hand-rolled `DurativeActivity`. Tests build one directly instead of
- * registering a class on the activity registry; the registry HMR
- * tests cover the dispatch-through-registry path.
+ * Class-shaped fixture activity — `onStart` / `onComplete` /
+ * `onAbort` / `getHost` live on the prototype; per-instance
+ * closures stored on the instance are dispatched through them.
+ *
+ * The prototype methods are what `SchedulerApi`'s
+ * `#dispatchOnComplete` / `#dispatchOnAbort` / `#dispatchGetHost`
+ * call via `cls.prototype.method.call(e)`; tests customise
+ * per-engagement behaviour by passing closures into the
+ * constructor's `opts`.
+ *
+ * Tests register this class under whatever `type` string they want
+ * (`'test-durative'`, `'walking'`, `'forging'`, ...) via
+ * `registerTestActivity`.
+ */
+class TestDurativeActivity {
+  engagementId = '';
+  readonly type: string;
+  readonly actor: Stuff & Engaged;
+  readonly startedAt: number;
+  readonly slots: ReadonlySet<EngagementSlot>;
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set();
+  readonly cancelable: boolean;
+  readonly duration: number;
+  readonly replaceableBy: readonly string[];
+  readonly emissions?: readonly ScheduledEmission[];
+
+  // Stored closures the prototype methods delegate to.
+  private readonly _onStart: () => void;
+  private readonly _onComplete: () => void;
+  private readonly _onAbort: (reason: AbortReason) => void;
+  private readonly _getHost: (() => Stuff | null) | null;
+
+  constructor(actor: TestActor, opts: DurativeOpts = {}) {
+    this.type = opts.type ?? 'test-durative';
+    this.actor = actor as unknown as Stuff & Engaged;
+    this.startedAt = Date.now();
+    this.slots = new Set(opts.slots ?? ['body']);
+    this.cancelable = opts.cancelable ?? true;
+    this.duration = opts.duration ?? 1000;
+    this.replaceableBy = opts.replaceableBy ?? [];
+    if (opts.emissions) this.emissions = opts.emissions;
+    this._onStart = opts.onStart ?? noop;
+    this._onComplete = opts.onComplete ?? noop;
+    this._onAbort = opts.onAbort ?? noop;
+    this._getHost = opts.getHost ?? null;
+  }
+
+  onStart(): void {
+    this._onStart();
+  }
+  onComplete(): void {
+    this._onComplete();
+  }
+  onAbort(reason: AbortReason): void {
+    this._onAbort(reason);
+  }
+  getHost(): Stuff | null {
+    return this._getHost ? this._getHost() : null;
+  }
+}
+
+interface SustainedOpts {
+  type?: string;
+  slots?: Iterable<EngagementSlot>;
+  cancelable?: boolean;
+  onStart?: () => void;
+  onAbort?: (reason: AbortReason) => void;
+  getHost?: () => Stuff | null;
+}
+
+class TestSustainedEngagement {
+  engagementId = '';
+  readonly type: string;
+  readonly actor: Stuff & Engaged;
+  readonly startedAt: number;
+  readonly slots: ReadonlySet<EngagementSlot>;
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set();
+  readonly cancelable: boolean;
+
+  private readonly _onStart: () => void;
+  private readonly _onAbort: (reason: AbortReason) => void;
+  private readonly _getHost: (() => Stuff | null) | null;
+
+  constructor(actor: TestActor, opts: SustainedOpts = {}) {
+    this.type = opts.type ?? 'test-sustained';
+    this.actor = actor as unknown as Stuff & Engaged;
+    this.startedAt = Date.now();
+    this.slots = new Set(opts.slots ?? ['voice']);
+    this.cancelable = opts.cancelable ?? true;
+    this._onStart = opts.onStart ?? noop;
+    this._onAbort = opts.onAbort ?? noop;
+    this._getHost = opts.getHost ?? null;
+  }
+
+  onStart(): void {
+    this._onStart();
+  }
+  onAbort(reason: AbortReason): void {
+    this._onAbort(reason);
+  }
+  getHost(): Stuff | null {
+    return this._getHost ? this._getHost() : null;
+  }
+}
+
+/**
+ * Self-registering factory — builds an engagement instance from
+ * `TestDurativeActivity` and ensures the registry has the class
+ * under the requested `type`. The plan calls for every engagement
+ * to be associated with a registered class so registry-routed
+ * lifecycle dispatch resolves the latest code.
  */
 function makeDurative(
   actor: TestActor,
-  opts: {
-    duration?: number;
-    slots?: Iterable<'body' | 'hands' | 'attention' | 'voice'>;
-    onComplete?: () => void;
-    onAbort?: (reason: string) => void;
-    onStart?: () => void;
-    emissions?: readonly ScheduledEmission[];
-    replaceableBy?: readonly string[];
-    type?: string;
-  } = {},
-): DurativeActivity {
-  const calls = {
-    onStart: opts.onStart ?? (() => undefined),
-    onAbort: opts.onAbort ?? (() => undefined),
-    onComplete: opts.onComplete ?? (() => undefined),
-  };
-  return {
-    engagementId: '',
-    type: opts.type ?? 'test-durative',
-    actor: actor as unknown as DurativeActivity['actor'],
-    startedAt: Date.now(),
-    slots: new Set(opts.slots ?? ['body']),
-    interruptibleBy: new Set(),
-    cancelable: true,
-    duration: opts.duration ?? 1000,
-    replaceableBy: opts.replaceableBy ?? [],
-    emissions: opts.emissions,
-    onStart: () => calls.onStart(),
-    onAbort: (reason) => calls.onAbort(reason),
-    onComplete: () => calls.onComplete(),
-  };
+  opts: DurativeOpts = {},
+): TestDurativeActivity {
+  const e = new TestDurativeActivity(actor, opts);
+  SchedulerApi.registerActivity(
+    e.type,
+    TestDurativeActivity as unknown as Parameters<
+      typeof SchedulerApi.registerActivity
+    >[1],
+  );
+  return e;
 }
 
 function makeSustained(
   actor: TestActor,
-  opts: {
-    slots?: Iterable<'body' | 'hands' | 'attention' | 'voice'>;
-    type?: string;
-    onAbort?: (reason: string) => void;
-  } = {},
-): SustainedEngagement {
-  return {
-    engagementId: '',
-    type: opts.type ?? 'test-sustained',
-    actor: actor as unknown as Engagement['actor'],
-    startedAt: Date.now(),
-    slots: new Set(opts.slots ?? ['voice']),
-    interruptibleBy: new Set(),
-    cancelable: true,
-    onStart: () => undefined,
-    onAbort: (reason) => opts.onAbort?.(reason),
-  };
+  opts: SustainedOpts = {},
+): TestSustainedEngagement {
+  const e = new TestSustainedEngagement(actor, opts);
+  SchedulerApi.registerActivity(
+    e.type,
+    TestSustainedEngagement as unknown as Parameters<
+      typeof SchedulerApi.registerActivity
+    >[1],
+  );
+  return e;
 }
 
 /* ─────────────────────────── Suite ─────────────────────────── */
@@ -657,6 +752,99 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
       SchedulerApi.reloadActivity('untracked'),
     ).rejects.toThrow(/has no module record/);
   });
+
+  it(
+    'lifecycle dispatch routes through the registry: re-registering ' +
+      'a class between start and completion fires the NEW prototype ' +
+      'onComplete',
+    () => {
+      // Two classes share the same shape; what matters is which one
+      // is registered at completion-fire time. Each class records a
+      // tag string when its onComplete runs, so the test can assert
+      // identity. The engagement is constructed from `V1` (the
+      // class that was registered at construction time), but the
+      // completion timer fires AFTER `V2` overwrites the registry —
+      // and `cls.prototype.onComplete.call(e)` should hit `V2`'s
+      // method.
+      const ran: string[] = [];
+      class V1 {
+        engagementId = '';
+        readonly type = 'hmr-test';
+        readonly actor: TestActor;
+        readonly startedAt = Date.now();
+        readonly slots: ReadonlySet<EngagementSlot> = new Set(['body']);
+        readonly interruptibleBy = new Set<AbortReason>();
+        readonly cancelable = true;
+        readonly duration = 1000;
+        readonly replaceableBy: readonly string[] = [];
+        constructor(actor: TestActor) {
+          this.actor = actor;
+        }
+        onStart(): void {}
+        onComplete(): void {
+          ran.push('v1');
+        }
+        onAbort(): void {}
+      }
+      class V2 {
+        onStart(): void {}
+        onComplete(): void {
+          ran.push('v2');
+        }
+        onAbort(): void {}
+      }
+      SchedulerApi.registerActivity('hmr-test', V1 as never);
+      const e = new V1(actor);
+      SchedulerApi.start(e as never);
+
+      // Simulate HMR: overwrite the registry entry before the
+      // completion timer fires.
+      SchedulerApi.registerActivity('hmr-test', V2 as never);
+
+      vi.advanceTimersByTime(1000);
+      expect(ran).toEqual(['v2']);
+    },
+  );
+
+  it(
+    'lifecycle dispatch when class is unregistered between start ' +
+      "and completion: aborts with 'thrown'",
+    () => {
+      const reasons: string[] = [];
+      const warnSpy = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+      try {
+        const e = makeDurative(actor, {
+          duration: 1000,
+          type: 'transient',
+          onAbort: (r) => reasons.push(r),
+        });
+        SchedulerApi.start(e);
+
+        // Drop the registry entry; the engagement is still in
+        // flight but its class is gone. Completion timer should
+        // fall into the 'thrown' branch.
+        SchedulerApi._unregisterActivityForTesting('transient');
+
+        vi.advanceTimersByTime(1000);
+
+        // Without a registered class, dispatchOnAbort also can't
+        // call onAbort (the engagement-instance closure is reached
+        // through cls.prototype). The reasons array stays empty —
+        // the engagement is force-cleared from the registry and
+        // its timers cancelled regardless.
+        expect(reasons).toEqual([]);
+        expect(
+          SchedulerApi.getEngagementById(e.engagementId),
+        ).toBeUndefined();
+        expect(actor.getEngagementBySlot('body')).toBeUndefined();
+        expect(warnSpy).toHaveBeenCalled();
+      } finally {
+        warnSpy.mockRestore();
+      }
+    },
+  );
 
   // Non-trivial: full reloadActivity happy path needs a real on-disk
   // fixture wired through HotReloadApi + ModuleApi. The plan calls

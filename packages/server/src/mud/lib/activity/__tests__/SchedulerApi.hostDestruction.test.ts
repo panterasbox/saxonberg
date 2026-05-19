@@ -14,9 +14,10 @@ import {
   afterEach,
   vi,
 } from 'vitest';
+import type { AbortReason } from '@saxonberg/types';
+import type { Engaged, EngagementSlot } from '../Engaged';
 import { EngagedMixin } from '../Engaged';
 import { SchedulerApi } from '../../../api/scheduler';
-import type { DurativeActivity } from '../../../api/scheduler';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import { Stuff } from '../../stuff/Stuff';
@@ -36,6 +37,82 @@ class TestHost extends Idea {
   constructor() {
     super();
   }
+}
+
+/**
+ * Host-aware fixture activity. Two prototypes — one that returns
+ * the captured `_host`, one that returns null — let tests model
+ * the "with host" and "without host" cases without separate class
+ * definitions.
+ */
+class TestHostedActivity {
+  engagementId = '';
+  readonly type: string;
+  readonly actor: Stuff & Engaged;
+  readonly startedAt: number;
+  readonly slots: ReadonlySet<EngagementSlot> = new Set(['body']);
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set();
+  readonly cancelable = true;
+  readonly duration = 5000;
+  readonly replaceableBy: readonly string[] = [];
+
+  private readonly _host: Stuff | null;
+  private readonly _onAbort: (reason: AbortReason) => void;
+
+  constructor(
+    actor: TestActor,
+    host: Stuff | null,
+    onAbort: (reason: AbortReason) => void,
+    type = 'test-hosted',
+  ) {
+    this.type = type;
+    this.actor = actor as unknown as Stuff & Engaged;
+    this.startedAt = Date.now();
+    this._host = host;
+    this._onAbort = onAbort;
+  }
+
+  onStart(): void {}
+  onComplete(): void {}
+  onAbort(reason: AbortReason): void {
+    this._onAbort(reason);
+  }
+  getHost(): Stuff | null {
+    return this._host;
+  }
+}
+
+class TestHostlessActivity {
+  engagementId = '';
+  readonly type: string;
+  readonly actor: Stuff & Engaged;
+  readonly startedAt: number;
+  readonly slots: ReadonlySet<EngagementSlot> = new Set(['body']);
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set();
+  readonly cancelable = true;
+  readonly duration = 5000;
+  readonly replaceableBy: readonly string[] = [];
+
+  private readonly _onAbort: (reason: AbortReason) => void;
+
+  constructor(
+    actor: TestActor,
+    onAbort: (reason: AbortReason) => void,
+    type = 'test-hostless',
+  ) {
+    this.type = type;
+    this.actor = actor as unknown as Stuff & Engaged;
+    this.startedAt = Date.now();
+    this._onAbort = onAbort;
+  }
+
+  onStart(): void {}
+  onComplete(): void {}
+  onAbort(reason: AbortReason): void {
+    this._onAbort(reason);
+  }
+  // No getHost — registry dispatch sees `proto.getHost` as
+  // undefined and returns null without setting up a subscription.
 }
 
 async function makeRegistry(): Promise<EventRegistry> {
@@ -75,23 +152,18 @@ describe('SchedulerApi host-destruction hook', () => {
   });
 
   it('fires onAbort("host-destroyed") when host destructs mid-flight', async () => {
-    const reasons: string[] = [];
-    const e: DurativeActivity = {
-      engagementId: '',
-      type: 'test-host',
-      actor: actor as unknown as DurativeActivity['actor'],
-      startedAt: Date.now(),
-      slots: new Set(['body']),
-      interruptibleBy: new Set(),
-      cancelable: true,
-      duration: 5000,
-      replaceableBy: [],
-      onStart: () => undefined,
-      onComplete: () => undefined,
-      onAbort: (r) => reasons.push(r),
-      getHost: () => host,
-    };
-    SchedulerApi.start(e);
+    const reasons: AbortReason[] = [];
+    SchedulerApi.registerActivity(
+      'test-host',
+      TestHostedActivity as never,
+    );
+    const e = new TestHostedActivity(
+      actor,
+      host,
+      (r) => reasons.push(r),
+      'test-host',
+    );
+    SchedulerApi.start(e as never);
     expect(actor.getEngagementBySlot('body')).toBe(e);
 
     await StuffApi.destruct(host);
@@ -102,24 +174,19 @@ describe('SchedulerApi host-destruction hook', () => {
   });
 
   it('does NOT fire when an unrelated Stuff destructs', async () => {
-    const reasons: string[] = [];
+    const reasons: AbortReason[] = [];
     const otherStuff = makeStuff(() => new TestHost());
-    const e: DurativeActivity = {
-      engagementId: '',
-      type: 'test-host',
-      actor: actor as unknown as DurativeActivity['actor'],
-      startedAt: Date.now(),
-      slots: new Set(['body']),
-      interruptibleBy: new Set(),
-      cancelable: true,
-      duration: 5000,
-      replaceableBy: [],
-      onStart: () => undefined,
-      onComplete: () => undefined,
-      onAbort: (r) => reasons.push(r),
-      getHost: () => host,
-    };
-    SchedulerApi.start(e);
+    SchedulerApi.registerActivity(
+      'test-host',
+      TestHostedActivity as never,
+    );
+    const e = new TestHostedActivity(
+      actor,
+      host,
+      (r) => reasons.push(r),
+      'test-host',
+    );
+    SchedulerApi.start(e as never);
 
     await StuffApi.destruct(otherStuff);
     await flushMicrotasks();
@@ -129,23 +196,17 @@ describe('SchedulerApi host-destruction hook', () => {
   });
 
   it('does NOT subscribe when getHost is absent (no eager hook)', async () => {
-    const reasons: string[] = [];
-    const e: DurativeActivity = {
-      engagementId: '',
-      type: 'test-hostless',
-      actor: actor as unknown as DurativeActivity['actor'],
-      startedAt: Date.now(),
-      slots: new Set(['body']),
-      interruptibleBy: new Set(),
-      cancelable: true,
-      duration: 5000,
-      replaceableBy: [],
-      onStart: () => undefined,
-      onComplete: () => undefined,
-      onAbort: (r) => reasons.push(r),
-      // no getHost
-    };
-    SchedulerApi.start(e);
+    const reasons: AbortReason[] = [];
+    SchedulerApi.registerActivity(
+      'test-hostless',
+      TestHostlessActivity as never,
+    );
+    const e = new TestHostlessActivity(
+      actor,
+      (r) => reasons.push(r),
+      'test-hostless',
+    );
+    SchedulerApi.start(e as never);
 
     await StuffApi.destruct(host);
     await flushMicrotasks();
