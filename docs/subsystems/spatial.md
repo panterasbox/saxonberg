@@ -373,28 +373,33 @@ stamps the result onto `Stuff.zone` before hydrate, so anything
 reading `this.zone` during `postRegister` sees the right value
 (see [templates.md](./templates.md#clone-pipeline)).
 
-#### Field inheritance via `ZoneApi.resolveZoneField`
+#### Field inheritance via `Zone.lookupField`
 
 For zone-carried defaults that should inherit through the template
-tree, `ZoneApi.resolveZoneField<T>(zone, fieldName)` walks ancestry
-nearest-first and returns the first non-null value defined on any
-ancestor Zone. **Unlike `resolveZoneForPath`, the inheritance walk
-treats every Zone subclass as an inheritance node** —  FolderZone,
-HomeZone, Clade, and spatial zones alike. A `celestialProfile` field
-set on a universe-root FolderZone is inherited by every spatial zone
-beneath it. Returns `null` when nothing in the ancestry defines the
-field; callers compose a settings-style default on top:
+tree, `zone.lookupField<T>(fieldName)` walks ancestry nearest-first
+and returns the first non-null value defined on any ancestor Zone.
+**Unlike `resolveZoneForPath`, the inheritance walk treats every Zone
+subclass as an inheritance node** — FolderZone, HomeZone, Clade, and
+spatial zones alike. A `celestialProfile` field set on a universe-root
+FolderZone is inherited by every spatial zone beneath it. Returns
+`null` when nothing in the ancestry defines the field; callers compose
+a settings-style default on top:
 
 ```ts
 const profile =
-  (await ZoneApi.resolveZoneField<CelestialProfile>(zone, 'celestialProfile'))
+  (await zone.lookupField<CelestialProfile>('celestialProfile'))
   ?? resolveSetting(host, 'world.zone.celestialProfile.default');
 ```
 
-Field-read mechanism: the helper looks for `get<PascalCase>()` first
-(the inter-Stuff contract surface), then falls back to direct
-property access. Per zone-architecture-slate § Inheritance walk for
-zone-carried fields.
+The walk lives **on the Zone class** (not on `ZoneApi`) so subclasses
+can override its behavior. `lookupField` orchestrates; the
+override seam is `lookupAncestorField` — default delegates to the
+enclosing zone's `lookupField`, but a barrier subclass overrides it
+to return `null` and root inheritance at itself. Full surface and
+the barrier-subclass pattern documented in
+[zone.md § Field inheritance](./zone.md#field-inheritance-zonelookupfield).
+Per zone-architecture-slate § Inheritance walk for zone-carried
+fields.
 
 ### The setter-with-side-effects pattern
 

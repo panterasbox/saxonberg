@@ -54,7 +54,7 @@ CartesianZone  SphericalZone
 
 ## ZoneApi
 
-`api/zone.ts` owns three concerns:
+`api/zone.ts` owns two concerns:
 
 - **`resolveZoneForPath(templatePath)`** — walks template ancestry to
   find the nearest *spatial* zone; clones lazily via `StuffApi.singleton`.
@@ -63,24 +63,65 @@ CartesianZone  SphericalZone
   spatial zone for a descendant. Returns `null` when nothing in the
   ancestry is a SpatialZone, or when the input path is itself a
   SpatialZone (a zone isn't inside itself).
-- **`resolveZoneField<T>(zone, fieldName)`** — generalized
-  template-ancestry inheritance walk. Reads `fieldName` first on
-  `zone` itself, then on each ancestor Zone in the template tree
-  (nearest-first), and returns the nearest non-null/non-undefined
-  value, or `null` when nothing defines it. **Unlike
-  `resolveZoneForPath`, every Zone subclass participates as an
-  inheritance node** — FolderZones, HomeZones, Clades, and spatial
-  zones alike — because zone-carried defaults flow through folder
-  ancestry too (e.g., a `celestialProfile` set on the universe-root
-  FolderZone is inherited by every spatial zone beneath). Callers
-  layer a settings-style default on top: e.g.,
-  `ZoneApi.resolveZoneField(zone, 'celestialProfile')
-  ?? resolveSetting(host, 'world.zone.celestialProfile.default')`.
 - **`isFolderClass(classPath)`** / **`isSpatialZoneClass(classPath)`** —
   structural class-shape predicates. `isFolderClass` is the broad
   check (extends `Zone`); `isSpatialZoneClass` is the narrow one
   (extends `SpatialZone`). The former gates the folder/leaf
   template invariant; the latter gates `Stuff.zone` stamping.
+
+## Field inheritance: `Zone.lookupField`
+
+Field inheritance is an **instance method on Zone**, not a ZoneApi
+static — because subclasses can override the walk to participate
+differently. Three methods make up the surface:
+
+- **`lookupField<T>(fieldName): Promise<T | null>`** — top-level
+  entry. Reads `fieldName` on this zone first; if absent, delegates
+  to `lookupAncestorField`. Returns the nearest non-null/non-undefined
+  value, or `null` at universe-root. Field-read uses
+  `get<PascalCase>()` first (the inter-Stuff contract surface), then
+  direct property access.
+- **`lookupAncestorField<T>(fieldName): Promise<T | null>`** — the
+  override seam. Default: ask `getEnclosingZone()` for the nearest
+  enclosing Zone, then delegate to *its* `lookupField`. The recursion
+  carries the walk upward.
+- **`getEnclosingZone(): Promise<Zone | null>`** — nearest Zone-class
+  template-ancestor (any Zone subclass — FolderZones, spatial zones,
+  Clades). Lazy-clones via `StuffApi.singleton`.
+
+**Every Zone subclass participates as an inheritance node** —
+FolderZones, HomeZones, Clades, and spatial zones alike — because
+zone-carried defaults flow through folder ancestry too (e.g., a
+`celestialProfile` set on the universe-root FolderZone is inherited
+by every spatial zone beneath). Callers layer a settings-style
+default on top:
+
+```ts
+const profile =
+  (await zone.lookupField<CelestialProfile>('celestialProfile'))
+  ?? resolveSetting(host, 'world.zone.celestialProfile.default');
+```
+
+### Barrier subclasses
+
+A subclass that overrides `lookupAncestorField` to return `null`
+becomes an **inheritance barrier**: its own defaults are authoritative
+for descendants, and ancestor values do not flow through:
+
+```ts
+class RootedZone extends Zone {
+  // The zone roots its own defaults — nothing from above leaks in.
+  override async lookupAncestorField<T>(_field: string): Promise<T | null> {
+    return null;
+  }
+}
+```
+
+No barrier subclass ships in this build — the seam is there for the
+moment a real consumer needs it. A subclass could also override
+`lookupAncestorField` to consult a non-template-parent source
+(e.g., a sibling-template inheritance, or a per-field fallback
+chain).
 
 ## Zone derivation rule
 
