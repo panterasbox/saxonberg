@@ -133,7 +133,7 @@ describe('OpenController / CloseController / doors integration', () => {
   let peerInA: PeerSensor;
   let door: Door;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     buildMode('walk');
     zone = makeStuff(() => new CartesianZone());
     locA = makeStuff(() => new CartesianLocation());
@@ -146,7 +146,7 @@ describe('OpenController / CloseController / doors integration', () => {
     door = makeStuff(() => new Door());
     door.setShortDescription('heavy oak door');
     door.setKeywords(['oak']);
-    locA.addBidirectionalExit(locB, 'north', { door });
+    await locA.addBidirectionalExit(locB, 'north', { door });
 
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
@@ -175,7 +175,7 @@ describe('OpenController / CloseController / doors integration', () => {
   it('open <keyword> resolves via MQL and opens the door', async () => {
     const open = makeStuff(() => new OpenController());
     await openCmd(open, avatar, locA, 'oak');
-    expect(door.getIsOpen()).toBe(true);
+    expect(door.isOpen()).toBe(true);
 
     const peerText = JSON.stringify(peerInA.received);
     expect(peerText).toContain('Alice');
@@ -226,7 +226,7 @@ describe('OpenController / CloseController / doors integration', () => {
       locB,
       'oak'
     );
-    expect(door.getIsOpen()).toBe(false);
+    expect(door.isOpen()).toBe(false);
 
     // Both sides share the same Door instance — going south is now blocked.
     avatar.received.length = 0;
@@ -260,13 +260,13 @@ describe('OpenController / CloseController / doors integration', () => {
     // controller fetches the door from via.exit.getDoor().
     const open = makeStuff(() => new OpenController());
     await openCmd(open, avatar, locA, 'north');
-    expect(door.getIsOpen()).toBe(true);
+    expect(door.isOpen()).toBe(true);
   });
 
   it('close north resolves via direction and closes the exit door', async () => {
     door.open();
     const close = makeStuff(() => new CloseController());
     await closeCmd(close, avatar, locA, 'north');
-    expect(door.getIsOpen()).toBe(false);
+    expect(door.isOpen()).toBe(false);
   });
 });

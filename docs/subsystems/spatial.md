@@ -8,6 +8,10 @@ than scattering it across class JSDoc.
 
 Sibling docs cover related ground without overlap:
 
+- [zone.md](./zone.md) — the Zone-hierarchy roots (`Zone`,
+  `SpatialZone`, `FolderZone`) and `ZoneApi`. The hierarchy lives in
+  `lib/zone/`; only the spatial-coordinate concrete zones
+  (`CartesianZone`, `SphericalZone`) stay under `lib/spatial/`.
 - [templates.md](./templates.md) — clone pipeline,
   `ZoneApi.resolveZoneForPath`, the folder/leaf invariant on `domain`.
 - [state-model.md](./state-model.md) — the universal `zone` field
@@ -29,12 +33,11 @@ Sibling docs cover related ground without overlap:
 | Type | Kind | Role |
 |---|---|---|
 | `Location` | concrete class | Base for any Stuff that holds Stuff but isn't itself contained. `ContainerMixin(Stuff)`. |
-| `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits only. |
-| `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. |
-| `Zone` | abstract class | Bare scope/folder unit of the template tree — name + folder-of-templates contract, nothing more. Subclasses (`SpatialZone`, `Clade`) layer behavior on top. |
-| `SpatialZone` | abstract class | Topographical Zone intermediate — owns the `Set<Location>` and the `deriveExit()` strategy. Lives between `Zone` and the concrete spatial Zones. |
-| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. |
-| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. |
+| `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits unconditional; non-cardinal exits only when crossing zone boundaries. `coords` declarative-content field + `setCoords` setter. |
+| `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. `focus` declarative-content field + `setFocus` setter. |
+| `Zone` / `SpatialZone` / `FolderZone` | (cross-reference) | See [zone.md](./zone.md) — the Zone hierarchy lives in `lib/zone/` now, carved out of `lib/spatial/`. |
+| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. `hasRoomAt(x, y, z, room?)` predicate for setter idempotency. |
+| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. `hasLocationAtFocus(focus, location?)` predicate. |
 | `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
@@ -212,12 +215,22 @@ something." `AdornableMixin(ContainerMixin(Stuff))`.
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 
 - **`CartesianLocation`** = `Exitable(CartesianCoords(Visible(Location)))`.
-  Overrides `addExit` to reject any non-cardinal direction
-  (`CartesianLocation.ts:32-39`) — you cannot author `addExit('portal')`
-  on a grid cell because the grid topology guarantees a known inverse
-  for every direction. Labeled exits belong on Spherical or Vessel.
+  Overrides `addExit` (async — awaits zone resolution) per the
+  **cardinal-only-intra-zone exit invariant**: cardinal directions
+  (`north`/`south`/`east`/`west`/diagonals/`up`/`down`) are accepted
+  unconditionally; non-cardinal labels (`portal`, `office`) are
+  accepted only when the destination's templatePath resolves to a
+  *different* zone than the source's. The check is eager and
+  path-based — `ZoneApi.resolveZoneForPath` walks template ancestry
+  to compute each side's zone without loading the destination room
+  as a Stuff. Intra-zone non-cardinal exits throw with a diagnostic
+  naming both seed paths and the shared zone. Per
+  zone-architecture-slate § The cardinal-only-intra-zone exit
+  invariant.
 - **`SphericalLocation`** = `Exitable(SphericalCoords(Visible(Location)))`.
-  No restrictions on `addExit` direction labels.
+  No restrictions on `addExit` direction labels — spherical zones
+  have no implicit adjacency, so semantic labels are the only way to
+  author exits.
 
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
@@ -359,6 +372,62 @@ The clone pipeline calls `resolveZoneForPath` once at clone time and
 stamps the result onto `Stuff.zone` before hydrate, so anything
 reading `this.zone` during `postRegister` sees the right value
 (see [templates.md](./templates.md#clone-pipeline)).
+
+#### Field inheritance via `ZoneApi.resolveZoneField`
+
+For zone-carried defaults that should inherit through the template
+tree, `ZoneApi.resolveZoneField<T>(zone, fieldName)` walks ancestry
+nearest-first and returns the first non-null value defined on any
+ancestor Zone. **Unlike `resolveZoneForPath`, the inheritance walk
+treats every Zone subclass as an inheritance node** —  FolderZone,
+HomeZone, Clade, and spatial zones alike. A `celestialProfile` field
+set on a universe-root FolderZone is inherited by every spatial zone
+beneath it. Returns `null` when nothing in the ancestry defines the
+field; callers compose a settings-style default on top:
+
+```ts
+const profile =
+  (await ZoneApi.resolveZoneField<CelestialProfile>(zone, 'celestialProfile'))
+  ?? resolveSetting(host, 'world.zone.celestialProfile.default');
+```
+
+Field-read mechanism: the helper looks for `get<PascalCase>()` first
+(the inter-Stuff contract surface), then falls back to direct
+property access. Per zone-architecture-slate § Inheritance walk for
+zone-carried fields.
+
+### The setter-with-side-effects pattern
+
+`CartesianLocation.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
+and `Window.setAttachedHosts([pathA, pathB])` share a single
+declarative-content shape: a public setter that **stores the value
+AND performs cross-object side effects** atomically. The shape is:
+
+1. Validate the input (TypeError on shape mismatch).
+2. Resolve the dependency context (`getZone()` for coords/focus; both
+   hosts via `StuffApi.singleton` for attachedHosts).
+3. Check idempotency (zone already has this room at these coords?
+   anchors already wired to these hosts?). If so, accept and no-op
+   the side effect — only the storage assignment runs.
+4. Check conflict (already at different coords / attached to
+   different hosts?). If so, throw with a diagnostic naming both
+   states.
+5. Apply the side effect (`zone.addLocation(this, x, y, z)`,
+   `BoundaryApi.attachExistingBoundary(...)`).
+6. Store the value.
+
+Idempotency makes re-hydrate / HMR-after-destruct / cycle-loop-self-call
+safe. Conflict-throw catches drift between the YAML and the runtime
+state. The setters are `async` because steps 2 and 5 may call
+`await StuffApi.singleton(...)` to lazy-clone dependencies.
+
+`coords` and `coordinates` are distinct fields by design: `coords`
+(this build) is the YAML-shape declarative input `{x, y, z}` and
+the setter's input shape; `coordinates` (on `CartesianCoordinatesMixin`)
+is the runtime tuple `[x, y, z]` consumed by the zone grid. The setter
+bridges them: `setCoords` calls `zone.addLocation(this, x, y, z)`,
+which internally calls `setCoordinates([x, y, z])`. Unifying them is
+out of scope here.
 
 ## Exits, Doors, Adornable, ExitableVessel
 

@@ -16,7 +16,7 @@
  */
 
 import { Stuff } from '../../../lib/stuff/Stuff';
-import type { SpatialZone } from '../../../lib/spatial/SpatialZone';
+import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 
 /**
  * Tries to stamp a Stuff's `zone` from a non-allowlisted module.

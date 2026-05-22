@@ -62,6 +62,27 @@ The `_` prefix + private modifier is consistent with the project's
 bracket-assigns onto the private field by name; external code never
 touches the underscore.
 
+#### Public-surface naming uses the bare conceptual name
+
+The `Path` suffix discussed above is for the **backing field only**.
+The **public surface** — the entry in `persistentFields`, the YAML
+key authors write, the `getXxx` / `setXxx` method names — uses the
+**bare conceptual name** without a `Path` / `TemplatePath` suffix.
+
+Examples in current substrate: `container`, `populates`, `destination`,
+`door`, `attachedHosts`. Not `containerPath`, not `attachedHostPaths`.
+
+Reasoning: the Pattern A type signature (`string`) plus the field's
+documentation as a singleton ref already convey "stored as a path";
+the `Path` suffix on the public surface asks readers to re-confirm
+what the type already shows. The bare conceptual name reads more
+naturally in YAML and matches the established convention across the
+substrate.
+
+The backing field MAY drop the `Path` suffix for parallel uniformity
+(`protected _attachedHosts: [string, string] | null`) — internal
+choice, since callers never see backing-field names.
+
 ### Method surface
 
 ```ts

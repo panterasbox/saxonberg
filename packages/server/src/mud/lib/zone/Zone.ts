@@ -5,9 +5,12 @@
  * carries a name and the folder-of-templates contract, nothing else. Concrete
  * Zone flavors layer behavior on top:
  *
- * - `SpatialZone` (in `lib/spatial/`) — abstract intermediate carrying the
+ * - `SpatialZone` (in `lib/zone/`) — abstract intermediate carrying the
  *   location-aware surface (`addLocation`, `getLocations`, `deriveExit`, …).
- *   `CartesianZone` and `SphericalZone` extend `SpatialZone`, not `Zone`.
+ *   `CartesianZone` and `SphericalZone` (in `lib/spatial/`) extend
+ *   `SpatialZone`, not `Zone`.
+ * - `FolderZone` (in `lib/zone/`) — generic organizational scope with no
+ *   spatial topology; sits as an inheritance node only.
  * - `Clade` (in `lib/species/`) — taxonomic scope (kingdoms, sub-clades).
  *   Members are Species, not Locations; extends `Zone` directly.
  *

@@ -178,7 +178,7 @@ export class LookController extends CommandController<LookModel> {
       const dir = Mml.direction(exit.getDirection());
       const door = exit.getDoor();
       if (!door) return dir;
-      const state = door.getIsOpen() ? 'open' : 'closed';
+      const state = door.isOpen() ? 'open' : 'closed';
       const doorName = DescribeApi.getDisplayName(door, 'door');
       return Mml.compose`${dir} (${doorName}, ${state})`;
     });

@@ -55,18 +55,39 @@ export interface Exitable {
    * empty in the steady state.
    */
   hasPendingVerification(): boolean;
-  addExit(exit: Exit): boolean;
+  /**
+   * Install an explicit exit. Async because subclasses (notably
+   * `CartesianLocation`) may perform an async cardinal-zone check
+   * via `ZoneApi.resolveZoneForPath` before accepting the exit.
+   * The base implementation does only sync work; the async return
+   * type lets overrides remain typesafe.
+   */
+  addExit(exit: Exit): Promise<boolean>;
   removeExit(direction: string): boolean;
   getExit(direction: string): Exit | undefined;
   getExits(): ReadonlyMap<string, Exit>;
   hasExit(direction: string): boolean;
   getObviousExits(): Exit[];
   getExitDoors(): Door[];
+  /**
+   * Install a forward/back exit pair. Async because it internally
+   * `await`s the two `addExit` calls — subclass overrides may run
+   * an async cardinal-zone check.
+   */
   addBidirectionalExit(
     other: Stuff & Container & Exitable,
     direction: string,
     opts?: BidirectionalExitOptions
-  ): void;
+  ): Promise<void>;
+  /**
+   * Declarative-content applier. Iterates the YAML-shape exits map
+   * and installs each entry, lazily cloning destination Locations
+   * (and doors) via `StuffApi.singleton`. Per-direction idempotency:
+   * matching existing exit → no-op; mismatching exit → throws with a
+   * diagnostic naming both seed paths. Per declarative-content-slate
+   * § exits on ExitableMixin.
+   */
+  applyExits(map: Record<string, ExitSpec>): Promise<void>;
   verifyOutboundExits(): void;
 
   /**
@@ -115,9 +136,58 @@ export interface BidirectionalExitOptions {
   messageOutBack?: string | null;
 }
 
+/**
+ * Declarative-content shape for a single exit entry in
+ * `Exitable.applyExits`. Mirrors the YAML the content author writes:
+ *
+ * ```yaml
+ * exits:
+ *   north:
+ *     destination: /narnia/castle/library
+ *   portal:
+ *     destination: /narnia/dark-wood/clearing
+ *     bidirectional: true
+ *     opposite: portal
+ * ```
+ *
+ * `destination` is the template path of the destination Location;
+ * the applier resolves it lazily via `StuffApi.singleton` (clones on
+ * first need). `bidirectional` defaults to true for cardinal
+ * directions (the inverse is inferred via
+ * `NavigationApi.invertDirection`) and false for non-cardinal labels
+ * unless `opposite` is supplied. `door` is the template path of an
+ * optional Door whose anchors are installed transitively when
+ * present.
+ *
+ * Per declarative-content-slate § exits on ExitableMixin.
+ */
+export interface ExitSpec {
+  destination: string;
+  door?: string;
+  bidirectional?: boolean;
+  opposite?: string;
+  hidden?: boolean;
+  blocked?: boolean;
+  muffled?: boolean;
+  noFollow?: boolean;
+  oneWay?: boolean;
+  messageIn?: string;
+  messageOut?: string;
+  media?: string[];
+}
+
 export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
   return class ExitableMixin extends Base {
     static _mixinName = 'ExitableMixin';
+
+    /**
+     * `exits` is the canonical instruction field shape for declarative
+     * content. `applyExits` consumes a `Record<string, ExitSpec>` and
+     * installs the runtime entries — no paired getter for the spec
+     * (the runtime `exits: Map<string, Exit>` has its own API). See
+     * `applyExits` and `feedback_property_vs_instruction_fields`.
+     */
+    static instructionFields = ['exits'];
 
     /**
      * Explicit exit map. Derived exits (cartesian adjacency, vessel `'out'`)
@@ -145,7 +215,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       return this._pendingVerify.size > 0;
     }
 
-    addExit(exit: Exit): boolean {
+    async addExit(exit: Exit): Promise<boolean> {
       const direction = exit.getDirection();
       if (this.exits.has(direction)) return false;
       this.exits.set(direction, exit);
@@ -253,11 +323,11 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * structural inverse to infer. Passing `opts.opposite` for a cardinal
      * direction overrides the inferred inverse.
      */
-    addBidirectionalExit(
+    async addBidirectionalExit(
       other: Stuff & Container & Exitable,
       direction: string,
       opts: BidirectionalExitOptions = {}
-    ): void {
+    ): Promise<void> {
       const opposite = opts.opposite ?? NavigationApi.invertDirection(direction);
       if (!opposite) {
         throw new Error(
@@ -296,8 +366,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       forward.setInverse(back);
       back.setInverse(forward);
 
-      this.addExit(forward);
-      other.addExit(back);
+      await this.addExit(forward);
+      await other.addExit(back);
 
       // Phase 5 Door retrofit: a Door is a Boundary, so when this
       // pair carries a shared door, also install the door's
@@ -306,7 +376,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // callers passing the same door twice (e.g., reinstall after
       // detach) must `door.detach()` first. The cross-boundary light
       // walk consumes these anchors; `Exit.canTraverse` keeps using
-      // `door.getIsOpen()` directly (see plan § Exit.canTraverse).
+      // `door.isOpen()` directly (see plan § Exit.canTraverse).
       if (opts.door) {
         // Cast `this` and `other` to plain `Stuff` (sound — both are
         // Stuff via the mixin chain), then let `MixinApi.isAdornable`
@@ -326,6 +396,98 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           });
         }
       }
+    }
+
+    /**
+     * Declarative-content applier. The instruction field is consumed
+     * here: each `ExitSpec` is translated into an explicit `Exit` (or
+     * `addBidirectionalExit` for cardinal / explicit-bidirectional
+     * entries). Destinations and doors lazy-clone via
+     * `StuffApi.singleton`, so a depended-on Location is materialized
+     * on first need; further `singleton(x)` calls during a cascade
+     * hit the registered proxy and short-circuit cycle scenarios.
+     *
+     * Per-direction idempotency: a matching existing exit (same
+     * destination, same door) is a no-op; a mismatch throws with a
+     * diagnostic naming both seed paths.
+     */
+    async applyExits(map: Record<string, ExitSpec>): Promise<void> {
+      for (const [direction, spec] of Object.entries(map)) {
+        await this._applyExitSpec(direction, spec);
+      }
+    }
+
+    private async _applyExitSpec(
+      direction: string,
+      spec: ExitSpec
+    ): Promise<void> {
+      const existing = this.exits.get(direction);
+      const destStuff = await StuffApi.singleton<
+        Stuff & Container & Exitable
+      >(spec.destination);
+      let doorStuff: Door | undefined;
+      if (spec.door) {
+        doorStuff = await StuffApi.singleton<Door>(spec.door);
+      }
+      if (existing) {
+        // Idempotency vs conflict. Compare by reference — `singleton`
+        // is the canonical resolver, so equal templatePaths yield the
+        // same proxy.
+        let existingDest: Stuff | null = null;
+        try {
+          existingDest = existing.getDestination() as unknown as Stuff;
+        } catch {
+          existingDest = null;
+        }
+        const sameDest = existingDest === (destStuff as unknown as Stuff);
+        const sameDoor =
+          (existing.getDoor() ?? null) ===
+          ((doorStuff as Door | undefined) ?? null);
+        if (sameDest && sameDoor) return;
+        const here = this as unknown as Stuff;
+        const tag = here.getTemplatePath() ?? here.stuffId;
+        throw new Error(
+          `Exitable.applyExits: direction '${direction}' on ${tag} ` +
+            `already wired to a different exit; refusing to overwrite. ` +
+            `(existing destination: ${
+              existing.getDestination().getTemplatePath() ?? '<no-path>'
+            }, incoming destination: ${spec.destination})`
+        );
+      }
+      const isCardinal = NavigationApi.isCardinalDirection(direction);
+      const bidirectional = spec.bidirectional ?? (isCardinal && !spec.oneWay);
+      if (bidirectional) {
+        const opts: BidirectionalExitOptions = {
+          door: doorStuff,
+          opposite: spec.opposite,
+          hidden: spec.hidden,
+          blocked: spec.blocked,
+          muffled: spec.muffled,
+          noFollow: spec.noFollow,
+          messageInForward: spec.messageIn ?? null,
+          messageOutForward: spec.messageOut ?? null,
+        };
+        await this.addBidirectionalExit(destStuff, direction, opts);
+        return;
+      }
+      const exit = StuffApi.createSync(
+        () =>
+          new Exit({
+            direction,
+            source: this as unknown as Stuff & Container,
+            destination: destStuff,
+            door: doorStuff ?? null,
+            hidden: spec.hidden,
+            blocked: spec.blocked,
+            muffled: spec.muffled,
+            noFollow: spec.noFollow,
+            oneWay: spec.oneWay ?? true,
+            messageIn: spec.messageIn,
+            messageOut: spec.messageOut,
+            media: spec.media,
+          })
+      );
+      await this.addExit(exit);
     }
 
     /**

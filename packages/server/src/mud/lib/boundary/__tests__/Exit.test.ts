@@ -182,8 +182,8 @@ describe('Exit', () => {
       expect(exit.getInverse()).toBeUndefined();
     });
 
-    it('addBidirectionalExit wires both inverse pointers', () => {
-      locA.addBidirectionalExit(locB, 'north');
+    it('addBidirectionalExit wires both inverse pointers', async () => {
+      await locA.addBidirectionalExit(locB, 'north');
       const forward = locA.getExit('north');
       const back = locB.getExit('south');
       expect(forward).toBeDefined();
@@ -192,15 +192,15 @@ describe('Exit', () => {
       expect(back!.getInverse()).toBe(forward);
     });
 
-    it('inverse?.direction returns the opposite cardinal', () => {
-      locA.addBidirectionalExit(locB, 'north');
+    it('inverse?.direction returns the opposite cardinal', async () => {
+      await locA.addBidirectionalExit(locB, 'north');
       const forward = locA.getExit('north')!;
       expect(forward.getInverse()?.getDirection()).toBe('south');
     });
 
-    it('one-way addExit leaves inverse undefined', () => {
+    it('one-way addExit leaves inverse undefined', async () => {
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB }));
-      locA.addExit(exit);
+      await locA.addExit(exit);
       expect(exit.getInverse()).toBeUndefined();
     });
   });

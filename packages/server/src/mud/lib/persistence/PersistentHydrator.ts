@@ -1,21 +1,33 @@
 /**
- * PersistentHydrator — standard `Hydrator` implementation that copies every
- * `data` key matching a persistent field on the backing's constructor.
+ * PersistentHydrator — standard `Hydrator` implementation with two-phase
+ * method-first dispatch.
  *
- * For every field in the union of `static persistentFields` declarations
- * across the backing's mixin and class chain (collected via
- * `MixinApi.getAllPersistentFields`), if `data` carries a value for that
- * field, copy it onto the backing via `target[field] = data[field]`.
- * Bracket-assign invokes setters when present, so field-shape invariants
- * (declared on setters in the relevant mixin) fire automatically — see
- * `Hydrator.ts` for the contract.
+ * **Phase 1 — property fields.** For each entry in
+ * `MixinApi.getAllPersistentFields(backing.constructor)`, if `data`
+ * carries a value, prefer `await target.set<PascalCase(field)>(value)`
+ * when that method exists, otherwise fall back to
+ * `target[field] = value`. Bracket-assign invokes the accessor pair
+ * when one is defined on the prototype, so field-shape invariants
+ * declared on setters still fire on the fallback path.
+ *
+ * **Phase 2 — instruction fields.** For each entry in
+ * `MixinApi.getAllInstructionFields(backing.constructor)`, if `data`
+ * carries a value, call `await target.apply<PascalCase(field)>(value)`.
+ * The applier is **required** — absence of `applyX` is a configuration
+ * bug, not a silent skip. The two phases run sequentially so all
+ * property fields settle before any instruction is applied.
+ *
+ * Marshalled fields keep their existing path: the marshaller produces
+ * the runtime value first, then the same method-first/bracket-fallback
+ * dispatch applies.
  *
  * Templates opt in by naming `'/lib/persistence/PersistentHydrator'` as
  * their `hydratorClass`. Templates that omit `hydratorClass` skip
  * hydration entirely.
  *
  * Subclasses override `hydrate()` for cross-field or async logic; call
- * `super.hydrate()` first if the default field-copy should still run.
+ * `super.hydrate()` first if the default two-phase dispatch should
+ * still run.
  */
 
 import { MixinApi } from '../../api/mixin';
@@ -26,6 +38,12 @@ import type { Hydrator } from '../stuff/Hydrator';
 import type { Marshaller } from './Marshaller';
 
 type Indexable = Record<string, unknown>;
+
+function pascalCase(field: string): string {
+  return field.length === 0
+    ? field
+    : field[0]!.toUpperCase() + field.slice(1);
+}
 
 /**
  * Extends `Idea` so the clone pipeline can produce a hydrator the
@@ -51,13 +69,19 @@ export class PersistentHydrator extends Idea implements Hydrator {
     data: Record<string, unknown>
   ): Promise<void> {
     const constructor = backing.constructor as new (...args: unknown[]) => Stuff;
-    const fields = MixinApi.getAllPersistentFields(constructor);
+    const persistentFields = MixinApi.getAllPersistentFields(constructor);
+    const instructionFields = MixinApi.getAllInstructionFields(constructor);
     const marshallerPaths = MixinApi.getAllFieldMarshallers(constructor);
     const target = backing as unknown as Indexable;
-    for (const field of fields) {
+
+    // Phase 1 — property fields. Method-first dispatch with bracket-
+    // assign fallback. All property fields settle before any
+    // instruction is applied.
+    for (const field of persistentFields) {
       if (!(field in data)) continue;
       const raw = data[field];
       const path = marshallerPaths[field];
+      let value: unknown;
       if (path) {
         // Lazy resolution: `singleton(path)` returns the cached
         // marshaller if one exists, else clones from the seeded
@@ -70,12 +94,51 @@ export class PersistentHydrator extends Idea implements Hydrator {
         const marshaller = await StuffApi.singleton<
           Marshaller<unknown, unknown>
         >(path);
-        target[field] = marshaller.fromStored(raw);
+        value = marshaller.fromStored(raw);
       } else {
-        // Default path: dumb bracket-assign. The setter (if any) on
-        // the field's accessor pair fires runtime-shape validation.
-        target[field] = raw;
+        value = raw;
       }
+      const setterName = 'set' + pascalCase(field);
+      const setter = target[setterName];
+      if (typeof setter === 'function') {
+        // Async-safe: `await` of a non-Promise resolves to the value,
+        // so synchronous setters behave identically to the previous
+        // bracket-assign path. Asynchronous setters that touch other
+        // Stuff via `StuffApi.singleton` (e.g., `setAttachedHosts`)
+        // now complete their side effects before the next field is
+        // processed.
+        await (setter as (v: unknown) => unknown | Promise<unknown>).call(
+          target,
+          value
+        );
+      } else {
+        // Fallback: dumb bracket-assign. An accessor pair on the
+        // prototype still fires (Pattern D); a plain public field
+        // just receives the value.
+        target[field] = value;
+      }
+    }
+
+    // Phase 2 — instruction fields. Required applier dispatch. Absence
+    // of `applyX` for a declared instruction field is a configuration
+    // bug — surface it loudly.
+    for (const field of instructionFields) {
+      if (!(field in data)) continue;
+      const value = data[field];
+      const applierName = 'apply' + pascalCase(field);
+      const applier = target[applierName];
+      if (typeof applier !== 'function') {
+        throw new Error(
+          `PersistentHydrator: instruction field '${field}' on ` +
+            `${constructor.name} declares no '${applierName}' method. ` +
+            `Instruction fields must provide an applier; either add ` +
+            `'${applierName}' or move the field to 'persistentFields'.`
+        );
+      }
+      await (applier as (v: unknown) => unknown | Promise<unknown>).call(
+        target,
+        value
+      );
     }
   }
 }

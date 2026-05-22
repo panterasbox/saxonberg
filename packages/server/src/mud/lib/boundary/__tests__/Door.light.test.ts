@@ -52,7 +52,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
     expect(movement.canPassThrough('A', 'B', 'walk')).toBe(true);
   });
 
-  it('addBidirectionalExit({door}) installs anchors on both rooms', () => {
+  it('addBidirectionalExit({door}) installs anchors on both rooms', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -61,7 +61,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
 
     // Existing attachedTo wiring still works.
     expect(door.getAttachedExits().size).toBe(2);
@@ -72,7 +72,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
     expect(b.getFixtureBoundaries()).toContain(door);
   });
 
-  it('door.detach() clears BOTH attachedTo AND boundary anchors', () => {
+  it('door.detach() clears BOTH attachedTo AND boundary anchors', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -81,7 +81,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
     expect(door.getAttachedExits().size).toBe(2);
     expect(door.getAnchorA()).not.toBeNull();
 
@@ -115,11 +115,11 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     return { a, b };
   }
 
-  it('closed door between rooms blocks the candle leak via the boundary walk', () => {
+  it('closed door between rooms blocks the candle leak via the boundary walk', async () => {
     const { a, b } = setupTwoRoomsAcrossZones();
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door, opposite: 'south' });
+    await a.addBidirectionalExit(b, 'north', { door, opposite: 'south' });
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -132,16 +132,16 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
-  it('an exit with no door still leaks light fully', () => {
+  it('an exit with no door still leaks light fully', async () => {
     const { a, b } = setupTwoRoomsAcrossZones();
-    a.addBidirectionalExit(b, 'north', { opposite: 'south' });
+    await a.addBidirectionalExit(b, 'north', { opposite: 'south' });
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
     expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
-  it('shares neighbor across two paths only when no double-counting', () => {
+  it('shares neighbor across two paths only when no double-counting', async () => {
     // Same-zone setup: cardinal-derived exit + an explicit doored
     // exit could lead to the same neighbor counting twice. The walk
     // skips doored exits so the boundary-side contribution wins.
@@ -153,7 +153,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
     door.open();
 
     const candle = makeStuff(() => new Candle());

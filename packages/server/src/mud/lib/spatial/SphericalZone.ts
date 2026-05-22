@@ -12,7 +12,7 @@
  * algorithm.
  */
 
-import { SpatialZone } from './SpatialZone';
+import { SpatialZone } from '../zone/SpatialZone';
 import type { Location } from '../stuff/Location';
 import type { Exit } from '../boundary/Exit';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -33,6 +33,25 @@ export class SphericalZone extends SingletonMixin(SpatialZone) {
   protected readonly focusIndex: Map<string, Location> = new Map();
 
   public getFocusIndex(): ReadonlyMap<string, Location> { return this.focusIndex; }
+
+  /**
+   * Parallel of `CartesianZone.hasRoomAt` — true iff the location at
+   * the focus key in this zone matches (and, when supplied, is the
+   * specific `SphericalLocation` reference). Used by
+   * `SphericalLocation.setFocus` for idempotency.
+   *
+   * NOTE: the `focusIndex` is intentionally lossy (rounded keys); this
+   * predicate suffices for setter idempotency but is not a substitute
+   * for exact focus-membership queries elsewhere.
+   */
+  public hasLocationAtFocus(
+    focus: [number, number, number],
+    location?: Location
+  ): boolean {
+    const here = this.focusIndex.get(focusKey(focus));
+    if (!here) return false;
+    return location ? here === location : true;
+  }
 
   static persistentFields = ['name'];
 

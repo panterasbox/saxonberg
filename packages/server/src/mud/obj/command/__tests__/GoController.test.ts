@@ -238,7 +238,7 @@ describe('GoController', () => {
     it('blocks traversal through a closed door', async () => {
       const door = makeStuff(() => new Door());
       door.setShortDescription('oak door');
-      locA.addExit(
+      await locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
       );
       await goCmd(controller, avatar, locA, 'east');
@@ -265,7 +265,7 @@ describe('GoController', () => {
       office.setShortDescription('Office');
       sphZone.addLocation(plaza);
       sphZone.addLocation(office);
-      plaza.addExit(makeStuff(() => new Exit({ direction: 'office', source: plaza, destination: office })));
+      await plaza.addExit(makeStuff(() => new Exit({ direction: 'office', source: plaza, destination: office })));
 
       const visitor = makeStuff(() => new FakeAvatar());
       visitor.setName('Carol');

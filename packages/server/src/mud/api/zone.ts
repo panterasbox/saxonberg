@@ -28,8 +28,8 @@
 
 import { StuffApi } from './stuff';
 import { Template } from '../lib/stuff/Template';
-import { Zone } from '../lib/spatial/Zone';
-import { SpatialZone } from '../lib/spatial/SpatialZone';
+import { Zone } from '../lib/zone/Zone';
+import { SpatialZone } from '../lib/zone/SpatialZone';
 import { SecurityApi } from './security';
 
 /**
@@ -146,6 +146,85 @@ export class ZoneApi {
     }
     return null;
   }
+
+  /**
+   * Generalized template-ancestry inheritance walk for zone-carried
+   * fields. Reads `fieldName` first on `zone` itself, then on each
+   * ancestor Zone in the template tree (nearest-first), returning
+   * the first non-null/non-undefined value. Returns `null` when no
+   * ancestor defines the field — callers can compose a settings-style
+   * default chain on top via `resolveSetting(host, 'world.zone.foo.default')`.
+   *
+   * Unlike `resolveZoneForPath`, this walk treats **every** `Zone`
+   * subclass as an inheritance node — `FolderZone`, `HomeZone`,
+   * `Clade`, and the spatial-coordinate zones all participate. The
+   * folder/leaf invariant guarantees ancestors are Zone subclasses;
+   * `isFolderClass` is the structural check.
+   *
+   * Field-read mechanism: prefer `get<PascalCase(fieldName)>()` if
+   * the zone exposes one (the inter-Stuff contract surface); fall
+   * back to direct property access for runtime-only fields. A return
+   * of `undefined` is treated as "not defined here, keep walking" —
+   * the caller's `null` sentinel signals "nothing in the chain."
+   *
+   * Per zone-architecture-slate § Inheritance walk for zone-carried
+   * fields.
+   *
+   * @param zone - The starting zone (typically the spatial zone for
+   *   a Location); its own field is read first, then its template
+   *   ancestry.
+   * @param fieldName - Field name in lowerCamel form (e.g.
+   *   `'celestialProfile'`); the helper derives the
+   *   `'getCelestialProfile'` getter name when looking for the
+   *   contract surface.
+   * @returns the nearest non-null value walking from `zone` upward
+   *   through template ancestry, or `null` when nothing defines it.
+   */
+  public static async resolveZoneField<T>(
+    zone: Zone,
+    fieldName: string
+  ): Promise<T | null> {
+    const own = readZoneField<T>(zone, fieldName);
+    if (own != null) return own;
+
+    const ownPath = (zone as unknown as { getTemplatePath?: () => string | null })
+      .getTemplatePath?.();
+    if (!ownPath) return null;
+
+    for (const ancestor of Template.ancestorPaths(ownPath)) {
+      const ancestorTpl = await Template.findByPath(ancestor);
+      if (!ancestorTpl) continue;
+      // FolderZones participate as inheritance nodes — `isFolderClass`
+      // catches every Zone subclass (FolderZone, HomeZone, Clade,
+      // SpatialZone subclasses) so the walk picks up zone-carried
+      // defaults declared at any ancestry level.
+      if (!(await ZoneApi.isFolderClass(ancestorTpl.class))) continue;
+      const ancestorZone = await StuffApi.singleton<Zone>(ancestor);
+      const v = readZoneField<T>(ancestorZone, fieldName);
+      if (v != null) return v;
+    }
+    return null;
+  }
+}
+
+/**
+ * Read `fieldName` on a zone. Try the inter-Stuff contract surface
+ * first (`get<PascalCase>()`); fall back to direct property access
+ * for runtime-only fields. Used by `ZoneApi.resolveZoneField`'s
+ * ancestry walk.
+ */
+function readZoneField<T>(zone: Zone, fieldName: string): T | null {
+  if (fieldName.length === 0) return null;
+  const getterName =
+    'get' + fieldName[0]!.toUpperCase() + fieldName.slice(1);
+  const indexable = zone as unknown as Record<string, unknown>;
+  const getter = indexable[getterName];
+  if (typeof getter === 'function') {
+    const value = (getter as () => unknown).call(zone);
+    return (value == null ? null : (value as T));
+  }
+  const value = indexable[fieldName];
+  return value == null ? null : (value as T);
 }
 
 SecurityApi.decorateApiClass(ZoneApi);

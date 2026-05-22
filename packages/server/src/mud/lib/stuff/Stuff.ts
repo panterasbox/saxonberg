@@ -44,7 +44,7 @@ import { SecurityApi } from '../../api/security';
  * branch registry — identity-based, no instantiation through this.
  */
 type AnyClassRef = abstract new (...args: never[]) => unknown;
-import type { SpatialZone } from '../spatial/SpatialZone';
+import type { SpatialZone } from '../zone/SpatialZone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
@@ -69,7 +69,7 @@ export interface DestroyedObjectMetadata {
  * subclass) pass through.
  */
 const FromSpatialZone = SecurityPolicies.FromModule(
-  'mud/lib/spatial/SpatialZone#SpatialZone',
+  'mud/lib/zone/SpatialZone#SpatialZone',
   { includeSubclasses: true }
 );
 

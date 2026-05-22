@@ -73,7 +73,7 @@ describe('ExitableVessel', () => {
     expect(second!.getDestination()).toBe(park2);
   });
 
-  it('explicit exits still win over out synthesis', () => {
+  it('explicit exits still win over out synthesis', async () => {
     ContainmentApi.move(wardrobe, park);
     // Explicit exits win — install an 'out' named explicit exit.
     // The synthesized exit should be shadowed by the explicit entry.
@@ -81,7 +81,7 @@ describe('ExitableVessel', () => {
     const other = makeStuff(() => new ExitableVessel());
     other.setShortDescription('pocket');
     ContainmentApi.move(other, park);
-    wardrobe.addBidirectionalExit(other, 'pocket-dim', { opposite: 'back' });
+    await wardrobe.addBidirectionalExit(other, 'pocket-dim', { opposite: 'back' });
     const got = wardrobe.getExit('pocket-dim');
     expect(got).toBeDefined();
     expect(got!.getDestination()).toBe(other);

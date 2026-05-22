@@ -16,7 +16,7 @@
  * Derived exits are NEVER persisted — recomputed each boot.
  */
 
-import { SpatialZone } from './SpatialZone';
+import { SpatialZone } from '../zone/SpatialZone';
 import { Exit } from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
 import type { Location } from '../stuff/Location';
@@ -59,6 +59,21 @@ export class CartesianZone extends SingletonMixin(SpatialZone) {
   protected readonly grid: Map<string, Location> = new Map();
 
   public getGrid(): ReadonlyMap<string, Location> { return this.grid; }
+
+  /**
+   * True iff the supplied coordinates currently host a room in this
+   * zone's grid. When `room` is provided, the check tightens to "is
+   * THIS specific room at those coordinates?" — used by
+   * `CartesianLocation.setCoords` for idempotency (a re-set with the
+   * same coords on the same room is a no-op).
+   *
+   * Per declarative-content-slate § coords on CartesianLocation.
+   */
+  public hasRoomAt(x: number, y: number, z: number, room?: Location): boolean {
+    const here = this.grid.get(gridKey(x, y, z));
+    if (!here) return false;
+    return room ? here === room : true;
+  }
 
   /**
    * Lazy cache of derived exits keyed by `"<fromStuffId>:<direction>"`.

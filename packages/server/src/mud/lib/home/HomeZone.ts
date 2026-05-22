@@ -24,7 +24,7 @@
  *   - eviction / archival of stale per-player content.
  */
 
-import { Zone } from '../spatial/Zone';
+import { Zone } from '../zone/Zone';
 
 export class HomeZone extends Zone {
   // No fields, no methods v1. Future home-tier state lands here.

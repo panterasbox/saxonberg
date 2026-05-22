@@ -29,29 +29,34 @@ describe('ExitableMixin', () => {
     zone.addLocation(locC, 0, 2, 0);
   });
 
-  it('addExit installs an explicit exit; duplicate addExit returns false', () => {
+  it('addExit installs an explicit exit; duplicate addExit returns false', async () => {
     const exit = makeStuff(() => new Exit({ direction: 'up', source: locA, destination: locC }));
-    expect(locA.addExit(exit)).toBe(true);
-    expect(locA.addExit(exit)).toBe(false);
+    expect(await locA.addExit(exit)).toBe(true);
+    expect(await locA.addExit(exit)).toBe(false);
     expect(locA.getExits().size).toBe(1);
   });
 
-  it('removeExit deletes by direction', () => {
+  it('removeExit deletes by direction', async () => {
     const exit = makeStuff(() => new Exit({ direction: 'up', source: locA, destination: locC }));
-    locA.addExit(exit);
+    await locA.addExit(exit);
     expect(locA.removeExit('up')).toBe(true);
     expect(locA.removeExit('up')).toBe(false);
     expect(locA.getExits().size).toBe(0);
   });
 
-  it('CartesianLocation rejects non-cardinal directions', () => {
+  it('CartesianLocation allows orphan non-cardinal exit (no source templatePath → permissive)', async () => {
+    // Without a sourcePath (makeStuff'd locA has no template path), the
+    // cardinal-rule check falls into the permissive branch — see
+    // CartesianLocation.addExit. The intra-zone non-cardinal failure
+    // case is exercised in CartesianLocation.cardinalRule.test.ts using
+    // makeStuffAtPath fixtures.
     const exit = makeStuff(() => new Exit({ direction: 'portal', source: locA, destination: locC }));
-    expect(() => locA.addExit(exit)).toThrow(/not a cardinal direction/);
+    expect(await locA.addExit(exit)).toBe(true);
   });
 
-  it('explicit exit wins over zone-derived lookup in the same direction', () => {
+  it('explicit exit wins over zone-derived lookup in the same direction', async () => {
     const explicit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locC }));
-    locA.addExit(explicit);
+    await locA.addExit(explicit);
     const exit = locA.getExit('north');
     expect(exit).toBe(explicit);
     expect(exit!.getDestination()).toBe(locC);
@@ -76,7 +81,7 @@ describe('ExitableMixin', () => {
     expect(locA.getExit('office')).toBeUndefined();
   });
 
-  it('getObviousExits merges explicit and derived, filters hidden', () => {
+  it('getObviousExits merges explicit and derived, filters hidden', async () => {
     const hidden = makeStuff(() => new Exit({
       direction: 'up',
       source: locA,
@@ -88,8 +93,8 @@ describe('ExitableMixin', () => {
       source: locA,
       destination: locC,
     }));
-    locA.addExit(hidden);
-    locA.addExit(visible);
+    await locA.addExit(hidden);
+    await locA.addExit(visible);
 
     const obvious = locA.getObviousExits();
     const directions = obvious.map((e) => e.getDirection());
@@ -98,7 +103,7 @@ describe('ExitableMixin', () => {
     expect(directions).not.toContain('up');
   });
 
-  it('getExitDoors collects doors from obvious exits', () => {
+  it('getExitDoors collects doors from obvious exits', async () => {
     const oak = makeStuff(() => new Door());
     oak.setShortDescription('oak door');
     const iron = makeStuff(() => new Door());
@@ -109,7 +114,7 @@ describe('ExitableMixin', () => {
       destination: locC,
       door: oak,
     }));
-    locA.addExit(withDoor);
+    await locA.addExit(withDoor);
 
     // Attach an iron door to the zone-derived north exit: doing that
     // realistically requires creating an explicit exit (derived exits are
@@ -120,7 +125,7 @@ describe('ExitableMixin', () => {
       destination: locB,
       door: iron,
     }));
-    locA.addExit(explicitNorth);
+    await locA.addExit(explicitNorth);
 
     const doors = locA.getExitDoors();
     expect(doors).toContain(oak);
@@ -137,10 +142,10 @@ describe('ExitableMixin', () => {
     expect(loc.getObviousExits()).toHaveLength(0);
   });
 
-  it('addBidirectionalExit infers the opposite direction for cardinals', () => {
+  it('addBidirectionalExit infers the opposite direction for cardinals', async () => {
     const door = makeStuff(() => new Door());
     door.setShortDescription('heavy gate');
-    locA.addBidirectionalExit(locC, 'up', { door });
+    await locA.addBidirectionalExit(locC, 'up', { door });
 
     const forward = locA.getExit('up');
     const back = locC.getExit('down');
@@ -150,11 +155,11 @@ describe('ExitableMixin', () => {
     expect(back!.getDoor()).toBe(door);
 
     door.open();
-    expect(forward!.getDoor()!.getIsOpen()).toBe(true);
-    expect(back!.getDoor()!.getIsOpen()).toBe(true);
+    expect(forward!.getDoor()!.isOpen()).toBe(true);
+    expect(back!.getDoor()!.isOpen()).toBe(true);
   });
 
-  it('addBidirectionalExit requires explicit opposite for non-cardinal labels', () => {
+  it('addBidirectionalExit requires explicit opposite for non-cardinal labels', async () => {
     // Use spherical locations — cartesian rejects labeled directions entirely.
     const sphZone = makeStuff(() => new SphericalZone());
     const plaza = makeStuff(() => new SphericalLocation());
@@ -162,8 +167,10 @@ describe('ExitableMixin', () => {
     sphZone.addLocation(plaza);
     sphZone.addLocation(office);
 
-    expect(() => plaza.addBidirectionalExit(office, 'office')).toThrow(/opposite/);
-    plaza.addBidirectionalExit(office, 'office', { opposite: 'plaza' });
+    await expect(
+      plaza.addBidirectionalExit(office, 'office')
+    ).rejects.toThrow(/opposite/);
+    await plaza.addBidirectionalExit(office, 'office', { opposite: 'plaza' });
     expect(plaza.getExit('office')).toBeDefined();
     expect(office.getExit('plaza')).toBeDefined();
   });
@@ -187,7 +194,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     StuffApi.clearAll();
   });
 
-  it('wires inverse pointers when destination is loaded with matching back-exit', () => {
+  it('wires inverse pointers when destination is loaded with matching back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
@@ -204,8 +211,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
       source: b,
       destination: a,
     }));
-    a.addExit(east);
-    b.addExit(west);
+    await a.addExit(east);
+    await b.addExit(west);
 
     expect(east.getInverse()).toBeUndefined();
     expect(west.getInverse()).toBeUndefined();
@@ -217,14 +224,14 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(east.isBlocked()).toBe(false);
   });
 
-  it('skips exits whose destination is not yet loaded', () => {
+  it('skips exits whose destination is not yet loaded', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const east = makeStuff(() => new Exit({
       direction: 'east',
       source: a,
       destinationPath: '/zone/b',
     }));
-    a.addExit(east);
+    await a.addExit(east);
 
     a.verifyOutboundExits();
 
@@ -233,7 +240,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('marks blocked when destination loaded but missing back-exit', () => {
+  it('marks blocked when destination loaded but missing back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
@@ -245,7 +252,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
       source: a,
       destination: b,
     }));
-    a.addExit(east);
+    await a.addExit(east);
 
     a.verifyOutboundExits();
 
@@ -253,7 +260,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(warnSpy).toHaveBeenCalled();
   });
 
-  it('marks blocked when back-exit points elsewhere', () => {
+  it('marks blocked when back-exit points elsewhere', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
@@ -272,8 +279,8 @@ describe('ExitableMixin.verifyOutboundExits', () => {
       source: b,
       destination: c,
     }));
-    a.addExit(east);
-    b.addExit(wrongBack);
+    await a.addExit(east);
+    await b.addExit(wrongBack);
 
     a.verifyOutboundExits();
 
@@ -281,7 +288,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(east.getInverse()).toBeUndefined();
   });
 
-  it('skips oneWay exits even with no back-exit', () => {
+  it('skips oneWay exits even with no back-exit', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
@@ -294,7 +301,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
       destination: b,
       oneWay: true,
     }));
-    a.addExit(east);
+    await a.addExit(east);
 
     a.verifyOutboundExits();
 
@@ -303,14 +310,14 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('skips already-wired exits', () => {
+  it('skips already-wired exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    a.addBidirectionalExit(b, 'east');
+    await a.addBidirectionalExit(b, 'east');
     const east = a.getExits().get('east')!;
     const wiredInverse = east.getInverse();
 
@@ -348,14 +355,14 @@ describe('ExitableMixin.onDestruct / Location destroy choreography', () => {
     StuffApi.clearAll();
   });
 
-  it('marks neighbor inbound exits blocked and destructs outbound exits', () => {
+  it('marks neighbor inbound exits blocked and destructs outbound exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    a.addBidirectionalExit(b, 'north');
+    await a.addBidirectionalExit(b, 'north');
     const aNorth = a.getExits().get('north')!;
     const bSouth = b.getExits().get('south')!;
 

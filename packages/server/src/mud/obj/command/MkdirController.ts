@@ -3,8 +3,11 @@
  * or a source-tree directory.
  *
  * Templates: creates a `ZoneTemplate` at the resolved path via
- * `TemplateApi.saveTemplate` with class `/lib/spatial/Zone`.
- * The folder/leaf invariant fires through the persistence chokepoint.
+ * `TemplateApi.saveTemplate` with class `/lib/zone/FolderZone`. The
+ * folder/leaf invariant fires through the persistence chokepoint.
+ * `FolderZone` is the generic Zone subclass for organizational tree
+ * folders without spatial topology; sub-folders that need a
+ * coordinate frame use `CartesianZone` / `SphericalZone` instead.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -40,7 +43,7 @@ export class MkdirController extends CommandController<MkdirModel> {
     if (tree === 'content') {
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
       try {
-        await TemplateApi.saveTemplate(target, '/lib/spatial/Zone', {});
+        await TemplateApi.saveTemplate(target, '/lib/zone/FolderZone', {});
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }
