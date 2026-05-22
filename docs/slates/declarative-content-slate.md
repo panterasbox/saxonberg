@@ -2,7 +2,29 @@
 
 Working slate for the **substrate that lets game content live as data, not code**. Covers how content comes into existence (spawn shape: `container:` references, `PopulatesMixin`, `PostRegistrationMixin` escape hatch), how the world's structure is described declaratively (room coordinates, exit graph, boundary attachments), how it all comes together at runtime (lazy resolution via existing `StuffApi.singleton`/`clone`; the bootstrap manifest is for engine services only), where new players land (the Avatar starting-location adjunct, which consults the avatar's existing `container` field), and the consumer-side `clone` verb that uses the substrate. **Consolidates and replaces `spawn-shape-slate.md` and `declarative-content-topology-slate.md`**, which were attacking different facets of the same problem. The hard architectural rule this slate defends: **content (zones, areas, rooms, items, NPCs) never lives in the API layer.** When content "needs code," that is a subsystem gap to surface — never a license to write per-content Api classes, registries, or hooks.
 
-**Status**: consolidated draft. The `container:` field, `PopulatesMixin`, `PostRegistrationMixin`, and clone-verb precedence carry over from `spawn-shape-slate.md` with locked decisions intact. The structural field shapes (`coords`, `exits`, `attachedHosts`) are revised from the prior topology slate after pushback on (a) the `wiring:` vs `data:` split, (b) the `WiringSynthesizer` as separate substrate, (c) the `seedOnlyFields` flag, (d) the `initialContents` field shape that duplicated `populates:`, (e) a proposed dep extractor / boot-manifest cascade — none of which were earning their weight. The current shape: one `data:` field, ordinary persistent fields with side-effecty setters, **content is lazy-loaded** via existing `StuffApi.singleton`/`clone` with the `#inFlightClonePaths` cycle guard, and the bootstrap manifest stays content-free (engine services only). The Avatar starting-location adjunct (originally drafted as `new-player-routing-slate.md`, scrapped) is folded in to record the architectural decision: login is configuration; content provides values; no content-claim mechanism. Open questions are the small remaining design calls.
+**Status**: **structural field shapes shipped** (substrate side of the slate). The
+`coords` + `setCoords`, `focus` + `setFocus`, `exits` + `applyExits`
+(instruction field carrying `Record<string, ExitInstruction>`), and
+`attachedHosts` + `setAttachedHosts` landed in the spatial+boundary
+substrate build. The Hydrator's two-phase dispatch (Phase 1 `setX`
+property fields; Phase 2 `applyX` instruction fields) and Sealable
+boolean rename rode along. Live references:
+[docs/subsystems/spatial.md](../subsystems/spatial.md),
+[docs/subsystems/boundary.md](../subsystems/boundary.md),
+[docs/subsystems/templates.md](../subsystems/templates.md).
+
+**Still pending**: the spawn-shape side — `container:` top-level
+template field, `PopulatesMixin` + `populates:`, and the Avatar
+starting-location adjunct (`Login.enter` consulting `avatar.container`).
+These ship as separate builds (the spawn build needs its own
+requirements / plan).
+
+Historical context (below) preserved as design record for the
+spawn-shape side. The earlier consolidation notes (vs.
+`spawn-shape-slate.md` / `declarative-content-topology-slate.md`,
+pushback on `wiring:` vs `data:`, `WiringSynthesizer`,
+`seedOnlyFields`, `initialContents`, dep extractor / boot-manifest
+cascade) remain accurate.
 
 **See also**:
 

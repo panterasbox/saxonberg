@@ -56,24 +56,32 @@ Sibling docs cover related ground without overlap:
 ```
 Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
-  │     ├── Zone (abstract scope/folder)
-  │     │     ├── SpatialZone (abstract topographical intermediate)
+  │     ├── Zone (abstract scope/folder — lives in lib/zone/; see zone.md)
+  │     │     ├── SpatialZone (abstract topographical intermediate — lib/zone/)
   │     │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
   │     │     │     └── SphericalZone     (Singleton + focus index, no derivation)
+  │     │     ├── FolderZone (generic organizational scope — lib/zone/)
+  │     │     ├── HomeZone (per-player namespace — lib/home/)
   │     │     └── Clade (taxonomic — see race.md)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container, was Container only)
-  │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible)
-  │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible)
+  │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible; `coords` + `setCoords`)
+  │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible; `focus` + `setFocus`)
   ├── Thing                         (ContainableMixin(Stuff))
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
-  │     │     ├── Window            (Sealable + LightConduit + LineOfSight)
+  │     │     ├── Window            (Sealable + LightConduit + LineOfSight; `attachedHosts` Pattern A)
   │     │     └── Door              (Sealable + Light/Sight/Movement Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
   ├── Vessel                        (Adornable + Container + Containable, was Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
+
+The Zone hierarchy roots (`Zone`, `SpatialZone`, `FolderZone`) live
+in `lib/zone/`, not `lib/spatial/`. Only the concrete spatial-
+coordinate zones (`CartesianZone`, `SphericalZone`) — the ones whose
+identity IS a coordinate frame — stay under `lib/spatial/`. See
+[zone.md](./zone.md) for the hierarchy and the field-inheritance walk.
 
 The fundamental split for spatial relationships:
 

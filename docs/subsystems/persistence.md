@@ -182,9 +182,11 @@ for the rule it enforces.
 ## Setter-Based Field Invariants
 
 For both tracks, **per-field shape invariants belong on setters, not in
-post-hydrate `normalize()` hooks**. The hydrator path
-(`target[field] = data[field]`) invokes setters, so the rule fires for
-free during template hydration. Cross-field invariants — "if `isLocked`
+post-hydrate `normalize()` hooks**. `PersistentHydrator`'s two-phase
+dispatch — Phase 1 prefers `set<Field>` methods (or bracket-assigns
+through an accessor pair when no setter exists); Phase 2 calls
+`apply<Field>` for instruction fields — fires the rule for free
+during template hydration. Cross-field invariants — "if `isLocked`
 is true, `lockKey` must reference a real key" — go in a custom
 `Hydrator` subclass.
 

@@ -82,14 +82,28 @@ behavior. Read the relevant doc before editing in its area.
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration
-  - [spatial.md](./docs/subsystems/spatial.md) — locations, zones
-    (Cartesian/Spherical), vessels, coordinates, containment
-    chokepoint, locomotion, direction vocabulary
+  - [zone.md](./docs/subsystems/zone.md) — Zone-hierarchy roots
+    (`Zone`, `SpatialZone`, `FolderZone`) carved out of
+    `lib/spatial/` into `lib/zone/`. `ZoneApi`'s
+    `resolveZoneForPath` + `isFolderClass` / `isSpatialZoneClass`,
+    and the field-inheritance walk (`Zone.lookupField` /
+    `lookupAncestorField` / `getEnclosingZone`) with its subclass
+    override seam for barrier zones. Cardinal-only-intra-zone exit
+    invariant.
+  - [spatial.md](./docs/subsystems/spatial.md) — locations,
+    concrete spatial zones (Cartesian/Spherical), vessels,
+    coordinates, containment chokepoint, locomotion, direction
+    vocabulary, declarative `coords` / `focus` setters with their
+    zone-registration side effect
   - [boundary.md](./docs/subsystems/boundary.md) — exits, doors,
     `Adornable` / `Adornment`, the `Boundary` substrate
     (`Boundary`, `BoundaryAnchor`, `Conduit` interfaces),
-    `Window`, `ExitableVessel`. Everything that lives on the
-    seams between containment scopes.
+    `Window`, `ExitableVessel`. Declarative wiring via
+    `ExitableMixin.applyExits` (instruction field; `ExitInstruction`
+    shape) and `Window.attachedHosts` (Pattern A). `addExit` /
+    `addBidirectionalExit` are async (the cardinal-zone check
+    awaits zone resolution). Everything that lives on the seams
+    between containment scopes.
   - [light.md](./docs/subsystems/light.md) — Light value object,
     `LightApi` propagation walk (`lightAt`, `bandAt`,
     `perceivedBand`, `canSee`, `shadowsAt`), `AmbientLitMixin`,
@@ -490,6 +504,8 @@ bypass it. Common cases:
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
 | `return { success: false, summary: 'foo' }` from a controller | `ctx.note({ kind: 'controller-rejected', reason: 'foo-reason', detail: 'foo' })` + `MessageApi.scene(...).toSelf(...).send()` — controllers return `void`; outcome rides the dispatch-response envelope. See [response-envelope.md](./docs/subsystems/response-envelope.md). |
 | `new CommandContext({ ... })` / `createCommandContext({ ... })` | `CommandApi.createCommandContext({ ... })` — tests + dispatcher use the same factory; the constructor + accumulator state are not external surface |
+| `door.setIsOpen(true)` / `door.getIsOpen()` | `door.setOpen(true)` / `door.isOpen()` — boolean fields use the noun form on field/setter/YAML, predicate form on the getter |
+| `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 
@@ -507,8 +523,12 @@ Some specific reminders worth keeping in front of mind:
   contract violations throw; there are no boolean success flags.
   YAML-level validators handle user-input failures separately.
 - **Per-field invariants belong on setters**, not in `normalize()`-style
-  post-hydrate hooks. Hydration goes through setters via bracket-assign;
-  cross-field invariants go in a custom `Hydrator` subclass.
+  post-hydrate hooks. `PersistentHydrator`'s **two-phase dispatch**
+  prefers a `set<Field>` method (Phase 1) and falls back to
+  bracket-assign through any accessor pair on the prototype.
+  Instruction fields use the `apply<Field>` Phase 2 dispatch.
+  Cross-field invariants go in a custom `Hydrator` subclass — see
+  [templates.md § The Hydrator Contract](./docs/subsystems/templates.md#the-hydrator-contract).
 - **`Mixins` registry constants** in `lib/mixin.ts` — use
   `Mixins.X` instead of string literals when calling
   `MixinApi.hasMixin()`.

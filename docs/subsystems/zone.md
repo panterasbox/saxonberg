@@ -129,7 +129,7 @@ When the clone pipeline stamps `Stuff.zone` for a freshly-cloned
 template, it walks ancestor paths nearest-first and picks the first
 ancestor whose `class` resolves to a `SpatialZone` subclass.
 **FolderZones (and other non-spatial Zone subclasses) are skipped
-during this walk** — they're inheritance nodes for `resolveZoneField`
+during this walk** — they're inheritance nodes for `Zone.lookupField`
 but never become `Stuff.zone`. This decouples "this Stuff lives in
 this scope" (the spatial nearest-ancestor) from "this Stuff inherits
 fields through this scope" (every Zone ancestor).

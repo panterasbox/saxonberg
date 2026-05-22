@@ -7,14 +7,20 @@ is derived from templatepath, how the cardinal-only-intra-zone
 exit invariant constrains structure, and what authoring patterns
 we recommend for content teams.
 
-**Status**: design substantially converged. The Edifice /
-containment-nesting alternative was considered and rejected in
-favor of flat-siblings. Zone derivation rule (templatepath-
-derived, nearest SpatialZone ancestor wins, FolderZones skipped)
-articulated and ratified. Authoring guidelines drafted. Remaining
-open questions are smaller: generic-FolderZone naming, resource-
-boundary semantics (deferred to its own slate), granularity
-calibration at first content build.
+**Status**: substrate-side **shipped**. Carve-out of `Zone` /
+`SpatialZone` into `lib/zone/`, `FolderZone` class, cardinal-only-
+intra-zone exit invariant (eager path-based check), and the field-
+inheritance walk all landed in the spatial+boundary substrate build.
+The field-inheritance walk shipped as **instance methods on Zone**
+(`lookupField` / `lookupAncestorField` / `getEnclosingZone`) rather
+than `ZoneApi.resolveZoneField` as drafted here — moved to the Zone
+class so subclasses can override the walk (e.g., a barrier-zone
+subclass overriding `lookupAncestorField` roots inheritance at
+itself). Authoring guidelines drafted. Remaining open questions are
+smaller: resource-boundary semantics (deferred to its own slate),
+granularity calibration at first content build.
+
+Live reference: [docs/subsystems/zone.md](../subsystems/zone.md).
 
 See also:
 
