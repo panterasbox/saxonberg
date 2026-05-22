@@ -29,13 +29,13 @@
 
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
-// `Template`, `StuffApi`, and `ZoneApi` are intentionally lazy-imported
-// inside `getEnclosingZone`. Static imports would form a cycle:
-//   Zone.ts → Template.ts → api/zone.ts → SpatialZone.ts → Zone.ts (still in flight)
-// breaking SpatialZone's `extends Zone` at module-eval time. Dynamic
-// imports inside the method body run well after every class declaration
-// is resolved. `MixinApi` is static-imported because it doesn't transit
-// back to Zone (all its Zone-side type imports are erased).
+import { ZoneApi } from '../../api/zone';
+// `ZoneApi` is statically imported because it owns the field-walk
+// orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
+// delegates to. The api side breaks its end of the would-be cycle by
+// lazy-loading `SpatialZone` inside `ZoneApi.isSpatialZoneClass`,
+// keeping Zone safe to static-import from the api layer. See
+// `api/zone.ts`'s header comment for the load-order trace.
 
 /**
  * Abstract base for all Zone flavors. Holds the name, the
@@ -85,8 +85,8 @@ export abstract class Zone extends Idea {
 
   /**
    * Override point for ancestor-walking behavior. Default: delegate
-   * to the enclosing zone's `lookupField`, letting the recursion
-   * carry the walk upward.
+   * to the nearest enclosing Zone's `lookupField`, letting the
+   * recursion carry the walk upward.
    *
    * **Subclasses can intercept here** to alter or root the walk:
    *
@@ -102,36 +102,16 @@ export abstract class Zone extends Idea {
    *
    * Or to consult a custom ancestor (e.g., a zone that inherits from
    * a sibling template rather than its template parent).
+   *
+   * The default impl delegates to `ZoneApi.getEnclosingZone(this)` —
+   * that's the orchestration step (template-path walk, folder-class
+   * predicate, singleton resolution) and it lives in api. The
+   * polymorphic decision (what counts as "ancestor" for *this* zone)
+   * lives here.
    */
   public async lookupAncestorField<T>(fieldName: string): Promise<T | null> {
-    const parent = await this.getEnclosingZone();
+    const parent = await ZoneApi.getEnclosingZone(this);
     return parent ? parent.lookupField<T>(fieldName) : null;
-  }
-
-  /**
-   * Nearest Zone-class template ancestor, or `null` at universe-root
-   * (or when this zone has no templatePath, e.g., test fixtures
-   * built via `makeStuff` without a path stamp). Skips non-Zone path
-   * segments. Lazy-clones the ancestor via `StuffApi.singleton`
-   * (cache-or-clone; subsequent calls are O(1)).
-   *
-   * Used by the default `lookupAncestorField`; exposed so callers
-   * that want to traverse the zone tree directly can do so without
-   * re-implementing the walk.
-   */
-  public async getEnclosingZone(): Promise<Zone | null> {
-    const ownPath = this.getTemplatePath();
-    if (!ownPath) return null;
-    const { Template } = await import('../stuff/Template');
-    const { StuffApi } = await import('../../api/stuff');
-    const { ZoneApi } = await import('../../api/zone');
-    for (const ancestor of Template.ancestorPaths(ownPath)) {
-      const tpl = await Template.findByPath(ancestor);
-      if (!tpl) continue;
-      if (!(await ZoneApi.isFolderClass(tpl.class))) continue;
-      return await StuffApi.singleton<Zone>(ancestor);
-    }
-    return null;
   }
 }
 

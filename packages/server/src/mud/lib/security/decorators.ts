@@ -31,8 +31,6 @@
 import type { SecurityPolicy } from './SecurityPolicies';
 import { SecurityApi, type ShadowSecuritySpec } from '../../api/security';
 
-export type { ShadowSecuritySpec };
-
 /* ─────────────────────────── Polymorphism plumbing ─────────────────────────── */
 
 function isMethodDecoratorArgs(args: unknown[]): boolean {

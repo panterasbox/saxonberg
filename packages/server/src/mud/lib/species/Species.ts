@@ -27,7 +27,7 @@ import { StuffApi } from '../../api/stuff';
 import type { BodyPlan } from './BodyPlan';
 import type { Clade } from './Clade';
 import type { Material } from '../material/Material';
-import type { VisionProfile } from '../../api/light';
+import type { VisionProfile } from '../perception/Light';
 
 export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */

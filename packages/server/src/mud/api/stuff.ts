@@ -305,6 +305,8 @@ export class StuffApi {
     //    initialize so hooks that rely on `this.zone` see the correct value.
     //    `ZoneApi.resolveZoneForPath` returns null when the template is
     //    itself a Zone (a zone isn't inside itself).
+    //    Lazy-loaded to break the StuffApi ↔ ZoneApi cycle (ZoneApi
+    //    statically imports StuffApi for singleton + class-loading).
     const { ZoneApi } = await import('./zone');
     const zone = await ZoneApi.resolveZoneForPath(templatePath);
 

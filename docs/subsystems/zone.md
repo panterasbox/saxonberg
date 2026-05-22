@@ -73,21 +73,27 @@ CartesianZone  SphericalZone
 
 Field inheritance is an **instance method on Zone**, not a ZoneApi
 static — because subclasses can override the walk to participate
-differently. Three methods make up the surface:
+differently. Two instance methods make up the polymorphic surface,
+backed by one Api orchestration helper:
 
-- **`lookupField<T>(fieldName): Promise<T | null>`** — top-level
-  entry. Reads `fieldName` on this zone first; if absent, delegates
-  to `lookupAncestorField`. Returns the nearest non-null/non-undefined
-  value, or `null` at universe-root. Field-read uses
-  `get<PascalCase>()` first (the inter-Stuff contract surface), then
-  direct property access.
-- **`lookupAncestorField<T>(fieldName): Promise<T | null>`** — the
-  override seam. Default: ask `getEnclosingZone()` for the nearest
-  enclosing Zone, then delegate to *its* `lookupField`. The recursion
-  carries the walk upward.
-- **`getEnclosingZone(): Promise<Zone | null>`** — nearest Zone-class
-  template-ancestor (any Zone subclass — FolderZones, spatial zones,
-  Clades). Lazy-clones via `StuffApi.singleton`.
+- **`Zone.lookupField<T>(fieldName): Promise<T | null>`** —
+  top-level entry. Reads `fieldName` on this zone first; if absent,
+  delegates to `lookupAncestorField`. Returns the nearest
+  non-null/non-undefined value, or `null` at universe-root.
+  Field-read uses `get<PascalCase>()` first (the inter-Stuff
+  contract surface), then direct property access.
+- **`Zone.lookupAncestorField<T>(fieldName): Promise<T | null>`** —
+  the override seam. Default: ask `ZoneApi.getEnclosingZone(this)`
+  for the nearest enclosing Zone, then delegate to *its*
+  `lookupField`. The recursion carries the walk upward. Subclasses
+  override here to root or redirect inheritance.
+- **`ZoneApi.getEnclosingZone(zone): Promise<Zone | null>`** —
+  orchestration helper. Walks `Template.ancestorPaths`, skips
+  non-folder segments, lazy-clones the hit via
+  `StuffApi.singleton`. Lives on the Api layer (not on Zone)
+  because the walk is pure plumbing — see
+  [architecture.md § Orchestration lives one layer up from raw
+  steps](../architecture.md#orchestration-lives-one-layer-up-from-raw-steps).
 
 **Every Zone subclass participates as an inheritance node** —
 FolderZones, HomeZones, Clades, and spatial zones alike — because

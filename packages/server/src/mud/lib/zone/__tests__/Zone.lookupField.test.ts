@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
+import { ZoneApi } from '../../../api/zone';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { FolderZone } from '../FolderZone';
 import { Zone } from '../Zone';
@@ -202,7 +203,7 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
     expect(await rooted.lookupField<string>('biome')).toBe('self-defined');
   });
 
-  it('getEnclosingZone returns nearest Zone-class template ancestor', async () => {
+  it('ZoneApi.getEnclosingZone returns nearest Zone-class template ancestor', async () => {
     installInMemoryStore([
       {
         path: '/zone',
@@ -216,11 +217,11 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
       },
     ]);
     const sub = await StuffApi.singleton<Zone>('/zone/sub');
-    const parent = await sub.getEnclosingZone();
+    const parent = await ZoneApi.getEnclosingZone(sub);
     expect(parent).not.toBeNull();
     expect(parent!.getTemplatePath()).toBe('/zone');
     // The root has no enclosing zone.
     const root = await StuffApi.singleton<Zone>('/zone');
-    expect(await root.getEnclosingZone()).toBeNull();
+    expect(await ZoneApi.getEnclosingZone(root)).toBeNull();
   });
 });

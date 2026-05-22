@@ -96,6 +96,10 @@ export class PlayerApi {
    * each Avatar's `postRegister` sees its owning user synchronously.
    */
   public static async loadAvatarsForUser(user: User): Promise<Avatar[]> {
+    // Avatar lives in `obj/` (mudlib gameplay), which the `api/` layer
+    // deliberately does not statically depend on — see
+    // [architecture.md § Backend → mudlib import discipline] row 4.
+    // Lazy-load to honor that discipline.
     const { Avatar: AvatarClass } = await import('../obj/Avatar');
     const avatars: Avatar[] = [];
     for (const playerId of user.playerIds) {

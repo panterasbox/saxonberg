@@ -99,6 +99,34 @@ export const LIGHT_BANDS = [
 export type LightBand = (typeof LIGHT_BANDS)[number];
 
 /**
+ * Visibility detail levels — the per-call resolution the perception
+ * surface (`Perception.canSee`, `LightApi.canSee`) gates on. v1 uses
+ * a flat four-level vocabulary; finer-grained values can layer in
+ * later without changing call sites.
+ */
+export type VisibilityDetail = 'shape' | 'figure' | 'detail' | 'fine';
+
+/**
+ * Per-species vision profile. Stored on `Species` as authored data;
+ * consumed by `LightApi.canSee` / `LightApi.viewerVisionProfile` to
+ * shift band thresholds at perception time. v1 returns a single
+ * human-shaped default when no profile is set.
+ *
+ * - `scotopicMin` / `photopicMax` — the visible-band window for the
+ *   species. Anything dimmer than `scotopicMin` reads as
+ *   `pitch-black`; anything brighter than `photopicMax` reads as
+ *   `blinding`.
+ * - `bandShift` — integer offset applied to the perceived band; +1
+ *   makes everything read one band brighter (good night vision), -1
+ *   one band dimmer.
+ */
+export interface VisionProfile {
+  scotopicMin: LightBand;
+  photopicMax: LightBand;
+  bandShift: number;
+}
+
+/**
  * Coerce a tag string, a `Quantity<'K'>`, or null into a
  * `Quantity<'K'> | null`. Used by `Light.of` and the mixin setters.
  * String input resolves through the registered `KELVIN_TAGS` table

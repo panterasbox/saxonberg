@@ -42,6 +42,138 @@ packages/server/src/
         └── hooks/     persistence around-hooks
 ```
 
+## api/ vs lib/ — which layer owns this code?
+
+When you're adding a method and trying to decide whether it goes on a
+`lib/` class or in an `api/` static, the deciding question is **who has
+authority over the answer**.
+
+- **`lib/`** is for behavior whose answer is the host's to choose.
+  Subclasses can override it; mixins compose into it; instance state
+  changes it. The class or mixin is the authority over what the method
+  means for that host.
+- **`api/`** is for behavior with a single guaranteed answer. Same
+  inputs, same outcome, same caller-visible semantics — every time,
+  for every caller. The method body may branch on mixin presence or
+  read instance state, but the *contract* doesn't vary by host
+  identity.
+
+The diagnostic: **"Could a subclass legitimately want to change what
+this method does?"** If yes, it belongs in `lib/`. If no, it belongs
+in `api/`. "Has to work the same way every time, with no override
+seam" is what an Api guarantees; "has an override seam" is what a
+`lib/` class offers.
+
+### Orchestration lives one layer up from raw steps
+
+The corollary that prevents `lib/` from drifting into Api territory:
+when a method needs to *walk*, *compose*, or *retry* polymorphic
+steps, the orchestration belongs in `api/` even though each
+individual step belongs on a `lib/` class.
+
+- **Raw step** = the polymorphic answer. Stays on the class or mixin
+  that owns the contract (`Mobile.traverse`, `Zone.lookupField`,
+  `Visible.getLongDescription`).
+- **Orchestration** = code that calls raw steps, walks results, threads
+  state across calls (`LocomotionApi.engageAround`,
+  `ZoneApi.getEnclosingZone`, `ContainmentApi.move`).
+
+The smell that flags an inverted layering: **a `lib/` method
+`await import(...)`-ing into `api/` to take its next step.** The fix
+is to pull the orchestration up into `api/` and have the `lib/` method
+call the Api by static import (the Api can statically import the class
+as a type-only reference).
+
+Worked example — Zone field inheritance:
+- Polymorphic step: `Zone.lookupField` reads own value, defers to
+  `Zone.lookupAncestorField`. Subclasses (`RootedZone`) override the
+  ancestor step to root the walk. **Lives in `lib/zone/Zone.ts`.**
+- Orchestration: "find the nearest enclosing-zone template by walking
+  `Template.ancestorPaths`, skip non-folders, singleton-resolve the
+  hit." **Lives in `ZoneApi.getEnclosingZone(zone)`** — no
+  polymorphism, pure plumbing through `Template` + `StuffApi`.
+
+Before the split, `Zone.getEnclosingZone()` was on the class and had
+to `await import(...)` `Template`, `StuffApi`, and `ZoneApi` from
+inside the method body to break the load-time cycle. Pulling the
+orchestration up to `ZoneApi` removed the dynamic imports from the
+`lib/` side; the only remaining cycle-break (a `SpatialZone` lazy
+lookup) lives in `api/zone.ts`, where it belongs.
+
+### Three flavors of each layer
+
+`lib/` and `api/` each cover three distinct shapes; the polymorphism
+question above resolves cleanly only when you know which kind you're
+adding.
+
+`lib/` holds:
+- **Mixins** — capability shapes (`Containable`, `Sensor`, `Posed`).
+  Polymorphic by design.
+- **Stuff classes** — role identity (`Avatar`, `Vessel`, `Location`,
+  `Zone`). Overridable.
+- **Value objects** — pure data + small per-instance math (`Light`,
+  `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
+  primitive the Api layer consumes.
+
+`api/` holds:
+- **Pure utilities** — no Manager, just functions
+  (`NavigationApi.parseDirection`, `MmlApi.escape`,
+  `PathPatternApi.match`).
+- **Manager wrappers** — gates to a privileged singleton
+  (`PersistApi`-equivalent helpers behind `PersistenceManager`).
+- **Stuff orchestration** — operates on Stuff, threads polymorphic
+  steps (`StuffApi`, `ContainmentApi`, `LocomotionApi`, `ZoneApi`).
+  This is where the orchestration-vs-step decision bites.
+
+### Where types live — colocate with the author
+
+A type's "author" is whoever defines what fields, methods, or
+variants it has. Types live with their author, never in a separate
+shared barrel.
+
+| Type describes... | Lives in |
+|---|---|
+| A mixin's public shape (`Containable`, `Sensor`, `Vocal`) | The mixin file in `lib/<subsystem>/` |
+| A `lib/` class's surface or its value-object form (`LightBand`, `VisibilityDetail`, `VisionProfile`, `Unit`, `TagTableEntry`, `RecencyBucket`) | The class file in `lib/` |
+| An Api's contract — inputs, outputs, options, accumulators (`CommandContext`, `StartResult`, `EmissionData`, `CreateBoundaryOptions`, `ShadowQuality`) | The Api file in `api/` |
+| Cross-process wire format | `@saxonberg/types` |
+
+No `types/` folder under `mud/`. The colocation rule keeps the contract
+next to whoever can evolve it; a barrel would let any file scatter
+new types anywhere and rot the authorship signal.
+
+The recurring mistake to avoid: a type drifts to `api/` because
+"the Api uses it first" — but the type describes a `lib/` concept
+the Api just *consumes*. Move it back to where the concept is
+authored, and `import type` it from the Api file.
+
+### Dynamic imports as a cycle smell
+
+`await import(...)` has two legitimate uses and one antipattern.
+
+Legitimate:
+1. **Loading authored content** — controller URLs, HMR module reloads,
+   `StuffApi.loadClassByPath` resolving a template's `class:` field at
+   runtime. These paths aren't in the static graph by design; the code
+   they reach is content, not framework.
+2. **Cycle-breaking at the `api/` layer** — when an Api orchestrator
+   uses `instanceof X` against a `lib/` class that itself extends a
+   class the Api references (`api/zone.ts` instanceof-checking
+   `SpatialZone`, where `SpatialZone extends Zone` and `ZoneApi` is
+   reachable from `Zone.lookupAncestorField`). Lazy-loading the
+   subclass inside the method body is the correct fix; document the
+   cycle with a comment so it isn't deleted later.
+
+Antipattern:
+3. **`lib/` dynamic-importing `api/` to take its next step.** This is
+   inverted layering; the orchestration belongs above the polymorphic
+   step. Fix by moving the orchestration up into the Api and calling
+   the Api by static import from `lib/`.
+
+When you find a `lib/` file with `await import('../../api/...')` inside
+a method body, treat it as a refactor target, not an established
+pattern.
+
 ## Manager vs Api
 
 The codebase uses two distinct class shapes for non-domain behavior. The

@@ -2,8 +2,7 @@ import { describe, it, expect, expectTypeOf, beforeEach, afterEach } from 'vites
 import { Shadow } from '../../lib/stuff/Shadow';
 import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Shadowing } from '../../lib/security/decorators';
-import type { LightBand } from '../../lib/perception/Light';
-import type { VisionProfile } from '../light';
+import type { LightBand, VisionProfile } from '../../lib/perception/Light';
 import { LightApi } from '../light';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';

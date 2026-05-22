@@ -31,7 +31,11 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Perception } from '../lib/perception/Perception';
 import type { Adornment } from '../lib/boundary/Adornment';
 import { Light, LIGHT_BANDS, type LightSourceRef } from '../lib/perception/Light';
-import type { LightBand } from '../lib/perception/Light';
+import type {
+  LightBand,
+  VisibilityDetail,
+  VisionProfile,
+} from '../lib/perception/Light';
 
 /**
  * Witness hook fired on a light source's immediate environment when
@@ -112,11 +116,6 @@ export function bandFor(luxValue: number): LightBand {
 }
 
 /**
- * Visibility detail levels gated by `LightApi.canSee`.
- */
-export type VisibilityDetail = 'shape' | 'figure' | 'detail' | 'fine';
-
-/**
  * Concealment qualities `shadowsAt` returns. Reserved surface for
  * Hidden / Stealthing.
  */
@@ -126,17 +125,6 @@ export type ShadowQuality =
   | 'partial'
   | 'deep'
   | 'absolute';
-
-/**
- * Per-species vision profile. v1 returns a constant (human-shaped)
- * regardless of viewer; the Organism subsystem populates this from
- * `Species` later.
- */
-export interface VisionProfile {
-  scotopicMin: LightBand;
-  photopicMax: LightBand;
-  bandShift: number;
-}
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',

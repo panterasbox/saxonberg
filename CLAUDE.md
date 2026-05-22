@@ -85,11 +85,12 @@ behavior. Read the relevant doc before editing in its area.
   - [zone.md](./docs/subsystems/zone.md) — Zone-hierarchy roots
     (`Zone`, `SpatialZone`, `FolderZone`) carved out of
     `lib/spatial/` into `lib/zone/`. `ZoneApi`'s
-    `resolveZoneForPath` + `isFolderClass` / `isSpatialZoneClass`,
-    and the field-inheritance walk (`Zone.lookupField` /
-    `lookupAncestorField` / `getEnclosingZone`) with its subclass
-    override seam for barrier zones. Cardinal-only-intra-zone exit
-    invariant.
+    `resolveZoneForPath` + `isFolderClass` / `isSpatialZoneClass` +
+    `getEnclosingZone` (orchestration helper for the ancestor
+    walk), and the field-inheritance surface
+    (`Zone.lookupField` / `Zone.lookupAncestorField`) — polymorphic
+    step on the class, plumbing on the Api. Cardinal-only-intra-zone
+    exit invariant.
   - [spatial.md](./docs/subsystems/spatial.md) — locations,
     concrete spatial zones (Cartesian/Spherical), vessels,
     coordinates, containment chokepoint, locomotion, direction

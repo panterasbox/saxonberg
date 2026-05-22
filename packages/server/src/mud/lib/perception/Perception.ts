@@ -43,8 +43,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { LightBand } from './Light';
-import type { VisibilityDetail, VisionProfile } from '../../api/light';
+import type { LightBand, VisibilityDetail, VisionProfile } from './Light';
 
 /**
  * Public shape provided by PerceptionMixin. Each seam returns the

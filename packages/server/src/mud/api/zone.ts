@@ -1,35 +1,49 @@
 /**
- * ZoneApi — template-path → spatial-Zone resolution + folder/spatial
- * class predicates.
+ * ZoneApi — zone-shaped orchestration over the Template tree.
  *
- * Two concerns this module owns:
+ * Three concerns this module owns:
  *
- * 1. Resolve a template path to its nearest *spatial* zone via
- *    `resolveZoneForPath`. Stuff stamping (the `Stuff.zone` field)
+ * 1. **`resolveZoneForPath`** — resolve a template path to its
+ *    nearest *spatial* zone. Stuff stamping (the `Stuff.zone` field)
  *    walks ancestor paths nearest-first, picking the first ancestor
  *    whose `class:` resolves to a `SpatialZone` subclass. Non-spatial
  *    Zone subclasses (Clade, future taxonomic / permission scopes)
  *    are skipped — they're folders for the template-tree invariant,
  *    but never become a `Stuff.zone`.
  *
- * 2. Answer "is this class a folder?" / "is this class a spatial
- *    zone?" via `isFolderClass` / `isSpatialZoneClass`. The check is
- *    structural: dynamic-import the class from its path-string,
- *    consult `prototype instanceof Zone` (or `instanceof SpatialZone`
- *    for the subset). Content devs add folder/spatial-zone classes by
- *    `extends Zone` / `extends SpatialZone` — no central allow-list
- *    to edit.
+ * 2. **`getEnclosingZone`** — nearest Zone-class template ancestor
+ *    for any zone instance. The orchestration step that
+ *    `Zone.lookupAncestorField` (the polymorphic field-inheritance
+ *    walk in `lib/zone/Zone.ts`) delegates to. Lives here, not on
+ *    Zone, because the walk is pure plumbing through `Template` +
+ *    `StuffApi.singleton` — no override seam needed.
+ *
+ * 3. **`isFolderClass` / `isSpatialZoneClass`** — structural
+ *    predicates that load a class by path and check
+ *    `prototype instanceof Zone` (or `instanceof SpatialZone`).
+ *    Content devs add folder/spatial-zone classes by extending
+ *    those bases — no central allow-list to edit.
  *
  * Caching is delegated to `StuffApi.singleton()` (for runtime
  * instances) and to a per-classPath result map below (for the
- * structural checks). The dynamic import itself is also cached by the
- * JS module cache; the local maps just save the prototype walk.
+ * structural checks). The dynamic import itself is also cached by
+ * the JS module cache; the local maps just save the prototype walk.
+ *
+ * Cycle note: `SpatialZone` is *not* statically imported here. It's
+ * lazy-loaded inside `isSpatialZoneClass`. The reason — `SpatialZone
+ * extends Zone` is eagerly evaluated at SpatialZone's module-load,
+ * and `Zone.ts` static-imports `ZoneApi` for its
+ * `lookupAncestorField` orchestration. Eager `SpatialZone` here
+ * would form a Zone → ZoneApi → SpatialZone → Zone cycle whose
+ * middle step blows up because Zone's class binding isn't ready
+ * yet. Dynamic-loading SpatialZone inside the predicate body keeps
+ * the static graph clean.
  */
 
 import { StuffApi } from './stuff';
 import { Template } from '../lib/stuff/Template';
 import { Zone } from '../lib/zone/Zone';
-import { SpatialZone } from '../lib/zone/SpatialZone';
+import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { SecurityApi } from './security';
 
 /**
@@ -83,10 +97,15 @@ export class ZoneApi {
    * subset of folder classes that stamp `Stuff.zone`. Non-spatial
    * Zones (Clade) return `false` here even though `isFolderClass`
    * returns `true` for them.
+   *
+   * `SpatialZone` is lazy-loaded inside the body — see the module
+   * header for the cycle reasoning. The JS module cache makes
+   * second-and-later resolution effectively free.
    */
   public static async isSpatialZoneClass(classPath: string): Promise<boolean> {
     const cached = spatialZoneClassCache.get(classPath);
     if (cached !== undefined) return cached;
+    const { SpatialZone } = await import('../lib/zone/SpatialZone');
     let result = false;
     try {
       const cls = await StuffApi.loadClassByPath(classPath);
@@ -96,6 +115,31 @@ export class ZoneApi {
     }
     spatialZoneClassCache.set(classPath, result);
     return result;
+  }
+
+  /**
+   * Nearest Zone-class template ancestor of `zone`, or `null` at
+   * universe-root (or when `zone` has no `templatePath`, e.g., a
+   * fixture built via `makeStuff` without a path stamp). Skips
+   * non-Zone path segments. Lazy-clones the ancestor via
+   * `StuffApi.singleton` (cache-or-clone; subsequent calls are O(1)).
+   *
+   * The orchestration step `Zone.lookupAncestorField` (the
+   * polymorphic field-inheritance hook in `lib/zone/Zone.ts`)
+   * delegates to this helper. Lives here, not on Zone, because the
+   * walk is pure plumbing — no override seam needed, no Stuff
+   * subclass should reshape it.
+   */
+  public static async getEnclosingZone(zone: Zone): Promise<Zone | null> {
+    const ownPath = zone.getTemplatePath();
+    if (!ownPath) return null;
+    for (const ancestor of Template.ancestorPaths(ownPath)) {
+      const tpl = await Template.findByPath(ancestor);
+      if (!tpl) continue;
+      if (!(await ZoneApi.isFolderClass(tpl.class))) continue;
+      return await StuffApi.singleton<Zone>(ancestor);
+    }
+    return null;
   }
 
   /**

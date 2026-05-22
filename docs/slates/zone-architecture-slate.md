@@ -11,12 +11,12 @@ we recommend for content teams.
 `SpatialZone` into `lib/zone/`, `FolderZone` class, cardinal-only-
 intra-zone exit invariant (eager path-based check), and the field-
 inheritance walk all landed in the spatial+boundary substrate build.
-The field-inheritance walk shipped as **instance methods on Zone**
-(`lookupField` / `lookupAncestorField` / `getEnclosingZone`) rather
-than `ZoneApi.resolveZoneField` as drafted here — moved to the Zone
-class so subclasses can override the walk (e.g., a barrier-zone
-subclass overriding `lookupAncestorField` roots inheritance at
-itself). Authoring guidelines drafted. Remaining open questions are
+The polymorphic surface shipped as **instance methods on Zone**
+(`lookupField` + the override seam `lookupAncestorField`); the
+orchestration step (`getEnclosingZone`) lives on `ZoneApi` so the
+polymorphic decision (who is my ancestor?) stays on the class while
+the plumbing (walk Template.ancestorPaths, singleton-resolve) stays
+in api. Authoring guidelines drafted. Remaining open questions are
 smaller: resource-boundary semantics (deferred to its own slate),
 granularity calibration at first content build.
 
