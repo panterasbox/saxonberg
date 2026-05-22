@@ -572,17 +572,26 @@ The infrastructure is small because the *integrations* with other
 subsystems do the heavy lifting. Each integration is one consumer
 reading one well-known mixin static.
 
-### Persistence — `static persistentFields`
+### Persistence — `static persistentFields` and `static instructionFields`
 
 The standard hydrator walks every mixin and class in the chain,
-collects every `persistentFields` declaration, and copies matching keys
-out of the template's `data` blob:
+collects every `persistentFields` / `instructionFields` declaration,
+and runs a **two-phase dispatch** over the template's `data` blob
+(see [templates.md § The Hydrator Contract](./templates.md#the-hydrator-contract)):
 
 ```typescript
-// PersistentHydrator
-const fields = MixinApi.getAllPersistentFields(backing.constructor);
-for (const field of fields) {
-  if (field in data) target[field] = data[field];
+// PersistentHydrator (sketch)
+// Phase 1 — property fields: setX-method-first, bracket-assign fallback.
+for (const field of MixinApi.getAllPersistentFields(ctor)) {
+  if (!(field in data)) continue;
+  const setter = target['set' + MixinApi.pascalCase(field)];
+  if (typeof setter === 'function') await setter.call(target, data[field]);
+  else target[field] = data[field];
+}
+// Phase 2 — instruction fields: applyX-method REQUIRED.
+for (const field of MixinApi.getAllInstructionFields(ctor)) {
+  if (!(field in data)) continue;
+  await target['apply' + MixinApi.pascalCase(field)].call(target, data[field]);
 }
 ```
 
@@ -592,8 +601,13 @@ mixin's `persistentFields` static. Every class that composes the mixin
 `Persistable` records: `Persistable.getAllFields()` calls the same
 aggregator, so auth records also pick up mixin contributions.
 
-Bracket-assign invokes setters when present, so per-field invariants
-declared on a mixin's setter fire during hydrate. See
+The `setX` method (or the bracket-assign fallback through an accessor
+pair) fires per-field invariants during hydrate. **Instruction fields**
+— declarations consumed to produce derived runtime state via an
+`applyX` method (e.g., `exits` on `ExitableMixin`) — are declared
+in `static instructionFields = [...]` and require the applier method;
+the absence of `applyX` for a declared instruction field is a
+configuration error. See
 [antipatterns.md § Per-Field Invariants
 ](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks)
 for the pattern.

@@ -56,7 +56,7 @@ Sibling docs cover related ground without overlap:
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, reserved `SoundConduit`. Boundary subclasses implement (a subset of) these. |
 | `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.isOpen`. |
-| `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, all gated on `getIsOpen()`. Closed Door now blocks light, not just movement. |
+| `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, all gated on `isOpen()`. Closed Door now blocks light, not just movement. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Class Hierarchy
@@ -465,7 +465,7 @@ to `SealableMixin(Boundary)`. Boundary already supplies Visible +
 Perceptible + Thing.
 
 Conduit registry: a Door advertises three conduits — `LightConduit`,
-`LineOfSight`, `MovementConduit` — all gated on `getIsOpen()`.
+`LineOfSight`, `MovementConduit` — all gated on `isOpen()`.
 
 ```ts
 public override getConduits(): readonly Conduit[] {
@@ -473,14 +473,14 @@ public override getConduits(): readonly Conduit[] {
 }
 
 public transmissivity(_from, _to): number {
-  return this.getIsOpen() ? 1 : 0;
+  return this.isOpen() ? 1 : 0;
 }
-public canSeeThrough(_from, _to): boolean { return this.getIsOpen(); }
-public canPassThrough(_from, _to, _mode): boolean { return this.getIsOpen(); }
+public canSeeThrough(_from, _to): boolean { return this.isOpen(); }
+public canPassThrough(_from, _to, _mode): boolean { return this.isOpen(); }
 ```
 
 `Exit.canTraverse` is intentionally NOT modified — it already
-consults `door.getIsOpen()` directly, which returns the same
+consults `door.isOpen()` directly, which returns the same
 answer as the new `MovementConduit.canPassThrough`. Routing
 `canTraverse` through the conduit is deferred to a future Door
 subclass that varies on traversal mode (`'squeeze'`, `'climb'`).

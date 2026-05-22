@@ -34,13 +34,13 @@ describe('SphericalZone', () => {
     }
   });
 
-  it('explicit exits on spherical locations still work', () => {
+  it('explicit exits on spherical locations still work', async () => {
     const toOffice = makeStuff(() => new Exit({
       direction: 'office',
       source: plaza,
       destination: office,
     }));
-    plaza.addExit(toOffice);
+    await plaza.addExit(toOffice);
     expect(plaza.getExit('office')).toBe(toOffice);
   });
 

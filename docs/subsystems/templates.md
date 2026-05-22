@@ -155,26 +155,72 @@ backing directly. That's why a single hydrator class can serve multiple
 backing classes.
 
 The standard `PersistentHydrator` (`lib/persistence/PersistentHydrator.ts`)
-walks `MixinApi.getAllPersistentFields(backing.constructor)` and
-bracket-assigns matching keys from `data`:
+runs a **two-phase dispatch**:
 
-```typescript
-for (const field of fields) {
-  if (field in data) target[field] = data[field];
-}
-```
+- **Phase 1 — property fields.** For each entry in
+  `MixinApi.getAllPersistentFields(backing.constructor)`, the hydrator
+  prefers `await target.set<PascalCase(field)>(value)` when that
+  method exists, and falls back to `target[field] = value`
+  bracket-assign otherwise. The async-first dispatch lets setters
+  with side effects (e.g.,
+  `CartesianLocation.setCoords` registers with the zone via
+  `addLocation`) complete their work before the next field is
+  processed. The bracket-assign fallback still fires an accessor
+  pair when one is defined on the prototype — runtime-shape
+  validation declared as a `set` accessor continues to gate the
+  write.
+- **Phase 2 — instruction fields.** For each entry in
+  `MixinApi.getAllInstructionFields(backing.constructor)`, the
+  hydrator calls `await target.apply<PascalCase(field)>(value)`. The
+  applier is **required** — absence of `applyX` is a configuration
+  bug surfaced as a clear runtime error. No bracket-assign fallback
+  for instruction fields. Phase 2 runs sequentially after Phase 1
+  so all property fields settle before any instruction is applied.
 
-**Bracket-assign IS the contract surface.** It invokes setters when
-present. So if a field has a shape invariant ("must be boolean",
-"lowercase / trim / dedupe"), put the rule on the setter and hydration
-routes through it for free. Don't add `normalize()`-style post-hydrate
-fixups for per-field rules — see
+**Bracket-assign (the Phase 1 fallback) IS still part of the contract
+surface.** It invokes accessor pairs when present. So if a field has
+a shape invariant ("must be boolean", "lowercase / trim / dedupe"),
+put the rule on the setter accessor and hydration routes through it
+for free even when no `setX` method exists. Don't add
+`normalize()`-style post-hydrate fixups for per-field rules — see
 [antipatterns.md § Per-Field Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks).
 
 Cross-field invariants ("if `isLocked` is true, `lockKey` must reference
 a real key") can't live on a single setter — that's the legitimate use
 case for a custom `Hydrator` subclass. Override `hydrate()`; call
-`super.hydrate()` first if you want the default field-copy too.
+`super.hydrate()` first if you want the default two-phase dispatch
+too.
+
+### Property vs instruction fields
+
+Two distinct field shapes ride on the Hydrator's two-phase dispatch
+(per `feedback_property_vs_instruction_fields`):
+
+- **Property fields** — declared in `static persistentFields = [...]`.
+  Data IS the field's value: `setX(v); assert(getX() === v)`.
+  Symmetric on shape. Side effects on the setter (e.g., `setCoords`
+  registers with the zone) don't change the field's identity. Shape:
+  optional backing slot `_x`, optional accessor pair
+  `get x / set x` for shape invariants, public methods
+  `getX()` / `setX()` for the inter-Stuff contract. Hydrator
+  dispatch: Phase 1 — `setX` if defined, else bracket-assign.
+- **Instruction fields** — declared in `static instructionFields = [...]`
+  (new sibling to `persistentFields`). The data is a **recipe**
+  consumed to produce or modify *separately-named* runtime state —
+  no "value" to set/get on the spec, only a verb's argument. The
+  canonical example is `exits` on `ExitableMixin`: the YAML data is
+  a `Record<string, ExitInstruction>` recipe, `applyExits` consumes it to
+  populate the runtime `exits: Map<string, Exit>` collection (which
+  has its own established `getExit` / `addExit` / `removeExit`
+  surface). No paired getter for the spec. Hydrator dispatch:
+  Phase 2 — `applyX` required.
+
+The two shapes split apart cleanly: properties have symmetric shape
+and storage IS the value; instructions are commands whose outcome
+lives elsewhere. Trying to use `set/get` for instructions produces
+shape asymmetry (setter takes specs, getter returns runtime state)
+— "marshaller work in the wrong place." Recognizing them as separate
+concepts dissolves that.
 
 The constant `PersistentHydrator.templatePath` is the single source of
 truth for the standard hydrator's path; use it at call sites instead of

@@ -32,13 +32,13 @@ Cross-references:
 | `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo` and (for doored exits) `BoundaryApi.attachExistingBoundary`. |
 | `ExitableVessel` | concrete class | A Vessel you can enter. `DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)))`. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
-| `Door` | concrete `Thing` subclass | `SealableMixin(Boundary)`. Shared open/closed state referenced by exit pairs. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit` — gated on `getIsOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
+| `Door` | concrete `Thing` subclass | `SealableMixin(Boundary)`. Shared open/closed state referenced by exit pairs. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit` — gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `Vessel`. |
 | `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor`; future fixtures (sconces) too. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. `VisibleMixin(PerceptibleMixin(Thing))`. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, reserved `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.isOpen`. |
+| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open`. Declarative `attachedHosts: [string, string]` Pattern A; `setAttachedHosts` resolves hosts lazily and installs anchors. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Exits
@@ -74,10 +74,21 @@ prose without re-parsing `reason` (`gate: 'blocked' | 'door' |
 'noConveyance'`). Pre-locomotion callers omit `mode` and skip the
 mode gate — additive, no breakage.
 
-Door routing still consults `door.getIsOpen()` directly (rather than
+Door routing still consults `door.isOpen()` directly (rather than
 going through `MovementConduit.canPassThrough`) — they return the
 same answer. Routing through the conduit is deferred to a future Door
 subclass that varies on traversal mode.
+
+#### `addExit` is async
+
+`Exitable.addExit(exit)` returns `Promise<boolean>`. The async return
+type is what makes `CartesianLocation`'s cardinal-only-intra-zone
+check possible — the subclass override awaits
+`ZoneApi.resolveZoneForPath` (which may clone a zone Stuff on first
+reference). The base implementation does only sync work; the async
+type signature is for subclass overrides. `addBidirectionalExit` is
+also async because it `await`s the two `addExit` calls internally.
+Callers must `await`.
 
 ### `ExitableMixin` lookup precedence
 
@@ -124,6 +135,51 @@ both sides in one call:
 One-way exits use `addExit` directly and leave `inverse`
 undefined.
 
+### Declarative exits: `applyExits` instruction field
+
+`exits` is an **instruction field** on `ExitableMixin` (declared via
+`static instructionFields = ['exits']`) — its YAML data is a
+declaration applied to produce the runtime `exits: Map<string, Exit>`
+collection, not stored as a value. The applier consumes a
+`Record<string, ExitInstruction>` and installs each entry:
+
+```yaml
+# A CartesianLocation template's data:
+exits:
+  north:
+    destination: /eternal/duncan-hall/lounge
+  portal:
+    destination: /elsewhere
+    bidirectional: true
+    opposite: portal
+  cellar:
+    destination: /eternal/duncan-hall/cellar
+    door: /eternal/duncan-hall/cellar-door
+```
+
+The applier:
+
+- Resolves `destination` and optional `door` paths lazily via
+  `StuffApi.singleton` (clones on first need).
+- Defaults `bidirectional` to true for cardinal directions
+  (inverse inferred via `NavigationApi.invertDirection`), false for
+  non-cardinal labels (caller must supply `opposite` explicitly).
+- Per-direction idempotency: a matching existing exit (same
+  destination, same door) is a no-op; a mismatch throws with a
+  diagnostic naming both seed paths.
+- Calls `addBidirectionalExit` for the bidirectional case (which
+  also installs the door's anchor pair when `door:` is present), or
+  `addExit` for the one-way / explicit-`bidirectional:false` case.
+
+`ExitInstruction` carries the full exit shape: `destination`, optional
+`door`, `bidirectional`, `opposite`, `hidden`, `blocked`, `muffled`,
+`noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per
+declarative-content-slate § exits on ExitableMixin and
+`feedback_property_vs_instruction_fields`. No paired getter for the
+spec — the runtime `exits: Map<string, Exit>` collection has its own
+established API (`getExit`, `addExit`, …) which is the only public
+surface for reading exits at runtime.
+
 ### Mutual-exit verification
 
 `ExitableMixin.verifyOutboundExits()` walks the
@@ -165,21 +221,21 @@ field is the runtime back-reference, populated by:
 ### Conduit registry
 
 A Door advertises three conduits — `LightConduit`,
-`LineOfSight`, `MovementConduit` — all gated on `getIsOpen()`:
+`LineOfSight`, `MovementConduit` — all gated on `isOpen()`:
 
 ```ts
 public override getConduits(): readonly Conduit[] {
   return [lightConduitFor(this), lineOfSightFor(this), movementConduitFor(this)];
 }
 
-public transmissivity(_from, _to): number { return this.getIsOpen() ? 1 : 0; }
-public canSeeThrough(_from, _to): boolean { return this.getIsOpen(); }
-public canPassThrough(_from, _to, _mode): boolean { return this.getIsOpen(); }
+public transmissivity(_from, _to): number { return this.isOpen() ? 1 : 0; }
+public canSeeThrough(_from, _to): boolean { return this.isOpen(); }
+public canPassThrough(_from, _to, _mode): boolean { return this.isOpen(); }
 ```
 
 A closed Door blocks light, sight, and movement uniformly. The
 Light propagation walk consumes the `LightConduit` via the
-boundary path; `Exit.canTraverse` consults `getIsOpen()`
+boundary path; `Exit.canTraverse` consults `isOpen()`
 directly (same answer as the `MovementConduit`).
 
 ### Detach choreography
@@ -401,11 +457,53 @@ scalar-default rule):
   to `0` for the dark side of one-way glass).
 - `bToAOverride: number | null` — same for B→A.
 - `colorTint: ColorTag | null` — stained glass.
-- `isOpen: boolean` (from Sealable) — shutter state.
+- `attachedHosts: [string, string] | null` — Pattern A. Two
+  templatePaths of the hosts this Window connects. The setter
+  resolves both paths via `StuffApi.singleton` and installs the
+  anchors via `BoundaryApi.attachExistingBoundary`. Per
+  declarative-content-slate § attachedHosts.
+- `open: boolean` (from Sealable, was `isOpen`) — shutter state.
 
 The structured runtime API `getDirectionalOverrides()` /
 `setDirectionalOverrides()` reconstructs / decomposes the
 `{ aToB?, bToA? } | null` shape from the two stored scalars.
+
+### Declarative wiring via `attachedHosts`
+
+A templated Window declares the two host paths in its YAML:
+
+```yaml
+class: /lib/boundary/Window
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  baseTransmissivity: 0.9
+  attachedHosts:
+    - /eternal/duncan-hall/lobby
+    - /eternal/duncan-hall/freshman-dorm-A
+```
+
+`setAttachedHosts([pathA, pathB])` is a setter with side effects (per
+[spatial.md § The setter-with-side-effects pattern](./spatial.md#the-setter-with-side-effects-pattern)):
+stores the pair, resolves both hosts lazily, calls
+`BoundaryApi.attachExistingBoundary`. Idempotent on re-set with the
+same pair (in either order — boundaries are undirected). Throws on
+half-attach corruption or mismatched re-attach.
+
+The check `MixinApi.isAdornable(hostA) && MixinApi.isAdornable(hostB)`
+gates the attach so a Window can't be wired to a non-Location host.
+Per `ref-shapes.md` § Pattern A — the runtime keeps the original
+string array; persist-back writes it back unchanged. No marshaller.
+
+### Doors are wired transitively, not via `attachedHosts`
+
+`Door` is intentionally NOT extended with `attachedHosts`. Doors are
+wired by `Exitable.applyExits` when an exit declares `door:` — the
+existing `addBidirectionalExit({ door })` path installs the door's
+anchor pair as a side effect. This keeps the door's "I'm part of
+exit topology" identity primary and the boundary anchor pair
+secondary. The slate ratifies the distinction; future Boundary
+subclasses follow Window's shape (declare `attachedHosts` directly)
+unless their identity is tied to an Exit.
 
 `transmissivity(from, to)`:
 

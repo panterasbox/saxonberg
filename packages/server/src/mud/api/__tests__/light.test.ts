@@ -56,7 +56,7 @@ describe('LightApi.lightAt — propagation core', () => {
     expect(totalA.intensity.rawValue()).toBe(60 * EXIT_TAU);
   });
 
-  it('a closed door on an exit blocks light leakage', () => {
+  it('a closed door on an exit blocks light leakage', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new AmbientCartesianLocation());
@@ -66,8 +66,8 @@ describe('LightApi.lightAt — propagation core', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    door.setIsOpen(false);
-    a.addBidirectionalExit(b, 'north', { door });
+    door.setOpen(false);
+    await a.addBidirectionalExit(b, 'north', { door });
 
     expect(LightApi.lightAt(a)).toBe(Light.ZERO);
     door.open();

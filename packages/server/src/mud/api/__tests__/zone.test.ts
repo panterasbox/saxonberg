@@ -200,7 +200,7 @@ describe('Zone is set at clone time, not on move', () => {
   it('move does not restamp the item zone', async () => {
     const park = makeStuff(() => new CartesianLocation());
 
-    const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/spatial/SpatialZone').SpatialZone;
+    const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/zone/SpatialZone').SpatialZone;
     Stuff._stampZone(park, zoneRef);
 
     // Item created without a zone — `ContainmentApi.move` does NOT

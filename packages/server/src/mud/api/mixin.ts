@@ -271,6 +271,27 @@ export class MixinApi {
   }
 
   /**
+   * Convert a lowerCamel field name to its PascalCase form — the
+   * suffix used when deriving a method name from a field name (e.g.,
+   * `'coords'` → `'Coords'`, so a hydrator can dispatch
+   * `'set' + pascalCase('coords')` → `'setCoords'`).
+   *
+   * Used by `PersistentHydrator` (Phase 1 `set<X>` / Phase 2
+   * `apply<X>` dispatch) and `Zone.lookupField` (`get<X>` reflection).
+   * Lives here because the field-name-to-method-name convention is
+   * the same one `getAllPersistentFields` / `getAllInstructionFields`
+   * presume — callers that introspect mixin field names also need
+   * to derive method names from them.
+   *
+   * Empty string passes through unchanged.
+   */
+  public static pascalCase(field: string): string {
+    return field.length === 0
+      ? field
+      : field[0]!.toUpperCase() + field.slice(1);
+  }
+
+  /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
    * Walks the prototype chain and collects `persistentFields` declared at
@@ -515,6 +536,47 @@ export class MixinApi {
 
   public static isEngaged(obj: Stuff): obj is Stuff & Engaged {
     return this.hasMixin(obj, Mixins.Engaged);
+  }
+
+  /**
+   * Walk the prototype chain unioning the static `instructionFields`
+   * arrays declared at each level. Deduplicates. Mirrors the shape of
+   * {@link getAllPersistentFields} but for **instruction fields** —
+   * declarations applied to produce/modify derived runtime state via
+   * an `applyX` method, rather than stored as the value of a property.
+   *
+   * Instruction fields are the second half of the property/instruction
+   * split (see `feedback_property_vs_instruction_fields`). `exits` on
+   * `ExitableMixin` is the canonical example: the YAML data is a
+   * `Record<string, ExitInstruction>` recipe, applied by `applyExits` to
+   * populate the runtime `exits: Map<string, Exit>`. There is no
+   * paired getter for the spec; the runtime collection has its own
+   * API (`getExit`, `addExit`, …).
+   *
+   * `PersistentHydrator` dispatches in two phases: Phase 1 reads every
+   * entry in `getAllPersistentFields` and writes via `setX` (or
+   * bracket-assigns when no setter exists); Phase 2 reads every entry
+   * in `getAllInstructionFields` and calls `applyX`. An instruction
+   * field whose `applyX` method is missing is a configuration bug,
+   * surfaced as a clear runtime error at hydrate time.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Array of all instruction field names (deduplicated)
+   */
+  public static getAllInstructionFields(constructor: AnyConstructor): string[] {
+    const fields: string[] = [];
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & { instructionFields?: string[] };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'instructionFields') &&
+        Array.isArray(c.instructionFields)
+      ) {
+        fields.push(...c.instructionFields);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    return Array.from(new Set(fields));
   }
 
   /**

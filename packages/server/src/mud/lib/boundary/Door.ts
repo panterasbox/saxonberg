@@ -20,20 +20,20 @@
  *
  * Conduit registry: a Door advertises three conduits in
  * `getConduits()` — `LightConduit`, `LineOfSight`, and
- * `MovementConduit`. All three delegate to `getIsOpen()`: a closed
+ * `MovementConduit`. All three delegate to `isOpen()`: a closed
  * Door blocks light, line-of-sight, and movement uniformly. Per-mode
  * traversal logic (squeeze through, wedge open) is a future Door
  * subclass; v1 Door is binary-open.
  *
  * `Exit.canTraverse` is INTENTIONALLY unmodified by this retrofit —
- * it already consults `door.getIsOpen()`, which returns the same
+ * it already consults `door.isOpen()`, which returns the same
  * answer as the new `MovementConduit.canPassThrough`. Generalizing
  * the call site is deferred to a future Door subclass that varies on
  * traversal mode (`'squeeze'`, `'climb'`, …).
  *
  * Mixin responsibilities (unchanged from pre-retrofit):
- *   - `SealableMixin`: open/closed state. The `isOpen` setter
- *     rejects non-boolean assignments — same shape as before.
+ *   - `SealableMixin`: open/closed state. `setOpen()` rejects
+ *     non-boolean assignments. `isOpen()` is the predicate getter.
  *   - `PerceptibleMixin` (via Boundary): MQL keywords. Door
  *     overrides `getKeywords()` to union with shortDescription
  *     tokens.
@@ -42,8 +42,10 @@
  * Template-loadable: `Door` is cloned from a `domain` template via
  * `StuffApi.clone()` with
  * `hydratorClass: '/lib/persistence/PersistentHydrator'`. The
- * persistent field shape is unchanged from pre-retrofit — `isOpen`
- * (Sealable) plus the inherited Visible / Perceptible fields.
+ * persistent field shape is `open` (Sealable) plus the inherited
+ * Visible / Perceptible fields. Doors are wired transitively when an
+ * exit declares `door:` (via `Exitable.addBidirectionalExit`); they
+ * never declare `attachedHosts:` themselves — that's Window's shape.
  *
  * MQL: a Door surfaces twice on its containing Location — once via
  * `ExitableMixin.getExitDoors()` and once via
@@ -117,7 +119,7 @@ export class Door extends DoorBase {
 
   /**
    * Conduit registry: a Door advertises Light, Sight, and Movement
-   * conduits, all gated on `getIsOpen()`. Closed Door → all three
+   * conduits, all gated on `isOpen()`. Closed Door → all three
    * return 0 / false. The dual-tag exposure pattern follows
    * `Window.getConduits()` — wrappers rebadge `conduitKind` so a
    * single Door instance can serve all three channel queries.
@@ -133,11 +135,11 @@ export class Door extends DoorBase {
   public transmissivity(_from: BoundarySide, _to: BoundarySide): number {
     // v1 Door: binary open/closed. A future muffled-door subclass
     // could return a partial transmissivity instead.
-    return this.getIsOpen() ? 1 : 0;
+    return this.isOpen() ? 1 : 0;
   }
 
   public canSeeThrough(_from: BoundarySide, _to: BoundarySide): boolean {
-    return this.getIsOpen();
+    return this.isOpen();
   }
 
   public canPassThrough(
@@ -145,7 +147,7 @@ export class Door extends DoorBase {
     _to: BoundarySide,
     _mode: string
   ): boolean {
-    return this.getIsOpen();
+    return this.isOpen();
   }
 
   /**

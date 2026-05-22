@@ -62,7 +62,7 @@ export interface LineOfSight extends Conduit {
  * Movement gate. `mode` is the locomotion mode (`'walk'`, `'run'`,
  * `'climb'`, …) — the same value `MobileMixin.traverse` carries.
  * Door's v1 implementation ignores `mode` and returns
- * `getIsOpen()`; future per-mode logic (hop a low fence, swim
+ * `isOpen()`; future per-mode logic (hop a low fence, swim
  * across a moat) plugs in here without changing the protocol.
  */
 export interface MovementConduit extends Conduit {

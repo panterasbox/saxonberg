@@ -28,8 +28,8 @@
 
 import { StuffApi } from './stuff';
 import { Template } from '../lib/stuff/Template';
-import { Zone } from '../lib/spatial/Zone';
-import { SpatialZone } from '../lib/spatial/SpatialZone';
+import { Zone } from '../lib/zone/Zone';
+import { SpatialZone } from '../lib/zone/SpatialZone';
 import { SecurityApi } from './security';
 
 /**

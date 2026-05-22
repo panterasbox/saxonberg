@@ -23,7 +23,7 @@ describe('Door', () => {
     expect(door.getShortDescription()).toBe('');
     expect(door.getLongDescription()).toBe('');
     expect(door.getKeywords()).toEqual([]);
-    expect(door.getIsOpen()).toBe(false);
+    expect(door.isOpen()).toBe(false);
   });
 
   it('accepts post-construction field assignment', () => {
@@ -31,11 +31,11 @@ describe('Door', () => {
     door.setShortDescription('heavy oak door');
     door.setLongDescription('An iron-banded slab of oak.');
     door.setKeywords(['portal']);
-    door.setIsOpen(true);
+    door.setOpen(true);
 
     expect(door.getShortDescription()).toBe('heavy oak door');
     expect(door.getLongDescription()).toBe('An iron-banded slab of oak.');
-    expect(door.getIsOpen()).toBe(true);
+    expect(door.isOpen()).toBe(true);
     expect(door.getKeywords()).toContain('portal');
   });
 
@@ -53,15 +53,11 @@ describe('Door', () => {
     expect(kw.filter((k) => k === 'oak')).toHaveLength(1);
   });
 
-  it('isOpen setter rejects non-boolean values with TypeError', () => {
+  it('setOpen rejects non-boolean values with TypeError', () => {
     const door = makeStuff(() => new Door());
-    expect(() => {
-      (door as unknown as { isOpen: unknown }).isOpen = 1;
-    }).toThrow(TypeError);
-    expect(() => {
-      (door as unknown as { isOpen: unknown }).isOpen = 'true';
-    }).toThrow(TypeError);
-    expect(door.getIsOpen()).toBe(false);
+    expect(() => door.setOpen(1 as unknown as boolean)).toThrow(TypeError);
+    expect(() => door.setOpen('true' as unknown as boolean)).toThrow(TypeError);
+    expect(door.isOpen()).toBe(false);
   });
 
   it('keywords setter rejects non-arrays with TypeError', () => {
@@ -75,13 +71,13 @@ describe('Door', () => {
     const door = makeStuff(() => new Door());
     door.setShortDescription('gate');
     door.open();
-    expect(door.getIsOpen()).toBe(true);
+    expect(door.isOpen()).toBe(true);
     door.open();
-    expect(door.getIsOpen()).toBe(true);
+    expect(door.isOpen()).toBe(true);
     door.close();
-    expect(door.getIsOpen()).toBe(false);
+    expect(door.isOpen()).toBe(false);
     door.close();
-    expect(door.getIsOpen()).toBe(false);
+    expect(door.isOpen()).toBe(false);
   });
 
   it('getKeywords() merges explicit keywords with shortDescription tokens', () => {
@@ -114,7 +110,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     StuffApi.clearAll();
   });
 
-  it('addBidirectionalExit populates attachedTo with both exits', () => {
+  it('addBidirectionalExit populates attachedTo with both exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -124,14 +120,14 @@ describe('Door attachedTo back-reference + break/install', () => {
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
 
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
 
     expect(door.getAttachedExits().size).toBe(2);
     expect(door.hasAttached(a.getExits().get('north')!)).toBe(true);
     expect(door.hasAttached(b.getExits().get('south')!)).toBe(true);
   });
 
-  it('door.detach() clears every Exit.door and empties attachedTo', () => {
+  it('door.detach() clears every Exit.door and empties attachedTo', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -140,7 +136,7 @@ describe('Door attachedTo back-reference + break/install', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
 
     const aNorth = a.getExits().get('north')!;
     const bSouth = b.getExits().get('south')!;
@@ -152,7 +148,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     expect(bSouth.getDoor()).toBeNull();
   });
 
-  it('detach + ContainmentApi.move plants the broken door in a location', () => {
+  it('detach + ContainmentApi.move plants the broken door in a location', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -161,7 +157,7 @@ describe('Door attachedTo back-reference + break/install', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
 
     door.detach();
     ContainmentApi.move(door, a);
@@ -170,7 +166,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     expect(door.getContainer()).toBe(a);
   });
 
-  it('re-installing a detached door updates attachedTo correctly', () => {
+  it('re-installing a detached door updates attachedTo correctly', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -181,20 +177,20 @@ describe('Door attachedTo back-reference + break/install', () => {
 
     const door = makeStuff(() => new Door());
     door.setShortDescription('oak door');
-    a.addBidirectionalExit(b, 'north', { door });
+    await a.addBidirectionalExit(b, 'north', { door });
     expect(door.getAttachedExits().size).toBe(2);
 
     door.detach();
     expect(door.getAttachedExits().size).toBe(0);
 
     // Reinstall on a different exit pair.
-    a.addBidirectionalExit(c, 'east', { door });
+    await a.addBidirectionalExit(c, 'east', { door });
     expect(door.getAttachedExits().size).toBe(2);
     expect(a.getExits().get('east')!.getDoor()).toBe(door);
     expect(c.getExits().get('west')!.getDoor()).toBe(door);
   });
 
-  it('Exit.onDestruct unhooks itself from door.attachedTo', () => {
+  it('Exit.onDestruct unhooks itself from door.attachedTo', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -213,7 +209,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     // Registration of the exit in the door's attachedTo set is the
     // job of `addExit` — that's the only way an Exit reaches its
     // host post-construction (and post-Proxy).
-    a.addExit(exit);
+    await a.addExit(exit);
     expect(door.hasAttached(exit)).toBe(true);
 
     StuffApi.destruct(exit);

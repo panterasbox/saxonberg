@@ -208,6 +208,16 @@ if (MixinApi.hasMixin(obj.constructor, Mixins.Container)) { … }
 
 // Persistent field aggregation (walks the prototype chain)
 const fields = MixinApi.getAllPersistentFields(obj.constructor);
+
+// Instruction-field aggregation — the sibling shape for
+// declarations applied via `applyX` (e.g., `exits` on Exitable).
+const instructions = MixinApi.getAllInstructionFields(obj.constructor);
+
+// Convert a lowerCamel field name to PascalCase — used to derive
+// method names from field names (e.g., `set` + pascalCase('coords')
+// → `setCoords`). Same convention the Hydrator's two-phase dispatch
+// and `Zone.lookupField` use.
+const suffix = MixinApi.pascalCase('attachedHosts'); // → 'AttachedHosts'
 ```
 
 ### ContainmentApi (movement & containment)
@@ -484,35 +494,36 @@ export class Door extends DoorBase {
   }
 
   #normalize(): void {
-    // Lowercase / trim / dedupe keywords, coerce isOpen to boolean.
+    // Lowercase / trim / dedupe keywords, coerce open to boolean.
     const kw = super.getKeywords();
     if (kw.length > 0) {
       this.setKeywords([]);
       for (const k of kw) this.addKeyword(k);
     }
-    this.isOpen = this.isOpen === true;
+    this._open = this._open === true;
   }
 }
 ```
 
 The mixin's bulk `setKeywords()` ran a different code path than the
 incremental `addKeyword()`. Mixed templates (some pre-normalized, some
-not) silently diverge. The `isOpen === true` coercion silently absorbs
+not) silently diverge. The `_open === true` coercion silently absorbs
 malformed templates instead of failing loudly.
 
 ### GOOD (setter-enforced invariant)
 
 ```typescript
-// SealableMixin
-get isOpen(): boolean { return this._isOpen; }
-set isOpen(value: boolean) {
+// SealableMixin — public method does validation; the Hydrator's
+// Phase 1 dispatch finds `setOpen` and routes through it.
+public setOpen(value: boolean): void {
   if (typeof value !== 'boolean') {
-    throw new TypeError(`isOpen must be a boolean, got ${typeof value}`);
+    throw new TypeError(`Sealable.open must be a boolean, got ${typeof value}`);
   }
-  this._isOpen = value;
+  this._open = value;
 }
 
-// PerceptibleMixin
+// PerceptibleMixin — accessor pair fires on bracket-assign when no
+// public `setKeywords` exists (the fallback path for Phase 1).
 get keywords(): string[] { return this._keywords; }
 set keywords(value: string[]) {
   if (!Array.isArray(value)) throw new TypeError('keywords must be string[]');
@@ -525,10 +536,14 @@ addKeyword(k: string): void {
 }
 ```
 
-`Hydrator`'s `target[field] = data[field]` goes through these setters
-because bracket-assign invokes them. One normalization path, exercised
+`PersistentHydrator`'s **two-phase dispatch** (see
+[templates.md § The Hydrator Contract](./subsystems/templates.md#the-hydrator-contract))
+goes through these write paths. Phase 1 prefers a `set<Field>` method
+when present (calling `setOpen` here) and falls back to bracket-assign
+when no setter method exists (firing the accessor pair on the
+`keywords` example). Either way, one normalization path, exercised
 both by templates and by incremental callers (`door.addKeyword('oak')`).
-A malformed template (`isOpen: 1`) fails loudly at hydrate time. The
+A malformed template (`open: 1`) fails loudly at hydrate time. The
 class's `#normalize()` and constructor data blob both go away.
 
 ### When a `Hydrator` subclass IS the right answer
@@ -581,7 +596,7 @@ go through `checkAccess`; the property is enumerable via
 ### When a class field IS the right answer
 
 Structural state — what a `Door` *is* — stays a class field
-(`isOpen`, `lockKey`, `keywords`). Persistent fields a class needs at
+(`open`, `lockKey`, `keywords`). Persistent fields a class needs at
 all times, with shape that's part of the type, are still declared as
 fields and listed in `static persistentFields`.
 

@@ -146,8 +146,13 @@ The state-relevant ordering:
 3. Stamp `templatePath`.
 4. Wrap in Proxy.
 5. **Register** in `StuffApi.objectsById`.
-6. **Hydrate** if `hydratorClass` is named — `target[field] = data[field]`
-   for every key in `MixinApi.getAllPersistentFields(constructor)`.
+6. **Hydrate** if `hydratorClass` is named — `PersistentHydrator`
+   runs its two-phase dispatch: Phase 1 walks
+   `MixinApi.getAllPersistentFields(constructor)` and prefers
+   `await target.set<Field>(value)` (falls back to bracket-assign);
+   Phase 2 walks `MixinApi.getAllInstructionFields(constructor)` and
+   calls the required `await target.apply<Field>(value)`. See
+   [templates.md § The Hydrator Contract](./templates.md#the-hydrator-contract).
 7. **`postRegister(context)`** if the backing composes
    `PostRegistrationMixin`.
 

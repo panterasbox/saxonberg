@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Clade } from '../Clade';
-import { Zone } from '../../spatial/Zone';
-import { SpatialZone } from '../../spatial/SpatialZone';
+import { Zone } from '../../zone/Zone';
+import { SpatialZone } from '../../zone/SpatialZone';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

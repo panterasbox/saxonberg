@@ -449,7 +449,7 @@ export class Exit extends Idea {
         reason: 'The way is blocked.',
       };
     }
-    if (this.door && !this.door.getIsOpen()) {
+    if (this.door && !this.door.isOpen()) {
       const doorName = DescribeApi.getDisplayName(this.door, 'door');
       return {
         ok: false,

@@ -15,6 +15,7 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import type { SphericalZone } from './SphericalZone';
+import type { Stuff } from '../stuff/Stuff';
 
 const SphericalLocationBase = PostRegistrationMixin(
   ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
@@ -54,5 +55,90 @@ export class SphericalLocation extends SphericalLocationBase {
    */
   public getSizeScale(): number {
     return this.getRadius();
+  }
+
+  /**
+   * Persistent declarative-content field. `_focus` holds the YAML-
+   * shape input `{rho, theta, phi, radius}`; the runtime tuple lives
+   * on `SphericalCoordinatesMixin.coordinates` (`[rho, theta, phi]`)
+   * and `radius` (number). The setter bridges them — see `setFocus`.
+   *
+   * Parallel to `CartesianLocation.coords` per declarative-content-
+   * slate § coords on CartesianLocation (Spherical note).
+   */
+  protected _focus: {
+    rho: number;
+    theta: number;
+    phi: number;
+    radius: number;
+  } | null = null;
+
+  static persistentFields = ['focus'];
+
+  public getFocus(): {
+    rho: number;
+    theta: number;
+    phi: number;
+    radius: number;
+  } | null {
+    return this._focus;
+  }
+
+  /**
+   * Setter with side effect. Stamps the runtime coordinate tuple
+   * and radius via the existing
+   * `SphericalCoordinatesMixin.setCoordinates / setRadius`, then
+   * registers this location with the resolved SphericalZone via
+   * `addLocation(this)` (Spherical's `addLocation` reads the
+   * coordinates that we just stamped — no per-arg coordinate
+   * delivery).
+   *
+   * Idempotent on the happy path (same focus → no-op). The
+   * idempotency check uses `SphericalZone.hasLocationAtFocus`.
+   */
+  public async setFocus(value: {
+    rho: number;
+    theta: number;
+    phi: number;
+    radius: number;
+  }): Promise<void> {
+    if (
+      !value ||
+      typeof value.rho !== 'number' ||
+      typeof value.theta !== 'number' ||
+      typeof value.phi !== 'number' ||
+      typeof value.radius !== 'number'
+    ) {
+      throw new TypeError(
+        `SphericalLocation.setFocus: expected { rho, theta, phi, radius } ` +
+          `with numeric fields, got ${JSON.stringify(value)}`
+      );
+    }
+    const zone = this.getZone();
+    if (!zone) {
+      const tag =
+        (this as unknown as Stuff).getTemplatePath() ??
+        (this as unknown as Stuff).stuffId;
+      throw new Error(
+        `SphericalLocation.setFocus: no zone resolved for ${tag}; ` +
+          `template-path ancestry must include a SphericalZone.`
+      );
+    }
+    const focusTuple: [number, number, number] = [
+      value.rho,
+      value.theta,
+      value.phi,
+    ];
+    // Stamp the runtime tuple + radius unconditionally — the inputs
+    // are the source of truth, the mixin's coordinates field is the
+    // derived runtime value.
+    this.setCoordinates(focusTuple);
+    this.setRadius(value.radius);
+    if (zone.hasLocationAtFocus(focusTuple, this)) {
+      this._focus = { ...value };
+      return;
+    }
+    zone.addLocation(this);
+    this._focus = { ...value };
   }
 }

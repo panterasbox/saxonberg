@@ -88,7 +88,7 @@ export class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    if (sealable.getIsOpen()) {
+    if (sealable.isOpen()) {
       MessageApi.scene(commandGiver)
         .topic(MessageApi.Topics.world.narration.action)
         .toSelf(Mml.compose`It is already open.`)

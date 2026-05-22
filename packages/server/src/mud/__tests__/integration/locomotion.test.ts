@@ -65,7 +65,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const exit = makeStuff(() => new Exit({
       direction: 'north', source: locA, destination: locB,
     }));
-    locA.addExit(exit);
+    await locA.addExit(exit);
     const actor = makeStuff(() => new Mover());
     ContainmentApi.move(actor, locA);
 
@@ -89,7 +89,7 @@ describe('Locomotion integration — § 16 compositions', () => {
       direction: 'up', source: locA, destination: locB,
       media: ['vertical'],
     }));
-    locA.addExit(exit);
+    await locA.addExit(exit);
     const actor = makeStuff(() => new Mover());
     ContainmentApi.move(actor, locA);
 
@@ -132,7 +132,7 @@ describe('Locomotion integration — § 16 compositions', () => {
       direction: 'north', source: pond, destination: beach,
       media: ['water'],
     }));
-    pond.addExit(exit);
+    await pond.addExit(exit);
     const swimmer = makeStuff(() => new Mover());
     ContainmentApi.move(swimmer, pond);
 
@@ -160,7 +160,7 @@ describe('Locomotion integration — § 16 compositions', () => {
       direction: 'north', source: pond1, destination: pond2,
       media: ['water'],
     }));
-    pond1.addExit(exit);
+    await pond1.addExit(exit);
     const swimmer = makeStuff(() => new Mover());
     ContainmentApi.move(swimmer, pond1);
 
@@ -188,7 +188,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     const exit = makeStuff(() => new Exit({
       direction: 'north', source: locA, destination: locB,
     }));
-    locA.addExit(exit);
+    await locA.addExit(exit);
 
     // Rider engaged in ride mode; host carries them.
     rider.setEngagedMode(ride);
@@ -235,7 +235,7 @@ describe('Locomotion integration — § 16 compositions', () => {
       direction: 'east', source: locA, destination: locB,
       media: ['ground'],
     }));
-    locA.addExit(exit);
+    await locA.addExit(exit);
 
     driver.setEngagedMode(drive);
     const hostMode = LocomotionApi.resolveHostMode(cart);

@@ -23,7 +23,7 @@
  * resolves to the same instance via `StuffApi.singleton(path)`.
  */
 
-import { Zone } from '../spatial/Zone';
+import { Zone } from '../zone/Zone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { Species } from './Species';

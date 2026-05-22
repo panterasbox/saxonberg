@@ -20,7 +20,7 @@ describe('Window', () => {
     const w = makeStuff(() => new Window());
     expect(w).toBeInstanceOf(Boundary);
     expect(MixinApi.isSealable(w)).toBe(true);
-    expect(w.getIsOpen()).toBe(false);
+    expect(w.isOpen()).toBe(false);
     expect(w.getBaseTransmissivity()).toBe(1.0);
     expect(w.getDirectionalOverrides()).toBeNull();
     expect(w.getColorTint()).toBeNull();
@@ -84,13 +84,13 @@ describe('Window', () => {
       aToBOverride: 0.4,
       bToAOverride: 0,
       colorTint: 'amber',
-      isOpen: true,
+      open: true,
     });
     expect(w.getBaseTransmissivity()).toBe(0.4);
     // The structured runtime API is reconstructed from the two scalars.
     expect(w.getDirectionalOverrides()).toEqual({ aToB: 0.4, bToA: 0 });
     expect(w.getColorTint()).toBe('amber');
-    expect(w.getIsOpen()).toBe(true);
+    expect(w.isOpen()).toBe(true);
 
     // toDocument bracket-read shape — the persistence layer sees the
     // two scalars directly, not the structured object.

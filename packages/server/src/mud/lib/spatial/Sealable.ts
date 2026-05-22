@@ -5,25 +5,35 @@
  * boxes, trapdoors, windows, envelopes. Open/close controllers target any
  * Sealable rather than Door specifically — the surface is the same.
  *
- * Scope is intentionally narrow: `isOpen` + `open()` + `close()`. Locks,
- * keys, and unlock commands are future phases.
+ * Scope is intentionally narrow: `setOpen()` / `isOpen()` (the
+ * predicate/setter pair), plus `open()` / `close()` (the action verbs).
+ * Locks, keys, and unlock commands are future phases.
+ *
+ * Convention (per `feedback_boolean_field_naming`): the field, setter,
+ * and YAML key use the noun form (`open`); the predicate getter uses
+ * the `is` prefix (`isOpen()`). Reads naturally at every site:
+ * `door.setOpen(true)`, `door.isOpen()`, `data: { open: true }`.
+ *
+ * Note: no `get open() / set open()` accessor pair is declared — the
+ * accessor name would collide with the `open()` action method. With
+ * the new two-phase Hydrator dispatch (`PersistentHydrator` Phase 1
+ * tries `setOpen` first, falls back to bracket-assign only when no
+ * setter exists), the bracket-assign-fallback path is never reached
+ * for `open` because `setOpen` is defined; the runtime-shape
+ * validation lives in `setOpen` directly.
  */
 
 import type { MixinConstructor } from '../mixin';
 
 /**
- * Public shape added by SealableMixin.
- *
- * The accessor pair `isOpen` is host-internal (Pattern D) so the
- * hydrator's bracket-assign still fires the boolean-validating setter.
- * Public surface uses `getIsOpen()` / `setIsOpen()` to avoid colliding
- * with the accessor's prototype slot — the persistent-field name
- * `isOpen` is fixed by the existing schema. `open()` / `close()` are
- * the action-shaped mutators most callers want.
+ * Public shape added by SealableMixin. `isOpen()` (predicate getter) /
+ * `setOpen()` (noun setter) is the inter-Stuff contract surface;
+ * `open()` / `close()` are the action-shaped mutators most callers
+ * want.
  */
 export interface Sealable {
-  getIsOpen(): boolean;
-  setIsOpen(value: boolean): void;
+  isOpen(): boolean;
+  setOpen(value: boolean): void;
   open(): void;
   close(): void;
 }
@@ -32,43 +42,36 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SealableMixin extends Base {
     static _mixinName = 'SealableMixin';
 
-    static persistentFields = ['isOpen'];
+    static persistentFields = ['open'];
 
-    /** Backing storage; access via the `isOpen` accessor pair below. */
-    private _isOpen: boolean = false;
+    /** Backing storage; access via `isOpen()` / `setOpen()`. */
+    private _open: boolean = false;
+
+    /** Predicate getter. */
+    isOpen(): boolean { return this._open; }
 
     /**
-     * Host-internal accessor pair (Pattern D). External callers go
-     * through `getIsOpen()` / `setIsOpen()`. The setter rejects
-     * non-boolean assignments with `TypeError`. Hydrator's
-     * bracket-assign `target['isOpen'] = data.isOpen` fires this
-     * setter, so a malformed template (`isOpen: 1`) crashes loudly at
-     * hydrate time rather than being silently coerced at runtime.
+     * Noun setter. Rejects non-boolean assignments with `TypeError`
+     * — a malformed template (`open: 1`) crashes loudly at hydrate
+     * time rather than being silently coerced.
      */
-    protected get isOpen(): boolean {
-      return this._isOpen;
-    }
-
-    protected set isOpen(value: boolean) {
+    setOpen(value: boolean): void {
       if (typeof value !== 'boolean') {
         throw new TypeError(
-          `Sealable.isOpen must be a boolean, got ${typeof value}`
+          `Sealable.open must be a boolean, got ${typeof value}`
         );
       }
-      this._isOpen = value;
+      this._open = value;
     }
-
-    getIsOpen(): boolean { return this.isOpen; }
-    setIsOpen(value: boolean): void { this.isOpen = value; }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {
-      this._isOpen = true;
+      this._open = true;
     }
 
     /** Close the sealable. Idempotent — closing an already-closed one is a no-op. */
     close(): void {
-      this._isOpen = false;
+      this._open = false;
     }
   };
 }

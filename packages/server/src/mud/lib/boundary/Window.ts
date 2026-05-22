@@ -2,7 +2,7 @@
  * Window — first user of the `Boundary` substrate.
  *
  * Composition: `SealableMixin(Boundary)` (Boundary already provides
- * `Visible + Perceptible + Thing`). The `Sealable.isOpen` flag is the
+ * `Visible + Perceptible + Thing`). The `Sealable.open` flag is the
  * shutter state — closing the shutters zeroes both `LightConduit`
  * transmissivity and `LineOfSight`.
  *
@@ -26,12 +26,17 @@
  *
  * Persistence is hydrate-only — there's no v1 use case for a
  * Window's configuration mutating at runtime; only the
- * `Sealable.isOpen` shutter state changes. Anchors are rebuilt at
+ * `Sealable.open` shutter state changes. Anchors are rebuilt at
  * load time by the seed code.
  */
 
 import { Boundary } from './Boundary';
 import { SealableMixin } from '../spatial/Sealable';
+import { StuffApi } from '../../api/stuff';
+import { BoundaryApi } from '../../api/boundary';
+import { MixinApi } from '../../api/mixin';
+import type { Adornable } from './Adornable';
+import type { Stuff } from '../stuff/Stuff';
 import type {
   Conduit,
   LightConduit,
@@ -60,6 +65,7 @@ export class Window extends WindowBase {
     'aToBOverride',
     'bToAOverride',
     'colorTint',
+    'attachedHosts',
   ];
 
   /**
@@ -195,7 +201,7 @@ export class Window extends WindowBase {
   }
 
   public transmissivity(from: BoundarySide, to: BoundarySide): number {
-    if (!this.getIsOpen()) return 0;
+    if (!this.isOpen()) return 0;
     if (from === to) return this._baseTransmissivity;
     const override = from === 'A' ? this._aToBOverride : this._bToAOverride;
     if (override !== null) return override;
@@ -204,6 +210,110 @@ export class Window extends WindowBase {
 
   public canSeeThrough(from: BoundarySide, to: BoundarySide): boolean {
     return this.transmissivity(from, to) > 0;
+  }
+
+  /**
+   * Persistent declarative-content field carrying the templatePaths
+   * of the two hosts this Window connects, Pattern A per
+   * ref-shapes.md. The setter resolves both paths via
+   * `StuffApi.singleton` (lazy-clones absent hosts) and installs the
+   * per-side anchors via `BoundaryApi.attachExistingBoundary`.
+   *
+   * Idempotency: if the Window's anchors are already installed AND
+   * their hosts match the declared paths (in either order — the
+   * boundary is undirected), no-op. Mismatch (different hosts or
+   * half-attached corruption) throws with diagnostics.
+   *
+   * NOTE: this field is only meaningful for template-shaped hosts —
+   * `getTemplatePath()`-comparable. Test fixtures created via
+   * `makeStuff` (no template path) MUST use `makeStuffAtPath` so the
+   * idempotency comparison has something stable to match against.
+   *
+   * Per declarative-content-slate § attachedHosts.
+   */
+  protected _attachedHosts: [string, string] | null = null;
+
+  public getAttachedHosts(): [string, string] | null {
+    return this._attachedHosts === null
+      ? null
+      : [this._attachedHosts[0], this._attachedHosts[1]];
+  }
+
+  /**
+   * Setter with side effect. Stores the value, resolves both hosts
+   * via `StuffApi.singleton`, and installs anchors via
+   * `BoundaryApi.attachExistingBoundary`. Idempotent on the happy
+   * path; throws on conflict / half-attach / same-host.
+   */
+  public async setAttachedHosts(value: [string, string]): Promise<void> {
+    if (
+      !Array.isArray(value) ||
+      value.length !== 2 ||
+      typeof value[0] !== 'string' ||
+      typeof value[1] !== 'string'
+    ) {
+      throw new TypeError(
+        `Window.setAttachedHosts: expected [string, string], got ${JSON.stringify(value)}`
+      );
+    }
+    if (value[0] === value[1]) {
+      throw new Error(
+        `Window.setAttachedHosts: hostA path and hostB path must differ ('${value[0]}').`
+      );
+    }
+    // Idempotency check via existing anchors.
+    const anchorA = this.getAnchorA();
+    const anchorB = this.getAnchorB();
+    if (anchorA && anchorB) {
+      const hostA = anchorA.getAdornedTo();
+      const hostB = anchorB.getAdornedTo();
+      const pathA = (hostA as unknown as Stuff | null)?.getTemplatePath() ?? null;
+      const pathB = (hostB as unknown as Stuff | null)?.getTemplatePath() ?? null;
+      const matchesForward = pathA === value[0] && pathB === value[1];
+      const matchesReverse = pathA === value[1] && pathB === value[0];
+      if (matchesForward || matchesReverse) {
+        this._attachedHosts = [value[0], value[1]];
+        return;
+      }
+      const tag =
+        (this as unknown as Stuff).getTemplatePath() ??
+        (this as unknown as Stuff).stuffId;
+      throw new Error(
+        `Window.setAttachedHosts: ${tag} already attached to ('${pathA}', ` +
+          `'${pathB}'); refusing to re-attach to ('${value[0]}', ` +
+          `'${value[1]}'). Destruct the boundary first via BoundaryApi.`
+      );
+    }
+    if (anchorA || anchorB) {
+      const tag =
+        (this as unknown as Stuff).getTemplatePath() ??
+        (this as unknown as Stuff).stuffId;
+      throw new Error(
+        `Window.setAttachedHosts: ${tag} is half-attached ` +
+          `(anchorA=${anchorA ? 'set' : 'null'}, anchorB=${
+            anchorB ? 'set' : 'null'
+          }). This is a corruption; fix by destructing the boundary ` +
+          `and re-cloning.`
+      );
+    }
+    // Fresh attach. Resolve both hosts lazily.
+    const hostA = await StuffApi.singleton<Stuff & Adornable>(value[0]);
+    const hostB = await StuffApi.singleton<Stuff & Adornable>(value[1]);
+    if (
+      !MixinApi.isAdornable(hostA as Stuff) ||
+      !MixinApi.isAdornable(hostB as Stuff)
+    ) {
+      throw new TypeError(
+        `Window.setAttachedHosts: both hosts must compose AdornableMixin ` +
+          `(hostA=${value[0]}, hostB=${value[1]}).`
+      );
+    }
+    BoundaryApi.attachExistingBoundary({
+      boundary: this,
+      hostA,
+      hostB,
+    });
+    this._attachedHosts = [value[0], value[1]];
   }
 }
 
