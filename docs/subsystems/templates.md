@@ -209,7 +209,7 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
   consumed to produce or modify *separately-named* runtime state —
   no "value" to set/get on the spec, only a verb's argument. The
   canonical example is `exits` on `ExitableMixin`: the YAML data is
-  a `Record<string, ExitSpec>` recipe, `applyExits` consumes it to
+  a `Record<string, ExitInstruction>` recipe, `applyExits` consumes it to
   populate the runtime `exits: Map<string, Exit>` collection (which
   has its own established `getExit` / `addExit` / `removeExit`
   surface). No paired getter for the spec. Hydrator dispatch:

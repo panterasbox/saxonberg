@@ -141,7 +141,7 @@ undefined.
 `static instructionFields = ['exits']`) — its YAML data is a
 declaration applied to produce the runtime `exits: Map<string, Exit>`
 collection, not stored as a value. The applier consumes a
-`Record<string, ExitSpec>` and installs each entry:
+`Record<string, ExitInstruction>` and installs each entry:
 
 ```yaml
 # A CartesianLocation template's data:
@@ -171,7 +171,7 @@ The applier:
   also installs the door's anchor pair when `door:` is present), or
   `addExit` for the one-way / explicit-`bidirectional:false` case.
 
-`ExitSpec` carries the full exit shape: `destination`, optional
+`ExitInstruction` carries the full exit shape: `destination`, optional
 `door`, `bidirectional`, `opposite`, `hidden`, `blocked`, `muffled`,
 `noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per
 declarative-content-slate § exits on ExitableMixin and

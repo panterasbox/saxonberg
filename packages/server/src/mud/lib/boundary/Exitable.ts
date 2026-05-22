@@ -87,7 +87,7 @@ export interface Exitable {
    * diagnostic naming both seed paths. Per declarative-content-slate
    * § exits on ExitableMixin.
    */
-  applyExits(map: Record<string, ExitSpec>): Promise<void>;
+  applyExits(map: Record<string, ExitInstruction>): Promise<void>;
   verifyOutboundExits(): void;
 
   /**
@@ -161,7 +161,7 @@ export interface BidirectionalExitOptions {
  *
  * Per declarative-content-slate § exits on ExitableMixin.
  */
-export interface ExitSpec {
+export interface ExitInstruction {
   destination: string;
   door?: string;
   bidirectional?: boolean;
@@ -182,7 +182,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     /**
      * `exits` is the canonical instruction field shape for declarative
-     * content. `applyExits` consumes a `Record<string, ExitSpec>` and
+     * content. `applyExits` consumes a `Record<string, ExitInstruction>` and
      * installs the runtime entries — no paired getter for the spec
      * (the runtime `exits: Map<string, Exit>` has its own API). See
      * `applyExits` and `feedback_property_vs_instruction_fields`.
@@ -400,7 +400,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     /**
      * Declarative-content applier. The instruction field is consumed
-     * here: each `ExitSpec` is translated into an explicit `Exit` (or
+     * here: each `ExitInstruction` is translated into an explicit `Exit` (or
      * `addBidirectionalExit` for cardinal / explicit-bidirectional
      * entries). Destinations and doors lazy-clone via
      * `StuffApi.singleton`, so a depended-on Location is materialized
@@ -411,7 +411,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * destination, same door) is a no-op; a mismatch throws with a
      * diagnostic naming both seed paths.
      */
-    async applyExits(map: Record<string, ExitSpec>): Promise<void> {
+    async applyExits(map: Record<string, ExitInstruction>): Promise<void> {
       for (const [direction, spec] of Object.entries(map)) {
         await this._applyExitSpec(direction, spec);
       }
@@ -419,7 +419,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     private async _applyExitSpec(
       direction: string,
-      spec: ExitSpec
+      spec: ExitInstruction
     ): Promise<void> {
       const existing = this.exits.get(direction);
       const destStuff = await StuffApi.singleton<

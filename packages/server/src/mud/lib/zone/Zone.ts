@@ -28,12 +28,14 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import { MixinApi } from '../../api/mixin';
 // `Template`, `StuffApi`, and `ZoneApi` are intentionally lazy-imported
 // inside `getEnclosingZone`. Static imports would form a cycle:
 //   Zone.ts → Template.ts → api/zone.ts → SpatialZone.ts → Zone.ts (still in flight)
 // breaking SpatialZone's `extends Zone` at module-eval time. Dynamic
 // imports inside the method body run well after every class declaration
-// is resolved.
+// is resolved. `MixinApi` is static-imported because it doesn't transit
+// back to Zone (all its Zone-side type imports are erased).
 
 /**
  * Abstract base for all Zone flavors. Holds the name, the
@@ -141,8 +143,7 @@ export abstract class Zone extends Idea {
  */
 function readField<T>(zone: Zone, fieldName: string): T | null {
   if (fieldName.length === 0) return null;
-  const getterName =
-    'get' + fieldName[0]!.toUpperCase() + fieldName.slice(1);
+  const getterName = 'get' + MixinApi.pascalCase(fieldName);
   const indexable = zone as unknown as Record<string, unknown>;
   const getter = indexable[getterName];
   if (typeof getter === 'function') {

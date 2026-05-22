@@ -39,12 +39,6 @@ import type { Marshaller } from './Marshaller';
 
 type Indexable = Record<string, unknown>;
 
-function pascalCase(field: string): string {
-  return field.length === 0
-    ? field
-    : field[0]!.toUpperCase() + field.slice(1);
-}
-
 /**
  * Extends `Idea` so the clone pipeline can produce a hydrator the
  * same way it produces every other templated Stuff. `clone()`
@@ -98,7 +92,7 @@ export class PersistentHydrator extends Idea implements Hydrator {
       } else {
         value = raw;
       }
-      const setterName = 'set' + pascalCase(field);
+      const setterName = 'set' + MixinApi.pascalCase(field);
       const setter = target[setterName];
       if (typeof setter === 'function') {
         // Async-safe: `await` of a non-Promise resolves to the value,
@@ -125,7 +119,7 @@ export class PersistentHydrator extends Idea implements Hydrator {
     for (const field of instructionFields) {
       if (!(field in data)) continue;
       const value = data[field];
-      const applierName = 'apply' + pascalCase(field);
+      const applierName = 'apply' + MixinApi.pascalCase(field);
       const applier = target[applierName];
       if (typeof applier !== 'function') {
         throw new Error(

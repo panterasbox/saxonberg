@@ -271,6 +271,27 @@ export class MixinApi {
   }
 
   /**
+   * Convert a lowerCamel field name to its PascalCase form — the
+   * suffix used when deriving a method name from a field name (e.g.,
+   * `'coords'` → `'Coords'`, so a hydrator can dispatch
+   * `'set' + pascalCase('coords')` → `'setCoords'`).
+   *
+   * Used by `PersistentHydrator` (Phase 1 `set<X>` / Phase 2
+   * `apply<X>` dispatch) and `Zone.lookupField` (`get<X>` reflection).
+   * Lives here because the field-name-to-method-name convention is
+   * the same one `getAllPersistentFields` / `getAllInstructionFields`
+   * presume — callers that introspect mixin field names also need
+   * to derive method names from them.
+   *
+   * Empty string passes through unchanged.
+   */
+  public static pascalCase(field: string): string {
+    return field.length === 0
+      ? field
+      : field[0]!.toUpperCase() + field.slice(1);
+  }
+
+  /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
    * Walks the prototype chain and collects `persistentFields` declared at
@@ -527,7 +548,7 @@ export class MixinApi {
    * Instruction fields are the second half of the property/instruction
    * split (see `feedback_property_vs_instruction_fields`). `exits` on
    * `ExitableMixin` is the canonical example: the YAML data is a
-   * `Record<string, ExitSpec>` recipe, applied by `applyExits` to
+   * `Record<string, ExitInstruction>` recipe, applied by `applyExits` to
    * populate the runtime `exits: Map<string, Exit>`. There is no
    * paired getter for the spec; the runtime collection has its own
    * API (`getExit`, `addExit`, …).
