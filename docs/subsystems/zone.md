@@ -150,3 +150,22 @@ be a folder (Zone subclass); a leaf node must be a non-Zone class.
 Adding a new Zone subclass to satisfy a folder need is the right move
 when no existing class fits. `FolderZone` is the generic answer when
 the folder doesn't carry domain-specific behavior.
+
+## History
+
+The Zone subsystem was carved out of `lib/spatial/` as part of the
+spatial+boundary substrate build that shipped declarative-content
+field shapes (`coords`, `focus`, `exits`, `attachedHosts`). The
+field-inheritance walk was drafted as `ZoneApi.resolveZoneField` in
+the requirements/plan docs but moved to instance methods on `Zone`
+during implementation review — the override-on-subclass extension
+point (for barrier zones that root inheritance at themselves)
+needed instance dispatch. The build's source slates
+([zone-architecture-slate.md](../slates/zone-architecture-slate.md)
+and [declarative-content-slate.md](../slates/declarative-content-slate.md))
+remain as design references; the spawn-shape side
+(`PopulatesMixin` + `container:` field + `Login.enter` change) is
+deferred to a follow-up build.
+
+The Wave 1 + Wave 2 build landed on the `spacial` branch between
+commits `b9afbaa` and `869c47a`.
