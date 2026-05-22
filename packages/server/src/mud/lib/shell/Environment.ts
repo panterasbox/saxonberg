@@ -10,10 +10,15 @@
  *     instance; not persisted. Holds ad-hoc `var` writes plus any
  *     setting whose schema declares `lifetime: 'session'`.
  *
- * Schema is static class data on each mixin layer; the effective
- * schema for an instance is computed on demand by walking the
- * composed mixin chain via `MixinApi.queryMixins`. There is no
- * central registry.
+ * Schema is static class data — declared as `static settings:
+ * SettingsSchemaEntry[]` on a mixin layer (the common case) or
+ * directly on a substrate class whose concept it owns (the
+ * schema-on-owner generalization; see
+ * `docs/subsystems/shell-environment.md`). The effective schema for
+ * an instance is computed on demand by walking the host's full
+ * prototype chain (mixin layers and concrete classes alike) and
+ * unioning each layer's own `settings` array. There is no central
+ * registry.
  *
  * Privacy: `setSetting` / `unsetSetting` take an `actor: Stuff`. For
  * entries with `private: true`, the call throws unless `actor` is
@@ -119,9 +124,10 @@ export interface Environment {
 }
 
 /**
- * Shape of a mixin layer that may carry settings. `MixinApi.queryMixins`
- * returns these by prototype-chain walk; `settings` is read via
- * `hasOwnProperty` to avoid pulling in inherited entries.
+ * Shape of any prototype-chain layer that may carry settings — a
+ * mixin layer (`_mixinName` present) or a substrate class
+ * (`name` only). `settings` is read via `hasOwnProperty` to avoid
+ * pulling in inherited entries.
  */
 interface MixinLayerWithSettings {
   _mixinName?: string;

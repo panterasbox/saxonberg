@@ -33,6 +33,8 @@ import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { Events } from '../lib/events';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Location } from '../lib/stuff/Location';
+import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
 import type { User } from '../lib/identity/User';
 import type {
   ConnectionEstablishedPayload,
@@ -70,7 +72,8 @@ export class Avatar extends AvatarBase {
 
   /**
    * Schema entries declared by Avatar. Picked up by the schema walk
-   * via `MixinApi.queryMixins(host.constructor)` — class-level
+   * (`EnvironmentMixin`'s prototype-chain traversal — see
+   * `docs/subsystems/shell-environment.md`); class-level
    * `static settings` are unioned alongside mixin-level entries.
    *
    * `world.autosave.interval` controls the cadence of the periodic-
@@ -78,11 +81,10 @@ export class Avatar extends AvatarBase {
    * `startAutoSave()` time; mid-session changes don't restart the
    * timer (documented limitation).
    *
-   * Schema-on-mixin principle: the setting lives on the substrate
-   * that owns the concept. Autosave is purely Avatar-lifecycle
-   * policy, so Avatar is the right home. A future
-   * PersistableStuffMixin would pull this entry up to that mixin
-   * and Avatar would compose it.
+   * Schema-on-owner principle: the setting lives wherever the
+   * concept lives. Autosave is purely Avatar-lifecycle policy, so
+   * Avatar is the right home. A future PersistableStuffMixin would
+   * pull this entry up to that mixin and Avatar would compose it.
    */
   static settings: SettingsSchemaEntry[] = [
     {
@@ -172,7 +174,9 @@ export class Avatar extends AvatarBase {
    *
    * Concurrent saves (periodic timer + linkdead hook + manual eval)
    * each produce a valid full-state snapshot; MongoDB resolves
-   * ordering as last-write-wins (see plan Q15).
+   * ordering as last-write-wins. See
+   * `docs/subsystems/templates.md` § Persist-Back for the
+   * snapshot-before-await ordering invariant the substrate honors.
    */
   public async save(): Promise<void> {
     const tpl = await TemplateApi.snapshotToTemplate(this);
@@ -213,16 +217,16 @@ export class Avatar extends AvatarBase {
    *      and forceCommand plumbing instead of reimplementing `look`.
    *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
    *
-   * Idempotent in spirit: each call corresponds to a fresh session
-   * entry. Multiple Interactives multiplexed onto the same Avatar
-   * call this once per session-start (whoever wins the
-   * `ConnectionApi.transfer` race triggers the call); subsequent
-   * additional connections come through `addInteractive` directly,
-   * not through `enter`.
+   * **One call per session-start, not per connection.** When a second
+   * Interactive multiplexes onto an already-playing Avatar,
+   * `ConnectionApi.transfer` adds it to the avatar's `interactives`
+   * set directly — `enter` is NOT re-invoked. The two unguarded
+   * idempotency-sensitive steps here (welcome scene, PlayerLoggedIn
+   * emit) would double-fire if a caller did re-invoke; treat the
+   * method as session-start-only.
    */
   public async enter(interactive: Interactive): Promise<void> {
-    let startingLocation: (Location & object) | null =
-      this.getContainer() as (Location & object) | null;
+    let startingLocation: (Stuff & Container) | null = this.getContainer();
     if (!startingLocation) {
       startingLocation = await StuffApi.singleton<Location>(
         DEFAULT_STARTING_LOCATION_PATH

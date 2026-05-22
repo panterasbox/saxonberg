@@ -170,8 +170,13 @@ needed instance dispatch. The build's source slates
 ([zone-architecture-slate.md](../slates/zone-architecture-slate.md)
 and [declarative-content-slate.md](../slates/declarative-content-slate.md))
 remain as design references; the spawn-shape side
-(`PopulatesMixin` + `container:` field + `Login.enter` change) is
-deferred to a follow-up build.
+(`PopulatesMixin` + `container:` instruction field, with live-ref
+consultation in `Avatar.enter` for the across-restart spawn case)
+shipped in a follow-up build — see
+[templates.md § Hydrator contract](./templates.md#the-hydrator-contract)
+for the appliers and [connection.md § Phase 4](./connection.md#phase-4-avatar-materialization-and-handoff)
+for the entry flow.
 
 The Wave 1 + Wave 2 build landed on the `spacial` branch between
-commits `b9afbaa` and `869c47a`.
+commits `b9afbaa` and `869c47a`. The spawn-shape follow-up landed
+on `spawn-save`.

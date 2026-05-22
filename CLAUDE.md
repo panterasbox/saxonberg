@@ -34,22 +34,29 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`:
   - [templates.md](./docs/subsystems/templates.md) — clone pipeline,
-    Hydrator, TemplateApi, folder/leaf invariant
+    Hydrator, TemplateApi, folder/leaf invariant, declarative
+    `populates:` / `container:` instruction fields and their Phase 2
+    appliers, `TemplateApi.snapshotToTemplate` /
+    `restoreFromTemplate` persist-back surface
   - [persistence.md](./docs/subsystems/persistence.md) — Persistable,
     PersistenceManager, around-save/delete hooks
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
-    persisted, Avatar self-contained, Persistable in the Idea hierarchy
+    persisted, Avatar self-contained (v1 persist-back through
+    `Avatar.save()` / `Avatar.restore()`), Persistable in the Idea
+    hierarchy
   - [connection.md](./docs/subsystems/connection.md) — login/logout
     flow, WebSocket upgrade, `Interactive`/`Login`/`Avatar` handoff,
-    multiplexing, disconnect choreography
+    `Login.enter` (connection routing) + `Avatar.enter` (session
+    start, including autosave install), multiplexing, disconnect
+    choreography
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
     composer, sensor routing, MudlogApi
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
-    `EnvironmentMixin` settings keyspace, schema-on-mixin, lookup
-    chain, `settings` / `var` commands, `resolveSetting` cross-host
-    helper
+    `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
+    schema-on-owner generalization), lookup chain, `settings` /
+    `var` commands, `resolveSetting` cross-host helper
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — `AliasMixin`
     per-character verb aliases, lookup chain (defaults / persistent /
     session), tombstones, `ShellApi.expandAliases` algorithm with

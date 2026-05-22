@@ -214,9 +214,9 @@ resolveSetting<T>(host: Stuff, key: string): T | undefined;
 
 - If `host` composes `EnvironmentMixin`, delegates to
   `host.getSetting<T>(key)` — full lookup chain, override-aware.
-- Otherwise walks `host`'s mixin chain via `MixinApi.queryMixins`,
-  finds the declaring layer's schema entry, and returns its
-  `default`.
+- Otherwise walks `host`'s full prototype chain (mixin layers and
+  substrate classes alike), finds the declaring layer's schema
+  entry, and returns its `default`.
 - Returns `undefined` when the key isn't declared anywhere on the
   host's chain.
 
