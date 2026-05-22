@@ -17,7 +17,6 @@ import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
 import { MessageApi } from '../api/message';
-import { MixinApi } from '../api/mixin';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
 import {
@@ -208,7 +207,10 @@ export class Avatar extends AvatarBase {
    *   2. Install the periodic-save backstop via `startAutoSave()`.
    *   3. Send the welcome scene with the connection-established
    *      payload the client needs for bootstrap.
-   *   4. Send the look description of the starting location.
+   *   4. Force a `look` so the player sees their starting location —
+   *      delegated to `MobileMixin.autoLookOnArrival` (the same hook
+   *      that fires after a traversal), so we share the focus-reset
+   *      and forceCommand plumbing instead of reimplementing `look`.
    *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
    *
    * Idempotent in spirit: each call corresponds to a fresh session
@@ -227,7 +229,9 @@ export class Avatar extends AvatarBase {
       );
       // Silent spawn: a freshly-cloned avatar shouldn't be announced
       // as "vanishing" from somewhere or "appearing out of thin air"
-      // before the player has even seen the location.
+      // before the player has even seen the location. We still want
+      // the auto-look — fired explicitly below after the welcome
+      // scene so the order is welcome → look.
       this.teleport(startingLocation, { silent: true });
     }
     console.info(
@@ -261,7 +265,11 @@ export class Avatar extends AvatarBase {
       .payload(payload)
       .send();
 
-    this.sendLookDescription();
+    // Force a look so the player sees where they are. Reuses
+    // MobileMixin's auto-look-on-arrival path (which forceCommand's
+    // the `look` verb and resets focus first) rather than
+    // reimplementing the description rendering here.
+    await this.autoLookOnArrival();
 
     // Avatar is in-world; the user is logged in. Engine-level event
     // for any observer (audit, achievements) that doesn't care
@@ -270,42 +278,6 @@ export class Avatar extends AvatarBase {
       playerId: this.getPlayerId(),
       userId: interactive.getUserId() ?? '',
     });
-  }
-
-  /**
-   * Frame the current location's name + long description as a
-   * `world.perception.look` scene to self. Used by `enter()` to
-   * give the player an immediate read on where they are.
-   */
-  private sendLookDescription(): void {
-    // The avatar's container is whatever Container holds them —
-    // typically a Location, but may be a Vessel (an entered
-    // wardrobe / ship cabin). The renderer below uses
-    // `MixinApi.isVisible` to narrow before reaching for
-    // description text, so any Container works.
-    const location = this.getContainer();
-
-    if (!location) {
-      MessageApi.scene(this)
-        .topic(MessageApi.Topics.world.perception.look)
-        .toSelf(Mml.compose`You are nowhere.`)
-        .send();
-      return;
-    }
-
-    // Concrete locations (CartesianLocation, SphericalLocation)
-    // compose VisibleMixin and have getLong(); a bare Location does
-    // not. Narrow before reaching for the description.
-    const description = MixinApi.isVisible(location)
-      ? location.getLong()
-      : '';
-    const body = description
-      ? Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(description)}\n`
-      : Mml.compose`${Mml.location(location)}\n`;
-    MessageApi.scene(this)
-      .topic(MessageApi.Topics.world.perception.look)
-      .toSelf(body)
-      .send();
   }
 
   /**

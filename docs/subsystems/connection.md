@@ -344,8 +344,10 @@ a session" means; Avatar doesn't need to know how Login picked it.
    })
    ```
 
-4. **`sendLookDescription()`** — frames the current location's name
-   + long description as a `world.perception.look` scene to self.
+4. **`this.autoLookOnArrival()`** — delegates to `MobileMixin`'s
+   existing auto-look path: forces the `look` verb (with focus
+   reset), same code that fires after a traversal. Avoids
+   reimplementing the look output in Avatar.
 
 5. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
    engine event for any observer (audit, achievements).
