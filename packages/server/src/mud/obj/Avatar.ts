@@ -14,13 +14,36 @@ import { ShelledCharacter } from '../lib/shell/ShelledCharacter';
 import { PlayerApi } from '../api/player';
 import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
+import { TemplateApi } from '../api/template';
+import { StuffApi } from '../api/stuff';
+import { MessageApi } from '../api/message';
+import { DescribeApi } from '../api/describe';
+import { Mml } from '../api/mml';
+import {
+  ScheduleApi,
+  type ScheduleHandle,
+} from '../api/schedule';
+import {
+  SettingTypes,
+  resolveSetting,
+  type SettingsSchemaEntry,
+} from '../lib/shell/Environment';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { Events } from '../lib/events';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
+import { Location } from '../lib/stuff/Location';
+import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
 import type { User } from '../lib/identity/User';
-import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
+import type {
+  ConnectionEstablishedPayload,
+  EnvelopeTemplate,
+  MessageFrame,
+} from '@saxonberg/types';
 import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
+import type { Interactive } from './Interactive';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -46,6 +69,35 @@ export class Avatar extends AvatarBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Schema entries declared by Avatar. Picked up by the schema walk
+   * (`EnvironmentMixin`'s prototype-chain traversal — see
+   * `docs/subsystems/shell-environment.md`); class-level
+   * `static settings` are unioned alongside mixin-level entries.
+   *
+   * `world.autosave.interval` controls the cadence of the periodic-
+   * save backstop installed in `Avatar.enter`. Resolved once at
+   * `startAutoSave()` time; mid-session changes don't restart the
+   * timer (documented limitation).
+   *
+   * Schema-on-owner principle: the setting lives wherever the
+   * concept lives. Autosave is purely Avatar-lifecycle policy, so
+   * Avatar is the right home. A future PersistableStuffMixin would
+   * pull this entry up to that mixin and Avatar would compose it.
+   */
+  static settings: SettingsSchemaEntry[] = [
+    {
+      key: 'world.autosave.interval',
+      type: SettingTypes.Number,
+      default: 5 * 60 * 1000, // 5 minutes in milliseconds
+      description:
+        'Cadence (milliseconds) for the Avatar persist-back ' +
+        'periodic backstop. Resolved once at login time; mid-session ' +
+        'changes do not restart the running timer (effect lands at ' +
+        'next login).',
+    },
+  ];
 
   /**
    * Template path prefix for avatars in the domain collection.
@@ -116,6 +168,171 @@ export class Avatar extends AvatarBase {
   }
 
   /**
+   * Snapshot this Avatar's `persistentFields` chain back to its
+   * per-player template doc. Two-line shim: TemplateApi captures
+   * state into the returned Template; `tpl.save()` commits it.
+   *
+   * Concurrent saves (periodic timer + linkdead hook + manual eval)
+   * each produce a valid full-state snapshot; MongoDB resolves
+   * ordering as last-write-wins. See
+   * `docs/subsystems/templates.md` § Persist-Back for the
+   * snapshot-before-await ordering invariant the substrate honors.
+   */
+  public async save(): Promise<void> {
+    const tpl = await TemplateApi.snapshotToTemplate(this);
+    await tpl.save();
+  }
+
+  /**
+   * Re-hydrate this Avatar's in-memory state from its current
+   * template doc. Operates on the existing live instance,
+   * preserving identity / stuffId / connected Interactives.
+   *
+   * v1: developer/admin operation — no multi-connection
+   * synchronization. Should not be invoked during the initial
+   * clone cascade (the in-flight-clone guard catches recursive
+   * clones, not parallel hydrate on a registered instance).
+   */
+  public async restore(): Promise<void> {
+    await TemplateApi.restoreFromTemplate(this);
+  }
+
+  /**
+   * Begin this Avatar's playable session. Called by `Login.enter`
+   * after the Interactive has been transferred from Login to this
+   * Avatar. Owns everything that's "playing as this avatar":
+   *
+   *   1. Resolve the starting location — consult the live container
+   *      first (set by the Avatar template's `data.container` via
+   *      Phase 2 `applyContainer` during clone, or by
+   *      `Avatar.restore()` re-hydrating saved state). Only fall back
+   *      to `DEFAULT_STARTING_LOCATION_PATH` for a brand-new avatar
+   *      with no declared spawn.
+   *   2. Install the periodic-save backstop via `startAutoSave()`.
+   *   3. Send the welcome scene with the connection-established
+   *      payload the client needs for bootstrap.
+   *   4. Force a `look` so the player sees their starting location —
+   *      delegated to `MobileMixin.autoLookOnArrival` (the same hook
+   *      that fires after a traversal), so we share the focus-reset
+   *      and forceCommand plumbing instead of reimplementing `look`.
+   *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
+   *
+   * **One call per session-start, not per connection.** When a second
+   * Interactive multiplexes onto an already-playing Avatar,
+   * `ConnectionApi.transfer` adds it to the avatar's `interactives`
+   * set directly — `enter` is NOT re-invoked. The two unguarded
+   * idempotency-sensitive steps here (welcome scene, PlayerLoggedIn
+   * emit) would double-fire if a caller did re-invoke; treat the
+   * method as session-start-only.
+   */
+  public async enter(interactive: Interactive): Promise<void> {
+    let startingLocation: (Stuff & Container) | null = this.getContainer();
+    if (!startingLocation) {
+      startingLocation = await StuffApi.singleton<Location>(
+        DEFAULT_STARTING_LOCATION_PATH
+      );
+      // Silent spawn: a freshly-cloned avatar shouldn't be announced
+      // as "vanishing" from somewhere or "appearing out of thin air"
+      // before the player has even seen the location. We still want
+      // the auto-look — fired explicitly below after the welcome
+      // scene so the order is welcome → look.
+      this.teleport(startingLocation, { silent: true });
+    }
+    console.info(
+      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
+    );
+
+    this.startAutoSave();
+
+    // Welcome scene: actor frame at system.connection.established
+    // carries the bootstrap payload the client needs.
+    // Welcome is the introductory moment — explicitly the formal
+    // register, so reach for fullName.
+    const payload: ConnectionEstablishedPayload = {
+      userId: interactive.getUserId() ?? '',
+      socketId: interactive.getSocketId(),
+      sessionId: interactive.getSessionId(),
+      interactiveStuffId: interactive.stuffId,
+      player: {
+        _id: this.getPlayerId(),
+        honorific: this.getHonorific(),
+        name: this.getName(),
+        surname: this.getSurname(),
+        nameSuffix: this.getNameSuffix(),
+        alternateNames: this.getAlternateNames(),
+        pronouns: this.getPronouns(),
+      },
+    };
+    MessageApi.scene(this)
+      .topic(MessageApi.Topics.system.connection.established)
+      .toSelf(Mml.compose`Welcome back, ${this.getFullName()}!`)
+      .payload(payload)
+      .send();
+
+    // Force a look so the player sees where they are. Reuses
+    // MobileMixin's auto-look-on-arrival path (which forceCommand's
+    // the `look` verb and resets focus first) rather than
+    // reimplementing the description rendering here.
+    await this.autoLookOnArrival();
+
+    // Avatar is in-world; the user is logged in. Engine-level event
+    // for any observer (audit, achievements) that doesn't care
+    // which avatar — just that this player is now playable.
+    EventApi.emit(Events.PlayerLoggedIn, {
+      playerId: this.getPlayerId(),
+      userId: interactive.getUserId() ?? '',
+    });
+  }
+
+  /**
+   * Periodic auto-save handle. Started by `enter()` post-connection;
+   * cleared by `onDestruct`. Mechanism is `ScheduleApi.recurring` —
+   * the purpose-built substrate wrapper with
+   * `propagateAttribution: false` (the save isn't causally a
+   * follow-on of login) and `mode: 'fixed-delay'` (drift-tolerant).
+   *
+   * TypeScript `private` (not `#`) per the domain-code default —
+   * the mixin proxy receiver can't reach `#`-private slots.
+   */
+  private periodicSaveHandle: ScheduleHandle | null = null;
+
+  /**
+   * Install the periodic-save timer. Idempotent — calling twice is
+   * a no-op. The interval is resolved once at install time from
+   * the `world.autosave.interval` setting; mid-session changes do
+   * not restart the timer in v1.
+   */
+  public startAutoSave(): void {
+    if (this.periodicSaveHandle !== null) return;
+    const intervalMs =
+      resolveSetting<number>(this, 'world.autosave.interval') ??
+      5 * 60 * 1000;
+    this.periodicSaveHandle = ScheduleApi.recurring(
+      intervalMs,
+      () => {
+        // Fire-and-forget; errors logged but don't crash the session.
+        void this.save().catch((err) => {
+          console.error(
+            `Avatar.autoSave: save failed for playerId=${this.playerId}:`,
+            err
+          );
+        });
+      },
+      { propagateAttribution: false, mode: 'fixed-delay' }
+    );
+  }
+
+  /**
+   * Cancel the periodic-save timer. Idempotent.
+   */
+  public stopAutoSave(): void {
+    if (this.periodicSaveHandle !== null) {
+      ScheduleApi.cancel(this.periodicSaveHandle);
+      this.periodicSaveHandle = null;
+    }
+  }
+
+  /**
    * Send a message to all connected Interactives (broadcast).
    */
   public sendMessage(message: unknown): void {
@@ -152,13 +369,28 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * Cleanup hook. Unregisters from PlayerApi and detaches every live
-   * Interactive so they don't retain a holder reference pointing at
-   * a destroyed Stuff. Persist-back to the avatar template is deferred
-   * to the persist direction of the unified model (not implemented
-   * this phase).
+   * Cleanup hook. Fires a final persist-back save, cancels the
+   * periodic-save timer, unregisters from PlayerApi, and detaches
+   * every live Interactive.
+   *
+   * The save is fire-and-forget (`onDestruct` is synchronous per
+   * the Stuff lifecycle contract). Correctness lives in
+   * `TemplateApi.snapshotToTemplate`'s synchronous prefix — field
+   * values + container ref are captured BEFORE the first await,
+   * so the snapshot reflects pre-cleanup state even if the MongoDB
+   * write doesn't complete during shutdown. The periodic backstop
+   * covers any prior state loss; concurrent in-flight save is fine
+   * (MongoDB last-write-wins).
    */
   public onDestruct(): void {
+    void this.save().catch((err) => {
+      console.error(
+        `Avatar.onDestruct: final save failed for playerId=${this.playerId}:`,
+        err
+      );
+    });
+
+    this.stopAutoSave();
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {

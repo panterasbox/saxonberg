@@ -214,6 +214,54 @@ Code that throws on null-env is a bug — file the regression as a
 matrix-invariant violation. Regression tests live in
 `lib/spatial/__tests__/Containable.nullEnv.test.ts`.
 
+### Declarative-content `container:`
+
+`ContainableMixin` declares `static instructionFields = ['container']`
+plus an `applyContainer(path)` Phase 2 applier. When the source
+template's `data` block carries a `container: /some/singleton-target`
+string, the Hydrator resolves the target via `StuffApi.singleton(path)`
+and moves self into it via `ContainmentApi.move`.
+
+**Compare-and-move idempotency.** `applyContainer` no-ops when the
+current container's templatePath matches the declared path; otherwise
+the move fires. The shape supports both fresh-clone placement (current
+container is null → declared) AND `Avatar.restore()` re-move semantics
+(current is `/A`, declared is `/B` → move) with no flag.
+
+**Singleton-target constraint (v1).** The target template's class
+MUST compose `SingletonMixin`. The invariant is enforced at template-
+save time by `TemplateApi.validateSingletonContainerTarget`, fired
+through the `DomainHook` aroundSave alongside the folder/leaf
+validator. A non-singleton target throws at save with a clear
+diagnostic naming both the source and target paths.
+
+This is a known v1 limitation. Two reasons to relax it later:
+
+1. **Class redefinition.** A template that saved when its target
+   composed `SingletonMixin` may not still satisfy the check after a
+   class refactor; an eager save-time check is stricter than the
+   actual runtime requirement.
+2. **Non-singleton container use cases (multirooms).** Legitimately,
+   multiple live instances of "the same" container template are
+   useful (multirooms, instanced dungeons). The eager check
+   forecloses on this without language for addressing a specific
+   instance.
+
+The lazy direction: `applyContainer` already uses `StuffApi.singleton(path)`,
+which surfaces the same diagnostic class at first-hydrate time when
+the path doesn't resolve to exactly one instance. Removing the eager
+validator would defer the check to that natural site, accepting the
+"fail at first clone instead of at save" trade-off in exchange for
+not over-constraining authoring. When the multiroom story lands,
+this constraint should be re-evaluated alongside the addressing
+scheme (templatePath alone is 1:1; multirooms need richer keys).
+
+For populating a Container with children declaratively (the inverse
+direction), see `PopulatesMixin` and the `populates:` instruction
+field — covered in the [containment](#containment) section's
+[Hydrator contract](../subsystems/templates.md#the-hydrator-contract)
+cross-reference.
+
 ## Locations
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:

@@ -1038,3 +1038,108 @@ SchedulerApi.cancelAll(actor);
 See [subsystems/activity.md](./subsystems/activity.md) for the full
 producer-side framework, including the five `StartResult` outcomes
 controllers must switch on.
+
+## Node Timers — Go Through `ScheduleApi`
+
+Domain code, mixin code, and Api classes must NOT call `setInterval`
+or `setTimeout` directly. Use `ScheduleApi` (`packages/server/src/mud/api/schedule.ts`):
+
+- `ScheduleApi.schedule(delayMs, fn, opts?)` — one-shot, returns a `ScheduleHandle`.
+- `ScheduleApi.recurring(intervalMs, fn, opts?)` — recurring, returns a `ScheduleHandle`. Supports `mode: 'fixed-delay' | 'fixed-rate'` and `initialDelayMs`.
+- `ScheduleApi.cancel(handle)` — idempotent.
+
+`opts.propagateAttribution` (default `true`) captures the current
+`causingCommandId` at schedule time and re-plants it onto the
+callback's Root frame, so frames composed inside the callback can
+correlate to the originating command. Pass `false` to deliberately
+sever the chain (e.g., periodic backstops that aren't semantically
+caused by any user command).
+
+### BAD (raw Node timer)
+
+```ts
+class Avatar extends ShelledCharacter {
+  private _periodicSaveHandle: ReturnType<typeof setInterval> | null = null;
+
+  startAutoSave(): void {
+    this._periodicSaveHandle = setInterval(() => {
+      this.save().catch((err) => console.error(err));
+    }, 5 * 60 * 1000);
+  }
+
+  stopAutoSave(): void {
+    if (this._periodicSaveHandle) {
+      clearInterval(this._periodicSaveHandle);
+      this._periodicSaveHandle = null;
+    }
+  }
+}
+```
+
+The callback fires with no `ExecutionContext` Root, so any frames
+composed inside (audit logs, scene sends, errors) have no
+`causingCommandId` and no well-defined call-stack root. Raw timer
+handles also bypass the central scheduling registry, so they don't
+show up in any introspection / debug surface that wraps
+`ScheduleApi`.
+
+### GOOD (Api-mediated)
+
+```ts
+import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
+
+class Avatar extends ShelledCharacter {
+  private _periodicSaveHandle: ScheduleHandle | null = null;
+
+  startAutoSave(): void {
+    this._periodicSaveHandle = ScheduleApi.recurring(
+      5 * 60 * 1000,
+      () => {
+        this.save().catch((err) => console.error(err));
+      },
+      { propagateAttribution: false, mode: 'fixed-delay' }
+    );
+  }
+
+  stopAutoSave(): void {
+    if (this._periodicSaveHandle) {
+      ScheduleApi.cancel(this._periodicSaveHandle);
+      this._periodicSaveHandle = null;
+    }
+  }
+}
+```
+
+### Why
+
+- **Execution-context propagation.** Callbacks run inside
+  `ExecutionContextApi.runRoot` so frames carry a proper Root and
+  (when `propagateAttribution: true`) the originating command's
+  `causingCommandId` — preserving the audit chain across the async
+  boundary.
+- **Single cancellation surface.** Raw timer handles are
+  type-incompatible across Node versions and test environments
+  (`ReturnType<typeof setInterval>` is `number` in browsers, `Timeout`
+  in Node). The `ScheduleHandle` shape is stable.
+- **Testability.** Tests mock `ScheduleApi.recurring`/`cancel`
+  uniformly; no `vi.useFakeTimers` ceremony per test file.
+
+### Not to be confused with `SchedulerApi`
+
+`SchedulerApi` (`api/scheduler.ts`) is a *different* Api — the
+engagement-lifecycle scheduler for activities (see
+[subsystems/activity.md](./subsystems/activity.md)). It's not a
+generic timer wrapper. If you need "fire this callback after N ms"
+or "fire this callback every N ms," `ScheduleApi` is the answer,
+not `SchedulerApi`.
+
+### Permitted exceptions
+
+- **Inside `ScheduleApi` itself** — it's the wrapper, so it
+  necessarily calls `setInterval` / `setTimeout` internally.
+- **Test infrastructure** that's explicitly exercising raw-timer
+  semantics (rare).
+- **Backend / connection-handshake layers** outside the mudlib
+  (e.g., WebSocket keepalive at the transport layer) — these
+  predate and live below the `ExecutionContext` substrate. New
+  mudlib code shouldn't acquire the same exception.

@@ -34,22 +34,29 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`:
   - [templates.md](./docs/subsystems/templates.md) — clone pipeline,
-    Hydrator, TemplateApi, folder/leaf invariant
+    Hydrator, TemplateApi, folder/leaf invariant, declarative
+    `populates:` / `container:` instruction fields and their Phase 2
+    appliers, `TemplateApi.snapshotToTemplate` /
+    `restoreFromTemplate` persist-back surface
   - [persistence.md](./docs/subsystems/persistence.md) — Persistable,
     PersistenceManager, around-save/delete hooks
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
-    persisted, Avatar self-contained, Persistable in the Idea hierarchy
+    persisted, Avatar self-contained (v1 persist-back through
+    `Avatar.save()` / `Avatar.restore()`), Persistable in the Idea
+    hierarchy
   - [connection.md](./docs/subsystems/connection.md) — login/logout
     flow, WebSocket upgrade, `Interactive`/`Login`/`Avatar` handoff,
-    multiplexing, disconnect choreography
+    `Login.enter` (connection routing) + `Avatar.enter` (session
+    start, including autosave install), multiplexing, disconnect
+    choreography
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
     composer, sensor routing, MudlogApi
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
-    `EnvironmentMixin` settings keyspace, schema-on-mixin, lookup
-    chain, `settings` / `var` commands, `resolveSetting` cross-host
-    helper
+    `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
+    schema-on-owner generalization), lookup chain, `settings` /
+    `var` commands, `resolveSetting` cross-host helper
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — `AliasMixin`
     per-character verb aliases, lookup chain (defaults / persistent /
     session), tombstones, `ShellApi.expandAliases` algorithm with
@@ -507,6 +514,9 @@ bypass it. Common cases:
 | `new CommandContext({ ... })` / `createCommandContext({ ... })` | `CommandApi.createCommandContext({ ... })` — tests + dispatcher use the same factory; the constructor + accumulator state are not external surface |
 | `door.setIsOpen(true)` / `door.getIsOpen()` | `door.setOpen(true)` / `door.isOpen()` — boolean fields use the noun form on field/setter/YAML, predicate form on the getter |
 | `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |
+| `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
+| `(stuff as any).save?.()` to round-trip arbitrary Stuff to its template | `Avatar.save()` is the only v1 consumer (`if (stuff instanceof Avatar) await stuff.save()`). The substrate (`TemplateApi.snapshotToTemplate` / `restoreFromTemplate`) is general but only Avatar exercises it in v1. No `PersistableStuffMixin` yet. |
+| Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/CloneController.ts`. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 

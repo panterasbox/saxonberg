@@ -255,7 +255,21 @@ proper `transfer` happens inside `enter()` (next phase).
 
 ## Phase 4: Avatar Materialization and Handoff
 
-`Login.enter()` is the body of the entry procedure. Verbatim sequence:
+The entry procedure splits cleanly across two objects:
+
+- **`Login.enter()`** owns connection routing — take ownership of
+  the Interactive, resolve which Avatar this user should connect to,
+  transfer the Interactive to the Avatar, hand off to
+  `avatar.enter()`, destruct.
+- **`Avatar.enter(interactive)`** owns the session-start — anything
+  that's "playing as this avatar" (location placement, welcome
+  scene, look description, autosave, the PlayerLoggedIn event).
+
+The split keeps each side's concerns aligned with the object whose
+lifecycle they belong to. Login doesn't need to know what "starting
+a session" means; Avatar doesn't need to know how Login picked it.
+
+### `Login.enter()` — verbatim sequence
 
 1. **`ConnectionApi.transfer(interactive, this)`** — formal handoff
    to Login. Calls `interactive.setHolder(login)` and fires
@@ -285,16 +299,33 @@ proper `transfer` happens inside `enter()` (next phase).
    holder slot from Login to Avatar. Witness hooks fire (see
    [§ Multiplexing](#multiplexing)).
 
-5. **Resolve the starting location** via
-   `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and silently
-   teleport the avatar into it. `singleton()` (not `clone()`) is
-   load-bearing — every player must spawn into the same Location
-   instance, otherwise co-presence breaks.
+5. **`await avatar.enter(interactive)`** — hand off to Avatar's
+   session-start. Login doesn't introspect the result; whatever
+   Avatar needs to do is its responsibility.
 
-6. **Welcome scene** at topic
-   `system.connection.established`, audience `toSelf`, body
-   `"Welcome back, <fullName>!"`, with a **payload** the client
-   needs for bootstrap:
+6. **`StuffApi.destruct(this)`** — Login is gone. The connection
+   has been handed off; nothing depends on Login any more.
+
+### `Avatar.enter(interactive)` — session start
+
+1. **Resolve the starting location.** Consults the avatar's live
+   container first — set by the Avatar template's `data.container`
+   via Phase 2 `applyContainer` during clone, or by
+   `Avatar.restore()` re-hydrating saved state. Only when the
+   avatar has no container (a brand-new spawn with no declared
+   `data.container`) does the fallback fire:
+   `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and a
+   silent `avatar.teleport(loc, { silent: true })`. Per-Avatar
+   persist-back makes this branch the rarer path; the common case
+   across restarts is `avatar.getContainer()` already pointing at
+   the saved location.
+
+2. **`avatar.startAutoSave()`** installs the periodic persist-back
+   timer (see [§ Auto-save lifecycle](#auto-save-lifecycle)).
+
+3. **Welcome scene** at topic `system.connection.established`,
+   audience `toSelf`, body `"Welcome back, <fullName>!"`, with a
+   **payload** the client needs for bootstrap:
 
    ```typescript
    .payload({
@@ -313,17 +344,16 @@ proper `transfer` happens inside `enter()` (next phase).
    })
    ```
 
-7. **`sendLookDescription(avatar)`** — frames the room name + long
-   description as a `world.perception.look` scene to the actor.
+4. **`this.autoLookOnArrival()`** — delegates to `MobileMixin`'s
+   existing auto-look path: forces the `look` verb (with focus
+   reset), same code that fires after a traversal. Avoids
+   reimplementing the look output in Avatar.
 
-8. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
+5. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
    engine event for any observer (audit, achievements).
 
-9. **`StuffApi.destruct(this)`** — Login is gone. The connection
-   has been handed off; nothing depends on Login any more.
-
-After `enter()` returns, the user is in-world.
-`interactive.getHolder() === avatar`; `Login` is destructed and
+After `Avatar.enter()` returns, the user is in-world.
+`interactive.getHolder() === avatar`; Login is destructed and
 unregistered.
 
 ## Multiplexing
@@ -525,12 +555,59 @@ in the future, etc.).
 ### Avatar.prepareDestroy
 
 When something DOES destruct an Avatar (test cleanup, future
-character-deletion flow), `Avatar.prepareDestroy` unregisters from
-`PlayerApi` and detaches every still-connected Interactive via
-`ConnectionApi.detach`. The detach loop guarantees no Interactive is
-left holding `holder = avatar` after the avatar is gone, so the
-witness pipeline stays consistent even if a caller didn't drop the
-connections first.
+character-deletion flow), `Avatar.onDestruct` fires a final
+fire-and-forget `Avatar.save()`, cancels the periodic persist-back
+timer, unregisters from `PlayerApi`, and detaches every still-
+connected Interactive via `ConnectionApi.detach`. The detach loop
+guarantees no Interactive is left holding `holder = avatar` after
+the avatar is gone, so the witness pipeline stays consistent even
+if a caller didn't drop the connections first.
+
+### Auto-save lifecycle
+
+`Avatar.startAutoSave()` is invoked from `Avatar.enter()` during
+session start. It installs a `ScheduleApi.recurring` timer that
+calls `avatar.save()` (which delegates to
+`TemplateApi.snapshotToTemplate` + `Template.save`). Three knobs are set explicitly:
+
+- **Cadence**: resolved from the `world.autosave.interval` setting
+  (declared on `Avatar`, default 5 minutes). Per-Avatar overrides
+  fall out of the standard `resolveSetting` lookup chain
+  (persistent store → schema default). The interval is resolved
+  **once** at install time; mid-session changes to the setting do
+  not restart the running timer (re-login picks up the new
+  cadence). Documented limitation.
+- **`propagateAttribution: false`** — the periodic save isn't
+  causally a follow-on of the login command; the attribution chain
+  is severed so callback frames carry no `causingCommandId`.
+- **`mode: 'fixed-delay'`** — drift-tolerant; cadence is "roughly
+  every N milliseconds," not a guaranteed wall-clock rate. Prevents
+  pile-ups if a save runs long.
+
+`stopAutoSave()` cancels the handle via `ScheduleApi.cancel`. It's
+called from `Avatar.onDestruct` before the existing detach loop.
+
+**Concurrent saves are acceptable.** The periodic timer, the
+linkdead-driven `onDestruct` save, and any manual `eval avatar.save()`
+can run in parallel; each produces a valid full-state snapshot. The
+correctness invariant — synchronous capture before the first await —
+lives in `TemplateApi.snapshotToTemplate`'s implementation; MongoDB's
+`replaceOne` resolves write ordering as last-write-wins.
+
+**Multiplexed-session restore.** `Avatar.restore()` is a
+developer/admin operation. v1 does NOT add multi-connection
+synchronization; connections that observe field flips during a
+restore see inconsistent state. Documented limitation. When the
+gameplay surface for restore lands (e.g., a "rewind" verb),
+coordination will likely shape into a brief `DurativeActivity` that
+blocks input for the duration.
+
+**HMR caveat.** A hot-reload of `Avatar.ts` does NOT re-install the
+periodic timer on existing instances (their prototype chains keep
+the old class). The captured callback closure still works
+(field-name dispatch); but admins reloading Avatar.ts in production
+should `destruct /obj/Avatar/<playerId>` to clear stale handles and
+let the next reconnect pick up the new class.
 
 ## Logout (HTTP)
 

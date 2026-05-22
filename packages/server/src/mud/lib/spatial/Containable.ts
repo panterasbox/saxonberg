@@ -34,6 +34,7 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -57,6 +58,22 @@ export interface Containable {
    * loop.
    */
   getRootContainer(): (Stuff & Container) | null;
+
+  /**
+   * Declarative-content applier. Phase 2 of the Hydrator's two-
+   * phase dispatch reads `data.container` from the source template
+   * and calls this method with the resolved templatePath. The
+   * applier resolves the target via `StuffApi.singleton` (the
+   * target MUST be singleton-shaped — validated at template-save
+   * time by `TemplateApi.validateSingletonContainerTarget`) and
+   * moves self into it via `ContainmentApi.move`.
+   *
+   * Per-call idempotency: compare current container's templatePath
+   * to the declared path; no-op when they match. The compare-and-
+   * move shape supports both fresh-clone placement AND
+   * `Avatar.restore()` re-move semantics with no flag.
+   */
+  applyContainer(path: string): Promise<void>;
 
   /** Optional pre-move veto on the moving item itself. */
   canMove?(to: (Stuff & Container) | null): VetoResult;
@@ -82,6 +99,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainableMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainableMixin';
+
+    /**
+     * Instruction field — declarative spawn target. Consumed by
+     * Phase 2 of the Hydrator. There is NO paired `getContainer(path)`
+     * declaration accessor; the live `getContainer()` ref is the
+     * only runtime getter.
+     */
+    static instructionFields = ['container'];
 
     /**
      * Framework cleanup (R2.4 collection-symmetric). When a
@@ -176,6 +201,26 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         current = env as Stuff;
       }
       return topmost;
+    }
+
+    /**
+     * Phase 2 applier — see the interface docstring for semantics.
+     * Compare-and-move idempotency: no-op when the current container's
+     * templatePath matches the declared `path`; otherwise resolve the
+     * target via `StuffApi.singleton` and `ContainmentApi.move` into
+     * it. The singleton-target invariant is enforced at template-save
+     * time by `TemplateApi.validateSingletonContainerTarget`.
+     */
+    async applyContainer(path: string): Promise<void> {
+      const target = await StuffApi.singleton<Stuff & Container>(path);
+      const current = this.getContainer();
+      if (current && current.getTemplatePath() === path) {
+        return; // already in declared container; no-op.
+      }
+      ContainmentApi.move(
+        this as unknown as Stuff & Containable,
+        target,
+      );
     }
   }
   return ContainableMixin;

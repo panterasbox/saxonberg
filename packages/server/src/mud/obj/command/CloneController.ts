@@ -6,15 +6,18 @@
  * `--mql <expr>`) cwd-relative against the avatar's content tree.
  * Dispatches to `StuffApi.clone`.
  *
- * Destination resolution (precedence — explicit caller intent
- * wins over template defaults):
+ * Destination resolution (precedence):
  *
- *   1. `--into <dest>`         — explicit Container.
- *   2. `--here`                — sugar for "the avatar's environment."
- *   3. `template.environment`  — TBD; lands when the field + the
- *                                singleton-resolution wiring ship.
- *      See `docs/slates/spawn-shape-slate.md`.
- *   4. fallback                — the avatar itself (inventory).
+ *   1. `--into <dest>`             — explicit Container.
+ *   2. `--here`                    — sugar for the avatar's environment.
+ *   3. Hydration self-placement    — `applyContainer` ran during clone
+ *                                    and placed the instance somewhere.
+ *   4. Fallback                    — the giver's inventory.
+ *
+ * Step 3 is implicit: the clone runs first and observes where the
+ * instance landed. Steps 1 + 2 (when present) override step 3 AFTER
+ * the clone, via `ContainmentApi.move`. Step 4 fires only when the
+ * post-clone container is still null.
  *
  * No `-f` / `forceClone`: clone is "willing something new into
  * existence" — there's no per-target witness to bypass; permissions
@@ -84,18 +87,9 @@ export class CloneController extends CommandController<CloneModel> {
     }
     if (!path) return this.fail(context, 'no template path');
 
-    // 2. Resolve the destination Container before cloning. If the
-    // destination shape is invalid, fail before producing a
-    // dangling instance.
-    const destResult = this.resolveDestination(model, giver, context);
-    if ('error' in destResult) {
-      return this.fail(context, destResult.error);
-    }
-    const dest = destResult.dest;
-
-    // 3. Clone, then place. Two phases — placement failure leaves
-    // the cloned Stuff alive but unplaced; the admin gets the
-    // stuffId to recover.
+    // 2. Clone. Phase 2 hydration may fire `applyContainer` if the
+    // template declares `data.container`; the instance may
+    // self-place during this step.
     let cloned: Stuff;
     try {
       cloned = await StuffApi.clone(path);
@@ -113,9 +107,39 @@ export class CloneController extends CommandController<CloneModel> {
       );
       return;
     }
+    const item = cloned as Stuff & Containable;
 
+    // 3. Apply destination precedence post-clone.
+    const placement = this.resolvePlacement(model, giver, item, context);
+    if ('error' in placement) {
+      // The instance exists; surface the destination error but
+      // don't fail the clone itself.
+      this.tell(
+        context,
+        `\ncloned ${path} → ${name} (${cloned.stuffId}); destination resolution failed: ${placement.error}\n`,
+      );
+      return;
+    }
+    if (placement.dest === null) {
+      // Layer 3 hit (hydration placed it); no move needed.
+      const where = item.getContainer();
+      const destName = where
+        ? DescribeApi.getDisplayName(where, 'somewhere')
+        : 'somewhere';
+      this.tell(
+        context,
+        `\ncloned ${path} → ${name} (${cloned.stuffId}); placed by template into ${destName}\n`,
+      );
+      return;
+    }
+
+    // Move to the resolved destination. May override hydration's
+    // self-placement (Layer 1/2 explicit overrides Layer 3 implicit).
+    const priorContainer = item.getContainer();
+    const movingFromHydration =
+      priorContainer !== null && priorContainer !== placement.dest;
     try {
-      ContainmentApi.move(cloned as Stuff & Containable, dest);
+      ContainmentApi.move(item, placement.dest);
     } catch (err) {
       this.tell(
         context,
@@ -123,28 +147,35 @@ export class CloneController extends CommandController<CloneModel> {
       );
       return;
     }
-
-    const destName = DescribeApi.getDisplayName(dest, 'somewhere');
+    const destName = DescribeApi.getDisplayName(placement.dest, 'somewhere');
+    const overrideNote = movingFromHydration
+      ? ` (overrode template's container)`
+      : '';
     this.tell(
       context,
-      `\ncloned ${path} → ${name} (${cloned.stuffId}) into ${destName}\n`,
+      `\ncloned ${path} → ${name} (${cloned.stuffId}) into ${destName}${overrideNote}\n`,
     );
     return;
   }
 
   /**
    * Apply the destination-resolution precedence. See file header
-   * for the full chain. Returns either the resolved Container or
-   * an error describing why none could be picked.
+   * for the full chain.
+   *
+   *   - `{ dest: <container> }` — move into this Container after clone.
+   *   - `{ dest: null }`        — Layer 3 hit; hydration placed the
+   *                                instance; no further move.
+   *   - `{ error: <reason> }`   — none of the layers resolved.
    */
-  private resolveDestination(
+  private resolvePlacement(
     model: CloneModel,
     giver: Stuff,
+    item: Stuff & Containable,
     context: CommandContext,
   ):
-    | { dest: Stuff & Container }
+    | { dest: (Stuff & Container) | null }
     | { error: string } {
-    // 1. --into <dest>.
+    // Layer 1: --into <dest>.
     if (model.into) {
       const stuff = model.into.stuff;
       if (!stuff) {
@@ -158,7 +189,7 @@ export class CloneController extends CommandController<CloneModel> {
       return { dest: stuff };
     }
 
-    // 2. --here → avatar's environment (the location they're in).
+    // Layer 2: --here → avatar's environment (the location they're in).
     if (model.here) {
       const env = context.location;
       if (!env || !MixinApi.isContainer(env)) {
@@ -167,11 +198,13 @@ export class CloneController extends CommandController<CloneModel> {
       return { dest: env };
     }
 
-    // 3. template.environment — TBD; see slates/spawn-shape-slate.md.
-    //    Slot reserved between (2) and (4) so the future addition is
-    //    a single insertion, no reordering.
+    // Layer 3: hydration self-placement. If the instance already has
+    // a container, accept it — no additional move.
+    if (item.getContainer() !== null) {
+      return { dest: null };
+    }
 
-    // 4. Fallback — the giver themselves (inventory). Avatars
+    // Layer 4: Fallback — the giver themselves (inventory). Avatars
     // compose Container, so this normally works; non-Container
     // givers can't catch the fallback and fail explicitly.
     if (!MixinApi.isContainer(giver)) {

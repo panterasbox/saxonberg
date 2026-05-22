@@ -215,6 +215,19 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
   surface). No paired getter for the spec. Hydrator dispatch:
   Phase 2 — `applyX` required.
 
+  Other appliers shipped by the substrate:
+  - `applyContainer` on `ContainableMixin` — resolves a templatePath
+    via `StuffApi.singleton` and moves self into it via
+    `ContainmentApi.move`. Compare-and-move idempotency: no-op when
+    the current container's templatePath matches the declared path.
+    Target must be singleton-shaped (validated at template-save
+    time by `TemplateApi.validateSingletonContainerTarget`).
+  - `applyPopulates` on `PopulatesMixin` — iterates a list of
+    templatePaths, dispatching per-entry by source-template
+    singleton-shape: singletons resolved via `StuffApi.singleton`
+    (skip-when-already-elsewhere); non-singletons cloned via
+    `StuffApi.clone` and moved into self.
+
 The two shapes split apart cleanly: properties have symmetric shape
 and storage IS the value; instructions are commands whose outcome
 lives elsewhere. Trying to use `set/get` for instructions produces
@@ -353,6 +366,51 @@ class Avatar {
 Avatar templates are stored at `/obj/Avatar/<playerId>` and created
 automatically when a Player is added to a User. Cloning happens at user
 connect (see `Application.handleUserConnect`).
+
+The per-player Avatar template is **bidirectional**: it carries the
+initial state at first clone AND receives written-back state on save.
+Other templates (zones, generic items) are read-only from the content
+author's perspective; only the per-player Avatar template's `data`
+block is mutated by the runtime via `Avatar.save()`.
+
+## Persist-Back: snapshot / restore
+
+`TemplateApi` offers two stateless static methods for Stuff↔Template
+round-trip on a live host:
+
+- `TemplateApi.snapshotToTemplate(stuff)` — walks the host's
+  `persistentFields` chain via `MixinApi.getAllPersistentFields`,
+  marshals values per `MixinApi.getAllFieldMarshallers`, derives
+  `data.container` from the live container ref when the host is
+  Containable, merges over the existing `tpl.data` (preserves
+  non-mixin-managed keys), and **returns the mutated Template
+  without committing**. The caller invokes `tpl.save()` when ready.
+  Separating capture from commit makes the snapshot composable.
+- `TemplateApi.restoreFromTemplate(stuff)` — looks up the Template
+  by the host's runtime-stamped `getTemplatePath()` and runs
+  `PersistentHydrator.hydrate(host, tpl.data)`. Operates on the
+  existing live instance; preserves identity / stuffId / wired
+  Interactives. Phase 2 appliers re-fire (e.g., `applyContainer`
+  moves the host via compare-and-move).
+
+**Synchronous-prefix-before-first-await ordering.** The
+persistentFields walk and container ref read inside
+`snapshotToTemplate` run synchronously, before `Template.findByPath`
+yields. This is load-bearing for `onDestruct`-driven fire-and-forget
+saves: the snapshot captures pre-cleanup field values even though
+the MongoDB write itself is async.
+
+**No in-process coordination.** Concurrent snapshots each produce a
+valid full-state snapshot; MongoDB's `replaceOne` resolves ordering
+as last-write-wins. The redundant-work cost (an extra
+persistentFields walk + an extra Mongo write at the periodic
+cadence) is negligible.
+
+v1 consumer surface: `Avatar.save()` / `Avatar.restore()` are
+two-line shims over these methods. No `PersistableStuffMixin`; no
+generalization to arbitrary Stuff — but the substrate is
+class-shape-agnostic so the next consumer doesn't repeat the
+mechanism inline.
 
 ## `create` and `createSync` (Sister APIs)
 

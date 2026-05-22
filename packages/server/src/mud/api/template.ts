@@ -24,6 +24,11 @@ import { ZoneTemplate } from '../lib/stuff/ZoneTemplate';
 import { LeafTemplate } from '../lib/stuff/LeafTemplate';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
+import { MixinApi } from './mixin';
+import { Mixins } from '../lib/mixin';
+import type { Stuff } from '../lib/stuff/Stuff';
+import type { Marshaller } from '../lib/persistence/Marshaller';
+import { PersistentHydrator } from '../lib/persistence/PersistentHydrator';
 
 /**
  * Thrown when a domain-collection write would violate the folder/leaf
@@ -123,6 +128,69 @@ export class TemplateApi {
   }
 
   /**
+   * Validate a candidate domain-template doc's `data.container`
+   * against the singleton-target constraint:
+   *
+   *   - Skip when `data.container` is absent or non-string.
+   *   - Resolve the source class; throw if it doesn't compose
+   *     `ContainableMixin` (a non-Containable declaring `container`
+   *     is a config bug; Phase 2 would fail loudly at hydrate time,
+   *     but template-save is the earlier surface).
+   *   - Resolve the target template at the declared path; throw if
+   *     it doesn't exist.
+   *   - Resolve the target's backing class; throw if the class does
+   *     NOT compose `SingletonMixin`.
+   *
+   * Used by `DomainHook.aroundSave` alongside
+   * `validateFolderLeafSave`. Per declarative-content-slate
+   * § container: on Template — singleton-target constraint.
+   */
+  public static async validateSingletonContainerTarget(
+    doc: Record<string, unknown>
+  ): Promise<void> {
+    const data = doc.data as Record<string, unknown> | undefined;
+    if (!data || typeof data.container !== 'string') return;
+    const targetPath = data.container;
+    const sourcePath =
+      typeof doc.path === 'string' ? doc.path : '(unknown source)';
+
+    // 1. Source class must compose ContainableMixin.
+    const sourceClass = doc.class;
+    if (typeof sourceClass !== 'string') return; // folder-leaf validator handles
+    const sourceCtor = (await StuffApi.loadClassByPath(sourceClass)) as new (
+      ...args: unknown[]
+    ) => unknown;
+    if (!MixinApi.hasMixin(sourceCtor, Mixins.Containable)) {
+      throw new TemplateError(
+        `Template '${sourcePath}' declares 'data.container' but its ` +
+          `class '${sourceClass}' does not compose ContainableMixin.`
+      );
+    }
+
+    // 2. Target template must exist.
+    const targetTpl = await Template.findByPath(targetPath);
+    if (!targetTpl) {
+      throw new TemplateError(
+        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
+          `but no template exists at that path.`
+      );
+    }
+
+    // 3. Target class must compose SingletonMixin.
+    const targetCtor = (await StuffApi.loadClassByPath(targetTpl.class)) as new (
+      ...args: unknown[]
+    ) => unknown;
+    if (!MixinApi.hasMixin(targetCtor, Mixins.Singleton)) {
+      throw new TemplateError(
+        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
+          `but the target's class '${targetTpl.class}' does not compose ` +
+          `SingletonMixin. The container: target must be singleton-shaped ` +
+          `(see declarative-content-slate § container:).`
+      );
+    }
+  }
+
+  /**
    * Validate a candidate delete against the folder/leaf invariant: a Zone
    * template cannot be deleted while descendants still reference it as a
    * folder.
@@ -149,6 +217,140 @@ export class TemplateApi {
    */
   static ancestorPaths(path: string): string[] {
     return Template.ancestorPaths(path);
+  }
+
+  /**
+   * Snapshot a live Stuff host's `persistentFields` chain back to its
+   * backing Template doc's `data` block. Walks the composed mixin
+   * chain via `MixinApi.getAllPersistentFields(stuff.constructor)`;
+   * marshals values per `MixinApi.getAllFieldMarshallers`; derives
+   * `data.container` from the live container ref when the host is
+   * Containable; merges over the existing `tpl.data` (preserves
+   * non-mixin-managed keys).
+   *
+   * **Pure capture-state: does NOT call `tpl.save()`.** Returns the
+   * mutated Template; the caller decides when to commit. Separating
+   * capture from commit lets callers inspect, batch, or short-
+   * circuit before persisting. Default usage:
+   *
+   *     const tpl = await TemplateApi.snapshotToTemplate(host);
+   *     await tpl.save();
+   *
+   * Keyed on `stuff.getTemplatePath()` — the runtime stamp every
+   * Stuff carries post-clone — NOT on any class-specific helper.
+   * The method is class-shape-agnostic.
+   *
+   * **Synchronous-prefix-before-first-await ordering.** The
+   * persistentFields walk and the container ref read run
+   * synchronously, BEFORE `Template.findByPath` yields. This is
+   * load-bearing for `onDestruct`-driven fire-and-forget saves:
+   * they capture pre-cleanup field values even though the MongoDB
+   * write itself is async.
+   *
+   * Concurrent calls produce equivalent full-state snapshots — no
+   * in-process coordination. MongoDB's `replaceOne` resolves
+   * ordering as last-write-wins.
+   *
+   * Throws when the host has no templatePath stamp, when no
+   * Template exists at the resolved path, or when a marshalled
+   * field references an unregistered marshaller.
+   */
+  public static async snapshotToTemplate(
+    stuff: Stuff
+  ): Promise<Template> {
+    const path = stuff.getTemplatePath();
+    if (!path) {
+      throw new Error(
+        `TemplateApi.snapshotToTemplate: Stuff has no templatePath stamp`
+      );
+    }
+
+    // Synchronous snapshot — captures field values + container ref
+    // BEFORE any event-loop yield. Load-bearing for onDestruct-
+    // driven saves.
+    const ctor = stuff.constructor as new (...args: unknown[]) => Stuff;
+    const fields = MixinApi.getAllPersistentFields(ctor);
+    const marshallerPaths = MixinApi.getAllFieldMarshallers(ctor);
+    const self = stuff as unknown as Record<string, unknown>;
+    const snapshot: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (!(field in stuff)) continue;
+      snapshot[field] = self[field];
+    }
+    const hostIsContainable = MixinApi.isContainable(stuff);
+    const containerPath = hostIsContainable
+      ? stuff.getContainer()?.getTemplatePath() ?? null
+      : null;
+
+    const tpl = await Template.findByPath(path);
+    if (!tpl) {
+      throw new Error(
+        `TemplateApi.snapshotToTemplate: no template at '${path}'`
+      );
+    }
+
+    const data: Record<string, unknown> = { ...(tpl.data ?? {}) };
+    for (const field of fields) {
+      if (!(field in snapshot)) continue;
+      const value = snapshot[field];
+      const mPath = marshallerPaths[field];
+      if (mPath) {
+        const m = StuffApi.findByTemplatePath<
+          Marshaller<unknown, unknown>
+        >(mPath);
+        if (!m) {
+          throw new Error(
+            `TemplateApi.snapshotToTemplate: marshaller '${mPath}' ` +
+              `for field '${field}' not registered.`
+          );
+        }
+        data[field] = m.toStored(value);
+      } else {
+        data[field] = value;
+      }
+    }
+    if (hostIsContainable) {
+      if (containerPath !== null) {
+        data.container = containerPath;
+      } else {
+        delete data.container;
+      }
+    }
+
+    tpl.data = data;
+    return tpl; // Caller commits via tpl.save().
+  }
+
+  /**
+   * Re-hydrate a live Stuff host's in-memory state from its current
+   * Template doc. Operates on the existing instance; preserves
+   * identity / stuffId / wired Interactives. Phase 1 setters
+   * overwrite field values; Phase 2 appliers re-fire (e.g.
+   * `applyContainer` moves the host via compare-and-move).
+   *
+   * v1 coordination: developer/admin operation; does NOT
+   * synchronize against multiplexed observers.
+   *
+   * Throws on missing templatePath, missing Template doc, or
+   * hydration failure.
+   */
+  public static async restoreFromTemplate(stuff: Stuff): Promise<void> {
+    const path = stuff.getTemplatePath();
+    if (!path) {
+      throw new Error(
+        `TemplateApi.restoreFromTemplate: Stuff has no templatePath stamp`
+      );
+    }
+    const tpl = await Template.findByPath(path);
+    if (!tpl) {
+      throw new Error(
+        `TemplateApi.restoreFromTemplate: no template at '${path}'`
+      );
+    }
+    const hydrator = await StuffApi.singleton<PersistentHydrator>(
+      PersistentHydrator.templatePath
+    );
+    await hydrator.hydrate(stuff, tpl.data ?? {});
   }
 }
 

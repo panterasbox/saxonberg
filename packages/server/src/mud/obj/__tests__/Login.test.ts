@@ -1,15 +1,9 @@
 /**
- * Login tests — focused on the constructor and the error path.
- *
- * The happy path of `enter()` reaches across many subsystems
- * (ConnectionApi, PlayerApi, StuffApi.singleton, MessageApi, EventApi,
- * Avatar.teleport) — each of which would have to be stubbed in turn,
- * and most are exercised by their own tests. This file pins:
- *
- *   - the constructor stores the Interactive and seeds the
- *     HasInteractive set so MixinApi.isHasInteractive(login) reads true;
- *   - `enter()` rejects when the user has zero or multiple avatars —
- *     a hard requirement of v1 character selection.
+ * Login tests — focused on Login's narrow charter: transfer the
+ * Interactive to the resolved Avatar, hand off to `avatar.enter()`,
+ * and destruct. Session-start behavior (location placement, welcome
+ * scene, autosave, look description, PlayerLoggedIn event) lives on
+ * `Avatar.enter()` and is tested in Avatar.test.ts.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -101,6 +95,52 @@ describe('Login', () => {
         interactive,
       );
       expect((transferCalls[0] as { holder: unknown }).holder).toBe(login);
+    });
+  });
+
+  describe('enter() — handoff to Avatar', () => {
+    it('transfers the Interactive to the avatar and calls avatar.enter()', async () => {
+      const fakeAvatar = {
+        enter: vi.fn().mockResolvedValue(undefined),
+        getFullName: () => 'Test Avatar',
+      } as unknown as Avatar;
+
+      const transferCalls: unknown[] = [];
+      vi.spyOn(ConnectionApi, 'transfer').mockImplementation((ix, h) => {
+        transferCalls.push({ interactive: ix, holder: h });
+      });
+      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([fakeAvatar]);
+      vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
+
+      await login.enter();
+
+      // Two transfers: Login → Avatar.
+      expect(transferCalls).toHaveLength(2);
+      expect((transferCalls[0] as { holder: unknown }).holder).toBe(login);
+      expect((transferCalls[1] as { holder: unknown }).holder).toBe(fakeAvatar);
+
+      // Avatar's session start fired with the Interactive.
+      expect(fakeAvatar.enter).toHaveBeenCalledTimes(1);
+      expect((fakeAvatar.enter as ReturnType<typeof vi.fn>).mock.calls[0]![0])
+        .toBe(interactive);
+    });
+
+    it('destructs self after avatar.enter() completes', async () => {
+      const fakeAvatar = {
+        enter: vi.fn().mockResolvedValue(undefined),
+        getFullName: () => 'Test Avatar',
+      } as unknown as Avatar;
+
+      vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
+      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([fakeAvatar]);
+      const destructSpy = vi
+        .spyOn(StuffApi, 'destruct')
+        .mockImplementation(() => {});
+
+      await login.enter();
+
+      expect(destructSpy).toHaveBeenCalledTimes(1);
+      expect(destructSpy.mock.calls[0]![0]).toBe(login);
     });
   });
 });
