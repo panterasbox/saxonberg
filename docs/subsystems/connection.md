@@ -255,7 +255,21 @@ proper `transfer` happens inside `enter()` (next phase).
 
 ## Phase 4: Avatar Materialization and Handoff
 
-`Login.enter()` is the body of the entry procedure. Verbatim sequence:
+The entry procedure splits cleanly across two objects:
+
+- **`Login.enter()`** owns connection routing — take ownership of
+  the Interactive, resolve which Avatar this user should connect to,
+  transfer the Interactive to the Avatar, hand off to
+  `avatar.enter()`, destruct.
+- **`Avatar.enter(interactive)`** owns the session-start — anything
+  that's "playing as this avatar" (location placement, welcome
+  scene, look description, autosave, the PlayerLoggedIn event).
+
+The split keeps each side's concerns aligned with the object whose
+lifecycle they belong to. Login doesn't need to know what "starting
+a session" means; Avatar doesn't need to know how Login picked it.
+
+### `Login.enter()` — verbatim sequence
 
 1. **`ConnectionApi.transfer(interactive, this)`** — formal handoff
    to Login. Calls `interactive.setHolder(login)` and fires
@@ -283,25 +297,35 @@ proper `transfer` happens inside `enter()` (next phase).
 
 4. **`ConnectionApi.transfer(interactive, avatar)`** — moves the
    holder slot from Login to Avatar. Witness hooks fire (see
-   [§ Multiplexing](#multiplexing)). Immediately after, **`avatar.startAutoSave()`**
-   installs the periodic persist-back timer (see
-   [§ Auto-save lifecycle](#auto-save-lifecycle)).
+   [§ Multiplexing](#multiplexing)).
 
-5. **Resolve the starting location.** Consults the avatar's live
+5. **`await avatar.enter(interactive)`** — hand off to Avatar's
+   session-start. Login doesn't introspect the result; whatever
+   Avatar needs to do is its responsibility.
+
+6. **`StuffApi.destruct(this)`** — Login is gone. The connection
+   has been handed off; nothing depends on Login any more.
+
+### `Avatar.enter(interactive)` — session start
+
+1. **Resolve the starting location.** Consults the avatar's live
    container first — set by the Avatar template's `data.container`
-   via Phase 2 `applyContainer` during clone, or by `Avatar.restore()`
-   re-hydrating saved state. Only when the avatar has no container
-   (a brand-new spawn with no declared `data.container`) does the
-   fallback fire:
-   `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and a silent
-   `avatar.teleport(loc, { silent: true })`. Per-Avatar persist-back
-   makes this branch the rarer path; the common case across restarts
-   is `avatar.getContainer()` already pointing at the saved location.
+   via Phase 2 `applyContainer` during clone, or by
+   `Avatar.restore()` re-hydrating saved state. Only when the
+   avatar has no container (a brand-new spawn with no declared
+   `data.container`) does the fallback fire:
+   `StuffApi.singleton(DEFAULT_STARTING_LOCATION_PATH)` and a
+   silent `avatar.teleport(loc, { silent: true })`. Per-Avatar
+   persist-back makes this branch the rarer path; the common case
+   across restarts is `avatar.getContainer()` already pointing at
+   the saved location.
 
-6. **Welcome scene** at topic
-   `system.connection.established`, audience `toSelf`, body
-   `"Welcome back, <fullName>!"`, with a **payload** the client
-   needs for bootstrap:
+2. **`avatar.startAutoSave()`** installs the periodic persist-back
+   timer (see [§ Auto-save lifecycle](#auto-save-lifecycle)).
+
+3. **Welcome scene** at topic `system.connection.established`,
+   audience `toSelf`, body `"Welcome back, <fullName>!"`, with a
+   **payload** the client needs for bootstrap:
 
    ```typescript
    .payload({
@@ -320,17 +344,14 @@ proper `transfer` happens inside `enter()` (next phase).
    })
    ```
 
-7. **`sendLookDescription(avatar)`** — frames the room name + long
-   description as a `world.perception.look` scene to the actor.
+4. **`sendLookDescription()`** — frames the current location's name
+   + long description as a `world.perception.look` scene to self.
 
-8. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
+5. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
    engine event for any observer (audit, achievements).
 
-9. **`StuffApi.destruct(this)`** — Login is gone. The connection
-   has been handed off; nothing depends on Login any more.
-
-After `enter()` returns, the user is in-world.
-`interactive.getHolder() === avatar`; `Login` is destructed and
+After `Avatar.enter()` returns, the user is in-world.
+`interactive.getHolder() === avatar`; Login is destructed and
 unregistered.
 
 ## Multiplexing
@@ -542,10 +563,10 @@ if a caller didn't drop the connections first.
 
 ### Auto-save lifecycle
 
-`Avatar.startAutoSave()` is invoked from `Login.enter` post-transfer.
-It installs a `ScheduleApi.recurring` timer that calls
-`avatar.save()` (which delegates to `TemplateApi.snapshotToTemplate`
-+ `Template.save`). Three knobs are set explicitly:
+`Avatar.startAutoSave()` is invoked from `Avatar.enter()` during
+session start. It installs a `ScheduleApi.recurring` timer that
+calls `avatar.save()` (which delegates to
+`TemplateApi.snapshotToTemplate` + `Template.save`). Three knobs are set explicitly:
 
 - **Cadence**: resolved from the `world.autosave.interval` setting
   (declared on `Avatar`, default 5 minutes). Per-Avatar overrides

@@ -281,7 +281,8 @@ substrate machinery is general (`TemplateApi.snapshotToTemplate` /
   its template doc. v1 is developer/admin only.
 - **Auto-save fires** on logout/linkdead (via `Avatar.onDestruct`'s
   fire-and-forget save) and on a periodic backstop installed by
-  `Login.enter`. Cadence comes from the `world.autosave.interval`
+  `Avatar.enter()` (called from `Login.enter` after the connection
+  transfer). Cadence comes from the `world.autosave.interval`
   setting (default 5 minutes); per-Avatar overrides fall out of the
   standard `resolveSetting` chain.
 

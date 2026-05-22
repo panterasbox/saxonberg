@@ -1,15 +1,9 @@
 /**
- * Login tests — focused on the constructor and the error path.
- *
- * The happy path of `enter()` reaches across many subsystems
- * (ConnectionApi, PlayerApi, StuffApi.singleton, MessageApi, EventApi,
- * Avatar.teleport) — each of which would have to be stubbed in turn,
- * and most are exercised by their own tests. This file pins:
- *
- *   - the constructor stores the Interactive and seeds the
- *     HasInteractive set so MixinApi.isHasInteractive(login) reads true;
- *   - `enter()` rejects when the user has zero or multiple avatars —
- *     a hard requirement of v1 character selection.
+ * Login tests — focused on Login's narrow charter: transfer the
+ * Interactive to the resolved Avatar, hand off to `avatar.enter()`,
+ * and destruct. Session-start behavior (location placement, welcome
+ * scene, autosave, look description, PlayerLoggedIn event) lives on
+ * `Avatar.enter()` and is tested in Avatar.test.ts.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -17,15 +11,11 @@ import { Login } from '../Login';
 import { Interactive } from '../Interactive';
 import { StuffApi } from '../../api/stuff';
 import { ConnectionApi } from '../../api/connection';
-import { EventApi } from '../../api/event';
 import { PlayerApi } from '../../api/player';
-import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../../config/constants';
 import type { User } from '../../lib/identity/User';
 import type { Avatar } from '../Avatar';
-import type { Location } from '../../lib/stuff/Location';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function fakeUser(id: string): User {
@@ -108,149 +98,49 @@ describe('Login', () => {
     });
   });
 
-  describe('enter() — starting-location resolution', () => {
-    /**
-     * Shared scaffolding for the happy-path tests. Builds a minimal
-     * fake avatar surface, stubs the cross-subsystem dependencies
-     * (ConnectionApi.transfer, MessageApi.scene, EventApi.emit,
-     * StuffApi.destruct), and lets each test wire the avatar's
-     * pre-existing container plus the singleton stub.
-     */
-    interface FakeAvatar {
-      teleport: ReturnType<typeof vi.fn>;
-      getContainer: ReturnType<typeof vi.fn>;
-      startAutoSave: ReturnType<typeof vi.fn>;
-      getFullName: () => string;
-      getPlayerId: () => string;
-      getHonorific: () => string;
-      getName: () => string;
-      getSurname: () => string;
-      getNameSuffix: () => string;
-      getAlternateNames: () => string[];
-      getPronouns: () => string;
-    }
-
-    function fakeAvatar(opts: { container: unknown }): FakeAvatar {
-      return {
-        teleport: vi.fn(),
-        getContainer: vi.fn(() => opts.container),
-        startAutoSave: vi.fn(),
+  describe('enter() — handoff to Avatar', () => {
+    it('transfers the Interactive to the avatar and calls avatar.enter()', async () => {
+      const fakeAvatar = {
+        enter: vi.fn().mockResolvedValue(undefined),
         getFullName: () => 'Test Avatar',
-        getPlayerId: () => 'p1',
-        getHonorific: () => '',
-        getName: () => 'Test',
-        getSurname: () => 'Avatar',
-        getNameSuffix: () => '',
-        getAlternateNames: () => [],
-        getPronouns: () => 'they/them',
-      };
-    }
+      } as unknown as Avatar;
 
-    function stubScene() {
-      // No-op scene chain; verify by spying on .send() if needed.
-      const send = vi.fn();
-      vi.spyOn(MessageApi, 'scene').mockImplementation(
-        () =>
-          ({
-            topic: () => ({
-              toSelf: () => ({
-                payload: () => ({ send }),
-                send,
-              }),
-            }),
-          }) as never
-      );
-      return { send };
-    }
-
-    it('uses avatar.getContainer() when the avatar is already placed (no fallback singleton call)', async () => {
-      const fakeLocation = {
-        _id: 'loc-pre-set',
-        stuffId: 'pre-set-stuffId',
-      } as unknown as Location;
-      const avatar = fakeAvatar({ container: fakeLocation });
-
-      vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
-      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([
-        avatar as unknown as Avatar,
-      ]);
-      const singletonSpy = vi
-        .spyOn(StuffApi, 'singleton')
-        .mockResolvedValue({} as never);
+      const transferCalls: unknown[] = [];
+      vi.spyOn(ConnectionApi, 'transfer').mockImplementation((ix, h) => {
+        transferCalls.push({ interactive: ix, holder: h });
+      });
+      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([fakeAvatar]);
       vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
-      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
-      stubScene();
-
-      // Stub the interactive getters
-      vi.spyOn(interactive, 'getUser').mockReturnValue(user);
-      vi.spyOn(interactive, 'getUserId').mockReturnValue('user-1');
-      vi.spyOn(interactive, 'getSocketId').mockReturnValue('sock-1');
-      vi.spyOn(interactive, 'getSessionId').mockReturnValue('sess-1');
 
       await login.enter();
 
-      expect(singletonSpy).not.toHaveBeenCalled();
-      expect(avatar.teleport).not.toHaveBeenCalled();
+      // Two transfers: Login → Avatar.
+      expect(transferCalls).toHaveLength(2);
+      expect((transferCalls[0] as { holder: unknown }).holder).toBe(login);
+      expect((transferCalls[1] as { holder: unknown }).holder).toBe(fakeAvatar);
+
+      // Avatar's session start fired with the Interactive.
+      expect(fakeAvatar.enter).toHaveBeenCalledTimes(1);
+      expect((fakeAvatar.enter as ReturnType<typeof vi.fn>).mock.calls[0]![0])
+        .toBe(interactive);
     });
 
-    it('falls back to DEFAULT_STARTING_LOCATION_PATH when avatar has no container', async () => {
-      const avatar = fakeAvatar({ container: null });
-      const fallback = {
-        _id: 'loc-fallback',
-        stuffId: 'fallback-stuffId',
-      } as unknown as Location;
+    it('destructs self after avatar.enter() completes', async () => {
+      const fakeAvatar = {
+        enter: vi.fn().mockResolvedValue(undefined),
+        getFullName: () => 'Test Avatar',
+      } as unknown as Avatar;
 
       vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
-      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([
-        avatar as unknown as Avatar,
-      ]);
-      const singletonSpy = vi
-        .spyOn(StuffApi, 'singleton')
-        .mockResolvedValue(fallback as never);
-      vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
-      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
-      stubScene();
-
-      vi.spyOn(interactive, 'getUser').mockReturnValue(user);
-      vi.spyOn(interactive, 'getUserId').mockReturnValue('user-1');
-      vi.spyOn(interactive, 'getSocketId').mockReturnValue('sock-1');
-      vi.spyOn(interactive, 'getSessionId').mockReturnValue('sess-1');
+      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([fakeAvatar]);
+      const destructSpy = vi
+        .spyOn(StuffApi, 'destruct')
+        .mockImplementation(() => {});
 
       await login.enter();
 
-      expect(singletonSpy).toHaveBeenCalledWith(DEFAULT_STARTING_LOCATION_PATH);
-      expect(avatar.teleport).toHaveBeenCalledTimes(1);
-      expect(avatar.teleport).toHaveBeenCalledWith(fallback, { silent: true });
-    });
-
-    it('fallback teleport is silent (no movement narration)', async () => {
-      const avatar = fakeAvatar({ container: null });
-      const fallback = {
-        _id: 'loc-fallback',
-        stuffId: 'fallback-stuffId',
-      } as unknown as Location;
-
-      vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
-      vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([
-        avatar as unknown as Avatar,
-      ]);
-      vi.spyOn(StuffApi, 'singleton').mockResolvedValue(fallback as never);
-      vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
-      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
-      stubScene();
-
-      vi.spyOn(interactive, 'getUser').mockReturnValue(user);
-      vi.spyOn(interactive, 'getUserId').mockReturnValue('user-1');
-      vi.spyOn(interactive, 'getSocketId').mockReturnValue('sock-1');
-      vi.spyOn(interactive, 'getSessionId').mockReturnValue('sess-1');
-
-      await login.enter();
-
-      // The teleport always gets { silent: true } in the fallback
-      // branch — pinned so a future change that drops the silent
-      // option fails loudly.
-      const args = avatar.teleport.mock.calls[0]!;
-      expect(args[1]).toEqual({ silent: true });
+      expect(destructSpy).toHaveBeenCalledTimes(1);
+      expect(destructSpy.mock.calls[0]![0]).toBe(login);
     });
   });
 });

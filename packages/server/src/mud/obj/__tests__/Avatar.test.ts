@@ -632,4 +632,178 @@ describe('Avatar', () => {
       errSpy.mockRestore();
     });
   });
+
+  describe('enter() — session start', () => {
+    /**
+     * `Avatar.enter(interactive)` is the session-start hand-off
+     * called by `Login.enter`. Tests cover the starting-location
+     * resolution (live ref vs fallback singleton), the autosave
+     * install, the welcome scene, and the PlayerLoggedIn emit.
+     */
+    interface FakeInteractive {
+      stuffId: string;
+      getUser: ReturnType<typeof vi.fn>;
+      getUserId: () => string;
+      getSocketId: () => string;
+      getSessionId: () => string;
+    }
+
+    function fakeInteractive(): FakeInteractive {
+      return {
+        stuffId: 'ix-stuffId',
+        getUser: vi.fn(),
+        getUserId: () => 'user-1',
+        getSocketId: () => 'sock-1',
+        getSessionId: () => 'sess-1',
+      };
+    }
+
+    it('uses avatar.getContainer() when the avatar is already placed (no fallback singleton call)', async () => {
+      const { StuffApi } = await import('../../api/stuff');
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+
+      const fakeLocation = {
+        stuffId: 'pre-set-stuffId',
+      } as never;
+      const avatar = makeAvatar('enter-1');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue(fakeLocation);
+      const teleportSpy = vi
+        .spyOn(avatar, 'teleport')
+        .mockImplementation(() => undefined);
+      const startSpy = vi
+        .spyOn(avatar, 'startAutoSave')
+        .mockImplementation(() => {});
+
+      const singletonSpy = vi
+        .spyOn(StuffApi, 'singleton')
+        .mockResolvedValue({} as never);
+      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+
+      // Stub MessageApi.scene to no-op.
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({
+                payload: () => ({ send }),
+                send,
+              }),
+            }),
+          }) as never
+      );
+
+      const ix = fakeInteractive() as unknown as Interactive;
+      await avatar.enter(ix);
+
+      expect(singletonSpy).not.toHaveBeenCalled();
+      expect(teleportSpy).not.toHaveBeenCalled();
+      expect(startSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to DEFAULT_STARTING_LOCATION_PATH when avatar has no container', async () => {
+      const { StuffApi } = await import('../../api/stuff');
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+      const { DEFAULT_STARTING_LOCATION_PATH } = await import(
+        '../../config/constants'
+      );
+
+      const avatar = makeAvatar('enter-2');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue(null);
+      const teleportSpy = vi
+        .spyOn(avatar, 'teleport')
+        .mockImplementation(() => undefined);
+      vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
+
+      const fallback = { stuffId: 'fallback-stuffId' } as never;
+      const singletonSpy = vi
+        .spyOn(StuffApi, 'singleton')
+        .mockResolvedValue(fallback);
+      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({
+                payload: () => ({ send }),
+                send,
+              }),
+            }),
+          }) as never
+      );
+
+      const ix = fakeInteractive() as unknown as Interactive;
+      await avatar.enter(ix);
+
+      expect(singletonSpy).toHaveBeenCalledWith(DEFAULT_STARTING_LOCATION_PATH);
+      expect(teleportSpy).toHaveBeenCalledTimes(1);
+      expect(teleportSpy).toHaveBeenCalledWith(fallback, { silent: true });
+    });
+
+    it('starts autosave', async () => {
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+
+      const avatar = makeAvatar('enter-3');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue({
+        stuffId: 's',
+      } as never);
+      const startSpy = vi
+        .spyOn(avatar, 'startAutoSave')
+        .mockImplementation(() => {});
+      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({
+                payload: () => ({ send }),
+                send,
+              }),
+            }),
+          }) as never
+      );
+
+      await avatar.enter(fakeInteractive() as unknown as Interactive);
+      expect(startSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('emits Events.PlayerLoggedIn', async () => {
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+      const { Events } = await import('../../lib/events');
+
+      const avatar = makeAvatar('enter-4');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue({
+        stuffId: 's',
+      } as never);
+      vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
+      const emitSpy = vi
+        .spyOn(EventApi, 'emit')
+        .mockImplementation(() => {});
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({
+                payload: () => ({ send }),
+                send,
+              }),
+            }),
+          }) as never
+      );
+
+      await avatar.enter(fakeInteractive() as unknown as Interactive);
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerLoggedIn, {
+        playerId: 'enter-4',
+        userId: 'user-1',
+      });
+    });
+  });
 });

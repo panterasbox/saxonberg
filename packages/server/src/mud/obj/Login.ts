@@ -1,32 +1,26 @@
 /**
- * Login - Per-instance Idea representing a user's entry into the mud.
+ * Login — per-connection Idea that bootstraps a connected user into
+ * their Avatar.
  *
- * Constructed by Application after an Interactive has been established,
- * and lives only as long as the entry procedure takes. Orchestrates the
- * mudlib-side work of putting a connected user into the game world:
- * reading the user's owned character slots, resolving character selection,
- * placing the chosen avatar into a starting location, and notifying the client.
+ * Login's charter is **narrow**: take ownership of the Interactive
+ * for the duration of avatar selection, resolve the user's avatar,
+ * hand the Interactive off, kick off the avatar's session via
+ * `avatar.enter()`, and destruct. Login does not run the session
+ * itself — anything that's part of "playing as the avatar" (location
+ * placement, welcome scene, look description, autosave, the
+ * PlayerLoggedIn event) lives on `Avatar.enter()`. That keeps the
+ * concerns aligned with the object whose session it is.
  *
  * Lifetime: constructed once per login; destructed when the entry is
  * complete (or handed off to character selection).
  */
 
 import { Idea } from '../lib/stuff/Idea';
-import { Location } from '../lib/stuff/Location';
 import { StuffApi } from '../api/stuff';
 import { ConnectionApi } from '../api/connection';
-import { EventApi } from '../api/event';
 import { PlayerApi } from '../api/player';
-import { DescribeApi } from '../api/describe';
-import { MessageApi } from '../api/message';
-import { MixinApi } from '../api/mixin';
-import { Mml } from '../api/mml';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
-import { Events } from '../lib/events';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import type { ConnectionEstablishedPayload } from '@saxonberg/types';
 import type { Interactive } from './Interactive';
-import type { Avatar } from './Avatar';
 
 const LoginBase = HasInteractiveMixin(Idea);
 
@@ -43,11 +37,13 @@ export class Login extends LoginBase {
   }
 
   /**
-   * Run the entry procedure for this Login's Interactive.
+   * Run the entry procedure: take ownership of the connection,
+   * resolve the user's Avatar, transfer the Interactive to it, and
+   * hand off to `avatar.enter()` to start the session.
    *
-   * Users with zero or multiple Players are not supported yet — player
-   * management (including choosing between multiple Players) is a future
-   * feature with its own first-class representation.
+   * Users with zero or multiple Players are not supported yet —
+   * player management (including choosing between multiple Players)
+   * is a future feature with its own first-class representation.
    */
   public async enter(): Promise<void> {
     const { interactive } = this;
@@ -67,96 +63,14 @@ export class Login extends LoginBase {
 
     const avatar = avatars[0]!;
     ConnectionApi.transfer(interactive, avatar);
-    avatar.startAutoSave();
 
     console.info(`Login: User connected - ${avatar.getFullName()}`);
 
-    // Consult the avatar's live container first — set by the Avatar
-    // template's `data.container` via Phase 2 `applyContainer` during
-    // clone, or by `Avatar.restore()` re-hydrating saved state. Only
-    // fall back to the default starting location for a brand-new
-    // avatar with no declared spawn (no container at all).
-    let startingLocation: (Location & object) | null =
-      avatar.getContainer() as (Location & object) | null;
-    if (!startingLocation) {
-      startingLocation = await StuffApi.singleton<Location>(
-        DEFAULT_STARTING_LOCATION_PATH
-      );
-      // Silent spawn: a freshly-cloned avatar shouldn't be announced
-      // as "vanishing" from somewhere or "appearing out of thin air"
-      // before the player has even seen the location.
-      avatar.teleport(startingLocation, { silent: true });
-    }
-    console.info(
-      `Login: ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
-    );
-
-    // Welcome scene: actor frame at system.connection.established
-    // carries the bootstrap payload the client needs.
-    // Welcome is the introductory moment — explicitly the formal
-    // register, so reach for fullName.
-    const payload: ConnectionEstablishedPayload = {
-      userId: interactive.getUserId() ?? '',
-      socketId: interactive.getSocketId(),
-      sessionId: interactive.getSessionId(),
-      interactiveStuffId: interactive.stuffId,
-      player: {
-        _id: avatar.getPlayerId(),
-        honorific: avatar.getHonorific(),
-        name: avatar.getName(),
-        surname: avatar.getSurname(),
-        nameSuffix: avatar.getNameSuffix(),
-        alternateNames: avatar.getAlternateNames(),
-        pronouns: avatar.getPronouns(),
-      },
-    };
-    MessageApi.scene(avatar)
-      .topic(MessageApi.Topics.system.connection.established)
-      .toSelf(Mml.compose`Welcome back, ${avatar.getFullName()}!`)
-      .payload(payload)
-      .send();
-
-    this.sendLookDescription(avatar);
-
-    // Avatar is in-world; the user is logged in. Engine-level event
-    // for any observer (audit, achievements) that doesn't care
-    // which avatar — just that this player is now playable.
-    EventApi.emit(Events.PlayerLoggedIn, {
-      playerId: avatar.getPlayerId(),
-      userId: interactive.getUserId() ?? '',
-    });
+    // Hand off to Avatar's session-start. Everything from here on
+    // (placement, welcome, look, autosave, PlayerLoggedIn) is
+    // Avatar's concern.
+    await avatar.enter(interactive);
 
     StuffApi.destruct(this);
-  }
-
-  private sendLookDescription(avatar: Avatar): void {
-    // The avatar's container is whatever Container holds them —
-    // typically a Location, but may be a Vessel (an entered
-    // wardrobe / ship cabin). The renderer below uses
-    // `MixinApi.isVisible` to narrow before reaching for
-    // description text, so any Container works.
-    const location = avatar.getContainer();
-
-    if (!location) {
-      MessageApi.scene(avatar)
-        .topic(MessageApi.Topics.world.perception.look)
-        .toSelf(Mml.compose`You are nowhere.`)
-        .send();
-      return;
-    }
-
-    // Concrete locations (CartesianLocation, SphericalLocation)
-    // compose VisibleMixin and have getLong(); a bare Location does
-    // not. Narrow before reaching for the description.
-    const description = MixinApi.isVisible(location)
-      ? location.getLong()
-      : '';
-    const body = description
-      ? Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(description)}\n`
-      : Mml.compose`${Mml.location(location)}\n`;
-    MessageApi.scene(avatar)
-      .topic(MessageApi.Topics.world.perception.look)
-      .toSelf(body)
-      .send();
   }
 }

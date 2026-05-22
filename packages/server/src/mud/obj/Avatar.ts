@@ -15,6 +15,11 @@ import { PlayerApi } from '../api/player';
 import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
+import { StuffApi } from '../api/stuff';
+import { MessageApi } from '../api/message';
+import { MixinApi } from '../api/mixin';
+import { DescribeApi } from '../api/describe';
+import { Mml } from '../api/mml';
 import {
   ScheduleApi,
   type ScheduleHandle,
@@ -27,10 +32,17 @@ import {
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { Events } from '../lib/events';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
+import { Location } from '../lib/stuff/Location';
 import type { User } from '../lib/identity/User';
-import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
+import type {
+  ConnectionEstablishedPayload,
+  EnvelopeTemplate,
+  MessageFrame,
+} from '@saxonberg/types';
 import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
+import type { Interactive } from './Interactive';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -63,7 +75,7 @@ export class Avatar extends AvatarBase {
    * `static settings` are unioned alongside mixin-level entries.
    *
    * `world.autosave.interval` controls the cadence of the periodic-
-   * save backstop installed in `Login.enter`. Resolved once at
+   * save backstop installed in `Avatar.enter`. Resolved once at
    * `startAutoSave()` time; mid-session changes don't restart the
    * timer (documented limitation).
    *
@@ -183,10 +195,124 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * Periodic auto-save handle. Started by `Login.enter` post-
-   * connection; cleared by `onDestruct`. Mechanism is
-   * `ScheduleApi.recurring` — the purpose-built substrate wrapper
-   * with `propagateAttribution: false` (the save isn't causally a
+   * Begin this Avatar's playable session. Called by `Login.enter`
+   * after the Interactive has been transferred from Login to this
+   * Avatar. Owns everything that's "playing as this avatar":
+   *
+   *   1. Resolve the starting location — consult the live container
+   *      first (set by the Avatar template's `data.container` via
+   *      Phase 2 `applyContainer` during clone, or by
+   *      `Avatar.restore()` re-hydrating saved state). Only fall back
+   *      to `DEFAULT_STARTING_LOCATION_PATH` for a brand-new avatar
+   *      with no declared spawn.
+   *   2. Install the periodic-save backstop via `startAutoSave()`.
+   *   3. Send the welcome scene with the connection-established
+   *      payload the client needs for bootstrap.
+   *   4. Send the look description of the starting location.
+   *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
+   *
+   * Idempotent in spirit: each call corresponds to a fresh session
+   * entry. Multiple Interactives multiplexed onto the same Avatar
+   * call this once per session-start (whoever wins the
+   * `ConnectionApi.transfer` race triggers the call); subsequent
+   * additional connections come through `addInteractive` directly,
+   * not through `enter`.
+   */
+  public async enter(interactive: Interactive): Promise<void> {
+    let startingLocation: (Location & object) | null =
+      this.getContainer() as (Location & object) | null;
+    if (!startingLocation) {
+      startingLocation = await StuffApi.singleton<Location>(
+        DEFAULT_STARTING_LOCATION_PATH
+      );
+      // Silent spawn: a freshly-cloned avatar shouldn't be announced
+      // as "vanishing" from somewhere or "appearing out of thin air"
+      // before the player has even seen the location.
+      this.teleport(startingLocation, { silent: true });
+    }
+    console.info(
+      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
+    );
+
+    this.startAutoSave();
+
+    // Welcome scene: actor frame at system.connection.established
+    // carries the bootstrap payload the client needs.
+    // Welcome is the introductory moment — explicitly the formal
+    // register, so reach for fullName.
+    const payload: ConnectionEstablishedPayload = {
+      userId: interactive.getUserId() ?? '',
+      socketId: interactive.getSocketId(),
+      sessionId: interactive.getSessionId(),
+      interactiveStuffId: interactive.stuffId,
+      player: {
+        _id: this.getPlayerId(),
+        honorific: this.getHonorific(),
+        name: this.getName(),
+        surname: this.getSurname(),
+        nameSuffix: this.getNameSuffix(),
+        alternateNames: this.getAlternateNames(),
+        pronouns: this.getPronouns(),
+      },
+    };
+    MessageApi.scene(this)
+      .topic(MessageApi.Topics.system.connection.established)
+      .toSelf(Mml.compose`Welcome back, ${this.getFullName()}!`)
+      .payload(payload)
+      .send();
+
+    this.sendLookDescription();
+
+    // Avatar is in-world; the user is logged in. Engine-level event
+    // for any observer (audit, achievements) that doesn't care
+    // which avatar — just that this player is now playable.
+    EventApi.emit(Events.PlayerLoggedIn, {
+      playerId: this.getPlayerId(),
+      userId: interactive.getUserId() ?? '',
+    });
+  }
+
+  /**
+   * Frame the current location's name + long description as a
+   * `world.perception.look` scene to self. Used by `enter()` to
+   * give the player an immediate read on where they are.
+   */
+  private sendLookDescription(): void {
+    // The avatar's container is whatever Container holds them —
+    // typically a Location, but may be a Vessel (an entered
+    // wardrobe / ship cabin). The renderer below uses
+    // `MixinApi.isVisible` to narrow before reaching for
+    // description text, so any Container works.
+    const location = this.getContainer();
+
+    if (!location) {
+      MessageApi.scene(this)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You are nowhere.`)
+        .send();
+      return;
+    }
+
+    // Concrete locations (CartesianLocation, SphericalLocation)
+    // compose VisibleMixin and have getLong(); a bare Location does
+    // not. Narrow before reaching for the description.
+    const description = MixinApi.isVisible(location)
+      ? location.getLong()
+      : '';
+    const body = description
+      ? Mml.compose`${Mml.location(location)}\n\n${Mml.fromMarkup(description)}\n`
+      : Mml.compose`${Mml.location(location)}\n`;
+    MessageApi.scene(this)
+      .topic(MessageApi.Topics.world.perception.look)
+      .toSelf(body)
+      .send();
+  }
+
+  /**
+   * Periodic auto-save handle. Started by `enter()` post-connection;
+   * cleared by `onDestruct`. Mechanism is `ScheduleApi.recurring` —
+   * the purpose-built substrate wrapper with
+   * `propagateAttribution: false` (the save isn't causally a
    * follow-on of login) and `mode: 'fixed-delay'` (drift-tolerant).
    *
    * TypeScript `private` (not `#`) per the domain-code default —
