@@ -476,4 +476,160 @@ describe('Avatar', () => {
       expect(avatar.listVars()).toEqual({ keep: 'me' });
     });
   });
+
+  describe('persist-back shims', () => {
+    it('save() delegates to TemplateApi.snapshotToTemplate + tpl.save()', async () => {
+      const { TemplateApi } = await import('../../api/template');
+      const fakeTpl = { save: vi.fn().mockResolvedValue(undefined) };
+      const snapSpy = vi
+        .spyOn(TemplateApi, 'snapshotToTemplate')
+        .mockResolvedValue(fakeTpl as never);
+      const avatar = makeAvatar('save-test');
+      await avatar.save();
+      expect(snapSpy).toHaveBeenCalledTimes(1);
+      expect(snapSpy.mock.calls[0]![0]).toBe(avatar);
+      expect(fakeTpl.save).toHaveBeenCalledTimes(1);
+      snapSpy.mockRestore();
+    });
+
+    it('restore() delegates to TemplateApi.restoreFromTemplate', async () => {
+      const { TemplateApi } = await import('../../api/template');
+      const restoreSpy = vi
+        .spyOn(TemplateApi, 'restoreFromTemplate')
+        .mockResolvedValue(undefined);
+      const avatar = makeAvatar('restore-test');
+      await avatar.restore();
+      expect(restoreSpy).toHaveBeenCalledTimes(1);
+      expect(restoreSpy.mock.calls[0]![0]).toBe(avatar);
+      restoreSpy.mockRestore();
+    });
+  });
+
+  describe('auto-save', () => {
+    it('declares world.autosave.interval as a Number setting on Avatar', () => {
+      const entry = (Avatar as { settings?: Array<{
+        key: string;
+        type: string;
+        default: unknown;
+        description: string;
+      }> }).settings?.find(
+        (e) => e.key === 'world.autosave.interval'
+      );
+      expect(entry).toBeDefined();
+      expect(entry!.type).toBe('number');
+      expect(entry!.default).toBe(5 * 60 * 1000);
+      expect(entry!.description).toMatch(/milliseconds/i);
+    });
+
+    it('startAutoSave() resolves world.autosave.interval and passes it to ScheduleApi.recurring', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      const recurringSpy = vi
+        .spyOn(ScheduleApi, 'recurring')
+        .mockReturnValue({ id: 'h1' } as never);
+      const avatar = makeAvatar('autosave-1');
+      avatar.startAutoSave();
+      expect(recurringSpy).toHaveBeenCalledTimes(1);
+      const call = recurringSpy.mock.calls[0]!;
+      expect(call[0]).toBe(5 * 60 * 1000);
+      expect(call[2]).toEqual({
+        propagateAttribution: false,
+        mode: 'fixed-delay',
+      });
+      recurringSpy.mockRestore();
+    });
+
+    it('startAutoSave() honors a per-Avatar override of world.autosave.interval', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      const recurringSpy = vi
+        .spyOn(ScheduleApi, 'recurring')
+        .mockReturnValue({ id: 'h1' } as never);
+      const avatar = makeAvatar('autosave-2');
+      // Persistent override — picked up by resolveSetting via the
+      // standard lookup chain (persistent store wins over schema default).
+      avatar.setSetting('world.autosave.interval', 120_000, avatar);
+      avatar.startAutoSave();
+      const [interval] = recurringSpy.mock.calls[0]!;
+      expect(interval).toBe(120_000);
+      recurringSpy.mockRestore();
+    });
+
+    it('startAutoSave() is idempotent (does not double-register)', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      const recurringSpy = vi
+        .spyOn(ScheduleApi, 'recurring')
+        .mockReturnValue({ id: 'h1' } as never);
+      const avatar = makeAvatar('autosave-3');
+      avatar.startAutoSave();
+      avatar.startAutoSave();
+      avatar.startAutoSave();
+      expect(recurringSpy).toHaveBeenCalledTimes(1);
+      recurringSpy.mockRestore();
+    });
+
+    it('the captured callback delegates to save()', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      let captured: (() => void) | null = null;
+      vi.spyOn(ScheduleApi, 'recurring').mockImplementation(
+        (_int, fn) => {
+          captured = fn;
+          return { id: 'h1' } as never;
+        }
+      );
+      const avatar = makeAvatar('autosave-4');
+      const saveSpy = vi
+        .spyOn(Avatar.prototype, 'save')
+        .mockResolvedValue(undefined);
+      avatar.startAutoSave();
+      expect(captured).not.toBeNull();
+      captured!();
+      // Wait for the microtask the callback created.
+      await Promise.resolve();
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      saveSpy.mockRestore();
+    });
+
+    it('stopAutoSave() cancels the handle via ScheduleApi.cancel', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({
+        id: 'sentinel',
+      } as never);
+      const cancelSpy = vi
+        .spyOn(ScheduleApi, 'cancel')
+        .mockImplementation(() => {});
+      const avatar = makeAvatar('autosave-5');
+      avatar.startAutoSave();
+      avatar.stopAutoSave();
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+      expect(cancelSpy.mock.calls[0]![0]).toEqual({ id: 'sentinel' });
+      // Second stop is a no-op (already cleared).
+      avatar.stopAutoSave();
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('periodic-save callback logs and stays alive when save throws', async () => {
+      const { ScheduleApi } = await import('../../api/schedule');
+      let captured: (() => void) | null = null;
+      vi.spyOn(ScheduleApi, 'recurring').mockImplementation((_, fn) => {
+        captured = fn;
+        return { id: 'h1' } as never;
+      });
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const saveSpy = vi
+        .spyOn(Avatar.prototype, 'save')
+        .mockRejectedValue(new Error('boom'));
+      const avatar = makeAvatar('autosave-6');
+      avatar.startAutoSave();
+      expect(captured).not.toBeNull();
+      captured!();
+      // Wait for the rejected save microtask + the .catch.
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      expect(errSpy).toHaveBeenCalled();
+      // The thrown rejection should be swallowed; this test
+      // completing without unhandled-rejection is the assertion.
+      saveSpy.mockRestore();
+      errSpy.mockRestore();
+    });
+  });
 });

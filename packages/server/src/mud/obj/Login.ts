@@ -67,18 +67,28 @@ export class Login extends LoginBase {
 
     const avatar = avatars[0]!;
     ConnectionApi.transfer(interactive, avatar);
+    avatar.startAutoSave();
 
     console.info(`Login: User connected - ${avatar.getFullName()}`);
 
-    const startingLocation = await StuffApi.singleton<Location>(
-      DEFAULT_STARTING_LOCATION_PATH
-    );
-    // Silent spawn: a freshly-cloned avatar shouldn't be announced as
-    // "vanishing" from somewhere or "appearing out of thin air"
-    // before the player has even seen the location.
-    avatar.teleport(startingLocation, { silent: true });
+    // Consult the avatar's live container first — set by the Avatar
+    // template's `data.container` via Phase 2 `applyContainer` during
+    // clone, or by `Avatar.restore()` re-hydrating saved state. Only
+    // fall back to the default starting location for a brand-new
+    // avatar with no declared spawn (no container at all).
+    let startingLocation: (Location & object) | null =
+      avatar.getContainer() as (Location & object) | null;
+    if (!startingLocation) {
+      startingLocation = await StuffApi.singleton<Location>(
+        DEFAULT_STARTING_LOCATION_PATH
+      );
+      // Silent spawn: a freshly-cloned avatar shouldn't be announced
+      // as "vanishing" from somewhere or "appearing out of thin air"
+      // before the player has even seen the location.
+      avatar.teleport(startingLocation, { silent: true });
+    }
     console.info(
-      `Login: Placed ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
+      `Login: ${avatar.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
     );
 
     // Welcome scene: actor frame at system.connection.established

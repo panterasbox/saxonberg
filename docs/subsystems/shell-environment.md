@@ -65,13 +65,26 @@ class FeatureMixin {
 That static is the **only** place a setting is declared. No
 `register()` call at module load, no shared registry, no global
 "unowned" partition. The host's effective schema is computed on
-demand by walking `MixinApi.queryMixins(host.constructor)` and
-unioning each layer's `static settings`. A key declared on two
-layers throws — defensive, surfaces collisions early.
+demand by walking the host's full prototype chain and unioning each
+layer's `static settings`. A key declared on two layers throws —
+defensive, surfaces collisions early.
 
 The walk is unmemoized today. If consumer hot-paths grow, memoize
 keyed on the constructor (it's the only input that varies for a given
 host class).
+
+**Schema-on-owner generalization.** The walk picks up `static settings`
+from both mixin layers AND substrate classes. The schema-on-mixin
+pattern generalizes to schema-on-owner: each setting lives wherever
+the concept lives. The canonical class-level example is
+`Avatar.settings`, which declares `world.autosave.interval` — the
+cadence of the Avatar persist-back periodic backstop. The autosave
+concept is owned by the Avatar lifecycle substrate; declaring on the
+substrate class keeps "the concept's owner declares it" intact
+without inventing a one-off mixin. When a second persist-back
+consumer materializes (a future `PersistableStuffMixin`-style
+build), the setting moves to that mixin and Avatar composes it —
+same shape, different layer.
 
 ### Lookup chain
 

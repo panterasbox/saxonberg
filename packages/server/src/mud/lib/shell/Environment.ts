@@ -130,41 +130,60 @@ interface MixinLayerWithSettings {
 }
 
 /**
- * Walk the host constructor's mixin chain and return one
- * `(entry, sourceMixin)` pair per declared key. Throws on duplicate
- * keys across layers — defensive: a setting can only legitimately
- * exist in one place.
+ * Walk the host constructor's full prototype chain and return one
+ * `(entry, sourceMixin)` pair per declared key. Picks up `static
+ * settings` from both mixin layers (the common case) AND from
+ * substrate classes whose concept they own (e.g., `Avatar.settings`
+ * declares `world.autosave.interval`). The schema-on-mixin pattern
+ * generalizes to schema-on-owner: each setting lives wherever the
+ * concept lives. Throws on duplicate keys across layers — defensive:
+ * a setting can only legitimately exist in one place.
  */
 function collectSchema(host: object): Array<{
   entry: SettingsSchemaEntry;
   sourceMixin: string;
 }> {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   const ctor = (host as { constructor: unknown }).constructor as
+    // eslint-disable-next-line @typescript-eslint/ban-types
     | (Function & { prototype: unknown })
     | undefined;
   if (!ctor) return [];
-  const layers = MixinApi.queryMixins(ctor) as MixinLayerWithSettings[];
 
   const out: Array<{ entry: SettingsSchemaEntry; sourceMixin: string }> = [];
   const seen = new Map<string, string>();
 
-  for (const layer of layers) {
-    if (!Object.prototype.hasOwnProperty.call(layer, 'settings')) continue;
-    const entries = layer.settings;
-    if (!Array.isArray(entries)) continue;
-    const sourceMixin = layer._mixinName ?? layer.name ?? '<anonymous>';
-    for (const entry of entries) {
-      const prev = seen.get(entry.key);
-      if (prev) {
-        throw new Error(
-          `EnvironmentMixin: setting '${entry.key}' is declared on ` +
-            `both '${prev}' and '${sourceMixin}'. Each setting may ` +
-            `only be declared once across the host's mixin chain.`,
-        );
+  // Walk the full prototype chain. We collect any layer that declares
+  // an own `settings` array — mixin layers (carry `_mixinName`) and
+  // substrate classes alike. Falls back to `name` for non-mixin
+  // classes' provenance string.
+  let current: unknown = ctor;
+  while (
+    current &&
+    current !== Object &&
+    (current as MixinLayerWithSettings & { prototype: unknown }).prototype
+  ) {
+    const layer = current as MixinLayerWithSettings;
+    if (Object.prototype.hasOwnProperty.call(layer, 'settings')) {
+      const entries = layer.settings;
+      if (Array.isArray(entries)) {
+        const sourceMixin =
+          layer._mixinName ?? layer.name ?? '<anonymous>';
+        for (const entry of entries) {
+          const prev = seen.get(entry.key);
+          if (prev) {
+            throw new Error(
+              `EnvironmentMixin: setting '${entry.key}' is declared on ` +
+                `both '${prev}' and '${sourceMixin}'. Each setting may ` +
+                `only be declared once across the host's mixin chain.`,
+            );
+          }
+          seen.set(entry.key, sourceMixin);
+          out.push({ entry, sourceMixin });
+        }
       }
-      seen.set(entry.key, sourceMixin);
-      out.push({ entry, sourceMixin });
     }
+    current = Object.getPrototypeOf(current);
   }
   return out;
 }

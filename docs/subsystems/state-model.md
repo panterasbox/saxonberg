@@ -265,20 +265,43 @@ exist on every Stuff regardless of mixins.
 - **Hydrator opt-in**: `hydratorClass` is opt-in. Templates that omit
   it skip hydration entirely.
 
-## Not Yet Implemented
+## Persist Direction — v1 (Avatar only)
 
-- **Persist direction** (shutdown-save, world serialization). The
-  unified model anticipates it — every Stuff at a path serializes back
-  to its own doc using the same `getAllPersistentFields` walk in
-  reverse — but it's not built yet. Today, persistent state is set
-  once at clone time and lost when the runtime exits. This is fine for
-  the current MVP scope (worlds rebuild on restart from templates) and
-  problematic for any "save my game" semantics.
+The persist direction now ships for `Avatar` specifically. The
+substrate machinery is general (`TemplateApi.snapshotToTemplate` /
+`restoreFromTemplate`) but the only consumer is Avatar.
+
+- **`Avatar.save()`** snapshots the avatar's `persistentFields` chain
+  back to its per-player template doc (`/obj/Avatar/<playerId>`).
+  The synchronous prefix in
+  `TemplateApi.snapshotToTemplate` captures field values + derived
+  `data.container` BEFORE the first await; the MongoDB write itself
+  is async.
+- **`Avatar.restore()`** re-hydrates an existing live instance from
+  its template doc. v1 is developer/admin only.
+- **Auto-save fires** on logout/linkdead (via `Avatar.onDestruct`'s
+  fire-and-forget save) and on a periodic backstop installed by
+  `Login.enter`. Cadence comes from the `world.autosave.interval`
+  setting (default 5 minutes); per-Avatar overrides fall out of the
+  standard `resolveSetting` chain.
+
+Out of scope for v1:
+
+- **Inventory persist-back** — only the Avatar's own persistent
+  fields plus derived `data.container` ship. Items in the avatar's
+  inventory don't round-trip; if a player picks up a sword, the
+  sword is gone on restart.
+- **Generalization to non-Avatar Stuff** — no `PersistableStuffMixin`,
+  no save/restore on rooms/items/doors. The substrate is shape-
+  agnostic so the next consumer doesn't repeat the mechanism inline.
+- **Multi-process coordination** — concurrent saves resolve as
+  last-write-wins via MongoDB's `replaceOne`. Cross-process locking
+  would belong at the Mongo client or lifecycle layer if/when a
+  multi-shard topology materializes.
 - **Reset** — re-hydrate an existing backing back to template
   defaults. Not built; the unified model leaves room.
-- **`/state/`** as a separate path namespace from `/domain/` — implement
-  if/when the distinction becomes load-bearing (probably alongside
-  persist).
+- **`/state/`** as a separate path namespace from `/domain/` —
+  implement if/when the distinction becomes load-bearing.
 
 ## Cross-References
 

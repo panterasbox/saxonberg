@@ -177,7 +177,23 @@ The canonical hook today is `DomainHook` (`obj/hooks/DomainHook.ts`),
 which composes both around-save and around-delete and enforces the
 folder/leaf invariant on the `domain` collection. See
 [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant)
-for the rule it enforces.
+for the rule it enforces. `DomainHook.aroundSave` also calls
+`TemplateApi.validateSingletonContainerTarget` — the singleton-target
+check for the `data.container` declarative-content field shipped with
+the spawn substrate.
+
+### Avatar persist-back uses the existing `Persistable.save` surface
+
+`Avatar.save()` is a thin two-line shim:
+`TemplateApi.snapshotToTemplate(this)` returns the mutated Template
+(without committing); the caller invokes `tpl.save()`. The
+underlying `Template.save` is the standard `Persistable.save` path
+(through `PersistenceManager.save(Collections.Domain, doc)` —
+fires `DomainHook` as usual). No new persistence-layer plumbing.
+The snapshot mutation step lives upstream in
+[`TemplateApi.snapshotToTemplate`](./templates.md#persist-back-snapshot--restore);
+the per-call ordering invariant (sync prefix before first await)
+lives there too. Restore-direction documented at the same anchor.
 
 ## Setter-Based Field Invariants
 

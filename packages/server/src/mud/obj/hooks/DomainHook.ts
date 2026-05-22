@@ -22,6 +22,7 @@ export class DomainHook extends DomainHookBase {
     next: (doc: Record<string, unknown>) => Promise<string>
   ): Promise<string> {
     await TemplateApi.validateFolderLeafSave(doc);
+    await TemplateApi.validateSingletonContainerTarget(doc);
     return next(doc);
   }
 

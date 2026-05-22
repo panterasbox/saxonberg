@@ -70,6 +70,7 @@ export const Mixins = {
   Flyable: 'FlyableMixin',
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
+  Populates: 'PopulatesMixin',
   Globbable: 'GlobbableMixin',
   Engaged: 'EngagedMixin',
 } as const;

@@ -14,6 +14,16 @@ import { ShelledCharacter } from '../lib/shell/ShelledCharacter';
 import { PlayerApi } from '../api/player';
 import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
+import { TemplateApi } from '../api/template';
+import {
+  ScheduleApi,
+  type ScheduleHandle,
+} from '../api/schedule';
+import {
+  SettingTypes,
+  resolveSetting,
+  type SettingsSchemaEntry,
+} from '../lib/shell/Environment';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { Events } from '../lib/events';
@@ -46,6 +56,35 @@ export class Avatar extends AvatarBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Schema entries declared by Avatar. Picked up by the schema walk
+   * via `MixinApi.queryMixins(host.constructor)` — class-level
+   * `static settings` are unioned alongside mixin-level entries.
+   *
+   * `world.autosave.interval` controls the cadence of the periodic-
+   * save backstop installed in `Login.enter`. Resolved once at
+   * `startAutoSave()` time; mid-session changes don't restart the
+   * timer (documented limitation).
+   *
+   * Schema-on-mixin principle: the setting lives on the substrate
+   * that owns the concept. Autosave is purely Avatar-lifecycle
+   * policy, so Avatar is the right home. A future
+   * PersistableStuffMixin would pull this entry up to that mixin
+   * and Avatar would compose it.
+   */
+  static settings: SettingsSchemaEntry[] = [
+    {
+      key: 'world.autosave.interval',
+      type: SettingTypes.Number,
+      default: 5 * 60 * 1000, // 5 minutes in milliseconds
+      description:
+        'Cadence (milliseconds) for the Avatar persist-back ' +
+        'periodic backstop. Resolved once at login time; mid-session ' +
+        'changes do not restart the running timer (effect lands at ' +
+        'next login).',
+    },
+  ];
 
   /**
    * Template path prefix for avatars in the domain collection.
@@ -116,6 +155,82 @@ export class Avatar extends AvatarBase {
   }
 
   /**
+   * Snapshot this Avatar's `persistentFields` chain back to its
+   * per-player template doc. Two-line shim: TemplateApi captures
+   * state into the returned Template; `tpl.save()` commits it.
+   *
+   * Concurrent saves (periodic timer + linkdead hook + manual eval)
+   * each produce a valid full-state snapshot; MongoDB resolves
+   * ordering as last-write-wins (see plan Q15).
+   */
+  public async save(): Promise<void> {
+    const tpl = await TemplateApi.snapshotToTemplate(this);
+    await tpl.save();
+  }
+
+  /**
+   * Re-hydrate this Avatar's in-memory state from its current
+   * template doc. Operates on the existing live instance,
+   * preserving identity / stuffId / connected Interactives.
+   *
+   * v1: developer/admin operation — no multi-connection
+   * synchronization. Should not be invoked during the initial
+   * clone cascade (the in-flight-clone guard catches recursive
+   * clones, not parallel hydrate on a registered instance).
+   */
+  public async restore(): Promise<void> {
+    await TemplateApi.restoreFromTemplate(this);
+  }
+
+  /**
+   * Periodic auto-save handle. Started by `Login.enter` post-
+   * connection; cleared by `onDestruct`. Mechanism is
+   * `ScheduleApi.recurring` — the purpose-built substrate wrapper
+   * with `propagateAttribution: false` (the save isn't causally a
+   * follow-on of login) and `mode: 'fixed-delay'` (drift-tolerant).
+   *
+   * TypeScript `private` (not `#`) per the domain-code default —
+   * the mixin proxy receiver can't reach `#`-private slots.
+   */
+  private periodicSaveHandle: ScheduleHandle | null = null;
+
+  /**
+   * Install the periodic-save timer. Idempotent — calling twice is
+   * a no-op. The interval is resolved once at install time from
+   * the `world.autosave.interval` setting; mid-session changes do
+   * not restart the timer in v1.
+   */
+  public startAutoSave(): void {
+    if (this.periodicSaveHandle !== null) return;
+    const intervalMs =
+      resolveSetting<number>(this, 'world.autosave.interval') ??
+      5 * 60 * 1000;
+    this.periodicSaveHandle = ScheduleApi.recurring(
+      intervalMs,
+      () => {
+        // Fire-and-forget; errors logged but don't crash the session.
+        void this.save().catch((err) => {
+          console.error(
+            `Avatar.autoSave: save failed for playerId=${this.playerId}:`,
+            err
+          );
+        });
+      },
+      { propagateAttribution: false, mode: 'fixed-delay' }
+    );
+  }
+
+  /**
+   * Cancel the periodic-save timer. Idempotent.
+   */
+  public stopAutoSave(): void {
+    if (this.periodicSaveHandle !== null) {
+      ScheduleApi.cancel(this.periodicSaveHandle);
+      this.periodicSaveHandle = null;
+    }
+  }
+
+  /**
    * Send a message to all connected Interactives (broadcast).
    */
   public sendMessage(message: unknown): void {
@@ -152,13 +267,28 @@ export class Avatar extends AvatarBase {
   }
 
   /**
-   * Cleanup hook. Unregisters from PlayerApi and detaches every live
-   * Interactive so they don't retain a holder reference pointing at
-   * a destroyed Stuff. Persist-back to the avatar template is deferred
-   * to the persist direction of the unified model (not implemented
-   * this phase).
+   * Cleanup hook. Fires a final persist-back save, cancels the
+   * periodic-save timer, unregisters from PlayerApi, and detaches
+   * every live Interactive.
+   *
+   * The save is fire-and-forget (`onDestruct` is synchronous per
+   * the Stuff lifecycle contract). Correctness lives in
+   * `TemplateApi.snapshotToTemplate`'s synchronous prefix — field
+   * values + container ref are captured BEFORE the first await,
+   * so the snapshot reflects pre-cleanup state even if the MongoDB
+   * write doesn't complete during shutdown. The periodic backstop
+   * covers any prior state loss; concurrent in-flight save is fine
+   * (MongoDB last-write-wins).
    */
   public onDestruct(): void {
+    void this.save().catch((err) => {
+      console.error(
+        `Avatar.onDestruct: final save failed for playerId=${this.playerId}:`,
+        err
+      );
+    });
+
+    this.stopAutoSave();
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {
