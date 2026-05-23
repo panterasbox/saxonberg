@@ -72,6 +72,8 @@ import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { Engaged } from '../lib/activity/Engaged';
+import type { Atmospheric } from '../lib/biome/Atmospheric';
+import type { SkyExposed } from '../lib/biome/SkyExposed';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -536,6 +538,14 @@ export class MixinApi {
 
   public static isEngaged(obj: Stuff): obj is Stuff & Engaged {
     return this.hasMixin(obj, Mixins.Engaged);
+  }
+
+  public static isAtmospheric(obj: Stuff): obj is Stuff & Atmospheric {
+    return this.hasMixin(obj, Mixins.Atmospheric);
+  }
+
+  public static isSkyExposed(obj: Stuff): obj is Stuff & SkyExposed {
+    return this.hasMixin(obj, Mixins.SkyExposed);
   }
 
   /**

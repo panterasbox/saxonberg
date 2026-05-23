@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: path
+  _ambientSoundMml: "<markup>footsteps on gravel and the rustle of leaves</markup>"
+  _ambientSmellMml: "<markup>dust and warm earth</markup>"

@@ -85,6 +85,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 
   it('returns the raw band when no shadow is attached', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(40);
@@ -95,6 +96,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 
   it('BlindfoldShadow makes every room read pitch-black', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
@@ -112,6 +114,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 
   it('NightVisionShadow shifts the band up via getVisionProfile', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(2); // very-dim raw
@@ -129,6 +132,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 
   it('multiple shadows compose via callDown — chain order respected', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60); // 'lit' raw
@@ -169,6 +173,7 @@ describe('LightApi.perceivedBand — viewer-aware overrides', () => {
 
   it('per-viewer specialization: two viewers, two answers', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(40);
@@ -194,6 +199,7 @@ describe('LightApi.canSee — detail levels and overrides', () => {
 
   it('detail-level threshold gates discernment', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     const viewer = await StuffApi.create(() => new TestObserver());
@@ -222,6 +228,7 @@ describe('LightApi.canSee — detail levels and overrides', () => {
 
   it('XRayShadow override forces canSee to true', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     const viewer = await StuffApi.create(() => new TestObserver());

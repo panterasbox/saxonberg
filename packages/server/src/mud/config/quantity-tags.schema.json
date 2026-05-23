@@ -6,7 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "patternProperties": {
-    "^(kg|g|m|km|cm|mm|s|ms|K|lux|lumen|dB|Hz|mol|g/mol|mol/L|kg/m³|Pa|N|J|W)$": {
+    "^(kg|g|m|m³|km|cm|mm|s|ms|K|lux|lumen|dB|Hz|mol|g/mol|mol/L|kg/m³|Pa|N|J|W|%|m/s²)$": {
       "$ref": "#/$defs/unitScales"
     }
   },

@@ -1,0 +1,12 @@
+# Underground — not sky-exposed. Cave-stable temperature (~12°C),
+# damp, with mineral / earth ambient. Sub-leaves (tunnel / sewer /
+# cave) refine the texture.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: underground
+  _defaultTemperature: { value: 285, unit: K }
+  _defaultHumidity:    { value: 70, unit: "%" }
+  _defaultGravity:     { value: 9.81, unit: "m/s²" }
+  _defaultAtmosphere:  air
+  _ambientSmellMml: "<markup>damp earth and stone</markup>"

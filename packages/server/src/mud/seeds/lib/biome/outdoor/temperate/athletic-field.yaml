@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: athletic-field
+  _ambientSoundMml: "<markup>shouts, whistles, and the thump of running feet</markup>"
+  _ambientSmellMml: "<markup>grass and sweat</markup>"

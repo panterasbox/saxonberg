@@ -1,0 +1,5 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: tunnel
+  _ambientSoundMml: "<markup>distant drips and the close hush of stone</markup>"

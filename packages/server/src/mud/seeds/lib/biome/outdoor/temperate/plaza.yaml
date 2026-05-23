@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: plaza
+  _ambientSoundMml: "<markup>fountain water and the bustle of a crowd</markup>"
+  _ambientSmellMml: "<markup>baking bread from nearby stalls</markup>"

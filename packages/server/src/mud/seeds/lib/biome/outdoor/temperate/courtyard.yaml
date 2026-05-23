@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: courtyard
+  _ambientSoundMml: "<markup>echoes of conversation against stone walls</markup>"
+  _ambientSmellMml: "<markup>warm flagstones</markup>"

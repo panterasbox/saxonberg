@@ -1,0 +1,6 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: art-studio
+  _ambientSoundMml: "<markup>brush bristles on canvas and the scrape of a palette knife</markup>"
+  _ambientSmellMml: "<markup>linseed oil and turpentine</markup>"

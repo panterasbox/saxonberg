@@ -67,6 +67,7 @@ describe('MeasureLightController', () => {
 
   it('emits canonical lux when called with a location', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
     const room = makeStuff(() => new AmbientLoc());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(40);
@@ -89,6 +90,7 @@ describe('MeasureLightController', () => {
 
   it('returns a failure when no location is bound', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
     const room = makeStuff(() => new AmbientLoc());
     zone.addLocation(room, 0, 0, 0);
     const avatar = makeStuff(() => new FakeAvatar());

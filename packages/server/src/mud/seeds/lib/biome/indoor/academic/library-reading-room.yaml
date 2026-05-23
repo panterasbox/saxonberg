@@ -1,0 +1,5 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: library-reading-room
+  _ambientSoundMml: "<markup>pages turning and the scrape of pens</markup>"

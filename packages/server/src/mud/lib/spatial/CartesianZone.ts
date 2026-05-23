@@ -33,18 +33,21 @@ function gridKey(x: number, y: number, z: number): string {
 
 export class CartesianZone extends SingletonMixin(SpatialZone) {
   /**
-   * Effective receiving-surface area per cell, in m². Drives
-   * `CartesianLocation.getSizeScale()` directly (NOT squared) — the
-   * value is interpreted as area, not linear extent. The light
-   * subsystem divides accumulated lumens by this scalar to produce
-   * illuminance in lux (see `LightApi.lightAt`).
+   * Linear cell extent, in **meters**. A cube-cell zone with
+   * `cellSize: 3` carries `3m × 3m × 3m` cells — 9 m² floor area,
+   * 27 m³ volume, 3 m ceiling. Drives:
    *
-   * Default 1.0 m² is a small alcove. Author larger values for
-   * rooms — see `docs/subsystems/light.md` for calibration guidance
-   * (a typical 5m × 5m room is `cellSize: 25`, an outdoor plaza
-   * `cellSize: 100`).
+   *   - `CartesianLocation.getVolume()` → `cellSize³`
+   *   - `CartesianLocation.getCeilingHeight()` → `cellSize`
+   *   - `CartesianLocation.getSizeScale()` → `cellSize²` (the light
+   *     substrate's receiving-surface area divisor — derived by
+   *     squaring the linear extent rather than authored separately).
+   *
+   * Default 3.0 m is a typical room. Author larger values for
+   * outdoor cells — see `docs/subsystems/light.md` and
+   * `docs/subsystems/biome.md` for calibration guidance.
    */
-  protected cellSize: number = 1.0;
+  protected cellSize: number = 3.0;
 
   public getCellSize(): number { return this.cellSize; }
   public setCellSize(value: number): void { this.cellSize = value; }

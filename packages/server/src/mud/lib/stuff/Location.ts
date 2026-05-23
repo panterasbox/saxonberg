@@ -24,11 +24,38 @@ import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
+import { AtmosphericMixin } from '../biome/Atmospheric';
+import type { Quantity } from '../quantity';
 
-const LocationBase = TangibleMixin(AdornableMixin(ContainerMixin(Stuff)));
+const LocationBase = AtmosphericMixin(
+  TangibleMixin(AdornableMixin(ContainerMixin(Stuff))),
+);
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
+
+  /**
+   * Atmospheric-bearing volume of this room, in m³. Concrete
+   * Location subclasses derive from their topology — `CartesianLocation`
+   * from `cellSize` (cube cells: volume = `cellSize³`),
+   * `SphericalLocation` from radius (full sphere `(4/3)πr³`, the
+   * actual gas-fill reservation `n = PV/RT` math operates against).
+   * `null` is a defensive fallback for a Location not yet associated
+   * with a zone.
+   */
+  public getVolume(): Quantity<'m³'> | null {
+    return null;
+  }
+
+  /**
+   * Usable vertical extent floor-to-ceiling, in m. `CartesianLocation`
+   * returns `cellSize`; `SphericalLocation` returns the inscribed
+   * cube's side (`2r/√3`) — the practical headroom inside the
+   * sphere. `null` falls through the same as `getVolume`.
+   */
+  public getCeilingHeight(): Quantity<'m'> | null {
+    return null;
+  }
 
   /**
    * Detach from the owning Zone on destruct. Clears `locations`

@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: alley
+  _ambientSoundMml: "<markup>distant traffic muted by brickwork</markup>"
+  _ambientSmellMml: "<markup>stale water and old stone</markup>"

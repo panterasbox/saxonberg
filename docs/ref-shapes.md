@@ -154,6 +154,7 @@ semantics across all singleton refs.
 | `Mobile` | `_engagedModePath` (runtime-only) | `getEngagedMode()` / `setEngagedMode(value)` / `isEngagedIn(value)` |
 | `Drivable` | `_vehicularModePath` | `getVehicularMode()` / `setVehicularMode(value)` |
 | `BodyPlan` | `defaultLocomotionMode` (short-name variant; no `_xxxPath`, no leading slash) | `getDefaultLocomotionMode()` / `setDefaultLocomotionMode(value)` |
+| `Atmospheric` | `_biomePath` | `getBiome()` / `setBiome(value)` ([biome.md](./subsystems/biome.md)) |
 
 ---
 

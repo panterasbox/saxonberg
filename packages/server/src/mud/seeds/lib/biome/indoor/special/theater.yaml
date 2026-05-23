@@ -1,0 +1,5 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: theater
+  _ambientSoundMml: "<markup>velvet-muted footfalls and the rustle of programs</markup>"

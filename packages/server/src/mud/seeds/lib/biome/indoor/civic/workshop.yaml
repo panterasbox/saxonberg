@@ -1,0 +1,7 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: workshop
+  _defaultTemperature: { value: 298, unit: K }
+  _ambientSoundMml: "<markup>the rasp of saws and a steady hammer-blow</markup>"
+  _ambientSmellMml: "<markup>sawdust and warm machine oil</markup>"

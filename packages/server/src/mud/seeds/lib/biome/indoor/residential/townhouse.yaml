@@ -1,0 +1,6 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: townhouse
+  _ambientSoundMml: "<markup>floorboards settling and a kettle on the stove</markup>"
+  _ambientSmellMml: "<markup>baking bread and beeswax polish</markup>"

@@ -1143,3 +1143,59 @@ not `SchedulerApi`.
   (e.g., WebSocket keepalive at the transport layer) — these
   predate and live below the `ExecutionContext` substrate. New
   mudlib code shouldn't acquire the same exception.
+
+## Atmospheric Reads — Go Through `BiomeApi.resolveXFor`
+
+When you need a Location's or Vessel's temperature / pressure /
+humidity / gravity / atmosphere, route the read through
+`BiomeApi.resolveXFor` (or the host's convenience `getX()` method,
+which delegates to the same Api). Do NOT inline a chain walk —
+you'll re-derive the spec, miss the prefix walk, skip pure-
+container ancestors incorrectly, and fail to consult the root
+universe biome.
+
+### BAD (inline walk)
+
+```ts
+let cursor = scope;
+while (cursor) {
+  if (MixinApi.isAtmospheric(cursor)) {
+    const t = cursor._temperature;
+    if (t) return t;
+    const biome = cursor.getBiome();
+    if (biome) return biome.getDefaultTemperature() ?? defaultT;
+  }
+  cursor = cursor.getContainer();
+}
+return defaultT;  // ⟵ ad-hoc fallback, no biome ancestry walk, no zone step
+```
+
+### GOOD (Api-mediated)
+
+```ts
+// At a verb / Api consumer:
+const t = await BiomeApi.resolveTemperatureFor(scope, detailKey);
+
+// On the host class itself:
+const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
+```
+
+### Why
+
+- **Detail-key prefix walk.** `detail.subkey` checks `detail.subkey`
+  then `detail` then falls through. Inline walks usually miss this.
+- **Pure-container transparency.** Pure `Container` ancestors
+  (Box / Backpack / treasure chest) must be skipped — they don't
+  compose `AtmosphericMixin`. The Api handles this; inline walks
+  often stop at the wrong ancestor.
+- **Biome-ancestry walk** (chain step 4). A biome leaf inherits
+  un-set defaults from its templatePath parents up to the root.
+  Inline walks usually consult only the leaf.
+- **Spatial-zone fallback** (chain step 5). `Zone.lookupField` is
+  async and reads via `atmosphere.<field>`; inline walks routinely
+  skip the step.
+- **Root universe biome** (chain step 6). The terminal step reads
+  from `/lib/biome`. Inline walks use hardcoded constants that
+  drift out of sync with the seeded universe biome.
+
+See [biome.md](./subsystems/biome.md) for the full chain.

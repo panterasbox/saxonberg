@@ -1,0 +1,10 @@
+# Cafeteria parent biome — alias path for the scenario-C showcase
+# so the atrium-child resolution example reads cleanly. Same
+# content as indoor/social/cafeteria but lives at /lib/biome/indoor
+# /cafeteria for the atrium to nest under.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: cafeteria
+  _ambientSoundMml: "<markup>a steady roar of voices and clattering trays</markup>"
+  _ambientSmellMml: "<markup>warm bread, gravy, and coffee</markup>"

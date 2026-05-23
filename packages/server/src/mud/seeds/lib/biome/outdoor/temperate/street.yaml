@@ -1,0 +1,6 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: street
+  _ambientSoundMml: "<markup>cartwheels, hawkers, and the press of feet</markup>"
+  _ambientSmellMml: "<markup>cobbles, smoke, and the river beyond</markup>"

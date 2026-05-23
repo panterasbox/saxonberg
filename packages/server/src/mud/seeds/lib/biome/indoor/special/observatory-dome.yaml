@@ -1,0 +1,8 @@
+# Observatory dome — an indoor room whose aperture exposes the
+# sky. Uses SkyExposedBiome so `BiomeApi.isSkyExposed` returns
+# true for any Location inside.
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: observatory-dome
+  _ambientSoundMml: "<markup>the slow turn of clockwork above</markup>"

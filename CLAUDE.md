@@ -29,6 +29,13 @@ behavior. Read the relevant doc before editing in its area.
   conventions, exemplars, antipatterns
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
+- [docs/workflow.md](./docs/workflow.md) — feature-cycle process:
+  slate → requirements → plan → build → MR iteration → pre-merge
+  sweep → merge. Defines the artifact taxonomy
+  (slate/requirements/plan/subsystem), their lifetimes, and the
+  retirement rules at sweep time. Skills under `.claude/skills/`
+  (`/requirements`, `/mr-iterate`, `/finalize`) are thin entry
+  points to phases of this loop.
 - [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar
   reference for players / authors writing queries (seeds, chain
   operators, filters, pronouns, examples)
@@ -218,6 +225,23 @@ behavior. Read the relevant doc before editing in its area.
     `completed-sync`, host-destruction subscription on
     `Events.StuffDestructed`, `cancel` / `stop` verb. Wave 1 ships
     the substrate inert; v1 controllers stay synchronous.
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate:
+    `Biome extends Zone` (root universe biome at `/lib/biome/`
+    carries the five universe defaults; no Biorealm class).
+    `AtmosphericMixin` composes onto `Location` AND `Vessel` (not
+    pure containers). Outward-walking chain resolver
+    (`BiomeApi.resolveXFor`): detail → detail-prefix → room → biome
+    leaf → biome ancestry → spatial zone → universe. Atmosphere
+    medium as a string tag with a 3-entry density const map (air /
+    water / vacuum). `SkyExposedMixin` + `SkyExposedBiome` for
+    outdoor leaves. Derived geometry: `CartesianZone.cellSize`
+    graduated to linear meters (default 3.0); `Location.getVolume` /
+    `getCeilingHeight` are abstract, overridden per topology
+    (cube-cell vs sphere + inscribed cube). Six instruments
+    (Thermometer / Barometer / Hygrometer / GravityMeter /
+    GasAnalyzer / Altimeter) + `measure <field>` subcommand
+    dispatch + `analyze atmosphere` provenance verb. 39 biome
+    leaves seeded under `/lib/biome/`.
 
 ## Development Commands
 

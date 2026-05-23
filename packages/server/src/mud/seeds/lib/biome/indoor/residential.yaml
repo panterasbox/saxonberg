@@ -1,0 +1,9 @@
+# Residential indoor — dorm rooms, common rooms, townhouses.
+# Slightly warmer baseline (296 K) per typical home heating, with
+# domestic ambient texture.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: residential
+  _defaultTemperature: { value: 296, unit: K }
+  _ambientSoundMml: "<markup>muffled footsteps and distant conversation</markup>"

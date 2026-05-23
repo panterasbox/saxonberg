@@ -40,6 +40,8 @@ export type Unit =
   | 'kg' | 'g'
   // Length / distance
   | 'm' | 'km' | 'cm' | 'mm'
+  // Volume
+  | 'm³'
   // Time
   | 's' | 'ms'
   // Temperature
@@ -51,7 +53,11 @@ export type Unit =
   // Chemistry / material
   | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³'
   // Pressure / force / energy / power
-  | 'Pa' | 'N' | 'J' | 'W';
+  | 'Pa' | 'N' | 'J' | 'W'
+  // Ratio (humidity, etc.) — bare percent string
+  | '%'
+  // Acceleration (gravity)
+  | 'm/s²';
 
 /**
  * Per-unit arithmetic. v1 ships only `add` and `scale`. dB's
@@ -93,6 +99,8 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
+  '%': ARITHMETIC_OPS,
+  'm/s²': ARITHMETIC_OPS,
 };
 
 /**

@@ -1,0 +1,6 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: tavern
+  _ambientSoundMml: "<markup>laughter, a tapped keg, and snatches of song</markup>"
+  _ambientSmellMml: "<markup>ale, smoke, and a stew on the hob</markup>"

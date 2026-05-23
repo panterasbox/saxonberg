@@ -1,0 +1,7 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: sewer
+  _defaultHumidity: { value: 90, unit: "%" }
+  _ambientSoundMml: "<markup>slow water and the scuttle of small things</markup>"
+  _ambientSmellMml: "<markup>rot and standing water</markup>"

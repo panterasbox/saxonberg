@@ -1,0 +1,5 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: classroom
+  _ambientSoundMml: "<markup>shifting chairs and quiet attention</markup>"

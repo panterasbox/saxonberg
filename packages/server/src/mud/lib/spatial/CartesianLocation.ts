@@ -25,6 +25,7 @@ import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
+import { Quantity } from '../quantity';
 import type { CartesianZone } from './CartesianZone';
 import type { Exit } from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
@@ -121,14 +122,36 @@ export class CartesianLocation extends CartesianLocationBase {
   /**
    * Effective receiving-surface area in m² used by `LightApi.lightAt`
    * to convert accumulated lumens to lux: the walk divides the total
-   * flux at this room by `getSizeScale()`. For a Cartesian room the
-   * scale is the owning zone's `cellSize` (already in m²). Larger
-   * rooms read dimmer for the same total flux. The fallback covers
-   * transient test state where the room hasn't been added to a zone
-   * yet.
+   * flux at this room by `getSizeScale()`. Derived from the linear
+   * cell extent by squaring it — `cellSize: 3` → 9 m² floor area.
+   * Larger rooms read dimmer for the same total flux. The fallback
+   * covers transient test state where the room hasn't been added to
+   * a zone yet.
    */
   public getSizeScale(): number {
-    return this.getZone()?.getCellSize() ?? 1.0;
+    const c = this.getZone()?.getCellSize() ?? 1.0;
+    return c * c;
+  }
+
+  /**
+   * Cube-cell volume: `cellSize³`. The atmospheric-fill reservation
+   * (`n = PV/RT` math operates against this scalar). Returns `null`
+   * when the room hasn't been associated with a zone yet.
+   */
+  public override getVolume(): Quantity<'m³'> | null {
+    const c = this.getZone()?.getCellSize();
+    if (c === undefined || c === null) return null;
+    return Quantity.of(c * c * c, 'm³');
+  }
+
+  /**
+   * Cube-cell ceiling height: `cellSize`. Floor-to-ceiling vertical
+   * extent. `null` falls through identically to `getVolume`.
+   */
+  public override getCeilingHeight(): Quantity<'m'> | null {
+    const c = this.getZone()?.getCellSize();
+    if (c === undefined || c === null) return null;
+    return Quantity.of(c, 'm');
   }
 
   /**

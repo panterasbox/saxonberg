@@ -59,13 +59,17 @@ lumen:
     - { tag: bright,      threshold: 800 }    # standard bulb
     - { tag: searchlight, threshold: 10000 }
 
-# Kelvin — currently only the color-temperature scale ships. A
-# future thermal-temperature scale (frozen / room / boiling) plugs
-# in alongside under e.g. `thermal:` — same K numerics, different
-# vocabulary, picked at the call site via `q.tag('thermal')`. The
+# Kelvin — two scales registered. `color` (the default) handles
+# color-temperature rendering (candle → daylight → blue sky);
+# `thermal` covers atmospheric / ambient temperature for biome
+# instruments and prose. Same K numerics, different vocabularies,
+# picked at the call site via `q.tag('thermal')` etc. The
 # pedagogical principle: units are units, the engine doesn't
 # distinguish "color K" from "thermal K" at the type system; the
 # YAML just supplies prose vocabulary for the relevant context.
+#
+# `color` is authored first so it remains K's default scale (the
+# existing light consumers were here first).
 K:
   color:
     - { tag: warm,     threshold: 2700 }   # incandescent / candle
@@ -73,6 +77,42 @@ K:
     - { tag: cool,     threshold: 5000 }   # daylight bulb
     - { tag: daylight, threshold: 6500 }   # overcast sky
     - { tag: blue,     threshold: 10000 }  # clear blue sky
+  thermal:
+    - { tag: freezing,   threshold: 0 }      # absolute floor
+    - { tag: cold,       threshold: 263 }    # ~ -10 °C
+    - { tag: cool,       threshold: 283 }    # ~ 10 °C
+    - { tag: warm,       threshold: 293 }    # ~ 20 °C, room
+    - { tag: hot,        threshold: 305 }    # ~ 32 °C
+    - { tag: scorching,  threshold: 320 }    # ~ 47 °C
+
+# Pressure (pascals). Vocabulary spans partial vacuum through deep
+# undersea / fictional crushing regimes. Sea-level air at 101325 Pa
+# falls in `normal`.
+Pa:
+  default:
+    - { tag: vacuum,    threshold: 0 }
+    - { tag: low,       threshold: 50000 }
+    - { tag: normal,    threshold: 95000 }
+    - { tag: high,      threshold: 110000 }
+    - { tag: crushing,  threshold: 500000 }
+
+# Relative humidity (% as a Quantity). Comfort-band vocabulary.
+"%":
+  default:
+    - { tag: dry,          threshold: 0 }
+    - { tag: comfortable,  threshold: 30 }
+    - { tag: humid,        threshold: 70 }
+    - { tag: saturated,    threshold: 95 }
+
+# Gravitational acceleration (m/s²). Microgravity through crushing
+# fictional regimes; Earth-standard 9.81 sits in `normal`.
+"m/s²":
+  default:
+    - { tag: microgravity,  threshold: 0 }
+    - { tag: low,           threshold: 1.0 }
+    - { tag: normal,        threshold: 7 }
+    - { tag: heavy,         threshold: 12 }
+    - { tag: crushing,      threshold: 25 }
 
 # Mass (kilograms). Casual-prose vocabulary for tangible objects.
 kg:
@@ -96,5 +136,5 @@ kg:
 # Tagless units (declared in the Unit type but with no tag table):
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.
-#   - g, m, km, cm, mm, s, ms, dB, Hz, Pa, N, J, W — ditto.
+#   - g, m, m³, km, cm, mm, s, ms, dB, Hz, N, J, W — ditto.
 # `Quantity.tag()` falls back to canonical format for these.

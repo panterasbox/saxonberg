@@ -1,0 +1,6 @@
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: wet-lab
+  _ambientSoundMml: "<markup>bubbling glassware and the hum of fume hoods</markup>"
+  _ambientSmellMml: "<markup>sharp solvents and ozone</markup>"

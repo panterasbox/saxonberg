@@ -1,0 +1,7 @@
+# Outdoor temperate quad — open campus grass, warm-stone paths.
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: quad
+  _ambientSoundMml: "<markup>a soft breeze, distant voices, occasional laughter</markup>"
+  _ambientSmellMml: "<markup>fresh-cut grass and warm stone</markup>"

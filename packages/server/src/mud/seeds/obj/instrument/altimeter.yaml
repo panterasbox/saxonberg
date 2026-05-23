@@ -1,0 +1,7 @@
+# Altimeter — handheld barometric-altitude instrument that grants
+# the `measure altitude` verb to its carrier.
+class: /obj/instrument/Altimeter
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a brass altimeter
+  long: An altimeter calibrated against the standard sea-level reference. Refuses to give a reading in vacuum.

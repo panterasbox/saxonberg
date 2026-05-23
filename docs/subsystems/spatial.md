@@ -38,7 +38,7 @@ Sibling docs cover related ground without overlap:
 | `Zone` / `SpatialZone` / `FolderZone` | (cross-reference) | See [zone.md](./zone.md) — the Zone hierarchy lives in `lib/zone/` now, carved out of `lib/spatial/`. |
 | `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. `hasRoomAt(x, y, z, room?)` predicate for setter idempotency. |
 | `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. `hasLocationAtFocus(focus, location?)` predicate. |
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`. |
+| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Persistable / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)) — vessels can carry their own biome reference + atmospheric overrides. Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
@@ -266,7 +266,15 @@ cross-reference.
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:
 "any Stuff that can hold other Stuff but doesn't itself live inside
-something." `AdornableMixin(ContainerMixin(Stuff))`.
+something." Composition layers
+`AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff))))`
+— so every concrete Location picks up biome-aware atmospheric state
+([biome.md](./biome.md)) plus a Material reference for the room
+itself. `Location` declares two abstract derived-geometry methods
+that concrete subclasses override per their topology:
+`getVolume(): Quantity<'m³'> | null` and `getCeilingHeight():
+Quantity<'m'> | null`. `LocationApi.getVolume` / `getCeilingHeight`
+are geometry-agnostic wrappers.
 
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 
@@ -348,8 +356,18 @@ exits.
   compose `ContainerMixin` (otherwise the Exit constructor's typing is
   unsatisfiable).
 
-`cellSize` is informational only — meters/units per cell — unused by
-the engine today. Reserved for future scale-aware tooling.
+`cellSize` is **load-bearing** as of the biome substrate
+([biome.md](./biome.md)). Default `3.0` linear meters (a typical
+room). It drives:
+
+- `CartesianLocation.getVolume()` → `cellSize³` (27 m³ at default).
+- `CartesianLocation.getCeilingHeight()` → `cellSize` (3 m default).
+- `CartesianLocation.getSizeScale()` → `cellSize²` (9 m² —
+  receiving-surface area for the light substrate, derived by
+  squaring the linear cellSize rather than authored separately).
+
+A 5 m × 5 m room is `cellSize: 5`. Tests pinning specific LightBand
+values may need to set `cellSize: 1` for the prior 1 m² calibration.
 
 **Derived exits are never persisted.** They're a function of the grid
 plus `NavigationApi`'s offset table; rebuilding them on boot is

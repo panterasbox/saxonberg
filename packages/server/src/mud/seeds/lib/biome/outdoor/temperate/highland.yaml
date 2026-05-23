@@ -1,0 +1,8 @@
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: highland
+  _defaultTemperature: { value: 278, unit: K }
+  _defaultPressure:    { value: 90000, unit: Pa }
+  _ambientSoundMml: "<markup>a cold wind across open ground</markup>"
+  _ambientSmellMml: "<markup>thin air and heather</markup>"
