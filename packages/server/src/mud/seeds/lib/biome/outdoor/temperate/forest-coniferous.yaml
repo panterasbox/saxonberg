@@ -1,8 +1,0 @@
-class: /lib/biome/SkyExposedBiome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: forest-coniferous
-  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
-  _defaultTemperature: { value: 282, unit: K }
-  _ambientSoundMml: "<markup>wind in the high boughs</markup>"
-  _ambientSmellMml: "<markup>pine resin and warm needles</markup>"

@@ -1,5 +1,0 @@
-# /lib/biome/indoor/academic — FolderZone for academic indoor leaves.
-class: /lib/zone/FolderZone
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: academic

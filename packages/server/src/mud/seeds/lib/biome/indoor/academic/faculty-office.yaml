@@ -1,7 +1,0 @@
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: faculty-office
-  _extendsBiomePath: /lib/biome/indoor/academic/baseline
-  _ambientSoundMml: "<markup>the tick of a clock and the rustle of papers</markup>"
-  _ambientSmellMml: "<markup>old books and pipe tobacco</markup>"

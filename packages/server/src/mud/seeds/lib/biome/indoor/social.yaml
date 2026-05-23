@@ -1,6 +1,0 @@
-# /lib/biome/indoor/social — FolderZone for social leaves
-# (cafeterias, gathering halls).
-class: /lib/zone/FolderZone
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: social

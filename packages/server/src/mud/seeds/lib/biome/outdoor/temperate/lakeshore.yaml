@@ -1,8 +1,0 @@
-class: /lib/biome/SkyExposedBiome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: lakeshore
-  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
-  _defaultHumidity: { value: 70, unit: "%" }
-  _ambientSoundMml: "<markup>gentle waves against stone</markup>"
-  _ambientSmellMml: "<markup>fresh water and pebbles</markup>"

@@ -243,8 +243,10 @@ behavior. Read the relevant doc before editing in its area.
     inscribed cube). Six instruments (Thermometer / Barometer /
     Hygrometer / GravityMeter / GasAnalyzer / Altimeter) + `measure
     <field>` subcommand dispatch + `analyze atmosphere` provenance
-    verb. 39 biome leaves seeded under `/lib/biome/` with explicit
-    extends-chain inheritance.
+    verb. Slim demonstrative roster under `/lib/biome/` (parallel
+    to Material / Species) — universe + outdoor/indoor tier
+    baselines + a couple of leaves + the cafeteria-atrium
+    scenario-C showcase. Content teams flesh out from there.
 
 ## Development Commands
 

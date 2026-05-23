@@ -1,7 +1,0 @@
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: townhouse
-  _extendsBiomePath: /lib/biome/indoor/residential/baseline
-  _ambientSoundMml: "<markup>floorboards settling and a kettle on the stove</markup>"
-  _ambientSmellMml: "<markup>baking bread and beeswax polish</markup>"

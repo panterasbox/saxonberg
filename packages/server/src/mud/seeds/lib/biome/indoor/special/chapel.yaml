@@ -1,7 +1,0 @@
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: chapel
-  _extendsBiomePath: /lib/biome/indoor/special/baseline
-  _ambientSoundMml: "<markup>a deep silence broken only by candle-flicker</markup>"
-  _ambientSmellMml: "<markup>incense and old stone</markup>"

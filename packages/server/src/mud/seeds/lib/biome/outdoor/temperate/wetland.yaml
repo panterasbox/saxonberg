@@ -1,8 +1,0 @@
-class: /lib/biome/SkyExposedBiome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: wetland
-  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
-  _defaultHumidity: { value: 85, unit: "%" }
-  _ambientSoundMml: "<markup>frogs and water moving through reeds</markup>"
-  _ambientSmellMml: "<markup>brackish water and decay</markup>"

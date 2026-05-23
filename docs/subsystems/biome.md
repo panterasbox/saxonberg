@@ -29,75 +29,44 @@ don't extend `Zone`. They're reference data, like `Material` and
 they happen to live in the templatePath: a biome at one path can
 extend a parent at any other path via its `_extendsBiomePath` ref.
 
-Concretely:
+Concretely, the shipped roster is deliberately slim — a handful of
+demonstrative templates, parallel to how `Material` and `Species`
+ship a representative sample rather than a content roster. Content
+teams flesh out their own tree from here.
 
 ```
 admin tree (FolderZones — ownership/write-access):
 
-/lib/biome/                      FolderZone     ← biome team
-  universe.yaml                  Biome leaf     ← root of inheritance
-  outdoor/                       FolderZone     ← outdoor sub-team
-    baseline.yaml                Biome leaf     ← outdoor tier defaults
-    temperate/                   FolderZone
-      baseline.yaml              Biome leaf     ← temperate tier defaults
-      quad.yaml                  Biome leaf
-      forest-deciduous.yaml      Biome leaf
-      … 13 more
-  underground/                   FolderZone
-    baseline.yaml                Biome leaf
-    tunnel, sewer, cave          ← 3 leaves
-  indoor/                        FolderZone     ← indoor sub-team
-    baseline.yaml                Biome leaf
-    academic/                    FolderZone
-      baseline.yaml              Biome leaf
-      lecture-hall, classroom    ← 7 leaves
-    residential/                 FolderZone
-      baseline.yaml, …           ← 3 leaves
-    social/                      FolderZone
-      baseline.yaml
-      cafeteria.yaml
-      cafeteria-atrium.yaml      ← scenario C, extends cafeteria
-    civic/                       FolderZone
-      baseline.yaml, …           ← 4 leaves
-    special/                     FolderZone
-      baseline.yaml
-      observatory-dome.yaml      ← SkyExposedBiome (aperture)
-      gymnasium, theater, …      ← 5 more leaves
+/lib/biome/                        FolderZone     ← biome team root
+  universe.yaml                    Biome leaf     ← inheritance root
+  outdoor/                         FolderZone     ← outdoor sub-team
+    baseline.yaml                  SkyExposedBiome
+    meadow.yaml                    SkyExposedBiome
+  indoor/                          FolderZone     ← indoor sub-team
+    baseline.yaml                  Biome
+    cafeteria.yaml                 Biome
+    cafeteria-atrium.yaml          SkyExposedBiome ← scenario C
 ```
 
 ```
 inheritance tree (Biome._extendsBiomePath — independent of paths):
 
    universe
-   ├── outdoor-baseline
-   │   └── temperate-baseline
-   │       ├── quad
-   │       ├── forest-deciduous
-   │       └── … 13 more
-   ├── underground-baseline
-   │   ├── tunnel
-   │   ├── sewer
-   │   └── cave
-   └── indoor-baseline
-       ├── academic-baseline
-       │   ├── lecture-hall
-       │   └── … 6 more
-       ├── residential-baseline
-       │   └── … 3 leaves
-       ├── social-baseline
-       │   ├── cafeteria
-       │   │   └── cafeteria-atrium   ← extends cafeteria, not the
-       │   │                            tier baseline; sky-exposed
-       │   …
-       ├── civic-baseline
-       │   └── … 4 leaves
-       └── special-baseline
-           └── … 6 leaves
+   ├── outdoor/baseline (SkyExposedBiome)
+   │   └── outdoor/meadow            ← 3-deep chain
+   └── indoor/baseline
+       └── indoor/cafeteria
+           └── indoor/cafeteria-atrium ← scenario C: sibling-with-
+                                         extends-ref (path-decoupled
+                                         inheritance + SkyExposed
+                                         override on the child)
 ```
 
-39 content leaves total. Sky-exposed leaves use `class:
-/lib/biome/SkyExposedBiome`; everything else uses plain `class:
-/lib/biome/Biome`.
+Each shipped template earns its place demonstrating a substrate
+property: universe (chain terminal), tier baselines (extends-chain
++ SkyExposed/plain split), the meadow leaf (3-deep chain), and the
+cafeteria + cafeteria-atrium pair (scenario C — path-decoupled
+inheritance).
 
 **Why two trees:** the admin tree answers "who owns this template,
 who can write to it." The inheritance tree answers "what defaults

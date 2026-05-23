@@ -1,8 +1,0 @@
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: gymnasium
-  _extendsBiomePath: /lib/biome/indoor/special/baseline
-  _defaultTemperature: { value: 296, unit: K }
-  _ambientSoundMml: "<markup>squeaking shoes and the bounce of a ball</markup>"
-  _ambientSmellMml: "<markup>sweat and rubber matting</markup>"

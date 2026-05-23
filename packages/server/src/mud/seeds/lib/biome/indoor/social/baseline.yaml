@@ -1,9 +1,0 @@
-# Social indoor baseline — cafeterias, gathering halls. Hubbub of
-# voices, cooking-adjacent smells. Extends indoor/baseline.
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: social-baseline
-  _extendsBiomePath: /lib/biome/indoor/baseline
-  _ambientSoundMml: "<markup>a steady hubbub of voices and clattering trays</markup>"
-  _ambientSmellMml: "<markup>cooking grease and warm bread</markup>"

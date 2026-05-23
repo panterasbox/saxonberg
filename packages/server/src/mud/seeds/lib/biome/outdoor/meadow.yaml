@@ -1,7 +1,10 @@
+# Outdoor meadow — demonstrative leaf for the outdoor sub-tree.
+# Extends outdoor/baseline, demonstrating a 3-deep inheritance
+# chain (meadow → outdoor/baseline → universe).
 class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: meadow
-  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
+  _extendsBiomePath: /lib/biome/outdoor/baseline
   _ambientSoundMml: "<markup>crickets and wind through tall grass</markup>"
   _ambientSmellMml: "<markup>wildflowers and warm hay</markup>"

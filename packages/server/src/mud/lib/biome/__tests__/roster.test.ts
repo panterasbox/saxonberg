@@ -1,253 +1,77 @@
 /**
- * Roster test — confirms the 39-leaf biome inventory matches the
- * slate roster. Walks the seed directory and asserts each path
- * exists.
+ * Roster test — confirms the slim demonstrative biome inventory.
  *
- * Post-refactor structure:
- *   - tier paths (`/lib/biome/`, `/lib/biome/outdoor/`, etc.) are
- *     `FolderZone` templates (admin/ownership scoping).
- *   - the root universe biome lives at `/lib/biome/universe`.
- *   - each tier has a `baseline.yaml` Biome leaf that descendant
- *     biomes extend via `_extendsBiomePath`.
- *   - the 39 content leaves declare `_extendsBiomePath` pointing
- *     at the appropriate tier baseline.
+ * The seed roster is deliberately small (like Material's 10 leaves
+ * or Species's 4 kingdom Clades + 4 leaves) — just enough to prove
+ * out the substrate without committing to specific content
+ * decisions that should be made by content teams later.
+ *
+ * Each shipped template earns its place by demonstrating a
+ * substrate property:
+ *
+ *   /lib/biome/                        FolderZone     ← admin root
+ *   /lib/biome/universe                Biome          ← inheritance root
+ *   /lib/biome/outdoor/                FolderZone     ← admin sub-tree
+ *   /lib/biome/outdoor/baseline        SkyExposedBiome
+ *   /lib/biome/outdoor/meadow          SkyExposedBiome ← 3-deep chain
+ *   /lib/biome/indoor/                 FolderZone
+ *   /lib/biome/indoor/baseline         Biome
+ *   /lib/biome/indoor/cafeteria        Biome
+ *   /lib/biome/indoor/cafeteria-atrium SkyExposedBiome ← scenario C
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const SEEDS_DIR = join(dirname(__filename), '../../../seeds/lib/biome');
-
-const OUTDOOR_TEMPERATE = [
-  'quad',
-  'path',
-  'garden',
-  'athletic-field',
-  'courtyard',
-  'street',
-  'alley',
-  'plaza',
-  'riverbank',
-  'forest-deciduous',
-  'forest-coniferous',
-  'meadow',
-  'wetland',
-  'lakeshore',
-  'highland',
-];
-const UNDERGROUND = ['tunnel', 'sewer', 'cave'];
-const INDOOR_ACADEMIC = [
-  'lecture-hall',
-  'classroom',
-  'wet-lab',
-  'dry-lab',
-  'library-stacks',
-  'library-reading-room',
-  'faculty-office',
-];
-const INDOOR_RESIDENTIAL = ['dorm-room', 'common-room', 'townhouse'];
-const INDOOR_SOCIAL = ['cafeteria'];
-const INDOOR_CIVIC = ['shop', 'tavern', 'inn', 'workshop'];
-const INDOOR_SPECIAL = [
-  'observatory-dome',
-  'gymnasium',
-  'theater',
-  'art-studio',
-  'chapel',
-  'archive',
-];
 
 interface BiomeSeed {
   class: string;
   data?: Record<string, unknown>;
 }
 
-function loadSeed(relative: string): BiomeSeed {
-  const path = join(SEEDS_DIR, relative);
-  expect(existsSync(path), `seed missing: ${relative}`).toBe(true);
+function loadSeed(relativePath: string): BiomeSeed {
+  const path = join(SEEDS_DIR, relativePath);
+  expect(existsSync(path), `seed missing: ${relativePath}`).toBe(true);
   return YAML.parse(readFileSync(path, 'utf-8')) as BiomeSeed;
 }
 
-describe('Biome roster — admin tree (FolderZones)', () => {
-  it('all tier folders are FolderZones', () => {
-    const folders = [
-      'outdoor.yaml',
-      'outdoor/temperate.yaml',
-      'underground.yaml',
-      'indoor.yaml',
-      'indoor/academic.yaml',
-      'indoor/residential.yaml',
-      'indoor/social.yaml',
-      'indoor/civic.yaml',
-      'indoor/special.yaml',
-    ];
-    for (const f of folders) {
-      expect(loadSeed(f).class).toBe('/lib/zone/FolderZone');
+function listYamlsRelative(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      out.push(...listYamlsRelative(full));
+    } else if (entry.endsWith('.yaml')) {
+      out.push(relative(SEEDS_DIR, full));
     }
-  });
+  }
+  return out;
+}
 
-  it('the /lib/biome folder itself is a FolderZone', () => {
+describe('Biome roster — slim demonstrative inventory', () => {
+  it('the /lib/biome folder template is a FolderZone', () => {
     const seed = YAML.parse(
       readFileSync(join(SEEDS_DIR, '../biome.yaml'), 'utf-8'),
     ) as BiomeSeed;
     expect(seed.class).toBe('/lib/zone/FolderZone');
   });
-});
 
-describe('Biome roster — inheritance baselines', () => {
-  it('universe is the root biome and has no _extendsBiomePath', () => {
+  it('sub-folders for sub-team scoping are FolderZones', () => {
+    for (const f of ['outdoor.yaml', 'indoor.yaml']) {
+      expect(loadSeed(f).class).toBe('/lib/zone/FolderZone');
+    }
+  });
+
+  it('universe is the inheritance root with all five defaults and no parent', () => {
     const seed = loadSeed('universe.yaml');
     expect(seed.class).toBe('/lib/biome/Biome');
-    expect(seed.data?._extendsBiomePath).toBeUndefined();
-  });
-
-  it('each tier baseline extends an appropriate parent', () => {
-    const baselines: Array<{ path: string; extends: string }> = [
-      {
-        path: 'outdoor/baseline.yaml',
-        extends: '/lib/biome/universe',
-      },
-      {
-        path: 'outdoor/temperate/baseline.yaml',
-        extends: '/lib/biome/outdoor/baseline',
-      },
-      {
-        path: 'underground/baseline.yaml',
-        extends: '/lib/biome/universe',
-      },
-      {
-        path: 'indoor/baseline.yaml',
-        extends: '/lib/biome/universe',
-      },
-      {
-        path: 'indoor/academic/baseline.yaml',
-        extends: '/lib/biome/indoor/baseline',
-      },
-      {
-        path: 'indoor/residential/baseline.yaml',
-        extends: '/lib/biome/indoor/baseline',
-      },
-      {
-        path: 'indoor/social/baseline.yaml',
-        extends: '/lib/biome/indoor/baseline',
-      },
-      {
-        path: 'indoor/civic/baseline.yaml',
-        extends: '/lib/biome/indoor/baseline',
-      },
-      {
-        path: 'indoor/special/baseline.yaml',
-        extends: '/lib/biome/indoor/baseline',
-      },
-    ];
-    for (const { path, extends: parent } of baselines) {
-      const seed = loadSeed(path);
-      expect(seed.data?._extendsBiomePath, path).toBe(parent);
-    }
-  });
-});
-
-describe('Biome roster — 39 leaves', () => {
-  it('outdoor/temperate has 15 leaves, all SkyExposedBiome extending temperate baseline', () => {
-    expect(OUTDOOR_TEMPERATE.length).toBe(15);
-    for (const leaf of OUTDOOR_TEMPERATE) {
-      const seed = loadSeed(`outdoor/temperate/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/outdoor/temperate/baseline',
-      );
-    }
-  });
-
-  it('underground has 3 leaves, all plain Biome extending underground baseline', () => {
-    expect(UNDERGROUND.length).toBe(3);
-    for (const leaf of UNDERGROUND) {
-      const seed = loadSeed(`underground/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/Biome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/underground/baseline',
-      );
-    }
-  });
-
-  it('indoor/academic has 7 leaves extending academic baseline', () => {
-    expect(INDOOR_ACADEMIC.length).toBe(7);
-    for (const leaf of INDOOR_ACADEMIC) {
-      const seed = loadSeed(`indoor/academic/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/Biome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/indoor/academic/baseline',
-      );
-    }
-  });
-
-  it('indoor/residential has 3 leaves extending residential baseline', () => {
-    expect(INDOOR_RESIDENTIAL.length).toBe(3);
-    for (const leaf of INDOOR_RESIDENTIAL) {
-      const seed = loadSeed(`indoor/residential/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/Biome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/indoor/residential/baseline',
-      );
-    }
-  });
-
-  it('indoor/social has 1 leaf extending social baseline', () => {
-    expect(INDOOR_SOCIAL.length).toBe(1);
-    for (const leaf of INDOOR_SOCIAL) {
-      const seed = loadSeed(`indoor/social/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/Biome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/indoor/social/baseline',
-      );
-    }
-  });
-
-  it('indoor/civic has 4 leaves extending civic baseline', () => {
-    expect(INDOOR_CIVIC.length).toBe(4);
-    for (const leaf of INDOOR_CIVIC) {
-      const seed = loadSeed(`indoor/civic/${leaf}.yaml`);
-      expect(seed.class).toBe('/lib/biome/Biome');
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/indoor/civic/baseline',
-      );
-    }
-  });
-
-  it('indoor/special has 6 leaves — observatory-dome is SkyExposed', () => {
-    expect(INDOOR_SPECIAL.length).toBe(6);
-    for (const leaf of INDOOR_SPECIAL) {
-      const seed = loadSeed(`indoor/special/${leaf}.yaml`);
-      const expectedClass =
-        leaf === 'observatory-dome'
-          ? '/lib/biome/SkyExposedBiome'
-          : '/lib/biome/Biome';
-      expect(seed.class).toBe(expectedClass);
-      expect(seed.data?._extendsBiomePath).toBe(
-        '/lib/biome/indoor/special/baseline',
-      );
-    }
-  });
-
-  it('total leaf count is 39', () => {
-    const total =
-      OUTDOOR_TEMPERATE.length +
-      UNDERGROUND.length +
-      INDOOR_ACADEMIC.length +
-      INDOOR_RESIDENTIAL.length +
-      INDOOR_SOCIAL.length +
-      INDOOR_CIVIC.length +
-      INDOOR_SPECIAL.length;
-    expect(total).toBe(39);
-  });
-
-  it('root universe biome carries all five defaults', () => {
-    const seed = loadSeed('universe.yaml');
     const d = seed.data ?? {};
+    expect(d._extendsBiomePath).toBeUndefined();
     expect(d._defaultTemperature).toBeDefined();
     expect(d._defaultPressure).toBeDefined();
     expect(d._defaultHumidity).toBeDefined();
@@ -255,11 +79,54 @@ describe('Biome roster — 39 leaves', () => {
     expect(d._defaultAtmosphere).toBe('air');
   });
 
-  it('scenario C — atrium sibling biome explicitly extends cafeteria', () => {
-    const seed = loadSeed('indoor/social/cafeteria-atrium.yaml');
+  it('outdoor/baseline is SkyExposed and extends universe', () => {
+    const seed = loadSeed('outdoor/baseline.yaml');
     expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe(
-      '/lib/biome/indoor/social/cafeteria',
+    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/universe');
+  });
+
+  it('outdoor/meadow is SkyExposed and extends outdoor/baseline (3-deep chain)', () => {
+    const seed = loadSeed('outdoor/meadow.yaml');
+    expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
+    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/outdoor/baseline');
+  });
+
+  it('indoor/baseline is plain Biome and extends universe', () => {
+    const seed = loadSeed('indoor/baseline.yaml');
+    expect(seed.class).toBe('/lib/biome/Biome');
+    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/universe');
+  });
+
+  it('indoor/cafeteria extends indoor/baseline', () => {
+    const seed = loadSeed('indoor/cafeteria.yaml');
+    expect(seed.class).toBe('/lib/biome/Biome');
+    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/indoor/baseline');
+  });
+
+  it('scenario C — cafeteria-atrium is SkyExposed and explicitly extends cafeteria', () => {
+    const seed = loadSeed('indoor/cafeteria-atrium.yaml');
+    expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
+    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/indoor/cafeteria');
+  });
+
+  it('no other biome seeds have crept in (slim roster discipline)', () => {
+    // Anchors the roster shape so future authors don't accidentally
+    // poison the demonstrative set. Materials / Species follow the
+    // same pattern: a curated handful of leaves that prove out the
+    // substrate, not a content roster.
+    const expected = new Set([
+      'universe.yaml',
+      'outdoor.yaml',
+      'outdoor/baseline.yaml',
+      'outdoor/meadow.yaml',
+      'indoor.yaml',
+      'indoor/baseline.yaml',
+      'indoor/cafeteria.yaml',
+      'indoor/cafeteria-atrium.yaml',
+    ]);
+    const actual = new Set(
+      listYamlsRelative(SEEDS_DIR).map((p) => p.split('/').join('/')),
     );
+    expect(actual).toEqual(expected);
   });
 });

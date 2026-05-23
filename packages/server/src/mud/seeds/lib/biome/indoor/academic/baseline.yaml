@@ -1,9 +1,0 @@
-# Academic indoor baseline — lecture halls, labs, libraries. Paper /
-# wood / chalk smell; quiet murmur. Extends indoor/baseline.
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: academic-baseline
-  _extendsBiomePath: /lib/biome/indoor/baseline
-  _ambientSmellMml: "<markup>paper, chalk, and aged wood</markup>"
-  _ambientSoundMml: "<markup>a quiet murmur and pages turning</markup>"

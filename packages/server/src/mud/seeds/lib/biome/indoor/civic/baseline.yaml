@@ -1,8 +1,0 @@
-# Civic indoor baseline — shops, taverns, workshops, inns. Active
-# commerce. Extends indoor/baseline.
-class: /lib/biome/Biome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: civic-baseline
-  _extendsBiomePath: /lib/biome/indoor/baseline
-  _ambientSoundMml: "<markup>the rustle of business and idle chatter</markup>"

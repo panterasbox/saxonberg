@@ -1,8 +1,0 @@
-class: /lib/biome/SkyExposedBiome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: riverbank
-  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
-  _defaultHumidity: { value: 65, unit: "%" }
-  _ambientSoundMml: "<markup>lapping water and the cry of distant gulls</markup>"
-  _ambientSmellMml: "<markup>silt and wet reeds</markup>"
