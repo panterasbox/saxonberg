@@ -1,0 +1,11 @@
+# Indoor cafeteria — demonstrative leaf for the indoor sub-tree.
+# Extends indoor/baseline; serves as the parent for scenario C's
+# `cafeteria-atrium`, which sits next to it and explicitly extends
+# it (showcasing path-decoupled inheritance).
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: cafeteria
+  _extendsBiomePath: /lib/biome/indoor/baseline
+  _ambientSoundMml: "<markup>a steady roar of voices and clattering trays</markup>"
+  _ambientSmellMml: "<markup>warm bread, gravy, and coffee</markup>"

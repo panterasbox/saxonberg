@@ -24,11 +24,19 @@ import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
+import { AtmosphericMixin } from '../biome/Atmospheric';
 
-const LocationBase = TangibleMixin(AdornableMixin(ContainerMixin(Stuff)));
+const LocationBase = AtmosphericMixin(
+  TangibleMixin(AdornableMixin(ContainerMixin(Stuff))),
+);
 
 export class Location extends LocationBase {
   static persistentFields: string[] = [];
+
+  // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
+  // above) so Vessels — which also have meaningful interior volume —
+  // pick them up too. Concrete Location subclasses (`CartesianLocation`,
+  // `SphericalLocation`) override per their topology.
 
   /**
    * Detach from the owning Zone on destruct. Clears `locations`

@@ -24,6 +24,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('empty room with no ambient reads ZERO', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
@@ -33,6 +34,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
@@ -46,6 +48,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('exits leak ambient light from neighbors', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -58,6 +61,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('a closed door on an exit blocks light leakage', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -77,6 +81,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('MAX_HOPS truncates propagation past depth 2', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     const c = makeStuff(() => new CartesianLocation());
@@ -93,6 +98,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('cycle: visited Set prevents infinite recursion', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new AmbientCartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -103,16 +109,15 @@ describe('LightApi.lightAt — propagation core', () => {
     expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);
   });
 
-  it('CartesianLocation.getSizeScale uses zone.cellSize', () => {
+  it('CartesianLocation.getSizeScale uses zone.cellSize squared', () => {
     const zone = makeStuff(() => new CartesianZone());
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
-    zone.setCellSize(2.0);
     loc.setAmbientFlux(40);
 
-    zone.setCellSize(8.0);
-    // flux 40 / sizeScale 8 → 5 lux → 'dim'.
-    expect(LightApi.bandAt(loc)).toBe('dim');
+    // sizeScale = cellSize², so flux 40 / scale 16 (= 4²) → 2.5 lux → 'very-dim'
+    zone.setCellSize(4.0);
+    expect(LightApi.bandAt(loc)).toBe('very-dim');
   });
 
   it('SphericalLocation.getSizeScale uses radius', () => {
@@ -129,6 +134,7 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('shadowsAt maps each band to a shadow tier', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
@@ -154,6 +160,7 @@ describe('LightApi — band / tag / mixing acceptance', () => {
 
   it('lightAt(loc).intensity.tag() matches bandAt(loc) across bands', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
@@ -172,21 +179,21 @@ describe('LightApi — band / tag / mixing acceptance', () => {
     }
   });
 
-  it('flux/sizeScale → lux scales linearly', () => {
+  it('flux/sizeScale → lux scales linearly (cellSize² as scale)', () => {
     const zone = makeStuff(() => new CartesianZone());
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    zone.setCellSize(1);
+    zone.setCellSize(1); // scale 1
     loc.setAmbientFlux(100);
     expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(100);
 
     loc.setAmbientFlux(200);
     expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(200);
 
-    zone.setCellSize(2);
+    zone.setCellSize(2); // scale 4
     loc.setAmbientFlux(100);
-    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(50);
+    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(25);
   });
 
   it('flux-weighted color mixing across two equal-flux sources', async () => {
@@ -196,6 +203,7 @@ describe('LightApi — band / tag / mixing acceptance', () => {
     class Lamp extends LightSourceMixin(Thing) {}
 
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 

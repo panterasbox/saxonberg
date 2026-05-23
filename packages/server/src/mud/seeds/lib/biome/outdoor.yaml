@@ -1,0 +1,9 @@
+# /lib/biome/outdoor — FolderZone for the outdoor biome sub-tree.
+# Admin/ownership scope; carries no atmospheric data of its own.
+# The shared outdoor defaults live on the `outdoor/baseline` Biome
+# leaf; outdoor biome templates extend that one (directly or
+# transitively) via their `_extendsBiomePath` ref.
+class: /lib/zone/FolderZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: outdoor

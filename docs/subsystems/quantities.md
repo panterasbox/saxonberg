@@ -429,9 +429,10 @@ props.
 
 ## Path encoding for marshaller singletons
 
-Composite units (`g/mol`, `kg/m³`, `mol/L`) carry characters that
-make poor filesystem segments. The encoding maps `'/'` → `'-per-'`
-and unicode `³` → `'3'`, giving the templatePaths:
+Composite units (`g/mol`, `kg/m³`, `mol/L`, `m/s²`) carry
+characters that make poor filesystem segments. The encoding maps
+`'/'` → `'-per-'`, unicode `³` → `'3'`, unicode `²` → `'2'`, and
+`'%'` → `'pct'`, giving the templatePaths:
 
 | Unit | Marshaller path |
 |---|---|
@@ -441,9 +442,40 @@ and unicode `³` → `'3'`, giving the templatePaths:
 | `'lumen'` | `/lib/persistence/QuantityMarshaller/lumen` |
 | `'lux'` | `/lib/persistence/QuantityMarshaller/lux` |
 | `'K'` | `/lib/persistence/QuantityMarshaller/K` |
+| `'Pa'` | `/lib/persistence/QuantityMarshaller/Pa` |
+| `'%'` | `/lib/persistence/QuantityMarshaller/pct` |
+| `'m/s²'` | `/lib/persistence/QuantityMarshaller/m-per-s2` |
+| `'m'` | `/lib/persistence/QuantityMarshaller/m` |
+| `'m³'` | `/lib/persistence/QuantityMarshaller/m3` |
 
 Use `QuantityMarshaller.pathFor(unit)` at every declaration site
 rather than hardcoding the encoded form.
+
+### K — two registered scales (color + thermal)
+
+`K` is the canonical multi-scale unit: the same `Quantity<'K'>` can
+render as either a color-temperature tag (`warm` / `neutral` /
+`cool` / `daylight` / `blue` — the lighting subsystem's vocabulary)
+or a thermal-temperature tag (`freezing` / `cold` / `cool` / `warm`
+/ `hot` / `scorching` — the biome subsystem's vocabulary).
+
+`color` is K's default scale (registered first); biome instruments
+opt into thermal rendering at the call site:
+
+```ts
+q.tag()              // color-scale tag (e.g. 'warm' at 2700 K)
+q.tag('thermal')     // thermal-scale tag (e.g. 'warm' at 293 K)
+q.formatMml(_, 'thermal')  // formatted with thermal tag attribute
+```
+
+The pedagogical principle: units are units. The engine doesn't
+distinguish "color K" from "thermal K" at the type system; the
+YAML supplies prose vocabulary for the relevant context.
+
+The biome substrate adds tagless or thermal scales for
+`Pa` (default), `%` (default), and `m/s²` (default) plus the
+`thermal` scale on K. `m` and `m³` stay tagless (rendered
+numerically). See [biome.md](./biome.md) for the breakpoints.
 
 ## Out of scope (v1)
 

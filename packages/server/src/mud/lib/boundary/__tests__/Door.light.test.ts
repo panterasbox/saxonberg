@@ -54,6 +54,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
 
   it('addBidirectionalExit({door}) installs anchors on both rooms', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -74,6 +75,7 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
 
   it('door.detach() clears BOTH attachedTo AND boundary anchors', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -107,7 +109,9 @@ describe('Door retrofit — closed door blocks light propagation', () => {
    */
   function setupTwoRoomsAcrossZones() {
     const zoneA = makeStuff(() => new CartesianZone());
+    zoneA.setCellSize(1);
     const zoneB = makeStuff(() => new CartesianZone());
+    zoneB.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zoneA.addLocation(a, 0, 0, 0);
@@ -146,6 +150,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     // exit could lead to the same neighbor counting twice. The walk
     // skips doored exits so the boundary-side contribution wins.
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);

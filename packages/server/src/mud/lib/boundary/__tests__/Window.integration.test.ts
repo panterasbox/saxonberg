@@ -32,7 +32,9 @@ describe('Window — multi-room propagation integration', () => {
    */
   function setupTwoRoomsAcrossZones() {
     const zoneA = makeStuff(() => new CartesianZone());
+    zoneA.setCellSize(1); // pre-biome light calibration: 1m² scale
     const zoneB = makeStuff(() => new CartesianZone());
+    zoneB.setCellSize(1);
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());
     zoneA.addLocation(roomA, 0, 0, 0);
@@ -129,8 +131,11 @@ describe('Window — multi-room propagation integration', () => {
   it('three-room chain through two windows respects MAX_HOPS', () => {
     expect(MAX_HOPS).toBe(2);
     const zoneA = makeStuff(() => new CartesianZone());
+    zoneA.setCellSize(1);
     const zoneB = makeStuff(() => new CartesianZone());
+    zoneB.setCellSize(1);
     const zoneC = makeStuff(() => new CartesianZone());
+    zoneC.setCellSize(1);
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());
     const roomC = makeStuff(() => new CartesianLocation());
@@ -171,6 +176,7 @@ describe('Window — multi-room propagation integration', () => {
     // D's lamp's contribution beyond what bleeds through the
     // intermediate rooms within budget.
     const zoneD = makeStuff(() => new CartesianZone());
+    zoneD.setCellSize(1);
     const roomD = makeStuff(() => new CartesianLocation());
     zoneD.addLocation(roomD, 0, 0, 0);
     const wCD = makeStuff(() => new Window());

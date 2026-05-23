@@ -72,6 +72,7 @@ describe('LightSourceMixin', () => {
 
   it('fires onLightSourceChanged on the immediate environment when flux changes', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
     const room = makeStuff(() => new CartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
@@ -88,6 +89,7 @@ describe('LightSourceMixin', () => {
 
   it('does not fire when flux is unchanged', () => {
     const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
     const room = makeStuff(() => new CartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     const candle = makeStuff(() => new Candle());
@@ -104,6 +106,7 @@ describe('LightSourceMixin', () => {
   describe('integration with LightApi.lightAt', () => {
     it('a candle in a room contributes lux to the room', () => {
       const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
       const room = makeStuff(() => new CartesianLocation());
       zone.addLocation(room, 0, 0, 0);
       const candle = makeStuff(() => new Candle());
@@ -119,6 +122,7 @@ describe('LightSourceMixin', () => {
 
     it('moving a LightSource between rooms updates each room lazily', () => {
       const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
       const a = makeStuff(() => new CartesianLocation());
       const b = makeStuff(() => new CartesianLocation());
       zone.addLocation(a, 0, 0, 0);
@@ -137,6 +141,7 @@ describe('LightSourceMixin', () => {
 
     it('setEmittedFlux(0) zeroes the contribution', () => {
       const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1); // pre-biome light calibration: 1m² scale
       const room = makeStuff(() => new AmbientCartesianLocation());
       zone.addLocation(room, 0, 0, 0);
       room.setAmbientFlux(5);

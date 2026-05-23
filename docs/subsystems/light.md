@@ -173,7 +173,9 @@ m²**. The propagation walk divides accumulated lumens by this scalar
 to produce lux.
 
 - `CartesianLocation.getSizeScale()` — reads its zone's `cellSize`
-  (in m²) via `getZone()?.getCellSize() ?? 1.0`. The override on
+  (in **linear meters** as of the biome substrate, default `3.0`)
+  and **squares it** to produce the m² receiving-surface area. A
+  `cellSize: 3` zone reports a 9 m² scale. The override on
   `CartesianLocation.getZone()` narrows the return type to
   `CartesianZone | null` by invariant.
 - `SphericalLocation.getSizeScale()` — returns its own radius (in
@@ -181,19 +183,23 @@ to produce lux.
   spherical-shell area, deferring exact-physics fidelity until
   content needs it).
 
-`cellSize` is interpreted as **area, not linear extent**: a 5m × 5m
-room is `cellSize: 25`, an outdoor plaza `cellSize: 100`, a tight
-alcove `cellSize: 1`. Default is `1.0` m².
+`cellSize` is interpreted as **linear meters** ([biome.md](./biome.md)
+graduated it from informational to load-bearing). Tests that pre-
+date the biome substrate may pin `cellSize: 1` to preserve the
+prior 1 m² calibration.
 
 ### Authoring calibration (typical defaults)
 
-| Room shape                | Suggested `cellSize` (m²) |
-|---------------------------|----------------------------|
-| Tight alcove / closet     | 1                          |
-| Small room (3m × 3m)      | 9                          |
-| Standard room (5m × 5m)   | 25                         |
-| Hall (10m × 6m)           | 60                         |
-| Outdoor plaza             | 100                        |
+`cellSize` is linear meters; the light scale is the square. Default
+is `3.0` m (a typical 9 m² room).
+
+| Room shape                | Linear `cellSize` | Light scale (m²) |
+|---------------------------|-------------------|-------------------|
+| Tight alcove / closet     | 1                 | 1                 |
+| Small room (3m × 3m)      | 3                 | 9                 |
+| Standard room (5m × 5m)   | 5                 | 25                |
+| Hall (10m × 6m)           | ~8 (approx)       | ~64               |
+| Outdoor plaza             | 10                | 100               |
 
 | Light source                     | Suggested flux (lumens) |
 |----------------------------------|--------------------------|

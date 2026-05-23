@@ -12,3 +12,42 @@ subcommands:
         scope: ["reachable"]
         validators:
           - /lib/command/validators/mustBeContainer
+  temperature:
+    description: "Measure atmospheric temperature (Kelvin) at your immediate scope"
+    controller: MeasureTemperatureController
+    args:
+      - name: detail
+        type: string
+        required: false
+  pressure:
+    description: "Measure atmospheric pressure (Pa) at your immediate scope"
+    controller: MeasurePressureController
+    args:
+      - name: detail
+        type: string
+        required: false
+  humidity:
+    description: "Measure relative humidity (%) at your immediate scope"
+    controller: MeasureHumidityController
+    args:
+      - name: detail
+        type: string
+        required: false
+  gravity:
+    description: "Measure gravitational acceleration (m/s²) at your immediate scope"
+    controller: MeasureGravityController
+    args:
+      - name: detail
+        type: string
+        required: false
+  atmosphere:
+    description: "Identify the bulk atmosphere medium at your immediate scope"
+    controller: MeasureAtmosphereController
+    args:
+      - name: detail
+        type: string
+        required: false
+  altitude:
+    description: "Estimate altitude from the barometric delta against sea level"
+    controller: MeasureAltitudeController
+    args: []

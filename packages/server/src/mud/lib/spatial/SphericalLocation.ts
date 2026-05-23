@@ -14,6 +14,7 @@ import { SphericalCoordinatesMixin } from './SphericalCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { Quantity } from '../quantity';
 import type { SphericalZone } from './SphericalZone';
 import type { Stuff } from '../stuff/Stuff';
 
@@ -55,6 +56,33 @@ export class SphericalLocation extends SphericalLocationBase {
    */
   public getSizeScale(): number {
     return this.getRadius();
+  }
+
+  /**
+   * Full-sphere volume `(4/3)πr³`. The reservation that adjacent
+   * spheres can't overlap; also what gas-law math (`n = PV/RT`)
+   * operates against. Returns `null` when radius is unset.
+   */
+  public override getVolume(): Quantity<'m³'> | null {
+    const r = this.getRadius();
+    if (r === null || r === undefined || r === 0) {
+      // Radius zero is functionally an unset room — let consumers
+      // see null rather than a degenerate zero volume.
+      return r === 0 ? null : null;
+    }
+    return Quantity.of((4 / 3) * Math.PI * r * r * r, 'm³');
+  }
+
+  /**
+   * Usable ceiling height — the side of the cube inscribed in the
+   * sphere, `2r/√3`. The cube's space diagonal equals the sphere's
+   * diameter; the cube's side is the practical floor-to-ceiling
+   * extent of the room.
+   */
+  public override getCeilingHeight(): Quantity<'m'> | null {
+    const r = this.getRadius();
+    if (r === null || r === undefined || r === 0) return null;
+    return Quantity.of((2 * r) / Math.sqrt(3), 'm');
   }
 
   /**

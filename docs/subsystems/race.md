@@ -466,12 +466,28 @@ replacement of singletons.
 
 ---
 
+## Future seams
+
+- **Per-species breathing.** A future build will gate movement /
+  damage-over-time on a species' compatibility with the surrounding
+  atmosphere medium. The biome substrate already resolves the
+  current atmosphere via `BiomeApi.resolveAtmosphereFor(scope)`
+  ([biome.md](./biome.md)); the species side will add either a
+  per-Species `breathableAtmospheres: Set<string>` field or a
+  per-atmosphere `breathers` map, alongside the consumer that
+  enforces it. Out of scope for v1 — the seam is documented here
+  so authoring decisions about atmosphere tags can already account
+  for it.
+
 ## See also
 
 - [templates.md](./templates.md) — folder/leaf invariant, the
   `ZoneTemplate` / `LeafTemplate` split, `ZoneApi.isFolderClass`.
 - [spatial.md](./spatial.md) — `Zone` / `SpatialZone` layering;
   `ZoneApi.resolveZoneForPath`; null-environment behavior matrix.
+- [biome.md](./biome.md) — atmospheric substrate + outward-walking
+  chain resolver. Material's prefix-walk shape is the direct prior
+  art that `AtmosphericMixin`'s detail walk mirrors.
 - [perception.md](./perception.md) — viewer-aware queries; species
   visionProfile feeds `LightApi`.
 - [mixins.md](./mixins.md) — composition mechanics for the new

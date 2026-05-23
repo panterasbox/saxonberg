@@ -28,6 +28,11 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'lumen',
   'lux',
   'K',
+  'Pa',
+  '%',
+  'm/s²',
+  'm',
+  'm³',
 ];
 
 /**

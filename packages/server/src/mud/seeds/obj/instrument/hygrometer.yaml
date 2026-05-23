@@ -1,0 +1,7 @@
+# Hygrometer — handheld humidity instrument that grants the
+# `measure humidity` verb to its carrier.
+class: /obj/instrument/Hygrometer
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a calibrated hygrometer
+  long: A small instrument with a hair-tension dial that registers relative humidity as a percentage.

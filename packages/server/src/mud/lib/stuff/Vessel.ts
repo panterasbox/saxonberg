@@ -33,9 +33,10 @@ import { ContainerMixin } from '../spatial/Container';
 import { ContainableMixin } from '../spatial/Containable';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
+import { AtmosphericMixin } from '../biome/Atmospheric';
 
-const VesselBase = TangibleMixin(
-  AdornableMixin(ContainerMixin(ContainableMixin(Stuff)))
+const VesselBase = AtmosphericMixin(
+  TangibleMixin(AdornableMixin(ContainerMixin(ContainableMixin(Stuff))))
 );
 
 export class Vessel extends VesselBase {

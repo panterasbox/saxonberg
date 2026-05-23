@@ -73,6 +73,8 @@ export const Mixins = {
   Populates: 'PopulatesMixin',
   Globbable: 'GlobbableMixin',
   Engaged: 'EngagedMixin',
+  Atmospheric: 'AtmosphericMixin',
+  SkyExposed: 'SkyExposedMixin',
 } as const;
 
 /**

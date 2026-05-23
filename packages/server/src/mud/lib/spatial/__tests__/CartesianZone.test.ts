@@ -113,7 +113,10 @@ describe('CartesianZone', () => {
     expect(zone.getNeighbor(center, 'west')).toBeUndefined();
   });
 
-  it('exposes the informational cellSize default', () => {
-    expect(zone.getCellSize()).toBe(1.0);
+  it('exposes the load-bearing cellSize default in linear meters', () => {
+    // Graduated from informational to load-bearing alongside the biome
+    // substrate — 3 m linear (a typical room) replaces the prior 1 m²
+    // sentinel. Volume = 27 m³, ceiling = 3 m, light-scale = 9 m².
+    expect(zone.getCellSize()).toBe(3.0);
   });
 });
