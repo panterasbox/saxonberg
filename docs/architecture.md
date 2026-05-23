@@ -394,7 +394,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent |
 | `lib/description/` | `DetailedMixin` | hierarchical detail management, persistent |
 | `lib/spatial/` | `ContainerMixin` | inventory; provides `inventory`/`get`/`drop` |
-| `lib/spatial/` | `ContainableMixin` | environment reference |
+| `lib/spatial/` | `ContainableMixin` | environment reference, plus the auxiliary `restingOn` pointer for on-surface placement |
+| `lib/spatial/` | `SurfacedMixin` | "things rest on this" host-side marker; lazy `getResting()` walk; `userFacingDetail` MQL bridge; `canRest()` per-host gate. Requires Containable. |
 | `lib/spatial/` | `MobileMixin` | `travel()` between locations (requires Containable) |
 | `lib/spatial/` | `ExitableMixin` | exit map host; `addExit`, `getObviousExits`, etc. |
 | `lib/spatial/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |

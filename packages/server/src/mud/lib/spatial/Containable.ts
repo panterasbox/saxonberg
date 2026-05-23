@@ -162,9 +162,16 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Note: environment is a complex type (reference to another object).
-     * It is NOT included in persistentFields - instead, classes using
-     * this mixin must declare a custom persistenceHandler.
+     * Live reference to the container. NOT a persistent field —
+     * cross-Stuff references would round-trip badly through the
+     * Hydrator's reflection. The container relationship is rebuilt
+     * at clone time via the `applyContainer` instruction-field path
+     * (see static `instructionFields` above) or by direct
+     * `ContainmentApi.move` calls after hydration.
+     *
+     * Auxiliary `restingOn` is different — it's a Pattern A
+     * path-string (`_restingOnPath`) that DOES persist; see static
+     * `persistentFields` below.
      */
     protected environment: (Stuff & Container) | null = null;
 

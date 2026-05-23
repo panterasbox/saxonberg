@@ -144,12 +144,13 @@ export class PutController extends CommandController<PutModel> {
       );
     }
 
-    const preposition = mode === 'in' ? 'in' : 'on';
+    // `mode` is narrowed to 'in' | 'on' at this point; use it as the
+    // preposition verbatim.
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.world.perception.inventory)
-      .toSelf(Mml.compose`You put ${Mml.item(item)} ${preposition} ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You put ${Mml.item(item)} ${mode} ${Mml.item(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} puts ${Mml.item(item)} ${preposition} ${Mml.item(target)}.`,
+        Mml.compose`${Mml.name(giver)} puts ${Mml.item(item)} ${mode} ${Mml.item(target)}.`,
       )
       .send();
   }
