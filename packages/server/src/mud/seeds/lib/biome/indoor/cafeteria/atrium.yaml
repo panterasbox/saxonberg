@@ -1,7 +1,0 @@
-# Atrium child biome of the cafeteria — scenario C showcase. Same
-# ambient texture as the surrounding cafeteria but extends
-# SkyExposedBiome because the room has an open aperture overhead.
-class: /lib/biome/SkyExposedBiome
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: atrium

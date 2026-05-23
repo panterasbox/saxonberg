@@ -1,14 +1,12 @@
-# /lib/biome — the root universe biome. Every other biome inherits
-# defaults from here via the chain-walk's templatePath ancestry. No
-# Biorealm class; root is just another Biome (per requirements
-# decision 1). All five `_defaultX` fields are mandatory at boot —
-# `BiomeApi.getRootBiome()` consults this seed for chain step 6.
-class: /lib/biome/Biome
+# /lib/biome — admin/ownership root for the biome content area.
+#
+# This is a FolderZone (NOT a Biome) — the path tree's role here is
+# to scope write access for the biome team and organize sub-team
+# trees underneath (outdoor / indoor / underground). The actual
+# root of the *atmospheric inheritance* hierarchy is the universe
+# Biome at `/lib/biome/universe`, which other biomes extend via
+# their `_extendsBiomePath` ref.
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  name: universe
-  _defaultTemperature: { value: 295, unit: K }
-  _defaultPressure:    { value: 101325, unit: Pa }
-  _defaultHumidity:    { value: 50, unit: "%" }
-  _defaultGravity:     { value: 9.81, unit: "m/s²" }
-  _defaultAtmosphere:  air
+  name: biome

@@ -2,5 +2,6 @@ class: /lib/biome/Biome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: cave
+  _extendsBiomePath: /lib/biome/underground/baseline
   _ambientSoundMml: "<markup>cavernous echoes and distant drips</markup>"
   _ambientSmellMml: "<markup>cold mineral and bat-guano</markup>"

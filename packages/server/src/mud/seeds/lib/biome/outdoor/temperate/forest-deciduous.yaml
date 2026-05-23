@@ -2,5 +2,6 @@ class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: forest-deciduous
+  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
   _ambientSoundMml: "<markup>rustling leaves and birdsong</markup>"
   _ambientSmellMml: "<markup>damp leaves and rich loam</markup>"

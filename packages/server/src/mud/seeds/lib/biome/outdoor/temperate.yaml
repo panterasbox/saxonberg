@@ -1,10 +1,7 @@
-# Temperate outdoor — 42°N seasonal mean. Sets the shared default
-# for all 15 temperate leaves (quad / forest / meadow / etc.).
-# Humidity inherits from the outdoor parent.
-class: /lib/biome/SkyExposedBiome
+# /lib/biome/outdoor/temperate — FolderZone organizing the 15 temperate
+# leaves (quad / forest / meadow / etc.). The shared temperate
+# defaults live on the `temperate/baseline` Biome leaf.
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: temperate
-  _defaultTemperature: { value: 285, unit: K }
-  _defaultGravity:     { value: 9.81, unit: "m/s²" }
-  _defaultAtmosphere:  air

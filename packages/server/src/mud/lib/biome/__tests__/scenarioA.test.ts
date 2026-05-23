@@ -27,7 +27,7 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
 describe('Biome scenario A — cafeteria hearth detail override', () => {
@@ -35,15 +35,20 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();
     installRootBiome();
-    // Indoor + cafeteria-leaf biomes for the chain to walk.
+    // Indoor baseline + cafeteria leaf — explicit _extendsBiomePath
+    // chain instead of templatePath-driven inheritance.
     makeStuffAtPath(() => {
       const b = new Biome();
+      b._extendsBiomePath = '/lib/biome/universe';
       b.setDefaultTemperature(Quantity.of(294, 'K'));
       b.setDefaultHumidity(Quantity.of(45, '%'));
       return b;
-    }, '/lib/biome/indoor');
-    makeStuffAtPath(() => new Biome(), '/lib/biome/indoor/social');
-    makeStuffAtPath(() => new Biome(), '/lib/biome/indoor/social/cafeteria');
+    }, '/lib/biome/indoor/baseline');
+    makeStuffAtPath(() => {
+      const b = new Biome();
+      b._extendsBiomePath = '/lib/biome/indoor/baseline';
+      return b;
+    }, '/lib/biome/indoor/social/cafeteria');
   });
 
   afterEach(() => {

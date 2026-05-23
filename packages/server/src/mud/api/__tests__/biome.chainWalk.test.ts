@@ -21,9 +21,14 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
+/**
+ * Install a Biome at `path`, with optional defaults and an
+ * `extendsBiomePath` ref pointing at its parent biome. `extends`
+ * defaults to the root universe biome.
+ */
 function installBiome(
   path: string,
   data: {
@@ -32,10 +37,12 @@ function installBiome(
     humidity?: number;
     gravity?: number;
     atmosphere?: string;
+    extends?: string;
   },
 ): Biome {
   return makeStuffAtPath(() => {
     const b = new Biome();
+    b._extendsBiomePath = data.extends ?? '/lib/biome/universe';
     if (data.temperature !== undefined)
       b.setDefaultTemperature(Quantity.of(data.temperature, 'K'));
     if (data.pressure !== undefined)
@@ -82,9 +89,13 @@ describe('BiomeApi resolve* — chain walk', () => {
     expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(285);
   });
 
-  it('walks biome templatePath ancestry when leaf has no value', async () => {
-    installBiome('/lib/biome/outdoor', { humidity: 60 });
-    const leaf = installBiome('/lib/biome/outdoor/temperate/quad', {});
+  it('follows _extendsBiomePath when leaf has no value', async () => {
+    const tier = installBiome('/lib/biome/outdoor/baseline', {
+      humidity: 60,
+    });
+    const leaf = installBiome('/lib/biome/outdoor/temperate/quad', {
+      extends: tier.getTemplatePath() ?? undefined,
+    });
     const room = makeStuff(() => new TestLocation());
     room.setBiome(leaf);
     expect((await BiomeApi.resolveHumidityFor(room)).rawValue()).toBe(60);
@@ -108,6 +119,21 @@ describe('BiomeApi resolve* — chain walk', () => {
       (await BiomeApi.resolveTemperatureFor(room, 'hearth')).rawValue(),
     ).toBe(800);
   });
+
+  it('inheritance ref is independent of templatePath organization', async () => {
+    // A biome at one path can extend a parent at a totally unrelated
+    // path — the chain follows the explicit ref, not the directory
+    // structure. Demonstrates the model's purity.
+    const parent = installBiome('/lib/biome/_fixtures/parent', {
+      temperature: 273,
+    });
+    const child = installBiome('/lib/biome/_fixtures/elsewhere/child', {
+      extends: parent.getTemplatePath() ?? undefined,
+    });
+    const room = makeStuff(() => new TestLocation());
+    room.setBiome(child);
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(273);
+  });
 });
 
 describe('BiomeApi.traceResolveTemperatureFor — provenance', () => {
@@ -126,7 +152,7 @@ describe('BiomeApi.traceResolveTemperatureFor — provenance', () => {
     const room = makeStuff(() => new TestLocation());
     const trace = await BiomeApi.traceResolveTemperatureFor(room);
     expect(trace.source).toBe('universe');
-    expect(trace.sourcePath).toBe('/lib/biome');
+    expect(trace.sourcePath).toBe('/lib/biome/universe');
   });
 
   it('source=biome when biome leaf has the value', async () => {
@@ -140,14 +166,18 @@ describe('BiomeApi.traceResolveTemperatureFor — provenance', () => {
     expect(trace.sourcePath).toBe('/lib/biome/outdoor/temperate/quad');
   });
 
-  it('source=biome-ancestor when leaf falls through to parent', async () => {
-    installBiome('/lib/biome/outdoor/temperate', { temperature: 285 });
-    const leaf = installBiome('/lib/biome/outdoor/temperate/quad', {});
+  it('source=biome-ancestor when leaf falls through to extends parent', async () => {
+    const parent = installBiome('/lib/biome/outdoor/temperate/baseline', {
+      temperature: 285,
+    });
+    const leaf = installBiome('/lib/biome/outdoor/temperate/quad', {
+      extends: parent.getTemplatePath() ?? undefined,
+    });
     const room = makeStuff(() => new TestLocation());
     room.setBiome(leaf);
     const trace = await BiomeApi.traceResolveTemperatureFor(room);
     expect(trace.source).toBe('biome-ancestor');
-    expect(trace.sourcePath).toBe('/lib/biome/outdoor/temperate');
+    expect(trace.sourcePath).toBe('/lib/biome/outdoor/temperate/baseline');
   });
 
   it('source=room when room overrides', async () => {
@@ -175,6 +205,30 @@ describe('BiomeApi.traceResolveTemperatureFor — provenance', () => {
   });
 });
 
+describe('BiomeApi resolve* — extends-chain cycle guard', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    BiomeApi.invalidateRootBiomeCache();
+    installRootBiome();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+    BiomeApi.invalidateRootBiomeCache();
+  });
+
+  it('breaks the walk on a cycle and falls through to universe', async () => {
+    // a → b → a — pathological authoring; the chain walker must
+    // not loop. Cycle is broken via the visited-set guard; the
+    // walk falls through to the universe biome.
+    const a = installBiome('/lib/biome/_fixtures/a', { extends: '/lib/biome/_fixtures/b' });
+    installBiome('/lib/biome/_fixtures/b', { extends: a.getTemplatePath() ?? undefined });
+
+    const room = makeStuff(() => new TestLocation());
+    room.setBiome(a);
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(295);
+  });
+});
+
 describe('BiomeApi resolve* — boot-time invariant', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -192,7 +246,7 @@ describe('BiomeApi resolve* — boot-time invariant', () => {
       b.setDefaultPressure(Quantity.of(101325, 'Pa'));
       // _defaultTemperature deliberately unset.
       return b;
-    }, '/lib/biome');
+    }, '/lib/biome/universe');
 
     const room = makeStuff(() => new TestLocation());
     await expect(BiomeApi.resolveTemperatureFor(room)).rejects.toThrow(

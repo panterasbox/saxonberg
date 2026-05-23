@@ -21,7 +21,7 @@ function installRootBiome(): void {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
 describe('AtmosphericMixin — prefix walk', () => {

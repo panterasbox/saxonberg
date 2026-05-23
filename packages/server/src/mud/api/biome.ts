@@ -68,7 +68,7 @@ export interface AtmosphericTrace<V> {
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
-   * zone, `'/lib/biome'` for universe.
+   * zone, `'/lib/biome/universe'` for universe.
    */
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
@@ -81,8 +81,20 @@ export interface AtmosphericTrace<V> {
  */
 const CONTAINMENT_DEPTH_CAP = 32;
 
-/** Path of the root universe biome. */
-const ROOT_BIOME_PATH = '/lib/biome';
+/**
+ * Path of the root universe biome — the inheritance-hierarchy root
+ * with `_extendsBiomePath: null`. The biome admin folder lives at
+ * `/lib/biome/` (a `FolderZone`); the root biome itself lives at
+ * `/lib/biome/universe`.
+ */
+const ROOT_BIOME_PATH = '/lib/biome/universe';
+
+/**
+ * Depth guard for the `_extendsBiomePath` chain walk. Real content
+ * shouldn't approach this; the cap is defensive against authoring
+ * cycles in the inheritance graph.
+ */
+const BIOME_ANCESTRY_DEPTH_CAP = 32;
 
 /** Cached root biome instance. Cleared on HMR. */
 let rootBiomeCache: Biome | null = null;
@@ -118,7 +130,7 @@ export class BiomeApi {
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —
    * a boot-time invariant; the seeded universe biome at
-   * `seeds/lib/biome.yaml` is mandatory.
+   * `seeds/lib/biome/universe.yaml` is mandatory.
    */
   public static getRootBiome(): Biome {
     if (rootBiomeCache === null) {
@@ -127,7 +139,7 @@ export class BiomeApi {
         throw new Error(
           `BiomeApi.getRootBiome: root universe biome at ` +
             `'${ROOT_BIOME_PATH}' is not loaded — check ` +
-            `seeds/lib/biome.yaml`
+            `seeds/lib/biome/universe.yaml`
         );
       }
       rootBiomeCache = b;
@@ -377,29 +389,33 @@ function readDetailMap<V>(
 }
 
 /**
- * Biome-ancestry walk for a single getter. Walks templatePath
- * parents from `start` down to (but not including) the root parent
- * `/lib`, consulting `getter` on each Biome encountered. Returns
- * `{ value, biomePath }` for the first non-null hit; `null` when
- * the walk exhausts without finding a value.
+ * Biome-ancestry walk for a single getter. Follows `_extendsBiomePath`
+ * refs from `start` upward, consulting `getter` on each Biome
+ * encountered. Returns `{ value, biomePath }` for the first non-null
+ * hit; `null` when the chain exhausts without finding a value.
+ *
+ * Cycle-guarded by a visited Set + depth cap — pathological authoring
+ * (A extends B, B extends A) stops at the first revisit; depth runs
+ * out independently for safety.
  */
 function walkBiomeAncestry<V>(
   start: Biome,
   getter: (b: Biome) => V | null,
 ): { value: V; biomePath: string } | null {
-  let path: string | null = start.getTemplatePath();
-  while (path !== null && path.startsWith(ROOT_BIOME_PATH)) {
-    const b = BiomeApi.findByPath(path);
-    if (b !== null) {
-      const v = getter(b);
-      if (v !== null && v !== undefined) {
-        return { value: v, biomePath: path };
-      }
+  let current: Biome | null = start;
+  const visited = new Set<string>();
+  let depth = BIOME_ANCESTRY_DEPTH_CAP;
+  while (current !== null && depth-- > 0) {
+    const path = current.getTemplatePath();
+    if (path !== null) {
+      if (visited.has(path)) break;
+      visited.add(path);
     }
-    if (path === ROOT_BIOME_PATH) break;
-    const slash = path.lastIndexOf('/');
-    if (slash <= 0) break;
-    path = path.substring(0, slash);
+    const v = getter(current);
+    if (v !== null && v !== undefined) {
+      return { value: v, biomePath: path ?? '' };
+    }
+    current = current.getExtendsBiome();
   }
   return null;
 }
@@ -605,7 +621,7 @@ async function runChainWalk<V>(
     throw new Error(
       `BiomeApi.resolve${capitalize(fieldBare)}For: root universe biome ` +
         `at '${ROOT_BIOME_PATH}' is missing the '${fieldBare}' default. ` +
-        `This is a boot-time invariant violation; check seeds/lib/biome.yaml.`,
+        `This is a boot-time invariant violation; check seeds/lib/biome/universe.yaml.`,
     );
   }
   return {

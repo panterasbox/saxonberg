@@ -2,5 +2,6 @@ class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: meadow
+  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
   _ambientSoundMml: "<markup>crickets and wind through tall grass</markup>"
   _ambientSmellMml: "<markup>wildflowers and warm hay</markup>"

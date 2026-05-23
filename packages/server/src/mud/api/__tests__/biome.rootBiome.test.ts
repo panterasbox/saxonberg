@@ -16,7 +16,7 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
 describe('BiomeApi.getRootBiome', () => {
@@ -67,6 +67,6 @@ describe('BiomeApi.getRootBiome', () => {
 
   it('findByPath of /lib/biome surfaces the same singleton', () => {
     const root = installRootBiome();
-    expect(BiomeApi.findByPath('/lib/biome')).toBe(root);
+    expect(BiomeApi.findByPath('/lib/biome/universe')).toBe(root);
   });
 });

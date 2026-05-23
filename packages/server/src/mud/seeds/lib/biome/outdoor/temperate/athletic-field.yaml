@@ -2,5 +2,6 @@ class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: athletic-field
+  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
   _ambientSoundMml: "<markup>shouts, whistles, and the thump of running feet</markup>"
   _ambientSmellMml: "<markup>grass and sweat</markup>"

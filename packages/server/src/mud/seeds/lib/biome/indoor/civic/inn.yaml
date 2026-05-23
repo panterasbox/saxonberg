@@ -2,5 +2,6 @@ class: /lib/biome/Biome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: inn
+  _extendsBiomePath: /lib/biome/indoor/civic/baseline
   _ambientSoundMml: "<markup>creaking timbers and a far-off lullaby</markup>"
   _ambientSmellMml: "<markup>woodsmoke and clean linen</markup>"

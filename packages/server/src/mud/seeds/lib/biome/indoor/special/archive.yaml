@@ -2,6 +2,7 @@ class: /lib/biome/Biome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: archive
+  _extendsBiomePath: /lib/biome/indoor/special/baseline
   _defaultHumidity: { value: 40, unit: "%" }
   _ambientSoundMml: "<markup>a deep, climate-controlled hush</markup>"
   _ambientSmellMml: "<markup>aged parchment and dust</markup>"

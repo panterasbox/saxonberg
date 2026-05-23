@@ -226,22 +226,25 @@ behavior. Read the relevant doc before editing in its area.
     `Events.StuffDestructed`, `cancel` / `stop` verb. Wave 1 ships
     the substrate inert; v1 controllers stay synchronous.
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate:
-    `Biome extends Zone` (root universe biome at `/lib/biome/`
-    carries the five universe defaults; no Biorealm class).
-    `AtmosphericMixin` composes onto `Location` AND `Vessel` (not
-    pure containers). Outward-walking chain resolver
-    (`BiomeApi.resolveXFor`): detail → detail-prefix → room → biome
-    leaf → biome ancestry → spatial zone → universe. Atmosphere
-    medium as a string tag with a 3-entry density const map (air /
-    water / vacuum). `SkyExposedMixin` + `SkyExposedBiome` for
-    outdoor leaves. Derived geometry: `CartesianZone.cellSize`
-    graduated to linear meters (default 3.0); `Location.getVolume` /
-    `getCeilingHeight` are abstract, overridden per topology
-    (cube-cell vs sphere + inscribed cube). Six instruments
-    (Thermometer / Barometer / Hygrometer / GravityMeter /
-    GasAnalyzer / Altimeter) + `measure <field>` subcommand
-    dispatch + `analyze atmosphere` provenance verb. 39 biome
-    leaves seeded under `/lib/biome/`.
+    `Biome extends Idea` (leaf templates with explicit
+    `_extendsBiomePath` parent refs); root universe biome at
+    `/lib/biome/universe`. Admin/ownership tree under `/lib/biome/`
+    uses `FolderZone` templates for write-access scoping (biome
+    team, sub-team folders). `AtmosphericMixin` composes onto
+    `Location` AND `Vessel` (not pure containers). Outward-walking
+    chain resolver (`BiomeApi.resolveXFor`): detail → detail-prefix
+    → room → biome leaf → biome ancestry (via `_extendsBiomePath`
+    chain) → spatial zone → universe. Atmosphere medium as a string
+    tag with a 3-entry density const map (air / water / vacuum).
+    `SkyExposedMixin` + `SkyExposedBiome` for outdoor leaves.
+    Derived geometry: `CartesianZone.cellSize` graduated to linear
+    meters (default 3.0); `Location.getVolume` / `getCeilingHeight`
+    are abstract, overridden per topology (cube-cell vs sphere +
+    inscribed cube). Six instruments (Thermometer / Barometer /
+    Hygrometer / GravityMeter / GasAnalyzer / Altimeter) + `measure
+    <field>` subcommand dispatch + `analyze atmosphere` provenance
+    verb. 39 biome leaves seeded under `/lib/biome/` with explicit
+    extends-chain inheritance.
 
 ## Development Commands
 

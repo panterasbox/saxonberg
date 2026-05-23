@@ -1,7 +1,7 @@
-# Special indoor — observatory, gymnasium, theater, art-studio,
-# chapel, archive. Each leaf overrides freely.
-class: /lib/biome/Biome
+# /lib/biome/indoor/special — FolderZone for special-purpose
+# indoor leaves (observatory, gymnasium, theater, art-studio, chapel,
+# archive).
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: special
-  _ambientSoundMml: "<markup>a hushed, purposeful quiet</markup>"

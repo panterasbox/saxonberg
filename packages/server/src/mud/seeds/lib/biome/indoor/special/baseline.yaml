@@ -1,0 +1,9 @@
+# Special-indoor baseline — observatory, gymnasium, theater, etc.
+# Each leaf overrides freely; this just provides a hushed default
+# ambient. Extends indoor/baseline.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: special-baseline
+  _extendsBiomePath: /lib/biome/indoor/baseline
+  _ambientSoundMml: "<markup>a hushed, purposeful quiet</markup>"

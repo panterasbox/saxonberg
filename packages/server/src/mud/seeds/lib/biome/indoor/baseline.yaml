@@ -1,0 +1,13 @@
+# Indoor tier baseline — climate-controlled. NOT sky-exposed. Sub-
+# tier baselines (academic / residential / social / civic / special)
+# extend this.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: indoor-baseline
+  _extendsBiomePath: /lib/biome/universe
+  _defaultTemperature: { value: 294, unit: K }
+  _defaultHumidity:    { value: 45, unit: "%" }
+  _defaultGravity:     { value: 9.81, unit: "m/s²" }
+  _defaultAtmosphere:  air
+  _ambientSoundMml: "<markup>a low HVAC hum</markup>"

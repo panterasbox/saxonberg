@@ -1,74 +1,123 @@
 # Biome substrate
 
-Saxonberg's first "physics of places" subsystem. Biomes carry
-atmospheric defaults (temperature / pressure / humidity / gravity /
-atmosphere) plus ambient sensory texture (sound + smell MML);
-Locations and Vessels compose `AtmosphericMixin` to override those
-defaults at their own scope or per-Detail; `BiomeApi.resolveXFor`
-walks innermost-container-outward through containment ancestors,
-then the spatial zone, then the root universe biome, returning the
-first override at any layer.
+Saxonberg's first "physics of places" subsystem. Biomes are leaf
+Idea templates carrying atmospheric defaults (temperature / pressure
+/ humidity / gravity / atmosphere) plus ambient sensory texture
+(sound + smell MML); Locations and Vessels compose `AtmosphericMixin`
+to override those defaults at their own scope or per-Detail;
+`BiomeApi.resolveXFor` walks innermost-container-outward through
+containment ancestors, then the spatial zone, then the root universe
+biome — returning the first override at any layer.
 
 The whole substrate produces honest engineering numbers — Kelvin,
 Pascals, m/s², m³ — so pedagogy can compute `n = PV/RT` against the
 substrate's own state without needing a parallel "real units" track.
 
-## The biome template tree
+## Two trees, separated by job
 
-`Biome extends Zone` — parallel to `Clade extends Zone` in the
-species substrate. Both are taxonomic Zone subclasses that play
-folder + leaf at every path level; the folder/leaf invariant exists
-for `SpatialZone` (no nested coordinate systems) and does NOT apply
-to taxonomic Zones. `ZoneApi.isFolderClass(Biome)` returns true;
-`isSpatialZoneClass(Biome)` returns false.
+The biome substrate uses **two independent structures** that meet at
+the `Biome` template:
 
-There is no `Biorealm` class — the root at `/lib/biome/` is itself
-a `Biome` template (the **universe biome**) carrying all five
-atmospheric defaults. Sub-biomes at every depth may carry their own
-defaults; un-set fields inherit through the chain-walk's
-templatePath ancestry to the root.
+| Tree | Role | Where it lives | Mechanism |
+|---|---|---|---|
+| **Admin tree** | Ownership / write-access scoping ("biome team") | `FolderZone` templates at `/lib/biome/`, `/lib/biome/outdoor/`, `/lib/biome/indoor/`, etc. | templatePath organization |
+| **Inheritance tree** | Atmospheric defaults inherited from parent biomes | `Biome` leaf templates with `_extendsBiomePath` refs | explicit Pattern-A ref (independent of path) |
+
+Biomes are **leaves** in the admin tree — they're not folders; they
+don't extend `Zone`. They're reference data, like `Material` and
+`Species`. The inheritance tree they form is independent of where
+they happen to live in the templatePath: a biome at one path can
+extend a parent at any other path via its `_extendsBiomePath` ref.
+
+Concretely:
 
 ```
-/lib/biome/                       # universe biome — 295 K, 101325 Pa,
-                                  # 50% humidity, 9.81 m/s², 'air'
-  outdoor/                        # outdoor tier (SkyExposedBiome)
-    temperate/                    # 42°N seasonal mean: 285 K
-      quad/                       # leaf — only ambient texture
-      forest-deciduous/           # leaf
+admin tree (FolderZones — ownership/write-access):
+
+/lib/biome/                      FolderZone     ← biome team
+  universe.yaml                  Biome leaf     ← root of inheritance
+  outdoor/                       FolderZone     ← outdoor sub-team
+    baseline.yaml                Biome leaf     ← outdoor tier defaults
+    temperate/                   FolderZone
+      baseline.yaml              Biome leaf     ← temperate tier defaults
+      quad.yaml                  Biome leaf
+      forest-deciduous.yaml      Biome leaf
       … 13 more
-  underground/                    # not sky-exposed; 285 K, 70% RH
-    tunnel, sewer, cave           # 3 leaves
-  indoor/                         # climate-controlled: 294 K, 45% RH
-    academic/                     # paper-and-chalk ambient
-      lecture-hall, classroom,    # 7 leaves
-      …
-    residential/                  # 296 K
-      dorm-room, common-room,     # 3 leaves
-      townhouse
-    social/cafeteria              # 1 leaf
-    civic/                        # 4 leaves
-      shop, tavern, inn, workshop
-    special/                      # 6 leaves
-      observatory-dome,           # SkyExposedBiome (aperture)
-      gymnasium, theater,
-      art-studio, chapel, archive
-    cafeteria/atrium              # scenario C — SkyExposed child
-                                  # biome of a plain-Biome parent
+  underground/                   FolderZone
+    baseline.yaml                Biome leaf
+    tunnel, sewer, cave          ← 3 leaves
+  indoor/                        FolderZone     ← indoor sub-team
+    baseline.yaml                Biome leaf
+    academic/                    FolderZone
+      baseline.yaml              Biome leaf
+      lecture-hall, classroom    ← 7 leaves
+    residential/                 FolderZone
+      baseline.yaml, …           ← 3 leaves
+    social/                      FolderZone
+      baseline.yaml
+      cafeteria.yaml
+      cafeteria-atrium.yaml      ← scenario C, extends cafeteria
+    civic/                       FolderZone
+      baseline.yaml, …           ← 4 leaves
+    special/                     FolderZone
+      baseline.yaml
+      observatory-dome.yaml      ← SkyExposedBiome (aperture)
+      gymnasium, theater, …      ← 5 more leaves
 ```
 
-The tier biomes (`outdoor/temperate`, `indoor/academic`, etc.)
-carry shared defaults; leaves declare what differs. Inheritance is
-entirely the chain-walk's job — no YAML `extends:` ceremony, no
-`_defaults` siblings.
+```
+inheritance tree (Biome._extendsBiomePath — independent of paths):
 
-39 leaves total. Sky-exposed leaves use `class:
+   universe
+   ├── outdoor-baseline
+   │   └── temperate-baseline
+   │       ├── quad
+   │       ├── forest-deciduous
+   │       └── … 13 more
+   ├── underground-baseline
+   │   ├── tunnel
+   │   ├── sewer
+   │   └── cave
+   └── indoor-baseline
+       ├── academic-baseline
+       │   ├── lecture-hall
+       │   └── … 6 more
+       ├── residential-baseline
+       │   └── … 3 leaves
+       ├── social-baseline
+       │   ├── cafeteria
+       │   │   └── cafeteria-atrium   ← extends cafeteria, not the
+       │   │                            tier baseline; sky-exposed
+       │   …
+       ├── civic-baseline
+       │   └── … 4 leaves
+       └── special-baseline
+           └── … 6 leaves
+```
+
+39 content leaves total. Sky-exposed leaves use `class:
 /lib/biome/SkyExposedBiome`; everything else uses plain `class:
 /lib/biome/Biome`.
 
+**Why two trees:** the admin tree answers "who owns this template,
+who can write to it." The inheritance tree answers "what defaults
+does this biome inherit." Those are different concerns — coupling
+them via path was the original design's mistake. A future "alien
+planet" biome can sit at any admin path and explicitly extend
+`/lib/biome/universe` (or any other biome); the path doesn't
+constrain its inheritance.
+
 ## `Biome` class
 
-Seven persistent fields:
+A leaf `extends Idea`. Nine persistent fields:
 
+- `name: string` (e.g., `'universe'`, `'temperate-baseline'`,
+  `'quad'`)
+- `_extendsBiomePath: string | null` — Pattern A ref to the parent
+  biome; `null` on the root. `getExtendsBiome()` /
+  `setExtendsBiome(value)` resolve via
+  `StuffApi.findByTemplatePath` (HMR-safe); `getExtendsBiomePath()`
+  exposes the raw string for the chain walker.
 - `_defaultTemperature: Quantity<'K'> | null`
 - `_defaultPressure: Quantity<'Pa'> | null`
 - `_defaultHumidity: Quantity<'%'> | null`
@@ -77,19 +126,16 @@ Seven persistent fields:
 - `_ambientSoundMml: string | null`
 - `_ambientSmellMml: string | null`
 
-`null` means "fall through to the next ancestor in the chain walk"
-— so a leaf biome carrying only `_ambientSoundMml` inherits all four
-Quantity defaults from its parent.
+`null` on a Quantity / string default means "fall through to my
+extends parent." A leaf biome carrying only `_ambientSoundMml`
+inherits all four Quantity defaults from the chain.
 
 `Biome` does NOT compose `SingletonMixin` in v1 — leaves room for
 future procedural / time-of-day variance per clone.
-`BiomeApi.findByPath` works either way (delegates to
-`StuffApi.findByTemplatePath`).
 
 The four Quantity-typed fields round-trip through
 `QuantityMarshaller`s; setters are strict-on-unit and throw
-TypeError on mismatch (per CLAUDE.md "Per-field invariants on
-setters").
+TypeError on mismatch.
 
 ## `AtmosphericMixin`
 
@@ -149,10 +195,10 @@ For any `(scope, detailKey?)` pair where `scope` is the innermost
      (longest-prefix-first walk — `hearth.embers` checks
      `hearth.embers` then `hearth`) — innermost scope only.
    - **(c)** Room-scope (bulk) override on this ancestor.
-   - **(d)** Biome default with template-ancestry walk on this
-     ancestor's biome (if it has one): walks the biome's
-     `getTemplatePath()` ancestors down to `/lib/biome`, returning
-     the first non-null default.
+   - **(d)** Biome default with `_extendsBiomePath` walk on this
+     ancestor's biome (if it has one): walks the explicit ref
+     chain, consulting each biome for the field; first non-null
+     value wins. Cycle-guarded (visited set + depth cap of 32).
 
 2. **Spatial zone** — outermost Location's
    `getZone()?.lookupField<T>('atmosphere.<field>')`. Zones don't
@@ -160,9 +206,9 @@ For any `(scope, detailKey?)` pair where `scope` is the innermost
    `Zone.lookupField`'s generic field-inheritance walk.
 
 3. **Universe terminal** — `BiomeApi.getRootBiome()` returns the
-   cached `/lib/biome` template. Each `_defaultX` field on it is
-   mandatory; the resolver throws a boot-invariant error if a field
-   is unset at the root.
+   cached `/lib/biome/universe` template. Each `_defaultX` field
+   on it is mandatory; the resolver throws a boot-invariant error
+   if a field is unset at the root.
 
 First override at any layer terminates the walk. Pure-container
 ancestors (Box, Backpack, …) are skipped entirely.
@@ -173,10 +219,10 @@ ancestors (Box, Backpack, …) are skipped entirely.
 # Empty room with no biome — universe default.
 resolveTemperatureFor(room) → 295 K   (source: 'universe')
 
-# Room with biome /lib/biome/outdoor/temperate/quad (which inherits
-# temperature from /lib/biome/outdoor/temperate at 285 K).
+# Room with biome /lib/biome/outdoor/temperate/quad (which extends
+# temperate-baseline at 285 K).
 resolveTemperatureFor(room) → 285 K   (source: 'biome-ancestor',
-                                       sourcePath: '/lib/biome/outdoor/temperate')
+                                       sourcePath: '/lib/biome/outdoor/temperate/baseline')
 
 # Room with biome AND room.setTemperature(Q(310, 'K')).
 resolveTemperatureFor(room) → 310 K   (source: 'room')
@@ -253,11 +299,12 @@ looking for the nearest atmospheric ancestor with a biome ref, then
 narrows the biome via `MixinApi.isSkyExposed(biome)`. Returns
 `false` when no biome resolves anywhere in the chain.
 
-The atrium-in-cafeteria scenario authors a child biome
-`/lib/biome/indoor/cafeteria/atrium` extending `SkyExposedBiome`
-while sibling cafeteria rooms point at the plain-`Biome` parent.
-The biome chain inherits shared defaults; the child overrides only
-the trait.
+The atrium-in-cafeteria scenario authors a sibling biome
+`/lib/biome/indoor/social/cafeteria-atrium` that extends
+`SkyExposedBiome` and `_extendsBiomePath`-refs the cafeteria —
+inheriting all of the cafeteria's profile while adding the
+sky-exposed trait. The biome chain inherits shared defaults; the
+sibling overrides only the trait.
 
 ## `BiomeApi`
 
@@ -388,16 +435,17 @@ cross-cutting setting alongside sound's.
 - [docs/subsystems/spatial.md](./spatial.md) — Location hierarchy +
   the `CartesianZone.cellSize` graduation.
 - [docs/subsystems/zone.md](./zone.md) — `Zone.lookupField` for
-  chain step 5; the folder/leaf invariant carve-out for taxonomic
-  Zones (`Biome` extends `Zone` parallel to `Clade`).
+  chain step 5; biome admin folders use `FolderZone`.
 - [docs/subsystems/race.md](./race.md) — Material's `getMaterial`
   prefix-walk shape that `AtmosphericMixin`'s detail walk mirrors
-  exactly; the cross-link for a future per-species breathing gate.
+  exactly; Material/Species are the precedents for the leaf-Idea
+  + explicit-ref-inheritance pattern Biome now follows; the
+  cross-link for a future per-species breathing gate.
 - [docs/subsystems/light.md](./light.md) — `LightApi`'s chain-walk
   shape; the receiving-surface area divisor is now derived from
   `cellSize²`.
 - [docs/ref-shapes.md](../ref-shapes.md) — Pattern A for the
-  `_biomePath` ref.
+  `_biomePath` and `_extendsBiomePath` refs.
 - [docs/subsystems/shell-environment.md](./shell-environment.md) —
   the universe defaults are NOT settings; the chain's terminal
-  step reads from the root biome at `/lib/biome`.
+  step reads from the root biome at `/lib/biome/universe`.

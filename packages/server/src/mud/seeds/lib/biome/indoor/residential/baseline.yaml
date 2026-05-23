@@ -1,0 +1,10 @@
+# Residential indoor baseline — dorm rooms, common rooms, townhouses.
+# Slightly warmer than indoor/baseline (296 K) per typical home
+# heating; domestic ambient texture.
+class: /lib/biome/Biome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: residential-baseline
+  _extendsBiomePath: /lib/biome/indoor/baseline
+  _defaultTemperature: { value: 296, unit: K }
+  _ambientSoundMml: "<markup>muffled footsteps and distant conversation</markup>"

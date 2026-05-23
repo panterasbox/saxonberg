@@ -1,0 +1,14 @@
+# Scenario-C showcase — the cafeteria's atrium room. SkyExposed
+# (the atrium has an open aperture overhead) while still inheriting
+# all of the cafeteria's atmospheric + ambient profile via the
+# explicit `_extendsBiomePath` ref.
+#
+# Demonstrates how the post-refactor model decouples inheritance
+# from path: the atrium lives at a sibling slot under social/, not
+# at `cafeteria/atrium`, but inherits the full cafeteria profile
+# regardless.
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: cafeteria-atrium
+  _extendsBiomePath: /lib/biome/indoor/social/cafeteria

@@ -78,7 +78,7 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
 describe('AnalyzeAtmosphereController', () => {
@@ -98,6 +98,7 @@ describe('AnalyzeAtmosphereController', () => {
     const biome = makeStuffAtPath(
       () => {
         const b = new Biome();
+        b._extendsBiomePath = '/lib/biome/universe';
         b.setDefaultTemperature(Quantity.of(285, 'K'));
         return b;
       },
@@ -125,8 +126,9 @@ describe('AnalyzeAtmosphereController', () => {
     expect(frame.body).toContain('atmosphere:');
     expect(frame.body).toContain('air');
     // Fields the leaf doesn't override resolve via biome-ancestor walk
-    // to the root universe biome at /lib/biome.
-    expect(frame.body).toContain('biome ancestor (/lib/biome)');
+    // (follows _extendsBiomePath) up to the root universe biome at
+    // /lib/biome/universe.
+    expect(frame.body).toContain('biome ancestor (/lib/biome/universe)');
   });
 
   it('detail key reads the hearth override with detail provenance', async () => {

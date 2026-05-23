@@ -1,10 +1,9 @@
-# Outdoor tier — sky-exposed by default. Carries the broad outdoor
-# ambient sound texture and the 50% humidity outdoor baseline. Sub-
-# tiers (temperate / arid / arctic) refine temperature + atmosphere
-# defaults at deeper paths.
-class: /lib/biome/SkyExposedBiome
+# /lib/biome/outdoor — FolderZone for the outdoor biome sub-tree.
+# Admin/ownership scope; carries no atmospheric data of its own.
+# The shared outdoor defaults live on the `outdoor/baseline` Biome
+# leaf; outdoor biome templates extend that one (directly or
+# transitively) via their `_extendsBiomePath` ref.
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: outdoor
-  _defaultHumidity: { value: 50, unit: "%" }
-  _ambientSoundMml: "<markup>a soft breeze, distant birdsong</markup>"

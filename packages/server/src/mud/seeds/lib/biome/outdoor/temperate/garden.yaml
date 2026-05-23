@@ -2,5 +2,6 @@ class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: garden
+  _extendsBiomePath: /lib/biome/outdoor/temperate/baseline
   _ambientSoundMml: "<markup>bees humming and a soft trickle of water</markup>"
   _ambientSmellMml: "<markup>blossom and rich loam</markup>"

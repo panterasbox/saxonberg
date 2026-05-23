@@ -4,8 +4,15 @@ The `lib/zone/` subsystem holds the **Zone-hierarchy roots** — the
 abstract scope abstraction (`Zone`), the abstract spatial-coordinate
 base (`SpatialZone`), and the generic organizational `FolderZone`.
 Concrete spatial-coordinate zones (`CartesianZone`, `SphericalZone`)
-live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`, `HomeZone`,
-`Biorealm`) live in their own domain folders. All of them extend `Zone`.
+live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
+`HomeZone`) live in their own domain folders. All of them extend
+`Zone`.
+
+`Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
+— biomes are leaf Ideas with explicit `_extendsBiomePath` parent
+refs. The folder structure under `/lib/biome/` uses `FolderZone`
+templates for the biome team's admin/ownership scoping; the actual
+biome inheritance lives independently in the leaf data.
 
 ## Why a separate subsystem
 
@@ -28,8 +35,8 @@ subclasses stay under `lib/spatial/`.
    SpatialZone    FolderZone   non-spatial Zone subclasses
    (lib/zone/    (lib/zone/    (in their own folders):
    SpatialZone)  FolderZone)     - HomeZone   (lib/home/)
-   /     \                       - Biorealm   (lib/biome/)
-  /       \                      - Clade      (lib/species/)
+   /     \                       - Clade      (lib/species/)
+  /       \
 CartesianZone  SphericalZone
 (lib/spatial/) (lib/spatial/)
 ```
@@ -45,12 +52,13 @@ CartesianZone  SphericalZone
   extend this — not `Zone` directly.
 - **`FolderZone`** — generic organizational scope, no spatial
   topology. Use for templatePath folders like `/domain/narnia/`
-  that organize a content team's tree without anchoring a
-  coordinate grid. Sub-folders that DO need a coordinate frame
-  extend `CartesianZone` / `SphericalZone` instead.
-- **`HomeZone`** / **`Biorealm`** / **`Clade`** — domain-specific
-  non-spatial Zone subclasses. They extend `Zone` directly, satisfy
-  the folder/leaf invariant, but never stamp `Stuff.zone`.
+  or `/lib/biome/outdoor/` that organize a content team's tree
+  without anchoring a coordinate grid. Sub-folders that DO need
+  a coordinate frame extend `CartesianZone` / `SphericalZone`
+  instead.
+- **`HomeZone`** / **`Clade`** — domain-specific non-spatial
+  Zone subclasses. They extend `Zone` directly, satisfy the
+  folder/leaf invariant, but never stamp `Stuff.zone`.
 
 ## ZoneApi
 

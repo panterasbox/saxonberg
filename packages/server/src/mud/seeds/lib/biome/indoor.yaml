@@ -1,13 +1,7 @@
-# Indoor — climate-controlled baseline. Not sky-exposed. Sub-tiers
-# (academic / residential / social / civic / special) refine
-# ambient texture; leaves at the deepest level rarely override the
-# climate fields.
-class: /lib/biome/Biome
+# /lib/biome/indoor — FolderZone for the indoor sub-tree.
+# Admin/ownership scope. Shared indoor defaults live on
+# `indoor/baseline`.
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: indoor
-  _defaultTemperature: { value: 294, unit: K }
-  _defaultHumidity:    { value: 45, unit: "%" }
-  _defaultGravity:     { value: 9.81, unit: "m/s²" }
-  _defaultAtmosphere:  air
-  _ambientSoundMml: "<markup>a low HVAC hum</markup>"

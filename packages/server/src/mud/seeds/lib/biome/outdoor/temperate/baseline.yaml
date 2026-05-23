@@ -1,0 +1,11 @@
+# Temperate outdoor baseline — 42°N seasonal mean. Sets the shared
+# default for all 15 temperate leaves (quad / forest / meadow / etc.).
+# Humidity inherits from outdoor/baseline.
+class: /lib/biome/SkyExposedBiome
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: temperate-baseline
+  _extendsBiomePath: /lib/biome/outdoor/baseline
+  _defaultTemperature: { value: 285, unit: K }
+  _defaultGravity:     { value: 9.81, unit: "m/s²" }
+  _defaultAtmosphere:  air

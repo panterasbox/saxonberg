@@ -2,5 +2,6 @@ class: /lib/biome/Biome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: cafeteria
+  _extendsBiomePath: /lib/biome/indoor/social/baseline
   _ambientSoundMml: "<markup>a steady roar of voices and clattering trays</markup>"
   _ambientSmellMml: "<markup>warm bread, gravy, and coffee</markup>"

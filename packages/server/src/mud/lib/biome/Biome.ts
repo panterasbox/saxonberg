@@ -1,25 +1,26 @@
 /**
- * Biome — taxonomic scope unit for atmospheric defaults + ambient
- * sensory texture.
+ * Biome — atmospheric defaults + ambient sensory texture, organized
+ * as a leaf Idea with an explicit parent ref.
  *
- * `Biome extends Zone` (parallel to `Clade extends Zone`). The biome
- * template tree is rooted at `/lib/biome/`, which is itself a `Biome`
- * template — the **universe biome** — carrying the five universal
- * atmospheric defaults (temperature, pressure, humidity, gravity,
- * atmosphere). Every path beneath is a sub-Biome that may carry its
- * own defaults; un-set fields inherit through the chain-walk's
- * templatePath ancestry to the root.
+ * Biomes are NOT Zones. They're reference data — like `Material` or
+ * `Species` — that hangs off the template tree as leaves. The
+ * template tree's folder structure (`/lib/biome/`, `/lib/biome/outdoor/`,
+ * etc.) is `FolderZone`s for admin / ownership scoping; individual
+ * biomes are `Biome` (or `SkyExposedBiome`) leaf templates under them.
  *
- * Folder + leaf at every path. The folder/leaf invariant exists to
- * prevent nested coordinate systems on `SpatialZone` — it does NOT
- * apply to taxonomic Zone subclasses. Biome plays both roles: a path
- * carries data AND may have children. `ZoneApi.isFolderClass(Biome)`
- * returns true; `isSpatialZoneClass(Biome)` returns false. There is
- * no separate `Biorealm` class; the root is just a Biome.
+ * **Inheritance is explicit.** A biome that wants to inherit defaults
+ * from another biome points at it via `_extendsBiomePath` (Pattern A).
+ * The chain in `BiomeApi.resolve*For` follows `_extendsBiomePath`
+ * refs from leaf upward to the root universe biome (`/lib/biome/universe`,
+ * whose `_extendsBiomePath` is `null`). Path-based templatePath-walk
+ * inheritance is gone — the inheritance graph is now independent of
+ * the templatePath organization, which keeps Zone's original
+ * "domain ownership" meaning intact.
  *
- * Singleton intentionally NOT composed in v1, leaving room for future
- * procedural / time-of-day variance per clone. `BiomeApi.findByPath`
- * works either way (delegates to `StuffApi.findByTemplatePath`).
+ * `Biome` does NOT compose `SingletonMixin` in v1 — leaves room for
+ * future procedural / time-of-day variance per clone.
+ * `BiomeApi.findByPath` works either way (delegates to
+ * `StuffApi.findByTemplatePath`).
  *
  * Atmospheric defaults round-trip through `QuantityMarshaller`s at
  * the four Quantity-typed fields. The atmosphere tag is a plain
@@ -28,15 +29,27 @@
  * scent slates.
  */
 
-import { Zone } from '../zone/Zone';
+import { Idea } from '../stuff/Idea';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { StuffApi } from '../../api/stuff';
 
-export class Biome extends Zone {
+export class Biome extends Idea {
+  /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
+  protected name: string = '';
+
   /**
-   * Default temperature for descendants that don't override (room
-   * scope or per-Detail). `null` means "fall through to the next
-   * ancestor in the chain walk."
+   * Path of the biome this one inherits defaults from. `null` on the
+   * root universe biome (and on any deliberately-exotic biome with
+   * no parent). Pattern A: stored as a path string, re-resolved on
+   * each read via `StuffApi.findByTemplatePath` (HMR-safe).
+   */
+  public _extendsBiomePath: string | null = null;
+
+  /**
+   * Default temperature for descendants (along the `_extendsBiomePath`
+   * chain) that don't override. `null` means "fall through to the
+   * parent biome via `_extendsBiomePath`."
    */
   protected _defaultTemperature: Quantity<'K'> | null = null;
 
@@ -67,6 +80,8 @@ export class Biome extends Zone {
   protected _ambientSmellMml: string | null = null;
 
   static persistentFields = [
+    'name',
+    '_extendsBiomePath',
     '_defaultTemperature',
     '_defaultPressure',
     '_defaultHumidity',
@@ -82,6 +97,45 @@ export class Biome extends Zone {
     _defaultHumidity: QuantityMarshaller.pathFor('%'),
     _defaultGravity: QuantityMarshaller.pathFor('m/s²'),
   };
+
+  // ---------- name ----------
+
+  public getName(): string {
+    return this.name;
+  }
+  public setName(value: string): void {
+    this.name = value;
+  }
+
+  // ---------- inheritance ref ----------
+
+  /**
+   * Resolve the parent biome (or `null` for the root). Re-resolves
+   * on each call so HMR replacement of a parent template propagates
+   * immediately.
+   */
+  public getExtendsBiome(): Biome | null {
+    if (this._extendsBiomePath === null) return null;
+    return StuffApi.findByTemplatePath<Biome>(this._extendsBiomePath) ?? null;
+  }
+
+  /**
+   * Set the parent biome. Stores its templatePath; `null` clears.
+   */
+  public setExtendsBiome(value: Biome | null): void {
+    this._extendsBiomePath =
+      value === null ? null : (value.getTemplatePath() ?? null);
+  }
+
+  /**
+   * Raw-path accessor — `BiomeApi`'s chain walker reads the path
+   * directly to avoid re-resolving an instance it doesn't otherwise
+   * need. Per the ref-shapes Pattern A "no raw-path getter unless a
+   * real consumer demands it" rule — the consumer is BiomeApi.
+   */
+  public getExtendsBiomePath(): string | null {
+    return this._extendsBiomePath;
+  }
 
   // ---------- atmospheric defaults ----------
 

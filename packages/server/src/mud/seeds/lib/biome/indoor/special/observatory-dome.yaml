@@ -5,4 +5,5 @@ class: /lib/biome/SkyExposedBiome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: observatory-dome
+  _extendsBiomePath: /lib/biome/indoor/special/baseline
   _ambientSoundMml: "<markup>the slow turn of clockwork above</markup>"

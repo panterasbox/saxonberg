@@ -1,6 +1,6 @@
-# Civic indoor — shops, taverns, workshops, inns. Active commerce.
-class: /lib/biome/Biome
+# /lib/biome/indoor/civic — FolderZone for civic leaves
+# (shops, taverns, workshops, inns).
+class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: civic
-  _ambientSoundMml: "<markup>the rustle of business and idle chatter</markup>"

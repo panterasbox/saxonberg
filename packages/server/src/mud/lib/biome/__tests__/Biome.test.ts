@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Biome } from '../Biome';
+import { Idea } from '../../stuff/Idea';
 import { Zone } from '../../zone/Zone';
-import { SpatialZone } from '../../zone/SpatialZone';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import {
@@ -19,10 +19,36 @@ describe('Biome', () => {
     StuffApi.clearAll();
   });
 
-  it('extends Zone but not SpatialZone', () => {
+  it('extends Idea (not Zone)', () => {
     const b = makeStuff(() => new Biome());
-    expect(b).toBeInstanceOf(Zone);
-    expect(b instanceof SpatialZone).toBe(false);
+    expect(b).toBeInstanceOf(Idea);
+    expect(b instanceof Zone).toBe(false);
+  });
+
+  it('round-trips _extendsBiomePath via getExtendsBiome / setExtendsBiome', () => {
+    const parent = makeStuffAtPath(
+      () => new Biome(),
+      '/lib/biome/_fixtures/parent',
+    );
+    const child = makeStuffAtPath(
+      () => new Biome(),
+      '/lib/biome/_fixtures/child',
+    );
+    child.setExtendsBiome(parent);
+    expect(child.getExtendsBiome()).toBe(parent);
+    expect(child.getExtendsBiomePath()).toBe('/lib/biome/_fixtures/parent');
+  });
+
+  it('setExtendsBiome(null) clears the ref', () => {
+    const parent = makeStuffAtPath(
+      () => new Biome(),
+      '/lib/biome/_fixtures/parent2',
+    );
+    const child = makeStuff(() => new Biome());
+    child.setExtendsBiome(parent);
+    child.setExtendsBiome(null);
+    expect(child.getExtendsBiome()).toBeNull();
+    expect(child.getExtendsBiomePath()).toBeNull();
   });
 
   it('round-trips the five atmospheric defaults', () => {

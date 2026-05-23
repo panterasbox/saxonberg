@@ -1,10 +1,15 @@
 /**
- * Scenario C — cafeteria atrium showcase. The cafeteria parent
- * biome `/lib/biome/indoor/cafeteria` is a plain `Biome`; its
- * child `/lib/biome/indoor/cafeteria/atrium` extends
- * `SkyExposedBiome`. A Location pointing at the atrium reads
- * sky-exposed while a sibling Location pointing at the parent
- * biome does not.
+ * Scenario C — cafeteria atrium showcase. The cafeteria biome at
+ * `/lib/biome/indoor/social/cafeteria` is a plain `Biome`; a sibling
+ * leaf `cafeteria-atrium` extends `SkyExposedBiome` and explicitly
+ * `_extendsBiomePath`-refs the cafeteria. A Location pointing at
+ * the atrium reads sky-exposed while a sibling Location pointing at
+ * the cafeteria does not.
+ *
+ * Demonstrates the post-refactor model's clean separation:
+ * inheritance is decoupled from templatePath, so an atrium can sit
+ * next to its parent in the path tree (same admin team, same folder)
+ * while still inheriting all the cafeteria's atmospheric profile.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -31,19 +36,26 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome');
+  }, '/lib/biome/universe');
 }
 
-describe('Biome scenario C — atrium child biome', () => {
+describe('Biome scenario C — atrium sibling biome', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();
     installRootBiome();
-    makeStuffAtPath(() => new Biome(), '/lib/biome/indoor/cafeteria');
-    makeStuffAtPath(
-      () => new SkyExposedBiome(),
-      '/lib/biome/indoor/cafeteria/atrium',
-    );
+    // Plain Biome at the cafeteria slot.
+    makeStuffAtPath(() => {
+      const b = new Biome();
+      b._extendsBiomePath = '/lib/biome/universe';
+      return b;
+    }, '/lib/biome/indoor/social/cafeteria');
+    // SkyExposedBiome sibling that explicitly extends the cafeteria.
+    makeStuffAtPath(() => {
+      const b = new SkyExposedBiome();
+      b._extendsBiomePath = '/lib/biome/indoor/social/cafeteria';
+      return b;
+    }, '/lib/biome/indoor/social/cafeteria-atrium');
   });
 
   afterEach(() => {
@@ -53,7 +65,7 @@ describe('Biome scenario C — atrium child biome', () => {
 
   it('atrium room reads sky-exposed = true', () => {
     const atriumBiome = BiomeApi.findByPath(
-      '/lib/biome/indoor/cafeteria/atrium',
+      '/lib/biome/indoor/social/cafeteria-atrium',
     );
     expect(atriumBiome).not.toBeNull();
     const room = makeStuff(() => new TestLocation());
@@ -62,7 +74,9 @@ describe('Biome scenario C — atrium child biome', () => {
   });
 
   it('sibling cafeteria room is NOT sky-exposed', () => {
-    const cafBiome = BiomeApi.findByPath('/lib/biome/indoor/cafeteria');
+    const cafBiome = BiomeApi.findByPath(
+      '/lib/biome/indoor/social/cafeteria',
+    );
     const sibling = makeStuff(() => new TestLocation());
     sibling.setBiome(cafBiome!);
     expect(BiomeApi.isSkyExposed(sibling)).toBe(false);
