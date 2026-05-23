@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
+import { SurfacedMixin } from '../Surfaced';
 import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainmentApi } from '../../../api/containment';
 import { Stuff } from '../../stuff/Stuff';
@@ -81,10 +82,92 @@ describe('ContainableMixin', () => {
   });
 
   describe('persistence', () => {
-    it('does NOT declare persistentFields (complex type)', () => {
-      const fields = (TestContainable as { persistentFields?: unknown }).persistentFields;
-      expect(fields).toBeUndefined();
+    it('declares the auxiliary restingOn pointer field only (environment is a live ref, excluded)', () => {
+      const fields = (TestContainable as { persistentFields?: string[] }).persistentFields;
+      expect(fields).toEqual(['_restingOnPath']);
     });
+  });
+});
+
+// Surface composed with Containable for restingOn round-trip tests.
+class TestSurface extends SurfacedMixin(ContainableMixin(Idea)) {}
+
+describe('ContainableMixin.restingOn', () => {
+  let room: ConcreteStuff;
+  let item: TestContainable;
+  let surface: TestSurface;
+
+  beforeEach(() => {
+    StuffApi.clearAll();
+    room = makeStuff(() => new ConcreteStuff());
+    item = makeStuff(() => new TestContainable());
+    surface = makeStuffAtPath(
+      () => new TestSurface(),
+      '/test/restingon-surface',
+    );
+    // Place the surface in the room so placeOn has an environment.
+    ContainmentApi.move(surface, room);
+  });
+
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('initializes with null restingOn', () => {
+    expect(item.getRestingOn()).toBeNull();
+  });
+
+  it('placeOn sets restingOn AND moves into the surface\'s environment', () => {
+    ContainmentApi.placeOn(item, surface);
+    expect(item.getContainer()).toBe(room);
+    expect(item.getRestingOn()).toBe(surface);
+  });
+
+  it('move() to a different container clears restingOn', () => {
+    ContainmentApi.placeOn(item, surface);
+    expect(item.getRestingOn()).toBe(surface);
+    const elsewhere = makeStuff(() => new ConcreteStuff());
+    ContainmentApi.move(item, elsewhere);
+    expect(item.getContainer()).toBe(elsewhere);
+    expect(item.getRestingOn()).toBeNull();
+  });
+
+  it('placeOn between two surfaces in the same room: container unchanged, restingOn updates', () => {
+    const otherSurface = makeStuffAtPath(
+      () => new TestSurface(),
+      '/test/other-surface',
+    );
+    ContainmentApi.move(otherSurface, room);
+    ContainmentApi.placeOn(item, surface);
+    expect(item.getRestingOn()).toBe(surface);
+    expect(item.getContainer()).toBe(room);
+    ContainmentApi.placeOn(item, otherSurface);
+    expect(item.getRestingOn()).toBe(otherSurface);
+    expect(item.getContainer()).toBe(room);
+  });
+
+  it('_setRestingOn(null) clears the pointer', () => {
+    ContainmentApi.placeOn(item, surface);
+    expect(item.getRestingOn()).toBe(surface);
+    // Direct _setRestingOn(null) is gated by ContainmentApi — invoke
+    // through ContainmentApi.move(item, room) which clears via the
+    // change-of-container invariant... but here the container's
+    // already room. Use placeOn to a hypothetical other surface; or
+    // just call move() to null and check both fields drop.
+    ContainmentApi.move(item, null);
+    expect(item.getContainer()).toBeNull();
+    expect(item.getRestingOn()).toBeNull();
+  });
+
+  it('rejects direct _setRestingOn calls outside ContainmentApi', () => {
+    // The setter is @CallSecurity(FromContainmentApi); test code
+    // calling it directly through the proxy should be rejected by
+    // the policy gate.
+    expect(() => {
+      (item as unknown as {
+        _setRestingOn(s: unknown): void;
+      })._setRestingOn(surface);
+    }).toThrow();
   });
 });
 

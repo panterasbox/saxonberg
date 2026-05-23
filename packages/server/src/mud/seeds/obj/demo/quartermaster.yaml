@@ -1,0 +1,11 @@
+# Demo quartermaster — give-receiver NPC. A minimal concrete
+# Character used to exercise `give apple to quartermaster`. The
+# proper NPC infrastructure ships later; this seed gives us an
+# Agent + Container in the room for the affordance-verb proof.
+#
+# Lives under /obj/demo/ as throwaway showcase content.
+class: /obj/demo/DemoQuartermaster
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: the quartermaster
+  long: A weathered figure in a leather apron, hands on hips. She takes inventory of everything that crosses her counter.

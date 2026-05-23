@@ -1,0 +1,19 @@
+# Demo table — exercises Surfaced. Items placed on the table land
+# with `restingOn = this table` and `container = the table's
+# container` (typically the room). Pure surface — no interior; a
+# desk-with-drawer variant would compose both Container and Surfaced.
+#
+# The `userFacingDetail: tabletop` keyword lets `put apple on tabletop`
+# resolve to this surface via the MQL detail-keyword bridge.
+#
+# Lives under /obj/demo/ as throwaway showcase content.
+class: /obj/demo/DemoSurface
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: wooden table
+  long: A sturdy oak table, scarred but flat. Broad enough to set things down on.
+  _materialPath: /lib/material/wood/oak
+  mass: "25000 g"
+  userFacingDetail: tabletop
+  details:
+    tabletop: The tabletop is broad and level, polished smooth by years of use.

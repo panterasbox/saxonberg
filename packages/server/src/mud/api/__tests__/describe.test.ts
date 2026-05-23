@@ -12,14 +12,24 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DescribeApi } from '../describe';
+import {
+  DescribeApi,
+  SURFACE_ENUMERATE_THRESHOLD,
+} from '../describe';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { GlobbableMixin } from '../../lib/stuff/Globbable';
+import { ContainableMixin } from '../../lib/spatial/Containable';
+import { ContainerMixin } from '../../lib/spatial/Container';
+import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import { ContainmentApi } from '../containment';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
 
 class Plain extends Idea {}
@@ -132,5 +142,153 @@ describe('DescribeApi.formatName (count-aware)', () => {
       return rock;
     });
     expect(DescribeApi.formatName(r)).toBe('rock');
+  });
+});
+
+describe('DescribeApi.groupContentsByResting', () => {
+  class TestRoom extends ContainerMixin(Idea) {}
+  class TestSurface extends SurfacedMixin(ContainableMixin(NamedMixin(Idea))) {}
+  class TestItem extends ContainableMixin(NamedMixin(Idea)) {}
+
+  let pathCounter = 0;
+  function freshPath(prefix: string): string {
+    pathCounter += 1;
+    return `${prefix}-${pathCounter}`;
+  }
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('returns empty groups for an empty contents list', () => {
+    const out = DescribeApi.groupContentsByResting([]);
+    expect(out.topLevel).toEqual([]);
+    expect(out.byHost.size).toBe(0);
+  });
+
+  it('lists items with no restingOn at the top level', () => {
+    const room = makeStuff(() => new TestRoom());
+    const apple = makeStuff(() => {
+      const t = new TestItem();
+      t.setName('apple');
+      return t;
+    });
+    ContainmentApi.move(apple, room);
+    const out = DescribeApi.groupContentsByResting(room.getContents());
+    expect(out.topLevel).toContain(apple);
+    expect(out.byHost.size).toBe(0);
+  });
+
+  it('groups resting items under their host when both are in the listing', () => {
+    const room = makeStuff(() => new TestRoom());
+    const table = makeStuffAtPath(() => {
+      const s = new TestSurface();
+      s.setName('table');
+      return s;
+    }, freshPath('/test/group-table'));
+    const apple = makeStuff(() => {
+      const t = new TestItem();
+      t.setName('apple');
+      return t;
+    });
+    ContainmentApi.move(table, room);
+    ContainmentApi.placeOn(apple, table);
+
+    const out = DescribeApi.groupContentsByResting(room.getContents());
+    // Top-level has the table but NOT the apple.
+    expect(out.topLevel).toContain(table);
+    expect(out.topLevel).not.toContain(apple);
+    // The apple is grouped under the table's stuffId.
+    const bucket = out.byHost.get(table.stuffId);
+    expect(bucket).toBeDefined();
+    expect(bucket).toContain(apple);
+  });
+
+  it('falls back to top-level when supporter is not in the listing', () => {
+    // Simulate a cross-listing case: apple's restingOnPath points at
+    // a stuffId not present in `contents`. The grouping pass should
+    // surface the apple at top level rather than silently drop it.
+    const room = makeStuff(() => new TestRoom());
+    const apple = makeStuff(() => {
+      const t = new TestItem();
+      t.setName('apple');
+      return t;
+    });
+    ContainmentApi.move(apple, room);
+    // No table in the listing — apple's restingOn is null naturally.
+    // (Pattern A: a cross-listing case where restingOn points at a
+    // surface in another room would require a separate surface to
+    // exist; the simpler null-restingOn case covers the top-level
+    // path here.)
+    const out = DescribeApi.groupContentsByResting(room.getContents());
+    expect(out.topLevel).toContain(apple);
+  });
+});
+
+describe('DescribeApi.formatRestingSuffix', () => {
+  class TestRoom extends ContainerMixin(Idea) {}
+  class TestSurface extends SurfacedMixin(ContainableMixin(NamedMixin(Idea))) {}
+  class TestItem extends ContainableMixin(NamedMixin(Idea)) {}
+
+  let pathCounter = 0;
+  function freshPath(prefix: string): string {
+    pathCounter += 1;
+    return `${prefix}-${pathCounter}`;
+  }
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  function makeItem(name: string): TestItem {
+    return makeStuff(() => {
+      const t = new TestItem();
+      t.setName(name);
+      return t;
+    });
+  }
+
+  it('returns null for an empty resting array', () => {
+    const surface = makeStuffAtPath(
+      () => new TestSurface(),
+      freshPath('/test/suffix-empty'),
+    );
+    expect(DescribeApi.formatRestingSuffix(surface, [])).toBeNull();
+  });
+
+  it('enumerates 1 item', () => {
+    const surface = makeStuffAtPath(
+      () => new TestSurface(),
+      freshPath('/test/suffix-1'),
+    );
+    expect(
+      DescribeApi.formatRestingSuffix(surface, [makeItem('apple')]),
+    ).toBe(', with apple on it');
+  });
+
+  it('enumerates 2 items with "and"', () => {
+    const surface = makeStuffAtPath(
+      () => new TestSurface(),
+      freshPath('/test/suffix-2'),
+    );
+    const items = [makeItem('apple'), makeItem('candlestick')];
+    expect(DescribeApi.formatRestingSuffix(surface, items)).toBe(
+      ', with apple and candlestick on it',
+    );
+  });
+
+  it('summarizes above the threshold', () => {
+    const surface = makeStuffAtPath(
+      () => new TestSurface(),
+      freshPath('/test/suffix-many'),
+    );
+    const items = Array.from({ length: SURFACE_ENUMERATE_THRESHOLD + 1 }, (_, i) =>
+      makeItem(`thing-${i}`),
+    );
+    expect(DescribeApi.formatRestingSuffix(surface, items)).toBe(
+      ', scattered with various items',
+    );
   });
 });

@@ -29,6 +29,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { Surfaced } from './Surfaced';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -74,6 +75,36 @@ export interface Containable {
    * `Avatar.restore()` re-move semantics with no flag.
    */
   applyContainer(path: string): Promise<void>;
+
+  /**
+   * Auxiliary support pointer. Set when this Containable is resting
+   * on a Surfaced host (e.g., apple on a desk). Orthogonal to
+   * `getContainer()` — the apple is in the room AND resting on the
+   * desk; both relationships are real.
+   *
+   * Null when the item is not on a surface (in a container, in
+   * inventory, in an actor's grip, freely in a room).
+   *
+   * Pattern A reference shape (path-string for cross-restart
+   * persistence, runtime resolution on read); see
+   * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md).
+   * Surfaces in v1 are singleton-shaped (one per templatePath); a
+   * non-singleton surface produces an undefined lookup result from
+   * `StuffApi.findByTemplatePath` and the apparent restingOn
+   * resolves to `null`.
+   */
+  getRestingOn(): (Stuff & Surfaced) | null;
+
+  /**
+   * Privileged setter — only `ContainmentApi.placeOn` /
+   * `ContainmentApi.move` may call. Runtime-rejected by the
+   * call-security gate otherwise. Authors don't touch this directly;
+   * the Api maintains the invariant that restingOn is only non-null
+   * when the item's container matches the surface's container.
+   *
+   * Pass `null` to clear (apple lifted off the desk).
+   */
+  _setRestingOn(surface: (Stuff & Surfaced) | null): void;
 
   /** Optional pre-move veto on the moving item itself. */
   canMove?(to: (Stuff & Container) | null): VetoResult;
@@ -136,6 +167,17 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * this mixin must declare a custom persistenceHandler.
      */
     protected environment: (Stuff & Container) | null = null;
+
+    /**
+     * Persistent backing for the auxiliary `restingOn` pointer.
+     * Pattern A — stores the supporting surface's templatePath
+     * string (null when no support). Hydrator round-trips this via
+     * the static `persistentFields` declaration; runtime accessors
+     * resolve it through `StuffApi.findByTemplatePath`.
+     */
+    static persistentFields = ['_restingOnPath'];
+
+    public _restingOnPath: string | null = null;
 
     /**
      * State-mutation chokepoint. Reachable only from
@@ -201,6 +243,47 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         current = env as Stuff;
       }
       return topmost;
+    }
+
+    /**
+     * Resolve the auxiliary `restingOn` pointer. Pattern A — re-resolves
+     * the stored templatePath every read so hot-reload churn of the
+     * supporting surface stays correct.
+     *
+     * Returns `null` when the field is unset OR the path no longer
+     * resolves (surface destructed / never loaded). The caller can't
+     * tell the two apart from the return value; that's deliberate —
+     * absence of support is the same observable as a stale pointer.
+     */
+    getRestingOn(): (Stuff & Surfaced) | null {
+      if (this._restingOnPath === null) return null;
+      const surface = StuffApi.findByTemplatePath(this._restingOnPath);
+      if (!surface) return null;
+      if (surface.isDestroyed()) return null;
+      return surface as Stuff & Surfaced;
+    }
+
+    /**
+     * Privileged setter for the auxiliary `restingOn` pointer.
+     * Reachable only from `ContainmentApi.move` /
+     * `ContainmentApi.placeOn`. Pass `null` to clear.
+     *
+     * Stamps the supporting surface's templatePath; resolution
+     * happens lazily on `getRestingOn`. Hosts that aren't
+     * singleton-shaped at clone time produce a non-resolving stamp
+     * (the getter returns null) — acceptable in v1 (surfaces are
+     * singletons in the demo content).
+     */
+    @CallSecurity(FromContainmentApi)
+    @Final
+    @Unshadowable
+    _setRestingOn(surface: (Stuff & Surfaced) | null): void {
+      if (surface === null) {
+        this._restingOnPath = null;
+        return;
+      }
+      const path = (surface as Stuff).getTemplatePath();
+      this._restingOnPath = path ?? null;
     }
 
     /**

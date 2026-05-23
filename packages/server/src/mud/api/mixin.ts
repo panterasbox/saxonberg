@@ -24,6 +24,7 @@ import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import type { Surfaced } from '../lib/spatial/Surfaced';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -346,6 +347,10 @@ export class MixinApi {
 
   public static isContainable(obj: Stuff): obj is Stuff & Containable {
     return this.hasMixin(obj, Mixins.Containable);
+  }
+
+  public static isSurfaced(obj: Stuff): obj is Stuff & Surfaced {
+    return this.hasMixin(obj, Mixins.Surfaced);
   }
 
   public static isMobile(obj: Stuff): obj is Stuff & Mobile {

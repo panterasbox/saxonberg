@@ -7,10 +7,14 @@ import { ContainmentApi } from '../containment';
 import { Location } from '../../lib/stuff/Location';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
+import { SurfacedMixin } from '../../lib/spatial/Surfaced';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
 import { ExecutionContextApi } from '../execution-context';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
 
 /**
@@ -286,6 +290,87 @@ describe('ContainmentApi', () => {
       expect(() =>
         ContainmentApi.placeDirect(fresh, container1)
       ).toThrow(/Policy ApiOnly denied/);
+    });
+  });
+
+  describe('placeOn() — Surfaced auxiliary pointer', () => {
+    class TestSurface extends SurfacedMixin(ContainableMixin(Idea)) {}
+    let surface: TestSurface;
+    let otherSurface: TestSurface;
+    let testIndex = 0;
+
+    beforeEach(() => {
+      // Each test allocates fresh template paths so the per-template
+      // index doesn't collide across tests (the outer describe's
+      // beforeEach allocates new test items but doesn't clear the
+      // global registry).
+      testIndex += 1;
+      surface = makeStuffAtPath(
+        () => new TestSurface(),
+        `/test/placeOn-surface-${testIndex}`,
+      );
+      otherSurface = makeStuffAtPath(
+        () => new TestSurface(),
+        `/test/placeOn-other-surface-${testIndex}`,
+      );
+    });
+
+    it('places item into surface\'s container AND sets restingOn', () => {
+      ContainmentApi.move(surface, location1);
+      ContainmentApi.placeOn(item, surface);
+      expect(item.getContainer()).toBe(location1);
+      expect(item.getRestingOn()).toBe(surface);
+    });
+
+    it('move() after placeOn clears restingOn (container-change invariant)', () => {
+      ContainmentApi.move(surface, location1);
+      ContainmentApi.placeOn(item, surface);
+      expect(item.getRestingOn()).toBe(surface);
+      ContainmentApi.move(item, container1);
+      expect(item.getContainer()).toBe(container1);
+      expect(item.getRestingOn()).toBeNull();
+    });
+
+    it('placeOn between two surfaces in same env: container unchanged, restingOn updates', () => {
+      ContainmentApi.move(surface, location1);
+      ContainmentApi.move(otherSurface, location1);
+      ContainmentApi.placeOn(item, surface);
+      expect(item.getContainer()).toBe(location1);
+      expect(item.getRestingOn()).toBe(surface);
+      ContainmentApi.placeOn(item, otherSurface);
+      expect(item.getContainer()).toBe(location1);
+      expect(item.getRestingOn()).toBe(otherSurface);
+    });
+
+    it('placeOn between surfaces in different envs: both container and restingOn update', () => {
+      ContainmentApi.move(surface, location1);
+      ContainmentApi.move(otherSurface, location2);
+      ContainmentApi.placeOn(item, surface);
+      expect(item.getContainer()).toBe(location1);
+      ContainmentApi.placeOn(item, otherSurface);
+      expect(item.getContainer()).toBe(location2);
+      expect(item.getRestingOn()).toBe(otherSurface);
+    });
+
+    it('throws when surface has no environment', () => {
+      // surface was never moved into a container; getContainer() is null.
+      expect(() => ContainmentApi.placeOn(item, surface)).toThrow(
+        /no environment/,
+      );
+    });
+
+    it('throws when surface.canRest() returns false', () => {
+      class RejectingSurface extends SurfacedMixin(ContainableMixin(Idea)) {
+        canRest(): boolean {
+          return false;
+        }
+      }
+      const rejecting = makeStuffAtPath(
+        () => new RejectingSurface(),
+        `/test/placeOn-rejecting-${testIndex}`,
+      );
+      ContainmentApi.move(rejecting, location1);
+      expect(() => ContainmentApi.placeOn(item, rejecting)).toThrow(/rejects/);
     });
   });
 });

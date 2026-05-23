@@ -11,6 +11,15 @@ import mustBeContainable from '../validators/mustBeContainable';
 import mustBeInInventory from '../validators/mustBeInInventory';
 import mustBeInLocation from '../validators/mustBeInLocation';
 import mustBeVisible from '../validators/mustBeVisible';
+import mustBeSurfaced from '../validators/mustBeSurfaced';
+import mustBeAgent from '../validators/mustBeAgent';
+import mustBePutTarget from '../validators/mustBePutTarget';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainerMixin } from '../../spatial/Container';
+import { SurfacedMixin } from '../../spatial/Surfaced';
+import { Agent } from '../../stuff/Agent';
+import { Idea } from '../../stuff/Idea';
+import { makeStuff } from '../../security/__tests__/test-setup';
 import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-world';
 import {
   CommandApi,
@@ -154,6 +163,85 @@ describe('field validators', () => {
       };
       expect(canReach(foreignWrapper, 'target', ctx)).toMatch(/can't reach/);
       void foreign;
+    });
+  });
+
+  describe('mustBeSurfaced', () => {
+    class TestSurface extends SurfacedMixin(ContainableMixin(Idea)) {}
+
+    it('rejects non-Surfaced Stuffs (a plain item)', () => {
+      expect(
+        mustBeSurfaced({ stuff: world.rose, raw: 'rose' }, 'target', ctx),
+      ).toMatch(/isn't a surface/);
+    });
+
+    it('accepts a Surfaced Stuff', () => {
+      const surface = makeStuff(() => new TestSurface());
+      expect(
+        mustBeSurfaced({ stuff: surface, raw: 'table' }, 'target', ctx),
+      ).toBeUndefined();
+    });
+
+    it('passes empty MQL results (controller produces the no-match line)', () => {
+      expect(
+        mustBeSurfaced({ stuff: null, raw: 'flarp' }, 'target', ctx),
+      ).toBeUndefined();
+    });
+
+    it('rejects a non-object value', () => {
+      expect(mustBeSurfaced('a string', 'target', ctx)).toMatch(
+        /must be an object/,
+      );
+    });
+  });
+
+  describe('mustBeAgent', () => {
+    class TestAgent extends Agent {}
+
+    it('rejects non-Agent Stuffs (a plain item)', () => {
+      expect(
+        mustBeAgent({ stuff: world.rose, raw: 'rose' }, 'recipient', ctx),
+      ).toMatch(/can't accept things/);
+    });
+
+    it('accepts an Agent instance', () => {
+      const agent = makeStuff(() => new TestAgent());
+      expect(
+        mustBeAgent({ stuff: agent, raw: 'alice' }, 'recipient', ctx),
+      ).toBeUndefined();
+    });
+
+    it('passes empty results', () => {
+      expect(
+        mustBeAgent({ stuff: null, raw: 'flarp' }, 'recipient', ctx),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('mustBePutTarget', () => {
+    class TestSurface extends SurfacedMixin(ContainableMixin(Idea)) {}
+    class TestContainer extends ContainerMixin(ContainableMixin(Idea)) {}
+    class TestPlain extends ContainableMixin(Idea) {}
+
+    it('accepts a Container', () => {
+      const chest = makeStuff(() => new TestContainer());
+      expect(
+        mustBePutTarget({ stuff: chest, raw: 'chest' }, 'target', ctx),
+      ).toBeUndefined();
+    });
+
+    it('accepts a Surfaced', () => {
+      const surface = makeStuff(() => new TestSurface());
+      expect(
+        mustBePutTarget({ stuff: surface, raw: 'table' }, 'target', ctx),
+      ).toBeUndefined();
+    });
+
+    it('rejects neither-Container-nor-Surfaced', () => {
+      const item = makeStuff(() => new TestPlain());
+      expect(
+        mustBePutTarget({ stuff: item, raw: 'item' }, 'target', ctx),
+      ).toMatch(/can't hold things/);
     });
   });
 });
