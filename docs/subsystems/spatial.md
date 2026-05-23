@@ -300,21 +300,26 @@ collections are independent and non-overlapping.
 
 ### `Containable.restingOn`
 
-`Containable` carries `_restingOnPath: string | null` as a
-Pattern A reference field (templatePath-by-string;
-runtime-resolved on read; persistent through standard Hydrator
-reflection). The accessor `getRestingOn()` resolves the path
-every read; the privileged setter `_setRestingOn(surface)` is
-gated by `@CallSecurity(FromContainmentApi) @Final @Unshadowable`
-— reachable only from `ContainmentApi.placeOn` /
+`Containable` carries `_restingOn: (Stuff & Surfaced) | null`
+as a **runtime-only Pattern B live ref**. The accessor
+`getRestingOn()` returns the ref with an R2.3 self-heal (clear
+on destructed supporter); the privileged setter
+`_setRestingOn(surface)` is gated by
+`@CallSecurity(FromContainmentApi) @Final @Unshadowable` —
+reachable only from `ContainmentApi.placeOn` /
 `ContainmentApi.move`.
 
-v1 constraint: surfaces are singleton-shaped (one host per
-templatePath). A non-singleton supporter would produce a
-non-resolving stamp; the getter returns `null` in that case
-(same observable as no support). When non-singleton surfaces
-matter for content, the resolution layer is what needs
-extension, not the pointer shape.
+Not persisted: on server restart, an apple's container is
+preserved (the apple is still in the room) but the on-surface
+relationship resets. The tradeoff is intentional. Pattern A
+templatePath stamping would persist cross-restart, but only
+resolves unambiguously for singleton supporters — which
+constrains the natural sandbox case of multiple identical
+chairs / tables authored in a single area. The cross-restart
+loss is small (items reappear in their container, just without
+on-surface precision); when content earns persistent
+on-surface state, that build picks the right shape (likely
+Pattern B with stuffId stamping at save time).
 
 ### `ContainmentApi.placeOn(item, surface)`
 

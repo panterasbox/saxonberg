@@ -82,9 +82,14 @@ describe('ContainableMixin', () => {
   });
 
   describe('persistence', () => {
-    it('declares the auxiliary restingOn pointer field only (environment is a live ref, excluded)', () => {
+    it('declares no persistent fields — environment and restingOn are both live refs', () => {
       const fields = (TestContainable as { persistentFields?: string[] }).persistentFields;
-      expect(fields).toEqual(['_restingOnPath']);
+      // Containable's two reference fields (`environment`, `_restingOn`)
+      // are both Pattern B live refs. `environment` is rebuilt at
+      // clone time via the `applyContainer` instruction-field path;
+      // `_restingOn` resets to null on hydrate by design (see
+      // Containable.ts JSDoc on the `_restingOn` field).
+      expect(fields ?? []).toEqual([]);
     });
   });
 });

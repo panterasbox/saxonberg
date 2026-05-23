@@ -85,13 +85,17 @@ export interface Containable {
    * Null when the item is not on a surface (in a container, in
    * inventory, in an actor's grip, freely in a room).
    *
-   * Pattern A reference shape (path-string for cross-restart
-   * persistence, runtime resolution on read); see
-   * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md).
-   * Surfaces in v1 are singleton-shaped (one per templatePath); a
-   * non-singleton surface produces an undefined lookup result from
-   * `StuffApi.findByTemplatePath` and the apparent restingOn
-   * resolves to `null`.
+   * **Runtime-only** (Pattern B live ref; see
+   * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md)).
+   * Not persisted: on server restart, the apple's container is
+   * preserved but its on-surface relationship resets. The tradeoff
+   * is intentional — Pattern A by templatePath only resolves
+   * unambiguously for singleton surfaces, which would constrain
+   * the natural sandbox case of multiple identical chairs / tables
+   * authored in a single area. When sandbox content earns
+   * cross-restart on-surface persistence, that build picks the
+   * appropriate persistence shape (likely Pattern B with stuffId
+   * stamping at save time).
    */
   getRestingOn(): (Stuff & Surfaced) | null;
 
@@ -176,15 +180,19 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected environment: (Stuff & Container) | null = null;
 
     /**
-     * Persistent backing for the auxiliary `restingOn` pointer.
-     * Pattern A — stores the supporting surface's templatePath
-     * string (null when no support). Hydrator round-trips this via
-     * the static `persistentFields` declaration; runtime accessors
-     * resolve it through `StuffApi.findByTemplatePath`.
+     * Runtime-only auxiliary support pointer — Pattern B live ref.
+     * Holds a direct reference to the supporting Surfaced host
+     * (null when no support). NOT in `persistentFields`; resets to
+     * null on hydrate. R2.3 self-heal in `getRestingOn` clears the
+     * slot if the supporter has been destructed.
+     *
+     * Pattern B chosen over Pattern A templatePath stamping because
+     * non-singleton surfaces (e.g., multiple identical tables in a
+     * dining hall) can't be addressed unambiguously by templatePath.
+     * The cross-restart loss is small — items reappear in their
+     * container, just without the on-surface precision.
      */
-    static persistentFields = ['_restingOnPath'];
-
-    public _restingOnPath: string | null = null;
+    protected _restingOn: (Stuff & Surfaced) | null = null;
 
     /**
      * State-mutation chokepoint. Reachable only from
@@ -253,21 +261,22 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Resolve the auxiliary `restingOn` pointer. Pattern A — re-resolves
-     * the stored templatePath every read so hot-reload churn of the
-     * supporting surface stays correct.
+     * Resolve the auxiliary `restingOn` pointer. Pattern B live ref;
+     * R2.3 self-heal clears the slot if the supporting surface has
+     * been destructed since the last set.
      *
-     * Returns `null` when the field is unset OR the path no longer
-     * resolves (surface destructed / never loaded). The caller can't
-     * tell the two apart from the return value; that's deliberate —
-     * absence of support is the same observable as a stale pointer.
+     * Returns `null` when no support OR the supporter has been
+     * destructed. The caller can't tell the two apart from the
+     * return value; that's deliberate — absence of support is the
+     * same observable as a stale ref.
      */
     getRestingOn(): (Stuff & Surfaced) | null {
-      if (this._restingOnPath === null) return null;
-      const surface = StuffApi.findByTemplatePath(this._restingOnPath);
-      if (!surface) return null;
-      if (surface.isDestroyed()) return null;
-      return surface as Stuff & Surfaced;
+      const ref = this._restingOn;
+      if (ref !== null && (ref as Stuff).isDestroyed()) {
+        this._restingOn = null;
+        return null;
+      }
+      return ref;
     }
 
     /**
@@ -275,22 +284,15 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Reachable only from `ContainmentApi.move` /
      * `ContainmentApi.placeOn`. Pass `null` to clear.
      *
-     * Stamps the supporting surface's templatePath; resolution
-     * happens lazily on `getRestingOn`. Hosts that aren't
-     * singleton-shaped at clone time produce a non-resolving stamp
-     * (the getter returns null) — acceptable in v1 (surfaces are
-     * singletons in the demo content).
+     * Stores the supporting Surfaced ref directly (Pattern B);
+     * runtime-only — see the field declaration's JSDoc for the
+     * persistence rationale.
      */
     @CallSecurity(FromContainmentApi)
     @Final
     @Unshadowable
     _setRestingOn(surface: (Stuff & Surfaced) | null): void {
-      if (surface === null) {
-        this._restingOnPath = null;
-        return;
-      }
-      const path = (surface as Stuff).getTemplatePath();
-      this._restingOnPath = path ?? null;
+      this._restingOn = surface;
     }
 
     /**
