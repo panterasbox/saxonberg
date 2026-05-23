@@ -64,8 +64,8 @@ export class Biome extends Idea {
 
   /**
    * Default atmosphere tag (`'air'`, `'water'`, `'vacuum'`, …).
-   * String per requirements decision 4 — atmosphere isn't a scalar.
-   * `null` falls through.
+   * Plain string — atmosphere isn't a scalar so it doesn't fit
+   * the `Quantity` tag-table shape. `null` falls through.
    */
   protected _defaultAtmosphere: string | null = null;
 

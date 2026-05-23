@@ -249,8 +249,8 @@ atmospheres become a real need, promote to an `Atmosphere extends
 Idea` templated singleton parallel to `Material` at that point —
 strictly additive.
 
-No `AtmosphereDef` bundle, no `registerAtmosphere` extension point.
-Per requirements decision 4.
+No `AtmosphereDef` bundle, no `registerAtmosphere` extension
+point — premature abstraction for the three v1 consumers.
 
 ## `SkyExposedMixin`
 
@@ -426,3 +426,40 @@ cross-cutting setting alongside sound's.
 - [docs/subsystems/shell-environment.md](./shell-environment.md) —
   the universe defaults are NOT settings; the chain's terminal
   step reads from the root biome at `/lib/biome/universe`.
+
+## History
+
+Three substantive design shifts during the biome substrate build
+(MR `panterasbox/saxonberg!26`):
+
+1. **`Biome extends Idea`, not `Zone`.** The initial requirements
+   doc had `Biome extends Zone` (parallel to `Clade extends Zone`)
+   with templatePath-walking inheritance. MR review surfaced that
+   this stretched Zone's meaning beyond its original "admin /
+   ownership scope" intent. The refactor moved Biome to a leaf
+   Idea with explicit `_extendsBiomePath` parent refs, and
+   introduced `FolderZone` templates under `/lib/biome/` for the
+   biome team's admin tree. Inheritance is now decoupled from
+   templatePath organization. (Commits `2cc46c2` → `44ada01`.)
+2. **`getVolume` / `getCeilingHeight` live on `AtmosphericMixin`,
+   not `Location`.** Initially declared on Location with an
+   `api/location.ts` wrapper; MR review surfaced that vessels can
+   have meaningful interior volume too, and the wrapper Api was a
+   misnomer (its parameters took `Stuff & Container`, not
+   Location). The refactor moved the methods to AtmosphericMixin
+   so both Location and Vessel hosts expose them directly; the
+   wrapper Api was deleted. (Commit `a7166f6`.)
+3. **Slim demonstrative roster, not 39 content commitments.** The
+   plan called for 39 biome leaves across outdoor/temperate,
+   underground, and five indoor sub-tiers. MR review pushed back
+   on baking that much content into the substrate seed roster.
+   The slim-down dropped 35 leaves + their tier folders, leaving
+   8 demonstrative templates (universe + outdoor/indoor tier
+   baselines + a couple of leaves + the cafeteria-atrium scenario-
+   C showcase) — parallel to Material's 10-leaf and Species's
+   8-template demonstrative rosters. (Commit `3650011`.)
+
+The `_extendsBiomePath` ref-walk + `FolderZone` separation is the
+shape that survives. Future biome content authoring extends from
+`/lib/biome/universe` (or any other biome) via the explicit ref;
+the path tree organizes ownership, not inheritance.

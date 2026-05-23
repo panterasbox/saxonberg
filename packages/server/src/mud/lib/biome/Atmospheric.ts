@@ -32,6 +32,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
@@ -111,7 +113,9 @@ export interface Atmospheric {
   _detailAtmospheres: Record<string, string>;
 }
 
-export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
+export function AtmosphericMixin<
+  TBase extends MixinConstructor<Stuff & Container>,
+>(Base: TBase) {
   return class AtmosphericMixin extends Base implements Atmospheric {
     static _mixinName = 'AtmosphericMixin';
 
@@ -176,10 +180,8 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- temperature ----------
 
     public async getTemperature(detailKey?: string): Promise<Quantity<'K'>> {
-      return BiomeApi.resolveTemperatureFor(
-        this as unknown as Parameters<typeof BiomeApi.resolveTemperatureFor>[0],
-        detailKey,
-      );
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveTemperatureFor(self, detailKey);
     }
     public setTemperature(
       value: Quantity<'K'> | null,
@@ -205,10 +207,8 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- pressure ----------
 
     public async getPressure(detailKey?: string): Promise<Quantity<'Pa'>> {
-      return BiomeApi.resolvePressureFor(
-        this as unknown as Parameters<typeof BiomeApi.resolvePressureFor>[0],
-        detailKey,
-      );
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolvePressureFor(self, detailKey);
     }
     public setPressure(value: Quantity<'Pa'> | null, detailKey?: string): void {
       if (detailKey !== undefined) {
@@ -231,10 +231,8 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- humidity ----------
 
     public async getHumidity(detailKey?: string): Promise<Quantity<'%'>> {
-      return BiomeApi.resolveHumidityFor(
-        this as unknown as Parameters<typeof BiomeApi.resolveHumidityFor>[0],
-        detailKey,
-      );
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveHumidityFor(self, detailKey);
     }
     public setHumidity(value: Quantity<'%'> | null, detailKey?: string): void {
       if (detailKey !== undefined) {
@@ -257,10 +255,8 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- gravity ----------
 
     public async getGravity(detailKey?: string): Promise<Quantity<'m/s²'>> {
-      return BiomeApi.resolveGravityFor(
-        this as unknown as Parameters<typeof BiomeApi.resolveGravityFor>[0],
-        detailKey,
-      );
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveGravityFor(self, detailKey);
     }
     public setGravity(
       value: Quantity<'m/s²'> | null,
@@ -286,10 +282,8 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- atmosphere ----------
 
     public async getAtmosphere(detailKey?: string): Promise<string> {
-      return BiomeApi.resolveAtmosphereFor(
-        this as unknown as Parameters<typeof BiomeApi.resolveAtmosphereFor>[0],
-        detailKey,
-      );
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveAtmosphereFor(self, detailKey);
     }
     public setAtmosphere(value: string | null, detailKey?: string): void {
       if (detailKey !== undefined) {

@@ -31,10 +31,12 @@ See also:
 - [docs/subsystems/templates.md](../subsystems/templates.md) —
   folder/leaf invariant; the template tree this slate operates
   within.
-- [docs/slates/biome-slate.md](./biome-slate.md) — `Biorealm` is
-  one of today's folder-zone classes; biome inheritance walks
-  template ancestry, which is the same chain mechanism this slate
-  generalizes for zones.
+- [docs/subsystems/biome.md](../subsystems/biome.md) — biomes are
+  leaf Ideas with explicit `_extendsBiomePath` parent refs; admin
+  folders under `/lib/biome/` use `FolderZone` templates for
+  sub-team scoping. (Earlier slate framing had `Biorealm` as a
+  Zone subclass; the as-built substrate does not add a Zone
+  subclass — Zone keeps its admin/ownership meaning.)
 - [docs/slates/world-clock-slate.md](./world-clock-slate.md) —
   celestial profile lives on the SpatialZone and inherits via the
   walk described here.
@@ -71,10 +73,10 @@ sits.
 Organizational and spatial concerns both live on Zone, but are
 distinguished by **subclass**:
 
-- **FolderZone-shaped classes** (today: `Clade`, `Biorealm`,
-  `HomeZone`; future: a generic one) — organizational, no
-  coordinate frame, no rooms. Their job is to anchor inheritance
-  and to satisfy the folder/leaf invariant.
+- **FolderZone-shaped classes** (today: `FolderZone` (generic),
+  `Clade`, `HomeZone`) — organizational, no coordinate frame, no
+  rooms. Their job is to anchor inheritance and to satisfy the
+  folder/leaf invariant.
 - **SpatialZone subclasses** (today: `CartesianZone`,
   `SphericalZone`) — coordinate frame, owns rooms, defines
   topology.
@@ -315,10 +317,11 @@ reject any non-cardinal direction" passage.
 
 ## Folder zones — generic class needed
 
-Today's folder-zone classes are namespace-specific (`HomeZone` for
-`/home/`, `Biorealm` for `/idea/biome/`, `Clade` for
-`/idea/species/`). Missing: a generic "I'm just a folder, no
-spatial topology" class for paths like `/domain/narnia/`,
+Today's folder-zone classes are a mix: `HomeZone` (per-player
+namespace at `/home/`) and `Clade` (taxonomic scope at
+`/lib/species/`) are namespace-specific; `FolderZone` is the
+generic catch-all the biome substrate already uses at `/lib/biome/`
+and that the slate proposed for paths like `/domain/narnia/`,
 `/narnia/woods/clearings/`, etc.
 
 Recommendation: add a generic class — provisional name
@@ -345,11 +348,12 @@ Three layers:
 - **Code permissions** — files/directories in the repo,
   CODEOWNERS-style. The MQL team owning `MqlApi` is a repo
   concern; has nothing to do with `/idea/mql/`-anything.
-- **Core taxonomy permissions** — the `/idea/...` subtree
+- **Core taxonomy permissions** — the `/lib/...` content subtree
   (Material, Species, Biome registries) owned by core. These
-  trees ARE Zones (`Clade`, `Biorealm`) because they're folders
-  in the content tree — but their permission scope is "core
-  only," set by tree path, not by Zone class.
+  trees use Zone-shaped folders (`Clade` for species, `FolderZone`
+  for biome) because they're folders in the content tree — but
+  their permission scope is "core only," set by tree path, not
+  by Zone class.
 - **Content domain permissions** — `/domain/<group>/` subtrees
   owned by the corresponding team. Inside their subtree, they
   organize however they want.
@@ -478,9 +482,12 @@ have their own structure determined by their domain.
         narnia-orb                    Item leaf
       /npcs/                          FolderZone
         tumnus                        NPC leaf
-/idea/
-  /biome/                             Biorealm
-    /outdoor/forest/temperate         Biome leaf
+/lib/
+  /biome/                             FolderZone
+    /universe                         Biome leaf (root of extends-chain)
+    /outdoor/                         FolderZone
+      /baseline                       Biome leaf
+      /meadow                         Biome leaf
     ...
   /species/                           Clade
     ...

@@ -16,9 +16,12 @@
  *     resolving the nearest biome ancestor and testing the trait.
  *
  * The density table is a private const map with the three v1
- * entries (air / water / vacuum). Per requirements decision 4 — no
- * registry, no `AtmosphereDef` bundle. If content authoring grows
- * past three tags, the map grows by one line.
+ * entries (air / water / vacuum). No registry, no `AtmosphereDef`
+ * bundle — the three v1 consumers don't earn the indirection. If
+ * content authoring grows past three tags, the map grows by one
+ * line; if it grows past where a const map is comfortable, promote
+ * to an `Atmosphere extends Idea` templated singleton at that
+ * point.
  *
  * The root biome is cached at the first `getRootBiome` call. HMR
  * (template hot-reload) calls `invalidateRootBiomeCache()` to drop
@@ -111,8 +114,9 @@ export class BiomeApi {
 
   /**
    * Density of an atmosphere tag at standard conditions. Throws on
-   * unknown tag — the validation seam for `setAtmosphere` (setters
-   * accept any string silently per requirements decision 10).
+   * unknown tag — this is the validation seam for the otherwise-
+   * silent `setAtmosphere(string)` setter. (The setter accepts any
+   * string; the density lookup is where unknown tags surface.)
    */
   public static densityOf(tag: string): Quantity<'kg/m³'> {
     const d = ATMOSPHERE_DENSITIES[tag];

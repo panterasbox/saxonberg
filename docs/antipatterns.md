@@ -1189,13 +1189,13 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   compose `AtmosphericMixin`. The Api handles this; inline walks
   often stop at the wrong ancestor.
 - **Biome-ancestry walk** (chain step 4). A biome leaf inherits
-  un-set defaults from its templatePath parents up to the root.
-  Inline walks usually consult only the leaf.
+  un-set defaults by following its explicit `_extendsBiomePath`
+  refs up to the root. Inline walks usually consult only the leaf.
 - **Spatial-zone fallback** (chain step 5). `Zone.lookupField` is
   async and reads via `atmosphere.<field>`; inline walks routinely
   skip the step.
 - **Root universe biome** (chain step 6). The terminal step reads
-  from `/lib/biome`. Inline walks use hardcoded constants that
-  drift out of sync with the seeded universe biome.
+  from `/lib/biome/universe`. Inline walks use hardcoded constants
+  that drift out of sync with the seeded universe biome.
 
 See [biome.md](./subsystems/biome.md) for the full chain.

@@ -1,8 +1,8 @@
 /**
- * Wave 1 — exercises the biome substrate's new Quantity units +
- * tag tables. Pulls the production YAML (via
- * `QuantityApi.loadTagTables`) so the test reflects the actual
- * registered scales / breakpoints.
+ * Exercises the biome substrate's Quantity units + tag tables
+ * (Pa / % / m/s² / m / m³ and the K-thermal scale). Pulls the
+ * production YAML via `QuantityApi.loadTagTables` so the test
+ * reflects the actual registered scales / breakpoints.
  */
 
 import {
