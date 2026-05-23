@@ -259,6 +259,69 @@ Adding a new mode (e.g., `slither`):
    `locomotionModes`) and optionally bump `defaultLocomotionMode`
    for species whose default movement is the new mode.
 
+## Future work
+
+Forward-looking design surface salvaged from the retired
+locomotion slate. None of these are scheduled; each waits for a
+content slate that pulls on it.
+
+- **Trap subsystem.** Mode properties drive trap predicates —
+  pressure plates fire on `groundContact !== 'none'`, tripwires
+  on `bodyProfile === 'upright'`, pit traps the same as pressure
+  plates, snares on the combination. Passthrough modes resolve
+  through the conveyance chain (a rider trips a tripwire because
+  the *horse* is `upright` / `full` ground contact). The trap
+  subsystem itself is its own slate when content earns it; the
+  locomotion substrate exposes everything traps need to read
+  (`LocomotionApi.emissionAt` walks the passthrough chain).
+- **Pathfinder.** Each `(location, target, mode)` edge has cost
+  derived from mode + per-exit override (today the substrate
+  carries `speed` and `defaultDurationMs` is the natural ETA
+  source — see
+  [locomotion-as-activity-slate.md](../slates/locomotion-as-activity-slate.md)
+  for the time-based duration model). Mode transitions in a
+  multi-segment path are zero-distance "transition edges." The
+  pathfinder is its own slate when route-planning content earns
+  it. Stealth-aware planning (cost weighted by `noiseLevel`)
+  composes naturally.
+- **Auditory detection.** Mover emits a signal; observer compares
+  against a threshold. Same shape as `LightApi.canSee` — viewer-
+  aware, modulated by distance / obstruction / acuity. Mode
+  contributes the emission level via `noiseLevel`; observer's
+  species hearing profile sets the threshold. The channel
+  infrastructure belongs to the sound subsystem
+  ([sound-slate.md](../slates/sound-slate.md)); locomotion's
+  contribution is the `noiseLevel` data and the passthrough
+  walk on `LocomotionApi.emissionAt`.
+- **`run` / `sprint` / `tiptoe` as separate modes.** Verb-as-mode
+  pattern extends naturally — each new singleton at
+  `/lib/locomotion/<name>` with shared `requiresBodyPlanMode:
+  ['walk']`. Adding the verb is mechanical. Open question whether
+  every walk-variant deserves its own mode or whether some
+  collapse into a `modifier` parameter on the walk verb; lean
+  separate modes (each one is one new template, no framework
+  churn).
+- **`Crawlable` mixin + `crawl` mode.** Paired with
+  [locomotion-as-activity-slate.md](../slates/locomotion-as-activity-slate.md);
+  crawl was deferred alongside sneak when locomotion stayed
+  synchronous. Size constraints (a fat character may not fit
+  through a vent) live on the `Crawlable` host.
+- **`LocomotionMode.extends` for shared defaults.** Run, sneak,
+  crawl all share most of `walk`'s property values. A
+  template-level `extends` field would cut duplication;
+  open question whether the savings justify the
+  template-hierarchy complexity. Defer until enough modes ship
+  to make duplication painful.
+- **`fly` direction vocabulary in open-air zones.** Most rooms
+  are 2D; an aerial zone in a Spherical coordinate system wants
+  full 3D (compass + up/down + 3D diagonals). Resolve at the
+  zone level when aerial content lands.
+- **Passthrough emission amplification.** A steel-shod horse is
+  louder than a barefoot one. Per-host emission modifier
+  (worn-equipment composition? species attribute?) lands when a
+  content case needs the differentiation; framework supports
+  the seam via the existing `emissionAt` walk.
+
 ## Cross-references
 
 - [response-envelope.md](./response-envelope.md) —

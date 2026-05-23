@@ -24,10 +24,10 @@ See also:
 - [docs/subsystems/boundary.md](../subsystems/boundary.md) —
   Adornable / Adornment / Boundary / Conduit substrate. Conduits
   get a channel-keyed transmissivity update.
-- [docs/slates/locomotion-slate.md](./locomotion-slate.md) —
+- [docs/subsystems/locomotion.md](../subsystems/locomotion.md) —
   `mode.noiseLevel` is the source data for activity-driven
-  emission. The locomotion slate's table is consumed; no
-  changes required there.
+  emission. The shipped locomotion subsystem's mode table is
+  consumed; no changes required there.
 - [docs/subsystems/activity.md](../subsystems/activity.md) —
   emission starts/stops on activity lifecycle hooks;
   `ScheduledEmission` for cadenced side effects on
@@ -102,7 +102,7 @@ high-pitched whistle; a human in the same room doesn't).
 
 ### Tag-to-unit mappings
 
-The friendly tags from the locomotion slate map to canonical
+The friendly tags from the locomotion `noiseLevel` axis map to canonical
 values (and authors can declare canonical values directly):
 
 | Tag | Amplitude (dB SPL) |
@@ -166,7 +166,7 @@ Composition mirrors `LightSource`. Persistent state:
 
 While an activity is in progress, the actor emits sound at the
 activity-defined level. For locomotion, the value comes straight
-from `mode.noiseLevel` (locomotion-slate property table). For
+from `mode.noiseLevel` (see [locomotion.md](../subsystems/locomotion.md)). For
 non-locomotion activities, the activity declares its emission.
 
 ```ts
@@ -531,8 +531,8 @@ audiences. Cheap to implement, high pedagogical surface.
   Same.
 - Guard sleeps undisturbed.
 
-Falls out of the existing locomotion-slate noiseLevel scalar; no
-new design.
+Falls out of the existing locomotion-subsystem `noiseLevel`
+scalar; no new design.
 
 ### Scenario B — runner past a fountain room
 

@@ -16,8 +16,8 @@ See also:
 - [docs/design-philosophy.md](../design-philosophy.md) — the
   philosophy this slate operates within (bag-of-stuff default,
   opt-in finer fidelity, layered presentation).
-- [docs/slates/locomotion-slate.md](./locomotion-slate.md) — block-
-  validators extend the locomotion validation chain.
+- [docs/subsystems/locomotion.md](../subsystems/locomotion.md) —
+  block-validators extend the shipped locomotion gate cascade.
 - [docs/subsystems/embodiment.md](../subsystems/embodiment.md),
   [docs/subsystems/slot.md](../subsystems/slot.md) — `Pushable`
   fits with the other affordance mixins on the slot substrate.
@@ -121,7 +121,7 @@ guard:
 When a player invokes a locomotion verb against a target, the
 framework runs:
 
-1. **Actor eligibility validators** (locomotion slate) —
+1. **Actor eligibility validators** (locomotion subsystem) —
    body-plan, posture, slot-context, target type.
 2. **Block validators** (this slate) — for each Stuff in the
    relevant containment scope (the source room, or possibly
@@ -358,11 +358,12 @@ opt into it. v1 default: author the block-validator.
 
 ## What this stresses for existing slates
 
-### Locomotion slate
+### Locomotion subsystem
 
 Adds a new validator chain — block validators — that runs after
-actor-eligibility and target-compatibility. Documented as a
-section in the locomotion slate; small extension.
+the existing gate cascade (body-plan / posture / exit.canTraverse
+/ enablement). Documented as a section in
+[locomotion.md](../subsystems/locomotion.md); small extension.
 
 ### Embodiment slate
 

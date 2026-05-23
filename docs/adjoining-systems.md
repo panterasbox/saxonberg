@@ -1,10 +1,10 @@
 # Adjoining systems (working doc)
 
 A scoped catalog of physics-and-perception subsystems we haven't
-yet drafted, but that bear on the embodiment + locomotion slates
-already in flight. Each one is the kind of "stress test" we did
-when locomotion caught the passthrough-mode issue and the
-vehicular-mode gap.
+yet drafted, but that bear on the embodiment + locomotion
+subsystems already shipped. Each one is the kind of "stress
+test" we did when locomotion caught the passthrough-mode issue
+and the vehicular-mode gap.
 
 This is a navigation doc, not a slate. Each entry is short — what's
 missing, what it stresses in the existing design, and which other
@@ -22,9 +22,11 @@ See also:
   [posture.md](./subsystems/posture.md),
   [conveyance.md](./subsystems/conveyance.md) — slot substrate,
   body-side affordances, posture, conveyance (shipped).
-- [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md) — mode
-  singletons, verb controllers, four consumer dives (traps,
-  pathfinding, detection, validation).
+- [docs/subsystems/locomotion.md](./subsystems/locomotion.md) — the
+  shipped substrate; the original locomotion slate retired with
+  its forward-looking content (trap / pathfinder / detection
+  consumers, run-as-mode, etc.) folded into the subsystem doc's
+  Future work section.
 - [docs/slates/mixin-slate.md](./slates/mixin-slate.md) — broader mixin slate;
   some entries here are deferred from there.
 
@@ -35,7 +37,7 @@ See also:
 Tier 1 — highest leverage; likely to surface real holes in current
 slates:
 
-1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity + host-slot activities deferred to Wave 2/3 in [plans/activity-plan.md](./plans/activity-plan.md))
+1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/host-slot-activities-slate.md))
 2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [sound-slate.md](./slates/sound-slate.md)** (also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
 3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
 4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/social-graph-slate.md), [communication-policy-slate.md](./slates/communication-policy-slate.md), [identification-slate.md](./slates/identification-slate.md))
@@ -71,11 +73,14 @@ five framework-intrinsic abort reasons, the activity-class
 registry with HMR-aware lifecycle dispatch, and the `cancel`
 verb. No v1 controllers register activities yet; the framework
 lands inert per current direction on game responsiveness.
-Locomotion-as-activity (Wave 2) and host-slot activities
-(Wave 3) are preserved as design reference in
-[docs/plans/activity-plan.md](./plans/activity-plan.md) for when
-genuinely-durative content earns the slot. Runtime constraints
-captured separately in [docs/runtime-model.md](./runtime-model.md).
+Locomotion-as-activity and host-slot activities are preserved as
+design reference in
+[docs/slates/locomotion-as-activity-slate.md](./slates/locomotion-as-activity-slate.md)
+and
+[docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
+for when genuinely-durative content earns the slot. Runtime
+constraints captured separately in
+[docs/runtime-model.md](./runtime-model.md).
 
 Original framing kept here for cross-reference:
 
@@ -308,9 +313,9 @@ the engagement framework. The Wave 1 substrate is shipped; content
 authors plug in by writing an activity class and registering it
 under a `type` string (see
 [docs/subsystems/activity.md](./subsystems/activity.md) and
-[docs/plans/activity-plan.md § 4](./plans/activity-plan.md) for
-the deferred-Wave-3 `ReadActivity` sketch as the first non-
-locomotion-non-host-slot example).
+[docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
+for the deferred `ReadActivity` sketch as the first non-locomotion,
+non-host-slot example).
 
 Per-activity bookmark-on-abort, content-author prose customization,
 and per-activity opt-in to broader eager revalidation are deferred
@@ -364,4 +369,4 @@ For each entry we tackle:
    with a flag in this doc.
 5. Update relevant slates' open-questions lists.
 
-Same flow that produced the embodiment + locomotion slates.
+Same flow that produced the embodiment + locomotion subsystems.

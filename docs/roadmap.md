@@ -106,18 +106,25 @@ promoted to formal requirements.
   `Mountable`, `Drivable`). Conveyance ripple via
   `Mobile.traverse`. Floor adornments and the
   ground-targeting path for sit/lie/kneel.
-- [docs/slates/locomotion-slate.md](./slates/locomotion-slate.md) —
+- **Locomotion subsystem (shipped)** — see
+  [docs/subsystems/locomotion.md](./subsystems/locomotion.md).
   `LocomotionMode` singletons; verb-as-mode dispatch
-  (`walk`/`run`/`sneak`/`crawl`/`climb`/`swim`/`fly`/`ride`/
-  `drive`); target mixins (`Climbable`/`Swimmable`); four
-  consumer dives (traps, pathfinding, detection, validation).
+  (`walk`/`climb`/`swim`/`fly`/`ride`/`drive`); enablement
+  mixins (`Climbable`/`Swimmable`/`Flyable`); `LocomotionApi`
+  emission walk; four-gate cascade (body-plan, posture,
+  exit.canTraverse, enablement). The original locomotion
+  slate was retired; forward-looking trap / pathfinder /
+  detection / run-as-mode notes live in the subsystem doc's
+  Future work section.
 - [docs/subsystems/activity.md](./subsystems/activity.md) — Wave 1
   substrate shipped: `SchedulerApi`, `EngagedMixin` on `Character`,
   engagement slots, the five framework-intrinsic abort reasons,
   HMR-aware lifecycle dispatch, `cancel` verb. Locomotion-as-
-  activity (Wave 2) and host-slot activities (Wave 3) deferred —
-  see [docs/plans/activity-plan.md](./plans/activity-plan.md) for
-  the design sketches.
+  activity and host-slot activities deferred — see
+  [docs/slates/locomotion-as-activity-slate.md](./slates/locomotion-as-activity-slate.md)
+  and
+  [docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
+  for the design sketches.
 - [docs/slates/sound-slate.md](./slates/sound-slate.md) — sound as the second
   physics channel after light; three source kinds; channel-
   keyed Conduit transmissivity; pedagogical seam threaded
