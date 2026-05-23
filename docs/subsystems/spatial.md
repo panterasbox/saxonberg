@@ -270,11 +270,11 @@ something." Composition layers
 `AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff))))`
 — so every concrete Location picks up biome-aware atmospheric state
 ([biome.md](./biome.md)) plus a Material reference for the room
-itself. `Location` declares two abstract derived-geometry methods
-that concrete subclasses override per their topology:
-`getVolume(): Quantity<'m³'> | null` and `getCeilingHeight():
-Quantity<'m'> | null`. `LocationApi.getVolume` / `getCeilingHeight`
-are geometry-agnostic wrappers.
+itself. Two derived-geometry methods (`getVolume(): Quantity<'m³'> |
+null` and `getCeilingHeight(): Quantity<'m'> | null`) live on
+`AtmosphericMixin` with null-returning defaults; concrete Location
+subclasses override per their topology (and Vessel can too, when a
+particular vessel has a meaningful interior volume).
 
 Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
 

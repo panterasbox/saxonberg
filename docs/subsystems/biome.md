@@ -377,15 +377,23 @@ The asymmetry is intentional: volume answers "how much gas does
 the room hold?" — the sphere; ceiling answers "how much vertical
 headroom is there?" — the cube inscribed in the sphere.
 
-### `LocationApi`
+### Reading the derived geometry
 
-Geometry-agnostic wrappers for callers that don't care which kind
-of Location they hold:
+Both methods live on `AtmosphericMixin` (composed onto Location
+AND Vessel), so any atmospheric scope exposes them directly — no
+Api wrapper:
 
 ```ts
-LocationApi.getVolume(room): Quantity<'m³'> | null
-LocationApi.getCeilingHeight(room): Quantity<'m'> | null
+if (MixinApi.isAtmospheric(scope)) {
+  const volume  = scope.getVolume();        // Quantity<'m³'> | null
+  const ceiling = scope.getCeilingHeight(); // Quantity<'m'> | null
+}
 ```
+
+The mixin returns `null` from its default implementations; concrete
+Location subclasses override per their topology. A future Vessel
+subclass with a real interior volume (submarine, pressurized
+module) overrides the same way.
 
 ## Instruments + verbs
 

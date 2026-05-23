@@ -74,6 +74,23 @@ export interface Atmospheric {
   getAtmosphere(detailKey?: string): Promise<string>;
   setAtmosphere(value: string | null, detailKey?: string): void;
 
+  // ---------- derived geometry ----------
+
+  /**
+   * Atmospheric-bearing volume of this scope, in m³. Concrete
+   * subclasses derive from their topology (`CartesianLocation` from
+   * cube `cellSize³`, `SphericalLocation` from `(4/3)πr³`). The
+   * default is `null` — a scope with no derivable volume.
+   */
+  getVolume(): Quantity<'m³'> | null;
+
+  /**
+   * Floor-to-ceiling vertical extent, in m. `CartesianLocation`
+   * returns `cellSize`; `SphericalLocation` returns the inscribed
+   * cube's side (`2r/√3`). Default is `null`.
+   */
+  getCeilingHeight(): Quantity<'m'> | null;
+
   // ---------- storage — public so BiomeApi's chain walker can read ----------
   // These are the bag of per-host state the chain walker consults.
   // `BiomeApi` is the only external reader; in-class code reads
@@ -284,6 +301,16 @@ export function AtmosphericMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       this._atmosphere = value;
+    }
+
+    // ---------- derived geometry (null defaults; concrete subclasses override) ----------
+
+    public getVolume(): Quantity<'m³'> | null {
+      return null;
+    }
+
+    public getCeilingHeight(): Quantity<'m'> | null {
+      return null;
     }
   };
 }

@@ -17,7 +17,6 @@ import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
 import { CartesianZone } from '../../lib/spatial/CartesianZone';
 import { Biome } from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
-import { LocationApi } from '../location';
 import { Quantity } from '../../lib/quantity';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
@@ -57,7 +56,9 @@ describe('Biome scenario E — cafeteria gas-law', () => {
     Stuff._stampZone(room, zone);
 
     // 3 m linear cellSize is the new default; derived volume is 27 m³.
-    const volume = LocationApi.getVolume(room);
+    // `getVolume()` lives on AtmosphericMixin (composed by Location);
+    // CartesianLocation overrides per its cube topology.
+    const volume = room.getVolume();
     expect(volume).not.toBeNull();
     expect(volume!.rawValue()).toBe(27);
 

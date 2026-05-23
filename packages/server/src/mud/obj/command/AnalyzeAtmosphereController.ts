@@ -17,7 +17,6 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import type { AtmosphericTrace } from '../../api/biome';
-import { LocationApi } from '../../api/location';
 import { Mml } from '../../api/mml';
 
 interface AnalyzeAtmosphereModel extends CommandModel {
@@ -103,9 +102,14 @@ export class AnalyzeAtmosphereController extends CommandController<AnalyzeAtmosp
       Mml.compose`  atmosphere:  ${traces.atmosphere.value} — ${describeSource(traces.atmosphere)}`,
     );
 
-    // Derived geometry.
-    const volume = LocationApi.getVolume(containedScope);
-    const ceiling = LocationApi.getCeilingHeight(containedScope);
+    // Derived geometry — read via AtmosphericMixin's surface (every
+    // atmospheric scope provides null-or-derived values).
+    const volume = MixinApi.isAtmospheric(containedScope)
+      ? containedScope.getVolume()
+      : null;
+    const ceiling = MixinApi.isAtmospheric(containedScope)
+      ? containedScope.getCeilingHeight()
+      : null;
     if (volume !== null || ceiling !== null) {
       lines.push(Mml.compose`  derived:`);
       if (volume !== null) {
