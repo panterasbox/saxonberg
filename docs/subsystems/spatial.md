@@ -262,6 +262,159 @@ field — covered in the [containment](#containment) section's
 [Hydrator contract](../subsystems/templates.md#the-hydrator-contract)
 cross-reference.
 
+## Surfaced and surface placement
+
+`SurfacedMixin` (`lib/spatial/Surfaced.ts`) is the sibling-marker
+mixin for Stuffs that support items resting on them — tables,
+shelves, the surface of a floor when authored as such. The
+on-vs-in distinction is structurally modeled (an apple on a desk
+and an apple in a chest live in different relationships) without
+conflating with the existing Container's interior contents.
+
+### The auxiliary-pointer model
+
+Containment stays hierarchical and exclusive: every Containable
+has exactly one `container` (or none). "Resting on" is an
+**orthogonal optional pointer** on the item, not a replacement.
+An apple on a desk in a room has `container = room` AND
+`restingOn = desk` — both relationships are real, neither is
+conjured by the other.
+
+| Scenario | `container` | `restingOn` |
+|---|---|---|
+| Apple on a desk in a room | the room | the desk |
+| Apple in a chest in a room | the chest | null |
+| Apple on the floor in a room (Surfaced floor) | the room | the floor |
+| Apple in inventory | the actor | null |
+| Apple on a desk inside a chest | the chest | the desk |
+
+The "apple in the room" intuition is preserved — the room's
+`getContents()` includes the apple directly, not through any
+indirect "items on items in here" walk. The fact that a desk is
+supporting it is auxiliary information.
+
+A desk-with-drawer composes BOTH `Container` (for the drawer-
+as-part, with `container = desk`) AND `Surfaced` (for the apples
+on top, with `container = room` and `restingOn = desk`). The two
+collections are independent and non-overlapping.
+
+### `Containable.restingOn`
+
+`Containable` carries `_restingOn: (Stuff & Surfaced) | null`
+as a **runtime-only Pattern B live ref**. The accessor
+`getRestingOn()` returns the ref with an R2.3 self-heal (clear
+on destructed supporter); the privileged setter
+`_setRestingOn(surface)` is gated by
+`@CallSecurity(FromContainmentApi) @Final @Unshadowable` —
+reachable only from `ContainmentApi.placeOn` /
+`ContainmentApi.move`.
+
+Not persisted: on server restart, an apple's container is
+preserved (the apple is still in the room) but the on-surface
+relationship resets. The tradeoff is intentional. Pattern A
+templatePath stamping would persist cross-restart, but only
+resolves unambiguously for singleton supporters — which
+constrains the natural sandbox case of multiple identical
+chairs / tables authored in a single area. The cross-restart
+loss is small (items reappear in their container, just without
+on-surface precision); when content earns persistent
+on-surface state, that build picks the right shape (likely
+Pattern B with stuffId stamping at save time).
+
+### `ContainmentApi.placeOn(item, surface)`
+
+The on-surface analogue of `move`. Resolves the surface's
+container as the target environment, runs `canRest`, calls
+`move(item, env)`, then stamps the auxiliary `restingOn`
+pointer:
+
+```typescript
+ContainmentApi.placeOn(apple, desk);
+// internally:
+//   1. targetEnv = desk.getContainer()         // the room
+//   2. assert desk.canRest(apple)              // host gate
+//   3. ContainmentApi.move(apple, targetEnv)   // ordinary move
+//   4. apple._setRestingOn(desk)               // restamp
+```
+
+`move`'s own contract is unchanged. The hidden invariant `move`
+enforces: when the container actually changes, any existing
+`restingOn` is cleared. So picking an apple up off a desk (a
+move into the actor's inventory) clears `restingOn`
+automatically; the on-surface state isn't carried into
+inventory.
+
+`placeOn` throws on programmatic-contract violations (surface
+has no environment; surface rejects via `canRest`). User-input
+failures are handled upstream by the `mustBeSurfaced` /
+`mustBePutTarget` validators and the `PutController`'s
+pre-flight `canRest` check (which produces friendly prose).
+
+### `Surfaced.getResting()`
+
+Lazy walk; no maintained forward collection. The surface walks
+its own environment's contents and filters by
+`getRestingOn() === this`. For typical room sizes the walk is
+cheap; surfaces with very many resting items are content design
+that hasn't earned a forward index yet.
+
+### `Surfaced.userFacingDetail`
+
+MQL keyword bridge, mirroring `SlotSpec.userFacingDetail` on
+the slot subsystem. An author declares `userFacingDetail:
+tabletop` on a Surfaced host and `put apple on tabletop`
+resolves "tabletop" to the host via the Detailed-keyword path.
+Pure MQL plumbing; surfaces don't gain Slotted semantics.
+
+### `Surfaced.canRest(item)`
+
+Per-host veto. Defaults to `true`; authors override for shape-
+specific gates (fragile shelf rejects heavy items, sloped
+surface rejects round items, wax tabletop rejects hot items).
+Item-side gates intentionally don't exist — the authoring
+intuition is host-side ("this surface rejects X") not item-side
+("this item refuses Y").
+
+### DescribeApi grouping
+
+Items appear in their enclosing container's contents listing
+naturally (the apple is in the room; `room.getContents()`
+includes it). To render the perceptual grouping ("a wooden
+desk, with a red apple on it"), the describe layer offers two
+helpers:
+
+- `DescribeApi.groupContentsByResting(contents)` partitions a
+  `getContents()` snapshot into `topLevel` items and a
+  `byHost` map of items grouped under their supporting Surfaced.
+  Items resting on a surface NOT in the same listing fall back
+  to `topLevel`.
+- `DescribeApi.formatRestingSuffix(host, resting)` produces a
+  count-aware suffix string: enumerated for ≤ `SURFACE_ENUMERATE_THRESHOLD`
+  items, summarized ("scattered with various items") above. The
+  threshold is a tunable exported constant.
+
+The grouping is a presentation pass; the underlying contents
+walk is unchanged. v1 has no top-of-`look` content-listing
+caller (`look` doesn't render "you see X, Y, Z" today), so the
+helpers ship ready for the future caller without forcing a
+walker into place.
+
+### Verbs: `put`, `give`
+
+`put X in Y` calls `ContainmentApi.move`. `put X on Y` calls
+`placeOn`. The verb's YAML carries `prepositions: [in, on]` on
+the target arg; the preposition lands on `model.target.prep` and
+the controller branches on it. With no preposition, the
+controller infers from target capability (`Container` only →
+`in`; `Surfaced` only → `on`); ambiguous (composes both) rejects
+with a "put it in or on X?" prompt.
+
+`give X to Y` is inter-Agent transfer via `ContainmentApi.move`
+into the recipient's general Container. Items don't land in a
+hand slot — see [embodiment.md § Hand slots are for activities,
+not storage](./embodiment.md). The recipient is gated by the
+`mustBeAgent` validator (target `instanceof Agent`).
+
 ## Locations
 
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:

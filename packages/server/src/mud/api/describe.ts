@@ -39,9 +39,37 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Containable } from '../lib/spatial/Containable';
+import type { Surfaced } from '../lib/spatial/Surfaced';
 import { GrammarApi } from './grammar';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
+
+/**
+ * Output of {@link DescribeApi.groupContentsByResting}. Partitions a
+ * `getContents()` snapshot into items that should render at the top
+ * level and items that should render nested under a supporting
+ * surface (when that surface is itself in the listing).
+ *
+ *   - `topLevel`: items with no supporting surface OR whose supporting
+ *     surface is not in this listing (the cross-listing case is
+ *     out-of-scope in v1; `placeOn`'s post-condition keeps the
+ *     supporter and resting items co-located).
+ *   - `byHost`: keyed by the Surfaced host's `stuffId`; arrays of
+ *     items resting on that host.
+ */
+export interface RestingGrouping {
+  topLevel: (Stuff & Containable)[];
+  byHost: Map<string, (Stuff & Containable)[]>;
+}
+
+/**
+ * Default count threshold for enumerated-vs-summarized rendering of
+ * items resting on a surface. Three or fewer → enumerate. Four+ →
+ * summarize. Exported as a constant so callers can opt out without
+ * the magic number leaking across the codebase.
+ */
+export const SURFACE_ENUMERATE_THRESHOLD = 3;
 
 /**
  * Presentation-layer API for describing objects.
@@ -105,6 +133,100 @@ export class DescribeApi {
     const n = obj.getQuantity();
     if (n === 1) return base;
     return `${n} ${GrammarApi.pluralize(obj, base)}`;
+  }
+
+  /**
+   * Partition a container's contents snapshot into top-level items
+   * and items grouped under their supporting Surfaced host. Used by
+   * room-listing render paths so an apple resting on a desk appears
+   * nested under the desk instead of as a separate room-level item.
+   *
+   * Under Option D (see `docs/plans/affordance-verb-plan.md` § 2),
+   * an apple on a desk in a room has `container = room` AND
+   * `restingOn = desk` — both relationships are real. The grouping
+   * is purely presentational: the underlying contents walk is
+   * unchanged, and items resting on surfaces in OTHER containers
+   * fall back to `topLevel` (the cross-listing case is out of scope
+   * in v1; `placeOn`'s post-condition keeps the supporter and
+   * resting items in the same container).
+   *
+   * Cluttered-surface rendering (4+ items) is the caller's policy.
+   * The grouping returned here is structural; callers consult
+   * {@link SURFACE_ENUMERATE_THRESHOLD} and decide between "the desk,
+   * with X, Y, and Z on it" and "the desk, scattered with various
+   * items".
+   *
+   * @param contents - The container's getContents() snapshot.
+   * @returns A {@link RestingGrouping} with top-level items and a
+   *   per-supporter grouping. Both fields are populated even when
+   *   empty.
+   */
+  static groupContentsByResting(
+    contents: readonly (Stuff & Containable)[],
+  ): RestingGrouping {
+    const presentIds = new Set<string>();
+    for (const c of contents) presentIds.add(c.stuffId);
+
+    const topLevel: (Stuff & Containable)[] = [];
+    const byHost = new Map<string, (Stuff & Containable)[]>();
+
+    for (const item of contents) {
+      const support = item.getRestingOn();
+      if (support === null) {
+        topLevel.push(item);
+        continue;
+      }
+      const supportId = (support as Stuff).stuffId;
+      if (!presentIds.has(supportId)) {
+        // Cross-listing: supporter is somewhere else; render
+        // top-level rather than dropping the item from the listing.
+        topLevel.push(item);
+        continue;
+      }
+      let bucket = byHost.get(supportId);
+      if (!bucket) {
+        bucket = [];
+        byHost.set(supportId, bucket);
+      }
+      bucket.push(item);
+    }
+    return { topLevel, byHost };
+  }
+
+  /**
+   * Format a Surfaced host's resting-items suffix for the
+   * containing listing. Returns the suffix string (e.g.,
+   * `", with a red apple on it"`) or `null` when the surface
+   * supports no items in this listing.
+   *
+   * Enumerates when the count is ≤ {@link SURFACE_ENUMERATE_THRESHOLD};
+   * summarizes ("scattered with various items") otherwise. The
+   * threshold matches the plan's recommended constant.
+   *
+   * The host argument is unused at the bare string-rendering layer
+   * (no per-host overrides today), but kept in the signature so
+   * future shape-aware suffixes (a hot plate; a sloped surface)
+   * have a hook without an API rename.
+   */
+  static formatRestingSuffix(
+    _host: Stuff & Surfaced,
+    resting: readonly (Stuff & Containable)[],
+  ): string | null {
+    if (resting.length === 0) return null;
+    if (resting.length > SURFACE_ENUMERATE_THRESHOLD) {
+      return ', scattered with various items';
+    }
+    const names = resting.map((r) => DescribeApi.formatName(r, 'something'));
+    let joined: string;
+    if (names.length === 1) {
+      joined = names[0]!;
+    } else if (names.length === 2) {
+      joined = `${names[0]} and ${names[1]}`;
+    } else {
+      // names.length === 3
+      joined = `${names[0]}, ${names[1]}, and ${names[2]}`;
+    }
+    return `, with ${joined} on it`;
   }
 }
 

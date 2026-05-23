@@ -79,6 +79,45 @@ these):
   thing"; the controller's own per-slot scan surfaces "you aren't
   wearing that" when nothing actually vacated.
 
+## Hand slots are for activities, not storage
+
+A design rule the shipped verbs already obey, written down so
+future verb design doesn't drift:
+
+> **Body slots model active commitments. Ambient inventory
+> models possession. The two are distinct destinations.**
+
+`wield`, `wear`, `mount`, posture-bearing seats — all occupy
+slots, because each represents a body-level commitment: the
+hand is being used for this sword right now, the torso is
+being clothed by this shirt right now. Releasing the
+commitment (`unwield`, `remove`, `dismount`, `stand`) frees
+the slot.
+
+`get`, `drop`, `give`, future `put`/`take` — all move items
+in and out of the actor's general `Container`. This is the
+"on your person" abstraction: pack, belt, sheath, pouch are
+all narrative flavors of the same ambient-inventory slot. The
+model deliberately does not author backpacks-as-slots; if a
+container-on-the-body is meaningful, it's a Stuff worn in a
+slot whose contents are still ambient inventory addressing.
+
+The corollary that matters for verb design: **receiving an
+item never requires a free body slot.** A character dual-
+wielding two swords can still be given a spellbook — it goes
+into ambient inventory, and they can `wield` it later if they
+free a hand. The realism is preserved where it pays off (you
+can't actually hold three swords); the friction is removed
+where it didn't (handing someone a book shouldn't depend on
+their combat loadout).
+
+Future activity verbs that need a body slot for the duration
+of the activity (cooking grabs a hand for the spoon; reading
+grabs `attention` for the book) compete with `wield` /
+`wear` / posture for slot occupancy — that's the right
+tension, and the engagement framework already supports it.
+See [activity.md § Engagement slots](./activity.md).
+
 ## Cross-references
 
 - [slot.md](./slot.md) — substrate.

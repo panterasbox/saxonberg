@@ -29,6 +29,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { Surfaced } from './Surfaced';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -74,6 +75,40 @@ export interface Containable {
    * `Avatar.restore()` re-move semantics with no flag.
    */
   applyContainer(path: string): Promise<void>;
+
+  /**
+   * Auxiliary support pointer. Set when this Containable is resting
+   * on a Surfaced host (e.g., apple on a desk). Orthogonal to
+   * `getContainer()` — the apple is in the room AND resting on the
+   * desk; both relationships are real.
+   *
+   * Null when the item is not on a surface (in a container, in
+   * inventory, in an actor's grip, freely in a room).
+   *
+   * **Runtime-only** (Pattern B live ref; see
+   * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md)).
+   * Not persisted: on server restart, the apple's container is
+   * preserved but its on-surface relationship resets. The tradeoff
+   * is intentional — Pattern A by templatePath only resolves
+   * unambiguously for singleton surfaces, which would constrain
+   * the natural sandbox case of multiple identical chairs / tables
+   * authored in a single area. When sandbox content earns
+   * cross-restart on-surface persistence, that build picks the
+   * appropriate persistence shape (likely Pattern B with stuffId
+   * stamping at save time).
+   */
+  getRestingOn(): (Stuff & Surfaced) | null;
+
+  /**
+   * Privileged setter — only `ContainmentApi.placeOn` /
+   * `ContainmentApi.move` may call. Runtime-rejected by the
+   * call-security gate otherwise. Authors don't touch this directly;
+   * the Api maintains the invariant that restingOn is only non-null
+   * when the item's container matches the surface's container.
+   *
+   * Pass `null` to clear (apple lifted off the desk).
+   */
+  _setRestingOn(surface: (Stuff & Surfaced) | null): void;
 
   /** Optional pre-move veto on the moving item itself. */
   canMove?(to: (Stuff & Container) | null): VetoResult;
@@ -131,11 +166,33 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Note: environment is a complex type (reference to another object).
-     * It is NOT included in persistentFields - instead, classes using
-     * this mixin must declare a custom persistenceHandler.
+     * Live reference to the container. NOT a persistent field —
+     * cross-Stuff references would round-trip badly through the
+     * Hydrator's reflection. The container relationship is rebuilt
+     * at clone time via the `applyContainer` instruction-field path
+     * (see static `instructionFields` above) or by direct
+     * `ContainmentApi.move` calls after hydration.
+     *
+     * Auxiliary `restingOn` is different — it's a Pattern A
+     * path-string (`_restingOnPath`) that DOES persist; see static
+     * `persistentFields` below.
      */
     protected environment: (Stuff & Container) | null = null;
+
+    /**
+     * Runtime-only auxiliary support pointer — Pattern B live ref.
+     * Holds a direct reference to the supporting Surfaced host
+     * (null when no support). NOT in `persistentFields`; resets to
+     * null on hydrate. R2.3 self-heal in `getRestingOn` clears the
+     * slot if the supporter has been destructed.
+     *
+     * Pattern B chosen over Pattern A templatePath stamping because
+     * non-singleton surfaces (e.g., multiple identical tables in a
+     * dining hall) can't be addressed unambiguously by templatePath.
+     * The cross-restart loss is small — items reappear in their
+     * container, just without the on-surface precision.
+     */
+    protected _restingOn: (Stuff & Surfaced) | null = null;
 
     /**
      * State-mutation chokepoint. Reachable only from
@@ -201,6 +258,41 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         current = env as Stuff;
       }
       return topmost;
+    }
+
+    /**
+     * Resolve the auxiliary `restingOn` pointer. Pattern B live ref;
+     * R2.3 self-heal clears the slot if the supporting surface has
+     * been destructed since the last set.
+     *
+     * Returns `null` when no support OR the supporter has been
+     * destructed. The caller can't tell the two apart from the
+     * return value; that's deliberate — absence of support is the
+     * same observable as a stale ref.
+     */
+    getRestingOn(): (Stuff & Surfaced) | null {
+      const ref = this._restingOn;
+      if (ref !== null && (ref as Stuff).isDestroyed()) {
+        this._restingOn = null;
+        return null;
+      }
+      return ref;
+    }
+
+    /**
+     * Privileged setter for the auxiliary `restingOn` pointer.
+     * Reachable only from `ContainmentApi.move` /
+     * `ContainmentApi.placeOn`. Pass `null` to clear.
+     *
+     * Stores the supporting Surfaced ref directly (Pattern B);
+     * runtime-only — see the field declaration's JSDoc for the
+     * persistence rationale.
+     */
+    @CallSecurity(FromContainmentApi)
+    @Final
+    @Unshadowable
+    _setRestingOn(surface: (Stuff & Surfaced) | null): void {
+      this._restingOn = surface;
     }
 
     /**

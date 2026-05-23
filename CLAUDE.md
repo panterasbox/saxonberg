@@ -109,7 +109,9 @@ behavior. Read the relevant doc before editing in its area.
     concrete spatial zones (Cartesian/Spherical), vessels,
     coordinates, containment chokepoint, locomotion, direction
     vocabulary, declarative `coords` / `focus` setters with their
-    zone-registration side effect
+    zone-registration side effect, `SurfacedMixin` and the
+    auxiliary `restingOn` pointer for on-vs-in placement,
+    `ContainmentApi.placeOn` + the `put` / `give` verbs
   - [boundary.md](./docs/subsystems/boundary.md) — exits, doors,
     `Adornable` / `Adornment`, the `Boundary` substrate
     (`Boundary`, `BoundaryAnchor`, `Conduit` interfaces),
@@ -529,6 +531,7 @@ bypass it. Common cases:
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
+| `ContainmentApi.move(item, room); item._setRestingOn(desk)` (manual on-surface placement) | `ContainmentApi.placeOn(item, desk)` — single primitive; resolves the surface's environment, runs `canRest`, moves, restamps `restingOn`. `_setRestingOn` is `FromContainmentApi`-gated; direct calls throw. |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
 | `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |

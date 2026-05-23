@@ -23,6 +23,7 @@ export const Mixins = {
   Gendered: 'GenderedMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
+  Surfaced: 'SurfacedMixin',
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',

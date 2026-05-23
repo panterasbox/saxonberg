@@ -24,6 +24,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import type { Surfaced } from '../lib/spatial/Surfaced';
 import type { VetoResult } from '../lib/errors';
 import { CommandApi } from './command';
 import { MixinApi } from './mixin';
@@ -194,6 +195,17 @@ export class ContainmentApi {
     // the three cross-object updates atomically.
     item.setContainer(to);
 
+    // Auxiliary-pointer invariant: when the container actually
+    // changes, the `restingOn` auxiliary pointer can no longer be
+    // valid (the apple is now in the chest; whatever desk it was on
+    // can't still be supporting it). Clearing here keeps the
+    // move-as-container-change contract clean. `placeOn` re-stamps
+    // restingOn after this move() call, so the on-surface case is
+    // unaffected.
+    if (from !== to && item.getRestingOn() !== null) {
+      item._setRestingOn(null);
+    }
+
     // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything
     // those hooks observe (e.g. peers' getAvailableCommands) reflects
     // the new contributions.
@@ -277,6 +289,63 @@ export class ContainmentApi {
       );
     }
     item.setContainer(env);
+  }
+
+  /**
+   * Place `item` on `surface` — the on-surface analogue of
+   * {@link move}. Under Option D (see
+   * `docs/plans/affordance-verb-plan.md` § 2), containment stays
+   * hierarchical and exclusive; the supporting surface is an
+   * orthogonal auxiliary pointer.
+   *
+   * Pipeline:
+   *   1. Resolve target environment as the surface's container.
+   *      Surfaces themselves are Containable; their environment is
+   *      where the supported items live (e.g., the desk lives in
+   *      the room; apples on the desk are also in the room).
+   *   2. Run the surface's `canRest(item)` veto. Throws on
+   *      programmatic-contract failure (validators upstream produce
+   *      friendly user-input messages).
+   *   3. `move(item, targetEnv)` — this fires the usual container
+   *      change hooks AND clears any prior `restingOn` as part of
+   *      the change-of-container invariant.
+   *   4. Set the auxiliary `restingOn` pointer to the surface.
+   *      Order matters: move() in step 3 clears restingOn; the
+   *      _setRestingOn call after it restamps to the new surface.
+   *
+   * @throws Error when the surface has no environment to place the
+   *   item into, OR when `surface.canRest(item)` returns false.
+   */
+  public static placeOn(
+    item: ContainableStuff,
+    surface: Stuff & Surfaced,
+  ): void {
+    // Resolve target environment: the surface's container.
+    const surfaceAsContainable = surface as unknown as Containable;
+    const targetEnv = surfaceAsContainable.getContainer();
+    if (!targetEnv) {
+      throw new ContainmentError(
+        `placeOn: surface ${(surface as Stuff).stuffId} has no ` +
+          `environment to place items into`,
+      );
+    }
+    if (!surface.canRest(item)) {
+      throw new ContainmentError(
+        `placeOn: surface ${(surface as Stuff).stuffId} rejects ` +
+          `${item.stuffId}`,
+      );
+    }
+    // Move item into the surface's environment first (fires existing
+    // containment hooks); then set the auxiliary restingOn pointer.
+    // move() clears restingOn as part of its container-change
+    // invariant when the container differs from the previous one;
+    // setting restingOn AFTER move ensures the new support pointer
+    // survives. When the container is unchanged (apple already in
+    // the room, just moving from one desk to another in the same
+    // room), move is a no-op and we go straight to the restingOn
+    // update.
+    ContainmentApi.move(item, targetEnv);
+    item._setRestingOn(surface);
   }
 
   /**
