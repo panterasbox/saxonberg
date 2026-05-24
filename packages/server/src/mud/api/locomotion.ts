@@ -87,6 +87,36 @@ export class LocomotionApi {
     return await StuffApi.singleton<LocomotionMode>(path);
   }
 
+  /**
+   * Ensure the actor's species + bodyplan singletons are live so the
+   * sync eligibility cascade (`bodyPlanAllows`, `postureAllows`, etc.)
+   * can read them via `findByTemplatePath`. Without this, a fresh
+   * server's first organism-shaped `go` reports "Your body can't
+   * walk." even for a Homo-sapiens-with-biped-bodyplan avatar — the
+   * species is loaded by the `requiresAnimate` validator preload but
+   * the bodyplan singleton was never touched.
+   *
+   * No-op for non-Organism actors and for Organisms with no
+   * `_speciesPath` / `_bodyPlanPath` — those skip the bodyplan gate
+   * naturally per `bodyPlanAllows`.
+   *
+   * Idiomatically paired with `loadMode` at locomotion entry points.
+   */
+  public static async preloadActorAnatomy(actor: Stuff): Promise<void> {
+    if (!MixinApi.isOrganism(actor)) return;
+    const speciesPath = (actor as unknown as { _speciesPath: string | null })
+      ._speciesPath;
+    if (!speciesPath) return;
+    const { Species } = await import('../lib/species/Species');
+    const { BodyPlan } = await import('../lib/species/BodyPlan');
+    const species = await StuffApi.singleton<InstanceType<typeof Species>>(
+      speciesPath,
+    );
+    const bodyPlanPath = species.getBodyPlanPath();
+    if (!bodyPlanPath) return;
+    await StuffApi.singleton<InstanceType<typeof BodyPlan>>(bodyPlanPath);
+  }
+
   /** Short name → full path; full path passes through. */
   static #toModePath(nameOrPath: string): string {
     if (nameOrPath.startsWith('/')) return nameOrPath;
@@ -547,11 +577,13 @@ export class LocomotionApi {
     actor: Stuff & Mobile & Containable,
     exit: Exit,
   ): Promise<void> {
-    // Lazy-load: `modeOf` is sync and only sees already-cloned
-    // singletons. On the first `go` issued against a fresh server
-    // the actor's resolved default ('walk' / bodyplan default /
-    // explicit setting) hasn't been cloned yet, so go through
-    // `loadMode` to trigger the StuffApi.singleton clone path.
+    // Lazy-load the actor's anatomy (species + bodyplan) and the
+    // locomotion mode singleton before the sync eligibility cascade
+    // runs. Both `getBodyPlan()` and `modeOf` are sync registry
+    // lookups; on a fresh server the first `go` would otherwise
+    // fail at the body-plan gate (null bodyplan ⇒ empty planModes)
+    // or at the mode resolution (LocomotionMode not loaded).
+    await LocomotionApi.preloadActorAnatomy(actor);
     const mode = await LocomotionApi.loadMode(
       LocomotionApi.defaultModeFor(actor),
     );
