@@ -252,6 +252,12 @@ export class LookController extends CommandController<LookModel> {
       return Mml.compose`${tagged} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);
-    return Mml.fromMarkup(`<exits>Obvious exits: ${joined.toString()}.</exits>`);
+    // No `<exits>` outer wrapper: the prose `Obvious exits: …` is the
+    // structural marker, the inner `<exit>` tags carry the only
+    // semantics the renderer cares about, and a wrapper that
+    // *contains* other tags can't be parsed by the client's regex
+    // MML renderer (which only matches flat tags). Render the
+    // joined Mml directly into the sentence.
+    return Mml.compose`Obvious exits: ${joined}.`;
   }
 }

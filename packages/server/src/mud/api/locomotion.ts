@@ -71,6 +71,22 @@ export class LocomotionApi {
     return mode;
   }
 
+  /**
+   * Async-lazy companion to `modeOf` / `modeOfOrThrow`. Awaits
+   * `StuffApi.singleton` so the mode is cloned on first use, then
+   * subsequent sync lookups (e.g., from `Mobile.getEngagedMode`,
+   * `Drivable.getVehicularMode`) hit the cached singleton.
+   *
+   * Use this from async caller paths that need the mode for the
+   * first time — verb controllers, `traverseWithDefault`, anywhere
+   * the lazy-design's first-touch happens. Pure registry hits stay
+   * with the sync `modeOf` family.
+   */
+  public static async loadMode(nameOrPath: string): Promise<LocomotionMode> {
+    const path = LocomotionApi.#toModePath(nameOrPath);
+    return await StuffApi.singleton<LocomotionMode>(path);
+  }
+
   /** Short name → full path; full path passes through. */
   static #toModePath(nameOrPath: string): string {
     if (nameOrPath.startsWith('/')) return nameOrPath;
@@ -531,7 +547,12 @@ export class LocomotionApi {
     actor: Stuff & Mobile & Containable,
     exit: Exit,
   ): Promise<void> {
-    const mode = LocomotionApi.modeOfOrThrow(
+    // Lazy-load: `modeOf` is sync and only sees already-cloned
+    // singletons. On the first `go` issued against a fresh server
+    // the actor's resolved default ('walk' / bodyplan default /
+    // explicit setting) hasn't been cloned yet, so go through
+    // `loadMode` to trigger the StuffApi.singleton clone path.
+    const mode = await LocomotionApi.loadMode(
       LocomotionApi.defaultModeFor(actor),
     );
     await LocomotionApi.engageAround(actor, mode, exit, () =>

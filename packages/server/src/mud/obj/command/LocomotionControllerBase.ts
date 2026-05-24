@@ -64,7 +64,12 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       return;
     }
 
-    const mode = LocomotionApi.modeOfOrThrow(this.modeName(context));
+    // Lazy-load: `modeOf` is sync and only sees cloned singletons.
+    // The first time a player issues a specific-mode verb (`climb`,
+    // `swim`, ...) on a fresh server the mode singleton hasn't been
+    // cloned yet — `loadMode` triggers the StuffApi.singleton clone
+    // path, then subsequent sync lookups hit the cache.
+    const mode = await LocomotionApi.loadMode(this.modeName(context));
 
     const target = model.target;
     if (!target || target.stuff === null) {
