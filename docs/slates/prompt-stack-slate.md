@@ -151,13 +151,33 @@ matching needed.
 
 ### `base` (always present)
 
-The player's normal command prompt. Content for v1 is a hardcoded
-client-side simple format (`[Bobalu Smallberries] >`). Future: server
-renders a configurable `prompt.format` setting via
-`EnvironmentMixin` (`%hp`, `%maxhp`, `%mv`, `%location`, `%posture`,
-`%engagement`, `%focus`, `%mode`, `%time`) and pushes the rendered
-string on a dedicated topic; state-sync triggers re-renders when
-underlying values change.
+The player's normal command prompt. **Content for v1 is the actor's
+current MQL focus** (per `FocusedMixin.getFocus()`; defaults to
+`'here'`). Rendered as `[<focus>] >` — e.g., `[here] >`,
+`[thermometer] >`, `[the brass kettle on the table] >`.
+
+Why focus and not the avatar's name: focus is the load-bearing live
+MQL pointer. It's what `$focus` resolves to (the default chain seed
+in look / examine / etc.), it changes constantly, and it's
+otherwise invisible in the UI. Showing it in the prompt makes every
+MQL chain legible at a glance — the player always knows what their
+default seed is.
+
+Wire shape for v1: server pushes the current focus value to the
+client on a dedicated topic (`system.prompt.focus` or similar)
+**(a)** at connection-established time and **(b)** whenever
+`setFocus` fires — `FocusController` already emits prose
+`focus set to 'X'`; one additional structured emit on the new topic
+covers the client side. Client subscribes, stashes the latest,
+renders. No state-sync dependency.
+
+Future: a configurable `prompt.format` setting via `EnvironmentMixin`
+(`%hp` / `%maxhp` / `%mv` / `%location` / `%posture` / `%engagement`
+/ `%focus` / `%mode` / `%time`) replaces the focus-only format.
+Server renders against live state and re-pushes when any underlying
+value changes; state-sync drives the re-renders. The
+`system.prompt.focus` topic generalizes to `system.prompt` with
+arbitrary rendered content.
 
 ### `choice` (v1 — load-bearing)
 
@@ -327,8 +347,12 @@ Minimum viable client stack against the server stub:
    `window.__popPrompt(reason)` for testing without server
    substrate.
 
-Base prompt content for v1 stays hardcoded (`[<displayName>] >`)
-until server-rendered prompts land alongside state-sync.
+Base prompt content for v1 is the actor's MQL focus, rendered as
+`[<focus>] >`. Server side: a small emit added to
+`FocusController` (and connection-establishment) on a dedicated
+topic. Client side: subscriber updates the base prompt content
+when frames arrive. Full state-sync-driven token-format prompts
+land later.
 
 ---
 
@@ -336,7 +360,8 @@ until server-rendered prompts land alongside state-sync.
 
 - **State-sync-driven base prompt format** — token-driven `%hp` /
   `%location` style format strings deferred to whenever state-sync
-  lands. v1 ships a hardcoded display-name-only base prompt.
+  lands. v1 ships a focus-only base prompt fed by a dedicated
+  server push topic.
 - **Typing a new command while a prompt is up** — input is bound to
   prompt response when stack is non-base. Escape hatches (`cancel`,
   global escape key) land when content asks.
@@ -418,9 +443,10 @@ until server-rendered prompts land alongside state-sync.
 6. **Confirm / text-prompt content** — lands when first content
    needs them (probably character creation: name input, archetype
    confirm).
-7. **State-sync-driven base prompt format** — replaces the
-   hardcoded base prompt with server-rendered format string. Lands
-   alongside state-sync.
+7. **State-sync-driven base prompt format** — generalizes the
+   focus-only base prompt to a server-rendered token format
+   (`%hp` / `%location` / etc.) re-pushed when underlying state
+   changes. Lands alongside state-sync.
 
 Waves 1-2 are independent and can be built in parallel by
 different sessions. Waves 3-5 ship as a unit. Wave 6 lands per
