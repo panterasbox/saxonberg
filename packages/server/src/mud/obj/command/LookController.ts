@@ -240,12 +240,16 @@ export class LookController extends CommandController<LookModel> {
   private formatExits(exits: Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
-      const dir = Mml.direction(exit.getDirection());
+      // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —
+      // the client turns it into the affordance that sends `go <dir>`.
+      // Door annotation rides outside the clickable so the click area
+      // is exactly the direction word.
+      const tagged = Mml.exit(exit);
       const door = exit.getDoor();
-      if (!door) return dir;
+      if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
       const doorName = DescribeApi.getDisplayName(door, 'door');
-      return Mml.compose`${dir} (${doorName}, ${state})`;
+      return Mml.compose`${tagged} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);
     return Mml.fromMarkup(`<exits>Obvious exits: ${joined.toString()}.</exits>`);

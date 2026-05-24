@@ -122,6 +122,27 @@ describe('Mml vocabulary helpers', () => {
     );
   });
 
+  it('Mml.exit emits clickable exit affordance with dir + stuff-id', () => {
+    // Minimal Exit stub — only the surface Mml.exit consults.
+    const exit = {
+      stuffId: 'exit-abc',
+      getDirection: () => 'north',
+    } as unknown as import('../../lib/boundary/Exit').Exit;
+    expect(Mml.exit(exit).toString()).toBe(
+      '<exit dir="north" stuff-id="exit-abc">north</exit>'
+    );
+  });
+
+  it('Mml.exit escapes direction values that contain reserved chars', () => {
+    const exit = {
+      stuffId: 'exit-xyz',
+      getDirection: () => '<bogus>',
+    } as unknown as import('../../lib/boundary/Exit').Exit;
+    expect(Mml.exit(exit).toString()).toBe(
+      '<exit dir="&lt;bogus&gt;" stuff-id="exit-xyz">&lt;bogus&gt;</exit>'
+    );
+  });
+
   it('Mml.list with no items emits "nothing"', () => {
     expect(Mml.list([]).toString()).toBe('nothing');
   });

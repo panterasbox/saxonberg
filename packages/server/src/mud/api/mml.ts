@@ -26,6 +26,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
+import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 
@@ -149,6 +150,24 @@ export class Mml {
   /** Render a direction (e.g., 'north') inside `<direction>` tags. */
   static direction(d: string): Mml {
     return Mml.fromMarkup(`<direction>${escapeText(d)}</direction>`);
+  }
+
+  /**
+   * Render an actionable exit reference inside
+   * `<exit dir="..." stuff-id="...">` tags. The client renderer
+   * (`packages/client/src/components/MmlRenderer.tsx`) turns these
+   * into clickable affordances that emit `go <dir>` on click.
+   *
+   * Distinct from `Mml.direction(d)` — that tag is a vocabulary
+   * word (e.g., "the wind blows from the <direction>north</direction>"),
+   * not an affordance. Use `Mml.exit` when the displayed direction
+   * names an actual exit the actor can traverse.
+   */
+  static exit(exit: Exit): Mml {
+    const dir = exit.getDirection();
+    return Mml.fromMarkup(
+      `<exit dir="${escapeText(dir)}" stuff-id="${escapeText(exit.stuffId)}">${escapeText(dir)}</exit>`
+    );
   }
 
   /**
