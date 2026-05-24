@@ -1,0 +1,18 @@
+# Duncan Hall Front Steps — the outdoor approach to the lobby.
+#
+# Sits at grid [0, 0, 0], one cell south of the lobby. The "north"
+# back-exit to the lobby is auto-installed by Exitable.applyExits
+# when the lobby's south exit hydrates (bidirectional default for
+# cardinals).
+class: /lib/spatial/NamedCartesianLocation
+data:
+  name: Duncan Hall Front Steps
+  shortDescription: the front steps of Duncan Hall
+  longDescription: |
+    Six broad limestone steps lead up to the open doors of Duncan Hall behind you to the north. A black-iron handrail traces the right edge; the left edge is broken by a stone planter, the geraniums in it stubbornly outliving the season.
+
+    Beyond the steps the quad opens up, sun-bleached and mostly empty at this hour.
+  coords:
+    x: 0
+    y: 0
+    z: 0

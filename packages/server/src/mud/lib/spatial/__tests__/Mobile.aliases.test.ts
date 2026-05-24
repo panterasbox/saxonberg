@@ -7,21 +7,21 @@
 
 import { describe, it, expect } from 'vitest';
 import { MobileMixin } from '../Mobile';
+import { ContainableMixin } from '../Containable';
+import { Idea } from '../../stuff/Idea';
 import { NavigationApi } from '../../../api/navigation';
 
 describe('MobileMixin default aliases', () => {
-  // Pull static defaultAliases off the mixin's anonymous class via a
-  // disposable host. The mixin can't be referenced directly because
-  // it's a class factory, not a class.
-  class Host extends MobileMixin(
-    class {
-      static persistentFields: string[] = [];
-    } as never,
-  ) {}
+  // Compose a real Mobile host to surface the static `defaultAliases`
+  // — the mixin's a class factory, so the static lives on the
+  // returned class rather than on `MobileMixin` itself.
+  const MobileHost = MobileMixin(ContainableMixin(Idea));
 
-  const defaults = (Host as unknown as {
-    defaultAliases: Array<{ name: string; body: string }>;
-  }).defaultAliases;
+  const defaults = (
+    MobileHost as unknown as {
+      defaultAliases: Array<{ name: string; body: string }>;
+    }
+  ).defaultAliases;
 
   const aliasByName = new Map(defaults.map((e) => [e.name, e.body]));
 

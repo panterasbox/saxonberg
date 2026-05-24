@@ -1,0 +1,22 @@
+# Duncan Hall Lobby — landing room for new sessions.
+#
+# Sits at grid [0, 1, 0] inside the Duncan Hall zone (y grows north,
+# so [0, 1] is one cell north of [0, 0]). The south exit declared
+# below is bidirectional by default for cardinals, so the front
+# steps get the back-exit "north" automatically via
+# Exitable.applyExits.
+class: /lib/spatial/NamedCartesianLocation
+data:
+  name: Duncan Hall Lobby
+  shortDescription: the lobby of Duncan Hall
+  longDescription: |
+    A long marble counter divides the lobby roughly in half. The far wall is studded with brass mail slots — most empty, a few stuffed with envelopes nobody has come down for. Bulletin boards on either side advertise things that have already happened: a study group two weeks back, a missing textbook from last term.
+
+    The front doors stand open to the south, letting the day's heat in.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /domain/eternal/duncan-hall/steps
