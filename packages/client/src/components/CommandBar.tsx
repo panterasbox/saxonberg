@@ -20,18 +20,19 @@ const BarContainer = styled.div`
   border-top: 1px solid #444;
 `;
 
-const Input = styled.input`
+const Input = styled.input<{ $flashing?: boolean }>`
   flex: 1;
   padding: 0.5rem;
-  background: #1e1e1e;
+  background: ${(p) => (p.$flashing ? '#264f3e' : '#1e1e1e')};
   color: #d4d4d4;
-  border: 1px solid #444;
+  border: 1px solid ${(p) => (p.$flashing ? '#4ec9b0' : '#444')};
   font-family: 'Courier New', monospace;
   font-size: 14px;
+  transition: background 150ms, border-color 150ms;
 
   &:focus {
     outline: none;
-    border-color: #007acc;
+    border-color: ${(p) => (p.$flashing ? '#4ec9b0' : '#007acc')};
   }
 `;
 
@@ -54,14 +55,16 @@ const Button = styled.button`
 `;
 
 interface CommandBarProps {
+  value: string;
+  onChange: (value: string) => void;
   onSend: (text: string) => void;
+  flashing?: boolean;
 }
 
 const HISTORY_KEY = 'saxonberg-command-history';
 const MAX_HISTORY = 100;
 
-export function CommandBar({ onSend }: CommandBarProps) {
-  const [input, setInput] = useState('');
+export function CommandBar({ value, onChange, onSend, flashing }: CommandBarProps) {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
@@ -88,8 +91,8 @@ export function CommandBar({ onSend }: CommandBarProps) {
   }, [history]);
 
   const handleSubmit = () => {
-    if (input.trim()) {
-      const command = input.trim();
+    const command = value.trim();
+    if (command) {
       onSend(command);
 
       // Add to history (avoid consecutive duplicates)
@@ -98,7 +101,7 @@ export function CommandBar({ onSend }: CommandBarProps) {
         return filtered.slice(0, MAX_HISTORY);
       });
 
-      setInput('');
+      onChange('');
       setHistoryIndex(-1);
     }
   };
@@ -113,7 +116,7 @@ export function CommandBar({ onSend }: CommandBarProps) {
       if (history.length > 0) {
         const newIndex = Math.min(historyIndex + 1, history.length - 1);
         setHistoryIndex(newIndex);
-        setInput(history[newIndex] || '');
+        onChange(history[newIndex] || '');
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -121,15 +124,15 @@ export function CommandBar({ onSend }: CommandBarProps) {
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         setHistoryIndex(newIndex);
-        setInput(history[newIndex] || '');
+        onChange(history[newIndex] || '');
       } else if (historyIndex === 0) {
         // At newest command, clear input
         setHistoryIndex(-1);
-        setInput('');
+        onChange('');
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      setInput('');
+      onChange('');
       setHistoryIndex(-1);
     }
   };
@@ -137,11 +140,12 @@ export function CommandBar({ onSend }: CommandBarProps) {
   return (
     <BarContainer>
       <Input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Enter command..."
         autoFocus
+        $flashing={flashing}
       />
       <Button onClick={handleSubmit}>Send</Button>
     </BarContainer>

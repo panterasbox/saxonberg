@@ -2,12 +2,15 @@
  * Terminal - Game output display component
  *
  * Displays message buffer with auto-scroll to bottom on new messages.
- * Phase 3: Simple text rendering
- * Phase 4+: Rich MML (Mud Markup Language) formatting
+ * Each message is rendered through `MmlRenderer`, which turns
+ * semantic tags into clickable affordances that emit real commands
+ * via `onCommandClick`. The slate's principle is command-bus
+ * primacy — every click sends a command, no exceptions.
  */
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { MmlRenderer } from './MmlRenderer';
 
 const TerminalContainer = styled.div`
   flex: 1;
@@ -27,9 +30,15 @@ const Message = styled.div`
 
 interface TerminalProps {
   messages: string[];
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
 }
 
-export function Terminal({ messages }: TerminalProps) {
+export function Terminal({
+  messages,
+  onCommandClick,
+  onCommandPreview,
+}: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +51,13 @@ export function Terminal({ messages }: TerminalProps) {
   return (
     <TerminalContainer ref={containerRef}>
       {messages.map((msg, idx) => (
-        <Message key={idx}>{msg}</Message>
+        <Message key={idx}>
+          <MmlRenderer
+            text={msg}
+            onCommandClick={onCommandClick}
+            onCommandPreview={onCommandPreview}
+          />
+        </Message>
       ))}
     </TerminalContainer>
   );
