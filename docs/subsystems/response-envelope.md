@@ -438,18 +438,24 @@ to render envelopes.
 
 The sweep is dispatcher-driven: at the end of `executeCommand`,
 the dispatcher walks `claimingCtx.getNotes()` and for each note
-calls `CommandApi.proseForFrameworkNote(note)` to map it to its
-player-facing prose. Auto-prosed kinds today are
-`command-rejected`, `mql-error`, `validator-failed`, and
-`controller-error` — exactly the kinds the dispatcher / validator
-/ MQL framework emit without a controller getting a chance to
-fire prose itself. Controller-side notes (anything a controller
-puts on `ctx` after its `execute()` started running —
-`controller-rejected` for domain refusals, `mixin-missing`,
-`locomotion-gate-failed`, etc.) return `null` from
-`proseForFrameworkNote` and are NOT auto-prosed: controllers are
-expected to fire their own scenes with domain-specific wording at
-the same site they note.
+calls a module-private `proseForFrameworkNote(note)` helper (in
+`lib/command/CommandGiver.ts`) to map it to its player-facing
+prose. Auto-prosed kinds today are `command-rejected`,
+`mql-error`, `validator-failed`, and `controller-error` —
+exactly the kinds the dispatcher / validator / MQL framework
+emit without a controller getting a chance to fire prose itself.
+Controller-side notes (anything a controller puts on `ctx` after
+its `execute()` started running — `controller-rejected` for
+domain refusals, `mixin-missing`, `locomotion-gate-failed`,
+etc.) return `null` from `proseForFrameworkNote` and are NOT
+auto-prosed: controllers are expected to fire their own scenes
+with domain-specific wording at the same site they note.
+
+(Prose phrasing lives module-private with the dispatcher, not on
+an Api class. Presentation logic doesn't belong on `mud/api/`
+surfaces — the few historical exceptions, like `DescribeApi`,
+are slated for retirement as the client takes over more of the
+rendering.)
 
 The `system.command.error` topic is defined under
 `TOPICS.system.command.error`. Add it to the client's `renderTopics`

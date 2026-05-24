@@ -1292,57 +1292,6 @@ export class CommandApi {
    * here; it lands when a verb actually needs it. Today the only
    * preload consumer is `requiresAnimate`.
    */
-  /**
-   * Map a framework-emitted failure note to its player-facing prose,
-   * or `null` for notes that don't auto-prose (controller-side
-   * failures whose authoring controller fires its own scene with
-   * domain-specific wording; data-only notes with no readable detail).
-   *
-   * Auto-prosed kinds: `command-rejected`, `mql-error`,
-   * `validator-failed`, `controller-error` — all emitted by the
-   * dispatcher / validator / MQL framework, where no controller has
-   * a chance to produce prose.
-   *
-   * Used by the dispatcher's end-of-execute sweep: walks the
-   * accumulated notes and fires a `system.command.error` scene per
-   * prose-bearing note so a player typing a bad command sees WHY
-   * without needing client-side envelope rendering. The structured
-   * note still rides the envelope for bot/script consumers — the
-   * envelope is the machine channel, the scene is the human
-   * channel.
-   */
-  static proseForFrameworkNote(note: Note): string | null {
-    switch (note.kind) {
-      case 'command-rejected': {
-        // `reason` is enum; pair with `detail` when present.
-        const tail = note.detail ? `: ${note.detail}` : '';
-        switch (note.reason) {
-          case 'unknown-verb':
-            return `I don't understand '${note.detail ?? '?'}'.`;
-          case 'parse-failed':
-            return `Couldn't parse the command${tail}.`;
-          case 'bind-failed':
-            return `Couldn't bind that command${tail}.`;
-          case 'shape-fall-through':
-            return `That doesn't match any known command shape${tail}.`;
-          case 'missing-subcommand':
-            return `Missing subcommand${tail}.`;
-          default:
-            return `Command rejected${tail}.`;
-        }
-      }
-      case 'mql-error':
-        return `Couldn't resolve '${note.field}' (${note.stage}): ${note.detail}`;
-      case 'validator-failed':
-        // The validator's return string IS the player-facing prose.
-        return note.detail;
-      case 'controller-error':
-        return `Something went wrong in ${note.controller}: ${note.detail}`;
-      default:
-        return null;
-    }
-  }
-
   static async preloadValidatorDeps(
     command: CommandDefinition,
     context: CommandContext,

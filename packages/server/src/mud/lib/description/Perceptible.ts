@@ -43,6 +43,7 @@
 import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
 
 /**
  * Public shape provided by PerceptibleMixin.
@@ -56,28 +57,25 @@ export interface Perceptible {
 }
 
 /**
- * Common English determiners/articles; filtered from auto-derived
- * keyword pools so a short description like `"a brass thermometer"`
- * doesn't pollute the matchable keyword set with `"a"`. Authors who
- * legitimately want `"a"` as a keyword can add it via
- * `addKeyword()`/explicit `keywords: ['a']` in seed data — explicit
- * additions are never stripped.
- */
-const STOP_WORDS: ReadonlySet<string> = new Set(['a', 'an', 'the']);
-
-/**
- * Lowercase + split-on-whitespace tokenization with stop-word
+ * Lowercase + split-on-whitespace tokenization with article
  * filtering. Used by {@link PerceptibleMixin.keywords} to fold a
  * host's display name AND short description into the keyword pool —
  * `'a brass thermometer'` produces `['brass', 'thermometer']`,
  * letting players type either content token.
+ *
+ * Filters `GrammarApi.ARTICLES` (`a` / `an` / `the`) — the same set
+ * MQL desugar strips from query heads, so the two pipelines stay in
+ * sync. Authors who legitimately want `'a'` as a keyword can add it
+ * via `addKeyword()` / explicit `keywords: ['a']` in seed data —
+ * explicit additions bypass this filter (the `_keywords` field is
+ * preserved verbatim in the getter).
  */
 function tokenizeName(name: string): string[] {
   return name
     .toLowerCase()
     .split(/\s+/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !STOP_WORDS.has(s));
+    .filter((s) => s.length > 0 && !GrammarApi.ARTICLES.has(s));
 }
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {

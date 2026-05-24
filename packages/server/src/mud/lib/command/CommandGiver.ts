@@ -61,7 +61,63 @@ import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
-import type { LogLevel } from '@saxonberg/types';
+import type { LogLevel, Note } from '@saxonberg/types';
+
+/**
+ * Map a framework-emitted failure note to its player-facing prose,
+ * or `null` for notes that don't auto-prose (controller-side
+ * failures whose authoring controller fires its own scene with
+ * domain-specific wording; data-only notes with no readable detail).
+ *
+ * Auto-prosed kinds: `command-rejected`, `mql-error`,
+ * `validator-failed`, `controller-error` — all emitted by the
+ * dispatcher / validator / MQL framework, where no controller has
+ * a chance to produce prose.
+ *
+ * Used by the dispatcher's end-of-execute sweep below: walks the
+ * accumulated notes and fires a `system.command.error` scene per
+ * prose-bearing note so a player typing a bad command sees WHY
+ * without needing client-side envelope rendering. The structured
+ * note still rides the envelope for bot/script consumers — the
+ * envelope is the machine channel, the scene is the human channel.
+ *
+ * Lives module-private in CommandGiver because it's presentation
+ * logic — prose phrasing belongs near the dispatcher that fires it,
+ * not on an Api class. Each note kind below has exactly one call
+ * site (the sweep loop in `executeCommand`), so no broader surface
+ * is needed.
+ */
+function proseForFrameworkNote(note: Note): string | null {
+  switch (note.kind) {
+    case 'command-rejected': {
+      // `reason` is enum; pair with `detail` when present.
+      const tail = note.detail ? `: ${note.detail}` : '';
+      switch (note.reason) {
+        case 'unknown-verb':
+          return `I don't understand '${note.detail ?? '?'}'.`;
+        case 'parse-failed':
+          return `Couldn't parse the command${tail}.`;
+        case 'bind-failed':
+          return `Couldn't bind that command${tail}.`;
+        case 'shape-fall-through':
+          return `That doesn't match any known command shape${tail}.`;
+        case 'missing-subcommand':
+          return `Missing subcommand${tail}.`;
+        default:
+          return `Command rejected${tail}.`;
+      }
+    }
+    case 'mql-error':
+      return `Couldn't resolve '${note.field}' (${note.stage}): ${note.detail}`;
+    case 'validator-failed':
+      // The validator's return string IS the player-facing prose.
+      return note.detail;
+    case 'controller-error':
+      return `Something went wrong in ${note.controller}: ${note.detail}`;
+    default:
+      return null;
+  }
+}
 
 /** Bucket of a recency-stack entry — categorical metadata, not ordering. */
 export type RecencyBucket = 'self' | 'inventory' | 'environment' | 'peers';
@@ -521,7 +577,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const giverAsStuff = outer.commandGiver as unknown as Stuff;
       if (MixinApi.isSensor(giverAsStuff)) {
         for (const note of claimingCtx.getNotes()) {
-          const prose = CommandApi.proseForFrameworkNote(note);
+          const prose = proseForFrameworkNote(note);
           if (prose === null) continue;
           MessageApi.scene(giverAsStuff as Stuff & Sensor)
             .topic(MessageApi.Topics.system.command.error)
