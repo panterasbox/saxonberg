@@ -46,6 +46,7 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
+import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
 import {
@@ -200,6 +201,46 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       inventory: [],
       peers: [],
     };
+
+    /**
+     * Default aliases for the 10 canonical cardinal directions
+     * (`NavigationApi.cardinalDirections()`) plus their conventional
+     * single/double-letter abbreviations. Every entry expands to
+     * `go <full-name>`, which dispatches through `GoController` and
+     * resolves the actor's currently-engaged locomotion mode at run
+     * time — so `n` does the right thing whether the actor is
+     * walking, swimming, or climbing.
+     *
+     * Composed onto any host that also composes `AliasMixin` (the
+     * collector walks the mixin chain). Hosts without alias support
+     * pay no cost. Player-set aliases on the same name win.
+     *
+     * The cockpit's `<exit>` click emits the full `go <dir>` form
+     * for pedagogy; these aliases give keyboard users the short
+     * forms they expect from MUD muscle memory.
+     */
+    static defaultAliases: DefaultAliasEntry[] = [
+      { name: 'n', body: 'go north' },
+      { name: 'north', body: 'go north' },
+      { name: 's', body: 'go south' },
+      { name: 'south', body: 'go south' },
+      { name: 'e', body: 'go east' },
+      { name: 'east', body: 'go east' },
+      { name: 'w', body: 'go west' },
+      { name: 'west', body: 'go west' },
+      { name: 'ne', body: 'go northeast' },
+      { name: 'northeast', body: 'go northeast' },
+      { name: 'nw', body: 'go northwest' },
+      { name: 'northwest', body: 'go northwest' },
+      { name: 'se', body: 'go southeast' },
+      { name: 'southeast', body: 'go southeast' },
+      { name: 'sw', body: 'go southwest' },
+      { name: 'southwest', body: 'go southwest' },
+      { name: 'u', body: 'go up' },
+      { name: 'up', body: 'go up' },
+      { name: 'd', body: 'go down' },
+      { name: 'down', body: 'go down' },
+    ];
 
     /**
      * Movement-message templates. Schema-defaulted; player-overridable

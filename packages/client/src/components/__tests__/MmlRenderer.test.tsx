@@ -29,18 +29,18 @@ describe("MmlRenderer", () => {
     expect(screen.getByText("south")).toBeDefined();
   });
 
-  it("fires onCommandClick with dir attribute when clicked", () => {
+  it("fires onCommandClick with 'go <dir>' when clicked", () => {
     const { onCommandClick } = renderRenderer(
       'Exits: <exit dir="north">north</exit>.'
     );
     fireEvent.click(screen.getByText("north"));
-    expect(onCommandClick).toHaveBeenCalledWith("north");
+    expect(onCommandClick).toHaveBeenCalledWith("go north");
   });
 
-  it("falls back to label text when <exit> has no dir attribute", () => {
+  it("falls back to label text inside 'go <label>' when <exit> has no dir attribute", () => {
     const { onCommandClick } = renderRenderer("<exit>up</exit>");
     fireEvent.click(screen.getByText("up"));
-    expect(onCommandClick).toHaveBeenCalledWith("up");
+    expect(onCommandClick).toHaveBeenCalledWith("go up");
   });
 
   it("renders unknown tags as their label text without a clickable affordance (forward-compat)", () => {
@@ -56,14 +56,14 @@ describe("MmlRenderer", () => {
       'Go <exit dir="north">north</exit> or <exit dir="east">east</exit>.'
     );
     fireEvent.click(screen.getByText("east"));
-    expect(onCommandClick).toHaveBeenCalledWith("east");
+    expect(onCommandClick).toHaveBeenCalledWith("go east");
     expect(onCommandClick).toHaveBeenCalledTimes(1);
   });
 
   it("renders text containing only a tag", () => {
     const { onCommandClick } = renderRenderer('<exit dir="north">north</exit>');
     fireEvent.click(screen.getByText("north"));
-    expect(onCommandClick).toHaveBeenCalledWith("north");
+    expect(onCommandClick).toHaveBeenCalledWith("go north");
   });
 
   it("renders text containing no tags", () => {
@@ -76,7 +76,7 @@ describe("MmlRenderer", () => {
       '<exit dir="north">north</exit>'
     );
     fireEvent.mouseEnter(screen.getByText("north"));
-    expect(onCommandPreview).toHaveBeenCalledWith("north");
+    expect(onCommandPreview).toHaveBeenCalledWith("go north");
   });
 
   it("fires onCommandPreview with null on mouseleave", () => {
@@ -85,7 +85,7 @@ describe("MmlRenderer", () => {
     );
     fireEvent.mouseEnter(screen.getByText("north"));
     fireEvent.mouseLeave(screen.getByText("north"));
-    expect(onCommandPreview).toHaveBeenNthCalledWith(1, "north");
+    expect(onCommandPreview).toHaveBeenNthCalledWith(1, "go north");
     expect(onCommandPreview).toHaveBeenNthCalledWith(2, null);
   });
 
@@ -125,7 +125,7 @@ describe("MmlRenderer", () => {
         '<exit dir="north &amp; up">label</exit>'
       );
       fireEvent.click(container.querySelector("span")!);
-      expect(onCommandClick).toHaveBeenCalledWith("north & up");
+      expect(onCommandClick).toHaveBeenCalledWith("go north & up");
     });
 
     it("preserves escaped entity-like sequences (&amp; replaced last)", () => {

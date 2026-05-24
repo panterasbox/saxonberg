@@ -103,10 +103,19 @@ function parseMml(text: string): ParsedNode[] {
  * tags are explicitly omitted here — they land as the server starts
  * emitting them, alongside any tag-specific UX work (right-click
  * menus, hover previews).
+ *
+ * The exit click emits the canonical `go <dir>` form rather than
+ * the bare-direction alias. Both work on the server (cardinal-
+ * direction aliases ship as defaults on `MobileMixin`), but the
+ * pedagogical principle of the click model is "show the structured
+ * verb." A new user clicks `north` and sees `go north` populate the
+ * input, which generalizes — to `go to <place>`, `swim north`,
+ * `climb up`, etc. — far better than the abbreviation does.
+ * Keyboard users still get `n` / `north` as typing shortcuts.
  */
 function commandFor(node: Extract<ParsedNode, { kind: 'tag' }>): string | null {
   if (node.tag === 'exit') {
-    return node.attrs.dir ?? node.label;
+    return `go ${node.attrs.dir ?? node.label}`;
   }
   return null;
 }
