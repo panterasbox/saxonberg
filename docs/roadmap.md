@@ -185,6 +185,24 @@ promoted to formal requirements.
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
 
+### Client
+
+- [docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md)
+  — affordance-first cockpit on the existing command-bus + MML wire.
+  Command-bus primacy (every interaction emits a visible command,
+  including the modal); click model (hover preview / click send /
+  shift-click edit); server-driven modes (world / study / classroom
+  / tutor) with admin `mode` override; layout sketches; panel
+  inventory; content surface payload union (video / quiz /
+  live-stream / classroom) with v1 = video + transcript;
+  MML semantic-tag taxonomy and renderer contract;
+  state-sync consumer pattern; character creation as guided
+  command-emitting affordances + diegetic refinement; prompt
+  format; envelope rendering; mobile flagged out-of-scope but
+  architecturally accommodated. Decomposes into per-track
+  requirements docs at build time. Sister to
+  [state-sync-slate](./slates/state-sync-slate.md) on the wire side.
+
 ---
 
 ## v1 punch list — small, concrete remaining items
@@ -358,16 +376,27 @@ landing first.
 
 ## Client UX
 
-- **Near-term polish** — scroll-to-bottom button, message
-  filtering, timestamps, copy / search.
-- **Prompt-mode UI** — paired with Framework 11.
-- **Markup-tag rendering** — paired with markup language
-  extensions.
-- **Long-term layout** — split-pane (output + sidebar), tabs,
-  mini-map, theming, accessibility, mobile-responsive.
-- **Visual map generator** — 3D map from spatial subsystem
-  (cf. [design-philosophy.md](./design-philosophy.md) — text
-  prose for normal play, optional visualization in client).
+Canonical client design surface is the cockpit slate:
+[docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md).
+It covers the v1 cockpit (layout, click model, modes, panel
+inventory, MML semantic tags, state-sync consumption, content
+surface, prompt line, envelope rendering, character creation) and
+names what's deferred. Per-track requirements docs decompose from
+the slate at build time.
+
+Long-term opportunities explicitly out of v1 cockpit scope (the
+slate flags them as separate projects):
+
+- **Visual map generator** — 3D map rendered from the spatial
+  subsystem. Own project, own slate; cockpit reserves the layout
+  slot but does not build it.
+- **AI-generated location illustrations** — image-gen integration
+  on `look`, cached per-location-state. Own project.
+- **Dedicated content CMS** — content authors use the player
+  client + in-game shell until shell strain justifies it. Own
+  project when the time comes.
+- **Mobile cockpit** — different layout (stream + button bar), same
+  wire model. Own slate when prioritized.
 
 ---
 
