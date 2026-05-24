@@ -97,4 +97,43 @@ describe("MmlRenderer", () => {
     expect(container.querySelector("span")).toBeNull();
     expect(onCommandPreview).not.toHaveBeenCalled();
   });
+
+  describe("entity decoding", () => {
+    it("decodes &amp; in plain text", () => {
+      const { container } = renderRenderer("hello &amp; welcome");
+      expect(container.textContent).toBe("hello & welcome");
+    });
+
+    it("decodes &lt; &gt; &quot; &apos; in plain text", () => {
+      const { container } = renderRenderer(
+        "5 &lt; 7 &gt; 3, said &quot;Bob&apos;s neighbour&quot;"
+      );
+      expect(container.textContent).toBe(
+        "5 < 7 > 3, said \"Bob's neighbour\""
+      );
+    });
+
+    it("decodes entities inside tag labels", () => {
+      const { container } = renderRenderer(
+        '<exit dir="north">north &amp; up</exit>'
+      );
+      expect(container.textContent).toBe("north & up");
+    });
+
+    it("decodes entities inside attribute values", () => {
+      const { onCommandClick, container } = renderRenderer(
+        '<exit dir="north &amp; up">label</exit>'
+      );
+      fireEvent.click(container.querySelector("span")!);
+      expect(onCommandClick).toHaveBeenCalledWith("north & up");
+    });
+
+    it("preserves escaped entity-like sequences (&amp; replaced last)", () => {
+      // Server wants to render the literal text `&lt;` to the user.
+      // It escapes the `&` so we don't re-decode the inner entity.
+      // After our pass the user should see `&lt;`, not `<`.
+      const { container } = renderRenderer("see &amp;lt; for less-than");
+      expect(container.textContent).toBe("see &lt; for less-than");
+    });
+  });
 });
