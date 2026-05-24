@@ -580,18 +580,19 @@ prompt is a real command (`set prompt.format "%hp/%mv %location >"`).
 
 ## Interactive prompt stack (Polish A)
 
-Builds on the punch-list item "Interactive prompt stack (Framework 11)".
-The cockpit-side decision is rendering shape:
+**Superseded** by the dedicated
+[prompt-stack-slate.md](./prompt-stack-slate.md), which promotes
+the prompt stack from "polish" to a central cockpit element. The
+prompt component sits sibling-to-input in the CommandBar row,
+manages a typed stack of prompts (base / choice / confirm / text /
+mql-object), single-input mode-switches (command vs response),
+and renders prompts **both** inline-in-terminal (for history) AND
+in the dedicated component (for interaction). FIFO snapshot-on-
+send pairs each echo with the prompt that was active when issued.
 
-- **Inline-in-terminal**, classic MUD style. A prompt appears as a
-  numbered list or a yes/no question in the prose pane, the input
-  takes the response, the prose pane shows the resolution.
-- Not a popover or modal — those break the prose flow and feel
-  inconsistent with the rest of the cockpit.
-
-Used for: MQL disambiguation, `are you sure?` confirmations,
-multi-step content workflows. Server-side substrate is what
-ships first; cockpit just renders.
+Load-bearing first use case: MQL multi-match disambiguation.
+Server-side substrate (`PromptApi`) is Framework 11; the client
+stack manager can ship first against a stub.
 
 ---
 

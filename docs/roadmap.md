@@ -203,6 +203,19 @@ promoted to formal requirements.
   requirements docs at build time. Sister to
   [state-sync-slate](./slates/state-sync-slate.md) on the wire side.
 
+- [docs/slates/prompt-stack-slate.md](./slates/prompt-stack-slate.md)
+  — interactive prompt stack substrate (server `PromptApi` + client
+  stack manager). Typed prompt kinds (`base` / `choice` / `confirm`
+  / `text` / `mql-object`); stack semantics (push / pop / depth
+  badge); single-input mode-switching (command vs response);
+  inline-in-terminal AND prompt-component dual rendering; FIFO
+  snapshot-on-send pairing each echo with the prompt that was
+  active when issued; load-bearing first use case is MQL multi-
+  match disambiguation. Wire shape (`PromptEnvelope`) already in
+  `@saxonberg/types`; prompt-content Note kinds + server `PromptApi`
+  land per the slate's build order. Supersedes the cockpit slate's
+  brief "Interactive prompt stack (Polish A)" section.
+
 ---
 
 ## v1 punch list — small, concrete remaining items
