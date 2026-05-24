@@ -5,6 +5,7 @@
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
 class: /lib/spatial/NamedCartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Duncan Hall Front Steps
   shortDescription: the front steps of Duncan Hall

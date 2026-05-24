@@ -6,6 +6,7 @@
 # steps get the back-exit "north" automatically via
 # Exitable.applyExits.
 class: /lib/spatial/NamedCartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Duncan Hall Lobby
   shortDescription: the lobby of Duncan Hall
