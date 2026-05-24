@@ -28,9 +28,13 @@ describe('Mml.compose', () => {
     );
   });
 
-  it('escapes the five reserved characters', () => {
+  it('escapes the four MML-structural characters; passes apostrophe through', () => {
+    // Apostrophe is intentionally NOT escaped — it carries no
+    // structural meaning in MML text content or `"..."` attribute
+    // values, and emitting `&apos;` shows up as literal in clients
+    // that haven't shipped MML parsing yet.
     const m = Mml.compose`${'<>&"\''}`;
-    expect(m.toString()).toBe('&lt;&gt;&amp;&quot;&apos;');
+    expect(m.toString()).toBe(`&lt;&gt;&amp;&quot;'`);
   });
 
   it('emits Mml fragments verbatim without re-escaping', () => {

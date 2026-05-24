@@ -433,12 +433,51 @@ export type CommandModel = ModelData & {
  *
  * Returns `undefined` when the field is valid, or an error message string
  * when it is invalid.
+ *
+ * Sync by design — see {@link CommandValidator} for the rationale and
+ * the `preload` escape hatch for sync validators that need
+ * singleton-backed reads.
  */
-export type FieldValidator = (
+export type FieldValidator = ((
   value: unknown,
   field: string,
   context: CommandContext
-) => string | undefined;
+) => string | undefined) & {
+  /**
+   * Optional async preload that ensures any singletons this
+   * validator's sync body resolves via `StuffApi.findByTemplatePath`
+   * are live. The dispatcher awaits all validator preloads AFTER
+   * MQL resolution but BEFORE the sync validator phase runs (see
+   * `CommandApi.preloadValidatorDeps`), so the sync
+   * `findByTemplatePath` calls inside the validator always hit a
+   * populated cache.
+   *
+   * Signature mirrors the sync body — `(value, field, context)` —
+   * so a field validator that wants per-bound-target deps can
+   * inspect the resolved Stuff and preload accordingly (e.g.
+   * a `requiresAnimateTarget` validator could read the bound
+   * Stuff's `_speciesPath` and ensure its clade ancestors).
+   * Validators that only need giver-side deps ignore `value` /
+   * `field` and read `context.commandGiver`.
+   *
+   * ```ts
+   * const v: FieldValidator = (value, field, ctx) => { ... };
+   * v.preload = async (value, field, ctx) => {
+   *   const target = (value as { stuff?: Stuff } | undefined)?.stuff;
+   *   if (!target) return;
+   *   await StuffApi.singleton(somePathFromTarget(target));
+   * };
+   * ```
+   *
+   * Omit on validators that only check mixin presence or call
+   * sync-pure helpers.
+   */
+  preload?: (
+    value: unknown,
+    field: string,
+    context: CommandContext
+  ) => Promise<void>;
+};
 
 /**
  * Verb-level validator function type.
@@ -449,11 +488,20 @@ export type FieldValidator = (
  * vocal capacity. Returns `undefined` when the precondition holds, or
  * an error message string when it doesn't.
  *
- * Sync by design: the dispatch pipeline can't await mid-binding.
+ * Sync by design — the validator phase runs inside
+ * `CommandApi.runValidators` (sync). Validators whose sync body
+ * needs singletons declare an async `preload` hook; the dispatcher
+ * walks all validators-for-this-command between MQL resolution and
+ * the sync validator phase and awaits each preload, so the sync body
+ * always sees a populated cache. Preload signature mirrors the sync
+ * body — `(context)` — so verb-level validators that need
+ * giver-side deps read `context.commandGiver`.
  */
-export type CommandValidator = (
+export type CommandValidator = ((
   context: CommandContext
-) => string | undefined;
+) => string | undefined) & {
+  preload?: (context: CommandContext) => Promise<void>;
+};
 
 /**
  * Shared shape between positional args and option-bound fields:
@@ -1222,18 +1270,146 @@ export class CommandApi {
   }
 
   /**
-   * Run MQL resolution on `type: object` fields and execute
-   * validators. On success the resolved model is returned; on
-   * failure the matcher emits a structured note onto the
-   * dispatch context (mql-error / validator-failed) and returns
-   * `{ result: 'failed' }` so the dispatcher can short-circuit
-   * without re-inspecting the context.
+   * Walk every validator attached to `command` (verb-level + field +
+   * verb-option + payload + per-subcommand) and await any `preload`
+   * hooks they declare. Idempotent — `StuffApi.singleton(path)` is
+   * a no-op if the singleton already exists.
+   *
+   * The dispatcher calls this AFTER `resolveModel` (so field
+   * validators get the bound MQL result, not the raw query string)
+   * and BEFORE `runValidators` (so sync validators see a populated
+   * singleton cache). Validators without a `preload` are skipped.
+   *
+   * Preload signatures mirror the validators' sync bodies — verb-
+   * level preloads receive `(context)`, field-level preloads receive
+   * `(value, field, context)`. Field preloads inspect the bound
+   * `value` to compute per-target deps (e.g. a
+   * `requiresAnimateTarget` preload reads the bound Stuff's
+   * `_speciesPath`).
+   *
+   * MQL path-literal preloading (e.g. ensuring `/lib/species/...`
+   * referenced in a `:race(...)` filter is live) is NOT covered
+   * here; it lands when a verb actually needs it. Today the only
+   * preload consumer is `requiresAnimate`.
+   */
+  /**
+   * Map a framework-emitted failure note to its player-facing prose,
+   * or `null` for notes that don't auto-prose (controller-side
+   * failures whose authoring controller fires its own scene with
+   * domain-specific wording; data-only notes with no readable detail).
+   *
+   * Auto-prosed kinds: `command-rejected`, `mql-error`,
+   * `validator-failed`, `controller-error` — all emitted by the
+   * dispatcher / validator / MQL framework, where no controller has
+   * a chance to produce prose.
+   *
+   * Used by the dispatcher's end-of-execute sweep: walks the
+   * accumulated notes and fires a `system.command.error` scene per
+   * prose-bearing note so a player typing a bad command sees WHY
+   * without needing client-side envelope rendering. The structured
+   * note still rides the envelope for bot/script consumers — the
+   * envelope is the machine channel, the scene is the human
+   * channel.
+   */
+  static proseForFrameworkNote(note: Note): string | null {
+    switch (note.kind) {
+      case 'command-rejected': {
+        // `reason` is enum; pair with `detail` when present.
+        const tail = note.detail ? `: ${note.detail}` : '';
+        switch (note.reason) {
+          case 'unknown-verb':
+            return `I don't understand '${note.detail ?? '?'}'.`;
+          case 'parse-failed':
+            return `Couldn't parse the command${tail}.`;
+          case 'bind-failed':
+            return `Couldn't bind that command${tail}.`;
+          case 'shape-fall-through':
+            return `That doesn't match any known command shape${tail}.`;
+          case 'missing-subcommand':
+            return `Missing subcommand${tail}.`;
+          default:
+            return `Command rejected${tail}.`;
+        }
+      }
+      case 'mql-error':
+        return `Couldn't resolve '${note.field}' (${note.stage}): ${note.detail}`;
+      case 'validator-failed':
+        // The validator's return string IS the player-facing prose.
+        return note.detail;
+      case 'controller-error':
+        return `Something went wrong in ${note.controller}: ${note.detail}`;
+      default:
+        return null;
+    }
+  }
+
+  static async preloadValidatorDeps(
+    command: CommandDefinition,
+    context: CommandContext,
+    resolved: CommandModel,
+    subcommand?: string
+  ): Promise<void> {
+    const preloads: Promise<void>[] = [];
+    const collectField = (
+      list: FieldValidator[] | undefined,
+      fname: string
+    ): void => {
+      if (!list) return;
+      const value = resolved[fname];
+      for (const v of list) {
+        if (typeof v.preload === 'function') {
+          preloads.push(v.preload(value, fname, context));
+        }
+      }
+    };
+    const collectCmd = (list: CommandValidator[] | undefined): void => {
+      if (!list) return;
+      for (const v of list) {
+        if (typeof v.preload === 'function') preloads.push(v.preload(context));
+      }
+    };
+
+    collectCmd(command._resolvedValidators);
+    const fieldDefs = collectActiveFieldDefs(subcommand, command);
+    for (const [fname, def] of Object.entries(fieldDefs)) {
+      collectField(def._resolvedValidators, fname);
+    }
+    for (const [name, opt] of Object.entries(command.verbOptions)) {
+      const fname = opt.field ?? name;
+      collectField(opt._resolvedValidators, fname);
+    }
+    for (const [name, opt] of Object.entries(command.payload)) {
+      const fname = opt.field ?? name;
+      collectField(opt._resolvedValidators, fname);
+    }
+    if (subcommand) {
+      const subOpts = command.getSubcommand(subcommand)?.options ?? {};
+      for (const [name, opt] of Object.entries(subOpts)) {
+        const fname = opt.field ?? name;
+        collectField(opt._resolvedValidators, fname);
+      }
+    }
+
+    if (preloads.length > 0) await Promise.all(preloads);
+  }
+
+  /**
+   * Run MQL resolution on `type: object` / `type: objects` fields and
+   * options. Returns the bound model with `MqlOneResult` /
+   * `MqlManyResult` wrappers where strings used to be; the rest of
+   * the fields pass through.
+   *
+   * Does NOT run validators — that's {@link runValidators}. The split
+   * exists so the dispatcher can insert an async preload phase between
+   * MQL resolution and validation: field validator preloads need the
+   * resolved value to compute their deps (e.g.
+   * `requiresAnimateTarget` reads the bound target's `_speciesPath`).
    *
    * Reads `command` from `context`; the active subcommand (if any)
    * is read from `model.subcommand`, which the matcher stamped at
    * bind time.
    */
-  static resolveAndValidate(
+  static resolveModel(
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
@@ -1422,6 +1598,31 @@ export class CommandApi {
       }
     }
 
+    return { resolved };
+  }
+
+  /**
+   * Run every sync validator attached to `command` against the
+   * already-resolved model in `context`. Order matches the bind
+   * pipeline: verb-level first, then field, option, payload, and
+   * per-subcommand option validators. First failure short-circuits
+   * with a structured `validator-failed` note on `context`.
+   *
+   * Companion to {@link resolveModel} — call this after MQL
+   * resolution (and after the dispatcher's async preload phase) so
+   * field validator sync bodies see bound values.
+   */
+  static runValidators(
+    resolved: CommandModel,
+    context: CommandContext
+  ): { ok: true } | { result: 'failed' } {
+    const command = context.command;
+    const subcommand =
+      typeof resolved[SUBCOMMAND_FIELD] === 'string'
+        ? (resolved[SUBCOMMAND_FIELD] as string)
+        : undefined;
+    const fieldDefs = collectActiveFieldDefs(subcommand, command);
+
     // Verb-level validators run BEFORE field validators. They guard
     // command-shape preconditions (animacy, mobility, vocal capacity)
     // that don't tie to a specific arg. First failure short-circuits.
@@ -1499,7 +1700,26 @@ export class CommandApi {
       }
     }
 
-    return { resolved };
+    return { ok: true };
+  }
+
+  /**
+   * Back-compat wrapper: resolve MQL then run validators in a single
+   * sync call. NOT used by the dispatcher (which interleaves an
+   * async validator-preload phase between MQL resolve and the sync
+   * validator phase via `preloadValidatorDeps`). Kept for tests and
+   * one-off callers that want the combined sync surface.
+   */
+  static resolveAndValidate(
+    model: CommandModel,
+    context: CommandContext,
+    prep: Record<string, string> = {}
+  ): { resolved: CommandModel } | { result: 'failed' } {
+    const resolved = this.resolveModel(model, context, prep);
+    if ('result' in resolved) return resolved;
+    const validated = this.runValidators(resolved.resolved, context);
+    if ('result' in validated) return validated;
+    return resolved;
   }
 
   /**

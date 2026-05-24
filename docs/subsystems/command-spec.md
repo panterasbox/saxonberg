@@ -57,8 +57,6 @@ args:                         # OR `subcommands:` — never both
     updates_focus: extend
     prepositions: [at]
     default: "$focus"
-    validators:
-      - /lib/command/validators/mustBeVisible
 options:                      # optional; verb-scoped
   long:
     short: l
@@ -330,13 +328,18 @@ Live under `mud/lib/command/validators/`:
 
 | Validator | Checks | Use on |
 |---|---|---|
-| `mustBeVisible` | binding is a Stuff (visibility-system gate is a future hook) | inspection verbs (`look`) |
 | `mustBeContainable` | every bound Stuff composes `ContainableMixin` | `get`, `drop`, `give` (any verb that calls `ContainmentApi.move`) |
 | `mustBeInInventory` | every bound Stuff is in the giver's inventory | `drop`, `give` (the gift) |
 | `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
 | `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
+| `requiresAnimate` | giver passes `SpeciesApi.isAnimate` (verb-level — declared under `validators:` at the top of the YAML, not on a specific field) | `eat`, `drink`, future combat / vocal verbs |
 | `mustBeNumber` | binding is a finite number | numeric primitive fields |
 | `notEmpty` | binding is non-null, non-empty (string / array) | string / multi fields where blank is a category error |
+
+`mustBeVisible` was retired — see
+[command-routing.md § Stage 4 — Resolution + validation](./command-routing.md#stage-4--resolution--validation)
+for why (the gate broke `look` against non-`Visible` locations
+like the void; the discrimination moved into the controller).
 
 For object-acting verbs, the convention is to layer:
 
@@ -536,11 +539,11 @@ A second occurrence of a non-`multiple` option is a `bind` error
 ### `type: object` / `type: objects` on options — MQL-resolved
 
 Options of `type: object` and `type: objects` ride through the same
-`resolveAndValidate` pipeline as positional fields: the matcher
-runs MQL on the option's text and lands an `MqlOneResult` /
-`MqlManyResult` wrapper on the model. The controller reads
-`model.<field>.stuff` directly — no `MqlApi.resolveOne` /
-`MqlApi.resolveMany` call needed.
+resolve / preload / validate pipeline as positional fields: the
+matcher runs MQL on the option's text in `CommandApi.resolveModel`
+and lands an `MqlOneResult` / `MqlManyResult` wrapper on the
+model. The controller reads `model.<field>.stuff` directly — no
+`MqlApi.resolveOne` / `MqlApi.resolveMany` call needed.
 
 ```yaml
 options:
@@ -648,28 +651,41 @@ because `StuffApi.clone` consults `HotReloadApi`.
 
 ```ts
 import { CommandController } from '../../lib/command/CommandController';
-import type {
-  CommandContext,
-  CommandModel,
-  CommandResult,
-} from '../../api/command';
+import type { CommandContext, CommandModel } from '../../api/command';
 import type { MqlOneResult } from '../../api/mql';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
 interface OpenModel extends CommandModel {
   target?: MqlOneResult;
 }
 
 export class OpenController extends CommandController<OpenModel> {
-  execute(model: OpenModel, context: CommandContext): CommandResult {
+  execute(model: OpenModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {
-      return { success: false, summary: `you don't see any '${target?.raw ?? ''}' here` };
+      const raw = target?.raw ?? '';
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'target-not-found',
+        detail: raw,
+      });
+      return;
     }
     // ...
-    return { success: true, summary: 'opened it' };
   }
 }
 ```
+
+`execute()` returns `void`. The canonical failure pattern is
+**Scene.send + ctx.note** — Scene carries the player-facing prose;
+the note rides the dispatch-response envelope as a structured
+signal for bots / scripting / replay. See
+[response-envelope.md § Envelope vs scene split](./response-envelope.md#envelope-vs-scene-split).
 
 ### Conventions
 
@@ -691,19 +707,20 @@ export class OpenController extends CommandController<OpenModel> {
   wrapper carries `raw` (player-typed text post-desugar), optional
   `via` (sub-feature attribution), and optional `prep` (consumed
   preposition).
-- **Fire prose via `MessageApi.scene(actor)`.** Don't put prose in the
-  `CommandResult.summary` — `summary` is the short auto-emit tail
-  ("opened it", "to dungeon"). See
-  [messaging.md](./messaging.md) for the Scene composer.
-- **Throw on programmatic invariants**, return errors for player
-  problems. A `ContainmentApi.move` failing because the bound Stuff
-  isn't Containable is a programming bug; "you don't see it here" is
-  player input. The `_executeOne` boundary catches throws and
-  converts them to `{ success: false, summary: error.message }`.
-- **`pass: true` for chain-of-responsibility opt-out** (rare). A
-  passing controller MUST NOT have observable side effects: no
-  `Scene.send()`, no world-state mutation. The dispatcher tries the
-  next match.
+- **Fire prose via `MessageApi.scene(actor)`.** Prose is how the
+  player learns what happened — Scene carries the human channel.
+  See [messaging.md](./messaging.md) for the Scene composer.
+- **Emit structured outcome via `ctx.note(...)`.** The
+  dispatch-response envelope carries `Note[]` for bots / scripts
+  / replay. Failure pattern is **Scene.send + ctx.note** at the
+  same site — prose for the player, note for the machine channel.
+  See [response-envelope.md](./response-envelope.md).
+- **Throw on programmatic invariants**, fire Scene + note for
+  player problems. A `ContainmentApi.move` failing because the
+  bound Stuff isn't Containable is a programming bug; "you don't
+  see it here" is player input. The `_executeOne` boundary catches
+  throws and emits a `controller-error { controller, detail }`
+  note that auto-proses on `system.command.error`.
 
 ### Subcommanded controllers
 
@@ -711,13 +728,21 @@ For subcommanded verbs (`player`, `settings`, `var`), branch on
 `model.subcommand`:
 
 ```ts
-execute(model: PlayerModel, context: CommandContext): CommandResult {
+execute(model: PlayerModel, context: CommandContext): void {
   switch (model.subcommand) {
     case 'name':     return this.executeName(model, context);
     case 'pronouns': return this.executePronouns(model, context);
     case 'show':     return this.executeShow(model, context);
     default:
-      return { success: false, summary: 'try `player show` to see usage' };
+      MessageApi.scene(context.commandGiver)
+        .topic(MessageApi.Topics.system.shell.help)
+        .toSelf(Mml.compose`try \`player show\` to see usage`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'missing-subcommand',
+      });
+      return;
   }
 }
 ```
@@ -727,73 +752,64 @@ non-empty `model.name` string, etc.).
 
 ### Resolution outcomes — how a controller finishes
 
-`execute` may be sync or async (return type
-`CommandResult | Promise<CommandResult>`). The shape is small:
+`execute` may be sync or async; return type is `void` (or
+`Promise<void>`). There is no `CommandResult`. The controller
+signals outcome via two channels at the same site:
 
-```ts
-interface CommandResult {
-  success: boolean;
-  pass?: boolean;
-  summary?: Mml | string;
-}
-```
+1. **Scene** — `MessageApi.scene(actor).topic(...).toSelf(...).send()`
+   for the player-facing prose.
+2. **Note** — `context.note({ kind, ... })` for the structured
+   envelope record.
 
-But there are several distinct **resolution modes** worth knowing
-about — the controller picks one each call:
+The combinations:
 
-#### 1. Plain success — `{ success: true, summary }`
+#### 1. Plain success
 
-The command did what it was supposed to. The auto-emit fires
-`<verb>: <summary>` at info level for the giver. Prose has already
-been delivered via `MessageApi.scene(...)`; the summary is the audit
-tail, not the player-visible output.
+Fire a Scene that describes what changed. Optionally emit a
+`controller-claimed` or similar `controller-*` note if downstream
+consumers (replay, scripting, achievements) need a structured
+record. Most success paths just fire prose and let the absence of
+a failure note speak for itself.
 
-Example: `OpenController` returns `{ success: true, summary:
-'opened the chest' }` after firing the open scene.
+#### 2. Player-facing failure
 
-#### 2. Player-facing failure — `{ success: false, summary }`
+Fire a Scene that explains *why* (using the same topic the success
+path would have used — `world.perception.look`, `world.speech.say`,
+etc.) AND emit a `controller-rejected { reason, detail? }` note.
+The `reason` is an open-enum domain code (`target-not-found`,
+`target-not-visible`, `already-open`, `cant-afford`,
+`on-cooldown`); the `detail` is the same prose, suitable for
+bot/script consumers that don't want to map enum codes to text.
 
-The command can't run for a player-input reason: target not visible,
-nothing in inventory, can't reach, already open. The auto-emit fires
-at warn level; `summary` is the message the player reads. No scene
-needed in most cases — the auto-emit IS the feedback.
+Example — `LookController`'s non-Visible target path fires
+`Mml.compose\`You can't see ${name}.\`` on
+`world.perception.look` AND `ctx.note({ kind:
+'controller-rejected', reason: 'target-not-visible', detail: name })`.
 
-Example: `OpenController` returns
-`{ success: false, summary: "you don't see any 'chest' here" }`.
+#### 3. Silent success
 
-#### 3. Silent success — `{ success: true, summary: '' }`
+Just don't fire prose. There's no "auto-emit tail" — controllers
+that have nothing to say to the player simply don't call
+`Scene.send`. The envelope still rides with `outcome.status:
+'ok'` and whatever notes the controller did emit.
 
-Same as #1 but suppresses the auto-emit tail. Use when the
-controller's own `Scene.send()` already carries the player-visible
-result and an extra "verb: ok" line would be noise. Rare —
-usually it's simpler to let `'ok'` ride.
+#### 4. Chain pass-through (retired)
 
-#### 4. Chain pass-through — `{ success: false, pass: true }`
-
-Opts the controller out of dispatch. The dispatcher tries the next
-recency-stack match. The Throne example: a Throne in the room
-contributes `sit.yaml` under `environment`; the Throne controller
-either claims (`success: true`) or passes — when it passes, the
-avatar's intrinsic `sit` runs next.
-
-A passing controller MUST NOT have observable side effects: no
-`Scene.send()`, no world-state mutation. The pre-execute resolve
-stage **does** still run (that's how a controller can decide it's
-not applicable based on resolved object state), but past that, the
-controller body has to be read-only.
+The `{ success: false, pass: true }` shape is gone. The
+recency-stack-with-fallback pattern lands via dynamic command
+contributions instead — see [Dynamic contributions](./command-routing.md#dynamic-contributions-the-retired-pass-true-replacement)
+in command-routing.md.
 
 #### 5. Throw — programmatic invariant failure
 
-A throw inside `execute` bubbles to `_executeOne`'s boundary, which
-catches it and converts to `{ success: false, summary: error.message
-}`. Use this for cases that shouldn't happen: a `Mobile` mover that
-isn't `Containable`, a `target.stuff` that fails an `instanceof`
-narrow that the validator was supposed to catch, etc.
-
-Don't throw for player-input problems — return `{ success: false,
-summary: '...' }`. The split mirrors the bind/shape error split in
-the matcher: throws are bugs, returned failures are normal control
-flow.
+A throw inside `execute` bubbles to `_executeOne`'s boundary,
+which catches it and emits a `controller-error { controller,
+detail }` note (which auto-proses on `system.command.error` via
+the dispatcher's framework-failure sweep). Use this for cases
+that shouldn't happen: a `Mobile` mover that isn't `Containable`,
+a `target.stuff` that fails an `instanceof` narrow that the
+validator was supposed to catch, etc. Don't throw for player-input
+problems — fire Scene + `controller-rejected` note instead.
 
 #### 6. Re-dispatch — `CommandApi.forceCommand(giver, text)`
 
@@ -801,29 +817,7 @@ A controller can run a second command on the same giver, stamped
 `forced: true` on the resulting Command frame. Used by
 `MobileMixin.traverse` for the auto-look-on-arrival; future
 NPC-script and admin verbs will use it too. The forced command's
-result is independent — the calling controller still returns its
-own `CommandResult`.
-
-#### Picking a `summary`
-
-`summary` is the short auto-emit tail. Defaults: `'ok'` (success),
-`'failed'` (failure). One sentence, no markup, no newlines. Don't
-write prose into `summary` — that's `MessageApi.scene(...)`'s job.
-Examples from the shipped controllers:
-
-| Verb | Outcome | summary |
-|---|---|---|
-| `look` | success | `examined the throne room` |
-| `look` | no match | `you don't see any 'flower' here` |
-| `go` | success | `to the dungeon` |
-| `go` | no match | `can't go that way` |
-| `open` | success | `opened the chest` |
-| `open` | wrong type | `can't open that` |
-| `drop` | success | `rose, sword` (the dropped names, joined) |
-| `drop` | nothing dropped | `nothing dropped` |
-
-The convention: success summaries describe **what changed**, failure
-summaries describe **why nothing changed**.
+envelope is independent of the outer dispatch.
 
 ## Discovery — wiring the verb to the recency stack
 
@@ -869,6 +863,12 @@ For every controller class, drop a one-liner seed at
 `mud/seeds/obj/command/<Name>.yaml` with the correct class path.
 `SeederManager` writes the Template doc into `domain` at boot;
 `StuffApi.clone` picks it up on dispatch.
+
+```yaml
+# mud/seeds/obj/command/FocusController.yaml
+class: /obj/command/FocusController
+data: {}
+```
 
 Without the seed, `_executeOne`'s clone fails at runtime — surfaces
 as a command-level failure but a confusing one, since the YAML view

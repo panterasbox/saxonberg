@@ -93,14 +93,29 @@ function App() {
   useEffect(() => {
     // Render every frame body the server sends. MML tags appear as
     // literal text for now (parsing deferred per §14). We listen on
-    // the topics the v1 server actually emits to the terminal.
+    // the topics the v1 server actually emits to the terminal —
+    // every `world.*` topic (in-fiction prose) and the `system.shell.*`
+    // family (engine-talking-back-to-the-avatar), plus the
+    // dispatcher-emitted `system.command.error` for framework-level
+    // command failures (parse / MQL / validator / controller-throw)
+    // so a bad command surfaces WHY without relying on envelope
+    // rendering.
     const renderTopics = [
       'world.speech.say',
       'world.speech.tell',
       'world.perception.look',
       'world.perception.inventory',
+      'world.perception.scry',
+      'world.perception.locate',
       'world.narration.movement',
       'world.narration.teleport',
+      'world.narration.action',
+      'world.identity.change',
+      'system.shell.fs',
+      'system.shell.author',
+      'system.shell.help',
+      'system.shell.movement',
+      'system.command.error',
       'system.log.command.info',
       'system.log.command.warn',
       'system.connection.established',

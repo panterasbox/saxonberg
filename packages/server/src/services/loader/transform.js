@@ -1,9 +1,14 @@
 /**
  * Source-level transform that appends a `ModuleApi.stamp(...)`
  * call to the bottom of every TS module in the codebase. Shared
- * between the Vitest plugin (`vite-plugin-callsec.ts`) and the Node
- * loader hook (`loader-hook.ts`) so production and test paths produce
+ * between the Vitest plugin (`vite-plugin.js`) and the Node loader
+ * hook (`loader-hook.js`) so production and test paths produce
  * identical instrumentation.
+ *
+ * Plain JS by necessity: the loader-hook runs in a Node worker thread
+ * loaded by `module.register()`, which only accepts a JS module URL.
+ * Keeping the shared transform in JS too avoids a parallel TS→JS build
+ * step that the loader infra would otherwise need.
  *
  * Algorithm:
  *   1. Parse the source with the TypeScript compiler API.
@@ -15,19 +20,12 @@
  * Skipped:
  *   - Re-exports (`export { Foo } from './x'` / `export * from './x'`)
  *     — the originating module is what should be stamped.
- *   - Class expressions assigned to const (`export const Foo = class`)
- *     — uncommon; would require evaluating to know it's a class.
- *   - Function-call results (`export const Bag = ContainerMixin(Thing)`)
- *     — same reason.
- *   - The framework's own `mud/lib/security/` directory — those files
- *     bootstrap the registry and would form circular imports.
+ *   - Class expressions assigned to const (`export const Foo = class`).
+ *   - Function-call results (`export const Bag = ContainerMixin(Thing)`).
+ *   - The framework's own bootstrap files — `mud/lib/security/` and
+ *     `mud/api/{execution-context,module,security,proxy}.ts` — which
+ *     would form load-time cycles.
  *   - Any file with zero class exports.
- *
- * The transform is intentionally minimal: it only knows about TS class
- * declarations and the limited export forms above. Anything more
- * complex passes through unchanged and just won't be stamped (callers
- * of un-stamped classes fail closed in identity-keyed policies, which
- * is the desired tamper-resistant default).
  */
 
 import * as ts from 'typescript';
@@ -36,10 +34,12 @@ import * as path from 'node:path';
 /**
  * Compute the source-relative path used in the appended `import` to
  * reach `<src>/mud/api/module`. We can't bake an absolute path or
- * a bare specifier — both break either tsx or Vitest. Relative path
- * computed from `fileUrl`.
+ * a bare specifier — both break either tsx or Vitest.
+ *
+ * @param {string} fileUrl
+ * @returns {string}
  */
-export function computeRegistryImportPath(fileUrl: string): string {
+export function computeRegistryImportPath(fileUrl) {
   const rawPath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
@@ -49,9 +49,6 @@ export function computeRegistryImportPath(fileUrl: string): string {
   // forward slashes throughout so the emitted import is well-formed
   // on every platform.
   const filePath = rawPath.replace(/\\/g, '/');
-  // Locate the source root anywhere in the path. `ModuleApi` lives
-  // at `<srcRoot>/mud/api/module`. Build a relative path from the
-  // importing file's directory to that module.
   const fileDir = path.dirname(filePath);
   const srcRootIdx = filePath.indexOf('/mud/');
   if (srcRootIdx < 0) {
@@ -68,19 +65,15 @@ export function computeRegistryImportPath(fileUrl: string): string {
 }
 
 /**
- * Decide whether `fileUrl` should be transformed. Files inside the
- * security framework itself (mud/lib/security/) and the framework's
- * own Api modules (ExecutionContextApi, ModuleApi) are skipped because
- * they bootstrap the registry — wrapping them would mean a module
- * stamping itself before its own `ModuleApi` import has finished
- * loading. Declaration files and node_modules are also skipped.
+ * Decide whether `fileUrl` should be transformed.
+ *
+ * @param {string} fileUrl
+ * @returns {boolean}
  */
-export function shouldTransform(fileUrl: string): boolean {
+export function shouldTransform(fileUrl) {
   const rawPath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
-  // Match the forward-slash includes() probes below regardless of
-  // whether the loader handed us a Windows-style path.
   const filePath = rawPath.replace(/\\/g, '/');
   if (!filePath.endsWith('.ts')) return false;
   if (filePath.endsWith('.d.ts')) return false;
@@ -88,45 +81,67 @@ export function shouldTransform(fileUrl: string): boolean {
   if (filePath.includes('/mud/lib/security/')) return false;
   // The framework's own Api files — auto-stamping them would form a
   // load-time cycle since the auto-injected `ModuleApi.stamp(...)`
-  // imports back into module.ts. SecurityApi is in the same boat —
-  // module.ts imports SecurityApi.getFinalMethods, so stamping
-  // security.ts would push its module.ts import into a tighter cycle
-  // and leave `ModuleApi` undefined when the stamp call fires.
+  // imports back into module.ts.
   if (/\/mud\/api\/(execution-context|module|security|proxy)\.ts$/.test(filePath)) return false;
-  // Only transform files inside the mud tree. The backend layer can
-  // be added later if it needs class-identity matching; today it
-  // doesn't, and skipping it avoids over-instrumenting auth/HTTP
-  // boilerplate.
   if (!filePath.includes('/mud/')) return false;
   return true;
 }
 
 /**
- * Parse `source` as TypeScript and return the names of every class
- * exported by the module. Uses the `typescript` package's parser so
- * generics, decorators, and modern syntax are all handled.
+ * Parse `source` and return the names of every export that might be a
+ * class. Includes:
  *
- * Returns the export *name* (not the local class name) — for
- * `export { Foo as Bar }`, returns `Bar`. For `export default class
- * Foo`, returns `default`. The caller chooses how to format the
- * canonical id.
+ *   - Raw-TS `export class Foo {}` declarations (vite-plugin path,
+ *     sees pre-compilation source).
+ *   - Compiled-JS `export { Foo, Bar }` clauses (loader-hook path,
+ *     sees post-tsx output where decorated classes have been rewritten
+ *     into `const _Foo = class { ... }; let Foo = _Foo;` form and
+ *     `export class Foo {}` becomes `class Foo {} ... export { Foo }`
+ *     at the bottom).
+ *
+ * The returned list is over-inclusive on purpose: we accept any
+ * locally-defined binding that appears in an `export { ... }` clause,
+ * not just things we can syntactically confirm are classes. The
+ * downstream `ModuleApi.stamp()` filters by `typeof value !==
+ * 'function'`, so non-class exports in the object literal are
+ * harmlessly skipped at stamp time. The alternative — tracking the
+ * alias chain through compiled output — was more code and less robust.
+ *
+ * Re-exports (`export { Foo } from './other'`) are still excluded —
+ * those should be stamped at the originating module, not here.
+ *
+ * @param {string} source
+ * @param {string} fileName
+ * @returns {string[]}
  */
-export function findExportedClassNames(source: string, fileName: string): string[] {
+export function findExportedClassNames(source, fileName) {
   const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, false);
-  const exported: string[] = [];
-  // Track local class declarations so `export { Foo }` patterns can
-  // verify that the local Foo really is a class (we don't want to
-  // stamp non-class values).
-  const localClasses = new Set<string>();
+  const exported = [];
+
+  // Track local bindings (any kind) so we can reject re-exports later
+  // and recognise default exports of locally-declared symbols.
+  const localBindings = new Set();
+  const localClasses = new Set();
 
   for (const stmt of sf.statements) {
     if (ts.isClassDeclaration(stmt) && stmt.name) {
+      localBindings.add(stmt.name.text);
       localClasses.add(stmt.name.text);
+    }
+    if (ts.isVariableStatement(stmt)) {
+      for (const decl of stmt.declarationList.declarations) {
+        if (ts.isIdentifier(decl.name)) {
+          localBindings.add(decl.name.text);
+        }
+      }
+    }
+    if (ts.isFunctionDeclaration(stmt) && stmt.name) {
+      localBindings.add(stmt.name.text);
     }
   }
 
   for (const stmt of sf.statements) {
-    // `export class Foo { ... }` — direct named export.
+    // `export class Foo { ... }` — direct named export (raw TS source).
     if (
       ts.isClassDeclaration(stmt) &&
       stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
@@ -143,8 +158,10 @@ export function findExportedClassNames(source: string, fileName: string): string
     }
 
     // `export { Foo, Bar as Baz }` — named export of locally-defined
-    // bindings. Skip re-exports (`export { Foo } from './other'`) —
-    // those have a `moduleSpecifier`.
+    // bindings (covers both raw-TS re-exports of class declarations
+    // AND compiled-JS bottom-of-file re-exports of decorated classes
+    // that got rewritten into `let X = _X` aliases). Skip module-
+    // specifier re-exports (`export { Foo } from './other'`).
     if (
       ts.isExportDeclaration(stmt) &&
       stmt.exportClause &&
@@ -154,7 +171,10 @@ export function findExportedClassNames(source: string, fileName: string): string
       for (const spec of stmt.exportClause.elements) {
         const localName = spec.propertyName?.text ?? spec.name.text;
         const exportName = spec.name.text;
-        if (localClasses.has(localName)) {
+        // Include if it's any locally-defined binding. `ModuleApi.stamp`
+        // filters non-functions at stamp time, so we don't have to
+        // syntactically verify class-ness here.
+        if (localBindings.has(localName)) {
           exported.push(exportName);
         }
       }
@@ -176,14 +196,13 @@ export function findExportedClassNames(source: string, fileName: string): string
 
 /**
  * Apply the transform. Returns the original source unchanged if there
- * are no class exports or the file is skipped. Otherwise returns the
- * source with import + stamp call appended.
+ * are no class exports or the file is skipped.
  *
- * The appended snippet uses a synthetic identifier (`__callSecStamp`)
- * to avoid colliding with anything the source might already use.
- * `import.meta.url` is set by the loader, never by user code.
+ * @param {string} source
+ * @param {string} fileUrl
+ * @returns {string}
  */
-export function transformSource(source: string, fileUrl: string): string {
+export function transformSource(source, fileUrl) {
   if (!shouldTransform(fileUrl)) return source;
   const fileName = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
@@ -192,12 +211,8 @@ export function transformSource(source: string, fileUrl: string): string {
   if (exports.length === 0) return source;
 
   const registryPath = computeRegistryImportPath(fileUrl);
-  // Build the object literal for stamping. `default` exports are
-  // referenced via the local class binding; we need to dig that out
-  // from the AST again — but for v1 simplicity, we re-parse and look
-  // for the local name backing the default.
   const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, false);
-  const fields: string[] = [];
+  const fields = [];
   for (const exportName of exports) {
     if (exportName === 'default') {
       const local = findDefaultExportLocalName(sf);
@@ -205,18 +220,12 @@ export function transformSource(source: string, fileUrl: string): string {
         fields.push(`default: ${local}`);
       }
     } else {
-      // For `export { Foo as Bar }` exportName is the export side; the
-      // local binding is the class declaration's name. Resolve it.
       const local = findLocalNameForExport(sf, exportName);
       fields.push(`${exportName}: ${local ?? exportName}`);
     }
   }
   if (fields.length === 0) return source;
 
-  // ESM allows top-level imports anywhere in the source, but some
-  // tools — and most readers — expect them at the top. Inject the
-  // import at the top, the stamp call at the bottom (where every
-  // class binding it references is guaranteed to exist).
   const importLine =
     `import { ModuleApi as __callSecModuleApi } from '${registryPath}';\n`;
   const stampLine =
@@ -225,7 +234,11 @@ export function transformSource(source: string, fileUrl: string): string {
   return importLine + source + stampLine;
 }
 
-function findDefaultExportLocalName(sf: ts.SourceFile): string | null {
+/**
+ * @param {ts.SourceFile} sf
+ * @returns {string | null}
+ */
+function findDefaultExportLocalName(sf) {
   for (const stmt of sf.statements) {
     if (
       ts.isClassDeclaration(stmt) &&
@@ -244,11 +257,12 @@ function findDefaultExportLocalName(sf: ts.SourceFile): string | null {
   return null;
 }
 
-function findLocalNameForExport(
-  sf: ts.SourceFile,
-  exportName: string
-): string | null {
-  // Direct `export class Foo` — local name === export name.
+/**
+ * @param {ts.SourceFile} sf
+ * @param {string} exportName
+ * @returns {string | null}
+ */
+function findLocalNameForExport(sf, exportName) {
   for (const stmt of sf.statements) {
     if (
       ts.isClassDeclaration(stmt) &&
@@ -258,7 +272,6 @@ function findLocalNameForExport(
       return exportName;
     }
   }
-  // `export { Foo as Bar }` — find the spec, return its propertyName.
   for (const stmt of sf.statements) {
     if (
       ts.isExportDeclaration(stmt) &&

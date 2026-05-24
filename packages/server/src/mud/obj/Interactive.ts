@@ -47,11 +47,10 @@ export class Interactive extends Idea {
    * per Interactive. Resets naturally on reconnect because the
    * client gets a fresh `Interactive`.
    *
-   * Hard-private: Interactive lives in the mediator-tier
-   * connection layer, and the counter is invariant-critical
-   * (gaps mean state-sync resyncs).
+   * `_` prefix marks this as the sealed-mutation surface for
+   * `nextFrameId()` — touch the counter only through that method.
    */
-  #frameCounter = 0;
+  private _frameCounter = 0;
 
   /**
    * Allocate the next frame id. Returns 1 on the first call after
@@ -59,7 +58,7 @@ export class Interactive extends Idea {
    * `Application.sendMessageToInteractive` / `sendEnvelopeToInteractive`.
    */
   public nextFrameId(): number {
-    return ++this.#frameCounter;
+    return ++this._frameCounter;
   }
 
   /**

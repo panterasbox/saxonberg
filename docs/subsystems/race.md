@@ -431,6 +431,23 @@ A `CommandValidator` is a sync `(context: CommandContext) => string |
 undefined` — distinct from the field-level
 `(value, field, context) => …`.
 
+`requiresAnimate` also declares an async `preload` hook that runs
+before the sync validator phase. The preload reads the giver's
+raw `_speciesPath` field (not `getSpecies()`, since that uses
+`findByTemplatePath` which would return null for the very
+singleton we're about to ensure) and calls `StuffApi.singleton(...)`
+for the species template AND every ancestor in the kingdom walk.
+Ancestor segments without a seeded template (e.g.
+`/lib/species/animalia/chordata/mammalia` is a folder rather than
+a Clade leaf) are tolerated — the singleton-not-found error is
+swallowed, and `SpeciesApi.getKingdom`'s null-tolerant ancestor
+walk takes it from there.
+
+This is what lets Clade singletons NOT be bootstrapped: the verb
+dispatch that actually needs them ensures them on-demand, and
+subsequent dispatches reuse the cached clones. See
+[command-routing.md § Validator preload phase](./command-routing.md#validator-preload-phase).
+
 v1 tags `requiresAnimate` on self-action verbs:
 
 - `say`, `tell`, `go`, `get`, `drop`, `open`, `close`, `inventory`

@@ -20,7 +20,6 @@ import type { PropAccessCheck, PropValue } from './stuff/Propertied';
 import { emittableBy } from '../api/event';
 import { StuffApi } from '../api/stuff';
 import { HotReloadApi } from '../api/hot-reload';
-import { PersistenceManager } from '../../backend/PersistenceManager';
 
 /**
  * Well-known engine event names.
@@ -45,7 +44,6 @@ export const Events = {
   ModuleRolledBack: 'module.rolledBack',
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
-  PersistenceFlushed: 'persistence.flushed',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -87,7 +85,6 @@ export interface EventPayloads {
   [Events.ModuleRolledBack]: ReloadEvent;
   [Events.ModuleUnloaded]: ReloadEvent;
   [Events.ModuleReloadFailed]: ReloadEvent;
-  [Events.PersistenceFlushed]: { collection: string; count: number };
 }
 
 /**
@@ -121,7 +118,6 @@ function getPolicies(): Record<EventName, PropAccessCheck<PropValue>> {
     [Events.ModuleRolledBack]: emittableBy(HotReloadApi),
     [Events.ModuleUnloaded]: emittableBy(HotReloadApi),
     [Events.ModuleReloadFailed]: emittableBy(HotReloadApi),
-    [Events.PersistenceFlushed]: emittableBy(PersistenceManager),
   };
   return _policies;
 }

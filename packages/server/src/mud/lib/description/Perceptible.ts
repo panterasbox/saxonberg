@@ -56,17 +56,28 @@ export interface Perceptible {
 }
 
 /**
- * Lowercase + split-on-whitespace tokenization. Used by
- * {@link PerceptibleMixin.getKeywords} to fold a host's display name
- * into the keyword pool — `'oak door'` produces `['oak', 'door']`,
- * letting players type either token.
+ * Common English determiners/articles; filtered from auto-derived
+ * keyword pools so a short description like `"a brass thermometer"`
+ * doesn't pollute the matchable keyword set with `"a"`. Authors who
+ * legitimately want `"a"` as a keyword can add it via
+ * `addKeyword()`/explicit `keywords: ['a']` in seed data — explicit
+ * additions are never stripped.
+ */
+const STOP_WORDS: ReadonlySet<string> = new Set(['a', 'an', 'the']);
+
+/**
+ * Lowercase + split-on-whitespace tokenization with stop-word
+ * filtering. Used by {@link PerceptibleMixin.keywords} to fold a
+ * host's display name AND short description into the keyword pool —
+ * `'a brass thermometer'` produces `['brass', 'thermometer']`,
+ * letting players type either content token.
  */
 function tokenizeName(name: string): string[] {
   return name
     .toLowerCase()
     .split(/\s+/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+    .filter((s) => s.length > 0 && !STOP_WORDS.has(s));
 }
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -74,13 +85,25 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'PerceptibleMixin';
 
     /**
-     * Persistent field: keywords for MQL identification.
-     * Hydrated through the `keywords` setter below.
+     * Persistent fields: explicit keywords + the auto-derive opt-out
+     * flag. Hydrated through the accessor pairs below.
      */
-    static persistentFields = ['keywords'];
+    static persistentFields = ['keywords', 'autoDeriveKeywords'];
 
     /** Backing storage; access via the `keywords` accessor pair. */
     private _keywords: string[] = [];
+
+    /**
+     * Opt-out for auto-deriving keywords from the host's display name
+     * (via NamedMixin) and short description (via VisibleMixin).
+     * Default true — most hosts want `"a brass thermometer"` to fold
+     * into `['brass', 'thermometer']` automatically. Set to `false`
+     * in template data when you want hand-curated keywords only
+     * (e.g., a "scroll of resurrection" where you want just `'scroll'`,
+     * not `['scroll', 'of', 'resurrection']` — though "of" would be
+     * dropped as a stop word anyway, "resurrection" wouldn't).
+     */
+    protected autoDeriveKeywords: boolean = true;
 
     /**
      * Host-internal accessor pair (Pattern D). External callers go
@@ -91,18 +114,31 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * hydration.
      *
      * The getter returns the **derived** keyword pool: authored
-     * keywords plus, for hosts that compose `NamedMixin`, tokenized
-     * words from the host's display name. Authored entries always
-     * lead so an exact-keyword match outranks a tokenized-name
-     * match (see `scope-walk.scoreCandidate`). Internal callers that
-     * need the raw authored set go through `_keywords` directly.
+     * keywords plus, when `autoDeriveKeywords` is true, tokenized
+     * words from the host's display name (NamedMixin) and short
+     * description (VisibleMixin). Authored entries always lead so an
+     * exact-keyword match outranks a tokenized match (see
+     * `scope-walk.scoreCandidate`). Internal callers that need the
+     * raw authored set go through `_keywords` directly.
      */
     protected get keywords(): string[] {
       const out: string[] = [...this._keywords];
-      if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
-        const named = this as unknown as { getName(): string };
-        for (const tok of tokenizeName(named.getName())) {
-          if (!out.includes(tok)) out.push(tok);
+      if (this.autoDeriveKeywords) {
+        if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
+          const named = this as unknown as { getName(): string };
+          for (const tok of tokenizeName(named.getName())) {
+            if (!out.includes(tok)) out.push(tok);
+          }
+        }
+        if (MixinApi.hasMixin(this.constructor as never, Mixins.Visible)) {
+          // Read the raw `shortDescription` field, NOT `getShort()`
+          // — the latter falls back to "You see nothing special."
+          // when no description is authored, which would pollute
+          // the keyword pool with fallback prose.
+          const visible = this as unknown as { getShortDescription(): string };
+          for (const tok of tokenizeName(visible.getShortDescription())) {
+            if (!out.includes(tok)) out.push(tok);
+          }
         }
       }
       return out;

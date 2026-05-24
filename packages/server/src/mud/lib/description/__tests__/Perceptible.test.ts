@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
 import { NamedMixin } from '../Named';
+import { VisibleMixin } from '../Visible';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
@@ -16,6 +17,10 @@ class TestObject extends PerceptibleBase {}
 // Composed with NamedMixin so name-token folding fires.
 const NamedPerceptibleBase = PerceptibleMixin(NamedMixin(Idea));
 class NamedTestObject extends NamedPerceptibleBase {}
+
+// Composed with VisibleMixin so short-description folding fires.
+const VisiblePerceptibleBase = VisibleMixin(PerceptibleMixin(Idea));
+class VisibleTestObject extends VisiblePerceptibleBase {}
 
 describe('PerceptibleMixin', () => {
   let obj: TestObject;
@@ -276,6 +281,55 @@ describe('PerceptibleMixin', () => {
       // No setName — Named.name defaults to ''.
       named.addKeyword('flower');
       expect(named.getKeywords()).toEqual(['flower']);
+    });
+  });
+
+  describe('short-description folding (Phase 8)', () => {
+    it('folds tokenized short description into the keyword pool when Visible is composed', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      const kws = v.getKeywords();
+      // 'brass' and 'thermometer' come from the short description.
+      // 'a' is a stop word and gets dropped.
+      expect(kws).toContain('brass');
+      expect(kws).toContain('thermometer');
+      expect(kws).not.toContain('a');
+    });
+
+    it('does NOT fold raw `shortDescription` fallback prose', () => {
+      // `getShort()` returns "You see nothing special." when no
+      // description is set; the derive must read the raw field, not
+      // the with-fallback accessor, or empty objects pollute the
+      // keyword pool.
+      const v = makeStuff(() => new VisibleTestObject());
+      expect(v.getKeywords()).toEqual([]);
+    });
+
+    it('drops common stop words (a, an, the)', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('an oak door');
+      const kws = v.getKeywords();
+      expect(kws).toEqual(['oak', 'door']);
+    });
+
+    it('preserves explicitly authored stop words', () => {
+      // The stop-word filter applies to auto-derived tokens only —
+      // an author who explicitly adds 'a' as a keyword keeps it.
+      const v = makeStuff(() => new VisibleTestObject());
+      v.addKeyword('a');
+      v.setShortDescription('a brass thermometer');
+      const kws = v.getKeywords();
+      expect(kws).toContain('a'); // authored
+      expect(kws).toContain('brass'); // derived
+    });
+
+    it('autoDeriveKeywords=false suppresses both Named and Visible derivation', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      v.addKeyword('explicit');
+      (v as unknown as { autoDeriveKeywords: boolean }).autoDeriveKeywords = false;
+      // Only the authored keyword remains.
+      expect(v.getKeywords()).toEqual(['explicit']);
     });
   });
 });

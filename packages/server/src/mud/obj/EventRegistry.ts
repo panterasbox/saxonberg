@@ -27,6 +27,7 @@ import {
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Events } from '../lib/events';
 import { defaultPolicyFor } from '../lib/events';
+import type { VetoResult } from '../lib/errors';
 
 const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
 
@@ -71,5 +72,20 @@ export class EventRegistry extends EventRegistryBase {
     _special: unknown,
   ): boolean {
     return false;
+  }
+
+  /**
+   * EventRegistry is a bootstrap-pinned system singleton — `EventApi`
+   * resolves it lazily via `findByTemplatePath` and assumes it stays
+   * live for the process lifetime. Refuse destruct unconditionally;
+   * `forceDestruct` (AdminOnly) is the escape hatch.
+   */
+  public canDestruct(): VetoResult {
+    return {
+      ok: false,
+      reason:
+        'EventRegistry is a system singleton and cannot be destructed; ' +
+        'use forceDestruct (admin-gated) if you really mean it',
+    };
   }
 }

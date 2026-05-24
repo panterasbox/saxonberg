@@ -30,16 +30,23 @@ import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 
 /**
- * Escape the five reserved characters so a raw string can be embedded
- * inside MML markup without being parsed as tag/attribute structure.
+ * Escape characters that would otherwise be parsed as MML
+ * tag/attribute structure. Safe for both text content and attribute
+ * values when the latter use `"..."` delimiters (our convention).
+ *
+ * Apostrophe (`'`) deliberately NOT escaped: it has no special
+ * meaning in either XML text content or `"..."`-quoted attribute
+ * values, and emitting `&apos;` instead of `'` shows up as literal
+ * `&apos;` in the current raw-rendering client. When MML parsing
+ * lands on the client this can become moot, but until then the
+ * smaller escape set keeps prose readable.
  */
 function escapeText(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    .replace(/"/g, '&quot;');
 }
 
 /**

@@ -309,8 +309,9 @@ Out of scope for v1:
 - [templates.md](./templates.md) — clone pipeline, `Hydrator` contract,
   `PostRegistrationMixin`, `TemplateApi`, folder/leaf invariant
 - [lifecycle.md](./lifecycle.md) — construction sentinel, ProxyApi
-  wrap, synthetic constructor frame, destruct → prepareDestroy →
-  shadow detach → destroy → unregister
+  wrap, synthetic constructor frame, destruct → canDestruct veto
+  → onDestruct witness → cleanupOnDestruct walk → shadow detach
+  → destroy → unregister
 - [persistence.md](./persistence.md) — the `Persistable` track for
   auth/meta records (User, GoogleProfile); around-save/delete hooks
 - [call-security.md](./call-security.md) — `templatePath` stamping

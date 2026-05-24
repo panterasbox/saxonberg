@@ -1264,7 +1264,7 @@ identity through the synchronous chain:
 `CommandGiverMixin.executeCommand`:
 
 ```typescript
-async executeCommand(commandText: string, context: CommandContext): Promise<CommandResult> {
+async executeCommand(commandText: string, context: CommandContext): Promise<void> {
   // The proxy already pushed a frame. Tag it.
   ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 

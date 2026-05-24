@@ -405,7 +405,9 @@ reasons:
 | `bind-failed`         | `_runChain` on assemble's bind error     | outer                |
 | `missing-subcommand`  | `_executeOne` when subcommand was needed but absent | per-attempt          |
 
-Plus two pre-execute kinds from `resolveAndValidate`:
+Plus two pre-execute kinds from the resolve / validate pipeline
+(`resolveModel` for MQL, `runValidators` for sync validator checks,
+with `preloadValidatorDeps` awaited in between):
 
 - `mql-error { field, stage, detail }` — wraps MQL resolve calls; on
   throw emits the note and short-circuits the dispatch.
@@ -416,11 +418,42 @@ Plus two pre-execute kinds from `resolveAndValidate`:
 Validators MAY also call `ctx.note(...)` with richer kinds before
 returning the string — the dispatcher's `validator-failed` rides
 alongside as the framework-tier fallback. Generic validators
-(`mustBeContainable`, `mustBeVisible`, `canReach`) stay note-silent;
-specialized domain validators (`canAfford`, `notOnCooldown`) opt
-into the richer signal.
+(`mustBeContainable`, `canReach`, `requiresAnimate`) stay
+note-silent; specialized domain validators (`canAfford`,
+`notOnCooldown`) opt into the richer signal.
 
 Controller exceptions land as `controller-error { controller, detail }`.
+
+### Envelope vs scene split
+
+The dispatch-response envelope is the **machine channel**:
+typed `Note` records for bots, scripts, replay, automated
+testing. The Scene composer is the **human channel**: prose,
+Mml, topic-routed prose-render frames for player clients.
+Framework-emitted failures (parse / MQL / validator /
+controller-throw) put the structured note on the envelope AND
+fire a prose scene on the topic `system.command.error` so a
+player typing a bad command sees WHY without the client needing
+to render envelopes.
+
+The sweep is dispatcher-driven: at the end of `executeCommand`,
+the dispatcher walks `claimingCtx.getNotes()` and for each note
+calls `CommandApi.proseForFrameworkNote(note)` to map it to its
+player-facing prose. Auto-prosed kinds today are
+`command-rejected`, `mql-error`, `validator-failed`, and
+`controller-error` — exactly the kinds the dispatcher / validator
+/ MQL framework emit without a controller getting a chance to
+fire prose itself. Controller-side notes (anything a controller
+puts on `ctx` after its `execute()` started running —
+`controller-rejected` for domain refusals, `mixin-missing`,
+`locomotion-gate-failed`, etc.) return `null` from
+`proseForFrameworkNote` and are NOT auto-prosed: controllers are
+expected to fire their own scenes with domain-specific wording at
+the same site they note.
+
+The `system.command.error` topic is defined under
+`TOPICS.system.command.error`. Add it to the client's `renderTopics`
+list to surface framework prose in the terminal.
 
 ## Input echo — `system.log.command.{info|warn}`
 

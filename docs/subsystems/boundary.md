@@ -35,7 +35,7 @@ Cross-references:
 | `Door` | concrete `Thing` subclass | `SealableMixin(Boundary)`. Shared open/closed state referenced by exit pairs. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit` — gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `Vessel`. |
 | `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor`; future fixtures (sconces) too. |
-| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. `VisibleMixin(PerceptibleMixin(Thing))`. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
+| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, reserved `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
 | `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open`. Declarative `attachedHosts: [string, string]` Pattern A; `setAttachedHosts` resolves hosts lazily and installs anchors. |
@@ -380,10 +380,13 @@ Boundary itself plus a `BoundaryAnchor` Thing in each host's
    hostA      hostB         ← Adornable containers (rooms / vessels)
 ```
 
-`Boundary` is `VisibleMixin(PerceptibleMixin(Thing))` — has
-identity, can be addressed by keyword, can become inventory if
-detached from both sides. Subclasses (`Window`, `Door`) compose
-`Sealable` for shutter / closed state.
+`Boundary` just `extends Thing` — `Visible` and `Perceptible`
+come baked into Thing's default composition, giving it identity,
+a description body, and keyword-addressable status. Because it
+also picks up `Containable` from Thing, a Boundary detached from
+both sides can become inventory (same shape as a salvaged door).
+Subclasses (`Window`, `Door`) compose `Sealable` for shutter /
+closed state.
 
 `BoundaryAnchor` is `AdornmentMixin(Thing)` — sits in
 `getFixtures()`, knows its boundary and side (`'A'` or `'B'`).

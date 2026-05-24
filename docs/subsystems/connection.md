@@ -552,7 +552,7 @@ Avatar. There is currently no idle eviction (see
 react (audit, "the adventurer fades from view" perception broadcasts
 in the future, etc.).
 
-### Avatar.prepareDestroy
+### Avatar.onDestruct
 
 When something DOES destruct an Avatar (test cleanup, future
 character-deletion flow), `Avatar.onDestruct` fires a final

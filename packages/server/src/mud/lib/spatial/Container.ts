@@ -34,7 +34,9 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../../config/constants';
 
 /**
  * Public shape provided by ContainerMixin.
@@ -97,15 +99,34 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is re-parented to the destructing Container's own outer
      * container via `ContainmentApi.move`. Top-of-containment
      * (Container that isn't also Containable, or whose
-     * `getContainer()` is null) evacuates to `null` — those items
-     * end up "in limbo." `onMoved(from, to)` witnesses fire for
-     * each item.
+     * `getContainer()` is null) has no outer; per-item policy
+     * applies:
+     *
+     *   - `HasInteractive` items (Avatars with a live connection)
+     *     escape to the void singleton (`/domain/void`) so an
+     *     active session never ends up with a null environment.
+     *     The void is in the bootstrap manifest, so the sync
+     *     `findByTemplatePath` lookup here is guaranteed to find
+     *     a live instance.
+     *   - Everything else cascade-destructs along with the host.
+     *
+     * `onMoved(from, to)` witnesses fire for each item that's
+     * evacuated; `onDestruct` fires for each item that cascades.
      *
      * Walk order matters: this fires BEFORE `Containable.
      * cleanupOnDestruct` for a Container+Containable composition,
      * so the evacuation completes while `getContainer()` still
      * returns the outer. Snapshot first — `removeContainable`
      * mutates the live set during iteration.
+     *
+     * Limitation: only the DIRECT contents of the destructing host
+     * are policy-targeted. A `HasInteractive` nested inside a
+     * non-`HasInteractive` Container that itself sits inside a
+     * top-of-containment host will be cascade-destructed when its
+     * containing Container destructs (which moves it to the
+     * top-host while that's mid-destruct, then R2.3 self-heal
+     * nulls its container). If that nested-HI case becomes real,
+     * lift the rule into `ContainmentApi.move` as a chokepoint.
      */
     static cleanupOnDestruct(stuff: Stuff): void {
       const host = stuff as Stuff & Container;
@@ -116,9 +137,23 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const outer = MixinApi.isContainable(host)
         ? (host as Stuff & Containable).getContainer()
         : null;
+      // Pre-resolve the void exactly once — only the null-outer
+      // branch needs it, and only when at least one item exists.
+      const voidFallback =
+        outer === null && snapshot.length > 0
+          ? StuffApi.findByTemplatePath<Stuff & Container>(
+              DEFAULT_STARTING_LOCATION_PATH
+            ) ?? null
+          : null;
       for (const item of snapshot) {
         try {
-          ContainmentApi.move(item, outer);
+          if (outer !== null) {
+            ContainmentApi.move(item, outer);
+          } else if (MixinApi.isHasInteractive(item) && voidFallback !== null) {
+            ContainmentApi.move(item, voidFallback);
+          } else {
+            StuffApi.destruct(item);
+          }
         } catch (err) {
           // Log-and-continue (same policy as the dispatcher).
           // One stuck item must not strand the rest.

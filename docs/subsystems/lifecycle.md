@@ -351,7 +351,50 @@ class SpatialZone extends Zone {
     return { ok: true };
   }
 }
+
+class VoidLocation extends SingletonMixin(Location) {
+  // Bootstrap-pinned singleton — `ContainerMixin.cleanupOnDestruct`
+  // evacuates HasInteractive bodies to `/domain/void` via sync
+  // `findByTemplatePath`, so the void must stay live for the
+  // process lifetime. Same shape as EventRegistry / Clade.
+  public canDestruct(): VetoResult {
+    return {
+      ok: false,
+      reason: 'the void is a system singleton; use forceDestruct',
+    };
+  }
+}
 ```
+
+`EventRegistry` and `Clade` follow the same shape — they're
+bootstrap-pinned and consumed by sync `findByTemplatePath` lookups
+in hot paths. Destroying them mid-session would silently break
+downstream lookups, so they refuse `canDestruct` unconditionally and
+expose `forceDestruct` (admin-gated) as the escape hatch.
+
+### Container cleanup policy
+
+`ContainerMixin.cleanupOnDestruct` runs as part of the framework
+cleanup walk. Its policy for each direct content item:
+
+| Outer container of the destructing Container | Per-item policy |
+|---|---|
+| Non-null (the destructing Container is itself contained) | Re-parent every item to the outer via `ContainmentApi.move`. |
+| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the void singleton (`/domain/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
+| Null AND item is not `HasInteractive` | Cascade-destruct via `StuffApi.destruct(item)`. |
+
+The HI escape leans on `/domain/void` being live before any
+container can destruct — bootstrap guarantees that (the
+`{ templatePath: '/domain/void' }` entry runs after
+`/obj/EventRegistry`).
+
+The policy targets only the DIRECT contents of the destructing
+host. A HasInteractive nested inside a non-HasInteractive Container
+that itself sits inside a top-of-containment host gets
+cascade-destructed when the inner Container destructs (which moves
+it to the top-host while that's mid-destruct, then R2.3 self-heal
+nulls its container). If that nested-HI case becomes real, lift
+the rule into `ContainmentApi.move` as a chokepoint.
 
 Mixin-side overrides chain via `super.onDestruct?.call(this)` — the
 hook is optional, so the chain bottoms out cleanly at any class

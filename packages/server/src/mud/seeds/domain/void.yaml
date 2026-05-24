@@ -4,5 +4,5 @@
 # emits, no description body) until the look command grows a more
 # elegant fallback for non-Visible Locations — see roadmap "Command
 # system polish".
-class: /lib/stuff/Location
+class: /lib/stuff/VoidLocation
 data: {}

@@ -337,6 +337,18 @@ const TOPICS = {
       removed: 'system.commands.removed',
       reset: 'system.commands.reset',
     },
+    // Dispatcher-emitted prose for framework-level command failures
+    // (parse / MQL / validator / controller-throw). The envelope
+    // already carries the structured note; the scene under this
+    // topic carries the human-readable prose so a player typing a
+    // bad command sees WHY without needing client-side envelope
+    // rendering. Controller-side failures (controller-rejected,
+    // mixin-missing, locomotion-gate-failed, etc.) are NOT
+    // auto-prosed here — controllers fire their own scenes with
+    // domain-specific wording.
+    command: {
+      error: 'system.command.error',
+    },
     // Shell-tier output: the engine talking back to the avatar
     // about what just happened, distinct from in-fiction
     // narration. Grouped by category rather than per-verb so the

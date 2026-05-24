@@ -246,7 +246,6 @@ export const Events = {
   ModuleRolledBack:    'module.rolledBack',
   ModuleUnloaded:      'module.unloaded',
   ModuleReloadFailed:  'module.reloadFailed',
-  PersistenceFlushed:  'persistence.flushed',
 } as const;
 ```
 

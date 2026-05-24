@@ -457,16 +457,33 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             dispatchId: outer.commandId,
             originInteractiveId,
           });
-          const validated = CommandApi.resolveAndValidate(
+          const resolved = CommandApi.resolveModel(
             parseResult.bound.model,
-            outer
+            outer,
           );
-          if (!('result' in validated)) {
-            await this._executeOne(
+          if (!('result' in resolved)) {
+            const boundSubcommand =
+              typeof (resolved.resolved as { subcommand?: unknown })
+                .subcommand === 'string'
+                ? ((resolved.resolved as { subcommand?: string }).subcommand)
+                : undefined;
+            await CommandApi.preloadValidatorDeps(
               parseResult.bound.command,
-              validated.resolved,
+              outer,
+              resolved.resolved,
+              boundSubcommand,
+            );
+            const validated = CommandApi.runValidators(
+              resolved.resolved,
               outer
             );
+            if (!('result' in validated)) {
+              await this._executeOne(
+                parseResult.bound.command,
+                resolved.resolved,
+                outer
+              );
+            }
           }
         } else {
           outer.note({
@@ -488,6 +505,31 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
       }
 
+      // Framework-failure prose sweep: each accumulated note that
+      // came from the dispatcher / validator / MQL framework gets
+      // an auto-rendered scene on `system.command.error` so a
+      // player typing a bad command sees WHY without needing the
+      // client to render envelopes. Controller-side notes
+      // (controller-rejected, mixin-missing, etc.) are skipped —
+      // controllers are expected to fire their own domain-specific
+      // scenes when they care to surface prose.
+      //
+      // Envelope vs. scene split: scene is the human channel
+      // (prose, MML), envelope is the machine channel (typed notes
+      // for bots / replay / scripting). Both fire here for
+      // framework failures so neither consumer is short-changed.
+      const giverAsStuff = outer.commandGiver as unknown as Stuff;
+      if (MixinApi.isSensor(giverAsStuff)) {
+        for (const note of claimingCtx.getNotes()) {
+          const prose = CommandApi.proseForFrameworkNote(note);
+          if (prose === null) continue;
+          MessageApi.scene(giverAsStuff as Stuff & Sensor)
+            .topic(MessageApi.Topics.system.command.error)
+            .toSelf(Mml.compose`${prose}`)
+            .send();
+        }
+      }
+
       // Assemble the dispatch-response envelope template. No
       // `frameId` — that's stamped per-Interactive at the wire
       // delivery layer in `Application.sendEnvelopeToInteractive`.
@@ -501,7 +543,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           notes: [...claimingCtx.getNotes()],
         },
       };
-      const giverAsStuff = outer.commandGiver as unknown as Stuff;
       if (MixinApi.isSensor(giverAsStuff)) {
         MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
       }
@@ -628,13 +669,30 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;
         }
-        const validated = CommandApi.resolveAndValidate(
+        // Dispatch pipeline: MQL resolve → async preload → sync
+        // validators. Splitting MQL out of the sync validator phase
+        // lets field-level validator preloads inspect the bound
+        // result (e.g. `requiresAnimateTarget` reads the resolved
+        // target's `_speciesPath`).
+        const resolved = CommandApi.resolveModel(
           built.model,
           attempt,
           built.prep
         );
+        if ('result' in resolved) return attempt;
+        const subcommandHint =
+          typeof (resolved.resolved as { subcommand?: unknown }).subcommand === 'string'
+            ? ((resolved.resolved as { subcommand?: string }).subcommand)
+            : undefined;
+        await CommandApi.preloadValidatorDeps(
+          command,
+          attempt,
+          resolved.resolved,
+          subcommandHint,
+        );
+        const validated = CommandApi.runValidators(resolved.resolved, attempt);
         if ('result' in validated) return attempt;
-        await this._executeOne(command, validated.resolved, attempt);
+        await this._executeOne(command, resolved.resolved, attempt);
         return attempt;
       }
       // Every match returned a shape error.
