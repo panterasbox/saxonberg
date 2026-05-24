@@ -82,15 +82,25 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │       CommandApi.assemble(parsed, command)            → ModelData | error
    │       on shape error → discard ctx; continue (try next match)
    │       on bind error  → emit command-rejected note on outer ctx; stop
-   │       CommandApi.resolveAndValidate(model, ctx)       → MQL + validators
+   │       CommandApi.resolveModel(model, ctx)             → MQL only
+   │       await CommandApi.preloadValidatorDeps(cmd, ctx, ← async preload phase
+   │             resolved, subcommandHint)
+   │       CommandApi.runValidators(resolved, ctx)         → sync validators
    │       _executeOne:
    │         StuffApi.clone('/obj/command/' + cmd.controller)
    │         await controller.execute(model, ctx)          ← returns void
    │         StuffApi.destruct(controller)
    │         (controller-error caught by outer try/catch → controller-error note)
    │
+   │   after _runChain: dispatcher walks accumulator notes,
+   │   per framework-emitted failure note fires a scene on
+   │   system.command.error so a bad command surfaces WHY
+   │   without client-side envelope rendering (see § Envelope
+   │   vs scene split below).
+   │
    ├─ if ParseResult.bound: skip parse + match,
-   │     run resolveAndValidate + _executeOne directly.
+   │     run resolveModel + preloadValidatorDeps + runValidators +
+   │     _executeOne directly.
    │
    ▼
 dispatcher reads accumulator on the claiming ctx
@@ -217,9 +227,11 @@ class DropController extends CommandController<DropModel> {
 ```
 
 The matcher guarantees that fields the YAML marks `required: true`
-are present, and that `type: object` fields arrive as `Stuff` (or
-`Stuff[]` for `multiple: true`) — MQL resolution and zero-hits failure
-both happen in `resolveAndValidate` before the controller fires.
+are present, and that `type: object` fields arrive as a
+`MqlOneResult` / `MqlManyResult` wrapper (whose `.stuff` is the
+bound `Stuff` or `Stuff[]`) — MQL resolution and zero-hits failure
+both happen in `resolveModel` before validators run, and validators
+in turn run before the controller fires.
 
 ### Pre-controller failure paths
 
@@ -235,7 +247,9 @@ reasons:
 | `bind-failed`         | `_runChain` on assemble's bind error                             | outer     |
 | `missing-subcommand`  | `_executeOne` when a subcommand was needed but absent            | attempt   |
 
-Plus two pre-execute kinds from `resolveAndValidate`:
+Plus two pre-execute kinds from the resolve / validate pipeline
+(`resolveModel` for MQL, `runValidators` for sync validator checks,
+with `preloadValidatorDeps` awaited in between):
 
 - `mql-error { field, stage, detail }` — wraps MQL resolve calls; on
   throw the dispatcher emits the note and short-circuits the
@@ -389,9 +403,9 @@ A structured ingress path also exists: `{ type: 'command', payload:
 { verb, subcommand?, fields, raw? } }` skips the parser and goes
 straight to `CommandApi.assembleFromStructured` — used for widget
 input where the client has already chosen the verb. Same
-`resolveAndValidate` and controller stack downstream. The `raw`
-string is an opaque audit hint; the server logs it but does not
-parse or trust it.
+resolve / preload / validate / controller stack downstream. The
+`raw` string is an opaque audit hint; the server logs it but does
+not parse or trust it.
 
 ## Stage 2 — Parsing
 
@@ -483,8 +497,23 @@ know about every verb-level option.
 
 ## Stage 4 — Resolution + validation
 
-`CommandApi.resolveAndValidate` runs MQL resolution on `type: object`
-fields and runs every declared validator:
+Resolution and validation are split across two sync `CommandApi`
+entry points with an async preload phase between them. The
+dispatcher's call sequence is:
+
+```
+resolved = CommandApi.resolveModel(model, ctx)              // sync, MQL only
+await CommandApi.preloadValidatorDeps(cmd, ctx, resolved,   // async preloads
+                                       subcommandHint)
+ok       = CommandApi.runValidators(resolved.resolved, ctx) // sync validators
+```
+
+`CommandApi.resolveAndValidate` remains as a back-compat wrapper
+that chains the three for tests and one-off sync callers; the
+dispatcher itself does NOT use it (it needs the seam to insert
+the async preload phase).
+
+`resolveModel` walks every `type: object` / `type: objects` field:
 
 ```
 for each type:object field present:
@@ -497,11 +526,49 @@ for each type:object field present:
     else:         MqlApi.resolveOne (query, { commandGiver, scope })
     stop on first non-empty result
   bind the wrapper (MqlOne / MqlMany) onto the model
+```
 
+`runValidators` then runs everything:
+
+```
+run verb-level validators (CommandValidator[])
 run field validators (positional + sub-positional)
 run verb-scoped option validators
 run subcommand-scoped option validators (if active)
 ```
+
+First failure short-circuits with a structured `validator-failed`
+note on the context.
+
+### Validator preload phase
+
+Validator sync bodies often need singleton-backed reads — e.g.
+`requiresAnimate` calls `SpeciesApi.isAnimate` which walks the
+giver's species clade ancestor chain via `findByTemplatePath`. The
+clades must already be live for the sync lookup to succeed.
+
+Rather than bootstrap every clade up front (or make every
+validator async), `FieldValidator` and `CommandValidator` carry an
+optional `preload?: (... args ...) => Promise<void>` hook. The
+dispatcher's `preloadValidatorDeps` walks every validator attached
+to the matched command (verb-level + field + verb-option + payload
++ per-subcommand) and `Promise.all`s their preloads. Each preload
+calls `StuffApi.singleton(path)` to ensure its deps, idempotently.
+
+Signatures mirror the sync bodies — verb-level preloads take
+`(context)`, field-level preloads take `(value, field, context)` —
+so a field validator that needs per-bound-target deps can inspect
+the resolved `value` (e.g. `requiresAnimateTarget` would read the
+bound target's `_speciesPath`). Validators without a `preload` are
+skipped. Today the only preload consumer is `requiresAnimate`; the
+pattern stands ready for materials / biomes / etc. as they grow
+validator coverage.
+
+The split between MQL resolution and validator execution is what
+makes this work: field-level preloads need the resolved value to
+compute their deps, so MQL has to run first; validator sync bodies
+need the singleton cache populated, so preloads have to run before
+`runValidators`. The dispatcher interleaves the three.
 
 ### YAML scope[] is the explicit fallback chain
 
@@ -574,11 +641,11 @@ Validators MAY also call `ctx.note(...)` with richer kinds
 `controller-rejected { reason: 'on-cooldown' }`, etc.) *in addition*
 to returning a string — the dispatcher's `validator-failed` rides
 alongside as the framework-tier fallback. Generic framework
-validators (`mustBeContainable`, `mustBeVisible`, `canReach`,
-`mustBeNumber`, `notEmpty`) stay note-silent; specialized domain
-validators (`canAfford`, `notOnCooldown`, etc.) opt into the richer
-signal. Validators may also emit informational notes without
-returning a string. See
+validators (`mustBeContainable`, `canReach`, `mustBeNumber`,
+`notEmpty`, `requiresAnimate`) stay note-silent; specialized
+domain validators (`canAfford`, `notOnCooldown`, etc.) opt into
+the richer signal. Validators may also emit informational notes
+without returning a string. See
 [response-envelope.md § Pre-controller failure paths](./response-envelope.md).
 
 Validators are file-based modules that default-export a
@@ -595,8 +662,19 @@ the YAML file's directory. Bare names and package specifiers are
 rejected — the path tells you exactly where the validator lives, no
 implicit search paths, no registry. The JS module cache handles
 repeat loads. Built-ins live under `mud/lib/command/validators/`:
-`mustBeContainable`, `mustBeVisible`, `canReach`, `mustBeNumber`,
-`notEmpty`.
+`mustBeContainable`, `canReach`, `mustBeNumber`, `notEmpty`,
+`requiresAnimate` (the canonical example of the async `preload`
+hook — its preload ensures the giver's species clade and every
+ancestor clade are live before the sync `isAnimate` body runs).
+
+`mustBeVisible` was retired: the gate rejected non-`Visible`
+hosts uniformly, which made `look` against the void (a
+non-`Visible` Location used as the bootstrap-starting room) fail
+at the validator layer. Inspection verbs now do the
+Visible/non-Visible discrimination inside the controller (see
+`LookController.lookAtTarget` for the polite-refusal path), where
+the controller can tell "tried to look at a thing" from "tried
+to look at the room I'm in" and degrade appropriately.
 
 Validators are resolved at boot by `CommandApi.preloadAll()` —
 called from `index.ts` after seeders/hooks run, before traffic
@@ -700,8 +778,6 @@ args:
   - name: target
     type: object
     required: false
-    validators:
-      - /lib/command/validators/mustBeVisible
 options:
   long:
     short: l

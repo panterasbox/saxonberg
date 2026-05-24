@@ -38,10 +38,17 @@ describe('Clade', () => {
     expect(clade.getSpecies().size).toBe(0);
   });
 
-  it('canDestruct vetoes destruction when species are still attached', async () => {
-    const clade = makeStuff(() => new Clade());
+  it('canDestruct vetoes destruction unconditionally (system singleton)', async () => {
+    // Clades are bootstrap-pinned because `SpeciesApi.getKingdom` /
+    // `isAnimate` resolve them sync via `findByTemplatePath`; a
+    // mid-session destruct silently breaks every `requiresAnimate`-
+    // gated verb. Veto fires whether or not species are attached.
+    const empty = makeStuff(() => new Clade());
+    expect(() => StuffApi.destruct(empty)).toThrow(/system singleton/i);
+
+    const withMembers = makeStuff(() => new Clade());
     const fake = await StuffApi.create(() => new Clade());
-    clade.addSpecies(fake as unknown as never);
-    expect(() => StuffApi.destruct(clade)).toThrow(/live species/i);
+    withMembers.addSpecies(fake as unknown as never);
+    expect(() => StuffApi.destruct(withMembers)).toThrow(/system singleton/i);
   });
 });

@@ -61,7 +61,63 @@ import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import type { Sensor } from '../message/Sensor';
 import type { Interactive } from '../../obj/Interactive';
-import type { LogLevel } from '@saxonberg/types';
+import type { LogLevel, Note } from '@saxonberg/types';
+
+/**
+ * Map a framework-emitted failure note to its player-facing prose,
+ * or `null` for notes that don't auto-prose (controller-side
+ * failures whose authoring controller fires its own scene with
+ * domain-specific wording; data-only notes with no readable detail).
+ *
+ * Auto-prosed kinds: `command-rejected`, `mql-error`,
+ * `validator-failed`, `controller-error` — all emitted by the
+ * dispatcher / validator / MQL framework, where no controller has
+ * a chance to produce prose.
+ *
+ * Used by the dispatcher's end-of-execute sweep below: walks the
+ * accumulated notes and fires a `system.command.error` scene per
+ * prose-bearing note so a player typing a bad command sees WHY
+ * without needing client-side envelope rendering. The structured
+ * note still rides the envelope for bot/script consumers — the
+ * envelope is the machine channel, the scene is the human channel.
+ *
+ * Lives module-private in CommandGiver because it's presentation
+ * logic — prose phrasing belongs near the dispatcher that fires it,
+ * not on an Api class. Each note kind below has exactly one call
+ * site (the sweep loop in `executeCommand`), so no broader surface
+ * is needed.
+ */
+function proseForFrameworkNote(note: Note): string | null {
+  switch (note.kind) {
+    case 'command-rejected': {
+      // `reason` is enum; pair with `detail` when present.
+      const tail = note.detail ? `: ${note.detail}` : '';
+      switch (note.reason) {
+        case 'unknown-verb':
+          return `I don't understand '${note.detail ?? '?'}'.`;
+        case 'parse-failed':
+          return `Couldn't parse the command${tail}.`;
+        case 'bind-failed':
+          return `Couldn't bind that command${tail}.`;
+        case 'shape-fall-through':
+          return `That doesn't match any known command shape${tail}.`;
+        case 'missing-subcommand':
+          return `Missing subcommand${tail}.`;
+        default:
+          return `Command rejected${tail}.`;
+      }
+    }
+    case 'mql-error':
+      return `Couldn't resolve '${note.field}' (${note.stage}): ${note.detail}`;
+    case 'validator-failed':
+      // The validator's return string IS the player-facing prose.
+      return note.detail;
+    case 'controller-error':
+      return `Something went wrong in ${note.controller}: ${note.detail}`;
+    default:
+      return null;
+  }
+}
 
 /** Bucket of a recency-stack entry — categorical metadata, not ordering. */
 export type RecencyBucket = 'self' | 'inventory' | 'environment' | 'peers';
@@ -457,16 +513,33 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             dispatchId: outer.commandId,
             originInteractiveId,
           });
-          const validated = CommandApi.resolveAndValidate(
+          const resolved = CommandApi.resolveModel(
             parseResult.bound.model,
-            outer
+            outer,
           );
-          if (!('result' in validated)) {
-            await this._executeOne(
+          if (!('result' in resolved)) {
+            const boundSubcommand =
+              typeof (resolved.resolved as { subcommand?: unknown })
+                .subcommand === 'string'
+                ? ((resolved.resolved as { subcommand?: string }).subcommand)
+                : undefined;
+            await CommandApi.preloadValidatorDeps(
               parseResult.bound.command,
-              validated.resolved,
+              outer,
+              resolved.resolved,
+              boundSubcommand,
+            );
+            const validated = CommandApi.runValidators(
+              resolved.resolved,
               outer
             );
+            if (!('result' in validated)) {
+              await this._executeOne(
+                parseResult.bound.command,
+                resolved.resolved,
+                outer
+              );
+            }
           }
         } else {
           outer.note({
@@ -488,6 +561,31 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
       }
 
+      // Framework-failure prose sweep: each accumulated note that
+      // came from the dispatcher / validator / MQL framework gets
+      // an auto-rendered scene on `system.command.error` so a
+      // player typing a bad command sees WHY without needing the
+      // client to render envelopes. Controller-side notes
+      // (controller-rejected, mixin-missing, etc.) are skipped —
+      // controllers are expected to fire their own domain-specific
+      // scenes when they care to surface prose.
+      //
+      // Envelope vs. scene split: scene is the human channel
+      // (prose, MML), envelope is the machine channel (typed notes
+      // for bots / replay / scripting). Both fire here for
+      // framework failures so neither consumer is short-changed.
+      const giverAsStuff = outer.commandGiver as unknown as Stuff;
+      if (MixinApi.isSensor(giverAsStuff)) {
+        for (const note of claimingCtx.getNotes()) {
+          const prose = proseForFrameworkNote(note);
+          if (prose === null) continue;
+          MessageApi.scene(giverAsStuff as Stuff & Sensor)
+            .topic(MessageApi.Topics.system.command.error)
+            .toSelf(Mml.compose`${prose}`)
+            .send();
+        }
+      }
+
       // Assemble the dispatch-response envelope template. No
       // `frameId` — that's stamped per-Interactive at the wire
       // delivery layer in `Application.sendEnvelopeToInteractive`.
@@ -501,7 +599,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           notes: [...claimingCtx.getNotes()],
         },
       };
-      const giverAsStuff = outer.commandGiver as unknown as Stuff;
       if (MixinApi.isSensor(giverAsStuff)) {
         MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
       }
@@ -628,13 +725,30 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;
         }
-        const validated = CommandApi.resolveAndValidate(
+        // Dispatch pipeline: MQL resolve → async preload → sync
+        // validators. Splitting MQL out of the sync validator phase
+        // lets field-level validator preloads inspect the bound
+        // result (e.g. `requiresAnimateTarget` reads the resolved
+        // target's `_speciesPath`).
+        const resolved = CommandApi.resolveModel(
           built.model,
           attempt,
           built.prep
         );
+        if ('result' in resolved) return attempt;
+        const subcommandHint =
+          typeof (resolved.resolved as { subcommand?: unknown }).subcommand === 'string'
+            ? ((resolved.resolved as { subcommand?: string }).subcommand)
+            : undefined;
+        await CommandApi.preloadValidatorDeps(
+          command,
+          attempt,
+          resolved.resolved,
+          subcommandHint,
+        );
+        const validated = CommandApi.runValidators(resolved.resolved, attempt);
         if ('result' in validated) return attempt;
-        await this._executeOne(command, validated.resolved, attempt);
+        await this._executeOne(command, resolved.resolved, attempt);
         return attempt;
       }
       // Every match returned a shape error.

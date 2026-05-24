@@ -160,9 +160,14 @@ world.                          # in-fiction
   perception.
     look
     inventory
+    scry
+    locate
   narration.
     movement                    # walking-style depart/arrive
     teleport                    # sudden, magical in/out
+    action                      # generic in-fiction action prose
+  identity.
+    change                      # name / appearance changes
 
 system.                         # out-of-fiction infrastructure
   connection.
@@ -171,6 +176,13 @@ system.                         # out-of-fiction infrastructure
   auth.
     success
     failed
+  command.
+    error                       # dispatcher-emitted framework-failure prose
+  shell.
+    fs                          # filesystem-style verbs (cd, ls, pwd, cat …)
+    author                      # author-tier verbs (clone, reload, eval, teleport)
+    help                        # help system
+    movement                    # shell-tier movement narration (go-style verbs)
   log.
     <category>.<level>
     # category: hot-reload, security, command, persistence, etc. (open)
@@ -184,10 +196,17 @@ Conventions:
   (`world.speech.say` is a leaf; `world.speech` is not).
 - Adding a new topic requires no framework changes — producers just emit
   the new topic string.
-- Failed commands aren't a special topic. A `look` that found nothing
-  still composes prose at `world.perception.look`; failure is captured
-  in the dispatch-response envelope's `outcome.status` + `notes`, not
-  on a special topic. See [response-envelope.md](./response-envelope.md).
+- Controller-side failures aren't a special topic. A `look` that
+  found nothing still composes prose at `world.perception.look`;
+  failure is captured in the dispatch-response envelope's
+  `outcome.status` + `notes`, AND in the prose the controller
+  fires at the same domain topic it would have used on success.
+- **Framework-side** failures (parse, MQL, validator,
+  controller-throw) DO have a special topic — `system.command.error`
+  — populated by the dispatcher's end-of-execute prose sweep. The
+  player sees WHY a bad command was rejected without the client
+  needing to render envelopes. See
+  [response-envelope.md § Envelope vs scene split](./response-envelope.md#envelope-vs-scene-split).
 
 `MessageApi.Topics` exposes the canonical constants so call sites get
 autocomplete, grep-ability, and rename safety:

@@ -68,21 +68,19 @@ export class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
   }
 
   /**
-   * Refuse to destruct a Clade with live Species members. Drain the
-   * member Species (destruct or relocate) first. Same shape as
-   * `SpatialZone.canDestruct`. Bypassable via `forceDestruct`
-   * (admin-gated).
+   * Clades are bootstrap-pinned singletons. `SpeciesApi.isAnimate` /
+   * `getKingdom` walk ancestor template paths via sync
+   * `findByTemplatePath` and assume the clade singletons stay live —
+   * destroying one mid-session would silently break every
+   * `requiresAnimate`-gated verb. Refuse destruct unconditionally;
+   * `forceDestruct` (admin-gated) is the escape hatch.
    */
   public canDestruct(): VetoResult {
-    if (this.species.size > 0) {
-      return {
-        ok: false,
-        reason:
-          `cannot destruct clade '${this.getName()}' with ` +
-          `${this.species.size} live species member(s); ` +
-          `destruct or relocate first`,
-      };
-    }
-    return { ok: true };
+    return {
+      ok: false,
+      reason:
+        `clade '${this.getName()}' is a system singleton and cannot ` +
+        `be destructed; use forceDestruct (admin-gated) if you really mean it`,
+    };
   }
 }

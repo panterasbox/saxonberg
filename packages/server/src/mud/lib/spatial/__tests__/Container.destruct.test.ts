@@ -2,10 +2,13 @@
  * Container destruct-time evacuation tests (S1).
  *
  * When a Container is destructed via `StuffApi.destruct`, the
- * framework `cleanupOnDestruct` on `ContainerMixin` re-parents every
- * Containable in `contents` to the destructing Container's own outer
- * container (or `null` at top-of-containment), via the canonical
- * `ContainmentApi.move` chokepoint so `onMoved` witnesses fire.
+ * framework `cleanupOnDestruct` on `ContainerMixin` evacuates every
+ * Containable in `contents`. Policy:
+ *   - Non-null outer: re-parent to the destructing host's own outer
+ *     via `ContainmentApi.move` (with `onMoved` witnesses firing).
+ *   - Null outer (top-of-containment): per-item policy —
+ *     HasInteractive items escape to the void singleton, everything
+ *     else cascade-destructs.
  *
  * Companion to the dispatcher tests in
  * `src/mud/api/__tests__/stuff.cleanup.test.ts`; this file focuses
@@ -18,9 +21,14 @@ import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin, type Containable } from '../Containable';
 import { ContainerMixin, type Container } from '../Container';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import type { Stuff } from '../../stuff/Stuff';
 import { Idea } from '../../stuff/Idea';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
+import { DEFAULT_STARTING_LOCATION_PATH } from '../../../config/constants';
 
 // Container that's also Containable — backpack-in-room shape.
 // Convention: Container is the most-derived (outer) mixin so its
@@ -43,6 +51,22 @@ class Room extends ContainerMixin(Idea) {}
 
 // Plain Containable item with onMoved capture.
 class Item extends ContainableMixin(Idea) {
+  public movesObserved: Array<[
+    (Stuff & Container) | null,
+    (Stuff & Container) | null,
+  ]> = [];
+  onMoved?(
+    from: (Stuff & Container) | null,
+    to: (Stuff & Container) | null
+  ): void {
+    this.movesObserved.push([from, to]);
+  }
+}
+
+// Containable + HasInteractive — Avatar shape. Stand-in for any
+// connection-bound body that must escape rather than cascade-destruct
+// when its container disappears with no outer.
+class Avatar extends HasInteractiveMixin(ContainableMixin(Idea)) {
   public movesObserved: Array<[
     (Stuff & Container) | null,
     (Stuff & Container) | null,
@@ -80,23 +104,65 @@ describe('Container.cleanupOnDestruct — S1 evacuation to outer', () => {
     expect(sword.movesObserved.at(-1)).toEqual([bag, room]);
   });
 
-  it('top-of-containment destruct evacuates contents to null', () => {
+  it('top-of-containment destruct cascade-destructs non-HasInteractive contents', () => {
     const room = makeStuff(() => new Room());
     const apple = makeStuff(() => new Item());
     ContainmentApi.move(apple, room);
     StuffApi.destruct(room);
-    expect(apple.getContainer()).toBeNull();
-    expect(apple.movesObserved.at(-1)).toEqual([room, null]);
+    // Apple cascade-destructs along with its container. (Calling a
+    // proxy method on a destroyed Stuff throws, so check `isDestroyed`
+    // which is one of the allowed post-destruct reads.)
+    expect(apple.isDestroyed()).toBe(true);
   });
 
-  it('Container-only host (no Containable layer) evacuates to null', () => {
+  it('Container-only host (no Containable layer) cascade-destructs contents', () => {
     // Room is Container without Containable — its outer is treated
-    // as null even though it isn't reachable as Containable.
+    // as null even though it isn't reachable as Containable. Same
+    // cascade-destruct policy as a Containable host with a null
+    // outer.
     const room = makeStuff(() => new Room());
     const item = makeStuff(() => new Item());
     ContainmentApi.move(item, room);
     StuffApi.destruct(room);
-    expect(item.getContainer()).toBeNull();
+    expect(item.isDestroyed()).toBe(true);
+  });
+
+  it('top-of-containment destruct moves HasInteractive contents to the void', () => {
+    // The void singleton needs to exist for the escape route to
+    // resolve; in production it's bootstrap-pinned. Here we stamp a
+    // stand-in Room at DEFAULT_STARTING_LOCATION_PATH and verify the
+    // avatar lands in it instead of cascade-destructing.
+    const voidRoom = makeStuffAtPath(
+      () => new Room(),
+      DEFAULT_STARTING_LOCATION_PATH
+    );
+    const room = makeStuff(() => new Room());
+    const avatar = makeStuff(() => new Avatar());
+    ContainmentApi.move(avatar, room);
+
+    StuffApi.destruct(room);
+
+    expect(avatar.isDestroyed()).toBe(false);
+    expect(avatar.getContainer()).toBe(voidRoom);
+    expect(avatar.movesObserved.at(-1)).toEqual([room, voidRoom]);
+  });
+
+  it('null-outer cascade with mixed contents: HI escapes, non-HI destructs', () => {
+    const voidRoom = makeStuffAtPath(
+      () => new Room(),
+      DEFAULT_STARTING_LOCATION_PATH
+    );
+    const room = makeStuff(() => new Room());
+    const avatar = makeStuff(() => new Avatar());
+    const apple = makeStuff(() => new Item());
+    ContainmentApi.move(avatar, room);
+    ContainmentApi.move(apple, room);
+
+    StuffApi.destruct(room);
+
+    expect(avatar.isDestroyed()).toBe(false);
+    expect(avatar.getContainer()).toBe(voidRoom);
+    expect(apple.isDestroyed()).toBe(true);
   });
 
   it('nested containers: destructing the middle container re-parents up', () => {
@@ -211,45 +277,19 @@ describe('Containable.getContainer — R2.3 self-heal backstop', () => {
 
   it('returns null and clears the slot when the environment is destroyed', () => {
     // Simulate the bug case: an item's environment field points at
-    // a destroyed Container. Normal path goes through framework
-    // cleanup — this test forces the bypass by destructing the
-    // Container outside the contained item's lifetime, then
-    // re-checking via getContainer().
+    // a destroyed Container — the kind of stale ref the cleanup
+    // chokepoint normally prevents. R2.3 self-heal is the backstop.
     //
-    // We use forceDestruct's call path isn't accessible (AdminOnly
-    // stub denies), so instead we hand-roll: destruct the room
-    // FIRST while the item still references it.
-    //
-    // Trick: destructing the room normally evacuates contents to
-    // null already (Container cleanup). To exercise the backstop
-    // we'd need a path that bypasses Container cleanup. The
-    // simplest reproducer is to bypass ContainmentApi entirely:
-    // mark a fresh stuff as destroyed via the Stuff lifecycle but
-    // leave the back-pointer intact.
-    //
-    // We do this by destructing room WHILE its cleanup is
-    // explicitly inhibited. Easiest: subclass Room and skip
-    // ContainerMixin.cleanupOnDestruct contributions via a
-    // construction-side hack — but the static is mixin-only and
-    // can't be removed.
-    //
-    // Practical test: destruct room normally (which evacuates),
-    // then verify the self-heal is idempotent. Then construct a
-    // synthetic bug case by re-assigning the destroyed room
-    // through the protected accessor pair via cast.
-    const room = makeStuff(() => new Room());
+    // Construction: destruct a Room (the apple is NOT inside it, so
+    // the cleanup cascade doesn't touch the apple), then synthesise
+    // the stale ref by stamping the destroyed Room into the apple's
+    // `environment` field via cast — a hypothetical bypass of the
+    // setContainer chokepoint. Self-heal must detect on read and
+    // clear the slot.
+    const deadRoom = makeStuff(() => new Room());
+    StuffApi.destruct(deadRoom);
     const apple = makeStuff(() => new Item());
-    ContainmentApi.move(apple, room);
-    // Cache the room ref BEFORE destruct so we can re-inject it.
-    const deadRoom = room;
-    StuffApi.destruct(room);
-    // Normal path already null'd it via Container cleanup.
-    expect(apple.getContainer()).toBeNull();
 
-    // Synthetic bug-case re-injection: stamp the dead room back
-    // into the item's `environment` field. This bypasses
-    // setContainer (which would refuse / error) by reaching the
-    // raw target via a cast — simulating a hypothetical bypass.
     (apple as unknown as { environment: unknown }).environment = deadRoom;
     // First read returns null AND clears the slot.
     expect(apple.getContainer()).toBeNull();

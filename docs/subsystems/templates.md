@@ -386,6 +386,10 @@ round-trip on a live host:
   non-mixin-managed keys), and **returns the mutated Template
   without committing**. The caller invokes `tpl.save()` when ready.
   Separating capture from commit makes the snapshot composable.
+  Marshaller resolution is lazy via `await StuffApi.singleton(mPath)`
+  — the first save touching a unit instantiates that unit's
+  marshaller; later saves hit the live ref in the byTemplatePath
+  index. Avoids needing a bootstrap manifest entry per marshaller.
 - `TemplateApi.restoreFromTemplate(stuff)` — looks up the Template
   by the host's runtime-stamped `getTemplatePath()` and runs
   `PersistentHydrator.hydrate(host, tpl.data)`. Operates on the

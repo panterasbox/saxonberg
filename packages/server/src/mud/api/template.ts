@@ -295,15 +295,12 @@ export class TemplateApi {
       const value = snapshot[field];
       const mPath = marshallerPaths[field];
       if (mPath) {
-        const m = StuffApi.findByTemplatePath<
-          Marshaller<unknown, unknown>
-        >(mPath);
-        if (!m) {
-          throw new Error(
-            `TemplateApi.snapshotToTemplate: marshaller '${mPath}' ` +
-              `for field '${field}' not registered.`
-          );
-        }
+        // Lazy-create via singleton: marshaller seeds live at
+        // `pathFor(unit)` and are content-style templates rather than
+        // bootstrap entries, so the first save touching a unit
+        // instantiates its marshaller on demand. Subsequent saves
+        // hit the live ref in the byTemplatePath index.
+        const m = await StuffApi.singleton<Marshaller<unknown, unknown>>(mPath);
         data[field] = m.toStored(value);
       } else {
         data[field] = value;

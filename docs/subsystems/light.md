@@ -52,7 +52,7 @@ Sibling docs cover related ground without overlap:
 | `LightApi` | static API | `lightAt(loc)`, `bandAt(loc)`, `bandFor(luxValue)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`. |
 | `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
 | `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
-| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Composes `VisibleMixin(PerceptibleMixin(Thing))`. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
+| `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, reserved `SoundConduit`. Boundary subclasses implement (a subset of) these. |
 | `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.isOpen`. |
@@ -64,8 +64,8 @@ Sibling docs cover related ground without overlap:
 ```
 Stuff
   ├── Idea
-  ├── Thing                          (ContainableMixin(Stuff))
-  │     ├── Boundary                 (Visible + Perceptible)
+  ├── Thing                          (Visible + Perceptible + Tangible + Containable)
+  │     ├── Boundary                 (just `extends Thing`)
   │     │     ├── Window             (Sealable + LightConduit + LineOfSight)
   │     │     └── Door (retrofit)    (Sealable + LightConduit + LineOfSight + MovementConduit)
   │     └── BoundaryAnchor           (Adornment)
@@ -76,10 +76,10 @@ Stuff
 The retrofit moves `Door`'s class hierarchy from
 `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))` to
 `SealableMixin(Boundary)` — Boundary already provides Visible +
-Perceptible + Thing. The `attachedTo: Set<Exit>` field, the
-`attachExit` / `detachExit` accessors, the `Door.detach()` method,
-`Door.getKeywords()`, all existing `Door` templates and call sites
-keep working unchanged.
+Perceptible via Thing's default composition. The `attachedTo:
+Set<Exit>` field, the `attachExit` / `detachExit` accessors, the
+`Door.detach()` method, `Door.getKeywords()`, all existing `Door`
+templates and call sites keep working unchanged.
 
 ## The Light Value Object
 
@@ -467,8 +467,9 @@ how `addBidirectionalExit({ door })` wires a templated Door.
 
 A `Door` is now a Boundary in addition to its prior identity.
 Composition changed from `VisibleMixin(PerceptibleMixin(SealableMixin(Thing)))`
-to `SealableMixin(Boundary)`. Boundary already supplies Visible +
-Perceptible + Thing.
+to `SealableMixin(Boundary)`. Boundary just `extends Thing`, and
+Thing's default composition already bakes in Visible + Perceptible
++ Tangible + Containable.
 
 Conduit registry: a Door advertises three conduits — `LightConduit`,
 `LineOfSight`, `MovementConduit` — all gated on `isOpen()`.

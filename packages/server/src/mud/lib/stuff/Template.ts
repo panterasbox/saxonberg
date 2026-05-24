@@ -26,7 +26,7 @@
  * The Phase Z2 type split is the primary expression of the invariant;
  * the hook is defense-in-depth at the persistence chokepoint.
  */
-import { Persistable } from '../persistence/Persistable';
+import { Persistable, preloadFieldMarshallersFor } from '../persistence/Persistable';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
 import { ZoneApi } from '../../api/zone';
@@ -84,6 +84,16 @@ export abstract class Template extends Persistable {
       const { LeafTemplate } = await import('./LeafTemplate');
       instance = await StuffApi.create(() => new LeafTemplate());
     }
+    // Preflight any marshaller singletons for the chosen subclass
+    // before the sync `fromDocument` walk, mirroring the pattern in
+    // `Persistable.findById` / `find`. Template subclasses today
+    // don't compose marshaller-typed fields, but a future
+    // `ZoneTemplate` / `LeafTemplate` extension that does would
+    // otherwise hit the sync `findByTemplatePath` "not registered"
+    // throw inside `fromDocument`.
+    await preloadFieldMarshallersFor(
+      instance.constructor as new (...args: unknown[]) => Persistable
+    );
     // Reflect persisted fields onto the instance via the public seam
     // Persistable provides for hydration. (It's protected, so we cast.)
     (instance as unknown as { fromDocument(d: DomainDoc): void }).fromDocument(

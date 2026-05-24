@@ -9,5 +9,3 @@ args:
     updates_focus: extend
     prepositions: [at]
     default: "$focus"
-    validators:
-      - /lib/command/validators/mustBeVisible

@@ -65,7 +65,7 @@ The file path determines the template path: relative path from
 |---|---|
 | `seeds/obj/EventRegistry.yaml` | `/obj/EventRegistry` |
 | `seeds/obj/Avatar/seed.yaml` | `/obj/Avatar/seed` |
-| `seeds/domain/void.yaml` | `/domain/void` |
+| `seeds/domain/void.yaml` | `/domain/void` (backing class `/lib/stuff/VoidLocation` — `SingletonMixin(Location)` with a `canDestruct` veto, so the bootstrap-pinned instance can't be removed mid-session) |
 
 ### Why YAML on disk
 
@@ -196,11 +196,22 @@ Failure modes throw and prevent server start:
 ```ts
 interface BootstrapEntry {
   /**
-   * Path of the template to clone — the identifier in the `domain`
-   * collection AND the runtime location of the resulting clone.
-   * E.g., `/obj/EventRegistry`.
+   * Path of the template to clone. Exactly one of `templatePath` /
+   * `templatePathPrefix` must be set.
    */
-  templatePath: string;
+  templatePath?: string;
+
+  /**
+   * Prefix to expand into all strict descendants in the `domain`
+   * collection (via `Template.findDescendants(prefix)`), each
+   * cloned as if it were an explicit entry. The prefix node itself
+   * is NOT cloned — add a sibling `templatePath` entry for it if
+   * needed. Cannot be combined with `dependsOn` / `awaitInit` (the
+   * expansion's depth-ascending order stands in for explicit deps,
+   * and per-clone async init isn't expressible when one entry
+   * fans out to N clones).
+   */
+  templatePathPrefix?: string;
 
   /** Other entries' templatePaths that must complete before this one. */
   dependsOn?: string[];
@@ -210,9 +221,14 @@ interface BootstrapEntry {
 }
 ```
 
-The shape is intentionally minimal. Most entries will have just
-`templatePath`. `dependsOn` for ordering; `awaitInit` only for entries
-that need async setup.
+Most entries will have just `templatePath`. `dependsOn` for
+ordering; `awaitInit` only for entries that need async setup beyond
+PostRegistration. `templatePathPrefix` is the bulk-bootstrap option
+for clusters of singletons that all need to be live but shouldn't
+bloat the manifest — species clades, materials, biomes. Expansion
+sorts depth-ascending (shorter paths first) so ancestor clades land
+before their descendants; collisions with explicit `templatePath`
+entries let the explicit one win.
 
 ### Engine manifest
 
@@ -230,32 +246,42 @@ information. TypeScript (not YAML) for:
   init callbacks).
 
 ```ts
-// mud/bootstrap.ts
+// mud/bootstrap.ts (current state — keep deliberately small)
 import type { BootstrapEntry } from '../backend/BootstrapManager';
-import type { WorldRoot } from './obj/WorldRoot';
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },
-
-  {
-    templatePath: '/obj/ModuleRegistry',
-    dependsOn: ['/obj/EventRegistry'],
-  },
-
-  {
-    templatePath: '/obj/CommandRegistry',
-    dependsOn: ['/obj/EventRegistry'],
-  },
-
-  {
-    templatePath: '/obj/WorldRoot',
-    dependsOn: ['/obj/EventRegistry'],
-    awaitInit: async (root) => {
-      await (root as WorldRoot).loadStartingZones();
-    },
-  },
+  // Void doubles as bootstrap-starting location AND the last-resort
+  // home for HasInteractive bodies whose container destructs without
+  // an outer to evacuate to (see `Container.cleanupOnDestruct`).
+  // Must be live before any container can destruct — bootstrap
+  // guarantees that.
+  { templatePath: '/domain/void' },
 ];
 ```
+
+The shape above is what the engine ships today. Note what's
+explicitly NOT here:
+
+- **Species clades** are not bootstrapped. `SpeciesApi.isAnimate` /
+  `getKingdom` are sync and resolve clades via
+  `findByTemplatePath`, but the `requiresAnimate` validator
+  preloads the relevant chain via its async `preload` hook (see
+  [command-routing.md § Validator preload phase](./command-routing.md#validator-preload-phase));
+  the dispatcher awaits preloads between MQL resolution and the
+  sync validator phase. Same pattern stays available for Materials
+  / Biomes / etc. as they grow validator coverage.
+- **No ModuleRegistry / CommandRegistry / WorldRoot.** Earlier
+  designs sketched these; reality folded them into other surfaces
+  (controllers are templates registered through the normal hook
+  template flow; module info isn't externally consulted yet).
+- **No `templatePathPrefix` entry** in the engine manifest yet.
+  Wave-in candidates (when they earn their keep): a
+  `/lib/material/` bulk entry once Material validators need
+  singleton-resolved tag tables; a `/lib/biome/` bulk entry once
+  per-biome resolvers move into validator preloads. Today the
+  preload-on-validator pattern handles every singleton-dependency
+  case cheaply enough that the manifest stays at two entries.
 
 ### Why no phases
 

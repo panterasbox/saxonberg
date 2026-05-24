@@ -19,4 +19,18 @@ import type { BootstrapEntry } from '../backend/BootstrapManager';
 
 export const bootstrapManifest: BootstrapEntry[] = [
   { templatePath: '/obj/EventRegistry' },
+  // The void doubles as the bootstrap-starting location AND the
+  // last-resort home for HasInteractive bodies whose container
+  // destructs without an outer to evacuate to. ContainerMixin's
+  // cleanup hook resolves it via sync `findByTemplatePath`, so it
+  // must be live before any container can destruct — bootstrap
+  // guarantees that.
+  { templatePath: '/domain/void' },
+  // Species clades are NOT bootstrapped. `SpeciesApi.isAnimate` /
+  // `getKingdom` are sync, and the `requiresAnimate` validator
+  // ensures the relevant clade chain via its async `preload` hook
+  // (see `lib/command/validators/requiresAnimate.ts`); the
+  // dispatcher awaits validator preloads before the sync validator
+  // phase runs. Same pattern is available for Materials / Biomes
+  // / etc. as they grow validator coverage.
 ];

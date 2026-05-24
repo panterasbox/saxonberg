@@ -10,20 +10,14 @@
  * 4. Setup graceful shutdown handlers
  */
 
-// Register the call-security loader hook BEFORE any game-code import.
-// The hook intercepts every `mud/**` module load and appends a
-// ModuleApi.stamp(...) call so every exported class gets a
-// tamper-resistant module-id. Imports below this line participate.
+// The call-security loader hook is registered in `preload.js` BEFORE
+// this module's imports resolve. ESM hoists all `import` statements
+// to the top of the module, so a `register()` call here in index.ts
+// would always run AFTER the entire transitive import graph has
+// already loaded — the loader wouldn't see any of them.
 //
-// Skipped under Vitest: Vitest uses Vite's plugin pipeline (see
-// vitest.config.ts → callSecPlugin), which does the same source
-// transform without going through Node's loader hooks at all. Both
-// pathways produce identical instrumentation.
-import { register } from 'node:module';
-if (!process.env.VITEST) {
-  register('./services/loader/loader-hook.js', import.meta.url);
-}
-
+// Vitest uses its own pipeline (vitest.config.ts → callSecPlugin) and
+// doesn't run through preload.js; same source transform either way.
 import 'dotenv/config';
 import { AppBootstrap } from './backend/AppBootstrap';
 import { Server } from './services/Server';
@@ -40,7 +34,7 @@ import { Server } from './services/Server';
  * runtime-instance manifest) lives behind `AppBootstrap` so this
  * file doesn't have to know about every prep system.
  */
-async function main() {
+export async function main() {
   try {
     console.info('='.repeat(60));
     console.info('Saxonberg 2.0 Server - Starting...');
@@ -89,13 +83,10 @@ async function main() {
   }
 }
 
-// Run main function if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    console.error('Unhandled error in main():', error);
-    process.exit(1);
-  });
-}
+// `main()` is invoked by `preload.js` (or the production entry that
+// imports this module). We deliberately don't auto-run on direct
+// execution: the loader hook MUST be registered before `index.ts`
+// loads, so `preload.js` is always the entry point.
 
 // Export for testing
 export { Server } from './services/Server';

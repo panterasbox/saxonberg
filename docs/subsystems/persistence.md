@@ -335,13 +335,23 @@ need. No bootstrap manifest entry is required for marshallers; they
 self-organize when first used.
 
 `Persistable.save` / `findById` / `find` pre-resolve any registered
-field marshallers (`preloadFieldMarshallers` / the static
-counterpart used by `findById`/`find`) before the sync
+field marshallers (`preloadFieldMarshallers` instance method /
+exported `preloadFieldMarshallersFor` static counterpart used by
+`findById`/`find` and by `Template._materialize`) before the sync
 `toDocument` / `fromDocument` walk. Pre-warming the singleton
 cache lets the sync `findByTemplatePath` lookup inside those
 methods always hit a populated cache. The async barrier sits in
 the already-async `save`/`findById`/`find` boundary; `toDocument`
 / `fromDocument` keep their sync contract.
+
+`TemplateApi.snapshotToTemplate` uses the same lazy-create pattern
+on the save path: rather than throwing when a field's marshaller
+isn't yet live, it calls `await StuffApi.singleton(mPath)` to
+clone the marshaller on demand. The first save touching a unit
+instantiates that unit's marshaller; subsequent saves hit the live
+ref in the byTemplatePath index. This avoids requiring a
+bootstrap manifest entry per marshaller while keeping `toStored`
+calls themselves sync.
 
 In production, the marshaller's CMS template is seeded into the
 `domain` collection by `SeederManager` at boot; the first save /

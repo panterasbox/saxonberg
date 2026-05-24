@@ -141,6 +141,74 @@ describe('BootstrapManager.run', () => {
     ];
     await expect(BootstrapManager.run(manifest)).rejects.toThrow(/duplicate/);
   });
+
+  it('expands a templatePathPrefix entry into one clone per descendant', async () => {
+    const { calls } = stubClone();
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+      { path: '/lib/species/animalia/chordata' },
+      { path: '/lib/species/animalia' },
+      { path: '/lib/species/animalia/chordata/mammalia' },
+    ] as unknown as Template[]);
+
+    await BootstrapManager.run([
+      { templatePathPrefix: '/lib/species' },
+    ]);
+
+    // Depth-ascending: shorter paths first so kingdom singletons land
+    // before their phyla.
+    expect(calls).toEqual([
+      '/lib/species/animalia',
+      '/lib/species/animalia/chordata',
+      '/lib/species/animalia/chordata/mammalia',
+    ]);
+  });
+
+  it('explicit templatePath wins over a prefix-expansion collision', async () => {
+    const { calls } = stubClone();
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+      { path: '/lib/species/animalia' },
+      { path: '/lib/species/plantae' },
+    ] as unknown as Template[]);
+
+    // The explicit entry should appear in its declared position, NOT
+    // be deduplicated as "duplicate". The prefix expansion skips
+    // `/lib/species/animalia` because it's already covered explicitly.
+    await BootstrapManager.run([
+      { templatePath: '/lib/species/animalia', awaitInit: async () => {} },
+      { templatePathPrefix: '/lib/species' },
+    ]);
+
+    expect(calls).toEqual([
+      '/lib/species/animalia',
+      '/lib/species/plantae',
+    ]);
+  });
+
+  it('rejects an entry that sets both templatePath and templatePathPrefix', async () => {
+    stubClone();
+    await expect(
+      BootstrapManager.run([
+        {
+          templatePath: '/lib/species/animalia',
+          templatePathPrefix: '/lib/species',
+        },
+      ])
+    ).rejects.toThrow(/exactly one of/);
+  });
+
+  it('rejects an entry that sets neither templatePath nor templatePathPrefix', async () => {
+    stubClone();
+    await expect(BootstrapManager.run([{}])).rejects.toThrow(/exactly one of/);
+  });
+
+  it('rejects a prefix entry that specifies dependsOn', async () => {
+    stubClone();
+    await expect(
+      BootstrapManager.run([
+        { templatePathPrefix: '/lib/species', dependsOn: ['/obj/A'] },
+      ])
+    ).rejects.toThrow(/cannot specify dependsOn/);
+  });
 });
 
 describe('BootstrapManager + EventRegistry integration', () => {

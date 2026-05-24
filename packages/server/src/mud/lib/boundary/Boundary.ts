@@ -4,15 +4,15 @@
  * future sound) between them."
  *
  * A Boundary is a `Thing`: it has identity, `Visible` and `Perceptible`
- * surfaces, and (via `Containable` from Thing) can become inventory if
- * detached from both sides — same shape as a broken Door. It is NOT
- * in either room's `getContents()`. It surfaces on each side via a
- * `BoundaryAnchor` fixture that sits in the host's
- * `Adornable.getFixtures()`.
+ * surfaces (both inherited from Thing's default composition), and (via
+ * `Containable` from Thing) can become inventory if detached from both
+ * sides — same shape as a broken Door. It is NOT in either room's
+ * `getContents()`. It surfaces on each side via a `BoundaryAnchor`
+ * fixture that sits in the host's `Adornable.getFixtures()`.
  *
- * Composition: `VisibleMixin(PerceptibleMixin(Thing))`. Subclasses
- * that need closed/open state (`Window` shutters, `Door`) compose
- * `Sealable` themselves.
+ * Composition: just `Thing` — Visible/Perceptible come baked in.
+ * Subclasses that need closed/open state (`Window` shutters, `Door`)
+ * compose `Sealable` themselves.
  *
  * Conduit registry: a Boundary subclass implements a subset of the
  * Conduit interfaces (LightConduit, LineOfSight, MovementConduit, …)
@@ -38,17 +38,13 @@
  */
 
 import { Thing } from '../stuff/Thing';
-import { VisibleMixin } from '../description/Visible';
-import { PerceptibleMixin } from '../description/Perceptible';
 import type { Stuff } from '../stuff/Stuff';
 import type { Conduit, BoundarySide } from './Conduit';
 import type { BoundaryAnchor } from './BoundaryAnchor';
 import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
 
-const BoundaryBase = VisibleMixin(PerceptibleMixin(Thing));
-
-export class Boundary extends BoundaryBase {
+export class Boundary extends Thing {
   /**
    * The two per-side anchors that surface this Boundary in each
    * host's `Adornable.getFixtures()`. Filled by

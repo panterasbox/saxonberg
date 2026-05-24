@@ -137,12 +137,23 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // Empty input fails msh parse ("No command entered"). Unknown
     // verbs parse fine and only fail at the matcher stage, so they
     // ride the info channel.
+    //
+    // Two frames now: the input-echo warn AND the framework
+    // auto-prose scene on `system.command.error` that surfaces the
+    // `command-rejected: parse-failed` note as player-readable text.
     await giver.executeCommand('');
 
-    expect(giver.received).toHaveLength(1);
-    expect(giver.received[0]!.topic).toBe('system.log.command.warn');
-    const payload = giver.received[0]!.payload as Record<string, unknown>;
+    expect(giver.received).toHaveLength(2);
+    const echo = giver.received.find(
+      (f) => f.topic === 'system.log.command.warn',
+    );
+    expect(echo).toBeDefined();
+    const payload = echo!.payload as Record<string, unknown>;
     expect(payload.parseError).toBeTruthy();
+    const errorScene = giver.received.find(
+      (f) => f.topic === 'system.command.error',
+    );
+    expect(errorScene).toBeDefined();
   });
 
   it('input-echo body carries the raw input text', async () => {

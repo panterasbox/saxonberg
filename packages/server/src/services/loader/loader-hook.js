@@ -1,5 +1,5 @@
 /**
- * Node `module.register` loader hook for the production tsx path.
+ * Node `module.register` loader hook for the tsx dev + production paths.
  *
  * Runs in a worker thread under Node's customisation hooks API. tsx
  * also installs a loader (for TS → JS compilation); ours chains via
@@ -10,50 +10,32 @@
  * Bootstrap sequence in `index.ts`:
  *
  *     import { register } from 'node:module';
- *     register('./mud/lib/security/loader-hook.js', import.meta.url);
+ *     register('./services/loader/loader-hook.js', import.meta.url);
  *     // ...all subsequent game-code imports happen here.
+ *
+ * Plain JS by necessity: `module.register()` only accepts a JS module
+ * URL — the registration URL is loaded BEFORE the loader chain it's
+ * extending is fully active, so tsx can't transpile a TS hook for us.
  *
  * The hook intercepts every `.ts` / `.js` file under `mud/`,
  * appending the same `__callSecModuleApi.stamp(...)` snippet the
  * Vite plugin appends in tests. Files outside the mud tree pass
  * through unchanged.
- *
- * If the spike outcome reveals tsx incompatibility (rare but
- * possible), the fallback is the same: this file becomes a no-op,
- * Vitest stamps via the plugin, and tsx switches to a build-time
- * codegen step. Document the divergence here when it lands.
  */
 
 import { transformSource, shouldTransform } from './transform.js';
-
-/** Node loader-hook context types — minimal shape, not from `node`. */
-interface LoadHookContext {
-  format?: string;
-  importAttributes?: Record<string, string>;
-  conditions?: string[];
-}
-
-interface LoadHookResult {
-  source?: string | ArrayBuffer | Uint8Array | undefined;
-  format: string;
-  shortCircuit?: boolean;
-}
-
-type NextLoad = (
-  url: string,
-  context: LoadHookContext
-) => Promise<LoadHookResult>;
 
 /**
  * Node calls this after our hook is registered. Chain through to the
  * upstream loader (e.g. tsx) so TS gets compiled, then post-process
  * the resulting source with our transform.
+ *
+ * @param {string} url
+ * @param {object} context
+ * @param {(url: string, context: object) => Promise<{source?: string | ArrayBuffer | Uint8Array, format: string, shortCircuit?: boolean}>} nextLoad
+ * @returns {Promise<{source?: string | ArrayBuffer | Uint8Array, format: string, shortCircuit?: boolean}>}
  */
-export async function load(
-  url: string,
-  context: LoadHookContext,
-  nextLoad: NextLoad
-): Promise<LoadHookResult> {
+export async function load(url, context, nextLoad) {
   const upstream = await nextLoad(url, context);
   if (!shouldTransform(url)) return upstream;
 
@@ -64,7 +46,7 @@ export async function load(
   const sourceStr =
     typeof raw === 'string'
       ? raw
-      : new TextDecoder('utf-8').decode(raw as ArrayBuffer | Uint8Array);
+      : new TextDecoder('utf-8').decode(raw);
 
   const transformed = transformSource(sourceStr, url);
   if (transformed === sourceStr) return upstream;

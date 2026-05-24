@@ -16,15 +16,16 @@ dispatch (the `scope:` field, `$focus`, `updates_focus`), see
 
 ```
   text input
-    → CommandLineApi.parse()           ─ shell tokenizer
-    → CommandApi.matchVerbContextual()  ─ verb lookup
-    → CommandApi.assemble()             ─ binds tokens to YAML, expands shell vars
-    → CommandApi.resolveAndValidate()   ─ MQL on type:object[s] fields
+    → CommandLineApi.parse()             ─ shell tokenizer
+    → CommandApi.matchVerbContextual()   ─ verb lookup
+    → CommandApi.assemble()              ─ binds tokens to YAML, expands shell vars
+    → CommandApi.resolveModel()          ─ MQL on type:object[s] fields
         for each MQL field:
           for each scope in def.scope:
             MqlApi.resolveOne / resolveMany(query, { commandGiver, scope })
             stop on first non-empty result
-          run validators
+    → await CommandApi.preloadValidatorDeps()  ─ validator preload phase
+    → CommandApi.runValidators()         ─ sync validators
     → controller.execute(model, ctx)
 ```
 
@@ -612,7 +613,7 @@ that bites only dev queries.
 
 Per-Focused-giver stash for the dynamic pronouns (`it`, `him`, `her`,
 `them`) plus the `last` slot returned by `$$`. Updated post-resolve
-by `CommandApi.resolveAndValidate`; read by the resolver when those
+by `CommandApi.resolveModel`; read by the resolver when those
 seeds appear in a chain.
 
 ```ts
@@ -799,8 +800,9 @@ Documented decisions worth not re-litigating:
 - [command-spec.md](./command-spec.md) — how to write a YAML view
   that uses MQL fields.
 - [command-routing.md](./command-routing.md) — the dispatch pipeline
-  including `resolveAndValidate`, scope try-list semantics, focus
-  management.
+  including the resolve / preload / validate split (`resolveModel`
+  → `preloadValidatorDeps` → `runValidators`), scope try-list
+  semantics, focus management.
 - [shell-environment.md](./shell-environment.md) — `$focus` /
   variable interpolation, `FocusedMixin`'s synthetic vars.
 - [collections.md](./collections.md) — the Detailed / Container /

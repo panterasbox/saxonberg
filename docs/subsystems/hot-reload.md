@@ -93,7 +93,9 @@ import.
 
 The cache-busted `import()` does no compilation of its own — it
 relies on whatever loader hook the host runtime has installed. In
-dev that's `tsx` (the server runs under `tsx watch src/index.ts`);
+dev that's `tsx` (the server runs under `tsx watch src/preload.js`,
+which registers the call-security loader hook before dynamically
+importing `src/index.ts`);
 in tests it's Vitest's loader. Both transpile `.ts` on import,
 including dynamic imports, so paths like `/abs/.../Foo.ts?hmr=N`
 work without a separate `tsc` step or built artifact.

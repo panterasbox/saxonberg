@@ -48,6 +48,12 @@ export class LookController extends CommandController<LookModel> {
     // chain `["$focus", "reachable"]`, so the dispatcher always
     // hands us a wrapper. Empty (`null`) is the only honest "no
     // match" signal; we don't fabricate another fallback here.
+    //
+    // The null-target path subsumes both "you tried to look at
+    // something that doesn't exist" (`look vase` when there's no
+    // vase) and "you tried to look at a referent that didn't
+    // resolve" (`look here` when you're placeless). MQL returns null
+    // in both cases; consistency is intentional.
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
@@ -133,17 +139,61 @@ export class LookController extends CommandController<LookModel> {
   private lookAtLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
-    const description = this.getObjectDescription(location);
+    // Render whatever the location actually has: name (if Named via
+    // `Mml.location`), description body (if Visible), exits (if
+    // Exitable), and a listing of visible occupants. A bare
+    // `Location` with no contents (no Named / no Visible / no
+    // Exitable — the void on a fresh login) degrades to the
+    // "indistinct surroundings" fallback rather than the awkward
+    // "You see nothing special." generic.
+    const hasVisible = MixinApi.isVisible(location);
+    const hasExits = MixinApi.isExitable(location);
+    const hasName = MixinApi.isNamed(location);
 
-    let body = Mml.compose`\n${Mml.location(location)}\n\n${Mml.fromMarkup(description)}`;
+    // Visible-mixin filter mirrors `lookAtTarget`'s structural-only
+    // policy: items that don't compose Visible can't be referenced
+    // anyway, so listing them would be a category error. Adornments
+    // (wall sconces, BoundaryAnchors, etc.) are part of the room's
+    // structure, not loose contents, and route through their host's
+    // description rather than the occupant list. The actor never
+    // lists themselves.
+    const visibleContents = location
+      .getContents()
+      .filter((item) => {
+        if (item.stuffId === actor.stuffId) return false;
+        if (MixinApi.isAdornment(item)) return false;
+        if (!MixinApi.isVisible(item)) return false;
+        return true;
+      });
 
-    if (MixinApi.isExitable(location)) {
+    if (
+      !hasVisible &&
+      !hasExits &&
+      !hasName &&
+      visibleContents.length === 0
+    ) {
+      MessageApi.scene(actor)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`Your surroundings are indistinct.`)
+        .send();
+      return;
+    }
+
+    let body = Mml.compose`\n${Mml.location(location)}`;
+    if (hasVisible) {
+      body = Mml.compose`${body}\n\n${Mml.fromMarkup(location.getLong())}`;
+    }
+    if (hasExits) {
       const exitsLine = this.formatExits(location.getObviousExits());
       if (exitsLine) {
         body = Mml.compose`${body}\n\n${exitsLine}`;
       }
     }
-
+    if (visibleContents.length > 0) {
+      const items = visibleContents.map((item) => Mml.item(item));
+      const list = Mml.list(items);
+      body = Mml.compose`${body}\n\nYou also see: ${list}.`;
+    }
     body = Mml.compose`${body}\n`;
 
     MessageApi.scene(actor)
@@ -156,8 +206,28 @@ export class LookController extends CommandController<LookModel> {
 
   private lookAtTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
-    const description = this.getObjectDescription(target);
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(description)}\n`;
+    // Non-Visible targets fall through to a polite refusal rather
+    // than rendering "You see nothing special." against the target's
+    // name. The `look.yaml` validator stack used to enforce this via
+    // `mustBeVisible`, but excluding non-Visible targets at the
+    // validator level also rejected `look` against a non-Visible
+    // location (the void case), so the check moved here where it
+    // can differentiate "looking at a thing" from "looking at the
+    // room".
+    if (!MixinApi.isVisible(target)) {
+      const name = DescribeApi.getDisplayName(target, 'that');
+      MessageApi.scene(actor)
+        .topic(MessageApi.Topics.world.perception.look)
+        .toSelf(Mml.compose`You can't see ${name}.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'target-not-visible',
+        detail: name,
+      });
+      return;
+    }
+    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getLong())}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)
@@ -165,11 +235,6 @@ export class LookController extends CommandController<LookModel> {
       .send();
 
     return;
-  }
-
-  private getObjectDescription(obj: Stuff): string {
-    if (MixinApi.isVisible(obj)) return obj.getLong();
-    return 'You see nothing special.';
   }
 
   private formatExits(exits: Exit[]): Mml | null {

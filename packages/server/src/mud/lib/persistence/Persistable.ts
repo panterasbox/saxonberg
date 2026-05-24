@@ -315,10 +315,13 @@ export class Persistable extends Stuff {
 
 /**
  * Static-context preload helper. Used by `findById` / `find` where
- * there's no instance to call `preloadFieldMarshallers` on yet.
- * Symmetric with the protected instance method.
+ * there's no instance to call `preloadFieldMarshallers` on yet, and
+ * by `Template._materialize` for the same reason. Symmetric with the
+ * protected instance method. Exported so the few sites that call
+ * `fromDocument()` directly without going through `findById`/`find`
+ * can preflight identically.
  */
-async function preloadFieldMarshallersFor(
+export async function preloadFieldMarshallersFor(
   ctor: new (...args: unknown[]) => Stuff
 ): Promise<void> {
   const paths = Object.values(MixinApi.getAllFieldMarshallers(ctor));
