@@ -271,22 +271,32 @@ mode-bound panels are tracked separately below.
 
 ### Room-state (about the location)
 
+**Mostly superseded** by [inspection-pane-slate.md](./inspection-pane-slate.md)
+— the room-state widgets below fold into the inspection pane's
+body (when focus is `'here'`). Status-header items (Room name,
+Time) remain part of the always-on minimum.
+
 | Panel | Notes | v1? |
 |---|---|---|
-| Room name + brief | Location title; in status header | v1 |
-| Exits | Clickable; `<direction>`-tagged | v1 |
-| Things here | Objects in room; clickable | v1 |
-| People here | NPCs + players; clickable | v1 |
-| Lighting | Band + source attribution | v1 |
-| Atmosphere | Temperature, gas mix, pressure, gravity | v1 (demoable) |
+| Room name + brief | Location title; in status header | v1 (header) |
+| Exits | Clickable; `<direction>`-tagged | v1 (in pane body) |
+| Things here | Objects in room; clickable | v1 (in pane body) |
+| People here | NPCs + players; clickable | v1 (in pane body) |
+| Lighting | Band + source attribution | v1 (in pane body) |
+| Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in pane body) |
 | Sound | Ambient + sources | later (with sound subsystem) |
 | Time | Local clock | v1 (in header, if world-clock-slate ships) |
 
-### Inspection (focus panel)
+### Inspection pane
 
-| Panel | Notes | v1? |
-|---|---|---|
-| Focus | When player `examines` / `focuses`, deep-dive: description, details, properties, slots, lighting emitted, contents, ownership, template path (author mode). Auto-updates as focus changes. | v1, central |
+**Superseded** by the dedicated
+[inspection-pane-slate.md](./inspection-pane-slate.md), which
+absorbs the Room-state widgets (Exits, Things-here, People-here,
+Lighting, Atmosphere) AND the Focus panel into a single unified
+pane. Header tracks live focus (matches the prompt's focus token);
+body shows the most recent `look` output against that focus.
+Focus-without-look clears the body; refresh button + breadcrumb
+history + future tab strip handle navigation.
 
 ### Navigation
 

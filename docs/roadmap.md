@@ -216,6 +216,27 @@ promoted to formal requirements.
   land per the slate's build order. Supersedes the cockpit slate's
   brief "Interactive prompt stack (Polish A)" section.
 
+- [docs/slates/inspection-pane-slate.md](./slates/inspection-pane-slate.md)
+  — the persistent right-column pane that displays what the player
+  is currently focused on. Header/body decoupling (focus changes
+  update the header live; only an explicit `look` repopulates the
+  body), refresh button, focus breadcrumbs, future tabs for MQL
+  query results and admin views, `look <thing> --peek` flag for
+  inspect-without-commit, expandable admin metadata section. New
+  `system.inspection` topic carries the structured payload
+  alongside the existing prose emit. Supersedes the cockpit slate's
+  Room-state / Focus widget entries — they fold into this one pane.
+
+- [docs/slates/console-filtering-slate.md](./slates/console-filtering-slate.md)
+  — sister surface to the inspection pane: client-side toolkit for
+  managing the terminal scroll. Topic toggles, search,
+  sender-scoped filtering, family mute/collapse, timestamps,
+  compact mode, server-side `prose.verbose = brief | full` setting
+  + `look --brief` flag. Principle: server always emits, client
+  decides what to show — filtering is reversible without server
+  round-trips. New `console.*` settings keyspace under the existing
+  `EnvironmentMixin`.
+
 ---
 
 ## v1 punch list — small, concrete remaining items
