@@ -1,0 +1,19 @@
+
+inherit ArmorCode;
+
+void extra_create()
+{
+	set_name("suit");
+	add_alias("cheap armor");
+	set_short("a cheap suit of armor");
+	set_long("This is your FREE suit of armor.  It will cover many areas of your body " +
+	"including your chest, stomach, left shoulder, and right shoulder.  It seems to be " +
+	"made of rather cheap material, but hey, what did you expect for free?");
+	set_ac(2);
+	add_area("chest");
+	add_area("stomach");
+	add_area("left shoulder");
+	add_area("right shoulder");
+	set_weight(250);
+	set_value(0);
+}

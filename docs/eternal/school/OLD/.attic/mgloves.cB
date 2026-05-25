@@ -1,0 +1,18 @@
+
+inherit ArmorCode;
+
+void extra_create()
+{
+
+	set_name("gloves");
+	add_alias("cheap gloves");
+	set_short("a cheap pair of gloves");
+	set_long("These are your very own FREE newbie gloves!  " +
+	"They are made of less than perfect material, but appear to fit over " +
+	"your hands well.");
+	set_weight(30);
+	set_value(0);
+	set_ac(1);
+	add_area("left hand");
+	add_area("right hand");
+}

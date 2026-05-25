@@ -1,0 +1,187 @@
+// I put a check in wait() to see if room was an actual object.
+// Hopefully it will fix the bug that occured when the mud first starts up.
+// Tyrus
+
+inherit MonsterCode;
+#include "/zone/null/eternal/bus/bus.h"
+#include BobCode
+ 
+status moving, triggered;
+string nextstop;
+object sroom, sshadow;
+ 
+create() {
+  ::create();
+  if(clonep(THISO)) destruct(THISO);
+  set_short("bus");
+  set_long("bus");
+  set_name("bus");
+  set_heart_beat(1);
+  call_other(DRIVER, "???");
+  move_object(DRIVER, THISO);
+  move_object(THISO, "/zone/null/eternal/common");
+  nextstop="Bed & Breakfast Inn, Lobby";
+  triggered = 0;
+  moving = 0;
+  mp_setup(); }
+ 
+init() {
+  if(ENV(THISP)==ENV(THISO)) add_action("do_board", "board");
+  else { 
+    add_action("do_exit", "exit"); 
+    add_action("do_pull", "pull"); 
+    add_action("do_look", "look"); } }
+ 
+do_board(string str) {
+  if(!str || str!="bus") {
+    notify_fail("Board what?\n");
+    return 0; }
+  if(moving) {
+    write("You can't board the bus while it's moving!\n");
+    return 1; }
+  tell_room(ENV(THISO), PNAME+" steps onto the bus.\n", ({THISP}));
+  tell_room(THISO, PNAME+" steps onto the bus.\n", ({THISP}));
+  write("You step onto the bus.\n");
+  move_object(THISP, THISO);
+  DRIVER->get_money(THISP);
+  remove_call_out("startup");
+  call_out("startup", 30);
+  return 1; }
+ 
+ 
+do_pull(string str) {
+  if(!str || str!="cord") {
+    notify_fail("Pull what?\n");
+    return 0; }
+  if(triggered) {
+    write("The REQUESTED light is already on!\n");
+    return 1; }
+  write("You pull the cord and the REQUESTED light goes on up front.\n");
+  tell_room(THISO, PNAME+" pulls the cord to request the next stop.\n",
+    ({THISP}));
+  triggered = 1; 
+  return 1; }
+ 
+do_exit(string str) {
+  object room;
+  if(moving) { 
+    write("You can't exit the bus while it's moving!\n");
+    return 1; }
+  room = FINDO(STOPS[program_name(ENV(THISO))]);
+  THISP->move_player("&&", room);
+  DRIVER->noboot();
+  tell_room(THISO, PNAME+" steps off the bus.\n");
+  tell_room(room, PNAME+" "+THISP->query_msgin()+".\n", ({THISP}));
+  return 1; }
+ 
+do_look(string str) {
+  object room;
+  room = ENV(THISO);
+  if(str=="cord"||str=="cords") {
+    write(strformat("A small cord dangles next to the window.  Type "
+      "<pull cord> to signal the driver to stop.\n"));
+    return 1; }
+  if(str=="sign") {
+    write("NO ROUGHHOUSINGS\nLooks like Amos runs a smooth bus.\n");
+    return 1; }
+  if(str=="window" || str=="windows") {
+    write("Outside the window you see:\n");
+    write(ENV(THISO)->long());
+    map_array(all_inventory(ENV(THISO)), lambda(({'x}), ({ #'?, ({ #'!=, 'x, ({#'this_object}) }), ({ #'write, ({ #'sprintf, "%s.\n", ({ #'call_other, 'x, "short" }) }) }) }) ));
+    return 1; }
+  if(str=="advertisement" || str=="ad" || str=="advertisements" || str=="ads" ) {
+    write(ADS[random(sizeof(ADS))]+"\n");
+    return 1; }
+  return 0; }
+ 
+void wait() { 
+  object room, shadow;
+  int i;
+  room = FINDO(STOPS[program_name(ENV(THISO))]);
+  if( !objectp( room ) )return;
+  if( !sizeof(filter_array(all_inventory(room), #'interactive)) &&
+      !sizeof(filter_array(all_inventory(ENV(THISO)), #'interactive)) &&
+      !triggered ) {
+    tell_room(THISO, "The bus cruises by "+nextstop+".\n");
+  for(i=member(ORDER, STOPS[program_name(ENV(THISO))]);;i++) {
+    if(i==sizeof(ORDER)-1) i = -1;
+    if(FINDO(ORDER[i+1])) {
+     nextstop=FINDO(ORDER[i+1])->short();
+      break; } }
+    return; }
+  moving = 0;
+  halt_mp(0);
+  shadow = clone_object(SHADOW);
+  if(room) shadow->sh_init(room);
+  reinit(room);
+  tell_room(ENV(THISO), strformat("The engine of the bus dies as it screeches to a halt in front of "+
+    room->short()+" and the front doors swing open.\n"));
+  tell_room(THISO, strformat("The engine of the bus dies as it screeches to a halt in front of "+
+    room->short()+".  The front doors swing open.\n"));
+  tell_room(room, strformat("You hear the loud screech of the Eternal "
+     "City bus as it stops outside.\n"));
+  triggered = 0;
+  for(i=member(ORDER, STOPS[program_name(ENV(THISO))]);;i++) {
+    if(i==sizeof(ORDER)-1) i = -1;
+    if(FINDO(ORDER[i+1])) {
+     nextstop=FINDO(ORDER[i+1])->short();
+      break; } }
+  sroom = room;
+  sshadow = shadow;
+  call_out("start_up", 60); }
+ 
+void start_up() {
+  object room, shadow;
+  room = sroom;
+  shadow = sshadow;
+  sshadow = 0; sroom = 0;
+  tell_room(ENV(THISO), strformat("The engine of the bus roars to life and "
+    "it lurches off toward its next stop.\n"));
+  tell_room(room, strformat("You hear the engine of the bus outside roar "
+    "to life as it drives off toward its next stop.\n"));
+  tell_room(THISO, strformat("The engine of the bus roars to life and "
+    "it lurches off toward its next stop.\n"));
+  catch(shadow->byebye());
+  reinit(room);
+  moving = 1;
+  halt_mp(1);
+  return; }
+ 
+attackable() { return 0; }
+ 
+short() { 
+  if(moving) return "The Eternal City bus is driving by";
+  else return "The Eternal City bus is parked here waiting for "
+    "passengers"; }
+ 
+long() {
+  string *mstops;
+  int i;
+  if(ENV(THISP)==ENV(THISO)) {
+    write(strformat("This is the Eternal City commuter bus.  It's "
+      "current stops are:\n"));
+    mstops = m_values(STOPS);
+    for(i=0; i<sizeof(mstops); i++) {
+      if(FINDO(mstops[i])) write("  "+FINDO(mstops[i])->short()+"\n"); }
+    return "\nFare is currently "+FARE+" coins, or the appropriate "
+      "pass.\nType <board bus> to get on\n"; }
+  else {
+    write("Eternal City Bus\n    You are seated inside the Eternal City "
+      "commuter bus.  Like any bus\nwindows cover each side, with seats "
+      "lined up below them.  Advertisements\nfor some of Eternal City's "
+      "esteemed organizations hover above the seats.\nA cord dangles next "
+      "to you that you may pull to signal the driver to pull\nover at the next "
+      "stop.  NO ROUGHHOUSINGS ON BUS.  A big sign up front says\n\n"
+      "                NEXT STOP:  "+nextstop);
+    if(triggered) write(" REQUESTED.\n\n");
+    else write("\n\n");
+    return "---- The only obvious exit is exit.\n"; } }
+ 
+query(string var) {
+  if(var==NoCombatP && THISI && !DRIVER->query("kicking ass"))
+    DRIVER->fight(THISI);
+  else return ::query(var); }
+ 
+destruct_signal() {
+  filter_array(find_objects(SHADOW[1..] + "#")[1..], #'call_other, "byebye");
+  return 0; }

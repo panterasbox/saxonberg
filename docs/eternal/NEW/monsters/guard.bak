@@ -1,0 +1,68 @@
+/* Random race added for that pan-dimensional feel ;^)  */
+/*   -- Anthrax  */
+/* Beefed up slightly and replaced in response to received criticism */
+#define RACES ({\
+	"human",\
+	"high_human",\
+	"centaur",\
+	"parthan",\
+	"klingon",\
+	"high_elf",\
+	"elf",\
+	"trenol",\
+	"dwarf",\
+	"halfling"\
+	})
+
+inherit MonsterCode;
+inherit MonsterMove;
+
+extra_create()
+{
+    object tmp;
+
+    set_name("guard");
+    set_short("an Eternal City guard");
+    set_race(RACES[random(sizeof(RACES))]);
+      set_long("This intimidating-looking "+THISO->query_race()+" wanders around Eternal City, "+
+	"keeping order among the travellers from across all the dimensions "+
+	"that find their way here.  He doesn't look like someone you'd "+
+	"want to cross.\n");
+      set_gender("male");
+      set_move_rate(20);
+      set_move_chance(85);
+      set_toughness(100 + random(21));
+      set_skill("/obj/skills/combat/defend", 100);
+      set_proficiency("light sword", 50);
+      tmp = clone_object("/obj/weapon/weapons/edged/broad_sword");
+      move_object(tmp, THISO);
+      wield_weapon(tmp);
+      if(THISO->query_race() == "Centaur")
+      {
+	  tmp = clone_object("/obj/armor/armor/race/centaur/centaur_chestplate");
+	  tmp->set_short("a bronze centaur plate mail breastplate");
+      }
+      else
+	  tmp = clone_object("/obj/armor/armor/breastplates/bronze_plate_breastplate");
+      move_object(tmp, THISO);
+      wear_armor(tmp);
+  }
+
+#include "/zone/null/eternal/monsters/GOOD_PROTECT.include"
+
+    query_move_ok(object dest, object mover)
+    {
+	string a,b;
+	if(mover != THISO) return 0;
+	if(!sscanf(file_name(dest),"/zone/null/eternal/%s",a)) return 1;
+	if(stringp(a) && (a == "lounge/lounge" || a == "bbinn2") )
+	    return 1;
+	if(stringp(a) && sscanf(a,"alley%s",b) ) return 1;
+	return 0;
+    }
+
+    combat_hook(object target, object attacker)
+    {
+	if(!attacker->is_player()) return 0;
+	return 1;
+    }

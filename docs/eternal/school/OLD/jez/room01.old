@@ -1,0 +1,69 @@
+inherit RoomPlusCode;
+
+void extra_create()
+{
+    set( "short", "A Small Schoolroom" );
+    set( "day_long",
+      "This is a small room in the EotL Elementary School.  If you follow "
+      "the directions and study, you will be able to graduate from here "
+      "and enter the real world with the knowledge and satisfaction of "
+      "completing your courses.  The first rule is that 'l' means look, "
+      "and you 'l <object>' to look at it.  This is a small schoolroom with "
+      "a large black chalkboard at the front.  Your teacher is Miss Dixie.  "
+      "She will guide you through each step so that you may understand "
+      "all the basic rules and commands on EotL.  "
+      "Look at the chalkboard to begin your first lesson.  Good luck!"
+    );
+    set( "day_light", WELL_LIT );
+    set( "night_light", WELL_LIT );
+    set( "exits", ([ "north": "room02.c" ]) );
+    set( "descs", ([
+      ({ "board", "chalkboard", "blackboard" }):
+          "The first lesson covers basic commands.  You have already learned "
+          "that 'l' means to look at something.  The next basic commands "
+          "you need to learn will be as follows:\n"
+          "'i' is to see your inventory, and 'score' is to see your score.\n"
+          "'hp' will let you see your hit points, mana, and fatigue.\n"
+          "These are the first basic commands that you need to know as a "
+          "player on EotL.  After you are familiar with these commands, you "
+          "may leave north to enter the next room and start the next lesson.",
+      ({ "dixie", "miss dixie", "teacher" }):
+          "Miss Dixie is pointing at the board, indicating that you should "
+          "look at it.  "
+          "She is wearing a smart-looking slate blue business suit, and "
+          "has her dark hair rolled up in a bun.\n"
+          "Miss Dixie gives you a serious look.",
+    ]) );
+    set( InsideP, 1 );
+    set( NoPKP, 1 );
+}
+
+int query_enter_ok( object ob, object this_room )
+{
+    if( living( ob ) && !IsWizard( ob ) && ob->query_eval() > 1 )
+        return( 1 );
+}
+
+void extra_init()
+{
+    if( THISP->query_prop_value( "player_kills" ) > 0
+      && ( !IsWizard( THISP ) ) )
+        call_out( "kicked_out", 1, THISP );
+}
+
+status kicked_out( object bully )
+{
+    say( strformat( sprintf( "Miss Dixie raps %s on the knuckles "
+      "and kicks %s out of the classroom.",
+      bully->query_name(), objective( bully ) ) ) );
+    write( strformat( "Miss Dixie raps you on the knuckles and kicks "
+      "you out of the classroom!" ) );
+  
+    move_object( bully, "/zone/null/eternal/lounge/lounge" );
+    bully->glance();
+    tell_room( "/zone/null/eternal/lounge/lounge",
+      sprintf( "%s gets kicked out of school for being a bully.\n",
+      capitalize( bully->query_name() ) ),
+      ({ bully }) );
+    return( 1 );
+}

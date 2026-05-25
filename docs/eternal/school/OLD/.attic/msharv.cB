@@ -1,0 +1,17 @@
+
+inherit ArmorCode;
+
+void extra_create()
+{
+	set_name("sharv");
+	add_alias("tail armor");
+	add_alias("cheap sharv");
+	set_short("a cheap sharv");
+	set_long("This is your FREE tail sharv.  It is one of the rare armor " +
+	"items that is designed to protect the tail.  Certain races require " +
+	"this protection, because there tail is the weakest part of there body.");
+	add_area("tail");
+	set_ac(1);
+	set_weight(25);
+	set_value(0);
+}

@@ -1,0 +1,12 @@
+                    GETTING AROUND
+ 
+The basic directions (north, south, east, west, northwest, 
+northeast, southwest, southeast, up, and down) are used to
+move your character from one room to another.  These 
+directions are already aliased for you as follows:
+ 
+        'n'  for north           's'  for south
+        'e'  for east            'w'  for west
+        'nw' for northwest       'sw' for southwest
+        'ne' for northeast       'se' for southeast
+        'u'  for up              'd'  for down 

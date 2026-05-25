@@ -1,0 +1,11 @@
+2##emote looks at the menu.
+1##hmm
+2##@sit_down
+5##drink espresso
+1##sigh contentedly
+5##drink espresso
+3##emote glances about idly.
+4##emote fidgets.
+3##@stand_up
+1##add espresso mug
+1##LOOP

@@ -1,0 +1,28 @@
+inherit RoomCode;
+inherit DescCode;
+
+
+void extra_create()
+{
+   set_short("A Small School Room");
+   set_long(
+   "This is a small room in the EotL Elementary School.  " +
+   "Your teacher Miss Dixie is at the front of the room pointing at a chalkboard.  " +
+   "Why dont you look at the chalkboard to begin your second lesson."
+   );
+   set_day_light(10);
+   set_night_light(1);
+   add_exit("north", "room03");
+   add_exit("south", "room01");
+   add_description("board, chalkboard, blackboard", "The next lesson  " +
+   "is learning directions.  The basic directions (north, south, east, " +
+   "west) are used to move your character from one room to another.  " +
+   "To make it easy however, directions are aliased to letters.  They " +
+   "are straightforward and easy to remember.  They are:  " +
+   "'n' for north, 's' for south, 'e' for east, 'w' for west, 'nw', 'sw', " +
+   "'ne', amd 'se'.  Other commands for directions are 'u' for up, and " +
+   "'d' for down.  Once you have learned these commands, you may move " +
+   "on to the next classroom, where you will have your next lesson.");
+}
+
+

@@ -1,0 +1,41 @@
+inherit RoomPlusCode;
+
+void extra_create()
+{
+    set("short","A Small Schoolroom");
+    set("day_long",
+      "This is a small room in the EotL Elementary School.  " 
+      "Your teacher, Miss Dixie, is at the front of the room pointing at "
+      "your second lesson, which is written on the chalkboard."
+    );
+    set( "day_light", WELL_LIT );
+    set( "night_light", WELL_LIT );
+    set( "exits", ([
+      "north": "room03",
+      "south": "room01",
+    ]) );
+    set( "descs", ([
+      ({ "board", "chalkboard", "blackboard" }):
+          "The next lesson is about learning directions.  The basic directions "
+          "(north, south, east, west) are used to move your character from "
+          "one room to another.  To make things easier for you, however, "
+          "directions are aliased to single letters, which are "
+          "straightforward and easy to remember.  They are:\n"
+          "    'n' for north     's' for south\n"
+          "    'e' for east      'w' for west\n"
+          "plus 'nw', 'sw', 'ne', and 'se'.\n"
+          "Other commands for directions are 'u' for up, and 'd' for "
+          "down.\n"
+          "\n"
+          "Once you have learned these commands you may move on to the "
+          "next classroom, where you will have your next lesson.",
+      ({ "dixie", "miss dixie", "teacher" }):
+          "Miss Dixie is pointing at the board, indicating that you should "
+          "look at it.  "
+          "She is wearing a smart-looking slate blue business suit, and "
+          "has her dark hair rolled up in a bun.\n"
+          "Miss Dixie has a no-nonsense look about her.",
+    ]) );
+    set( InsideP, 1 );
+    set( NoPKP, 1 );
+}

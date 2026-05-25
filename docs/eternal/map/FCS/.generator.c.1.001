@@ -1,0 +1,442 @@
+#include <ansi.h>
+
+string map_color;
+string header_file;
+string legend_file;
+string start_room;
+string storage_directory;
+string generic_map;
+string cabal;
+int map_width, map_height;
+int start_x, start_y;
+int debug;
+
+// the char_map represents the data structure we use to store the map.
+// information is stored in a two dimensional array.  Everything in the
+// map is stored as charactrer data except for rooms.  Nodes that have
+// rooms are stored as ({ room, symbol }) so we can have an easier time
+// generating all the maps necessary.
+mixed* char_map;
+
+// make sure we're not duplicating effort.  store an array of all the rooms
+// we've already visted.
+string* visited;
+
+// the stack that's used to pass information around between calls when
+// generating the initial map
+mixed* stack;
+
+/*  general set functions for people who inherit us  */
+void set_debug( status d )
+{
+    debug = d;
+}
+
+void set_ansi_color( string s )
+{
+    map_color = s;
+}
+
+void set_generic_map_file( string s )
+{
+    generic_map = s;
+}
+
+void set_legend_file( string s )
+{
+    legend_file = s;
+}
+
+void set_header_file( string s )
+{
+    header_file = s;
+}
+
+void set_map_width( int w )
+{
+    map_width = w;
+}
+
+void set_map_height( int h )
+{
+    map_height = h;
+}
+
+void set_start_x( int x )
+{
+    start_x = x;
+}
+
+void set_start_y( int y )
+{
+    start_y = y;
+}
+
+void set_start_room( string s )
+{
+    start_room = s;
+}
+
+void set_cabal( string s )
+{
+    cabal = s;
+}
+
+void set_storage_directory( string s )
+{
+    storage_directory = s;
+}
+
+/*  everything else  */
+
+static status allowed_caller( object who )
+{
+    return( CABALSERVER->IsMember( getuid( who ), "eternal" ) );
+}
+
+status allow_room( string s )
+{
+    return( s[0..strlen( cabal )-1] == cabal );
+}
+
+string full_path( string room, string dest )
+{
+    if( dest[0] != '/' )
+        return( call_other( room, dest[1..] ) );
+    return( dest );
+}
+
+
+// return the file name to use for storing the map for this room
+string get_map_storage_path( string s )
+{
+    int index = 4;
+    
+    if( s[0..strlen( cabal )-1] != cabal )
+    {
+        index = 3;
+    }
+    
+    return( implode( explode( s, "/" )[index..], "_" ) );
+}
+
+void print_generic_map( )
+{
+    string dstr = "";
+    printf( "Current map...\n" );
+    for( int x = 0; x < sizeof( char_map ); x++ )
+    {
+        string s = "";
+
+        for( int y = 0; y < sizeof( char_map[x] ); y++ )
+        {
+            mixed c = char_map[x][y] || 32;
+            
+            if( pointerp( c ) )
+            {
+                if( debug ) dstr = sprintf( "%spgm:  %O\n", dstr, c );
+                s = sprintf( "%s%s", s, c[1] );
+
+                if( strlen( c[1] ) > 1 )
+                {
+                    y += ( strlen( c[1] ) - 1 );
+                }
+            }
+            else                
+                s = sprintf( "%s%c", s, c );
+        }
+        
+        if( strlen( s ) > 0 )
+            printf( "+%s+\n", s );
+    }
+    printf( "Done.\n" );
+    if( debug ) printf( "%s\n", dstr );
+}
+
+// room_list - an array of rooms to keep track of the color maps we've
+//             already generated
+// returns - true if we drew color for a room
+static void print_ansi_map( object* room_list )
+{
+    mixed *room_info;
+    string *legend = grab_file( legend_file ) || ({ });
+    int has_drawn_color = 0;
+    
+    if( find_call_out( "print_ansi_map" ) != -1 )
+        return( 0 );
+    
+    rm( storage_directory + "temp_file" );
+    write_file( storage_directory + "temp_file", read_file( header_file ) );
+    
+    for( int x = 0; x < sizeof( char_map ); x++ )
+    {
+        string s = "";
+
+        for( int y = 0; y < sizeof( char_map[x] ); y++ )
+        {           
+            mixed c = char_map[x][y] || 32;
+            
+            if( pointerp( c ) )
+            {
+                int draw_color = 0;                
+                
+                if( ! has_drawn_color )
+                    draw_color = member( room_list, c[0] ) == -1;
+                
+                if( draw_color )
+                {
+                    has_drawn_color = 1;                                
+                    room_info = c;
+                    s = sprintf( "%s%s", s, map_color );
+                }
+                
+                s = sprintf( "%s%s", s, c[1] );                
+                // we want to skip ahead the number of spaces this symbol took
+                // otherwise symbols with a length > 1 will shift the row in 
+                // the map to the right.                                  
+                if( strlen( c[1] ) > 1 )
+                {
+                    y += ( strlen( c[1] ) - 1 );
+                }
+                
+                if( draw_color )
+                {
+                    room_list += ({ c[0] });
+                    s = sprintf( "%s%s", s, NORM );
+                }                
+            }
+            else                
+                s = sprintf( "%s%c", s, c );
+        }
+        
+        if( strlen( s ) > 0 )
+        {
+            // files with a ? for a symbol do not get a map generated for them            
+            write_file( storage_directory + "temp_file", sprintf( "%s%s\n", s, 
+                ( x < sizeof( legend ) ? legend[x] : "" ) ) );
+        }
+    }
+    
+    if( has_drawn_color )
+    {
+        if( room_info[1] != "?" )
+        {
+            rename( storage_directory + "temp_file", storage_directory + get_map_storage_path( room_info[0] ) );
+        }
+        else
+        {
+            rm( storage_directory + "temp_file" );
+        }
+        call_out( "print_ansi_map", 1, room_list );
+    }
+    else
+    {
+        rename( storage_directory + "temp_file", generic_map );
+        print_generic_map( );
+    }
+}
+
+void generate_map_files(  )
+{
+    object *rooms = ({ });
+    
+    if( geteuid( ) && allowed_caller( THISI ) )
+    {    
+        rm( storage_directory + "temp_file" );
+        print_ansi_map( rooms );
+    }
+}
+
+static mixed* extra_room_info( string new_room, mapping extras, string direction )
+{  
+    return( ({ new_room, extras[direction][0], 
+        0, 0,
+        extras[direction][1], extras[direction][2], 
+        0 }) );
+}
+
+static mixed* room_info( string room )
+{    
+    return( ({ room, room->query( "map_symbol" ), 
+        room->query( "exits" ), room->query( "map_units" ),
+        room->query( "map_hint_x" ), room->query( "map_hint_y" ),
+        room->query( "map_extras" ) }) );
+}        
+
+static void process_stack( )
+{
+    if( pointerp( stack ) && sizeof( stack ) )
+    {
+        mapping map, map_units, map_extras;
+        string *exit_dirs;
+        string room;
+        string sym, last_dir;
+        mixed* current;
+        int map_x, map_y;
+        int x_hints, y_hints;
+
+        current = stack[0];
+
+        room = current[0];
+        sym = current[1];
+        map = current[2] || ([ ]);
+        map_units = current[3] || ([ ]);
+        x_hints = current[4];
+        y_hints = current[5];
+        map_extras = current[6] || ([ ]);
+
+        map_x = current[7];
+        map_y = current[8];
+        last_dir = current[9];
+
+        stack -= ({ current });
+
+        exit_dirs = m_indices( map );
+
+        // we only care about rooms that have a valid symbol
+        if( stringp( sym ) )
+        {
+            if( debug ) 
+                if( char_map[map_y + y_hints][map_x + x_hints] )
+                    printf( "Overwriting char_map data at y: %d x: %d\n",  map_y + y_hints, map_x + x_hints );
+        
+            char_map[map_y + y_hints][map_x + x_hints] = ({ room, sym });
+
+            for( int i = 0; i < sizeof( exit_dirs ); i++ )
+            {
+                string s = full_path( room, map[exit_dirs[i]] );
+
+                if( stringp( s ) && ( allow_room( s ) || member( map_extras, exit_dirs[i] ) ) )
+                {
+                    int glyph, units;
+                    int local_x, local_y;
+
+                    local_x = map_x; local_y = map_y;
+
+                    if( member( map_units, exit_dirs[i] ) )
+                    {
+                        units = 1 + map_units[exit_dirs[i]];
+                    }
+                    else
+                    {
+                        units = 2;
+                    }
+
+                    for( int u = 0; u < units; u++ )
+                    {
+                        status valid_dir = 1;
+
+                        switch( exit_dirs[i] )
+                        {
+                            case "west":
+                                local_x--;  glyph = '-';  break;
+                            case "east":
+                                local_x++;  glyph = '-';  break;
+                            case "north":
+                                local_y--;  glyph = '|';  break;
+                            case "south":
+                                local_y++;  glyph = '|';  break;
+                            default:
+                                valid_dir = 0; exit_dirs[i] = 0;  units = 0;
+                        }
+
+                        if( valid_dir && u + 1 != units )
+                        {
+                            if( pointerp( char_map[local_y][local_x] ) )
+                                printf( "Warning!  erasing room data with "
+                                    "map glyph!\ncurrent room:  %O\n"
+                                    "map_data  %O\n", room, 
+                                    char_map[local_y][local_x] );
+                            else
+                                char_map[local_y][local_x] = glyph;
+                        }
+                    }
+
+                    if( member( visited, s ) == -1 )
+                    {
+                        if( member( map_extras, exit_dirs[i] ) )
+                        {
+                            stack = stack + ({ extra_room_info( s,
+                                map_extras, exit_dirs[i] ) +
+                                ({ local_x, local_y, exit_dirs[i], units }) });
+                        }
+                        else
+                        {
+                            stack = stack + ({ room_info( s ) +
+                                ({ local_x, local_y, exit_dirs[i], units }) });
+                        }
+                        visited += ({ s });
+                    }
+                }
+                else
+                {
+                    if( debug )
+                        printf( "Invalid destination %O.\n", s );
+                }
+            }
+        }
+        else if( sizeof( current ) == 11 )
+        {
+            int units = current[10] - 1;
+            status valid_dir = 1;
+            
+            if( debug )
+                printf( "There is no symbol, erasing map data...\n" );
+
+            switch( last_dir )
+            {
+                case  "east":
+                    map_x -= units;  break;
+                case "west":
+                    map_x += units; break;
+                case "north":
+                    map_y += units; break;
+                case "south":
+                    map_y -= units; break;
+                default:
+                    valid_dir = 0;
+            }
+
+            if( valid_dir )
+                if( ! pointerp( char_map[map_y][map_x] ) )
+                    char_map[map_y][map_x] = ' ';
+        }
+
+        while( find_call_out( "process_stack" ) != -1 );
+        call_out( "process_stack", 1 );
+    }
+    else
+    {
+        printf( "Empty stack.\n" );
+        print_generic_map( );
+    }
+}
+
+
+void start_travel_room( )
+{
+    if( geteuid( ) && allowed_caller( THISI ) )
+    {    
+        char_map = allocate( map_height );
+        
+        for( int index = 0; index < map_height; index++ )
+        {
+            char_map[index] = allocate( map_width );
+        }    
+    
+        stack = ({ room_info( start_room ) + ({ start_x, start_y, 0, 0 }) });
+        visited = ({ start_room });
+        
+        process_stack( );
+    }
+}
+
+status query_prevent_shadow( )
+{
+    return( 1 );
+}
+
+void create( )
+{
+    seteuid( 0 );
+}

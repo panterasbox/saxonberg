@@ -1,0 +1,33 @@
+inherit RoomCode;
+inherit DescCode;
+
+
+void extra_create()
+{
+   set_short("A Small School Room");
+   set_long(
+   "This is a small room in the EotL Elementary School.  it is much " +
+   "like the previous rooms in the school.  This is the language " +
+   "room, where you can learn how to speak.  There appears " +
+   "to be a language book on the desk in front of you.  Why don't you " +
+   "take a look at it to learn your next lesson."
+   );
+   set_day_light(10);
+   set_night_light(1);
+   add_exit("north", "room05.c");
+   add_exit("south", "room03");
+   add_description("book", "This is a language book.  Its pages are filled " +
+   "with directions on how to speak.  The first thing to learn is how " +
+   "to speak in room.  The command is 'say <phrase>' and can be shortened " +
+   "to ' ' <phrase>'.  The next command allows you to speak directly " +
+   "to a person.  Use 'tell <person> <what>' to speak to them.  If you " +
+   "want to speak to more than one person, you can type 'tell <person>, " +
+   "<person>, <person> <what>'.  To whisper to someone type 'whisper " +
+   "<person> <message>.  There are around 800 feelings on EotL, that you " +
+   "can find bye typing 'help feelings', or you can create your own, " +
+   "by typing 'emote <message>'.  This will make the message to be:  " +
+   "<your name> <message>.  Once you have finished the language lesson, " +
+   "you can go to the next room to the north.");
+}
+
+

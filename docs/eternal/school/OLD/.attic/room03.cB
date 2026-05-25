@@ -1,0 +1,34 @@
+inherit RoomCode;
+inherit DescCode;
+object machine;
+
+void extra_create()
+{
+if(!machine)
+CloneIt("usr/locus/open/machine", machine);
+   set_short("A Small School Room");
+   set_long(
+   "This is a small room in the EotL Elementary School.  " +
+   "Miss Dixie is happy to see you have completed your second lesson.  " +
+   "The chalkboard at the front of the room is filled with directions " +
+   "for your third lesson.  Why don't you look at it to continue."
+   );
+   set_day_light(10);
+   set_night_light(1);
+   add_exit("north", "room04");
+   add_exit("south", "room02");
+   add_exit("west", "room03a");
+   add_exit("east", "room03b");
+   add_description("board, chalkboard, blackboard", "The next lesson " +
+   "is learning how and what to buy when you first log on.  " +
+   "You will notice a vending machine in the room.  There are certain " +
+   "things that you can 'buy' (for free) from the machine.  To see a list " +
+   "of contents in the machine type 'stuff'.  Most of that stuff is " +
+   "extra.  Right now, please buy the following items (they will be explained later):" +
+   "  guide, titlewatch, ogl, iff, token, dagger, and binford or highlighter for ansi.  " +
+   "When you have bought all the items, you can leave to a different " +
+   "room.  These are labs, where you can learn about each item.  After " +
+   "you complete the labs, leave north to the next room for lesson four.");
+}
+
+

@@ -1,0 +1,8 @@
+take a look at /obj/weapon/weapons/special/v_dagger.c for
+so that you can put the      mixed query( string whut )
+function into the main room at the perko pit.  Use that
+so that if somebody (say the player body) were checking
+for NoCombatP, they would be intercepted by Pete and his
+shotgun
+
+-Walker

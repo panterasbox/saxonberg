@@ -1,0 +1,90 @@
+Okay, so the map from the vending machine as well as the help map command
+will now show your current location in ansi if you are inside eternal city.  
+Maps containing ansi are generated ahead of time, stored in files, and served
+when a player needs them.  If you want to change the contents of the map, you
+have to manually regenerate the files, which is outlined below.  Here's how 
+it works:
+
+Setting up the rooms to be mapped:
+
+Each room we want to represent on the map can have a couple of variables 
+set( ) in them.
+
+map_symbol:  a string representing what symbol to use on the map for this 
+             room.  If a room does not have a map_symbol set, none of its 
+             exits will be traversed and it will not get drawn on the map.  
+             Maps with a symbol of '?' will not have an ansi map file 
+             generated for them.  
+map_hint_x:
+map_hint_y:  integer rendering hints for how to draw the symbol for this room.
+             by default the map will print room symbols starting at their
+             location in the map.  For single character symbols, this isn't
+             a problem.  But if we want the symbol to be multiple characters
+             we might want to adjust the way the symbol is drawn.  
+             For example, Dave's Throne Room is drawn with the symbol DTR.
+             By default the room would show up on the map as:
+             
+                                    |
+                                    DTR
+             
+             This is slightly ugly, so we set a map_hint_x value of -1 in the
+             room, which tells the generator to move the x coordinate of this
+             room one space to the left.  The room is now drawn as:
+             
+                                    |
+                                   DTR
+                          
+map_units:   a mapping that indicates how many units away a particular exit 
+             in the room is from its destination.  Eternal city was not
+             designed in a perfect grid, so the map has to use some tricks
+             to display itself properly.  It is very important to set the
+             map_units in all rooms that have irregular units.  If you set
+             the 'west' units in one room as 2, but do not set the 'east
+             units in the destination room, you're not guarenteed that the
+             units will be recognized when generating the map.  If an exit 
+             does not have a value in the map_units mapping, or the 
+             mapping is not set, a standard distance of 1 is assumed.
+            
+map_extras:  a mapping containg information about spots on the map that 
+             would normally be dropped when processing rooms.  The generator
+             stays within rooms that are in the same cabal, so if you want
+             rooms outside your cabal to be added to the map, you need to
+             use this mapping.  It's format is:
+             
+                 ([ direction : ({ symbol, map_hint_x, map_hint_y }) ])
+                 
+             The direction is the exit from this room that we want to use
+             on the map.  The values are the same as for regular map rooms.
+                           
+How to generate new maps:
+
+Generating new maps is done in two steps.  The first step is to generate the
+structure we're going to use for making all our maps.  This is done by calling
+the function start_travel_room( ) in the generator.  It takes a little while to
+build the data structure, but when it is completed the map it intends to 
+generate will be displayed on your screen.  You can also display the default
+map by calling the function print_generic_map( ).  
+
+Once all the rooms have been traversed and you have verified that the map
+generated is the one you want to use, it is time to build all the ansi maps.
+This is done by calling generate_map_files( ).  Again, this takes some time
+to complete, but when the generator will display the generic map to signal
+completion.  
+
+Issues and Limitations:
+
+Right now the generator only lets cabal members call the functions that 
+generate the maps.
+
+The map width and height must be defined so it has an extra space on all 
+sides of whatever the maximum possible map size is.  
+
+The map generator only understands how to travel in the 4 major compass
+directions north, south, east and west. 
+
+Related files:
+    The generator engine - /zone/null/eternal/map/generator.c
+    The ec specific engine - /zone/null/eternal/map/ec_generator.c
+    The map server - /zone/null/eternal/map/server.c
+    
+-Hodge

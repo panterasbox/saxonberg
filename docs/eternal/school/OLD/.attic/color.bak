@@ -1,0 +1,10 @@
+string query_color( object who, string verb )
+{
+    mapping colors;
+    mixed *command;
+    colors=who->query_body_colors();
+    command=colors[verb];
+    if(sizeof(command))
+	return command[0];
+    else return "";
+}

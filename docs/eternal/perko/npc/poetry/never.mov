@@ -1,0 +1,36 @@
+1##emote blinks blearily under the bright lights.
+1##emote rummages through his pockets.
+1##emote pulls out a small notepad.
+2##say Ok, this one is a poem by Shel Silverstein..
+1##say ..entitled, "Never."
+3##ahem
+3##say I've never roped a Brahma bull,
+1##say I've never fought a duel,
+2##say I've never crossed the desert..
+1##say ..On a lop-eared, swayback mule,
+2##say I've never climbed an idol's nose..
+1##say ..To steal a cursed jewel.
+2##say I've never gone down with my ship..
+1##say ..Into the bubblin' brine,
+2##say I've never saved a lion's life..
+1##say ..And then had him save mine,
+2##say Or screamed ahoooo while swingin' through..
+1##say ..The jungle on a vine.
+2##say I've never dealt draw poker..
+1##say ..In a rowdy lumber camp,
+2##say Or got up at the count of nine..
+1##say ..To beat the world's champ,
+2##say I've never had my picture on..
+1##say ..A six-cent postage stamp.
+2##say I've never scored a touchdown..
+1##say ..On a ninety-nine-yard run,
+2##say I've never winged six Daltons..
+1##say ..With my dying brother's gun..
+1##say ..Or kissed Miz Jane, and rode my hoss..
+1##say ..Into the setting sun.
+2##say Sometimes I get so depressed..
+1##say ..'Bout what I haven't done.
+2##bow
+1##emote sticks the small notepad back into this pocket.
+1##@stop_poem
+1##END

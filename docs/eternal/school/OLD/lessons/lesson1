@@ -1,0 +1,18 @@
+'l' lets you look at where you are.  'l' followed by an
+argument, such as 'l hannah' or 'l sword' allows you to
+look at that object.
+ 
+'hp' allows you to check your current condition in terms
+of hp (hit points), mana (spell points), and ftg (fatigue).
+ 
+'i' will tell you what you currently have in your inventory
+i.e. what you are holding.    
+
+'score' will give you a nice screenful of information
+about the overall status of your character including things
+like age, stats, sex, gender, and all that.
+
+'list' followed by 'stats' will print out your stats.  Followed
+by 'skills' it will print out your guild skills, if you
+are in a guild (we'll talk about guilds later).
+

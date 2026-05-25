@@ -1,0 +1,49 @@
+#define CAR "/zone/null/eternal/objects/sedan"
+#include "/zone/null/eternal/eternal.h"
+
+#define OBJ1 CAR
+#define OBJ2 CAR
+#define OBJ3 CAR
+#define OBJ4 CAR
+
+#define INSIDE
+
+#define WEST "room019"
+
+#define DAY_LIGHT 60
+
+#define SHORT "Public Garage"
+
+#define DAY_LONG \
+     "This is a rather small garage, with only enough room for "+\
+     "about half a dozen vehicles.  It is home to publicly "+\
+     "available cars, provided by the Eternal City Chamber "+\
+     "of Commerce, which you can use to explore the City "+\
+     "in safety and comfort.  A sign on the wall explains "+\
+     "the garage's policies."
+
+#define ITEM1 "sign"
+
+#define ID1 \
+    "The sign reads:\n\n"+\
+     "Violence is not permitted inside vehicles.\n"+\
+     "Excessively violent persons prohibited from using vehicles.\n"+\
+     "Vehicles may not leave the City.\n"+\
+     "\nPlease activate homing system in vehicle when finished.\n"+\
+	"\n\nThank you -- Eternal City Chamber of Commerce"+\
+	"\n"+\
+	"\n(Due to economic pressures, a nominal deposit is required "+\
+	"\nof some patrons.  This deposit will be returned when the "+\
+	"\nvehicle is sent back to the Garage.)"
+
+
+#include "room.c"
+
+query_leave_ok(object item, object dest, object mover) {
+	if(program_name(item)!=CAR) return 0;
+	if(mover->query_drive_ok(THISP)) 
+	  return( write("You must put down a deposit to use the car. "
+	      "\nPlease read the instructions for details.\n"), 1);
+	return 0;
+}
+

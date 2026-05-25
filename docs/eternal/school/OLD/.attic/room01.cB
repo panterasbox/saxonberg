@@ -1,0 +1,32 @@
+inherit RoomCode;
+inherit DescCode;
+
+
+void extra_create()
+{
+   set_short("A Small School Room");
+   set_long(
+   "This is a small room in the EotL Elementary School.  If you follow " +
+   "the directions and study, you will be able to graduate from here " +
+   "and enter into the real world with the knowledge and satisfaction of " +
+   "completing your courses.  The first rule is that 'l' means look, " +
+   "and you l <object> to look at it.  This is a small school room with " +
+   "a large black chalkboard at the front.  Your teacher is Miss Dixie. " +
+   " She will guide you through each step so that you may understand " +
+   "all the basic rules and commands on EotL." +
+   "  Look at the chalkboard to begin your first lesson.  Good luck!"
+   );
+   set_day_light(10);
+   set_night_light(1);
+   add_exit("north", "room02.c");
+   add_description("board, chalkboard, blackboard", "The first lesson  " +
+   "is basic commands.  You have already learned 'l' means to look at  " +
+   "something.  The next basic commands you need to learn will be as follows:  " +
+   "'i' is to see your inventory; and 'score' is to see your score.  " +
+   "'hp' will let you see your hit points, mana, and fatigue.  " +
+   "These are the first basic commands that you need to know as a player " +
+   "on EotL.  After you are familiar with these commands, you may leave " +
+   "north to enter the next room and the next lesson.");
+}
+
+

@@ -1,0 +1,69 @@
+// A car for exploring EC   -- Anthrax
+#define INSIDECAR "/zone/null/eternal/objects/in_car"
+
+#include "/zone/null/eternal/eternal.h"
+inherit ThingCode;
+
+object inside;
+
+extra_create()
+{
+  seteuid(getuid(THISO));
+  set("id", ({ "sedan", "car", "towncar" }) );
+  set("short", "a grey towncar");
+  set("long", "This is a large, roomy sedan.\n");
+  set("gettable",0);
+}
+
+extra_init()
+{
+  if( query_once_interactive(THISP) )
+    add_action("do_enter","enter");
+}
+
+do_enter(string str)
+{
+  if(!str || !id(str)) return 0;
+
+  if(THISP->query_player_kills() > 10 && !THISP->query_wizard()) {
+    write("For some reason, you don't seem to be able "+
+     "to fit inside the car.\n");
+    return 1; }
+  if(!objectp(inside)) {
+    setup_interior();
+  }
+
+  write("You climb inside the sedan.\n");
+  tell_room(inside, "The door to the car opens, and ");
+  THISP->move_player("into the sedan",file_name(inside),1);
+  return 1;
+}
+
+query_move_ok(object dest, object mover)
+{
+  string a;
+
+  if(objectp(THISP) && ENV(THISP) != inside )
+    return 0;
+
+  if(!sscanf(file_name(dest),"/zone/null/eternal/%s",a)) return 1;
+  return 0;
+}
+
+destruct_signal()
+{
+  if(objectp(inside)) destruct(inside);
+  return 0;
+}
+
+setup_interior()
+{
+  if(objectp(inside)) return;
+  inside = clone_object(INSIDECAR);
+  inside->set_car(THISO);
+}
+
+query_inside()
+{
+  return inside;
+}

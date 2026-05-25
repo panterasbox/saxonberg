@@ -1,0 +1,40 @@
+StuffCode [Devo, Tue Jan  2 11:08:30] 2100
++--------------------------------------------------------------------+
+I'm officially onlining a little experiment I've been playing around with
+for almost a year now off and on.  The title of the project is StuffCode,
+and it's comprised of various magical trinkets like potions, scrolls,
+amulets, and rings.
+
+While there are already many of these types of items on EotL, StuffCode is
+an entirely new codebase that behaves differently than objects that already
+exist out there.  Each StuffCode item is labeled as such in the long
+description, however, so you should have no problem telling them apart.  The
+system is highly experimental right now, but if it's popular I may try to
+implement this system mud-wide and completely replace the other objects.
+
+I'm not going to tell you much except that the system owes most of its
+workings to the Nethack model, so if you're familiar with that game you
+might recognize some similarities.  Some StuffCode objects will be found in
+the same place all the time, but most of them will be randomly dispursed to
+room and monsters throughout the mud.  There's some pretty useful items out
+there if you look hard enough.
+
+In addition to the random dispersal, I'm reopening Death's old magic store
+in Eternal City as The Stuff Outlet Store.  This store will stock various
+StuffCode items from time to time, so if you want a sample of what StuffCode
+has to offer, that's an easy place to begin looking.
+
+While I'm heading up the Stuff Project, I'm not the sole coder.  In fact,
+I've given all the wizards here access to the Stuff directories and they'll
+be able to implement their own Stuff creations at will.  For this reason, if
+you find any bugs with Stuff objects, your best bet is to report it on the
+Player Bug Reports page, since the creator command won't be able to tell you
+who coded that particular object.
+
+Some of these objects have already been floating around out there for the
+last few months, but I just finished a major overhaul which is why I'm doing
+an official release.  As always, constructive feedback is appreciated.  If
+you like the Stuff system and have any cool ideas for new Stuff objects, let
+me know.
+
+-Devo

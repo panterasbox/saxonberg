@@ -1,0 +1,65 @@
+//  Added NoStoreP prop as card auto loads.  -- Tabitha 7 Nov 94
+
+inherit ObjectCode;
+
+#define CSHAD "/zone/null/eternal/objects/chex_sh"
+object shad;
+
+// void init_args(){}
+
+void extra_create()
+{
+  if( !clonep() ) return;
+  set( "id", ({ "chextra", "card", "cash card", "credit card" }) );
+  set( "short", "a Chextra(tm) card" );
+  set( "long",
+   "This is a Chextra(tm) Cash card, which you can use at many establishments\n"+
+   "in lieu of cash.  The card withdraws directly from your bank account,\n"+
+   "adding a small fee for each transaction.\n\n"+
+   "(c) Jimbotomy, 1993\n"
+  );
+  set( "gettable", 1 );
+  set( AutoLoadP, 1 );
+  set( NoStoreP, 1 );
+}
+
+void extra_init()
+{
+  // Zippo 5-25-94
+  if( shad ) remove_shadow(shad);
+  // Meson 4-30-95
+  // Moved the following three lines from before zippo's check to after.
+  // Added so that only those carrying the card get the shadow:
+  if( THISP != ENV( THISO ) )
+    return;
+  else shad = clone_object( CSHAD );
+  shad->sh_init( THISP );
+}
+
+int drop()
+{
+  if( PRNAME != "jimbotomy" )
+    call_out("splode", 2, THISP);
+}
+
+// Added by Iffy Bonzoolie
+int get()
+{
+  if ( member( map_array( all_inventory( THISP ), #'program_name ), program_name( THISO ) ) != -1 )
+    return ( call_out( "splode", 2 ), 0 );
+  return ::get();    
+}
+
+void splode()
+{
+  tell_room(environment(THISO), "The Chextra Card explodes into dust.\n");
+  destruct(THISO);
+}
+
+destruct_signal()
+{
+  if(shad){
+    remove_shadow(shad);
+    destruct(shad);
+  }
+}

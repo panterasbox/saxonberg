@@ -1,0 +1,98 @@
+inherit ThingCode;
+ 
+#include        "path.h"
+#define   PETE  present("24601",ENV(THISP))
+ 
+void extra_create()
+  {
+  set(InvisP,1);
+  set("attempts",2);
+  set("leave_ok", 0 );
+  }
+ 
+void extra_init()
+  {
+  call_out( "stern_talkin_to", 20 );
+  add_action( "try_something" );  add_xverb( "" );
+  }
+ 
+try_something( string str )
+  {
+  string plurals, mistakes, trysleft;
+  if( str == "stop" )
+    {
+    destruct(THISO);
+    return 1;
+    }
+  if( ( str == "quit" || str == "east" ) && query("leave_ok") )
+    {
+    destruct(THISO);
+    PETE->mp_setup( NPC "pete" );
+    return 0;
+    }
+  if( query( "attempts" ) > 0 )
+    {
+    if( query("attempts") == 2 )
+      {
+      mistakes = "two";
+      trysleft = "one";
+      plurals = "";
+      }
+    else if( query("attempts") == 1 )
+      {
+      mistakes = "three";
+      trysleft = "no";
+      plurals = "s";
+      }
+    else
+      {
+      mistakes = "three";
+      trysleft = "no";
+      plurals = "s";
+      set("attempts",0);
+      }
+    command( "say You've made " + mistakes + " errors in "
+      "judgement in the alloted time frame.", PETE );
+    command( "say Even though \"" + str + "\" isn't doing "
+      "anything, I'll still refrain from killing you during "
+      "this safety window so that you won't have anything "
+      "to complain to the unkill junta about.  You have "
+      + trysleft + " mistake" + plurals + " remaining.", PETE );
+    set( "attempts", query("attempts") - 1 );
+    return 1;
+    }
+  kill_em_dead();
+  return 1;
+  }
+ 
+kill_em_dead()
+  {
+  command( "say Don't say I didn't warn you..", PETE );
+  tell_room( ENV(THISP), strformat( "Pete pulls the trigger "
+    "on his massive shotgun!\n"
+    "BBB  L    AA  M   M  !\n"
+    "B  B L   A  A MM MM  !\n"
+    "BBB  L   AAAA M M M  !\n"
+    "B  B L   A  A M   M\n"
+    "BBB  LLL A  A M   M  !" ) );  
+  THISP->DeathSequence( PETE, "not listening to the Man" );
+  PETE->mp_setup( NPC "pete6" );
+  destruct( THISO );
+  return 1;
+  }
+ 
+stern_talkin_to()
+  {
+  command( "say Your safety period has expired.  All warnings "
+    "are cancelled.  You will die immediately if you type "
+    "anything else.", PETE );
+  PETE->mp_setup(NPC "pete8");
+  set("attempts", 0 );
+  return 1;
+  }
+ 
+unleash()
+  {
+  set( "leave_ok", 1 );
+  return 1;
+  }

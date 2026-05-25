@@ -1,0 +1,42 @@
+inherit RoomCode;
+inherit DescCode;
+
+
+void extra_create()
+{
+   set_short("A Study Lab");
+   set_long(
+   "This is a small lab in the school.  You can get special help with " +
+   "certain objects on the game.  There is a large table with chairs " +
+   "around it, and a book opened to a page titled 'The Guide, and How to Use It'" +
+   ".  Why dont you sit and look at the book, to find out how to use the guide."
+   );
+   set_day_light(10);
+   set_night_light(1);
+   add_exit("east", "room03");
+   add_description("book", "This is a detailed book on how to use the guide.  " +
+   "the first thing to learn is 'set'.  You use it with a number of " +
+   "other commands.  To change to a short or long description when entering rooms, " +
+   "toggle the switch by typing 'set brief on/off'.  If you have a color " +
+   "monitor, you can 'set ansi on/off'.  To be able to see when you get " +
+   "hit, type 'set hpw on'.  This is the hit point watch, and measures damage.  " +
+   "The next set is to allow you to flee from a monster when you get " +
+   "to a certain percent of damage.  These two functions allow you to " +
+   "flee from a fight at the percent you want, and the direction you want.  " +
+   "To do this, type 'set wimpy <number from 1-100, usually around 50>' " +
+   "and 'set wimpydir' for the direction to flee.  For wimpydir, you can " +
+   "make a random flee by typing random instead of a direction.  " +
+   "To see how tough a monster or a player is, type 'query monster', " +
+   "or 'consider monster', or the name of the person.  As an eval one newbie, " +
+   "you have the ability to 'stupor', which allows you to exchange " +
+   "fatigue for hit points; and 'beam me up' which allows you to trans " +
+   "from anywhere in the game (except jail) to the lounge.  After you " +
+   "kill a monster, 'Dest corpse' will get rid of the body, and allow for less lag.  " +
+   "The last two lessons for the guide are 'alias' and 'nickname'.  " +
+   "To shorten a phrase use 'alias <phrase>', and to nickname a word " +
+   "(like someones name) use 'nickname <word>'.  If you need more help " +
+   "with the guide, type 'help', or look at the guide.  That concludes " +
+   "this study lab, leave east and continue on with your studies.");
+}
+
+

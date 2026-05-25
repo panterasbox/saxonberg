@@ -1,0 +1,43 @@
+
+inherit "/obj/healing";
+
+void setup_next_use()
+{
+    set_heal_hp_amount(10);
+    set_heal_mana_amount(10);
+    set_heal_ftg_amount(10);
+}
+
+void extra_create()
+{
+    set_name("pepsi");
+    add_alias("can");
+    add_alias("can of pepsi");
+    add_alias("pepsi can");
+    add_alias("soft drink");
+    set_short("A can of Pepsi");
+    set_id_short("A can of Pepsi");
+    set_long("This is a can of Pepsi, use your imagination.\n");
+    set_weight(20);
+    set_value(50);
+    setup_next_use();
+    set_heal_uses(1);
+    set_heal_action("drink");
+    set_action_msg("Ahh! Refreshing!.\n");
+    add_property("magic");
+}
+
+void init(){
+::init;
+  add_action("cancrt","drink");
+}
+int drink(string arg){
+  if (!arg) {return 0;}
+   if (!id(arg)){return 0;}
+34a
+   object can;
+
+      (arg!="soft drink")&&(arg!="can")){return 0;}
+  can=clone_object("/room/lounge/can");
+  move_object(can,environment(THISO));
+}

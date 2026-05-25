@@ -1,0 +1,21 @@
+    . . . . 2 . .             
+            |                          i   - Rooms with InsideP
+  1-o-o-o-o-o i . . i .                o   - Rooms with OutsideP
+    |       | |     |                  #   - Gates
+  . o-i . i-o-o-o-o-o-o-o-o            .   - Spaces for rooms in 
+    |       |     |       |                  the future
+  . o . . . o . i-o . . i-o .          *   - Heart (0,0,0(,0?))
+    |       |     |       |           
+  . o . i . o . . o-o-o . o .            
+    |   |   |     |   |   |            
+    o-o-o-o-*-o-o-o . o . o-i 
+    | |   | |   |     |   |    
+    i o . i o i-o . . o . o .  
+      |     | | |     |   |    
+    . o-o-o-o i o-o-o-o-o-o-3        Street Level of EC
+      |     |         |         
+      4 . i-i . . i . o . .              ( Level 0 )       
+      |    \|     |   |                             
+      i   i-i . . o-o-o . .
+              
+              . . . . . .

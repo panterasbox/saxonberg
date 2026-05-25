@@ -1,0 +1,80 @@
+EC IN GENERAL
+  There should be lots of stuff in EC.  It can either be left 
+laid out roughly the same way it is, but monster and shops 
+added emphasising other genres, or the multiple EC thing can 
+be done.  In that case, the heart should probably be stable 
+along with the lounge.  It can be some sort of wild 
+fluctuation that the heart is going through that randomly 
+flips a player into a different EC when they exit the heart in 
+a cardinal direction.  With the upcoming EC transition plot, 
+that bit can _easily_ be worked in.
+ 
+PLOT
+  I've thought up a good one for the whole transition once a 
+new EC is coded.  I'm not gonna write it here though, 'cause 
+I don't want everyone in the world to know 'bout it.
+ 
+EC MAP
+  alley should only go 2 or 3 rooms east from limbo lane, and 
+1 or 2 rooms needed to be added to the length of Silver 
+Street, to make the map gridded, while still allowing for space
+between roads.
+  Grids.  rooms can be changed (at the very least, streets) to 
+a three letter id (an abbreviation of what road it is) and a 
+coordinate.  Example: ete(0,1,0).c
+That one would be Eternal Road, 1 room north of heart (heart 
+being (0,0,0)).
+ 
+GATES
+  the five ways out of the city.  Having a strict contraband 
+search and coordinating with objects that trans players to the 
+heart ( or maybe just query_last_room() ) opens up 
+possiblities for a smuggling trade.
+ 
+GUARDS
+  patrols need to be worked out, 'cause these guards are going 
+to be cool and not suck.  Each guard should have a patrol they 
+are following, which they use to find the proper exit.
+  to do:
+   - figure out where the patrols are gonna be, then add the 
+      properties to all applicable rooms.
+   - in heartbeat or something, have the guards 
+      command( ENV(THISO)->query( "patrol3" ), THISO );
+ 
+  Next up, if a guard calls back to the guard server for 
+backup, then whatever guards are summoned need to find their 
+way MANUALLY (i.e. walking from wherever they were before)  
+This may be done by having them travel to one of 3 or 4 set 
+points using prop trails, and then utilizing the grid system 
+from there.
+DISCLAIMER: This is NOT to stop pkilling, but to make it 
+  harder so that players who enjoy pkilling will find it more of 
+  a challenge, and will feel much cooler if they can 
+  circumnavigate the EC law system.
+ 
+ARENA
+  rework some of the desc stuff so that it looks a little more 
+like a stadium, having the arena accessible from multiple sides.
+Maybe even add things like hot dogs, t-shirts, pennants, etc..  
+ 
+LIBRARY
+  can be 5 rooms (I've got a map that worked that I drew up 
+once)  this will include the head librarian's office, along 
+with the embezzlement quest, and the elevator leading down into
+the old stacks.  This library WILL HAVE BOOKS.  research 
+should be able to be done on guilds, quests, random fun stuff, 
+and anything that can be thought to stick in.
+ 
+APARTMENTS
+  pre-described apartments that players may RENT for a couple 
+thousand a week or somethin'.  These can fit in all the empty 
+spaces left in EC, including second floors of regular shops.
+ 
+COFFEE SHOP
+  Heck, I can toss in the ol' Perko Pit.  It wouldn't be too 
+hard to finish up.
+ 
+DAVE
+  is gonna be somewhere else 'cause of some upcoming attempts
+at throwing plot into this whole thing, so figure him out 
+of the street-level EC picture.

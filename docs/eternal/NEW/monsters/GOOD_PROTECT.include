@@ -1,0 +1,172 @@
+/*
+**      This is a module of code that can be #include(d) in things like
+**      guards so that they will protect innocent people from bad
+**      monsters or bad players.
+**                                      --Esquire
+**                                      January 22, 1994
+*/
+//	Modifications & improvements by Gridpoint & Anthrax 5/28/94
+
+#define STEALSKILOBJ "/obj/guild/rogue/skills/steal"
+#define MUGSKILOBJ "/obj/guild/rogue/skills/mug"
+
+nomask
+void extra_init()
+{
+    int i;
+
+    add_action("no_steal", "steal");
+    add_action("no_mug", "mug");
+    if(THISP->query_player_kills() > 50 && !THISP->query_stealthy())
+	/*
+		if(naughty(THISP))
+	*/
+       { 
+	i = random(6);
+	if(!i) command("kill "+PRNAME, THISO);
+	else call_out("do_kill", i*2, PRNAME);
+       }
+
+    if ( !IsWizard(THISP)  &&  
+      (GUILDMASTER->query_member(PRNAME) == "rogue")
+      &&  !(THISP->query_stealthy()) &&
+      (random(MISCFUN->evaluation(THISP) - 15)  > 15 ))
+       { 
+	i=random(6);
+        if(!i) command("kill "+PRNAME, THISO);
+        else call_out("do_kill", i*2, PRNAME);
+        command("say Die, thief!\n", THISO);
+       }
+
+    if(THISP->query_aggressive())
+    	command("kill "+THISP->query_real_name(), THISO);
+}
+
+nomask
+status naughty(object ob)
+{
+    int pks, eval;
+
+    if(ob->query_stealthy()) return 0;
+
+    pks = ob->query_player_kills();
+    eval = MISCFUN->evaluation(ob);
+
+    if( pks > (eval / 3) )  return 1;
+    return 0;
+}
+
+nomask
+status no_steal(string str)
+{
+    int i;
+    status ok;
+    string what, who;
+    object Who;
+
+    if(sscanf(str,"%s from %s", what, who) == 2
+      && (Who = present(who, ENV(THISO)) )
+      && living(Who)
+      && THISP->query_skill("steal"))
+    {
+	ok = STEALSKILOBJ->success(Who, THISP);
+	if(!ok)
+	{
+	    i = random(6);
+	    if(!i) command("kill "+PRNAME, THISO);
+	    else call_out("do_kill", i*2, PRNAME);
+	}
+    }
+    return 0;
+}
+
+nomask
+status no_mug(string str)
+{
+    int i;
+    status ok;
+    object Who;
+
+    if( (Who=present(str, ENV(THISO)) )
+      && living(Who)
+      && THISP->query_skill("mug") )
+    {
+	ok = (MUGSKILOBJ->success(Who, THISP) &&
+	  MUGSKILOBJ->okwho(Who, THISP) );
+	if(!ok)
+	{
+	    i = random(6);
+	    if(!i) command("kill "+PRNAME, THISO);
+	    else call_out("do_kill", i*2, PRNAME);
+	}
+    }
+    return 0;
+}
+
+nomask
+void do_kill(string thief)
+{
+    command("kill "+thief, THISO);
+}
+
+nomask
+void do_defend(string who)
+{
+    command("defend "+who, THISO);
+}
+
+/*
+**      The following code checks to see if any of the living occupants
+**      of the room are in combat.  If the occupant in question is
+**      living thing in question is non-once_interactive and aggressive,
+**      the guard will defend the targets of that occupant.  If
+**      the occupant in question is both non-once_interactive and good,
+**      the guard will defend the occupant.  If the occupant is
+**      once_interactive and the targets of that occupant are also
+**      once_interactive, the guard will defend the occupant with the
+**      fewer number of player kills.
+*/
+
+nomask
+void heart_beat()
+{
+    int i, j, x, y;
+    object *alive, *targets;
+
+    alive = filter_array(inventorya(ENV(THISO)), "check_battling");
+
+    for(i=0; i<sizeof(alive); i++)
+    {
+	if(!query_once_interactive(alive[i]))
+	  {
+	      if(alive[i]->query_aggressive())
+	      {
+		  targets = alive[i]->query_targets();
+		  for(j=0; j<sizeof(targets); j++)
+		      command("defend "+targets[j]->query_real_name(), THISO);
+	      }
+	      else if(alive[i]->query_alignment() > 0)
+		  command("defend "+alive[i]->query_real_name(), THISO);
+	  }
+	  else
+	  {
+	      targets=filter_array(alive[i]->query_targets(), #'query_once_interactive);
+	      for(j=0; j<sizeof(targets); j++)
+	      {
+		  x = alive[i]->query_player_kills();
+		  y = targets[j]->query_player_kills();
+		  if(x>y)
+		      command("defend "+targets[j]->query_real_name(), THISO);
+		  else if(x < y)
+		      command("defend "+alive[i]->query_real_name(), THISO);
+	      }
+	  }
+      }
+	::heart_beat();
+    }
+
+    nomask
+    check_battling(object arg)
+    {
+	return ( arg->in_combat() && arg != THISO );
+    }

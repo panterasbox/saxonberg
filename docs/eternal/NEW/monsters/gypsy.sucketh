@@ -1,0 +1,25 @@
+inherit MonsterCode;
+inherit MonsterPickUp;
+inherit MonsterTalk;
+ 
+void extra_create()
+{
+  set_name("gypsy");
+  set_short("a gypsy");
+  set_long(
+    "You are looking at a beautiful gypsy.  She is very old but still is\n"+
+    "extremely attractive.  On her head rests a beautiful headress\n"+ 
+    "and a she holds a crystal ball in her hands.\n"
+  );
+  set_race("human");
+  set_alignment("neutral");
+  set_toughness(99);
+  set_stat("str",20000);
+  set_chat_rate(20);
+  set_chat_chance(10);
+  add_phrase("Gypsy says: Can I help you, youth seeker?\n");
+  add_phrase("Gypsy says: Our prices are very simple, 5,000 coins for each year youthed.\n");
+  add_phrase("Gypsy mixes some potions.\n");
+}
+ 
+

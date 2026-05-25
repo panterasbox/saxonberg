@@ -1,0 +1,23 @@
+Made this file, of course.  :)
+Made /zone/null/eternal/NEW/
+Added the subdirectories /city /objects and /monsters
+Cped everything from /zone/null/eternal into /zone/null/eternal/NEW/city/
+Cped everything from /zone/null/eternal/objects and /zone/null/eternal/monsters
+into their respective new directories.
+Split the things in /zone/null/eternal/lounge into /city /objects and /monsters
+Made the path file /zone/null/eternal/eternal.h
+Included said file into rooms that clone monsters and / or objects so
+that when we move the things out of /NEW we dont have to change all the
+paths for clonings.
+Made the /zone/null/eternal/NEW/Changeover file.  Read it for its purpose.
+-- Tabitha Feb 8 95
+
+Added a player map of the new EC to city/MAP.
+Added a /doc directory because.. er.. because they're neat
+-- Walker Feb 8 95
+
+Finished up some things in /z/n/e/N/docs/ :
+The map of the geography of the island.
+The doc on revamping EC.
+Created two files, Connections and Faqs, read them for what they are.
+-- Tabitha Feb 9 95

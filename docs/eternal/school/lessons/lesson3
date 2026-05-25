@@ -1,0 +1,56 @@
+                   THE SET COMMAND
+
+You can use the 'set' command to change some of the aspects
+of your environment.  The 'set' command alone will list the
+varibles you can change.  These include:
+ 
+o anonymous     [on|off] -- This variable will hide your evaluation
+                            (a numerical rating of your character)
+                            when other players look at the who list.
+** Note: Annonymous is currently disabled **
+                        
+o ansi          [on|off] -- This enables or disables support of ansi
+                            color throughout EotL.
+ 
+o ansi-shorts   [on|off] -- This enables or disables the coloring of
+                            room shorts (e.g. "The Heart of Eternal
+                            City").  Not all rooms have ansi shorts.
+ 
+o ansi-longs    [on|off] -- Same as above, except affects the long
+                            descriptions of the rooms.
+ 
+o brief         [on|off] -- This variable will give you an 'Ok.' message
+                            when you tell, say, or channel a message rather
+                            than telling you what you said.
+ 
+o chnotify      [on|off] -- Enabled, this variable notifies you when
+                            players leave or join the various communication
+                            channels you are listening to.
+ 
+o room-brief    [on|off] -- With this variable on, you will only see the
+                            short descriptions of rooms you enter.
+ 
+o expand        [on|off] -- This variable will tell you the full command
+                            you used when you use an alias.
+ 
+o hit-level  [low|middle -- This sets the area of the target that you will
+            high|random]    attack most often.
+ 
+o hpw           [on|off] -- This allows you to track your hit points, mana
+                            and fatigue as the decrease in combat.
+ 
+o title          [title] -- This allows you to set the phrase that follows
+                            your name.  You can only set your title once your
+                            eval is 50 or higher.
+ 
+o wimpy    [0-100|brave] -- Wimpy allows you to automatically flee from 
+                            combat when your hit points fall below a 
+                            certain percentage.  The higher you set your 
+                            wimpy, the sooner you'll flee.
+ 
+o wimpydir  [dir|random] -- This allows you to specify which direction you
+                            flee when your wimpy goes off.
+ 
+o wrap          [on|off] -- This variable will help those poor souls whose
+                            terminals don't line wrap for them see things 
+                            that extend beyond the end of their screen.

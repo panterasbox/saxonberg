@@ -1,0 +1,35 @@
+inherit ObjectCode;
+
+void extra_create()
+{
+    set("id",({"sign","bus schedule","schedule"}) );
+    set("short","a bright yellow sign"); 
+    set("gettable",0);
+}
+
+void extra_init()
+{
+    add_action("do_look","look");
+}
+status schedule()
+{
+    int time;
+    time=ClockObject->query("hour");
+    printf("The sign reads:\n");
+    printf("\nCurrent time:       %s\n",
+      ClockObject->query("time_12"));
+    printf("Next Balloon to EC: %s\n",
+      ((time > 9 && time < 13) || time > 21 ?
+	"" : "0" )+(time > 12 ? 
+	time-11 : time+1 ) +
+      ":00 "+( time+1 < 12 || time+1 == 24 ?
+	"am":"pm"));
+    return 1;
+}        
+
+status do_look(string str)
+{
+    if(!id(str)&&str!="at sign"&&str!="at schedule")return 0;
+    schedule();
+    return 1;
+}
