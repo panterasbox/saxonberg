@@ -10,9 +10,10 @@ audience is investors getting demoed the engine.
 **Status.** Design surface staked out. Implementation broken into
 independent tracks that can be built in parallel. The client today
 is a four-component shell (App, Terminal, CommandBar, ConnectionStatus)
-that renders raw MML as literal text and ignores the response envelope
-+ state-sync channels the server already emits or has designed. This
-slate is the spec for what to build instead.
+that renders raw MML as literal text and ignores the response
+envelope channel the server already emits, plus has no
+subscription substrate to drive sidebar widgets yet. This slate
+is the spec for what to build instead.
 
 **Audience.** The reference app's primary demo audience is potential
 investors. The secondary audience is a generic education vertical
@@ -27,10 +28,11 @@ See also:
 - [docs/subsystems/response-envelope.md](../subsystems/response-envelope.md)
   — the structured per-dispatch wire channel. Cockpit consumes it to
   render `Status` color signals and `Note` chips alongside prose.
-- [docs/slates/state-sync-slate.md](./state-sync-slate.md) — the
-  parallel world-delta channel. Cockpit's right-sidebar widgets are
-  state-sync consumers. The slate's design is taken as given;
-  cockpit work doesn't reshape it.
+- [docs/slates/mql-subscription-slate.md](./mql-subscription-slate.md)
+  — the client-driven live-state substrate. Cockpit's right-
+  sidebar widgets are MQL-subscription consumers. Each widget
+  declares its query + field-set; the substrate ships the
+  initial result and diff deltas.
 - [docs/subsystems/messaging.md](../subsystems/messaging.md) — MML
   prose channel + Scene composer. Cockpit's prose pane is an MML
   consumer that gets new semantic tags from this slate.
@@ -84,7 +86,7 @@ between:
   header. Honest about the MUD-shaped server. Cheap. Doesn't show
   off what the engine knows.
 - **(B) Affordance-first cockpit** — prose pane in the middle, right
-  sidebar with state-sync-driven widgets (slots, engagement,
+  sidebar with subscription-driven widgets (slots, engagement,
   lighting, atmosphere, who's-here, exits, inventory), every clickable
   element in either pane routes through the command bus.
 
@@ -143,9 +145,11 @@ layout reflects mode.
 
 ### Mode-switching is server-driven
 
-The server tells the client what mode it's in via a state-sync delta
-of kind `mode-changed`. The client never decides on its own. This
-means:
+The server tells the client what mode it's in via an
+`mode-changed`-shaped envelope (mode is high-level cockpit state,
+not really MQL-queryable; it rides a small dedicated push channel
+alongside the subscription substrate). The client never decides on
+its own. This means:
 
 - Same verb (`study textbook`) flips the layout automatically,
   because the verb fires a server-side mode change that ripples to
@@ -180,7 +184,9 @@ The smallest set of UI that's present in every mode, because the
 player needs them to issue *any* next command:
 
 1. **Status header** — avatar name, current location name, time,
-   lighting band, mode indicator. Drains state-sync.
+   lighting band, mode indicator. Driven by subscriptions on
+   `me.{ name, location, ... }`, `world.time`, `here.lighting`,
+   and the mode-channel push.
 2. **Prompt line** — composable format (see [Prompt line](#prompt-line));
    shows vitals + engagement at minimum.
 3. **Input** — the always-focused command entry.
@@ -364,8 +370,9 @@ extend the union; the cockpit layout stays the same.
 
 ### Diegetic triggers
 
-The server emits a state-sync delta of kind `mode-changed` with a
-content payload when a verb / NPC / item summons content:
+The server emits a `mode-changed` envelope (small dedicated mode
+channel) with a content payload when a verb / NPC / item summons
+content:
 
 ```typescript
 { kind: 'mode-changed', mode: 'study', content: { kind: 'video', url: '…', transcriptUrl: '…' } }
@@ -437,31 +444,38 @@ the queries and copy them).
 
 ---
 
-## State-sync consumer (Track 2)
+## MQL-subscription consumer (Track 2)
 
-The state-sync slate is the source of truth for the wire shape.
-This slate covers only the **client-side consumption** pattern:
+The [mql-subscription-slate](./mql-subscription-slate.md) is the
+source of truth for the wire shape. This slate covers only the
+**client-side consumption** pattern:
 
-- Each sidebar widget subscribes to one or more delta kinds at the
-  store layer (Zustand).
-- Deltas update the store; widgets re-render on store changes.
+- Each sidebar widget opens one or more MQL subscriptions
+  (typically one of the pre-canned subscription kinds:
+  `inventory`, `things-here`, `slots`, `focus-detail`,
+  `atmosphere-here`, etc.) at mount time and unsubscribes on
+  unmount.
+- Subscription results and deltas update the store; widgets
+  re-render on store changes.
 - The store also drives the prompt format and the always-on
   status header (so they update without re-`look`-ing).
-- A widget never re-queries the server to refresh — if state-sync
-  isn't telling it something, the widget shows the most recent
-  state and waits.
+- A widget never re-queries the server to refresh — if a
+  subscription isn't telling it something, the widget shows
+  the most recent state and waits. Authors who want explicit
+  refresh ship a `look` button (which goes through the command
+  bus, not the subscription channel).
 
 The widgets are small (~50–150 LoC each). Build them in priority
 order rather than as one block.
 
 ### Initial-state hydration
 
-When the client connects (or reconnects), the server emits an
-initial set of state-sync deltas to bring the client up to the
-current truth (current room, contents, inventory, slot map,
-engagement, lighting, atmosphere, mode). This is the same wire
-shape as a normal delta stream — no separate "snapshot" message
-type. Just deltas that happen to flow in a burst at connect time.
+Subscriptions return their initial result synchronously after
+the `mql-subscribe` resolves. On client mount (or reconnect),
+each widget subscribes; the result arrives as a normal
+`mql-subscription-result` envelope; the widget renders. No
+separate "snapshot" protocol — subscription's first result IS
+the snapshot.
 
 ---
 
@@ -671,9 +685,11 @@ Pinned for resolution at requirements time.
    pick one well.
 5. **Sidebar widget collapsibility.** Each widget collapsible /
    reorderable, or fixed order in v1?
-6. **State-sync reconnect snapshot semantics.** What deltas
-   replay on reconnect, what's the freshness contract? (Probably
-   defers to state-sync slate.)
+6. **Subscription reconnect semantics.** Client maintains a list
+   of active subscription kinds; on reconnect, re-subscribes each.
+   First result envelopes hydrate widgets. Mid-reconnect message
+   loss is invisible because each subscription's initial-result
+   is authoritative. Pin freshness contract at requirements.
 
 ---
 
@@ -684,18 +700,19 @@ be built in parallel by different agents. Track 3 depends on
 neither but produces visible product value, so worth slotting
 early for demo readiness.
 
-1. **Track 2 substrate first**: state-sync wire shape lands on the
-   server (its own slate's build); cockpit's store layer registers
-   subscribers and the always-on header + prompt line consume the
-   first deltas. No widgets yet.
+1. **Track 2 substrate first**: MQL-subscription wire shape lands
+   on the server (its own slate's build); cockpit's store layer
+   registers subscription handles and the always-on header +
+   prompt line consume the first results. No widgets yet.
 2. **Track 1 — MML semantic tags**: server emits the new tags in
    existing prose paths; client renderer turns them into clickable
    affordances. Click model implemented here.
 3. **Track 2 — widget catalogue**: build the v1 widgets in priority
    order (Exits, Here, Inventory, Slots, Focus, Engagement,
    Atmosphere, Lighting). Each is small and independent.
-4. **Polish A — prompt line**: format tokens + setting + state-sync
-   feed. Already partly enabled by Track 2 substrate.
+4. **Polish A — prompt line**: format tokens + setting +
+   subscriptions on the token-referenced fields. Already partly
+   enabled by Track 2 substrate.
 5. **Polish B — envelope rendering**: color signals + note chips +
    input flash.
 6. **Track 3 — character creation**: modal wizard + archetype
@@ -732,8 +749,9 @@ Things that are tempting to add but should be resisted in v1:
 
 ## Dependencies
 
-- **[state-sync-slate](./state-sync-slate.md)** — sister slate;
-  cockpit's right sidebar can't update truthfully without it.
+- **[mql-subscription-slate](./mql-subscription-slate.md)** —
+  sister slate; cockpit's right sidebar can't update truthfully
+  without it.
 - **[response-envelope subsystem](../subsystems/response-envelope.md)**
   — already shipped; cockpit's Polish B consumes it.
 - **Markup language semantic tags** (roadmap v1 punch list) — server

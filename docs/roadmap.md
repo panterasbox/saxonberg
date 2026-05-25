@@ -173,14 +173,21 @@ promoted to formal requirements.
   message. `outcome.status` + typed `notes`. Universal envelope
   shape for dispatch responses, witnesses, activity pushes, prompts.
   Substrate consumed by globbable, look fallback, MQL disambiguation,
-  prompt stack, activity completion. Sibling to state-sync below.
-- [docs/slates/state-sync-slate.md](./slates/state-sync-slate.md) —
-  parallel wire channel for world state deltas (containment,
-  property, slot, lifecycle). Sourced from `EventApi`, filtered
-  per-client by perception scope, delivered as `state-delta` frames.
-  Deliberately separate from the response envelope so self-actions
-  and witnessed actions share one state-delivery code path.
-  Implementation deferred to its own working session.
+  prompt stack, activity completion. Sibling to the live-state
+  subscription substrate below.
+- [docs/slates/mql-subscription-slate.md](./slates/mql-subscription-slate.md)
+  — client-driven live-state substrate. Client declares interest
+  via MQL queries + field-set declarations; server resolves once,
+  registers EventApi listeners for changes that could affect the
+  result, ships diffs as subscription deltas. Five-message wire
+  schema (subscribe / unsubscribe / update / result / delta /
+  error). Pre-canned subscription kinds (`inventory`,
+  `things-here`, `slots`, `focus-detail`, `atmosphere-here`,
+  `vitals`, ...) covering the cockpit's widget catalogue.
+  Supersedes the prior fixed-delta-taxonomy "state-sync" model —
+  one mechanism, linear growth, MQL becomes the lingua franca
+  from player to widget to author. Read-only in v1; mutation
+  stays on the command bus.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
@@ -196,12 +203,13 @@ promoted to formal requirements.
   inventory; content surface payload union (video / quiz /
   live-stream / classroom) with v1 = video + transcript;
   MML semantic-tag taxonomy and renderer contract;
-  state-sync consumer pattern; character creation as guided
+  MQL-subscription consumer pattern; character creation as guided
   command-emitting affordances + diegetic refinement; prompt
   format; envelope rendering; mobile flagged out-of-scope but
   architecturally accommodated. Decomposes into per-track
   requirements docs at build time. Sister to
-  [state-sync-slate](./slates/state-sync-slate.md) on the wire side.
+  [mql-subscription-slate](./slates/mql-subscription-slate.md) on
+  the wire side.
 
 - [docs/slates/prompt-stack-slate.md](./slates/prompt-stack-slate.md)
   — interactive prompt stack substrate (server `PromptApi` + client
@@ -413,10 +421,10 @@ landing first.
 Canonical client design surface is the cockpit slate:
 [docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md).
 It covers the v1 cockpit (layout, click model, modes, panel
-inventory, MML semantic tags, state-sync consumption, content
-surface, prompt line, envelope rendering, character creation) and
-names what's deferred. Per-track requirements docs decompose from
-the slate at build time.
+inventory, MML semantic tags, MQL-subscription consumption,
+content surface, prompt line, envelope rendering, character
+creation) and names what's deferred. Per-track requirements docs
+decompose from the slate at build time.
 
 Long-term opportunities explicitly out of v1 cockpit scope (the
 slate flags them as separate projects):

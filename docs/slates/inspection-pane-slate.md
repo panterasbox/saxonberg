@@ -73,8 +73,10 @@ The body re-renders when:
 
 1. A `look` command fires whose focus matches the pane's header.
 2. The user clicks the **Refresh** button (which sends `look`).
-3. Future: state-sync deltas update the underlying state and the
-   server emits a refreshed look.
+3. Future: the pane subscribes to `$focus` with `detail` fields
+   via the MQL-subscription substrate; the substrate's diff
+   deltas patch the body field-by-field as the focused thing
+   changes.
 
 Body does NOT re-render when:
 
@@ -343,9 +345,11 @@ Tabs section above).
   grayed-out `[+]` telegraphing the shape.
 - **MQL query results in the pane** — same as tabs, deferred.
 - **State-sync-driven live updates** — pane re-renders on
-  explicit look only in v1. When state-sync ships, lighting
-  changes / NPC arrivals / inventory changes can drive automatic
-  re-renders.
+  explicit look only in v1. When the MQL-subscription substrate
+  ships, the pane subscribes to `$focus` and lighting changes /
+  NPC arrivals / inventory changes drive automatic re-renders
+  via subscription deltas — the explicit emit on look is then
+  redundant but harmless to keep.
 - **Multi-pane support** — single inspection pane. No split-pane
   for "compare two objects side by side." That's an author tool
   someday, not v1.
@@ -399,7 +403,9 @@ Tabs section above).
   same renderer for clickable affordances in the body.
 - **State-sync slate** — eventual live-update path. Out of scope
   for v1 but the wire shape (`InspectionFrame`) is designed to
-  accept richer payloads when state-sync lands.
+  be superseded by the MQL-subscription substrate when it lands
+  — the pane becomes a subscriber on `$focus` with `detail`
+  fields and no longer needs the bespoke topic.
 - **Console filtering slate** — sister; complementary surface for
   spam management.
 - **DescribeApi v2** (recognition slate) — when DescribeApi v2

@@ -235,15 +235,17 @@ client on a dedicated topic (`system.prompt.focus` or similar)
 `setFocus` fires — `FocusController` already emits prose
 `focus set to 'X'`; one additional structured emit on the new topic
 covers the client side. Client subscribes, stashes the latest,
-renders. No state-sync dependency.
+renders. No MQL-subscription dependency yet (focus push is its
+own small server topic for v1).
 
 Future: a configurable `prompt.format` setting via `EnvironmentMixin`
 (`%hp` / `%maxhp` / `%mv` / `%location` / `%posture` / `%engagement`
 / `%focus` / `%mode` / `%time`) replaces the focus-only format.
 Server renders against live state and re-pushes when any underlying
-value changes; state-sync drives the re-renders. The
-`system.prompt.focus` topic generalizes to `system.prompt` with
-arbitrary rendered content.
+value changes; an MQL subscription on `me.{ hp, mv, location,
+posture, ... }` drives the re-renders. The `system.prompt.focus`
+topic gets superseded by a subscription with a token-rendering
+field-set.
 
 ### The kind canon (tiered)
 
@@ -633,17 +635,17 @@ Base prompt content for v1 is the actor's MQL focus, rendered as
 `[<focus>] >`. Server side: a small emit added to
 `FocusController` (and connection-establishment) on a dedicated
 topic. Client side: subscriber updates the base prompt content
-when frames arrive. Full state-sync-driven token-format prompts
+when frames arrive. Full subscription-driven token-format prompts
 land later.
 
 ---
 
 ## Non-goals
 
-- **State-sync-driven base prompt format** — token-driven `%hp` /
-  `%location` style format strings deferred to whenever state-sync
-  lands. v1 ships a focus-only base prompt fed by a dedicated
-  server push topic.
+- **Subscription-driven base prompt format** — token-driven `%hp` /
+  `%location` style format strings deferred to whenever the
+  MQL-subscription substrate lands. v1 ships a focus-only base
+  prompt fed by a dedicated server push topic.
 - **Preempting priority** — the spectrum (demanding / passive /
   toast) excludes the would-cancel-other-prompts case. Add it
   when content asks (server shutdown notifications, etc.).
@@ -707,8 +709,8 @@ land later.
 - **Cockpit slate** ([client-cockpit-slate.md](./client-cockpit-slate.md))
   — the prompt component is part of the cockpit's always-on
   minimum (now upgraded from "polish" to "central element").
-- **State-sync** ([state-sync-slate.md](./state-sync-slate.md)) —
-  required for the server-rendered base prompt format token
+- **MQL subscriptions** ([mql-subscription-slate.md](./mql-subscription-slate.md))
+  — required for the server-rendered base prompt format token
   rendering. Not required for v1 of this slate.
 
 ---
@@ -745,7 +747,7 @@ land later.
 8. **State-sync-driven base prompt format** — generalizes the
    focus-only base prompt to a server-rendered token format
    (`%hp` / `%location` / etc.) re-pushed when underlying state
-   changes. Lands alongside state-sync.
+   changes. Lands alongside the MQL-subscription substrate.
 
 Waves 1-2 are independent and can be built in parallel by
 different sessions. Waves 3-5 ship as a unit. Wave 6 lands per
