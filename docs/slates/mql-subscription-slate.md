@@ -255,6 +255,243 @@ PathRecord with `key: 'here.atmosphere.temperature'` and
 
 ---
 
+## Field projection — mixin-declared surface
+
+Records get populated by walking the resolved Stuff's mixin
+composition and collecting **subscribable field descriptors**.
+There is no central catalogue, no `FIELD_HANDLERS` table to
+maintain alongside the mixins, no schema registry. Each mixin
+declares the wire projection of its own state. The substrate
+is generic over the descriptors.
+
+This is the same pattern the codebase already uses for
+`static persistentFields`, `static defaultAliases`,
+`static commandContributions`, and `static fieldMarshallers`:
+mixin-owned, collected via composition walk at the consumption
+site.
+
+### The descriptor shape
+
+```ts
+type SubscribableFieldDescriptor =
+  | { name: string; getter: string; on: EventClass; by: string }   // dynamic
+  | { name: string; getter: string; static: true };                // intrinsic
+```
+
+Three things the descriptor binds together that the mixin
+already knows:
+
+1. **What to read** — `getter` names the method (`getHp`,
+   `getIconKind`, `getDisplayName`). The substrate calls
+   `stuff[getter]()` at projection time.
+2. **What to listen for (dynamic only)** — `on` names the
+   event class whose fires could change this field's value
+   (`PropertyChangedEvent`, `NameChangedEvent`,
+   `ContainmentChangedEvent`, …).
+3. **How to filter the event (dynamic only)** — `by` names the
+   event attribute that should match this descriptor's `name`.
+   For `PropertyChangedEvent` it's `'property'`; the meta-bus
+   binds events where `event.property === descriptor.name` to
+   this descriptor's subscriptions.
+
+`static: true` says "compute once on subscribe, no listener,
+never emit a delta for this field." Used for intrinsic-to-class
+data: `iconKind`, `templatePath`, the mixin composition list.
+
+### Fact-mixin vs behavior-mixin
+
+State-owning ("fact") mixins are named for what they HAVE; they
+own the subscribable surface for that state. Behavior-owning
+("behavior") mixins are named for what the host CAN DO; they
+expose affordances but don't generally own ad-hoc state of their
+own.
+
+Existing fact-mixins: `NamedMixin` (has a name), `VisibleMixin`
+(has short/long descriptions), `PropertiedMixin` (has the bag),
+`TangibleMixin` (has weight, material).
+
+Existing behavior-mixins: `Containable`, `Container`, `Mobile`,
+`Posed`, `Wieldable`, `Slotted`.
+
+When subscribable state has no natural home on an existing
+behavior-mixin, the right move is a new fact-mixin named for
+the state. iconKind → `HasIcon`; vitals (`hp` / `mv`) → a
+`Vitals` mixin; sound emission state → `EmitsSound`; etc.
+These mixins own the storage, the getter/setter, the event
+emission, AND the `subscribableFields` declaration end-to-end.
+
+### Worked example: dynamic scalar (Vitals)
+
+```ts
+class Vitals {
+  static persistentFields = ['hp', 'mv', 'maxhp', 'maxmv'];
+
+  static subscribableFields = [
+    { name: 'hp',    getter: 'getHp',    on: PropertyChangedEvent, by: 'property' },
+    { name: 'mv',    getter: 'getMv',    on: PropertyChangedEvent, by: 'property' },
+    { name: 'maxhp', getter: 'getMaxhp', on: PropertyChangedEvent, by: 'property' },
+    { name: 'maxmv', getter: 'getMaxmv', on: PropertyChangedEvent, by: 'property' },
+  ];
+
+  protected hp = 0;
+  protected mv = 0;
+  // ...
+
+  getHp(): number { return this.hp; }
+  setHp(value: number): void {
+    if (value === this.hp) return;
+    const old = this.hp;
+    this.hp = value;
+    EventApi.fire(new PropertyChangedEvent({
+      target: this, property: 'hp', oldValue: old, newValue: value,
+    }));
+  }
+}
+```
+
+A subscription with `fields: ['hp']`:
+
+- Reads via `stuff.getHp()` at resolve time
+- Derives dependency `PropertyChangedEvent` filtered to
+  `target == stuffId && property == 'hp'`
+- Registers in the meta-bus index, awaits fires, diffs, ships
+  deltas
+
+Adding `hp` to a different mixin (say `RechargeableBattery`'s
+`charge` field) needs zero substrate changes — the new mixin
+declares its own `subscribableFields`, the substrate picks it
+up via the composition walk.
+
+### Worked example: intrinsic-to-class field (HasIcon)
+
+iconKind is per-instance (content can override the cursed-sword
+to render with a special icon) but doesn't change at runtime
+in the common case, so it's a fact-mixin with `static: true`
+descriptors:
+
+```ts
+class HasIcon {
+  static persistentFields = ['iconKind'];
+
+  static subscribableFields = [
+    { name: 'iconKind', getter: 'getIconKind', static: true },
+  ];
+
+  protected iconKind: IconKind = 'item';   // safe default
+
+  getIconKind(): IconKind { return this.iconKind; }
+  setIconKind(kind: IconKind): void { this.iconKind = kind; }
+}
+```
+
+Authored content sets the icon at template time via the
+standard data field:
+
+```yaml
+class: /lib/whatever/Sword
+data:
+  iconKind: cursed-weapon
+```
+
+Most templates leave it implicit and inherit the mixin default;
+special instances override.
+
+### Optional: hints from other mixins
+
+When content gets tedious ("do I really have to set iconKind
+on every NPC template?"), behavior-mixins can declare
+`static iconHint?: IconKind` and HasIcon's getter walks the
+composition chain at first read to pick the most-specific hint
+when no explicit value was set:
+
+```ts
+class ContainableMixin { static iconHint: IconKind = 'item'; }
+class CharacterMixin   { static iconHint: IconKind = 'npc'; }
+class AvatarMixin      { static iconHint: IconKind = 'player'; }
+class DoorBearingMixin { static iconHint: IconKind = 'door'; }
+```
+
+HasIcon resolves: explicit override > most-specific hint >
+intrinsic default. Same precedence model as
+`LocomotionApi.defaultModeFor` (setting → bodyplan default →
+universe default).
+
+The hint chain ships when authors push for it. v1 ships HasIcon
+with explicit storage + intrinsic default only.
+
+### The composition walk + dependency derivation
+
+```ts
+function collectSubscribableFields(stuff: Stuff)
+  : Map<string, SubscribableFieldDescriptor>
+{
+  const out = new Map();
+  for (const cls of MixinApi.walkComposition(stuff.constructor)) {
+    const fields = (cls as any).subscribableFields;
+    if (!fields) continue;
+    for (const d of fields) out.set(d.name, d);
+  }
+  return out;
+}
+
+function projectFields(
+  stuff: Stuff,
+  fieldNames: string[],
+  viewer: Sensor,
+): Record<string, unknown> {
+  const descriptors = collectSubscribableFields(stuff);
+  const out: Record<string, unknown> = { stuffId: stuff.stuffId };
+  for (const name of fieldNames) {
+    const d = descriptors.get(name);
+    if (!d) continue;
+    out[name] = (stuff as any)[d.getter]();
+  }
+  return out;
+}
+
+function deriveDependencies(
+  stuff: Stuff,
+  fieldNames: string[],
+): DependencyFilter[] {
+  const descriptors = collectSubscribableFields(stuff);
+  return fieldNames
+    .map(n => descriptors.get(n))
+    .filter((d): d is Extract<SubscribableFieldDescriptor, { on: EventClass }> =>
+      !!d && 'on' in d
+    )
+    .map(d => ({
+      event: d.on,
+      filter: { target: stuff.stuffId, [d.by]: d.name },
+    }));
+}
+```
+
+Three small functions. No central registry. Adding a new
+subscribable field anywhere in the engine = one entry on the
+mixin's `subscribableFields`. Nothing else changes.
+
+### The (one) substrate-side synthetic field
+
+`capabilities` is the exception — the only truly synthetic field
+projected by the substrate rather than by any single mixin. It
+exists because the verbs an actor can issue against a target
+depend on BOTH the actor's state (mixins, skills, possessions,
+posture) AND the target's state (mixins, properties). No single
+mixin owns the answer; it's a cross-mixin computation.
+
+The substrate provides the projector for `capabilities` directly.
+The verb-provisioning slate's machinery feeds into it (which
+verbs apply to this composition, given this actor's
+affordances). Coarse category bits on `ref` records, full verb
+list on `detail` records, per the earlier capability discussion.
+
+Adding ANY other cross-mixin synthetic field in the future would
+follow the same pattern: substrate-side projector + integration
+with whatever mechanisms feed into it. But these should be rare
+and explicit — the strong default is fact-mixin-owned state.
+
+---
+
 ## Subscription lifecycle (server-side)
 
 ```ts
