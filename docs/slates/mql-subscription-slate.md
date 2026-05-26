@@ -946,9 +946,18 @@ Map<SubscriptionId, {
 }>
 ```
 
-That's it. No object normalization, no schema layer, no
-separate per-Stuff cache. The subscription IS the cache, scoped
-to the widget's view of the world.
+That's it (for v1). No object normalization, no schema layer,
+no separate per-Stuff cache. The subscription IS the cache,
+scoped to the widget's view of the world.
+
+**Widgets read via selectors, not directly.** Even though the v1
+cache is per-subscription, widgets call hooks like
+`useThingsHere()`, `useInventory()`, `useFocusedDetail()` — a
+selector layer — rather than reaching into subscription state
+directly. The selector indirection is essentially free in v1
+(one function call) but it's the seam the future shadow-model
+layer slots into without touching widgets. See
+[Shadow model](#shadow-model-future).
 
 ### TTL: none
 
@@ -1093,6 +1102,236 @@ no cross-coupling — they're independent.
 Same when the player walks: `things-here` re-resolves, but
 `inventory` doesn't (no events match its dependency filters).
 The independence is what makes this model scale.
+
+---
+
+## Shadow model (future)
+
+The v1 client cache is **disjointed pointers** — each
+subscription's `lastResult` lives independently in the cache,
+widgets read from whichever subscription they care about, and
+the client forgets things the moment they leave scope (a
+subscription closes; its data is gone).
+
+That's fine for the cockpit's "what's right here right now"
+widgets. It's NOT fine for any UI element that wants to show
+**state at a distance** or **history of what you've seen**.
+The motivating example: a 3D mini-map that fills out as you
+explore. The map should keep showing the lobby's existence
+after you walk south to the steps — but `things-here` for the
+lobby is no longer subscribed, so the v1 cache has nothing to
+render the lobby from.
+
+Other surfaces with the same shape:
+
+- **Recent rooms breadcrumb** in the inspection pane (history
+  of visited locations)
+- **Long-distance perception** when sound / scent / view-through-
+  windows surfaces want state on the far side of a boundary
+- **Search results** — `mql find sword` matching items not in
+  your immediate scope
+- **Author / admin tools** wanting to inspect distant state
+- **Quest journals / world state overviews** that aggregate
+  across the whole world
+
+All of these need **persistent client-side knowledge** that
+outlives the subscription that supplied it.
+
+### The architecture: normalizer + shared store + selectors
+
+The substrate (server-side) doesn't change. The client cache
+layer evolves:
+
+```
+Subscription delta
+        ↓
+Normalizer  ← merges by stuffId / locationId into the shared store
+        ↓
+Shared store  (flat, normalized; survives subscription lifetime)
+        ↓
+Widget selectors  ← read derived views (with provenance + freshness)
+        ↓
+Widgets render
+```
+
+Widgets don't know which subscription supplied which record.
+They ask the store via selectors (`useStuff(stuffId)`,
+`useTopology()`, `useLocation(id)`). Subscriptions feed the
+store; the store outlives any single subscription.
+
+### Store shape
+
+```ts
+interface ShadowStore {
+  // Every Stuff the client has any data about. Records may be
+  // partial (a ref from a list) or full (detail from focus).
+  stuff: Map<StuffId, StuffShadowRecord>;
+
+  // Spatial / topology cache. Built up as the client visits
+  // rooms; entries persist across moves.
+  locations: Map<StuffId, LocationShadowRecord>;
+  exits: Map<StuffId, ExitShadowRecord>;
+
+  // Subscription provenance — which subs are currently feeding
+  // which entries.
+  provenance: Map<StuffId, ProvenanceInfo>;
+}
+
+interface StuffShadowRecord {
+  stuffId: string;
+  displayName?: string;
+  iconKind?: IconKind;
+  lastKnownContainer?: StuffId;        // where we last saw it
+  detailFields?: Partial<StuffDetail>; // populated if we ever focused
+  freshness: 'live' | 'last-known';
+  asOfFrameId: number;
+}
+
+interface LocationShadowRecord {
+  stuffId: string;
+  displayName?: string;
+  knownExits?: Array<{ direction: string; destinationId: StuffId }>;
+  visited: boolean;
+  lastKnownContents?: StuffId[];
+  freshness: 'live' | 'last-known';
+  asOfFrameId: number;
+}
+
+interface ProvenanceInfo {
+  liveSubs: Set<SubscriptionId>;   // currently feeding this entry
+  lastUpdatedFrameId: number;
+}
+```
+
+Two annotations on every record carry the semantics that
+disjointed-cache loses:
+
+- **`freshness`** — `'live'` if at least one subscription is
+  currently feeding this entry; `'last-known'` if every
+  contributing subscription has closed. Widgets render
+  last-known entries with dimming / "as of N minutes ago" /
+  whatever signal fits.
+- **`asOfFrameId`** — when the entry was last updated. Lets
+  selectors compute age, sort by recency, etc.
+
+### Normalizer behavior
+
+On subscription **result** or **delta**:
+
+1. Walk records / change ops.
+2. For each record, upsert into the store by id. Merge fields:
+   new overwrites old; old fields persist unless explicitly
+   cleared.
+3. Track contributing subscription in provenance.
+4. Mark `freshness: 'live'`.
+
+On subscription **close** (unsubscribe / disconnect):
+
+1. Remove this subscription from each contributed entry's
+   `liveSubs`.
+2. If an entry's `liveSubs` becomes empty, flip
+   `freshness: 'last-known'`. **Do NOT delete the entry.**
+3. Data is now historical but still queryable.
+
+On subscription **re-open** (player walks back into the lobby):
+
+1. New result envelope upserts. Stale fields overwritten with
+   fresh.
+2. Provenance updates; freshness flips back to `'live'`.
+
+The store is **monotonically accumulating**. Eviction is
+bounded by either (a) explicit forget (LRU across long sessions)
+or (b) restart. Memory usage grows linearly with what you've
+explored; game-sized worlds are fine.
+
+### Worked example: the mini-map
+
+```
+t=0  Bobalu spawns in lobby.
+     things-here + inspection subscriptions open; results land.
+     Normalizer upserts:
+       store.stuff[*] — contents of lobby (ref records)
+       store.locations[lobby] = {
+         displayName: 'Duncan Hall Lobby',
+         knownExits: [{ south, steps }],
+         visited: true, freshness: 'live'
+       }
+     For the destination steps (named in lobby's exits but not
+     yet visited):
+       store.locations[steps] = {
+         visited: false, freshness: 'last-known',
+         lastKnownContents: undefined  // unknown yet
+       }
+     ← partial node; we know it exists, no detail yet.
+
+t=10  Bobalu walks south.
+      things-here, inspection re-resolve in new scope (steps).
+      Normalizer upserts:
+        store.locations[steps] = {
+          displayName: 'Duncan Hall Front Steps', ...,
+          knownExits: [{ north, lobby }],
+          visited: true, freshness: 'live'
+        }
+      Lobby's contributing subscriptions all closed; its
+      freshness flips to 'last-known'. But lobby ENTRY DOESN'T
+      DISAPPEAR — visited stays true, lastKnownContents is
+      whatever was there when Bobalu left.
+
+t=15  Bobalu opens the mini-map widget.
+      Widget selector: useTopology() → reads from store.locations
+      + store.exits, builds a graph.
+      Mini-map renders:
+        - lobby: solid (visited), dim (last-known)
+        - steps: solid (visited), bright (live; current)
+        - edge: lobby ↔ steps (north / south)
+      No subscription opened for the map. It's reading
+      accumulated state.
+
+t=30  Bobalu explores east, then south, then back. Topology
+      graph grows. Each new visit adds nodes + edges.
+      Unvisited destinations remain as ghost nodes (named in
+      exits, never resolved in detail).
+
+t=∞   Bobalu re-enters the lobby.
+      Lobby's subscriptions re-open. Fresh result lands.
+      Normalizer overwrites stale fields. freshness flips to
+      'live'. Mini-map highlights the lobby; lastKnownContents
+      replaced by current contents.
+```
+
+The mini-map widget itself uses **zero live subscriptions**
+beyond what the rest of the cockpit already has. It reads from
+accumulated history. That's the property the disjointed-pointer
+model can't give us.
+
+### Why this stays a v1 seam, not a v1 build
+
+The cost of the selector indirection in v1 is essentially zero
+(one function call per widget read). The store and normalizer
+can ship as a v1 pass-through (the "store" is a thin facade over
+the per-subscription cache) and evolve into the real shadow
+model when the mini-map (or another distance-aware surface)
+demands it.
+
+What we get from designing the seam now:
+
+- Widgets in v1 are written against selectors, not against raw
+  subscription state.
+- When the normalizer arrives, the selector layer is the seam
+  it slots into.
+- Widget code doesn't change.
+
+What we get from NOT designing the seam:
+
+- v1 widgets read subscription state directly.
+- Adding the shadow store later requires rewriting every widget.
+- The transition spans the whole client codebase.
+
+The shadow model proper (normalizer, freshness annotations,
+eviction policy, possibly localStorage persistence) graduates
+to its own dedicated slate when build effort is committed.
+Until then, this section captures the design pull and the v1
+seam that preserves it.
 
 ---
 
