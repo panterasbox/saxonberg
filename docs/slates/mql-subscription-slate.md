@@ -313,11 +313,55 @@ interface SubscriptionState {
 ## Change detection — dependency tracking
 
 The naive implementation re-resolves every subscription on
-every event. That's not viable past a handful of subscriptions
-under any meaningful event load.
+every event. That's `O(events × subscriptions)` per tick and is
+not viable past a handful of either.
 
-The smart implementation: **subscriptions declare what they
-depend on**, and the registry routes events accordingly.
+The mechanism: a **meta-bus** layered on `EventApi` that indexes
+subscriptions by their declared dependencies, looks up matching
+subscriptions per event in `O(matched)`, and coalesces all
+re-resolves for a tick into one pass per subscription.
+
+### The meta-bus and the dependency index
+
+`EventApi` itself stays simple — typed events, subscribe with
+a handler. The subscription substrate adds an index on top:
+
+```ts
+// Two-level map: event kind → filter-value → subscriptions
+type DependencyIndex = Map<
+  EventKind,
+  Map<string /* filter key */, Set<SubscriptionId>>
+>;
+```
+
+When an event fires, the meta-bus:
+
+1. Looks up `EventKind` in the outer map.
+2. For each filter attribute on the event (`target.stuffId`,
+   `property`, `from`, `to`, etc.), looks up the matching
+   subscription set in the inner map.
+3. Unions the matched sets, marks each `dirty`, schedules the
+   tick's re-resolve pass if not already scheduled.
+
+Per-event work is bounded by the actual number of interested
+subscriptions, not by total count. A single event fires only
+into the subscriptions that asked for it.
+
+### The re-resolve pass (micro-batch)
+
+The pass runs once per Node event-loop tick via `setImmediate`:
+
+1. Walk the dirty set.
+2. For each dirty subscription: re-resolve its AST in the
+   viewer's scope, project through the field-set, diff against
+   `lastResult`, emit one delta.
+3. Clear dirty flags.
+
+The key invariant: events that happen in the same synchronous
+chain of mutations (a `drop all` firing 10 `ContainmentChanged`
+events) generate one re-resolve per affected subscription, not
+ten. The micro-batch boundary aligns with the engine's
+existing event-fire-after-mutation discipline.
 
 ### Coarse dependencies (v1)
 
@@ -325,25 +369,88 @@ Each MQL query AST is walked at parse time to derive a coarse
 dependency set:
 
 - `all things in here` → depends on `ContainmentChangedEvent`
-  with `to == viewer.location` OR `from == viewer.location`
+  with `to == viewer.location` OR `from == viewer.location`,
+  AND `ContainmentChangedEvent` with `subject == viewer`
+  (because "here" itself re-resolves if the viewer moves).
 - `me.hp` → depends on `PropertyChangedEvent` with
-  `target == viewer` AND `property == 'hp'`
+  `target == viewer` AND `property == 'hp'`.
 - `all sleeping things in here` → depends on the above
   containment change AND `LifecycleStateChangedEvent` on the
-  in-scope set
+  in-scope set (see "Dynamic dependency sets" below).
 - `$focus` (detail) → depends on changes to whatever the focus
-  points at AND `FocusChangedEvent` for the viewer
+  points at AND `FocusChangedEvent` for the viewer.
 
 This is conservative — sometimes re-evaluates when not strictly
 necessary — but cheap and correct. The dependency-set is a
 small interpreter walk over the AST; well-understood.
 
-### Fine dependencies (Tier 2)
+### Dynamic dependency sets
 
-For high-frequency queries, the registry could compute fine
-dependencies (e.g., which specific stuffIds are in the current
-result, only re-eval when one of THEM mutates). Skip for v1;
-worth it when content actually pushes the perf envelope.
+The hard case: a query whose dependency set depends on its own
+results. `all sleeping things in here` needs lifecycle-change
+notifications on **whatever is currently in the room**, which
+changes as things enter and leave.
+
+Two strategies:
+
+- **Conservative coarse** (v1): subscribe to
+  `LifecycleStateChanged` on ANY stuffId. Re-resolve naturally
+  filters in-query. Wasteful but correct, simple to implement.
+- **Adaptive** (Tier 2): after each resolve, derive the
+  "currently interested" stuffId set and update the meta-bus
+  listeners (subscribe to new, unsubscribe from old). Bounded
+  but adds bookkeeping; the AST walker also needs to emit
+  "interest sets" alongside the static dependency set.
+
+v1 ships conservative. The architectural seam (the AST walker
+can produce both static and dynamic dependency sets, the
+meta-bus accepts mid-life listener updates) is shaped so
+adaptive lands without a rewrite.
+
+### Race conditions and ordering
+
+`EventApi` fires synchronously after the state change (existing
+witness-pattern discipline). Re-resolution therefore sees
+consistent post-change state — no read-your-write hazards.
+
+Cross-subscription ordering, however, is **not contracted.**
+Two subscriptions affected by the same event (e.g.,
+`me.inventory` and `here.contents` both seeing a pickup) emit
+deltas in the same tick but in arbitrary order. Clients
+applying each independently are fine; widgets that need a
+joined snapshot subscribe to a single composite query
+(`{ inventory: me.inventory, here: here.contents }`) and get
+one delta carrying both. Composite-query support is Tier 2; v1
+ships independent subscriptions only.
+
+### Capability fields and their dependencies
+
+The `capabilities` field on `StuffRef` ("verbs the actor can
+currently issue against this target") is per-emission expensive
+AND has wide dependency surface: actor mixins, target mixins,
+body-plan slots, possessions, skills, posture all feed into it.
+
+Granularity choice:
+
+- **Coarse on `ref`**: category bits like `actionable`,
+  `talkable`, `wearable`, `examinable`. Cheap to compute,
+  stable, sufficient for right-click menus and chip styling.
+- **Full on `detail`**: complete per-target verb list when the
+  player focuses. Expensive but rare; the detail fetch is the
+  natural place to pay.
+
+This split also limits the dependency blast radius. The coarse
+bits depend only on TARGET-side mixin presence (rarely changes
+during a session). The full verb list depends on ACTOR state
+(equipment, skills, posture) — those changes only force re-
+resolve for the focused detail subscription, not for every ref
+in every list.
+
+`CapabilityChangedEvent` fires when actor state shifts in ways
+that affect what they can do (donning lockpicks → `pick`
+appears against doors). Detail subscriptions hooked on this
+event re-resolve; ref subscriptions do not (coarse bits are
+target-driven, not actor-driven).
 
 ### Catch-all events
 
@@ -351,7 +458,23 @@ Some events are catch-all (`Anything-changed-in-this-location`).
 For widgets that want a "just re-eval whenever ANYTHING happens
 in my scope" mode, the dependency set declares it explicitly
 (`options.coarse: true` on subscribe). Server emits more often
-but the subscription is simpler.
+but the subscription is simpler. The meta-bus indexes these
+under a wildcard key.
+
+### Resolution failures mid-stream
+
+A subscription on `me.locked-thing.contents` — if `locked-thing`
+gets destroyed, the resolution path errors. Policy:
+
+1. Emit `mql-subscription-error` with `reason: 'resolve'` and a
+   diagnostic message.
+2. Auto-cancel the subscription (deregister from the index,
+   release `lastResult`).
+3. Client may re-subscribe with an updated query.
+
+Tempting alternative — keep the subscription alive and emit an
+empty result — leaves the client guessing why. Explicit error
+is easier to reason about.
 
 ---
 
@@ -570,6 +693,27 @@ subscriptions, evaluated independently.
 
 ---
 
+## Decisions to pin before build
+
+A few choices that don't surface in the public API but shape
+the implementation; named here so they're discussed before a
+build cycle starts, not midway.
+
+| Decision | Lean | Notes |
+|---|---|---|
+| EventApi filter matching | Equality-on-attribute only | Arbitrary predicate matching is a perf trap; equality is indexable in `O(1)` |
+| Dependency-index keying | Two-level (eventKind → filter-value → subs) | Cheap, supports the common "all things changed in room X" lookup pattern |
+| Dynamic dependency strategy v1 | Conservative coarse | Adaptive when perf bites |
+| Capability granularity per ref | Coarse bits in ref, full list in detail | Reduces dependency blast radius from actor state changes |
+| Subscription error policy on mid-stream resolution failure | Emit error + auto-cancel | Explicit beats silent empty results |
+| Disconnect cleanup | `cancelAll(interactive)` removes index entries + state + listener handles in one pass | Same shape as `PromptApi.cancelAll` |
+| Per-Interactive subscription cap | Soft cap (start ~50) with error envelope on excess; tune with telemetry | Avoids a runaway client exhausting server memory |
+| Permission churn (admin role granted) | Force client re-subscribe | Explicit is simpler than implicit re-resolve with new field projections |
+| Initial-result performance contract | Subscriptions are for hot-loop state, not heavy queries; refuse pathologically expensive ASTs at subscribe time | Document the contract so authors don't put `mql "everything in the universe"` behind a widget |
+| Cross-subscription emit ordering | Not contracted | Composite queries are the answer when joined consistency matters; Tier 2 |
+
+---
+
 ## Dependencies
 
 - **MQL** ([mql.md](../subsystems/mql.md)) — the substrate
@@ -592,28 +736,53 @@ subscriptions, evaluated independently.
 
 ## Suggested build order
 
-1. **Substrate skeleton** — `MqlSubscriptionApi`, the registry,
-   subscribe / unsubscribe / single-shot evaluate. No
-   change-detection yet; this proves the wire and the
-   resolve-and-project loop.
-2. **Coarse dependency derivation** — AST walk that produces a
-   conservative event dependency set per query.
-3. **EventApi integration + re-resolve loop** — register the
-   dependencies, listen, re-resolve, diff, emit delta.
-4. **Throttling** — micro-batch coalescing as the default.
-5. **Canonical subscription kinds (server)** — pre-canned
-   query + field-set pairs registered with a friendly name
-   (`inventory`, `things-here`, etc.) so client widgets can
-   subscribe by name.
-6. **Client subscription infrastructure** — Zustand slice that
-   manages live subscriptions, handles subscribe / delta
-   application / unsubscribe / cleanup-on-disconnect.
-7. **First consumer widgets** — inventory chip strip; slot map;
-   atmosphere readout. Each is ~50-150 LoC against the slice.
-8. **Inspection pane consumer** — re-bind `$focus` subscription
-   as focus shifts; render detail records.
-9. **Capability-changed events** — wire up the corresponding
-   events as the verb-provisioning slate matures.
+The first goal isn't "all the canonical kinds" — it's **one end-
+to-end live round-trip** against the simplest possible query, to
+prove the meta-bus + diff + delta loop works. Everything else
+layers on once that's solid.
+
+1. **Substrate skeleton + one query** — `MqlSubscriptionApi`,
+   the registry, subscribe / unsubscribe. Target ONE query shape:
+   `me.<scalar>` (e.g., `me.hp`). Single-shot resolve, no
+   change-detection yet. Proves the wire end-to-end with a stub
+   "emit on demand" trigger.
+2. **Diff algorithm** — generic per record type. Small (~50 LoC).
+   Wire the result + delta envelopes.
+3. **Meta-bus + EventApi integration** for the
+   `PropertyChangedEvent` case. Subscribe the registry; on fire,
+   look up affected subs, mark dirty.
+4. **Re-resolve pass + setImmediate batching** — first real
+   round-trip. Change `me.hp` server-side, watch the delta land.
+   This is the milestone that proves the architecture works.
+5. **Coarse dependency derivation — collection-shaped queries**:
+   `all things in here`. Adds containment-change dependency
+   handling; introduces the dynamic-set-via-conservative-coarse
+   strategy.
+6. **Canonical subscription kinds (server)** — pre-canned
+   query + field-set pairs registered with friendly names
+   (`inventory`, `things-here`, `slots`, etc.). Each is just
+   a query + field-set tuple; the substrate is already general.
+7. **Capability computation** — coarse bits in refs; build the
+   per-ref evaluator that checks target mixins for category
+   flags.
+8. **Client subscription infrastructure** — Zustand slice
+   managing live subscriptions, applying deltas, cleaning up on
+   disconnect.
+9. **First consumer widgets** — inventory chip strip; slot map;
+   atmosphere readout. ~50-150 LoC each against the slice.
+10. **Inspection pane consumer** — `$focus` subscription
+    re-binds as focus shifts; renders detail records.
+11. **`CapabilityChangedEvent` + full capabilities in detail
+    records** — actor-side capability tracking, dependency
+    integration. Lands as verb-provisioning slate matures.
+12. **Composite queries / joined snapshots** (Tier 2) — when
+    a widget needs cross-result consistency.
+13. **Adaptive dependency sets** (Tier 2) — when conservative-
+    coarse pushes the perf envelope.
+
+Waves 1-4 are the architectural milestone (one query, end-to-
+end, with real change detection). Waves 5-7 are the substrate
+generalization. 8-10 are the client. 11+ are polish + future.
 10. **Tier 2 polish** — fine-grained dependency tracking, longer
     debounce options, subscription introspection.
 
