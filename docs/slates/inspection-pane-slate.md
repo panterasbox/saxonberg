@@ -220,39 +220,43 @@ Two emit paths from the server per look:
 `world.perception.look` MessageFrame with the rendered MML body.
 Lands in the terminal scroll. Unchanged.
 
-### Pane payload (new)
+### Pane content (subscription)
 
-A parallel structured frame on a dedicated topic — call it
-`system.inspection` — carrying the same render payload in a form
-the pane can consume directly:
+The pane is an **MQL subscription consumer**. Per the
+[mql-subscription-slate](./mql-subscription-slate.md), the pane
+opens a subscription on `$focus` with the `detail` field-set:
 
-```ts
-interface InspectionFrame {
-  topic: 'system.inspection';
-  body: {
-    focus: string;                  // the focus value this look fired against
-    title: string;                  // the focused thing's display name
-    prose: string;                  // MML body identical to what the terminal got
-    affordances?: AffordanceSummary[]; // future: structured exit/item/NPC list for richer rendering
-    // …extensibility for future panes (atmosphere readouts, lighting, etc.)
-  };
-}
+```jsonc
+{ "type": "mql-subscribe", "subscriptionId": "inspection",
+  "query": "$focus", "fields": "detail" }
 ```
 
-Why a parallel frame and not "parse the existing MML on the
-client":
+Server responds with the initial `mql-subscription-result`
+carrying a `StuffDetailRecord` (long description, properties,
+slots, contents, lighting/atmosphere where applicable, etc.).
+The pane renders.
 
-- The pane needs to know the focus this look was tied to, so it
-  can decide whether the pane should update (focus-match) or not
-  (peek-flagged look).
-- The pane might want richer rendering than the prose pane (e.g.,
-  a sortable list of exits, an atmosphere readout card).
-- Server-side rendering of the structured payload lets the format
-  evolve without forcing the client to re-parse MML.
+When focus changes (via `examine`, `focus`, `look <thing>`,
+movement, etc.), `FocusChangedEvent` fires; the subscription's
+dependency matches; re-resolution projects the new focused
+Stuff; an `op: 'replace'` delta lands. Pane re-anchors.
 
-v1 ships with `prose` only — the pane renders the same MML body
-the terminal does, just in a different surface. `affordances` and
-other fields are stubbed for future enrichment.
+When the focused thing's perceived state changes (the
+thermometer's reading updates, Alice's disguise flips, a
+property changes), the appropriate event fires; subscription
+re-resolves; field-level update delta lands. Pane patches.
+
+The pane's `--peek` semantics work without server-side
+involvement: a `look <thing> --peek` doesn't fire
+`FocusChangedEvent` (focus stays put), so no inspection-pane
+delta emits. Terminal still gets the prose.
+
+**Previous design (superseded):** an earlier version of this
+slate proposed a bespoke `system.inspection` topic for the
+pane's content. That's now dropped — the subscription substrate
+covers it. One less mechanism to build and maintain; the pane is
+just another canonical-subscription consumer like the other
+cockpit widgets.
 
 ---
 
@@ -401,11 +405,8 @@ Tabs section above).
   token (same wire push topic).
 - **MML semantic-tag renderer** (shipped) — the pane reuses the
   same renderer for clickable affordances in the body.
-- **State-sync slate** — eventual live-update path. Out of scope
-  for v1 but the wire shape (`InspectionFrame`) is designed to
-  be superseded by the MQL-subscription substrate when it lands
-  — the pane becomes a subscriber on `$focus` with `detail`
-  fields and no longer needs the bespoke topic.
+- **MQL-subscription slate** — the pane is a subscription
+  consumer. Required for the pane to work at all.
 - **Console filtering slate** — sister; complementary surface for
   spam management.
 - **DescribeApi v2** (recognition slate) — when DescribeApi v2
@@ -417,26 +418,35 @@ Tabs section above).
 
 ## Suggested build order
 
-1. **Wire shape (server)** — new `system.inspection` topic;
-   `LookController` emits the structured frame alongside its
-   existing prose emit. Tested against unit harness.
+Depends on the MQL-subscription substrate being live first
+(see [mql-subscription-slate](./mql-subscription-slate.md)).
+Once it's up:
+
+1. **Server side: `$focus` canonical subscription kind** —
+   register the (query, field-set) pair as a named kind so the
+   client subscribes by name. Detail projection runs through
+   the existing field-projection mechanism; the `detail` alias
+   gets the standard set (descriptions, properties, slots,
+   contents, etc.).
 2. **Pane skeleton (client)** — header + body + empty-body
-   state. Subscribes to `system.inspection` + the focus push
-   topic. Renders MML body through the existing renderer.
-3. **Refresh button** — clickable affordance routed through
-   the command bus (`look`).
+   state. Opens the `$focus` subscription on mount. Renders the
+   detail record's MML body through the existing renderer.
+3. **Refresh button** — clickable affordance routed through the
+   command bus (`look`).
 4. **Focus breadcrumbs** — Zustand slice holding the last N
    focus values; UI strip; click sends `focus <X>` (or
    `look <X>` per the open question).
 5. **`--peek` flag on look** — argument parser + a server
-   behavior tweak (skip the focus push + skip the inspection
-   frame emit when `--peek` is present).
+   behavior tweak (skip the focus update when `--peek` is
+   present, so the subscription doesn't emit a delta).
 6. **Admin extras** — expandable section below body, gated by
    role check. Quick-action buttons (`clone` / `reload` /
    `eval`) are clickable affordances routed through the bus.
+   Admin metadata fields project conditionally based on the
+   viewer's role (already a substrate property).
 7. **Tab strip stub** — UI element with one (focus) tab and a
    grayed-out `[+]`. No functionality yet, just shape.
 
 Waves 1-3 are the core. 4 + 5 are polish. 6 is admin. 7 is
 forward-compat shape. Waves 1-5 likely fit in a single build
-cycle; admin + tabs as follow-ups.
+cycle once the substrate exists; admin + tabs as follow-ups.

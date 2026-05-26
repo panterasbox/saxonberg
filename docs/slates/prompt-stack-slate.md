@@ -229,23 +229,27 @@ otherwise invisible in the UI. Showing it in the prompt makes every
 MQL chain legible at a glance — the player always knows what their
 default seed is.
 
-Wire shape for v1: server pushes the current focus value to the
-client on a dedicated topic (`system.prompt.focus` or similar)
-**(a)** at connection-established time and **(b)** whenever
-`setFocus` fires — `FocusController` already emits prose
-`focus set to 'X'`; one additional structured emit on the new topic
-covers the client side. Client subscribes, stashes the latest,
-renders. No MQL-subscription dependency yet (focus push is its
-own small server topic for v1).
+Wire shape: an **MQL subscription on `me.focus`** (or whatever the
+canonical accessor for the actor's current focus value ends up as
+in the substrate's canon kinds). Single-cardinality, scalar field.
+The subscription's dependency is `FocusChangedEvent` filtered to
+`target == viewer`; whenever `setFocus` fires on the avatar,
+the subscription re-resolves and ships an `op: 'replace'` delta
+with the new focus value. Client renders `[<focus>] >`.
+
+This means the base-prompt has the same shape as every other
+v1 widget — a subscription consumer. No bespoke
+`system.prompt.focus` topic, no special-cased push channel.
+The subscription substrate is a v1 prerequisite anyway (for the
+rest of the cockpit's widgets); the base prompt rides along.
 
 Future: a configurable `prompt.format` setting via `EnvironmentMixin`
 (`%hp` / `%maxhp` / `%mv` / `%location` / `%posture` / `%engagement`
 / `%focus` / `%mode` / `%time`) replaces the focus-only format.
-Server renders against live state and re-pushes when any underlying
-value changes; an MQL subscription on `me.{ hp, mv, location,
-posture, ... }` drives the re-renders. The `system.prompt.focus`
-topic gets superseded by a subscription with a token-rendering
-field-set.
+The subscription's query/field-set evolves from `me.focus` to
+something like `me.promptTokens` carrying all the format-source
+fields; the client renders the configured format string against
+the delivered values. Same substrate; richer projection.
 
 ### The kind canon (tiered)
 
@@ -642,10 +646,12 @@ land later.
 
 ## Non-goals
 
-- **Subscription-driven base prompt format** — token-driven `%hp` /
-  `%location` style format strings deferred to whenever the
-  MQL-subscription substrate lands. v1 ships a focus-only base
-  prompt fed by a dedicated server push topic.
+- **Token-format base prompt** — token-driven `%hp` /
+  `%location` style format strings deferred until first
+  content asks. v1 ships a focus-only base prompt as an MQL
+  subscription on `me.focus`; the token-format generalization
+  is the same subscription evolving its field-set, not new
+  substrate.
 - **Preempting priority** — the spectrum (demanding / passive /
   toast) excludes the would-cancel-other-prompts case. Add it
   when content asks (server shutdown notifications, etc.).
@@ -744,12 +750,17 @@ land later.
 7. **Tier 2 kinds** (`numeric`, `multiChoice`, `password`,
    `mqlMany`) — land per content. Each is a small addition to
    PromptApi + a small client renderer.
-8. **State-sync-driven base prompt format** — generalizes the
-   focus-only base prompt to a server-rendered token format
-   (`%hp` / `%location` / etc.) re-pushed when underlying state
-   changes. Lands alongside the MQL-subscription substrate.
+8. **Token-format base prompt** — generalizes the focus-only
+   base prompt's subscription to a richer field-set
+   (`%hp` / `%location` / etc.). Same MQL subscription
+   mechanism, broader query.
 
 Waves 1-2 are independent and can be built in parallel by
 different sessions. Waves 3-5 ship as a unit. Wave 6 lands per
-content. Wave 7 is per-kind-per-content. Wave 8 lands with state-
-sync.
+content. Wave 7 is per-kind-per-content. Wave 8 lands per
+content demand.
+
+**Prerequisite for Wave 1 client work**: the MQL subscription
+substrate must be live (the base prompt depends on it).
+Otherwise Wave 1 ships a hardcoded placeholder, which is fine
+for the substrate's own development phase.
