@@ -383,8 +383,13 @@ site.
 
 ```ts
 type SubscribableFieldDescriptor =
-  | { name: string; getter: string; on: EventClass; by: string }   // dynamic
+  | { name: string; getter: string; changes: ChangeSource[] }     // dynamic
   | { name: string; getter: string; static: true };                // intrinsic
+
+interface ChangeSource {
+  on: EventClass;   // event class whose fires might change this field
+  by: string;       // event attribute that selects matching descriptors
+}
 ```
 
 Three things the descriptor binds together that the mixin
@@ -393,19 +398,27 @@ already knows:
 1. **What to read** — `getter` names the method (`getHp`,
    `getIconKind`, `getDisplayName`). The substrate calls
    `stuff[getter]()` at projection time.
-2. **What to listen for (dynamic only)** — `on` names the
-   event class whose fires could change this field's value
+2. **What to listen for (dynamic only)** — `changes` is an array
+   of `ChangeSource` entries. Each names an event class whose
+   fires could change this field's value
    (`PropertyChangedEvent`, `NameChangedEvent`,
-   `ContainmentChangedEvent`, …).
-3. **How to filter the event (dynamic only)** — `by` names the
-   event attribute that should match this descriptor's `name`.
-   For `PropertyChangedEvent` it's `'property'`; the meta-bus
-   binds events where `event.property === descriptor.name` to
-   this descriptor's subscriptions.
+   `ShadowChangedEvent`, …) along with the filter attribute that
+   selects this descriptor.
+3. **How to filter the event** — the `by` attribute on each
+   `ChangeSource` names the event field that should match this
+   descriptor's `name` (for property-shaped events) or that
+   should match `target == stuffId` (for shadow / containment
+   events). The meta-bus uses the filter for index lookup.
 
 `static: true` says "compute once on subscribe, no listener,
 never emit a delta for this field." Used for intrinsic-to-class
 data: `iconKind`, `templatePath`, the mixin composition list.
+
+The `changes` array lets a field declare **multiple change
+sources** — important for fields whose getters route through
+the shadow chain (a disguise overriding `displayName` changes
+the perceived value without firing `NameChangedEvent`).
+See [Shadow interactions](#shadow-interactions) below.
 
 ### Fact-mixin vs behavior-mixin
 
@@ -436,11 +449,15 @@ class Vitals {
   static persistentFields = ['hp', 'mv', 'maxhp', 'maxmv'];
 
   static subscribableFields = [
-    { name: 'hp',    getter: 'getHp',    on: PropertyChangedEvent, by: 'property' },
-    { name: 'mv',    getter: 'getMv',    on: PropertyChangedEvent, by: 'property' },
-    { name: 'maxhp', getter: 'getMaxhp', on: PropertyChangedEvent, by: 'property' },
-    { name: 'maxmv', getter: 'getMaxmv', on: PropertyChangedEvent, by: 'property' },
+    { name: 'hp',    getter: 'getHp',    changes: [{ on: PropertyChangedEvent, by: 'property' }] },
+    { name: 'mv',    getter: 'getMv',    changes: [{ on: PropertyChangedEvent, by: 'property' }] },
+    { name: 'maxhp', getter: 'getMaxhp', changes: [{ on: PropertyChangedEvent, by: 'property' }] },
+    { name: 'maxmv', getter: 'getMaxmv', changes: [{ on: PropertyChangedEvent, by: 'property' }] },
   ];
+
+  // Note: hp's getter is direct (no shadow routing in this v1 sketch).
+  // If buffs ship as shadows that override perceived hp, this
+  // descriptor grows a `ShadowChangedEvent` entry in `changes`.
 
   protected hp = 0;
   protected mv = 0;
@@ -563,15 +580,18 @@ function deriveDependencies(
   fieldNames: string[],
 ): DependencyFilter[] {
   const descriptors = collectSubscribableFields(stuff);
-  return fieldNames
-    .map(n => descriptors.get(n))
-    .filter((d): d is Extract<SubscribableFieldDescriptor, { on: EventClass }> =>
-      !!d && 'on' in d
-    )
-    .map(d => ({
-      event: d.on,
-      filter: { target: stuff.stuffId, [d.by]: d.name },
-    }));
+  const out: DependencyFilter[] = [];
+  for (const name of fieldNames) {
+    const d = descriptors.get(name);
+    if (!d || !('changes' in d)) continue;   // static field; no listener
+    for (const source of d.changes) {
+      out.push({
+        event: source.on,
+        filter: { target: stuff.stuffId, [source.by]: name },
+      });
+    }
+  }
+  return out;
 }
 ```
 
@@ -1356,6 +1376,240 @@ every projection happens with the viewer threaded through.
 Servers that want shared subscriptions across many clients
 need to be careful here; the model assumes per-Interactive
 subscriptions, evaluated independently.
+
+---
+
+## Shadow interactions
+
+Saxonberg's `Shadow` mechanism (per `lib/stuff/Shadow.ts`) lets a
+Stuff's perceived state diverge from its actual state via method
+overrides — disguises, hoods, polymorph effects, buffs / debuffs
+that override property reads, recognition modulation. The shadow
+intercepts dispatch when a viewer reads through the host; the
+underlying Stuff's storage doesn't change.
+
+Subscriptions interact with shadows in a way the
+`PropertyChangedEvent` / `ContainmentChangedEvent` family doesn't
+naturally cover: a shadow attaching changes **perceived** state
+without firing any of the existing state-change events. The
+substrate needs its own signal.
+
+### `ShadowChangedEvent`
+
+A new event kind fires whenever any shadow attaches to or
+detaches from a target, OR mutates in a way that affects what
+the shadow returns:
+
+```ts
+interface ShadowChangedEventPayload {
+  target: Stuff;            // the host whose perceived state changed
+  shadow: Stuff;            // the shadow that attached/detached/mutated
+  cause: 'attached' | 'detached' | 'mutated';
+}
+```
+
+Emitted by the shadow lifecycle (whatever owns shadow
+attach/detach today; probably a small surface in `ShadowApi`
+or the existing framework). Each shadow operation fires the
+event with the affected host's stuffId.
+
+### Descriptor evolution: multi-source `changes`
+
+A field whose getter routes through the shadow chain has TWO
+change sources: the underlying state-change event AND
+`ShadowChangedEvent`. The descriptor's `changes` array (per
+[Field projection](#field-projection--mixin-declared-surface))
+declares both:
+
+```ts
+class NamedMixin {
+  static subscribableFields = [
+    {
+      name: 'displayName',
+      getter: 'getDisplayName',
+      changes: [
+        { on: NameChangedEvent,   by: 'target' },
+        { on: ShadowChangedEvent, by: 'target' },
+      ],
+    },
+  ];
+}
+```
+
+The substrate registers listeners for both. When EITHER event
+fires with `target == subscribedStuffId`, the subscription
+dirties; re-resolution runs the getter (which routes through
+current shadow state), producing viewer-correct projection.
+
+The pattern generalizes: **any field whose getter is
+shadow-routed adds `ShadowChangedEvent` to its `changes`
+array.** That includes:
+
+- `displayName`, `shortDescription`, `longDescription`
+  (NamedMixin / VisibleMixin — disguises affect these)
+- Any property whose value is buff-able (if buffs ship as
+  shadows that override `getProp` — open question; if so,
+  `PropertiedMixin`'s catch-all gets ShadowChangedEvent)
+- `iconKind` if polymorph or visual-replacement effects ship
+  as shadows
+- Sensory properties (perceived noise, perceived light)
+
+Fields that are emphatically NOT shadow-routed (raw storage
+fields with no overrideable getters — admin-only views,
+template paths, mixin composition) stay single-source.
+
+### Reverse-index challenge
+
+The meta-bus index is keyed by event filter attributes. For
+`ShadowChangedEvent { target: <alice-id> }` to dispatch
+correctly, the substrate has to know which subscriptions
+include Alice in their CURRENT RESULT.
+
+That's not derivable from the query (`all things in here`
+doesn't name Alice statically). It's derivable from the
+**resolved result**, which changes as contents enter/leave the
+room.
+
+Two strategies, paralleling the dynamic-dependency discussion:
+
+**v1 conservative-coarse.** `ShadowChangedEvent` dispatches to
+any subscription whose result might include the target — for
+collection queries, that's any subscription whose viewer-scope
+includes the affected stuffId. Re-resolve filters in-query.
+Same `O(matched-subscriptions)` shape as the rest of the
+substrate, just with a wider matching net.
+
+Server cost: a shadow attaching in a busy room re-resolves the
+subscriptions of every observer in that room. For low-shadow-
+churn worlds, fine. For shadow-heavy scenes (a stealthed
+infiltrator working a crowd), more wasted re-resolution than
+ideal.
+
+**v1.5 selective per-result.** Substrate maintains a reverse
+index: `stuffId → subscriptions including it in lastResult`.
+After each re-resolve, diff the in-result set; update the
+reverse index (add new ids, drop departed ones).
+`ShadowChangedEvent` looks up only the subscriptions actually
+containing the target. Real bookkeeping but `O(actually-
+affected)` cost.
+
+Ship conservative-coarse for shadows in v1; graduate to
+selective per-result when shadow churn becomes a perf issue.
+The architectural seam — descriptors declaring
+`ShadowChangedEvent` as a change source — is what locks in now;
+the index efficiency comes later without touching descriptors
+or wire shape.
+
+### Worked example: disguise on / off
+
+Setup: Bobalu sees Alice in the lobby. His `things-here`
+subscription has Alice in its result with
+`displayName: 'Alice'`.
+
+```
+1. Alice runs `wear hood`.
+2. WearController fires; the hood becomes worn.
+3. The hood's shadow framework attaches; ShadowChangedEvent fires:
+     { target: alice, shadow: hood, cause: 'attached' }
+
+Meta-bus dispatch (conservative-coarse v1):
+  Bobalu's `things-here` matched because:
+    - displayName descriptor declares ShadowChangedEvent as a
+      change source
+    - Alice is in the subscription's current scope
+  Mark dirty; schedule re-resolve.
+
+Re-resolve pass (next tick):
+  - `things-here` re-resolves in Bobalu's viewer scope.
+  - Alice's ref re-projects:
+      displayName = getDisplayName(alice, bobalu)
+                  → routes through the hood shadow
+                  → 'a hooded figure'
+  - Diff: Alice's record changed displayName.
+  - Emit:
+      { op: 'update', key: <alice-id>,
+        fields: { displayName: 'a hooded figure' } }
+
+Bobalu's client patches the alice ref. Chip strip re-renders.
+
+(Charlie's `things-here`, if his perception pierces disguises —
+recognition slate territory — re-resolves to a different
+projection: 'Alice' or 'Alice (in a hood)'. Same event, same
+dispatch; per-viewer getter routing produces correct projections
+per viewer.)
+
+Later: Alice runs `remove hood`.
+  ShadowChangedEvent { target: alice, shadow: hood, cause: 'detached' }
+  Same dispatch flow, reverse direction.
+  Bobalu's delta: displayName flips back to 'Alice'.
+```
+
+### Edge cases
+
+- **Shadow chains** (multiple shadows on one host): each shadow
+  attach/detach/mutate fires its own `ShadowChangedEvent`. The
+  getter chain resolves through all shadows in priority order
+  at projection time; the substrate doesn't need to know how
+  many shadows are stacked. Multiple attach events in one
+  synchronous chain coalesce via the setImmediate micro-batch
+  into one re-resolve per affected subscription.
+
+- **Per-viewer shadows** (shadow affects some viewers, not
+  others — e.g., recognition modulation by social-graph
+  proximity): event fires globally; per-viewer projection
+  produces viewer-correct output naturally. The substrate
+  could pre-filter dispatch by an `affectedViewers?: Stuff[]`
+  field on the event payload, but that's a perf optimization,
+  not a correctness requirement. Lean simpler.
+
+- **Shadows on Stuff outside any subscription's result**: meta-
+  bus index has no matching entries; dispatch finds zero
+  subscriptions; no work done. The non-interesting case is
+  free.
+
+- **Shadow detachment from disconnect / destruction**: when a
+  player whose shadow lives on Alice disconnects, or their
+  disguise item gets destructed, the shadow detaches via the
+  normal lifecycle. `ShadowChangedEvent { cause: 'detached' }`
+  fires; subscriptions update. No special handling.
+
+- **Shadows on the subscriber themselves**: Bobalu has a
+  disguise on himself. His own subscriptions still resolve
+  `me` correctly; the disguise affects how OTHER viewers see
+  Bobalu, not how Bobalu sees himself. (Or it might, content-
+  side; either way the substrate doesn't care — the shadow
+  routing produces viewer-correct output.)
+
+- **First-result includes already-shadowed targets**: subscription
+  opens against a scene where shadows are already attached. The
+  first-resolve projection routes through current shadow state
+  naturally; first-result reflects shadows from the start. No
+  special initial-state handling.
+
+### What this requires
+
+A small list of additions to make this work:
+
+1. **`ShadowChangedEvent`** in the engine's event vocabulary.
+   Fired by whatever owns shadow lifecycle (`ShadowApi` /
+   the framework around `lib/stuff/Shadow.ts`).
+2. **Descriptor updates** on shadow-affected fields. `NamedMixin`,
+   `VisibleMixin`, possibly `PropertiedMixin` (depending on
+   buff implementation), possibly `HasIcon` (depending on
+   polymorph implementation) all add `ShadowChangedEvent` to
+   their `changes` arrays.
+3. **(Tier 2) reverse-index on lastResult contents** when
+   conservative-coarse becomes a perf bottleneck.
+
+None of this changes the wire shape. None of it changes the
+field projection mechanism. The descriptor's multi-source
+`changes` array carries the shadow surface; the substrate's
+existing meta-bus index dispatches; existing re-resolve loop
+runs; existing delta diff produces field-level updates. Shadows
+slot into the model cleanly because the descriptors describe
+the right thing — "what makes this field's value change" — and
+the answer for shadow-routed fields includes the shadow
+mechanism alongside the underlying state.
 
 ---
 
