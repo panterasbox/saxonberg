@@ -49,10 +49,9 @@ make the answer different and ships a diff each time it does.
 
 Three corollaries:
 
-1. **Wire schema is small and stable.** Five message types total
-   (subscribe / unsubscribe / result / delta / error). The wire
-   doesn't grow per widget; what each widget cares about lives
-   in its query string + field-set.
+1. **Wire schema is small and stable.** Message types in the
+   single digits. The wire doesn't grow per widget; what each
+   widget cares about lives in its query string + field-set.
 2. **MQL is the lingua franca.** Players type MQL in the prompt.
    Authors write MQL in NPC behavior / quest gates / validators.
    The client's widgets subscribe via MQL. One language across
@@ -61,6 +60,52 @@ Three corollaries:
    through the command bus. No "PATCH me.hp" via subscription.
    This keeps the security model clean and avoids re-implementing
    the verb / validator stack on a second channel.
+
+---
+
+## Two channels, distinct concerns
+
+The server↔client wire has two protocol families that **share a
+connection but are separate channels** with separate dispatchers:
+
+```
+Command bus                   MQL channel
+─────────────                 ───────────────
+• command                     • mql-query              (one-shot)
+                              • mql-subscribe          (live)
+                              • mql-subscribe-update   (re-bind / refresh)
+                              • mql-unsubscribe
+                              • mql-query-result
+                              • mql-subscription-result
+                              • mql-subscription-delta
+                              • mql-subscription-error
+                              • heartbeat              (bidirectional)
+```
+
+The mental model:
+
+- **Command bus** answers *"the player wants the world to do
+  something."* Verbs, side effects, validators, controllers, prose,
+  envelope notes. Player intent.
+- **MQL channel** answers *"the client wants to know about the
+  world (now, or whenever it changes)."* Pure reads. No side
+  effects on the world. No prose output. No verb dispatch. No
+  validators.
+
+The MQL channel also accommodates **client-initiated traffic that
+isn't a player command** — gap-detected resyncs, hover-tooltip
+detail fetches, paranoid post-reconnect refreshes, liveness
+probes. These are the client doing housekeeping on its own behalf;
+they shouldn't ride the command bus because they're not intents and
+shouldn't generate prose / events / echoes. They ride the MQL
+channel because they're reads.
+
+Crucially: the MQL channel's message types all share the same
+underlying mechanism (parser, projector, per-viewer scoping,
+permission gates). A `mql-query` is just a single-resolve without
+listener registration; a `mql-subscribe` is the same resolve plus
+listener registration + delta loop. The mechanism doesn't
+duplicate.
 
 ---
 
@@ -104,13 +149,20 @@ Both are additive. The grammar gets a `select { ... }` clause
 
 ## Wire shape
 
-Five message types, three outbound (client → server), three
-inbound (server → client). All ride the existing envelope-style
-channel; new `type` discriminator values.
+All MQL-channel messages ride the same connection; the
+dispatcher routes by `type`. Mix of outbound (client → server)
+and inbound (server → client) shapes below.
 
 ### Outbound (client → server)
 
 ```ts
+interface MqlQueryMessage {
+  type: 'mql-query';
+  queryId: string;                 // client-generated; correlates response
+  query: string;                   // MQL source text
+  fields?: FieldSet | FieldAlias;  // result shape; defaults to 'ref'
+}
+
 interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;          // client-generated; client tracks
@@ -129,22 +181,69 @@ interface MqlSubscribeUpdateMessage {
   subscriptionId: string;
   query?: string;                  // re-bind query
   fields?: FieldSet | FieldAlias;  // re-bind field-set
+  refresh?: boolean;               // force a fresh full result (resync)
+}
+
+interface HeartbeatMessage {
+  type: 'heartbeat';
+  lastSeenFrameId?: number;        // last server frameId the client processed
 }
 ```
 
-`subscribe-update` lets the client extend or repoint a live
-subscription without tearing it down and re-establishing. Useful
-for the inspection pane re-pointing as focus shifts.
+`mql-query` is the **one-shot** form. Same parser, same projector,
+same per-viewer scoping as `mql-subscribe`; no listener registers,
+no `lastResult` stored on the server, no delta loop. Server runs
+the query once and responds. Used for hover tooltips, paginated
+detail fetches, MQL-tab snapshots — anywhere the client wants
+data once with no obligation to track it.
+
+`mql-subscribe-update` with `refresh: true` is the **explicit
+resync** form. Server re-resolves the subscription's current
+binding (no re-binding required) and ships a fresh
+`mql-subscription-result` (NOT a delta). Client treats the result
+as authoritative — full replace of cached state for this
+subscription. Used after gap detection, after reconnect /
+visibility-restore, and for the silent ↻ refresh button.
+
+`heartbeat` is **bidirectional** — either side can send. Carries
+the sender's view of the last frameId it processed from the
+other side. Provides:
+- Liveness signal (the other side is alive)
+- Optional frameId reconciliation (if `lastSeenFrameId` lags the
+  server's current counter by more than expected, server can
+  push a fresh subscription-result on key subscriptions
+  proactively)
+
+v1 ships a simple heartbeat cadence (server every ~30s, client
+on visibility-restore) without server-driven proactive resync;
+reconciliation lands when needed.
 
 ### Inbound (server → client)
 
 ```ts
+interface MqlQueryResultEnvelope {
+  type: 'mql-query-result';
+  frameId: number;
+  queryId: string;
+  records: Record[];               // full result per fields
+  cardinality: 'single' | 'collection';
+}
+
+interface MqlQueryErrorEnvelope {
+  type: 'mql-query-error';
+  frameId: number;
+  queryId: string;
+  reason: 'parse' | 'resolve' | 'permission';
+  message: string;
+}
+
 interface MqlSubscriptionResultEnvelope {
   type: 'mql-subscription-result';
   frameId: number;
   subscriptionId: string;
   items: Record[];                 // initial result — full shape per `fields`
   cardinality: 'single' | 'collection';
+  reason?: 'initial' | 'refresh';  // distinguishes first-result from resync
 }
 
 interface MqlSubscriptionDeltaEnvelope {
@@ -162,6 +261,16 @@ interface MqlSubscriptionErrorEnvelope {
   message: string;
 }
 ```
+
+`subscription-result` carries an optional `reason` so the client
+can distinguish an initial-result (cache empty, populate it) from
+a refresh-result (cache held something stale, replace it). Both
+shapes are full-result; reason changes only the client's
+intention when applying.
+
+`heartbeat` arrives as the same shape outbound and inbound; the
+client processes server heartbeats the same way the server
+processes client ones.
 
 ### Change ops
 
@@ -822,6 +931,168 @@ follows live focus (because the FocusChangedEvent updates the
 subscription's resolved target); body shows the current
 detail (because the subscription's result is the detail
 projection).
+
+---
+
+## Client cache and lifecycle
+
+The client maintains a flat cache of subscription results:
+
+```ts
+Map<SubscriptionId, {
+  lastResult: Record[];
+  lastFrameId: number;
+  kind: 'single' | 'collection';
+}>
+```
+
+That's it. No object normalization, no schema layer, no
+separate per-Stuff cache. The subscription IS the cache, scoped
+to the widget's view of the world.
+
+### TTL: none
+
+There is no time-based expiration. The subscription contract
+says "I keep telling you when this changes." As long as the
+subscription is alive, the data is current by definition.
+
+This is the right model AS LONG AS the wire is reliable and the
+server-side bookkeeping is complete. The risk is a missed event
+or a broken dependency derivation leaving a subscription silently
+stale. Two mechanisms catch this:
+
+### Gap detection via frameId
+
+Every envelope from the server carries `frameId` from a
+per-Interactive monotonic counter (the same counter the
+response-envelope subsystem stamps). The client tracks the last
+seen frameId. If a frame arrives with `frameId > lastSeen + 1`,
+there's a gap — something was lost or filtered.
+
+Gaps may be benign (a frame legitimately filtered out for this
+viewer; the counter still increments globally). They may also
+indicate a real drop. The client doesn't have to assume the
+worst — but it CAN trigger a paranoid resync on its key
+subscriptions when gaps are observed, particularly clustered
+gaps. Threshold + policy are client-tunable.
+
+### Server heartbeats
+
+A periodic server-side heartbeat (every ~30s) carries the
+current frameId. The client treats heartbeat absence as a
+connectivity hint (transitioning toward "disconnected"
+assumptions) and uses the heartbeat's frameId to detect gaps
+during quiet periods.
+
+### Resync mechanism
+
+When the client decides a subscription needs verification, it
+sends `mql-subscribe-update` with `refresh: true`. Server
+re-resolves the binding and ships a fresh
+`mql-subscription-result` (reason: `'refresh'`). Client replaces
+its cached state with the new result.
+
+Triggers for resync (client-side policy):
+
+| Trigger | Scope |
+|---|---|
+| Gap detected on a subscription's recent traffic | Targeted to that subscription |
+| Reconnect after disconnect | All active subscriptions |
+| Tab visibility restored after long backgrounding | All active subscriptions |
+| Heartbeat lapse | All active subscriptions |
+| Explicit player gesture (silent refresh button) | Specific subscription |
+| First mount of a previously-hidden widget | The widget's subscription |
+
+The cost of an unnecessary resync is one full result envelope
+plus a re-resolve on the server. Cheap; better than risking
+silent stale.
+
+### What the cache is NOT
+
+- **Not normalized.** Two subscriptions on overlapping data
+  (e.g., `inventory` and `things-here` after a pickup) both
+  carry their own copy of the moved item's ref. No
+  deduplication. The bandwidth cost is small for the simpler
+  data model.
+- **Not cross-subscription consistent.** Deltas from two
+  subscriptions arrive in undefined order within a tick. The
+  client applies each independently. Composite queries are the
+  answer when joined consistency matters (Tier 2).
+- **Not derived.** No reactive computed values, no client-side
+  joins. What the server projects is what the client renders.
+- **Not persisted across reconnect.** The cache lives in
+  memory; reconnect re-subscribes and rebuilds from initial
+  results. No offline support.
+
+---
+
+## Cascading UI patterns
+
+A few specific design patterns the substrate enables (or
+constrains).
+
+### Hover tooltips on chips
+
+A `things-here` chip shows `displayName + iconKind`. Hover
+wants short description + maybe weight. Three approaches:
+
+- **Pre-include in the ref field-set** — subscription asks for
+  the extra fields up front; refs get fatter; no extra network
+  on hover. Best for high-hover surfaces.
+- **One-shot fetch on hover** — `mql-query` for the hovered
+  stuffId with `detail` fields. Latency on hover (50-200ms).
+- **Lazy upgrade to detail subscription on hover** — heavy and
+  rarely worth it for transient hovers.
+
+Default to (1) with conservative extra fields. Widgets that
+genuinely need detail-on-hover use (2).
+
+### Refresh button on the inspection pane
+
+The button has two reasonable interpretations:
+
+- **"Look again"** — sends `look` through the command bus.
+  Fires prose, runs the focus side-effect chain, generates an
+  envelope. Player gesture; visible in the terminal.
+- **"Refresh my widget"** — sends
+  `mql-subscribe-update { refresh: true }` on the MQL channel.
+  Silent resync. No prose, no terminal output.
+
+These are different gestures. The inspection-pane slate's
+prominent button is **Look again** (the player-visible action);
+a smaller ↻ icon next to it is the silent resync. Both real,
+neither subsumes the other.
+
+### Widget mount / unmount
+
+Widget mounts → opens a subscription (or re-uses a shared one if
+the same query is already live). Widget unmounts → unsubscribes
+(or decrements ref-count on the shared subscription, closing
+when zero).
+
+No subscription survives the widget being unmounted unless
+another widget is referencing the same query. Memory bounded by
+visible widgets.
+
+### MQL-query results in a pane tab
+
+User runs `mql 'all sleeping things in here'` and wants results
+in a pane tab. Default to **one-shot** (`mql-query`): a snapshot
+that's stale immediately but cheap. Tab UI has a "Make live"
+toggle that promotes to a subscription on demand. Matches the
+player's mental model of a query as a single-shot operation.
+
+### Cascading focus updates
+
+Player examines a thing in the inventory chip strip. The
+`inspection` subscription's `$focus` re-resolves to the new
+target. The chip strip itself doesn't change (still showing the
+same inventory). Pane body shifts. Two subscriptions affected,
+no cross-coupling — they're independent.
+
+Same when the player walks: `things-here` re-resolves, but
+`inventory` doesn't (no events match its dependency filters).
+The independence is what makes this model scale.
 
 ---
 
