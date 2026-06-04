@@ -113,16 +113,17 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      *   - `bulkMaterial` — flat. The bulk default Material as a
      *     `MaterialSummary` wire shape, or `null` when no bulk
-     *     material is set.
+     *     material is set. `dependsOnFields` defaults to
+     *     `['bulkMaterial']` (descriptor name = source field name).
      *   - `mass` — flat. Quantity in kg as `{ value, unit: 'kg' }`.
+     *     `dependsOnFields` defaults to `['mass']`.
      *   - `detailMaterial` — focused-detail only (no flat read).
-     *     Surfaces the resolved (prefix-walked) Material at the
-     *     focus key in the `material` slice of the focus record.
+     *     Descriptor name (`detailMaterial`) does NOT match the
+     *     setter's discriminator (`detailMaterials`, plural), so we
+     *     declare `dependsOnFields` explicitly.
      *
-     * Re-projection fires on `FieldChangedEvent { field:
-     * 'bulkMaterial' | 'detailMaterials' | 'mass' }` from the
-     * relevant setters, plus `ShadowChangedEvent` for descriptors
-     * that participate in shadow overrides.
+     * Shadow lifecycle entries cover future material shadows that
+     * change the rendered value without firing a field change.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
@@ -131,10 +132,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           const mat = (stuff as unknown as Tangible).getMaterial();
           return mat ? summarizeMaterial(mat) : null;
         },
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
       {
         name: 'mass',
@@ -142,21 +140,22 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           const q = (stuff as unknown as Tangible).getMass();
           return { value: q.rawValue(), unit: 'kg' as const };
         },
-        changes: [{ on: FieldChangedEvent, by: 'field' }],
       },
       {
         name: 'detailMaterial',
         // Focus-only contribution — no flat read. The substrate
         // calls `perDetailRead` only in focus mode; flat
         // projections skip descriptors without `read`.
+        //
+        // Explicit dependsOnFields because the descriptor name
+        // (`detailMaterial`) doesn't match the setter's field
+        // discriminator (`detailMaterials`).
         perDetailRead: (stuff, detailKey) => {
           const mat = (stuff as unknown as Tangible).getMaterial(detailKey);
           return mat ? { material: summarizeMaterial(mat) } : null;
         },
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        dependsOnFields: ['detailMaterials'],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
 

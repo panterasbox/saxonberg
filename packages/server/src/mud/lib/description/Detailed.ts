@@ -124,17 +124,18 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['details'];
 
     /**
-     * Live-query subscribable fields — projected by
-     * `MqlSubscriptionApi.projectFields` (flat) and
-     * `MqlSubscriptionApi.projectFocus` (per-detail). The same
-     * descriptor carries both layers: `read` enumerates the alias-
-     * grouped top-level entries; `perDetailRead` extracts a single
-     * entry's slice for focus-mode subscriptions.
+     * Live-query subscribable fields. The descriptor's
+     * `dependsOnFields` defaults to `['details']` (descriptor name =
+     * source field name), so `FieldChangedEvent { field: 'details' }`
+     * from `setDetail` / `removeDetail` triggers re-projection
+     * automatically. The `ShadowChangedEvent` entry covers future
+     * visible-detail shadows that override projected entries
+     * without firing a field change.
      *
-     * Re-projection fires on `FieldChangedEvent { field: 'details' }`
-     * (from `setDetail` / `removeDetail`) and on `ShadowChangedEvent`
-     * targeting this Stuff (so a future visible-detail shadow can
-     * override the projected entries).
+     * One descriptor carries both projection layers: `read`
+     * enumerates the alias-grouped top-level entries (flat mode);
+     * `perDetailRead` extracts a single entry's slice for focus-
+     * mode subscriptions.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
@@ -149,10 +150,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
             hasChildren: entry.hasChildren,
           };
         },
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
 

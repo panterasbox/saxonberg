@@ -81,8 +81,10 @@ export interface ChangeSource {
 }
 
 /**
- * Per-field projection descriptor declared on a mixin's static
- * `subscribableFields` array (or in the substrate-synthetic table).
+ * Per-field projection descriptor declared on a class's static
+ * `subscribableFields` array. Mixin layers declare their state-bearing
+ * fields; `Stuff` itself declares universal cross-cutting renders
+ * (e.g., `displayName`).
  *
  * Each descriptor describes a single wire field:
  *
@@ -101,9 +103,21 @@ export interface ChangeSource {
  *     nothing. Substrate merges every contributing slice via
  *     `Object.assign` into a `StuffDetailFocusRecord`. A descriptor
  *     without `perDetailRead` is skipped in focus mode.
- *   - `changes` — dependency declarations. Each entry tells the
- *     meta-bus dispatcher which (EventClass, attribute) pair should
- *     mark this field's subscriptions dirty.
+ *   - `dependsOnFields` — the **source field names** whose
+ *     `FieldChangedEvent` fires should mark this descriptor dirty.
+ *     For a primitive descriptor, the convention is "descriptor
+ *     name matches the setter's `field` discriminator," so leaving
+ *     this unset defaults to `[descriptor.name]`. For derived /
+ *     cross-cutting renders (`displayName` from `name` +
+ *     `shortDescription`), declare the leaf source field names
+ *     explicitly. Authors handle the closure manually in v1: if
+ *     `articleName` depends on `displayName` which depends on
+ *     `name`, declare `articleName`'s deps as `['name', ...]`.
+ *   - `changes` — escape hatch for non-`FieldChangedEvent`
+ *     dependencies. Common case: `ShadowChangedEvent` (a shadow
+ *     attaching can change a computed value without firing a field
+ *     change). Substrate installs these entries in addition to the
+ *     field-event entries from `dependsOnFields`.
  *   - `static` — optional. `true` means the field never changes
  *     after initial projection; the dependency index skips it.
  */
@@ -115,7 +129,14 @@ export interface SubscribableFieldDescriptor {
     detailKey: string,
     viewer: Stuff & Sensor,
   ) => Partial<StuffDetailFocusRecord> | null;
-  changes: ChangeSource[];
+  /**
+   * Source field names this descriptor's value derives from. Defaults
+   * to `[descriptor.name]` when omitted (the primitive case).
+   * Substrate installs one `(FieldChangedEvent.KIND, 'field', dep)`
+   * dependency-index entry per dep.
+   */
+  dependsOnFields?: string[];
+  changes?: ChangeSource[];
   static?: true;
 }
 
@@ -163,50 +184,24 @@ export function resolveFieldSet(
   return spec;
 }
 
-/* ─────────────────── Substrate-synthetic fields ────────────────── */
-
-/**
- * v1 contains exactly one entry — `displayName`. Quantity lives on
- * `GlobbableMixin`'s `subscribableFields` (mixin-owned state, mixin-
- * owned setter, mixin-owned event firing). This table is reserved
- * for cross-cutting renders that no single mixin owns; future
- * additions are code edits here.
- *
- * The `displayName` descriptor routes through `DescribeApi.getDisplayName`
- * which is reshape-guaranteed to return a string (`'something'`
- * baked-in default for hosts without Named / Visible state). Viewer
- * is threaded to the leaf even though the v1 body ignores it —
- * recognition / DescribeApi v2 plugs in here without further
- * reshaping. ShadowChangedEvent is listed so re-projection lights
- * up automatically when the shadow lifecycle starts firing.
- */
-const SUBSTRATE_SYNTHETIC_FIELDS: ReadonlyMap<string, SubscribableFieldDescriptor> =
-  new Map<string, SubscribableFieldDescriptor>([
-    [
-      'displayName',
-      {
-        name: 'displayName',
-        read: (stuff, viewer) => DescribeApi.getDisplayName(stuff, viewer),
-        changes: [
-          { on: FieldChangedEvent, by: 'target' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
-      },
-    ],
-  ]);
-
-/* ──────────────────── Mixin composition walk ──────────────────── */
+/* ──────────────────── Prototype-chain walk ──────────────────── */
 
 /**
  * Collect every subscribable-field descriptor a `stuff` exposes,
  * keyed by descriptor `name`. Walks the prototype chain via
- * `MixinApi.getAllSubscribableFields` and overlays the substrate-
- * synthetic table for names no mixin owns.
+ * `MixinApi.getAllSubscribableFields`, which `hasOwnProperty`-checks
+ * `static subscribableFields` at every level — including `Stuff`
+ * itself, where universal cross-cutting renders (`displayName`) live.
  *
- * Precedence: mixin-declared descriptors win over the substrate-
- * synthetic table on name collision (mixin sovereignty). v1 has no
- * such collisions — the synthetic table is curated to fill gaps,
- * not to compete with mixin state.
+ * No substrate-synthetic overlay: there's only one mechanism. A
+ * cross-cutting render that doesn't fit any mixin (because it
+ * applies to every Stuff) lands on `Stuff.subscribableFields`. A
+ * cross-cutting render gated by a specific mixin lands on that
+ * mixin's `subscribableFields`. Descriptor authoring is uniform.
+ *
+ * Last-wins on name collision (the walk pushes leaf-first, so a
+ * subclass override naturally beats the parent). Identical descriptor
+ * names across unrelated mixins are a content / design bug.
  */
 export function collectSubscribableFields(
   stuff: Stuff,
@@ -222,11 +217,6 @@ export function collectSubscribableFields(
   const out = new Map<string, SubscribableFieldDescriptor>();
   for (const d of mixinDescriptors) {
     out.set(d.name, d);
-  }
-  for (const [name, d] of SUBSTRATE_SYNTHETIC_FIELDS) {
-    if (!out.has(name)) {
-      out.set(name, d);
-    }
   }
   return out;
 }
@@ -371,7 +361,6 @@ interface DependencyHandle {
  *
  * Test seams (under `SecurityApi.assertTestOnly`):
  *
- *   - `_getSubstrateSyntheticFields()` — substrate-synthetic table.
  *   - `_getRegistrySizeForTesting()` — total per-Interactive
  *     subscriptions across the registry.
  *   - `_getDependencyIndexEntryCountForTesting()` — sum of every
@@ -626,11 +615,21 @@ export class MqlSubscriptionApi {
 
   /**
    * Walk every descriptor that drives the subscription's mode, and
-   * register one dependency-index entry per `(KIND, by, value)`
-   * tuple. v1 indexes both `by: 'target'` (with value = stuffId)
-   * and `by: 'field'` (with value = field name) — the dispatcher
-   * uses both dimensions; conservative-coarse re-resolve fires
-   * whenever ANY matching entry hits.
+   * register dependency-index entries. Two channels:
+   *
+   *   1. Field dependencies — `descriptor.dependsOnFields` (or
+   *      defaulted to `[descriptor.name]`). Substrate installs one
+   *      `(FieldChangedEvent.KIND, 'field', <dep>)` entry per dep.
+   *      For a primitive descriptor (descriptor name === setter's
+   *      `field` discriminator) the default Just Works; for a
+   *      derived render (e.g., `displayName`), the descriptor
+   *      author lists the leaf source fields.
+   *
+   *   2. Non-field dependencies — `descriptor.changes`. Common
+   *      use: `ShadowChangedEvent` (shadow attach/detach changes a
+   *      computed value without firing a field change). Each
+   *      `ChangeSource` produces a `(KIND, by, value)` entry per
+   *      the existing discriminator rules.
    */
   static #deriveAndInstallDependencies(
     sub: SubscriptionState,
@@ -659,7 +658,15 @@ export class MqlSubscriptionApi {
           if (!sub.fields.includes(name)) continue;
         }
         if (d.static === true) continue;
-        for (const cs of d.changes) {
+
+        // Channel 1: field dependencies (default: own descriptor name).
+        const fieldDeps = d.dependsOnFields ?? [name];
+        for (const dep of fieldDeps) {
+          installTuple(FieldChangedEvent.KIND, 'field', dep);
+        }
+
+        // Channel 2: non-field dependencies via `changes` escape hatch.
+        for (const cs of d.changes ?? []) {
           if (cs.by === 'target') {
             installTuple(cs.on.KIND, 'target', stuff.stuffId);
           } else if (cs.by === 'field') {
@@ -964,14 +971,6 @@ export class MqlSubscriptionApi {
   }
 
   /* ───────────── test seams ─────────────── */
-
-  public static _getSubstrateSyntheticFields(): ReadonlyMap<
-    string,
-    SubscribableFieldDescriptor
-  > {
-    SecurityApi.assertTestOnly('_getSubstrateSyntheticFields');
-    return SUBSTRATE_SYNTHETIC_FIELDS;
-  }
 
   public static _getRegistrySizeForTesting(): number {
     SecurityApi.assertTestOnly('_getRegistrySizeForTesting');

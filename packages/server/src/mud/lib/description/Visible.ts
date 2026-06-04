@@ -18,7 +18,6 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
-import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
   MqlSubscriptionApi,
@@ -80,31 +79,26 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['shortDescription', 'longDescription'];
 
     /**
-     * Live-query subscribable fields — projected by
-     * `MqlSubscriptionApi.projectFields`. Re-projection fires on
-     * `FieldChangedEvent { field: 'shortDescription' | 'longDescription' }`
-     * and on `ShadowChangedEvent` targeting this Stuff (so a hood
-     * shadow that overrides the visible appearance triggers
-     * automatically).
+     * Live-query subscribable fields. Each descriptor's
+     * `dependsOnFields` defaults to `[descriptor.name]` (descriptor
+     * name = source field name), so the `FieldChangedEvent` fires
+     * from `setShortDescription` / `setLongDescription` trigger
+     * re-projection automatically. The `ShadowChangedEvent` entries
+     * cover future hood / disguise shadows that override visible
+     * appearance without firing a field change.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'shortDescription',
         read: (stuff) =>
           (stuff as unknown as Visible).getShortDescription(),
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
       {
         name: 'longDescription',
         read: (stuff) =>
           (stuff as unknown as Visible).getLongDescription(),
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
 

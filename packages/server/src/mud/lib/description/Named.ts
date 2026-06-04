@@ -77,7 +77,6 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
   MqlSubscriptionApi,
@@ -142,21 +141,20 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     /**
-     * Live-query subscribable fields — projected by
-     * `MqlSubscriptionApi.projectFields`. Re-projection fires on
-     * `FieldChangedEvent { field: 'name' }` (from `setName`) and on
-     * `ShadowChangedEvent` targeting this Stuff (so a future
-     * hood/disguise shadow flips the rendered name automatically).
+     * Live-query subscribable fields. The descriptor's
+     * `dependsOnFields` defaults to `['name']` (descriptor name =
+     * source field name), so a `FieldChangedEvent { field: 'name' }`
+     * from `setName` triggers re-projection automatically. The
+     * `ShadowChangedEvent` entry covers future hood/disguise
+     * shadows that change the rendered name without firing a field
+     * change.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'name',
         read: (stuff) =>
           (stuff as unknown as Named).getName(),
-        changes: [
-          { on: FieldChangedEvent, by: 'field' },
-          { on: ShadowChangedEvent, by: 'target' },
-        ],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
 

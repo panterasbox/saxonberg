@@ -25,7 +25,7 @@ See:
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers, substrate-synthetic table |
+| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
@@ -74,10 +74,14 @@ Substrate behavior:
 
 ### Descriptor mechanism
 
-Mixins declare a `static subscribableFields: SubscribableFieldDescriptor[]`
-array; the substrate's `collectSubscribableFields(stuff)` walks the
-prototype chain (via `MixinApi.getAllSubscribableFields`) and overlays
-the substrate-synthetic table.
+Classes declare a `static subscribableFields: SubscribableFieldDescriptor[]`
+array. Mixin layers declare their state-bearing fields; `Stuff` itself
+declares universal cross-cutting renders (`displayName`, future
+`articleName`, etc.). The substrate's `collectSubscribableFields(stuff)`
+walks the prototype chain via `MixinApi.getAllSubscribableFields` —
+`hasOwnProperty`-checking `subscribableFields` at every level, including
+`Stuff`. No substrate-private synthetic table; one mechanism, uniformly
+declared.
 
 ```ts
 interface SubscribableFieldDescriptor {
@@ -88,7 +92,8 @@ interface SubscribableFieldDescriptor {
     detailKey: string,
     viewer: Stuff & Sensor,
   ) => Partial<StuffDetailFocusRecord> | null;
-  changes: ChangeSource[];
+  dependsOnFields?: string[];   // defaults to [descriptor.name]
+  changes?: ChangeSource[];     // non-FieldChangedEvent dependencies
   static?: true;
 }
 
@@ -106,14 +111,38 @@ Each descriptor describes one wire field:
 - **`perDetailRead`** — focused-detail projection. Invoked once per
   focus-mode subscription. Returns a partial record carrying this
   mixin's slice for the focus key, or `null` to contribute nothing.
-- **`changes`** — dependency declarations. Each `(EventClass, by)`
-  pair installs a meta-bus index entry so the dispatcher marks
-  subscriptions dirty on the firing of that event with a matching
-  payload attribute.
+- **`dependsOnFields`** — leaf source field names whose
+  `FieldChangedEvent` fires should mark this descriptor dirty.
+  Defaults to `[descriptor.name]` (the primitive case: descriptor
+  name === setter's `field` discriminator). Derived fields like
+  `displayName` declare explicit deps (`['name', 'shortDescription']`).
+  When a derived field depends on another derived field, the
+  descriptor author declares the **leaf source fields** (the
+  closure of leaves) — v1 has no automatic closure walk; do it by
+  hand until chain depth makes that annoying.
+- **`changes`** — escape hatch for non-`FieldChangedEvent`
+  dependencies. Common case: `ShadowChangedEvent` (a shadow
+  attaching can change a computed value without firing a field
+  change). Substrate installs these entries in addition to the
+  field-event entries derived from `dependsOnFields`.
 
 A descriptor without `read` is flat-mode-skipped. A descriptor without
 `perDetailRead` is focus-mode-skipped. `static: true` opts out of
 dependency-index installation (no re-resolution).
+
+#### Cascade through dependsOnFields
+
+A client subscribing to `['displayName']` only — `setName('Bob')` fires
+`FieldChangedEvent { field: 'name' }`. The substrate's index has an
+entry at `(stuff.fieldChanged, 'field', 'name')` installed from the
+`displayName` descriptor's `dependsOnFields`. The match marks the
+subscription dirty; re-resolve recomputes `displayName` → 'Bob'; diff
+emits one delta `{ displayName: 'Bob' }`.
+
+A client subscribing to `['name', 'displayName']` — same fire matches
+both descriptors' dependency entries. Re-resolve recomputes both;
+diff emits one delta `{ name: 'Bob', displayName: 'Bob' }`. The
+cascade is explicit on the server, automatic on the wire.
 
 ### Field-set aliases
 
@@ -153,16 +182,16 @@ A descriptor whose `perDetailRead` returns `null` contributes
 nothing to the merge. Subscriptions with `cardinality: 'many'` AND a
 `detailKey` are rejected with `reason: 'parse'`.
 
-## Mixin contributions in v1
+## Where descriptors live (v1)
 
-| Mixin | Flat fields (`read`) | Focus fields (`perDetailRead`) | Events declared |
+| Layer | Flat fields (`read`) | Focus fields (`perDetailRead`) | Dependencies |
 |---|---|---|---|
-| NamedMixin | `name` | — | FieldChangedEvent, ShadowChangedEvent |
-| VisibleMixin | `shortDescription`, `longDescription` | — | FieldChangedEvent, ShadowChangedEvent |
-| DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | FieldChangedEvent, ShadowChangedEvent |
-| TangibleMixin | `bulkMaterial`, `mass` | `{ material }` (prefix-walk resolves at focus key) | FieldChangedEvent, ShadowChangedEvent (mass: FieldChangedEvent only) |
-| GlobbableMixin | `quantity` | — | FieldChangedEvent |
-| Substrate-synthetic | `displayName` (routes `DescribeApi.getDisplayName`) | — | FieldChangedEvent, ShadowChangedEvent |
+| `Stuff` (universal) | `displayName` (routes `DescribeApi.getDisplayName`) | — | `dependsOnFields: ['name', 'shortDescription']`; ShadowChangedEvent in `changes` |
+| NamedMixin | `name` | — | default `dependsOnFields: ['name']`; ShadowChangedEvent |
+| VisibleMixin | `shortDescription`, `longDescription` | — | defaults; ShadowChangedEvent |
+| DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | default `dependsOnFields: ['details']`; ShadowChangedEvent |
+| TangibleMixin | `bulkMaterial`, `mass` | `{ material }` (prefix-walk at focus key) | defaults for `bulkMaterial` / `mass`; **explicit** `dependsOnFields: ['detailMaterials']` for `detailMaterial` because the descriptor name doesn't match the setter's field discriminator. ShadowChangedEvent on the shadow-aware ones. |
+| GlobbableMixin | `quantity` | — | default `dependsOnFields: ['quantity']` |
 
 `DetailedMixin.getDetailEntries(parent?)` returns alias-grouped
 top-level entries (a single Detail object addressed by multiple keys
@@ -170,18 +199,24 @@ becomes one entry whose `ids` is every alias). `getDetailEntry(key)`
 returns the single alias-grouped entry whose Detail covers `key`, or
 `null`. Both back the descriptor's `read` and `perDetailRead`.
 
-The substrate-synthetic `displayName` descriptor calls
-`DescribeApi.getDisplayName(stuff, viewer)` directly. The post-Wave-3
-reshape guarantees `getDisplayName` returns a string — `'something'`
-is the baked-in default for hosts without Named / Visible state, so
-the wire shape's non-nullable `displayName: string` is honored
-without any substrate-side coercion.
+### Why `displayName` lives on Stuff
 
-Quantity lives on `GlobbableMixin`, not on the substrate-synthetic
-table. Mixin-owned state with a mixin-owned setter and event-firing
-site stays with the mixin. The synthetic table is reserved for
-cross-cutting renders that no single mixin owns (v1: just
-`displayName`).
+`displayName` isn't a mixin's state — it's a render that pulls from
+Named's `name` OR Visible's `shortDescription` OR a baked-in
+`'something'` default. It applies to every Stuff regardless of mixin
+composition. Three observations:
+
+- The concept is **universal**: every Stuff has a renderable identity.
+- There's no "what if this Stuff has no displayable identity?" edge.
+- `DescribeApi.getDisplayName` already encodes the fallback chain
+  authoritatively.
+
+So the descriptor lives on `Stuff.subscribableFields` directly. The
+prototype-chain walk picks it up via `hasOwnProperty` like any
+mixin's descriptor; no synthetic table, no overlay step.
+
+Universal cross-cutting renders → `Stuff.subscribableFields`. Mixin-
+gated cross-cutting renders → the mixin that owns the gate.
 
 ## Event-class pattern
 
@@ -251,11 +286,13 @@ attribute-name, attribute-value)`:
 #index: Map<string, Map<string, Map<unknown, Set<SubscriptionState>>>>
 ```
 
-When a descriptor declares `{ on: FieldChangedEvent, by: 'target' }`,
-the substrate installs an entry at `('stuff.fieldChanged', 'target',
-<stuffId>)` for every Stuff in the subscription's result set. When
-the descriptor declares `{ on: FieldChangedEvent, by: 'field' }`, the
-entry indexes at `('stuff.fieldChanged', 'field', <fieldName>)`.
+Field-event dependencies come from `descriptor.dependsOnFields` (or
+its `[descriptor.name]` default). The substrate translates each
+dep to a `('stuff.fieldChanged', 'field', <dep>)` index entry.
+Non-field dependencies (the `changes` escape hatch) install their
+own entries — most commonly `('stuff.shadowChanged', 'target',
+<stuffId>)` so a shadow attaching to the host re-projects derived
+fields without firing a synthetic field event.
 
 One `EventApi.on(KIND, …)` listener is installed per distinct
 `(KIND, by)` pair, refcounted across subscriptions. The handler reads
@@ -323,12 +360,12 @@ envelope delivery during cancellation (silent in v1, but
 The v1 dispatcher errs toward more re-resolves rather than missed
 updates. Specific shapes:
 
-- **Field-keyed firing is global, not per-target.** A descriptor with
-  `{ on: FieldChangedEvent, by: 'field' }` marks every subscription
-  whose descriptor names the same field, regardless of which Stuff
-  fired. The diff pass filters out fireworks that don't change a
-  subscription's actual result; the index pre-filter just avoids
-  obvious mismatches.
+- **Field-keyed firing is global, not per-target.** A descriptor
+  whose `dependsOnFields` includes `'name'` marks every subscription
+  on a name-dependent field, regardless of which Stuff actually
+  fired the change. The diff pass filters out fireworks that don't
+  change a subscription's actual result; the index pre-filter just
+  avoids obvious mismatches.
 - **Focus subscriptions re-resolve on any matching
   `FieldChangedEvent`, including changes to other detail keys.**
   `TangibleMixin.setMaterial(_, 'tail')` fires
@@ -387,10 +424,10 @@ fallback arg.
 
 `ShadowChangedEvent` ships **declared but unfired**. Descriptors that
 participate in shadowed projection (NamedMixin, VisibleMixin,
-DetailedMixin, TangibleMixin's `bulkMaterial` / `detailMaterial`, the
-substrate-synthetic `displayName`) reference it in their `changes`
-array so the meta-bus index is wired end-to-end; until the firing
-site exists, the listener is silent.
+DetailedMixin, TangibleMixin's `bulkMaterial` / `detailMaterial`, and
+the universal `displayName` on `Stuff`) reference it in their
+`changes` array so the meta-bus index is wired end-to-end; until the
+firing site exists, the listener is silent.
 
 When a shadow lifecycle subsystem lands, firing `ShadowChangedEvent`
 from attach / detach / mutate sites automatically lights up the
