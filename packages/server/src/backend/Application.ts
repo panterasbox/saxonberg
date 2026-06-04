@@ -37,6 +37,11 @@ import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
+import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
+import type {
+  MqlSubscribeMessage,
+  MqlUnsubscribeMessage,
+} from '@saxonberg/types';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
@@ -168,6 +173,15 @@ export class Application {
   public handleUserDisconnect(socketId: string): void {
     console.info(`Application: User disconnecting - socketId=${socketId}`);
 
+    // Tear down MQL subscriptions BEFORE removing the Interactive so
+    // any final substrate-side delivery still has a live Interactive
+    // to address. cancelAllForInteractive is silent in v1 but the
+    // ordering keeps Wave 6+ envelope-on-close paths well-defined.
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (interactive) {
+      MqlSubscriptionApi.cancelAllForInteractive(interactive);
+    }
+
     const removed = ConnectionManager.get().removeInteractive(socketId);
 
     if (removed) {
@@ -211,6 +225,14 @@ export class Application {
         });
         break;
 
+      case 'mql-subscribe':
+        this.handleMqlSubscribe(socketId, message);
+        break;
+
+      case 'mql-unsubscribe':
+        this.handleMqlUnsubscribe(socketId, message);
+        break;
+
       default:
         console.warn(`Application: Unknown message type: ${message.type}`);
         this.backend.sendMessageToSocket(socketId, {
@@ -220,6 +242,45 @@ export class Application {
           },
         });
     }
+  }
+
+  /**
+   * Route `mql-subscribe` to the substrate. Drops on shape mismatch
+   * without an error envelope — the substrate handles substantive
+   * checks (duplicate id, MQL parse, focus + cardinality cross-check).
+   */
+  private handleMqlSubscribe(socketId: string, message: InboundClientMessage): void {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const payload = message.payload as MqlSubscribeMessage | undefined;
+    if (
+      !payload ||
+      typeof payload.subscriptionId !== 'string' ||
+      typeof payload.query !== 'string' ||
+      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+    ) {
+      return;
+    }
+    MqlSubscriptionApi.handleSubscribe({
+      interactive,
+      subscriptionId: payload.subscriptionId,
+      query: payload.query,
+      cardinality: payload.cardinality,
+      fields: payload.fields,
+      detailKey: payload.detailKey,
+    });
+  }
+
+  /**
+   * Route `mql-unsubscribe` to the substrate. Silent no-op when the
+   * id is unknown (substrate behavior).
+   */
+  private handleMqlUnsubscribe(socketId: string, message: InboundClientMessage): void {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const payload = message.payload as MqlUnsubscribeMessage | undefined;
+    if (!payload || typeof payload.subscriptionId !== 'string') return;
+    MqlSubscriptionApi.handleUnsubscribe(interactive, payload.subscriptionId);
   }
 
   private handleEchoMessage(socketId: string, message: InboundClientMessage): void {
