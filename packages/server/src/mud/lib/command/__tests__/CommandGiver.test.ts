@@ -180,7 +180,13 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     expect(env.type).toBe('dispatch-response');
     expect(typeof env.dispatchId).toBe('string');
     expect(env.outcome.status).toBe('ok');
-    expect(env.outcome.notes).toEqual([]);
+    // Every dispatch-response carries a prompt-refresh Note rendered
+    // from the giver's `prompt.format` setting (default `{{ focus }}>`).
+    // Test fixture giver doesn't compose FocusedMixin, so `focus`
+    // renders as the empty string and the result is just `>`.
+    expect(env.outcome.notes).toEqual([
+      { kind: 'prompt-refresh', rendered: '>' },
+    ]);
   });
 
   it('unknown verb produces a command-rejected envelope with reason unknown-verb', async () => {

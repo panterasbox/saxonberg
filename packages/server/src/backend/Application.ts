@@ -38,7 +38,8 @@ import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
-import { PromptApi } from '../mud/api/prompt';
+import { PromptApi, renderPromptRefresh } from '../mud/api/prompt';
+import type { Stuff } from '../mud/lib/stuff/Stuff';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -376,7 +377,22 @@ export class Application {
     }
 
     const commandText = (message.payload as { text: string }).text?.trim();
-    if (!commandText) return;
+    if (!commandText) {
+      // MUD-style "press Enter for a fresh prompt." Empty command
+      // line short-circuits to a dispatch-response carrying only
+      // the prompt-refresh Note. No parser, no controller, no
+      // controller side-effects. Runs even when the avatar has no
+      // container (a placeless avatar should still see their
+      // current prompt).
+      const refresh = renderPromptRefresh(holder as unknown as Stuff);
+      const template: EnvelopeTemplate = {
+        type: 'dispatch-response',
+        dispatchId: nanoid(),
+        outcome: { status: 'ok', notes: [refresh] },
+      };
+      this.sendEnvelopeToInteractive(interactive, template);
+      return;
+    }
 
     const avatar = holder;
     // The avatar must be inside *some* Container (Location, Vessel, …)

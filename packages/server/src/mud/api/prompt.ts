@@ -23,6 +23,7 @@ import type {
   PromptChoice,
   PromptDismissedNote,
   PromptEnvelope,
+  PromptRefreshNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Interactive } from '../obj/Interactive';
@@ -33,6 +34,7 @@ import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import { DescribeApi } from './describe';
+import { ProseApi } from './prose';
 
 /**
  * Awaiting prompt promises reject with this when the prompt is
@@ -663,3 +665,69 @@ type Note =
   | TextPromptNote
   | MqlObjectPromptNote
   | MqlManyPromptNote;
+
+/* ─────────────────── Base-prompt rendering ─────────────────── */
+
+/**
+ * Default `prompt.format` Liquid template. Returns `here>` or
+ * `the brass kettle>` after rendering. Mirrored on
+ * `EnvironmentMixin.settings` so the schema validator sees the
+ * same default.
+ */
+const DEFAULT_PROMPT_FORMAT = '{{ focus }}>';
+
+/**
+ * Build the Liquid render context for the base-prompt template.
+ * v1 exposes a single variable, `focus`, sourced from
+ * `FocusedMixin.getFocus()` when present (otherwise the empty
+ * string). Future tokens (`posture`, `location.name`, `time`)
+ * land additively here.
+ */
+export function buildPromptContext(
+  giver: Stuff,
+): Record<string, unknown> {
+  return {
+    focus: MixinApi.isFocused(giver) ? giver.getFocus() : '',
+  };
+}
+
+/**
+ * Render the giver's `prompt.format` template into a
+ * `PromptRefreshNote` for inclusion in a
+ * `DispatchResponseEnvelope`. Reads the template via
+ * `giver.getSetting('prompt.format')` when the giver composes
+ * `EnvironmentMixin`; otherwise uses the bare default
+ * (`'{{ focus }}>'`).
+ *
+ * Called from `CommandGiverMixin.executeCommand`'s dispatch-
+ * response composition site so every command response carries an
+ * up-to-date base prompt. Also from `Application.handleCommandMessage`'s
+ * empty-command short-circuit.
+ *
+ * Template render failures (Liquid syntax errors, runtime errors)
+ * fall through to the default — the player still gets a usable
+ * prompt rather than a broken response.
+ */
+export function renderPromptRefresh(giver: Stuff): PromptRefreshNote {
+  let template = DEFAULT_PROMPT_FORMAT;
+  if (MixinApi.isEnvironment(giver)) {
+    const fromSetting = giver.getSetting<string>('prompt.format');
+    if (typeof fromSetting === 'string' && fromSetting.length > 0) {
+      template = fromSetting;
+    }
+  }
+  let rendered: string;
+  try {
+    rendered = ProseApi.format(template, buildPromptContext(giver)).toString();
+  } catch {
+    try {
+      rendered = ProseApi.format(
+        DEFAULT_PROMPT_FORMAT,
+        buildPromptContext(giver),
+      ).toString();
+    } catch {
+      rendered = '>';
+    }
+  }
+  return { kind: 'prompt-refresh', rendered };
+}

@@ -47,6 +47,7 @@ import {
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
+import { renderPromptRefresh } from '../../api/prompt';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
@@ -591,12 +592,19 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // delivery layer in `Application.sendEnvelopeToInteractive`.
       // Sensor pipeline (Avatar.handleEnvelope) multiplexes the
       // template to every connected Interactive.
+      //
+      // Every response carries a `prompt-refresh` Note rendered from
+      // the giver's `prompt.format` setting (default `{{ focus }}>`)
+      // so the client's base-prompt area updates after every command —
+      // the MUD-style refresh model. See
+      // `docs/subsystems/prompt.md` (Wave 7) for the full design.
+      const notes = [...claimingCtx.getNotes(), renderPromptRefresh(giverAsStuff)];
       const envelopeTemplate: EnvelopeTemplate = {
         type: 'dispatch-response',
         dispatchId: outer.commandId,
         outcome: {
           status: claimingCtx.getStatus(),
-          notes: [...claimingCtx.getNotes()],
+          notes,
         },
       };
       if (MixinApi.isSensor(giverAsStuff)) {

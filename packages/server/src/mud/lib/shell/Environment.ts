@@ -269,6 +269,17 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
           'turns expansion off for the host (scripts can use ' +
           'literal `$X` text).',
       },
+      {
+        key: 'prompt.format',
+        type: SettingTypes.String,
+        default: '{{ focus }}>',
+        description:
+          'Liquid template rendered into the client-side base ' +
+          'prompt area after every command. v1 context exposes ' +
+          'one variable, `focus` (the giver\'s current MQL ' +
+          'focus). Future tokens (posture, location.name, time) ' +
+          'land additively in the prompt-context builder.',
+      },
     ];
 
     /**
