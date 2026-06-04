@@ -176,6 +176,42 @@ function originatorMatches(
   );
 }
 
+/**
+ * Structural shape for an event that rides the EventApi bus. Any
+ * object with a `kind` discriminator and a `payload` qualifies —
+ * we do not require a particular base class. Concrete event
+ * classes declare `kind` and `payload` directly; the type-system
+ * contract is structural.
+ *
+ * Used in three roles:
+ *   - the value passed to `EventApi.fire(event)`,
+ *   - the type bound for `EventClassCtor`,
+ *   - the value delivered to a class-based `EventApi.on` listener.
+ *
+ * Class-based listeners receive a plain `{ kind, payload }` object —
+ * we do not reconstruct the class instance, because listeners
+ * pattern-match on payload fields rather than prototype identity.
+ */
+export interface BusEvent<P = unknown> {
+  readonly kind: string;
+  readonly payload: P;
+}
+
+/**
+ * Constructor shape for the class-based `EventApi.fire` / `on`
+ * overloads. Any class with a static `KIND` string and instances
+ * that satisfy `BusEvent<P>` qualifies — the dispatcher routes by
+ * the `KIND` string, so HMR-replaced classes still resolve through
+ * the same key.
+ */
+export interface EventClassCtor<E extends BusEvent<unknown>> {
+  readonly KIND: string;
+  new (...args: never[]): E;
+}
+
+/** Extract the payload type from an event class. */
+type PayloadOf<E> = E extends BusEvent<infer P> ? P : never;
+
 /* ─────────────────────────── EventApi ─────────────────────────── */
 
 export class EventApi {
@@ -274,11 +310,74 @@ export class EventApi {
   }
 
   /**
+   * Class-based fire — sugar over `emit(event.kind, event.payload)`.
+   * Accepts anything structurally satisfying `BusEvent<P>` (any
+   * object with `kind: string` + `payload`). Goes through the same
+   * per-event policy gate; listeners on either the string-keyed
+   * `on(name, ...)` form or the class-based `on(EventClass, ...)`
+   * form receive the same dispatch.
+   */
+  public static fire<E extends BusEvent<unknown>>(event: E): void {
+    this.emit(event.kind, event.payload);
+  }
+
+  /**
    * Register a listener for `name`. Returns a `Subscription` whose
    * `unsubscribe()` removes it from the side-table. Throws
    * `SecurityError` when the caller is denied subscribe access.
+   *
+   * The class-based overload (`on(EventClass, listener)`) is sugar
+   * for the string-keyed form: it routes via `EventClass.KIND` and
+   * delivers a `{ kind, payload }` event-like object to the listener
+   * instead of the raw payload. No class-instance reconstruction —
+   * listeners pattern-match on payload fields.
    */
+  public static on<E extends BusEvent<unknown>>(
+    EventClass: EventClassCtor<E>,
+    listener: (
+      event: BusEvent<PayloadOf<E>>,
+      ctx: ListenerContext,
+    ) => void | Promise<void>,
+    opts?: SubscribeOptions<BusEvent<PayloadOf<E>>>,
+  ): Subscription<BusEvent<PayloadOf<E>>>;
   public static on<T = unknown>(
+    name: string,
+    listener: Listener<T>,
+    opts?: SubscribeOptions<T>
+  ): Subscription<T>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static on(
+    nameOrClass: string | EventClassCtor<BusEvent<unknown>>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    listener: (payload: any, ctx: ListenerContext) => void | Promise<void>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    opts?: SubscribeOptions<any>,
+  ): Subscription<unknown> {
+    if (typeof nameOrClass !== 'string') {
+      const kind = nameOrClass.KIND;
+      const adaptedListener: Listener<unknown> = (payload, ctx) =>
+        listener({ kind, payload } as BusEvent<unknown>, ctx);
+      let adaptedFilter: ((payload: unknown) => boolean) | undefined;
+      if (opts?.filter) {
+        const f = opts.filter;
+        adaptedFilter = (payload) =>
+          f({ kind, payload } as BusEvent<unknown>);
+      }
+      let adaptedUntil: ((payload: unknown) => boolean) | undefined;
+      if (opts?.until) {
+        const u = opts.until;
+        adaptedUntil = (payload) =>
+          u({ kind, payload } as BusEvent<unknown>);
+      }
+      return this.#onByName(kind, adaptedListener, {
+        filter: adaptedFilter,
+        until: adaptedUntil,
+      });
+    }
+    return this.#onByName(nameOrClass, listener, opts);
+  }
+
+  static #onByName<T = unknown>(
     name: string,
     listener: Listener<T>,
     opts?: SubscribeOptions<T>

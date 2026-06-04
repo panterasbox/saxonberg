@@ -41,7 +41,7 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
       return;
     }
     if (!MixinApi.isContainer(target.stuff)) {
-      const detail = `${DescribeApi.getDisplayName(target.stuff, 'that')} isn't a place`;
+      const detail = `${DescribeApi.getDisplayName(target.stuff)} isn't a place`;
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.fromMarkup(detail))

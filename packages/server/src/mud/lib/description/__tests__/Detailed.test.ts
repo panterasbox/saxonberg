@@ -762,4 +762,73 @@ describe('DetailedMixin', () => {
       expect(b).toBe(c);
     });
   });
+
+  describe('Entry enumeration (live-query surface)', () => {
+    it('returns [] for a fresh Detailed', () => {
+      expect(obj.getDetailEntries()).toEqual([]);
+    });
+
+    it('returns one entry per non-aliased detail', () => {
+      obj.setDetail(['handle'], 'a brass handle');
+      expect(obj.getDetailEntries()).toEqual([
+        { ids: ['handle'], description: 'a brass handle', hasChildren: false },
+      ]);
+    });
+
+    it('aliases bundle into one entry with both ids', () => {
+      obj.setDetail(['handle', 'doorknob'], 'a brass handle');
+      expect(obj.getDetailEntries()).toEqual([
+        {
+          ids: ['handle', 'doorknob'],
+          description: 'a brass handle',
+          hasChildren: false,
+        },
+      ]);
+    });
+
+    it('nested detail flips parent hasChildren to true', () => {
+      obj.setDetail(['handle'], 'a brass handle');
+      obj.setDetail(['lock'], 'a small lock', 'handle');
+      const entries = obj.getDetailEntries();
+      expect(entries).toHaveLength(1);
+      expect(entries[0]!.ids).toEqual(['handle']);
+      expect(entries[0]!.hasChildren).toBe(true);
+    });
+
+    it('getDetailEntries(parent) scopes to nested level', () => {
+      obj.setDetail(['handle'], 'a brass handle');
+      obj.setDetail(['lock'], 'a small lock', 'handle');
+      const entries = obj.getDetailEntries('handle');
+      expect(entries).toEqual([
+        { ids: ['lock'], description: 'a small lock', hasChildren: false },
+      ]);
+    });
+
+    it('getDetailEntry returns the single alias-grouped entry', () => {
+      obj.setDetail(['handle', 'doorknob'], 'a brass handle');
+      const entry = obj.getDetailEntry('handle');
+      expect(entry).toEqual({
+        ids: ['handle', 'doorknob'],
+        description: 'a brass handle',
+        hasChildren: false,
+      });
+      // Looking up by either alias returns the same bundled entry.
+      expect(obj.getDetailEntry('doorknob')).toEqual(entry);
+    });
+
+    it('getDetailEntry returns null for absent keys', () => {
+      expect(obj.getDetailEntry('nope')).toBeNull();
+    });
+
+    it('getDetailEntry supports dotted paths', () => {
+      obj.setDetail(['handle'], 'a brass handle');
+      obj.setDetail(['lock'], 'a small lock', 'handle');
+      const entry = obj.getDetailEntry('handle.lock');
+      expect(entry).toEqual({
+        ids: ['lock'],
+        description: 'a small lock',
+        hasChildren: false,
+      });
+    });
+  });
 });

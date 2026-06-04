@@ -1,0 +1,55 @@
+inherit ObjectCode;
+
+#include "/zone/null/eternal/eternal.h"
+#define CSHAD OBJECTS + "chex_sh"
+object shad;
+
+void init_args(){}
+
+void extra_create()
+{
+    if(root()) return;
+    set( AutoLoadP, 1 );
+    set( "id", ({ "chextra", "card", "cash card", "credit card" }) );
+    set( "short", "a Chextra(tm) card" );
+    set( "long",
+"This is a Chextra(tm) Cash card, which you can use at many establishments\n"+
+"in lieu of cash.  The card withdraws directly from your bank account,\n"+
+"adding a small fee for each transaction.\n\n"+
+"(c) Jimbotomy, 1993\n"
+	);
+    set( "gettable", 1 );
+//  Added NoStoreP prop as card auto loads.  -- Tabitha 7 Nov 94
+    set( NoStoreP, 1 );
+}
+
+void extra_init()
+{
+// Added so that only those carrying the card get the shadow:
+    if( THISP != ENV( THISO ) )
+        return;
+// Zippo 5-25-94
+    if(shad) remove_shadow(shad);
+    else shad=clone_object(CSHAD);
+    shad->sh_init(THISP);
+}
+
+int drop()
+{
+    if(PRNAME!="jimbotomy")
+    call_out("splode", 2, THISP);
+}
+
+void splode()
+{
+    tell_room(environment(THISO), "The Chextra Card explodes into dust.\n");
+    destruct(THISO);
+}
+
+destruct_signal()
+{
+    if(shad){
+	remove_shadow(shad);
+	destruct(shad);
+    }
+}

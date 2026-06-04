@@ -1,0 +1,19 @@
+
+inherit ArmorCode;
+
+void extra_create()
+{
+	set_name("helmet");
+	add_alias("helm");
+	add_alias("coif");
+	add_alias("cheap helm");
+	set_short("a cheap helm");
+	set_long("This is your FREE helmet.  It is protection for you head, and " +
+	"it also offers the comfort of a chain mess that covers your neck.  " +
+	"It seems very light, almost made of plastic!");
+	set_weight(50);
+	set_value(0);
+	add_area("head");
+	add_area("neck");
+	set_ac(1);
+}

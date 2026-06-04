@@ -595,6 +595,37 @@ export class MixinApi {
   }
 
   /**
+   * Walk the prototype chain unioning the static `subscribableFields`
+   * arrays declared at each level. Mirrors the shape of
+   * {@link getAllPersistentFields}. Order is parent-first → child-
+   * last; later entries on the same name win in the caller's
+   * downstream merge (`MqlSubscriptionApi.collectSubscribableFields`).
+   *
+   * `SubscribableFieldDescriptor` is defined in `mql-subscription.ts`;
+   * we use a structural local type here to avoid a runtime import
+   * cycle (mixin.ts is below mql-subscription.ts in the layering).
+   */
+  public static getAllSubscribableFields(
+    constructor: AnyConstructor,
+  ): Array<{ name: string; [k: string]: unknown }> {
+    const out: Array<{ name: string; [k: string]: unknown }> = [];
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        subscribableFields?: Array<{ name: string; [k: string]: unknown }>;
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'subscribableFields') &&
+        Array.isArray(c.subscribableFields)
+      ) {
+        out.push(...c.subscribableFields);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    return out;
+  }
+
+  /**
    * Walk the prototype chain unioning the static `globIdentityFields`
    * arrays declared at each level. Deduplicates. Mirrors the shape of
    * {@link getAllPersistentFields}.

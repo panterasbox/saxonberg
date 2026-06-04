@@ -7,7 +7,7 @@
  * - Terminal UI for game interaction
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useStore } from './store/index';
 import { websocketClient } from './services/websocket';
@@ -61,6 +61,29 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const [messages, setMessages] = useState<string[]>([]);
+  // Single display value for the input. Three sources can drive it:
+  //   1. The user typing (kept in userTypedRef as the canonical text).
+  //   2. A hover preview from a clickable affordance (transient).
+  //   3. The post-click flash showing the sent command (transient).
+  // userTypedRef stays untouched during hover so we can restore it
+  // on mouse-leave even if the user moved between adjacent
+  // clickables. The restore is deferred by one tick so a leave →
+  // enter sequence can cancel the pending restore.
+  const [inputValue, setInputValue] = useState('');
+  const [flashing, setFlashing] = useState(false);
+  const userTypedRef = useRef('');
+  const previewActiveRef = useRef(false);
+  const restoreTimerRef = useRef<number | null>(null);
+  const flashTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (restoreTimerRef.current !== null)
+        window.clearTimeout(restoreTimerRef.current);
+      if (flashTimerRef.current !== null)
+        window.clearTimeout(flashTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     // Check auth status on mount
@@ -165,6 +188,91 @@ function App() {
     });
   };
 
+  /**
+   * Mirror keystrokes into the canonical userTyped buffer and clear
+   * any in-flight preview state (a keystroke ends a preview).
+   */
+  const handleInputChange = (value: string) => {
+    if (previewActiveRef.current) {
+      previewActiveRef.current = false;
+      if (restoreTimerRef.current !== null) {
+        window.clearTimeout(restoreTimerRef.current);
+        restoreTimerRef.current = null;
+      }
+    }
+    userTypedRef.current = value;
+    setInputValue(value);
+  };
+
+  /**
+   * Hover preview. `null` means "stop previewing" (mouseleave); a
+   * string means "start previewing this command" (mouseenter). The
+   * restore is deferred by one tick so an immediately-following
+   * mouseenter on an adjacent clickable cancels it — without that,
+   * a sweep across two affordances flashes the userTyped buffer
+   * mid-transition.
+   */
+  const handleCommandPreview = (command: string | null) => {
+    if (restoreTimerRef.current !== null) {
+      window.clearTimeout(restoreTimerRef.current);
+      restoreTimerRef.current = null;
+    }
+    if (command === null) {
+      restoreTimerRef.current = window.setTimeout(() => {
+        previewActiveRef.current = false;
+        setInputValue(userTypedRef.current);
+        restoreTimerRef.current = null;
+      }, 0);
+    } else {
+      previewActiveRef.current = true;
+      setInputValue(command);
+    }
+  };
+
+  /**
+   * Click-to-send: command-bus primacy. The input already shows the
+   * command (via the preview) when the click lands. Send, flash for
+   * 150ms, clear. Any user-typed buffer is also cleared — a click
+   * commits to sending, so the prior typing is no longer relevant.
+   */
+  const handleCommandClick = (command: string) => {
+    if (restoreTimerRef.current !== null) {
+      window.clearTimeout(restoreTimerRef.current);
+      restoreTimerRef.current = null;
+    }
+    previewActiveRef.current = false;
+    userTypedRef.current = '';
+
+    setInputValue(command);
+    sendCommand(command);
+    setFlashing(true);
+    if (flashTimerRef.current !== null) {
+      window.clearTimeout(flashTimerRef.current);
+    }
+    flashTimerRef.current = window.setTimeout(() => {
+      setFlashing(false);
+      setInputValue('');
+      flashTimerRef.current = null;
+    }, 150);
+  };
+
+  useEffect(() => {
+    // Debug hook: lets us inject a fake server message from the
+    // browser console while semantic tag emission is still being
+    // built out on the server. Example:
+    //   __injectMessage('Exits: <exit dir="north">north</exit>, <exit dir="south">south</exit>.')
+    const w = window as unknown as {
+      __injectMessage?: (text: string) => void;
+    };
+    w.__injectMessage = (text: string) => {
+      console.info('__injectMessage:', text);
+      setMessages((prev) => [...prev, text]);
+    };
+    return () => {
+      delete w.__injectMessage;
+    };
+  }, []);
+
   // Show login screen if not authenticated
   if (!auth.isAuthenticated) {
     return (
@@ -191,8 +299,17 @@ function App() {
   return (
     <AppContainer>
       <ConnectionStatus />
-      <Terminal messages={messages} />
-      <CommandBar onSend={sendCommand} />
+      <Terminal
+        messages={messages}
+        onCommandClick={handleCommandClick}
+        onCommandPreview={handleCommandPreview}
+      />
+      <CommandBar
+        value={inputValue}
+        onChange={handleInputChange}
+        onSend={sendCommand}
+        flashing={flashing}
+      />
     </AppContainer>
   );
 }

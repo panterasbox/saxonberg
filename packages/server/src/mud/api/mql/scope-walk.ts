@@ -166,7 +166,7 @@ export function candidatesForFlat(items: ReadonlyArray<Stuff>): ScopeCandidate[]
 }
 
 function pushDirect(out: ScopeCandidate[], stuff: Stuff): void {
-  const name = DescribeApi.getDisplayName(stuff, '');
+  const name = DescribeApi.getDisplayName(stuff);
   const keywords = MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
   out.push({ stuff, name, keywords });
 }

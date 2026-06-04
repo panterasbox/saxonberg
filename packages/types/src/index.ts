@@ -251,10 +251,163 @@ export interface PromptEnvelope {
   outcome: NoteOnlyOutcome;
 }
 
+// ============================================================================
+// MQL Subscription Substrate (server ↔ client live-query channel)
+// ============================================================================
+
+/**
+ * Inbound subscribe message. The substrate registers a re-resolving
+ * MQL query under `subscriptionId`, projects the requested `fields`
+ * (or the `'ref'` / `'detail'` alias defaults), and ships the
+ * initial result + future deltas to the connecting Interactive's
+ * holder.
+ *
+ * When `detailKey` is present, projection runs in focused-detail
+ * mode: every mixin that contributes per-detail state surfaces its
+ * slice at the key, merged across mixins into a
+ * `StuffDetailFocusRecord`. Focus mode requires `cardinality: 'one'`;
+ * a `'many'` subscribe with a `detailKey` is rejected with
+ * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
+ * parameter is ignored in focus mode.
+ */
+export interface MqlSubscribeMessage {
+  type: 'mql-subscribe';
+  subscriptionId: string;
+  query: string;
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
+  detailKey?: string;
+}
+
+export interface MqlUnsubscribeMessage {
+  type: 'mql-unsubscribe';
+  subscriptionId: string;
+}
+
+/**
+ * Minimal Stuff-ref record carried on subscription envelopes.
+ * Distinct from {@link StuffRef} (used as a note payload field) so the
+ * subscription substrate can grow its record shape independently.
+ *
+ * `displayName` is non-optional here — the substrate's synthetic
+ * descriptor ensures `DescribeApi.getDisplayName` always renders a
+ * usable string. `quantity` rides along for Globbable hosts; absent
+ * for non-Globbable.
+ */
+export interface StuffRefRecord {
+  stuffId: string;
+  displayName: string;
+  quantity?: number;
+}
+
+/**
+ * Top-level examinable sub-part of a Stuff. Mirrors DetailedMixin's
+ * server-side `DetailEntry`. `ids` carries every alias (multi-key
+ * detail); `hasChildren` hints that nested details exist behind a
+ * drill-down query.
+ */
+export interface WireDetailEntry {
+  ids: string[];
+  description: string;
+  hasChildren: boolean;
+}
+
+/**
+ * Minimal Material wire summary. Identity + display name only;
+ * properties (density, hardness, etc.) ship when a consumer
+ * demands them — same "no premature wire fields" rule that gates
+ * `mixins` and `capabilities`.
+ */
+export interface MaterialSummary {
+  materialId: string;
+  templatePath: string;
+  name: string;
+}
+
+/**
+ * Detail-record carried on subscription envelopes when the client
+ * subscribes with the `'detail'` field set. Adds the flat detail
+ * surface (descriptions, details list, bulk material, mass) on top
+ * of the `StuffRefRecord` ref surface. Optional fields are absent
+ * when the host doesn't compose the contributing mixin.
+ */
+export interface StuffDetailRecord extends StuffRefRecord {
+  shortDescription?: string;
+  longDescription?: string;
+  details?: WireDetailEntry[];
+  bulkMaterial?: MaterialSummary | null;
+  mass?: { value: number; unit: 'kg' };
+}
+
+/**
+ * Focused-detail projection — entity-oriented view of one detail
+ * across every mixin that contributes per-detail state. Sent when
+ * the subscribe message carries `detailKey`.
+ *
+ * Each contributing mixin's `perDetailRead` returns a partial of
+ * this record; the substrate merges them via Object.assign. Shape
+ * stays open (`[key: string]: unknown`) so future per-detail
+ * contributions don't break clients pinned to a closed type.
+ */
+export interface StuffDetailFocusRecord {
+  stuffId: string;
+  detailKey: string;
+  // From DetailedMixin (omitted when no Detail at this key):
+  ids?: string[];
+  description?: string;
+  hasChildren?: boolean;
+  // From TangibleMixin (omitted when no material resolves):
+  material?: MaterialSummary;
+  // Future per-detail fields land additively here.
+  [key: string]: unknown;
+}
+
+export interface MqlSubscriptionResultEnvelope {
+  type: 'mql-subscription-result';
+  frameId: number;
+  subscriptionId: string;
+  /**
+   * Flat-mode subscriptions ship `StuffRefRecord | StuffDetailRecord`;
+   * focus-mode subscriptions ship `StuffDetailFocusRecord`. Same
+   * envelope shape carries both.
+   */
+  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+}
+
+export interface Change {
+  op: 'replace' | 'update' | 'add' | 'remove';
+  key: string;
+  fields?: Partial<StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord>;
+}
+
+export interface MqlSubscriptionDeltaEnvelope {
+  type: 'mql-subscription-delta';
+  frameId: number;
+  subscriptionId: string;
+  changes: Change[];
+}
+
+export type MqlSubscriptionErrorReason =
+  | 'parse'
+  | 'resolve'
+  | 'permission'
+  | 'closed';
+
+export interface MqlSubscriptionErrorEnvelope {
+  type: 'mql-subscription-error';
+  frameId: number;
+  subscriptionId: string;
+  reason: MqlSubscriptionErrorReason;
+  detail?: string;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
-  | PromptEnvelope;
+  | PromptEnvelope
+  | MqlSubscriptionResultEnvelope
+  | MqlSubscriptionDeltaEnvelope
+  | MqlSubscriptionErrorEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -263,7 +416,10 @@ export type Envelope =
 export type EnvelopeTemplate =
   | Omit<DispatchResponseEnvelope, 'frameId'>
   | Omit<ActivityUpdateEnvelope, 'frameId'>
-  | Omit<PromptEnvelope, 'frameId'>;
+  | Omit<PromptEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)

@@ -71,6 +71,52 @@ export class LocomotionApi {
     return mode;
   }
 
+  /**
+   * Async-lazy companion to `modeOf` / `modeOfOrThrow`. Awaits
+   * `StuffApi.singleton` so the mode is cloned on first use, then
+   * subsequent sync lookups (e.g., from `Mobile.getEngagedMode`,
+   * `Drivable.getVehicularMode`) hit the cached singleton.
+   *
+   * Use this from async caller paths that need the mode for the
+   * first time — verb controllers, `traverseWithDefault`, anywhere
+   * the lazy-design's first-touch happens. Pure registry hits stay
+   * with the sync `modeOf` family.
+   */
+  public static async loadMode(nameOrPath: string): Promise<LocomotionMode> {
+    const path = LocomotionApi.#toModePath(nameOrPath);
+    return await StuffApi.singleton<LocomotionMode>(path);
+  }
+
+  /**
+   * Ensure the actor's species + bodyplan singletons are live so the
+   * sync eligibility cascade (`bodyPlanAllows`, `postureAllows`, etc.)
+   * can read them via `findByTemplatePath`. Without this, a fresh
+   * server's first organism-shaped `go` reports "Your body can't
+   * walk." even for a Homo-sapiens-with-biped-bodyplan avatar — the
+   * species is loaded by the `requiresAnimate` validator preload but
+   * the bodyplan singleton was never touched.
+   *
+   * No-op for non-Organism actors and for Organisms with no
+   * `_speciesPath` / `_bodyPlanPath` — those skip the bodyplan gate
+   * naturally per `bodyPlanAllows`.
+   *
+   * Idiomatically paired with `loadMode` at locomotion entry points.
+   */
+  public static async preloadActorAnatomy(actor: Stuff): Promise<void> {
+    if (!MixinApi.isOrganism(actor)) return;
+    const speciesPath = (actor as unknown as { _speciesPath: string | null })
+      ._speciesPath;
+    if (!speciesPath) return;
+    const { Species } = await import('../lib/species/Species');
+    const { BodyPlan } = await import('../lib/species/BodyPlan');
+    const species = await StuffApi.singleton<InstanceType<typeof Species>>(
+      speciesPath,
+    );
+    const bodyPlanPath = species.getBodyPlanPath();
+    if (!bodyPlanPath) return;
+    await StuffApi.singleton<InstanceType<typeof BodyPlan>>(bodyPlanPath);
+  }
+
   /** Short name → full path; full path passes through. */
   static #toModePath(nameOrPath: string): string {
     if (nameOrPath.startsWith('/')) return nameOrPath;
@@ -531,7 +577,14 @@ export class LocomotionApi {
     actor: Stuff & Mobile & Containable,
     exit: Exit,
   ): Promise<void> {
-    const mode = LocomotionApi.modeOfOrThrow(
+    // Lazy-load the actor's anatomy (species + bodyplan) and the
+    // locomotion mode singleton before the sync eligibility cascade
+    // runs. Both `getBodyPlan()` and `modeOf` are sync registry
+    // lookups; on a fresh server the first `go` would otherwise
+    // fail at the body-plan gate (null bodyplan ⇒ empty planModes)
+    // or at the mode resolution (LocomotionMode not loaded).
+    await LocomotionApi.preloadActorAnatomy(actor);
+    const mode = await LocomotionApi.loadMode(
       LocomotionApi.defaultModeFor(actor),
     );
     await LocomotionApi.engageAround(actor, mode, exit, () =>

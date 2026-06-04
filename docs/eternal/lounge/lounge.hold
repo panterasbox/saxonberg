@@ -1,0 +1,149 @@
+#include "/zone/null/eternal/eternal.h"
+#define SetStartLoc(o) (o->set_start_loc(this_object()))
+#define WALL "/obj/client/status_w"
+
+inherit RoomPlusCode;
+
+#define SHORT "EotL Lounge"
+#define BALLOON "/zone/null/eternal/school/obj/balloon"
+
+#define DAY_LONG \
+"Welcome to the End of the Line player lounge.  It consists of a " \
+"spacious room filled with lots of couches and easy chairs in " \
+"which weary adventurers like yourself can relax.  There is a bar " \
+"to the north, and a circular staircase leads down to that renowned " \
+"metropolis, Eternal City."
+//"metropolis, Eternal City.  A smaller staircase leads up to a " \
+//"less hectic and quieter locale."
+
+#define ITEMS ([ \
+    "mac"  : "/zone/null/toys/bin/machine", \
+    "rtg"  : "/zone/null/toys/bin/rtg", \
+    "meter": "/obj/client/meter", \
+])
+#define INSIDE 1
+
+#define EXITS ([ \
+    "north" : "/usr/devo/workroom",\
+    "down"   : "/zone/null/eternal/common", \
+])
+
+#define DESCS ([ \
+    ({ "couch", "couches", "chair", "chairs", "easy chairs" }):\
+       "The couches and chairs look very comfortable and inviting.", \
+    ({ "staircase", "staircases" }): \
+      "Which staircase, the circular one or the smaller one?", \
+    ({ "circular staircase" }): \
+      "This staircase has a thick wooden bannister, and spirals down " \
+      "towards the Heart of the city.", \
+    ({ "smaller staircase" }): \
+      "This staircase, with brass railings, leads upstairs to the " \
+      "gaming room.", \
+    ({ "bar" }): \
+      "Dave's Bar is to the north.", \
+])
+
+void extra_init()
+{
+  object me;
+
+  me = THISP;
+  if( query_once_interactive( me ) && !IsWizard( me ) )
+  {
+    add_action("do_quit", "quit");
+  }
+}
+
+void extra_reset()
+{
+  if( !present( "wall" ) )
+  {
+    call_other( WALL, "???LOADME" );
+    move_object( WALL, THISO );
+  }
+    if(!find_object(BALLOON))
+    {
+        call_other(BALLOON,"???");
+        move_object(BALLOON,THISO);
+    }
+}
+
+void extra_create()
+{
+  set( "short", SHORT );
+  set( "day_long", DAY_LONG );
+  set( "day_light", TORCH_LIT );
+  set( "exits", EXITS );
+  set( "invis_exits", ([ "n" : "bar" ]) );
+  set( "reset_data", ITEMS );
+  set( "descs", DESCS );
+  set( InsideP, INSIDE );
+  set( NoTeleportP, 1);
+  set( NoTeleportInP, 1 );
+}
+
+nomask mixed
+query(string var)
+{
+  switch (var)
+  {
+  case NoCombatP:
+    return 1;
+  case NoPKP:
+    return 1;
+  case NoTeleportP:
+  case NoStealP:
+    return 1;
+  }
+  return ::query(var);
+}
+
+nomask status
+attack_signal( object a, object v )
+{
+  printf( "This is the lounge.  You don't want to attack anyone here.  Just\n"
+   "lay back and relax.\n" );
+  return 1;
+}
+string
+exit_message( string dir )
+{
+  if( dir == "school" )
+    return( "toward the EotL Elementary School" );
+  return( 0 );
+}
+
+status do_quit(string str) {
+  SetStartLoc(THISP);
+}
+
+status set( string var, mixed val)
+{
+  if( extern_call() ) return 1;
+  return ::set(var,val);
+}
+
+int try_skill( string skillname, object caster, object target )
+{
+    status fail = 0;
+
+    if( skillname == "lure" ) 
+    {
+        tell_object( caster, "The acoustics in this room interfere "
+            "with your attempt.\n" );
+        fail = 1;
+    }
+    else if( skillname == "spook" )
+    {
+        tell_object( caster, "I doubt they're going to leave the "
+            "safety of _this_ room.\n" );
+        fail = 1;
+    }
+    else if( skillname == "eject" )
+    {
+        tell_object( caster, "That's not going to work in here.\n" );
+        fail = 1;
+    }
+    
+    return( fail );
+}

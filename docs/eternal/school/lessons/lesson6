@@ -1,0 +1,79 @@
+           EOTL COMMUNICATION: PART ONE
+ 
+There are various ways of communicating on EotL.  You can say, 
+tell, whisper, channel, shout, and emote.  
+
+This lesson will cover everything but channels.
+ 
+When you use the command 'say bogleg!' (or \"'bogleg!\" which is 
+effectively the same) everyone in the room where you use the 
+command will see the following: Yourname says: bogleg!
+ 
+The tell command allows you say something to a specific 
+player who is not necessarily in the same room as you
+in the following manner: 'tell hodge pleeze frob me!!'  
+This command will tell the player Hodge, assuming that he's 
+online and not net-dead, 'Yourname tells you: pleeze frob me!!'
+ 
+You may also use the 'reply' to send a tell to the last person 
+who told you.  For example...
+ 
+Hodge tells you: No, I will not frob you.  Ever.  Leave me 
+                  alone.
+ 
+reply aww cmon i got goods ideas!11~!~!!
+ 
+You tell Hodge: aww cmon i got goods ideas!11~!~!!
+ 
+Also, if you substitute a '.' for the player's name, you will 
+send a tell to the last person you told.  For example...
+ 
+tell hodge y r u mad at me???
+You tell Hodge: y r u mad at me???
+tell . i'm sorry, pleeeze frob me????
+You tell Hodge: i'm sorry, pleeze frob me????
+ 
+The tell command can be used to tell multiple targets by 
+typing 'tell player1, player2, player3 message'
+For example...
+ 
+tell markus, hodge, devo whos in charge here?//???
+You tell Markus, Hodge, and Devo: whos in charge here?//???
+ 
+When replying to a group message, 'reply message' replies 
+to everyone who received the message.  For example...
+
+Hodge tells you, Devo, Peaches, and Ricorn: what's up?
+reply not much, you?
+You tell Hodge, Devo, Peaches, and Ricorn: not much, you?
+ 
+Whisper is similar to tell, in that people in the same room 
+will not see the message.  However, they will see that you are
+whispering something.  The format is: 'whisper player message'
+For example...
+ 
+whisper ricorn your my favoreet wizzie!
+You whisper to Ricorn: your my favoreet wizzie!
+ 
+Emotes, or feelings, are used to convey feelings on the mud.  
+EotL has over 1100 predefined emotes and that number is increasing 
+rapidly.  They are used by typing the name of the emote (to
+get a full list of emotes, type 'feelings').  For example...
+Typing 'grin' will produce the message 'Yourname grins.' to 
+the room you are currently in.  You may also customize certain 
+feelings.  'grin happily' will produce the message 'Yourname 
+grins happily.' in the room you are in.  Type 'help <emote>' 
+to find out more about specific emotes.  If you can't find the 
+emote you want among those already defined, you may type 
+'emote <emote>' to produce the feeling you desire.  For 
+example, 'emote fribbles!' will produce the message 'Yourname 
+fribbles!' in the room you are in.  To get a list of emotes with a
+certain word in them, use the 'findemote' command.  For example, 
+'findemote grin' will show you all of the emotes with the word 
+"grin" in them.
+ 
+At a certain point, you will hear shouts.  Shouts are messages 
+generally produced by wizards that the whole mud can hear.  
+Mortals, with a few rare exceptions, cannot shout.
+ 
+Channels will be covered in a future lesson.           

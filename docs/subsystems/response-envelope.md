@@ -638,7 +638,8 @@ shipped subsystem:
 - [activity.md](./activity.md) — `Engagement` framework; the
   producer behind `activity-update` envelopes and the
   `AbortReasonRegistry` augmentations
-- `docs/slates/state-sync-slate.md` — will share the
+- `docs/slates/mql-subscription-slate.md` — the live-state
+  substrate (formerly designed as state-sync); will share the
   `Interactive.nextFrameId` counter for its own ordering primitive
 
 ## History

@@ -1,0 +1,6 @@
+Note:
+
+All these monsters were updated by Stinger on 2/8/93.
+Due to the absence of a replacement for set_combat_message1()
+and set_combat_message2(), none of these monsters have action messages
+in combat.

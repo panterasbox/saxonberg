@@ -1,0 +1,36 @@
+                 ALIASES AND SUBS
+ 
+Aliases are one word custom commands you can make to make 
+mudding easier for you.  You can alias a complicated, 
+mutli-word command into one easy to remember command.
+For example:
+ 
+alias tl tell luger
+ 
+Now when you type:
+ 
+tl hey can I please have an unkill?
+ 
+It is the same as if you had typed:
+ 
+tell luger hey can I please have an unkill?
+ 
+Subs are similar in that you can use them to simplify 
+your mud life by making things easier to type.
+ 
+Say a buddy of yours on the mud has chosen the name 'Xiasdlkd.'
+You can type:
+ 
+sub buddy xiasdlkd
+ 
+and now whenever you type 'buddy' the mud will recognize it as
+'xiasdlkd.'  For example:
+
+tell buddy hey what's up?
+
+Would be the same as if you had typed:
+
+tell xiasdlkd hey what's up?
+ 
+You can also type 'sub' or 'alias' alone to see a list of 
+your aliases or nicknames.  

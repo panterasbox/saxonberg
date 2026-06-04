@@ -15,7 +15,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs.length === 0) return undefined;
   for (const stuff of stuffs) {
     if (!MixinApi.isWearable(stuff as Stuff)) {
-      return `${DescribeApi.getDisplayName(stuff, 'that')} can't be worn`;
+      return `${DescribeApi.getDisplayName(stuff)} can't be worn`;
     }
   }
   return undefined;

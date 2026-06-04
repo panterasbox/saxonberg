@@ -1,0 +1,21 @@
+    . . . . 2 . .             
+            |                          i   - Rooms with InsideP
+  1-+-+-+-+-+ . . . . .                o   - Rooms with OutsideP
+    |       | |     |                  #   - Gates
+  . +-. . i-+-+-+-+-+-+-+-+            .   - Spaces for rooms in 
+    |       |     |       |                    the future
+  . + . . . + . .-| . . .-+ .          *   - Lounge (0,0,1(,0?))
+    |       |     |       |            +   - Street rooms on the
+  . + . . . + . . +---+ . + .                  Street Level (0)
+    |   |   |     |   |   |            
+    +-+-+-+-*-+-+-+ . + . +-. 
+    | |   | |   |     |   |    
+    . | . . + .-| . . + . + .  
+      |     |   |     |   |    
+    . +-+-+-+ . +-+-+-+-+-+-3       Second Story Level of EC
+      |               |         
+      4 . . . . . . . + . .              ( Level 1 )       
+                  |   |                             
+          . . . . +-+-+ . .
+              
+              . . . . . .

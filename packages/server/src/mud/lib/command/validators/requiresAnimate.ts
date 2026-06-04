@@ -27,7 +27,7 @@ const validator: CommandValidator = (context) => {
 
   // Tailor the error message to what's actually wrong: a dead
   // organism gets a different message from a non-organism caller.
-  const name = DescribeApi.getDisplayName(giver, 'you');
+  const name = DescribeApi.getDisplayName(giver);
   if (MixinApi.isOrganism(giver)) {
     const state = giver.getLifecycleState();
     if (state === 'dead' || state === 'destroyed' || state === 'unpowered') {

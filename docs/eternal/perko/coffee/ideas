@@ -1,0 +1,57 @@
+Stock Room
+ 
+0 - espresso mugs
+1 - coffee mugs
+2 - glass mugs
+3 - cappucino mugs
+4 - bags of espresso beans
+5 - bags of coffee beans
+6 - bags of tea
+7 - chunks o' chocolate
+8 - cartons of Lactose-It-Be [tm]
+9 - packs of bottled soda water
+10 - torani cartridges
+11 - sugar packets
+12 - honey
+ 
+#define LIST "/usr/walker/collegeville/arrays/stkrm"
+ 
+ 
+8 espresso mugs == 2 coffee mugs == 1 cappucino mug == 1 glass mug
+ 
+espresso mug holds 16 units of beverage
+coffee mug         64 units
+cappucino mug      128 units
+glass mug          128 units
+ 
+variables for drinks
+        int
+        drinkunits - how many units of beverage are in the container
+        drinkleft - how many drinks until container is empty
+                (drinkunits/8 rounded up)
+        container - which container; 0-esp, 1-coffee, 2-glass, 3-capp
+        opacity - 0-clear, 1-translucent, 2-opaque
+        petemagic - 1-Pete made it, 0-Pete didn't make it
+        temp - temperature
+ 
+7       espresso - how much of item is in the drink
+48      coffee
+48      tea
+110     soda
+2       sugar
+48      chocolate - melted chocolate
+1       choctop - powdered chocolate
+4       cream
+        milk
+24      foam
+        whipcream
+        apricot - torani flavorings.. I should figger out mappings for this one..
+        vanilla
+ 
+espresso -
+  container = 0
+  drinkunits = 7
+  drinkleft = 1
+  opacity = 2
+  espresso = 7
+  temp = 95

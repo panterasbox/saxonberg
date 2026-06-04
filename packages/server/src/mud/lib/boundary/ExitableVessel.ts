@@ -165,7 +165,7 @@ export class ExitableVessel extends ExitableVesselBase {
       return this.entryCache;
     }
 
-    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
+    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff);
     const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'in',
@@ -189,7 +189,7 @@ export class ExitableVessel extends ExitableVesselBase {
       return this.outCache;
     }
 
-    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff, 'vessel');
+    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff);
     const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'out',

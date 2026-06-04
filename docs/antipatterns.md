@@ -306,12 +306,12 @@ const items = ContainmentApi.getContents(obj); // [] if not a container
 ## Display Names — Use DescribeApi
 
 Ad-hoc `getObjectName()` helpers that duck-type through `fullName` /
-`name` / `shortDescription` are **not allowed**. The display-name fallback
-chain is centralized in `DescribeApi`:
+`name` / `shortDescription` are **not allowed**. The display-name
+resolution chain is centralized in `DescribeApi`:
 
 ```typescript
 // CORRECT — single source of truth for human-readable names
-const name = DescribeApi.getDisplayName(obj, 'something');
+const name = DescribeApi.getDisplayName(obj);
 
 // NOT ALLOWED — ad-hoc fallback chains in controllers/API code
 function getObjectName(obj: any): string {
@@ -322,13 +322,21 @@ function getObjectName(obj: any): string {
 }
 ```
 
-`DescribeApi.getDisplayName()` uses `MixinApi.isNamed()` / `isVisible()`
-internally (not duck typing) and falls back in this order:
+`DescribeApi.getDisplayName(obj, viewer?)` uses `MixinApi.isNamed()` /
+`isVisible()` internally (not duck typing) and falls back in this
+order:
 
-1. `NamedMixin.fullName`
-2. A plain `name` string (Location and similar carry this directly)
-3. `VisibleMixin.shortDescription`
-4. Caller-supplied fallback
+1. `NamedMixin.name`
+2. `VisibleMixin.shortDescription`
+3. Baked-in `'something'` default
+
+The function ALWAYS returns a string; there is no caller-supplied
+fallback. Don't write `DescribeApi.getDisplayName(obj, 'that')` —
+the `fallback` parameter retired with the MQL subscription substrate
+reshape. The optional `viewer?: Sensor` parameter is reserved for
+the recognition / DescribeApi v2 pipeline; v1 ignores it but the
+parameter is plumbed end-to-end so the per-viewer design lights up
+without an API rename.
 
 This is the seed of a broader presentation layer. Any future
 description/short/long/article/list-formatting helpers belong in
@@ -1199,3 +1207,62 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   that drift out of sync with the seeded universe biome.
 
 See [biome.md](./subsystems/biome.md) for the full chain.
+
+## Events — `EventApi.fire(event)`, don't construct events without firing
+
+The class-per-event vocabulary (`FieldChangedEvent`,
+`PropertyChangedEvent`, `ShadowChangedEvent`, `GenericEvent<P>`) is
+**sugar at the call site for `EventApi.emit`**. Constructing an event
+instance without firing it has no effect — the event class doesn't
+auto-emit, and the meta-bus dependency index won't see it.
+
+```ts
+// CORRECT — fire through EventApi so the bus sees it
+EventApi.fire(
+  new FieldChangedEvent({ target: this.stuffId, field, oldValue, newValue }),
+);
+
+// NOT ALLOWED — silently does nothing
+new FieldChangedEvent({ target: this.stuffId, field, oldValue, newValue });
+```
+
+For setter sites that follow the "noop-check + capture + assign + fire"
+pattern, use the `MqlSubscriptionApi.fireFieldChange` helper instead
+of the long form:
+
+```ts
+// CORRECT — one-line setter
+setName(value: string): void {
+  this.name = MqlSubscriptionApi.fireFieldChange(
+    this, 'name', this.name, value,
+  );
+}
+
+// AVOID — verbose, easy to miss the noop-skip
+setName(value: string): void {
+  const old = this.name;
+  this.name = value;
+  if (!Object.is(old, value)) {
+    EventApi.fire(new FieldChangedEvent({
+      target: this.stuffId, field: 'name', oldValue: old, newValue: value,
+    }));
+  }
+}
+```
+
+Inline the fire (skip the helper) only when the setter has side
+effects beyond the assign — Map mutations, multi-field changes,
+marshaller boundary handling. See
+[mql-subscription.md](./subsystems/mql-subscription.md) §
+"`fireFieldChange` helper" for the canonical pattern and the
+exceptions that already exist in the codebase.
+
+### Symmetric warning: subscribing without going through `EventApi`
+
+Don't reach into `EventRegistry.checkProp` / `getProp` directly to
+spy on events. The Get-side access check denies non-`EventApi`
+callers — your "subscription" returns `null` and you'll spend an
+hour debugging it. The legitimate read path is
+`EventApi.on(name, listener)` (string-keyed) or
+`EventApi.on(EventClass, listener)` (class-based). Both route through
+the same gate and receive the same dispatch.

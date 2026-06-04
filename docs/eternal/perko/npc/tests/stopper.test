@@ -1,0 +1,95 @@
+inherit ThingCode;
+ 
+#include        "path.h"
+#define   PETE  present("24601",ENV(THISP))
+ 
+void extra_create()
+  {
+  set(InvisP,1);
+  set("attempts",2);
+  set("leave_ok", 0 );
+  }
+ 
+void extra_init()
+  {
+  call_out( "stern_talkin_to", 20 );
+  add_action( "try_something" );  add_xverb( "" );
+  }
+ 
+try_something( string str )
+  {
+  if( str == "hp" )
+    return 0;
+  if( str == "stop" )
+    {
+    destruct(THISO);
+    return 1;
+    }
+  if( ( str == "quit" || str == "east" ) && query("leave_ok") )
+    {
+    destruct(THISO);
+    PETE->mp_setup( NPC "pete" );
+    return 0;
+    }
+  if( query( "attempts" ) > 0 )
+    {
+    if( query("attempts") == 1 )
+      {
+      command( "say Ok, you've now made 3 mistakes.", PETE );
+      command( "say Even though \"" + str + "\" isn't doing "
+        "anything, I'll still refrain from killing during this "
+        "safety window so that you won't have anything to "
+        "complain to the unkill junta about.  You do not have "
+        "any mistakes left.", PETE );
+      set( "attempts", 0 );
+      }
+    if( query("attempts") == 2 )
+      {
+      command( "say Ok, obviously you aren't taking me "
+        "seriously.", PETE );
+      THISP->add_hp( -(THISP->query_hp()/2) );
+      command( "say I have now removed half of your hit "
+        "points.  You may check them by typing \"hp\" "
+        "without fear of retribution.  You can make one "
+        "more stupid mistake before I kill you during "
+        "this safety window, which is very rapidly "
+        "running out.", PETE );
+      set( "attempts", 1 );
+      }
+    return 1;
+    }
+  kill_em_dead();
+  return 1;
+  }
+ 
+kill_em_dead()
+  {
+  command( "say Don't say I didn't warn you..", PETE );
+  tell_room( ENV(THISP), strformat( "Pete pulls the trigger "
+    "on his massive shotgun!\n"
+    "BBB  L    AA  M   M  !\n"
+    "B  B L   A  A MM MM  !\n"
+    "BBB  L   AAAA M M M  !\n"
+    "B  B L   A  A M   M\n"
+    "BBB  LLL A  A M   M  !" ) );  
+  THISP->DeathSequence( PETE, "not listening to The Man" );
+  PETE->mp_setup( NPC "pete6" );
+  destruct( THISO );
+  return 1;
+  }
+ 
+stern_talkin_to()
+  {
+  command( "say Your safety period has expired.  All warnings "
+    "are cancelled.  You will die immediately if you type "
+    "anything else.", PETE );
+  PETE->mp_setup(NPC "pete8");
+  set("attempts", 0 );
+  return 1;
+  }
+ 
+unleash()
+  {
+  set( "leave_ok", 1 );
+  return 1;
+  }

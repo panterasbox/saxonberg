@@ -18,7 +18,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs === null) return `${field} must be an object`;
   for (const stuff of stuffs) {
     if (!MixinApi.isContainer(stuff as Stuff)) {
-      return `${DescribeApi.getDisplayName(stuff, 'that')} isn't a place`;
+      return `${DescribeApi.getDisplayName(stuff)} isn't a place`;
     }
   }
   return undefined;

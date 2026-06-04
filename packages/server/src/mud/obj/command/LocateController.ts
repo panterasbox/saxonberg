@@ -28,7 +28,7 @@ export class LocateController extends CommandController<LocateModel> {
     const chain: string[] = [];
     let cursor: Stuff | null = target.stuff;
     while (cursor) {
-      chain.push(DescribeApi.getDisplayName(cursor, '?'));
+      chain.push(DescribeApi.getDisplayName(cursor));
       const next: Stuff | null = MixinApi.isContainable(cursor)
         ? cursor.getContainer()
         : null;
@@ -36,8 +36,8 @@ export class LocateController extends CommandController<LocateModel> {
       cursor = next;
       if (cursor === null) {
         const zone = prior.getZone();
-        if (zone && !chain.includes(DescribeApi.getDisplayName(zone, '?'))) {
-          chain.push(DescribeApi.getDisplayName(zone, '?'));
+        if (zone && !chain.includes(DescribeApi.getDisplayName(zone))) {
+          chain.push(DescribeApi.getDisplayName(zone));
         }
       }
     }

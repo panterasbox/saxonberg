@@ -215,7 +215,7 @@ export class LookController extends CommandController<LookModel> {
     // can differentiate "looking at a thing" from "looking at the
     // room".
     if (!MixinApi.isVisible(target)) {
-      const name = DescribeApi.getDisplayName(target, 'that');
+      const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.compose`You can't see ${name}.`)
@@ -240,14 +240,24 @@ export class LookController extends CommandController<LookModel> {
   private formatExits(exits: Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
-      const dir = Mml.direction(exit.getDirection());
+      // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —
+      // the client turns it into the affordance that sends `go <dir>`.
+      // Door annotation rides outside the clickable so the click area
+      // is exactly the direction word.
+      const tagged = Mml.exit(exit);
       const door = exit.getDoor();
-      if (!door) return dir;
+      if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorName = DescribeApi.getDisplayName(door, 'door');
-      return Mml.compose`${dir} (${doorName}, ${state})`;
+      const doorName = DescribeApi.getDisplayName(door);
+      return Mml.compose`${tagged} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);
-    return Mml.fromMarkup(`<exits>Obvious exits: ${joined.toString()}.</exits>`);
+    // No `<exits>` outer wrapper: the prose `Obvious exits: …` is the
+    // structural marker, the inner `<exit>` tags carry the only
+    // semantics the renderer cares about, and a wrapper that
+    // *contains* other tags can't be parsed by the client's regex
+    // MML renderer (which only matches flat tags). Render the
+    // joined Mml directly into the sentence.
+    return Mml.compose`Obvious exits: ${joined}.`;
   }
 }

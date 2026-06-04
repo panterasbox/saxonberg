@@ -64,7 +64,12 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       return;
     }
 
-    const mode = LocomotionApi.modeOfOrThrow(this.modeName(context));
+    // Lazy-load actor anatomy (species + bodyplan) AND the mode
+    // singleton before the sync eligibility cascade reads them.
+    // First-touch on a fresh server otherwise fails the body-plan
+    // gate or the sync mode lookup.
+    await LocomotionApi.preloadActorAnatomy(actor);
+    const mode = await LocomotionApi.loadMode(this.modeName(context));
 
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -111,7 +116,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     }
 
     const destination = exit.getDestination();
-    const destName = DescribeApi.getDisplayName(destination, 'somewhere new');
+    const destName = DescribeApi.getDisplayName(destination);
 
     if (mode.getPassthrough()) {
       const host = LocomotionApi.findConveyanceHost(actor, mode);

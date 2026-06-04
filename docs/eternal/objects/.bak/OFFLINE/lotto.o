@@ -1,0 +1,11 @@
+#0:0
+properties 0
+values 0
+name "lotto machine"
+short_msg "The EotL Lotto Machine"
+long_msg 0
+read_msg 0
+alias ({"lotto",})
+cycle 1
+jackpot 5341
+prize 159

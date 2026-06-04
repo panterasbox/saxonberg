@@ -1,0 +1,81 @@
+inherit WeaponCode;
+#define SCHOOL "/zone/null/eternal/school/room01"
+
+void extra_create()
+{
+    set("id",({"intercom microphone","mike","pa","microphone","intercom"}));
+    set("short","an intercom microphone");
+    set("long",
+      "This is a large, metal intercom microphone.  It's used "
+      "to annouce messages to the students of EotL School.  It must "
+      "be one of those infra-red things, because there's no cord.  There "
+      "is a large, black button on the base.");
+}
+
+string post_long()
+{
+    return(query("pa_on") ?
+      "The school intercom is on." :
+      "The school intercom is off." );
+}
+
+string post_short()
+{
+    return(query("pa_on") ?
+      " [on]":
+      " [off]" );
+}
+void extra_init()
+{
+    add_action("cmd_check");
+    add_xverb("");
+    add_action("push_butt","press");
+    add_action("push_butt","push");
+    add_action("do_say","say");
+    add_action("do_say","'");
+}
+
+status pa_announce( string ann )
+{
+    if(ann=="none")return 1;
+    tell_room( SCHOOL, strformat( ann, "A voice booms from the intercom: "));
+    return 1;
+}    
+status push_butt(string wot)
+{
+    if(wot!="button"&&wot!="black button")return 0;
+    set("pa_on",(query("pa_on")?0:1));
+    tell_object(THISP,
+      "You turn "+(query("pa_on")?"on":"off")+" the school intercom.\n");
+    tell_room(ENV(ENV(THISO)), PNAME+" presses the button on the microphone.\n",({THISP}));
+    return 1;
+}
+
+status do_say(string wot)
+{
+    if(!wot||!query("pa_on"))
+	return 0;
+    else 
+    {
+	tell_room(ENV(ENV(THISO)),strformat(wot,PNAME+" says: "),({THISP}));
+	tell_object(THISP,strformat(wot,"You say: "));
+	pa_announce(wot);
+    }
+    return 1;
+}
+
+status cmd_check(string cmd)
+{
+    int i;
+    mixed arr;
+    arr=allocate(i = strlen(cmd));
+    while(i--)
+	arr[i] = cmd[i..i];
+    if(sizeof(arr)&&arr[0]&&arr[0]=="'")
+    {
+	if(sizeof(arr)>1)arr=arr[1 .. sizeof(arr)-1];
+	do_say(implode(arr,""));
+	return 1;
+    }
+    else return 0;
+}   

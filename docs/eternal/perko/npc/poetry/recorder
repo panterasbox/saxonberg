@@ -1,0 +1,41 @@
+843028694 say but it'll check xverbs..
+843028697 say not catch tell.
+843028700 ls
+843028703 cd ..
+843028704 cd poetry
+843028705 west
+843028709 inventory
+843028718 move /usr/walker/collegeville/obj/recorder#90366 e
+843028719 look
+843028721 say voila!
+843028722 say okok..
+843028727 say now try it.
+843028729 look
+843028729 start
+843028731 start
+843028731 east
+843028735 say okay
+843028738 say here's my poem
+843028745 say it's called Blue Heart, Red Blood
+843028751 more /std/include/ansi.h
+843028760 chart
+843028770 say my heart
+843028773 say my heart is sad
+843028775 say sad for you
+843028778 say sad so true
+843028785 say sad and [1;34mBlue
+843028789 say my heart
+843028793 say my blue blue heart
+843028798 say beats blood
+843028810 say beats [1;31mred[0;0m blood
+843028832 say my [1;31mred[0;0m blood and [1;34mblue[0;0m heart
+843028837 say they make me
+843028853 say [1;35mpurple
+843028858 bow
+843028864 say thank you.
+843028866 stop
+843028868 look
+843028877 cd /usr/walker/collegeville/obj
+843028878 ls
+843028882 more recorder.c
+843028887 finish

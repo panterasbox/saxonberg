@@ -1,0 +1,10 @@
+1##clap poet
+1##say Hot DAMN boy-o!
+1##say You have the gift of tongues there!
+2##say Have an espresso on the house, kid.
+2##say You're worth it.
+2##@clone_espresso
+1##give espresso to poet
+3##emote shakes his head in amazement.
+1##@basic_mp
+1##END

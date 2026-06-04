@@ -79,14 +79,14 @@ export class PostureApi {
           reason: 'no-posture-slot',
           summary:
             `you can't ${verb} on ` +
-            `${DescribeApi.getDisplayName(target, 'that')}`,
+            `${DescribeApi.getDisplayName(target)}`,
         };
       }
       return {
         ok: false,
         reason: 'occupied',
         summary:
-          `${DescribeApi.getDisplayName(target, 'that')} is occupied`,
+          `${DescribeApi.getDisplayName(target)} is occupied`,
       };
     }
 

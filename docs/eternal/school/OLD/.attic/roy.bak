@@ -1,0 +1,64 @@
+inherit MonsterCode;
+
+void extra_create()
+{
+    set_name("Roy");
+    add_alias("roy");
+    add_alias("officer");
+    add_alias("truant officer");
+    set_short("Roy the Truant Officer");
+    set_long(
+      "This is Roy.  Roy is a large, somewhat dull man.  He is "
+      "almost fifty years old and this is the best job he has "
+      "ever had, in his opinion.  The Eternal City School Board "
+      "pays him $5.15 an hour to sit on his butt all day and "
+      "make sure that no newbie runts try to skip school.  Being "
+      "a failure at most of life's little challenges, Roy takes "
+      "great pleasure from doing something that even someone "
+      "of his meager intellect can do: boss around little kids."
+    );
+    set_gender("male");
+    set_alignment(-1200);
+    set_stat("str",70);
+    set_stat("con",40);
+    set_stat("chr",2);
+    set_race("human");
+}
+
+void extra_init()
+{
+    add_action("do_save","road");
+}
+
+status do_save(object who)
+{
+    string mess;
+    if(who==THISO)return 0;
+    if(!who)who=THISP;
+    mess="Hey, wotareya an idiot or sumpin?  Dontchew see them cars "
+    "zippin' by?  Man, if you got flattened I'd sure lose my job, "
+    "you punk!  So watch out!";
+    tell_room(ENV(who),who->query_name()+" tries to walk into the road but Roy grabs "+objective(who)+"!\n",({who}));
+    tell_object(who,"As you try to step into the road, Roy grabs you by the collar!\n");
+    tell_room(ENV(THISO),strformat(mess,"Roy says: "));
+    return 1;
+}
+
+status suspend(object who)
+{
+    string mess, name;
+    if(!who)who=THISP;
+    name=who->query_name();
+    mess="Yo, "+name+"!  You been suspended, get it?  Dat means "
+    "you ain't get to go in ta school, okay?  So eider "
+    "youse wait out here wit me, or you go home "
+    "on da bus.";
+    tell_room(ENV(THISO),name+" tries to go into school and Roy grabs "+objective(who)+" by the neck!\n",({who}));
+    tell_object(who,"As you try to enter the school, Roy grabs you by the neck!\n");
+    tell_room(ENV(THISO),strformat(mess,"Roy says: "));
+    tell_room(ENV(THISO),"Roy looks at his watch.\n");
+    tell_room(ENV(THISO),strformat(
+	"Youse suspended fer anudder "+strfage("%d%D%h%Hand %m%M",
+	  who->query("suspended")+86400-time() )+"or so.","Roy says: "));
+    return 1;
+}

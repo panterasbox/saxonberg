@@ -1,0 +1,126 @@
+#include "/zone/null/eternal/eternal.h"
+#define CO "/secure/player/commands/channel"
+#define ROSE  "/zone/null/toys/bin/rose"
+inherit MonsterCode;
+inherit MonsterMove;
+inherit MonsterTalk;
+
+string *NAMES =
+({
+ "apple",
+ "princess",
+ "sally",
+ "susan",
+ "suzanne",
+ "lisa",
+ "morena",
+ "christine",
+ "teddybear",
+ "katy",
+ "joan",
+ "debbie",
+ "miaka",
+ "terri",
+});
+
+int femcheck( object o )
+{
+  return(
+   o->query_gender() == "female" &&
+   !IsWizard(o) &&
+   MISCFUN->evaluation(o) < 20
+  );
+}
+
+string get_name()
+{
+  object *u;
+  object user;
+  string name;
+
+  u = filter_array( users(), #'femcheck );
+  if( sizeof( u ) )
+  {
+    user = u[random(sizeof(u))];
+    name = lower_case( user->query_real_name() );
+    set_name( name );
+    set_race( user->query_race_ob() );
+    set_short( (string)capitalize(name) + " " + (string)user->query_title() );
+    return( name );
+  }
+  name = NAMES[random(sizeof(NAMES))];
+  set_name( name );
+  set_race( "human" );
+  set_short( capitalize( name ) + " the female human" );
+  return( name );
+}
+
+initialize_me()
+{
+  string cname;
+  string myname;
+
+  cname = capitalize( get_name() );
+
+  clear_phrases();
+  add_phrase( cname + " moans softly.\n" );
+  add_phrase( cname + " winks seductively.\n" );
+  add_phrase( cname + " wiggles her bottom.\n" );
+  add_phrase( cname + " is too sexy.\n" );
+  add_phrase( cname + " looks very aroused.\n" );
+  add_phrase( cname + " mount you and ride off into the sunset.\n" );
+  add_phrase( cname + " sneers at you.\n" );
+  add_phrase( cname + " wonders." );
+  add_phrase( cname + " sighs.\n" );
+  add_phrase( cname + " waits patiently.\n" );
+  add_phrase( cname + " giggles.\n" );
+  add_phrase( cname + " says: when's Anthrax going to give me my red rose?\n" );
+  add_phrase( cname + " is BOOOOOOOOOOOOOOORED.\n" );
+  add_phrase( cname + " hmms.\n" );
+  add_phrase( cname + " says: Anthrax am win!\n" );
+  add_phrase( cname + " says: what's the point of mudsex anyways?\n" );
+  add_phrase( cname + " goes: Hee!\n" );
+  add_phrase( cname + " moans no kyle\n" );
+  add_phrase( cname + " peers at you quizically.\n" );
+  add_phrase( cname + " kicks you\nOUCH!!.\n" );    
+  add_phrase( cname + " snickers at you.\n" );    
+  add_phrase( cname + " yawns.\n" );    
+  add_phrase( cname + " thinks you suck.\n" );    
+}
+
+DeathSequence( object killer, string cause )
+{
+  say( query_name() + 
+   " says: foolish mortal!  Face Duncan's unholy wrath!\n" );
+  if( killer )
+  {
+    if( killer->query_player() )
+      killer->DeathSequence( THISO, "by: divine retribution" );
+  }
+  ::DeathSequence( killer, cause );
+}
+
+dest_me()
+{
+  object ob;
+  add_money( -(int)query_money() );
+  if( ob = present( "rose", THISO ) )
+    destruct( ob );
+  destruct( THISO );
+}
+
+void
+extra_create()
+{
+  if( !clonep() ) return;
+  initialize_me();
+  remove_alias( "monster" );
+  set_gender( "female" );
+  set_long( "Upon closer inspection you realize that this doppleganger is a "
+   "malicious fake newbie!  Don't attack it or you'll be sorry!\n" );
+  set_move_rate(10);
+  set_chat_rate(61);
+  set_chat_chance(5);
+  move_object(clone_object( ROSE ), THISO );
+  call_out( "dest_me", 1800 );
+}

@@ -18,6 +18,11 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -73,6 +78,30 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static persistentFields = ['shortDescription', 'longDescription'];
 
+    /**
+     * Live-query subscribable fields. Each descriptor's
+     * `dependsOnFields` defaults to `[descriptor.name]` (descriptor
+     * name = source field name), so the `FieldChangedEvent` fires
+     * from `setShortDescription` / `setLongDescription` trigger
+     * re-projection automatically. The `ShadowChangedEvent` entries
+     * cover future hood / disguise shadows that override visible
+     * appearance without firing a field change.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'shortDescription',
+        read: (stuff) =>
+          (stuff as unknown as Visible).getShortDescription(),
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+      {
+        name: 'longDescription',
+        read: (stuff) =>
+          (stuff as unknown as Visible).getLongDescription(),
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+    ];
+
     protected shortDescription: string = '';
     protected longDescription: string = '';
 
@@ -81,7 +110,12 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setShortDescription(value: string): void {
-      this.shortDescription = value;
+      this.shortDescription = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'shortDescription',
+        this.shortDescription,
+        value,
+      );
     }
 
     getLongDescription(): string {
@@ -89,7 +123,12 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setLongDescription(value: string): void {
-      this.longDescription = value;
+      this.longDescription = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'longDescription',
+        this.longDescription,
+        value,
+      );
     }
 
     /**

@@ -1,0 +1,192 @@
+//  throne_room.c
+inherit RoomPlusCode;
+#define LOGFILE "/zone/null/eternal/evil/LOG/dance.log"
+#define DAVELOG "/zone/null/eternal/evil/LOG/dave.log"
+#define CloneBank "/zone/present/xmen/temp/room/goldcross"
+
+object whodancing;
+int numtimes;
+void call_dave(string who);
+
+void extra_create(){
+    set( "short", "Dave's Throne Room");
+    set( "day_long",
+      "You have entered the throne room of Dave, the Dragon of Death.  You "+
+      "are in awe of the enormity of the room...sculpted pillars support a "+
+      "ceiling nearly one hundred feet high; the room itself is large enough "+
+      "to hold nearly ten thousand people.  At the south end of the room sits "+
+      "an enormous throne.  Atop the throne sits a colossally large golden "+
+      "statue of a dragon.\n\n"+
+      "    Rumor has it that Dave will occasionally respond to the dances of "+
+      "a mortal, rising to feast upon the soul of a mortal of their choosing.  "+
+      "You can \"dance\" for Dave if you wish, but beware!  The wrath of Dave "+
+      "is not easily satiated, nor does his favor come easily."
+    );
+    set( "exits", ([ "north": "/zone/null/eternal/room052" ]) );
+    set( "descs", ([
+	"throne":
+	"It's a golden throne, about as big as your average castle.",
+	"statue":
+	"It's a finely crafted golden statue.  Someday you wish you had a house "+
+	"half as large.  The Dragon depicted looks wise, yet terrifying."
+      ]) );
+    set( "day_light", WELL_LIT );
+    whodancing=THISO;
+    numtimes=4+random(4);
+    set( NoCombatP, 1 );
+}
+
+void extra_init(){
+    add_action("do_dance", "dance");
+}
+int do_dance(){
+    int str, intl, wil, con, dex, chr;
+    str=(int)THISP->query_base_stat("str");
+    intl=(int)THISP->query_base_stat("int");
+    wil=(int)THISP->query_base_stat("wil");
+    con=(int)THISP->query_base_stat("con");
+    dex=(int)THISP->query_base_stat("dex");
+    chr=(int)THISP->query_base_stat("chr");
+    if(str+intl+wil+con+dex+chr<120 || THISP->query_age()<43200 ||
+      (str<15 || intl<10 || wil<10 || con<10 || dex<10 || chr<25)){
+	write("You are not worthy enough to dance for Dave.\n");
+	say(PNAME+" does the disco duck.\n");
+	return 1;
+    }
+    if(whodancing==THISP){
+	write("You are already dancing, stupid.\n");
+	return 1;
+    }
+    if(whodancing!=THISO){
+	write(whodancing->query_name()+" is already dancing.  Please do "+
+	  "not disturb "+objective(whodancing)+".\n");
+	return 1;
+    }
+    whodancing=THISP;
+    write("You begin to dance a wild, exuberant dance.\n");
+    add_action("do_nothing"); add_xverb("");
+    say(PNAME+" begins to dance for Dave.\n");
+    call_out("stop_dance", 30);
+    return 1;
+}
+
+int do_nothing(string foo){
+    if(whodancing==THISP){
+	write("You can't do that while dancing.\n");
+	if(PRNAME!="jimbotomy") return 1;
+    }
+    return 0;
+}
+
+void stop_dance(){
+    int hp, fat, mana, i;
+    string boj, moo, bah;
+    int str, intl, wil, dex, con, chr;
+    mana=(int)whodancing->query_mana();
+    fat=(int)whodancing->query_fatigue();
+    hp=(int)whodancing->query_hp();
+    str=(int)whodancing->query_base_stat("str");
+    intl=(int)whodancing->query_base_stat("int");
+    wil=(int)whodancing->query_base_stat("wil");
+    dex=(int)whodancing->query_base_stat("dex");
+    con=(int)whodancing->query_base_stat("con");
+    chr=(int)whodancing->query_base_stat("chr");
+    whodancing->change_stat("str", str-4);
+    whodancing->change_stat("int", intl-4);
+    whodancing->change_stat("wil", wil-4);
+    whodancing->change_stat("dex", dex-4);
+    whodancing->change_stat("con", con-4);
+    whodancing->change_stat("chr", chr-4);
+    CloneBank->delete_clone( PRNAME );
+    /*
+	if(test_property( whodancing, "CloneStatsP"))
+	    remove_property(whodancing, "CloneStatsP");
+	if(test_property(whodancing, "CloneGuildP"))
+	    remove_property(whodancing, "CloneGuildP");
+	if(test_property(whodancing, "CloneProfsP"))
+	    remove_property(whodancing, "CloneProfsP");
+	if(test_property(whodancing, "CloneSkillsP"))
+	    remove_property(whodancing, "CloneSkillsP");
+    */
+    tell_object(whodancing, "You finish your dance.\n"+
+      "You fall to the ground, completely exhausted!\n");
+    whodancing->add_hp(1-hp);
+    whodancing->add_mana(1-mana);
+    whodancing->add_fatigue(1-fat);
+    i=1;
+    boj=read_file(LOGFILE, i);
+    while(boj){
+	sscanf(boj, "%s##%s##", moo, bah);
+	if(bah==whodancing->query_real_name()){
+	    write("The spirit of Dave appears before you!\n");
+	    write("Dave says: What, you again?  Go away.\n");
+	    write("The spirit of Dave disappears.\n");
+	    whodancing=THISO;
+	    return;
+	}
+	i+=1;
+	boj=read_file(LOGFILE, i);
+    }
+    move_object(clone_object("/zone/null/eternal/evil/get_name_ob"),
+      whodancing);
+    whodancing=THISO;
+}
+
+void extra_reset(){
+    string *names;
+    int *freq;
+    int i;
+    string beh;
+    string nom, junk;
+    int j, foo;
+    names = ({ });
+    freq = ({ });
+    i=1;
+    beh=read_file(LOGFILE, i);
+    if(!beh || beh=="") return;
+    while(beh){
+	foo=0;
+	sscanf(beh, "%s#%s", nom, junk);
+	if((j=searcha(names, nom))!=-1){
+	    freq[j]++;
+	    if(freq[j]>=numtimes){
+		call_dave(names[j]);
+		return;
+	    }
+	}
+	else { names += ({ nom }); freq += ({ 1 }); }
+	i++;
+	beh=read_file(LOGFILE, i);
+    }
+}
+
+void call_dave(string who){
+    object vic, dave;
+    vic=find_player(who);
+    if(vic) {
+	cp(LOGFILE, LOGFILE+time());
+	rm(LOGFILE);
+	if(vic->query_wizard()){
+	    tell_object(vic, "Dave tells you: You have been very bad.\n");
+	} else {
+	    dave=clone_object("/zone/null/eternal/evil/dave");
+	    dave->utterly_destroy(vic);
+	}
+    }
+}
+
+void attempt_combat(object a, object v)
+{
+    int dam;
+    tell_object(a, "The Spirit of Dave appears before you!\n");
+    tell_room(THISO, "The Spirit of Dave appears before "+
+      a->query_name()+"!\n", ({ a }) );
+    tell_room(THISO, "Spirit of Dave says, \"You DARE to desicrate my "+
+      "temple?!  You shall pay!\"\n");
+    dam=random(100)+100;
+    tell_object(a, "A ghostly flame pours out of the spirit's mouth, "+
+      "engulfing you!\n");
+    tell_room(THISO, "A ghostly flame pours out of the spirit's mouth, "+
+      "engulfing "+a->query_name()+"!\n", ({ a }) );
+    a->take_damage(dam, 0, "fire", THISO);
+}

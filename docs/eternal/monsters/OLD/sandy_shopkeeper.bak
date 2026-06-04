@@ -1,0 +1,21 @@
+/* Sandy the Shopkeeper */
+
+inherit MonsterCode;
+
+void extra_create()
+{
+    set_name("sandy");
+    add_alias("Sandy");
+    add_alias("shopkeeper");
+	set_short("Sandy, the customer service agent");
+    set_long("This is a short, dwarven woman in her younger middle ages.  She is\n" +
+      "wearing a red uniform with the words 'Everything Inc.' across the back,\n" +
+      "and a nametag on the front that has her name, 'Sandy', printed on it.\n" +
+      "She smiles at you and says 'Need help finding anything?'\n");
+    set_race("dwarf");
+    set_alignment(30);
+    set_type("blunt");
+    set_toughness( 100 );
+    set_max_hp(10000);
+    set_max_fatigue(20000);
+}

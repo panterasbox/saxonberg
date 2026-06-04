@@ -1,0 +1,48 @@
+/* map.c */
+
+inherit ObjectCode;
+
+extra_create()
+{
+    set_name("map of Eternal City");
+    set_alias("map");
+    set_short("a map of Eternal City");
+    set_value(0);
+    set_weight(0);
+    set_long(
+"            A MAP OF ETERNAL CITY (updated 040193 by Raistlin)\n"+
+"            ==================================================\n"+
+"\n"+
+" SH--O--O--O--O--O  SL      PCA           AAC: Aleron & Anthrax Clothiers\n"+
+"     |           |  |        |             AI: Anarchy Interdimensional\n"+
+"     O--BS   SS--O--O--O--O--O--O--O      ASS: Abdhoul's Slave Shoppe\n"+
+"     |           |        |        |       BG: Eight Ball Bar & Grill\n"+
+"     O           O    AI--O    EI--O       BS: Dr. Frankenstein's Body Shop\n"+"     |           |        |        |       EI: Everything Inc.\n"+
+"     O    AAC    O        O--@--@  O       FP: Fish Pond\n"+
+"     |     |     |        |     |  |      LIB: Eternal City Library\n"+
+"     O--O--O--O-[*]-FP-O--O BG--@  O       MR: MoeTown Road\n"+
+"     |  |     |  |     |        |  |      PCA: Paranoid Clothing & Apparel\n"+
+"    TA  |    LIB |     |        |  |       PO: Post Office\n"+
+"        O--TST   O     O VTY    @  O       RA: Ragnarok Altar\n"+
+"        |        |     |  |     |  |       SH: Sivar's Hall\n"+
+"        O--O--O--O     O--O--O--O--O       SL: Eternal Savings and Loan\n"+
+"        |        |     |        |          SS: ACME Self Storage\n"+
+"        O--TE    PO    O    ASS @          TA: Temple of the Ages\n"+
+"        |      [News]  |     |  |          TE: Temple of Eternity\n"+
+"        O        TW    O--@--@--@         TST: Ten Second Tailors\n"+
+"        |        |     |                   TW: Tower of Wizardry\n"+
+"        O--O--O--O--O--O--RA              VTY: Vilmeck's Training Yard\n"+
+"        |                                 [*]: The Heart of Eternal City\n"+
+"        MR                                [NEWS] Player bulletin board\n"+
+"                                          0: Road, @ Alley\n");
+    set_read(query_long());
+}
+
+drop()
+{
+   write("As you drop the map, it suddenly catches flame and is consumed.\n");
+   say("As " +PNAME+ " drops a map, it bursts into flames and is comsumed.\n");
+
+   destruct(THISO);
+   return 0;
+}

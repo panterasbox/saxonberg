@@ -96,7 +96,7 @@ export class CloneController extends CommandController<CloneModel> {
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
-    const name = DescribeApi.getDisplayName(cloned, '?');
+    const name = DescribeApi.getDisplayName(cloned);
 
     if (!MixinApi.isContainable(cloned)) {
       // Can't be placed at all. Surface but don't fail the clone —
@@ -124,7 +124,7 @@ export class CloneController extends CommandController<CloneModel> {
       // Layer 3 hit (hydration placed it); no move needed.
       const where = item.getContainer();
       const destName = where
-        ? DescribeApi.getDisplayName(where, 'somewhere')
+        ? DescribeApi.getDisplayName(where)
         : 'somewhere';
       this.tell(
         context,
@@ -147,7 +147,7 @@ export class CloneController extends CommandController<CloneModel> {
       );
       return;
     }
-    const destName = DescribeApi.getDisplayName(placement.dest, 'somewhere');
+    const destName = DescribeApi.getDisplayName(placement.dest);
     const overrideNote = movingFromHydration
       ? ` (overrode template's container)`
       : '';
@@ -183,7 +183,7 @@ export class CloneController extends CommandController<CloneModel> {
       }
       if (!MixinApi.isContainer(stuff)) {
         return {
-          error: `${DescribeApi.getDisplayName(stuff, 'that')} is not a container`,
+          error: `${DescribeApi.getDisplayName(stuff)} is not a container`,
         };
       }
       return { dest: stuff };

@@ -1,0 +1,24 @@
+
+inherit ArmorCode;
+
+
+void extra_create()
+{
+	set_name("boots");
+	add_alias("cheap boots");
+	set_short("a pair of cheap boots");
+	set_long("These are your very own FREE knee high boots.  They are made from " +
+	"the cheapest material around.  The cover your feet, as well as your calves.  " +
+	"What a bargain to get such protection for nothing.");
+	set_weight(50);
+	set_value(0);
+	add_area("left foot");
+	add_area("right foot");
+	add_area("left calf");
+	add_area("right calf");
+	set_ac(1);
+}
+
+wear_signal()
+{
+object me;

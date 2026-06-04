@@ -109,7 +109,7 @@ export class Interactive extends Idea {
 
   public toString(): string {
     const holderInfo = this.holder
-      ? ` holder=${DescribeApi.getDisplayName(this.holder, '?')}`
+      ? ` holder=${DescribeApi.getDisplayName(this.holder)}`
       : '';
     return `[Interactive socketId=${this.socketId} userId=${this.getUserId() ?? '(unsaved)'}${holderInfo}]`;
   }

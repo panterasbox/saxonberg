@@ -46,6 +46,24 @@ import { StuffApi } from '../../api/stuff';
 import type { Material } from './Material';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { EventApi } from '../../api/event';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { MaterialSummary } from '@saxonberg/types';
+
+/**
+ * Build the minimal Material wire summary — identity + display
+ * name only. Properties (density, hardness, etc.) ship when a
+ * consumer demands them.
+ */
+function summarizeMaterial(mat: Material): MaterialSummary {
+  return {
+    materialId: mat.stuffId,
+    templatePath: mat.getTemplatePath() ?? '',
+    name: mat.getName(),
+  };
+}
 
 export interface Tangible {
   /**
@@ -88,6 +106,57 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       '_materialPath',
       '_detailMaterialPaths',
       'mass',
+    ];
+
+    /**
+     * Live-query subscribable fields.
+     *
+     *   - `bulkMaterial` — flat. The bulk default Material as a
+     *     `MaterialSummary` wire shape, or `null` when no bulk
+     *     material is set. `dependsOnFields` defaults to
+     *     `['bulkMaterial']` (descriptor name = source field name).
+     *   - `mass` — flat. Quantity in kg as `{ value, unit: 'kg' }`.
+     *     `dependsOnFields` defaults to `['mass']`.
+     *   - `detailMaterial` — focused-detail only (no flat read).
+     *     Descriptor name (`detailMaterial`) does NOT match the
+     *     setter's discriminator (`detailMaterials`, plural), so we
+     *     declare `dependsOnFields` explicitly.
+     *
+     * Shadow lifecycle entries cover future material shadows that
+     * change the rendered value without firing a field change.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'bulkMaterial',
+        read: (stuff) => {
+          const mat = (stuff as unknown as Tangible).getMaterial();
+          return mat ? summarizeMaterial(mat) : null;
+        },
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+      {
+        name: 'mass',
+        read: (stuff) => {
+          const q = (stuff as unknown as Tangible).getMass();
+          return { value: q.rawValue(), unit: 'kg' as const };
+        },
+      },
+      {
+        name: 'detailMaterial',
+        // Focus-only contribution — no flat read. The substrate
+        // calls `perDetailRead` only in focus mode; flat
+        // projections skip descriptors without `read`.
+        //
+        // Explicit dependsOnFields because the descriptor name
+        // (`detailMaterial`) doesn't match the setter's field
+        // discriminator (`detailMaterials`).
+        perDetailRead: (stuff, detailKey) => {
+          const mat = (stuff as unknown as Tangible).getMaterial(detailKey);
+          return mat ? { material: summarizeMaterial(mat) } : null;
+        },
+        dependsOnFields: ['detailMaterials'],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
     ];
 
     /**
@@ -162,21 +231,67 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public setMaterial(value: Material | null, detailKey?: string): void {
+      const stuffId = (this as unknown as { stuffId: string }).stuffId;
       if (detailKey !== undefined) {
+        const oldPath = this._detailMaterialPaths[detailKey];
+        const newPath = value ? (value.getTemplatePath() ?? undefined) : undefined;
         if (value === null) {
           delete this._detailMaterialPaths[detailKey];
-        } else {
-          const path = value.getTemplatePath();
-          if (path) this._detailMaterialPaths[detailKey] = path;
+        } else if (newPath) {
+          this._detailMaterialPaths[detailKey] = newPath;
+        }
+        if (oldPath !== newPath) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'detailMaterials',
+              oldValue: oldPath ?? null,
+              newValue: newPath ?? null,
+            }),
+          );
         }
         return;
       }
       if (value === null) {
+        const hadBulk = this._materialPath !== null;
+        const hadOverrides = Object.keys(this._detailMaterialPaths).length > 0;
         this._materialPath = null;
         this._detailMaterialPaths = {};
+        if (hadBulk) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'bulkMaterial',
+              oldValue: undefined,
+              newValue: null,
+            }),
+          );
+        }
+        if (hadOverrides) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'detailMaterials',
+              oldValue: undefined,
+              newValue: undefined,
+            }),
+          );
+        }
         return;
       }
-      this._materialPath = value.getTemplatePath() ?? null;
+      const newPath = value.getTemplatePath() ?? null;
+      const oldPath = this._materialPath;
+      this._materialPath = newPath;
+      if (oldPath !== newPath) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: stuffId,
+            field: 'bulkMaterial',
+            oldValue: oldPath,
+            newValue: newPath,
+          }),
+        );
+      }
     }
 
     public getMass(): Quantity<'kg'> {
@@ -189,7 +304,21 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * authoring is the marshaller's job, not a runtime API concern.
      */
     public setMass(value: Quantity<'kg'>): void {
+      const old = this._mass;
       this.mass = value;
+      // The setter above validates type/range. Compare via Quantity
+      // equality (same raw value AND same unit) so a redundant write
+      // of the same mass doesn't fire.
+      if (!(old instanceof Quantity) || !old.equals(value)) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: (this as unknown as { stuffId: string }).stuffId,
+            field: 'mass',
+            oldValue: old,
+            newValue: value,
+          }),
+        );
+      }
     }
   };
 }

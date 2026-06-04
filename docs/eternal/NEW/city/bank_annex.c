@@ -1,0 +1,63 @@
+#include "/zone/null/eternal/eternal.h"
+
+#define ACCOUNT_OB "/obj/bank/account"
+#define CHEX OBJECTS + "chextra"
+object applicant;
+
+inherit RoomCode;
+
+void extra_create(){
+	set( "short" ,"Eternal Savings and Loan, Annex");
+	set( "day_long", 
+"This is the annex to Eternal Savings and Loan.  You can \"apply\" for a "+
+"Chextra(tm) cash card here.  To the west is the main part of the bank."
+	);
+	set( "day_light", 2);
+	set( "night_light", 2);
+	set( "exits", (["west": "bank"]));
+	applicant=THISO;
+}
+
+void extra_init(){
+	add_action("do_apply", "apply");
+}
+
+int do_apply(){
+	if(applicant!=THISO){
+	   write(applicant->query_name()+" is applying for a card now.  "+
+	     "Please wait a minute.\n");
+	   return 1;
+	}
+	if(present("chextra", THISP)){
+	   write("You already have a Chextra card!\n");
+	   return 1;
+ 	}
+	write("Wait just a minute while your application is reviewed.\n");
+	say(PNAME+" applies for a Chextra Card.\n");
+	applicant=THISP;
+	call_out("do_credit_check", 15);
+	return 1;
+}
+
+void do_credit_check(){
+	int bal;
+
+	if(!objectp(applicant)) {
+	  applicant = THISO;
+	  return;
+	}
+	bal=ACCOUNT_OB->query_balance(applicant->query_real_name());
+	if(bal<2500){
+	   tell_object(applicant, "Sorry, your application was rejected.\n"+
+	   "Try again when you have more money.\n");
+	   tell_room(THISO, applicant->query_name()+"'s application for a "+
+	      "Chextra Card is rejected.\n", ( { applicant } ) );
+	} else {
+	   tell_object(applicant, "Congratulations!  Your application was "+
+	      "approved.\nEnjoy your new Chextra Card.\n");
+	   tell_room(THISO, applicant->query_name()+"'s application for a "+
+	      "Chextra Card is approved.\n", ( { applicant } ) );
+	   move_object(clone_object(CHEX), applicant);
+	}
+	applicant=THISO;
+}

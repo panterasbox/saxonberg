@@ -1,0 +1,13 @@
+1##emote grabs a few chunks of chocolate out of a covered bin.
+1##emote tosses the chocolate chunks into a double boiler.
+1##emote turns the heat on under the double boiler.
+2##emote adds some evaporated milk and vanilla.
+3##emote stirs the chocolate mixture.
+3##emote whistles idly.
+3##emote stirs the chocolate mixture.
+3##emote snags a mug off the rack.
+1##emote pours the chocolate mixture into the mug.
+1##emote squirts some whip cream on top of the hot chocolate.
+2##emote shaves some chocolate onto the mug of cocoa.
+1##@give_drink
+3##END

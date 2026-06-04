@@ -1,0 +1,97 @@
+inherit MonsterCode;
+ 
+#include "path.h"
+inherit BobCode;
+ 
+// poet.mov       - coffee-buying neutral state
+// poet2.mov      - pete/poet interaction.  transition to
+//                    poem recital
+// <poemname>.mov - poem recital
+// poet3.mov      - pete/poet interaction, post-poem
+// poet4.mov      - getting rid of corpse sequence
+ 
+void extra_create()
+  {
+  set_name( "Joe" );
+  add_alias( "joe" );
+  add_alias( "poet" );
+  add_alias( "squizzo" );
+  add_alias( "joe squizzo" );
+  set_short( "Joe Squizzo, Poet Extraordinaire" );
+  set_long(
+     "This fellow seems to be your average college-aged random person, "
+     "and he seems to be spouting that new surreal random poetry.  Flee "
+     "whilst you can, for he _is_ randomness incarnate." );
+  set_race("human");
+  set_gender("male");
+  set_toughness( 1000 );
+  mp_setup( NPC "poet" );
+  set("sitting",0);
+  }
+ 
+query_ok_by_pete()
+  {
+  return( "hell yeah!" );
+  }
+ 
+sit_down()
+  {
+  set_short( "Joe Squizzo, Poet Extraordinaire[sitting]" );
+  say( "Joe takes a seat at a table over in the corner.\n" );
+  set("sitting",1);
+  return 0;
+  }
+ 
+stand_up()
+  {
+  set_short( "Joe Squizzo, Poet Extraordinaire" );
+  say( "Joe pulls himself to his feet.\n" );
+  set("sitting",0);
+  return 0;
+  }
+ 
+load_rack( string *tmp )
+  {
+  object rack;
+  if( objectp( rack = present( "mug rack", ENV(THISO)) ) )
+    rack -> create();
+  return 0;
+  }
+ 
+startpoem()
+  {
+  string *list;
+  list = grab_file( POETRY "poetry_list" );
+  mp_setup( POETRY + list[random( sizeof( list ) )] );
+  return 1;
+  }
+ 
+stop_poem()
+  {
+  mp_setup( NPC "poet3" );
+  return 1;
+  }
+ 
+end_poem()
+  {
+  object pete;
+  if( pete = present( "pete", ENV(THISO)) )
+    {
+    pete -> mp_setup( NPC "pete5" );
+    return 0;
+    }
+  mp_setup( NPC "poet" );
+  return 1;
+  }
+ 
+basic_mp()
+  {
+  mp_setup( NPC "poet" );
+  return 1;
+  }
+ 
+finish_corpse()
+  {
+  present( "pete", ENV(THISO) ) -> mp_setup( NPC "pete7" );
+  return 0;
+  }  

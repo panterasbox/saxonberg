@@ -101,7 +101,7 @@ export class GetController extends CommandController<GetModel> {
         continue;
       }
       this.pickUpOperand(target, context);
-      pickedNames.push(DescribeApi.formatName(target, 'something'));
+      pickedNames.push(DescribeApi.formatName(target));
     }
     if (pickedNames.length === 0) {
       MessageApi.scene(context.commandGiver)

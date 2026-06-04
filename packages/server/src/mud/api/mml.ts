@@ -26,6 +26,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
+import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 
@@ -124,7 +125,7 @@ export class Mml {
    * rendering, identity overlays) read the id directly.
    */
   static name(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'something');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
     );
@@ -140,7 +141,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static location(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'somewhere');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
     );
@@ -152,12 +153,30 @@ export class Mml {
   }
 
   /**
+   * Render an actionable exit reference inside
+   * `<exit dir="..." stuff-id="...">` tags. The client renderer
+   * (`packages/client/src/components/MmlRenderer.tsx`) turns these
+   * into clickable affordances that emit `go <dir>` on click.
+   *
+   * Distinct from `Mml.direction(d)` — that tag is a vocabulary
+   * word (e.g., "the wind blows from the <direction>north</direction>"),
+   * not an affordance. Use `Mml.exit` when the displayed direction
+   * names an actual exit the actor can traverse.
+   */
+  static exit(exit: Exit): Mml {
+    const dir = exit.getDirection();
+    return Mml.fromMarkup(
+      `<exit dir="${escapeText(dir)}" stuff-id="${escapeText(exit.stuffId)}">${escapeText(dir)}</exit>`
+    );
+  }
+
+  /**
    * Render a generic object's display name inside
    * `<object stuff-id="...">` tags. Same identity-tagging rationale
    * as `name`.
    */
   static object(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'something');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
     );
@@ -168,7 +187,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static item(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'an item');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
     );

@@ -1,0 +1,63 @@
+//  magic_shop.c
+// Magic shop.  Death 3/24/94
+// I shouldn't have to say this but don't fuck with this unless you have a
+// clue.  Mail me, I am usually on.
+
+
+inherit RoomCode;
+
+#define SHOPKEEPER  "/zone/null/eternal/monsters/spectre_shopkeeper.c"
+#define SIGN_FILE   "/zone/null/eternal/objects/magic_sign"
+#define MAGICDIR    "/zone/null/eternal/magic/"
+
+
+object shop;
+#include "/zone/null/eternal/objects/sanctuary.h"
+
+void extra_create()
+{
+    set( "short", "The Athenaeum Magica Surplus Sales" );
+    set( "day_long", 
+      "This dark and musty room is where the Athenaeum sells off the " +
+      "trinkets that the mages create.  The inventory varies wildly from " +
+      "time to time and transactions are strictly done on an as-is basis " +
+      "only." );
+    set( "day_light", PART_LIT );
+
+    // set( "exits", ([ "up": "magic1" ]) );
+
+    shop = clone_object( ShopCode );
+    add_property(shop, "valid_properties");
+    set_property_value(shop, "valid_properties", ({ 
+        RingP, AmuletP, ScrollP, MagicP, PotionP, WandP
+      }));
+    move_object(shop, THISO);
+    set( "reset_data", ([ "shoppie": SHOPKEEPER,
+                          "sign"   : SIGN_FILE ]) );
+}
+
+
+extra_reset( int arg )
+{
+    catch( shop->add_item( MAGICDIR + "red_potion", 1+arg,15));
+    catch( shop->add_item( MAGICDIR + "gold_ring", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "copper_ring", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "jade_ring", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "silver_ring", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "recall_scroll", 1+arg,6));
+    catch( shop->add_item( MAGICDIR + "small_bottle_minor", 1+arg,15));
+    catch( shop->add_item( MAGICDIR + "red_amulet", 1+arg,30));
+    catch( shop->add_item( MAGICDIR + "black_amulet", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "glass_amulet", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "small_bag", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "blue_amulet", 1+arg,2));
+    catch( shop->add_item( MAGICDIR + "iron_ring", 1+arg,3));
+    catch( shop->add_item( MAGICDIR + "white_potion", 1+arg,5));
+    catch( shop->add_item( MAGICDIR + "blue_potion", 1+arg,5));
+    catch( shop->add_item( MAGICDIR + "orange_potion", 1+arg,5));
+    catch( shop->add_item( MAGICDIR + "violet_potion", 1+arg,10));
+    catch( shop->add_item( MAGICDIR + "green_potion", 1+arg,10));
+    catch( shop->add_item( MAGICDIR + "thick_potion", 1+arg,10));
+    catch( shop->add_item( MAGICDIR + "magenta_potion", 1+arg,10));
+    catch( shop->add_item( MAGICDIR + "invis_potion", 1+arg,4));
+}

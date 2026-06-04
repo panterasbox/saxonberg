@@ -173,17 +173,77 @@ promoted to formal requirements.
   message. `outcome.status` + typed `notes`. Universal envelope
   shape for dispatch responses, witnesses, activity pushes, prompts.
   Substrate consumed by globbable, look fallback, MQL disambiguation,
-  prompt stack, activity completion. Sibling to state-sync below.
-- [docs/slates/state-sync-slate.md](./slates/state-sync-slate.md) —
-  parallel wire channel for world state deltas (containment,
-  property, slot, lifecycle). Sourced from `EventApi`, filtered
-  per-client by perception scope, delivered as `state-delta` frames.
-  Deliberately separate from the response envelope so self-actions
-  and witnessed actions share one state-delivery code path.
-  Implementation deferred to its own working session.
+  prompt stack, activity completion. Sibling to the live-state
+  subscription substrate below.
+- [docs/slates/mql-subscription-slate.md](./slates/mql-subscription-slate.md)
+  — client-driven live-state substrate. Client declares interest
+  via MQL queries + field-set declarations; server resolves once,
+  registers EventApi listeners for changes that could affect the
+  result, ships diffs as subscription deltas. Five-message wire
+  schema (subscribe / unsubscribe / update / result / delta /
+  error). Pre-canned subscription kinds (`inventory`,
+  `things-here`, `slots`, `focus-detail`, `atmosphere-here`,
+  `vitals`, ...) covering the cockpit's widget catalogue.
+  Supersedes the prior fixed-delta-taxonomy "state-sync" model —
+  one mechanism, linear growth, MQL becomes the lingua franca
+  from player to widget to author. Read-only in v1; mutation
+  stays on the command bus.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
+
+### Client
+
+- [docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md)
+  — affordance-first cockpit on the existing command-bus + MML wire.
+  Command-bus primacy (every interaction emits a visible command,
+  including the modal); click model (hover preview / click send /
+  shift-click edit); server-driven modes (world / study / classroom
+  / tutor) with admin `mode` override; layout sketches; panel
+  inventory; content surface payload union (video / quiz /
+  live-stream / classroom) with v1 = video + transcript;
+  MML semantic-tag taxonomy and renderer contract;
+  MQL-subscription consumer pattern; character creation as guided
+  command-emitting affordances + diegetic refinement; prompt
+  format; envelope rendering; mobile flagged out-of-scope but
+  architecturally accommodated. Decomposes into per-track
+  requirements docs at build time. Sister to
+  [mql-subscription-slate](./slates/mql-subscription-slate.md) on
+  the wire side.
+
+- [docs/slates/prompt-stack-slate.md](./slates/prompt-stack-slate.md)
+  — interactive prompt stack substrate (server `PromptApi` + client
+  stack manager). Typed prompt kinds (`base` / `choice` / `confirm`
+  / `text` / `mql-object`); stack semantics (push / pop / depth
+  badge); single-input mode-switching (command vs response);
+  inline-in-terminal AND prompt-component dual rendering; FIFO
+  snapshot-on-send pairing each echo with the prompt that was
+  active when issued; load-bearing first use case is MQL multi-
+  match disambiguation. Wire shape (`PromptEnvelope`) already in
+  `@saxonberg/types`; prompt-content Note kinds + server `PromptApi`
+  land per the slate's build order. Supersedes the cockpit slate's
+  brief "Interactive prompt stack (Polish A)" section.
+
+- [docs/slates/inspection-pane-slate.md](./slates/inspection-pane-slate.md)
+  — the persistent right-column pane that displays what the player
+  is currently focused on. Header/body decoupling (focus changes
+  update the header live; only an explicit `look` repopulates the
+  body), refresh button, focus breadcrumbs, future tabs for MQL
+  query results and admin views, `look <thing> --peek` flag for
+  inspect-without-commit, expandable admin metadata section. New
+  `system.inspection` topic carries the structured payload
+  alongside the existing prose emit. Supersedes the cockpit slate's
+  Room-state / Focus widget entries — they fold into this one pane.
+
+- [docs/slates/console-filtering-slate.md](./slates/console-filtering-slate.md)
+  — sister surface to the inspection pane: client-side toolkit for
+  managing the terminal scroll. Topic toggles, search,
+  sender-scoped filtering, family mute/collapse, timestamps,
+  compact mode, server-side `prose.verbose = brief | full` setting
+  + `look --brief` flag. Principle: server always emits, client
+  decides what to show — filtering is reversible without server
+  round-trips. New `console.*` settings keyspace under the existing
+  `EnvironmentMixin`.
 
 ---
 
@@ -358,16 +418,27 @@ landing first.
 
 ## Client UX
 
-- **Near-term polish** — scroll-to-bottom button, message
-  filtering, timestamps, copy / search.
-- **Prompt-mode UI** — paired with Framework 11.
-- **Markup-tag rendering** — paired with markup language
-  extensions.
-- **Long-term layout** — split-pane (output + sidebar), tabs,
-  mini-map, theming, accessibility, mobile-responsive.
-- **Visual map generator** — 3D map from spatial subsystem
-  (cf. [design-philosophy.md](./design-philosophy.md) — text
-  prose for normal play, optional visualization in client).
+Canonical client design surface is the cockpit slate:
+[docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md).
+It covers the v1 cockpit (layout, click model, modes, panel
+inventory, MML semantic tags, MQL-subscription consumption,
+content surface, prompt line, envelope rendering, character
+creation) and names what's deferred. Per-track requirements docs
+decompose from the slate at build time.
+
+Long-term opportunities explicitly out of v1 cockpit scope (the
+slate flags them as separate projects):
+
+- **Visual map generator** — 3D map rendered from the spatial
+  subsystem. Own project, own slate; cockpit reserves the layout
+  slot but does not build it.
+- **AI-generated location illustrations** — image-gen integration
+  on `look`, cached per-location-state. Own project.
+- **Dedicated content CMS** — content authors use the player
+  client + in-game shell until shell strain justifies it. Own
+  project when the time comes.
+- **Mobile cockpit** — different layout (stream + button bar), same
+  wire model. Own slate when prioritized.
 
 ---
 

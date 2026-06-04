@@ -239,7 +239,7 @@ export class Avatar extends AvatarBase {
       this.teleport(startingLocation, { silent: true });
     }
     console.info(
-      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation, 'somewhere')}`
+      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`
     );
 
     this.startAutoSave();

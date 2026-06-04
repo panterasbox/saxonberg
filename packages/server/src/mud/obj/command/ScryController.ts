@@ -52,11 +52,11 @@ export class ScryController extends CommandController<ScryModel> {
     if (!veto.ok) {
       return this.fail(
         context,
-        `the ${DescribeApi.getDisplayName(instrument as unknown as Stuff, 'instrument')} won't scry that: ${veto.reason}`,
+        `the ${DescribeApi.getDisplayName(instrument as unknown as Stuff)} won't scry that: ${veto.reason}`,
       );
     }
 
-    const name = DescribeApi.getDisplayName(tgt, '?');
+    const name = DescribeApi.getDisplayName(tgt);
     const lines = [`\n${name}`];
     if (MixinApi.isVisible(tgt)) {
       lines.push('', tgt.getLong());
@@ -65,7 +65,7 @@ export class ScryController extends CommandController<ScryModel> {
     }
     const env = MixinApi.isContainable(tgt) ? tgt.getContainer() : null;
     if (env) {
-      lines.push('', `(in ${DescribeApi.getDisplayName(env, '?')})`);
+      lines.push('', `(in ${DescribeApi.getDisplayName(env)})`);
     }
     this.tell(context, lines.join('\n') + '\n');
     return;

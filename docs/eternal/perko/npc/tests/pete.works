@@ -1,0 +1,302 @@
+inherit MonsterCode;
+inherit SpecialAttackCode;
+ 
+#include "path.h"
+#include BobCode
+ 
+// pete.mov    - standard shopkeeping
+// <drink>.mov - drink preperation
+// pete2.mov   - banter with poet before poem reading
+// pete3.mov   - look around for poet
+// pete4.mov   - listen to poetry
+// pete5.mov   - post-poem poet banter
+ 
+void extra_create()
+  {
+  set_name( "Pete" );
+  add_alias( "pete" );
+  add_alias( "perko" );
+  add_alias( "24601" );
+  add_alias( "perko pete" );
+  set_short( "Perko Pete" );
+  set_long(
+    "The moment you look at this fellow, you say to yourself, "
+    "\"Wow!  This man, he KNOWS coffee!\" for the art of "
+    "coffeemaking hangs like an aura of power around him.  But "
+    "then, that is to be expected; trained by the reclusive "
+    "Cashiid al-Suun monks of Persia, the long years of deep "
+    "study, the dark rituals, the forbidden knowledge...  Yes, "
+    "Pete is one with The Coffee, but he has paid for that kinship "
+    "with a price too terrible for any ordinairy mortal man..." );
+  set_race( "human" );
+  set_gender( "male" );
+  set_toughness( 1 );
+  mp_setup( NPC "pete" );
+  set( "customer", 0 );
+  set( "last_mp", NPC "pete" );
+  add_special_attack( "kick_ass_attack", THISO, 99 );
+  set( "stopper", 0 );
+  }
+ 
+void extra_init()
+  {
+  add_action( "buy_item", "buy" );
+  add_action( "buy_item", "order" );
+  add_action( "buy_item", "purchase" );
+  add_action( "block_west", "west" );
+  }
+ 
+kick_ass_attack( object victim, object attacker )
+  {
+  if( query("stopper") )
+    {
+    command( "say Don't EVEN try to gang up on me!", attacker );
+    tell_room( ENV(THISP), strformat( "Pete pulls the trigger "
+      "on his massive shotgun!\n"
+      "BBB  L    AA  M   M  !\n"
+      "B  B L   A  A MM MM  !\n"
+      "BBB  L   AAAA M M M  !\n"
+      "B  B L   A  A M   M\n"
+      "BBB  LLL A  A M   M  !" ) );  
+    THISP->DeathSequence( attacker, "trying to gang up on Perko Pete" );
+    write_file( NPC "died", victim->query_real_name() + "\n" );
+    command( "say Now where were we?  Ah yes..", attacker );
+    return 1;
+    }
+  set( "customer", victim );
+  tell_room( ENV( THISO ), strformat( "Pete suddenly "
+    "whips out the HUGEST BADASS MOTHER-FUCKING SHOTGUN "
+    "YOU'VE EVER SEEN IN YOUR ENTIRE LIFE and shoves it "
+    "right against " + victim -> query_name() + "'s temple!\n"
+    "All action is frozen." ), ({ victim }) );
+  tell_object( victim, strformat( "Pete suddenly whips "
+    "out the HUGEST BADASS MOTHER-FUCKING SHOTGUN YOU'VE "
+    "EVER SEEN IN YOUR ENTIRE LIFE and shoves it right "
+    "against your temple!!\nYou stop attacking Pete.\n"
+    "You really want to urinate." ) );
+  THISO -> full_clear_attack();
+  victim -> remove_target( THISO );
+  set( "stopper", clone_object( NPC "stopper" ) );
+  move_object( query("stopper"), victim );
+  command( "say Do not move.  Do not even type anything or you "
+    "will die.  You have three warnings in case you were doing "
+    "something stupid like running a script.  That was number 1.",
+    THISO );
+  tell_object( victim, strformat( "Pete keeps the shotgun "
+    "pressed firmly against your head." ) );
+  write_file( NPC "tried", victim->query_real_name() + "\n" );
+  halt_mp(0);
+  return 1;
+  }
+ 
+block_west()
+  {
+  string formality;
+  if( THISP -> query_ok_by_pete() == "hell yeah!"
+    || PRNAME == "isabeau" || PRNAME == "walker" )
+    return 0;
+  switch( THISP->query_gender() )
+    {
+    case("male") :
+      formality = "sir, ";
+      break;
+    case("female") :
+      formality = "ma'am, ";
+      break;
+    default :
+      formality = "";
+      break;
+    }
+  tell_room( ENV(THISP), strformat( "Pete blocks " + PNAME +
+    " as " + subjective(THISP) + " attempts to enter the "
+    "storage room." ), ({THISP}) );
+  write( "Pete blocks you.\n" );
+  command( "say I'm sorry, " + formality + "but that area is "
+    "restricted to sales associates only.", THISO );
+  return 1;
+  }
+ 
+buy_item( string str )
+  {
+  string drinkprog;
+  int cost;
+  if( query( "customer" ) && query( "customer" ) != THISP )
+    {
+    write( "Pete seems to be busy at the moment.\n" );
+    return 1;
+    }
+  switch( str )
+    {
+    case "hot chocolate" :
+    case "chocolate" :
+    case "hot cocoa" :
+    case "cocoa" :
+      drinkprog = "cocoa";
+      cost = 10;
+      break;
+    case "hot tea" :
+    case "tea" :
+    case "earl gray" :
+    case "earl grey" :
+      drinkprog = "tea";
+      cost = 15;
+      break;
+    case "joe" :
+    case "java" :
+    case "coffee" :
+      drinkprog = "coffee";
+      cost = 15;
+      break;
+    case "espresso" :
+      drinkprog = "espresso";
+      cost = 25;
+      break;
+    case "latte" :
+    case "cafe latte" :
+      drinkprog = "latte";
+      cost = 35;
+      break;
+    default :
+      drinkprog = "nodrink";
+      cost = 0;
+      break;
+    }
+  command( "say Hey Pete!  Gimme some " + str + "!", THISP );
+  if( query("customer") == THISP )
+    {
+    command( "say Whoa.. hold your horses!  One drink at "
+      "a time!", THISO );
+    return 1;
+    }
+  if( THISP->query_money() < cost )
+    {
+    command( "say This isn't a charity organization..", THISO );
+    command( "say You'll need " + cost + " coins to buy " 
+      + drinkprog + ".", THISO );
+    return 1;
+    }
+  set( "customer", THISP );
+  command( "give " + cost + " coins to 24601", THISP );
+  mp_setup( COFFEE + drinkprog );
+  return 1;
+  }
+ 
+poemcheck( string *tmp )
+  {
+  object poet;
+  if( random(10) == 3 )
+    {
+    if( poet = present( "poet", ENV(THISO)) )
+      {
+      command( "say Hey Joe!", THISO );
+      set( "customer", poet );
+      poet -> mp_setup( NPC "poet2" );
+      mp_setup( NPC "pete2" );
+      set( "last_mp", NPC "pete4" );
+      return 1;
+      }
+    mp_setup( NPC "pete3" );
+    return 1;
+    }
+  return 0;
+  }
+  
+poetcheck()
+  {
+  object poet;
+  if( poet = present("poet", ENV(THISO)) )
+    {
+    set( "customer", poet );
+    command( "say There you are!", THISO );
+    mp_setup( NPC "pete2" );
+    poet -> mp_setup( NPC "poet2" );
+    set( "last_mp", NPC "pete4" );
+    return 1;
+    }
+  return 0;
+  }
+ 
+load_rack()
+  {
+  object rack;
+  if( objectp( rack = present( "mug rack", ENV(THISO)) ) )
+    rack -> create();
+  return 0;
+  }
+ 
+startlisten()
+  {
+  set( "customer", 0 );
+  mp_setup( NPC "pete4" );
+  return 1;
+  }
+ 
+basic_mp()
+  {
+  set( "customer", 0 );
+  mp_setup( NPC "pete" );
+  set( "last_mp", NPC "pete" );
+  return 1;
+  }
+ 
+clone_espresso()
+  {
+  move_object( clone_object( COFFEE + "espresso" ), THISO );
+  return 0;
+  }
+ 
+query_ok_by_pete()
+  {
+  return( "hell yeah!" );
+  }
+ 
+give_drink()
+  {
+  object drink;
+  string blah, what;
+  sscanf( query_mp(), "%s/coffee/%s", blah, what );
+  drink = clone_object( COFFEE + what );
+  move_object( drink, THISO );  
+  command( "give " + what + " to " + 
+    query( "customer" ) -> query_real_name(), THISO );
+  set( "customer", 0 );
+  mp_setup( query("last_mp") );
+  return 0;
+  }
+ 
+corpse_thing()
+  {
+  object poet;
+  poet = present( "poet", ENV(THISO) );
+//  if( !poet = present( "poet", ENV(THISO) ) )
+//    {
+//    command( "go poet isn't present in the shop!", THISO );
+//    if( !poet = present( "poet", STAGE ) )
+//      {
+//      command( "go poet isn't on stage either!", THISO );
+//      destruct( NPC "poet#*" );
+//      poet = clone_object( NPC "poet" );
+//      move_object( poet, ENV(THISO) );
+//      }
+//    else
+//      command( "south", poet );
+//    }
+  poet -> mp_setup( NPC "poet4" );
+  return 0;
+  }
+ 
+race_thingy()
+  { 
+  command( "say I've worked too hard to have some two-bit "
+    + lower_case( query("customer")->query_race() ) + 
+    " fucking things up!", THISO );
+  return 0;
+  }  
+ 
+finish_sternness()
+  {
+  query("stopper")->unleash();
+  command( "say Ok now scat!  Type either \"quit\" or \"east\".",
+    THISO );
+  return 0;
+  }

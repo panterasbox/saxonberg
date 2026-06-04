@@ -43,7 +43,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
       return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      const detail = `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff, 'that')}`;
+      const detail = `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff)}`;
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.fromMarkup(detail))
@@ -57,7 +57,7 @@ export class AnalyzeChemistryController extends CommandController<AnalyzeChemist
     }
     const material = MaterialApi.materialOf(target.stuff as Stuff);
     if (!material) {
-      const detail = `there's no material data for ${DescribeApi.getDisplayName(target.stuff, 'that')}`;
+      const detail = `there's no material data for ${DescribeApi.getDisplayName(target.stuff)}`;
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.fromMarkup(detail))

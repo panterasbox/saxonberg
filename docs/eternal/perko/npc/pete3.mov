@@ -1,0 +1,11 @@
+1##say Hey Joe!
+3##@poetcheck
+1##say Where'd Joe go?
+4##@poetcheck
+1##say Geez, just when you think you know a guy..
+3##@poetcheck
+1##emote throws up his arms in disgust.
+2##@poetcheck
+1##say Forget it.
+3##@basic_mp
+2##END

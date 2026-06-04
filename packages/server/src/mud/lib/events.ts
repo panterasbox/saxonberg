@@ -37,6 +37,9 @@ import { HotReloadApi } from '../api/hot-reload';
 export const Events = {
   StuffCreated: 'stuff.created',
   StuffDestructed: 'stuff.destructed',
+  StuffFieldChanged: 'stuff.fieldChanged',
+  StuffPropertyChanged: 'stuff.propertyChanged',
+  StuffShadowChanged: 'stuff.shadowChanged',
   ConnectionAttached: 'connection.attached',
   PlayerLoggedIn: 'player.loggedIn',
   PlayerLoggedOut: 'player.loggedOut',
@@ -78,6 +81,23 @@ export interface ReloadEvent {
 export interface EventPayloads {
   [Events.StuffCreated]: { stuffId: string; templatePath?: string };
   [Events.StuffDestructed]: { stuffId: string };
+  [Events.StuffFieldChanged]: {
+    target: string;
+    field: string;
+    oldValue: unknown;
+    newValue: unknown;
+  };
+  [Events.StuffPropertyChanged]: {
+    target: string;
+    property: string;
+    oldValue: unknown;
+    newValue: unknown;
+  };
+  [Events.StuffShadowChanged]: {
+    target: string;
+    shadow: string;
+    cause: 'attach' | 'detach' | 'mutate';
+  };
   [Events.ConnectionAttached]: { interactiveId: string; holderId?: string };
   [Events.PlayerLoggedIn]: { playerId: string; userId: string };
   [Events.PlayerLoggedOut]: { playerId: string };
@@ -111,6 +131,9 @@ function getPolicies(): Record<EventName, PropAccessCheck<PropValue>> {
   _policies = {
     [Events.StuffCreated]: emittableBy(StuffApi),
     [Events.StuffDestructed]: emittableBy(StuffApi),
+    [Events.StuffFieldChanged]: emittableBy(),
+    [Events.StuffPropertyChanged]: emittableBy(),
+    [Events.StuffShadowChanged]: emittableBy(),
     [Events.ConnectionAttached]: emittableBy(),
     [Events.PlayerLoggedIn]: emittableBy(),
     [Events.PlayerLoggedOut]: emittableBy(),

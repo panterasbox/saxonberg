@@ -1333,7 +1333,7 @@ function matchesFromStuff(items: ReadonlyArray<Stuff>): MqlMatch[] {
 }
 
 function nameOf(stuff: Stuff): string {
-  return DescribeApi.getDisplayName(stuff, '');
+  return DescribeApi.getDisplayName(stuff);
 }
 
 function keywordsOf(stuff: Stuff): string[] {

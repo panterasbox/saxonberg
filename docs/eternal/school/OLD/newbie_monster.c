@@ -1,0 +1,157 @@
+inherit MonsterCode;
+inherit SpecialAttackCode;
+#include "comm.h"
+
+void extra_create()
+{
+    set_name("Dead Meat");
+    set_short("Dead Meat, the newbie monster");
+    add_alias("tester");
+    add_alias("dead meat");
+    add_alias("troll");
+    add_alias("Troll");
+    add_alias("meat");
+    set_long(
+      "This is perhaps the scrawniest troll you've ever seen.  In all "
+      "the fairy tales you can remember, trolls have been portrayed "
+      "as huge, beastly, fearsome monsters that would readily and "
+      "lustily tear you limb from limb.  This troll seems to just "
+      "barely be able to keep himself standing.  His large, bony knees "
+      "knock audibly at the sight of your (relatively) bulging muscles.  "
+      "Luckily for Deat Meat, there are no windows in the gym, lest he "
+      "be blown away by a "+ClockObject->query("season")+" breeze."
+    );
+    set_race("troll");
+    set_max_damage(4);
+    set_natural_ac(0);
+    set_alignment("neutral");
+    set_gender("male");
+    set_stat("str", 7);
+    set_stat("con", 4);
+    set_stat("dex", 2);
+    set_stat("wil", 1);
+    set_stat("int", 9);
+    set_stat("chr", 1);
+    add_special_attack("compliment",THISO,50);
+}
+
+void extra_init()
+{
+    if(THISP->query("gradiated"))
+	call_out("do_greet",random(10),THISP);
+    else
+	call_out("instruct_1",random(10),THISP);
+}
+
+status compliment(object victim, object attacker)
+{
+    string name, mess;
+    name=victim->query_name();
+    switch(random(3)+1)
+    {
+    case 1 :
+	mess="Ooh!  Good form, "+name+"!  You really got me there!";
+	break;
+    case 2 :
+	mess="Yowch!  That one hurt!  Good form, "+name+"!";
+	break;
+    case 3 :
+	mess="Eeks!  You learn fast!  I'm bleeding all over!  Way "
+	"to go, "+name+"!";
+	break;
+    }
+Say(THISO,mess);
+    return 0;
+}
+
+status instruct_1(object who)
+{
+    string mess;
+    mess="Hey there, "+PNAME+"!  What's up?  Well, if you're ready, "
+    "now is a good time to learn to kill me!  Killing monsters is a "
+    "normal part of mud life, and I'm glad to let you do it.";
+    if(present(who,ENV(THISO))&&!who->in_combat())
+Say(THISO,mess);
+    call_out("instruct_2",random(15),who);
+    return 1;
+}
+
+status instruct_2(object who)
+{
+    string mess;
+    mess="Make sure you use the 'equip' command so that you're armed!"
+    "  Oh, and you can type 'set hpw on' to see your hit points go "
+    "down as I hit you...  Though, I probably won't hit ya "
+    "that much, cuz I'm pretty weak.";
+    if(present(who,ENV(THISO))&&!who->in_combat())
+Say(THISO,mess);
+    call_out("instruct_3",random(10),who);
+    return 1;
+}
+status instruct_3(object who)
+{
+    object *inv;
+    string mess;
+    mess="So I spose that's about it...  Oh, well, when you're all done killing "
+    "me, type 'rest' to regain your hit points.  Oh, and in the "
+    "mud, watch out for player killers!  They like to get "
+    "newbies like you.  So look out.  But if you do get killed "
+    "(it does happen sometimes) you can just type 'frankenstein' "
+    "to get to Dr. Frank's, and he'll bring ya back to life."
+    "  So just type 'kill monster' when you're ready!";
+    if(present(who,ENV(THISO))&&!who->in_combat())
+Say(THISO,mess);
+    inv=deep_inventory(who);
+    inv=filter_array(inv,"wepCheck");
+    if(!sizeof(inv))
+	call_out("give_dagger",random(3),who);  
+    return 1;
+}
+
+status do_greet(object who)
+{
+    string mess;
+    mess="Hey, "+who->query_name()+"!  Nice to see ya again!  What's up?  "
+    "Come back for a refresher course?";
+Say(THISO,mess);
+    return 1;
+}
+
+DeathSequence(killer, cause)
+{
+    if( killer )
+	killer->kill_signal( THISO, cause );
+    ready_death_items( );
+    query_deathObj()->Die(THISO, killer, cause);
+    if (killer)
+	killer->remove_target(THISO);
+    qd_follow();
+    if(killer)
+	killer->set("gradiated",1); 
+    if(killer)
+	ENV(THISO)->dest_warn(killer);
+    else ENV(THISO)->dest_warn(); 
+    destruct(THISO);
+    return(0);
+} 
+
+int give_dagger(object who)
+{
+    object foo;
+    string mess;
+    foo=clone_object("/obj/weapon/weapons/special/v_dagger");
+    mess="Oh, hey!  You're gonna need a weapon to kill me with!  "
+    "Here, take this.  It's not much, but then, neither am I!  Ha!";
+    if(!present(who))
+	return 1;
+Say(THISO,mess);
+    tell_room(ENV(THISO),"Dead Meat tosses "+who->query_name()+" a dagger.\n",({who}));
+    tell_object(who,"Dead Meat tosses you a dagger.\n");
+    move_object(foo,who);
+    return 1;
+}
+
+object wepCheck(object item)
+{
+    if(item->query(WeaponP))return item;
+}

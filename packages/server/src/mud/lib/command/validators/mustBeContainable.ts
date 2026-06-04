@@ -27,7 +27,7 @@ const validator: FieldValidator = (value, field, _context) => {
       // is invoking it (drop / get / give / future). Controllers
       // can synthesize verb-specific copy if they want; the field-
       // level error stays neutral.
-      return `${DescribeApi.getDisplayName(stuff, 'that')} can't be carried`;
+      return `${DescribeApi.getDisplayName(stuff)} can't be carried`;
     }
   }
   return undefined;

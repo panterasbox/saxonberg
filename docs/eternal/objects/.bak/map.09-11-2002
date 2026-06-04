@@ -1,0 +1,31 @@
+/* map.c */
+/* Last update: 5/23/95 by Anthrax */
+#include "/zone/null/eternal/eternal.h"
+
+inherit ObjectCode;
+#if 0
+#define MAP "/zone/null/eternal/objects/map.txt"
+#else
+#define MAP "/doc/mortal/topics/map"
+#endif
+
+extra_create()
+  {
+  seteuid(getuid());
+  set( "id", ({ "map", "map of Eternal City" }) );
+  set( "short", "a map of Eternal City" );
+  set( "value", 0 );
+  set( "weight", 1 );
+    set( "read", long() );
+  }
+
+long() { return read_file(MAP); }
+drop()
+{
+    if( this_verb()=="give" || this_verb()=="put" ) return 0;
+   write("As you drop the map, it suddenly catches flame and is consumed.\n");
+   say("As " +PNAME+ " drops a map, it bursts into flames and is consumed.\n");
+
+   destruct(THISO);
+   return 0;
+}

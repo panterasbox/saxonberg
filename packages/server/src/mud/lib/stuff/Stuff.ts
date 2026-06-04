@@ -38,6 +38,9 @@ import { StuffApi } from '../../api/stuff';
 import { ModuleApi } from '../../api/module';
 import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
+import { DescribeApi } from '../../api/describe';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -77,6 +80,41 @@ const FromSpatialZone = SecurityPolicies.FromModule(
  * Base class for all game objects.
  */
 export abstract class Stuff {
+  /**
+   * Universal live-query subscribable fields — fields every Stuff
+   * exposes regardless of mixin composition. Currently just
+   * `displayName`, a derived render that pulls from Named's `name`
+   * or Visible's `shortDescription` (or falls through to
+   * `DescribeApi`'s baked-in `'something'`).
+   *
+   * Declared here rather than in a substrate-private synthetic
+   * table because every Stuff genuinely owns the concept — there is
+   * no "what if this Stuff has no displayable identity?" case. The
+   * descriptor uses `dependsOnFields` to declare the leaf source
+   * fields it depends on (`name`, `shortDescription`); the substrate
+   * installs precise `(FieldChangedEvent, 'field', dep)` index
+   * entries automatically. Shadow lifecycle support rides on
+   * `ShadowChangedEvent` in `changes` (declared-but-unfired until
+   * the shadow subsystem wires it).
+   *
+   * Mixin layers above Stuff add their own `subscribableFields` for
+   * mixin-owned state; the substrate's prototype-chain walk
+   * `hasOwnProperty`-checks at every level and unions the
+   * descriptors.
+   *
+   * Future universal renders (`pronoun`, `articleName`, etc.) land
+   * here too. Mixin-gated renders go on the mixin that owns the
+   * gate.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'displayName',
+      read: (stuff, viewer) => DescribeApi.getDisplayName(stuff, viewer),
+      dependsOnFields: ['name', 'shortDescription'],
+      changes: [{ on: ShadowChangedEvent, by: 'target' }],
+    },
+  ];
+
   /**
    * Runtime ID for this object (generated using nanoid).
    * This is NOT the MongoDB _id - it's a runtime identifier.

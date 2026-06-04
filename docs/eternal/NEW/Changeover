@@ -1,0 +1,8 @@
+//  Note in this file things that must be done when the new code is
+//  to be implimented.
+//  Please place your initial at the beginning of each line
+//  you write, so that we can come back to the person who noted it,
+//  if need be, for explinations.  :)
+
+T - Change the HOME define line in /zone/null/eternal/city/room.c
+T - Redo the A and A Clothiers.

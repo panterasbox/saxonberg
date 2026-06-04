@@ -146,7 +146,7 @@ export class GrammarApi {
    * display name. Vowel-onset heuristic; not phonetic.
    */
   static article(stuff: Stuff): string {
-    const display = DescribeApi.getDisplayName(stuff, '').trim();
+    const display = DescribeApi.getDisplayName(stuff).trim();
     if (!display) return 'a';
     const first = display.charAt(0).toLowerCase();
     return VOWELS.has(first) ? 'an' : 'a';

@@ -45,6 +45,10 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /** Public shape added by GlobbableMixin. */
 export interface Globbable {
@@ -101,6 +105,19 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public quantity: number = 1;
 
     static persistentFields = ['quantity'];
+
+    /**
+     * Live-query subscribable field. `dependsOnFields` defaults to
+     * `['quantity']` (descriptor name = source field name), so
+     * `FieldChangedEvent { field: 'quantity' }` from `setQuantity`
+     * triggers re-projection automatically.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'quantity',
+        read: (stuff) => (stuff as unknown as Globbable).getQuantity(),
+      },
+    ];
 
     /**
      * Subset of `persistentFields` that defines glob identity. Two
@@ -164,7 +181,12 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
           `GlobbableMixin.setQuantity: quantity must be a positive integer (got ${n})`
         );
       }
-      this.quantity = n;
+      this.quantity = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'quantity',
+        this.quantity,
+        n,
+      );
     }
 
     public canMergeWith(other: Stuff): boolean {

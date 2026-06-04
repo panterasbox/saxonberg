@@ -1,0 +1,47 @@
+inherit RoomPlusCode;
+
+void extra_create()
+{
+    set( "short","A Small School Room" );
+    set( "day_long",
+      "This is a small room in the EotL Elementary School.  Miss Dixie is "
+      "happy to see that you have completed your second lesson.  " 
+      "The chalkboard at the front of the room contains your third lesson.  "
+      "Why don't you look at it to continue?"
+    );
+    set( "day_light", WELL_LIT );
+    set( "night_light", WELL_LIT );
+    set( "exits", ([
+      "north": "room04",
+      "south": "room02",
+      "west":  "room03a",
+      "east":  "room03b",
+    ]) );
+    set( "descs", ([
+      ({ "board", "chalkboard", "blackboard" }):
+          "The next lesson covers learning how and what to buy when you first "
+          "log on.  You will notice a vending machine in the room.  There are "
+          "certain things that you can 'buy' (for free) from the machine.  To "
+          "see a list of items available from the machine, type 'stuff'.\n"
+          "\n"
+          "Right now, please buy the following items (they will be "
+          "explained later):\n"
+          "    guide, titlewatch, iff, token, dagger\n"
+          "And buy one of the following for ansi: binford, highlighter, or "
+          "gentool.\n" 
+          "\n"
+          "When you have bought all these items, you can leave to a different "
+          "room.  The rooms to the east and west are labs where you can learn "
+          "about each item.  After you complete the labs, leave north from "
+          "here to the next room for lesson four.",
+      ({ "dixie", "miss dixie", "teacher" }):
+          "Miss Dixie is pointing at the board, indicating that you should "
+          "look at it.  "
+          "She is wearing a smart-looking slate blue business suit, and "
+          "has her dark hair rolled up in a bun.\n"
+          "Miss Dixie smiles at you.  She seems pleased with your progress.",
+    ]) );
+    set( "reset_data", ([ "machine" : "/usr/locus/open/mac" ]) );
+    set( InsideP, 1 );
+    set( NoPKP, 1 );
+}

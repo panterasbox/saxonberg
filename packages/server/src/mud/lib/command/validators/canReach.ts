@@ -69,7 +69,7 @@ const validator: FieldValidator = (value, field, context) => {
     if (inventoryIds.has(id)) continue;
     if (locationIds.has(id)) continue;
     if (exitDoorIds.has(id)) continue;
-    return `you can't reach ${DescribeApi.getDisplayName(stuff, 'that')}`;
+    return `you can't reach ${DescribeApi.getDisplayName(stuff)}`;
   }
   return undefined;
 };

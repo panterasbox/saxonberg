@@ -34,7 +34,7 @@ export class DestructController extends CommandController<DestructModel> {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const stuff = target.stuff;
-    const name = DescribeApi.getDisplayName(stuff, '?');
+    const name = DescribeApi.getDisplayName(stuff);
     try {
       const fn = model.force ? StuffApi.forceDestruct : StuffApi.destruct;
       fn(stuff);

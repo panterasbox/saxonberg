@@ -70,7 +70,7 @@ export class RemoveController extends CommandController<RemoveModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'not-wearing',
-        detail: `you aren't wearing ${DescribeApi.getDisplayName(target, 'that')}`,
+        detail: `you aren't wearing ${DescribeApi.getDisplayName(target)}`,
       });
       return;
     }

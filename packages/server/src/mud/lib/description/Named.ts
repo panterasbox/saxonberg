@@ -1,12 +1,53 @@
 /**
- * NamedMixin — name fields for any Stuff that should be addressable.
+ * NamedMixin — **proper-name** identity for things people address
+ * by name.
  *
- * Lives in `lib/description/` because a name is part of how a thing
- * presents itself, alongside `Visible`, `Perceptible`, and `Detailed`.
- * Applies to people, NPCs, pets, artifacts, locations, buildings —
- * anything with a name.
+ * Lives in `lib/description/` because a proper name is part of how a
+ * thing presents itself, alongside `Visible`, `Perceptible`, and
+ * `Detailed`.
  *
- * Shape:
+ * ## What this mixin IS for
+ *
+ * Things with a **proper name** a character would use to refer to
+ * them:
+ *
+ *   - People and NPCs ("Alice", "Dr. Smith", "Captain Hook")
+ *   - Pets, mounts, familiars ("Rover", "Bucephalus")
+ *   - Named artifacts ("Excalibur", "the One Ring")
+ *   - **Named** locations ("Duncan Hall" the building; "the
+ *     Memorial Bobalu Smallberries Lobby" if dedicated to someone;
+ *     "Eternal City")
+ *   - Vessels with names ("the SS Saxonberg")
+ *
+ * If a player would naturally say "go to the [thing] in [Named]" —
+ * Named applies.
+ *
+ * ## What this mixin is NOT for
+ *
+ * Generic labels or descriptive identifiers that READ like names but
+ * are just descriptions:
+ *
+ *   - **Generic rooms** ("lobby", "the lobby", "Duncan Hall Lobby" —
+ *     these go on `Visible.shortDescription`)
+ *   - **Generic objects** ("iron sword", "wooden chair", "rusty
+ *     hinges" — all `Visible.shortDescription`)
+ *   - **Generic NPCs** ("guard", "merchant" — `Visible.shortDescription`)
+ *   - **Detail entries** ("the brass handle" — that's `DetailedMixin`)
+ *
+ * Rule of thumb: if the string starts with an article ("a", "the",
+ * "an") or reads like a description ("iron door"), it's a
+ * `shortDescription` not a Named name. A proper name stands on its
+ * own without an article.
+ *
+ * **Why the split matters.** `DescribeApi.getDisplayName` uses the
+ * presence of a Named name as the **highest-precedence** display
+ * string — proper names render bare ("Alice"), while
+ * shortDescriptions render with articles ("a heavy iron door"). The
+ * recognition / DescribeApi v2 pipeline keys off Named presence too.
+ * Smuggling generic labels into Named blurs the rendering contract
+ * and breaks recognition.
+ *
+ * ## Shape
  *
  *   honorific?      // "Dr.", "Sir", "Captain" — formal address prefix
  *   name            // casual register; the field 95% of callers want
@@ -24,8 +65,8 @@
  * introductory register: synthesized as
  * `[honorific, name, surname, nameSuffix].filter(Boolean).join(' ')`.
  * No "Unnamed" fallback — when nothing is set, `getFullName()`
- * returns `''` and `DescribeApi.getDisplayName(obj, fallback)`
- * provides the caller's fallback string.
+ * returns `''` and `DescribeApi.getDisplayName(obj)` falls through
+ * to its baked-in `'something'` default.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)
  * are out of scope for this mixin. If they're added later, they
@@ -36,6 +77,11 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a
@@ -94,6 +140,24 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       'alternateNames',
     ];
 
+    /**
+     * Live-query subscribable fields. The descriptor's
+     * `dependsOnFields` defaults to `['name']` (descriptor name =
+     * source field name), so a `FieldChangedEvent { field: 'name' }`
+     * from `setName` triggers re-projection automatically. The
+     * `ShadowChangedEvent` entry covers future hood/disguise
+     * shadows that change the rendered name without firing a field
+     * change.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'name',
+        read: (stuff) =>
+          (stuff as unknown as Named).getName(),
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+    ];
+
     protected honorific?: string;
     protected name: string = '';
     protected surname?: string;
@@ -104,7 +168,14 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
     setHonorific(value: string | undefined): void { this.honorific = value; }
 
     getName(): string { return this.name; }
-    setName(value: string): void { this.name = value; }
+    setName(value: string): void {
+      this.name = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'name',
+        this.name,
+        value,
+      );
+    }
 
     getSurname(): string | undefined { return this.surname; }
     setSurname(value: string | undefined): void { this.surname = value; }

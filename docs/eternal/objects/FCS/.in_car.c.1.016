@@ -1,0 +1,242 @@
+//	Inside the Towncar by Anthrax
+//	(some parts hacked from /secure/player/commands/look.c)
+//        Last modified 9/23/2003 by Anthrax
+
+#include "/zone/null/eternal/eternal.h"
+#define HEART "/zone/null/eternal/common"
+#define GARAGE "/zone/null/eternal/garage"
+#define CAR "/zone/null/eternal/objects/sedan"
+#define MAX_IDLE_MINUTES 2
+inherit RoomPlusCode;
+
+object car;
+closure exit_sort, exit_map;
+
+extra_create()
+{
+    set("short","Inside a Towncar");
+    set("day_long", "The interior of the sedan is plush and "+
+      "roomy, with plenty of space for the whole family.  "+
+      "The steering wheel is comfortable, and it drives "+
+      "well on standard streets.  You can <look out> of "+
+      "the tinted windows, and enjoy your privacy. "+
+        "A small note on the dash catches your eye, as well.");
+    set("descs", ([
+	 ({"note","instructions"}):
+            "You can return to the Garage at any time by typing 'return car'.  "+
+            "This car will return automatically to the Garage if left "+
+            "unattended for more than "+to_string(MAX_IDLE_MINUTES)+" minutes.  "+
+            "For your safety and that of the car, no combat is allowed in this vehicle.\n"+
+            "Happy Driving!  - Eternal City Chamber of Commerce\n",
+      ]) );
+    set("exits", ([ "out": "@go_out" ]) );
+    set("day_light",80);
+    set(NoCombatP,1);
+    set(InsideP,1);
+    exit_sort  = lambda( ({ 'one, 'two }),
+      ({ #',,
+        ({ #'=,
+          'eo,
+          '({ "down", "up", "southwest", "southeast", "northwest",
+            "northeast", "west", "east", "south", "north", })
+        }),
+        ({ #'<,
+          ({ #'searcha, 'eo, 'one }),
+          ({ #'searcha, 'eo, 'two })
+        })
+      }) );
+    exit_map   = lambda( ({ 'dir }),
+      ({ #'?,
+        ({ #'=,
+          't,
+          ({ #'[,
+            ([
+              "north": "n", "south": "s", "east": "e", "west": "w",
+              "northeast": "ne", "northwest": "nw", "southeast": "se",
+              "southwest": "sw", "up": "u", "down": "d",
+            ]),
+            'dir
+          })
+        }),
+        't,
+        'dir
+      }) );
+
+    seteuid(getuid());
+}
+
+extra_init()
+{
+    add_action("do_drive","drive");
+    add_action("do_look","look");
+    add_action("do_cancel_return", "cancel");
+    add_action("go_garage", "return");
+}
+
+post_long() {
+    if(find_call_out("return_home") == -1) return "";
+    return sprintf("\nA flashing red button on the dash reads: Autoreturn in %d seconds.  Use 'cancel return' to disengage.", find_call_out("return_home"));
+}
+
+void set_car(object ob)
+{
+    if(program_name(previous_object()) != CAR) return;
+    car = ob;
+    return;
+}
+
+status is_home() {
+    return(objectp(car) && objectp(ENV(car)) && file_name(ENV(car))==GARAGE);
+}
+
+//  Hacked some of this out of /secure/player/commands/look.c
+#define MAX_LIST 20
+do_look(string str)
+{
+    string s, *dirs, out;
+    int     i, size, wiz;
+    object  me, *ob, env;
+    mapping tmp; 
+
+    if(!str || str != "out") return 0;
+
+    if(!objectp(car)) { write("This isn't a working vehicle.\n"); return 1; }
+    env = ENV(car);
+    me = THISP;
+    wiz = IsWizard(me);
+
+    if( me->query_brief() )
+    {
+        out  = env->short();
+        dirs = m_indices( ( tmp = env->query( "exits" ) ) ? tmp : ([ ]) );
+        if( !sizeof( dirs ) )
+            out += "\n";
+        else
+            out += " <" + implode( map_array( sort_array( dirs,
+                  exit_sort ), exit_map ), "," ) + ">\n";
+    }
+    else
+    {
+        out = env->long();
+        if( !out )
+            out = "";
+        size = sizeof( ob = ( all_inventory( env ) - ({ car }) ) );
+        for( i=MIN(size,MAX_LIST); i--; )
+        {
+            if( ob[ i ] )
+                if( stringp( s = (string )ob[ i ]->short() ) )
+                    out += strformat( capitalize( s ) + "." );
+                else if( wiz )
+                    out += strformat( file_name( ob[ i ] ) + " [invisible]" );
+        }
+    }
+    write("Outside of the car, you see:\n");
+    write( out );
+    return 1;
+}
+
+do_drive(str)
+{
+    string dest;
+    object room;
+    int pass;
+
+    if(!str) {
+        write("Drive in which direction?\n");
+        return 1; }
+
+    room = ENV(car);
+    switch(str) {
+    case "u": str = "up"; break;
+    case "d": str = "down"; break;
+    case "n": str = "north"; break;
+    case "s": str = "south"; break;
+    case "e": str = "east"; break;
+    case "w": str = "west"; break;
+    case "nw": str = "northwest"; break;
+    case "sw": str = "southwest"; break;
+    case "ne": str = "northeast"; break;
+    case "se": str = "southeast"; break;
+    default: break; }
+
+    dest = (room->query("exits") + room->query("invis_exits"))[str];
+
+    if(!stringp(dest) || dest[0..0]=="@") {
+        write("You cannot drive in that direction.\n");
+        return 1; }
+
+    if(!catch( pass = move_object(car,dest) ) && pass) {
+	    write("You drive the car ");
+	    say(PNAME+" drives the car ");
+	    tell_room(THISO, str+".\n");
+        tell_room(room,"The sedan zooms off "+str+".\n");
+        tell_room(ENV(car),"A grey sedan pulls into the room.\n");
+        do_look("out");
+    } else
+        write("That direction seems blocked.\n");
+
+    return 1;
+}
+
+status do_cancel_return(string str) {
+    if(!str || !(str=="return" || str=="autoreturn")) return 0; 
+    if(remove_call_out("return_home")==-1) {
+        write("Pressing the Cancel Autoreturn button appears to have no effect.\n");
+        return 1;
+    }
+    tell_room(THISO, "A voice from the dash says: Autoreturn cancelled.\n");
+    return 1;
+}
+
+
+status return_home() {
+        if(is_home()) {
+            tell_room(THISO, "A voice from the dash says: Vehicle already in garage.\n");
+            return 0; }
+        tell_room(THISO, "A voice from the dash says: Returning to garage.\n");
+	  tell_room(ENV(car),"The car zooms off to the Garage.\n");
+	  move_object(car, GARAGE);
+	  tell_room(ENV(car),"A grey sedan pulls in, and parks.\n");
+	return 1;
+}
+
+go_out()
+{
+    object outside;
+
+    if(!objectp(car) || !objectp(outside=ENV(car)) ) {
+        write("This isn't really in a car!\n");
+        return GARAGE;
+    }
+
+    if(!is_home()) call_out("check_autoreturn", 2);
+    return file_name(outside);
+}
+
+void check_autoreturn() {
+    if(!objectp(car)) return;
+    if(!sizeof(filter_array(inventorya(THISO),#'living))) {
+        tell_room(ENV(car), sprintf("A voice from the car says: Vehicle unoccupied. "+
+                "Autoreturn will engage in %d minutes.\n", MAX_IDLE_MINUTES) );
+        remove_call_out("return_home");
+        call_out("return_home", (MAX_IDLE_MINUTES*60) ); }
+
+    return;
+}
+
+go_garage(string str) {
+    if(!str || str != "car") return 0;
+    remove_call_out("return_home");
+    return_home();
+    return 1;
+}
+
+extra_reset() {
+    check_autoreturn();
+    return;
+}
+
+query_car()
+{
+  return car;
+}

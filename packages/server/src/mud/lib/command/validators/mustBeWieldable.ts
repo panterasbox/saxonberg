@@ -15,7 +15,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs.length === 0) return undefined;
   for (const stuff of stuffs) {
     if (!MixinApi.isWieldable(stuff as Stuff)) {
-      return `${DescribeApi.getDisplayName(stuff, 'that')} can't be wielded`;
+      return `${DescribeApi.getDisplayName(stuff)} can't be wielded`;
     }
   }
   return undefined;
