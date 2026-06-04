@@ -732,6 +732,10 @@ export interface OptionDefinition {
   type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
+  /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
+  cardinality?: CardinalitySpec;
+  onExcess?: OnExcessPolicy;
+  onShortage?: OnShortagePolicy;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
   /**
@@ -1418,6 +1422,94 @@ export class CommandApi {
    * is read from `model.subcommand`, which the matcher stamped at
    * bind time.
    */
+  /**
+   * Apply the cardinality / onExcess / onShortage policy to a
+   * resolved candidate list. Synchronous subset — handles
+   * `take-all`, `truncate`, and `error` on excess; `error` on
+   * shortage; and the implicit cardinality of `object` fields
+   * (always `{ exactly: 1 }`).
+   *
+   * `prompt` policy is NOT handled here — the prompt-based
+   * disambiguation path requires async push + await, which the
+   * resolveModel pipeline doesn't support in v1. A field declared
+   * with `onExcess: 'prompt'` falls through to a TODO marker that
+   * the dispatcher (CommandGiver) is expected to detect and handle
+   * via PromptApi. Until that landing wave ships, the policy
+   * degrades to `top` (object) or `take-all` (objects) with a
+   * note flagging the deferral.
+   *
+   * Returns the filtered stuff list, or null if the policy
+   * dictates failure (an error note has been added to the
+   * context).
+   */
+  static applyCardinalityPolicy(
+    spec: { type?: string; cardinality?: CardinalitySpec; onExcess?: OnExcessPolicy; onShortage?: OnShortagePolicy },
+    stuff: Stuff[],
+    fname: string,
+    context: CommandContext,
+  ): Stuff[] | null {
+    if (spec.type === 'object') {
+      const policy = spec.onExcess ?? 'top';
+      if (stuff.length === 0) return [];
+      if (stuff.length === 1) return stuff;
+      // stuff.length > 1
+      if (policy === 'top') return [stuff[0]!];
+      if (policy === 'error') {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'ambiguous',
+          detail: `${fname}: ambiguous (${stuff.length} matches)`,
+        });
+        return null;
+      }
+      // 'prompt' — deferred; degrade to top for now.
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'prompt-deferred',
+        detail: `${fname}: onExcess='prompt' not yet implemented; degrading to top`,
+      });
+      return [stuff[0]!];
+    }
+
+    if (spec.type === 'objects') {
+      const card = spec.cardinality ?? {};
+      const min = card.exactly ?? card.min ?? 0;
+      const max = card.exactly ?? card.max ?? Number.POSITIVE_INFINITY;
+
+      if (stuff.length < min) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'insufficient',
+          detail: `${fname}: expected at least ${min}, got ${stuff.length}`,
+        });
+        return null;
+      }
+      if (stuff.length <= max) return stuff;
+
+      // stuff.length > max
+      const policy = spec.onExcess ?? (max === Number.POSITIVE_INFINITY ? 'take-all' : 'prompt');
+      if (policy === 'take-all') return stuff;
+      if (policy === 'truncate') return stuff.slice(0, max);
+      if (policy === 'error') {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'too-many',
+          detail: `${fname}: got ${stuff.length}, max ${max}`,
+        });
+        return null;
+      }
+      // 'prompt' — deferred; degrade to truncate for now.
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'prompt-deferred',
+        detail: `${fname}: onExcess='prompt' not yet implemented; degrading to truncate`,
+      });
+      return stuff.slice(0, max);
+    }
+
+    return stuff;
+  }
+
   static resolveModel(
     model: CommandModel,
     context: CommandContext,
@@ -1483,28 +1575,47 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        // Empty results are a normal outcome — pass `[]` through
-        // on the wrapper and let the controller decide what
-        // no-match means in its domain. Don't update scope or
-        // pronoun memory on empty (no anchor to anchor on).
-        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        // Apply cardinality / onExcess policy. Returns the
+        // filtered stuff list or null on policy-driven failure.
+        const filtered = CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff.length > 0 && focused) {
-          // Multi-cardinality results don't update player scope (no
-          // single anchor to extend or re-anchor from). Pronoun memory
-          // only updates for Focused givers — others have no stash.
-          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        if (filtered.length > 0 && focused) {
+          focused.getPronounMemory().update({ stuff: filtered }, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne;
+        // type: object. When `onExcess` policy is anything other
+        // than 'top' (the default), the resolver needs the full
+        // candidate list to count / prompt / fail; switch to
+        // resolveMany. `onExcess: 'top'` keeps the cheap
+        // resolveOne path.
+        const useTop = (def.onExcess ?? 'top') === 'top';
+        let stuff: Stuff[] = [];
+        let via: MqlMany['via'] | undefined;
+        let quantity: MqlMany['quantity'] | undefined;
         try {
-          r = { stuff: null };
           for (const scope of tries) {
-            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-            if (r.stuff !== null) break;
+            if (useTop) {
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              if (r.stuff !== null) {
+                stuff = [r.stuff];
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            } else {
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              if (r.stuff.length > 0) {
+                stuff = r.stuff;
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            }
           }
         } catch (err) {
           context.note({
@@ -1515,20 +1626,21 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        // `null` (empty) is a normal outcome — pass it through on
-        // the wrapper and let the controller decide what no-match
-        // means.
-        const bound: MqlOneResult = { stuff: r.stuff, raw };
-        if (r.via) bound.via = r.via;
-        if (r.quantity) bound.quantity = r.quantity;
+        // Apply cardinality / onExcess policy.
+        const filtered = CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const picked = filtered[0] ?? null;
+        const bound: MqlOneResult = { stuff: picked, raw };
+        if (via) bound.via = via;
+        if (quantity) bound.quantity = quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff !== null && focused) {
+        if (picked !== null && focused) {
           if (focusMode !== 'none') {
-            updatePlayerFocus(focused, raw, r.stuff, r.via, focusMode);
+            updatePlayerFocus(focused, raw, picked, via, focusMode);
           }
-          const asMany: MqlMany = { stuff: [r.stuff] };
-          if (r.via) asMany.via = r.via;
+          const asMany: MqlMany = { stuff: [picked] };
+          if (via) asMany.via = via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
       }
@@ -1571,20 +1683,39 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        const filtered = CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
-        if (r.stuff.length > 0 && focused) {
-          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        if (filtered.length > 0 && focused) {
+          focused.getPronounMemory().update({ stuff: filtered }, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne;
+        const useTop = (def.onExcess ?? 'top') === 'top';
+        let stuff: Stuff[] = [];
+        let via: MqlMany['via'] | undefined;
+        let quantity: MqlMany['quantity'] | undefined;
         try {
-          r = { stuff: null };
           for (const scope of tries) {
-            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-            if (r.stuff !== null) break;
+            if (useTop) {
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              if (r.stuff !== null) {
+                stuff = [r.stuff];
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            } else {
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              if (r.stuff.length > 0) {
+                stuff = r.stuff;
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            }
           }
         } catch (err) {
           context.note({
@@ -1595,13 +1726,16 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const bound: MqlOneResult = { stuff: r.stuff, raw };
-        if (r.via) bound.via = r.via;
-        if (r.quantity) bound.quantity = r.quantity;
+        const filtered = CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const picked = filtered[0] ?? null;
+        const bound: MqlOneResult = { stuff: picked, raw };
+        if (via) bound.via = via;
+        if (quantity) bound.quantity = quantity;
         resolved[fname] = bound;
-        if (r.stuff !== null && focused) {
-          const asMany: MqlMany = { stuff: [r.stuff] };
-          if (r.via) asMany.via = r.via;
+        if (picked !== null && focused) {
+          const asMany: MqlMany = { stuff: [picked] };
+          if (via) asMany.via = via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
       }
