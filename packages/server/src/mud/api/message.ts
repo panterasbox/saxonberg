@@ -390,7 +390,7 @@ export class MessageApi {
    * a re-resolution step on the client.
    */
   static refOf(stuff: Stuff): StuffRef {
-    const display = DescribeApi.getDisplayName(stuff, '');
+    const display = DescribeApi.getDisplayName(stuff);
     const ref: StuffRef = { stuffId: stuff.stuffId };
     if (display) ref.displayName = display;
     return ref;

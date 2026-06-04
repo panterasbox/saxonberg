@@ -18,7 +18,7 @@ const validator: FieldValidator = (value, field, _context) => {
     if (!MixinApi.isTangible(stuff as Stuff)) {
       // Shape-descriptive — the validator doesn't know which verb
       // is invoking it (weigh / analyze chemistry / future).
-      return `${DescribeApi.getDisplayName(stuff, 'that')} isn't tangible`;
+      return `${DescribeApi.getDisplayName(stuff)} isn't tangible`;
     }
   }
   return undefined;

@@ -25,7 +25,7 @@ const validator: FieldValidator = (value, field, _context) => {
   for (const stuff of stuffs) {
     const s = stuff as Stuff;
     if (!MixinApi.isContainer(s) && !MixinApi.isSurfaced(s)) {
-      return `${DescribeApi.getDisplayName(stuff, 'that')} can't hold things`;
+      return `${DescribeApi.getDisplayName(stuff)} can't hold things`;
     }
   }
   return undefined;

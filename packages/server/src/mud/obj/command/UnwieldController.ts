@@ -70,7 +70,7 @@ export class UnwieldController extends CommandController<UnwieldModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'not-wielding',
-        detail: `you aren't wielding ${DescribeApi.getDisplayName(target, 'that')}`,
+        detail: `you aren't wielding ${DescribeApi.getDisplayName(target)}`,
       });
       return;
     }

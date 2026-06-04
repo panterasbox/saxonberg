@@ -116,7 +116,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     }
 
     const destination = exit.getDestination();
-    const destName = DescribeApi.getDisplayName(destination, 'somewhere new');
+    const destName = DescribeApi.getDisplayName(destination);
 
     if (mode.getPassthrough()) {
       const host = LocomotionApi.findConveyanceHost(actor, mode);

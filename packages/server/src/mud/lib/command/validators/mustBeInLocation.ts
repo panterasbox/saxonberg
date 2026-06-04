@@ -38,7 +38,7 @@ const validator: FieldValidator = (value, field, context) => {
 
   for (const stuff of stuffs) {
     if (!locationIds.has((stuff as Stuff).stuffId)) {
-      return `you don't see ${DescribeApi.getDisplayName(stuff, 'that')} here`;
+      return `you don't see ${DescribeApi.getDisplayName(stuff)} here`;
     }
   }
   return undefined;

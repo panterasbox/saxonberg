@@ -69,7 +69,7 @@ export class WieldController extends CommandController<WieldModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'wrong-fit',
-        detail: `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your hands`,
+        detail: `${DescribeApi.getDisplayName(target)} doesn't fit your hands`,
       });
       return;
     }

@@ -48,6 +48,22 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { MaterialSummary } from '@saxonberg/types';
+
+/**
+ * Build the minimal Material wire summary — identity + display
+ * name only. Properties (density, hardness, etc.) ship when a
+ * consumer demands them.
+ */
+function summarizeMaterial(mat: Material): MaterialSummary {
+  return {
+    materialId: mat.stuffId,
+    templatePath: mat.getTemplatePath() ?? '',
+    name: mat.getName(),
+  };
+}
 
 export interface Tangible {
   /**
@@ -90,6 +106,58 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       '_materialPath',
       '_detailMaterialPaths',
       'mass',
+    ];
+
+    /**
+     * Live-query subscribable fields.
+     *
+     *   - `bulkMaterial` — flat. The bulk default Material as a
+     *     `MaterialSummary` wire shape, or `null` when no bulk
+     *     material is set.
+     *   - `mass` — flat. Quantity in kg as `{ value, unit: 'kg' }`.
+     *   - `detailMaterial` — focused-detail only (no flat read).
+     *     Surfaces the resolved (prefix-walked) Material at the
+     *     focus key in the `material` slice of the focus record.
+     *
+     * Re-projection fires on `FieldChangedEvent { field:
+     * 'bulkMaterial' | 'detailMaterials' | 'mass' }` from the
+     * relevant setters, plus `ShadowChangedEvent` for descriptors
+     * that participate in shadow overrides.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'bulkMaterial',
+        read: (stuff) => {
+          const mat = (stuff as unknown as Tangible).getMaterial();
+          return mat ? summarizeMaterial(mat) : null;
+        },
+        changes: [
+          { on: FieldChangedEvent, by: 'field' },
+          { on: ShadowChangedEvent, by: 'target' },
+        ],
+      },
+      {
+        name: 'mass',
+        read: (stuff) => {
+          const q = (stuff as unknown as Tangible).getMass();
+          return { value: q.rawValue(), unit: 'kg' as const };
+        },
+        changes: [{ on: FieldChangedEvent, by: 'field' }],
+      },
+      {
+        name: 'detailMaterial',
+        // Focus-only contribution — no flat read. The substrate
+        // calls `perDetailRead` only in focus mode; flat
+        // projections skip descriptors without `read`.
+        perDetailRead: (stuff, detailKey) => {
+          const mat = (stuff as unknown as Tangible).getMaterial(detailKey);
+          return mat ? { material: summarizeMaterial(mat) } : null;
+        },
+        changes: [
+          { on: FieldChangedEvent, by: 'field' },
+          { on: ShadowChangedEvent, by: 'target' },
+        ],
+      },
     ];
 
     /**

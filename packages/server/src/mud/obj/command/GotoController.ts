@@ -51,7 +51,7 @@ export class GotoController extends CommandController<GotoModel> {
     if (!dest) {
       return this.fail(context, 'no-location', 'target has no location');
     }
-    const destName = DescribeApi.getDisplayName(dest, '?');
+    const destName = DescribeApi.getDisplayName(dest);
 
     if (!MixinApi.isContainable(giver)) {
       return this.fail(context, 'cannot-move', 'cannot move yourself');

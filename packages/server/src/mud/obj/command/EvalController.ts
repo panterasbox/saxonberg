@@ -106,11 +106,11 @@ export class EvalController extends CommandController<EvalModel> {
       try {
         const result = await evalStuff.run(t);
         const repr = this._formatResult(result);
-        const name = DescribeApi.getDisplayName(t, '?');
+        const name = DescribeApi.getDisplayName(t);
         this.tell(context, `\n${name}: ${repr}\n`);
         lastSummary = repr;
       } catch (err) {
-        const name = DescribeApi.getDisplayName(t, '?');
+        const name = DescribeApi.getDisplayName(t);
         this.tell(
           context,
           `\n${name}: error: ${(err as Error).message}\n`,

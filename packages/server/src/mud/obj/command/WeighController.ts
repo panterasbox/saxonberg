@@ -36,7 +36,7 @@ export class WeighController extends CommandController<WeighModel> {
       return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      const detail = `${DescribeApi.getDisplayName(target.stuff, 'that')} can't be weighed`;
+      const detail = `${DescribeApi.getDisplayName(target.stuff)} can't be weighed`;
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.fromMarkup(detail))

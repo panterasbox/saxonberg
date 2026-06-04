@@ -24,8 +24,8 @@
  * introductory register: synthesized as
  * `[honorific, name, surname, nameSuffix].filter(Boolean).join(' ')`.
  * No "Unnamed" fallback — when nothing is set, `getFullName()`
- * returns `''` and `DescribeApi.getDisplayName(obj, fallback)`
- * provides the caller's fallback string.
+ * returns `''` and `DescribeApi.getDisplayName(obj)` falls through
+ * to its baked-in `'something'` default.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)
  * are out of scope for this mixin. If they're added later, they
@@ -36,7 +36,9 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import { fireFieldChange } from '../events/FieldChangedEvent';
+import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a
@@ -93,6 +95,25 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       'surname',
       'nameSuffix',
       'alternateNames',
+    ];
+
+    /**
+     * Live-query subscribable fields — projected by
+     * `MqlSubscriptionApi.projectFields`. Re-projection fires on
+     * `FieldChangedEvent { field: 'name' }` (from `setName`) and on
+     * `ShadowChangedEvent` targeting this Stuff (so a future
+     * hood/disguise shadow flips the rendered name automatically).
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'name',
+        read: (stuff) =>
+          (stuff as unknown as Named).getName(),
+        changes: [
+          { on: FieldChangedEvent, by: 'field' },
+          { on: ShadowChangedEvent, by: 'target' },
+        ],
+      },
     ];
 
     protected honorific?: string;

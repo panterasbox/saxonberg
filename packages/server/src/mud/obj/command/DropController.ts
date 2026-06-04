@@ -107,7 +107,7 @@ export class DropController extends CommandController<DropModel> {
         continue;
       }
       this.dropOperand(target, context);
-      droppedNames.push(DescribeApi.formatName(target, 'something'));
+      droppedNames.push(DescribeApi.formatName(target));
     }
     if (droppedNames.length === 0) {
       MessageApi.scene(context.commandGiver)

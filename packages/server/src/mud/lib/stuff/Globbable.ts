@@ -45,7 +45,8 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
-import { fireFieldChange } from '../events/FieldChangedEvent';
+import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /** Public shape added by GlobbableMixin. */
 export interface Globbable {
@@ -102,6 +103,22 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public quantity: number = 1;
 
     static persistentFields = ['quantity'];
+
+    /**
+     * Live-query subscribable field — projected by
+     * `MqlSubscriptionApi.projectFields`. Quantity lives on the
+     * mixin (not on the substrate-synthetic table) because it's
+     * mixin-owned state with a mixin-owned setter and a mixin-owned
+     * event firing site. Re-projection fires on `FieldChangedEvent
+     * { field: 'quantity' }` from `setQuantity`.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'quantity',
+        read: (stuff) => (stuff as unknown as Globbable).getQuantity(),
+        changes: [{ on: FieldChangedEvent, by: 'field' }],
+      },
+    ];
 
     /**
      * Subset of `persistentFields` that defines glob identity. Two

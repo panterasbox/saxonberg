@@ -67,7 +67,7 @@ export class StandController extends CommandController<StandModel> {
         });
         return;
       }
-      const name = DescribeApi.getDisplayName(target, 'it');
+      const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(giver)
         .topic(MessageApi.Topics.world.narration.action)
         .toSelf(Mml.compose`You stand on ${Mml.item(target)}.`)

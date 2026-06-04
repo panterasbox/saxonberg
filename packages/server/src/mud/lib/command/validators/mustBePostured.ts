@@ -20,7 +20,7 @@ const validator: FieldValidator = (value, field, _context) => {
     if (!MixinApi.isPostured(stuff as Stuff)) {
       return (
         `you can't change posture on ` +
-        DescribeApi.getDisplayName(stuff, 'that')
+        DescribeApi.getDisplayName(stuff)
       );
     }
   }

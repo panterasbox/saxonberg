@@ -450,7 +450,7 @@ export class Exit extends Idea {
       };
     }
     if (this.door && !this.door.isOpen()) {
-      const doorName = DescribeApi.getDisplayName(this.door, 'door');
+      const doorName = DescribeApi.getDisplayName(this.door);
       return {
         ok: false,
         gate: 'door',

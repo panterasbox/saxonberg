@@ -215,7 +215,7 @@ export class LookController extends CommandController<LookModel> {
     // can differentiate "looking at a thing" from "looking at the
     // room".
     if (!MixinApi.isVisible(target)) {
-      const name = DescribeApi.getDisplayName(target, 'that');
+      const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)
         .topic(MessageApi.Topics.world.perception.look)
         .toSelf(Mml.compose`You can't see ${name}.`)
@@ -248,7 +248,7 @@ export class LookController extends CommandController<LookModel> {
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorName = DescribeApi.getDisplayName(door, 'door');
+      const doorName = DescribeApi.getDisplayName(door);
       return Mml.compose`${tagged} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);

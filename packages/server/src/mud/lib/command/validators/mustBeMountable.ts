@@ -15,7 +15,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs.length === 0) return undefined;
   for (const stuff of stuffs) {
     if (!MixinApi.isMountable(stuff as Stuff)) {
-      return `you can't mount ${DescribeApi.getDisplayName(stuff, 'that')}`;
+      return `you can't mount ${DescribeApi.getDisplayName(stuff)}`;
     }
   }
   return undefined;

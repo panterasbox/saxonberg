@@ -125,7 +125,7 @@ export class Mml {
    * rendering, identity overlays) read the id directly.
    */
   static name(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'something');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
     );
@@ -141,7 +141,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static location(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'somewhere');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
     );
@@ -176,7 +176,7 @@ export class Mml {
    * as `name`.
    */
   static object(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'something');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
     );
@@ -187,7 +187,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static item(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff, 'an item');
+    const display = DescribeApi.getDisplayName(stuff);
     return Mml.fromMarkup(
       `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
     );

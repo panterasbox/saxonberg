@@ -73,7 +73,7 @@ export class TeleportController extends CommandController<TeleportModel> {
     if (!dest) {
       return this.fail(
         context,
-        `${DescribeApi.getDisplayName(focused, 'that')} is not a container ` +
+        `${DescribeApi.getDisplayName(focused)} is not a container ` +
           `and has no environment to land in; use \`to <somewhere>\``,
       );
     }
@@ -86,8 +86,8 @@ export class TeleportController extends CommandController<TeleportModel> {
       return this.fail(context, `canTeleport veto: ${veto.reason}`);
     }
 
-    const targetName = DescribeApi.getDisplayName(tgt, '?');
-    const destName = DescribeApi.getDisplayName(dest, '?');
+    const targetName = DescribeApi.getDisplayName(tgt);
+    const destName = DescribeApi.getDisplayName(dest);
 
     // 2. Polished path: Mobile.teleport handles announcements +
     // auto-look. Try this first regardless of force; force only

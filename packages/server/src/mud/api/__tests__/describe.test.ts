@@ -1,14 +1,14 @@
 /**
  * Tests for DescribeApi.getDisplayName.
  *
- * Two-step resolution (post-Named-refactor):
+ * Three-step resolution (post-MQL-subscription-reshape):
  *   1. Named.name — proper name, when set
  *   2. Visible.shortDescription — visual identity, the common case
  *      for things that don't have proper names
- *   3. Fallback string
+ *   3. Baked-in `'something'` default (no caller-supplied fallback)
  *
- * The earlier bare-`.name`-string-property branch retired when
- * Location adopted NamedMixin.
+ * The earlier `fallback` parameter retired; the function now always
+ * returns a usable string. Callers no longer pass a fallback.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -44,46 +44,56 @@ describe('DescribeApi.getDisplayName', () => {
     obj.setSurname('Smith');
     // Casual — surname is NOT included. Call `obj.getFullName()` for
     // the formal form.
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Alice');
+    expect(DescribeApi.getDisplayName(obj)).toBe('Alice');
   });
 
   it('falls back to Visible.shortDescription when Named.name is empty', () => {
     const obj = makeStuff(() => new NamedAndVisible());
     obj.setShortDescription('a heavy oak door');
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe(
-      'a heavy oak door'
-    );
+    expect(DescribeApi.getDisplayName(obj)).toBe('a heavy oak door');
   });
 
   it('Named.name takes precedence over Visible.shortDescription', () => {
     const obj = makeStuff(() => new NamedAndVisible());
     obj.setName('Excalibur');
     obj.setShortDescription('a gleaming silver sword');
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('Excalibur');
+    expect(DescribeApi.getDisplayName(obj)).toBe('Excalibur');
   });
 
   it('uses Visible.shortDescription on a non-Named object', () => {
     const obj = makeStuff(() => new VisibleThing());
     obj.setShortDescription('a rusty key');
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('a rusty key');
+    expect(DescribeApi.getDisplayName(obj)).toBe('a rusty key');
   });
 
-  it('skips empty Visible.shortDescription', () => {
+  it('skips empty Visible.shortDescription and returns baked-in default', () => {
     const obj = makeStuff(() => new VisibleThing());
     obj.setShortDescription('');
-    expect(DescribeApi.getDisplayName(obj, 'fallback')).toBe('fallback');
+    expect(DescribeApi.getDisplayName(obj)).toBe('something');
   });
 
-  it('returns the fallback when neither Named nor Visible applies', () => {
-    expect(
-      DescribeApi.getDisplayName(makeStuff(() => new Plain()), 'something')
-    ).toBe('something');
+  it('returns the baked-in default when neither Named nor Visible applies', () => {
+    expect(DescribeApi.getDisplayName(makeStuff(() => new Plain()))).toBe(
+      'something',
+    );
   });
 
-  it('defaults the fallback to empty string', () => {
-    expect(
-      DescribeApi.getDisplayName(makeStuff(() => new Plain()))
-    ).toBe('');
+  it('accepts an optional viewer parameter (v1 ignores it)', () => {
+    const obj = makeStuff(() => new NamedThing());
+    obj.setName('Alice');
+    // viewer is reserved for DescribeApi v2 / recognition. v1 returns
+    // identical output whether viewer is passed or not.
+    const a = DescribeApi.getDisplayName(obj);
+    // The Sensor type is structural; pass `obj` itself (NamedMixin
+    // host doesn't compose Sensor, but the call signature accepts
+    // `Sensor | undefined` so the cast at call site is irrelevant
+    // for the v1 ignored-viewer body).
+    const b = DescribeApi.getDisplayName(
+      obj,
+      undefined,
+    );
+    expect(a).toBe('Alice');
+    expect(b).toBe('Alice');
   });
 });
 

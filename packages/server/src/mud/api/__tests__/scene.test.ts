@@ -72,12 +72,15 @@ describe('MessageApi.refOf', () => {
     expect(ref.displayName).toBe('Alice');
   });
 
-  it('omits displayName when no name is resolvable', () => {
+  it('renders the baked-in default when no name is resolvable', () => {
     class Plain extends Idea {}
     const obj = makeStuff(() => new Plain());
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
-    expect(ref.displayName).toBeUndefined();
+    // DescribeApi.getDisplayName always returns a string post-reshape;
+    // for hosts without Named/Visible state the baked-in `'something'`
+    // default flows through.
+    expect(ref.displayName).toBe('something');
   });
 });
 

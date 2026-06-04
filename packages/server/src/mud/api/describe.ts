@@ -8,7 +8,7 @@
  *
  * Usage:
  * ```typescript
- * const name = DescribeApi.getDisplayName(obj, 'something');
+ * const name = DescribeApi.getDisplayName(obj);
  * ```
  *
  * **v1 limitation — composed display names are NYI.** Real display
@@ -41,9 +41,18 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Surfaced } from '../lib/spatial/Surfaced';
+import type { Sensor } from '../lib/message/Sensor';
 import { GrammarApi } from './grammar';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
+
+/**
+ * Baked-in fallback for `getDisplayName` / `formatName` when the
+ * target has no Named name and no Visible shortDescription. Callers
+ * no longer pass their own fallback — presentation policy lives
+ * here, not in every controller.
+ */
+const DEFAULT_DISPLAY_NAME = 'something';
 
 /**
  * Output of {@link DescribeApi.groupContentsByResting}. Partitions a
@@ -77,7 +86,7 @@ export const SURFACE_ENUMERATE_THRESHOLD = 3;
 export class DescribeApi {
   /**
    * Resolve a human-readable display string for an object — the
-   * casual register, what 95% of prose wants. Two-step resolution:
+   * casual register, what 95% of prose wants. Three-step resolution:
    *
    *   1. **`Named.name`** if present and non-empty — the object's
    *      *proper name* ("Alice", "Excalibur", "Town Square"). Most
@@ -85,7 +94,7 @@ export class DescribeApi {
    *   2. **`Visible.shortDescription`** if present and non-empty —
    *      the object's *visual identity* ("a heavy oak door", "a
    *      rusty sword"). Most things have one of these.
-   *   3. The caller-supplied fallback.
+   *   3. The baked-in fallback (`'something'`).
    *
    * Named takes precedence so a Named-with-description renders by
    * its proper name in casual prose. Code that needs the formal
@@ -93,11 +102,18 @@ export class DescribeApi {
    * registers (`getAddressForm`, social-graph-aware variants) will be
    * added as siblings here rather than overloading this function.
    *
+   * **`viewer`** is reserved for the recognition / DescribeApi v2
+   * pipeline. The v1 body ignores it, but the substrate-synthetic
+   * descriptor (in `MqlSubscriptionApi`) threads it end-to-end so
+   * the per-viewer design is wired without a future API rename. The
+   * return type is always `string` — `'something'` is the bottom of
+   * the fallback chain, so callers never write `??` ceremony.
+   *
    * @param obj - Object to render
-   * @param fallback - Returned when neither Named.name nor
-   *   Visible.shortDescription is available (default: `''`)
+   * @param viewer - Optional Sensor for per-viewer overrides (v1: ignored)
    */
-  static getDisplayName(obj: Stuff, fallback: string = ''): string {
+  static getDisplayName(obj: Stuff, viewer?: Sensor): string {
+    void viewer;
     if (MixinApi.isNamed(obj)) {
       const name = obj.getName();
       if (name) return name;
@@ -106,7 +122,7 @@ export class DescribeApi {
       const short = obj.getShortDescription();
       if (short) return short;
     }
-    return fallback;
+    return DEFAULT_DISPLAY_NAME;
   }
 
   /**
@@ -127,8 +143,8 @@ export class DescribeApi {
    * CLAUDE.md "Module categories" + `docs/subsystems/glob.md` §
    * Display rendering.
    */
-  static formatName(obj: Stuff, fallback: string = 'something'): string {
-    const base = DescribeApi.getDisplayName(obj, fallback);
+  static formatName(obj: Stuff, viewer?: Sensor): string {
+    const base = DescribeApi.getDisplayName(obj, viewer);
     if (!MixinApi.isGlobbable(obj)) return base;
     const n = obj.getQuantity();
     if (n === 1) return base;
@@ -216,7 +232,7 @@ export class DescribeApi {
     if (resting.length > SURFACE_ENUMERATE_THRESHOLD) {
       return ', scattered with various items';
     }
-    const names = resting.map((r) => DescribeApi.formatName(r, 'something'));
+    const names = resting.map((r) => DescribeApi.formatName(r));
     let joined: string;
     if (names.length === 1) {
       joined = names[0]!;

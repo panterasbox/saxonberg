@@ -31,7 +31,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs === null) return `${field} must be an object`;
   for (const stuff of stuffs) {
     if (!MixinApi.isVisible(stuff as Stuff)) {
-      return `you can't see ${DescribeApi.getDisplayName(stuff, 'that')}`;
+      return `you can't see ${DescribeApi.getDisplayName(stuff)}`;
     }
   }
   return undefined;

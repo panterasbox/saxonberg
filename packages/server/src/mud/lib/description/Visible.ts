@@ -18,7 +18,9 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
-import { fireFieldChange } from '../events/FieldChangedEvent';
+import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -73,6 +75,35 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Used by PersistApi for automatic synchronization.
      */
     static persistentFields = ['shortDescription', 'longDescription'];
+
+    /**
+     * Live-query subscribable fields — projected by
+     * `MqlSubscriptionApi.projectFields`. Re-projection fires on
+     * `FieldChangedEvent { field: 'shortDescription' | 'longDescription' }`
+     * and on `ShadowChangedEvent` targeting this Stuff (so a hood
+     * shadow that overrides the visible appearance triggers
+     * automatically).
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'shortDescription',
+        read: (stuff) =>
+          (stuff as unknown as Visible).getShortDescription(),
+        changes: [
+          { on: FieldChangedEvent, by: 'field' },
+          { on: ShadowChangedEvent, by: 'target' },
+        ],
+      },
+      {
+        name: 'longDescription',
+        read: (stuff) =>
+          (stuff as unknown as Visible).getLongDescription(),
+        changes: [
+          { on: FieldChangedEvent, by: 'field' },
+          { on: ShadowChangedEvent, by: 'target' },
+        ],
+      },
+    ];
 
     protected shortDescription: string = '';
     protected longDescription: string = '';

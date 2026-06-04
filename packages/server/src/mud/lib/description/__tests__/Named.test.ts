@@ -196,15 +196,11 @@ describe('NamedMixin', () => {
   describe('DescribeApi.getDisplayName integration', () => {
     it('returns name when set', () => {
       obj.setName('Alice');
-      expect(DescribeApi.getDisplayName(obj, 'something')).toBe('Alice');
+      expect(DescribeApi.getDisplayName(obj)).toBe('Alice');
     });
 
-    it('falls back to the supplied default when name is empty', () => {
-      expect(DescribeApi.getDisplayName(obj, 'something')).toBe('something');
-    });
-
-    it('falls back to the empty string when no default is supplied', () => {
-      expect(DescribeApi.getDisplayName(obj)).toBe('');
+    it('falls back to the baked-in default when name is empty', () => {
+      expect(DescribeApi.getDisplayName(obj)).toBe('something');
     });
   });
 });

@@ -24,7 +24,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs === null) return `${field} must be an object`;
   for (const stuff of stuffs) {
     if (!(stuff instanceof Agent)) {
-      return `${DescribeApi.getDisplayName(stuff as Stuff, 'that')} can't accept things`;
+      return `${DescribeApi.getDisplayName(stuff as Stuff)} can't accept things`;
     }
   }
   return undefined;

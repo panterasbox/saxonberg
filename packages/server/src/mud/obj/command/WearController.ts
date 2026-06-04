@@ -74,7 +74,7 @@ export class WearController extends CommandController<WearModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'wrong-fit',
-        detail: `${DescribeApi.getDisplayName(target, 'that')} doesn't fit your body`,
+        detail: `${DescribeApi.getDisplayName(target)} doesn't fit your body`,
       });
       return;
     }
