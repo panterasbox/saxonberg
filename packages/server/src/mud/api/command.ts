@@ -515,15 +515,52 @@ export type CommandValidator = ((
  * the matcher reads only that field. Schema delivery uses the
  * string form.
  */
+/**
+ * Authorial cardinality constraint on an `objects` field. Describes
+ * how many results the controller wants from MQL resolution. Default
+ * is `{ min: 0, max: Infinity }` (take everything resolved). Setting
+ * `exactly: N` is sugar for `min: N, max: N`.
+ */
+export interface CardinalitySpec {
+  min?: number;
+  max?: number;
+  exactly?: number;
+}
+
+/**
+ * What to do when MQL resolves more results than the cardinality
+ * permits.
+ *
+ * - `'top'` — pick the highest-scored match. **`object` only** (the
+ *   default for `object` fields; preserves pre-cardinality behavior).
+ * - `'take-all'` — execute with all resolved Stuffs. **`objects`
+ *   only** (the default for `objects` when `max` is unset).
+ * - `'prompt'` — push `mqlObject` (cardinality 1) or `mqlMany`
+ *   (cardinality K) and await the player's selection.
+ * - `'truncate'` — silently take the top `max` matches. **`objects`
+ *   only.**
+ * - `'error'` — fail the command with a structured note.
+ */
+export type OnExcessPolicy = 'top' | 'take-all' | 'prompt' | 'truncate' | 'error';
+
+/**
+ * What to do when MQL resolves fewer results than `cardinality.min`.
+ * v1 ships one value: `'error'`. ("Prompt to widen your MQL query"
+ * is deferred per requirements doc non-goals.)
+ */
+export type OnShortagePolicy = 'error';
+
 export interface FieldDefinition {
   /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
    * - `object` — singular MQL field; the dispatcher resolves the
-   *   bound text via `MqlApi.resolveOne`, picking the highest-scored
-   *   match (or failing the command on no match).
+   *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
+   *   `MqlApi.resolveMany` (otherwise — full list needed for
+   *   counting / prompting). Implicit cardinality `{ exactly: 1 }`.
    * - `objects` — plural MQL field; the dispatcher resolves via
    *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
-   *   fields — the cardinality is the type.
+   *   fields — the cardinality is the type plus the optional
+   *   `cardinality` knob.
    * - `struct` — structured-input-only blob (`Record<string, unknown>`).
    *   Cannot be bound from text — `msh` returns a clear error if a
    *   verb's positional or option of this type appears in tokenised
@@ -532,6 +569,29 @@ export interface FieldDefinition {
    *   `schema` (JSON Schema) before user-defined validators fire.
    */
   type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  /**
+   * Cardinality constraint for `objects` fields. Ignored on other
+   * field types. Defaults to `{ min: 0, max: Infinity }`.
+   */
+  cardinality?: CardinalitySpec;
+  /**
+   * Policy when MQL resolves too many results.
+   *
+   *   - `'object'` field default: `'top'` (preserves pre-cardinality
+   *     behavior; pick the highest-scored match).
+   *   - `'objects'` field default: `'prompt'` if `cardinality.max` is
+   *     set, `'take-all'` otherwise.
+   *
+   * `'top'` and `'take-all'` are mutually exclusive between field
+   * types (schema validation rejects `'top'` on `objects`,
+   * `'take-all'` on `object`, etc.).
+   */
+  onExcess?: OnExcessPolicy;
+  /**
+   * Policy when MQL resolves fewer results than `cardinality.min`.
+   * v1 only value: `'error'`. Future values land additively.
+   */
+  onShortage?: OnShortagePolicy;
   /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
