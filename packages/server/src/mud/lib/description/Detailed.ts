@@ -32,6 +32,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { EventApi } from '../../api/event';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
 
 export const PATH_DELIM = '.';
 
@@ -179,6 +181,17 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
         result++;
       }
 
+      if (result > 0) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: (this as unknown as { stuffId: string }).stuffId,
+            field: 'details',
+            oldValue: undefined,
+            newValue: undefined,
+          }),
+        );
+      }
+
       return result;
     }
 
@@ -200,6 +213,17 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
         details.delete(resolvedId);
         result++;
+      }
+
+      if (result > 0) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: (this as unknown as { stuffId: string }).stuffId,
+            field: 'details',
+            oldValue: undefined,
+            newValue: undefined,
+          }),
+        );
       }
 
       return result;

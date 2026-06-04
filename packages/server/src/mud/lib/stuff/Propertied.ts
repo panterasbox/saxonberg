@@ -75,6 +75,8 @@ import { Unshadowable } from '../security/decorators';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from '../../api/stuff';
 import type { Marshaller } from '../persistence/Marshaller';
+import { EventApi } from '../../api/event';
+import { PropertyChangedEvent } from '../events/PropertyChangedEvent';
 
 /**
  * Property wrapper for type safety.
@@ -354,6 +356,26 @@ export interface Propertied {
 }
 
 /**
+ * Detect "we're inside an EventApi.emit call" — the case where
+ * EventApi calls `reg.setProp(name, payload)` on the EventRegistry
+ * to drive event dispatch. PropertiedMixin must NOT fire a
+ * PropertyChangedEvent in that case: doing so would re-enter
+ * EventApi.emit → reg.setProp → setProp → fire → infinite loop.
+ *
+ * The guard walks the call stack for an `EventApi` class frame.
+ * This is the same shape `emittableBy` uses; we keep this local
+ * (no shared helper) to avoid pulling EventApi into the import
+ * cycle at module-load.
+ */
+function isInEventApiFrame(): boolean {
+  const stack = ExecutionContextApi.getCallStack();
+  for (let i = stack.length - 1; i >= 0; i--) {
+    if (stack[i]!.target === EventApi) return true;
+  }
+  return false;
+}
+
+/**
  * Resolve a marshaller by templatePath. Throws when the path is
  * declared but the marshaller hasn't been loaded into the registry —
  * marshallers must be seeded / registered before any host that
@@ -621,6 +643,25 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return false;
       }
 
+      // Capture pre-set runtime-shape value for change detection.
+      // `getPropValue` returns storage-shape for marshalled saved
+      // props; convert via the same path `getProp` uses so the
+      // payload's `oldValue` reflects what consumers actually saw.
+      const oldRaw = this.getPropValue(propName);
+      let oldRuntime: PropValue | null = oldRaw;
+      if (oldRaw !== null) {
+        const path = this.savedPropMarshallers[propName];
+        if (
+          path !== undefined &&
+          this.savedProps &&
+          propName in this.savedProps
+        ) {
+          oldRuntime = resolveMarshaller(path, propName).fromStored(
+            oldRaw,
+          ) as PropValue;
+        }
+      }
+
       // Store in appropriate location (initProp above guarantees config exists).
       // Transient props store the raw runtime value (memory-only, never
       // serialized). Persistent props apply `marshaller.toStored` if a
@@ -636,6 +677,17 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
         } else {
           this.savedProps![propName] = value;
         }
+      }
+
+      if (!Object.is(oldRuntime, value) && !isInEventApiFrame()) {
+        EventApi.fire(
+          new PropertyChangedEvent({
+            target: (this as unknown as { stuffId: string }).stuffId,
+            property: propName,
+            oldValue: oldRuntime,
+            newValue: value,
+          }),
+        );
       }
 
       return true;

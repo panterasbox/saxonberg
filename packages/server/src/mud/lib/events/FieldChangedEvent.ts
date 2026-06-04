@@ -50,7 +50,7 @@ export class FieldChangedEvent extends StuffEvent<FieldChangedPayload> {
  * assign can still inline.
  */
 export function fireFieldChange<T>(
-  target: { stuffId: string },
+  target: object,
   field: string,
   oldValue: T,
   newValue: T,
@@ -58,9 +58,10 @@ export function fireFieldChange<T>(
   if (Object.is(oldValue, newValue)) {
     return oldValue;
   }
+  const stuffId = (target as { stuffId: string }).stuffId;
   EventApi.fire(
     new FieldChangedEvent({
-      target: target.stuffId,
+      target: stuffId,
       field,
       oldValue,
       newValue,

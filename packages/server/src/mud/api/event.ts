@@ -188,6 +188,9 @@ export interface EventClassCtor<E extends StuffEvent<unknown>> {
   new (...args: never[]): E;
 }
 
+/** Extract the payload type from an event class. */
+type PayloadOf<E> = E extends StuffEvent<infer P> ? P : never;
+
 /**
  * Internal shape passed to class-based listeners. We do not
  * reconstruct the class instance — listeners pattern-match on
@@ -314,20 +317,26 @@ export class EventApi {
    * instead of the raw payload. No class-instance reconstruction —
    * listeners pattern-match on payload fields.
    */
-  public static on<E extends StuffEvent<P>, P = unknown>(
+  public static on<E extends StuffEvent<unknown>>(
     EventClass: EventClassCtor<E>,
-    listener: (event: EventLike<P>, ctx: ListenerContext) => void | Promise<void>,
-    opts?: SubscribeOptions<EventLike<P>>,
-  ): Subscription<EventLike<P>>;
+    listener: (
+      event: EventLike<PayloadOf<E>>,
+      ctx: ListenerContext,
+    ) => void | Promise<void>,
+    opts?: SubscribeOptions<EventLike<PayloadOf<E>>>,
+  ): Subscription<EventLike<PayloadOf<E>>>;
   public static on<T = unknown>(
     name: string,
     listener: Listener<T>,
     opts?: SubscribeOptions<T>
   ): Subscription<T>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static on(
     nameOrClass: string | EventClassCtor<StuffEvent<unknown>>,
-    listener: Listener<unknown>,
-    opts?: SubscribeOptions<unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    listener: (payload: any, ctx: ListenerContext) => void | Promise<void>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    opts?: SubscribeOptions<any>,
   ): Subscription<unknown> {
     if (typeof nameOrClass !== 'string') {
       const kind = nameOrClass.KIND;

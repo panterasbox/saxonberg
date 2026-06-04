@@ -45,6 +45,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
+import { fireFieldChange } from '../events/FieldChangedEvent';
 
 /** Public shape added by GlobbableMixin. */
 export interface Globbable {
@@ -164,7 +165,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
           `GlobbableMixin.setQuantity: quantity must be a positive integer (got ${n})`
         );
       }
-      this.quantity = n;
+      this.quantity = fireFieldChange(this, 'quantity', this.quantity, n);
     }
 
     public canMergeWith(other: Stuff): boolean {

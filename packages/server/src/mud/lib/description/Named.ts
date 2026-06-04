@@ -36,6 +36,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { fireFieldChange } from '../events/FieldChangedEvent';
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a
@@ -104,7 +105,9 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
     setHonorific(value: string | undefined): void { this.honorific = value; }
 
     getName(): string { return this.name; }
-    setName(value: string): void { this.name = value; }
+    setName(value: string): void {
+      this.name = fireFieldChange(this, 'name', this.name, value);
+    }
 
     getSurname(): string | undefined { return this.surname; }
     setSurname(value: string | undefined): void { this.surname = value; }

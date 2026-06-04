@@ -18,6 +18,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import { fireFieldChange } from '../events/FieldChangedEvent';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -81,7 +82,12 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setShortDescription(value: string): void {
-      this.shortDescription = value;
+      this.shortDescription = fireFieldChange(
+        this,
+        'shortDescription',
+        this.shortDescription,
+        value,
+      );
     }
 
     getLongDescription(): string {
@@ -89,7 +95,12 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setLongDescription(value: string): void {
-      this.longDescription = value;
+      this.longDescription = fireFieldChange(
+        this,
+        'longDescription',
+        this.longDescription,
+        value,
+      );
     }
 
     /**

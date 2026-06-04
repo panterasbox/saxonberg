@@ -46,6 +46,8 @@ import { StuffApi } from '../../api/stuff';
 import type { Material } from './Material';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { EventApi } from '../../api/event';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
 
 export interface Tangible {
   /**
@@ -162,21 +164,67 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public setMaterial(value: Material | null, detailKey?: string): void {
+      const stuffId = (this as unknown as { stuffId: string }).stuffId;
       if (detailKey !== undefined) {
+        const oldPath = this._detailMaterialPaths[detailKey];
+        const newPath = value ? (value.getTemplatePath() ?? undefined) : undefined;
         if (value === null) {
           delete this._detailMaterialPaths[detailKey];
-        } else {
-          const path = value.getTemplatePath();
-          if (path) this._detailMaterialPaths[detailKey] = path;
+        } else if (newPath) {
+          this._detailMaterialPaths[detailKey] = newPath;
+        }
+        if (oldPath !== newPath) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'detailMaterials',
+              oldValue: oldPath ?? null,
+              newValue: newPath ?? null,
+            }),
+          );
         }
         return;
       }
       if (value === null) {
+        const hadBulk = this._materialPath !== null;
+        const hadOverrides = Object.keys(this._detailMaterialPaths).length > 0;
         this._materialPath = null;
         this._detailMaterialPaths = {};
+        if (hadBulk) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'bulkMaterial',
+              oldValue: undefined,
+              newValue: null,
+            }),
+          );
+        }
+        if (hadOverrides) {
+          EventApi.fire(
+            new FieldChangedEvent({
+              target: stuffId,
+              field: 'detailMaterials',
+              oldValue: undefined,
+              newValue: undefined,
+            }),
+          );
+        }
         return;
       }
-      this._materialPath = value.getTemplatePath() ?? null;
+      const newPath = value.getTemplatePath() ?? null;
+      const oldPath = this._materialPath;
+      this._materialPath = newPath;
+      if (oldPath !== newPath) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: stuffId,
+            field: 'bulkMaterial',
+            oldValue: oldPath,
+            newValue: newPath,
+          }),
+        );
+      }
     }
 
     public getMass(): Quantity<'kg'> {
@@ -189,7 +237,21 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * authoring is the marshaller's job, not a runtime API concern.
      */
     public setMass(value: Quantity<'kg'>): void {
+      const old = this._mass;
       this.mass = value;
+      // The setter above validates type/range. Compare via Quantity
+      // equality (same raw value AND same unit) so a redundant write
+      // of the same mass doesn't fire.
+      if (!(old instanceof Quantity) || !old.equals(value)) {
+        EventApi.fire(
+          new FieldChangedEvent({
+            target: (this as unknown as { stuffId: string }).stuffId,
+            field: 'mass',
+            oldValue: old,
+            newValue: value,
+          }),
+        );
+      }
     }
   };
 }
