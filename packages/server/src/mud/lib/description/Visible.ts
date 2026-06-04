@@ -18,9 +18,12 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
-import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -113,7 +116,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setShortDescription(value: string): void {
-      this.shortDescription = fireFieldChange(
+      this.shortDescription = MqlSubscriptionApi.fireFieldChange(
         this,
         'shortDescription',
         this.shortDescription,
@@ -126,7 +129,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setLongDescription(value: string): void {
-      this.longDescription = fireFieldChange(
+      this.longDescription = MqlSubscriptionApi.fireFieldChange(
         this,
         'longDescription',
         this.longDescription,

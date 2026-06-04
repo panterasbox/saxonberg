@@ -45,8 +45,11 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
-import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /** Public shape added by GlobbableMixin. */
 export interface Globbable {
@@ -182,7 +185,12 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
           `GlobbableMixin.setQuantity: quantity must be a positive integer (got ${n})`
         );
       }
-      this.quantity = fireFieldChange(this, 'quantity', this.quantity, n);
+      this.quantity = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'quantity',
+        this.quantity,
+        n,
+      );
     }
 
     public canMergeWith(other: Stuff): boolean {

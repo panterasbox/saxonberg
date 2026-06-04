@@ -1,12 +1,53 @@
 /**
- * NamedMixin — name fields for any Stuff that should be addressable.
+ * NamedMixin — **proper-name** identity for things people address
+ * by name.
  *
- * Lives in `lib/description/` because a name is part of how a thing
- * presents itself, alongside `Visible`, `Perceptible`, and `Detailed`.
- * Applies to people, NPCs, pets, artifacts, locations, buildings —
- * anything with a name.
+ * Lives in `lib/description/` because a proper name is part of how a
+ * thing presents itself, alongside `Visible`, `Perceptible`, and
+ * `Detailed`.
  *
- * Shape:
+ * ## What this mixin IS for
+ *
+ * Things with a **proper name** a character would use to refer to
+ * them:
+ *
+ *   - People and NPCs ("Alice", "Dr. Smith", "Captain Hook")
+ *   - Pets, mounts, familiars ("Rover", "Bucephalus")
+ *   - Named artifacts ("Excalibur", "the One Ring")
+ *   - **Named** locations ("Duncan Hall" the building; "the
+ *     Memorial Bobalu Smallberries Lobby" if dedicated to someone;
+ *     "Eternal City")
+ *   - Vessels with names ("the SS Saxonberg")
+ *
+ * If a player would naturally say "go to the [thing] in [Named]" —
+ * Named applies.
+ *
+ * ## What this mixin is NOT for
+ *
+ * Generic labels or descriptive identifiers that READ like names but
+ * are just descriptions:
+ *
+ *   - **Generic rooms** ("lobby", "the lobby", "Duncan Hall Lobby" —
+ *     these go on `Visible.shortDescription`)
+ *   - **Generic objects** ("iron sword", "wooden chair", "rusty
+ *     hinges" — all `Visible.shortDescription`)
+ *   - **Generic NPCs** ("guard", "merchant" — `Visible.shortDescription`)
+ *   - **Detail entries** ("the brass handle" — that's `DetailedMixin`)
+ *
+ * Rule of thumb: if the string starts with an article ("a", "the",
+ * "an") or reads like a description ("iron door"), it's a
+ * `shortDescription` not a Named name. A proper name stands on its
+ * own without an article.
+ *
+ * **Why the split matters.** `DescribeApi.getDisplayName` uses the
+ * presence of a Named name as the **highest-precedence** display
+ * string — proper names render bare ("Alice"), while
+ * shortDescriptions render with articles ("a heavy iron door"). The
+ * recognition / DescribeApi v2 pipeline keys off Named presence too.
+ * Smuggling generic labels into Named blurs the rendering contract
+ * and breaks recognition.
+ *
+ * ## Shape
  *
  *   honorific?      // "Dr.", "Sir", "Captain" — formal address prefix
  *   name            // casual register; the field 95% of callers want
@@ -36,9 +77,12 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import { FieldChangedEvent, fireFieldChange } from '../events/FieldChangedEvent';
+import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Categories of alternate names. Open-ish — extend the union when a
@@ -127,7 +171,12 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getName(): string { return this.name; }
     setName(value: string): void {
-      this.name = fireFieldChange(this, 'name', this.name, value);
+      this.name = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'name',
+        this.name,
+        value,
+      );
     }
 
     getSurname(): string | undefined { return this.surname; }

@@ -30,7 +30,6 @@ import {
   type PropValue,
 } from '../lib/stuff/Propertied';
 import type { EventRegistry } from '../obj/EventRegistry';
-import type { StuffEvent } from '../lib/events/StuffEvent';
 
 /**
  * Listener invocation context. The triggering frame is the proxy /
@@ -178,26 +177,40 @@ function originatorMatches(
 }
 
 /**
- * Constructor shape for the class-based `EventApi.fire` / `on`
- * overloads. Any class with a static `KIND` string qualifies — the
- * dispatcher routes by `KIND` so HMR-replaced classes still resolve
- * through the same key.
+ * Structural shape for an event that rides the EventApi bus. Any
+ * object with a `kind` discriminator and a `payload` qualifies —
+ * we do not require a particular base class. Concrete event
+ * classes declare `kind` and `payload` directly; the type-system
+ * contract is structural.
+ *
+ * Used in three roles:
+ *   - the value passed to `EventApi.fire(event)`,
+ *   - the type bound for `EventClassCtor`,
+ *   - the value delivered to a class-based `EventApi.on` listener.
+ *
+ * Class-based listeners receive a plain `{ kind, payload }` object —
+ * we do not reconstruct the class instance, because listeners
+ * pattern-match on payload fields rather than prototype identity.
  */
-export interface EventClassCtor<E extends StuffEvent<unknown>> {
+export interface BusEvent<P = unknown> {
+  readonly kind: string;
+  readonly payload: P;
+}
+
+/**
+ * Constructor shape for the class-based `EventApi.fire` / `on`
+ * overloads. Any class with a static `KIND` string and instances
+ * that satisfy `BusEvent<P>` qualifies — the dispatcher routes by
+ * the `KIND` string, so HMR-replaced classes still resolve through
+ * the same key.
+ */
+export interface EventClassCtor<E extends BusEvent<unknown>> {
   readonly KIND: string;
   new (...args: never[]): E;
 }
 
 /** Extract the payload type from an event class. */
-type PayloadOf<E> = E extends StuffEvent<infer P> ? P : never;
-
-/**
- * Internal shape passed to class-based listeners. We do not
- * reconstruct the class instance — listeners pattern-match on
- * payload fields, not prototype identity, so a plain `{ kind,
- * payload }` shape carries the contract.
- */
-type EventLike<P> = { readonly kind: string; readonly payload: P };
+type PayloadOf<E> = E extends BusEvent<infer P> ? P : never;
 
 /* ─────────────────────────── EventApi ─────────────────────────── */
 
@@ -298,11 +311,13 @@ export class EventApi {
 
   /**
    * Class-based fire — sugar over `emit(event.kind, event.payload)`.
-   * Goes through the same per-event policy gate; listeners on either
-   * the string-keyed `on(name, ...)` form or the class-based
-   * `on(EventClass, ...)` form receive the same dispatch.
+   * Accepts anything structurally satisfying `BusEvent<P>` (any
+   * object with `kind: string` + `payload`). Goes through the same
+   * per-event policy gate; listeners on either the string-keyed
+   * `on(name, ...)` form or the class-based `on(EventClass, ...)`
+   * form receive the same dispatch.
    */
-  public static fire<E extends StuffEvent<unknown>>(event: E): void {
+  public static fire<E extends BusEvent<unknown>>(event: E): void {
     this.emit(event.kind, event.payload);
   }
 
@@ -317,14 +332,14 @@ export class EventApi {
    * instead of the raw payload. No class-instance reconstruction —
    * listeners pattern-match on payload fields.
    */
-  public static on<E extends StuffEvent<unknown>>(
+  public static on<E extends BusEvent<unknown>>(
     EventClass: EventClassCtor<E>,
     listener: (
-      event: EventLike<PayloadOf<E>>,
+      event: BusEvent<PayloadOf<E>>,
       ctx: ListenerContext,
     ) => void | Promise<void>,
-    opts?: SubscribeOptions<EventLike<PayloadOf<E>>>,
-  ): Subscription<EventLike<PayloadOf<E>>>;
+    opts?: SubscribeOptions<BusEvent<PayloadOf<E>>>,
+  ): Subscription<BusEvent<PayloadOf<E>>>;
   public static on<T = unknown>(
     name: string,
     listener: Listener<T>,
@@ -332,7 +347,7 @@ export class EventApi {
   ): Subscription<T>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static on(
-    nameOrClass: string | EventClassCtor<StuffEvent<unknown>>,
+    nameOrClass: string | EventClassCtor<BusEvent<unknown>>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     listener: (payload: any, ctx: ListenerContext) => void | Promise<void>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -341,18 +356,18 @@ export class EventApi {
     if (typeof nameOrClass !== 'string') {
       const kind = nameOrClass.KIND;
       const adaptedListener: Listener<unknown> = (payload, ctx) =>
-        listener({ kind, payload } as EventLike<unknown>, ctx);
+        listener({ kind, payload } as BusEvent<unknown>, ctx);
       let adaptedFilter: ((payload: unknown) => boolean) | undefined;
       if (opts?.filter) {
         const f = opts.filter;
         adaptedFilter = (payload) =>
-          f({ kind, payload } as EventLike<unknown>);
+          f({ kind, payload } as BusEvent<unknown>);
       }
       let adaptedUntil: ((payload: unknown) => boolean) | undefined;
       if (opts?.until) {
         const u = opts.until;
         adaptedUntil = (payload) =>
-          u({ kind, payload } as EventLike<unknown>);
+          u({ kind, payload } as BusEvent<unknown>);
       }
       return this.#onByName(kind, adaptedListener, {
         filter: adaptedFilter,

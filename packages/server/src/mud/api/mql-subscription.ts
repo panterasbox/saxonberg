@@ -54,7 +54,7 @@ import { MqlApi } from './mql';
 import { MqlPermissionError } from './mql/permissions';
 import { EventApi } from './event';
 import { MessageApi } from './message';
-import { FieldChangedEvent } from '../lib/events/FieldChangedEvent';
+import { FieldChangedEvent, type FieldChangedPayload } from '../lib/events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../lib/events/ShadowChangedEvent';
 
 /* ───────────────────── Public descriptor surface ────────────────── */
@@ -407,6 +407,51 @@ export class MqlSubscriptionApi {
   // re-resolve pass.
   static #dirty = new Set<SubscriptionState>();
   static #scheduled = false;
+
+  /**
+   * Compress the noop-check + capture + assign + fire boilerplate at
+   * every fact-mixin setter into one call.
+   *
+   * Caller pattern:
+   *
+   *   setName(value: string): void {
+   *     this.name = MqlSubscriptionApi.fireFieldChange(
+   *       this, 'name', this.name, value,
+   *     );
+   *   }
+   *
+   * Strict-equals (`Object.is`) compares old vs new. On equal, skip
+   * emission and return `oldValue`. On change, fire
+   * `FieldChangedEvent` and return `newValue`. Either way the caller
+   * assigns the return value, so the setter body stays one line.
+   *
+   * Opt-in: a setter with side-effects beyond the assign (Detailed's
+   * Map mutations, Tangible's bulk-vs-detail discrimination,
+   * Propertied's marshaller boundary) inlines the fire instead.
+   *
+   * Lives on `MqlSubscriptionApi` rather than next to
+   * `FieldChangedEvent` so the substrate owns its own helpers — the
+   * event class stays a pure DTO.
+   */
+  public static fireFieldChange<T>(
+    target: object,
+    field: string,
+    oldValue: T,
+    newValue: T,
+  ): T {
+    if (Object.is(oldValue, newValue)) {
+      return oldValue;
+    }
+    const stuffId = (target as { stuffId: string }).stuffId;
+    const payload: FieldChangedPayload = {
+      target: stuffId,
+      field,
+      oldValue,
+      newValue,
+    };
+    EventApi.fire(new FieldChangedEvent(payload));
+    return newValue;
+  }
 
   /**
    * Register a subscription. See class docstring for behavior.

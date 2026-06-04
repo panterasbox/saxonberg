@@ -68,8 +68,10 @@ describe('MqlSubscriptionApi — integration loop', () => {
 
     const initial = envelopes.find((e) => e.type === 'mql-subscription-result');
     expect(initial).toBeDefined();
-    expect((initial as { result: Array<{ displayName: string }> }).result[0]!.displayName)
-      .toBe('Alice');
+    expect(
+      (initial as unknown as { result: Array<{ displayName: string }> })
+        .result[0]!.displayName,
+    ).toBe('Alice');
 
     envelopes.length = 0;
     avatar.setName('Bob');

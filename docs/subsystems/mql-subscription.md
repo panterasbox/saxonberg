@@ -26,8 +26,7 @@ See:
 | File | Role |
 |---|---|
 | `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers, substrate-synthetic table |
-| `packages/server/src/mud/lib/events/StuffEvent.ts` | Class-per-event base |
-| `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event + `fireFieldChange` helper |
+| `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
 | `packages/server/src/mud/lib/events/GenericEvent.ts` | Escape-hatch class-shaped event |
@@ -187,14 +186,17 @@ cross-cutting renders that no single mixin owns (v1: just
 ## Event-class pattern
 
 A small class-per-event vocabulary sits on top of the existing
-`EventApi.emit(name, payload)` / `on(name, listener)` surface:
+`EventApi.emit(name, payload)` / `on(name, listener)` surface.
+Concrete event classes don't share a base — they satisfy the
+structural `BusEvent<P>` contract (declared in `api/event.ts`) by
+exposing `kind: string` and `payload: P` directly:
 
 | Class | KIND | Discriminator | Firing site |
 |---|---|---|---|
-| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `fireFieldChange` helper or inline |
+| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `MqlSubscriptionApi.fireFieldChange` or inline |
 | `PropertyChangedEvent` | `'stuff.propertyChanged'` | `property` (property-bag key) | `PropertiedMixin.setProp` |
 | `ShadowChangedEvent` | `'stuff.shadowChanged'` | `cause`, `shadow` | **Declared but unfired.** Wires up with the shadow lifecycle in a later subsystem. |
-| `GenericEvent<P>` | per-instance | — | Escape hatch when no specific class fits. |
+| `GenericEvent<P>` | per-instance | — | Escape hatch when no specific class fits. Has no static `KIND`; routes via string-keyed `EventApi.on(name, …)` only. |
 
 The class-based call site is sugar over the string-keyed bus:
 
@@ -215,17 +217,23 @@ meta-bus index discriminates by `(EventClass.KIND, attribute, value)`,
 and `FieldChangedEvent` carries `field` while `PropertyChangedEvent`
 carries `property`.
 
-### `fireFieldChange` helper
+### `MqlSubscriptionApi.fireFieldChange` helper
 
 ```ts
 setName(value: string): void {
-  this.name = fireFieldChange(this, 'name', this.name, value);
+  this.name = MqlSubscriptionApi.fireFieldChange(
+    this, 'name', this.name, value,
+  );
 }
 ```
 
 Strict-equals (`Object.is`) compares old vs new. On equal, skip
 emission and return `oldValue`. On change, fire the event and return
 `newValue`. Setter is a single line.
+
+The helper lives on `MqlSubscriptionApi`, not on `FieldChangedEvent`,
+so the substrate owns its own helpers and the event class stays a
+pure DTO.
 
 Used by `NamedMixin.setName`, `VisibleMixin.setShortDescription` /
 `setLongDescription`, `GlobbableMixin.setQuantity`. `DetailedMixin`

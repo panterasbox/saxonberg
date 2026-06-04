@@ -1227,12 +1227,15 @@ new FieldChangedEvent({ target: this.stuffId, field, oldValue, newValue });
 ```
 
 For setter sites that follow the "noop-check + capture + assign + fire"
-pattern, use the `fireFieldChange` helper instead of the long form:
+pattern, use the `MqlSubscriptionApi.fireFieldChange` helper instead
+of the long form:
 
 ```ts
 // CORRECT — one-line setter
 setName(value: string): void {
-  this.name = fireFieldChange(this, 'name', this.name, value);
+  this.name = MqlSubscriptionApi.fireFieldChange(
+    this, 'name', this.name, value,
+  );
 }
 
 // AVOID — verbose, easy to miss the noop-skip

@@ -123,8 +123,30 @@ not in this Api.
 
 ## What Makes a Mixin Well-Formed
 
-Four conventions. Skip any of them and other subsystems silently treat
+Five conventions. Skip any of them and other subsystems silently treat
 the mixin as if it weren't there.
+
+### 0. Docstring must say what the mixin IS and IS NOT for
+
+Every mixin file's top-level docstring **must** include two explicit
+sections:
+
+  - **What this mixin IS for** — concrete examples of correct use.
+  - **What this mixin is NOT for** — concrete examples of misuse,
+    pointing at the right alternative.
+
+This is a hard requirement, not a preference. The mixin set is the
+content authoring contract — seed YAML, controller code, and future
+content all decide which mixin to compose based on what the docstring
+says. Without an explicit IS NOT section, authors (human and AI)
+routinely smuggle generic labels into `Named`, descriptive strings
+into `Detailed`, or non-tangible Stuff into `Tangible`, then the
+review surfaces the mistake one MR at a time. Document the rule once
+and the mistake stops recurring.
+
+Canonical exemplar: [`NamedMixin`](../../packages/server/src/mud/lib/description/Named.ts)
+has a full IS / IS NOT section explaining why "Alice" is a name but
+"lobby" is a short description.
 
 ### 1. Factory function form
 

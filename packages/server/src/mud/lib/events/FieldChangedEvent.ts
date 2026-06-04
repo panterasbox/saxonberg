@@ -7,14 +7,15 @@
  * Globbable.setQuantity, etc.).
  *
  * The payload's `field` discriminator names the mixin-declared field
- * that changed. PropertyChangedEvent uses a separate KIND with a
+ * that changed. `PropertyChangedEvent` uses a separate KIND with a
  * `property` discriminator so the property-bag namespace and the
- * fact-mixin field namespace stay distinct on the meta-bus dependency
- * index.
+ * fact-mixin field namespace stay distinct on the meta-bus
+ * dependency index.
+ *
+ * Concrete event classes don't extend a common base — they satisfy
+ * the `BusEvent<P>` structural contract (in `api/event.ts`) by
+ * declaring `kind: string` + `payload: P` directly.
  */
-
-import { EventApi } from '../../api/event';
-import { StuffEvent } from './StuffEvent';
 
 export interface FieldChangedPayload {
   target: string;          // StuffId
@@ -23,49 +24,8 @@ export interface FieldChangedPayload {
   newValue: unknown;
 }
 
-export class FieldChangedEvent extends StuffEvent<FieldChangedPayload> {
+export class FieldChangedEvent {
   static readonly KIND = 'stuff.fieldChanged';
   readonly kind = FieldChangedEvent.KIND;
-  constructor(public readonly payload: FieldChangedPayload) {
-    super();
-  }
-}
-
-/**
- * Compress the noop-check + capture + assign + fire boilerplate at
- * every fact-mixin setter into one call.
- *
- * Caller pattern:
- *
- *   setName(value: string): void {
- *     this.name = fireFieldChange(this, 'name', this.name, value);
- *   }
- *
- * Strict-equals (Object.is) compares old vs new; on equal it skips
- * emission and returns `oldValue`. On change it fires
- * FieldChangedEvent and returns `newValue`. Either way the caller
- * assigns the return value, so the setter body is a single line.
- *
- * The helper is opt-in: a setter with side-effects beyond the
- * assign can still inline.
- */
-export function fireFieldChange<T>(
-  target: object,
-  field: string,
-  oldValue: T,
-  newValue: T,
-): T {
-  if (Object.is(oldValue, newValue)) {
-    return oldValue;
-  }
-  const stuffId = (target as { stuffId: string }).stuffId;
-  EventApi.fire(
-    new FieldChangedEvent({
-      target: stuffId,
-      field,
-      oldValue,
-      newValue,
-    }),
-  );
-  return newValue;
+  constructor(public readonly payload: FieldChangedPayload) {}
 }
