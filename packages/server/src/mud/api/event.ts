@@ -30,6 +30,7 @@ import {
   type PropValue,
 } from '../lib/stuff/Propertied';
 import type { EventRegistry } from '../obj/EventRegistry';
+import type { StuffEvent } from '../lib/events/StuffEvent';
 
 /**
  * Listener invocation context. The triggering frame is the proxy /
@@ -176,6 +177,25 @@ function originatorMatches(
   );
 }
 
+/**
+ * Constructor shape for the class-based `EventApi.fire` / `on`
+ * overloads. Any class with a static `KIND` string qualifies — the
+ * dispatcher routes by `KIND` so HMR-replaced classes still resolve
+ * through the same key.
+ */
+export interface EventClassCtor<E extends StuffEvent<unknown>> {
+  readonly KIND: string;
+  new (...args: never[]): E;
+}
+
+/**
+ * Internal shape passed to class-based listeners. We do not
+ * reconstruct the class instance — listeners pattern-match on
+ * payload fields, not prototype identity, so a plain `{ kind,
+ * payload }` shape carries the contract.
+ */
+type EventLike<P> = { readonly kind: string; readonly payload: P };
+
 /* ─────────────────────────── EventApi ─────────────────────────── */
 
 export class EventApi {
@@ -274,11 +294,66 @@ export class EventApi {
   }
 
   /**
+   * Class-based fire — sugar over `emit(event.kind, event.payload)`.
+   * Goes through the same per-event policy gate; listeners on either
+   * the string-keyed `on(name, ...)` form or the class-based
+   * `on(EventClass, ...)` form receive the same dispatch.
+   */
+  public static fire<E extends StuffEvent<unknown>>(event: E): void {
+    this.emit(event.kind, event.payload);
+  }
+
+  /**
    * Register a listener for `name`. Returns a `Subscription` whose
    * `unsubscribe()` removes it from the side-table. Throws
    * `SecurityError` when the caller is denied subscribe access.
+   *
+   * The class-based overload (`on(EventClass, listener)`) is sugar
+   * for the string-keyed form: it routes via `EventClass.KIND` and
+   * delivers a `{ kind, payload }` event-like object to the listener
+   * instead of the raw payload. No class-instance reconstruction —
+   * listeners pattern-match on payload fields.
    */
+  public static on<E extends StuffEvent<P>, P = unknown>(
+    EventClass: EventClassCtor<E>,
+    listener: (event: EventLike<P>, ctx: ListenerContext) => void | Promise<void>,
+    opts?: SubscribeOptions<EventLike<P>>,
+  ): Subscription<EventLike<P>>;
   public static on<T = unknown>(
+    name: string,
+    listener: Listener<T>,
+    opts?: SubscribeOptions<T>
+  ): Subscription<T>;
+  public static on(
+    nameOrClass: string | EventClassCtor<StuffEvent<unknown>>,
+    listener: Listener<unknown>,
+    opts?: SubscribeOptions<unknown>,
+  ): Subscription<unknown> {
+    if (typeof nameOrClass !== 'string') {
+      const kind = nameOrClass.KIND;
+      const adaptedListener: Listener<unknown> = (payload, ctx) =>
+        listener({ kind, payload } as EventLike<unknown>, ctx);
+      let adaptedFilter: ((payload: unknown) => boolean) | undefined;
+      if (opts?.filter) {
+        const f = opts.filter;
+        adaptedFilter = (payload) =>
+          f({ kind, payload } as EventLike<unknown>);
+      }
+      let adaptedUntil: ((payload: unknown) => boolean) | undefined;
+      if (opts?.until) {
+        const u = opts.until;
+        adaptedUntil = (payload) =>
+          u({ kind, payload } as EventLike<unknown>);
+      }
+      return this.#onByName(kind, adaptedListener, {
+        filter: adaptedFilter,
+        until: adaptedUntil,
+      });
+    }
+    return this.#onByName(nameOrClass, listener, opts);
+  }
+
+  static #onByName<T = unknown>(
     name: string,
     listener: Listener<T>,
     opts?: SubscribeOptions<T>
