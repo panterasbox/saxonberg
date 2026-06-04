@@ -21,7 +21,6 @@ import { Idea } from '../../lib/stuff/Idea';
 import { Thing } from '../../lib/stuff/Thing';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
-import type { Sensor } from '../../lib/message/Sensor';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -82,8 +81,8 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setQuantity(3);
       return t;
     });
-    const viewer = obj as unknown as Sensor;
-    const rec = projectFields(obj, REF_FIELDS, obj as unknown as typeof viewer);
+    const viewer = obj as unknown as Parameters<typeof projectFields>[2];
+    const rec = projectFields(obj, REF_FIELDS, viewer);
     expect(rec.displayName).toBe('coin');
     expect(rec.quantity).toBe(3);
   });

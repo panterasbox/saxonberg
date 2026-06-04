@@ -35,13 +35,10 @@ describe('MQL subscription — substrate-synthetic field table', () => {
     });
     const viewer = obj as unknown as Sensor;
     const spy = vi.spyOn(DescribeApi, 'getDisplayName');
-    const value = descriptor.read!(obj, obj as unknown as Parameters<typeof descriptor.read>[1]);
+    const value = descriptor.read!(obj, obj as unknown as Parameters<NonNullable<typeof descriptor.read>>[1]);
     expect(value).toBe('Alice');
     expect(spy).toHaveBeenCalledWith(obj, expect.anything());
     spy.mockRestore();
-    // (viewer parameter is reserved; v1 ignores it but the call
-    // still passes it through to prove the plumbing reaches the
-    // leaf.)
     void viewer;
   });
 
@@ -51,7 +48,7 @@ describe('MQL subscription — substrate-synthetic field table', () => {
     const obj = makeStuff(() => new NamedThing()); // no setName
     const value = descriptor.read!(
       obj,
-      obj as unknown as Parameters<typeof descriptor.read>[1],
+      obj as unknown as Parameters<NonNullable<typeof descriptor.read>>[1],
     );
     expect(value).toBe('something');
   });
