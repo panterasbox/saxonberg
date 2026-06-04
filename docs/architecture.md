@@ -222,13 +222,21 @@ SecurityApi.decorateApiClass(XyzApi);
 ```
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MudlogApi`, `CommandApi`,
-`CommandLineApi`, `ProxyApi`, `SecurityApi`, `ShadowApi`,
-`ExecutionContextApi`, `ModuleApi`, `NavigationApi`, `PathPatternApi`,
-`ScheduleApi`, `SchedulerApi`, `TemplateApi`, `ZoneApi`,
-`DescribeApi`, `MmlApi`, `PlayerApi`, `PersistApi`-equivalent (no
-separate class today — persistence helpers live on the relevant
+`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `MudlogApi`,
+`CommandApi`, `CommandLineApi`, `ProxyApi`, `SecurityApi`,
+`ShadowApi`, `ExecutionContextApi`, `ModuleApi`, `NavigationApi`,
+`PathPatternApi`, `ScheduleApi`, `SchedulerApi`, `TemplateApi`,
+`ZoneApi`, `DescribeApi`, `MmlApi`, `PlayerApi`, `PersistApi`-equivalent
+(no separate class today — persistence helpers live on the relevant
 Apis directly).
+
+`MqlSubscriptionApi` is the second wire channel alongside prose /
+dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
+messages route through `Application.processUserMessage` to the
+substrate, which projects an MQL query's result + re-projects on
+relevant state changes. Outbound envelopes ride the same
+`MessageApi.sendEnvelope` path the dispatch-response framework uses.
+See `docs/subsystems/mql-subscription.md`.
 
 ### When to Create a New One
 

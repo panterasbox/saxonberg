@@ -93,6 +93,18 @@ behavior. Read the relevant doc before editing in its area.
     (desugar / lex / parse / resolve), AST, scope-walk, predicates,
     pronoun memory, via augmentation, permission tiers, online
     provider seam, PathTrie
+  - [mql-subscription.md](./docs/subsystems/mql-subscription.md) —
+    live MQL subscription substrate: per-Interactive registry,
+    `mql-subscribe` / `mql-unsubscribe` wire shapes,
+    `SubscribableFieldDescriptor` (flat `read` + focused-detail
+    `perDetailRead`), meta-bus dependency index keyed by
+    `(EventClass.KIND, attribute, value)`, `setImmediate`-batched
+    re-resolve scheduler, diff producing `op: replace/update/add/remove`,
+    error envelopes (parse/resolve/permission/closed), class-per-event
+    vocabulary (`FieldChangedEvent`, `PropertyChangedEvent`,
+    `ShadowChangedEvent`, `GenericEvent<P>`) layered onto `EventApi.fire`
+    + class-based `EventApi.on`, `DescribeApi.getDisplayName` reshape
+    (drop `fallback`, add `viewer?`, bake in `'something'`)
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration
