@@ -1408,40 +1408,43 @@ export class CommandApi {
   }
 
   /**
-   * Run MQL resolution on `type: object` / `type: objects` fields and
-   * options. Returns the bound model with `MqlOneResult` /
-   * `MqlManyResult` wrappers where strings used to be; the rest of
-   * the fields pass through.
-   *
-   * Does NOT run validators — that's {@link runValidators}. The split
-   * exists so the dispatcher can insert an async preload phase between
-   * MQL resolution and validation: field validator preloads need the
-   * resolved value to compute their deps (e.g.
-   * `requiresAnimateTarget` reads the bound target's `_speciesPath`).
-   *
-   * Reads `command` from `context`; the active subcommand (if any)
-   * is read from `model.subcommand`, which the matcher stamped at
-   * bind time.
-   */
-  /**
    * Apply the cardinality / onExcess / onShortage policy to a
-   * resolved candidate list. Synchronous subset — handles
-   * `take-all`, `truncate`, and `error` on excess; `error` on
-   * shortage; and the implicit cardinality of `object` fields
-   * (always `{ exactly: 1 }`).
+   * resolved MQL candidate list.
    *
-   * `prompt` policy is NOT handled here — the prompt-based
-   * disambiguation path requires async push + await, which the
-   * resolveModel pipeline doesn't support in v1. A field declared
-   * with `onExcess: 'prompt'` falls through to a TODO marker that
-   * the dispatcher (CommandGiver) is expected to detect and handle
-   * via PromptApi. Until that landing wave ships, the policy
-   * degrades to `top` (object) or `take-all` (objects) with a
-   * note flagging the deferral.
+   * Decision matrix:
    *
-   * Returns the filtered stuff list, or null if the policy
+   *   type=object (implicit `{ exactly: 1 }`):
+   *     0 matches → pass through (resolveModel lands `stuff=null`)
+   *     1 match   → pass through
+   *     >1 match  → onExcess decides:
+   *                   'top'    → first match wins (default)
+   *                   'error'  → controller-rejected:ambiguous, null
+   *                   'prompt' → await PromptApi.mqlObject; player
+   *                              picks; cancel propagates as
+   *                              PromptCancelledError (caught in
+   *                              CommandGiver). No Interactive on
+   *                              the context degrades to ambiguous.
+   *
+   *   type=objects (default `{ min: undefined, max: undefined }`):
+   *     under min  → onShortage='error', controller-rejected:insufficient
+   *     over max   → onExcess decides:
+   *                   'truncate' → cut to max
+   *                   'error'    → controller-rejected:too-many, null
+   *                   'prompt'   → await PromptApi.mqlMany; player
+   *                                picks within bounds; cancel
+   *                                propagates as PromptCancelledError.
+   *     in-range   → pass through
+   *
+   * The async prompt paths only fire when an Interactive is
+   * attached to the context (Avatar dispatch). Programmatic /
+   * scripted dispatch paths fall back to the degrade-to-error
+   * branch, since there's nobody to ask.
+   *
+   * Returns the filtered stuff list, or `null` when the policy
    * dictates failure (an error note has been added to the
-   * context).
+   * context). Throws `PromptCancelledError` when the player
+   * cancels — the caller (CommandGiver) catches and emits a
+   * cancelled-shape `controller-rejected` note.
    */
   static async applyCardinalityPolicy(
     spec: { type?: string; cardinality?: CardinalitySpec; onExcess?: OnExcessPolicy; onShortage?: OnShortagePolicy },
@@ -1535,6 +1538,26 @@ export class CommandApi {
     return stuff;
   }
 
+  /**
+   * Run MQL resolution on `type: object` / `type: objects` fields and
+   * options. Returns the bound model with `MqlOneResult` /
+   * `MqlManyResult` wrappers where strings used to be; the rest of
+   * the fields pass through.
+   *
+   * Does NOT run validators — that's {@link runValidators}. The split
+   * exists so the dispatcher can insert an async preload phase between
+   * MQL resolution and validation: field validator preloads need the
+   * resolved value to compute their deps (e.g. `requiresAnimateTarget`
+   * reads the bound target's `_speciesPath`).
+   *
+   * Async since `applyCardinalityPolicy` (called per resolved field)
+   * can push a PromptApi prompt and await the player's pick. The
+   * await propagates `PromptCancelledError` to the caller.
+   *
+   * Reads `command` from `context`; the active subcommand (if any)
+   * is read from `model.subcommand`, which the matcher stamped at
+   * bind time.
+   */
   static async resolveModel(
     model: CommandModel,
     context: CommandContext,

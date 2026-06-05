@@ -32,7 +32,7 @@ interface VarModel extends CommandModel {
 export class VarController extends CommandController<VarModel> {
   execute(model: VarModel, context: CommandContext): void {
     // requiresEnvironment validator guarantees this cast.
-    const avatar = context.commandGiver as unknown as EnvHost;
+    const avatar = context.commandGiver as EnvHost;
 
     const sub = model.subcommand ?? 'list';
     const name = model.name;

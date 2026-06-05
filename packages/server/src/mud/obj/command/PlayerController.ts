@@ -27,7 +27,7 @@ interface PlayerModel extends CommandModel {
 export class PlayerController extends CommandController<PlayerModel> {
   execute(model: PlayerModel, context: CommandContext): void {
     // requiresAvatar validator guarantees this cast.
-    const avatar = context.commandGiver as unknown as Avatar;
+    const avatar = context.commandGiver as Avatar;
 
     switch (model.subcommand) {
       case 'name':

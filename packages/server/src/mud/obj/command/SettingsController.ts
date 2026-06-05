@@ -34,7 +34,7 @@ interface SettingsModel extends CommandModel {
 export class SettingsController extends CommandController<SettingsModel> {
   execute(model: SettingsModel, context: CommandContext): void {
     // requiresEnvironment validator guarantees this cast.
-    const avatar = context.commandGiver as unknown as EnvHost;
+    const avatar = context.commandGiver as EnvHost;
 
     const sub = model.subcommand ?? 'list';
     const key = model.key;

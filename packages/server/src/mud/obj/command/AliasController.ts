@@ -35,7 +35,7 @@ interface AliasModel extends CommandModel {
 export class AliasController extends CommandController<AliasModel> {
   execute(model: AliasModel, context: CommandContext): void {
     // requiresAlias validator guarantees this cast.
-    const avatar = context.commandGiver as unknown as AliasHost;
+    const avatar = context.commandGiver as AliasHost;
 
     const sub = model.subcommand ?? 'list';
     const name = model.name;

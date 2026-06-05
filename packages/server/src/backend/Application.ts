@@ -39,7 +39,6 @@ import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
 import { PromptApi, renderPromptRefresh } from '../mud/api/prompt';
-import type { Stuff } from '../mud/lib/stuff/Stuff';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -384,7 +383,7 @@ export class Application {
       // controller side-effects. Runs even when the avatar has no
       // container (a placeless avatar should still see their
       // current prompt).
-      const refresh = renderPromptRefresh(holder as unknown as Stuff);
+      const refresh = renderPromptRefresh(holder);
       const template: EnvelopeTemplate = {
         type: 'dispatch-response',
         dispatchId: nanoid(),

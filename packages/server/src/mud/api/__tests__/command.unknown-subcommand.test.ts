@@ -95,6 +95,7 @@ describe('requiresHasInteractive validator', () => {
     );
     expect(err).toBeDefined();
     expect(err).toMatch(/no active connection/);
+    expect(err).toMatch(/this character/);
   });
 });
 
@@ -163,7 +164,7 @@ describe('requiresAvatar validator', () => {
       makeContext(actor as never, loc as never),
     );
     expect(err).toBeDefined();
-    expect(err).toMatch(/only a player character/);
+    expect(err).toMatch(/not a player character/);
   });
   // Avatar happy-path coverage is integration-only (Avatar boot
   // requires the species clade chain to be present). The

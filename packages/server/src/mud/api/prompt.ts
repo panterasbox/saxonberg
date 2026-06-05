@@ -341,15 +341,14 @@ export class PromptApi {
         typed = payload.response;
         break;
       case 'confirm':
-        // Wire string → boolean; substrate handles the decode so
-        // user-supplied validators see typed input.
+        // Decode wire string → boolean before validators run, so
+        // user-supplied validators see the typed value.
         typed = payload.response === 'yes';
         break;
       case 'mqlObject':
         typed = StuffApi.findById(payload.response) ?? null;
         break;
       case 'mqlMany': {
-        // Substrate-side bounds enforcement + JSON-array decode.
         let ids: unknown;
         try {
           ids = JSON.parse(payload.response);
@@ -525,7 +524,6 @@ export class PromptApi {
           .send();
       }
 
-      // Push envelope.
       const note = buildNote();
       const template: Omit<PromptEnvelope, 'frameId'> = {
         type: 'prompt',

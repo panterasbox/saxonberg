@@ -12,7 +12,7 @@ import { Avatar } from '../../../obj/Avatar';
 
 const validator: CommandValidator = (context) => {
   if (context.commandGiver instanceof Avatar) return undefined;
-  return `only a player character can use this command`;
+  return `this character is not a player character`;
 };
 
 export default validator;

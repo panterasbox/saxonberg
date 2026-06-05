@@ -14,7 +14,7 @@ import { MixinApi } from '../../../api/mixin';
 
 const validator: CommandValidator = (context) => {
   if (MixinApi.isHasInteractive(context.commandGiver)) return undefined;
-  return `you have no active connection`;
+  return `this character has no active connection`;
 };
 
 export default validator;
