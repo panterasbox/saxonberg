@@ -204,7 +204,7 @@
       "properties": {
         "phase": {
           "enum": ["focus-update", "validate", "confirm-prompt", "dispatch", "emit-scene"],
-          "description": "Dispatcher lifecycle phase the effect targets. See command-phases.ts for implementation status — schema-valid phases without runtime support throw at dispatch time."
+          "description": "Dispatcher lifecycle phase the effect targets. See the phase taxonomy in api/command.ts for implementation status — schema-valid phases without runtime support throw at dispatch time."
         },
         "action": {
           "enum": ["skip", "replace"],

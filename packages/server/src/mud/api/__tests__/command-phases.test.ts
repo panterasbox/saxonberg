@@ -1,11 +1,12 @@
 /**
- * `command-phases` substrate tests — exercises the vocabulary,
+ * Phase / effects substrate tests — exercises the vocabulary,
  * load-time validator (`validatePhaseEffect`), and the effect-
- * collection helper (`collectPhaseEffects`).
+ * collection helper (`collectPhaseEffects`) exported from
+ * `api/command.ts`.
  *
- * Runtime-side throws (`consumePhaseEffects` in command.ts) are
- * exercised by the dispatcher tests and `LookController.peek` —
- * here we're verifying the pure-data layer.
+ * Runtime-side throws (`consumePhaseEffects` module-local in
+ * `command.ts`) are exercised by the dispatcher tests and
+ * `LookController.peek` — here we're verifying the pure-data layer.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -17,7 +18,7 @@ import {
   collectPhaseEffects,
   validatePhaseEffect,
   type PhaseEffect,
-} from '../command-phases';
+} from '../command';
 
 describe('command-phases vocabulary', () => {
   it('includes the documented phases', () => {
