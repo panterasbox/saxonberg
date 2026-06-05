@@ -272,13 +272,7 @@ export class Application {
   /**
    * Route `mql-subscribe` to the substrate. Drops on shape mismatch
    * without an error envelope — the substrate handles substantive
-   * checks (duplicate id, MQL parse, focus + cardinality cross-check,
-   * unknown `kind`).
-   *
-   * When `kind` is present, the substrate looks the name up against
-   * its canonical-kind registry and overlays the registered spec
-   * onto the request; `query` and `cardinality` are optional on the
-   * wire in that case. When `kind` is absent, both are required.
+   * checks (duplicate id, MQL parse, focus + cardinality cross-check).
    */
   private handleMqlSubscribe(socketId: string, message: InboundClientMessage): void {
     const interactive = ConnectionManager.get().getInteractive(socketId);
@@ -287,26 +281,21 @@ export class Application {
     if (!payload || typeof payload.subscriptionId !== 'string') {
       return;
     }
-    const hasKind = typeof payload.kind === 'string';
-    if (!hasKind) {
-      // Raw subscribe — query + cardinality required.
-      if (
-        typeof payload.query !== 'string' ||
-        (payload.cardinality !== 'one' && payload.cardinality !== 'many')
-      ) {
-        return;
-      }
+    if (
+      typeof payload.query !== 'string' ||
+      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+    ) {
+      return;
     }
     MqlSubscriptionApi.handleSubscribe({
       interactive,
       subscriptionId: payload.subscriptionId,
-      ...(typeof payload.query === 'string' ? { query: payload.query } : {}),
-      ...(payload.cardinality === 'one' || payload.cardinality === 'many'
-        ? { cardinality: payload.cardinality }
-        : {}),
+      query: payload.query,
+      cardinality: payload.cardinality,
       fields: payload.fields,
       detailKey: payload.detailKey,
-      ...(hasKind ? { kind: payload.kind } : {}),
+      focusDependent: payload.focusDependent,
+      locationDependent: payload.locationDependent,
     });
   }
 
@@ -325,14 +314,9 @@ export class Application {
   /**
    * Route `mql-query` to the substrate's one-shot `handleQuery`
    * surface. Drops on shape mismatch without an error envelope —
-   * the substrate handles substantive checks (canonical-kind
-   * resolution, focus + cardinality cross-check, parse / resolve /
-   * permission failures).
-   *
-   * Mirrors {@link handleMqlSubscribe}: when `kind` is present,
-   * `query` and `cardinality` are optional on the wire (the kind
-   * spec supplies them); when `kind` is absent, both are required.
-   * The substrate's one-shot path does NOT install registry state,
+   * the substrate handles substantive checks (focus + cardinality
+   * cross-check, parse / resolve / permission failures). The
+   * substrate's one-shot path does NOT install registry state,
    * dependency-index entries, or listeners.
    */
   private handleMqlQuery(socketId: string, message: InboundClientMessage): void {
@@ -342,26 +326,19 @@ export class Application {
     if (!payload || typeof payload.queryId !== 'string') {
       return;
     }
-    const hasKind = typeof payload.kind === 'string';
-    if (!hasKind) {
-      // Raw query — query + cardinality required.
-      if (
-        typeof payload.query !== 'string' ||
-        (payload.cardinality !== 'one' && payload.cardinality !== 'many')
-      ) {
-        return;
-      }
+    if (
+      typeof payload.query !== 'string' ||
+      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+    ) {
+      return;
     }
     MqlSubscriptionApi.handleQuery({
       interactive,
       queryId: payload.queryId,
-      ...(typeof payload.query === 'string' ? { query: payload.query } : {}),
-      ...(payload.cardinality === 'one' || payload.cardinality === 'many'
-        ? { cardinality: payload.cardinality }
-        : {}),
+      query: payload.query,
+      cardinality: payload.cardinality,
       fields: payload.fields,
       detailKey: payload.detailKey,
-      ...(hasKind ? { kind: payload.kind } : {}),
     });
   }
 

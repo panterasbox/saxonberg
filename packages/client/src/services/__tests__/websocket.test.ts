@@ -42,11 +42,11 @@ function resetClient(): void {
   // private state.
   const c = websocketClient as unknown as {
     ws: MockWebSocket | null;
-    canonicalKindSubscriptions: Map<string, unknown>;
+    mqlSubscriptions: Map<string, unknown>;
     reconnectAttempts: number;
   };
   c.ws = null;
-  c.canonicalKindSubscriptions = new Map();
+  c.mqlSubscriptions = new Map();
   c.reconnectAttempts = 0;
 }
 
@@ -191,14 +191,27 @@ describe("websocket subscription consumer", () => {
   });
 });
 
-describe("subscribeToCanonicalKind", () => {
+describe("subscribeMql", () => {
+  const FOCUS_SPEC = {
+    query: "$focus",
+    cardinality: "many" as const,
+    fields: "detail" as const,
+    focusDependent: true,
+  };
+  const LOCATION_SPEC = {
+    query: "here",
+    cardinality: "one" as const,
+    fields: "ref" as const,
+    locationDependent: true,
+  };
+
   beforeEach(() => {
     resetClient();
   });
 
-  it("sends an mql-subscribe message with the kind", () => {
+  it("sends an mql-subscribe message with the supplied spec", () => {
     const mock = attachMockWs();
-    const id = websocketClient.subscribeToCanonicalKind("me.focus");
+    const id = websocketClient.subscribeMql(FOCUS_SPEC);
 
     expect(typeof id).toBe("string");
     expect(mock.sent).toHaveLength(1);
@@ -206,23 +219,21 @@ describe("subscribeToCanonicalKind", () => {
       type: "mql-subscribe",
       payload: {
         subscriptionId: id,
-        kind: "me.focus",
-        cardinality: "many",
-        fields: "detail",
+        ...FOCUS_SPEC,
       },
     });
   });
 
   it("returns distinct ids for concurrent subscriptions", () => {
     attachMockWs();
-    const a = websocketClient.subscribeToCanonicalKind("me.focus");
-    const b = websocketClient.subscribeToCanonicalKind("me.focus");
+    const a = websocketClient.subscribeMql(FOCUS_SPEC);
+    const b = websocketClient.subscribeMql(FOCUS_SPEC);
     expect(a).not.toBe(b);
   });
 
   it("queues the subscription (no send) when not connected", () => {
     // No ws attached → not connected.
-    const id = websocketClient.subscribeToCanonicalKind("me.focus");
+    const id = websocketClient.subscribeMql(FOCUS_SPEC);
     expect(typeof id).toBe("string");
     // Re-attach and confirm a reconnect re-issues.
     const mock = attachMockWs();
@@ -251,15 +262,15 @@ describe("subscribeToCanonicalKind", () => {
       type: "mql-subscribe",
       payload: {
         subscriptionId: id,
-        kind: "me.focus",
+        ...FOCUS_SPEC,
       },
     });
   });
 
   it("re-issues every active subscription on connection-established", () => {
     const mock = attachMockWs();
-    const a = websocketClient.subscribeToCanonicalKind("me.focus");
-    const b = websocketClient.subscribeToCanonicalKind("me.inventory");
+    const a = websocketClient.subscribeMql(FOCUS_SPEC);
+    const b = websocketClient.subscribeMql(LOCATION_SPEC);
     expect(mock.sent).toHaveLength(2);
 
     // Simulate reconnect: clear sent, re-fire connection-established.
@@ -294,7 +305,7 @@ describe("subscribeToCanonicalKind", () => {
 
   it("unsubscribe sends mql-unsubscribe and stops re-issuing on reconnect", () => {
     const mock = attachMockWs();
-    const id = websocketClient.subscribeToCanonicalKind("me.focus");
+    const id = websocketClient.subscribeMql(FOCUS_SPEC);
     mock.sent = [];
 
     websocketClient.unsubscribe(id);

@@ -1,13 +1,14 @@
 /**
- * InspectionPane — persistent right-column pane sourced from the
- * canonical `me.focus` MQL subscription.
+ * InspectionPane — persistent right-column pane sourced from two
+ * MQL subscriptions: a `$focus`-bearing query (`focusDependent`)
+ * for the focused-thing body, and a `here`-bearing query
+ * (`locationDependent`) for the breadcrumb root.
  *
- * Subscribes on mount via the wire client's
- * `subscribeToCanonicalKind('me.focus')`; tears down on unmount via
- * `websocketClient.unsubscribe(id)`. The header is always-live (any
- * focus change updates it); the body is paint/clear gated per the
- * inspection-pane principle: *focus is a pointer; look is the verb
- * that paints what the pointer points at*.
+ * Subscribes on mount via `websocketClient.subscribeMql(spec)`; tears
+ * down on unmount via `websocketClient.unsubscribe(id)`. The header
+ * is always-live (any focus change updates it); the body is
+ * paint/clear gated per the inspection-pane principle: *focus is a
+ * pointer; look is the verb that paints what the pointer points at*.
  *
  * **Body = percept projection, not state dump.** Per the
  * inspection-pane reconciliation, the body renders ONLY what a
@@ -398,9 +399,25 @@ export function InspectionPane({
   }, [authPlayer]);
 
   useEffect(() => {
-    const focusId = websocketClient.subscribeToCanonicalKind("me.focus");
-    const locationId =
-      websocketClient.subscribeToCanonicalKind("me.location");
+    // Focused-thing pane body — `$focus` is the synthetic var the
+    // server expands per-resolve to the holder's current focus
+    // fragment. `focusDependent` wakes the subscription on
+    // `setFocus` / `clearFocus`.
+    const focusId = websocketClient.subscribeMql({
+      query: "$focus",
+      cardinality: "many",
+      fields: "detail",
+      focusDependent: true,
+    });
+    // Breadcrumb root — `here` is the built-in MQL pronoun that
+    // resolves to the command-giver's container.
+    // `locationDependent` wakes the subscription on movement.
+    const locationId = websocketClient.subscribeMql({
+      query: "here",
+      cardinality: "one",
+      fields: "ref",
+      locationDependent: true,
+    });
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;

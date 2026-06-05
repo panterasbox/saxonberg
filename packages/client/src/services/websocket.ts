@@ -13,9 +13,10 @@
  *
  * MQL subscription substrate integration:
  *
- * - `subscribeToCanonicalKind(kind)` opens an `mql-subscribe` against
- *   a server-registered canonical kind (e.g. `'me.focus'`), returns a
- *   `subscriptionId`, and re-issues the subscribe on every
+ * - `subscribeMql(spec)` opens an `mql-subscribe` with the supplied
+ *   query / cardinality / fields (and optional `focusDependent` /
+ *   `locationDependent` dependency flags), returns a `subscriptionId`,
+ *   and re-issues the subscribe with the same spec on every
  *   `connection-established` event (reconnect-aware).
  * - Inbound `mql-subscription-result` and `mql-subscription-delta`
  *   envelopes are first walked for `StuffRefRecord`-shape records
@@ -46,13 +47,27 @@ type FrameHandler = (frame: MessageFrame) => void;
 type EnvelopeHandler = (envelope: Envelope) => void;
 
 /**
- * Bookkeeping entry for a canonical-kind subscription. We keep the
- * `kind` (the only piece needed to re-issue the subscribe on
- * reconnect) and the `subscriptionId` (so callers can unsubscribe).
+ * MQL subscription spec carried over the wire — mirrors
+ * `MqlSubscribeMessage` minus `type` / `subscriptionId`. Held
+ * verbatim so the client can re-issue the subscribe on reconnect
+ * without the caller needing to remember the spec.
  */
-interface CanonicalKindSubscription {
+export interface MqlSubscribeSpec {
+  query: string;
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
+  detailKey?: string;
+  focusDependent?: boolean;
+  locationDependent?: boolean;
+}
+
+/**
+ * Bookkeeping entry for a live MQL subscription. Stores the spec
+ * so reconnect can re-issue the same subscribe.
+ */
+interface MqlSubscriptionEntry {
   subscriptionId: string;
-  kind: string;
+  spec: MqlSubscribeSpec;
 }
 
 /**
@@ -83,12 +98,11 @@ class WebSocketClient {
   private envelopeHandlers: Map<Envelope['type'], EnvelopeHandler[]> = new Map();
 
   /**
-   * Active canonical-kind subscriptions, keyed by subscriptionId.
-   * Re-issued on every `connection-established` event so subscriptions
-   * survive reconnects without consumer involvement.
+   * Active MQL subscriptions, keyed by subscriptionId. Re-issued on
+   * every `connection-established` event so subscriptions survive
+   * reconnects without consumer involvement.
    */
-  private canonicalKindSubscriptions: Map<string, CanonicalKindSubscription> =
-    new Map();
+  private mqlSubscriptions: Map<string, MqlSubscriptionEntry> = new Map();
 
   public connect(url: string): void {
     this.url = url;
@@ -274,64 +288,52 @@ class WebSocketClient {
     console.info('WebSocketClient: Connection established:', payload);
     useStore.getState().setConnected(payload);
 
-    // Re-issue every active canonical-kind subscription on every
+    // Re-issue every active MQL subscription on every
     // connection-established event. The server re-instantiates the
     // Interactive's subscription registry on reconnect; sending the
     // subscribe again is what makes the substrate re-ship the initial
     // result on the new connection.
-    for (const sub of this.canonicalKindSubscriptions.values()) {
+    for (const sub of this.mqlSubscriptions.values()) {
       this.send({
         type: 'mql-subscribe',
         payload: {
           subscriptionId: sub.subscriptionId,
-          kind: sub.kind,
-          cardinality: 'many',
-          fields: 'detail',
+          ...sub.spec,
         },
       });
     }
   }
 
   /**
-   * Open an `mql-subscribe` against a server-registered canonical
-   * kind (e.g. `'me.focus'`). The substrate overlays the registered
-   * spec — `query` / `cardinality` / `fields` / `detailKey` — onto
-   * the request; the client-supplied `cardinality: 'many'` and
-   * `fields: 'detail'` are placeholders the server discards when the
-   * kind is recognized.
+   * Open an `mql-subscribe` with the supplied spec. The subscription
+   * is tracked locally and re-issued on every `connection-established`
+   * event, so callers don't need to re-subscribe on reconnect.
    *
-   * The returned `subscriptionId` is tracked locally and the subscribe
-   * is re-issued on every `connection-established` event, so callers
-   * don't need to re-subscribe on reconnect.
+   * Dependency flags (`focusDependent` / `locationDependent`) install
+   * holder-level dependency entries the result-walk wouldn't naturally
+   * find — opt in when the query is a holder-pointer expression like
+   * `$focus` or `here`.
    */
-  public subscribeToCanonicalKind(kind: string): string {
+  public subscribeMql(spec: MqlSubscribeSpec): string {
     const subscriptionId = makeSubscriptionId();
-    this.canonicalKindSubscriptions.set(subscriptionId, {
-      subscriptionId,
-      kind,
-    });
+    this.mqlSubscriptions.set(subscriptionId, { subscriptionId, spec });
     if (this.isConnected()) {
       this.send({
         type: 'mql-subscribe',
-        payload: {
-          subscriptionId,
-          kind,
-          cardinality: 'many',
-          fields: 'detail',
-        },
+        payload: { subscriptionId, ...spec },
       });
     }
     return subscriptionId;
   }
 
   /**
-   * Tear down a subscription opened via `subscribeToCanonicalKind`.
-   * Sends `mql-unsubscribe` if currently connected, and removes the
-   * local bookkeeping so the subscription is not re-issued on the
-   * next reconnect.
+   * Tear down a subscription opened via `subscribeMql`. Sends
+   * `mql-unsubscribe` if currently connected, and removes the local
+   * bookkeeping so the subscription is not re-issued on the next
+   * reconnect.
    */
   public unsubscribe(subscriptionId: string): void {
-    const had = this.canonicalKindSubscriptions.delete(subscriptionId);
+    const had = this.mqlSubscriptions.delete(subscriptionId);
     if (had && this.isConnected()) {
       this.send({
         type: 'mql-unsubscribe',

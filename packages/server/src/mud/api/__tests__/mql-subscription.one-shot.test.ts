@@ -79,7 +79,6 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
     MqlSubscriptionApi._clearAllForTesting();
-    MqlSubscriptionApi._clearKindsForTesting();
     _MqlAdminFlag.granter = () => false;
   });
 
@@ -210,45 +209,6 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     const err = envelopes.find((e) => e.type === 'mql-query-error');
     expect(err).toBeDefined();
     expect(err!.reason).toBe('parse');
-  });
-
-  it('canonical-kind overlay: kind supplies query / cardinality / fields', async () => {
-    const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.registerKind('me.focus', {
-      query: '$focus',
-      cardinality: 'many',
-      fields: 'detail',
-      // focusDependent on a one-shot is meaningless — silently ignored.
-      focusDependent: true,
-    });
-    MqlSubscriptionApi.handleQuery({
-      interactive,
-      queryId: 'q-kind',
-      kind: 'me.focus',
-    });
-    const result = envelopes.find((e) => e.type === 'mql-query-result');
-    expect(result).toBeDefined();
-    expect(result!.queryId).toBe('q-kind');
-    // Still no registry / index state — focusDependent ignored on the
-    // one-shot path.
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
-    ).toBe(0);
-  });
-
-  it('unknown kind → mql-query-error with reason: parse', async () => {
-    const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
-      interactive,
-      queryId: 'q-unknown',
-      kind: 'not.registered',
-    });
-    const err = envelopes.find((e) => e.type === 'mql-query-error');
-    expect(err).toBeDefined();
-    expect(err!.queryId).toBe('q-unknown');
-    expect(err!.reason).toBe('parse');
-    expect((err!.detail as string).toLowerCase()).toContain('not.registered');
   });
 
   it('holder without CommandGiver → mql-query-error with reason: permission', async () => {

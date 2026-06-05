@@ -51,13 +51,13 @@ function resetClient(): void {
   });
   const c = websocketClient as unknown as {
     ws: MockWebSocket | null;
-    canonicalKindSubscriptions: Map<string, unknown>;
+    mqlSubscriptions: Map<string, unknown>;
     reconnectAttempts: number;
     topicHandlers: Map<string, unknown[]>;
     envelopeHandlers: Map<string, unknown[]>;
   };
   c.ws = null;
-  c.canonicalKindSubscriptions = new Map();
+  c.mqlSubscriptions = new Map();
   c.reconnectAttempts = 0;
   c.topicHandlers = new Map();
   c.envelopeHandlers = new Map();
@@ -82,19 +82,20 @@ function paintBody(): void {
 /**
  * Pull the subscriptionId the pane registered with the wire client.
  * The pane mints a UUID; the test needs the exact id to address
- * delta envelopes at the same subscription.
+ * delta envelopes at the same subscription. Pass the spec's `query`
+ * to disambiguate between the focus and location subscriptions.
  */
-function currentSubscriptionId(kind: string = "me.focus"): string {
+function currentSubscriptionId(query: string = "$focus"): string {
   const c = websocketClient as unknown as {
-    canonicalKindSubscriptions: Map<
+    mqlSubscriptions: Map<
       string,
-      { subscriptionId: string; kind: string }
+      { subscriptionId: string; spec: { query: string } }
     >;
   };
-  for (const entry of c.canonicalKindSubscriptions.values()) {
-    if (entry.kind === kind) return entry.subscriptionId;
+  for (const entry of c.mqlSubscriptions.values()) {
+    if (entry.spec.query === query) return entry.subscriptionId;
   }
-  throw new Error(`no subscription registered for kind ${kind}`);
+  throw new Error(`no subscription registered for query ${query}`);
 }
 
 describe("InspectionPane", () => {
@@ -114,7 +115,7 @@ describe("InspectionPane", () => {
     expect(placeholder.textContent).toContain("look");
   });
 
-  it("subscribes to me.focus + me.location on mount and unsubscribes on unmount", () => {
+  it("subscribes to the focus + location queries on mount and unsubscribes on unmount", () => {
     const mock = attachMockWs();
     const onSend = vi.fn();
     const { unmount } = render(<InspectionPane onSendCommand={onSend} />);
@@ -123,12 +124,14 @@ describe("InspectionPane", () => {
       (m) => (m as { type?: string }).type === "mql-subscribe"
     );
     expect(subscribes).toHaveLength(2);
-    const kinds = subscribes.map(
+    const queries = subscribes.map(
       (m) =>
-        (m as { payload: { kind: string } }).payload.kind
+        (m as { payload: { query: string } }).payload.query
     );
-    expect(kinds).toContain("me.focus");
-    expect(kinds).toContain("me.location");
+    // Pane subscribes to `$focus` (the focus-pane body, focusDependent)
+    // and `here` (the breadcrumb root, locationDependent).
+    expect(queries).toContain("$focus");
+    expect(queries).toContain("here");
 
     mock.sent = [];
     unmount();

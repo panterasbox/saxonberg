@@ -376,32 +376,22 @@ export interface PromptEnvelope {
  * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
  * parameter is ignored in focus mode.
  *
- * When `kind` is present, the substrate resolves the name against
- * its canonical-kind registry (`MqlSubscriptionApi.registerKind`)
- * and overlays the registered spec — `query`, `cardinality`,
- * `fields`, `detailKey`, `focusDependent` — onto the request. Any
- * client-supplied `query` / `cardinality` / `fields` is ignored
- * when `kind` resolves; the registered spec wins. Unknown kind
- * names emit `MqlSubscriptionErrorEnvelope { reason: 'parse' }`.
- * Canonical kinds let clients subscribe by name (e.g., `'me.focus'`)
- * instead of by raw `(query, fields)` shape.
+ * `focusDependent` / `locationDependent` install holder-level
+ * dependency entries the result-walk wouldn't naturally find — the
+ * subscription wakes on `setFocus` / `setContainer` respectively.
+ * Used by client subscriptions that watch the holder's pointer
+ * fields (e.g., a focus-pane query like `$focus` or a current-room
+ * query like `here`).
  */
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
-  /** Optional when `kind` is present (the kind spec supplies it). */
-  query?: string;
-  /** Optional when `kind` is present (the kind spec supplies it). */
-  cardinality?: 'one' | 'many';
+  query: string;
+  cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
-  /**
-   * Canonical-kind name registered via
-   * `MqlSubscriptionApi.registerKind`. When present, the registered
-   * spec wins over any client-supplied `query` / `cardinality` /
-   * `fields` / `detailKey`.
-   */
-  kind?: string;
+  focusDependent?: boolean;
+  locationDependent?: boolean;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -411,41 +401,26 @@ export interface MqlUnsubscribeMessage {
 
 /**
  * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
- * same `query` / `cardinality` / `fields` / `detailKey` / `kind`
- * fields, same canonical-kind overlay semantics — but the substrate
- * reuses ONLY the parse + resolve + project pipeline: no registration
- * in the per-Interactive registry, no dependency-index entries, no
- * listener installation. The result envelope ships once; no follow-up
- * deltas are emitted.
+ * same `query` / `cardinality` / `fields` / `detailKey` fields — but
+ * the substrate reuses ONLY the parse + resolve + project pipeline:
+ * no registration in the per-Interactive registry, no dependency-
+ * index entries, no listener installation. The result envelope ships
+ * once; no follow-up deltas are emitted.
  *
  * Discriminator is `queryId` (not `subscriptionId`) so a client may
  * have both subscriptions and queries in flight without correlation
  * collisions.
  *
- * When `kind` is present, the substrate resolves the name against
- * its canonical-kind registry (`MqlSubscriptionApi.registerKind`)
- * exactly as it does for `mql-subscribe`. The registered spec's
- * `query` / `cardinality` / `fields` / `detailKey` overlay this
- * request; `focusDependent` is meaningless for one-shot reads (no
- * subscription state to wake) and is ignored. Unknown kind names emit
- * `MqlQueryErrorEnvelope { reason: 'parse' }`.
+ * `focusDependent` / `locationDependent` are meaningless for one-shot
+ * reads (no subscription state to wake) and are NOT carried.
  */
 export interface MqlQueryMessage {
   type: 'mql-query';
   queryId: string;
-  /** Optional when `kind` is present (the kind spec supplies it). */
-  query?: string;
-  /** Optional when `kind` is present (the kind spec supplies it). */
-  cardinality?: 'one' | 'many';
+  query: string;
+  cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
-  /**
-   * Canonical-kind name registered via
-   * `MqlSubscriptionApi.registerKind`. When present, the registered
-   * spec wins over any client-supplied `query` / `cardinality` /
-   * `fields` / `detailKey`.
-   */
-  kind?: string;
 }
 
 /**
