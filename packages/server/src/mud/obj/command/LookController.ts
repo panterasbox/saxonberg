@@ -193,18 +193,17 @@ export class LookController extends CommandController<LookModel> {
     // lines that follow sit flush against the prose, not after a
     // gratuitous blank line.
     //
-    // Detail keywords auto-link via `getMarkupLong()` when the
-    // location composes `DetailedMixin` — the prose ships with
-    // `<detail key="...">word</detail>` wrappers around canonical
-    // keys, so the renderer makes them clickable. Authors keep
-    // writing prose; the substrate handles the affordance.
-    const longText = !hasVisible
-      ? ''
-      : (
-          MixinApi.isDetailed(location)
-            ? (location as unknown as { getMarkupLong(): string }).getMarkupLong()
-            : location.getLong()
-        ).replace(/\s+$/, '');
+    // `getMarkupLong(viewer)` is the host-level affordance-annotated
+    // long description: every contributing mixin's `markupAugmenters`
+    // fold through the raw text before it emits. Today that's
+    // `DetailedMixin`'s `<detail key="...">word</detail>` wrap;
+    // future contributors (exit-direction auto-link, language masks)
+    // ride the same pipeline. Re-narrow `location` with
+    // `MixinApi.isVisible` here so the call site has the static
+    // `Visible` type — `hasVisible` above is just a flag.
+    const longText = MixinApi.isVisible(location)
+      ? location.getMarkupLong(actor).replace(/\s+$/, '')
+      : '';
     let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;

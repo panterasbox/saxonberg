@@ -23,6 +23,8 @@ import {
   MqlSubscriptionApi,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import type { Stuff } from '../stuff/Stuff';
+import { augmentMarkup } from '../../api/mml';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -53,6 +55,24 @@ export interface Visible {
   setLongDescription(value: string): void;
   getShort(): string;
   getLong(): string;
+  /**
+   * Long description with every contributing mixin's
+   * `markupAugmenters` applied — detail keys wrapped in `<detail>`
+   * MML when the host composes Detailed, exit names wrapped in
+   * `<exit>` when (future) Exitable contributes, language masks
+   * applied when (future) Language contributes, etc. Plain Visible
+   * hosts (no contributors) return `getLong()` unchanged.
+   *
+   * Same affordance-annotated text feeds both the `look` prose
+   * composer and the `longDescription` subscription projection, so
+   * the terminal scrollback and the inspection pane see identical
+   * clickable wrappers around the same anchors.
+   *
+   * `viewer` is threaded through to augmenters that need per-recipient
+   * decisions (language gating, spoiler hiding). Augmenters that
+   * don't care just ignore it.
+   */
+  getMarkupLong(viewer: Stuff): string;
 }
 
 export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -95,22 +115,17 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
       {
-        // Hosts that compose `DetailedMixin` ship a `getMarkupLong()`
-        // method returning the long description with detail-key MML
-        // wrappers inline (`<detail key="...">word</detail>`). Prefer
-        // that when present so the pane and the look prose see the
-        // same affordance-annotated text. Plain `Visible` hosts (no
-        // detail map) just return the raw long. Duck-typed lookup —
-        // Visible doesn't import Detailed.
+        // `getMarkupLong(viewer)` is the host-level affordance-
+        // annotated long description. The substrate's
+        // `augmentMarkup` helper walks every contributing mixin's
+        // `static markupAugmenters` and folds them through the raw
+        // text — Detailed wraps detail keys in `<detail>` today;
+        // future mixins (Exitable's direction auto-link, Language's
+        // unknown-tongue masking) plug in via the same slot. Plain
+        // Visible hosts contribute nothing and the wrap is a no-op.
         name: 'longDescription',
-        read: (stuff) => {
-          const v = stuff as unknown as Visible & {
-            getMarkupLong?: () => string;
-          };
-          return v.getMarkupLong
-            ? v.getMarkupLong()
-            : v.getLongDescription();
-        },
+        read: (stuff, viewer) =>
+          (stuff as unknown as Visible).getMarkupLong(viewer),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
@@ -156,6 +171,17 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getLong(): string {
       return this.longDescription || this.shortDescription || 'You see nothing special.';
+    }
+
+    /**
+     * Affordance-annotated long description — see the interface
+     * docstring for the augmenter pipeline contract. Calls
+     * `augmentMarkup` with the host (`this`) and the supplied
+     * `viewer`; every contributing mixin's augmenters run in
+     * parent-first → child-last order.
+     */
+    getMarkupLong(viewer: Stuff): string {
+      return augmentMarkup(this.getLong(), this as unknown as Stuff, viewer);
     }
   };
 }

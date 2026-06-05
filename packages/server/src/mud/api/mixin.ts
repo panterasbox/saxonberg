@@ -626,6 +626,52 @@ export class MixinApi {
   }
 
   /**
+   * Walk the prototype chain unioning the static `markupAugmenters`
+   * arrays declared at each level. Returned in **parent-first →
+   * child-last** order so `augmentMarkup`'s fold applies the more
+   * fundamental transformations first and the more specific
+   * (deeper in the chain) ones last — same intuition as CSS
+   * specificity.
+   *
+   * Distinct from {@link getAllSubscribableFields}, which is
+   * leaf-first because a subclass's descriptor needs to override
+   * the parent's on the collision Map; augmenters have no
+   * override semantics, so we order for readability instead.
+   *
+   * The augmenter signature `(text, host, viewer) => string` is
+   * defined in `api/mml.ts` (alongside the `augmentMarkup` helper);
+   * we use a structural local type here to avoid a runtime import
+   * cycle (mixin.ts is below mml.ts in the layering).
+   */
+  public static getAllMarkupAugmenters(
+    constructor: AnyConstructor,
+  ): Array<(text: string, host: unknown, viewer: unknown) => string> {
+    type AugFn = (text: string, host: unknown, viewer: unknown) => string;
+    // Walk leaf → root, collecting contributing levels.
+    const chain: AugFn[][] = [];
+    let current: unknown = constructor;
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        markupAugmenters?: AugFn[];
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'markupAugmenters') &&
+        Array.isArray(c.markupAugmenters)
+      ) {
+        chain.push(c.markupAugmenters);
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    // Flatten root → leaf so the fold applies parent's augmenters
+    // before child's.
+    const out: AugFn[] = [];
+    for (let i = chain.length - 1; i >= 0; i--) {
+      out.push(...chain[i]!);
+    }
+    return out;
+  }
+
+  /**
    * Walk the prototype chain unioning the static `globIdentityFields`
    * arrays declared at each level. Deduplicates. Mirrors the shape of
    * {@link getAllPersistentFields}.

@@ -36,6 +36,9 @@ import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { MarkupAugmenter } from '../../api/mml';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
 
 export const PATH_DELIM = '.';
 
@@ -112,20 +115,6 @@ export interface Detailed {
   applyDetails(data: Record<string, unknown>): void;
 
   /**
-   * Long description with detail canonical-keys auto-wrapped in
-   * `<detail key="...">word</detail>` MML markup, so the rendered
-   * prose has inline-clickable drill targets exactly where the
-   * author named them. Used by both the look prose composer and
-   * the live-subscription `longDescription` projection so the
-   * pane and the terminal see the same affordances.
-   *
-   * Hosts that compose `VisibleMixin` AND `DetailedMixin` get a
-   * usable implementation; hosts without `getLong()` (or with no
-   * details) fall back to whatever raw text is available.
-   */
-  getMarkupLong(): string;
-
-  /**
    * Look up the single alias-grouped entry containing `key`, or
    * `null` if no detail resolves at that key. Used by the live-
    * query substrate's focused-detail projection. Supports dotted
@@ -160,6 +149,17 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * front to undo that.
      */
     static instructionFields = ['details'];
+
+    /**
+     * Markup-augmenter contribution. The wrapper-style augmenter
+     * narrows the host to Detailed at runtime, then runs the
+     * existing `wrapDetailKeywords` regex pass. Picked up by
+     * `VisibleMixin.getMarkupLong(viewer)` via the prototype-chain
+     * walker — non-Detailed hosts never see this augmenter; hosts
+     * with Detailed-but-empty detail maps no-op cheaply inside the
+     * helper.
+     */
+    static markupAugmenters: MarkupAugmenter[] = [wrapDetailKeysAugmenter];
 
     /**
      * Live-query subscribable fields. The descriptor's
@@ -371,20 +371,6 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Inline-affordance long description. Delegates to the same
-     * `wrapDetailKeywords` helper the subscription substrate's
-     * `longDescription` descriptor uses, so the look prose and the
-     * pane projection stay in lockstep.
-     */
-    getMarkupLong(): string {
-      const self = this as unknown as Detailed & {
-        getLong?: () => string;
-      };
-      const raw = self.getLong ? self.getLong() : '';
-      return wrapDetailKeywords(raw, self);
-    }
-
-    /**
      * Alias-grouped enumeration of top-level (or `parent`-scoped)
      * details. Walks the DetailMap at the requested level grouping
      * keys by Detail-object identity, so aliases (multiple keys
@@ -590,4 +576,23 @@ function wrapDetailKeywords(
     );
     return key ? `<detail key="${key}">${match}</detail>` : match;
   });
+}
+
+/**
+ * `MarkupAugmenter` adapter for the detail-key wrap pass. Narrows
+ * the host to Detailed and delegates to `wrapDetailKeywords`. Lives
+ * here (not inline as an arrow) so the static-array declaration
+ * stays terse and the augmenter is easy to identify by name in
+ * stack traces.
+ */
+function wrapDetailKeysAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!MixinApi.isDetailed(host)) return text;
+  return wrapDetailKeywords(
+    text,
+    host as Detailed & { getLong?: () => string },
+  );
 }

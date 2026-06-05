@@ -29,6 +29,79 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
+import { MixinApi } from './mixin';
+
+/**
+ * Markup augmenter — a pure text-in → text-out transformation that
+ * inline-decorates prose (raw long descriptions, scene narration,
+ * etc.) with MML affordances before it ships to the client.
+ *
+ * Each mixin that knows how to enrich a piece of authored text
+ * contributes one or more augmenters via a static slot:
+ *
+ *     class FooMixin {
+ *       static markupAugmenters: MarkupAugmenter[] = [wrapFooKeywords];
+ *     }
+ *
+ * The substrate's `augmentMarkup(text, host, viewer)` helper walks
+ * the host's prototype chain, collects every declared augmenter,
+ * and applies them in parent-first → child-last order. Each
+ * augmenter sees the text as it stands after prior augmenters have
+ * already run and returns either the unchanged text or a wrapped
+ * version.
+ *
+ * The contract is intentionally narrow:
+ *  - Pure: no side effects, no event emission, no I/O.
+ *  - Sync: keeps the projection path off async hops. If a future
+ *    augmenter genuinely needs async (e.g. cross-host lookups), it
+ *    forces a substrate change — that's the right cost signal.
+ *  - Viewer-aware: augmenters that depend on the recipient (language
+ *    gating, spoiler hide, perception filtering) take `viewer` as a
+ *    raw `Stuff`; augmenters that don't (the v1 detail-key wrap)
+ *    just ignore it. Narrowing to `Sensor` / `Perceiver` / etc. is
+ *    each augmenter's responsibility via `MixinApi.isX(viewer)`.
+ *
+ * Today's only customer is `DetailedMixin`'s `wrapDetailKeysAugmenter`
+ * (auto-wraps canonical detail aliases in `<detail>` MML so the look
+ * prose and the pane projection both see the inline drill targets).
+ * Future contributors (exit-direction auto-link, name auto-link,
+ * language gating, spoilers) plug in via the same static slot
+ * without touching the host method.
+ */
+export type MarkupAugmenter = (
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+) => string;
+
+/**
+ * Walk the host's prototype chain via `MixinApi.getAllMarkupAugmenters`,
+ * fold every contributed augmenter through the text in
+ * parent-first → child-last order, return the result.
+ *
+ * Empty input short-circuits to the empty string (no point running
+ * augmenters over nothing).
+ *
+ * Used by `VisibleMixin.getMarkupLong(viewer)`; future host-level
+ * markup methods (`getMarkupShort`, scene-prose composition, etc.)
+ * use the same helper.
+ */
+export function augmentMarkup(
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+): string {
+  if (!text) return text;
+  const ctor = (host as { constructor: unknown }).constructor;
+  const augmenters = MixinApi.getAllMarkupAugmenters(
+    ctor as Parameters<typeof MixinApi.getAllMarkupAugmenters>[0],
+  ) as MarkupAugmenter[];
+  let result = text;
+  for (const aug of augmenters) {
+    result = aug(result, host, viewer);
+  }
+  return result;
+}
 
 /**
  * Escape characters that would otherwise be parsed as MML
