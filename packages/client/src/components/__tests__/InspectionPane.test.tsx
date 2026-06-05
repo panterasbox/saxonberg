@@ -119,7 +119,7 @@ describe("InspectionPane", () => {
     expect(subscribes).toHaveLength(1);
     expect(subscribes[0]).toMatchObject({
       type: "mql-subscribe",
-      kind: "me.focus",
+      payload: { kind: "me.focus" },
     });
 
     mock.sent = [];

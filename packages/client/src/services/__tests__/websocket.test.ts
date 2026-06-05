@@ -204,10 +204,12 @@ describe("subscribeToCanonicalKind", () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0]).toMatchObject({
       type: "mql-subscribe",
-      subscriptionId: id,
-      kind: "me.focus",
-      cardinality: "many",
-      fields: "detail",
+      payload: {
+        subscriptionId: id,
+        kind: "me.focus",
+        cardinality: "many",
+        fields: "detail",
+      },
     });
   });
 
@@ -247,8 +249,10 @@ describe("subscribeToCanonicalKind", () => {
     expect(subscribes).toHaveLength(1);
     expect(subscribes[0]).toMatchObject({
       type: "mql-subscribe",
-      subscriptionId: id,
-      kind: "me.focus",
+      payload: {
+        subscriptionId: id,
+        kind: "me.focus",
+      },
     });
   });
 
@@ -281,7 +285,8 @@ describe("subscribeToCanonicalKind", () => {
     );
     expect(subscribes).toHaveLength(2);
     const ids = subscribes.map(
-      (m) => (m as { subscriptionId: string }).subscriptionId
+      (m) =>
+        (m as { payload: { subscriptionId: string } }).payload.subscriptionId
     );
     expect(ids).toContain(a);
     expect(ids).toContain(b);

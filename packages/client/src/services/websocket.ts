@@ -30,7 +30,6 @@ import type {
   ConnectionEstablishedPayload,
   Envelope,
   MessageFrame,
-  MqlSubscribeMessage,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionResultEnvelope,
   StuffDetailRecord,
@@ -281,14 +280,15 @@ class WebSocketClient {
     // subscribe again is what makes the substrate re-ship the initial
     // result on the new connection.
     for (const sub of this.canonicalKindSubscriptions.values()) {
-      const message: MqlSubscribeMessage = {
+      this.send({
         type: 'mql-subscribe',
-        subscriptionId: sub.subscriptionId,
-        kind: sub.kind,
-        cardinality: 'many',
-        fields: 'detail',
-      };
-      this.send(message);
+        payload: {
+          subscriptionId: sub.subscriptionId,
+          kind: sub.kind,
+          cardinality: 'many',
+          fields: 'detail',
+        },
+      });
     }
   }
 
@@ -311,14 +311,15 @@ class WebSocketClient {
       kind,
     });
     if (this.isConnected()) {
-      const message: MqlSubscribeMessage = {
+      this.send({
         type: 'mql-subscribe',
-        subscriptionId,
-        kind,
-        cardinality: 'many',
-        fields: 'detail',
-      };
-      this.send(message);
+        payload: {
+          subscriptionId,
+          kind,
+          cardinality: 'many',
+          fields: 'detail',
+        },
+      });
     }
     return subscriptionId;
   }
