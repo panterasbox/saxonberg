@@ -277,17 +277,18 @@ mode-bound panels are tracked separately below.
 
 ### Room-state (about the location)
 
-**Mostly superseded** by [inspection-pane-slate.md](./inspection-pane-slate.md)
-— the room-state widgets below fold into the inspection pane's
-body (when focus is `'here'`). Status-header items (Room name,
-Time) remain part of the always-on minimum.
+**Folded into the inspection pane.** See
+[docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md)
+— the room-state widgets below render inside the pane body when
+focus is `'here'` (the default fragment). Status-header items
+(Room name, Time) remain part of the always-on minimum.
 
 | Panel | Notes | v1? |
 |---|---|---|
 | Room name + brief | Location title; in status header | v1 (header) |
 | Exits | Clickable; `<direction>`-tagged | v1 (in pane body) |
-| Things here | Objects in room; clickable | v1 (in pane body) |
-| People here | NPCs + players; clickable | v1 (in pane body) |
+| Things here | Objects in room; clickable | v1 (in pane body via `contents` projection) |
+| People here | NPCs + players; clickable | v1 (in pane body via `contents` projection) |
 | Lighting | Band + source attribution | v1 (in pane body) |
 | Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in pane body) |
 | Sound | Ambient + sources | later (with sound subsystem) |
@@ -295,14 +296,16 @@ Time) remain part of the always-on minimum.
 
 ### Inspection pane
 
-**Superseded** by the dedicated
-[inspection-pane-slate.md](./inspection-pane-slate.md), which
-absorbs the Room-state widgets (Exits, Things-here, People-here,
-Lighting, Atmosphere) AND the Focus panel into a single unified
-pane. Header tracks live focus (matches the prompt's focus token);
-body shows the most recent `look` output against that focus.
-Focus-without-look clears the body; refresh button + breadcrumb
-history + future tab strip handle navigation.
+**Built.** See
+[docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md)
+— the inspection-pane subsystem absorbs the Room-state widgets
+(Exits, Things-here, People-here, Lighting, Atmosphere) AND the
+Focus panel into a single unified right-column pane. Header
+tracks live focus (matches the prompt's focus token, sourced from
+the `'me.focus'` canonical subscription); body shows the most
+recent `look` output against that focus. Focus-without-look
+clears the body to a placeholder; Refresh button + breadcrumb
+history handle navigation.
 
 ### Navigation
 
