@@ -146,6 +146,19 @@ export class Mml {
   }
 
   /**
+   * Wrap a system label in `<sys>` — non-actionable, styled by the
+   * client renderer as a muted italic label with a decorative
+   * prefix marker. Use for the chrome labels around system lines
+   * (e.g. `<sys>Exits:</sys> <exit>south</exit>`,
+   * `<sys>You also see:</sys>`), where the visual distinction
+   * carries the "this is the engine talking, not the world" signal
+   * without burning vertical whitespace.
+   */
+  static sys(text: string): Mml {
+    return Mml.fromMarkup(`<sys>${escapeText(text)}</sys>`);
+  }
+
+  /**
    * Render a location's display name inside `<location stuff-id="...">`
    * tags. Same identity-tagging rationale as `name`.
    */

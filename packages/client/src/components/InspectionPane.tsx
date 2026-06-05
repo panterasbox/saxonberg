@@ -165,8 +165,25 @@ const ContentsBlock = styled.div`
   margin-bottom: ${tokens.space.lg};
 `;
 
-const ContentsLabel = styled.div`
+/**
+ * Inline system label — matches `<sys>` in MmlRenderer so the pane
+ * and the terminal scroll share the same visual treatment for
+ * structural chrome ("Exits:", "Contents:"). Muted italic with a
+ * decorative `── ` prefix carried via `::before` so screen readers
+ * announce just the label text.
+ */
+const SystemLabel = styled.span`
   color: ${tokens.color.fgMuted};
+  font-style: italic;
+
+  &::before {
+    content: '── ';
+    color: ${tokens.color.borderMuted};
+    font-style: normal;
+  }
+`;
+
+const ContentsLabel = styled.div`
   margin-bottom: ${tokens.space.xs};
 `;
 
@@ -536,7 +553,7 @@ function renderSingle(
       )}
       {exits.length > 0 && (
         <ExitsBlock>
-          Exits:{" "}
+          <SystemLabel>Exits:</SystemLabel>{" "}
           {exits.map((exit, i) => (
             <React.Fragment key={exit.direction}>
               {i > 0 && ", "}
@@ -553,7 +570,9 @@ function renderSingle(
       )}
       {contents.length > 0 && (
         <ContentsBlock>
-          <ContentsLabel>Contents:</ContentsLabel>
+          <ContentsLabel>
+            <SystemLabel>Contents:</SystemLabel>
+          </ContentsLabel>
           <List aria-label="contents">
             {contents.map((row) => (
               <ListItem key={row.stuffId}>

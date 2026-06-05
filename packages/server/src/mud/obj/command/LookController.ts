@@ -218,7 +218,7 @@ export class LookController extends CommandController<LookModel> {
     if (visibleContents.length > 0) {
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
-      body = Mml.compose`${body}\nYou also see: ${list}.`;
+      body = Mml.compose`${body}\n${Mml.sys('You also see:')} ${list}.`;
     }
 
     MessageApi.scene(actor)
@@ -277,12 +277,12 @@ export class LookController extends CommandController<LookModel> {
       return Mml.compose`${tagged} (${doorName}, ${state})`;
     });
     const joined = Mml.list(parts);
-    // No `<exits>` outer wrapper: the prose `Obvious exits: …` is the
-    // structural marker, the inner `<exit>` tags carry the only
-    // semantics the renderer cares about, and a wrapper that
-    // *contains* other tags can't be parsed by the client's regex
-    // MML renderer (which only matches flat tags). Render the
-    // joined Mml directly into the sentence.
-    return Mml.compose`Obvious exits: ${joined}.`;
+    // `<sys>` wraps the structural label only — non-actionable,
+    // styled by the client renderer as muted italic with a
+    // decorative prefix marker. The inner `<exit>` tags stay
+    // flat-adjacent so the client's regex parser still picks them
+    // up (no nesting). "Obvious" is dropped: the prefix marker
+    // carries the structural-line signal already.
+    return Mml.compose`${Mml.sys('Exits:')} ${joined}.`;
   }
 }

@@ -183,6 +183,24 @@ const ClickableSpan = styled.span`
   }
 `;
 
+/**
+ * Styled treatment for `<sys>` — chrome labels around system lines
+ * ("Exits:", "You also see:"). Muted colour + italic + a decorative
+ * `── ` prefix carried via `::before`, so the marker reads as
+ * styling (not text) for assistive tech and the message body's
+ * flatten still says "Exits:" cleanly.
+ */
+const SysSpan = styled.span`
+  color: #888;
+  font-style: italic;
+
+  &::before {
+    content: '── ';
+    color: #555;
+    font-style: normal;
+  }
+`;
+
 export function MmlRenderer({
   text,
   onCommandClick,
@@ -195,6 +213,9 @@ export function MmlRenderer({
       {nodes.map((node, idx) => {
         if (node.kind === 'text') {
           return <React.Fragment key={idx}>{node.text}</React.Fragment>;
+        }
+        if (node.tag === 'sys') {
+          return <SysSpan key={idx}>{node.label}</SysSpan>;
         }
         const cmd = commandFor(node);
         if (cmd === null) {
