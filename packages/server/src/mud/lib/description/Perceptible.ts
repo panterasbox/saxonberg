@@ -44,7 +44,11 @@ import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
 /**
  * Public shape provided by PerceptibleMixin.
@@ -102,6 +106,33 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       'keywords',
       'autoDeriveKeywords',
       'primaryKeyword',
+    ];
+
+    /**
+     * Live-query projection for `primaryKeyword`. Lives on the mixin
+     * (not on Stuff) because the field is mixin-gated: only
+     * Perceptible-composed hosts have a keyword pool. The substrate's
+     * prototype-chain walk unions this with `Stuff.subscribableFields`
+     * at projection time. Non-Perceptible hosts contribute no
+     * `primaryKeyword` descriptor; the substrate omits the field
+     * from their wire records, same shape `quantity` uses on
+     * Globbable.
+     *
+     * `dependsOnFields` lists the leaf sources: the authored override
+     * (`primaryKeyword`) AND the two fields the derived-pool head
+     * folds in (`name` via NamedMixin, `shortDescription` via
+     * VisibleMixin). Renaming or re-describing a Perceptible host
+     * re-projects the keyword surface without an explicit setter
+     * call. Shadow-lifecycle support rides on `ShadowChangedEvent`
+     * for parity with `displayName`.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'primaryKeyword',
+        read: (stuff) => (stuff as unknown as Perceptible).getPrimaryKeyword(),
+        dependsOnFields: ['primaryKeyword', 'name', 'shortDescription'],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
     ];
 
     /** Backing storage; access via the `keywords` accessor pair. */
