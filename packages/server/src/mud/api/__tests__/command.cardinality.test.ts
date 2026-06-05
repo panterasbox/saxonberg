@@ -33,7 +33,7 @@ function makeContextStub(): CommandContext & {
 }
 
 describe('cardinality vocabulary — YAML load-time schema validation', () => {
-  it('rejects exactly + min/max coexisting', () => {
+  it('rejects exactly + min/max coexisting', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -51,7 +51,7 @@ args:
     ).toThrow(/exactly cannot coexist/);
   });
 
-  it('rejects min > max', () => {
+  it('rejects min > max', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -69,7 +69,7 @@ args:
     ).toThrow(/cannot exceed/);
   });
 
-  it('rejects onExcess=top on objects', () => {
+  it('rejects onExcess=top on objects', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -85,7 +85,7 @@ args:
     ).toThrow(/invalid on type='objects'/);
   });
 
-  it('rejects onExcess=truncate on object', () => {
+  it('rejects onExcess=truncate on object', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -101,7 +101,7 @@ args:
     ).toThrow(/invalid on type='object'/);
   });
 
-  it('rejects cardinality on object (implicit { exactly: 1 })', () => {
+  it('rejects cardinality on object (implicit { exactly: 1 })', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -118,7 +118,7 @@ args:
     ).toThrow(/not valid on type='object'/);
   });
 
-  it('rejects cardinality on non-MQL types', () => {
+  it('rejects cardinality on non-MQL types', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -135,7 +135,7 @@ args:
     ).toThrow(/only valid on object \/ objects/);
   });
 
-  it('rejects onShortage values other than error in v1', () => {
+  it('rejects onShortage values other than error in v1', async () => {
     // JSON Schema rejects unknown enum values first.
     expect(() =>
       CommandDefinition.fromYaml(
@@ -152,7 +152,7 @@ args:
     ).toThrow(/onShortage must be equal/);
   });
 
-  it('accepts valid policies', () => {
+  it('accepts valid policies', async () => {
     expect(() =>
       CommandDefinition.fromYaml(
         `verbs: [foo]
@@ -172,7 +172,7 @@ args:
     ).not.toThrow();
   });
 
-  it('accepts every existing shipped command unchanged', () => {
+  it('accepts every existing shipped command unchanged', async () => {
     // Sample a few of the existing commands — they shouldn't have
     // any of the new fields, and the schema validation should not
     // reject them.
@@ -197,11 +197,11 @@ args:
 });
 
 describe('CommandApi.applyCardinalityPolicy — object', () => {
-  it('top (default) picks the highest-scored match', () => {
+  it('top (default) picks the highest-scored match', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'object' },
       [a, b, makeStuffStub('c')],
       'target',
@@ -211,9 +211,9 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     expect(ctx.notes).toEqual([]);
   });
 
-  it('error rejects ambiguity', () => {
+  it('error rejects ambiguity', async () => {
     const ctx = makeContextStub();
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'error' },
       [makeStuffStub('a'), makeStuffStub('b')],
       'target',
@@ -225,10 +225,10 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     );
   });
 
-  it('error passes through when single match', () => {
+  it('error passes through when single match', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'error' },
       [a],
       'target',
@@ -237,9 +237,9 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     expect(out).toEqual([a]);
   });
 
-  it('zero matches passes through (resolveModel handles no-match)', () => {
+  it('zero matches passes through (resolveModel handles no-match)', async () => {
     const ctx = makeContextStub();
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'top' },
       [],
       'target',
@@ -248,30 +248,33 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     expect(out).toEqual([]);
   });
 
-  it('prompt policy degrades to top with deferral note', () => {
+  it('prompt policy without an Interactive emits ambiguous and returns null', async () => {
+    // No `context.interactive` is set in the stub — there's no
+    // way to push a disambiguation prompt, so the policy degrades
+    // to an ambiguity error (the equivalent of `onExcess: 'error'`).
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'prompt' },
       [a, b],
       'target',
       ctx,
     );
-    expect(out).toEqual([a]);
+    expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'prompt-deferred' }),
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'ambiguous' }),
     );
   });
 });
 
 describe('CommandApi.applyCardinalityPolicy — objects', () => {
-  it('take-all (default when max unset) returns everything', () => {
+  it('take-all (default when max unset) returns everything', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
     const c = makeStuffStub('c');
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'objects' },
       [a, b, c],
       'targets',
@@ -280,13 +283,13 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     expect(out).toEqual([a, b, c]);
   });
 
-  it('truncate cuts to max', () => {
+  it('truncate cuts to max', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
     const c = makeStuffStub('c');
     const d = makeStuffStub('d');
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'objects', cardinality: { max: 2 }, onExcess: 'truncate' },
       [a, b, c, d],
       'targets',
@@ -295,9 +298,9 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     expect(out).toEqual([a, b]);
   });
 
-  it('error rejects when over max', () => {
+  it('error rejects when over max', async () => {
     const ctx = makeContextStub();
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'objects', cardinality: { max: 1 }, onExcess: 'error' },
       [makeStuffStub('a'), makeStuffStub('b')],
       'targets',
@@ -309,9 +312,9 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     );
   });
 
-  it('error rejects when under min (shortage)', () => {
+  it('error rejects when under min (shortage)', async () => {
     const ctx = makeContextStub();
-    const out = CommandApi.applyCardinalityPolicy(
+    const out = await CommandApi.applyCardinalityPolicy(
       { type: 'objects', cardinality: { min: 2 } },
       [makeStuffStub('a')],
       'targets',
@@ -323,7 +326,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     );
   });
 
-  it('exactly: 3 enforces both min and max', () => {
+  it('exactly: 3 enforces both min and max', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
@@ -332,7 +335,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
 
     // got 3, in range — passes through.
     expect(
-      CommandApi.applyCardinalityPolicy(
+      await CommandApi.applyCardinalityPolicy(
         { type: 'objects', cardinality: { exactly: 3 } },
         [a, b, c],
         'targets',
@@ -341,20 +344,25 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     ).toEqual([a, b, c]);
 
     // got 4 — over; default onExcess for `max set` is 'prompt',
-    // which degrades to truncate. Verify truncation to 3.
+    // but we have no Interactive on the stub context, so the policy
+    // degrades to too-many.
+    const ctxOver = makeContextStub();
     expect(
-      CommandApi.applyCardinalityPolicy(
+      await CommandApi.applyCardinalityPolicy(
         { type: 'objects', cardinality: { exactly: 3 } },
         [a, b, c, d],
         'targets',
-        ctx,
+        ctxOver,
       ),
-    ).toEqual([a, b, c]);
+    ).toBeNull();
+    expect(ctxOver.notes).toContainEqual(
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'too-many' }),
+    );
 
     // got 2 — under; insufficient error.
     const ctx2 = makeContextStub();
     expect(
-      CommandApi.applyCardinalityPolicy(
+      await CommandApi.applyCardinalityPolicy(
         { type: 'objects', cardinality: { exactly: 3 } },
         [a, b],
         'targets',
@@ -366,12 +374,12 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     );
   });
 
-  it('in-range passes through unchanged', () => {
+  it('in-range passes through unchanged', async () => {
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
     expect(
-      CommandApi.applyCardinalityPolicy(
+      await CommandApi.applyCardinalityPolicy(
         { type: 'objects', cardinality: { min: 1, max: 5 } },
         [a, b],
         'targets',

@@ -19,6 +19,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import { ArrayApi } from './array';
 import { ShellApi } from './shell';
+import { PromptApi } from './prompt';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
@@ -1442,12 +1443,12 @@ export class CommandApi {
    * dictates failure (an error note has been added to the
    * context).
    */
-  static applyCardinalityPolicy(
+  static async applyCardinalityPolicy(
     spec: { type?: string; cardinality?: CardinalitySpec; onExcess?: OnExcessPolicy; onShortage?: OnShortagePolicy },
     stuff: Stuff[],
     fname: string,
     context: CommandContext,
-  ): Stuff[] | null {
+  ): Promise<Stuff[] | null> {
     if (spec.type === 'object') {
       const policy = spec.onExcess ?? 'top';
       if (stuff.length === 0) return [];
@@ -1462,13 +1463,28 @@ export class CommandApi {
         });
         return null;
       }
-      // 'prompt' — deferred; degrade to top for now.
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'prompt-deferred',
-        detail: `${fname}: onExcess='prompt' not yet implemented; degrading to top`,
-      });
-      return [stuff[0]!];
+      // 'prompt' — push mqlObject and await the player's pick. If
+      // no Interactive is on the context (e.g. NPC dispatch path),
+      // there's no way to disambiguate; degrade to top with a note.
+      if (!context.interactive) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'ambiguous',
+          detail: `${fname}: ambiguous (${stuff.length} matches) and no Interactive to disambiguate`,
+        });
+        return null;
+      }
+      const picked = await PromptApi.mqlObject(
+        context.interactive,
+        `which ${fname}?`,
+        stuff,
+      );
+      if (picked === null) {
+        // Pass null through as a no-match — controller will fail
+        // with its standard no-match path.
+        return [];
+      }
+      return [picked];
     }
 
     if (spec.type === 'objects') {
@@ -1498,23 +1514,32 @@ export class CommandApi {
         });
         return null;
       }
-      // 'prompt' — deferred; degrade to truncate for now.
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'prompt-deferred',
-        detail: `${fname}: onExcess='prompt' not yet implemented; degrading to truncate`,
-      });
-      return stuff.slice(0, max);
+      // 'prompt' — push mqlMany with bounds and await.
+      if (!context.interactive) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'too-many',
+          detail: `${fname}: got ${stuff.length}, max ${max}, no Interactive to narrow`,
+        });
+        return null;
+      }
+      const picks = await PromptApi.mqlMany(
+        context.interactive,
+        `pick ${min}-${max} ${fname}`,
+        stuff,
+        { min, max: Number.isFinite(max) ? max : undefined },
+      );
+      return picks;
     }
 
     return stuff;
   }
 
-  static resolveModel(
+  static async resolveModel(
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: 'failed' } {
+  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
     const command = context.command;
     const subcommand =
       typeof model[SUBCOMMAND_FIELD] === 'string'
@@ -1577,7 +1602,7 @@ export class CommandApi {
         }
         // Apply cardinality / onExcess policy. Returns the
         // filtered stuff list or null on policy-driven failure.
-        const filtered = CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        const filtered = await CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
@@ -1627,7 +1652,7 @@ export class CommandApi {
           return { result: 'failed' };
         }
         // Apply cardinality / onExcess policy.
-        const filtered = CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        const filtered = await CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
@@ -1683,7 +1708,7 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const filtered = CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        const filtered = await CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
@@ -1726,7 +1751,7 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const filtered = CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        const filtered = await CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
@@ -1853,12 +1878,12 @@ export class CommandApi {
    * validator phase via `preloadValidatorDeps`). Kept for tests and
    * one-off callers that want the combined sync surface.
    */
-  static resolveAndValidate(
+  static async resolveAndValidate(
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: 'failed' } {
-    const resolved = this.resolveModel(model, context, prep);
+  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
+    const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
     const validated = this.runValidators(resolved.resolved, context);
     if ('result' in validated) return validated;

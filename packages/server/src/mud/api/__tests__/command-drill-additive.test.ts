@@ -150,7 +150,7 @@ describe('Drill-additive focus (extend mode)', () => {
     );
   });
 
-  it("look bookcase from focus='here' produces focus='here:bookcase'", () => {
+  it("look bookcase from focus='here' produces focus='here:bookcase'", async () => {
     // Initial focus is 'here'; resolve(here) yields the location,
     // no via. Resolving 'bookcase' gives (location, via=[bookcase])
     // — same stuff, [] is a prefix of [bookcase], so compaction
@@ -162,11 +162,11 @@ describe('Drill-additive focus (extend mode)', () => {
       cmd,
       'look bookcase'
     );
-    CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 
-  it("look book from focus='here:bookcase' produces focus='here:bookcase:book'", () => {
+  it("look book from focus='here:bookcase' produces focus='here:bookcase:book'", async () => {
     giver.setFocus('here:bookcase');
     const cmd = lookCommand();
     const ctx = makeContext(
@@ -175,11 +175,11 @@ describe('Drill-additive focus (extend mode)', () => {
       cmd,
       'look book'
     );
-    CommandApi.resolveAndValidate({ target: 'book' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'book' }, ctx);
     expect(giver.getFocus()).toBe('here:bookcase:book');
   });
 
-  it("re-resolving the same target leaves focus unchanged", () => {
+  it("re-resolving the same target leaves focus unchanged", async () => {
     giver.setFocus('here:bookcase');
     const cmd = lookCommand();
     const ctx = makeContext(
@@ -188,11 +188,11 @@ describe('Drill-additive focus (extend mode)', () => {
       cmd,
       'look bookcase'
     );
-    CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 
-  it("look rose from focus='here:bookcase' falls back to reachable; focus appends naively", () => {
+  it("look rose from focus='here:bookcase' falls back to reachable; focus appends naively", async () => {
     // The bookcase detail tree has no rose; the YAML's scope try-list
     // falls through to 'reachable' to find it. Resolved (rose, no via)
     // is a different stuff than the focus's anchor (location), so
@@ -205,11 +205,11 @@ describe('Drill-additive focus (extend mode)', () => {
       cmd,
       'look rose'
     );
-    CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect(giver.getFocus()).toBe('here:bookcase:rose');
   });
 
-  it('extend mode does NOT fire on empty resolution', () => {
+  it('extend mode does NOT fire on empty resolution', async () => {
     giver.setFocus('here:bookcase');
     const cmd = lookCommand();
     const ctx = makeContext(
@@ -218,14 +218,14 @@ describe('Drill-additive focus (extend mode)', () => {
       cmd,
       'look bathtub'
     );
-    CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     // Focus untouched — empty match keeps the trail intact.
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 
-  it('pronoun substitution applies before extend (look it after look rose)', () => {
+  it('pronoun substitution applies before extend (look it after look rose)', async () => {
     const cmd = lookCommand();
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
@@ -239,7 +239,7 @@ describe('Drill-additive focus (extend mode)', () => {
     // compaction can't apply and the substituted fragment is
     // appended naively. The key check: the appended segment is
     // `rose`, NOT `it`.
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
@@ -266,7 +266,7 @@ describe('Drill-additive focus (replace mode)', () => {
     );
   });
 
-  it('replace mode sets focus to the typed fragment wholesale', () => {
+  it('replace mode sets focus to the typed fragment wholesale', async () => {
     giver.setFocus('here:bookcase');
     const cmd = replaceCommand();
     const ctx = makeContext(
@@ -275,7 +275,7 @@ describe('Drill-additive focus (replace mode)', () => {
       cmd,
       'anchor bookcase'
     );
-    CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bookcase' }, ctx);
     // Wholesale replacement; the prior chain doesn't carry over.
     expect(giver.getFocus()).toBe('bookcase');
   });
@@ -326,7 +326,7 @@ describe('Default scope when YAML omits scope:', () => {
     );
   }
 
-  it("YAML without scope: defaults to ['$focus'] — drill chain IS the scope", () => {
+  it("YAML without scope: defaults to ['$focus'] — drill chain IS the scope", async () => {
     // No scope: declared. Default is ['$focus']. From a drilled
     // focus 'here:bookcase', the bookcase detail's neighborhood
     // doesn't include peers like rose, and the default try-list has
@@ -340,7 +340,7 @@ describe('Default scope when YAML omits scope:', () => {
       cmd,
       'examine rose'
     );
-    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as { stuff: unknown };
@@ -351,7 +351,7 @@ describe('Default scope when YAML omits scope:', () => {
     }
   });
 
-  it('declaring scope: ["$focus", "reachable"] gets the drill-first-then-broad pattern', () => {
+  it('declaring scope: ["$focus", "reachable"] gets the drill-first-then-broad pattern', async () => {
     // The explicit fallback chain. Drill chain ('here:bookcase')
     // misses for rose; the second try ('reachable') finds it.
     const cmd = CommandDefinition.fromYaml(
@@ -374,7 +374,7 @@ describe('Default scope when YAML omits scope:', () => {
       cmd,
       'examine rose'
     );
-    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as { stuff: unknown };
@@ -409,7 +409,7 @@ describe('Drill-additive focus (none mode / default)', () => {
     );
   });
 
-  it('omitting updates_focus leaves focus unchanged on resolution', () => {
+  it('omitting updates_focus leaves focus unchanged on resolution', async () => {
     giver.setFocus('here:bookcase');
     const cmd = noneCommand();
     const ctx = makeContext(
@@ -418,7 +418,7 @@ describe('Drill-additive focus (none mode / default)', () => {
       cmd,
       'poke rose'
     );
-    CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 });

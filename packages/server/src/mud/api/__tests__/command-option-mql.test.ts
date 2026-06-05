@@ -107,7 +107,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     ContainmentApi.move(daisy as never, location as never);
   });
 
-  it('option type: object lands an MqlOneResult on the model', () => {
+  it('option type: object lands an MqlOneResult on the model', async () => {
     const cmd = cmdWithObjectOption();
     const ctx = makeContext(
       giver,
@@ -115,7 +115,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
       cmd,
       'destruct --mql rose',
     );
-    const r = CommandApi.resolveAndValidate({ mql: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ mql: 'rose' }, ctx);
     if (!('resolved' in r)) throw new Error('expected resolved');
     const mql = r.resolved.mql as MqlOneResult;
     expect(mql).toBeDefined();
@@ -123,7 +123,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     expect(mql.raw).toBe('rose');
   });
 
-  it('option type: objects lands an MqlManyResult on the model', () => {
+  it('option type: objects lands an MqlManyResult on the model', async () => {
     const cmd = cmdWithObjectsOption();
     const ctx = makeContext(
       giver,
@@ -131,7 +131,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
       cmd,
       'eval --on rose',
     );
-    const r = CommandApi.resolveAndValidate({ on: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ on: 'rose' }, ctx);
     if (!('resolved' in r)) throw new Error('expected resolved');
     const on = r.resolved.on as MqlManyResult;
     expect(on).toBeDefined();
@@ -140,7 +140,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
     expect(on.raw).toBe('rose');
   });
 
-  it('option type: object on no-match lands stuff=null wrapper', () => {
+  it('option type: object on no-match lands stuff=null wrapper', async () => {
     const cmd = cmdWithObjectOption();
     const ctx = makeContext(
       giver,
@@ -148,14 +148,14 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
       cmd,
       'destruct --mql bathtub',
     );
-    const r = CommandApi.resolveAndValidate({ mql: 'bathtub' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ mql: 'bathtub' }, ctx);
     if (!('resolved' in r)) throw new Error('expected resolved');
     const mql = r.resolved.mql as MqlOneResult;
     expect(mql.stuff).toBeNull();
     expect(mql.raw).toBe('bathtub');
   });
 
-  it('option type: objects on no-match lands stuff=[] wrapper', () => {
+  it('option type: objects on no-match lands stuff=[] wrapper', async () => {
     const cmd = cmdWithObjectsOption();
     const ctx = makeContext(
       giver,
@@ -163,14 +163,14 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
       cmd,
       'eval --on bathtub',
     );
-    const r = CommandApi.resolveAndValidate({ on: 'bathtub' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ on: 'bathtub' }, ctx);
     if (!('resolved' in r)) throw new Error('expected resolved');
     const on = r.resolved.on as MqlManyResult;
     expect(on.stuff).toEqual([]);
     expect(on.raw).toBe('bathtub');
   });
 
-  it('honors a yaml-declared scope chain', () => {
+  it('honors a yaml-declared scope chain', async () => {
     // `scope: [reachable]` on the option — same precedence rules
     // as positional `scope:`. Verifies the option-side resolver
     // reads the declared scope rather than always defaulting.
@@ -192,7 +192,7 @@ describe('CommandApi.resolveAndValidate — option-side MQL', () => {
       cmd,
       'destruct --mql rose',
     );
-    const r = CommandApi.resolveAndValidate({ mql: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ mql: 'rose' }, ctx);
     if (!('resolved' in r)) throw new Error('expected resolved');
     const mql = r.resolved.mql as MqlOneResult;
     expect(mql.stuff).not.toBeNull();

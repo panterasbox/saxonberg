@@ -119,10 +119,10 @@ describe('Dispatcher empty-resolution passthrough', () => {
     );
   });
 
-  it('lands an MqlOneResult wrapper with stuff=null on no match', () => {
+  it('lands an MqlOneResult wrapper with stuff=null on no match', async () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
-    const r = CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
@@ -132,7 +132,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
     }
   });
 
-  it('lands an MqlManyResult wrapper with stuff=[] on no match', () => {
+  it('lands an MqlManyResult wrapper with stuff=[] on no match', async () => {
     const cmd = pluralObjectsCmd();
     const ctx = makeContext(
       giver,
@@ -140,7 +140,7 @@ describe('Dispatcher empty-resolution passthrough', () => {
       cmd,
       'drop bathtub'
     );
-    const r = CommandApi.resolveAndValidate({ targets: 'bathtub' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ targets: 'bathtub' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const targets = r.resolved.targets as MqlManyResult;
@@ -150,47 +150,47 @@ describe('Dispatcher empty-resolution passthrough', () => {
     }
   });
 
-  it('captures the player-typed text on the MqlOneResult.raw field', () => {
+  it('captures the player-typed text on the MqlOneResult.raw field', async () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
-    const r = CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
       expect(target.raw).toBe('rose');
     }
   });
 
-  it('captures raw text on the wrapper even when MQL resolves to nothing', () => {
+  it('captures raw text on the wrapper even when MQL resolves to nothing', async () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
-    const r = CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
       expect(target.raw).toBe('bathtub');
     }
   });
 
-  it('does not update player focus on empty resolution', () => {
+  it('does not update player focus on empty resolution', async () => {
     const cmd = singleObjectCmd(); // updates_focus: extend
     giver.setFocus('rose');
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
-    CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     // Focus unchanged — would have been clobbered if the dispatcher
     // had re-anchored to "bathtub".
     expect(giver.getFocus()).toBe('rose');
   });
 
-  it('does not update pronoun memory on empty resolution', () => {
+  it('does not update pronoun memory on empty resolution', async () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bathtub');
-    CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bathtub' }, ctx);
     expect(giver.getPronounMemory().read('it')).toBeNull();
   });
 
-  it('still updates focus/stash on a non-empty resolution', () => {
+  it('still updates focus/stash on a non-empty resolution', async () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
-    CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     // updates_focus: extend appends the typed fragment to the prior
     // focus ("here", the default) — different stuff (location vs
     // rose), so naive append.

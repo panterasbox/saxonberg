@@ -161,37 +161,37 @@ describe('Dispatcher pronoun-memory integration', () => {
     );
   });
 
-  it('non-Gendered single-stuff result lands in the it slot', () => {
+  it('non-Gendered single-stuff result lands in the it slot', async () => {
     const cmd = lookCommand();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
-    CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
   });
 
-  it('he/him stuff lands in the him slot', () => {
+  it('he/him stuff lands in the him slot', async () => {
     const cmd = lookCommand();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look bob');
-    CommandApi.resolveAndValidate({ target: 'bob' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'bob' }, ctx);
     expect(giver.getPronounMemory().read('him')!.stuff).toEqual([bob]);
     expect(giver.getPronounMemory().read('it')).toBeNull();
   });
 
-  it('she/her stuff lands in the her slot', () => {
+  it('she/her stuff lands in the her slot', async () => {
     const cmd = lookCommand();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look alice');
-    CommandApi.resolveAndValidate({ target: 'alice' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'alice' }, ctx);
     expect(giver.getPronounMemory().read('her')!.stuff).toEqual([alice]);
   });
 
-  it('they/them stuff lands in the them slot', () => {
+  it('they/them stuff lands in the them slot', async () => {
     const cmd = lookCommand();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look kim');
-    CommandApi.resolveAndValidate({ target: 'kim' }, ctx);
+    await CommandApi.resolveAndValidate({ target: 'kim' }, ctx);
     expect(giver.getPronounMemory().read('them')!.stuff).toEqual([kim]);
   });
 
-  it('multi-cardinality results route to them and last only', () => {
+  it('multi-cardinality results route to them and last only', async () => {
     // `examine`-shaped command with `type: objects` so the
     // dispatcher's resolveMany branch fires. 'flower' matches both
     // rose and daisy via the shared keyword.
@@ -209,7 +209,7 @@ describe('Dispatcher pronoun-memory integration', () => {
       ].join('\n'),
       '<test>'
     );
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { targets: 'flower' },
       makeContext(giver, location as unknown as Location, cmd, 'examine flower')
     );
@@ -224,9 +224,9 @@ describe('Dispatcher pronoun-memory integration', () => {
     expect(giver.getPronounMemory().read('it')).toBeNull();
   });
 
-  it('it resolves through the stash on a follow-up query', () => {
+  it('it resolves through the stash on a follow-up query', async () => {
     const cmd = lookCommand();
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
@@ -238,7 +238,7 @@ describe('Dispatcher pronoun-memory integration', () => {
       cmd,
       'look it'
     );
-    const r = CommandApi.resolveAndValidate({ target: 'it' }, ctx2);
+    const r = await CommandApi.resolveAndValidate({ target: 'it' }, ctx2);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
@@ -246,9 +246,9 @@ describe('Dispatcher pronoun-memory integration', () => {
     }
   });
 
-  it("look it after look rose substitutes the stored fragment, not 'it'", () => {
+  it("look it after look rose substitutes the stored fragment, not 'it'", async () => {
     const cmd = lookCommand();
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
@@ -262,14 +262,14 @@ describe('Dispatcher pronoun-memory integration', () => {
     // test world (no detailed location), so the same-anchor
     // compaction doesn't apply and the substituted fragment is
     // appended naively.
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
     expect(giver.getFocus()).toBe('here:rose:rose');
   });
 
-  it('two distinct CommandGivers do not share their stashes', () => {
+  it('two distinct CommandGivers do not share their stashes', async () => {
     const otherGiver = makeStuff(() => new TestGiver()) as TestGiver;
     otherGiver.setName('other');
     ContainmentApi.move(
@@ -278,11 +278,11 @@ describe('Dispatcher pronoun-memory integration', () => {
     );
 
     const cmd = lookCommand();
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'bob' },
       makeContext(otherGiver, location as unknown as Location, cmd, 'look bob')
     );
@@ -293,23 +293,23 @@ describe('Dispatcher pronoun-memory integration', () => {
     expect(otherGiver.getPronounMemory().read('it')).toBeNull();
   });
 
-  it('input that is itself a pronoun does not overwrite the stored fragment', () => {
+  it('input that is itself a pronoun does not overwrite the stored fragment', async () => {
     const cmd = lookCommand();
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
     // Now `look it` — fragment for `it` should still be "rose", not
     // "it" (preserving the original anchor).
-    CommandApi.resolveAndValidate(
+    await CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
   });
 
-  it('YAML scope[] tries entries in order; falls back when first misses', () => {
+  it('YAML scope[] tries entries in order; falls back when first misses', async () => {
     // Drill-first verb declared via the explicit array form. The
     // dispatcher tries `$focus` (= 'rose') first; `apple` lives in
     // the giver's inventory, not in the rose detail tree, so the
@@ -335,7 +335,7 @@ describe('Dispatcher pronoun-memory integration', () => {
       drillFirstLook,
       'look apple'
     );
-    const r = CommandApi.resolveAndValidate({ target: 'apple' }, ctx);
+    const r = await CommandApi.resolveAndValidate({ target: 'apple' }, ctx);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
