@@ -40,7 +40,9 @@ function resetClient(): void {
     paneFocusFragment: "",
     paneBodyPainted: false,
     paneLastResult: null,
-    paneBreadcrumbs: [],
+    paneBreadcrumbRoot: null,
+    paneBreadcrumbTrail: [],
+    paneDetailPath: [],
     auth: {
       isAuthenticated: false,
       user: null,
@@ -82,13 +84,17 @@ function paintBody(): void {
  * The pane mints a UUID; the test needs the exact id to address
  * delta envelopes at the same subscription.
  */
-function currentSubscriptionId(): string {
+function currentSubscriptionId(kind: string = "me.focus"): string {
   const c = websocketClient as unknown as {
-    canonicalKindSubscriptions: Map<string, { subscriptionId: string }>;
+    canonicalKindSubscriptions: Map<
+      string,
+      { subscriptionId: string; kind: string }
+    >;
   };
-  const first = c.canonicalKindSubscriptions.values().next();
-  if (first.done) throw new Error("no subscription registered");
-  return first.value.subscriptionId;
+  for (const entry of c.canonicalKindSubscriptions.values()) {
+    if (entry.kind === kind) return entry.subscriptionId;
+  }
+  throw new Error(`no subscription registered for kind ${kind}`);
 }
 
 describe("InspectionPane", () => {
@@ -108,7 +114,7 @@ describe("InspectionPane", () => {
     expect(placeholder.textContent).toContain("look");
   });
 
-  it("subscribes to me.focus on mount and unsubscribes on unmount", () => {
+  it("subscribes to me.focus + me.location on mount and unsubscribes on unmount", () => {
     const mock = attachMockWs();
     const onSend = vi.fn();
     const { unmount } = render(<InspectionPane onSendCommand={onSend} />);
@@ -116,11 +122,13 @@ describe("InspectionPane", () => {
     const subscribes = mock.sent.filter(
       (m) => (m as { type?: string }).type === "mql-subscribe"
     );
-    expect(subscribes).toHaveLength(1);
-    expect(subscribes[0]).toMatchObject({
-      type: "mql-subscribe",
-      payload: { kind: "me.focus" },
-    });
+    expect(subscribes).toHaveLength(2);
+    const kinds = subscribes.map(
+      (m) =>
+        (m as { payload: { kind: string } }).payload.kind
+    );
+    expect(kinds).toContain("me.focus");
+    expect(kinds).toContain("me.location");
 
     mock.sent = [];
     unmount();
@@ -128,10 +136,10 @@ describe("InspectionPane", () => {
     const unsubscribes = mock.sent.filter(
       (m) => (m as { type?: string }).type === "mql-unsubscribe"
     );
-    expect(unsubscribes).toHaveLength(1);
+    expect(unsubscribes).toHaveLength(2);
   });
 
-  it("updates the header from the initial result envelope, body stays cleared", () => {
+  it("updates the header from the initial result envelope and auto-paints the body", () => {
     attachMockWs();
     const onSend = vi.fn();
     render(<InspectionPane onSendCommand={onSend} />);
@@ -154,8 +162,12 @@ describe("InspectionPane", () => {
 
     // Header reflects the new display name.
     expect(screen.getByText("The Atrium")).toBeDefined();
-    // Body is still the cleared placeholder.
-    expect(screen.getByLabelText("paint pane body")).toBeDefined();
+    // First-delivery auto-paint: the body renders the long description
+    // without needing an explicit `look`. Subsequent focus-shifts still
+    // clear (see the focus-change tests below).
+    expect(
+      screen.getByText("Tall windows admit the morning light.")
+    ).toBeDefined();
   });
 
   it("paints the body when the player issues `look`", () => {
@@ -276,14 +288,44 @@ describe("InspectionPane", () => {
     expect(onSend).toHaveBeenCalledWith("look");
   });
 
-  it("breadcrumb click sends `look <fragment>`", () => {
+  it("breadcrumb trail click sends the segment's stored command", () => {
     attachMockWs();
     const onSend = vi.fn();
-    useStore.setState({ paneBreadcrumbs: ["apple", "here"] });
+    useStore.setState({
+      paneBreadcrumbRoot: {
+        stuffId: "room-1",
+        displayName: "the lobby",
+        primaryKeyword: "lobby",
+      },
+      paneBreadcrumbTrail: [
+        { label: "apple", command: "look apple" },
+        { label: "counter", command: "look counter" },
+      ],
+    });
     render(<InspectionPane onSendCommand={onSend} />);
 
     fireEvent.click(screen.getByText("apple"));
     expect(onSend).toHaveBeenCalledWith("look apple");
+  });
+
+  it("breadcrumb root click sends look <root-keyword>", () => {
+    attachMockWs();
+    const onSend = vi.fn();
+    useStore.setState({
+      paneBreadcrumbRoot: {
+        stuffId: "room-1",
+        displayName: "the lobby",
+        primaryKeyword: "lobby",
+      },
+      paneBreadcrumbTrail: [],
+    });
+    render(<InspectionPane onSendCommand={onSend} />);
+
+    // Root label uses the primaryKeyword for brevity + consistency
+    // with the trail entries; the displayName ("the lobby") is the
+    // fallback for keyword-less roots only.
+    fireEvent.click(screen.getByText("lobby"));
+    expect(onSend).toHaveBeenCalledWith("look lobby");
   });
 
   it("contents row click sends `look <primaryKeyword>` (fallback to displayName)", () => {
@@ -454,7 +496,14 @@ describe("InspectionPane", () => {
     attachMockWs();
     const onSend = vi.fn();
     const onPreview = vi.fn();
-    useStore.setState({ paneBreadcrumbs: ["lobby"] });
+    useStore.setState({
+      paneBreadcrumbRoot: {
+        stuffId: "room-1",
+        displayName: "the lobby",
+        primaryKeyword: "lobby",
+      },
+      paneBreadcrumbTrail: [],
+    });
     render(
       <InspectionPane onSendCommand={onSend} onCommandPreview={onPreview} />
     );
@@ -489,8 +538,11 @@ describe("InspectionPane", () => {
     fireEvent.mouseLeave(refresh);
     expect(onPreview).toHaveBeenLastCalledWith(null);
 
-    // Breadcrumb: hover → "look lobby".
-    const crumb = screen.getByText("lobby");
+    // Breadcrumb root (the room): hover → "look lobby". The label
+    // is the primaryKeyword ("lobby"), not the displayName. Scope
+    // to the trail nav so other "lobby" occurrences don't collide.
+    const trail = screen.getByLabelText("focus breadcrumbs");
+    const crumb = within(trail).getByText("lobby");
     fireEvent.mouseEnter(crumb);
     expect(onPreview).toHaveBeenLastCalledWith("look lobby");
 

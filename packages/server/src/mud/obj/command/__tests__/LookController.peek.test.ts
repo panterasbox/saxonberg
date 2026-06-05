@@ -124,12 +124,13 @@ describe("look --peek (skip_focus_when_option)", () => {
       { target: "rose", peek: true },
       ctx
     );
-    // Without --peek, `updates_focus: extend` would land
-    // `here:rose`. With --peek the gate skips the update.
+    // Without --peek, `updates_focus: extend` would replace focus
+    // with `rose` (extend on a non-detail target replaces rather
+    // than appending). With --peek the gate skips the update.
     expect(giver.getFocus()).toBe("here");
   });
 
-  it("look rose (no peek) extends focus to here:rose", async () => {
+  it("look rose (no peek) replaces focus with rose", async () => {
     giver.setFocus("here");
     const cmd = lookCommand();
     const ctx = makeContext(
@@ -139,7 +140,10 @@ describe("look --peek (skip_focus_when_option)", () => {
       "look rose"
     );
     await CommandApi.resolveAndValidate({ target: "rose" }, ctx);
-    expect(giver.getFocus()).toBe("here:rose");
+    // Extend semantics: looking at a non-detail Stuff replaces the
+    // focus rather than chaining `here:rose`. See
+    // `updatePlayerFocus` in `api/command.ts`.
+    expect(giver.getFocus()).toBe("rose");
   });
 
   it("look rose --peek with no prior focus leaves the default 'here'", async () => {
@@ -176,7 +180,8 @@ describe("look --peek (skip_focus_when_option)", () => {
       { target: "rose", peek: false },
       ctx
     );
-    expect(giver.getFocus()).toBe("here:rose");
+    // Same replace-on-extend behavior as above.
+    expect(giver.getFocus()).toBe("rose");
   });
 
   it("peek still updates pronoun memory even when focus is skipped", async () => {
