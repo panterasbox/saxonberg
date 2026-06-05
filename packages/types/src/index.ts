@@ -410,6 +410,45 @@ export interface MqlUnsubscribeMessage {
 }
 
 /**
+ * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
+ * same `query` / `cardinality` / `fields` / `detailKey` / `kind`
+ * fields, same canonical-kind overlay semantics — but the substrate
+ * reuses ONLY the parse + resolve + project pipeline: no registration
+ * in the per-Interactive registry, no dependency-index entries, no
+ * listener installation. The result envelope ships once; no follow-up
+ * deltas are emitted.
+ *
+ * Discriminator is `queryId` (not `subscriptionId`) so a client may
+ * have both subscriptions and queries in flight without correlation
+ * collisions.
+ *
+ * When `kind` is present, the substrate resolves the name against
+ * its canonical-kind registry (`MqlSubscriptionApi.registerKind`)
+ * exactly as it does for `mql-subscribe`. The registered spec's
+ * `query` / `cardinality` / `fields` / `detailKey` overlay this
+ * request; `focusDependent` is meaningless for one-shot reads (no
+ * subscription state to wake) and is ignored. Unknown kind names emit
+ * `MqlQueryErrorEnvelope { reason: 'parse' }`.
+ */
+export interface MqlQueryMessage {
+  type: 'mql-query';
+  queryId: string;
+  /** Optional when `kind` is present (the kind spec supplies it). */
+  query?: string;
+  /** Optional when `kind` is present (the kind spec supplies it). */
+  cardinality?: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
+  detailKey?: string;
+  /**
+   * Canonical-kind name registered via
+   * `MqlSubscriptionApi.registerKind`. When present, the registered
+   * spec wins over any client-supplied `query` / `cardinality` /
+   * `fields` / `detailKey`.
+   */
+  kind?: string;
+}
+
+/**
  * Inbound response to a server-pushed prompt. The substrate looks
  * up the resolver by `promptId`, decodes `response` per the prompt
  * kind (string for `choice` / `text`; `'yes'` / `'no'` for
@@ -564,13 +603,44 @@ export interface MqlSubscriptionErrorEnvelope {
   detail?: string;
 }
 
+/**
+ * One-shot query result. Mirrors
+ * {@link MqlSubscriptionResultEnvelope} but correlates to a
+ * {@link MqlQueryMessage} via `queryId` instead of
+ * `subscriptionId`. The wire shape of the projected records is
+ * identical — flat-mode queries ship `StuffRefRecord | StuffDetailRecord`,
+ * focus-mode queries ship `StuffDetailFocusRecord`. No delta envelope
+ * follows: queries are one-shot reads.
+ */
+export interface MqlQueryResultEnvelope {
+  type: 'mql-query-result';
+  frameId: number;
+  queryId: string;
+  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+}
+
+/**
+ * One-shot query failure. Reuses {@link MqlSubscriptionErrorReason} so
+ * client error-handling code can branch by reason uniformly across
+ * subscribes and queries.
+ */
+export interface MqlQueryErrorEnvelope {
+  type: 'mql-query-error';
+  frameId: number;
+  queryId: string;
+  reason: MqlSubscriptionErrorReason;
+  detail?: string;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
   | PromptEnvelope
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
-  | MqlSubscriptionErrorEnvelope;
+  | MqlSubscriptionErrorEnvelope
+  | MqlQueryResultEnvelope
+  | MqlQueryErrorEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -582,7 +652,9 @@ export type EnvelopeTemplate =
   | Omit<PromptEnvelope, 'frameId'>
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>;
+  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlQueryResultEnvelope, 'frameId'>
+  | Omit<MqlQueryErrorEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)

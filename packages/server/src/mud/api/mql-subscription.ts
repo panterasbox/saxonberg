@@ -41,6 +41,8 @@ import type {
   MqlSubscriptionResultEnvelope,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionErrorEnvelope,
+  MqlQueryResultEnvelope,
+  MqlQueryErrorEnvelope,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -395,6 +397,38 @@ export interface SubscribeRequest {
 }
 
 /**
+ * Caller-facing one-shot query payload — what
+ * `Application.processUserMessage` forwards from the inbound
+ * `MqlQueryMessage`. Shares the canonical-kind overlay surface with
+ * {@link SubscribeRequest}, but the substrate reuses ONLY the parse +
+ * resolve + project pipeline: no registration, no dependency-index
+ * entries, no listener installation.
+ *
+ * `focusDependent` is meaningless for one-shot reads (no subscription
+ * state to wake on focus change) — when the resolved canonical-kind
+ * spec carries it, the substrate ignores it.
+ */
+export interface QueryRequest {
+  interactive: Interactive;
+  queryId: string;
+  query?: string;
+  cardinality?: SubscriptionCardinality;
+  fields?: FieldSet | FieldAlias;
+  /**
+   * When present, projection runs in focused-detail mode. Requires
+   * `cardinality === 'one'`; a `'many'` query with a `detailKey` is
+   * rejected with `reason: 'parse'`.
+   */
+  detailKey?: string;
+  /**
+   * Canonical-kind name registered via
+   * {@link MqlSubscriptionApi.registerKind}. Same overlay semantics as
+   * {@link SubscribeRequest.kind}.
+   */
+  kind?: string;
+}
+
+/**
  * Internal per-subscription state held in the registry. The
  * `dependencyHandles` array records every entry the subscription
  * installed into the meta-bus index so cancellation is a single
@@ -735,6 +769,151 @@ export class MqlSubscriptionApi {
     const template: Omit<MqlSubscriptionResultEnvelope, 'frameId'> = {
       type: 'mql-subscription-result',
       subscriptionId,
+      result,
+    };
+    MessageApi.sendEnvelope(viewer, template);
+  }
+
+  /**
+   * One-shot read. Reuses ONLY the substrate's parse + resolve +
+   * project pipeline — NO registration in `#registry`, NO
+   * dependency-index entries, NO listener installation. Emits one
+   * {@link MqlQueryResultEnvelope} (success) or one
+   * {@link MqlQueryErrorEnvelope} (failure) per call.
+   *
+   * Holder / cardinality / canonical-kind checks mirror
+   * {@link handleSubscribe} so a client's error-handling code can
+   * branch by `reason` uniformly across subscribes and queries. The
+   * `focusDependent` flag on a registered kind is meaningless for a
+   * one-shot read and is ignored.
+   *
+   * The "share the pipeline, skip the state" pattern: programmatic
+   * one-shot reads inside the server should call
+   * `MqlApi.resolveOne` / `resolveMany` + `projectFields` directly;
+   * this surface is the wire-facing channel.
+   */
+  public static handleQuery(req: QueryRequest): void {
+    const { interactive, queryId } = req;
+
+    // Canonical-kind overlay (mirrors handleSubscribe).
+    let query: string;
+    let cardinality: SubscriptionCardinality;
+    let fields: FieldSet;
+    let detailKey: string | undefined;
+    if (req.kind !== undefined) {
+      const spec = this.#canonicalKinds.get(req.kind);
+      if (!spec) {
+        this.#emitQueryError(
+          interactive,
+          queryId,
+          'parse',
+          `unknown kind: ${req.kind}`,
+        );
+        return;
+      }
+      query = spec.query;
+      cardinality = spec.cardinality;
+      fields = resolveFieldSet(spec.fields);
+      detailKey = spec.detailKey;
+      // `focusDependent` is meaningless for a one-shot — no state to
+      // wake. Silently ignored.
+    } else {
+      if (typeof req.query !== 'string') {
+        this.#emitQueryError(
+          interactive,
+          queryId,
+          'parse',
+          'query required when kind is absent',
+        );
+        return;
+      }
+      if (req.cardinality !== 'one' && req.cardinality !== 'many') {
+        this.#emitQueryError(
+          interactive,
+          queryId,
+          'parse',
+          'cardinality required when kind is absent',
+        );
+        return;
+      }
+      query = req.query;
+      cardinality = req.cardinality;
+      fields = resolveFieldSet(req.fields);
+      detailKey = req.detailKey;
+    }
+
+    // Focus + cardinality cross-check (mirrors handleSubscribe).
+    if (detailKey !== undefined && cardinality !== 'one') {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'parse',
+        'detailKey requires cardinality one',
+      );
+      return;
+    }
+
+    // Holder resolution (mirrors handleSubscribe).
+    const holder = interactive.getHolder();
+    if (!holder || !MixinApi.isCommandGiver(holder)) {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'permission',
+        'query holder must compose CommandGiver',
+      );
+      return;
+    }
+    if (!MixinApi.isSensor(holder)) {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'permission',
+        'query holder must compose Sensor',
+      );
+      return;
+    }
+    const giver = holder as Stuff & CommandGiver;
+    const viewer = holder as Stuff & Sensor;
+
+    // Parse + resolve. Expand shell variables (`$focus`, etc.)
+    // against the holder so canonical kinds with var-bearing queries
+    // resolve correctly.
+    const expandedQuery = ShellApi.expandVariables(query, giver);
+    let stuffList: Stuff[];
+    try {
+      const ctx = { commandGiver: giver, scope: expandedQuery };
+      if (cardinality === 'one') {
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
+        stuffList = one.stuff ? [one.stuff] : [];
+      } else {
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
+        stuffList = many.stuff;
+      }
+    } catch (err) {
+      const reason: MqlSubscriptionErrorReason =
+        err instanceof MqlPermissionError ? 'permission' : 'parse';
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        reason,
+        err instanceof Error ? err.message : String(err),
+      );
+      return;
+    }
+
+    // Project each Stuff into a wire record (flat or focus per the
+    // request's mode). No registry insertion, no dependency-index
+    // walk — just the projection.
+    const result: RecordValue[] = [];
+    for (const stuff of stuffList) {
+      const rec = this.#projectStuff(stuff, fields, viewer, detailKey);
+      result.push(rec);
+    }
+
+    const template: Omit<MqlQueryResultEnvelope, 'frameId'> = {
+      type: 'mql-query-result',
+      queryId,
       result,
     };
     MessageApi.sendEnvelope(viewer, template);
@@ -1166,6 +1345,35 @@ export class MqlSubscriptionApi {
       console.warn(
         `MqlSubscriptionApi: cannot deliver error envelope (no Sensor holder); ` +
           `subscriptionId=${subscriptionId} reason=${reason}`,
+      );
+    }
+  }
+
+  /**
+   * Emit a one-shot query error envelope. Mirrors {@link #emitError}
+   * but carries `queryId` instead of `subscriptionId` and rides the
+   * `'mql-query-error'` envelope type so client-side handlers can
+   * branch by envelope type before correlating ids.
+   */
+  static #emitQueryError(
+    interactive: Interactive,
+    queryId: string,
+    reason: MqlSubscriptionErrorReason,
+    detail?: string,
+  ): void {
+    const holder = interactive.getHolder();
+    const template: Omit<MqlQueryErrorEnvelope, 'frameId'> = {
+      type: 'mql-query-error',
+      queryId,
+      reason,
+      ...(detail !== undefined ? { detail } : {}),
+    };
+    if (holder && MixinApi.isSensor(holder)) {
+      MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+    } else {
+      console.warn(
+        `MqlSubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
+          `queryId=${queryId} reason=${reason}`,
       );
     }
   }

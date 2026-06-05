@@ -137,6 +137,80 @@ describe('Application — MQL subscription routes', () => {
     spy.mockRestore();
   });
 
+  it('mql-query route reaches MqlSubscriptionApi.handleQuery', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
+      interactive,
+    );
+    const spy = vi
+      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .mockImplementation(() => {});
+    app.processUserMessage('sock-1', {
+      type: 'mql-query',
+      payload: {
+        type: 'mql-query',
+        queryId: 'q1',
+        query: 'me',
+        cardinality: 'one',
+      },
+    });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interactive,
+        queryId: 'q1',
+        query: 'me',
+        cardinality: 'one',
+      }),
+    );
+    spy.mockRestore();
+  });
+
+  it('mql-query with kind forwards kind to the substrate', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
+      interactive,
+    );
+    const spy = vi
+      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .mockImplementation(() => {});
+    // Wire-thin shape: queryId + kind. No query / cardinality required;
+    // the substrate overlays the registered spec.
+    app.processUserMessage('sock-1', {
+      type: 'mql-query',
+      payload: {
+        type: 'mql-query',
+        queryId: 'q1',
+        kind: 'me.focus',
+      },
+    });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interactive,
+        queryId: 'q1',
+        kind: 'me.focus',
+      }),
+    );
+    spy.mockRestore();
+  });
+
+  it('malformed mql-query payload silently drops', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
+      interactive,
+    );
+    const spy = vi
+      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .mockImplementation(() => {});
+    app.processUserMessage('sock-1', {
+      type: 'mql-query',
+      payload: { queryId: 'q1' }, // missing query, cardinality, kind
+    });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('handleUserDisconnect calls cancelAllForInteractive BEFORE removing the Interactive', () => {
     const interactive = makeFakeInteractive('sock-x');
     const getSpy = vi

@@ -42,6 +42,7 @@ import { PromptApi, renderPromptRefresh } from '../mud/api/prompt';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
+  MqlQueryMessage,
   PromptResponseMessage,
   PromptCancelMessage,
 } from '@saxonberg/types';
@@ -245,6 +246,10 @@ export class Application {
         this.handleMqlUnsubscribe(socketId, message);
         break;
 
+      case 'mql-query':
+        this.handleMqlQuery(socketId, message);
+        break;
+
       case 'prompt-response':
         this.handlePromptResponse(socketId, message);
         break;
@@ -315,6 +320,49 @@ export class Application {
     const payload = message.payload as MqlUnsubscribeMessage | undefined;
     if (!payload || typeof payload.subscriptionId !== 'string') return;
     MqlSubscriptionApi.handleUnsubscribe(interactive, payload.subscriptionId);
+  }
+
+  /**
+   * Route `mql-query` to the substrate's one-shot `handleQuery`
+   * surface. Drops on shape mismatch without an error envelope —
+   * the substrate handles substantive checks (canonical-kind
+   * resolution, focus + cardinality cross-check, parse / resolve /
+   * permission failures).
+   *
+   * Mirrors {@link handleMqlSubscribe}: when `kind` is present,
+   * `query` and `cardinality` are optional on the wire (the kind
+   * spec supplies them); when `kind` is absent, both are required.
+   * The substrate's one-shot path does NOT install registry state,
+   * dependency-index entries, or listeners.
+   */
+  private handleMqlQuery(socketId: string, message: InboundClientMessage): void {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const payload = message.payload as MqlQueryMessage | undefined;
+    if (!payload || typeof payload.queryId !== 'string') {
+      return;
+    }
+    const hasKind = typeof payload.kind === 'string';
+    if (!hasKind) {
+      // Raw query — query + cardinality required.
+      if (
+        typeof payload.query !== 'string' ||
+        (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+      ) {
+        return;
+      }
+    }
+    MqlSubscriptionApi.handleQuery({
+      interactive,
+      queryId: payload.queryId,
+      ...(typeof payload.query === 'string' ? { query: payload.query } : {}),
+      ...(payload.cardinality === 'one' || payload.cardinality === 'many'
+        ? { cardinality: payload.cardinality }
+        : {}),
+      fields: payload.fields,
+      detailKey: payload.detailKey,
+      ...(hasKind ? { kind: payload.kind } : {}),
+    });
   }
 
   /**
