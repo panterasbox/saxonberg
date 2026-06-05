@@ -161,11 +161,6 @@ const ExitsBlock = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
-const DetailsBlock = styled.div`
-  margin-bottom: ${tokens.space.lg};
-  color: ${tokens.color.fgMuted};
-`;
-
 const ContentsBlock = styled.div`
   margin-bottom: ${tokens.space.lg};
 `;
@@ -555,27 +550,6 @@ function renderSingle(
             </React.Fragment>
           ))}
         </ExitsBlock>
-      )}
-      {(detail.details?.length ?? 0) > 0 && (
-        <DetailsBlock>
-          Details:{" "}
-          {detail.details!.map((entry, i) => {
-            const key = entry.ids[0] ?? "";
-            const command = `look ${key}`;
-            return (
-              <React.Fragment key={key || i}>
-                {i > 0 && ", "}
-                <EntityName
-                  label={key}
-                  title={`Click to send: ${command}`}
-                  command={command}
-                  onPreview={onPreview}
-                  onClick={() => onSendCommand(command)}
-                />
-              </React.Fragment>
-            );
-          })}
-        </DetailsBlock>
       )}
       {contents.length > 0 && (
         <ContentsBlock>

@@ -139,6 +139,14 @@ function commandFor(node: Extract<ParsedNode, { kind: 'tag' }>): string | null {
   if (node.tag === 'exit') {
     return `go ${node.attrs.dir ?? node.label}`;
   }
+  if (node.tag === 'detail') {
+    // `<detail key="X">word</detail>` — auto-linked detail keyword
+    // inline in long-description prose. Clicking drills into the
+    // detail on the currently-focused Stuff. The key is canonical
+    // (the YAML detail-map key); aliases still resolve by typing.
+    const key = node.attrs.key ?? node.label;
+    return `look ${key}`;
+  }
   if (
     node.tag === 'item' ||
     node.tag === 'name' ||

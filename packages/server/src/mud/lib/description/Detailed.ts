@@ -112,6 +112,20 @@ export interface Detailed {
   applyDetails(data: Record<string, unknown>): void;
 
   /**
+   * Long description with detail canonical-keys auto-wrapped in
+   * `<detail key="...">word</detail>` MML markup, so the rendered
+   * prose has inline-clickable drill targets exactly where the
+   * author named them. Used by both the look prose composer and
+   * the live-subscription `longDescription` projection so the
+   * pane and the terminal see the same affordances.
+   *
+   * Hosts that compose `VisibleMixin` AND `DetailedMixin` get a
+   * usable implementation; hosts without `getLong()` (or with no
+   * details) fall back to whatever raw text is available.
+   */
+  getMarkupLong(): string;
+
+  /**
    * Look up the single alias-grouped entry containing `key`, or
    * `null` if no detail resolves at that key. Used by the live-
    * query substrate's focused-detail projection. Supports dotted
@@ -357,6 +371,20 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * Inline-affordance long description. Delegates to the same
+     * `wrapDetailKeywords` helper the subscription substrate's
+     * `longDescription` descriptor uses, so the look prose and the
+     * pane projection stay in lockstep.
+     */
+    getMarkupLong(): string {
+      const self = this as unknown as Detailed & {
+        getLong?: () => string;
+      };
+      const raw = self.getLong ? self.getLong() : '';
+      return wrapDetailKeywords(raw, self);
+    }
+
+    /**
      * Alias-grouped enumeration of top-level (or `parent`-scoped)
      * details. Walks the DetailMap at the requested level grouping
      * keys by Detail-object identity, so aliases (multiple keys
@@ -508,4 +536,58 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return result;
     }
   };
+}
+
+/**
+ * Escape a literal string for use inside a `RegExp` source. Mirrors
+ * the standard "escape regex special chars" idiom.
+ */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Walk the alias-grouped detail entries on a Detailed host and wrap
+ * every occurrence of a canonical detail key (the first id in each
+ * entry's `ids` array) in a `<detail key="...">word</detail>` MML
+ * tag. Case-insensitive, word-boundary-anchored — matches preserve
+ * their original case so the prose reads naturally.
+ *
+ * Single pass over the text using one combined regex (alternation
+ * over all canonical keys, longest first) so a key that wraps a
+ * prior key's text never re-enters the matcher. Yields no recursion
+ * and stable left-to-right ordering.
+ *
+ * Non-Detailed hosts get the raw text back unchanged. Hosts with no
+ * details (Detailed but empty) also get raw — no work, no regex.
+ *
+ * Detail aliases beyond the canonical key are deliberately NOT
+ * wrapped: every alias still resolves on `look <alias>` for the
+ * command bus, but the prose carries one canonical anchor per
+ * detail instead of a paragraph full of overlapping spans.
+ */
+function wrapDetailKeywords(
+  text: string,
+  host: Detailed & { getLong?: () => string },
+): string {
+  if (!text) return text;
+  const entries = host.getDetailEntries?.();
+  if (!entries || entries.length === 0) return text;
+  const canonicalKeys: string[] = [];
+  for (const entry of entries) {
+    const key = entry.ids[0];
+    if (typeof key === 'string' && key.length > 0) {
+      canonicalKeys.push(key);
+    }
+  }
+  if (canonicalKeys.length === 0) return text;
+  canonicalKeys.sort((a, b) => b.length - a.length);
+  const pattern = canonicalKeys.map(escapeRegExp).join('|');
+  const regex = new RegExp(`\\b(${pattern})\\b`, 'gi');
+  return text.replace(regex, (match) => {
+    const key = canonicalKeys.find(
+      (k) => k.toLowerCase() === match.toLowerCase(),
+    );
+    return key ? `<detail key="${key}">${match}</detail>` : match;
+  });
 }

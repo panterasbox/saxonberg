@@ -179,16 +179,35 @@ export class LookController extends CommandController<LookModel> {
       return;
     }
 
-    // Vertical-space discipline: one blank line between the name
-    // and the description prose (they're conceptually distinct),
-    // then tight single-newlines through exits + contents. A long
-    // description with internal paragraphs already provides its
-    // own internal breaks; the surrounding chrome doesn't need to
-    // pad them further. See the inspection-pane reconciliation
-    // notes on vertical space.
+    // Vertical-space discipline: NO blank lines anywhere — the
+    // player knows the convention (short first, then prose, then
+    // system lines for exits/contents). Visual distinction comes
+    // from inline styling (the `<location>` tag colour-codes the
+    // header; `<exit>` and `<item>` tags style the affordances),
+    // not from whitespace. Long descriptions with internal `\n\n`
+    // paragraph breaks keep their own pacing; the surrounding
+    // chrome stays flush.
+    //
+    // The long description may end with a trailing newline (YAML
+    // `|` block scalar default). Trim it so the exits/contents
+    // lines that follow sit flush against the prose, not after a
+    // gratuitous blank line.
+    //
+    // Detail keywords auto-link via `getMarkupLong()` when the
+    // location composes `DetailedMixin` — the prose ships with
+    // `<detail key="...">word</detail>` wrappers around canonical
+    // keys, so the renderer makes them clickable. Authors keep
+    // writing prose; the substrate handles the affordance.
+    const longText = !hasVisible
+      ? ''
+      : (
+          MixinApi.isDetailed(location)
+            ? (location as unknown as { getMarkupLong(): string }).getMarkupLong()
+            : location.getLong()
+        ).replace(/\s+$/, '');
     let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
-      body = Mml.compose`${body}\n\n${Mml.fromMarkup(location.getLong())}`;
+      body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
     }
     if (hasExits) {
       const exitsLine = this.formatExits(location.getObviousExits());

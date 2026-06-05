@@ -95,9 +95,22 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
       {
+        // Hosts that compose `DetailedMixin` ship a `getMarkupLong()`
+        // method returning the long description with detail-key MML
+        // wrappers inline (`<detail key="...">word</detail>`). Prefer
+        // that when present so the pane and the look prose see the
+        // same affordance-annotated text. Plain `Visible` hosts (no
+        // detail map) just return the raw long. Duck-typed lookup —
+        // Visible doesn't import Detailed.
         name: 'longDescription',
-        read: (stuff) =>
-          (stuff as unknown as Visible).getLongDescription(),
+        read: (stuff) => {
+          const v = stuff as unknown as Visible & {
+            getMarkupLong?: () => string;
+          };
+          return v.getMarkupLong
+            ? v.getMarkupLong()
+            : v.getLongDescription();
+        },
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
