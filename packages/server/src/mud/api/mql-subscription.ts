@@ -147,26 +147,40 @@ export type FieldSet = readonly string[];
 
 /**
  * Default field set for the `'ref'` alias — what a `StuffRefRecord`
- * carries on the wire. Two fields: `displayName` (always present;
- * baked-in `'something'` default) and `quantity` (Globbable hosts
- * only; substrate omits when the descriptor returns `undefined`).
+ * carries on the wire. Fields:
+ *
+ *   - `displayName` (always present; baked-in `'something'` default).
+ *   - `quantity` (Globbable hosts only; substrate omits when the
+ *     descriptor returns `undefined`).
+ *   - `primaryKeyword` (Perceptible hosts only; substrate omits when
+ *     the descriptor returns `undefined`). Carried on every ref
+ *     record so client renderers can route `<item>`/`<name>` clicks
+ *     to `look <primaryKeyword>` rather than the surface label.
  */
-export const REF_FIELDS: FieldSet = ['displayName', 'quantity'];
+export const REF_FIELDS: FieldSet = [
+  'displayName',
+  'quantity',
+  'primaryKeyword',
+];
 
 /**
  * Default field set for the `'detail'` alias — what a
  * `StuffDetailRecord` carries on the wire. Adds Visible's two
- * description fields, Detailed's `details` enumeration, and
- * Tangible's `bulkMaterial` + `mass` on top of the ref surface.
+ * description fields, Detailed's `details` enumeration, Tangible's
+ * `bulkMaterial` + `mass`, and Container's `contents` (a per-viewer-
+ * filtered list of `StuffRefRecord`-shape children) on top of the
+ * ref surface.
  */
 export const DETAIL_FIELDS: FieldSet = [
   'displayName',
   'quantity',
+  'primaryKeyword',
   'shortDescription',
   'longDescription',
   'details',
   'bulkMaterial',
   'mass',
+  'contents',
 ];
 
 /**

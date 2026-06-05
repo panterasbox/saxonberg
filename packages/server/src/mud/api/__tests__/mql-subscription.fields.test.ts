@@ -12,18 +12,20 @@ import {
 
 describe('MQL subscription — field-set aliases', () => {
   it('REF_FIELDS shape', () => {
-    expect(REF_FIELDS).toEqual(['displayName', 'quantity']);
+    expect(REF_FIELDS).toEqual(['displayName', 'quantity', 'primaryKeyword']);
   });
 
   it('DETAIL_FIELDS shape', () => {
     expect(DETAIL_FIELDS).toEqual([
       'displayName',
       'quantity',
+      'primaryKeyword',
       'shortDescription',
       'longDescription',
       'details',
       'bulkMaterial',
       'mass',
+      'contents',
     ]);
   });
 

@@ -2,13 +2,17 @@
  * Tests for PerceptibleMixin
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
 import { NamedMixin } from '../Named';
 import { VisibleMixin } from '../Visible';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import {
+  projectFields,
+  REF_FIELDS,
+} from '../../../api/mql-subscription';
 
 // Test class with PerceptibleMixin
 const PerceptibleBase = PerceptibleMixin(Idea);
@@ -330,6 +334,102 @@ describe('PerceptibleMixin', () => {
       (v as unknown as { autoDeriveKeywords: boolean }).autoDeriveKeywords = false;
       // Only the authored keyword remains.
       expect(v.getKeywords()).toEqual(['explicit']);
+    });
+  });
+
+  describe('primaryKeyword (Wave 1)', () => {
+    it('defaults to keywords[0] when no explicit value set (Named pool)', () => {
+      const named = makeStuff(() => new NamedTestObject());
+      named.setName('Oak Door');
+      // Derived pool from name: ['oak', 'door']
+      expect(named.getPrimaryKeyword()).toBe('oak');
+    });
+
+    it('defaults to keywords[0] when no explicit value set (authored pool)', () => {
+      obj.addKeyword('flower');
+      obj.addKeyword('plant');
+      expect(obj.getPrimaryKeyword()).toBe('flower');
+    });
+
+    it('returns the authored value when valid', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      v.setPrimaryKeyword('brass');
+      expect(v.getPrimaryKeyword()).toBe('brass');
+    });
+
+    it('ignores an invalid value (not in pool) and warns', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      v.setPrimaryKeyword('pony');
+      expect(warn).toHaveBeenCalled();
+      warn.mockRestore();
+      // Falls back to derived pool head: 'brass'
+      expect(v.getPrimaryKeyword()).toBe('brass');
+    });
+
+    it('returns undefined when keyword pool is empty', () => {
+      // Bare Perceptible host with no keywords / no Named / no Visible.
+      expect(obj.getPrimaryKeyword()).toBeUndefined();
+    });
+
+    it('normalizes case + whitespace on the authored value', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      v.setPrimaryKeyword('  BRASS  ');
+      expect(v.getPrimaryKeyword()).toBe('brass');
+    });
+
+    it('setting undefined clears the authored override', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      v.setPrimaryKeyword('thermometer');
+      expect(v.getPrimaryKeyword()).toBe('thermometer');
+      v.setPrimaryKeyword(undefined);
+      expect(v.getPrimaryKeyword()).toBe('brass');
+    });
+
+    it('Stuff.subscribableFields.primaryKeyword projects undefined for non-Perceptible host (substrate omits)', () => {
+      // Built-in Idea has no PerceptibleMixin — projecting REF_FIELDS
+      // against it must omit `primaryKeyword` (descriptor returns
+      // undefined, projectFields skips).
+      const plain = makeStuff(() => new Idea());
+      const rec = projectFields(
+        plain,
+        REF_FIELDS,
+        plain as unknown as Parameters<typeof projectFields>[2],
+      );
+      expect(rec.primaryKeyword).toBeUndefined();
+      expect('primaryKeyword' in rec).toBe(false);
+    });
+
+    it('Perceptible host with empty pool projects no primaryKeyword field', () => {
+      const rec = projectFields(
+        obj,
+        REF_FIELDS,
+        obj as unknown as Parameters<typeof projectFields>[2],
+      );
+      // No keywords → getPrimaryKeyword() returns undefined → omitted.
+      expect(rec.primaryKeyword).toBeUndefined();
+      expect('primaryKeyword' in rec).toBe(false);
+    });
+
+    it('Perceptible host with authored value surfaces it on the ref record', () => {
+      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('a brass thermometer');
+      v.setPrimaryKeyword('thermometer');
+      const rec = projectFields(
+        v,
+        REF_FIELDS,
+        v as unknown as Parameters<typeof projectFields>[2],
+      );
+      expect(rec.primaryKeyword).toBe('thermometer');
+    });
+
+    it('registers primaryKeyword as a persistent field', () => {
+      const persistentFields = (TestObject as unknown as { persistentFields: string[] }).persistentFields;
+      expect(persistentFields).toContain('primaryKeyword');
     });
   });
 });

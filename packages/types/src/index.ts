@@ -428,12 +428,14 @@ export interface PromptCancelMessage {
  * `displayName` is non-optional here — the substrate's synthetic
  * descriptor ensures `DescribeApi.getDisplayName` always renders a
  * usable string. `quantity` rides along for Globbable hosts; absent
- * for non-Globbable.
+ * for non-Globbable. `primaryKeyword` rides along for Perceptible
+ * hosts (every in-world Stuff with a keyword pool); absent otherwise.
  */
 export interface StuffRefRecord {
   stuffId: string;
   displayName: string;
   quantity?: number;
+  primaryKeyword?: string;
 }
 
 /**
@@ -463,9 +465,14 @@ export interface MaterialSummary {
 /**
  * Detail-record carried on subscription envelopes when the client
  * subscribes with the `'detail'` field set. Adds the flat detail
- * surface (descriptions, details list, bulk material, mass) on top
- * of the `StuffRefRecord` ref surface. Optional fields are absent
- * when the host doesn't compose the contributing mixin.
+ * surface (descriptions, details list, bulk material, mass, contents)
+ * on top of the `StuffRefRecord` ref surface. Optional fields are
+ * absent when the host doesn't compose the contributing mixin.
+ *
+ * `contents` is a per-viewer-filtered list of `StuffRefRecord`-shape
+ * entries for Container hosts — children the viewer can perceive,
+ * minus self / adornments / non-Visible items. The filter mirrors
+ * the `look` controller's room-occupants policy.
  */
 export interface StuffDetailRecord extends StuffRefRecord {
   shortDescription?: string;
@@ -473,6 +480,7 @@ export interface StuffDetailRecord extends StuffRefRecord {
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };
+  contents?: StuffRefRecord[];
 }
 
 /**

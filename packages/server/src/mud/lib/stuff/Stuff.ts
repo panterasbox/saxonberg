@@ -39,8 +39,10 @@ import { ModuleApi } from '../../api/module';
 import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { Perceptible } from '../description/Perceptible';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -111,6 +113,27 @@ export abstract class Stuff {
       name: 'displayName',
       read: (stuff, viewer) => DescribeApi.getDisplayName(stuff, viewer),
       dependsOnFields: ['name', 'shortDescription'],
+      changes: [{ on: ShadowChangedEvent, by: 'target' }],
+    },
+    {
+      // Universal descriptor with a mixin-gated read. Mirrors how
+      // `quantity` would be modeled universally (it's not, because the
+      // descriptor lives on Globbable directly — but for `primaryKeyword`
+      // we want one declaration site even though it's mixin-gated, so
+      // the `REF_FIELDS` array can list `'primaryKeyword'` unconditionally
+      // without the substrate needing an `'primaryKeyword' in fields`
+      // overlay step). Non-Perceptible hosts get `undefined`, which the
+      // substrate omits from the wire record.
+      name: 'primaryKeyword',
+      read: (stuff) =>
+        MixinApi.isPerceptible(stuff)
+          ? (stuff as unknown as Perceptible).getPrimaryKeyword()
+          : undefined,
+      // The result derives from the keyword pool, which itself folds in
+      // `name` + `shortDescription` tokens. Listing the leaf source
+      // fields here means renaming or re-describing a Stuff re-projects
+      // the keyword surface without an explicit setter call.
+      dependsOnFields: ['primaryKeyword', 'name', 'shortDescription'],
       changes: [{ on: ShadowChangedEvent, by: 'target' }],
     },
   ];
