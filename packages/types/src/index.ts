@@ -574,6 +574,15 @@ export interface StuffExitDoor {
   stuffId: string;
   displayName: string;
   open: boolean;
+  /**
+   * Door's `primaryKeyword` when set — the canonical disambiguator
+   * the server resolves cleanly. Click affordances prefer this
+   * over `displayName` so a door named "the front doors" routes
+   * to `look doors` instead of the unwieldy / parse-rejected
+   * `look the front doors`. Optional because not every Door has
+   * one (Perceptible's primaryKeyword is fail-soft).
+   */
+  primaryKeyword?: string;
 }
 
 /**

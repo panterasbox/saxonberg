@@ -648,16 +648,25 @@ function renderSingle(
               {exit.door && (
                 <>
                   {" ("}
-                  <EntityName
-                    stuffId={exit.door.stuffId}
-                    label={exit.door.displayName}
-                    title={`Click to send: look ${exit.door.displayName}`}
-                    command={`look ${exit.door.displayName}`}
-                    onPreview={onPreview}
-                    onClick={() =>
-                      onSendCommand(`look ${exit.door!.displayName}`)
-                    }
-                  />
+                  {(() => {
+                    // Prefer the door's `primaryKeyword` for the click
+                    // target — `look doors` parses cleanly, `look the
+                    // front doors` falls into the command-shape
+                    // rejection. Display name stays the visible label.
+                    const target =
+                      exit.door.primaryKeyword ?? exit.door.displayName;
+                    const cmd = `look ${target}`;
+                    return (
+                      <EntityName
+                        stuffId={exit.door.stuffId}
+                        label={exit.door.displayName}
+                        title={`Click to send: ${cmd}`}
+                        command={cmd}
+                        onPreview={onPreview}
+                        onClick={() => onSendCommand(cmd)}
+                      />
+                    );
+                  })()}
                   {`, ${exit.door.open ? "open" : "closed"})`}
                 </>
               )}
@@ -908,16 +917,25 @@ function renderDetailDrill(
               {exit.door && (
                 <>
                   {" ("}
-                  <EntityName
-                    stuffId={exit.door.stuffId}
-                    label={exit.door.displayName}
-                    title={`Click to send: look ${exit.door.displayName}`}
-                    command={`look ${exit.door.displayName}`}
-                    onPreview={onPreview}
-                    onClick={() =>
-                      onSendCommand(`look ${exit.door!.displayName}`)
-                    }
-                  />
+                  {(() => {
+                    // Prefer the door's `primaryKeyword` for the click
+                    // target — `look doors` parses cleanly, `look the
+                    // front doors` falls into the command-shape
+                    // rejection. Display name stays the visible label.
+                    const target =
+                      exit.door.primaryKeyword ?? exit.door.displayName;
+                    const cmd = `look ${target}`;
+                    return (
+                      <EntityName
+                        stuffId={exit.door.stuffId}
+                        label={exit.door.displayName}
+                        title={`Click to send: ${cmd}`}
+                        command={cmd}
+                        onPreview={onPreview}
+                        onClick={() => onSendCommand(cmd)}
+                      />
+                    );
+                  })()}
                   {`, ${exit.door.open ? "open" : "closed"})`}
                 </>
               )}

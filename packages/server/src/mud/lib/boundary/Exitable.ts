@@ -216,11 +216,26 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
               direction: exit.getDirection(),
             };
             if (door) {
-              out.door = {
+              const doorOut: {
+                stuffId: string;
+                displayName: string;
+                open: boolean;
+                primaryKeyword?: string;
+              } = {
                 stuffId: door.stuffId,
                 displayName: DescribeApi.getDisplayName(door),
                 open: door.isOpen(),
               };
+              // Door is Perceptible via Boundary; primaryKeyword is
+              // optional (Perceptible's fail-soft default falls back
+              // to the first keyword of the derived pool when no
+              // explicit value is set). Ship only when defined so
+              // the wire shape stays clean.
+              if (MixinApi.isPerceptible(door)) {
+                const kw = door.getPrimaryKeyword();
+                if (kw) doorOut.primaryKeyword = kw;
+              }
+              out.door = doorOut;
             }
             return out;
           });
