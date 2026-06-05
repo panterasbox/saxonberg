@@ -22,9 +22,7 @@ See:
   routes, disconnect cleanup).
 - [docs/subsystems/command-spec.md](./command-spec.md) —
   cardinality vocabulary that consumes the substrate for
-  disambiguation (Wave 6).
-- [docs/requirements/prompt-substrate-requirements.md](../requirements/prompt-substrate-requirements.md)
-  — closed-scope requirements that drove this build.
+  disambiguation.
 
 ## File layout
 
@@ -185,13 +183,18 @@ nothing on responses beyond the `prompt-dismissed` envelope.
 
 ### Push
 
-1. Generate `promptId` via `nanoid()`.
-2. Store `ResolverRecord` in `#resolvers` (keyed by `promptId`)
+1. Resolve the Interactive's holder via `getHolder()` and assert
+   it's a Sensor — `PromptApi.#requireViewer` throws synchronously
+   if the holder is missing or isn't Sensor-shaped. Push paths
+   without a viewing surface (placeless Interactive, NPC-only
+   Stuff) fail loudly rather than silently dropping prompts.
+2. Generate `promptId` via `nanoid()`.
+3. Store `ResolverRecord` in `#resolvers` (keyed by `promptId`)
    and add the id to `#byInteractive` (keyed by Interactive — for
    O(N) `cancelAll`).
-3. If `opts.body` is set, fire the body MessageFrame.
-4. Push the `PromptEnvelope` carrying the content Note.
-5. Return the Promise.
+4. If `opts.body` is set, fire the body MessageFrame.
+5. Push the `PromptEnvelope` carrying the content Note.
+6. Return the Promise.
 
 ### Response
 
@@ -302,9 +305,9 @@ subscriptions — already in the Phase 3 cockpit plan. The prompt
 is for short stateful labels (focus, mode, posture, time-of-day)
 that don't fire often.
 
-## Cardinality vocabulary (Wave 6)
+## Cardinality vocabulary
 
-The command-spec layer gains three optional knobs on `object` /
+The command-spec layer carries three optional knobs on `object` /
 `objects` fields that route MQL resolution through the cardinality
 matrix:
 
@@ -325,16 +328,21 @@ For `object` fields, cardinality is implicit `{ exactly: 1 }`;
 `onExcess` accepts `top | prompt | error`.
 
 The dispatcher applies `CommandApi.applyCardinalityPolicy` between
-MQL resolution and controller execution. Synchronous policies
-(top, take-all, truncate, error) work end-to-end.
+MQL resolution and controller execution. `applyCardinalityPolicy`
+is async — when `onExcess: prompt` fires it pushes
+`PromptApi.mqlObject` (object) or `mqlMany` (objects with bounds
+from the cardinality spec) and awaits the player's pick. The
+filtered Stuff list lands on the model unchanged shape; the
+controller never sees the prompt round-trip.
 
-The `prompt` policy is DEFERRED in v1 — pushing `mqlObject` /
-`mqlMany` mid-dispatch requires async-threading through
-`resolveModel` and `CommandGiver.executeCommand`, which is a
-follow-up build. Until that lands, `onExcess: prompt` degrades to
-`top` (object) or `truncate` (objects) and emits a
-`controller-rejected { reason: 'prompt-deferred' }` note so
-content authors know to expect the substrate change.
+The `prompt` policy degrades to an ambiguity error
+(`controller-rejected { reason: 'ambiguous' | 'too-many' }`)
+when no Interactive is attached to the context — a scripted /
+NPC dispatch path has nobody to ask, so the policy falls back to
+behave like `onExcess: error`. Player cancellation propagates as
+`PromptCancelledError` from `applyCardinalityPolicy`; the
+dispatcher (`CommandGiver._runChain`) catches and emits
+`controller-rejected { reason: 'cancelled' | 'host-disconnected' }`.
 
 See [docs/subsystems/command-spec.md](./command-spec.md) for
 authoring patterns; [docs/subsystems/command-routing.md](./command-routing.md)
@@ -342,9 +350,6 @@ for the dispatcher decision matrix.
 
 ## What ships unused or deferred
 
-- **`prompt` policy disambiguation** — substrate is ready
-  (`PromptApi.mqlObject` / `mqlMany`), but the dispatcher refactor
-  to await prompts inline is deferred.
 - **Tier 2 / Tier 3 prompt kinds** (`numeric`, `multiChoice`,
   `password`, `paginated`, `quiz`). The slate defers per content
   demand.

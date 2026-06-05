@@ -1309,3 +1309,78 @@ permitted on prompts; sync-by-design on commands). The reason: the
 prompt's lifecycle is already async; the dispatcher's validator
 pass is sync. See `docs/subsystems/prompt.md` for the full
 discussion.
+
+## Controllers — don't gate cross-cutting preconditions inline
+
+A controller's `execute()` should NOT begin with a `MixinApi.isX`
+check or an `instanceof` test on the giver. Those gates belong in
+a verb-level validator (`validators:` at the top of the YAML);
+the dispatcher's resolution + validation pipeline runs them
+before the controller is ever cloned.
+
+```ts
+// NOT ALLOWED — inline mixin gate
+execute(model, ctx) {
+  if (!MixinApi.isEnvironment(ctx.commandGiver)) {
+    ctx.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
+    return;
+  }
+  // …
+}
+
+// CORRECT — validator in the YAML
+// var.yaml
+verbs: [var]
+controller: VarController
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands: …
+
+// VarController.ts
+execute(model, ctx) {
+  const avatar = ctx.commandGiver as EnvHost;  // validator guarantees this
+  // …
+}
+```
+
+Existing verb-level validators in `lib/command/validators/`:
+`requiresAnimate`, `requiresAvatar`, `requiresEnvironment`,
+`requiresAlias`, `requiresHasInteractive`, `requiresPosed`,
+`requiresSlottable`, `requiresMounted`, `requiresSlotted`.
+Compose more — they're tiny files that take a `CommandValidator`
+function and return a string-on-fail / undefined-on-pass.
+
+## Controllers — don't switch-default on unknown subcommand
+
+A subcommanded controller's `execute()` should NOT have a
+`default:` case in its subcommand `switch` that emits
+`controller-rejected { reason: 'unknown-subcommand' }`. The
+dispatcher already handles this path: `CommandApi.assemble`
+returns `error: 'unknown-subcommand'` when the player typed a
+subcommand the YAML doesn't declare, and `CommandGiver._runChain`
+emits `command-rejected { reason: 'unknown-subcommand' }` with a
+"valid: …" detail BEFORE the controller is cloned.
+
+```ts
+// NOT ALLOWED — dead defensive branch
+switch (model.subcommand) {
+  case 'list': return this.list(…);
+  case 'set':  return this.set(…);
+  default:
+    return this.fail(ctx, `unknown subcommand: ${model.subcommand}`,
+                     'unknown-subcommand');
+}
+
+// CORRECT — only declared subcommands need branches
+switch (model.subcommand) {
+  case 'list': return this.list(…);
+  case 'set':  return this.set(…);
+}
+```
+
+The bare-verb case (`model.subcommand === undefined` when the
+player typed just the verb) is a different signal: the
+controller chooses whether to pick a default ("settings list" as
+the default for bare `settings`) or fail. That decision is
+content; only the controller knows. The `default:` branch above
+is for *typos*, and the framework owns that.

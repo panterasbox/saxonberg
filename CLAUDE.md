@@ -116,8 +116,11 @@ behavior. Read the relevant doc before editing in its area.
     (`prompt.format` setting, ProseApi.format Liquid render, every
     DispatchResponseEnvelope carries a `prompt-refresh` Note,
     empty-command short-circuit), `CommandApi.applyCardinalityPolicy`
-    + the cardinality / onExcess / onShortage YAML vocabulary
-    (synchronous policies wired; async `prompt` policy deferred).
+    (async) + the cardinality / onExcess / onShortage YAML
+    vocabulary — `onExcess: prompt` pushes `PromptApi.mqlObject` /
+    `mqlMany` and awaits inline, degrades to ambiguity error when
+    no Interactive is attached, cancellation propagates as
+    `PromptCancelledError` caught in `CommandGiver._runChain`.
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration

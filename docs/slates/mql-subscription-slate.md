@@ -10,14 +10,22 @@ initial result, watches `EventApi` for changes that could affect
 the result, and pushes diffs as deltas. Read-only in v1;
 mutation stays on the command-bus channel.
 
-**Status.** Design surface. **Supersedes** the prior
-`state-sync-slate.md` (kept untracked as the historical record
-of the rejected fixed-delta-taxonomy model). Why the pivot:
-fixed-delta models grow a wire-schema entry per consumer
-widget, which compounds quadratically as the client matures.
-The MQL-subscription model has linear growth — one mechanism,
-many uses — because the widget's needs are expressed in the
-query, not in the wire.
+**Status.** Server substrate has shipped — see
+[docs/subsystems/mql-subscription.md](../subsystems/mql-subscription.md)
+for the implemented surface. This slate stays alive for the
+**client-side** half (subscription lifecycle in the cockpit,
+widget composition patterns, cache coherence with imperative
+state) and **future server-side waves** (shadow-aware projection,
+selector seam for cardinality narrowing, derived synthetic
+fields).
+
+**Supersedes** the prior `state-sync-slate.md` (kept untracked as
+the historical record of the rejected fixed-delta-taxonomy
+model). Why the pivot: fixed-delta models grow a wire-schema
+entry per consumer widget, which compounds quadratically as the
+client matures. The MQL-subscription model has linear growth —
+one mechanism, many uses — because the widget's needs are
+expressed in the query, not in the wire.
 
 See also:
 
