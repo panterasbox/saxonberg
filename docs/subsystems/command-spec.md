@@ -246,6 +246,65 @@ There's no implicit "player focus tries first" rule. The YAML is
 authoritative — the help system can read `scope:` to tell players
 which commands respect drill and which don't.
 
+### `cardinality:` / `onExcess:` / `onShortage:` — match-count policy
+
+Three optional knobs on `object` / `objects` fields that route
+MQL resolution through the cardinality matrix.
+
+#### `cardinality` (objects only)
+
+```yaml
+fields:
+  swords:
+    type: objects
+    cardinality:
+      min: 1        # default: 0
+      max: 3        # default: Infinity
+      # OR sugar: exactly: 3 (sets min == max == 3)
+```
+
+`object` fields have implicit `{ exactly: 1 }`; declaring
+`cardinality` on `object` throws at YAML load.
+
+#### `onExcess` — when there are more matches than allowed
+
+| Field type | Default | Valid values |
+|---|---|---|
+| `object` | `top` | `top`, `prompt`, `error` |
+| `objects` | `take-all` (when `max` unset) | `take-all`, `prompt`, `truncate`, `error` |
+
+Semantics:
+
+- `top` (object) — pick the highest-scored match. Current pre-
+  cardinality behavior.
+- `take-all` (objects) — execute with everything resolved.
+- `truncate` (objects) — silently take the top `max` matches.
+- `error` — emit `controller-rejected { reason: 'ambiguous' }` or
+  `'too-many'` and abort dispatch.
+- `prompt` — push `PromptApi.mqlObject` (object) or `mqlMany`
+  (objects, with bounds) and await the player's selection.
+  **Deferred in v1 — the dispatcher's async-prompt refactor is a
+  follow-up. Until that ships, `onExcess: prompt` degrades to
+  `top` / `truncate` and emits a
+  `controller-rejected { reason: 'prompt-deferred' }` note.**
+
+#### `onShortage` — when there are fewer matches than required
+
+v1 only value: `error`. Emits `controller-rejected { reason:
+'insufficient' }`. (Re-prompting the player to widen their MQL
+query is deferred per the requirements doc non-goals.)
+
+#### Backward compat
+
+Every shipped command continues to parse and dispatch unchanged.
+Defaults preserve current behavior — `type: object` with no knobs
+acts the same as before (top-match wins); `type: objects` with no
+knobs takes everything.
+
+See [prompt.md § Cardinality vocabulary](./prompt.md#cardinality-vocabulary-wave-6)
+for the substrate side; [command-routing.md](./command-routing.md)
+for the dispatcher's decision matrix.
+
 ### `updates_focus:` — focus management policy
 
 Three modes:

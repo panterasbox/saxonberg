@@ -105,6 +105,19 @@ behavior. Read the relevant doc before editing in its area.
     `ShadowChangedEvent`, `GenericEvent<P>`) layered onto `EventApi.fire`
     + class-based `EventApi.on`, `DescribeApi.getDisplayName` reshape
     (drop `fallback`, add `viewer?`, bake in `'something'`)
+  - [prompt.md](./docs/subsystems/prompt.md) — prompt substrate:
+    `PromptApi` (Tier 1 surface `choice` / `confirm` / `text` /
+    `mqlObject` / `mqlMany`), per-Interactive resolver map,
+    async-permitted validator + retry with `prompt-validation-failed`,
+    `PromptCancelledError` (reasons `'cancelled'` / `'host-disconnected'`),
+    body MessageFrame correlated by `promptId`, two-channel inbound
+    (`prompt-response` / `prompt-cancel` bypass the command bus;
+    `prompt cancel` verb rides it), base-prompt rendering substrate
+    (`prompt.format` setting, ProseApi.format Liquid render, every
+    DispatchResponseEnvelope carries a `prompt-refresh` Note,
+    empty-command short-circuit), `CommandApi.applyCardinalityPolicy`
+    + the cardinality / onExcess / onShortage YAML vocabulary
+    (synchronous policies wired; async `prompt` policy deferred).
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
     `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
     composition order, persistence/command/security integration

@@ -1266,3 +1266,46 @@ hour debugging it. The legitimate read path is
 `EventApi.on(name, listener)` (string-keyed) or
 `EventApi.on(EventClass, listener)` (class-based). Both route through
 the same gate and receive the same dispatch.
+
+## Prompts — `PromptApi`, not bespoke prompt-shaped flows
+
+Server callers needing player input go through `PromptApi`. Don't
+construct ad-hoc prompt flows by emitting MessageFrames and waiting
+on socket-side state. The substrate already handles:
+
+- promptId generation + per-Interactive registry
+- typed wire envelopes (PromptEnvelope + Note kinds in
+  `@saxonberg/types`)
+- async-permitted validators with `prompt-validation-failed` retry
+- cancellation (per-prompt + wholesale + disconnect cleanup)
+- typed error (`PromptCancelledError` with `reason`)
+- body MessageFrame correlation by `promptId`
+
+```ts
+// CORRECT
+try {
+  const sword = await PromptApi.mqlObject(iact, 'Which sword?', matches);
+  if (sword === null) return abortWithMessage(actor, 'unknown sword');
+  await pickUp(actor, sword);
+} catch (err) {
+  if (err instanceof PromptCancelledError) return abortCommand();
+  throw err;
+}
+
+// NOT ALLOWED — bespoke flow that re-derives the substrate
+const id = nanoid();
+const resolvers = activeResolvers; // some local map
+MessageApi.scene(actor).topic('world.prompt').toSelf(question).send();
+const reply = await waitForInboundMessage(id);  // ???
+```
+
+If the prompt needs context prose ("There are several swords here..."),
+emit it as a separate `MessageApi.scene(...).toSelf(...).send()`
+BEFORE the `PromptApi` call, or pass `body` in opts. Either way
+the substrate owns the prompt lifecycle.
+
+Validator semantics diverge from command validators (async
+permitted on prompts; sync-by-design on commands). The reason: the
+prompt's lifecycle is already async; the dispatcher's validator
+pass is sync. See `docs/subsystems/prompt.md` for the full
+discussion.
