@@ -96,7 +96,21 @@ function applyOutgoingCommandToPane(text: string): void {
     store.setPanePainted(true);
     const target = stripFlags(rest);
     if (target) {
-      store.pushBreadcrumb(target);
+      // Push to breadcrumb trail UNLESS the target keyword matches
+      // the current location's primaryKeyword — that's just
+      // re-focusing the room you're already in (the root); no need
+      // to add it to the trail.
+      const root = store.paneBreadcrumbRoot;
+      const isRoot =
+        root &&
+        (target === root.primaryKeyword ||
+          target.toLowerCase() === root.displayName.toLowerCase());
+      if (!isRoot) {
+        store.pushPaneBreadcrumbTrail({
+          label: target,
+          command: `look ${target}`,
+        });
+      }
     }
     return;
   }
@@ -105,7 +119,17 @@ function applyOutgoingCommandToPane(text: string): void {
     const target = stripFlags(rest);
     if (target) {
       store.setPaneFocusFragment(target);
-      store.pushBreadcrumb(target);
+      const root = store.paneBreadcrumbRoot;
+      const isRoot =
+        root &&
+        (target === root.primaryKeyword ||
+          target.toLowerCase() === root.displayName.toLowerCase());
+      if (!isRoot) {
+        store.pushPaneBreadcrumbTrail({
+          label: target,
+          command: `look ${target}`,
+        });
+      }
     }
     return;
   }

@@ -340,6 +340,14 @@ export interface CanonicalKindSpec {
    * {@link SubscribeRequest.focusDependent} for the rationale.
    */
   focusDependent?: boolean;
+  /**
+   * When `true`, the substrate installs an additional
+   * `(FieldChangedEvent.KIND, 'field', 'container')` dependency entry
+   * against the holder. Same shape as `focusDependent`; the
+   * `me.location` canonical kind uses this so the subscription
+   * wakes when the player walks / teleports / boards / disembarks.
+   */
+  locationDependent?: boolean;
 }
 
 /**
@@ -386,13 +394,21 @@ export interface SubscribeRequest {
    */
   focusDependent?: boolean;
   /**
+   * Parallel to `focusDependent`. Installs a dependency on the
+   * holder's `container` field so the subscription wakes on
+   * `Containable.setContainer` fires — used by the `me.location`
+   * canonical kind to track the player's physical position
+   * independently of what they're focused on. Off by default.
+   */
+  locationDependent?: boolean;
+  /**
    * Canonical-kind name registered via
    * {@link MqlSubscriptionApi.registerKind}. When present and
    * resolved, the registered spec overlays this request — all of
    * `query` / `cardinality` / `fields` / `detailKey` /
-   * `focusDependent` are taken from the kind's spec, not the
-   * request. Unknown name → `MqlSubscriptionErrorEnvelope`
-   * `{ reason: 'parse' }`.
+   * `focusDependent` / `locationDependent` are taken from the
+   * kind's spec, not the request. Unknown name →
+   * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`.
    */
   kind?: string;
 }
@@ -444,6 +460,7 @@ interface SubscriptionState {
   fields: FieldSet;
   detailKey?: string;
   focusDependent: boolean;
+  locationDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
 }
@@ -626,6 +643,7 @@ export class MqlSubscriptionApi {
     let fields: FieldSet;
     let detailKey: string | undefined;
     let focusDependent: boolean;
+    let locationDependent: boolean;
     if (req.kind !== undefined) {
       const spec = this.#canonicalKinds.get(req.kind);
       if (!spec) {
@@ -642,6 +660,7 @@ export class MqlSubscriptionApi {
       fields = resolveFieldSet(spec.fields);
       detailKey = spec.detailKey;
       focusDependent = spec.focusDependent === true;
+      locationDependent = spec.locationDependent === true;
     } else {
       if (typeof req.query !== 'string') {
         this.#emitError(
@@ -666,6 +685,7 @@ export class MqlSubscriptionApi {
       fields = resolveFieldSet(req.fields);
       detailKey = req.detailKey;
       focusDependent = req.focusDependent === true;
+      locationDependent = req.locationDependent === true;
     }
 
     // Focus + cardinality cross-check.
@@ -749,6 +769,7 @@ export class MqlSubscriptionApi {
       fields,
       detailKey,
       focusDependent,
+      locationDependent,
       lastResult,
       dependencyHandles: [],
     };
@@ -1017,6 +1038,17 @@ export class MqlSubscriptionApi {
     // globally; the diff stage filters out non-changes.
     if (sub.focusDependent) {
       installTuple(FieldChangedEvent.KIND, 'field', 'focus');
+    }
+    // Same shape, different field: `locationDependent` installs an
+    // entry on the holder's `container` field so the subscription
+    // wakes when the player moves to a new room / vessel. The
+    // `me.location` canonical kind opts in; raw subscribes don't.
+    // Avatar.setContainer fires `FieldChangedEvent { field:
+    // 'container' }` via Containable's setter, which matches this
+    // index tuple regardless of which container the avatar landed
+    // in.
+    if (sub.locationDependent) {
+      installTuple(FieldChangedEvent.KIND, 'field', 'container');
     }
 
     for (const stuff of stuffList) {

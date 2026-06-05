@@ -110,13 +110,32 @@ interface StoreState {
    */
   paneLastResult: (StuffRefRecord | StuffDetailRecord)[] | null;
   /**
-   * Session-scoped focus-fragment history. Capped at 6 entries (the
-   * requirements' "last 6" rule); newest at index 0. Distinct
-   * fragments only — pushing a duplicate of the current head is a
-   * no-op. Click on a breadcrumb routes through the command bus as a
-   * `look <fragment>` (paints + drills in one motion).
+   * Inspection-pane breadcrumb root — the player's current
+   * physical location (room or vessel). Sourced from the
+   * `me.location` canonical subscription, NOT from focus changes.
+   * Movement reroots this; focus changes don't.
+   *
+   * Shape mirrors what `<EntityName>` needs: display name for
+   * label, primaryKeyword (or fallback) for the click-target
+   * command, stuffId for `data-stuff-id`. Null when the player
+   * has no current location (pre-login / disconnect).
    */
-  paneBreadcrumbs: string[];
+  paneBreadcrumbRoot: {
+    stuffId: string;
+    displayName: string;
+    primaryKeyword?: string;
+  } | null;
+  /**
+   * Trail segments pushed since the last reroot — each entry is a
+   * past focus that wasn't the location. Click on a segment sends
+   * the look command that originally produced it. Capped at
+   * `PANE_BREADCRUMB_CAP` entries.
+   */
+  paneBreadcrumbTrail: {
+    label: string;
+    command: string;
+    stuffId?: string;
+  }[];
   /**
    * Detail-drill stack on the currently-focused Stuff. Empty means
    * the pane is viewing the Stuff itself (long description, exits,
@@ -141,12 +160,6 @@ interface StoreState {
    * to render it.
    */
   setPanePainted: (painted: boolean) => void;
-  /**
-   * Push a focus fragment onto the breadcrumb trail. Deduplicates
-   * against the current head; caps at 6 entries; older entries fall
-   * off the tail.
-   */
-  pushBreadcrumb: (fragment: string) => void;
   /**
    * Replace the cached subscription result snapshot. Called by the
    * canonical-kind subscription consumer (see InspectionPane.tsx).
@@ -178,10 +191,59 @@ interface StoreState {
    */
   popPaneDetail: () => void;
   /**
+   * Slice the detail stack so position `index` is the new tail.
+   * Used by detail-breadcrumb clicks to back out to that level
+   * without traversing one pop at a time. `index < 0` clears.
+   */
+  popPaneDetailToIndex: (index: number) => void;
+  /**
    * Clear the detail-drill stack entirely. Called from the
    * focus-change path so a focus shift resets the drill state.
    */
   clearPaneDetail: () => void;
+  /**
+   * Replace the breadcrumb root from a `me.location` subscription
+   * delivery. Clears the trail — movement re-roots and starts a
+   * fresh push series.
+   */
+  setPaneBreadcrumbRoot: (
+    root: {
+      stuffId: string;
+      displayName: string;
+      primaryKeyword?: string;
+    } | null
+  ) => void;
+  /**
+   * Push a trail segment from a focus change. Dedupes against the
+   * head, caps at `PANE_BREADCRUMB_CAP`.
+   */
+  pushPaneBreadcrumbTrail: (entry: {
+    label: string;
+    command: string;
+    stuffId?: string;
+  }) => void;
+  /**
+   * Pop the trail to a specific index (inclusive). Used by trail
+   * segment clicks to back out to that level.
+   */
+  popPaneBreadcrumbTrail: (index: number) => void;
+  /**
+   * Ephemeral door-context annotation. Stashed when the player
+   * clicks a door affordance inside an exits projection — carries
+   * the direction the door belongs to so the pane can synthesise
+   * an exit link when the focused thing is that door. Cleared
+   * whenever focus changes to a different stuffId (so a stale
+   * context never bleeds into the wrong inspection).
+   *
+   * Pure UI sugar — the door Stuff itself has no notion of "which
+   * exit am I"; the client reconstructs the relationship from the
+   * click site that has both pieces in scope.
+   */
+  paneDoorContext: { stuffId: string; direction: string } | null;
+  /** Replace the door-context annotation. Null clears it. */
+  setPaneDoorContext: (
+    ctx: { stuffId: string; direction: string } | null
+  ) => void;
 }
 
 /**
@@ -279,8 +341,10 @@ export const useStore = create<StoreState>((set) => ({
   paneFocusFragment: '',
   paneBodyPainted: false,
   paneLastResult: null,
-  paneBreadcrumbs: [],
+  paneBreadcrumbRoot: null,
+  paneBreadcrumbTrail: [],
   paneDetailPath: [],
+  paneDoorContext: null,
 
   setPanePainted: (painted) =>
     set(() => ({
@@ -303,24 +367,73 @@ export const useStore = create<StoreState>((set) => ({
       return { paneDetailPath: state.paneDetailPath.slice(0, -1) };
     }),
 
+  popPaneDetailToIndex: (index) =>
+    set((state) => {
+      if (index < 0) {
+        if (state.paneDetailPath.length === 0) return {};
+        return { paneDetailPath: [] };
+      }
+      const target = index + 1;
+      if (target >= state.paneDetailPath.length) return {};
+      return { paneDetailPath: state.paneDetailPath.slice(0, target) };
+    }),
+
   clearPaneDetail: () =>
     set((state) => {
       if (state.paneDetailPath.length === 0) return {};
       return { paneDetailPath: [] };
     }),
 
-  pushBreadcrumb: (fragment) =>
+  setPaneBreadcrumbRoot: (root) =>
     set((state) => {
-      const trimmed = fragment.trim();
-      if (!trimmed) return {};
-      // Dedupe against the head — repeated `look` against the same
-      // focus shouldn't pollute the trail.
-      if (state.paneBreadcrumbs[0] === trimmed) return {};
-      const next = [trimmed, ...state.paneBreadcrumbs];
-      if (next.length > PANE_BREADCRUMB_CAP) {
-        next.length = PANE_BREADCRUMB_CAP;
+      // Same stuffId → no-op. Different stuffId → reroot (clear
+      // trail). Null → clear root + trail (disconnect / pre-login).
+      if (root === null) {
+        if (state.paneBreadcrumbRoot === null) return {};
+        return { paneBreadcrumbRoot: null, paneBreadcrumbTrail: [] };
       }
-      return { paneBreadcrumbs: next };
+      if (
+        state.paneBreadcrumbRoot &&
+        state.paneBreadcrumbRoot.stuffId === root.stuffId
+      ) {
+        // Same room — refresh the projection in case displayName /
+        // keyword changed, but keep the trail intact.
+        return { paneBreadcrumbRoot: root };
+      }
+      return { paneBreadcrumbRoot: root, paneBreadcrumbTrail: [] };
+    }),
+
+  pushPaneBreadcrumbTrail: (entry) =>
+    set((state) => {
+      const head = state.paneBreadcrumbTrail[state.paneBreadcrumbTrail.length - 1];
+      if (head && head.command === entry.command) return {};
+      const next = [...state.paneBreadcrumbTrail, entry];
+      if (next.length > PANE_BREADCRUMB_CAP) next.shift();
+      return { paneBreadcrumbTrail: next };
+    }),
+
+  popPaneBreadcrumbTrail: (index) =>
+    set((state) => {
+      if (index < 0 || index >= state.paneBreadcrumbTrail.length) return {};
+      return {
+        paneBreadcrumbTrail: state.paneBreadcrumbTrail.slice(0, index),
+      };
+    }),
+
+  setPaneDoorContext: (ctx) =>
+    set((state) => {
+      if (ctx === null) {
+        return state.paneDoorContext === null ? {} : { paneDoorContext: null };
+      }
+      const current = state.paneDoorContext;
+      if (
+        current &&
+        current.stuffId === ctx.stuffId &&
+        current.direction === ctx.direction
+      ) {
+        return {};
+      }
+      return { paneDoorContext: ctx };
     }),
 
   setPaneResult: (result) =>

@@ -36,6 +36,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -220,6 +221,19 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
         container.addContainable(this as unknown as Stuff & Containable);
       }
       this.environment = container;
+      // Fire a `FieldChangedEvent { field: 'container' }` so MQL
+      // subscriptions flagged `locationDependent` (the `me.location`
+      // canonical kind among them) wake on movement. Containability
+      // change is the load-bearing signal for "the player walked to
+      // a new room" / "this item entered/left an inventory" — the
+      // same shape `addContainable` / `removeContainable` use on the
+      // container side for the `contents` projection.
+      MqlSubscriptionApi.fireFieldChange(
+        this,
+        'container',
+        old,
+        container,
+      );
     }
 
     /**

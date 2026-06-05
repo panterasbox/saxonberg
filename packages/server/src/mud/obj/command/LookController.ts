@@ -267,14 +267,16 @@ export class LookController extends CommandController<LookModel> {
     const parts = exits.map((exit) => {
       // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —
       // the client turns it into the affordance that sends `go <dir>`.
-      // Door annotation rides outside the clickable so the click area
-      // is exactly the direction word.
+      // The door's name rides its own `<item>` tag so it's clickable
+      // too (renderer resolves stuff-id → primaryKeyword and emits
+      // `look <doorKeyword>`) — same affordance the inspection pane
+      // gives, kept consistent across surfaces.
       const tagged = Mml.exit(exit);
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorName = DescribeApi.getDisplayName(door);
-      return Mml.compose`${tagged} (${doorName}, ${state})`;
+      const doorLink = Mml.item(door);
+      return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);
     // `<sys>` wraps the structural label only — non-actionable,

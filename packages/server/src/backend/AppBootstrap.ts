@@ -116,5 +116,23 @@ export class AppBootstrap {
       fields: 'detail',
       focusDependent: true,
     });
+
+    // `me.location` ships the holder's CURRENT physical container —
+    // the room or vessel they're in — independent of focus. Clients
+    // (the inspection pane in particular) use it as the breadcrumb
+    // root so movement re-roots while focus changes just push to
+    // the trail. The query is the built-in `here` MQL pronoun
+    // (resolves to the command giver's container without a
+    // permission elevation, same name the dispatcher uses for
+    // `look here`); `locationDependent: true` installs the
+    // holder-level dependency entry on the `container` field,
+    // which `Containable.setContainer` fires on walk / teleport /
+    // board / disembark.
+    MqlSubscriptionApi.registerKind('me.location', {
+      query: 'here',
+      cardinality: 'one',
+      fields: 'ref',
+      locationDependent: true,
+    });
   }
 }

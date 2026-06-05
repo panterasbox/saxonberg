@@ -189,16 +189,13 @@ const ContentsLabel = styled.div`
 `;
 
 /**
- * Detail-drill trail at the top of the body when the pane has
- * descended into a detail. Shows the focused Stuff's display name
- * on the left, then chevron-separated detail keys, with the
- * current detail at the right. Each segment is clickable to pop
- * back to that level (or to the Stuff itself, leftmost).
+ * Current-position breadcrumb tail — the detail key the player has
+ * descended into. Plain muted styling (no decorative prefix); the
+ * chevron-separated layout already says "this is the trail's end."
  */
-const DetailTrail = styled.div`
-  margin-bottom: ${tokens.space.md};
-  font-size: ${tokens.font.small};
+const CurrentSegment = styled.span`
   color: ${tokens.color.fgMuted};
+  font-style: italic;
 `;
 
 const AdminBlock = styled.section`
@@ -384,8 +381,10 @@ export function InspectionPane({
   const paneFocusFragment = useStore((s) => s.paneFocusFragment);
   const paneBodyPainted = useStore((s) => s.paneBodyPainted);
   const paneLastResult = useStore((s) => s.paneLastResult);
-  const paneBreadcrumbs = useStore((s) => s.paneBreadcrumbs);
+  const paneBreadcrumbRoot = useStore((s) => s.paneBreadcrumbRoot);
+  const paneBreadcrumbTrail = useStore((s) => s.paneBreadcrumbTrail);
   const paneDetailPath = useStore((s) => s.paneDetailPath);
+  const paneDoorContext = useStore((s) => s.paneDoorContext);
   const authPlayer = useStore((s) => s.auth.player);
 
   // The auth slice doesn't yet carry an explicit admin marker. Read
@@ -399,40 +398,113 @@ export function InspectionPane({
   }, [authPlayer]);
 
   useEffect(() => {
-    const id = websocketClient.subscribeToCanonicalKind("me.focus");
+    const focusId = websocketClient.subscribeToCanonicalKind("me.focus");
+    const locationId =
+      websocketClient.subscribeToCanonicalKind("me.location");
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;
-      if (env.subscriptionId !== id) return;
-      const records = env.result as (StuffRefRecord | StuffDetailRecord)[];
-      const store = useStore.getState();
-      const previousStuffId = store.paneLastResult?.[0]?.stuffId;
-      const nextStuffId = records[0]?.stuffId;
-      store.setPaneResult(records);
-      store.setPaneFocusName(
-        deriveHeaderName(records, store.paneFocusFragment)
-      );
-      // A focused-Stuff change (different room, different person,
-      // any focus shift that resolves to a new identity) invalidates
-      // the detail-drill stack — details belong to a specific Stuff.
-      if (previousStuffId !== nextStuffId) {
-        store.clearPaneDetail();
+      if (env.subscriptionId === focusId) {
+        const records = env.result as (StuffRefRecord | StuffDetailRecord)[];
+        const store = useStore.getState();
+        const hadPriorResult = store.paneLastResult !== null;
+        const previousStuffId = store.paneLastResult?.[0]?.stuffId;
+        const nextStuffId = records[0]?.stuffId;
+        store.setPaneResult(records);
+        store.setPaneFocusName(
+          deriveHeaderName(records, store.paneFocusFragment)
+        );
+        if (previousStuffId !== nextStuffId) {
+          store.clearPaneDetail();
+        }
+        // First-delivery auto-paint: on a fresh session the focus
+        // subscription's initial result arrives before the player
+        // has sent any explicit `look`. Without this, the body sits
+        // on the placeholder even though the data is in hand. Only
+        // applies to the very first result (no prior snapshot); the
+        // focus-change-clears policy still governs everything after.
+        if (!hadPriorResult && records.length > 0) {
+          store.setPanePainted(true);
+        }
+        // Drop the door annotation as soon as focus leaves the door
+        // it was captured against.
+        const doorCtx = store.paneDoorContext;
+        if (doorCtx && doorCtx.stuffId !== nextStuffId) {
+          store.setPaneDoorContext(null);
+        }
+      } else if (env.subscriptionId === locationId) {
+        const records = env.result as StuffRefRecord[];
+        const store = useStore.getState();
+        const top = records[0];
+        store.setPaneBreadcrumbRoot(
+          top
+            ? {
+                stuffId: top.stuffId,
+                displayName: top.displayName,
+                primaryKeyword: top.primaryKeyword,
+              }
+            : null
+        );
       }
     };
     const handleDelta = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionDeltaEnvelope;
-      if (env.subscriptionId !== id) return;
-      const store = useStore.getState();
-      const previous = store.paneLastResult ?? [];
-      const previousStuffId = previous[0]?.stuffId;
-      const patched = applyChanges(previous, env.changes);
-      const nextStuffId = patched[0]?.stuffId;
-      store.setPaneResult(patched);
-      store.setPaneFocusName(
-        deriveHeaderName(patched, store.paneFocusFragment)
-      );
-      if (previousStuffId !== nextStuffId) {
-        store.clearPaneDetail();
+      if (env.subscriptionId === focusId) {
+        const store = useStore.getState();
+        const previous = store.paneLastResult ?? [];
+        const previousStuffId = previous[0]?.stuffId;
+        const patched = applyChanges(previous, env.changes);
+        const nextStuffId = patched[0]?.stuffId;
+        store.setPaneResult(patched);
+        store.setPaneFocusName(
+          deriveHeaderName(patched, store.paneFocusFragment)
+        );
+        if (previousStuffId !== nextStuffId) {
+          store.clearPaneDetail();
+        }
+        const doorCtx = store.paneDoorContext;
+        if (doorCtx && doorCtx.stuffId !== nextStuffId) {
+          store.setPaneDoorContext(null);
+        }
+      } else if (env.subscriptionId === locationId) {
+        // The `me.location` projection is single-cardinality. The
+        // substrate's diff for a slot-replacement (player walked
+        // from room A to room B) produces a single `replace` op
+        // keyed by the NEW stuffId — the old entry is implicitly
+        // evicted. The generic `applyChanges` would key its lookup
+        // by stuffId and fail to find the prior entry, appending a
+        // second record. Single-cardinality bypass: read the last
+        // change directly and reduce to {replace,update,remove}.
+        const store = useStore.getState();
+        let nextRoot:
+          | { stuffId: string; displayName: string; primaryKeyword?: string }
+          | null = store.paneBreadcrumbRoot;
+        for (const change of env.changes) {
+          if (change.op === "remove") {
+            nextRoot = null;
+            continue;
+          }
+          if (change.op === "replace" || change.op === "add") {
+            const fields = (change.fields ?? {}) as Partial<StuffRefRecord>;
+            nextRoot = {
+              stuffId: change.key,
+              displayName: fields.displayName ?? "",
+              primaryKeyword: fields.primaryKeyword,
+            };
+            continue;
+          }
+          // op === 'update' — slot's record kept its identity; merge.
+          if (nextRoot && change.key === nextRoot.stuffId && change.fields) {
+            const fields = change.fields as Partial<StuffRefRecord>;
+            nextRoot = {
+              stuffId: nextRoot.stuffId,
+              displayName: fields.displayName ?? nextRoot.displayName,
+              primaryKeyword:
+                fields.primaryKeyword ?? nextRoot.primaryKeyword,
+            };
+          }
+        }
+        store.setPaneBreadcrumbRoot(nextRoot);
       }
     };
 
@@ -445,7 +517,8 @@ export function InspectionPane({
         handleResult
       );
       websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
-      websocketClient.unsubscribe(id);
+      websocketClient.unsubscribe(focusId);
+      websocketClient.unsubscribe(locationId);
     };
   }, []);
 
@@ -510,21 +583,27 @@ export function InspectionPane({
           return renderDetailDrill(
             record,
             drillEntry,
-            paneDetailPath,
             onSendCommand,
-            previewSink,
-            useStore.getState().popPaneDetail,
-            useStore.getState().clearPaneDetail
+            previewSink
           );
         }
       }
+      // The door-context annotation surfaces an exit link in the
+      // body when the focused thing is the door the player just
+      // clicked from a room's exits projection. Cleared on focus
+      // shift (see handleResult / handleDelta above).
+      const doorDirection =
+        paneDoorContext && paneDoorContext.stuffId === record.stuffId
+          ? paneDoorContext.direction
+          : null;
       return renderSingle(
         record,
         wrapForDetailDrill(detail, onSendCommand),
         onSendCommand,
         previewSink,
         handleRowClick,
-        isAdmin
+        isAdmin,
+        doorDirection
       );
     }
     return renderMulti(result, previewSink, handleRowClick, isAdmin);
@@ -532,18 +611,87 @@ export function InspectionPane({
 
   return (
     <PaneContainer>
-      {paneBreadcrumbs.length > 0 && (
+      {paneBreadcrumbRoot && (
         <Breadcrumbs aria-label="focus breadcrumbs">
-          {paneBreadcrumbs.map((frag) => (
-            <EntityName
-              key={frag}
-              label={frag}
-              title={`Click to send: look ${frag}`}
-              command={`look ${frag}`}
-              onPreview={previewSink}
-              onClick={() => handleBreadcrumbClick(frag)}
-            />
+          {(() => {
+            // Root segment = the player's current location. Label
+            // shows the primaryKeyword (consistent with trail
+            // entries, which display the keyword the player typed)
+            // and falls back to displayName only when no keyword
+            // exists. Click re-focuses the room; preview reads
+            // `look <keyword>` (or bare `look` for the no-keyword
+            // fallback). Also clears the detail-drill state — if
+            // you click back to the room, you're not inspecting a
+            // detail of anything anymore.
+            const rootKeyword = paneBreadcrumbRoot.primaryKeyword;
+            const rootCommand = rootKeyword
+              ? `look ${rootKeyword}`
+              : "look";
+            const rootLabel = rootKeyword ?? paneBreadcrumbRoot.displayName;
+            return (
+              <EntityName
+                stuffId={paneBreadcrumbRoot.stuffId}
+                label={rootLabel}
+                title={`Click to send: ${rootCommand}`}
+                command={rootCommand}
+                onPreview={previewSink}
+                onClick={() => {
+                  useStore.getState().popPaneBreadcrumbTrail(0);
+                  useStore.getState().clearPaneDetail();
+                  onSendCommand(rootCommand);
+                }}
+              />
+            );
+          })()}
+          {paneBreadcrumbTrail.map((entry, i) => (
+            <React.Fragment key={`trail-${entry.command}-${i}`}>
+              {" › "}
+              <EntityName
+                stuffId={entry.stuffId}
+                label={entry.label}
+                title={`Click to send: ${entry.command}`}
+                command={entry.command}
+                onPreview={previewSink}
+                onClick={() => {
+                  // Pop trail to this index (drops everything past
+                  // this point), clear any detail drill (detail is
+                  // subordinate to the focus stack), then re-send so
+                  // focus shifts back to this segment.
+                  useStore.getState().popPaneBreadcrumbTrail(i);
+                  useStore.getState().clearPaneDetail();
+                  onSendCommand(entry.command);
+                }}
+              />
+            </React.Fragment>
           ))}
+          {paneDetailPath.map((key, i) => {
+            // Detail segments chain off the trail's tail (or the
+            // root, if the trail is empty). The current tail is
+            // rendered as a plain system label — clicking it would
+            // be a no-op (you'd be backing out to where you already
+            // are); intermediate segments pop the detail stack to
+            // that level. To leave the detail entirely, click the
+            // segment before it (root or focus trail tail).
+            const isTail = i === paneDetailPath.length - 1;
+            return (
+              <React.Fragment key={`detail-${key}-${i}`}>
+                {" › "}
+                {isTail ? (
+                  <CurrentSegment>{key}</CurrentSegment>
+                ) : (
+                  <EntityName
+                    label={key}
+                    title={`Click to back out: ${key}`}
+                    command={`look ${key}`}
+                    onPreview={previewSink}
+                    onClick={() => {
+                      useStore.getState().popPaneDetailToIndex(i);
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
         </Breadcrumbs>
       )}
       <Header>
@@ -614,7 +762,8 @@ function renderSingle(
   onSendCommand: (text: string) => void,
   onPreview: (command: string | null) => void,
   onRowClick: (row: StuffRefRecord) => void,
-  isAdmin: boolean
+  isAdmin: boolean,
+  doorDirection: string | null
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
   const long = detail.longDescription ?? "";
@@ -631,6 +780,18 @@ function renderSingle(
             onCommandPreview={onPreview}
           />
         </BodyProse>
+      )}
+      {doorDirection && (
+        <ExitsBlock>
+          <SystemLabel>Obvious exits:</SystemLabel>{" "}
+          <EntityName
+            label={doorDirection}
+            title={`Click to send: go ${doorDirection}`}
+            command={`go ${doorDirection}`}
+            onPreview={onPreview}
+            onClick={() => onSendCommand(`go ${doorDirection}`)}
+          />
+        </ExitsBlock>
       )}
       {exits.length > 0 && (
         <ExitsBlock>
@@ -656,6 +817,8 @@ function renderSingle(
                     const target =
                       exit.door.primaryKeyword ?? exit.door.displayName;
                     const cmd = `look ${target}`;
+                    const doorStuffId = exit.door.stuffId;
+                    const doorDir = exit.direction;
                     return (
                       <EntityName
                         stuffId={exit.door.stuffId}
@@ -663,7 +826,15 @@ function renderSingle(
                         title={`Click to send: ${cmd}`}
                         command={cmd}
                         onPreview={onPreview}
-                        onClick={() => onSendCommand(cmd)}
+                        onClick={() => {
+                          // Stash the door↔exit binding so the door's
+                          // pane can render a "go <direction>" link.
+                          useStore.getState().setPaneDoorContext({
+                            stuffId: doorStuffId,
+                            direction: doorDir,
+                          });
+                          onSendCommand(cmd);
+                        }}
                       />
                     );
                   })()}
@@ -820,80 +991,24 @@ function renderAdminExtras(
 /**
  * Detail-drill view — the player has descended into a detail of the
  * focused Stuff. The Stuff itself doesn't change (header still
- * shows the lobby); only the level of inspection has shifted.
+ * shows the parent Stuff); only the level of inspection has shifted.
  *
- * Layout differs from the single-Stuff body deliberately:
- *
- *  - A breadcrumb-style "trail" at the top shows the drill path,
- *    with each segment clickable to pop back to that level (or all
- *    the way to the Stuff itself).
- *  - The body is the detail's description text. Details don't have
- *    sub-details on the wire yet, so this is plain prose for now.
- *  - Contents are hidden — details don't contain things; only the
- *    Stuff does.
- *  - Exits are preserved but the system label notes they belong to
- *    the parent Stuff, not the detail (which couldn't have exits in
- *    any sensible model anyway). The usability of keeping them
- *    one click away outweighs the small "this isn't on the detail"
- *    confusion the parent-Stuff annotation defuses.
+ * Navigation lives in the top breadcrumb (detail segments append
+ * to the focus trail). This view renders just the detail's prose
+ * and the parent Stuff's exits.
  */
 function renderDetailDrill(
   record: StuffRefRecord | StuffDetailRecord,
   drillEntry: WireDetailEntry,
-  drillPath: string[],
   onSendCommand: (text: string) => void,
-  onPreview: (command: string | null) => void,
-  popOne: () => void,
-  clearAll: () => void
+  onPreview: (command: string | null) => void
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
   const exits = detail.exits ?? [];
   const parentName = record.displayName ?? "parent";
-  // For preview text, prefer the focused thing's `primaryKeyword`
-  // (the canonical disambiguator the server resolves cleanly) over
-  // the full display name. Falls back to `look` (bare) when the
-  // focused Stuff has no keyword — bare look re-paints the current
-  // focus's full prose, which is the right behaviour for "back to
-  // the Stuff level".
-  const parentCommand = record.primaryKeyword
-    ? `look ${record.primaryKeyword}`
-    : "look";
 
   return (
     <div data-stuff-id={record.stuffId}>
-      <DetailTrail aria-label="detail drill trail">
-        <EntityName
-          label={parentName}
-          title={`Click to back out: ${parentCommand}`}
-          command={parentCommand}
-          onPreview={onPreview}
-          onClick={() => {
-            clearAll();
-            onSendCommand(parentCommand);
-          }}
-        />
-        {drillPath.map((key, i) => (
-          <React.Fragment key={`${key}-${i}`}>
-            {" › "}
-            {i === drillPath.length - 1 ? (
-              <SystemLabel>{key}</SystemLabel>
-            ) : (
-              <EntityName
-                label={key}
-                title={`Click to back out: look ${key}`}
-                command={`look ${key}`}
-                onPreview={onPreview}
-                onClick={() => {
-                  // Pop until this level is the tail.
-                  const popsNeeded = drillPath.length - 1 - i;
-                  for (let p = 0; p < popsNeeded; p++) popOne();
-                  onSendCommand(`look ${key}`);
-                }}
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </DetailTrail>
       <BodyProse>
         <MmlRenderer
           text={drillEntry.description}
@@ -925,6 +1040,8 @@ function renderDetailDrill(
                     const target =
                       exit.door.primaryKeyword ?? exit.door.displayName;
                     const cmd = `look ${target}`;
+                    const doorStuffId = exit.door.stuffId;
+                    const doorDir = exit.direction;
                     return (
                       <EntityName
                         stuffId={exit.door.stuffId}
@@ -932,7 +1049,13 @@ function renderDetailDrill(
                         title={`Click to send: ${cmd}`}
                         command={cmd}
                         onPreview={onPreview}
-                        onClick={() => onSendCommand(cmd)}
+                        onClick={() => {
+                          useStore.getState().setPaneDoorContext({
+                            stuffId: doorStuffId,
+                            direction: doorDir,
+                          });
+                          onSendCommand(cmd);
+                        }}
                       />
                     );
                   })()}
