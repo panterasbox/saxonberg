@@ -824,15 +824,28 @@ function renderDetailDrill(
   const detail = record as StuffDetailRecord;
   const exits = detail.exits ?? [];
   const parentName = record.displayName ?? "parent";
+  // For preview text, prefer the focused thing's `primaryKeyword`
+  // (the canonical disambiguator the server resolves cleanly) over
+  // the full display name. Falls back to `look` (bare) when the
+  // focused Stuff has no keyword — bare look re-paints the current
+  // focus's full prose, which is the right behaviour for "back to
+  // the Stuff level".
+  const parentCommand = record.primaryKeyword
+    ? `look ${record.primaryKeyword}`
+    : "look";
 
   return (
     <div data-stuff-id={record.stuffId}>
       <DetailTrail aria-label="detail drill trail">
         <EntityName
           label={parentName}
-          title={`Click to back out to ${parentName}`}
-          command=""
-          onClick={() => clearAll()}
+          title={`Click to back out: ${parentCommand}`}
+          command={parentCommand}
+          onPreview={onPreview}
+          onClick={() => {
+            clearAll();
+            onSendCommand(parentCommand);
+          }}
         />
         {drillPath.map((key, i) => (
           <React.Fragment key={`${key}-${i}`}>
@@ -842,12 +855,14 @@ function renderDetailDrill(
             ) : (
               <EntityName
                 label={key}
-                title={`Click to back out to ${key}`}
-                command=""
+                title={`Click to back out: look ${key}`}
+                command={`look ${key}`}
+                onPreview={onPreview}
                 onClick={() => {
                   // Pop until this level is the tail.
                   const popsNeeded = drillPath.length - 1 - i;
                   for (let p = 0; p < popsNeeded; p++) popOne();
+                  onSendCommand(`look ${key}`);
                 }}
               />
             )}
