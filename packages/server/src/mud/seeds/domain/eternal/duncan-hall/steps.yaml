@@ -13,7 +13,7 @@
 class: /lib/spatial/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  shortDescription: the front steps of Duncan Hall
+  shortDescription: Duncan Hall steps
   primaryKeyword: steps
   longDescription: |
     Six broad limestone steps lead up to the open doors of Duncan Hall behind you to the north. A black-iron handrail traces the right edge; the left edge is broken by a stone planter, the geraniums in it stubbornly outliving the season.

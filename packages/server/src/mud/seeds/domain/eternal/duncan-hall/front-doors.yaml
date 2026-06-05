@@ -13,7 +13,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: the front doors
   primaryKeyword: doors
-  longDescription: |
+  longDescription: >
     Tall paneled doors of dark wood. The hinges look heavy but
     travel smoothly. Right now they're propped open, letting the
     day's heat in across the marble floor.
