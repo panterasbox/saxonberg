@@ -179,22 +179,28 @@ export class LookController extends CommandController<LookModel> {
       return;
     }
 
-    let body = Mml.compose`\n${Mml.location(location)}`;
+    // Vertical-space discipline: one blank line between the name
+    // and the description prose (they're conceptually distinct),
+    // then tight single-newlines through exits + contents. A long
+    // description with internal paragraphs already provides its
+    // own internal breaks; the surrounding chrome doesn't need to
+    // pad them further. See the inspection-pane reconciliation
+    // notes on vertical space.
+    let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
       body = Mml.compose`${body}\n\n${Mml.fromMarkup(location.getLong())}`;
     }
     if (hasExits) {
       const exitsLine = this.formatExits(location.getObviousExits());
       if (exitsLine) {
-        body = Mml.compose`${body}\n\n${exitsLine}`;
+        body = Mml.compose`${body}\n${exitsLine}`;
       }
     }
     if (visibleContents.length > 0) {
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
-      body = Mml.compose`${body}\n\nYou also see: ${list}.`;
+      body = Mml.compose`${body}\nYou also see: ${list}.`;
     }
-    body = Mml.compose`${body}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)

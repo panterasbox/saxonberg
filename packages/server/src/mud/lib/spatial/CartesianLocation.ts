@@ -22,6 +22,7 @@ import { Location } from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
+import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { PopulatesMixin } from '../stuff/Populates';
@@ -35,7 +36,9 @@ import type { Stuff } from '../stuff/Stuff';
 const CartesianLocationBase = PostRegistrationMixin(
   PopulatesMixin(
     DetailedMixin(
-      ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+      PerceptibleMixin(
+        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+      )
     )
   )
 );

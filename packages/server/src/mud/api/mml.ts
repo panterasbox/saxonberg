@@ -85,6 +85,15 @@ type MmlPayload =
   | { kind: 'eager'; raw: string }
   | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] };
 
+/**
+ * `Mml.list(items)` switches from inline (comma + "and") to block
+ * (one item per line) when the item count crosses this threshold.
+ * Picked at 4 so two/three/four items stay on one wrap-line and
+ * five+ items split out — matching the vertical-space discipline
+ * documented in `docs/subsystems/inspection-pane.md`.
+ */
+const INLINE_LIST_THRESHOLD = 4;
+
 export class Mml {
   /**
    * Private constructor. Use `Mml.compose` for value-driven composition
@@ -194,12 +203,43 @@ export class Mml {
   }
 
   /**
-   * Join a list of Mml fragments with English-style commas and "and".
-   * Empty list emits `nothing`. Single item emits as-is.
+   * Join a list of Mml fragments. Default behavior is "auto" — inline
+   * (English-style commas + "and") for short lists, multi-line
+   * (one indented item per line, no trailing punctuation) once the
+   * count crosses `INLINE_LIST_THRESHOLD`. Empty list emits `nothing`.
+   * Single item emits as-is.
+   *
+   * Vertical-space discipline (see `inspection-pane.md`): a short
+   * list reads better inline (one wrap-line), but past ~5 items the
+   * comma-string degrades into a wall of text. The multi-line shape
+   * trades one extra newline per item for far better scannability
+   * and stops drowning the surrounding prose.
+   *
+   * Callers that want a specific shape can pass `{ style: 'inline' }`
+   * or `{ style: 'block' }` to override. The new MML `<list>`
+   * envelope is deferred until the renderer's planned state-machine
+   * upgrade can handle nested tags; until then, `style: 'block'`
+   * just inserts newlines between the existing flat per-item tags
+   * — the renderer already handles plain text + flat tags side by
+   * side.
    */
-  static list(items: Mml[]): Mml {
+  static list(
+    items: Mml[],
+    options?: { style?: 'auto' | 'inline' | 'block' }
+  ): Mml {
     if (items.length === 0) return Mml.fromMarkup('nothing');
     if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
+
+    const style = options?.style ?? 'auto';
+    const useBlock =
+      style === 'block' ||
+      (style === 'auto' && items.length > INLINE_LIST_THRESHOLD);
+
+    if (useBlock) {
+      const lines = items.map((i) => `  ${i.toString()}`).join('\n');
+      return Mml.fromMarkup(`\n${lines}`);
+    }
+
     if (items.length === 2) {
       return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
     }
