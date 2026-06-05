@@ -7,5 +7,10 @@ args:
     required: false
     scope: ["$focus", "reachable"]
     updates_focus: extend
+    skip_focus_when_option: peek
     prepositions: [at]
     default: "$focus"
+options:
+  peek:
+    type: boolean
+    description: "Render prose without changing focus"

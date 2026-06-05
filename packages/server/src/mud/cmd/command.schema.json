@@ -116,6 +116,11 @@
           "enum": ["extend", "replace", "none"],
           "description": "Focus management policy. `extend` appends the input fragment to the giver's current focus with `:` (with same-anchor compaction); `replace` re-anchors wholesale; `none` (default) leaves focus alone. Inspection-shaped verbs (look, examine, open, close) declare `extend`."
         },
+        "skip_focus_when_option": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Name of a boolean option (or option-shaped model key) that, when truthy on the bound model, causes the dispatcher to SKIP the `updates_focus` step for this field. Pronoun-memory updates still fire — only the focus chain is held back. Canonical consumer: `look --peek` (renders prose without disturbing focus). Ignored when `updates_focus` is unset or `none`."
+        },
         "prepositions": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },

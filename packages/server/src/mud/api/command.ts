@@ -684,6 +684,28 @@ export interface FieldDefinition {
    */
   updates_focus?: 'extend' | 'replace' | 'none';
   /**
+   * Name of a boolean option (or option-shaped model key) that, when
+   * truthy on the bound model, causes the dispatcher to SKIP the
+   * `updates_focus` step for this field. Pronoun-memory updates still
+   * fire — focus is the only thing being held back.
+   *
+   * The canonical consumer is `look --peek`: `look.yaml`'s `target`
+   * arg declares `updates_focus: extend` AND
+   * `skip_focus_when_option: peek`, so a regular `look` extends focus
+   * while `look --peek` renders the same prose without disturbing the
+   * focus chain. Any verb that wants a "render but don't move my
+   * pointer" knob can reuse this pattern; the field is generic.
+   *
+   * The dispatcher reads `model[<name>]` truthily. Unknown / unset
+   * options coerce to `undefined` / falsy, so the gate is a no-op
+   * when the player didn't supply the flag. No validation that the
+   * named option actually exists on the verb — a typo just means the
+   * gate never fires.
+   *
+   * Ignored when `updates_focus` is unset or `'none'`.
+   */
+  skip_focus_when_option?: string;
+  /**
    * Optional list of prepositions the matcher will consume as a
    * leading boundary marker for this positional field. Lowercased.
    * Typing `look at flower` against `prepositions: [at]` consumes
@@ -1684,7 +1706,15 @@ export class CommandApi {
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (picked !== null && focused) {
-          if (focusMode !== 'none') {
+          // `skip_focus_when_option` (e.g. `look --peek`) lets a
+          // verb declare focus-update opt-out keyed on a boolean
+          // option. Pronoun memory still updates — only the focus
+          // chain is held back. Unknown option names are silently
+          // treated as falsy.
+          const skipOpt = def.skip_focus_when_option;
+          const skipFocus =
+            skipOpt !== undefined && Boolean(resolved[skipOpt]);
+          if (focusMode !== 'none' && !skipFocus) {
             updatePlayerFocus(focused, raw, picked, via, focusMode);
           }
           const asMany: MqlMany = { stuff: [picked] };
