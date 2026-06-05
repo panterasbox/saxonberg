@@ -144,7 +144,8 @@ export interface CommandRejectedNote {
     | 'unknown-verb'
     | 'shape-fall-through'
     | 'bind-failed'
-    | 'missing-subcommand';
+    | 'missing-subcommand'
+    | 'unknown-subcommand';
   detail?: string;
 }
 

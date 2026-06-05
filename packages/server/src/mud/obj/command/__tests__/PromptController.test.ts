@@ -1,8 +1,11 @@
 /**
  * Wave 4: PromptController tests — `prompt cancel` cancels every
  * pending prompt on the giver's Interactives and reports the count.
- * Unknown subcommands are dispatcher-rejected (we test the
- * controller-side defensive branch too).
+ *
+ * Unknown-subcommand rejection lives in the dispatcher (assemble
+ * returns `error: 'unknown-subcommand'`); HasInteractive gating
+ * lives in the `requiresHasInteractive` validator. Both surface as
+ * framework-side notes covered in their own test suites.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -34,13 +37,6 @@ class TestActor extends SensorMixin(
   ),
 ) {
   static _mixinName = 'TestActor';
-}
-
-// A CommandGiver-only actor that lacks HasInteractive.
-class NoInteractiveActor extends SensorMixin(
-  CommandGiverMixin(ContainerMixin(ContainableMixin(Idea))),
-) {
-  static _mixinName = 'NoInteractiveActor';
 }
 
 async function bootRegistry(): Promise<void> {
@@ -136,49 +132,9 @@ describe('PromptController — prompt cancel', () => {
     expect(PromptApi._getInteractivePromptCountForTesting(interactive)).toBe(0);
   });
 
-  it('unknown subcommand returns controller-rejected', async () => {
-    await bootRegistry();
-    const loc = makeStuff(() => new Location());
-    const actor = makeStuff(() => new TestActor());
-    ContainmentApi.move(actor, loc);
-    const interactive = await StuffApi.create(
-      () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
-    );
-    ConnectionApi.transfer(interactive, actor as never);
-
-    const controller = makeStuff(() => new PromptController());
-    const ctx = makeContext(actor, loc);
-    await controller.execute(
-      makeModel('bogus') as Parameters<PromptController['execute']>[0],
-      ctx,
-    );
-
-    expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({
-        kind: 'controller-rejected',
-        reason: 'unknown-subcommand',
-      }),
-    );
-  });
-
-  it('giver without HasInteractive emits mixin-missing', async () => {
-    await bootRegistry();
-    const loc = makeStuff(() => new Location());
-    const actor = makeStuff(() => new NoInteractiveActor());
-    ContainmentApi.move(actor, loc);
-
-    const controller = makeStuff(() => new PromptController());
-    const ctx = makeContext(actor, loc);
-    await controller.execute(
-      makeModel('cancel') as Parameters<PromptController['execute']>[0],
-      ctx,
-    );
-
-    expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({
-        kind: 'mixin-missing',
-        mixin: 'HasInteractiveMixin',
-      }),
-    );
-  });
+  // Unknown-subcommand rejection is dispatcher-side now (assemble
+  // returns `error: 'unknown-subcommand'`); see the framework-level
+  // coverage in CommandGiver tests. HasInteractive gating moved to
+  // the `requiresHasInteractive` validator; see validator unit
+  // tests.
 });

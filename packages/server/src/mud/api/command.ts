@@ -1198,10 +1198,10 @@ export class CommandApi {
         const sName = t.value;
         const sDef = command.getSubcommand(sName);
         if (!sDef) {
-          const list = command.getSubcommandNames().join(', ');
           return {
-            error: 'shape',
-            summary: `Unknown subcommand '${sName}'. Available: ${list}`,
+            error: 'unknown-subcommand',
+            subcommand: sName,
+            available: command.getSubcommandNames(),
           };
         }
         subcommand = sName;
@@ -1986,7 +1986,8 @@ export interface AssembleSuccess {
 export type AssembleResult =
   | AssembleSuccess
   | { error: 'shape'; summary: string }
-  | { error: 'bind'; summary: string };
+  | { error: 'bind'; summary: string }
+  | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
 interface BindOk {
   ok: true;

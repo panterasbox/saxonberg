@@ -720,13 +720,23 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         if ('error' in built) {
           if (built.error === 'shape') continue; // fall through
-          // Bind error stops the chain. Emit on the outer ctx —
-          // we never reached _executeOne for any attempt.
-          outer.note({
-            kind: 'command-rejected',
-            reason: 'bind-failed',
-            detail: built.summary,
-          });
+          // Bind / unknown-subcommand errors stop the chain. Emit on
+          // the outer ctx — we never reached _executeOne for any
+          // attempt.
+          if (built.error === 'unknown-subcommand') {
+            const list = built.available.join(', ');
+            outer.note({
+              kind: 'command-rejected',
+              reason: 'unknown-subcommand',
+              detail: `unknown subcommand '${built.subcommand}'; valid: ${list}`,
+            });
+          } else {
+            outer.note({
+              kind: 'command-rejected',
+              reason: 'bind-failed',
+              detail: built.summary,
+            });
+          }
           outer.verb = parsed.verb;
           outer.command = command;
           return outer;
