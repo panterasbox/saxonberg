@@ -13,6 +13,15 @@ See also:
 
 - [docs/vision.md](./vision.md) — the pedagogical premise that
   this philosophy serves.
+- [docs/interaction-philosophy.md](./interaction-philosophy.md) — the
+  companion "why" doc. This doc owns the fidelity / honesty axis (how
+  honestly the world is *modeled*); that one owns the interaction
+  surface (why text is the medium and why the command line is the unit
+  of interaction).
+- [docs/standard-model.md](./standard-model.md) — the third orienting
+  doc: the *structure* of the model (the Stuff/mixin particle layer) and
+  the imagined periodic table of gamification on top. This doc's honesty
+  principle is what that one bets the gamification layer can emerge from.
 - [docs/architecture.md](./architecture.md) — static architecture
   of the codebase. This doc is the design-discipline complement.
 - [docs/subsystems/quantities.md](./subsystems/quantities.md) — the
@@ -37,7 +46,7 @@ See also:
 > **The engine models the smallest fidelity that the
 > most-fidelity-demanding content needs, and it does so honestly.**
 
-Three corollaries:
+Four corollaries:
 
 1. **The substrate models what content needs, no more.** Don't
    pre-build infrastructure that nothing uses. Schema
@@ -49,6 +58,10 @@ Three corollaries:
 3. **Layered presentation.** Players see prose; students see
    physics; instruments and `analyze` verbs reveal canonical
    units. Same engine, different rendering paths.
+4. **Honest models seed from real data.** Because the schemas are
+   reality-shaped, open datasets (USDA, Wikipedia, clinical
+   references) seed them directly — authoring becomes ingestion.
+   Keep schemas dataset-shaped even when v1 consumes only a subset.
 
 The engine is a **physics simulation at room granularity**, with
 channel-specific dynamics and opt-in finer fidelity. It's
@@ -162,7 +175,7 @@ authoring effort to none by default.
 
 ---
 
-## Three principles, in detail
+## Four principles, in detail
 
 ### Principle 1: The substrate models what content needs
 
@@ -220,6 +233,31 @@ biology student playing a dog has real species-specific hearing
 range. A physics student firing a tuning fork hears a real
 frequency. **This is a substrate property, not a feature.**
 
+#### Invented sciences are honest too
+
+"Honest" does not mean "real-world." A *supernatural* system —
+magic — is modeled honestly when its laws are **internally
+consistent and measurable**, even though they're authored rather
+than drawn from a textbook. Magic is a physics channel like any
+other: real (invented) units, conservation, propagation through
+conduits, instruments that read it, an `analyze` that reveals its
+math. The only difference from sound or chemistry is the *source*
+of the laws.
+
+This widens the pedagogical claim. Real channels teach real facts;
+invented ones teach the **scientific method itself** —
+hypothesize, measure, predict, verify — in a sandbox engineered to
+be learnable, plus transferable *structure* (conservation, fields,
+equilibrium, falloff) that carries back to real physics. "Where
+real science hits a wall" becomes a clean teaching instrument.
+
+The discipline is strict: an invented science must be **rigorously
+self-consistent**, and it never becomes the fudge layer — it obeys
+its own laws as unforgivingly as the real channels obey theirs.
+Designing one means genuinely designing a physics. See
+[capability-magic-slate.md](./slates/capability-magic-slate.md) for
+the worked application.
+
 ### Principle 3: Layered presentation
 
 Players see prose. Students see physics. Same engine.
@@ -256,6 +294,44 @@ Verbs and instruments are the bridges:
   readings using the engine's actual values.
 - The `pedagogicalSeam` setting per-player tunes default
   rendering verbosity.
+
+### Principle 4: Reality-shaped models seed from real data
+
+A consequence of Principle 2 with its own authoring payoff. Because
+the substrate models honestly, its schemas end up shaped like the
+real-world datasets that describe the same things. That turns
+authoring from invention into **ingestion** — a model whose fields
+mirror a public dataset can be seeded directly from it.
+
+- **Species** → Wikipedia / Encyclopedia of Life: binomial,
+  lifespan, body plan, diet, vision / hearing ranges.
+- **Materials** → periodic table / materials databases: density,
+  molar mass, atomic number, formula (already modeled).
+- **Nutrition** → USDA FoodData Central / nutrition labels: energy
+  (kcal), macros, micros, water content.
+- **Vital reference ranges** → clinical references: the normal bands
+  *are* published reference ranges.
+
+Three payoffs: **content velocity** (seed hundreds of entries by
+mapping a dataset, not hand-authoring each), **pedagogy** (the data
+is real and student-verifiable against the same sources), and
+**credibility** (a demo where every species is real taxonomy and
+every food carries real USDA data).
+
+The discipline this imposes is cheap and forward-looking, the same
+shape as Principle 1: **shape the schema to mirror the dataset even
+when v1 consumes only a subset.** A food's full nutrition facts can
+be seeded now while only its energy / water drive satiation /
+hydration today; the macros sit dormant until the metabolic consumer
+lands. Don't build ingestion pipelines ahead of need — just keep the
+schema ingestion-shaped.
+
+One caveat that's real for a commercial, ingested-data product:
+**provenance and licensing.** USDA FoodData Central is public domain;
+Wikipedia is CC-BY-SA (attribution + share-alike); other sources
+vary. Track the source and license of any seeded dataset — a
+content-pipeline concern, not an engine one, but load-bearing the
+moment real ingestion starts.
 
 ---
 

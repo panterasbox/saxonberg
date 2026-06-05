@@ -44,6 +44,11 @@ import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
+import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
 /**
  * Public shape provided by PerceptibleMixin.
@@ -54,6 +59,15 @@ export interface Perceptible {
   removeKeyword(keyword: string): boolean;
   hasKeyword(keyword: string): boolean;
   setKeywords(keywords: string[]): void;
+  /**
+   * The authored / derived "first" keyword used by client renderers
+   * for canonical click-to-look affordances. Defaults to the first
+   * derived-pool entry; an author can pin a specific keyword via
+   * `setPrimaryKeyword`, but the setter fail-soft-validates against
+   * the live pool (an unrecognized value is ignored with a warning).
+   */
+  getPrimaryKeyword(): string | undefined;
+  setPrimaryKeyword(value: string | undefined): void;
 }
 
 /**
@@ -84,9 +98,42 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Persistent fields: explicit keywords + the auto-derive opt-out
-     * flag. Hydrated through the accessor pairs below.
+     * flag + the optional authored primary keyword. Hydrated through
+     * the accessor pairs below (Phase 1: setter; Phase 2: bracket-
+     * assign via the public-shape setter).
      */
-    static persistentFields = ['keywords', 'autoDeriveKeywords'];
+    static persistentFields = [
+      'keywords',
+      'autoDeriveKeywords',
+      'primaryKeyword',
+    ];
+
+    /**
+     * Live-query projection for `primaryKeyword`. Lives on the mixin
+     * (not on Stuff) because the field is mixin-gated: only
+     * Perceptible-composed hosts have a keyword pool. The substrate's
+     * prototype-chain walk unions this with `Stuff.subscribableFields`
+     * at projection time. Non-Perceptible hosts contribute no
+     * `primaryKeyword` descriptor; the substrate omits the field
+     * from their wire records, same shape `quantity` uses on
+     * Globbable.
+     *
+     * `dependsOnFields` lists the leaf sources: the authored override
+     * (`primaryKeyword`) AND the two fields the derived-pool head
+     * folds in (`name` via NamedMixin, `shortDescription` via
+     * VisibleMixin). Renaming or re-describing a Perceptible host
+     * re-projects the keyword surface without an explicit setter
+     * call. Shadow-lifecycle support rides on `ShadowChangedEvent`
+     * for parity with `displayName`.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'primaryKeyword',
+        read: (stuff) => (stuff as unknown as Perceptible).getPrimaryKeyword(),
+        dependsOnFields: ['primaryKeyword', 'name', 'shortDescription'],
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+    ];
 
     /** Backing storage; access via the `keywords` accessor pair. */
     private _keywords: string[] = [];
@@ -182,6 +229,79 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     setKeywords(keywords: string[]): void {
       this.keywords = keywords;
+    }
+
+    /**
+     * Authored primary keyword. When set, `getPrimaryKeyword()` returns
+     * this value (after fail-soft validation against the live keyword
+     * pool). Persistent — author-set via template `data:`.
+     *
+     * Hydrator routes through `setPrimaryKeyword` (the Phase 1 dispatch
+     * prefers a `set<Field>` method), so an authored-but-invalid value
+     * in a template is logged + dropped at clone time rather than
+     * silently sitting in the slot waiting to confuse a renderer.
+     */
+    protected primaryKeyword?: string;
+
+    /**
+     * Read the primary keyword for this Stuff. Returns the authored
+     * value when it appears in the current derived keyword pool;
+     * otherwise the first derived-pool entry; otherwise `undefined`.
+     *
+     * Intentionally does NOT call `setPrimaryKeyword` from the getter
+     * — the setter validates against the pool and would feedback-
+     * loop with a derived-pool change. Authoring is a separate event
+     * from rendering.
+     */
+    getPrimaryKeyword(): string | undefined {
+      const pool = this.keywords;
+      if (this.primaryKeyword !== undefined && pool.includes(this.primaryKeyword)) {
+        return this.primaryKeyword;
+      }
+      return pool[0];
+    }
+
+    /**
+     * Author-set the primary keyword. Fail-soft validation: a value
+     * not in the current derived keyword pool is ignored with a
+     * `console.warn` (same shape other fact-mixin setters use). On
+     * acceptance, fires `FieldChangedEvent { field: 'primaryKeyword' }`
+     * so subscriptions re-project.
+     *
+     * Passing `undefined` clears the explicit override; subsequent
+     * `getPrimaryKeyword()` calls fall back to the derived-pool head.
+     */
+    setPrimaryKeyword(value: string | undefined): void {
+      if (value !== undefined) {
+        const normalized = value.toLowerCase().trim();
+        if (normalized.length === 0) {
+          console.warn(
+            `PerceptibleMixin.setPrimaryKeyword: empty value ignored`,
+          );
+          return;
+        }
+        const pool = this.keywords;
+        if (!pool.includes(normalized)) {
+          console.warn(
+            `PerceptibleMixin.setPrimaryKeyword: '${normalized}' not in ` +
+              `keyword pool [${pool.join(', ')}]; ignoring`,
+          );
+          return;
+        }
+        this.primaryKeyword = MqlSubscriptionApi.fireFieldChange(
+          this,
+          'primaryKeyword',
+          this.primaryKeyword,
+          normalized,
+        );
+        return;
+      }
+      this.primaryKeyword = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'primaryKeyword',
+        this.primaryKeyword,
+        undefined,
+      );
     }
   };
 }

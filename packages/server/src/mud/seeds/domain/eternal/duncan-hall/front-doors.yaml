@@ -1,0 +1,20 @@
+# Duncan Hall front doors — the boundary on the lobby's south
+# exit / the steps' north exit. Singleton: a single Door instance
+# is shared by both sides of the exit pair (the substrate's
+# `Exitable.applyExits` resolves the path via `StuffApi.singleton`
+# and the same `Door` ends up referenced by both Exit objects).
+#
+# `open: true` — the lobby description mentions the doors "stand
+# open", so the seed reflects that as the initial state. Closing
+# them at runtime via the `close` verb stops light and movement
+# through this boundary per the Door substrate doc.
+class: /lib/boundary/Door
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the front doors
+  primaryKeyword: doors
+  longDescription: >
+    Tall paneled doors of dark wood. The hinges look heavy but
+    travel smoothly. Right now they're propped open, letting the
+    day's heat in across the marble floor.
+  open: true

@@ -18,7 +18,7 @@ See also:
 - [docs/slates/zone-architecture-slate.md](./zone-architecture-slate.md)
   — celestial profile lives on the spatial zone (or wherever that
   slate lands), inherits via template-tree ancestry.
-- [docs/slates/biome-slate.md](./biome-slate.md) — biomes consume
+- [docs/subsystems/biome.md](../subsystems/biome.md) — biomes consume
   ambient-illuminance from the celestial layer once it lands;
   `SkyExposedBiome` is the seam for "the sun matters here."
 - [docs/subsystems/activity.md](../subsystems/activity.md) — activity

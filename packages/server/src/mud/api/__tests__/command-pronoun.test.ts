@@ -252,21 +252,22 @@ describe('Dispatcher pronoun-memory integration', () => {
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
-    // From initial focus 'here', extend mode appends 'rose'.
-    expect(giver.getFocus()).toBe('here:rose');
+    // From initial focus 'here', `look rose` targets a peer (no
+    // detail-path continuation), so focus REPLACES with `rose`
+    // rather than appending. The chain `here:rose` would not
+    // resolve through the substrate's chain step.
+    expect(giver.getFocus()).toBe('rose');
 
     // `look it` — updates_focus: extend fires. The dispatcher
     // substitutes the stored fragment ("rose") for the literal "it"
-    // before extending, so the trail tracks the actual referent.
-    // The current focus 'here:rose' fails to resolve in this small
-    // test world (no detailed location), so the same-anchor
-    // compaction doesn't apply and the substituted fragment is
-    // appended naively.
+    // before extending. Re-looking at rose from focus='rose' is the
+    // same Stuff + empty via, so the same-anchor `equal` branch
+    // leaves focus alone.
     await CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
-    expect(giver.getFocus()).toBe('here:rose:rose');
+    expect(giver.getFocus()).toBe('rose');
   });
 
   it('two distinct CommandGivers do not share their stashes', async () => {
@@ -341,8 +342,12 @@ describe('Dispatcher pronoun-memory integration', () => {
       const target = r.resolved.target as MqlOneResult;
       expect(target.stuff).toBe(apple);
     }
-    // updates_focus extend appends the typed fragment to the prior
-    // focus — different stuff (rose vs apple), so naive append.
-    expect(giver.getFocus()).toBe('rose:apple');
+    // updates_focus extend with a different target stuff (rose vs
+    // apple) — and no detail-path continuation — replaces rather
+    // than appending. The prior `rose:apple` chain didn't resolve
+    // because `:apple` walks rose's keywords/details only, not the
+    // here-neighborhood. Replacing with just `apple` lets the
+    // substrate re-resolve via the reachable scope.
+    expect(giver.getFocus()).toBe('apple');
   });
 });

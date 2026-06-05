@@ -659,7 +659,7 @@ inventory commands when *it* is the giver. Anything composing
 contributing class doesn't have to know which mixins it composed —
 discovery walks the chain on every command-resolution pass.
 
-See [commands.md § Discovery](./commands.md) for the full
+See [command-routing.md § Discovery](./command-routing.md) for the full
 self/inventory/environment/peers semantics.
 
 ### Security — `@CallSecurity`, `@Unshadowable` on mixin methods
@@ -1029,7 +1029,7 @@ contribute or whether one wins.
   Hydrator.
 - [templates.md](./templates.md) — `PersistentHydrator` and how the
   clone pipeline calls `getAllPersistentFields`.
-- [commands.md](./commands.md) — `commandProvider` discovery walks
+- [command-routing.md](./command-routing.md) — `commandProvider` discovery walks
   every mixin in self/inventory/environment/peers.
 - [call-security.md § Mixin defaults + class
   override](./call-security.md#mixin-defaults--class-override) — how

@@ -29,6 +29,79 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
+import { MixinApi } from './mixin';
+
+/**
+ * Markup augmenter — a pure text-in → text-out transformation that
+ * inline-decorates prose (raw long descriptions, scene narration,
+ * etc.) with MML affordances before it ships to the client.
+ *
+ * Each mixin that knows how to enrich a piece of authored text
+ * contributes one or more augmenters via a static slot:
+ *
+ *     class FooMixin {
+ *       static markupAugmenters: MarkupAugmenter[] = [wrapFooKeywords];
+ *     }
+ *
+ * The substrate's `augmentMarkup(text, host, viewer)` helper walks
+ * the host's prototype chain, collects every declared augmenter,
+ * and applies them in parent-first → child-last order. Each
+ * augmenter sees the text as it stands after prior augmenters have
+ * already run and returns either the unchanged text or a wrapped
+ * version.
+ *
+ * The contract is intentionally narrow:
+ *  - Pure: no side effects, no event emission, no I/O.
+ *  - Sync: keeps the projection path off async hops. If a future
+ *    augmenter genuinely needs async (e.g. cross-host lookups), it
+ *    forces a substrate change — that's the right cost signal.
+ *  - Viewer-aware: augmenters that depend on the recipient (language
+ *    gating, spoiler hide, perception filtering) take `viewer` as a
+ *    raw `Stuff`; augmenters that don't (the v1 detail-key wrap)
+ *    just ignore it. Narrowing to `Sensor` / `Perceiver` / etc. is
+ *    each augmenter's responsibility via `MixinApi.isX(viewer)`.
+ *
+ * Today's only customer is `DetailedMixin`'s `wrapDetailKeysAugmenter`
+ * (auto-wraps canonical detail aliases in `<detail>` MML so the look
+ * prose and the pane projection both see the inline drill targets).
+ * Future contributors (exit-direction auto-link, name auto-link,
+ * language gating, spoilers) plug in via the same static slot
+ * without touching the host method.
+ */
+export type MarkupAugmenter = (
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+) => string;
+
+/**
+ * Walk the host's prototype chain via `MixinApi.getAllMarkupAugmenters`,
+ * fold every contributed augmenter through the text in
+ * parent-first → child-last order, return the result.
+ *
+ * Empty input short-circuits to the empty string (no point running
+ * augmenters over nothing).
+ *
+ * Used by `VisibleMixin.getMarkupLong(viewer)`; future host-level
+ * markup methods (`getMarkupShort`, scene-prose composition, etc.)
+ * use the same helper.
+ */
+export function augmentMarkup(
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+): string {
+  if (!text) return text;
+  const ctor = (host as { constructor: unknown }).constructor;
+  const augmenters = MixinApi.getAllMarkupAugmenters(
+    ctor as Parameters<typeof MixinApi.getAllMarkupAugmenters>[0],
+  ) as MarkupAugmenter[];
+  let result = text;
+  for (const aug of augmenters) {
+    result = aug(result, host, viewer);
+  }
+  return result;
+}
 
 /**
  * Escape characters that would otherwise be parsed as MML
@@ -85,6 +158,15 @@ type MmlPayload =
   | { kind: 'eager'; raw: string }
   | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] };
 
+/**
+ * `Mml.list(items)` switches from inline (comma + "and") to block
+ * (one item per line) when the item count crosses this threshold.
+ * Picked at 4 so two/three/four items stay on one wrap-line and
+ * five+ items split out — matching the vertical-space discipline
+ * documented in `docs/subsystems/inspection-pane.md`.
+ */
+const INLINE_LIST_THRESHOLD = 4;
+
 export class Mml {
   /**
    * Private constructor. Use `Mml.compose` for value-driven composition
@@ -134,6 +216,19 @@ export class Mml {
   /** Wrap text in `<speech>"..."</speech>`, escaping the inner text. */
   static speech(text: string): Mml {
     return Mml.fromMarkup(`<speech>"${escapeText(text)}"</speech>`);
+  }
+
+  /**
+   * Wrap a system label in `<sys>` — non-actionable, styled by the
+   * client renderer as a muted italic label with a decorative
+   * prefix marker. Use for the chrome labels around system lines
+   * (e.g. `<sys>Exits:</sys> <exit>south</exit>`,
+   * `<sys>You also see:</sys>`), where the visual distinction
+   * carries the "this is the engine talking, not the world" signal
+   * without burning vertical whitespace.
+   */
+  static sys(text: string): Mml {
+    return Mml.fromMarkup(`<sys>${escapeText(text)}</sys>`);
   }
 
   /**
@@ -194,12 +289,43 @@ export class Mml {
   }
 
   /**
-   * Join a list of Mml fragments with English-style commas and "and".
-   * Empty list emits `nothing`. Single item emits as-is.
+   * Join a list of Mml fragments. Default behavior is "auto" — inline
+   * (English-style commas + "and") for short lists, multi-line
+   * (one indented item per line, no trailing punctuation) once the
+   * count crosses `INLINE_LIST_THRESHOLD`. Empty list emits `nothing`.
+   * Single item emits as-is.
+   *
+   * Vertical-space discipline (see `inspection-pane.md`): a short
+   * list reads better inline (one wrap-line), but past ~5 items the
+   * comma-string degrades into a wall of text. The multi-line shape
+   * trades one extra newline per item for far better scannability
+   * and stops drowning the surrounding prose.
+   *
+   * Callers that want a specific shape can pass `{ style: 'inline' }`
+   * or `{ style: 'block' }` to override. The new MML `<list>`
+   * envelope is deferred until the renderer's planned state-machine
+   * upgrade can handle nested tags; until then, `style: 'block'`
+   * just inserts newlines between the existing flat per-item tags
+   * — the renderer already handles plain text + flat tags side by
+   * side.
    */
-  static list(items: Mml[]): Mml {
+  static list(
+    items: Mml[],
+    options?: { style?: 'auto' | 'inline' | 'block' }
+  ): Mml {
     if (items.length === 0) return Mml.fromMarkup('nothing');
     if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
+
+    const style = options?.style ?? 'auto';
+    const useBlock =
+      style === 'block' ||
+      (style === 'auto' && items.length > INLINE_LIST_THRESHOLD);
+
+    if (useBlock) {
+      const lines = items.map((i) => `  ${i.toString()}`).join('\n');
+      return Mml.fromMarkup(`\n${lines}`);
+    }
+
     if (items.length === 2) {
       return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
     }

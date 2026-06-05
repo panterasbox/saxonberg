@@ -667,6 +667,72 @@ both gate on `MixinApi.isFocused(giver)`. NPCs without
 `FocusedMixin` resolve through MQL but don't carry focus state or
 a pronoun stash.
 
+### Phase effects — option-declared lifecycle hooks
+
+Some flags don't change *what* the controller does — they change
+the dispatcher's *lifecycle around the controller*. `--peek`
+suppresses the focus-update step; a future `--async` would defer
+controller execution to a background queue; `--dry-run` would
+intercept and dump the resolution plan; `--force` would skip a
+confirmation prompt; `--quiet` would suppress emit. Each is a
+*content-declared opt with a framework-side side-effect*.
+
+The dispatcher exposes a small **phase vocabulary** in
+`api/command.ts` that options can attach effects to:
+
+```ts
+export const COMMAND_PHASES = [
+  'focus-update',   // per-arg focus chain push/replace
+  'validate',       // YAML validator pass
+  'confirm-prompt', // framework-level confirmation gate
+  'dispatch',       // controller execution
+  'emit-scene',     // flush Scene + notes + status
+] as const;
+
+export const REPLACE_HANDLERS = [
+  'deferred-dispatch',
+  'explain-plan',
+] as const;
+
+export type PhaseEffect =
+  | { phase: CommandPhase; action: 'skip' }
+  | { phase: CommandPhase; action: 'replace'; with: ReplaceHandler };
+```
+
+Options declare effects on their YAML entry; the dispatcher
+walks the option set at each gated point via `collectPhaseEffects`
+and applies matching effects:
+
+```yaml
+options:
+  peek:
+    type: boolean
+    effects:
+      - { phase: focus-update, action: skip }
+```
+
+**Implementation status** is explicit. `HOOKABLE_PHASES` is the
+set of phases whose dispatcher code path actually consults
+effects; `IMPLEMENTED_REPLACE_HANDLERS` is the set of replace
+handlers with a real runtime. Today only `focus-update / skip`
+is wired through; the other phases and handlers are documented
+placeholders the YAML schema accepts. `consumePhaseEffects`
+throws at runtime when an effect targets a non-hookable phase or
+an unimplemented replacement — half-built features can't sneak
+through.
+
+**Load-time validation.** `validateCommandEffects` runs during
+`CommandApi.preloadAll` and rejects malformed entries with a
+single clear message (bad phase name, missing `with` on
+`replace`, unknown replace handler, etc.). Authors learn at boot
+time, not at first dispatch.
+
+**Substrate location.** The vocabulary, types, validator, and
+collector all live in `api/command.ts` alongside the dispatcher
+that consumes them — no separate registry, no new Api class. The
+phase-effects substrate is dispatcher internals, exposed as
+content-facing YAML keywords.
+
 ### Default args
 
 `FieldDefinition.default?: string` lets a field declare fill-in

@@ -70,18 +70,127 @@ The substrate is in place. Major shipped surfaces:
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `PopulatesMixin`, escape hatch via
   `PostRegistrationMixin`. Working slate at
-  [docs/slates/spawn-shape-slate.md](./slates/spawn-shape-slate.md).
+  [docs/slates/declarative-content-slate.md](./slates/declarative-content-slate.md)
+  (which consolidated the original spawn-shape slate).
+- **Client/server wire substrate** — the cockpit's foundation,
+  shipped:
+  [response-envelope.md](./subsystems/response-envelope.md)
+  (structured machine channel beside MML),
+  [events.md](./subsystems/events.md) (class-per-event
+  vocabulary on `EventApi`),
+  [mql-subscription.md](./subsystems/mql-subscription.md)
+  (client-driven live-state: subscribe via MQL, server diffs
+  deltas), [prompt.md](./subsystems/prompt.md) (`PromptApi`
+  Tier-1 surface + cardinality/onExcess disambiguation), and
+  [inspection-pane.md](./subsystems/inspection-pane.md) (the
+  focus pane — `$focus` subscription, detail-drill, exits/door
+  projection, hover/click routing). These graduated from slates
+  to subsystems; the build manifest is
+  [docs/plans/client-foundation-readiness.md](./plans/client-foundation-readiness.md).
 
 See [docs/architecture.md](./architecture.md) for layout and
 [docs/subsystems/](./subsystems/) for individual references.
 
 ---
 
+## What's next — two parallel tracks
+
+The substrate is deep enough that work now splits cleanly into two
+tracks that run **in parallel**, distinguished by whether a client
+dependency gates the work:
+
+- **Track A — Client (cockpit).** Rides the shipped wire
+  (mql-subscription + prompt + envelope). Each item is a *tandem
+  slice* (smallest server addition + matching widget) or
+  *client-pull* (server already has what it needs; the client
+  iterates). The inspection pane already landed this way.
+- **Track B — Server substrate.** *Server-first*: pure mechanism
+  that builds and proves out against the existing text client and
+  the shipped wire — **no client blocker**. Verbs like `analyze` /
+  `say` / `wear` exercise it without any cockpit work.
+
+The taxonomy (server-first / tandem / client-pull) and per-chunk
+acceptance criteria live in
+[docs/plans/client-foundation-readiness.md](./plans/client-foundation-readiness.md);
+this section is the prioritized near-term face of it. The full
+slate catalogue (the menu these are drawn from) follows under
+**Active design slates**.
+
+### Track A — Client (cockpit), near-term
+
+Ordered so demo-readiness ramps monotonically:
+
+1. **Vitals tandem slice** — the canonical first vertical (slate
+   written, not built): a HP/MV widget over a `me.vitals`
+   subscription. Proves the whole stack end-to-end with minimum
+   throwaway code; expect it to shake out the subscription-slice
+   interface.
+   ([vitals-slate.md](./slates/vitals-slate.md))
+2. **Things-here chip strip** — first *collection* subscription +
+   the click model (hover-preview / click-send).
+3. **Inventory chip strip** — sibling to things-here; tests
+   cross-subscription behaviour on pickup.
+4. **Prompt-stack client UI** — choice / confirm / text rendering
+   + MQL multi-match disambiguation (server half shipped).
+   ([prompt-stack-slate.md](./slates/prompt-stack-slate.md))
+5. **Console filtering drawer** — topic toggles, search,
+   sender-scoped mute; `console.*` settings.
+   ([console-filtering-slate.md](./slates/console-filtering-slate.md))
+6. **Message-rendering** — the MML renderer + per-channel
+   stylesheets + flatten/reflow that everything above paints
+   through.
+   ([message-rendering-slate.md](./slates/message-rendering-slate.md))
+
+Then **client-pull buildout** (cockpit shell / modes /
+content-surface / theming) per the cockpit slate, and the
+**scoped-authoring GUI** (the room editor) once access lands in
+Track B.
+
+### Track B — Server substrate, near-term
+
+Ordered by leverage + dependency:
+
+1. **Access / capability `can()`** — foundational; gates
+   scoped-authoring and spoiler, and absorbs the
+   communication-policy slate. Pure server.
+   ([access-slate.md](./slates/access-slate.md))
+2. **Senses** — the unified `PerceptionChannel` substrate
+   (sound = the hearing channel); high content leverage,
+   `analyze`/`measure` are text verbs.
+   ([senses-slate.md](./slates/senses-slate.md))
+3. **Social cluster (server halves)** — emotes (`SoulMixin`) +
+   comms transports (say/whisper/tell) + the grouping facade.
+   ([emotes](./slates/emotes-slate.md) /
+   [comms](./slates/comms-slate.md) /
+   [grouping](./slates/grouping-slate.md))
+4. **Collision** — small; block-validators extend the locomotion
+   pipeline; `Pushable` + `PushActivity`.
+   ([collision-slate.md](./slates/collision-slate.md))
+5. **Recognition family** — recognition + identification +
+   social-graph; `DescribeApi v2`. Ships best as a unit.
+   ([recognition](./slates/recognition-slate.md) /
+   [identification](./slates/identification-slate.md) /
+   [social-graph](./slates/social-graph-slate.md))
+6. **Augmentation + npc-dialogue** — both lean on the shipped
+   prompt + slot substrate.
+   ([augmentation](./slates/augmentation-slate.md) /
+   [npc-dialogue](./slates/npc-dialogue-slate.md))
+
+The **new-player flow** straddles both tracks: char-gen engine +
+fast-travel terminals are Track B (server-first); the onboarding
+journey content + the authoring GUI are Track A. Reactions, chat,
+and spoiler each have a server half (Track B) and a client surface
+(Track A) — land the server half first, surface it when the
+cockpit reaches it.
+
+---
+
 ## Active design slates
 
-The exploratory design pass. Each slate is a working doc shaped
-for review; concrete implementation follows when a slate is
-promoted to formal requirements.
+The exploratory design pass — the **catalogue** the two tracks
+above draw from. Each slate is a working doc shaped for review;
+concrete implementation follows when a slate is promoted to formal
+requirements.
 
 ### Top-level guidance
 
@@ -125,11 +234,17 @@ promoted to formal requirements.
   and
   [docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
   for the design sketches.
-- [docs/slates/sound-slate.md](./slates/sound-slate.md) — sound as the second
-  physics channel after light; three source kinds; channel-
-  keyed Conduit transmissivity; pedagogical seam threaded
-  through (real dB, real Hz, real species hearing ranges,
-  acoustic instruments).
+- [docs/slates/sound-slate.md](./slates/sound-slate.md) — **absorbed into
+  [senses-slate](./slates/senses-slate.md)** (now the *hearing* instance of
+  the unified `PerceptionChannel` substrate). Retained as a tombstone for
+  the acoustic detail (real dB / Hz / species hearing ranges, acoustic
+  instruments); senses-slate is the live authority.
+- [docs/slates/augmentation-slate.md](./slates/augmentation-slate.md) —
+  the augmentation umbrella (implant / prosthetic / graft; innate ⊕
+  acquired): a **slotted Stuff contributes a capability** (sense channel,
+  verb, comm transport); the baseline comm implant; cybernetic flavor,
+  flavor-agnostic substrate. Surfaced by comms (the ESP transport) and
+  char-gen (issued at intake).
 - [docs/slates/collision-slate.md](./slates/collision-slate.md) — capacity
   (typed-list-of-constraints), intentional blocking
   (`BlockerBehavior`), pushing (`Pushable` + `PushActivity`).
@@ -140,15 +255,101 @@ promoted to formal requirements.
   viewer perception state; `DescribeApi v2` pipeline; disguise
   as Wearable shadow; salient-feature rendering.
 - [docs/slates/social-graph-slate.md](./slates/social-graph-slate.md) —
-  buckets (friends/foes/custom); notification policies;
-  bucket-keyed display verbosity (attention-management
-  rendering).
-- [docs/slates/communication-policy-slate.md](./slates/communication-policy-slate.md)
-  — trust-tiered moderation; `MessageGate`; sandboxed-zone
-  NPC handling; emote-only / template-only constrained forms.
+  per-viewer buckets (friends/foes/custom); notification policies;
+  bucket-keyed display verbosity. **One *source* into the grouping
+  facade** (below), not the same layer.
 - [docs/slates/identification-slate.md](./slates/identification-slate.md) —
   parallel pattern for items; experiment-based identification;
   the pedagogical seam at its richest.
+
+The **comms / social / expression cluster** (designed as one connected
+pass; built in waves):
+
+- [docs/slates/senses-slate.md](./slates/senses-slate.md) — the unified
+  **`PerceptionChannel`** substrate: five physical senses + the **ESP
+  channel family**, field/contact/network physics, the species/body
+  **sensorium** (organ-gates-channel), the gestalt verb, and
+  **messaging = sensing**. **Absorbs the retired sound slate** (now the
+  *hearing* instance).
+- [docs/slates/emotes-slate.md](./slates/emotes-slate.md) — `SoulMixin`
+  natural-language emotes (+ free-form `emote`), ESP-perceived, typed-slot
+  grammar, emote-only **moderation** (structural), the `Emote`-on-
+  `Persistable` catalog + `SoulApi`; emoji / honorary / reactions layers.
+- [docs/slates/comms-slate.md](./slates/comms-slate.md) — the **two-
+  transport** model (acoustic say/whisper/shout vs **implant ESP**);
+  directed `say --to`; the `whisper`(acoustic)/`tell`(implant) split; the
+  conversation primitive.
+- [docs/slates/chat-slate.md](./slates/chat-slate.md) — channels as a
+  **projection over the grouping facade**; membership ≠ subscription;
+  projection + override; the config block; `chat <channel>`; the Mudlog
+  separation.
+- [docs/slates/grouping-slate.md](./slates/grouping-slate.md) — the
+  **`GroupApi` facade** over heterogeneous sources (synthesized / managed
+  / ad-hoc); the model-selection criterion; *manage groups, not channels*.
+- [docs/slates/reactions-slate.md](./slates/reactions-slate.md) —
+  emote-at-a-message + **batched aggregate-delta** broadcast (hundreds-of-
+  users scale); toggle-once; tag-grouping; ephemeral runtime + warehouse
+  the stream.
+- [docs/slates/npc-dialogue-slate.md](./slates/npc-dialogue-slate.md) —
+  conversation-not-interrogation; a **pluggable responder** (branching
+  tree via prompt+engagement / scripted free-text / deferred LLM); one
+  room-visible speech output.
+- [docs/slates/access-slate.md](./slates/access-slate.md) — the
+  **permission framework** filling call-security's reserved seam;
+  `can(subject, action, resource)` + diegetic-first capability sources;
+  the **do / see / write × circumstances** meta-shape.
+- [docs/slates/spoiler-slate.md](./slates/spoiler-slate.md) — **best-
+  effort** server-side fact-gating (extends the percept revelation-
+  conditions); imposed + opt-in; assessment integrity flagged as a
+  *separate* (assessment-system) problem.
+
+> **Overlap to reconcile:** `communication-policy-slate` (trust-tiered
+> moderation / `MessageGate` / emote-only forms) is now largely covered
+> by **access-slate** (the gate) + **emotes-slate** (emote-only mode) +
+> **comms**. Candidate for absorption/retirement at a sweep — flagged,
+> not yet retired.
+
+### New-player & world slates
+
+The connected new-player flow (char-gen → lounge → fast-travel →
+onboarding → dorm + authoring), each thin-engine / content-heavy:
+
+- [docs/slates/char-gen-slate.md](./slates/char-gen-slate.md) — light
+  closed-choice intake via campus services; thin engine (avatar-enter
+  gate + prompts + default-by-species); hands off to onboarding.
+- [docs/slates/onboarding-slate.md](./slates/onboarding-slate.md) —
+  learn-by-doing journey (lounge → fast-TP to campus → signs/greeter →
+  dorm lobby → room → customization); the scoped-authoring on-ramp.
+- [docs/slates/fast-travel-slate.md](./slates/fast-travel-slate.md) — the
+  Eternal City Teleport Authority: a directed public-terminal network,
+  **scan-to-register** credential (implant/card), on-demand teleport;
+  living-infrastructure seam (maintenance/economy deferred).
+- [docs/slates/scoped-authoring-slate.md](./slates/scoped-authoring-slate.md)
+  — democratized, **safe, ownership-scoped** authoring (your dorm);
+  GUI-first/thin-command; **(policy, validator) per-field, default-deny**.
+
+> **Surfaced-but-deferred subsystems.** The new-player and authoring
+> pass named several systems it deliberately does *not* solve, recorded
+> here so they aren't re-discovered cold:
+> - **Economy / currency** — fast-travel fees, catalog `make` costs,
+>   the clinic comp. Multiple design sessions of its own; everything
+>   is free/comped until it exists.
+> - **Object condition / maintenance** — the "living infrastructure"
+>   seam (terminals break down, need upkeep); illustrative in
+>   fast-travel, not built.
+> - **Crafting** — player-set *functional* stats within a balanced
+>   envelope; a separate, deferred system (scoped authoring touches no
+>   functional stats — those come from vetted catalogs).
+> - **Assessment integrity** — server-side grading + don't-publish-
+>   answers + assessment design; owned by the future education-vertical
+>   /assessment system, *not* the spoiler slate (which is best-effort
+>   experience-spoiler gating only).
+> - **Campus / city-services pattern** — char-gen and onboarding lean
+>   on diegetic service NPCs/kiosks (enrollment, the clinic, the
+>   Teleport Authority); the reusable "service" content pattern is
+>   implied, not yet abstracted.
+> - **Wayfinding / signs** — Readables that direct movement; a small
+>   content pattern (Readable + language + directions) onboarding needs.
 
 ### Cross-cutting
 
@@ -168,26 +369,11 @@ promoted to formal requirements.
   demands. Shares globbable's substrate (placeDirect, MqlQuantity
   union, distribution algorithm). Central design fork: divisibility
   decomposition (single mixin vs Bulkable + Subdivisible).
-- [docs/subsystems/response-envelope.md](./subsystems/response-envelope.md)
-  — structured machine-channel sibling to MML on every server→client
-  message. `outcome.status` + typed `notes`. Universal envelope
-  shape for dispatch responses, witnesses, activity pushes, prompts.
-  Substrate consumed by globbable, look fallback, MQL disambiguation,
-  prompt stack, activity completion. Sibling to the live-state
-  subscription substrate below.
-- [docs/slates/mql-subscription-slate.md](./slates/mql-subscription-slate.md)
-  — client-driven live-state substrate. Client declares interest
-  via MQL queries + field-set declarations; server resolves once,
-  registers EventApi listeners for changes that could affect the
-  result, ships diffs as subscription deltas. Five-message wire
-  schema (subscribe / unsubscribe / update / result / delta /
-  error). Pre-canned subscription kinds (`inventory`,
-  `things-here`, `slots`, `focus-detail`, `atmosphere-here`,
-  `vitals`, ...) covering the cockpit's widget catalogue.
-  Supersedes the prior fixed-delta-taxonomy "state-sync" model —
-  one mechanism, linear growth, MQL becomes the lingua franca
-  from player to widget to author. Read-only in v1; mutation
-  stays on the command bus.
+- **Wire substrate (shipped)** — response-envelope +
+  mql-subscription graduated to subsystems; see **Foundation**
+  above ([response-envelope.md](./subsystems/response-envelope.md),
+  [mql-subscription.md](./subsystems/mql-subscription.md)). The
+  slate drafts remain for design history.
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
   2/3 remain).
@@ -211,29 +397,33 @@ promoted to formal requirements.
   [mql-subscription-slate](./slates/mql-subscription-slate.md) on
   the wire side.
 
-- [docs/slates/prompt-stack-slate.md](./slates/prompt-stack-slate.md)
-  — interactive prompt stack substrate (server `PromptApi` + client
-  stack manager). Typed prompt kinds (`base` / `choice` / `confirm`
-  / `text` / `mql-object`); stack semantics (push / pop / depth
-  badge); single-input mode-switching (command vs response);
-  inline-in-terminal AND prompt-component dual rendering; FIFO
-  snapshot-on-send pairing each echo with the prompt that was
-  active when issued; load-bearing first use case is MQL multi-
-  match disambiguation. Wire shape (`PromptEnvelope`) already in
-  `@saxonberg/types`; prompt-content Note kinds + server `PromptApi`
-  land per the slate's build order. Supersedes the cockpit slate's
-  brief "Interactive prompt stack (Polish A)" section.
+- [docs/slates/message-rendering-slate.md](./slates/message-rendering-slate.md)
+  — how a server message becomes styled terminal output: the
+  **tagged-complete-string** model (the string captures sender +
+  channel + body as semantic MML); flatten (failsafe) / reflow
+  discipline; three tag categories (semantic / layout /
+  presentational-inline); the manual-layout tag library;
+  Markdown ↔ MML (Discord dialect); per-channel stylesheets;
+  accessibility; provenance as a tagged label. **Track A item 6**;
+  feeds every widget's painting.
 
-- [docs/slates/inspection-pane-slate.md](./slates/inspection-pane-slate.md)
-  — the persistent right-column pane that displays what the player
-  is currently focused on. Header/body decoupling (focus changes
-  update the header live; only an explicit `look` repopulates the
-  body), refresh button, focus breadcrumbs, future tabs for MQL
-  query results and admin views, `look <thing> --peek` flag for
-  inspect-without-commit, expandable admin metadata section. New
-  `system.inspection` topic carries the structured payload
-  alongside the existing prose emit. Supersedes the cockpit slate's
-  Room-state / Focus widget entries — they fold into this one pane.
+- **Prompt stack + inspection pane (shipped)** — both graduated to
+  subsystems ([prompt.md](./subsystems/prompt.md),
+  [inspection-pane.md](./subsystems/inspection-pane.md)); see
+  **Foundation**. The server `PromptApi` and the focus pane are
+  live; the remaining prompt-stack *client* polish (choice/confirm
+  rendering) is **Track A item 4**. Slate drafts remain for design
+  history.
+
+- [docs/slates/message-rendering-slate.md](./slates/message-rendering-slate.md)
+  — how a server message becomes styled terminal output. The
+  **tagged-complete-string** model (the string captures everything —
+  sender, channel, body — as semantic MML); `flatten` (failsafe) /
+  `reflow` discipline; three tag categories (semantic / layout /
+  presentational-inline); the manual-layout tag library (`<pre>` etc.);
+  Markdown ↔ MML (Discord dialect, flatten-to-markdown); per-channel
+  stylesheets; accessibility; provenance as a tagged label. Pairs with
+  the MML semantic-tag work in the cockpit slate and the punch list.
 
 - [docs/slates/console-filtering-slate.md](./slates/console-filtering-slate.md)
   — sister surface to the inspection pane: client-side toolkit for
@@ -252,13 +442,13 @@ promoted to formal requirements.
 Tactical work that doesn't need a slate. Pull these in
 opportunistically.
 
-- **Interactive prompt stack (Framework 11)** — per-Interactive
-  prompt stack (`PromptApi.confirm`, choice, text, MQL-object)
-  + matching client UI. Unlocks multi-step workflows
-  (disambiguation, character creation, crafting). Medium
-  server + small client.
-- **MQL disambiguation prompts** — depends on the prompt stack.
-  Multi-match cardinality checks turn into UI prompts.
+- **Interactive prompt stack (Framework 11)** — *server shipped*
+  (`PromptApi` choice / confirm / text / mqlObject + cardinality
+  disambiguation; see [prompt.md](./subsystems/prompt.md)). The
+  matching **client UI** is Track A item 4.
+- **MQL disambiguation prompts** — *shipped* end-to-end on the
+  server (`onExcess: prompt` → `PromptApi.mqlObject`); the client
+  rendering rides Track A item 4.
 - **MQL sort / named-group operators** (`:sort.X`, `@@group`).
   Add when demand is real.
 - **Real authoring-tier permission check** in MQL — replace the
@@ -285,39 +475,19 @@ opportunistically.
 
 ## Substrate buildout — slate implementation
 
-The major slates each become a wave of work. Suggested order
-follows dependency stack:
+The early dependency stack is **shipped**: Quantities → Embodiment
+→ Locomotion → Activity (see Foundation + the subsystem docs). The
+remaining substrate is sequenced as **Track B** under *What's next*
+above (access → senses → social cluster → collision → recognition
+family → augmentation/npc-dialogue), plus the **Race follow-on**
+slices below.
 
-1. **Quantities** — *shipped*. `Quantity<T>` + per-unit math +
-   tag tables. Foundational; everything below uses it. See
-   [docs/subsystems/quantities.md](./subsystems/quantities.md).
-2. **Embodiment** — slot substrate + first affordance mixins
-   (Wearable / Wieldable). Slot capacity + containment-scope
-   capacity from collision-slate.
-3. **Locomotion** — mode singletons + verb controllers + target
-   mixins. Generalizes `Mobile.traverse(target, mode)` from
-   `(exit, mode)`.
-4. **Activity** — durative-verb framework + engagement slots +
-   cancel. Locomotion verbs become activities.
-5. **Sound** — channel-keyed Conduit transmissivity (light's
-   small migration); SoundApi propagation walk; ambient +
-   activity-driven + event sources; `analyze sound` +
-   SoundLevelMeter.
-6. **Collision** — block validators integrated with locomotion
-   pipeline; `Pushable` + `PushActivity`.
-7. **Recognition** — per-viewer state + DescribeApi v2 +
-   disguise mixin + salient-feature generation.
-8. **Social graph** — buckets + notifications + bucket-keyed
-   verbosity in DescribeApi step 4.
-9. **Communication policy** — `MessageGate` + trust tiers +
-   sandboxed-zone NPC handling + constrained forms.
-10. **Identification** — item-recognition + analyze verbs +
-    instrument-based ID (cross-cuts quantities for
-    pedagogical seam).
-
-The recognition family (7-10) ships best as a unit — the four
-slates compose tightly, and dispersed shipping creates
-hard-to-test partial states.
+One sequencing note worth keeping: the **recognition family**
+(recognition + identification + social-graph) ships best as a
+*unit* — the slates compose tightly (per-viewer state + DescribeApi
+v2 + buckets), and dispersed shipping creates hard-to-test partial
+states. The persistence-framework upgrade probably lands alongside
+it (per-record stores).
 
 ---
 
@@ -354,9 +524,11 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
 
 **Tier 2** — extends established patterns:
 
-- #4 Scent and persistent traces — temporal physics, parallel
-  to sound channel; needs activity emission hooks (deferred
-  in activity-slate).
+- #4 Scent and persistent traces — **smell is now a channel in
+  [senses-slate](./slates/senses-slate.md)** (the `PerceptionChannel`
+  substrate); the remaining work is the *persistent-trace* half (trails
+  that linger), which needs activity emission hooks (deferred in
+  activity-slate) and pulls on #9.
 - #6 Visibility-within-room — what's visible at varying
   containment depths; partial absorbance into DescribeApi v2
   via recognition-slate.
@@ -375,8 +547,12 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
   activity-slate's single-actor model.
 - #9 Persistent location state — bloodstains, footprints,
   soot. Temporal traces; pulls on #4.
-- #11 Heat as physics channel — third channel after light
-  and sound; forces the `PhysicsChannel` generalization.
+- #11 Heat as physics channel — the **`PerceptionChannel`
+  generalization is now realized in
+  [senses-slate](./slates/senses-slate.md)** (thermoreception is a
+  channel); remaining work is heat's *physics* (propagation / sources /
+  Quantity in Kelvin), parallel to light and sound, plugging into the
+  established channel shape.
 - #12 Pedagogical seam — largely absorbed by quantities-
   slate; remaining work is content-team integration.
 
@@ -465,30 +641,26 @@ slate flags them as separate projects):
 
 ## Suggested order
 
-1. **v1 punch list (parallel; low-effort)** — prompt stack,
-   markup tags, look fallback, MQL extensions, utility APIs.
-   These land alongside substrate work without blocking it.
-2. **Quantities + Embodiment + Locomotion** — substrate that
-   unlocks slot-based affordances and mode-driven verbs. The
-   biggest authoring leverage.
-3. **Activity** — durative verbs become first-class. Sound and
-   downstream consume activity hooks.
-4. **Sound** — second physics channel; locks in the channel-
-   keyed Conduit shape; pedagogical seam first concrete
-   instance after light.
-5. **Collision** — small; lands alongside or just after
-   embodiment. Block-validators extend locomotion's pipeline.
-6. **Recognition family** (recognition + social-graph +
-   communication-policy + identification) — ship as a unit;
-   four slates compose tightly. Persistence-framework upgrade
-   probably needs to land alongside.
-7. **Race subsystem follow-on slices** — pull as content needs.
-   Death / DietApi / tissue probably the early ones; genetics
-   later.
-8. **Mods + isolated-vm + persistence upgrade** — v1.0 platform
-   work. Significant lift; start once substrate feels stable.
-9. **Production hardening + deployment** — once mods exist.
-10. **Aspirational** — opportunistic.
+The near-term order lives in **What's next — two parallel tracks**
+(top of the doc): Track A (client/cockpit) and Track B (server
+substrate) run concurrently, each with its own six-item sequence.
+Beyond those near-term items:
+
+1. **Tracks A + B in parallel** — the two near-term sequences. The
+   v1 punch-list tactical items (markup tags, look fallback, MQL
+   extensions, utility APIs) land opportunistically alongside,
+   without blocking either track.
+2. **New-player flow** — char-gen → onboarding → fast-travel →
+   scoped-authoring, drawing the server halves from Track B and the
+   GUI/journey from Track A as both mature.
+3. **Race subsystem follow-on slices** — pull as content needs.
+   Death / DietApi / tissue early; genetics later.
+4. **Mods + isolated-vm + persistence upgrade** — v1.0 platform
+   work. Significant lift; start once substrate feels stable. The
+   per-record persistence upgrade probably lands with the
+   recognition family.
+5. **Production hardening + deployment** — once mods exist.
+6. **Aspirational** — opportunistic.
 
 ---
 
@@ -510,7 +682,13 @@ or no longer load-bearing:
   BodyPlan + Species, OrganismMixin, SexedMixin, SpeciesApi,
   animacy gating.
 - **Event System** — shipped. EventApi + Witness pattern +
-  EventRegistry + lifecycle hooks.
+  EventRegistry + lifecycle hooks; class-per-event vocabulary
+  added for the subscription substrate.
+- **Client/server wire substrate** — shipped, graduated from
+  slates to subsystems: response-envelope, mql-subscription
+  (live-state diffs), prompt (`PromptApi` + cardinality
+  disambiguation), and the inspection pane. The cockpit's
+  foundation; remaining client work is Track A.
 - **Module hot-reload** — shipped. HotReloadApi + admin
   `reload` command + clone integration.
 - **AliasMixin** — shipped. Per-character verb aliases.

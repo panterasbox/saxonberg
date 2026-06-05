@@ -28,7 +28,9 @@ import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BoundaryApi } from '../../api/boundary';
+import { DescribeApi } from '../../api/describe';
 import type { Adornable } from './Adornable';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
  * Public shape added by ExitableMixin.
@@ -188,6 +190,58 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * `applyExits` and `feedback_property_vs_instruction_fields`.
      */
     static instructionFields = ['exits'];
+
+    /**
+     * Projection field for live subscriptions. Reads
+     * `getObviousExits()` (explicit ∪ zone-derived, !hidden) and
+     * shapes each entry as `{ direction }` for the wire. Destination
+     * paths are deliberately NOT shipped — the pane renders a "go
+     * <dir>" click target, not a hyperlink to the destination.
+     *
+     * No `dependsOnFields` plumbing today: rooms with explicit exits
+     * settle at hydration and cartesian-derived exits are positional.
+     * If runtime exit add/remove ever becomes a hot path (door
+     * sealing, dynamic walls), wire `addExit` / `removeExit` to fire
+     * `FieldChangedEvent { field: 'exits' }` the same way Container's
+     * `addContainable` / `removeContainable` do for `contents`.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'exits',
+        read: (stuff) => {
+          const host = stuff as Stuff & Exitable;
+          return host.getObviousExits().map((exit) => {
+            const door = exit.getDoor();
+            const out: { direction: string; door?: unknown } = {
+              direction: exit.getDirection(),
+            };
+            if (door) {
+              const doorOut: {
+                stuffId: string;
+                displayName: string;
+                open: boolean;
+                primaryKeyword?: string;
+              } = {
+                stuffId: door.stuffId,
+                displayName: DescribeApi.getDisplayName(door),
+                open: door.isOpen(),
+              };
+              // Door is Perceptible via Boundary; primaryKeyword is
+              // optional (Perceptible's fail-soft default falls back
+              // to the first keyword of the derived pool when no
+              // explicit value is set). Ship only when defined so
+              // the wire shape stays clean.
+              if (MixinApi.isPerceptible(door)) {
+                const kw = door.getPrimaryKeyword();
+                if (kw) doorOut.primaryKeyword = kw;
+              }
+              out.door = doorOut;
+            }
+            return out;
+          });
+        },
+      },
+    ];
 
     /**
      * Explicit exit map. Derived exits (cartesian adjacency, vessel `'out'`)

@@ -551,6 +551,185 @@ export type OnExcessPolicy = 'top' | 'take-all' | 'prompt' | 'truncate' | 'error
  */
 export type OnShortagePolicy = 'error';
 
+/* ──────── dispatcher phases + option-declared effects ────────
+ *
+ * Named lifecycle phases the dispatcher runs between parse and
+ * emit. Options declared in YAML can attach `effects:` against any
+ * phase to skip or replace its default behavior — the substrate's
+ * mechanism for "this flag changes the framework's lifecycle, not
+ * the verb's semantics."
+ *
+ * Concrete examples (current + anticipated):
+ *
+ *   - `look --peek` → `{ phase: 'focus-update', action: 'skip' }`
+ *     Render prose without updating the focus chain. The only
+ *     phase that has a real hookable implementation today.
+ *
+ *   - `--async` → `{ phase: 'dispatch', action: 'replace',
+ *                    with: 'deferred-dispatch' }`
+ *     Defer controller execution to a background queue.
+ *
+ *   - `--dryrun` / `--explain` → `{ phase: 'dispatch',
+ *                                   action: 'replace',
+ *                                   with: 'explain-plan' }`
+ *     Resolve + validate, then dump the plan instead of running.
+ *
+ *   - `--force` → `{ phase: 'confirm-prompt', action: 'skip' }`
+ *
+ *   - `--quiet` → `{ phase: 'emit-scene', action: 'skip' }`
+ *
+ * Most of the phases above don't have hookable implementations
+ * yet — they're named placeholders the YAML schema accepts and the
+ * dispatcher throws against until the matching substrate ships.
+ * The vocabulary is documented up-front so feature work lands by
+ * filling phases in, not by inventing new schema fields.
+ */
+
+/**
+ * Names of the lifecycle phases an option's `effects:` can target.
+ *
+ * **Implementation status:**
+ *  - `focus-update` — hookable. Per-arg focus chain push/replace
+ *    fires inside the arg-resolution loop. `skip` is honored.
+ *  - `dispatch` — placeholder. Controller execution. `replace`
+ *    handlers (`deferred-dispatch`, `explain-plan`) throw at run
+ *    time until the substrate lands.
+ *  - `validate`, `confirm-prompt`, `emit-scene` — placeholders.
+ *    Schema validates against the name; the dispatcher throws if
+ *    a player command actually triggers a phase that hasn't been
+ *    made hookable yet (e.g. `--force` reaching the unimplemented
+ *    `confirm-prompt` phase).
+ *
+ * Adding a phase to this list documents new vocabulary; the
+ * dispatcher only honors effects against phases its code path
+ * has actually instrumented.
+ */
+export const COMMAND_PHASES = [
+  'focus-update',
+  'validate',
+  'confirm-prompt',
+  'dispatch',
+  'emit-scene',
+] as const;
+
+export type CommandPhase = (typeof COMMAND_PHASES)[number];
+
+/**
+ * Subset of `COMMAND_PHASES` whose dispatcher path currently honors
+ * effects. Used by `consumePhaseEffects` to throw a clear error when
+ * content reaches for a phase that's schema-valid but not yet wired
+ * through to runtime behavior.
+ *
+ * Adding a phase here is the substrate-side completion signal — the
+ * dispatcher's phase walk consults effects and the runtime honors
+ * `skip` / `replace` for that phase.
+ */
+export const HOOKABLE_PHASES = new Set<CommandPhase>([
+  'focus-update',
+]);
+
+/**
+ * Names of registered `replace` handlers — the value an effect
+ * carries in its `with:` slot when `action === 'replace'`.
+ *
+ * The schema validates that a referenced handler exists in this
+ * set; the runtime dispatcher resolves the name to a handler
+ * implementation. Adding a handler here documents the vocabulary;
+ * a runtime dispatch entry must accompany it for `replace` to
+ * actually fire.
+ *
+ * Today both handler names are placeholders — the vocabulary is
+ * documented so authoring conventions stabilize, but any command
+ * whose option declares `replace` against them throws at dispatch
+ * time. Each becomes real when its substrate ships.
+ */
+export const REPLACE_HANDLERS = ['deferred-dispatch', 'explain-plan'] as const;
+
+export type ReplaceHandler = (typeof REPLACE_HANDLERS)[number];
+
+/**
+ * Subset of `REPLACE_HANDLERS` whose runtime implementation exists.
+ * Effects referencing a handler outside this set are schema-valid
+ * but throw at dispatch time.
+ */
+export const IMPLEMENTED_REPLACE_HANDLERS = new Set<ReplaceHandler>([]);
+
+/**
+ * The shape an option declares in YAML under `effects:`. Discriminated
+ * on `action`; `replace` requires a `with` handler name.
+ */
+export type PhaseEffect =
+  | { phase: CommandPhase; action: 'skip' }
+  | { phase: CommandPhase; action: 'replace'; with: ReplaceHandler };
+
+/**
+ * Validate that a value parsed from YAML conforms to `PhaseEffect`.
+ * Returns null on success, an error message on failure.
+ * `validateCommandEffects` (below) calls this once per effect at
+ * load time.
+ */
+export function validatePhaseEffect(value: unknown): string | null {
+  if (value === null || typeof value !== 'object') {
+    return 'effect must be an object';
+  }
+  const obj = value as Record<string, unknown>;
+  const phase = obj.phase;
+  if (typeof phase !== 'string' || !COMMAND_PHASES.includes(phase as CommandPhase)) {
+    return `effect phase '${String(phase)}' is not one of ${COMMAND_PHASES.join(', ')}`;
+  }
+  const action = obj.action;
+  if (action === 'skip') {
+    if ('with' in obj) {
+      return `effect action 'skip' does not accept 'with'`;
+    }
+    return null;
+  }
+  if (action === 'replace') {
+    const handler = obj.with;
+    if (typeof handler !== 'string') {
+      return `effect action 'replace' requires a string 'with' handler name`;
+    }
+    if (!(REPLACE_HANDLERS as readonly string[]).includes(handler)) {
+      return (
+        `effect 'with' handler '${handler}' is not one of ` +
+        REPLACE_HANDLERS.join(', ')
+      );
+    }
+    return null;
+  }
+  return `effect action must be 'skip' or 'replace' (got '${String(action)}')`;
+}
+
+/**
+ * Walk the verb's active option-definition map and collect every
+ * `PhaseEffect` whose option is truthy on the bound model and whose
+ * declared phase matches `phase`.
+ *
+ * The dispatcher passes its `collectActiveOptionDefs(...)` output as
+ * `optionDefs` — that map's keys are already field-keys (`field ??
+ * name`), so the lookup against `activeModel` is direct.
+ *
+ * An option's effects fire when the bound model's value at that
+ * field is truthy. Boolean options are the natural fit; other types
+ * coerce per JS truthiness.
+ */
+export function collectPhaseEffects(
+  phase: CommandPhase,
+  activeModel: Record<string, unknown>,
+  optionDefs: Record<string, { effects?: PhaseEffect[] }>,
+): PhaseEffect[] {
+  const out: PhaseEffect[] = [];
+  for (const [fieldName, def] of Object.entries(optionDefs)) {
+    const effects = def.effects;
+    if (!effects || effects.length === 0) continue;
+    if (!activeModel[fieldName]) continue;
+    for (const effect of effects) {
+      if (effect.phase === phase) out.push(effect);
+    }
+  }
+  return out;
+}
+
 export interface FieldDefinition {
   /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
@@ -764,6 +943,35 @@ export interface OptionDefinition {
   validators?: string[];
   /** @internal — populated by `CommandApi.preloadAll`. */
   _resolvedValidators?: FieldValidator[];
+  /**
+   * Lifecycle effects this option applies to the dispatcher when the
+   * bound model value is truthy. Each entry names a phase from
+   * `COMMAND_PHASES` and an action (`skip` or `replace`). The
+   * dispatcher's phase walk consults the option set at every gated
+   * point and honors matching effects.
+   *
+   * Concrete shapes (see the phase taxonomy at the top of this file):
+   *
+   *   `look --peek`:
+   *     options:
+   *       peek:
+   *         type: boolean
+   *         effects:
+   *           - { phase: focus-update, action: skip }
+   *
+   *   Future `--async`:
+   *     options:
+   *       async:
+   *         type: boolean
+   *         effects:
+   *           - { phase: dispatch, action: replace, with: deferred-dispatch }
+   *
+   * Schema validates phase + handler names against the documented
+   * vocabulary at YAML load time; the dispatcher throws at runtime
+   * when an effect targets a phase or replacement handler that
+   * hasn't been wired into the substrate yet.
+   */
+  effects?: PhaseEffect[];
 }
 
 /**
@@ -939,6 +1147,7 @@ export class CommandApi {
       }
       try {
         await resolveCommandValidators(cmd);
+        validateCommandEffects(cmd);
         loaded += 1;
       } catch (err) {
         console.error(
@@ -1573,6 +1782,12 @@ export class CommandApi {
 
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
+    // Option-definition map for the active verb / subcommand,
+    // collected once and reused. The positional resolve loop
+    // consults it for phase-effect gating (e.g. `--peek` skipping
+    // focus-update); the option resolve loop below iterates it as
+    // its own spec map.
+    const optionDefs = collectActiveOptionDefs(subcommand, command);
     // Resolve positional `type: object` / `type: objects` fields.
     // Options of the same types are resolved in a parallel loop
     // below — they share the resolution shape but live in a
@@ -1684,7 +1899,17 @@ export class CommandApi {
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (picked !== null && focused) {
-          if (focusMode !== 'none') {
+          // Phase-effect gate for `focus-update`. Options declare
+          // `effects: [{phase: focus-update, action: skip}]` (e.g.
+          // `look --peek`) to suppress the focus chain update for
+          // this dispatch. Pronoun memory still updates — only the
+          // focus push is held back. `replace` against this phase
+          // is not honored today and throws to surface the gap.
+          const focusEffects = focusMode !== 'none'
+            ? consumePhaseEffects('focus-update', resolved, optionDefs)
+            : [];
+          const skipFocus = focusEffects.some((e) => e.action === 'skip');
+          if (focusMode !== 'none' && !skipFocus) {
             updatePlayerFocus(focused, raw, picked, via, focusMode);
           }
           const asMany: MqlMany = { stuff: [picked] };
@@ -1697,13 +1922,12 @@ export class CommandApi {
     // Resolve `type: object` / `type: objects` options.
     //
     // Same shape as the positional loop above: walk the active
-    // option set, find string-typed values, run them through MQL
-    // with the option's `scope:` (default `['$focus']`). Options
-    // never update player focus — that's a positional-side
-    // concept (the player drilled INTO the target via that arg);
-    // an option saying `--mql foo` is a side-channel reference,
-    // not an inspection drill.
-    const optionDefs = collectActiveOptionDefs(subcommand, command);
+    // option set (collected once above the positional loop), find
+    // string-typed values, run them through MQL with the option's
+    // `scope:` (default `['$focus']`). Options never update player
+    // focus — that's a positional-side concept (the player drilled
+    // INTO the target via that arg); an option saying `--mql foo`
+    // is a side-channel reference, not an inspection drill.
     for (const [fname, def] of Object.entries(optionDefs)) {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
@@ -2558,6 +2782,45 @@ function collectActiveFieldDefs(
 }
 
 /**
+ * Dispatcher-side wrapper around `collectPhaseEffects` that enforces
+ * the substrate's implementation status: a `replace` action whose
+ * handler isn't in `IMPLEMENTED_REPLACE_HANDLERS` throws, and any
+ * effect targeting a phase outside `HOOKABLE_PHASES` throws.
+ *
+ * Callers consume the returned list to decide phase behavior (e.g.
+ * any entry with `action: 'skip'` → bypass the phase). Effects pass
+ * load-time validation (`validatePhaseEffect`); this gate catches
+ * vocabulary that's documented but unimplemented at the runtime
+ * boundary so half-built features can't sneak through.
+ */
+function consumePhaseEffects(
+  phase: CommandPhase,
+  activeModel: Record<string, unknown>,
+  optionDefs: Record<string, OptionDefinition>,
+): PhaseEffect[] {
+  const effects = collectPhaseEffects(phase, activeModel, optionDefs);
+  if (effects.length === 0) return effects;
+  if (!HOOKABLE_PHASES.has(phase)) {
+    throw new Error(
+      `Command phase '${phase}' is named in the vocabulary but the ` +
+        `dispatcher has not made it hookable yet — an option declared ` +
+        `an effect against it but no substrate honors the gate.`,
+    );
+  }
+  for (const effect of effects) {
+    if (effect.action === 'replace' &&
+        !IMPLEMENTED_REPLACE_HANDLERS.has(effect.with)) {
+      throw new Error(
+        `Replace handler '${effect.with}' is documented but not yet ` +
+          `implemented — an option declared 'replace' against phase ` +
+          `'${phase}' with this handler name.`,
+      );
+    }
+  }
+  return effects;
+}
+
+/**
  * Collect every option active for the current call, keyed by the
  * option's effective field name (`opt.field ?? optName`). Verb-
  * scoped options are always active; subcommand-scoped options are
@@ -2635,6 +2898,53 @@ async function resolveCommandValidators(
       fns.push(await CommandApi.resolveCommandValidator(spec, yamlPath));
     }
     cmd._resolvedValidators = fns;
+  }
+}
+
+/**
+ * Walk every option-bearing slot on a command and validate each
+ * `effects:` entry against the `PhaseEffect` shape (phase name in
+ * `COMMAND_PHASES`, action `'skip' | 'replace'`, `replace` carries a
+ * `with` handler name from `REPLACE_HANDLERS`).
+ *
+ * Load-time only — runtime gating (whether the named phase or
+ * handler is actually wired into the dispatcher) lives in
+ * `consumePhaseEffects`. Authors can declare effects against
+ * documented-but-unimplemented vocabulary; the schema accepts them,
+ * the dispatcher throws if a real command tries to fire the gate.
+ *
+ * Throws on the first malformed effect with a message naming the
+ * verb, option, and the validator's failure detail.
+ */
+function validateCommandEffects(cmd: CommandDefinition): void {
+  const checkOptions = (
+    optionsMap: Record<string, OptionDefinition>,
+    scope: string,
+  ): void => {
+    for (const [optName, def] of Object.entries(optionsMap)) {
+      const effects = def.effects;
+      if (!effects) continue;
+      if (!Array.isArray(effects)) {
+        throw new Error(
+          `${scope} option '${optName}': effects must be an array`,
+        );
+      }
+      for (let i = 0; i < effects.length; i++) {
+        const msg = validatePhaseEffect(effects[i]);
+        if (msg !== null) {
+          throw new Error(
+            `${scope} option '${optName}' effects[${i}]: ${msg}`,
+          );
+        }
+      }
+    }
+  };
+  checkOptions(cmd.verbOptions, cmd.filePath);
+  checkOptions(cmd.payload, `${cmd.filePath} (payload)`);
+  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+    if (sub.options) {
+      checkOptions(sub.options, `${cmd.filePath}#${subName}`);
+    }
   }
 }
 
@@ -2947,10 +3257,23 @@ function updatePlayerFocus(
     }
   }
 
-  // Naive append. The chain accumulates user intent, not actual
-  // navigability — the next query's scope try-list with the
-  // reachable fallback handles cases where the chain stops resolving.
-  giver.setFocus(currentFocus + ':' + fragment);
+  // Target is a different Stuff than the current focus anchor, AND
+  // doesn't carry a `via.detailPath` that would compose meaningfully
+  // through the chain operator. The MQL chain step `:keyword` only
+  // walks into the prior match's keywords + detail tree — it doesn't
+  // re-enter the here-neighborhood for adornments / peers / etc. So
+  // a fragment like `here:rose` (rose is a peer) or `here:door` (door
+  // is an adornment on the location) parses fine but resolves to
+  // nothing — the `:rose` step looks for "rose" on the location's
+  // own keywords/details, not in the room's contents or fixtures.
+  //
+  // Replacing focus with the new fragment alone lets the substrate's
+  // `$focus` expansion succeed via the reachable scope (which DOES
+  // walk peers + here + inventory), so subscriptions like `me.focus`
+  // pick up the new target. The prior chain was structurally
+  // descriptive but broken-by-construction; replacing is the
+  // honest move.
+  giver.setFocus(fragment);
 }
 
 /**

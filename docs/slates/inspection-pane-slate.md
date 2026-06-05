@@ -24,9 +24,35 @@ See also:
   — sister slate covering terminal-scroll spam management
   (`brief` mode, `glance`, client-side filters). Always-print
   look prose is the policy; that slate manages the spam.
+- [docs/slates/message-rendering-slate.md](./message-rendering-slate.md)
+  — **how the body renders.** The pane's structured detail
+  (properties/slots/contents) is the first big consumer of the
+  **layout library** (`<table>`/`<list>`/`<field>`) + the **flatten
+  discipline** + the **styling engine**. See the Reconciliation note.
+- [docs/slates/grouping-slate.md](./grouping-slate.md) — multi-focus
+  (`focus friends`) resolves a **group** via `GroupApi`; list rows are
+  styled names.
 - `packages/server/src/mud/lib/command/Focused.ts` — `FocusedMixin`
   with `getFocus()` / `setFocus()`. Focus defaults to `'here'`
   and changes when `focus` / `look` / `examine` fire.
+
+> **Reconciliation note (added post-comms-design; relevant to the
+> in-flight build).** The body renders *structured* state, so it's the
+> first big consumer of the [message-rendering](./message-rendering-slate.md)
+> model — incorporate four things:
+> 1. **Structured detail → the layout library** (`<table>`/`<list>`/
+>    `<field>`), not ad-hoc monospace, so it **flattens linear-labeled**
+>    (the pane is screen-read — no ASCII grids for properties/slots).
+> 2. **⚠️ Sequencing:** that layout library is a *newer, separate*
+>    workstream. Decide explicitly — block on it, or ship structured
+>    detail interim and migrate — don't invent a private table renderer
+>    that diverges.
+> 3. **Styling rides the `stuff-id` attribute** (the same one driving
+>    clickable affordances): names colored by social-graph bucket
+>    (friend/foe), items by rarity. One attribute, double duty
+>    (interactivity + styling). **No `<color>` tags.**
+> 4. **Multi-focus list = a group** via `GroupApi` (`focus friends`);
+>    rows are styled names.
 
 ---
 
@@ -34,8 +60,21 @@ See also:
 
 **The pane shows what you're focused on, not the room you're in.**
 Most of the time those coincide (default focus is `'here'`), but
-the distinction is load-bearing. Focus is the MQL pointer; the pane
-is the rendered view of that pointer. They are not the same thing.
+the distinction is load-bearing. Focus is the MQL-bound referent
+register — the noun for the next command (`$focus`); the pane is
+the rendered view of whatever's in it. They are not the same thing.
+
+**Focus is cardinality-polymorphic — 1..N.** The load-bearing
+multi-cardinality use case is group operations: `focus friends;
+heal $focus` heals all your friends. The pane renders the body
+view for single focus and a list view for multi focus; same
+subscription, same machinery, two render modes.
+
+**Listing without disturbing focus is a separate verb.** When the
+player wants "show me all the doors here" without binding `$focus`
+to that set (and clobbering whatever they had focused), that's
+`find` — a sibling output-only command. See Interaction model
+below.
 
 Two further principles:
 
@@ -63,11 +102,31 @@ When focus is `'here'`, the header reads as the current room's
 display name (resolved client-side from the most recent look's
 location MML tag, or from the focus value if it carries one).
 
+For multi-cardinality focus, the header shows a summary form —
+either the originating MQL string (`friends`) or a "N X" shape
+(`5 friends`). The prompt's focus token gets the same string for
+consistency.
+
 ### Body
 
 The most recent `look` output rendered against the current focus.
-Contains the prose (short + long description) and the MML semantic
-tags as clickable affordances (exits, items, NPCs, quantity chips).
+The shape depends on focus cardinality:
+
+- **Single focus** — the focused thing's prose (short + long
+  description) and the MML semantic tags as clickable affordances
+  (exits, items, NPCs, quantity chips). The canonical body shape.
+- **Multi focus** — a list of one row per member of the focused
+  set. Each row is the member's display name (clickable
+  affordance); admin/dev viewers additionally see the template
+  path in parens. Clicking a row collapses focus to that one
+  thing (sends `look <that>`) and the body re-renders into
+  single-focus shape.
+
+Same subscription, same projection field-set; the renderer
+branches on result cardinality. v1 list rows are intentionally
+minimal — no per-aspect detail beyond display name — and richer
+per-row projections (vitals, slots, position) land when content
+demands them.
 
 The body re-renders when:
 
@@ -103,6 +162,10 @@ to an empty / muted placeholder. Something like:
 The placeholder is itself clickable (sends `look`). Forces the
 explicit `look` to populate, which is the honest model of focus:
 it's a pointer, you have to look at what it points to.
+
+The placeholder text adapts to cardinality — single focus reads
+"focused — `look` to inspect"; multi focus reads "5 friends
+focused — `look` to list".
 
 This state is rare in practice — `look` / `examine` / movement
 all set focus AND emit a look in one motion. But when a player
@@ -192,22 +255,56 @@ mode work).
 
 Re-runs against the current focus. Equivalent to the Refresh
 button. Populates the pane body if it was empty (post-`focus`-
-only state).
+only state). Cardinality-polymorphic — single focus re-renders
+the body view, multi focus re-renders the list view per the
+Body subsection.
 
-### `focus <thing>` (existing, unchanged behavior; new pane consequence)
+### `focus <mql>` (existing, unchanged behavior; new pane consequence)
 
-1. Sets focus
+`<mql>` can resolve to one Stuff or many — focus is cardinality-
+polymorphic. Behavior:
+
+1. Sets focus to the resolved set (size 1..N)
 2. Emits the existing prose ("focus set to 'X' (N objects)") to
    terminal
 3. Emits the new focus push frame (so prompt + pane header
    update)
 4. Pane body clears to the empty-body placeholder
-5. Player has to `look` to populate
+5. Player has to `look` to populate (single → body view, multi →
+   list view per the Body subsection)
+
+Canonical multi case: `focus friends; heal $focus` to act on the
+group with the next command. The verb's job is to bind the
+referent; rendering is the pane's concern.
 
 ### `examine <thing>` (existing)
 
 Behaves like `look <thing>` — focuses + emits look. Same pane
 update flow.
+
+### `find <mql>` (new, sibling command)
+
+Output-only counterpart to `focus`. Use case: "show me a list of
+all the doors here" without disturbing the referent register.
+
+1. Resolves `<mql>` as a one-shot query against the substrate's
+   `mql-query` channel (chunk 2.6 in the foundation-readiness
+   plan).
+2. Renders the result as a list to the terminal scroll, one row
+   per match. Each row shows the match's display name as a
+   clickable affordance; admin/dev viewers additionally see the
+   template path in parens. v1 stops there — no display-flag
+   vocabulary, no per-aspect projection knobs.
+3. Does NOT touch `$focus`. The whole point of `find` vs.
+   `focus` is that you can browse without committing.
+
+`find` is a snapshot — if a new match appears after the query
+runs, the output doesn't update. That's the point of `find` vs.
+`focus`; for live results, set focus instead.
+
+Richer projections (per-row vitals / slots / position) and a
+display-flag vocabulary can be added when real content demands
+them; v1 intentionally ships only the minimum useful surface.
 
 ---
 
@@ -347,7 +444,10 @@ Tabs section above).
 - **Tabs in v1** — multi-tab pane is forward-compatible architecturally
   but ships in a follow-up. v1 has the focus tab only with a
   grayed-out `[+]` telegraphing the shape.
-- **MQL query results in the pane** — same as tabs, deferred.
+- **Pinned `find` results in the pane** — `find` renders to the
+  terminal scroll in v1. Pinning a result set as a pane tab
+  (header chip → snapshot view, refreshable) is the future
+  shape and ships with the tabs work above.
 - **State-sync-driven live updates** — pane re-renders on
   explicit look only in v1. When the MQL-subscription substrate
   ships, the pane subscribes to `$focus` and lighting changes /
@@ -394,6 +494,11 @@ Tabs section above).
    "let me peek at the history" than "let me commit my focus
    to this." Or is that overcomplicating? Lean overcomplicating
    for v1 — every click is a focus-shifting look.
+7. **Multi-focus pane row click default** — clicking a row sends
+   `look <that>` (single-focus drill-in) per the Body section.
+   Should shift-click instead `find` (peek without losing the
+   multi-focus)? Open; depends on how often players want to
+   inspect a group member without leaving the group.
 
 ---
 
@@ -407,6 +512,10 @@ Tabs section above).
   same renderer for clickable affordances in the body.
 - **MQL-subscription slate** — the pane is a subscription
   consumer. Required for the pane to work at all.
+- **`mql-query` one-shot channel** (chunk 2.6 in
+  [client-foundation-readiness](../plans/client-foundation-readiness.md))
+  — required for `find`. The pane itself doesn't need it; only
+  the sibling `find` verb does.
 - **Console filtering slate** — sister; complementary surface for
   spam management.
 - **DescribeApi v2** (recognition slate) — when DescribeApi v2
@@ -429,8 +538,11 @@ Once it's up:
    gets the standard set (descriptions, properties, slots,
    contents, etc.).
 2. **Pane skeleton (client)** — header + body + empty-body
-   state. Opens the `$focus` subscription on mount. Renders the
-   detail record's MML body through the existing renderer.
+   state. Opens the `$focus` subscription on mount. Body
+   renderer branches on result cardinality: single → MML body
+   through the existing renderer; multi → list view (per-item
+   row with name + summary + clickable affordances). Empty-body
+   placeholder adapts text to cardinality.
 3. **Refresh button** — clickable affordance routed through the
    command bus (`look`).
 4. **Focus breadcrumbs** — Zustand slice holding the last N
@@ -450,3 +562,20 @@ Once it's up:
 Waves 1-3 are the core. 4 + 5 are polish. 6 is admin. 7 is
 forward-compat shape. Waves 1-5 likely fit in a single build
 cycle once the substrate exists; admin + tabs as follow-ups.
+
+### Sibling slice: `find` verb
+
+Not part of this slate's build; called out so it doesn't get
+forgotten. `find` is a separate vertical that lands either
+alongside or just after the inspection pane:
+
+- Server: `find` controller + YAML view; routes through the
+  `mql-query` one-shot channel (chunk 2.6) and renders a list
+  of records as MML to the terminal scroll.
+- Client: row renderer for the find list — display name plus a
+  clickable affordance, template path in parens for admin
+  viewers. No flag vocabulary in v1.
+
+If a dedicated find slate becomes useful (display flags ramp up,
+pinned-results tab matures), graduate it then. For now it lives
+inside this slate as a sibling call-out.

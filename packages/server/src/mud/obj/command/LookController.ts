@@ -179,22 +179,46 @@ export class LookController extends CommandController<LookModel> {
       return;
     }
 
-    let body = Mml.compose`\n${Mml.location(location)}`;
+    // Vertical-space discipline: NO blank lines anywhere — the
+    // player knows the convention (short first, then prose, then
+    // system lines for exits/contents). Visual distinction comes
+    // from inline styling (the `<location>` tag colour-codes the
+    // header; `<exit>` and `<item>` tags style the affordances),
+    // not from whitespace. Long descriptions with internal `\n\n`
+    // paragraph breaks keep their own pacing; the surrounding
+    // chrome stays flush.
+    //
+    // The long description may end with a trailing newline (YAML
+    // `|` block scalar default). Trim it so the exits/contents
+    // lines that follow sit flush against the prose, not after a
+    // gratuitous blank line.
+    //
+    // `getMarkupLong(viewer)` is the host-level affordance-annotated
+    // long description: every contributing mixin's `markupAugmenters`
+    // fold through the raw text before it emits. Today that's
+    // `DetailedMixin`'s `<detail key="...">word</detail>` wrap;
+    // future contributors (exit-direction auto-link, language masks)
+    // ride the same pipeline. Re-narrow `location` with
+    // `MixinApi.isVisible` here so the call site has the static
+    // `Visible` type — `hasVisible` above is just a flag.
+    const longText = MixinApi.isVisible(location)
+      ? location.getMarkupLong(actor).replace(/\s+$/, '')
+      : '';
+    let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
-      body = Mml.compose`${body}\n\n${Mml.fromMarkup(location.getLong())}`;
+      body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
     }
     if (hasExits) {
       const exitsLine = this.formatExits(location.getObviousExits());
       if (exitsLine) {
-        body = Mml.compose`${body}\n\n${exitsLine}`;
+        body = Mml.compose`${body}\n${exitsLine}`;
       }
     }
     if (visibleContents.length > 0) {
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
-      body = Mml.compose`${body}\n\nYou also see: ${list}.`;
+      body = Mml.compose`${body}\n${Mml.sys('You also see:')} ${list}.`;
     }
-    body = Mml.compose`${body}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)
@@ -227,7 +251,11 @@ export class LookController extends CommandController<LookModel> {
       });
       return;
     }
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getLong())}\n`;
+    // Run the long through `getMarkupLong(viewer)` so detail keywords
+    // and any other contributing-mixin augmenters wrap inline —
+    // matches the location branch above; both `look <thing>` and
+    // bare `look` ship the same affordance-annotated text.
+    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)
@@ -242,22 +270,27 @@ export class LookController extends CommandController<LookModel> {
     const parts = exits.map((exit) => {
       // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —
       // the client turns it into the affordance that sends `go <dir>`.
-      // Door annotation rides outside the clickable so the click area
-      // is exactly the direction word.
+      // The door's name rides its own `<item>` tag so it's clickable
+      // too (renderer resolves stuff-id → primaryKeyword and emits
+      // `look <doorKeyword>`) — same affordance the inspection pane
+      // gives, kept consistent across surfaces.
       const tagged = Mml.exit(exit);
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorName = DescribeApi.getDisplayName(door);
-      return Mml.compose`${tagged} (${doorName}, ${state})`;
+      const doorLink = Mml.item(door);
+      return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);
-    // No `<exits>` outer wrapper: the prose `Obvious exits: …` is the
-    // structural marker, the inner `<exit>` tags carry the only
-    // semantics the renderer cares about, and a wrapper that
-    // *contains* other tags can't be parsed by the client's regex
-    // MML renderer (which only matches flat tags). Render the
-    // joined Mml directly into the sentence.
-    return Mml.compose`Obvious exits: ${joined}.`;
+    // `<sys>` wraps the structural label only — non-actionable,
+    // styled by the client renderer as muted italic with a
+    // decorative prefix marker. The inner `<exit>` tags stay
+    // flat-adjacent so the client's regex parser still picks them
+    // up (no nesting). "Obvious" stays in the label: a Location
+    // may have hidden exits that only surface under specific
+    // conditions (a hint in the prose, a perception check, a
+    // revealed door); the qualifier signals "what you can see
+    // right now" without claiming "this is all there is."
+    return Mml.compose`${Mml.sys('Obvious exits:')} ${joined}.`;
   }
 }

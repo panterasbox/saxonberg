@@ -13,6 +13,21 @@ the planner will work from. It exists to keep the build phase
 honest about what's a server prerequisite vs. what's tandem-with-
 client vs. what's client-pull-when-server-stable.
 
+> **Status (current).** Phase 2 server-first plumbing is largely
+> **done** — Chunks 2.1 / 2.2 / 2.4 / 2.5 shipped (mql-subscription,
+> field projection, two-channel inbound, `PromptApi`), plus 2.6's
+> one-shot `mql-query`. Remaining Phase-2 bits: Chunk 2.3 (coarse
+> capability projection) and the rest of 2.6 (resync / heartbeat /
+> `ShadowChangedEvent` / global seeds). The **inspection pane** (a
+> Phase-4 tandem slice) was **pulled forward and shipped** ahead of
+> the vitals slice — so the "vitals first, don't ramp parallelism"
+> guidance below was overtaken by events; vitals is still the
+> cleanest *remaining* first scalar slice but no longer the literal
+> first vertical. The live near-term ordering is the **two parallel
+> tracks** in [docs/roadmap.md](../roadmap.md#whats-next--two-parallel-tracks);
+> this doc remains the source for the taxonomy + per-chunk
+> acceptance criteria.
+
 See also:
 
 - [docs/workflow.md](../workflow.md) — the broader phase taxonomy
@@ -78,7 +93,8 @@ See [docs/subsystems/mql-subscription.md](../subsystems/mql-subscription.md).
 **Acceptance criteria.**
 
 - Unit tests prove parse + resolve + projection cycle for at
-  least one canonical kind (`me.<scalar>` is the simplest).
+  least one example subscription (`me.<scalar>` shape — the
+  inspection pane shipped two: `$focus` and `here`).
 - Integration test exercises the full lifecycle: synthetic
   client subscribes, server resolves and ships initial result,
   state mutates server-side, event fires, subscription

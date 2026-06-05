@@ -305,6 +305,57 @@ built-in entities. Used by clients or log capture that need a
 plain-text projection. Tolerates unclosed tags by dropping their
 characters.
 
+### MarkupAugmenter — inline-affordance pipeline
+
+Authored prose (long descriptions, room narration) often wants
+inline MML affordances wrapped around specific keywords: detail
+keys become `<detail>` so they're clickable, exit directions
+become `<exit>`, named things become `<item>`, untranslatable
+text gets masked with a `<unknown-tongue>` wrap, etc. Each of
+these is a **text → text transformation** keyed on a contributor
+mixin's data; together they form a composable pipeline.
+
+The substrate exposes that pipeline as `MarkupAugmenter`:
+
+```ts
+export type MarkupAugmenter = (
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+) => string;
+
+export function augmentMarkup(
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+): string;
+```
+
+Each contributing mixin declares its augmenters on a static
+slot:
+
+```ts
+class DetailedMixin {
+  static markupAugmenters: MarkupAugmenter[] = [wrapDetailKeysAugmenter];
+}
+```
+
+`augmentMarkup(text, host, viewer)` walks the host's prototype
+chain via `MixinApi.getAllMarkupAugmenters` (parent-first → child-
+last), folding every contributed augmenter through the text in
+order. Pure, sync, viewer-aware (augmenters that don't need the
+viewer just ignore it).
+
+**Current customer:** `VisibleMixin.getMarkupLong(viewer)` — the
+host-level method that produces the affordance-annotated long
+description shipped on every `'detail'` projection. Today's only
+contribution is `wrapDetailKeysAugmenter` from `DetailedMixin`,
+which wraps canonical detail aliases in `<detail key="...">`
+MML. Future contributors (exit-direction auto-link on
+`ExitableMixin`, language masking on a future `LanguageMixin`,
+spoiler hide) plug in via the same `static markupAugmenters`
+slot with no changes to `Visible` or its consumers.
+
 ## Scene — multi-audience composer
 
 `MessageApi.scene(actor)` returns a `Scene` builder. Layer 3 of the

@@ -120,5 +120,5 @@ Two path-resolution helpers:
   + schema-on-mixin pattern this mixin's settings register through
 - [shell-author.md](./shell-author.md) — sister mixin; lifecycle and
   code-execution verbs
-- [shell-scry.md](./shell-scry.md) — sister mixin; at-a-distance
-  perception
+- [perceiver.md](./perceiver.md) — sister mixin (the `scry` verb);
+  at-a-distance perception

@@ -37,6 +37,12 @@ import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../../config/constants';
+import {
+  MqlSubscriptionApi,
+  projectFields,
+  REF_FIELDS,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Public shape provided by ContainerMixin.
@@ -183,6 +189,46 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
+     * Live-query subscribable field: `contents`. Projects each visible
+     * contained Stuff as a `REF_FIELDS`-shape record so the inspection
+     * pane (and any future container widget) can render the inside-of
+     * view from a single subscription without a per-child round trip.
+     *
+     * Per-viewer visibility filter mirrors `LookController.lookAtLocation`'s
+     * structural policy:
+     *
+     *   - Items the viewer (`self`) IS are excluded — a player listing
+     *     their own container shouldn't see themselves in it.
+     *   - `AdornmentMixin` items are excluded (they're part of the
+     *     host's structure, not loose contents).
+     *   - Non-`VisibleMixin` items are excluded (they can't be
+     *     referenced in prose anyway).
+     *
+     * `dependsOnFields: ['contents']` keys the dependency-index entry
+     * to the `FieldChangedEvent { field: 'contents' }` fires installed
+     * on `addContainable` / `removeContainable` below — the field is
+     * not a persistent field (Hydrator never reflects into it) and
+     * setter-shaped invariants don't fit, so the events fire from the
+     * primitives.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'contents',
+        read: (stuff, viewer) => {
+          const host = stuff as Stuff & Container;
+          const out: Record<string, unknown>[] = [];
+          for (const child of host.getContents()) {
+            if (child.stuffId === viewer.stuffId) continue;
+            if (MixinApi.isAdornment(child)) continue;
+            if (!MixinApi.isVisible(child)) continue;
+            out.push(projectFields(child, REF_FIELDS, viewer));
+          }
+          return out;
+        },
+      },
+    ];
+
+    /**
      * The contained items. Read access goes through `getContents()`;
      * mutation goes through `addContainable` / `removeContainable`,
      * which only `Containable.setContainer` may legitimately invoke.
@@ -193,22 +239,57 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * State-mutation primitive. Locked down — only callable from
      * `Containable.setContainer`. Use `ContainmentApi.move(item,
      * container)` from application code.
+     *
+     * Fires `FieldChangedEvent { field: 'contents' }` after a real
+     * addition so the MQL subscription substrate's dependency index
+     * picks up containment-shape changes for the `contents` descriptor.
+     * The substrate matches on `(KIND, 'field', 'contents')` only —
+     * `oldValue` / `newValue` are inspected by the diff pass via
+     * re-projection of the host, not by the index, so the count
+     * delta carried here is informational (debugging / future
+     * coarse-grain optimizations) rather than load-bearing.
      */
     @CallSecurity(CalledFromSetContainer)
     @Final
     @Unshadowable
     addContainable(item: Stuff & Containable): void {
+      const before = this.contents.size;
       this.contents.add(item);
+      if (this.contents.size !== before) {
+        // Inline the fire rather than route through `fireFieldChange`
+        // — Object.is(before, before+1) is false but the values are
+        // documentation-only here, and we want the event to fire
+        // unconditionally on a real mutation rather than being
+        // suppressed by an accidental no-op return path.
+        MqlSubscriptionApi.fireFieldChange(
+          this,
+          'contents',
+          before,
+          this.contents.size,
+        );
+      }
     }
 
     /**
-     * Remove primitive. Same lockdown as `addContainable`.
+     * Remove primitive. Same lockdown as `addContainable`. Fires the
+     * matching `FieldChangedEvent { field: 'contents' }` on a real
+     * removal.
      */
     @CallSecurity(CalledFromSetContainer)
     @Final
     @Unshadowable
     removeContainable(item: Stuff & Containable): boolean {
-      return this.contents.delete(item);
+      const before = this.contents.size;
+      const removed = this.contents.delete(item);
+      if (removed) {
+        MqlSubscriptionApi.fireFieldChange(
+          this,
+          'contents',
+          before,
+          this.contents.size,
+        );
+      }
+      return removed;
     }
 
     /** Membership predicate. */

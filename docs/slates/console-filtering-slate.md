@@ -18,8 +18,27 @@ See also:
   pane manages *state*.
 - [docs/slates/client-cockpit-slate.md](./client-cockpit-slate.md)
   — terminal component, topic taxonomy, MML renderer.
+- [docs/slates/chat-slate.md](./chat-slate.md) — **channels** (a
+  filtering axis this slate predates — see Reconciliation note).
+- [docs/slates/reactions-slate.md](./reactions-slate.md) — reaction
+  display controls that coordinate with this surface.
+- [docs/slates/message-rendering-slate.md](./message-rendering-slate.md)
+  — the rendering model whose "server sends complete, client decides
+  display" matches this slate's founding principle.
 - `packages/server/src/mud/api/message.ts` — server-side topic
   vocabulary that anchors most of the filtering surface.
+
+> **Reconciliation note (added post-comms-design).** This slate filters
+> on **topics** only; later work added two axes it should grow into:
+> (1) **channels** — muting/tuning a *channel* (gossip/guild/DM) is a
+> distinct axis from toggling a *topic*; the channel dimension must
+> coordinate with chat's per-channel subscription/tuning rather than
+> duplicate it. **Open design call: are channel-mute and topic-toggle one
+> unified surface or two?** (2) **reactions** — the reactions slate's
+> per-user controls (train intensity, mute-reactions-on-channel, collapse
+> threshold) are display controls that belong with / coordinate with this
+> surface. Both are additive (the founding principle is unchanged); not
+> yet folded into the sections below.
 
 ---
 

@@ -41,6 +41,8 @@ import type {
   MqlSubscriptionResultEnvelope,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionErrorEnvelope,
+  MqlQueryResultEnvelope,
+  MqlQueryErrorEnvelope,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -54,6 +56,7 @@ import { MqlApi } from './mql';
 import { MqlPermissionError } from './mql/permissions';
 import { EventApi } from './event';
 import { MessageApi } from './message';
+import { ShellApi } from './shell';
 import { FieldChangedEvent, type FieldChangedPayload } from '../lib/events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../lib/events/ShadowChangedEvent';
 
@@ -147,26 +150,41 @@ export type FieldSet = readonly string[];
 
 /**
  * Default field set for the `'ref'` alias — what a `StuffRefRecord`
- * carries on the wire. Two fields: `displayName` (always present;
- * baked-in `'something'` default) and `quantity` (Globbable hosts
- * only; substrate omits when the descriptor returns `undefined`).
+ * carries on the wire. Fields:
+ *
+ *   - `displayName` (always present; baked-in `'something'` default).
+ *   - `quantity` (Globbable hosts only; substrate omits when the
+ *     descriptor returns `undefined`).
+ *   - `primaryKeyword` (Perceptible hosts only; substrate omits when
+ *     the descriptor returns `undefined`). Carried on every ref
+ *     record so client renderers can route `<item>`/`<name>` clicks
+ *     to `look <primaryKeyword>` rather than the surface label.
  */
-export const REF_FIELDS: FieldSet = ['displayName', 'quantity'];
+export const REF_FIELDS: FieldSet = [
+  'displayName',
+  'quantity',
+  'primaryKeyword',
+];
 
 /**
  * Default field set for the `'detail'` alias — what a
  * `StuffDetailRecord` carries on the wire. Adds Visible's two
- * description fields, Detailed's `details` enumeration, and
- * Tangible's `bulkMaterial` + `mass` on top of the ref surface.
+ * description fields, Detailed's `details` enumeration, Tangible's
+ * `bulkMaterial` + `mass`, and Container's `contents` (a per-viewer-
+ * filtered list of `StuffRefRecord`-shape children) on top of the
+ * ref surface.
  */
 export const DETAIL_FIELDS: FieldSet = [
   'displayName',
   'quantity',
+  'primaryKeyword',
   'shortDescription',
   'longDescription',
   'details',
   'bulkMaterial',
   'mass',
+  'contents',
+  'exits',
 ];
 
 /**
@@ -295,6 +313,12 @@ export type SubscriptionCardinality = 'one' | 'many';
  * forwards from the inbound `MqlSubscribeMessage`. The substrate's
  * direct API consumers (Wave 5 inbound dispatcher, future programmatic
  * use) share this shape.
+ *
+ * The query string can reference shell variables (`$focus`, etc.);
+ * the substrate runs `ShellApi.expandVariables` against the holder
+ * before each (re-)resolve so the variable expands fresh every tick.
+ * This is what makes a `$focus` subscription re-resolve correctly
+ * when `setFocus` fires.
  */
 export interface SubscribeRequest {
   interactive: Interactive;
@@ -307,6 +331,54 @@ export interface SubscribeRequest {
    * `cardinality === 'one'`; a `'many'` subscribe with a `detailKey`
    * is rejected with `reason: 'parse'`. The `fields` parameter is
    * ignored in focus mode.
+   */
+  detailKey?: string;
+  /**
+   * When true, the substrate installs an additional
+   * `(FieldChangedEvent.KIND, 'field', 'focus')` dependency entry
+   * against the *subscription holder* at subscribe time — in
+   * addition to the per-result-Stuff descriptor walk.
+   *
+   * Rationale: for a query like `$focus`, the result set is whatever
+   * the focus fragment resolves to — NOT the FocusedMixin host. The
+   * natural descriptor walk would miss the focus dependency entirely.
+   * This explicit opt-in lets such subscriptions wake on the holder's
+   * `setFocus` / `clearFocus` field-change fires.
+   *
+   * Off by default; opt in per subscription.
+   */
+  focusDependent?: boolean;
+  /**
+   * Parallel to `focusDependent`. Installs a dependency on the
+   * holder's `container` field so the subscription wakes on
+   * `Containable.setContainer` fires — used by client subscriptions
+   * that track the player's physical position independently of what
+   * they're focused on (e.g., a `here` query for the current room).
+   * Off by default.
+   */
+  locationDependent?: boolean;
+}
+
+/**
+ * Caller-facing one-shot query payload — what
+ * `Application.processUserMessage` forwards from the inbound
+ * `MqlQueryMessage`. The substrate reuses ONLY the parse + resolve +
+ * project pipeline: no registration, no dependency-index entries, no
+ * listener installation.
+ *
+ * `focusDependent` / `locationDependent` are meaningless for one-shot
+ * reads (no subscription state to wake) and are not carried.
+ */
+export interface QueryRequest {
+  interactive: Interactive;
+  queryId: string;
+  query: string;
+  cardinality: SubscriptionCardinality;
+  fields?: FieldSet | FieldAlias;
+  /**
+   * When present, projection runs in focused-detail mode. Requires
+   * `cardinality === 'one'`; a `'many'` query with a `detailKey` is
+   * rejected with `reason: 'parse'`.
    */
   detailKey?: string;
 }
@@ -325,6 +397,8 @@ interface SubscriptionState {
   cardinality: SubscriptionCardinality;
   fields: FieldSet;
   detailKey?: string;
+  focusDependent: boolean;
+  locationDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
 }
@@ -446,7 +520,7 @@ export class MqlSubscriptionApi {
    * Register a subscription. See class docstring for behavior.
    */
   public static handleSubscribe(req: SubscribeRequest): void {
-    const { interactive, subscriptionId, query, cardinality } = req;
+    const { interactive, subscriptionId } = req;
 
     // Duplicate-id check (defense-in-depth — Wave 5 dispatcher also
     // validates, but direct callers reach here too).
@@ -461,8 +535,33 @@ export class MqlSubscriptionApi {
       return;
     }
 
+    if (typeof req.query !== 'string') {
+      this.#emitError(
+        interactive,
+        subscriptionId,
+        'parse',
+        'query required',
+      );
+      return;
+    }
+    if (req.cardinality !== 'one' && req.cardinality !== 'many') {
+      this.#emitError(
+        interactive,
+        subscriptionId,
+        'parse',
+        'cardinality required',
+      );
+      return;
+    }
+    const query = req.query;
+    const cardinality = req.cardinality;
+    const fields = resolveFieldSet(req.fields);
+    const detailKey = req.detailKey;
+    const focusDependent = req.focusDependent === true;
+    const locationDependent = req.locationDependent === true;
+
     // Focus + cardinality cross-check.
-    if (req.detailKey !== undefined && cardinality !== 'one') {
+    if (detailKey !== undefined && cardinality !== 'one') {
       this.#emitError(
         interactive,
         subscriptionId,
@@ -497,15 +596,20 @@ export class MqlSubscriptionApi {
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
-    // Initial resolve. Errors → reason: 'resolve' or 'permission'.
+    // Initial resolve. The query string can reference shell
+    // variables (`$focus`, etc.); expand against the holder before
+    // each (re-)resolve so the variable expands fresh every tick.
+    // Same pattern the dispatcher uses for `scope:` declarations
+    // in command YAML.
+    const expandedQuery = ShellApi.expandVariables(query, giver);
     let stuffList: Stuff[];
     try {
-      const ctx = { commandGiver: giver, scope: query };
+      const ctx = { commandGiver: giver, scope: expandedQuery };
       if (cardinality === 'one') {
-        const one = MqlApi.resolveOne(query, ctx);
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
         stuffList = one.stuff ? [one.stuff] : [];
       } else {
-        const many = MqlApi.resolveMany(query, ctx);
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
         stuffList = many.stuff;
       }
     } catch (err) {
@@ -521,21 +625,23 @@ export class MqlSubscriptionApi {
     }
 
     // Build initial lastResult records.
-    const fields = resolveFieldSet(req.fields);
     const lastResult = new Map<string, RecordValue>();
     for (const stuff of stuffList) {
-      const rec = this.#projectStuff(stuff, fields, viewer, req.detailKey);
+      const rec = this.#projectStuff(stuff, fields, viewer, detailKey);
       lastResult.set(stuff.stuffId, rec);
     }
 
-    // Build subscription state.
+    // Build subscription state. Store the raw (unexpanded) query so
+    // re-resolve runs ShellApi.expandVariables fresh on each tick.
     const sub: SubscriptionState = {
       interactive,
       subscriptionId,
       query,
       cardinality,
       fields,
-      detailKey: req.detailKey,
+      detailKey,
+      focusDependent,
+      locationDependent,
       lastResult,
       dependencyHandles: [],
     };
@@ -557,6 +663,126 @@ export class MqlSubscriptionApi {
     const template: Omit<MqlSubscriptionResultEnvelope, 'frameId'> = {
       type: 'mql-subscription-result',
       subscriptionId,
+      result,
+    };
+    MessageApi.sendEnvelope(viewer, template);
+  }
+
+  /**
+   * One-shot read. Reuses ONLY the substrate's parse + resolve +
+   * project pipeline — NO registration in `#registry`, NO
+   * dependency-index entries, NO listener installation. Emits one
+   * {@link MqlQueryResultEnvelope} (success) or one
+   * {@link MqlQueryErrorEnvelope} (failure) per call.
+   *
+   * Holder / cardinality / canonical-kind checks mirror
+   * {@link handleSubscribe} so a client's error-handling code can
+   * branch by `reason` uniformly across subscribes and queries. The
+   * `focusDependent` flag on a registered kind is meaningless for a
+   * one-shot read and is ignored.
+   *
+   * The "share the pipeline, skip the state" pattern: programmatic
+   * one-shot reads inside the server should call
+   * `MqlApi.resolveOne` / `resolveMany` + `projectFields` directly;
+   * this surface is the wire-facing channel.
+   */
+  public static handleQuery(req: QueryRequest): void {
+    const { interactive, queryId } = req;
+
+    if (typeof req.query !== 'string') {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'parse',
+        'query required',
+      );
+      return;
+    }
+    if (req.cardinality !== 'one' && req.cardinality !== 'many') {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'parse',
+        'cardinality required',
+      );
+      return;
+    }
+    const query = req.query;
+    const cardinality = req.cardinality;
+    const fields = resolveFieldSet(req.fields);
+    const detailKey = req.detailKey;
+
+    // Focus + cardinality cross-check (mirrors handleSubscribe).
+    if (detailKey !== undefined && cardinality !== 'one') {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'parse',
+        'detailKey requires cardinality one',
+      );
+      return;
+    }
+
+    // Holder resolution (mirrors handleSubscribe).
+    const holder = interactive.getHolder();
+    if (!holder || !MixinApi.isCommandGiver(holder)) {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'permission',
+        'query holder must compose CommandGiver',
+      );
+      return;
+    }
+    if (!MixinApi.isSensor(holder)) {
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        'permission',
+        'query holder must compose Sensor',
+      );
+      return;
+    }
+    const giver = holder as Stuff & CommandGiver;
+    const viewer = holder as Stuff & Sensor;
+
+    // Parse + resolve. Expand shell variables (`$focus`, etc.)
+    // against the holder so var-bearing queries resolve correctly.
+    const expandedQuery = ShellApi.expandVariables(query, giver);
+    let stuffList: Stuff[];
+    try {
+      const ctx = { commandGiver: giver, scope: expandedQuery };
+      if (cardinality === 'one') {
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
+        stuffList = one.stuff ? [one.stuff] : [];
+      } else {
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
+        stuffList = many.stuff;
+      }
+    } catch (err) {
+      const reason: MqlSubscriptionErrorReason =
+        err instanceof MqlPermissionError ? 'permission' : 'parse';
+      this.#emitQueryError(
+        interactive,
+        queryId,
+        reason,
+        err instanceof Error ? err.message : String(err),
+      );
+      return;
+    }
+
+    // Project each Stuff into a wire record (flat or focus per the
+    // request's mode). No registry insertion, no dependency-index
+    // walk — just the projection.
+    const result: RecordValue[] = [];
+    for (const stuff of stuffList) {
+      const rec = this.#projectStuff(stuff, fields, viewer, detailKey);
+      result.push(rec);
+    }
+
+    const template: Omit<MqlQueryResultEnvelope, 'frameId'> = {
+      type: 'mql-query-result',
+      queryId,
       result,
     };
     MessageApi.sendEnvelope(viewer, template);
@@ -644,6 +870,32 @@ export class MqlSubscriptionApi {
       sub.dependencyHandles.push({ kind, by, value });
       this.#ensureListener(kind, by);
     };
+
+    // Holder-level dependency: subscriptions flagged `focusDependent`
+    // (the canonical-kind spec opts in; raw subscribes don't) install
+    // an entry against the holder's focus field, in addition to the
+    // per-result-Stuff descriptor walk below.
+    //
+    // For a query like `$focus`, the result set is whatever the focus
+    // fragment resolves to — NOT the FocusedMixin host. The natural
+    // walk would miss the focus dependency entirely. This explicit
+    // install lets the subscription wake on the holder's setFocus /
+    // clearFocus fires. The conservative-coarse dispatch policy
+    // means *any* focus-field change wakes *any* such subscription
+    // globally; the diff stage filters out non-changes.
+    if (sub.focusDependent) {
+      installTuple(FieldChangedEvent.KIND, 'field', 'focus');
+    }
+    // Same shape, different field: `locationDependent` installs an
+    // entry on the holder's `container` field so the subscription
+    // wakes when the player moves to a new room / vessel.
+    // `Avatar.setContainer` fires `FieldChangedEvent { field:
+    // 'container' }` via Containable's setter, which matches this
+    // index tuple regardless of which container the avatar landed
+    // in.
+    if (sub.locationDependent) {
+      installTuple(FieldChangedEvent.KIND, 'field', 'container');
+    }
 
     for (const stuff of stuffList) {
       const descriptors = collectSubscribableFields(stuff);
@@ -813,14 +1065,20 @@ export class MqlSubscriptionApi {
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
+    // Expand shell variables (`$focus`, etc.) fresh on every
+    // re-resolve — `$focus`-bearing subscriptions rely on the
+    // variable re-expanding to the holder's current focus fragment
+    // each tick, so a `setFocus`-driven dirty mark naturally
+    // produces a new result set.
+    const expandedQuery = ShellApi.expandVariables(sub.query, giver);
     let stuffList: Stuff[];
     try {
-      const ctx = { commandGiver: giver, scope: sub.query };
+      const ctx = { commandGiver: giver, scope: expandedQuery };
       if (sub.cardinality === 'one') {
-        const one = MqlApi.resolveOne(sub.query, ctx);
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
         stuffList = one.stuff ? [one.stuff] : [];
       } else {
-        const many = MqlApi.resolveMany(sub.query, ctx);
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
         stuffList = many.stuff;
       }
     } catch (err) {
@@ -966,6 +1224,35 @@ export class MqlSubscriptionApi {
       console.warn(
         `MqlSubscriptionApi: cannot deliver error envelope (no Sensor holder); ` +
           `subscriptionId=${subscriptionId} reason=${reason}`,
+      );
+    }
+  }
+
+  /**
+   * Emit a one-shot query error envelope. Mirrors {@link #emitError}
+   * but carries `queryId` instead of `subscriptionId` and rides the
+   * `'mql-query-error'` envelope type so client-side handlers can
+   * branch by envelope type before correlating ids.
+   */
+  static #emitQueryError(
+    interactive: Interactive,
+    queryId: string,
+    reason: MqlSubscriptionErrorReason,
+    detail?: string,
+  ): void {
+    const holder = interactive.getHolder();
+    const template: Omit<MqlQueryErrorEnvelope, 'frameId'> = {
+      type: 'mql-query-error',
+      queryId,
+      reason,
+      ...(detail !== undefined ? { detail } : {}),
+    };
+    if (holder && MixinApi.isSensor(holder)) {
+      MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+    } else {
+      console.warn(
+        `MqlSubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
+          `queryId=${queryId} reason=${reason}`,
       );
     }
   }

@@ -25,12 +25,16 @@ See:
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers |
+| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers, `handleQuery` |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
 | `packages/server/src/mud/lib/events/GenericEvent.ts` | Escape-hatch class-shaped event |
-| `packages/types/src/index.ts` | Inbound + outbound wire types (`MqlSubscribeMessage`, `Mql*Envelope`, `StuffRefRecord`, `WireDetailEntry`, `MaterialSummary`, `StuffDetailFocusRecord`, `Change`) |
+| `packages/server/src/mud/lib/description/Perceptible.ts` | `primaryKeyword` field + `getPrimaryKeyword` / `setPrimaryKeyword`; `primaryKeyword` descriptor on `PerceptibleMixin.subscribableFields` |
+| `packages/server/src/mud/lib/spatial/Container.ts` | `contents` descriptor + `FieldChangedEvent { field: 'contents' }` fires on `addContainable` / `removeContainable` |
+| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires on `setContainer` — the signal `locationDependent` subscriptions wake on |
+| `packages/server/src/mud/lib/command/Focused.ts` | `focus` descriptor + `FieldChangedEvent { field: 'focus' }` fires on `setFocus` / `clearFocus` |
+| `packages/types/src/index.ts` | Inbound + outbound wire types (`MqlSubscribeMessage`, `MqlQueryMessage`, `Mql*Envelope`, `StuffRefRecord`, `WireDetailEntry`, `MaterialSummary`, `StuffDetailFocusRecord`, `Change`) |
 
 ## Surface
 
@@ -39,6 +43,7 @@ See:
 ```ts
 handleSubscribe(req: SubscribeRequest): void
 handleUnsubscribe(interactive: Interactive, subscriptionId: string): void
+handleQuery(req: QueryRequest): void
 cancelAllForInteractive(interactive: Interactive): void
 ```
 
@@ -51,15 +56,26 @@ interface SubscribeRequest {
   query: string;
   cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
-  detailKey?: string;     // focus-mode opt-in (requires cardinality 'one')
+  detailKey?: string;          // focus-mode opt-in (requires cardinality 'one')
+  focusDependent?: boolean;    // install holder-level `focus` field dep entry
+  locationDependent?: boolean; // install holder-level `container` field dep entry
 }
 ```
+
+`focusDependent` and `locationDependent` are independent opt-in
+flags that install extra holder-level dependency entries the
+result-set walk wouldn't naturally find — see "Holder-level
+dependency flags" below. There is no named-subscription registry;
+clients send the raw spec every time, and the wire client replays
+the spec on reconnect.
 
 Substrate behavior:
 
 - Duplicate `subscriptionId` per Interactive → emit
   `MqlSubscriptionErrorEnvelope { reason: 'parse', detail: 'duplicate subscriptionId' }`,
   no registration.
+- Missing `query` or `cardinality` → `reason: 'parse'`, no
+  registration.
 - `detailKey` with `cardinality: 'many'` → `reason: 'parse'`, no
   registration.
 - Holder missing `CommandGiver` or `Sensor` composition →
@@ -147,16 +163,126 @@ cascade is explicit on the server, automatic on the wire.
 ### Field-set aliases
 
 ```ts
-export const REF_FIELDS = ['displayName', 'quantity'];
+export const REF_FIELDS = ['displayName', 'quantity', 'primaryKeyword'];
 export const DETAIL_FIELDS = [
-  'displayName', 'quantity',
+  'displayName', 'quantity', 'primaryKeyword',
   'shortDescription', 'longDescription',
   'details', 'bulkMaterial', 'mass',
+  'contents',
 ];
 resolveFieldSet(undefined | 'ref') === REF_FIELDS;
 resolveFieldSet('detail') === DETAIL_FIELDS;
 resolveFieldSet(array) === array;
 ```
+
+`primaryKeyword` lives on `PerceptibleMixin.subscribableFields`
+— contributed by the mixin that owns the gate; non-Perceptible
+hosts contribute no descriptor and the substrate's projection
+loop omits the field naturally. `contents` lives on
+`ContainerMixin.subscribableFields` (non-container hosts omit it
+on the wire). See the inspection-pane subsystem doc for the
+details surface and the per-viewer visibility filter that scopes
+`contents` projection.
+
+### Holder-level dependency flags
+
+The substrate accepts two opt-in flags on `SubscribeRequest`:
+`focusDependent` and `locationDependent`. Both install an
+**extra dependency entry against the subscription holder** at
+subscribe time, in addition to the per-result-Stuff descriptor
+walk.
+
+#### Why this is needed
+
+For a query like `$focus`, the result set is whatever the focus
+fragment resolves to — NOT the `FocusedMixin` host. The natural
+descriptor walk (which iterates `collectSubscribableFields(stuff)`
+for each Stuff in the result set) would miss the focus dependency
+entirely. Same shape for `here` against the `container` field on
+`Containable`.
+
+#### `focusDependent`
+
+Installs `(FieldChangedEvent.KIND, 'field', 'focus')` against the
+holder. `FocusedMixin.setFocus` / `clearFocus` fires
+`FieldChangedEvent { field: 'focus' }`; the holder-level entry
+matches; the subscription marks dirty; re-resolve runs against
+the now-updated `$focus` fragment; the diff produces a delta.
+End-to-end without any synthetic event class. Used by the
+inspection pane's `$focus` subscription.
+
+#### `locationDependent`
+
+Installs `(FieldChangedEvent.KIND, 'field', 'container')` against
+the holder. `Containable.setContainer` fires
+`FieldChangedEvent { field: 'container' }` on walk / teleport /
+board / disembark; the holder-level entry matches and the
+subscription wakes. Used by the inspection pane's `here`
+breadcrumb-root subscription.
+
+Both flags are meaningless for `mql-query` one-shot reads (no
+subscription state to wake) and are not carried on the query
+shape.
+
+### Shell-variable expansion at re-resolve time
+
+The query string can reference shell variables (`$focus`, etc.);
+the substrate runs `ShellApi.expandVariables` against the holder
+before each (re-)resolve so the variable expands fresh every
+tick. That's what makes a `$focus`-bearing subscription re-
+resolve correctly when `setFocus` fires.
+
+### `mql-query` one-shot channel
+
+`MqlSubscriptionApi.handleQuery` exposes a wire-facing one-shot
+read that **shares the parse + resolve + project pipeline** with
+`handleSubscribe` but skips all subscription state — no
+registration, no dependency-index entries, no listener
+installation.
+
+Wire shapes in `@saxonberg/types`:
+
+```ts
+interface MqlQueryMessage {
+  type: 'mql-query';
+  queryId: string;
+  query: string;
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
+  detailKey?: string;
+}
+
+interface MqlQueryResultEnvelope {
+  type: 'mql-query-result';
+  frameId: number;
+  queryId: string;
+  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+}
+
+interface MqlQueryErrorEnvelope {
+  type: 'mql-query-error';
+  frameId: number;
+  queryId: string;
+  reason: MqlSubscriptionErrorReason;
+  detail?: string;
+}
+```
+
+`Application.processUserMessage` routes inbound `'mql-query'`
+messages through `MqlSubscriptionApi.handleQuery` — same shape
+as the existing `'mql-subscribe'` route. Holder and cardinality
+checks mirror `handleSubscribe` so a client's error-handling
+code can branch by `reason` uniformly across subscribes and
+queries.
+
+Server-side programmatic one-shot reads call `MqlApi.resolveOne`
+/ `resolveMany` + `projectFields` directly; this surface is the
+wire-facing channel. v1 consumers of the substrate include the
+`find` verb pattern documented in
+[docs/subsystems/inspection-pane.md](./inspection-pane.md) — the
+player-typed `find` rides the command bus, while the
+`mql-query` channel is reserved for future programmatic widget
+reads.
 
 ## Two projection layers
 
@@ -441,11 +567,44 @@ substrate's re-projection without any descriptor changes.
 
 - `mql-subscribe-update` — change a subscription's query without
   un/re-subscribing.
-- `mql-query` — one-shot read (no live updates).
 - Heartbeat / explicit `'closed'` envelope.
-- Canonical-kinds projection (`mixins[]`, `capabilities[]`).
+- Wire projection fields for `mixins[]` / `capabilities[]`.
 - Per-detail-key dependency-index refinement.
 - Programmatic / non-client substrate consumers (e.g., server-side
-  rules listening for live state).
+  rules listening for live state). The `mql-query` channel exists
+  as a wire surface; in-process consumers call `MqlApi.resolveOne`
+  / `resolveMany` directly.
+- Server-side named-subscription registry. The build initially
+  shipped one and retired it during MR review — clients send the
+  raw spec via `subscribeMql(spec)` and replay it on reconnect.
+  See *Build history* below.
 
 These land in follow-up scope when concrete consumers demand them.
+
+## Build history
+
+- **Canonical-kind registry retired during MR iteration.** Wave 1
+  shipped `MqlSubscriptionApi.registerKind(name, spec)` with a
+  `kind?: string` overlay on `MqlSubscribeMessage` /
+  `MqlQueryMessage`. The mechanism was a pure server-side macro
+  over the raw spec — the substrate's load-bearing machinery
+  (dependency-index, diff, listener wiring, the `focusDependent`
+  flag) didn't depend on the registry. Demolished in favor of
+  clients sending the raw spec; the wire bytes are unchanged for
+  any caller that was sending the spec directly.
+- **`locationDependent` added.** Symmetric with `focusDependent`,
+  installs a holder-level dep entry against the `container` field
+  so subscriptions on `here` (or any holder-position query) wake
+  on movement. `Containable.setContainer` now fires
+  `FieldChangedEvent { field: 'container' }`. Used by the
+  inspection pane's breadcrumb root.
+- **`primaryKeyword` descriptor relocated.** Originally on
+  `Stuff.subscribableFields` with an inline mixin gate
+  (`MixinApi.isPerceptible`); moved onto
+  `PerceptibleMixin.subscribableFields` so the descriptor sits on
+  the mixin that owns the gate. The substrate's projection loop
+  already tolerates missing descriptors, so `REF_FIELDS` can list
+  `'primaryKeyword'` unconditionally even though only Perceptible
+  hosts contribute one.
+
+Commit range: `41240c7..HEAD` on the `inspection` branch.

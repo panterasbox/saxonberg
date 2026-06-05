@@ -51,6 +51,10 @@ import type { Stuff } from '../stuff/Stuff';
 import { PronounMemory } from '../../api/mql';
 import type { CommandContributions } from '../../api/command';
 import type { SyntheticVarEntry } from '../../api/shell';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Public shape provided by FocusedMixin.
@@ -101,6 +105,30 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     ];
 
     /**
+     * Live-query subscribable fields. The `focus` descriptor's primary
+     * job is to install the meta-bus dependency-index entry at
+     * `(FieldChangedEvent.KIND, 'field', 'focus')` so the `setFocus`
+     * / `clearFocus` field-change fires don't sail into the void.
+     *
+     * No v1 client field-set asks for `focus` directly — the canonical
+     * `me.focus` subscription resolves an MQL query against the
+     * giver's focus fragment and projects the *targets*, not the
+     * fragment string itself. The descriptor still exists because
+     * subscriptions flagged `focusDependent` (Wave 3's canonical-kind
+     * machinery) install a holder-level dependency entry on this
+     * same key, and a descriptor whose `read` returns a string is
+     * the cleanest way to keep the substrate's prototype-chain walk
+     * uniform.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'focus',
+        read: (stuff) =>
+          (stuff as Stuff & { getFocus(): string }).getFocus(),
+      },
+    ];
+
+    /**
      * Active focus fragment. Transient — every Focused giver
      * starts at `"here"` and resets to `"here"` on movement
      * (the auto-look-on-arrival path post-`clearFocus()`).
@@ -123,11 +151,22 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
 
     setFocus(fragment: string): void {
       const trimmed = fragment.trim();
-      this._focus = trimmed.length > 0 ? trimmed : 'here';
+      const next = trimmed.length > 0 ? trimmed : 'here';
+      this._focus = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'focus',
+        this._focus,
+        next,
+      );
     }
 
     clearFocus(): void {
-      this._focus = 'here';
+      this._focus = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'focus',
+        this._focus,
+        'here',
+      );
     }
 
     getPronounMemory(): PronounMemory {

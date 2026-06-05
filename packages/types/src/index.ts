@@ -375,6 +375,13 @@ export interface PromptEnvelope {
  * a `'many'` subscribe with a `detailKey` is rejected with
  * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
  * parameter is ignored in focus mode.
+ *
+ * `focusDependent` / `locationDependent` install holder-level
+ * dependency entries the result-walk wouldn't naturally find — the
+ * subscription wakes on `setFocus` / `setContainer` respectively.
+ * Used by client subscriptions that watch the holder's pointer
+ * fields (e.g., a focus-pane query like `$focus` or a current-room
+ * query like `here`).
  */
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
@@ -383,11 +390,37 @@ export interface MqlSubscribeMessage {
   cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
+  focusDependent?: boolean;
+  locationDependent?: boolean;
 }
 
 export interface MqlUnsubscribeMessage {
   type: 'mql-unsubscribe';
   subscriptionId: string;
+}
+
+/**
+ * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
+ * same `query` / `cardinality` / `fields` / `detailKey` fields — but
+ * the substrate reuses ONLY the parse + resolve + project pipeline:
+ * no registration in the per-Interactive registry, no dependency-
+ * index entries, no listener installation. The result envelope ships
+ * once; no follow-up deltas are emitted.
+ *
+ * Discriminator is `queryId` (not `subscriptionId`) so a client may
+ * have both subscriptions and queries in flight without correlation
+ * collisions.
+ *
+ * `focusDependent` / `locationDependent` are meaningless for one-shot
+ * reads (no subscription state to wake) and are NOT carried.
+ */
+export interface MqlQueryMessage {
+  type: 'mql-query';
+  queryId: string;
+  query: string;
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
+  detailKey?: string;
 }
 
 /**
@@ -428,12 +461,14 @@ export interface PromptCancelMessage {
  * `displayName` is non-optional here — the substrate's synthetic
  * descriptor ensures `DescribeApi.getDisplayName` always renders a
  * usable string. `quantity` rides along for Globbable hosts; absent
- * for non-Globbable.
+ * for non-Globbable. `primaryKeyword` rides along for Perceptible
+ * hosts (every in-world Stuff with a keyword pool); absent otherwise.
  */
 export interface StuffRefRecord {
   stuffId: string;
   displayName: string;
   quantity?: number;
+  primaryKeyword?: string;
 }
 
 /**
@@ -463,9 +498,14 @@ export interface MaterialSummary {
 /**
  * Detail-record carried on subscription envelopes when the client
  * subscribes with the `'detail'` field set. Adds the flat detail
- * surface (descriptions, details list, bulk material, mass) on top
- * of the `StuffRefRecord` ref surface. Optional fields are absent
- * when the host doesn't compose the contributing mixin.
+ * surface (descriptions, details list, bulk material, mass, contents)
+ * on top of the `StuffRefRecord` ref surface. Optional fields are
+ * absent when the host doesn't compose the contributing mixin.
+ *
+ * `contents` is a per-viewer-filtered list of `StuffRefRecord`-shape
+ * entries for Container hosts — children the viewer can perceive,
+ * minus self / adornments / non-Visible items. The filter mirrors
+ * the `look` controller's room-occupants policy.
  */
 export interface StuffDetailRecord extends StuffRefRecord {
   shortDescription?: string;
@@ -473,6 +513,51 @@ export interface StuffDetailRecord extends StuffRefRecord {
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };
+  contents?: StuffRefRecord[];
+  /**
+   * Obvious exits for Exitable hosts — what `look` would surface as
+   * "Obvious exits: ...". Omitted entirely for non-Exitable hosts.
+   * Each entry carries the direction string (`'south'`, `'up'`); the
+   * destination is resolved by walking, not displayed.
+   */
+  exits?: StuffExitRecord[];
+}
+
+/**
+ * Wire shape for a single obvious exit. Direction is what the
+ * player types to traverse (`go <direction>`). When the exit
+ * passes through a `Door` (or any Boundary that acts as a door),
+ * the door's identity + open/closed state ride along so clients
+ * can annotate the exit inline ("south (the front doors, open)")
+ * without a second round-trip — mirroring how the look prose
+ * surfaces the door via `formatExits`.
+ */
+export interface StuffExitRecord {
+  direction: string;
+  door?: StuffExitDoor;
+}
+
+/**
+ * Wire-side door projection embedded in `StuffExitRecord.door`.
+ * Carries the door's `stuffId` (so a click affordance can resolve
+ * its display name from the stuff registry / send `look` against
+ * the canonical keyword), the display name for inline rendering,
+ * and the current open/closed state for the user-facing
+ * annotation.
+ */
+export interface StuffExitDoor {
+  stuffId: string;
+  displayName: string;
+  open: boolean;
+  /**
+   * Door's `primaryKeyword` when set — the canonical disambiguator
+   * the server resolves cleanly. Click affordances prefer this
+   * over `displayName` so a door named "the front doors" routes
+   * to `look doors` instead of the unwieldy / parse-rejected
+   * `look the front doors`. Optional because not every Door has
+   * one (Perceptible's primaryKeyword is fail-soft).
+   */
+  primaryKeyword?: string;
 }
 
 /**
@@ -537,13 +622,44 @@ export interface MqlSubscriptionErrorEnvelope {
   detail?: string;
 }
 
+/**
+ * One-shot query result. Mirrors
+ * {@link MqlSubscriptionResultEnvelope} but correlates to a
+ * {@link MqlQueryMessage} via `queryId` instead of
+ * `subscriptionId`. The wire shape of the projected records is
+ * identical — flat-mode queries ship `StuffRefRecord | StuffDetailRecord`,
+ * focus-mode queries ship `StuffDetailFocusRecord`. No delta envelope
+ * follows: queries are one-shot reads.
+ */
+export interface MqlQueryResultEnvelope {
+  type: 'mql-query-result';
+  frameId: number;
+  queryId: string;
+  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+}
+
+/**
+ * One-shot query failure. Reuses {@link MqlSubscriptionErrorReason} so
+ * client error-handling code can branch by reason uniformly across
+ * subscribes and queries.
+ */
+export interface MqlQueryErrorEnvelope {
+  type: 'mql-query-error';
+  frameId: number;
+  queryId: string;
+  reason: MqlSubscriptionErrorReason;
+  detail?: string;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
   | PromptEnvelope
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
-  | MqlSubscriptionErrorEnvelope;
+  | MqlSubscriptionErrorEnvelope
+  | MqlQueryResultEnvelope
+  | MqlQueryErrorEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -555,7 +671,9 @@ export type EnvelopeTemplate =
   | Omit<PromptEnvelope, 'frameId'>
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>;
+  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlQueryResultEnvelope, 'frameId'>
+  | Omit<MqlQueryErrorEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)

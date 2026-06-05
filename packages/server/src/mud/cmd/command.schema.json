@@ -189,8 +189,42 @@
         },
         "onShortage": {
           "enum": ["error"]
+        },
+        "effects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/phaseEffect" },
+          "description": "Lifecycle effects this option applies to the dispatcher when its bound value is truthy. Each entry names a `phase` from the documented vocabulary (focus-update / validate / confirm-prompt / dispatch / emit-scene) and an `action` (`skip` or `replace`). `replace` carries a `with` handler name. Schema-valid effects against phases or handlers the substrate hasn't wired yet throw at runtime."
         }
       }
+    },
+    "phaseEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "action"],
+      "properties": {
+        "phase": {
+          "enum": ["focus-update", "validate", "confirm-prompt", "dispatch", "emit-scene"],
+          "description": "Dispatcher lifecycle phase the effect targets. See the phase taxonomy in api/command.ts for implementation status — schema-valid phases without runtime support throw at dispatch time."
+        },
+        "action": {
+          "enum": ["skip", "replace"],
+          "description": "`skip` bypasses the phase. `replace` runs a framework-registered handler in place of the phase's default behavior; requires `with`."
+        },
+        "with": {
+          "enum": ["deferred-dispatch", "explain-plan"],
+          "description": "Replacement-handler name. Required when action is `replace`. The vocabulary is documented up-front; throws at dispatch time if the handler hasn't been implemented yet."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "action": { "const": "replace" } } },
+          "then": { "required": ["with"] }
+        },
+        {
+          "if": { "properties": { "action": { "const": "skip" } } },
+          "then": { "not": { "required": ["with"] } }
+        }
+      ]
     },
     "validatorSpec": {
       "type": "string",
