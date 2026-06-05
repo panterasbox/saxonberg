@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MmlRenderer } from "../MmlRenderer";
+import { useStore } from "../../store";
 
 function renderRenderer(text: string) {
   const onCommandClick = vi.fn();
@@ -43,11 +44,14 @@ describe("MmlRenderer", () => {
     expect(onCommandClick).toHaveBeenCalledWith("go up");
   });
 
-  it("renders unknown tags as their label text without a clickable affordance (forward-compat)", () => {
+  it("renders truly unknown tags as their label text without a clickable affordance (forward-compat)", () => {
+    // `<quantity>` is a tag the renderer doesn't recognise (not an
+    // exit, not an identity tag, not a non-actionable narrative tag).
+    // Forward-compatibility: it renders as plain label text, no span.
     const { container } = renderRenderer(
-      'You see <item id="42">a brass thermometer</item> here.'
+      'You see <quantity n="3">three apples</quantity> here.'
     );
-    expect(container.textContent).toBe("You see a brass thermometer here.");
+    expect(container.textContent).toBe("You see three apples here.");
     expect(container.querySelector("span")).toBeNull();
   });
 
@@ -89,11 +93,11 @@ describe("MmlRenderer", () => {
     expect(onCommandPreview).toHaveBeenNthCalledWith(2, null);
   });
 
-  it("does not fire onCommandPreview for unknown tags", () => {
+  it("does not fire onCommandPreview for tags that are truly unknown", () => {
     const { onCommandPreview, container } = renderRenderer(
-      'You see <item id="42">a brass thermometer</item>.'
+      'You hold <quantity n="3">three apples</quantity>.'
     );
-    // No span rendered for unknown tag — nothing to hover.
+    // No span rendered for unrecognised tag — nothing to hover.
     expect(container.querySelector("span")).toBeNull();
     expect(onCommandPreview).not.toHaveBeenCalled();
   });
@@ -134,6 +138,148 @@ describe("MmlRenderer", () => {
       // After our pass the user should see `&lt;`, not `<`.
       const { container } = renderRenderer("see &amp;lt; for less-than");
       expect(container.textContent).toBe("see &lt; for less-than");
+    });
+  });
+
+  describe("identity tags (Wave 9 — registry-backed look targets)", () => {
+    beforeEach(() => {
+      // Clear the registry between tests so seeded state doesn't leak.
+      useStore.setState({ stuffRegistry: new Map() });
+    });
+
+    it("renders an <item> with a stuff-id resolving to a registry hit as a clickable span; click sends look <primaryKeyword>", () => {
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "X", displayName: "a brass thermometer", primaryKeyword: "thermometer" },
+      ]);
+      const { onCommandClick } = renderRenderer(
+        '<item stuff-id="X">a brass thermometer</item>'
+      );
+      fireEvent.click(screen.getByText("a brass thermometer"));
+      expect(onCommandClick).toHaveBeenCalledWith("look thermometer");
+    });
+
+    it("renders an <item> with a stuff-id but no registry hit as a clickable span; click sends look <label>", () => {
+      const { onCommandClick } = renderRenderer(
+        '<item stuff-id="Y">an orphan</item>'
+      );
+      fireEvent.click(screen.getByText("an orphan"));
+      expect(onCommandClick).toHaveBeenCalledWith("look an orphan");
+    });
+
+    it("falls back to label when the registry hit is present but carries no primaryKeyword", () => {
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "Z", displayName: "something nameless" },
+      ]);
+      const { onCommandClick } = renderRenderer(
+        '<item stuff-id="Z">something nameless</item>'
+      );
+      fireEvent.click(screen.getByText("something nameless"));
+      expect(onCommandClick).toHaveBeenCalledWith("look something nameless");
+    });
+
+    it("falls back to label when the identity tag carries no stuff-id at all", () => {
+      const { onCommandClick } = renderRenderer(
+        "<item>a plain apple</item>"
+      );
+      fireEvent.click(screen.getByText("a plain apple"));
+      expect(onCommandClick).toHaveBeenCalledWith("look a plain apple");
+    });
+
+    it("renders <name> tags the same way (registry hit → primaryKeyword)", () => {
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "A", displayName: "Alice", primaryKeyword: "alice" },
+      ]);
+      const { onCommandClick } = renderRenderer(
+        '<name stuff-id="A">Alice</name>'
+      );
+      fireEvent.click(screen.getByText("Alice"));
+      expect(onCommandClick).toHaveBeenCalledWith("look alice");
+    });
+
+    it("renders <location> tags the same way (registry hit → primaryKeyword)", () => {
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "L", displayName: "the great hall", primaryKeyword: "hall" },
+      ]);
+      const { onCommandClick } = renderRenderer(
+        '<location stuff-id="L">the great hall</location>'
+      );
+      fireEvent.click(screen.getByText("the great hall"));
+      expect(onCommandClick).toHaveBeenCalledWith("look hall");
+    });
+
+    it("renders <object> tags the same way (registry miss → label fallback)", () => {
+      const { onCommandClick } = renderRenderer(
+        '<object stuff-id="missing">a stray rock</object>'
+      );
+      fireEvent.click(screen.getByText("a stray rock"));
+      expect(onCommandClick).toHaveBeenCalledWith("look a stray rock");
+    });
+
+    it("<direction> renders as plain text (non-actionable)", () => {
+      const { container, onCommandPreview } = renderRenderer(
+        "<direction>up</direction>"
+      );
+      expect(container.textContent).toBe("up");
+      expect(container.querySelector("span")).toBeNull();
+      expect(onCommandPreview).not.toHaveBeenCalled();
+    });
+
+    it("<speech> renders as plain text (non-actionable)", () => {
+      const { container, onCommandPreview } = renderRenderer(
+        "<speech>hello there</speech>"
+      );
+      expect(container.textContent).toBe("hello there");
+      expect(container.querySelector("span")).toBeNull();
+      expect(onCommandPreview).not.toHaveBeenCalled();
+    });
+
+    it("fires onCommandPreview with the resolved command on mouseenter for an identity tag", () => {
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "X", displayName: "a brass thermometer", primaryKeyword: "thermometer" },
+      ]);
+      const { onCommandPreview } = renderRenderer(
+        '<item stuff-id="X">a brass thermometer</item>'
+      );
+      fireEvent.mouseEnter(screen.getByText("a brass thermometer"));
+      expect(onCommandPreview).toHaveBeenCalledWith("look thermometer");
+    });
+
+    it("fires onCommandPreview with null on mouseleave for an identity tag", () => {
+      const { onCommandPreview } = renderRenderer(
+        '<item stuff-id="Y">orphan</item>'
+      );
+      const span = screen.getByText("orphan");
+      fireEvent.mouseEnter(span);
+      fireEvent.mouseLeave(span);
+      expect(onCommandPreview).toHaveBeenNthCalledWith(1, "look orphan");
+      expect(onCommandPreview).toHaveBeenNthCalledWith(2, null);
+    });
+
+    it("reads the registry as a snapshot — upserts after render do not auto-rerender, but reads at click time use the latest snapshot when the parent re-renders", () => {
+      // First render: no registry hit, label fallback.
+      const { onCommandClick, rerender } = renderRenderer(
+        '<item stuff-id="X">a brass thermometer</item>'
+      );
+      fireEvent.click(screen.getByText("a brass thermometer"));
+      expect(onCommandClick).toHaveBeenLastCalledWith(
+        "look a brass thermometer"
+      );
+
+      // Registry upsert happens externally — renderer doesn't auto-update.
+      useStore.getState().upsertStuffMetadata([
+        { stuffId: "X", displayName: "a brass thermometer", primaryKeyword: "thermometer" },
+      ]);
+
+      // Parent re-renders (passes same text) → renderer re-reads snapshot.
+      rerender(
+        <MmlRenderer
+          text={'<item stuff-id="X">a brass thermometer</item>'}
+          onCommandClick={onCommandClick}
+          onCommandPreview={vi.fn()}
+        />
+      );
+      fireEvent.click(screen.getByText("a brass thermometer"));
+      expect(onCommandClick).toHaveBeenLastCalledWith("look thermometer");
     });
   });
 });

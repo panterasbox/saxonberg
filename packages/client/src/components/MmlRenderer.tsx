@@ -24,6 +24,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { useStore } from '../store';
 
 interface MmlRendererProps {
   text: string;
@@ -42,7 +43,12 @@ type ParsedNode =
   | { kind: 'tag'; tag: string; attrs: Record<string, string>; label: string };
 
 const TAG_REGEX = /<(\w+)([^>]*)>([^<]*)<\/\1>/g;
-const ATTR_REGEX = /(\w+)\s*=\s*"([^"]*)"/g;
+// Attribute names match XML/HTML conventions — letters, digits,
+// underscores, AND hyphens. MML uses kebab-case for compound names
+// (e.g. `stuff-id` from the server-side Mml.compose surface), so the
+// hyphen MUST be in the character class. `\w+` alone would split
+// `stuff-id="X"` into a bare `id` attribute, dropping the prefix.
+const ATTR_REGEX = /([\w-]+)\s*=\s*"([^"]*)"/g;
 
 /**
  * Decode the five MML-recognised entities. Mirrors the server-side
@@ -99,11 +105,6 @@ function parseMml(text: string): ParsedNode[] {
  * Map a tag node to the command its click should send.
  * Returns null if the tag is not actionable (rendered as plain text).
  *
- * v0: only `<exit>` is wired. The branches for the remaining slate
- * tags are explicitly omitted here — they land as the server starts
- * emitting them, alongside any tag-specific UX work (right-click
- * menus, hover previews).
- *
  * The exit click emits the canonical `go <dir>` form rather than
  * the bare-direction alias. Both work on the server (cardinal-
  * direction aliases ship as defaults on `MobileMixin`), but the
@@ -112,10 +113,47 @@ function parseMml(text: string): ParsedNode[] {
  * input, which generalizes — to `go to <place>`, `swim north`,
  * `climb up`, etc. — far better than the abbreviation does.
  * Keyboard users still get `n` / `north` as typing shortcuts.
+ *
+ * Identity tags (`<item>`, `<name>`, `<location>`, `<object>`)
+ * carrying a `stuff-id` attribute look the stuff up in the session-
+ * wide registry (populated by every MQL subscription / query
+ * consumer; see `services/websocket.ts` + `store/index.ts`). When the
+ * registry hit carries a `primaryKeyword`, the click sends
+ * `look <primaryKeyword>` — the canonical disambiguator the server
+ * resolves cleanly. Registry miss (or missing `primaryKeyword`)
+ * falls back to `look <label>`; the visible label is the player's
+ * best-available reference and matches what they would have typed
+ * by hand. Identity tags without a `stuff-id` (legacy emitters,
+ * pre-Wave-1 server prose) also fall back to label-shape.
+ *
+ * Registry access is a snapshot read (`useStore.getState()`), NOT a
+ * React subscription — the renderer just needs the snapshot at
+ * render time. Re-renders happen naturally when the parent (terminal,
+ * inspection pane body) re-renders for its own reasons.
+ *
+ * `<direction>` and `<speech>` remain non-actionable: directions
+ * without an exit context are just text, and speech is part of the
+ * narrative tag family, not the affordance family.
  */
 function commandFor(node: Extract<ParsedNode, { kind: 'tag' }>): string | null {
   if (node.tag === 'exit') {
     return `go ${node.attrs.dir ?? node.label}`;
+  }
+  if (
+    node.tag === 'item' ||
+    node.tag === 'name' ||
+    node.tag === 'location' ||
+    node.tag === 'object'
+  ) {
+    const stuffId = node.attrs['stuff-id'];
+    if (stuffId) {
+      const meta = useStore.getState().stuffRegistry.get(stuffId);
+      const keyword = meta?.primaryKeyword;
+      if (keyword) {
+        return `look ${keyword}`;
+      }
+    }
+    return `look ${node.label}`;
   }
   return null;
 }
