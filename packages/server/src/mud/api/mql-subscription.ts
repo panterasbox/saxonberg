@@ -184,6 +184,7 @@ export const DETAIL_FIELDS: FieldSet = [
   'bulkMaterial',
   'mass',
   'contents',
+  'exits',
 ];
 
 /**

@@ -1,14 +1,25 @@
 # Duncan Hall Lobby — landing room for new sessions.
 #
+# "Duncan Hall" the building is a proper name (NamedMixin on the
+# enclosing Zone); "the lobby of Duncan Hall" is a generic-label
+# room — shortDescription only, no NamedMixin. The pane header
+# falls back to displayName which falls back to shortDescription
+# for non-Named hosts; the building's identity rides through the
+# zone path, not the room's own label.
+#
 # Sits at grid [0, 1, 0] inside the Duncan Hall zone (y grows north,
 # so [0, 1] is one cell north of [0, 0]). The south exit declared
 # below is bidirectional by default for cardinals, so the front
 # steps get the back-exit "north" automatically via
 # Exitable.applyExits.
-class: /lib/spatial/NamedCartesianLocation
+#
+# `populates:` seeds a couple of instrument instances into the
+# lobby on hydrate so the inspection pane's contents list has
+# something to render — demonstrating the contents projection
+# end-to-end against real content.
+class: /lib/spatial/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  name: Duncan Hall Lobby
   shortDescription: the lobby of Duncan Hall
   longDescription: |
     A long marble counter divides the lobby roughly in half. The far wall is studded with brass mail slots — most empty, a few stuffed with envelopes nobody has come down for. Bulletin boards on either side advertise things that have already happened: a study group two weeks back, a missing textbook from last term.
@@ -21,3 +32,6 @@ data:
   exits:
     south:
       destination: /domain/eternal/duncan-hall/steps
+  populates:
+    - /obj/instrument/thermometer
+    - /obj/instrument/barometer

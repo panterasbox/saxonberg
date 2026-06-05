@@ -152,6 +152,19 @@ const SectionHeading = styled.h3`
   font-weight: 600;
 `;
 
+const BodyProse = styled.div`
+  margin-bottom: ${tokens.space.lg};
+`;
+
+const ExitsBlock = styled.div`
+  margin-bottom: ${tokens.space.lg};
+  color: ${tokens.color.fgMuted};
+`;
+
+const ContentsBlock = styled.div`
+  margin-bottom: ${tokens.space.lg};
+`;
+
 const AdminBlock = styled.section`
   margin-top: ${tokens.space.xl};
   padding-top: ${tokens.space.md};
@@ -452,11 +465,19 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
 /**
  * Single-focus body — percept projection for the focused thing.
  *
- * Renders the prose the substrate's detail field-set ships:
- * short + long descriptions (via `MmlRenderer`) and the visible
- * contents list. Does NOT render slot maps, mixin lists, or raw
- * property state in the player body — those land in the admin
- * extras when the viewer is admin.
+ * Renders only the prose the substrate's detail field-set ships
+ * as look-revealable percepts: the long description (the body),
+ * the obvious exits, and the visible contents. The header already
+ * carries the short description (or the display name when the
+ * focused thing has a proper Name); the body does NOT repeat it.
+ * No "SHORT"/"DESCRIPTION" label headings — the implicit structure
+ * (header → prose → exits → contents) tells the reader what's
+ * what, and the slate's flatten-linear-labeled discipline applies
+ * inside each list (exits, contents) where labels are load-bearing.
+ *
+ * Internal property state (slot maps, mixin lists, raw fields)
+ * lives in the admin extras when the viewer is admin — never the
+ * player body.
  */
 function renderSingle(
   record: StuffRefRecord | StuffDetailRecord,
@@ -466,39 +487,37 @@ function renderSingle(
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
   const long = detail.longDescription ?? "";
-  const short = detail.shortDescription ?? "";
+  const exits = detail.exits ?? [];
   const contents = detail.contents ?? [];
 
   return (
-    <div>
-      <div data-stuff-id={record.stuffId}>{record.displayName}</div>
-      {short && (
-        <>
-          <SectionHeading>Short</SectionHeading>
-          <div>
-            <MmlRenderer
-              text={short}
-              onCommandClick={onSendCommand}
-              onCommandPreview={() => undefined}
-            />
-          </div>
-        </>
-      )}
+    <div data-stuff-id={record.stuffId}>
       {long && (
-        <>
-          <SectionHeading>Description</SectionHeading>
-          <div>
-            <MmlRenderer
-              text={long}
-              onCommandClick={onSendCommand}
-              onCommandPreview={() => undefined}
-            />
-          </div>
-        </>
+        <BodyProse>
+          <MmlRenderer
+            text={long}
+            onCommandClick={onSendCommand}
+            onCommandPreview={() => undefined}
+          />
+        </BodyProse>
+      )}
+      {exits.length > 0 && (
+        <ExitsBlock>
+          Exits:{" "}
+          {exits.map((exit, i) => (
+            <React.Fragment key={exit.direction}>
+              {i > 0 && ", "}
+              <EntityName
+                label={exit.direction}
+                title={`Click to send: go ${exit.direction}`}
+                onClick={() => onSendCommand(`go ${exit.direction}`)}
+              />
+            </React.Fragment>
+          ))}
+        </ExitsBlock>
       )}
       {contents.length > 0 && (
-        <>
-          <SectionHeading>Contents</SectionHeading>
+        <ContentsBlock>
           <List aria-label="contents">
             {contents.map((row) => (
               <ListItem key={row.stuffId}>
@@ -511,7 +530,7 @@ function renderSingle(
               </ListItem>
             ))}
           </List>
-        </>
+        </ContentsBlock>
       )}
       {isAdmin && renderAdminExtras(record, onSendCommand)}
     </div>

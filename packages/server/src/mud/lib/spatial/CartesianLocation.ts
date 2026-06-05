@@ -23,6 +23,7 @@ import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { PopulatesMixin } from '../stuff/Populates';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -31,7 +32,7 @@ import type { Exit } from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 
 const CartesianLocationBase = PostRegistrationMixin(
-  ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+  PopulatesMixin(ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location))))
 );
 
 export class CartesianLocation extends CartesianLocationBase {

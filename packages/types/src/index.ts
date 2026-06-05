@@ -539,6 +539,21 @@ export interface StuffDetailRecord extends StuffRefRecord {
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
+  /**
+   * Obvious exits for Exitable hosts — what `look` would surface as
+   * "Obvious exits: ...". Omitted entirely for non-Exitable hosts.
+   * Each entry carries the direction string (`'south'`, `'up'`); the
+   * destination is resolved by walking, not displayed.
+   */
+  exits?: StuffExitRecord[];
+}
+
+/**
+ * Wire shape for a single obvious exit. Direction is what the
+ * player types to traverse (`go <direction>`).
+ */
+export interface StuffExitRecord {
+  direction: string;
 }
 
 /**
