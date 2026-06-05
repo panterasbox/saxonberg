@@ -101,6 +101,17 @@ export interface Detailed {
   getDetailEntries(parent?: DetailId): DetailEntry[];
 
   /**
+   * Declarative-content applier — consumes the YAML/template shape
+   * `{ <key>: { keywords?: string[], description: string } }` and
+   * (re-)populates `this.details` by calling `setDetail` for each
+   * entry. Aliases come from the entry's `keywords` array, with the
+   * map key as the first alias. Idempotent: resets the Map up
+   * front so re-application during template re-clone replaces, not
+   * appends. Quietly skips malformed entries.
+   */
+  applyDetails(data: Record<string, unknown>): void;
+
+  /**
    * Look up the single alias-grouped entry containing `key`, or
    * `null` if no detail resolves at that key. Used by the live-
    * query substrate's focused-detail projection. Supports dotted
@@ -122,6 +133,19 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Used by PersistApi for automatic synchronization.
      */
     static persistentFields = ['details'];
+
+    /**
+     * Instruction-field applier roster. `details` is consumed by
+     * `applyDetails` (Phase 2 of PersistentHydrator). The
+     * declarative YAML shape (a plain object keyed by detail name)
+     * differs from the runtime `Map<DetailId, Detail>` shape, so
+     * the applier sits between them — it owns the conversion. The
+     * applier runs AFTER the persistent bracket-assign in Phase 1
+     * (which would otherwise leave `this.details` as a plain object
+     * and break `getDetailEntries`); the applier resets the Map up
+     * front to undo that.
+     */
+    static instructionFields = ['details'];
 
     /**
      * Live-query subscribable fields. The descriptor's
@@ -289,6 +313,47 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       return result;
+    }
+
+    /**
+     * Declarative applier — wires the template YAML's `details:`
+     * map into the runtime `Map<DetailId, Detail>`. Phase 1 of the
+     * hydrator bracket-assigned the plain YAML object onto
+     * `this.details`, breaking the Map shape; the first thing we
+     * do is reset it. Then walk the entries, each shaped
+     * `{ keywords?: string[], description: string }`, and call
+     * `setDetail` for each — aliases are `[key, ...keywords]` with
+     * duplicates squashed.
+     *
+     * Malformed entries (no description, non-object payload) are
+     * skipped with a warn. Nested children via the `details:`
+     * sub-key are deferred to a future revision; v1 is flat.
+     */
+    applyDetails(data: Record<string, unknown>): void {
+      this.details = new Map();
+      if (!data || typeof data !== 'object') return;
+      for (const [key, raw] of Object.entries(data)) {
+        if (!raw || typeof raw !== 'object') {
+          console.warn(`applyDetails: malformed entry '${key}' skipped`);
+          continue;
+        }
+        const entry = raw as { keywords?: unknown; description?: unknown };
+        if (typeof entry.description !== 'string') {
+          console.warn(
+            `applyDetails: entry '${key}' missing description, skipped`,
+          );
+          continue;
+        }
+        const aliases: DetailId[] = [key];
+        if (Array.isArray(entry.keywords)) {
+          for (const kw of entry.keywords) {
+            if (typeof kw === 'string' && kw && !aliases.includes(kw)) {
+              aliases.push(kw);
+            }
+          }
+        }
+        this.setDetail(aliases, entry.description);
+      }
     }
 
     /**

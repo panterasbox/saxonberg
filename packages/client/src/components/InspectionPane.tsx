@@ -161,8 +161,18 @@ const ExitsBlock = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
+const DetailsBlock = styled.div`
+  margin-bottom: ${tokens.space.lg};
+  color: ${tokens.color.fgMuted};
+`;
+
 const ContentsBlock = styled.div`
   margin-bottom: ${tokens.space.lg};
+`;
+
+const ContentsLabel = styled.div`
+  color: ${tokens.color.fgMuted};
+  margin-bottom: ${tokens.space.xs};
 `;
 
 const AdminBlock = styled.section`
@@ -546,8 +556,30 @@ function renderSingle(
           ))}
         </ExitsBlock>
       )}
+      {(detail.details?.length ?? 0) > 0 && (
+        <DetailsBlock>
+          Details:{" "}
+          {detail.details!.map((entry, i) => {
+            const key = entry.ids[0] ?? "";
+            const command = `look ${key}`;
+            return (
+              <React.Fragment key={key || i}>
+                {i > 0 && ", "}
+                <EntityName
+                  label={key}
+                  title={`Click to send: ${command}`}
+                  command={command}
+                  onPreview={onPreview}
+                  onClick={() => onSendCommand(command)}
+                />
+              </React.Fragment>
+            );
+          })}
+        </DetailsBlock>
+      )}
       {contents.length > 0 && (
         <ContentsBlock>
+          <ContentsLabel>Contents:</ContentsLabel>
           <List aria-label="contents">
             {contents.map((row) => (
               <ListItem key={row.stuffId}>

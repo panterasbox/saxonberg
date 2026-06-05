@@ -35,3 +35,20 @@ data:
   populates:
     - /obj/instrument/thermometer
     - /obj/instrument/barometer
+  details:
+    counter:
+      keywords: [counter, marble]
+      description: |
+        The marble counter runs the length of the room. Up close it's veined and slightly chipped along the edge — generations of students leaning on it has worn the polish down to a soft matte.
+    slots:
+      keywords: [slots, mailslot, mail]
+      description: |
+        Three rows of brass mail slots. Most have a tarnished number plate; a few have curled paper labels with hand-written names. The envelopes that remain look like they've been forgotten on purpose.
+    boards:
+      keywords: [boards, bulletin, bulletins]
+      description: |
+        Two cork bulletin boards flank the doors, layered in flyers and notices. A faded posting for a study group has the dates two weeks gone; another announces a textbook missing since last term.
+    doors:
+      keywords: [doors, door]
+      description: |
+        Tall paneled doors of dark wood, propped open. Light spills in across the floor and warms the air; outside, you can see the upper edge of the front steps.
