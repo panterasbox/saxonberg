@@ -118,6 +118,22 @@ interface StoreState {
    */
   paneBreadcrumbs: string[];
   /**
+   * Detail-drill stack on the currently-focused Stuff. Empty means
+   * the pane is viewing the Stuff itself (long description, exits,
+   * contents). Non-empty means the pane has descended through one
+   * or more detail keys — `['counter']` means the player is
+   * looking AT the counter detail (its description replaces the
+   * long, contents hide, exits stay marked as parent-Stuff). The
+   * focused Stuff itself doesn't change as you drill; only the
+   * level of inspection descends.
+   *
+   * Cleared on any focus change (subscription delta with a new
+   * fragment) and on explicit pop. v1 supports one-level drilling
+   * because the wire shape doesn't ship nested-detail children;
+   * the stack is array-shaped to make extension trivial.
+   */
+  paneDetailPath: string[];
+  /**
    * Flip the paint/clear flag. Called from outgoing `look`-detection
    * (paints) and from the focus-change delta path (clears). The
    * paint policy is client-side, not substrate-driven — the server
@@ -150,6 +166,22 @@ interface StoreState {
    * just happened.
    */
   setPaneFocusFragment: (fragment: string) => void;
+  /**
+   * Push a detail key onto the detail-drill stack — the player is
+   * descending into a detail of the focused Stuff. Idempotent on
+   * the head (clicking the same detail twice is a no-op).
+   */
+  pushPaneDetail: (key: string) => void;
+  /**
+   * Pop the detail stack one level (back-out toward the focused
+   * Stuff). Empty stack stays empty.
+   */
+  popPaneDetail: () => void;
+  /**
+   * Clear the detail-drill stack entirely. Called from the
+   * focus-change path so a focus shift resets the drill state.
+   */
+  clearPaneDetail: () => void;
 }
 
 /**
@@ -248,11 +280,34 @@ export const useStore = create<StoreState>((set) => ({
   paneBodyPainted: false,
   paneLastResult: null,
   paneBreadcrumbs: [],
+  paneDetailPath: [],
 
   setPanePainted: (painted) =>
     set(() => ({
       paneBodyPainted: painted,
     })),
+
+  pushPaneDetail: (key) =>
+    set((state) => {
+      const trimmed = key.trim();
+      if (!trimmed) return {};
+      if (state.paneDetailPath[state.paneDetailPath.length - 1] === trimmed) {
+        return {};
+      }
+      return { paneDetailPath: [...state.paneDetailPath, trimmed] };
+    }),
+
+  popPaneDetail: () =>
+    set((state) => {
+      if (state.paneDetailPath.length === 0) return {};
+      return { paneDetailPath: state.paneDetailPath.slice(0, -1) };
+    }),
+
+  clearPaneDetail: () =>
+    set((state) => {
+      if (state.paneDetailPath.length === 0) return {};
+      return { paneDetailPath: [] };
+    }),
 
   pushBreadcrumb: (fragment) =>
     set((state) => {
