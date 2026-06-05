@@ -553,7 +553,7 @@ function renderSingle(
       )}
       {exits.length > 0 && (
         <ExitsBlock>
-          <SystemLabel>Exits:</SystemLabel>{" "}
+          <SystemLabel>Obvious exits:</SystemLabel>{" "}
           {exits.map((exit, i) => (
             <React.Fragment key={exit.direction}>
               {i > 0 && ", "}

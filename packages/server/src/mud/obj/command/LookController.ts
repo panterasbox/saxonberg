@@ -281,8 +281,11 @@ export class LookController extends CommandController<LookModel> {
     // styled by the client renderer as muted italic with a
     // decorative prefix marker. The inner `<exit>` tags stay
     // flat-adjacent so the client's regex parser still picks them
-    // up (no nesting). "Obvious" is dropped: the prefix marker
-    // carries the structural-line signal already.
-    return Mml.compose`${Mml.sys('Exits:')} ${joined}.`;
+    // up (no nesting). "Obvious" stays in the label: a Location
+    // may have hidden exits that only surface under specific
+    // conditions (a hint in the prose, a perception check, a
+    // revealed door); the qualifier signals "what you can see
+    // right now" without claiming "this is all there is."
+    return Mml.compose`${Mml.sys('Obvious exits:')} ${joined}.`;
   }
 }
