@@ -27,6 +27,23 @@ describe('PerceiverMixin', () => {
     expect(MixinApi.hasMixin(obj, Mixins.Perceiver)).toBe(true);
   });
 
+  it('contributes the perception verbs (look / scry / locate / find) to the self bucket', () => {
+    // Discovery wiring sanity-check — `find.yaml` lives here next to
+    // `look` because find is a snapshot-shaped perception verb, not
+    // a focus-management verb. The acceptance criterion (inspection-
+    // pane plan Wave 5) is that find rides on the Perceiver
+    // contribution surface so every Sensor/Perceiver actor (Avatar +
+    // future NPCs) gets the verb for free.
+    class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+    const selfContributions = (Looker as unknown as {
+      commandContributions: { self: string[] };
+    }).commandContributions.self;
+    expect(selfContributions).toContain('look.yaml');
+    expect(selfContributions).toContain('scry.yaml');
+    expect(selfContributions).toContain('locate.yaml');
+    expect(selfContributions).toContain('find.yaml');
+  });
+
   describe('composition validation', () => {
     it('throws when PerceiverMixin is composed without SensorMixin', () => {
       class LonePerceiver extends PerceiverMixin(Idea) {

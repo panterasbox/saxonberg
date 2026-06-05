@@ -63,9 +63,13 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * not a verb source. The looker has the verbs because they're
      * a Perceiver; the lookable thing supplies a description and
      * keywords.
+     *
+     * `find` rides here too: it's a snapshot-shaped sibling of
+     * `look` (enumerate without binding focus). Discovery wiring
+     * is `look`'s — perception, not focus management.
      */
     static commandContributions: CommandContributions = {
-      self: ['look.yaml', 'scry.yaml', 'locate.yaml'],
+      self: ['look.yaml', 'scry.yaml', 'locate.yaml', 'find.yaml'],
       environment: [],
       inventory: [],
       peers: [],
