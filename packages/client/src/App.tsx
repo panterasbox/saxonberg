@@ -14,6 +14,7 @@ import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
 import { CommandBar } from './components/CommandBar';
+import { InspectionPane } from './components/InspectionPane';
 
 const AppContainer = styled.div`
   display: flex;
@@ -21,6 +22,94 @@ const AppContainer = styled.div`
   height: 100vh;
   background: #1e1e1e;
 `;
+
+/**
+ * Top-level cockpit shell. Left column holds the terminal scrollback
+ * + command bar (the existing single-column UX); right column hosts
+ * the inspection pane. Fixed-width, no user-resize, no tab strip in
+ * v1 — see the inspection-pane requirements' non-goals.
+ */
+const Cockpit = styled.div`
+  display: flex;
+  flex: 1;
+  min-height: 0;
+`;
+
+const LeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+`;
+
+/**
+ * Tokenise the leading verb of a command line. The shell's parser is
+ * server-side; this is a deliberately-coarse client-side peek that
+ * only the pane consumes for paint/clear gating. Whitespace-split
+ * the first token, lowercase it, and trust the server for everything
+ * else. Aliases that compile to `look` / `focus` (e.g. `l`, `f`) are
+ * not expanded here; in practice the cockpit slate gestures send the
+ * canonical verbs.
+ */
+function parseLeadingVerb(text: string): { verb: string; rest: string } {
+  const trimmed = text.trim();
+  if (!trimmed) return { verb: '', rest: '' };
+  const spaceAt = trimmed.indexOf(' ');
+  if (spaceAt < 0) return { verb: trimmed.toLowerCase(), rest: '' };
+  return {
+    verb: trimmed.slice(0, spaceAt).toLowerCase(),
+    rest: trimmed.slice(spaceAt + 1).trim(),
+  };
+}
+
+/**
+ * Strip the `--peek` flag (and any unrecognised flag tokens) out of a
+ * command's arg portion before treating it as the focus fragment for
+ * breadcrumb / paint purposes. The pane needs the bare target, not
+ * the option tail.
+ */
+function stripFlags(rest: string): string {
+  return rest
+    .split(/\s+/)
+    .filter((tok) => tok.length > 0 && !tok.startsWith('--'))
+    .join(' ');
+}
+
+/**
+ * Apply the pane-side paint/clear consequences of an outgoing
+ * command. Bare `look` paints against the current focus; `look <X>`
+ * paints AND drops `<X>` onto the breadcrumb trail (the player has
+ * declared interest in `<X>`); `look <X> --peek` is observe-only —
+ * does NOT paint, does NOT touch breadcrumbs (the requirements'
+ * surface decision: peek emits prose but neither shifts focus nor
+ * paints the body). `focus <X>` clears the body, sets the tracked
+ * fragment, and pushes `<X>` to breadcrumbs. Every other verb is a
+ * pane no-op.
+ */
+function applyOutgoingCommandToPane(text: string): void {
+  const { verb, rest } = parseLeadingVerb(text);
+  const store = useStore.getState();
+  if (verb === 'look') {
+    const isPeek = / --peek(\s|$)/.test(' ' + text + ' ');
+    if (isPeek) return; // peek is a pane no-op
+    store.setPanePainted(true);
+    const target = stripFlags(rest);
+    if (target) {
+      store.pushBreadcrumb(target);
+    }
+    return;
+  }
+  if (verb === 'focus') {
+    store.setPanePainted(false);
+    const target = stripFlags(rest);
+    if (target) {
+      store.setPaneFocusFragment(target);
+      store.pushBreadcrumb(target);
+    }
+    return;
+  }
+  // Other verbs: leave pane state alone.
+}
 
 const LoginContainer = styled.div`
   display: flex;
@@ -182,6 +271,17 @@ function App() {
       return;
     }
 
+    // Pane paint/clear policy lives at the outgoing-command seam:
+    //   - `look ...` paints the pane body (and, when targeted,
+    //     refreshes the breadcrumb trail with the target as a
+    //     "we've looked at this" anchor).
+    //   - `focus ...` clears the pane body (the next look will
+    //     re-paint) and records the new fragment.
+    // Other verbs leave the pane state untouched; subscription
+    // deltas continue to update the cached result and the live
+    // header regardless of which verb triggered them.
+    applyOutgoingCommandToPane(text);
+
     websocketClient.send({
       type: 'command',
       payload: { text },
@@ -299,17 +399,22 @@ function App() {
   return (
     <AppContainer>
       <ConnectionStatus />
-      <Terminal
-        messages={messages}
-        onCommandClick={handleCommandClick}
-        onCommandPreview={handleCommandPreview}
-      />
-      <CommandBar
-        value={inputValue}
-        onChange={handleInputChange}
-        onSend={sendCommand}
-        flashing={flashing}
-      />
+      <Cockpit>
+        <LeftColumn>
+          <Terminal
+            messages={messages}
+            onCommandClick={handleCommandClick}
+            onCommandPreview={handleCommandPreview}
+          />
+          <CommandBar
+            value={inputValue}
+            onChange={handleInputChange}
+            onSend={sendCommand}
+            flashing={flashing}
+          />
+        </LeftColumn>
+        <InspectionPane onSendCommand={sendCommand} />
+      </Cockpit>
     </AppContainer>
   );
 }

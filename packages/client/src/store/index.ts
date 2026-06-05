@@ -8,6 +8,10 @@
  * - Session-wide stuff metadata registry (populated as a side effect
  *   of MQL subscription / query envelope handling — see
  *   `services/websocket.ts`).
+ * - Inspection pane state (header focus name + fragment, body
+ *   paint/clear flag, last subscription result snapshot, breadcrumb
+ *   trail). Single slice per inspection-pane requirements — no
+ *   competing-rendering-authority splits.
  */
 
 import { create } from 'zustand';
@@ -15,6 +19,8 @@ import type {
   AuthState,
   ConnectionEstablishedPayload,
   ConnectionState,
+  StuffDetailRecord,
+  StuffRefRecord,
 } from '@saxonberg/types';
 
 /**
@@ -69,7 +75,88 @@ interface StoreState {
    * delta does not clobber detail data previously cached).
    */
   upsertStuffMetadata: (records: StuffMetadata[]) => void;
+
+  // Inspection-pane slice ---------------------------------------------
+  /**
+   * Display name shown in the pane header. Tracks the live focus name
+   * from the canonical `me.focus` subscription's first record; falls
+   * back to `paneFocusFragment` (the raw fragment text) when the
+   * subscription's records have not yet arrived or when focus is
+   * multi-cardinality. The header is always-live; deltas update it
+   * irrespective of `paneBodyPainted`.
+   */
+  paneFocusName: string | null;
+  /**
+   * The literal focus fragment string as understood server-side (e.g.
+   * `'here'`, `'apple'`, `'friends'`). The client tracks it
+   * separately so the paint/clear policy can compare across deltas:
+   * a fragment change clears the body, an unchanged fragment lets
+   * deltas patch in place.
+   */
+  paneFocusFragment: string;
+  /**
+   * Body paint/clear flag. False on mount and after any focus-verb
+   * driven focus change; true after a `look` against the current
+   * focus. While cleared, deltas update `paneLastResult` (cache stays
+   * warm) but the body renders the placeholder. While painted,
+   * deltas update the body in place.
+   */
+  paneBodyPainted: boolean;
+  /**
+   * Most recent canonical `me.focus` subscription record set. Held in
+   * a single slot so the body renderer can branch on cardinality
+   * without re-deriving from individual deltas. Patched in place by
+   * every subscription envelope; rendered only when `paneBodyPainted`.
+   */
+  paneLastResult: (StuffRefRecord | StuffDetailRecord)[] | null;
+  /**
+   * Session-scoped focus-fragment history. Capped at 6 entries (the
+   * requirements' "last 6" rule); newest at index 0. Distinct
+   * fragments only — pushing a duplicate of the current head is a
+   * no-op. Click on a breadcrumb routes through the command bus as a
+   * `look <fragment>` (paints + drills in one motion).
+   */
+  paneBreadcrumbs: string[];
+  /**
+   * Flip the paint/clear flag. Called from outgoing `look`-detection
+   * (paints) and from the focus-change delta path (clears). The
+   * paint policy is client-side, not substrate-driven — the server
+   * always ships the up-to-date result, the client decides whether
+   * to render it.
+   */
+  setPanePainted: (painted: boolean) => void;
+  /**
+   * Push a focus fragment onto the breadcrumb trail. Deduplicates
+   * against the current head; caps at 6 entries; older entries fall
+   * off the tail.
+   */
+  pushBreadcrumb: (fragment: string) => void;
+  /**
+   * Replace the cached subscription result snapshot. Called by the
+   * canonical-kind subscription consumer (see InspectionPane.tsx).
+   */
+  setPaneResult: (
+    result: (StuffRefRecord | StuffDetailRecord)[] | null
+  ) => void;
+  /**
+   * Replace the live header name (display name from the first
+   * subscription record, or fragment fallback when the record set
+   * is empty / multi-cardinality).
+   */
+  setPaneFocusName: (name: string | null) => void;
+  /**
+   * Replace the tracked focus fragment. The paint/clear policy
+   * compares this across deltas to decide whether a focus change
+   * just happened.
+   */
+  setPaneFocusFragment: (fragment: string) => void;
 }
+
+/**
+ * Maximum breadcrumb history depth — the inspection-pane
+ * requirements' "last 6 focus values" rule.
+ */
+const PANE_BREADCRUMB_CAP = 6;
 
 /**
  * Initial auth state.
@@ -154,6 +241,47 @@ export const useStore = create<StoreState>((set) => ({
       },
       selfInteractiveId: null,
     }),
+
+  // Inspection-pane slice (initial cleared state)
+  paneFocusName: null,
+  paneFocusFragment: '',
+  paneBodyPainted: false,
+  paneLastResult: null,
+  paneBreadcrumbs: [],
+
+  setPanePainted: (painted) =>
+    set(() => ({
+      paneBodyPainted: painted,
+    })),
+
+  pushBreadcrumb: (fragment) =>
+    set((state) => {
+      const trimmed = fragment.trim();
+      if (!trimmed) return {};
+      // Dedupe against the head — repeated `look` against the same
+      // focus shouldn't pollute the trail.
+      if (state.paneBreadcrumbs[0] === trimmed) return {};
+      const next = [trimmed, ...state.paneBreadcrumbs];
+      if (next.length > PANE_BREADCRUMB_CAP) {
+        next.length = PANE_BREADCRUMB_CAP;
+      }
+      return { paneBreadcrumbs: next };
+    }),
+
+  setPaneResult: (result) =>
+    set(() => ({
+      paneLastResult: result,
+    })),
+
+  setPaneFocusName: (name) =>
+    set(() => ({
+      paneFocusName: name,
+    })),
+
+  setPaneFocusFragment: (fragment) =>
+    set(() => ({
+      paneFocusFragment: fragment,
+    })),
 
   // Stuff registry slice
   stuffRegistry: new Map<string, StuffMetadata>(),
