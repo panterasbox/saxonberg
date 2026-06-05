@@ -29,7 +29,7 @@ cascade) remain accurate.
 **See also**:
 
 - [docs/slates/zone-architecture-slate.md](./zone-architecture-slate.md) — sibling slate covering the generic FolderZone class and the cardinal-only-intra-zone exit invariant. This slate assumes both ship; the field shapes here resolve through FolderZones, and the exits setter respects the cardinal rule.
-- [docs/slates/biome-slate.md](./biome-slate.md) — slate-format exemplar; the layered escalation framing here borrows from biome's structure.
+- [docs/subsystems/biome.md](../subsystems/biome.md) — the atmospheric substrate (the biome slate graduated here); the layered escalation framing here borrows from biome's structure.
 - [docs/subsystems/templates.md](../subsystems/templates.md) — clone pipeline, Hydrator contract, the folder/leaf invariant. Templates carry one `data:` block, period (modulo the `container:` top-level field per spawn-shape). The Hydrator's existing "call setter where defined" behavior is what makes setters with side effects work for the structural field shapes here.
 - [docs/subsystems/spatial.md](../subsystems/spatial.md) — `CartesianZone.addLocation`, `ExitableMixin.addExit` / `addBidirectionalExit`. The setters here wrap these.
 - [docs/subsystems/boundary.md](../subsystems/boundary.md) — `BoundaryApi.attachExistingBoundary`, `Window` and `Door` templates.

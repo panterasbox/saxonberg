@@ -440,9 +440,19 @@ the queries and copy them).
 - The renderer maps each tag to a React component that registers
   hover / click / shift-click / right-click handlers per the
   click model.
-- Unknown tags render as their text content (forward-compat).
-- Colors / sizes / links remain present-day formal tags
-  (`<color>`, `<size>`, `<link>`); semantic tags compose with them.
+- Unknown tags render as their text content (forward-compat) — this
+  is the failsafe/flatten principle.
+- **Color is NOT a tag.** *(Superseded: an earlier version kept
+  `<color>`/`<size>` as core presentational tags.)* Per the
+  [message-rendering slate](./message-rendering-slate.md), the core MML
+  is **semantic only** — color/weight come from the client **theme/
+  stylesheet** keyed on semantics (topic / channel / element /
+  `stuff-id` → social-graph bucket). Manual color exists only as a
+  **channel-scoped opt-in palette**, never core. `<link>` stays
+  (semantic-ish). The full rendering model — tagged-complete-string →
+  flatten/reflow, the three tag categories, the layout library, and
+  Markdown↔MML — lives in that slate; this renderer is its client
+  realization.
 - The renderer is theme-aware: color tokens, not literal hex.
 
 ---

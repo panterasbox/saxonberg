@@ -467,7 +467,7 @@ avatar/interactive/location/text/executionId and calls
 `avatar.executeCommand(text, context)`. The result is discarded —
 prose is fired via `Scene` inside the controller; success/failure
 reaches the client via auto-emitted `MudlogApi` command-outcome
-entries (see [commands.md](./commands.md)).
+entries (see [command-routing.md](./command-routing.md)).
 
 ## Outbound Messages (Game → Client)
 
@@ -726,7 +726,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   `postRegister`, `prepareDestroy`, idle eviction (open design)
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,
   audiences, MML rendering (the "inside" of outbound delivery)
-- [commands.md](./commands.md) — command pipeline reached via
+- [command-routing.md](./command-routing.md) — command pipeline reached via
   `avatar.executeCommand` from `processUserMessage`
 - [call-security.md](./call-security.md) — `ExecutionContextApi.runRoot`,
   `FrameKind`, policy taxonomy

@@ -1,5 +1,14 @@
 # Sound slate (working doc)
 
+> **⚰️ RETIRED as a standalone slate — superseded by
+> [senses-slate.md](./senses-slate.md).** Sound is now the **hearing**
+> instance of the unified `PerceptionChannel` substrate; the
+> substrate-level decisions live in the senses slate. This file is
+> **retained** for its detailed acoustic spec (the worked examples, the
+> propagation/masking/RT60 detail, the per-seam design), which graduates
+> into the hearing-instance build/requirements. Do not start new design
+> here — work in the senses slate; mine this for the acoustic depth.
+
 Working slate for the sound subsystem — propagation through the
 Boundary substrate, three source kinds (ambient / activity-driven
 / events), per-viewer detection, and the **pedagogical seam** that

@@ -243,6 +243,10 @@ The Saxonberg campus is populated by a diverse cast of AI-driven NPCs representi
 
 While NPCs operate based on programmed objectives and behaviors, Large Language Models (LLMs) may be employed judiciously to enhance dialogue interactions. Rather than fully simulating NPC thought processes (which can be cost-prohibitive), LLMs can be used primarily to _articulate_ dialogue, adding natural language variation, appropriate tone, and emotional nuance based on the NPC's predefined state and conversational goals.
 
+**Mixed Human/AI Casts:**
+
+Because every participant — human or AI — speaks on the same text channels, the roles in a scene can be filled by either, in any mix. The gamified classroom is the clearest example: student, TA, and instructor are _roles_, and AI agents can occupy whichever the real-life cast leaves open — an all-human seminar, an all-AI tutorial, or a single live student with an AI TA and AI peers are the same system with a different cast. This is what lets the social experience of school survive at any ratio of people to agents, without the engine ever asking whether a participant is human. The enabling property — that the human interface _is_ the AI interface, so an agent perceives and acts through the same channels and permissions as a player — is argued in [interaction-philosophy.md](./interaction-philosophy.md).
+
 **Generative AI for World Systems & Content:**
 
 Beyond NPC dialogue, Saxonberg explores the potential of generative AI to enhance world dynamism and content diversity, leveraging the game's text-based nature which simplifies the required models:
