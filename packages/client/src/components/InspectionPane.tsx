@@ -204,6 +204,17 @@ export interface InspectionPaneProps {
    * command bus uniformly. Wired by `App.tsx` to its `sendCommand`.
    */
   onSendCommand: (text: string) => void;
+  /**
+   * Hover-preview channel. Mousing over any affordance in the pane
+   * (breadcrumb, Refresh button, placeholder, exit, contents row,
+   * MML tag inside the long description, admin action button)
+   * fires `onCommandPreview(command)` with the command that
+   * affordance would send; mouseleave fires `onCommandPreview(null)`.
+   * Wired by `App.tsx` to the same handler the terminal scroll's
+   * MmlRenderer uses, so the cockpit command bar mirrors what's
+   * about to be sent uniformly across surfaces.
+   */
+  onCommandPreview?: (command: string | null) => void;
 }
 
 /**
@@ -323,7 +334,16 @@ function commandForRow(row: StuffRefRecord): string {
   return `look ${row.primaryKeyword ?? row.displayName}`;
 }
 
-export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
+export function InspectionPane({
+  onSendCommand,
+  onCommandPreview,
+}: InspectionPaneProps) {
+  // Stable no-op fallback so child affordances always receive a
+  // function — the preview API stays uniform whether the parent
+  // wired it or not, and `EntityName` / `Button` gate on
+  // `command + onPreview` together so a no-op handler with no
+  // `command` still disables the mouseenter/leave hookup cleanly.
+  const previewSink = onCommandPreview ?? (() => undefined);
   const paneFocusName = useStore((s) => s.paneFocusName);
   const paneFocusFragment = useStore((s) => s.paneFocusFragment);
   const paneBodyPainted = useStore((s) => s.paneBodyPainted);
@@ -408,6 +428,8 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
         <Button
           variant="ghost"
           aria-label="paint pane body"
+          command="look"
+          onPreview={previewSink}
           onClick={handlePlaceholderClick}
         >
           {placeholder}
@@ -426,11 +448,12 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
       return renderSingle(
         result[0] as StuffRefRecord | StuffDetailRecord,
         onSendCommand,
+        previewSink,
         handleRowClick,
         isAdmin
       );
     }
-    return renderMulti(result, handleRowClick, isAdmin);
+    return renderMulti(result, previewSink, handleRowClick, isAdmin);
   };
 
   return (
@@ -442,6 +465,8 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
               key={frag}
               label={frag}
               title={`Click to send: look ${frag}`}
+              command={`look ${frag}`}
+              onPreview={previewSink}
               onClick={() => handleBreadcrumbClick(frag)}
             />
           ))}
@@ -452,6 +477,8 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
         <Button
           variant="primary"
           aria-label="refresh pane"
+          command="look"
+          onPreview={previewSink}
           onClick={handleRefresh}
         >
           Refresh
@@ -482,6 +509,7 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
 function renderSingle(
   record: StuffRefRecord | StuffDetailRecord,
   onSendCommand: (text: string) => void,
+  onPreview: (command: string | null) => void,
   onRowClick: (row: StuffRefRecord) => void,
   isAdmin: boolean
 ): React.ReactElement {
@@ -497,7 +525,7 @@ function renderSingle(
           <MmlRenderer
             text={long}
             onCommandClick={onSendCommand}
-            onCommandPreview={() => undefined}
+            onCommandPreview={onPreview}
           />
         </BodyProse>
       )}
@@ -510,6 +538,8 @@ function renderSingle(
               <EntityName
                 label={exit.direction}
                 title={`Click to send: go ${exit.direction}`}
+                command={`go ${exit.direction}`}
+                onPreview={onPreview}
                 onClick={() => onSendCommand(`go ${exit.direction}`)}
               />
             </React.Fragment>
@@ -525,6 +555,8 @@ function renderSingle(
                   stuffId={row.stuffId}
                   label={row.displayName}
                   title={`Click to send: ${commandForRow(row)}`}
+                  command={commandForRow(row)}
+                  onPreview={onPreview}
                   onClick={() => onRowClick(row)}
                 />
               </ListItem>
@@ -532,7 +564,7 @@ function renderSingle(
           </List>
         </ContentsBlock>
       )}
-      {isAdmin && renderAdminExtras(record, onSendCommand)}
+      {isAdmin && renderAdminExtras(record, onSendCommand, onPreview)}
     </div>
   );
 }
@@ -549,6 +581,7 @@ function renderSingle(
  */
 function renderMulti(
   records: ReadonlyArray<StuffRefRecord | StuffDetailRecord>,
+  onPreview: (command: string | null) => void,
   onRowClick: (row: StuffRefRecord) => void,
   isAdmin: boolean
 ): React.ReactElement {
@@ -564,6 +597,8 @@ function renderMulti(
               stuffId={row.stuffId}
               label={row.displayName}
               title={`Click to send: ${commandForRow(row)}`}
+              command={commandForRow(row)}
+              onPreview={onPreview}
               onClick={() => onRowClick(row)}
             />
             {isAdmin && tpath && <TagSuffix>({tpath})</TagSuffix>}
@@ -592,7 +627,8 @@ function renderMulti(
  */
 function renderAdminExtras(
   record: StuffRefRecord | StuffDetailRecord,
-  onSendCommand: (text: string) => void
+  onSendCommand: (text: string) => void,
+  onPreview: (command: string | null) => void
 ): React.ReactElement {
   const r = record as unknown as Record<string, unknown>;
   const templatePath =
@@ -601,6 +637,9 @@ function renderAdminExtras(
   const mixins = Array.isArray(r.mixins) ? r.mixins : undefined;
   const containerPath =
     typeof r.containerPath === "string" ? r.containerPath : undefined;
+
+  const cloneCommand = templatePath ? `clone ${templatePath}` : "clone";
+  const reloadCommand = templatePath ? `reload ${templatePath}` : "reload";
 
   return (
     <AdminBlock aria-label="admin extras">
@@ -620,23 +659,26 @@ function renderAdminExtras(
       <AdminActionRow>
         <Button
           variant="action"
-          onClick={() =>
-            onSendCommand(templatePath ? `clone ${templatePath}` : "clone")
-          }
+          command={cloneCommand}
+          onPreview={onPreview}
+          onClick={() => onSendCommand(cloneCommand)}
         >
           clone
         </Button>
         <Button
           variant="action"
-          onClick={() =>
-            onSendCommand(
-              templatePath ? `reload ${templatePath}` : "reload"
-            )
-          }
+          command={reloadCommand}
+          onPreview={onPreview}
+          onClick={() => onSendCommand(reloadCommand)}
         >
           reload
         </Button>
-        <Button variant="action" onClick={() => onSendCommand("eval")}>
+        <Button
+          variant="action"
+          command="eval"
+          onPreview={onPreview}
+          onClick={() => onSendCommand("eval")}
+        >
           eval
         </Button>
       </AdminActionRow>

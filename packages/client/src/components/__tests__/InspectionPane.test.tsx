@@ -450,6 +450,63 @@ describe("InspectionPane", () => {
     ).toBe(true);
   });
 
+  it("hover preview channel fires for Refresh, breadcrumbs, and contents rows", () => {
+    attachMockWs();
+    const onSend = vi.fn();
+    const onPreview = vi.fn();
+    useStore.setState({ paneBreadcrumbs: ["lobby"] });
+    render(
+      <InspectionPane onSendCommand={onSend} onCommandPreview={onPreview} />
+    );
+    const subId = currentSubscriptionId();
+
+    deliver({
+      type: "mql-subscription-result",
+      frameId: 1,
+      subscriptionId: subId,
+      result: [
+        {
+          stuffId: "room-1",
+          displayName: "the lobby",
+          longDescription: "a lobby",
+          contents: [
+            {
+              stuffId: "thermo-1",
+              displayName: "a brass thermometer",
+              primaryKeyword: "thermometer",
+            },
+          ],
+          exits: [{ direction: "south" }],
+        } as never,
+      ],
+    } as MqlSubscriptionResultEnvelope);
+    paintBody();
+
+    // Refresh button: hover → "look", leave → null.
+    const refresh = screen.getByLabelText("refresh pane");
+    fireEvent.mouseEnter(refresh);
+    expect(onPreview).toHaveBeenLastCalledWith("look");
+    fireEvent.mouseLeave(refresh);
+    expect(onPreview).toHaveBeenLastCalledWith(null);
+
+    // Breadcrumb: hover → "look lobby".
+    const crumb = screen.getByText("lobby");
+    fireEvent.mouseEnter(crumb);
+    expect(onPreview).toHaveBeenLastCalledWith("look lobby");
+
+    // Exit affordance: hover → "go south".
+    const exit = screen.getByText("south");
+    fireEvent.mouseEnter(exit);
+    expect(onPreview).toHaveBeenLastCalledWith("go south");
+
+    // Contents row: hover → "look thermometer" (registry primaryKeyword).
+    const thermo = screen.getByText("a brass thermometer");
+    fireEvent.mouseEnter(thermo);
+    expect(onPreview).toHaveBeenLastCalledWith("look thermometer");
+    fireEvent.mouseLeave(thermo);
+    expect(onPreview).toHaveBeenLastCalledWith(null);
+  });
+
   it("admin extras render and the action buttons send their commands", () => {
     attachMockWs();
     const onSend = vi.fn();

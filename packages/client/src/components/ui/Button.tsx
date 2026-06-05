@@ -83,16 +83,38 @@ interface ButtonProps {
   onClick: () => void;
   "aria-label"?: string;
   children: React.ReactNode;
+  /**
+   * The command this button will send when clicked. When provided
+   * together with `onPreview`, mouseenter fires `onPreview(command)`
+   * so the cockpit's command bar mirrors what's about to be sent;
+   * mouseleave fires `onPreview(null)`. Buttons without a fixed
+   * outgoing command (toggles, navigation) omit both.
+   */
+  command?: string;
+  onPreview?: (command: string | null) => void;
 }
 
 export function Button({
   variant,
   onClick,
   children,
+  command,
+  onPreview,
   ...rest
 }: ButtonProps): React.ReactElement {
+  const previewEnabled = !!(onPreview && command);
   return (
-    <StyledButton $variant={variant} onClick={onClick} {...rest}>
+    <StyledButton
+      $variant={variant}
+      onClick={onClick}
+      onMouseEnter={
+        previewEnabled ? () => onPreview!(command!) : undefined
+      }
+      onMouseLeave={
+        previewEnabled ? () => onPreview!(null) : undefined
+      }
+      {...rest}
+    >
       {children}
     </StyledButton>
   );

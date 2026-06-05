@@ -414,7 +414,10 @@ function App() {
             flashing={flashing}
           />
         </LeftColumn>
-        <InspectionPane onSendCommand={sendCommand} />
+        <InspectionPane
+          onSendCommand={sendCommand}
+          onCommandPreview={handleCommandPreview}
+        />
       </Cockpit>
     </AppContainer>
   );

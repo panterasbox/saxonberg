@@ -65,6 +65,22 @@ interface EntityNameProps {
    */
   title?: string;
   /**
+   * The command this affordance will send when clicked. When
+   * provided together with `onPreview`, mousing onto the
+   * affordance fires `onPreview(command)` so the parent can
+   * mirror it into the cockpit's command bar (matching the
+   * terminal-scroll behavior). Mousing off fires
+   * `onPreview(null)`.
+   */
+  command?: string;
+  /**
+   * Hover-preview channel. The parent updates the command bar
+   * with the previewed command on enter, restores on leave.
+   * Omit to disable hover-preview entirely (the click still
+   * works).
+   */
+  onPreview?: (command: string | null) => void;
+  /**
    * Click handler. The parent component owns command resolution
    * (registry lookup, keyword fallback, etc.) and emits the
    * resolved verb through `onSendCommand` — keep this surface
@@ -77,10 +93,23 @@ export function EntityName({
   stuffId,
   label,
   title,
+  command,
+  onPreview,
   onClick,
 }: EntityNameProps): React.ReactElement {
+  const previewEnabled = !!(onPreview && command);
   return (
-    <NameButton data-stuff-id={stuffId} title={title} onClick={onClick}>
+    <NameButton
+      data-stuff-id={stuffId}
+      title={title}
+      onClick={onClick}
+      onMouseEnter={
+        previewEnabled ? () => onPreview!(command!) : undefined
+      }
+      onMouseLeave={
+        previewEnabled ? () => onPreview!(null) : undefined
+      }
+    >
       {label}
     </NameButton>
   );
