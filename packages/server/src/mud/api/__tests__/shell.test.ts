@@ -60,12 +60,12 @@ describe('ShellApi.expandVariables', () => {
     ContainmentApi.move(giver, location);
   });
 
-  it('leaves text without sigils untouched', () => {
+  it('leaves text without sigils untouched', async () => {
     expect(ShellApi.expandVariables('hello world', giver)).toBe('hello world');
     expect(ShellApi.expandVariables('', giver)).toBe('');
   });
 
-  it('expands $focus to the giver focus', () => {
+  it('expands $focus to the giver focus', async () => {
     expect(ShellApi.expandVariables('$focus', giver)).toBe('here');
     giver.setFocus('inventory, here');
     expect(ShellApi.expandVariables('look $focus', giver)).toBe(
@@ -73,26 +73,26 @@ describe('ShellApi.expandVariables', () => {
     );
   });
 
-  it('expands ${X} bracketed form, lets it abut other characters', () => {
+  it('expands ${X} bracketed form, lets it abut other characters', async () => {
     giver.setFocus('library');
     expect(ShellApi.expandVariables('${focus}.book', giver)).toBe(
       'library.book',
     );
   });
 
-  it('leaves $$ intact for MQL', () => {
+  it('leaves $$ intact for MQL', async () => {
     expect(ShellApi.expandVariables('$$', giver)).toBe('$$');
     expect(ShellApi.expandVariables('$$:i', giver)).toBe('$$:i');
   });
 
-  it('expands stored vars from giver.listVars()', () => {
+  it('expands stored vars from giver.listVars()', async () => {
     giver.setVar('weapon', 'rusty sword');
     expect(ShellApi.expandVariables('the $weapon', giver)).toBe(
       'the rusty sword',
     );
   });
 
-  it('synthetic wins over a colliding stored var', () => {
+  it('synthetic wins over a colliding stored var', async () => {
     giver.setFocus('here');
     giver.setVar('focus', 'foo');
     // `var set focus foo` does not shadow the synthetic $focus —
@@ -100,13 +100,13 @@ describe('ShellApi.expandVariables', () => {
     expect(ShellApi.expandVariables('$focus', giver)).toBe('here');
   });
 
-  it('substitutes empty for unknown stored vars', () => {
+  it('substitutes empty for unknown stored vars', async () => {
     expect(ShellApi.expandVariables('look $nope here', giver)).toBe(
       'look  here',
     );
   });
 
-  it('handles multiple substitutions in one string', () => {
+  it('handles multiple substitutions in one string', async () => {
     giver.setFocus('library');
     giver.setVar('item', 'book');
     expect(
@@ -116,17 +116,17 @@ describe('ShellApi.expandVariables', () => {
 });
 
 describe('ShellApi.lookupSyntheticVar', () => {
-  it('finds $focus on FocusedMixin', () => {
+  it('finds $focus on FocusedMixin', async () => {
     const giver = makeStuff(() => new TestGiver());
     expect(ShellApi.lookupSyntheticVar(giver, 'focus')?.name).toBe('focus');
   });
 
-  it('returns null for unknown names', () => {
+  it('returns null for unknown names', async () => {
     const giver = makeStuff(() => new TestGiver());
     expect(ShellApi.lookupSyntheticVar(giver, 'nonexistent')).toBeNull();
   });
 
-  it('returns null for $focus when the giver lacks FocusedMixin', () => {
+  it('returns null for $focus when the giver lacks FocusedMixin', async () => {
     const npc = makeStuff(() => new NpcGiver());
     expect(ShellApi.lookupSyntheticVar(npc, 'focus')).toBeNull();
   });
@@ -175,7 +175,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
     ContainmentApi.move(giver, location);
   });
 
-  it('expands $focus into the bound positional', () => {
+  it('expands $focus into the bound positional', async () => {
     giver.setFocus('library');
     const parsed = CommandLineApi.parsePipeline('look $focus').commands[0]!;
     const built = CommandApi.assemble(parsed, lookCmd(), {
@@ -186,7 +186,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
     expect(built.model.target).toBe('library');
   });
 
-  it('expands inside a quoted greedy slice', () => {
+  it('expands inside a quoted greedy slice', async () => {
     giver.setFocus('plaza');
     const parsed = CommandLineApi.parsePipeline(
       'say the $focus is empty',
@@ -199,7 +199,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
     expect(built.model.words).toBe('the plaza is empty');
   });
 
-  it('skips expansion when shell.interpolate-vars is false', () => {
+  it('skips expansion when shell.interpolate-vars is false', async () => {
     giver.setSetting('shell.interpolate-vars', false, giver);
     const parsed = CommandLineApi.parsePipeline('look $focus').commands[0]!;
     const built = CommandApi.assemble(parsed, lookCmd(), {
@@ -211,7 +211,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
     expect(built.model.target).toBe('$focus');
   });
 
-  it('skips expansion when the giver lacks EnvironmentMixin', () => {
+  it('skips expansion when the giver lacks EnvironmentMixin', async () => {
     const npc = makeStuff(() => new NpcGiver());
     ContainmentApi.move(npc, location);
     const parsed = CommandLineApi.parsePipeline('look $focus').commands[0]!;
@@ -276,7 +276,7 @@ describe('CommandApi.assemble — defaults', () => {
     ContainmentApi.move(giver, location);
   });
 
-  it('fills bare `look` from default: $focus, expands the default', () => {
+  it('fills bare `look` from default: $focus, expands the default', async () => {
     giver.setFocus('here');
     const parsed = CommandLineApi.parsePipeline('look').commands[0]!;
     const built = CommandApi.assemble(parsed, lookWithDefault(), {
@@ -287,7 +287,7 @@ describe('CommandApi.assemble — defaults', () => {
     expect(built.model.target).toBe('here');
   });
 
-  it('skips later-preposition tokens via lookahead and defaults the gap', () => {
+  it('skips later-preposition tokens via lookahead and defaults the gap', async () => {
     // `give to bob` — `to` belongs to `recipient`, so `gift`
     // defaults to `$focus` (= "here") and `recipient` consumes `to`
     // and binds `bob`.
@@ -301,7 +301,7 @@ describe('CommandApi.assemble — defaults', () => {
     expect(built.model.recipient).toBe('bob');
   });
 
-  it('defaults both fields on bare invocation', () => {
+  it('defaults both fields on bare invocation', async () => {
     const parsed = CommandLineApi.parsePipeline('give').commands[0]!;
     const built = CommandApi.assemble(parsed, giveCmd(), {
       commandGiver: giver as never,
@@ -323,7 +323,7 @@ describe('CommandApi.resolveAndValidate — YAML scope[] fallback', () => {
   // command-pronoun.test.ts (drill-fallback case) since it needs the
   // full Stuff world fixture.
 
-  it('parses scope as a string[] from YAML, normalising bare strings', () => {
+  it('parses scope as a string[] from YAML, normalising bare strings', async () => {
     const arrayForm = CommandDefinition.fromYaml(
       [
         'verbs: [look]',

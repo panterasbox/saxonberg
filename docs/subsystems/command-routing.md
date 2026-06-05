@@ -236,7 +236,7 @@ in turn run before the controller fires.
 ### Pre-controller failure paths
 
 The dispatcher emits structured notes for every failure path before
-the controller's `execute()` runs. The five `command-rejected`
+the controller's `execute()` runs. The six `command-rejected`
 reasons:
 
 | Reason                | Emitted at                                                       | ctx       |
@@ -245,7 +245,19 @@ reasons:
 | `unknown-verb`        | `_runChain` empty match list                                     | outer     |
 | `shape-fall-through`  | `_runChain` after every match's `assemble` returned a shape error | outer     |
 | `bind-failed`         | `_runChain` on assemble's bind error                             | outer     |
+| `unknown-subcommand`  | `_runChain` on assemble's `error: 'unknown-subcommand'` — the typed subcommand isn't declared in the YAML | outer     |
 | `missing-subcommand`  | `_executeOne` when a subcommand was needed but absent            | attempt   |
+
+The `unknown-subcommand` / `missing-subcommand` distinction is
+load-bearing: the first is a player typo (`prompt foo` where the
+YAML knows only `cancel`), caught at assemble before any
+controller is cloned. The second is a controller-side decision
+when `model.subcommand` is `undefined` (the player typed just the
+verb) and the verb's per-subcommand controller resolution can't
+pick a default — only the controller knows whether bare `verb`
+should pick a default subcommand or fail. Controllers therefore
+ship NO `default:` switch case for unknown subcommands; the
+framework already handled that path.
 
 Plus two pre-execute kinds from the resolve / validate pipeline
 (`resolveModel` for MQL, `runValidators` for sync validator checks,
@@ -431,8 +443,10 @@ matches the parsed verb. The dispatcher walks each match in order
 ```ts
 type AssembleResult =
   | { model: CommandModel }
-  | { error: 'shape'; summary }    // fall through to next match
-  | { error: 'bind'; summary };    // stop the chain
+  | { error: 'shape'; summary }                 // fall through to next match
+  | { error: 'bind'; summary }                  // stop the chain
+  | { error: 'unknown-subcommand';              // stop the chain
+      subcommand: string; available: string[] };
 ```
 
 `assemble` binds the parsed tokens to the YAML's args and options:
@@ -442,23 +456,38 @@ type AssembleResult =
 3. Subcommand-scoped options + remaining positionals.
 4. Positional binding against the active `args:` array.
 
-**Shape vs bind is the chain-of-responsibility hinge.** The assemble
-stage is now the *only* chain-of-responsibility tier — the
-execute-stage `pass: true` retired with the response-envelope
-landing. A `shape` error means "this YAML's grammar didn't fit"
-(pattern mismatch, missing required positional, unknown subcommand,
-leftover positionals) — the dispatcher falls through to the next
-match. A `bind` error means "user typed something that fits the shape
-but not the spec" (unknown option at scope, malformed option value,
-repeated non-multi option, boolean given a value) — the chain stops
-and the user sees the error (emitted as a `command-rejected
-{ reason: 'bind-failed' }` note). The split is what lets a room
-override a verb without breaking the original: if the user's input
-doesn't fit the override's shape, the chain naturally finds the
-original; if it fits the override's shape but the override has a real
-binding problem, the user gets a real error rather than silently
-re-binding against something else. Runtime-decline cases (the Throne
-example) ride on **dynamic contributions** instead — see Stage 5.
+**Shape vs bind vs unknown-subcommand is the chain-of-responsibility
+hinge.** The assemble stage is now the *only* chain-of-responsibility
+tier — the execute-stage `pass: true` retired with the
+response-envelope landing.
+
+- `shape` error → "this YAML's grammar didn't fit" (pattern
+  mismatch, missing required positional, leftover positionals) —
+  the dispatcher falls through to the next match.
+- `bind` error → "user typed something that fits the shape but
+  not the spec" (unknown option at scope, malformed option value,
+  repeated non-multi option, boolean given a value) — the chain
+  stops with `command-rejected { reason: 'bind-failed' }`.
+- `unknown-subcommand` error → "the YAML declares subcommands and
+  this name isn't one of them" — the chain stops with
+  `command-rejected { reason: 'unknown-subcommand', detail:
+  "unknown subcommand 'X'; valid: a, b, c" }`. Carries the typed
+  name and the available list on the result so the dispatcher can
+  format the prose. This is dispatcher-side: by the time a
+  controller runs, `model.subcommand` is guaranteed to be either
+  `undefined` (player typed bare verb) or a declared name.
+
+The split is what lets a room override a verb without breaking the
+original: if the user's input doesn't fit the override's shape, the
+chain naturally finds the original; if it fits the override's shape
+but the override has a real binding problem, the user gets a real
+error rather than silently re-binding against something else.
+Unknown-subcommand is treated like bind (chain-stopping rather than
+fall-through) because a verb that DOES declare subcommands has
+already claimed the namespace — falling through to a flat-args verb
+would mask the typo, not recover from it. Runtime-decline cases (the
+Throne example) ride on **dynamic contributions** instead — see
+Stage 5.
 
 The `args:` array is ordered: index 0 is positional slot 0, index 1
 is slot 1, etc. Each arg carries its own `name`, so YAML-formatter
@@ -497,21 +526,22 @@ know about every verb-level option.
 
 ## Stage 4 — Resolution + validation
 
-Resolution and validation are split across two sync `CommandApi`
-entry points with an async preload phase between them. The
-dispatcher's call sequence is:
+Resolution and validation are split across two `CommandApi` entry
+points with an async preload phase between them. The dispatcher's
+call sequence is:
 
 ```
-resolved = CommandApi.resolveModel(model, ctx)              // sync, MQL only
-await CommandApi.preloadValidatorDeps(cmd, ctx, resolved,   // async preloads
+resolved = await CommandApi.resolveModel(model, ctx)        // async; MQL + cardinality
+await CommandApi.preloadValidatorDeps(cmd, ctx, resolved,   // async validator preloads
                                        subcommandHint)
 ok       = CommandApi.runValidators(resolved.resolved, ctx) // sync validators
 ```
 
-`CommandApi.resolveAndValidate` remains as a back-compat wrapper
-that chains the three for tests and one-off sync callers; the
-dispatcher itself does NOT use it (it needs the seam to insert
-the async preload phase).
+`resolveModel` and the helper `resolveAndValidate` are async
+because cardinality dispatch (next) can push a `PromptApi`
+prompt and await the player's selection mid-resolve.
+`runValidators` itself is sync; the async-permitted side of
+validation is the preload phase, not the gate.
 
 `resolveModel` walks every `type: object` / `type: objects` field:
 
@@ -525,8 +555,39 @@ for each type:object field present:
     if multiple:  MqlApi.resolveMany(query, { commandGiver, scope })
     else:         MqlApi.resolveOne (query, { commandGiver, scope })
     stop on first non-empty result
+  // Cardinality matrix — see below.
+  stuff = await CommandApi.applyCardinalityPolicy(def, stuff, fname, ctx)
   bind the wrapper (MqlOne / MqlMany) onto the model
 ```
+
+### Cardinality policy
+
+After MQL produces a candidate list per field, `resolveModel`
+calls `CommandApi.applyCardinalityPolicy(spec, stuff, fname,
+ctx)` to apply the YAML's `cardinality` / `onExcess` / `onShortage`
+knobs. Decision matrix:
+
+| Field type | Got | Policy | Outcome |
+|---|---|---|---|
+| `object`  | 0 | n/a | pass through (stuff=null) |
+| `object`  | 1 | n/a | pass through |
+| `object`  | >1 | `top` (default) | first match wins |
+| `object`  | >1 | `error` | `controller-rejected:ambiguous`, null |
+| `object`  | >1 | `prompt` | await `PromptApi.mqlObject`; player picks |
+| `objects` | <min | `error` (only v1 value) | `controller-rejected:insufficient`, null |
+| `objects` | >max | `truncate` | cut to max |
+| `objects` | >max | `error` | `controller-rejected:too-many`, null |
+| `objects` | >max | `prompt` | await `PromptApi.mqlMany` with bounds |
+| `objects` | in-range | n/a | pass through |
+
+The `prompt` paths require an Interactive on the context.
+NPC / scripted dispatch (no Interactive) falls back to the
+`error` branch — there's nobody to ask. Player cancellation
+propagates as `PromptCancelledError` from
+`applyCardinalityPolicy`; the dispatcher (`_runChain`)
+catches it and emits
+`controller-rejected { reason: 'cancelled' | 'host-disconnected' }`
+distinguished by the error's `reason` slot.
 
 `runValidators` then runs everything:
 

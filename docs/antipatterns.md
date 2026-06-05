@@ -1266,3 +1266,121 @@ hour debugging it. The legitimate read path is
 `EventApi.on(name, listener)` (string-keyed) or
 `EventApi.on(EventClass, listener)` (class-based). Both route through
 the same gate and receive the same dispatch.
+
+## Prompts — `PromptApi`, not bespoke prompt-shaped flows
+
+Server callers needing player input go through `PromptApi`. Don't
+construct ad-hoc prompt flows by emitting MessageFrames and waiting
+on socket-side state. The substrate already handles:
+
+- promptId generation + per-Interactive registry
+- typed wire envelopes (PromptEnvelope + Note kinds in
+  `@saxonberg/types`)
+- async-permitted validators with `prompt-validation-failed` retry
+- cancellation (per-prompt + wholesale + disconnect cleanup)
+- typed error (`PromptCancelledError` with `reason`)
+- body MessageFrame correlation by `promptId`
+
+```ts
+// CORRECT
+try {
+  const sword = await PromptApi.mqlObject(iact, 'Which sword?', matches);
+  if (sword === null) return abortWithMessage(actor, 'unknown sword');
+  await pickUp(actor, sword);
+} catch (err) {
+  if (err instanceof PromptCancelledError) return abortCommand();
+  throw err;
+}
+
+// NOT ALLOWED — bespoke flow that re-derives the substrate
+const id = nanoid();
+const resolvers = activeResolvers; // some local map
+MessageApi.scene(actor).topic('world.prompt').toSelf(question).send();
+const reply = await waitForInboundMessage(id);  // ???
+```
+
+If the prompt needs context prose ("There are several swords here..."),
+emit it as a separate `MessageApi.scene(...).toSelf(...).send()`
+BEFORE the `PromptApi` call, or pass `body` in opts. Either way
+the substrate owns the prompt lifecycle.
+
+Validator semantics diverge from command validators (async
+permitted on prompts; sync-by-design on commands). The reason: the
+prompt's lifecycle is already async; the dispatcher's validator
+pass is sync. See `docs/subsystems/prompt.md` for the full
+discussion.
+
+## Controllers — don't gate cross-cutting preconditions inline
+
+A controller's `execute()` should NOT begin with a `MixinApi.isX`
+check or an `instanceof` test on the giver. Those gates belong in
+a verb-level validator (`validators:` at the top of the YAML);
+the dispatcher's resolution + validation pipeline runs them
+before the controller is ever cloned.
+
+```ts
+// NOT ALLOWED — inline mixin gate
+execute(model, ctx) {
+  if (!MixinApi.isEnvironment(ctx.commandGiver)) {
+    ctx.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
+    return;
+  }
+  // …
+}
+
+// CORRECT — validator in the YAML
+// var.yaml
+verbs: [var]
+controller: VarController
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands: …
+
+// VarController.ts
+execute(model, ctx) {
+  const avatar = ctx.commandGiver as EnvHost;  // validator guarantees this
+  // …
+}
+```
+
+Existing verb-level validators in `lib/command/validators/`:
+`requiresAnimate`, `requiresAvatar`, `requiresEnvironment`,
+`requiresAlias`, `requiresHasInteractive`, `requiresPosed`,
+`requiresSlottable`, `requiresMounted`, `requiresSlotted`.
+Compose more — they're tiny files that take a `CommandValidator`
+function and return a string-on-fail / undefined-on-pass.
+
+## Controllers — don't switch-default on unknown subcommand
+
+A subcommanded controller's `execute()` should NOT have a
+`default:` case in its subcommand `switch` that emits
+`controller-rejected { reason: 'unknown-subcommand' }`. The
+dispatcher already handles this path: `CommandApi.assemble`
+returns `error: 'unknown-subcommand'` when the player typed a
+subcommand the YAML doesn't declare, and `CommandGiver._runChain`
+emits `command-rejected { reason: 'unknown-subcommand' }` with a
+"valid: …" detail BEFORE the controller is cloned.
+
+```ts
+// NOT ALLOWED — dead defensive branch
+switch (model.subcommand) {
+  case 'list': return this.list(…);
+  case 'set':  return this.set(…);
+  default:
+    return this.fail(ctx, `unknown subcommand: ${model.subcommand}`,
+                     'unknown-subcommand');
+}
+
+// CORRECT — only declared subcommands need branches
+switch (model.subcommand) {
+  case 'list': return this.list(…);
+  case 'set':  return this.set(…);
+}
+```
+
+The bare-verb case (`model.subcommand === undefined` when the
+player typed just the verb) is a different signal: the
+controller chooses whether to pick a default ("settings list" as
+the default for bare `settings`) or fail. That decision is
+content; only the controller knows. The `default:` branch above
+is for *typos*, and the framework owns that.

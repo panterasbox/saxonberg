@@ -214,12 +214,28 @@ export class CommandDefinition {
 
     if (hasArgs) {
       validateArgOrdering(this.args, this.filePath, 'args');
+      for (const a of this.args) {
+        validateCardinality(a, this.filePath, 'args');
+      }
     }
 
     if (hasSubcommands) {
       Object.entries(this.subcommands).forEach(([name, sub]) => {
         validateArgOrdering(sub.args, this.filePath, name);
+        for (const a of sub.args ?? []) {
+          validateCardinality(a, this.filePath, name);
+        }
+        for (const [, opt] of Object.entries(sub.options ?? {})) {
+          validateCardinality(opt, this.filePath, name);
+        }
       });
+    }
+
+    for (const [, opt] of Object.entries(this.verbOptions)) {
+      validateCardinality(opt, this.filePath, 'verbOptions');
+    }
+    for (const [, opt] of Object.entries(this.payload)) {
+      validateCardinality(opt, this.filePath, 'payload');
     }
 
     validateFieldNameUniqueness(this);
@@ -490,6 +506,90 @@ function validateArgOrdering(
  * subcommands — the matcher stamps the active subcommand on
  * `model.subcommand`, so a YAML can't compete with that key.
  */
+/**
+ * Validate `cardinality` / `onExcess` / `onShortage` for a single
+ * field. Throws at YAML-load time on invalid combos.
+ */
+function validateCardinality(
+  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string },
+  filePath: string,
+  scope: string,
+): void {
+  const fname = field.name ?? '<option>';
+
+  // `exactly` is sugar for min == max; reject coexisting with min/max.
+  if (field.cardinality?.exactly !== undefined) {
+    if (
+      field.cardinality.min !== undefined ||
+      field.cardinality.max !== undefined
+    ) {
+      throw new Error(
+        `${filePath} (${scope}.${fname}): cardinality.exactly cannot coexist with cardinality.min or cardinality.max`
+      );
+    }
+    if (
+      !Number.isFinite(field.cardinality.exactly) ||
+      field.cardinality.exactly < 0
+    ) {
+      throw new Error(
+        `${filePath} (${scope}.${fname}): cardinality.exactly must be a non-negative number`
+      );
+    }
+  }
+  if (
+    field.cardinality?.min !== undefined &&
+    field.cardinality?.max !== undefined &&
+    field.cardinality.min > field.cardinality.max
+  ) {
+    throw new Error(
+      `${filePath} (${scope}.${fname}): cardinality.min (${field.cardinality.min}) cannot exceed cardinality.max (${field.cardinality.max})`
+    );
+  }
+
+  // Cardinality / onExcess policies are only meaningful for MQL
+  // fields; reject on non-MQL types.
+  if (
+    (field.cardinality !== undefined || field.onExcess !== undefined || field.onShortage !== undefined) &&
+    field.type !== 'object' &&
+    field.type !== 'objects'
+  ) {
+    throw new Error(
+      `${filePath} (${scope}.${fname}): cardinality / onExcess / onShortage are only valid on object / objects fields (got type=${field.type ?? 'undefined'})`
+    );
+  }
+
+  // Per-type onExcess policy enums.
+  if (field.onExcess !== undefined) {
+    const validForObject = ['top', 'prompt', 'error'];
+    const validForObjects = ['take-all', 'prompt', 'truncate', 'error'];
+    if (field.type === 'object' && !validForObject.includes(field.onExcess)) {
+      throw new Error(
+        `${filePath} (${scope}.${fname}): onExcess='${field.onExcess}' invalid on type='object'; valid: ${validForObject.join(', ')}`
+      );
+    }
+    if (field.type === 'objects' && !validForObjects.includes(field.onExcess)) {
+      throw new Error(
+        `${filePath} (${scope}.${fname}): onExcess='${field.onExcess}' invalid on type='objects'; valid: ${validForObjects.join(', ')}`
+      );
+    }
+  }
+
+  // onShortage v1 enum.
+  if (field.onShortage !== undefined && field.onShortage !== 'error') {
+    throw new Error(
+      `${filePath} (${scope}.${fname}): onShortage='${field.onShortage}' invalid in v1; only 'error' is supported`
+    );
+  }
+
+  // `cardinality` and `onShortage` make no sense on `object` (cardinality
+  // is implicit `{ exactly: 1 }`).
+  if (field.type === 'object' && field.cardinality !== undefined) {
+    throw new Error(
+      `${filePath} (${scope}.${fname}): cardinality is not valid on type='object' (implicit { exactly: 1 })`
+    );
+  }
+}
+
 function validateFieldNameUniqueness(def: CommandDefinition): void {
   if (def.hasSubcommands()) {
     const collide = (label: string, names: Iterable<string>): void => {

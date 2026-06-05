@@ -6,6 +6,12 @@
  * `set NAME BODY` writes to the persistent store (default). `unset`
  * tombstones the persistent tier when the name has a default,
  * otherwise just drops the override.
+ *
+ * Cross-cutting concerns the framework handles, not us:
+ *   - `requiresAlias` validator (in alias.yaml) gates the giver type.
+ *   - Unknown-subcommand rejection is dispatcher-side — `assemble`
+ *     returns `error: 'unknown-subcommand'` before the controller
+ *     is ever cloned.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -15,7 +21,6 @@ import type {
   } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Alias } from '../../lib/shell/Alias';
 
@@ -29,12 +34,8 @@ interface AliasModel extends CommandModel {
 
 export class AliasController extends CommandController<AliasModel> {
   execute(model: AliasModel, context: CommandContext): void {
-    const avatar = context.commandGiver;
-    if (!MixinApi.isAlias(avatar)) {
-      this.send(context, Mml.fromMarkup('\nthis character has no aliases\n'));
-      context.note({ kind: 'mixin-missing', mixin: 'AliasMixin' });
-      return;
-    }
+    // requiresAlias validator guarantees this cast.
+    const avatar = context.commandGiver as AliasHost;
 
     const sub = model.subcommand ?? 'list';
     const name = model.name;
@@ -51,8 +52,6 @@ export class AliasController extends CommandController<AliasModel> {
         return this.executeUnset(avatar, name, context);
       case 'describe':
         return this.executeDescribe(avatar, name, context);
-      default:
-        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 

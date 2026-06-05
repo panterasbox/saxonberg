@@ -47,6 +47,7 @@ import {
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
+import { renderPromptRefresh, PromptCancelledError } from '../../api/prompt';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
@@ -513,7 +514,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             dispatchId: outer.commandId,
             originInteractiveId,
           });
-          const resolved = CommandApi.resolveModel(
+          const resolved = await CommandApi.resolveModel(
             parseResult.bound.model,
             outer,
           );
@@ -549,16 +550,31 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           });
         }
       } catch (error: unknown) {
-        const detail =
-          error instanceof Error ? error.message : String(error);
-        // The throw can originate inside a controller's execute(),
-        // inside resolveAndValidate, or anywhere else. Attribute to
-        // whichever context is currently flowing through the chain.
-        claimingCtx.note({
-          kind: 'controller-error',
-          controller: outer.command?.controller ?? '?',
-          detail,
-        });
+        // PromptCancelledError is the "player cancelled mid-
+        // disambiguation" path. It's not a controller error — emit
+        // a cancelled-shape note and let the dispatch-response
+        // envelope ride the standard outcome flow. The originating
+        // command never executes.
+        if (error instanceof PromptCancelledError) {
+          claimingCtx.note({
+            kind: 'controller-rejected',
+            reason: error.reason === 'host-disconnected'
+              ? 'host-disconnected'
+              : 'cancelled',
+            detail: `prompt ${error.reason}`,
+          });
+        } else {
+          const detail =
+            error instanceof Error ? error.message : String(error);
+          // The throw can originate inside a controller's execute(),
+          // inside resolveAndValidate, or anywhere else. Attribute to
+          // whichever context is currently flowing through the chain.
+          claimingCtx.note({
+            kind: 'controller-error',
+            controller: outer.command?.controller ?? '?',
+            detail,
+          });
+        }
       }
 
       // Framework-failure prose sweep: each accumulated note that
@@ -591,12 +607,19 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // delivery layer in `Application.sendEnvelopeToInteractive`.
       // Sensor pipeline (Avatar.handleEnvelope) multiplexes the
       // template to every connected Interactive.
+      //
+      // Every response carries a `prompt-refresh` Note rendered from
+      // the giver's `prompt.format` setting (default `{{ focus }}>`)
+      // so the client's base-prompt area updates after every command —
+      // the MUD-style refresh model. See
+      // `docs/subsystems/prompt.md` (Wave 7) for the full design.
+      const notes = [...claimingCtx.getNotes(), renderPromptRefresh(giverAsStuff)];
       const envelopeTemplate: EnvelopeTemplate = {
         type: 'dispatch-response',
         dispatchId: outer.commandId,
         outcome: {
           status: claimingCtx.getStatus(),
-          notes: [...claimingCtx.getNotes()],
+          notes,
         },
       };
       if (MixinApi.isSensor(giverAsStuff)) {
@@ -697,13 +720,23 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         if ('error' in built) {
           if (built.error === 'shape') continue; // fall through
-          // Bind error stops the chain. Emit on the outer ctx —
-          // we never reached _executeOne for any attempt.
-          outer.note({
-            kind: 'command-rejected',
-            reason: 'bind-failed',
-            detail: built.summary,
-          });
+          // Bind / unknown-subcommand errors stop the chain. Emit on
+          // the outer ctx — we never reached _executeOne for any
+          // attempt.
+          if (built.error === 'unknown-subcommand') {
+            const list = built.available.join(', ');
+            outer.note({
+              kind: 'command-rejected',
+              reason: 'unknown-subcommand',
+              detail: `unknown subcommand '${built.subcommand}'; valid: ${list}`,
+            });
+          } else {
+            outer.note({
+              kind: 'command-rejected',
+              reason: 'bind-failed',
+              detail: built.summary,
+            });
+          }
           outer.verb = parsed.verb;
           outer.command = command;
           return outer;
@@ -730,7 +763,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // lets field-level validator preloads inspect the bound
         // result (e.g. `requiresAnimateTarget` reads the resolved
         // target's `_speciesPath`).
-        const resolved = CommandApi.resolveModel(
+        const resolved = await CommandApi.resolveModel(
           built.model,
           attempt,
           built.prep

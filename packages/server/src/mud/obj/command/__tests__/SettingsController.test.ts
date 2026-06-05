@@ -234,28 +234,8 @@ describe('SettingsController', () => {
     });
   });
 
-  describe('non-Environment commandGiver', () => {
-    it('declines gracefully', () => {
-      // A bare Stuff without EnvironmentMixin should be rejected at
-      // the surface, not crash with an undefined-method error.
-      const bare = makeStuff(() => new (class extends Idea {})());
-      const ctx = CommandApi.createCommandContext({
-        commandGiver: bare as unknown as CommandContext['commandGiver'],
-        interactive: {} as Interactive,
-        location,
-        commandText: '',
-        executionId: 'e',
-        commandId: 'c',
-        verb: 'settings',
-        command: stubCommand('settings'),
-      });
-      controller.execute(makeModel({}, 'list'), ctx);
-      expect(ctx.getNotes()).toContainEqual(
-        expect.objectContaining({
-          kind: 'mixin-missing',
-          mixin: 'EnvironmentMixin',
-        }),
-      );
-    });
-  });
+  // Non-Environment commandGiver rejection lives in the
+  // `requiresEnvironment` validator now (see settings.yaml). The
+  // controller assumes the validator has already guarded the
+  // call.
 });

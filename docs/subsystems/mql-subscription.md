@@ -403,9 +403,13 @@ Three changes bundled with the subscription substrate:
   in 25+ caller-supplied strings (`'that'`, `'door'`, `'somewhere'`,
   `'instrument'`).
 - **Add `viewer?: Sensor`.** Reserved for the recognition / DescribeApi
-  v2 pipeline. v1 body ignores it, but the substrate threads it
-  end-to-end so the per-viewer design is wired without a future
-  rename.
+  v2 pipeline. The v1 body explicitly voids the parameter (`void
+  viewer;`) — every viewer sees the same name today — but every
+  caller already threads its `Sensor` through so the per-viewer
+  design lands without a signature change. The subscription
+  substrate's `#projectStuff` walk hands the subscriber's holder
+  to every descriptor's `read` / `perDetailRead`, including this
+  one.
 - **Bake in `DEFAULT_DISPLAY_NAME = 'something'`.** The return type
   stays `string` (never null); the substrate's
   `StuffRefRecord.displayName` is non-optional and honored without

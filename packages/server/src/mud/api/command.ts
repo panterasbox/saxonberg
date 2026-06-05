@@ -19,6 +19,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import { ArrayApi } from './array';
 import { ShellApi } from './shell';
+import { PromptApi } from './prompt';
 import type { Interactive } from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
@@ -515,15 +516,52 @@ export type CommandValidator = ((
  * the matcher reads only that field. Schema delivery uses the
  * string form.
  */
+/**
+ * Authorial cardinality constraint on an `objects` field. Describes
+ * how many results the controller wants from MQL resolution. Default
+ * is `{ min: 0, max: Infinity }` (take everything resolved). Setting
+ * `exactly: N` is sugar for `min: N, max: N`.
+ */
+export interface CardinalitySpec {
+  min?: number;
+  max?: number;
+  exactly?: number;
+}
+
+/**
+ * What to do when MQL resolves more results than the cardinality
+ * permits.
+ *
+ * - `'top'` — pick the highest-scored match. **`object` only** (the
+ *   default for `object` fields; preserves pre-cardinality behavior).
+ * - `'take-all'` — execute with all resolved Stuffs. **`objects`
+ *   only** (the default for `objects` when `max` is unset).
+ * - `'prompt'` — push `mqlObject` (cardinality 1) or `mqlMany`
+ *   (cardinality K) and await the player's selection.
+ * - `'truncate'` — silently take the top `max` matches. **`objects`
+ *   only.**
+ * - `'error'` — fail the command with a structured note.
+ */
+export type OnExcessPolicy = 'top' | 'take-all' | 'prompt' | 'truncate' | 'error';
+
+/**
+ * What to do when MQL resolves fewer results than `cardinality.min`.
+ * v1 ships one value: `'error'`. ("Prompt to widen your MQL query"
+ * is deferred per requirements doc non-goals.)
+ */
+export type OnShortagePolicy = 'error';
+
 export interface FieldDefinition {
   /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
    * - `object` — singular MQL field; the dispatcher resolves the
-   *   bound text via `MqlApi.resolveOne`, picking the highest-scored
-   *   match (or failing the command on no match).
+   *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
+   *   `MqlApi.resolveMany` (otherwise — full list needed for
+   *   counting / prompting). Implicit cardinality `{ exactly: 1 }`.
    * - `objects` — plural MQL field; the dispatcher resolves via
    *   `MqlApi.resolveMany`. `multiple: true` is NOT used for MQL
-   *   fields — the cardinality is the type.
+   *   fields — the cardinality is the type plus the optional
+   *   `cardinality` knob.
    * - `struct` — structured-input-only blob (`Record<string, unknown>`).
    *   Cannot be bound from text — `msh` returns a clear error if a
    *   verb's positional or option of this type appears in tokenised
@@ -532,6 +570,29 @@ export interface FieldDefinition {
    *   `schema` (JSON Schema) before user-defined validators fire.
    */
   type?: 'string' | 'number' | 'boolean' | 'object' | 'objects' | 'struct';
+  /**
+   * Cardinality constraint for `objects` fields. Ignored on other
+   * field types. Defaults to `{ min: 0, max: Infinity }`.
+   */
+  cardinality?: CardinalitySpec;
+  /**
+   * Policy when MQL resolves too many results.
+   *
+   *   - `'object'` field default: `'top'` (preserves pre-cardinality
+   *     behavior; pick the highest-scored match).
+   *   - `'objects'` field default: `'prompt'` if `cardinality.max` is
+   *     set, `'take-all'` otherwise.
+   *
+   * `'top'` and `'take-all'` are mutually exclusive between field
+   * types (schema validation rejects `'top'` on `objects`,
+   * `'take-all'` on `object`, etc.).
+   */
+  onExcess?: OnExcessPolicy;
+  /**
+   * Policy when MQL resolves fewer results than `cardinality.min`.
+   * v1 only value: `'error'`. Future values land additively.
+   */
+  onShortage?: OnShortagePolicy;
   /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
@@ -672,6 +733,10 @@ export interface OptionDefinition {
   type: 'boolean' | 'string' | 'number' | 'object' | 'objects' | 'struct';
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
+  /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
+  cardinality?: CardinalitySpec;
+  onExcess?: OnExcessPolicy;
+  onShortage?: OnShortagePolicy;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
   /**
@@ -1133,10 +1198,10 @@ export class CommandApi {
         const sName = t.value;
         const sDef = command.getSubcommand(sName);
         if (!sDef) {
-          const list = command.getSubcommandNames().join(', ');
           return {
-            error: 'shape',
-            summary: `Unknown subcommand '${sName}'. Available: ${list}`,
+            error: 'unknown-subcommand',
+            subcommand: sName,
+            available: command.getSubcommandNames(),
           };
         }
         subcommand = sName;
@@ -1343,6 +1408,137 @@ export class CommandApi {
   }
 
   /**
+   * Apply the cardinality / onExcess / onShortage policy to a
+   * resolved MQL candidate list.
+   *
+   * Decision matrix:
+   *
+   *   type=object (implicit `{ exactly: 1 }`):
+   *     0 matches → pass through (resolveModel lands `stuff=null`)
+   *     1 match   → pass through
+   *     >1 match  → onExcess decides:
+   *                   'top'    → first match wins (default)
+   *                   'error'  → controller-rejected:ambiguous, null
+   *                   'prompt' → await PromptApi.mqlObject; player
+   *                              picks; cancel propagates as
+   *                              PromptCancelledError (caught in
+   *                              CommandGiver). No Interactive on
+   *                              the context degrades to ambiguous.
+   *
+   *   type=objects (default `{ min: undefined, max: undefined }`):
+   *     under min  → onShortage='error', controller-rejected:insufficient
+   *     over max   → onExcess decides:
+   *                   'truncate' → cut to max
+   *                   'error'    → controller-rejected:too-many, null
+   *                   'prompt'   → await PromptApi.mqlMany; player
+   *                                picks within bounds; cancel
+   *                                propagates as PromptCancelledError.
+   *     in-range   → pass through
+   *
+   * The async prompt paths only fire when an Interactive is
+   * attached to the context (Avatar dispatch). Programmatic /
+   * scripted dispatch paths fall back to the degrade-to-error
+   * branch, since there's nobody to ask.
+   *
+   * Returns the filtered stuff list, or `null` when the policy
+   * dictates failure (an error note has been added to the
+   * context). Throws `PromptCancelledError` when the player
+   * cancels — the caller (CommandGiver) catches and emits a
+   * cancelled-shape `controller-rejected` note.
+   */
+  static async applyCardinalityPolicy(
+    spec: { type?: string; cardinality?: CardinalitySpec; onExcess?: OnExcessPolicy; onShortage?: OnShortagePolicy },
+    stuff: Stuff[],
+    fname: string,
+    context: CommandContext,
+  ): Promise<Stuff[] | null> {
+    if (spec.type === 'object') {
+      const policy = spec.onExcess ?? 'top';
+      if (stuff.length === 0) return [];
+      if (stuff.length === 1) return stuff;
+      // stuff.length > 1
+      if (policy === 'top') return [stuff[0]!];
+      if (policy === 'error') {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'ambiguous',
+          detail: `${fname}: ambiguous (${stuff.length} matches)`,
+        });
+        return null;
+      }
+      // 'prompt' — push mqlObject and await the player's pick. If
+      // no Interactive is on the context (e.g. NPC dispatch path),
+      // there's no way to disambiguate; degrade to top with a note.
+      if (!context.interactive) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'ambiguous',
+          detail: `${fname}: ambiguous (${stuff.length} matches) and no Interactive to disambiguate`,
+        });
+        return null;
+      }
+      const picked = await PromptApi.mqlObject(
+        context.interactive,
+        `which ${fname}?`,
+        stuff,
+      );
+      if (picked === null) {
+        // Pass null through as a no-match — controller will fail
+        // with its standard no-match path.
+        return [];
+      }
+      return [picked];
+    }
+
+    if (spec.type === 'objects') {
+      const card = spec.cardinality ?? {};
+      const min = card.exactly ?? card.min ?? 0;
+      const max = card.exactly ?? card.max ?? Number.POSITIVE_INFINITY;
+
+      if (stuff.length < min) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'insufficient',
+          detail: `${fname}: expected at least ${min}, got ${stuff.length}`,
+        });
+        return null;
+      }
+      if (stuff.length <= max) return stuff;
+
+      // stuff.length > max
+      const policy = spec.onExcess ?? (max === Number.POSITIVE_INFINITY ? 'take-all' : 'prompt');
+      if (policy === 'take-all') return stuff;
+      if (policy === 'truncate') return stuff.slice(0, max);
+      if (policy === 'error') {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'too-many',
+          detail: `${fname}: got ${stuff.length}, max ${max}`,
+        });
+        return null;
+      }
+      // 'prompt' — push mqlMany with bounds and await.
+      if (!context.interactive) {
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'too-many',
+          detail: `${fname}: got ${stuff.length}, max ${max}, no Interactive to narrow`,
+        });
+        return null;
+      }
+      const picks = await PromptApi.mqlMany(
+        context.interactive,
+        `pick ${min}-${max} ${fname}`,
+        stuff,
+        { min, max: Number.isFinite(max) ? max : undefined },
+      );
+      return picks;
+    }
+
+    return stuff;
+  }
+
+  /**
    * Run MQL resolution on `type: object` / `type: objects` fields and
    * options. Returns the bound model with `MqlOneResult` /
    * `MqlManyResult` wrappers where strings used to be; the rest of
@@ -1351,18 +1547,22 @@ export class CommandApi {
    * Does NOT run validators — that's {@link runValidators}. The split
    * exists so the dispatcher can insert an async preload phase between
    * MQL resolution and validation: field validator preloads need the
-   * resolved value to compute their deps (e.g.
-   * `requiresAnimateTarget` reads the bound target's `_speciesPath`).
+   * resolved value to compute their deps (e.g. `requiresAnimateTarget`
+   * reads the bound target's `_speciesPath`).
+   *
+   * Async since `applyCardinalityPolicy` (called per resolved field)
+   * can push a PromptApi prompt and await the player's pick. The
+   * await propagates `PromptCancelledError` to the caller.
    *
    * Reads `command` from `context`; the active subcommand (if any)
    * is read from `model.subcommand`, which the matcher stamped at
    * bind time.
    */
-  static resolveModel(
+  static async resolveModel(
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: 'failed' } {
+  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
     const command = context.command;
     const subcommand =
       typeof model[SUBCOMMAND_FIELD] === 'string'
@@ -1423,28 +1623,47 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        // Empty results are a normal outcome — pass `[]` through
-        // on the wrapper and let the controller decide what
-        // no-match means in its domain. Don't update scope or
-        // pronoun memory on empty (no anchor to anchor on).
-        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        // Apply cardinality / onExcess policy. Returns the
+        // filtered stuff list or null on policy-driven failure.
+        const filtered = await CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff.length > 0 && focused) {
-          // Multi-cardinality results don't update player scope (no
-          // single anchor to extend or re-anchor from). Pronoun memory
-          // only updates for Focused givers — others have no stash.
-          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        if (filtered.length > 0 && focused) {
+          focused.getPronounMemory().update({ stuff: filtered }, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne;
+        // type: object. When `onExcess` policy is anything other
+        // than 'top' (the default), the resolver needs the full
+        // candidate list to count / prompt / fail; switch to
+        // resolveMany. `onExcess: 'top'` keeps the cheap
+        // resolveOne path.
+        const useTop = (def.onExcess ?? 'top') === 'top';
+        let stuff: Stuff[] = [];
+        let via: MqlMany['via'] | undefined;
+        let quantity: MqlMany['quantity'] | undefined;
         try {
-          r = { stuff: null };
           for (const scope of tries) {
-            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-            if (r.stuff !== null) break;
+            if (useTop) {
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              if (r.stuff !== null) {
+                stuff = [r.stuff];
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            } else {
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              if (r.stuff.length > 0) {
+                stuff = r.stuff;
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            }
           }
         } catch (err) {
           context.note({
@@ -1455,20 +1674,21 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        // `null` (empty) is a normal outcome — pass it through on
-        // the wrapper and let the controller decide what no-match
-        // means.
-        const bound: MqlOneResult = { stuff: r.stuff, raw };
-        if (r.via) bound.via = r.via;
-        if (r.quantity) bound.quantity = r.quantity;
+        // Apply cardinality / onExcess policy.
+        const filtered = await CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const picked = filtered[0] ?? null;
+        const bound: MqlOneResult = { stuff: picked, raw };
+        if (via) bound.via = via;
+        if (quantity) bound.quantity = quantity;
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
-        if (r.stuff !== null && focused) {
+        if (picked !== null && focused) {
           if (focusMode !== 'none') {
-            updatePlayerFocus(focused, raw, r.stuff, r.via, focusMode);
+            updatePlayerFocus(focused, raw, picked, via, focusMode);
           }
-          const asMany: MqlMany = { stuff: [r.stuff] };
-          if (r.via) asMany.via = r.via;
+          const asMany: MqlMany = { stuff: [picked] };
+          if (via) asMany.via = via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
       }
@@ -1511,20 +1731,39 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const bound: MqlManyResult = { stuff: r.stuff, raw };
+        const filtered = await CommandApi.applyCardinalityPolicy(def, r.stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const bound: MqlManyResult = { stuff: filtered, raw };
         if (r.via) bound.via = r.via;
         if (r.quantity) bound.quantity = r.quantity;
         resolved[fname] = bound;
-        if (r.stuff.length > 0 && focused) {
-          focused.getPronounMemory().update(r, raw, slotForGenderRouting);
+        if (filtered.length > 0 && focused) {
+          focused.getPronounMemory().update({ stuff: filtered }, raw, slotForGenderRouting);
         }
       } else {
-        let r: MqlOne;
+        const useTop = (def.onExcess ?? 'top') === 'top';
+        let stuff: Stuff[] = [];
+        let via: MqlMany['via'] | undefined;
+        let quantity: MqlMany['quantity'] | undefined;
         try {
-          r = { stuff: null };
           for (const scope of tries) {
-            r = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
-            if (r.stuff !== null) break;
+            if (useTop) {
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              if (r.stuff !== null) {
+                stuff = [r.stuff];
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            } else {
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              if (r.stuff.length > 0) {
+                stuff = r.stuff;
+                via = r.via;
+                quantity = r.quantity;
+                break;
+              }
+            }
           }
         } catch (err) {
           context.note({
@@ -1535,13 +1774,16 @@ export class CommandApi {
           });
           return { result: 'failed' };
         }
-        const bound: MqlOneResult = { stuff: r.stuff, raw };
-        if (r.via) bound.via = r.via;
-        if (r.quantity) bound.quantity = r.quantity;
+        const filtered = await CommandApi.applyCardinalityPolicy(def, stuff, fname, context);
+        if (filtered === null) return { result: 'failed' };
+        const picked = filtered[0] ?? null;
+        const bound: MqlOneResult = { stuff: picked, raw };
+        if (via) bound.via = via;
+        if (quantity) bound.quantity = quantity;
         resolved[fname] = bound;
-        if (r.stuff !== null && focused) {
-          const asMany: MqlMany = { stuff: [r.stuff] };
-          if (r.via) asMany.via = r.via;
+        if (picked !== null && focused) {
+          const asMany: MqlMany = { stuff: [picked] };
+          if (via) asMany.via = via;
           focused.getPronounMemory().update(asMany, raw, slotForGenderRouting);
         }
       }
@@ -1659,12 +1901,12 @@ export class CommandApi {
    * validator phase via `preloadValidatorDeps`). Kept for tests and
    * one-off callers that want the combined sync surface.
    */
-  static resolveAndValidate(
+  static async resolveAndValidate(
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): { resolved: CommandModel } | { result: 'failed' } {
-    const resolved = this.resolveModel(model, context, prep);
+  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
+    const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
     const validated = this.runValidators(resolved.resolved, context);
     if ('result' in validated) return validated;
@@ -1767,7 +2009,8 @@ export interface AssembleSuccess {
 export type AssembleResult =
   | AssembleSuccess
   | { error: 'shape'; summary: string }
-  | { error: 'bind'; summary: string };
+  | { error: 'bind'; summary: string }
+  | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
 interface BindOk {
   ok: true;

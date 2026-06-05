@@ -51,7 +51,10 @@ that follow (where client work begins), and treats the
 Five chunks. Each chunk is one or more requirements docs + plans
 ultimately. Sequenced by dependency.
 
-### Chunk 2.1 — MQL subscription substrate (innards)
+### Chunk 2.1 — MQL subscription substrate (innards) — ✓ DONE
+
+See [docs/subsystems/mql-subscription.md](../subsystems/mql-subscription.md).
+
 
 **What it builds.** The `MqlSubscriptionApi` class:
 
@@ -104,7 +107,13 @@ ultimately. Sequenced by dependency.
 - Composite queries / joined results — Tier 2
 - Selective per-result reverse index — Tier 2
 
-### Chunk 2.2 — Field projection mechanism
+### Chunk 2.2 — Field projection mechanism — ✓ DONE
+
+See [docs/subsystems/mql-subscription.md § Descriptors](../subsystems/mql-subscription.md).
+The `static subscribableFields` convention shipped alongside
+the substrate; `displayName` graduated from "synthetic table"
+to a descriptor on `Stuff` directly.
+
 
 **What it builds.** The `static subscribableFields` convention
 and the substrate-side machinery that consumes it:
@@ -198,7 +207,13 @@ verb list (`detail` records' richer capabilities — deferred).
   detection
 - Per-actor caching / memoization — premature
 
-### Chunk 2.4 — Two-channel inbound dispatcher
+### Chunk 2.4 — Two-channel inbound dispatcher — ✓ DONE
+
+See [docs/subsystems/mql-subscription.md](../subsystems/mql-subscription.md)
+and [docs/subsystems/prompt.md](../subsystems/prompt.md) — both
+substrates' inbound messages bypass the command bus and route
+directly via `Application.processUserMessage`.
+
 
 **What it builds.** Routing for the new `type` discriminators on
 inbound websocket messages.
@@ -236,7 +251,14 @@ inbound websocket messages.
 - The `mql-query` / `heartbeat` routing if those land in 2.6.
   The dispatcher's `switch` just adds cases incrementally.
 
-### Chunk 2.5 — `PromptApi` substrate
+### Chunk 2.5 — `PromptApi` substrate — ✓ DONE
+
+See [docs/subsystems/prompt.md](../subsystems/prompt.md). The
+build also picked up base-prompt rendering (`prompt.format`
+setting), the cardinality vocabulary (`cardinality` /
+`onExcess` / `onShortage` on object/objects fields), and
+end-to-end MQL multi-match disambiguation via `onExcess: prompt`.
+
 
 **What it builds.** The prompt mechanism as designed in
 prompt-stack-slate, scoped to the **substrate plumbing**, not the

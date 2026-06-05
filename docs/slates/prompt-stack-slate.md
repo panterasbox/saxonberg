@@ -6,11 +6,14 @@ recording their answer, and resuming whatever needed it. Disambiguation,
 confirmation, choice menus, multi-step workflows (character
 creation, crafting, lesson gates) all consume the same surface.
 
-**Status.** Wire-level envelope shape (`PromptEnvelope` in
-`@saxonberg/types`) exists; everything else is design surface. Server
-substrate is the v1 punch-list item "Interactive prompt stack
-(Framework 11)" — not built. Client side is the cockpit slate's
-Polish A section, expanded here into a real architecture.
+**Status.** Server substrate has shipped — see
+[docs/subsystems/prompt.md](../subsystems/prompt.md) for the
+implemented surface. This slate stays alive for the **client-side**
+half (terminal rendering, two-slot prompt area, dismissal UX,
+multi-prompt stacking visuals) and **future server-side waves**
+(Tier 2/3 prompt kinds, behavior flags, richer base-prompt tokens).
+The MQL multi-match disambiguation case is wired end-to-end via
+`onExcess: prompt` on `cardinality:`.
 
 See also:
 

@@ -343,10 +343,15 @@ subcommands:
     }
   });
 
-  it('returns shape error for unknown subcommand', () => {
+  it('returns unknown-subcommand error with the typed name + available list', () => {
     const def = defOf(playerYaml);
     const r = assembleText('player nope', def);
-    expect('error' in r && r.error === 'shape').toBe(true);
+    expect('error' in r && r.error === 'unknown-subcommand').toBe(true);
+    if ('error' in r && r.error === 'unknown-subcommand') {
+      expect(r.subcommand).toBe('nope');
+      expect(Array.isArray(r.available)).toBe(true);
+      expect(r.available.length).toBeGreaterThan(0);
+    }
   });
 
   it('binds subcommand positionals from args-array order', () => {

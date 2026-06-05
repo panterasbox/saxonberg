@@ -1,0 +1,8 @@
+verbs: [prompt]
+description: "Manage active prompts. v1 subcommands: cancel (cancels every pending prompt on this connection)."
+controller: PromptController
+validators:
+  - /lib/command/validators/requiresHasInteractive
+subcommands:
+  cancel:
+    description: "Cancel every pending prompt on this connection."

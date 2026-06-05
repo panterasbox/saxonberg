@@ -246,6 +246,71 @@ There's no implicit "player focus tries first" rule. The YAML is
 authoritative — the help system can read `scope:` to tell players
 which commands respect drill and which don't.
 
+### `cardinality:` / `onExcess:` / `onShortage:` — match-count policy
+
+Three optional knobs on `object` / `objects` fields that route
+MQL resolution through the cardinality matrix.
+
+#### `cardinality` (objects only)
+
+```yaml
+fields:
+  swords:
+    type: objects
+    cardinality:
+      min: 1        # default: 0
+      max: 3        # default: Infinity
+      # OR sugar: exactly: 3 (sets min == max == 3)
+```
+
+`object` fields have implicit `{ exactly: 1 }`; declaring
+`cardinality` on `object` throws at YAML load.
+
+#### `onExcess` — when there are more matches than allowed
+
+| Field type | Default | Valid values |
+|---|---|---|
+| `object` | `top` | `top`, `prompt`, `error` |
+| `objects` | `take-all` (when `max` unset) | `take-all`, `prompt`, `truncate`, `error` |
+
+Semantics:
+
+- `top` (object) — pick the highest-scored match. Current pre-
+  cardinality behavior.
+- `take-all` (objects) — execute with everything resolved.
+- `truncate` (objects) — silently take the top `max` matches.
+- `error` — emit `controller-rejected { reason: 'ambiguous' }` or
+  `'too-many'` and abort dispatch.
+- `prompt` — push `PromptApi.mqlObject` (object) or `mqlMany`
+  (objects, with bounds from the cardinality spec) and await the
+  player's pick. The dispatcher (`CommandApi.applyCardinalityPolicy`,
+  via `resolveModel`) awaits the prompt before the controller runs
+  — the controller sees the resolved Stuff(s) as if the player had
+  typed them precisely.
+  When the context has no Interactive attached (NPC / scripted
+  dispatch), the policy degrades to `controller-rejected
+  { reason: 'ambiguous' | 'too-many' }` — there's nobody to ask.
+  Player cancellation propagates as `PromptCancelledError`; the
+  dispatcher emits `controller-rejected { reason: 'cancelled' |
+  'host-disconnected' }`.
+
+#### `onShortage` — when there are fewer matches than required
+
+v1 only value: `error`. Emits `controller-rejected { reason:
+'insufficient' }`. (Re-prompting the player to widen their MQL
+query is deferred per the requirements doc non-goals.)
+
+#### Backward compat
+
+Every shipped command continues to parse and dispatch unchanged.
+Defaults preserve current behavior — `type: object` with no knobs
+acts the same as before (top-match wins); `type: objects` with no
+knobs takes everything.
+
+See [prompt.md § Cardinality vocabulary](./prompt.md#cardinality-vocabulary)
+for the substrate side; [command-routing.md](./command-routing.md)
+for the dispatcher's decision matrix.
+
 ### `updates_focus:` — focus management policy
 
 Three modes:
@@ -333,8 +398,21 @@ Live under `mud/lib/command/validators/`:
 | `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
 | `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
 | `requiresAnimate` | giver passes `SpeciesApi.isAnimate` (verb-level — declared under `validators:` at the top of the YAML, not on a specific field) | `eat`, `drink`, future combat / vocal verbs |
+| `requiresAvatar` | giver is an Avatar (player character) | `player` / `me` |
+| `requiresEnvironment` | giver composes `EnvironmentMixin` (has settings / var storage) | `settings`, `var` |
+| `requiresAlias` | giver composes `AliasMixin` (has alias store) | `alias` |
+| `requiresHasInteractive` | giver composes `HasInteractiveMixin` (has active connections to act on) | `prompt` |
 | `mustBeNumber` | binding is a finite number | numeric primitive fields |
 | `notEmpty` | binding is non-null, non-empty (string / array) | string / multi fields where blank is a category error |
+
+The `requires*` family is verb-level — declared under
+`validators:` at the top of the YAML, not on a specific field.
+They run before MQL resolution and short-circuit the dispatch with
+a `validator-failed` note when the giver doesn't compose the
+required surface. Reaching for one is preferable to inline mixin
+checks in controllers (see the
+[command-routing § Stage 4](./command-routing.md#stage-4--resolution--validation)
+note on framework-vs-controller responsibilities).
 
 `mustBeVisible` was retired — see
 [command-routing.md § Stage 4 — Resolution + validation](./command-routing.md#stage-4--resolution--validation)
@@ -436,6 +514,22 @@ or option named `subcommand` — caught at load time.
 Subcommanded verbs invoked without a subcommand reach the controller
 with `model.subcommand === undefined`. The controller decides what
 that means (`settings list`-style default, error, etc.).
+
+### Unknown subcommand — framework-side rejection
+
+A subcommand name the YAML didn't declare is **not** the
+controller's problem. `CommandApi.assemble` detects the unknown
+name and returns `error: 'unknown-subcommand'` (alongside the
+existing `shape` / `bind` error kinds), carrying the typed name
+and the list of valid subcommand names. The dispatcher
+(`CommandGiver._runChain`) treats this as chain-stopping and
+emits a `command-rejected { reason: 'unknown-subcommand', detail:
+"unknown subcommand 'foo'; valid: bar, baz" }` note on the outer
+context before any controller is cloned. Controllers therefore
+don't need (and shouldn't ship) a `default:` case in their
+subcommand switch — that path is dead, and the framework's prose
+mapping says "Command rejected: unknown subcommand 'foo'; valid:
+bar, baz" out of the box.
 
 ### Per-subcommand controllers
 

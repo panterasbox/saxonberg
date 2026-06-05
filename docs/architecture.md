@@ -222,13 +222,13 @@ SecurityApi.decorateApiClass(XyzApi);
 ```
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `MudlogApi`,
-`CommandApi`, `CommandLineApi`, `ProxyApi`, `SecurityApi`,
-`ShadowApi`, `ExecutionContextApi`, `ModuleApi`, `NavigationApi`,
-`PathPatternApi`, `ScheduleApi`, `SchedulerApi`, `TemplateApi`,
-`ZoneApi`, `DescribeApi`, `MmlApi`, `PlayerApi`, `PersistApi`-equivalent
-(no separate class today — persistence helpers live on the relevant
-Apis directly).
+`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `PromptApi`,
+`MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
+`SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
+`NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
+`TemplateApi`, `ZoneApi`, `DescribeApi`, `MmlApi`, `PlayerApi`,
+`PersistApi`-equivalent (no separate class today — persistence
+helpers live on the relevant Apis directly).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
@@ -237,6 +237,17 @@ substrate, which projects an MQL query's result + re-projects on
 relevant state changes. Outbound envelopes ride the same
 `MessageApi.sendEnvelope` path the dispatch-response framework uses.
 See `docs/subsystems/mql-subscription.md`.
+
+`PromptApi` is the third wire-side substrate. Server callers
+`await` an interactive prompt (`choice` / `confirm` / `text` /
+`mqlObject` / `mqlMany`); inbound `prompt-response` /
+`prompt-cancel` messages route directly to the substrate (bypassing
+the command bus); outbound envelopes ride the same
+`MessageApi.sendEnvelope` channel as dispatch-response and
+subscription deltas. Disconnect cleanup cancels MQL subscriptions
+THEN prompts THEN removes the Interactive (so envelopes can
+address the Interactive throughout the cancellation). See
+`docs/subsystems/prompt.md`.
 
 ### When to Create a New One
 

@@ -144,7 +144,8 @@ export interface CommandRejectedNote {
     | 'unknown-verb'
     | 'shape-fall-through'
     | 'bind-failed'
-    | 'missing-subcommand';
+    | 'missing-subcommand'
+    | 'unknown-subcommand';
   detail?: string;
 }
 
@@ -203,6 +204,103 @@ export interface EngagementCancelledNote {
 export interface AbortReasonRegistry {}
 export type AbortReason = keyof AbortReasonRegistry;
 
+/* ---- Prompt substrate notes ------------------------------------- */
+
+/**
+ * Tier 1 prompt-content Note kinds. Each rides on a `PromptEnvelope`
+ * as the push-side payload describing what the substrate is asking.
+ * The client renders the prompt area accordingly; the player's
+ * response routes back via `PromptResponseMessage`.
+ */
+
+export interface PromptChoice {
+  label: string;
+  response: string;
+}
+
+export interface ChoicePromptNote {
+  kind: 'prompt-choice';
+  label: string;
+  choices: PromptChoice[];
+  defaultChoice?: string;
+}
+
+export interface ConfirmPromptNote {
+  kind: 'prompt-confirm';
+  label: string;
+  defaultAnswer: 'yes' | 'no';
+}
+
+export interface TextPromptNote {
+  kind: 'prompt-text';
+  label: string;
+  placeholder?: string;
+}
+
+/**
+ * Minimal disambiguation-target descriptor sent on `mqlObject` /
+ * `mqlMany` prompts. The substrate projects matches at push time
+ * (server resolves `displayName` via `DescribeApi.getDisplayName`);
+ * client never sees a Stuff reference.
+ */
+export interface MqlMatchSummary {
+  stuffId: string;
+  displayName: string;
+}
+
+export interface MqlObjectPromptNote {
+  kind: 'prompt-mql-object';
+  label: string;
+  matches: MqlMatchSummary[];
+}
+
+export interface MqlManyPromptNote {
+  kind: 'prompt-mql-many';
+  label: string;
+  matches: MqlMatchSummary[];
+  /** Substrate-enforced minimum selection count (default 0). */
+  min?: number;
+  /** Substrate-enforced maximum selection count (default unbounded). */
+  max?: number;
+}
+
+/**
+ * Sent when a `validate` predicate rejects a response. The substrate
+ * keeps the prompt alive; the client renders the message inline and
+ * awaits a fresh response on the same `promptId`.
+ */
+export interface PromptValidationFailedNote {
+  kind: 'prompt-validation-failed';
+  message: string;
+  /** Multi-field prompts (future) carry which field failed. */
+  field?: string;
+}
+
+/**
+ * Sent when a prompt leaves the per-Interactive stack. `reason`:
+ *   - `'answered'`   — a valid response arrived; the await resolved.
+ *   - `'cancelled'`  — the player cancelled (X button or
+ *                     `prompt cancel` verb).
+ *   - `'host-disconnected'` — connection dropped; substrate
+ *                             rejected the await.
+ */
+export interface PromptDismissedNote {
+  kind: 'prompt-dismissed';
+  reason: 'answered' | 'cancelled' | 'host-disconnected';
+}
+
+/**
+ * Server-rendered base-prompt content. Lands inside every
+ * `DispatchResponseEnvelope`'s `outcome.notes` so the client can
+ * update its command-line prompt area after every command.
+ * Rendered from the actor's `prompt.format` setting via
+ * `ProseApi.format` against the standard prompt Liquid context.
+ */
+export interface PromptRefreshNote {
+  kind: 'prompt-refresh';
+  rendered: string;
+}
+
 export type Note =
   | QuantityClampedNote
   | QuantityClampedRejectedNote
@@ -219,7 +317,15 @@ export type Note =
   | ControllerErrorNote
   | EngagementStartedNote
   | EngagementCompletedNote
-  | EngagementCancelledNote;
+  | EngagementCancelledNote
+  | ChoicePromptNote
+  | ConfirmPromptNote
+  | TextPromptNote
+  | MqlObjectPromptNote
+  | MqlManyPromptNote
+  | PromptValidationFailedNote
+  | PromptDismissedNote
+  | PromptRefreshNote;
 
 export interface DispatchOutcome {
   status: Status;
@@ -282,6 +388,36 @@ export interface MqlSubscribeMessage {
 export interface MqlUnsubscribeMessage {
   type: 'mql-unsubscribe';
   subscriptionId: string;
+}
+
+/**
+ * Inbound response to a server-pushed prompt. The substrate looks
+ * up the resolver by `promptId`, decodes `response` per the prompt
+ * kind (string for `choice` / `text`; `'yes'` / `'no'` for
+ * `confirm`; stuffId for `mqlObject`; JSON-encoded string-array of
+ * stuffIds for `mqlMany`), runs the validator if present, and
+ * resolves the caller's await.
+ *
+ * Routes directly to `PromptApi.handleResponse` — bypasses the
+ * command bus deliberately. Wholesale cancel lives on the command
+ * bus as the `prompt cancel` verb; this surface is per-prompt
+ * direct.
+ */
+export interface PromptResponseMessage {
+  type: 'prompt-response';
+  payload: { promptId: string; response: string };
+}
+
+/**
+ * Inbound per-prompt cancel — the X-button affordance on the
+ * client's prompt area. Substrate rejects the await with
+ * `PromptCancelledError { reason: 'cancelled' }` and ships a
+ * `prompt-dismissed` envelope. Wholesale cancel rides the
+ * command bus via `prompt cancel`, not this channel.
+ */
+export interface PromptCancelMessage {
+  type: 'prompt-cancel';
+  payload: { promptId: string };
 }
 
 /**

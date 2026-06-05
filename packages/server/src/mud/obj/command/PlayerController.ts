@@ -1,5 +1,11 @@
 /**
  * PlayerController — manage player character settings.
+ *
+ * Cross-cutting concerns the framework handles, not us:
+ *   - `requiresAvatar` validator (in player.yaml) gates the giver type.
+ *   - Unknown-subcommand rejection is dispatcher-side — `assemble`
+ *     returns `error: 'unknown-subcommand'` before the controller
+ *     is ever cloned.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -10,7 +16,7 @@ import type {
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { Avatar } from '../Avatar';
+import type { Avatar } from '../Avatar';
 
 interface PlayerModel extends CommandModel {
   name?: string;
@@ -20,19 +26,8 @@ interface PlayerModel extends CommandModel {
 
 export class PlayerController extends CommandController<PlayerModel> {
   execute(model: PlayerModel, context: CommandContext): void {
-    const avatar = context.commandGiver;
-    if (!(avatar instanceof Avatar)) {
-      this.send(
-        context,
-        Mml.fromMarkup('\nonly a player character can use the player command\n'),
-      );
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'player-only',
-        detail: 'commandGiver is not an Avatar',
-      });
-      return;
-    }
+    // requiresAvatar validator guarantees this cast.
+    const avatar = context.commandGiver as Avatar;
 
     switch (model.subcommand) {
       case 'name':
@@ -41,16 +36,6 @@ export class PlayerController extends CommandController<PlayerModel> {
         return this.executePronouns(model, avatar, context);
       case 'show':
         return this.executeShow(avatar, context);
-      default: {
-        const sub = model.subcommand ?? '(none)';
-        this.send(context, Mml.fromMarkup(`\nunknown subcommand: ${sub}\n`));
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'unknown-subcommand',
-          detail: sub,
-        });
-        return;
-      }
     }
   }
 

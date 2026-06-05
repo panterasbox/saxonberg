@@ -38,9 +38,12 @@ import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
+import { PromptApi, renderPromptRefresh } from '../mud/api/prompt';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
+  PromptResponseMessage,
+  PromptCancelMessage,
 } from '@saxonberg/types';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
@@ -173,13 +176,22 @@ export class Application {
   public handleUserDisconnect(socketId: string): void {
     console.info(`Application: User disconnecting - socketId=${socketId}`);
 
-    // Tear down MQL subscriptions BEFORE removing the Interactive so
-    // any final substrate-side delivery still has a live Interactive
-    // to address. cancelAllForInteractive is silent in v1 but the
-    // ordering keeps Wave 6+ envelope-on-close paths well-defined.
+    // Tear down per-Interactive substrate state BEFORE removing the
+    // Interactive so any final substrate-side delivery still has a
+    // live Interactive to address.
+    //
+    // Order:
+    //   1. MQL subscriptions (silent in v1; cancelled-reason
+    //      envelopes ship from a later subsystem).
+    //   2. Prompts (PromptApi rejects pending awaits with
+    //      PromptCancelledError { reason: 'host-disconnected' };
+    //      controllers' try/catch can react before the Interactive
+    //      goes away).
+    //   3. removeInteractive (below).
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (interactive) {
       MqlSubscriptionApi.cancelAllForInteractive(interactive);
+      PromptApi.cancelAll(interactive, 'host-disconnected');
     }
 
     const removed = ConnectionManager.get().removeInteractive(socketId);
@@ -233,6 +245,14 @@ export class Application {
         this.handleMqlUnsubscribe(socketId, message);
         break;
 
+      case 'prompt-response':
+        this.handlePromptResponse(socketId, message);
+        break;
+
+      case 'prompt-cancel':
+        this.handlePromptCancel(socketId, message);
+        break;
+
       default:
         console.warn(`Application: Unknown message type: ${message.type}`);
         this.backend.sendMessageToSocket(socketId, {
@@ -283,6 +303,41 @@ export class Application {
     MqlSubscriptionApi.handleUnsubscribe(interactive, payload.subscriptionId);
   }
 
+  /**
+   * Route `prompt-response` to the substrate. Bypasses the command
+   * bus (the slate's two-channel inbound protocol); the substrate
+   * looks up the resolver by promptId and either resolves the
+   * await or — when a validator rejects — emits
+   * `prompt-validation-failed` and keeps the prompt alive.
+   */
+  private handlePromptResponse(socketId: string, message: InboundClientMessage): void {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const payload = message.payload as PromptResponseMessage['payload'] | undefined;
+    if (
+      !payload ||
+      typeof payload.promptId !== 'string' ||
+      typeof payload.response !== 'string'
+    ) {
+      return;
+    }
+    PromptApi.handleResponse(interactive, payload);
+  }
+
+  /**
+   * Route `prompt-cancel` to the substrate — the X-button
+   * affordance on the client's prompt area. Wholesale cancel
+   * rides the command bus separately via the `prompt cancel`
+   * verb (Wave 4).
+   */
+  private handlePromptCancel(socketId: string, message: InboundClientMessage): void {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const payload = message.payload as PromptCancelMessage['payload'] | undefined;
+    if (!payload || typeof payload.promptId !== 'string') return;
+    PromptApi.handleCancel(interactive, payload);
+  }
+
   private handleEchoMessage(socketId: string, message: InboundClientMessage): void {
     if (!this.backend) return;
 
@@ -321,7 +376,22 @@ export class Application {
     }
 
     const commandText = (message.payload as { text: string }).text?.trim();
-    if (!commandText) return;
+    if (!commandText) {
+      // MUD-style "press Enter for a fresh prompt." Empty command
+      // line short-circuits to a dispatch-response carrying only
+      // the prompt-refresh Note. No parser, no controller, no
+      // controller side-effects. Runs even when the avatar has no
+      // container (a placeless avatar should still see their
+      // current prompt).
+      const refresh = renderPromptRefresh(holder);
+      const template: EnvelopeTemplate = {
+        type: 'dispatch-response',
+        dispatchId: nanoid(),
+        outcome: { status: 'ok', notes: [refresh] },
+      };
+      this.sendEnvelopeToInteractive(interactive, template);
+      return;
+    }
 
     const avatar = holder;
     // The avatar must be inside *some* Container (Location, Vessel, …)

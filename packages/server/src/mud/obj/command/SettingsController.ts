@@ -2,6 +2,13 @@
  * SettingsController — player surface for the schema-validated
  * persistent settings store. Subcommands: list (default), get, set,
  * unset, describe.
+ *
+ * Cross-cutting concerns the framework handles, not us:
+ *   - `requiresEnvironment` validator (in settings.yaml) gates
+ *     the giver type.
+ *   - Unknown-subcommand rejection is dispatcher-side — `assemble`
+ *     returns `error: 'unknown-subcommand'` before the controller
+ *     is ever cloned.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -11,7 +18,6 @@ import type {
   } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   Environment,
@@ -27,14 +33,8 @@ interface SettingsModel extends CommandModel {
 
 export class SettingsController extends CommandController<SettingsModel> {
   execute(model: SettingsModel, context: CommandContext): void {
-    const avatar = context.commandGiver;
-    if (!MixinApi.isEnvironment(avatar)) {
-      if (MixinApi.isSensor(avatar)) {
-        this.send(context, Mml.fromMarkup('\nthis character has no settings\n'));
-      }
-      context.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
-      return;
-    }
+    // requiresEnvironment validator guarantees this cast.
+    const avatar = context.commandGiver as EnvHost;
 
     const sub = model.subcommand ?? 'list';
     const key = model.key;
@@ -50,8 +50,6 @@ export class SettingsController extends CommandController<SettingsModel> {
         return this.executeUnset(avatar, key, context);
       case 'describe':
         return this.executeDescribe(avatar, key, context);
-      default:
-        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 

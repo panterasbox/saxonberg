@@ -1,6 +1,8 @@
 verbs: [alias]
 controller: AliasController
 description: "Manage your command aliases"
+validators:
+  - /lib/command/validators/requiresAlias
 subcommands:
   list:
     description: "List effective aliases (defaults + persistent + session) with source markers"
