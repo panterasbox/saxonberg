@@ -645,6 +645,22 @@ function renderSingle(
                 onPreview={onPreview}
                 onClick={() => onSendCommand(`go ${exit.direction}`)}
               />
+              {exit.door && (
+                <>
+                  {" ("}
+                  <EntityName
+                    stuffId={exit.door.stuffId}
+                    label={exit.door.displayName}
+                    title={`Click to send: look ${exit.door.displayName}`}
+                    command={`look ${exit.door.displayName}`}
+                    onPreview={onPreview}
+                    onClick={() =>
+                      onSendCommand(`look ${exit.door!.displayName}`)
+                    }
+                  />
+                  {`, ${exit.door.open ? "open" : "closed"})`}
+                </>
+              )}
             </React.Fragment>
           ))}
         </ExitsBlock>
@@ -889,6 +905,22 @@ function renderDetailDrill(
                 onPreview={onPreview}
                 onClick={() => onSendCommand(`go ${exit.direction}`)}
               />
+              {exit.door && (
+                <>
+                  {" ("}
+                  <EntityName
+                    stuffId={exit.door.stuffId}
+                    label={exit.door.displayName}
+                    title={`Click to send: look ${exit.door.displayName}`}
+                    command={`look ${exit.door.displayName}`}
+                    onPreview={onPreview}
+                    onClick={() =>
+                      onSendCommand(`look ${exit.door!.displayName}`)
+                    }
+                  />
+                  {`, ${exit.door.open ? "open" : "closed"})`}
+                </>
+              )}
             </React.Fragment>
           ))}
         </ExitsBlock>

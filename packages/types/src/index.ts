@@ -550,10 +550,30 @@ export interface StuffDetailRecord extends StuffRefRecord {
 
 /**
  * Wire shape for a single obvious exit. Direction is what the
- * player types to traverse (`go <direction>`).
+ * player types to traverse (`go <direction>`). When the exit
+ * passes through a `Door` (or any Boundary that acts as a door),
+ * the door's identity + open/closed state ride along so clients
+ * can annotate the exit inline ("south (the front doors, open)")
+ * without a second round-trip — mirroring how the look prose
+ * surfaces the door via `formatExits`.
  */
 export interface StuffExitRecord {
   direction: string;
+  door?: StuffExitDoor;
+}
+
+/**
+ * Wire-side door projection embedded in `StuffExitRecord.door`.
+ * Carries the door's `stuffId` (so a click affordance can resolve
+ * its display name from the stuff registry / send `look` against
+ * the canonical keyword), the display name for inline rendering,
+ * and the current open/closed state for the user-facing
+ * annotation.
+ */
+export interface StuffExitDoor {
+  stuffId: string;
+  displayName: string;
+  open: boolean;
 }
 
 /**

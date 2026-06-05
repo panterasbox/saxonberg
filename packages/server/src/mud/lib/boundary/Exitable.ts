@@ -28,6 +28,7 @@ import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BoundaryApi } from '../../api/boundary';
+import { DescribeApi } from '../../api/describe';
 import type { Adornable } from './Adornable';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
@@ -209,9 +210,20 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         name: 'exits',
         read: (stuff) => {
           const host = stuff as Stuff & Exitable;
-          return host.getObviousExits().map((exit) => ({
-            direction: exit.getDirection(),
-          }));
+          return host.getObviousExits().map((exit) => {
+            const door = exit.getDoor();
+            const out: { direction: string; door?: unknown } = {
+              direction: exit.getDirection(),
+            };
+            if (door) {
+              out.door = {
+                stuffId: door.stuffId,
+                displayName: DescribeApi.getDisplayName(door),
+                open: door.isOpen(),
+              };
+            }
+            return out;
+          });
         },
       },
     ];
