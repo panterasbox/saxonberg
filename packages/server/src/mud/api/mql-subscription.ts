@@ -323,6 +323,24 @@ export interface SubscribeRequest {
    * ignored in focus mode.
    */
   detailKey?: string;
+  /**
+   * When true, the substrate installs an additional
+   * `(FieldChangedEvent.KIND, 'field', 'focus')` dependency entry
+   * against the *subscription holder* at subscribe time — in
+   * addition to the per-result-Stuff descriptor walk.
+   *
+   * Rationale: for a query like `$focus` (the canonical `me.focus`
+   * kind), the result set is whatever the focus fragment resolves
+   * to — NOT the FocusedMixin host. The natural descriptor walk
+   * would miss the focus dependency entirely. This explicit flag
+   * (set on the canonical-kind spec; Wave 3 wires the surface)
+   * lets such subscriptions wake on the holder's `setFocus` /
+   * `clearFocus` field-change fires.
+   *
+   * Off by default. Raw-shape `(query, fields)` subscribes don't
+   * get this; canonical kinds opt in.
+   */
+  focusDependent?: boolean;
 }
 
 /**
@@ -339,6 +357,7 @@ interface SubscriptionState {
   cardinality: SubscriptionCardinality;
   fields: FieldSet;
   detailKey?: string;
+  focusDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
 }
@@ -550,6 +569,7 @@ export class MqlSubscriptionApi {
       cardinality,
       fields,
       detailKey: req.detailKey,
+      focusDependent: req.focusDependent === true,
       lastResult,
       dependencyHandles: [],
     };
@@ -658,6 +678,22 @@ export class MqlSubscriptionApi {
       sub.dependencyHandles.push({ kind, by, value });
       this.#ensureListener(kind, by);
     };
+
+    // Holder-level dependency: subscriptions flagged `focusDependent`
+    // (the canonical-kind spec opts in; raw subscribes don't) install
+    // an entry against the holder's focus field, in addition to the
+    // per-result-Stuff descriptor walk below.
+    //
+    // For a query like `$focus`, the result set is whatever the focus
+    // fragment resolves to — NOT the FocusedMixin host. The natural
+    // walk would miss the focus dependency entirely. This explicit
+    // install lets the subscription wake on the holder's setFocus /
+    // clearFocus fires. The conservative-coarse dispatch policy
+    // means *any* focus-field change wakes *any* such subscription
+    // globally; the diff stage filters out non-changes.
+    if (sub.focusDependent) {
+      installTuple(FieldChangedEvent.KIND, 'field', 'focus');
+    }
 
     for (const stuff of stuffList) {
       const descriptors = collectSubscribableFields(stuff);
