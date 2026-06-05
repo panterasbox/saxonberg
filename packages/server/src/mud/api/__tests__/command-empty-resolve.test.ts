@@ -191,10 +191,13 @@ describe('Dispatcher empty-resolution passthrough', () => {
     const cmd = singleObjectCmd();
     const ctx = makeContext(giver, location as unknown as Location, cmd, 'look rose');
     await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
-    // updates_focus: extend appends the typed fragment to the prior
-    // focus ("here", the default) — different stuff (location vs
-    // rose), so naive append.
-    expect(giver.getFocus()).toBe('here:rose');
+    // updates_focus: extend with a target Stuff that's not a detail
+    // continuation of the current focus REPLACES rather than
+    // appending — the chain step `:rose` doesn't walk into the
+    // location's peers, so `here:rose` would resolve to nothing.
+    // Replacing with just `rose` lets the substrate's reachable
+    // scope find the peer.
+    expect(giver.getFocus()).toBe('rose');
     expect(giver.getPronounMemory().read('it')!.stuff).toEqual([rose]);
   });
 });

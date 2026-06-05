@@ -2977,10 +2977,23 @@ function updatePlayerFocus(
     }
   }
 
-  // Naive append. The chain accumulates user intent, not actual
-  // navigability — the next query's scope try-list with the
-  // reachable fallback handles cases where the chain stops resolving.
-  giver.setFocus(currentFocus + ':' + fragment);
+  // Target is a different Stuff than the current focus anchor, AND
+  // doesn't carry a `via.detailPath` that would compose meaningfully
+  // through the chain operator. The MQL chain step `:keyword` only
+  // walks into the prior match's keywords + detail tree — it doesn't
+  // re-enter the here-neighborhood for adornments / peers / etc. So
+  // a fragment like `here:rose` (rose is a peer) or `here:door` (door
+  // is an adornment on the location) parses fine but resolves to
+  // nothing — the `:rose` step looks for "rose" on the location's
+  // own keywords/details, not in the room's contents or fixtures.
+  //
+  // Replacing focus with the new fragment alone lets the substrate's
+  // `$focus` expansion succeed via the reachable scope (which DOES
+  // walk peers + here + inventory), so subscriptions like `me.focus`
+  // pick up the new target. The prior chain was structurally
+  // descriptive but broken-by-construction; replacing is the
+  // honest move.
+  giver.setFocus(fragment);
 }
 
 /**

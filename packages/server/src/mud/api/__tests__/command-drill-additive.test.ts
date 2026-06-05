@@ -192,11 +192,16 @@ describe('Drill-additive focus (extend mode)', () => {
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 
-  it("look rose from focus='here:bookcase' falls back to reachable; focus appends naively", async () => {
+  it("look rose from focus='here:bookcase' falls back to reachable; focus replaces", async () => {
     // The bookcase detail tree has no rose; the YAML's scope try-list
     // falls through to 'reachable' to find it. Resolved (rose, no via)
     // is a different stuff than the focus's anchor (location), so
     // compaction doesn't apply.
+    //
+    // The chain step `:rose` doesn't walk into the location's peers
+    // / adornments, so `here:bookcase:rose` parses but resolves to
+    // nothing. Replacing focus with just `rose` lets the substrate
+    // re-resolve via the reachable scope (which DOES include peers).
     giver.setFocus('here:bookcase');
     const cmd = lookCommand();
     const ctx = makeContext(
@@ -206,7 +211,7 @@ describe('Drill-additive focus (extend mode)', () => {
       'look rose'
     );
     await CommandApi.resolveAndValidate({ target: 'rose' }, ctx);
-    expect(giver.getFocus()).toBe('here:bookcase:rose');
+    expect(giver.getFocus()).toBe('rose');
   });
 
   it('extend mode does NOT fire on empty resolution', async () => {
@@ -229,21 +234,23 @@ describe('Drill-additive focus (extend mode)', () => {
       { target: 'rose' },
       makeContext(giver, location as unknown as Location, cmd, 'look rose')
     );
-    expect(giver.getFocus()).toBe('here:rose');
+    // `look rose` from focus='here' targets a peer (different stuff,
+    // no detail-path continuation), so focus REPLACES with `rose`
+    // rather than appending — the chain `here:rose` would not
+    // resolve through the substrate's chain step.
+    expect(giver.getFocus()).toBe('rose');
 
     // `look it` substitutes the stored fragment ("rose") for the
     // literal pronoun before extending — the trail tracks the
-    // referent, never the unstable pronoun string. The current
-    // focus 'here:rose' chain doesn't resolve in this fixture (rose
-    // is a peer, not a detail of the location), so the same-anchor
-    // compaction can't apply and the substituted fragment is
-    // appended naively. The key check: the appended segment is
-    // `rose`, NOT `it`.
+    // referent, never the unstable pronoun string. Re-looking at
+    // `rose` from focus='rose' is the same Stuff with empty via —
+    // the same-anchor `equal` branch returns without mutating focus.
+    // The key check: the focus stays `rose`, not `it`.
     await CommandApi.resolveAndValidate(
       { target: 'it' },
       makeContext(giver, location as unknown as Location, cmd, 'look it')
     );
-    expect(giver.getFocus()).toBe('here:rose:rose');
+    expect(giver.getFocus()).toBe('rose');
     expect(giver.getFocus()).not.toContain('it');
   });
 });
