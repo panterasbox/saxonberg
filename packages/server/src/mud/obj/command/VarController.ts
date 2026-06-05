@@ -3,6 +3,13 @@
  * store. Bash-style shell variables: untyped, transient, no schema.
  *
  * Subcommands: list (default), set, unset.
+ *
+ * Cross-cutting concerns the framework handles, not us:
+ *   - `requiresEnvironment` validator (in var.yaml) gates the
+ *     giver type.
+ *   - Unknown-subcommand rejection is dispatcher-side — `assemble`
+ *     returns `error: 'unknown-subcommand'` before the controller
+ *     is ever cloned.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -12,7 +19,6 @@ import type {
   } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Environment } from '../../lib/shell/Environment';
 
@@ -25,12 +31,8 @@ interface VarModel extends CommandModel {
 
 export class VarController extends CommandController<VarModel> {
   execute(model: VarModel, context: CommandContext): void {
-    const avatar = context.commandGiver;
-    if (!MixinApi.isEnvironment(avatar)) {
-      this.send(context, Mml.fromMarkup('\nthis character has no session storage\n'));
-      context.note({ kind: 'mixin-missing', mixin: 'EnvironmentMixin' });
-      return;
-    }
+    // requiresEnvironment validator guarantees this cast.
+    const avatar = context.commandGiver as unknown as EnvHost;
 
     const sub = model.subcommand ?? 'list';
     const name = model.name;
@@ -42,8 +44,6 @@ export class VarController extends CommandController<VarModel> {
         return this.executeSet(avatar, name, value, context);
       case 'unset':
         return this.executeUnset(avatar, name, context);
-      default:
-        return this.fail(context, `unknown subcommand: ${sub}`, 'unknown-subcommand');
     }
   }
 

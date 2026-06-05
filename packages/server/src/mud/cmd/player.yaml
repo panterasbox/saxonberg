@@ -1,6 +1,8 @@
 verbs: [player, me]
 controller: PlayerController
 description: "Manage your player character settings"
+validators:
+  - /lib/command/validators/requiresAvatar
 subcommands:
   name:
     description: "Set your character name"

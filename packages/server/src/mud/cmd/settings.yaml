@@ -1,6 +1,8 @@
 verbs: [settings]
 controller: SettingsController
 description: "Manage your declared settings"
+validators:
+  - /lib/command/validators/requiresEnvironment
 subcommands:
   list:
     description: "List declared settings, grouped by source mixin"

@@ -1,6 +1,8 @@
 verbs: [var]
 controller: VarController
 description: "Manage your ad-hoc session variables"
+validators:
+  - /lib/command/validators/requiresEnvironment
 subcommands:
   list:
     description: "List session variables"
