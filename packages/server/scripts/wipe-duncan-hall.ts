@@ -20,6 +20,7 @@ const PATHS_TO_WIPE = [
   '/domain/eternal/duncan-hall',
   '/domain/eternal/duncan-hall/lobby',
   '/domain/eternal/duncan-hall/steps',
+  '/domain/eternal/duncan-hall/front-doors',
 ];
 
 async function main(): Promise<void> {

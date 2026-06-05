@@ -33,6 +33,7 @@ data:
   exits:
     south:
       destination: /domain/eternal/duncan-hall/steps
+      door: /domain/eternal/duncan-hall/front-doors
   populates:
     - /obj/instrument/thermometer
     - /obj/instrument/barometer
@@ -52,7 +53,3 @@ data:
       keywords: [boards, bulletin, bulletins]
       description: |
         Two cork bulletin boards flank the doors, layered in flyers and notices. A faded posting for a study group has the dates two weeks gone; another announces a textbook missing since last term.
-    doors:
-      keywords: [doors, door]
-      description: |
-        Tall paneled doors of dark wood, propped open. Light spills in across the floor and warms the air; outside, you can see the upper edge of the front steps.
