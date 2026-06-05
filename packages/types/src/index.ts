@@ -375,14 +375,33 @@ export interface PromptEnvelope {
  * a `'many'` subscribe with a `detailKey` is rejected with
  * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
  * parameter is ignored in focus mode.
+ *
+ * When `kind` is present, the substrate resolves the name against
+ * its canonical-kind registry (`MqlSubscriptionApi.registerKind`)
+ * and overlays the registered spec — `query`, `cardinality`,
+ * `fields`, `detailKey`, `focusDependent` — onto the request. Any
+ * client-supplied `query` / `cardinality` / `fields` is ignored
+ * when `kind` resolves; the registered spec wins. Unknown kind
+ * names emit `MqlSubscriptionErrorEnvelope { reason: 'parse' }`.
+ * Canonical kinds let clients subscribe by name (e.g., `'me.focus'`)
+ * instead of by raw `(query, fields)` shape.
  */
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
-  query: string;
-  cardinality: 'one' | 'many';
+  /** Optional when `kind` is present (the kind spec supplies it). */
+  query?: string;
+  /** Optional when `kind` is present (the kind spec supplies it). */
+  cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
+  /**
+   * Canonical-kind name registered via
+   * `MqlSubscriptionApi.registerKind`. When present, the registered
+   * spec wins over any client-supplied `query` / `cardinality` /
+   * `fields` / `detailKey`.
+   */
+  kind?: string;
 }
 
 export interface MqlUnsubscribeMessage {

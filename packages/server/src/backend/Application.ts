@@ -267,27 +267,41 @@ export class Application {
   /**
    * Route `mql-subscribe` to the substrate. Drops on shape mismatch
    * without an error envelope — the substrate handles substantive
-   * checks (duplicate id, MQL parse, focus + cardinality cross-check).
+   * checks (duplicate id, MQL parse, focus + cardinality cross-check,
+   * unknown `kind`).
+   *
+   * When `kind` is present, the substrate looks the name up against
+   * its canonical-kind registry and overlays the registered spec
+   * onto the request; `query` and `cardinality` are optional on the
+   * wire in that case. When `kind` is absent, both are required.
    */
   private handleMqlSubscribe(socketId: string, message: InboundClientMessage): void {
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (!interactive) return;
     const payload = message.payload as MqlSubscribeMessage | undefined;
-    if (
-      !payload ||
-      typeof payload.subscriptionId !== 'string' ||
-      typeof payload.query !== 'string' ||
-      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
-    ) {
+    if (!payload || typeof payload.subscriptionId !== 'string') {
       return;
+    }
+    const hasKind = typeof payload.kind === 'string';
+    if (!hasKind) {
+      // Raw subscribe — query + cardinality required.
+      if (
+        typeof payload.query !== 'string' ||
+        (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+      ) {
+        return;
+      }
     }
     MqlSubscriptionApi.handleSubscribe({
       interactive,
       subscriptionId: payload.subscriptionId,
-      query: payload.query,
-      cardinality: payload.cardinality,
+      ...(typeof payload.query === 'string' ? { query: payload.query } : {}),
+      ...(payload.cardinality === 'one' || payload.cardinality === 'many'
+        ? { cardinality: payload.cardinality }
+        : {}),
       fields: payload.fields,
       detailKey: payload.detailKey,
+      ...(hasKind ? { kind: payload.kind } : {}),
     });
   }
 

@@ -17,6 +17,7 @@ import { SeederManager } from './SeederManager';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
+import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
 // Side-effecting import: registers the live `online`/`world` provider
 // so MQL queries against admin-tier seeds reflect connected
 // interactives. Pulled in here (off the eager command/MqlApi chain)
@@ -98,5 +99,22 @@ export class AppBootstrap {
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
 
     await BootstrapManager.run();
+
+    // Canonical MQL subscription kinds. Clients subscribe by name
+    // on the wire (`MqlSubscribeMessage.kind`); the substrate
+    // overlays the registered spec onto the request. Registrations
+    // are idempotent — re-running boot in tests is safe.
+    //
+    // `me.focus` is the inspection-pane canonical kind: the query
+    // string is the literal `$focus` synthetic var, which the
+    // substrate expands per-resolve via `ShellApi.expandVariables`.
+    // `focusDependent: true` installs the holder-level dependency
+    // entry so the subscription wakes on `setFocus` / `clearFocus`.
+    MqlSubscriptionApi.registerKind('me.focus', {
+      query: '$focus',
+      cardinality: 'many',
+      fields: 'detail',
+      focusDependent: true,
+    });
   }
 }

@@ -102,9 +102,38 @@ describe('Application — MQL subscription routes', () => {
       .mockImplementation(() => {});
     app.processUserMessage('sock-1', {
       type: 'mql-subscribe',
-      payload: { subscriptionId: 's1' }, // missing query, cardinality
+      payload: { subscriptionId: 's1' }, // missing query, cardinality, kind
     });
     expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('mql-subscribe with kind forwards kind to the substrate', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
+      interactive,
+    );
+    const spy = vi
+      .spyOn(MqlSubscriptionApi, 'handleSubscribe')
+      .mockImplementation(() => {});
+    // Wire-thin shape: subscriptionId + kind. No query / cardinality
+    // required; the substrate overlays the registered spec.
+    app.processUserMessage('sock-1', {
+      type: 'mql-subscribe',
+      payload: {
+        type: 'mql-subscribe',
+        subscriptionId: 's1',
+        kind: 'me.focus',
+      },
+    });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interactive,
+        subscriptionId: 's1',
+        kind: 'me.focus',
+      }),
+    );
     spy.mockRestore();
   });
 

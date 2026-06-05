@@ -54,6 +54,7 @@ import { MqlApi } from './mql';
 import { MqlPermissionError } from './mql/permissions';
 import { EventApi } from './event';
 import { MessageApi } from './message';
+import { ShellApi } from './shell';
 import { FieldChangedEvent, type FieldChangedPayload } from '../lib/events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../lib/events/ShadowChangedEvent';
 
@@ -305,16 +306,56 @@ export function projectFocus(
 export type SubscriptionCardinality = 'one' | 'many';
 
 /**
+ * Canonical-kind spec — registered by name via
+ * `MqlSubscriptionApi.registerKind`. Clients subscribe to the
+ * canonical name (e.g., `'me.focus'`) on the wire; the substrate
+ * looks the name up at subscribe time and overlays this spec onto
+ * the request, ignoring any client-supplied `query` / `cardinality`
+ * / `fields` / `detailKey` / `focusDependent`.
+ *
+ * The canonical-kind layer is a substrate-internal name binding —
+ * NOT a new Api. Authors register kinds at boot time so the wire
+ * surface stays terse and the substrate's invariants are author-
+ * controlled. Raw `(query, fields)` subscribes (no `kind` field)
+ * continue to work; canonical kinds are the additive surface.
+ *
+ * The query string can reference shell variables (`$focus`, etc.);
+ * the substrate runs `ShellApi.expandVariables` against the
+ * holder before each (re-)resolve so the variable expands fresh
+ * every time. This is what makes `'me.focus'` (`query: '$focus'`)
+ * re-resolve correctly when `setFocus` fires.
+ */
+export interface CanonicalKindSpec {
+  query: string;
+  cardinality: SubscriptionCardinality;
+  fields?: FieldSet | FieldAlias;
+  detailKey?: string;
+  /**
+   * When `true`, the substrate installs an additional
+   * `(FieldChangedEvent.KIND, 'field', 'focus')` dependency entry
+   * against the subscription holder. See
+   * {@link SubscribeRequest.focusDependent} for the rationale.
+   */
+  focusDependent?: boolean;
+}
+
+/**
  * Caller-facing subscribe payload — what `Application.processUserMessage`
  * forwards from the inbound `MqlSubscribeMessage`. The substrate's
  * direct API consumers (Wave 5 inbound dispatcher, future programmatic
  * use) share this shape.
+ *
+ * When `kind` is present and resolves against the canonical-kind
+ * registry, the matching spec's fields win over any client-supplied
+ * `query` / `cardinality` / `fields` / `detailKey` /
+ * `focusDependent`. An unknown `kind` emits
+ * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`.
  */
 export interface SubscribeRequest {
   interactive: Interactive;
   subscriptionId: string;
-  query: string;
-  cardinality: SubscriptionCardinality;
+  query?: string;
+  cardinality?: SubscriptionCardinality;
   fields?: FieldSet | FieldAlias;
   /**
    * When present, projection runs in focused-detail mode. Requires
@@ -341,6 +382,16 @@ export interface SubscribeRequest {
    * get this; canonical kinds opt in.
    */
   focusDependent?: boolean;
+  /**
+   * Canonical-kind name registered via
+   * {@link MqlSubscriptionApi.registerKind}. When present and
+   * resolved, the registered spec overlays this request — all of
+   * `query` / `cardinality` / `fields` / `detailKey` /
+   * `focusDependent` are taken from the kind's spec, not the
+   * request. Unknown name → `MqlSubscriptionErrorEnvelope`
+   * `{ reason: 'parse' }`.
+   */
+  kind?: string;
 }
 
 /**
@@ -430,6 +481,34 @@ export class MqlSubscriptionApi {
   static #dirty = new Set<SubscriptionState>();
   static #scheduled = false;
 
+  // Canonical-kind registry. Authors call `registerKind` at boot
+  // (e.g., `AppBootstrap`) to bind a name to a spec. Clients
+  // subscribe by name on the wire (`MqlSubscribeMessage.kind`); the
+  // substrate overlays the registered spec onto the request,
+  // ignoring any client-supplied query / cardinality / fields.
+  //
+  // Lives as a static field — NOT a separate registry class. The
+  // canonical-kind layer is a substrate-internal name binding, not
+  // a new module category. Re-registration overwrites silently
+  // (idempotent at boot; tests reuse the slot freely).
+  static #canonicalKinds = new Map<string, CanonicalKindSpec>();
+
+  /**
+   * Bind a canonical name (e.g., `'me.focus'`) to a subscription
+   * spec. Clients subscribe by name on the wire via
+   * `MqlSubscribeMessage.kind`; the substrate overlays this spec
+   * onto the inbound request, ignoring any client-supplied
+   * `query` / `cardinality` / `fields` / `detailKey` /
+   * `focusDependent`. Unknown names at subscribe time emit
+   * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`.
+   *
+   * Re-registration overwrites silently — boot paths can register
+   * idempotently and tests can reuse a name without ceremony.
+   */
+  public static registerKind(name: string, spec: CanonicalKindSpec): void {
+    this.#canonicalKinds.set(name, spec);
+  }
+
   /**
    * Compress the noop-check + capture + assign + fire boilerplate at
    * every fact-mixin setter into one call.
@@ -477,9 +556,17 @@ export class MqlSubscriptionApi {
 
   /**
    * Register a subscription. See class docstring for behavior.
+   *
+   * When `req.kind` is present, the substrate looks up the canonical
+   * spec in `#canonicalKinds` and overlays it onto the request —
+   * the registered spec's `query` / `cardinality` / `fields` /
+   * `detailKey` / `focusDependent` win over any client-supplied
+   * fields. Unknown kind names emit
+   * `MqlSubscriptionErrorEnvelope { reason: 'parse' }` and the
+   * subscription is not installed.
    */
   public static handleSubscribe(req: SubscribeRequest): void {
-    const { interactive, subscriptionId, query, cardinality } = req;
+    const { interactive, subscriptionId } = req;
 
     // Duplicate-id check (defense-in-depth — Wave 5 dispatcher also
     // validates, but direct callers reach here too).
@@ -494,8 +581,60 @@ export class MqlSubscriptionApi {
       return;
     }
 
+    // Canonical-kind overlay. The registered spec wins over any
+    // client-supplied fields when `kind` is present. Unknown name →
+    // parse error (the kind binding is the wire surface authors are
+    // documenting; an unknown name is the same shape of failure as
+    // an unparseable query).
+    let query: string;
+    let cardinality: SubscriptionCardinality;
+    let fields: FieldSet;
+    let detailKey: string | undefined;
+    let focusDependent: boolean;
+    if (req.kind !== undefined) {
+      const spec = this.#canonicalKinds.get(req.kind);
+      if (!spec) {
+        this.#emitError(
+          interactive,
+          subscriptionId,
+          'parse',
+          `unknown kind: ${req.kind}`,
+        );
+        return;
+      }
+      query = spec.query;
+      cardinality = spec.cardinality;
+      fields = resolveFieldSet(spec.fields);
+      detailKey = spec.detailKey;
+      focusDependent = spec.focusDependent === true;
+    } else {
+      if (typeof req.query !== 'string') {
+        this.#emitError(
+          interactive,
+          subscriptionId,
+          'parse',
+          'query required when kind is absent',
+        );
+        return;
+      }
+      if (req.cardinality !== 'one' && req.cardinality !== 'many') {
+        this.#emitError(
+          interactive,
+          subscriptionId,
+          'parse',
+          'cardinality required when kind is absent',
+        );
+        return;
+      }
+      query = req.query;
+      cardinality = req.cardinality;
+      fields = resolveFieldSet(req.fields);
+      detailKey = req.detailKey;
+      focusDependent = req.focusDependent === true;
+    }
+
     // Focus + cardinality cross-check.
-    if (req.detailKey !== undefined && cardinality !== 'one') {
+    if (detailKey !== undefined && cardinality !== 'one') {
       this.#emitError(
         interactive,
         subscriptionId,
@@ -530,15 +669,20 @@ export class MqlSubscriptionApi {
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
-    // Initial resolve. Errors → reason: 'resolve' or 'permission'.
+    // Initial resolve. The query string can reference shell
+    // variables (`$focus`, etc.); canonical kinds typically do.
+    // Expand against the holder before each (re-)resolve so the
+    // variable expands fresh every time. Same pattern the dispatcher
+    // uses for `scope:` declarations in command YAML.
+    const expandedQuery = ShellApi.expandVariables(query, giver);
     let stuffList: Stuff[];
     try {
-      const ctx = { commandGiver: giver, scope: query };
+      const ctx = { commandGiver: giver, scope: expandedQuery };
       if (cardinality === 'one') {
-        const one = MqlApi.resolveOne(query, ctx);
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
         stuffList = one.stuff ? [one.stuff] : [];
       } else {
-        const many = MqlApi.resolveMany(query, ctx);
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
         stuffList = many.stuff;
       }
     } catch (err) {
@@ -554,22 +698,22 @@ export class MqlSubscriptionApi {
     }
 
     // Build initial lastResult records.
-    const fields = resolveFieldSet(req.fields);
     const lastResult = new Map<string, RecordValue>();
     for (const stuff of stuffList) {
-      const rec = this.#projectStuff(stuff, fields, viewer, req.detailKey);
+      const rec = this.#projectStuff(stuff, fields, viewer, detailKey);
       lastResult.set(stuff.stuffId, rec);
     }
 
-    // Build subscription state.
+    // Build subscription state. Store the raw (unexpanded) query so
+    // re-resolve runs ShellApi.expandVariables fresh on each tick.
     const sub: SubscriptionState = {
       interactive,
       subscriptionId,
       query,
       cardinality,
       fields,
-      detailKey: req.detailKey,
-      focusDependent: req.focusDependent === true,
+      detailKey,
+      focusDependent,
       lastResult,
       dependencyHandles: [],
     };
@@ -863,14 +1007,20 @@ export class MqlSubscriptionApi {
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
+    // Expand shell variables (`$focus`, etc.) fresh on every
+    // re-resolve — `me.focus`-style canonical kinds rely on
+    // `$focus` re-expanding to the holder's current focus fragment
+    // each tick, so a `setFocus`-driven dirty mark naturally
+    // produces a new result set.
+    const expandedQuery = ShellApi.expandVariables(sub.query, giver);
     let stuffList: Stuff[];
     try {
-      const ctx = { commandGiver: giver, scope: sub.query };
+      const ctx = { commandGiver: giver, scope: expandedQuery };
       if (sub.cardinality === 'one') {
-        const one = MqlApi.resolveOne(sub.query, ctx);
+        const one = MqlApi.resolveOne(expandedQuery, ctx);
         stuffList = one.stuff ? [one.stuff] : [];
       } else {
-        const many = MqlApi.resolveMany(sub.query, ctx);
+        const many = MqlApi.resolveMany(expandedQuery, ctx);
         stuffList = many.stuff;
       }
     } catch (err) {
@@ -1076,6 +1226,32 @@ export class MqlSubscriptionApi {
     this.#registry.clear();
     this.#dirty.clear();
     this.#scheduled = false;
+    // Canonical-kind registrations live across tests — they're
+    // bootstrap state, not per-subscription state. Tests that need
+    // an empty kinds map reach for `_clearKindsForTesting`.
+  }
+
+  /**
+   * Wipe the canonical-kinds map. Use only in tests that exercise
+   * the canonical-kind surface and need a clean slate; the
+   * production registrations from `AppBootstrap` re-install on
+   * the next boot.
+   */
+  public static _clearKindsForTesting(): void {
+    SecurityApi.assertTestOnly('_clearKindsForTesting');
+    this.#canonicalKinds.clear();
+  }
+
+  /**
+   * Read a registered kind spec by name. Returns `undefined` when
+   * no kind is registered. Test-only — production callers reach
+   * the substrate through `handleSubscribe`.
+   */
+  public static _getKindSpecForTesting(
+    name: string,
+  ): CanonicalKindSpec | undefined {
+    SecurityApi.assertTestOnly('_getKindSpecForTesting');
+    return this.#canonicalKinds.get(name);
   }
 }
 
