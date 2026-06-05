@@ -1,24 +1,37 @@
 # Inspection pane
 
 The persistent right-column cockpit surface that displays what the
-player is currently **focused** on. Sourced from a long-lived MQL
-subscription on the canonical kind `'me.focus'`, the pane composes
-a live-updated header (focus name), a paint/clear-gated body
-(detail when single-focus, list when multi-focus), session-scoped
-breadcrumbs, a Refresh button, and an admin-gated extras section.
+player is currently **focused** on. Sourced from two long-lived
+MQL subscriptions — a `$focus`-bearing query for the focused-thing
+body and a `here`-bearing query for the breadcrumb root — the
+pane composes a live-updated header (focus display name), a
+paint/clear-gated body (detail when single-focus, list when
+multi-focus), a unified breadcrumb that combines the player's
+current location, past focus shifts, and any active detail drill,
+plus a Refresh button.
 
 Pane policy is **paint/clear**: focus changes clear the body to a
 placeholder; an explicit `look` against the current focus paints
 it from the live subscription record. The substrate is policy-
 agnostic — paint/clear is a client concern that exists to teach
 the verbs: *focus is a pointer; look is the verb that paints what
-the pointer points at.*
+the pointer points at.* A first-delivery auto-paint exception
+fires on fresh-session mount so the pane lights up without
+requiring an explicit `look` from the player.
 
 See:
 
 - `docs/subsystems/mql-subscription.md` — the substrate this build
-  consumes and extends (canonical kinds, `mql-query` one-shot,
-  `primaryKeyword` + `contents` field-set extensions).
+  consumes and extends (`mql-query` one-shot, the
+  `focusDependent` / `locationDependent` flags, `primaryKeyword` +
+  `contents` field-set extensions).
+- `docs/subsystems/messaging.md` — `MarkupAugmenter` (in `api/mml.ts`)
+  is the pipeline `VisibleMixin.getMarkupLong(viewer)` walks; this
+  is how detail keys auto-wrap in the long description shipped on
+  every detail projection.
+- `docs/subsystems/command-routing.md` — phase-effect option
+  declarations (`effects: [{phase: 'focus-update', action: 'skip'}]`)
+  back the `look --peek` flow.
 - `docs/subsystems/prompt.md` — the prompt's focus token; the pane
   header mirrors it visually but reads from the subscription, not
   the prompt push.
@@ -29,66 +42,62 @@ See:
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `CanonicalKindSpec`, `MqlSubscriptionApi.registerKind`, `handleQuery`, `REF_FIELDS` / `DETAIL_FIELDS` extensions |
-| `packages/server/src/mud/lib/description/Perceptible.ts` | `primaryKeyword` persistent field, `getPrimaryKeyword` / `setPrimaryKeyword`, fail-soft pool validation, `Stuff.subscribableFields` descriptor with universal-shape gate |
+| `packages/server/src/mud/api/mql-subscription.ts` | `SubscribeRequest` shape (incl. `focusDependent` / `locationDependent`), `handleSubscribe`, `handleQuery`, `REF_FIELDS` / `DETAIL_FIELDS` extensions |
+| `packages/server/src/mud/lib/description/Perceptible.ts` | `primaryKeyword` persistent field, `getPrimaryKeyword` / `setPrimaryKeyword`, fail-soft pool validation, `PerceptibleMixin.subscribableFields` descriptor |
 | `packages/server/src/mud/lib/spatial/Container.ts` | `contents` descriptor on `ContainerMixin.subscribableFields`, per-viewer visibility projection, `FieldChangedEvent { field: 'contents' }` fires from `addContainable` / `removeContainable` |
+| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires from `setContainer` — the load-bearing signal `locationDependent` subscriptions wake on |
 | `packages/server/src/mud/lib/command/Focused.ts` | `setFocus` / `clearFocus` fire `FieldChangedEvent { field: 'focus' }`; `subscribableFields` declares the `focus` descriptor so the index entry installs |
+| `packages/server/src/mud/lib/description/Visible.ts` | `getMarkupLong(viewer)` — runs the long description through every contributing mixin's `markupAugmenters` |
+| `packages/server/src/mud/lib/description/Detailed.ts` | `wrapDetailKeysAugmenter` contributed via `DetailedMixin.markupAugmenters` — wraps canonical detail keys in `<detail>` MML inline |
+| `packages/server/src/mud/lib/boundary/Exitable.ts` | `exits` descriptor on `ExitableMixin.subscribableFields` — ships direction + door affordance for the pane's exit block |
 | `packages/server/src/mud/cmd/find.yaml` | `find` verb YAML view (snapshot enumeration, no `updates_focus`) |
 | `packages/server/src/mud/obj/command/FindController.ts` | `find` controller — renders one MML row per match, admin viewers see template-path suffix |
-| `packages/server/src/mud/seeds/obj/command/Find.yaml` | Controller seed |
-| `packages/server/src/mud/cmd/look.yaml` | `--peek` option + `skip_focus_when_option: peek` on the `target` arg |
-| `packages/server/src/mud/api/command.ts` | `skip_focus_when_option` `FieldDefinition` shape and the dispatcher hook that consults it |
-| `packages/types/src/index.ts` | `MqlQueryMessage` / `MqlQueryResultEnvelope` / `MqlQueryErrorEnvelope` wire types; `StuffRefRecord.primaryKeyword`; `kind?` on subscribe / query |
-| `packages/client/src/store/index.ts` | Pane slice (paint/clear flag, breadcrumbs, focus name, last result), stuff-registry slice (`Map<stuffId, StuffMetadata>`), `upsertStuffMetadata` |
-| `packages/client/src/services/websocket.ts` | `subscribeToCanonicalKind` / `unsubscribe`, subscription envelope routing, recursive ref-walk that feeds `upsertStuffMetadata` |
-| `packages/client/src/components/InspectionPane.tsx` | Pane component — header, paint/clear body, breadcrumbs, Refresh, admin extras |
-| `packages/client/src/components/ui/` | Shared cockpit primitives: `<List>` / `<ListItem>` / `<Field>` / `<FieldList>` / `<EntityName>` / `<Button>` + semantic theme `tokens` (see "Shared UI components and theme tokens" below) |
-| `packages/client/src/components/MmlRenderer.tsx` | `commandFor()` extended to `<item>` / `<name>` / `<location>` / `<object>` — registry lookup → `look <primaryKeyword>`, label fallback |
+| `packages/server/src/mud/cmd/look.yaml` | `--peek` option declares `effects: [{phase: 'focus-update', action: 'skip'}]` |
+| `packages/server/src/mud/api/command.ts` | Phase / effects vocabulary (`COMMAND_PHASES`, `PhaseEffect`, `validatePhaseEffect`, `collectPhaseEffects`, `consumePhaseEffects`); dispatcher consults it at the focus-update site |
+| `packages/server/src/mud/api/mml.ts` | `MarkupAugmenter` type + `augmentMarkup` helper — substrate for `getMarkupLong` and future inline-affordance pipelines |
+| `packages/server/src/mud/api/mixin.ts` | `MixinApi.getAllMarkupAugmenters` — prototype-chain walker the augmenter pipeline consumes |
+| `packages/types/src/index.ts` | `MqlQueryMessage` / `MqlQueryResultEnvelope` / `MqlQueryErrorEnvelope` wire types; `StuffRefRecord.primaryKeyword`; `focusDependent?` / `locationDependent?` on `MqlSubscribeMessage` |
+| `packages/client/src/store/index.ts` | Pane slice (paint flag, breadcrumb root, breadcrumb trail, detail path, door context, focus name, last result), stuff-registry slice (`Map<stuffId, StuffMetadata>`), `upsertStuffMetadata` |
+| `packages/client/src/services/websocket.ts` | `subscribeMql(spec)` / `unsubscribe`, subscription envelope routing, recursive ref-walk that feeds `upsertStuffMetadata` |
+| `packages/client/src/components/InspectionPane.tsx` | Pane component — unified breadcrumb (root + trail + detail segments), header, paint/clear body, Refresh, door-context exit synthesis |
+| `packages/client/src/components/ui/` | Shared cockpit primitives: `<List>` / `<ListItem>` / `<EntityName>` / `<Button>` + semantic theme `tokens` (see "Shared UI components and theme tokens" below) |
+| `packages/client/src/components/MmlRenderer.tsx` | `commandFor()` extended to `<item>` / `<name>` / `<location>` / `<object>` + `<detail>` — registry lookup → `look <primaryKeyword>`, label fallback |
 
-## Canonical subscription kind: `'me.focus'`
+## The pane's two subscriptions
 
-The substrate exposes a canonical-kind registry on
-`MqlSubscriptionApi`:
+The pane mounts two long-lived MQL subscriptions through the
+wire client's `subscribeMql(spec)` method — raw specs, no
+indirection layer:
 
 ```ts
-interface CanonicalKindSpec {
-  query: string;
-  cardinality: 'one' | 'many';
-  fields?: FieldSet | FieldAlias;
-  detailKey?: string;
-  focusDependent?: boolean;
-}
+// Focused-thing body
+websocketClient.subscribeMql({
+  query: '$focus',
+  cardinality: 'many',
+  fields: 'detail',
+  focusDependent: true,
+});
 
-static registerKind(name: string, spec: CanonicalKindSpec): void;
+// Breadcrumb root (current location)
+websocketClient.subscribeMql({
+  query: 'here',
+  cardinality: 'one',
+  fields: 'ref',
+  locationDependent: true,
+});
 ```
 
-The wire surface gains an optional `kind?: string` field on both
-`MqlSubscribeMessage` and `MqlQueryMessage`. When present, the
-substrate resolves the kind against `#canonicalKinds` and overlays
-the registered spec onto the request — `query` / `cardinality` /
-`fields` / `detailKey` / `focusDependent` come from the spec, not
-the wire. Unknown kind names emit
-`MqlSubscriptionErrorEnvelope { reason: 'parse' }` (subscribe) or
-`MqlQueryErrorEnvelope { reason: 'parse' }` (query).
+The substrate accepts the spec verbatim; there's no server-side
+registry of "named subscriptions." Each spec lives in the client
+that issues it, and the wire client replays it on reconnect.
 
-Raw `(query, fields)` subscribes (no `kind` field) continue to
-work; canonical kinds are the additive surface. Clients prefer
-the canonical form because the substrate's invariants are
-author-controlled — the spec for `'me.focus'` is `{ query:
-'$focus', cardinality: 'many', fields: 'detail', focusDependent:
-true }`.
+### `focusDependent` and the holder-level focus dependency
 
-Registered at server boot in `Application`'s initialization
-sequence, alongside `EventRegistry` registration, before client
-connections are accepted.
-
-### `focusDependent` and the holder-level dependency entry
-
-For a query like `$focus` (the canonical `me.focus` kind), the
-result set is whatever the focus fragment resolves to — NOT the
-`FocusedMixin` host. The natural descriptor walk (which iterates
-`collectSubscribableFields(stuff)` for each Stuff in the result
-set) would miss the focus dependency entirely.
+For a query like `$focus`, the result set is whatever the focus
+fragment resolves to — NOT the `FocusedMixin` host. The natural
+descriptor walk (which iterates `collectSubscribableFields(stuff)`
+for each Stuff in the result set) would miss the focus
+dependency entirely.
 
 The `focusDependent: true` flag tells the substrate to install
 an additional `(FieldChangedEvent.KIND, 'field', 'focus')`
@@ -99,18 +108,41 @@ time, in addition to the per-result-Stuff descriptor walk. When
 subscription marks dirty, re-resolve runs against the (now-
 updated) `$focus` fragment, and the diff produces a delta.
 
-`focusDependent` is meaningless for `mql-query` one-shot reads
-(no subscription state to wake on focus change) — when a
-resolved canonical-kind spec carries it for a query, the
-substrate ignores it.
+The flag is meaningless for `mql-query` one-shot reads (no
+subscription state to wake) and is not carried on the
+`MqlQueryMessage` shape.
 
-### `$focus` expansion at re-resolve time
+### `locationDependent` and the holder-level container dependency
 
-The substrate runs `ShellApi.expandVariables` against the
-holder before each (re-)resolve. For `'me.focus'`, the query
-string is literally `'$focus'`; expansion produces the holder's
-current focus fragment fresh on every re-resolve, which is what
-makes the cascade work end-to-end.
+Parallel to `focusDependent`. Installs the dep entry
+`(FieldChangedEvent.KIND, 'field', 'container')` against the
+holder so the subscription wakes on `Containable.setContainer`
+fires — i.e., when the player walks, teleports, boards, or
+disembarks. The pane uses it to keep the breadcrumb root
+synchronized with the current room; without the flag, walking
+into a new room would not trigger a re-resolve of `here`.
+
+### `$focus` and `here` at re-resolve time
+
+The substrate runs `ShellApi.expandVariables` against the holder
+before each (re-)resolve. For the focus subscription, `$focus`
+expands to the holder's current focus fragment fresh on every
+tick — that's what makes the `setFocus` → dirty → re-resolve
+cascade work end-to-end. The location subscription uses the
+built-in MQL pronoun `here`, which resolves to the command
+giver's container without any synthetic-var or permission
+elevation.
+
+### Single-cardinality slot replacement
+
+The location subscription is `cardinality: 'one'`. When the
+player walks from room A to room B, the substrate's diff
+produces a single `op: 'replace'` carrying the *new* stuffId —
+the old slot is implicitly evicted. The pane's delta handler
+consumes the replace op directly rather than running it through
+the generic `applyChanges` helper (which keys by stuffId and
+would append a duplicate). The flat-cardinality `me.focus`
+projection uses `applyChanges` normally.
 
 ## Focus-change signaling
 
@@ -181,14 +213,14 @@ for Perceptible hosts. Non-Perceptible hosts return `undefined`
 from the descriptor and the substrate omits the field on the wire
 (same as `quantity` for non-Globbable hosts).
 
-The descriptor is **universal** — declared on
-`Stuff.subscribableFields`, not on `PerceptibleMixin`. The
-descriptor's `read` does the mixin gate inline (`MixinApi.isPerceptible(stuff) ? stuff.getPrimaryKeyword() : undefined`).
-This mirrors how `displayName` is universal on `Stuff` despite
-reading mixin-gated state — the alternative (descriptor on
-`PerceptibleMixin`) would require the substrate's `REF_FIELDS`
-mention to filter at the descriptor-walk site. Universal +
-in-descriptor gate is the cleaner shape.
+The descriptor lives on `PerceptibleMixin.subscribableFields` —
+contributed by the mixin that owns the gate, per the rule
+`Stuff.subscribableFields` documents. Non-Perceptible hosts
+contribute no descriptor; the substrate's projection loop tolerates
+the absence and the field is naturally omitted from those hosts'
+wire records (same shape `quantity` uses on Globbable). `REF_FIELDS`
+can list `'primaryKeyword'` unconditionally because the loop's
+`if (!d || !d.read) continue;` skip handles missing descriptors.
 
 `dependsOnFields: ['primaryKeyword', 'name', 'shortDescription']`
 — the getter result changes when any of the derived-pool inputs
@@ -246,15 +278,20 @@ Client-side; the substrate is policy-agnostic. The pane's body is
 gated by `paneBodyPainted` (a flag on the inspection-pane Zustand
 slice):
 
-- **On mount** — cleared. Header populates from the initial
-  subscription result; body shows placeholder text adaptive to
-  cardinality (single: *"focused — `look` to inspect"*; multi:
-  *"N <summary> focused — `look` to list"*). The placeholder is
-  itself clickable and sends `look`.
+- **On mount** — initially cleared; the placeholder text is
+  cardinality-adaptive (single: *"focused — `look` to inspect"*;
+  multi: *"N <summary> focused — `look` to list"*) and clickable
+  (sends `look`).
+- **First-delivery auto-paint exception**: the very first
+  non-empty `me.focus` subscription result on a fresh session
+  flips `paneBodyPainted = true` immediately. On a fresh login
+  the player would otherwise sit on the placeholder until they
+  typed `look`; auto-paint elides that step without changing
+  the focus-shift-clears rule for subsequent deltas.
 - **On focus change** (incoming subscription delta where the
-  focus fragment differs from the slice's `paneFocusFragment`):
-  set painted = false, update the fragment, push the previous
-  fragment to the breadcrumb LRU.
+  focused stuffId differs from the prior cached one): clear the
+  detail-drill stack; the door context drops if it pinned to the
+  prior focus.
 - **On `look` against the current focus** (player typed `look`
   with no target, or `look <X>` where `<X>` matched the focus):
   set painted = true, capture the most recent subscription
@@ -302,16 +339,20 @@ v1 surface walks this back to the simplest cut:
   filtered server-side in `ContainerMixin.contents`); the renderer
   shows them as the look output. No slot maps, mixin lists, raw
   fields, or property bags surface here.
-- **Raw internal state → admin section only**, role-gated. Template
-  path, stuff id, mixin composition, container path, JSON dump
-  belong in the admin extras block; never in the player body.
-- **Per-fact revelation gating beyond visible/admin is parked.**
+- **Raw internal state is server-side; the v1 pane has no admin
+  surface.** Template path, stuff id, mixin composition, raw JSON
+  dump, and `clone` / `reload` / `eval` quick actions all belong
+  in a future admin surface — but the substrate doesn't project
+  those fields today and no client `isAdmin` flag exists. Until
+  both ship, the pane carries no admin block; what authors can do
+  is use the typed-command interface (`clone <template>`,
+  `reload <template>`) just like any verb.
+- **Per-fact revelation gating beyond visible is parked.**
   The sense/modality system (feel/smell/listen as separate
   channels), the magic lens, skill-deepens-perception, and per-
   fact provenance all wait for the perception subsystem; the
   spine (fact → revelation condition) is recorded here for the
-  future build, the implementation cut is "visible vs admin"
-  only.
+  future build, the implementation cut is "visible" only.
 
 ### Accumulate vs. latest — v1 ships latest-only
 
@@ -398,11 +439,10 @@ Wire shape in `@saxonberg/types`:
 interface MqlQueryMessage {
   type: 'mql-query';
   queryId: string;
-  query?: string;
-  cardinality?: 'one' | 'many';
+  query: string;
+  cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
-  kind?: string;
 }
 
 interface MqlQueryResultEnvelope {
@@ -427,12 +467,11 @@ interface MqlQueryErrorEnvelope {
 - NO registration in `#registry`, NO dependency-index entries,
   NO listener installation. This is the "share the pipeline,
   skip the state" pattern.
-- Holder, cardinality, and canonical-kind checks mirror
-  `handleSubscribe` so a client's error-handling code can branch
-  by `reason` uniformly across subscribes and queries.
-- On a registered canonical kind, the spec's
-  `focusDependent` field is silently ignored (meaningless
-  without subscription state to wake).
+- Holder and cardinality checks mirror `handleSubscribe` so a
+  client's error-handling code can branch by `reason` uniformly
+  across subscribes and queries.
+- `focusDependent` / `locationDependent` are not carried on the
+  query shape (no subscription state to wake).
 
 `Application.processUserMessage` routes inbound `'mql-query'`
 messages through `handleQuery` — same shape as the existing
@@ -440,9 +479,10 @@ messages through `handleQuery` — same shape as the existing
 reads call `MqlApi.resolveOne` / `resolveMany` + `projectFields`
 directly; this surface is the wire-facing channel.
 
-## `look --peek`
+## `look --peek` and the phase-effects substrate
 
-Adds the `peek` boolean option on `look.yaml`:
+`look.yaml`'s `peek` boolean option declares a lifecycle effect
+against the dispatcher:
 
 ```yaml
 args:
@@ -450,30 +490,51 @@ args:
     type: object
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    skip_focus_when_option: peek
     prepositions: [at]
     default: "$focus"
 options:
   peek:
     type: boolean
     description: "Render prose without changing focus"
+    effects:
+      - { phase: focus-update, action: skip }
 ```
 
-**`skip_focus_when_option`** is a generic `FieldDefinition`
-field on the YAML view. When set to the name of a boolean
-option, the dispatcher reads `model[<option>]` at the focus-
-update site; if true, the focus update for this arg is skipped
-even when `updates_focus: extend` is declared. The arg's bind
-runs unchanged; only the side effect on focus is suppressed.
+The dispatcher recognizes a small vocabulary of *lifecycle
+phases* — points between parse and emit where an option can
+attach a `skip` or `replace` action. The vocabulary is declared
+in `api/command.ts` (`COMMAND_PHASES`, `HOOKABLE_PHASES`,
+`REPLACE_HANDLERS`, `IMPLEMENTED_REPLACE_HANDLERS`, `PhaseEffect`,
+`validatePhaseEffect`, `collectPhaseEffects`, `consumePhaseEffects`).
+Today `focus-update` is the only hookable phase; `validate`,
+`confirm-prompt`, `dispatch`, and `emit-scene` are documented
+placeholders that the schema accepts but the dispatcher throws
+against until their substrate lands.
+
+When the dispatcher's positional-arg loop hits the focus-update
+site, it consults `consumePhaseEffects('focus-update', model,
+optionDefs)`. If any active option declares
+`{phase: 'focus-update', action: 'skip'}` and is truthy on the
+bound model, the focus-update step is bypassed. Pronoun memory
+still updates; only the focus chain push is held back.
 
 `LookController.execute` is unchanged — it renders the prose
 body and emits the existing Scene the same way it always has.
 The "peek doesn't change focus" semantic is the dispatcher's
 job, not the controller's.
 
-The generalization (a YAML field, not a `look`-specific
-dispatcher branch) lets future verbs with similar peek-style
-flags reuse the pattern without rewiring the dispatcher.
+The generalization (a phase taxonomy plus an option-side
+`effects:` declaration) lets future flags reuse the substrate
+without inventing new schema fields:
+
+- `--async` → `{phase: 'dispatch', action: 'replace', with: 'deferred-dispatch'}`
+- `--explain` / `--dry-run` → `{phase: 'dispatch', action: 'replace', with: 'explain-plan'}`
+- `--force` → `{phase: 'confirm-prompt', action: 'skip'}`
+- `--quiet` → `{phase: 'emit-scene', action: 'skip'}`
+
+Each lands by making its target phase hookable, not by adding a
+new YAML field. See `docs/subsystems/command-routing.md` for the
+dispatcher details.
 
 ## Client stuff registry
 
@@ -585,10 +646,10 @@ divs. Three rules govern it:
 
 2. **Semantic DOM = the flatten-linear-labeled floor.** Every
    primitive renders the real HTML element: `<List>` is a `<ul>`
-   / `<ol>`, `<FieldList>` is a `<dl>` of `<dt>` / `<dd>` pairs,
-   `<EntityName>` is a `<button>`, `<Button>` is a `<button>`.
-   No ARIA props are needed to fake what the platform already
-   announces. Visual-only `<div>` grids are the smell to avoid.
+   / `<ol>`, `<EntityName>` is a `<button>`, `<Button>` is a
+   `<button>`. No ARIA props are needed to fake what the
+   platform already announces. Visual-only `<div>` grids are
+   the smell to avoid.
 
 3. **Theme tokens; no hex literals.** All color / spacing / font
    values come from `tokens.ts` — semantic names (`surface`,
@@ -600,7 +661,6 @@ divs. Three rules govern it:
 | Primitive | Role | Renders |
 |---|---|---|
 | `<List>` / `<ListItem>` | semantic sequence | `<ul>` / `<ol>` + `<li>` |
-| `<FieldList>` / `<Field>` | labeled key/value pairs | `<dl>` + `<dt>` + `<dd>` |
 | `<EntityName>` | clickable name carrying `stuff-id` | `<button data-stuff-id="...">` |
 | `<Button>` | action target with `primary` / `action` / `ghost` variants | `<button>` |
 | `tokens` | semantic theme values (color / space / font / radius) | `as const` exports |
@@ -633,46 +693,76 @@ semantic markup.
 ### Multi-focus rows: groups, eventually
 
 Per the [grouping slate](../slates/grouping-slate.md), the multi-
-cardinality `me.focus` result is in principle a **group** — `focus
+cardinality `$focus` result is in principle a **group** — `focus
 friends` resolves a group via `GroupApi`; the pane renders its
 members. v1 has neither `GroupApi` nor friend/foe bucketing, so
 the row shape is just "a list of styled names" — and that's the
 shape it stays. When `GroupApi` lands, the pane resolves the
-group server-side via the canonical kind's query and the row
+group server-side via the same `$focus` subscription and the row
 component (`<EntityName>` already carrying `stuff-id`) absorbs
 the bucket selector without further work.
 
-## Breadcrumbs, Refresh, admin extras
+## Breadcrumbs and Refresh
 
-**Breadcrumbs.** Session-scoped LRU of the last 6 distinct focus
-fragments. Pushed by the paint/clear handler when focus changes.
-Click sends `look <fragment>` through the command bus (paints
-the body in one motion). The command-bus route is intentional —
-clicking a breadcrumb is a "show me this again" gesture, not
-"set my pointer but don't show me." Not persisted across
-reconnects.
+### Unified breadcrumb
 
-**Refresh button.** In the pane header. Clicks send `look`
-through the command bus exactly like any other click affordance
-— no special API. Stays enabled in the cleared-body state
-(that's its primary use). Clicks queue if a command is in-
-flight.
+The breadcrumb is a single horizontal strip combining three
+sources of context:
 
-**Admin extras.** Visible only when the local viewer is admin
-(read from auth state). Renders `templatePath` / `stuffId` /
-mixin composition / container path / raw data dump (expandable
-JSON pretty-print) / quick-action buttons (`clone`, `reload`,
-`eval`). Each button sends the corresponding command through
-the command bus. Hidden entirely for non-admins.
+1. **Root segment** — the player's current location, sourced
+   from the `here` (`locationDependent`) subscription. Movement
+   reroots the strip; the room is always the first segment.
+2. **Trail segments** — past focus shifts since the last reroot.
+   Pushed by `applyOutgoingCommandToPane` (in `App.tsx`) when an
+   outgoing `look <target>` or `focus <target>` doesn't match
+   the current root. Capped at 6 entries; the head dedups
+   against re-clicks of the same target.
+3. **Detail segments** — the active detail-drill stack on the
+   currently-focused Stuff. Pushed inline when the player clicks
+   a `<detail>` MML affordance in the body prose.
+
+Clicking the root re-focuses the room (sends `look <keyword>` and
+clears trail + detail). Clicking a trail entry pops everything
+past it, clears any detail drill, then re-sends the entry's
+stored command. Clicking an intermediate detail segment pops the
+detail stack to that level; the leaf detail segment is rendered
+as a non-clickable system label (you're already there).
+
+Movement always reroots: when the `me.location` subscription's
+single-cardinality slot replaces, the prior breadcrumb trail is
+discarded.
+
+### Door context
+
+When the player clicks a door affordance inside an exit
+projection (e.g. `the front doors` rendered next to `south` in
+the lobby's exits), the click site stashes a
+`paneDoorContext: {stuffId, direction}` annotation in the store.
+The door's own pane then synthesizes an "Obvious exits:
+<direction>" link in its body so the player can walk through
+from the inspection view. The annotation clears on the next
+focus shift to a different stuffId.
+
+Pure UI sugar — no substrate change. The door Stuff itself has
+no notion of "which exit am I"; the client reconstructs the
+relationship from the click site that has both pieces in scope.
+
+### Refresh button
+
+In the pane header. Clicks send `look` through the command bus
+exactly like any other click affordance — no special API. Stays
+enabled in the cleared-body state (that's its primary use).
+Clicks queue if a command is in-flight.
 
 ## Reconnect behavior
 
-On WebSocket `connection-established`, the wire client re-
-subscribes every active subscription (replays the same
-`mql-subscribe` message with `kind` + `subscriptionId`). The
-server's substrate ships the initial result. The pane's header
-populates from the first record. The body stays cleared —
-`connection-established` is not a `look`.
+On WebSocket `connection-established`, the wire client replays
+every active subscription's stored spec (the full
+`{query, cardinality, fields, focusDependent?, locationDependent?,
+detailKey?}` shape it was opened with). The server's substrate
+ships the initial result. The pane's header populates from the
+first record; the first-delivery auto-paint rule fires the body
+into the painted state.
 
 The substrate's per-subscription state on the server is rebuilt
 fresh on each subscribe; there is no resume / replay shape.
@@ -718,19 +808,26 @@ Per the closed-scope requirements:
   `refresh: true`. Only the `mql-query` one-shot ships here
   because `find` motivates it.
 - **Cardinality-adaptive projection** — `'detail'` always.
-- **Other canonical kinds** — only `'me.focus'` registered in
-  v1; `me.inventory`, `me.location`, `online`, `world` defer
-  until the consuming widgets demand them.
+- **Other client-issued subscriptions** — the pane uses two
+  (`$focus`, `here`); future panes / widgets will issue their
+  own raw specs through `subscribeMql`. There is no server-side
+  registry of "named" subscriptions; each consumer owns its
+  spec.
 - **Sense/modality system** (feel / smell / listen as separate
   perception channels), the **magic lens**, and
   **skill-deepens-perception.** Recorded as the future
-  revelation-condition spine; v1's cut is "visible vs admin"
-  only. See the *Body discipline* section above.
-- **Per-fact revelation gating beyond visible/admin.** Each
-  property today is either projected into the detail field-set
-  (perceivable as part of the look output) or held to the admin
-  block. Per-fact provenance (which act revealed this fact, at
-  what fidelity) ships with the perception subsystem.
+  revelation-condition spine; v1's cut is "visible" only. See
+  the *Body discipline* section above.
+- **Per-fact revelation gating beyond visible.** Each property
+  today is either projected into the detail field-set
+  (perceivable as part of the look output) or not surfaced.
+  Per-fact provenance (which act revealed this fact, at what
+  fidelity) ships with the perception subsystem.
+- **Admin / author surface on the pane.** No `isAdmin` flag on
+  the auth slice today and no `templatePath` / `mixins` /
+  `containerPath` projection on the wire. When admin needs
+  arrive, they land with verified substrate (descriptor set,
+  per-record gating) rather than client-side speculation.
 - **Accumulate-per-focus body.** v1 ships latest-only — each
   subscription result / delta replaces the snapshot. The union
   of percepts across `look` / `measure` / `appraise` waits for
@@ -788,3 +885,65 @@ policy lands behind the existing read shape without changing
 call sites. The decision point is when the registry footprint
 crosses whatever profiling threshold makes it the next
 optimization candidate.
+
+## Build history
+
+Several substrate shapes shifted during MR iteration. Recording
+them here so future debugging knows the substrate's choices
+weren't always the obvious ones:
+
+- **Canonical-kind registry retired.** The build initially
+  shipped a server-side `MqlSubscriptionApi.registerKind` /
+  `CanonicalKindSpec` registry that let clients subscribe by
+  name (`'me.focus'`). The registry was a pure server-side
+  macro over the wire — same bytes, alias-only — so it was
+  demolished in favor of clients sending the raw spec
+  (`subscribeMql(spec)`). The substrate's `focusDependent` /
+  `locationDependent` flags are now part of the request,
+  not derived from a registered kind.
+- **`me.location` subscription landed.** Added as a second
+  client-issued subscription to drive the breadcrumb root
+  (separate from the focused-thing body). Required adding
+  `locationDependent` to the substrate's `SubscribeRequest`
+  shape and firing `FieldChangedEvent { field: 'container' }`
+  from `Containable.setContainer`.
+- **`primaryKeyword` descriptor relocated.** Originally on
+  `Stuff.subscribableFields` with an inline mixin gate
+  (`MixinApi.isPerceptible`); moved onto
+  `PerceptibleMixin.subscribableFields` per the rule "mixin-
+  gated renders go on the mixin that owns the gate."
+- **`getMarkupLong` relocated, augmenter pipeline added.**
+  Originally on `Detailed` interface/impl with `VisibleMixin`
+  duck-typing into it. The method moved to `VisibleMixin` and
+  the wrap-detail-keys logic became the first
+  `MarkupAugmenter` contribution. Substrate added: the
+  `MarkupAugmenter` type + `augmentMarkup` helper in
+  `api/mml.ts` and the `MixinApi.getAllMarkupAugmenters`
+  prototype-chain walker. Future contributors (exit-direction
+  auto-link, language gating, spoiler hide) plug in via
+  `static markupAugmenters` on their mixin.
+- **`skip_focus_when_option` retired in favor of phase
+  effects.** Originally a single-purpose YAML field on
+  positional args; replaced by the dispatcher's phase /
+  effects vocabulary in `api/command.ts`. The `look --peek`
+  YAML now declares
+  `effects: [{phase: 'focus-update', action: 'skip'}]`.
+- **Unified breadcrumb.** Two parallel strips (top focus
+  breadcrumb + in-body detail trail) collapsed into a single
+  strip: root + trail + detail segments. The in-body
+  `DetailTrail` was deleted.
+- **First-delivery auto-paint.** The original spec said "focus
+  changes clear the body; explicit `look` paints." On a fresh
+  session that left the pane sitting on the placeholder until
+  the player typed `look`. First-delivery auto-paint elides
+  the cold-start step without changing the focus-shift-clears
+  rule.
+- **Admin extras removed.** Originally shipped as forward-
+  compatible scaffolding (template-path + mixins + container-
+  path display, `clone` / `reload` / `eval` buttons). Removed
+  because the substrate doesn't project the fields and the
+  auth slice has no `isAdmin` flag — the scaffolding was
+  permanent dead code. Future admin needs land with verified
+  substrate.
+
+Commit range: `41240c7..HEAD` on the `inspection` branch.

@@ -365,34 +365,6 @@ describe("InspectionPane", () => {
     expect(onSend).toHaveBeenCalledWith("look a rock");
   });
 
-  it("admin extras are hidden when the viewer is not admin", () => {
-    attachMockWs();
-    const onSend = vi.fn();
-    useStore.setState({
-      auth: {
-        isAuthenticated: true,
-        user: null,
-        player: {
-          _id: "p",
-          name: "Player",
-          pronouns: "they",
-        } as never,
-      },
-    });
-    render(<InspectionPane onSendCommand={onSend} />);
-    const subId = currentSubscriptionId();
-
-    deliver({
-      type: "mql-subscription-result",
-      frameId: 1,
-      subscriptionId: subId,
-      result: [{ stuffId: "room-1", displayName: "The Atrium" }],
-    } as MqlSubscriptionResultEnvelope);
-    paintBody();
-
-    expect(screen.queryByLabelText("admin extras")).toBeNull();
-  });
-
   it("contents rows carry data-stuff-id (interactivity + styling double duty)", () => {
     attachMockWs();
     const onSend = vi.fn();
@@ -445,54 +417,6 @@ describe("InspectionPane", () => {
     expect(screen.getByText("Bob").getAttribute("data-stuff-id")).toBe(
       "bob"
     );
-  });
-
-  it("admin extras render as a semantic definition list", () => {
-    attachMockWs();
-    const onSend = vi.fn();
-    useStore.setState({
-      auth: {
-        isAuthenticated: true,
-        user: null,
-        player: {
-          _id: "p",
-          name: "Admin",
-          pronouns: "they",
-          isAdmin: true,
-        } as never,
-      },
-    });
-    render(<InspectionPane onSendCommand={onSend} />);
-    const subId = currentSubscriptionId();
-
-    deliver({
-      type: "mql-subscription-result",
-      frameId: 1,
-      subscriptionId: subId,
-      result: [
-        {
-          stuffId: "thermo-1",
-          displayName: "a brass thermometer",
-          templatePath: "/obj/Thermometer",
-        } as never,
-      ],
-    } as MqlSubscriptionResultEnvelope);
-    paintBody();
-
-    const admin = screen.getByLabelText("admin extras");
-    // The dl-dt-dd shape is what flatten-linear-labels for screen
-    // readers and what the message-rendering slate's accessibility
-    // floor requires.
-    const dl = admin.querySelector("dl");
-    expect(dl).not.toBeNull();
-    const dts = admin.querySelectorAll("dt");
-    const dds = admin.querySelectorAll("dd");
-    expect(dts.length).toBeGreaterThan(0);
-    expect(dts.length).toBe(dds.length);
-    // Specifically: the template-path label is present as a <dt>.
-    expect(
-      Array.from(dts).some((el) => el.textContent === "Template")
-    ).toBe(true);
   });
 
   it("hover preview channel fires for Refresh, breadcrumbs, and contents rows", () => {
@@ -562,47 +486,4 @@ describe("InspectionPane", () => {
     expect(onPreview).toHaveBeenLastCalledWith(null);
   });
 
-  it("admin extras render and the action buttons send their commands", () => {
-    attachMockWs();
-    const onSend = vi.fn();
-    useStore.setState({
-      auth: {
-        isAuthenticated: true,
-        user: null,
-        player: {
-          _id: "p",
-          name: "Admin",
-          pronouns: "they",
-          isAdmin: true,
-        } as never,
-      },
-    });
-    render(<InspectionPane onSendCommand={onSend} />);
-    const subId = currentSubscriptionId();
-
-    deliver({
-      type: "mql-subscription-result",
-      frameId: 1,
-      subscriptionId: subId,
-      result: [
-        {
-          stuffId: "thermo-1",
-          displayName: "a brass thermometer",
-          templatePath: "/obj/Thermometer",
-        } as never,
-      ],
-    } as MqlSubscriptionResultEnvelope);
-    paintBody();
-
-    const admin = screen.getByLabelText("admin extras");
-    expect(admin.textContent).toContain("/obj/Thermometer");
-    expect(admin.textContent).toContain("thermo-1");
-
-    fireEvent.click(within(admin).getByText("clone"));
-    expect(onSend).toHaveBeenCalledWith("clone /obj/Thermometer");
-    fireEvent.click(within(admin).getByText("reload"));
-    expect(onSend).toHaveBeenCalledWith("reload /obj/Thermometer");
-    fireEvent.click(within(admin).getByText("eval"));
-    expect(onSend).toHaveBeenCalledWith("eval");
-  });
 });

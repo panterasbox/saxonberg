@@ -709,8 +709,7 @@ export function validatePhaseEffect(value: unknown): string | null {
  * `optionDefs` — that map's keys are already field-keys (`field ??
  * name`), so the lookup against `activeModel` is direct.
  *
- * Truthiness mirrors the prior `skip_focus_when_option` semantics:
- * an option's effects fire when the bound model's value at that
+ * An option's effects fire when the bound model's value at that
  * field is truthy. Boolean options are the natural fit; other types
  * coerce per JS truthiness.
  */

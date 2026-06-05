@@ -56,14 +56,6 @@
  *   threaded so the future bucket-selector lands without component
  *   changes.
  *
- * Admin extras (template path / stuff id / mixin composition / raw
- * data dump / quick-action buttons for `clone` / `reload` / `eval`)
- * render only when the local viewer is admin — derived from the
- * client store. Today the auth slice carries no admin marker; the
- * pane reads `useStore.getState().auth.player?.isAdmin` defensively
- * (returns `undefined` → hidden). When a real auth-side admin
- * marker lands, no UI change is required.
- *
  * Styling: every color / spacing / font value resolves through
  * `ui/tokens.ts`. The `data-stuff-id` attribute rides every
  * clickable name affordance (via `<EntityName>`) — one attribute,
@@ -71,7 +63,7 @@
  * coloring) per the message-rendering slate.
  */
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import type {
   Envelope,
@@ -84,15 +76,7 @@ import type {
 import { useStore } from "../store/index";
 import { websocketClient } from "../services/websocket";
 import { MmlRenderer } from "./MmlRenderer";
-import {
-  Button,
-  EntityName,
-  Field,
-  FieldList,
-  List,
-  ListItem,
-  tokens,
-} from "./ui";
+import { Button, EntityName, List, ListItem, tokens } from "./ui";
 
 const PaneContainer = styled.aside`
   display: flex;
@@ -145,15 +129,6 @@ const Body = styled.div`
   line-height: 1.5;
 `;
 
-const SectionHeading = styled.h3`
-  margin: ${tokens.space.lg} 0 ${tokens.space.sm} 0;
-  color: ${tokens.color.sectionLabel};
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: ${tokens.font.micro};
-  font-weight: 600;
-`;
-
 const BodyProse = styled.div`
   margin-bottom: ${tokens.space.lg};
 `;
@@ -197,32 +172,6 @@ const ContentsLabel = styled.div`
 const CurrentSegment = styled.span`
   color: ${tokens.color.fgMuted};
   font-style: italic;
-`;
-
-const AdminBlock = styled.section`
-  margin-top: ${tokens.space.xl};
-  padding-top: ${tokens.space.md};
-  border-top: 1px dashed ${tokens.color.border};
-  color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.micro};
-`;
-
-const AdminActionRow = styled.div`
-  display: flex;
-  gap: ${tokens.space.md};
-  margin-top: ${tokens.space.md};
-  flex-wrap: wrap;
-`;
-
-const RawDump = styled.pre`
-  background: ${tokens.color.surfaceSunken};
-  border: 1px solid ${tokens.color.borderMuted};
-  padding: ${tokens.space.md};
-  margin: ${tokens.space.sm} 0;
-  font-size: ${tokens.font.micro};
-  max-height: 200px;
-  overflow: auto;
-  white-space: pre;
 `;
 
 const TagSuffix = styled.span`
@@ -386,17 +335,6 @@ export function InspectionPane({
   const paneBreadcrumbTrail = useStore((s) => s.paneBreadcrumbTrail);
   const paneDetailPath = useStore((s) => s.paneDetailPath);
   const paneDoorContext = useStore((s) => s.paneDoorContext);
-  const authPlayer = useStore((s) => s.auth.player);
-
-  // The auth slice doesn't yet carry an explicit admin marker. Read
-  // defensively from the player record so the pane is forward-compatible
-  // with a future `isAdmin` flag and stays hidden today.
-  const isAdmin = useMemo<boolean>(() => {
-    if (!authPlayer) return false;
-    const candidate = (authPlayer as unknown as { isAdmin?: unknown })
-      .isAdmin;
-    return candidate === true;
-  }, [authPlayer]);
 
   useEffect(() => {
     // Focused-thing pane body — `$focus` is the synthetic var the
@@ -619,11 +557,10 @@ export function InspectionPane({
         onSendCommand,
         previewSink,
         handleRowClick,
-        isAdmin,
         doorDirection
       );
     }
-    return renderMulti(result, previewSink, handleRowClick, isAdmin);
+    return renderMulti(result, previewSink, handleRowClick);
   };
 
   return (
@@ -779,7 +716,6 @@ function renderSingle(
   onSendCommand: (text: string) => void,
   onPreview: (command: string | null) => void,
   onRowClick: (row: StuffRefRecord) => void,
-  isAdmin: boolean,
   doorDirection: string | null
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
@@ -883,7 +819,6 @@ function renderSingle(
           </List>
         </ContentsBlock>
       )}
-      {isAdmin && renderAdminExtras(record, onSendCommand, onPreview)}
     </div>
   );
 }
@@ -901,15 +836,12 @@ function renderSingle(
 function renderMulti(
   records: ReadonlyArray<StuffRefRecord | StuffDetailRecord>,
   onPreview: (command: string | null) => void,
-  onRowClick: (row: StuffRefRecord) => void,
-  isAdmin: boolean
+  onRowClick: (row: StuffRefRecord) => void
 ): React.ReactElement {
   return (
     <List aria-label="matches">
       {records.map((row) => {
         const detail = row as StuffDetailRecord;
-        const tpath = (row as unknown as { templatePath?: string })
-          .templatePath;
         return (
           <ListItem key={row.stuffId}>
             <EntityName
@@ -920,7 +852,6 @@ function renderMulti(
               onPreview={onPreview}
               onClick={() => onRowClick(row)}
             />
-            {isAdmin && tpath && <TagSuffix>({tpath})</TagSuffix>}
             {detail.shortDescription && (
               <TagSuffix>— {detail.shortDescription}</TagSuffix>
             )}
@@ -931,79 +862,6 @@ function renderMulti(
   );
 }
 
-/**
- * Admin extras — role-gated raw state.
- *
- * This is where the property-bag-shaped content lives: template
- * path, stuff id, mixin composition, container path, and the raw
- * JSON dump. Per the inspection-pane reconciliation, raw internal
- * state belongs HERE exclusively, never in the player body.
- *
- * Rendered as a semantic `<dl>` (via `<FieldList>` / `<Field>`)
- * so screen readers announce each label/value as a definition
- * pair — the "linear-labeled flatten" the message-rendering slate
- * mandates.
- */
-function renderAdminExtras(
-  record: StuffRefRecord | StuffDetailRecord,
-  onSendCommand: (text: string) => void,
-  onPreview: (command: string | null) => void
-): React.ReactElement {
-  const r = record as unknown as Record<string, unknown>;
-  const templatePath =
-    typeof r.templatePath === "string" ? r.templatePath : undefined;
-  const stuffId = record.stuffId;
-  const mixins = Array.isArray(r.mixins) ? r.mixins : undefined;
-  const containerPath =
-    typeof r.containerPath === "string" ? r.containerPath : undefined;
-
-  const cloneCommand = templatePath ? `clone ${templatePath}` : "clone";
-  const reloadCommand = templatePath ? `reload ${templatePath}` : "reload";
-
-  return (
-    <AdminBlock aria-label="admin extras">
-      <SectionHeading>Admin</SectionHeading>
-      <FieldList>
-        {templatePath && <Field label="Template">{templatePath}</Field>}
-        <Field label="Stuff id">{stuffId}</Field>
-        {mixins && mixins.length > 0 && (
-          <Field label="Mixins">{mixins.join(", ")}</Field>
-        )}
-        {containerPath && (
-          <Field label="Container">{containerPath}</Field>
-        )}
-      </FieldList>
-      <SectionHeading>Raw</SectionHeading>
-      <RawDump>{JSON.stringify(record, null, 2)}</RawDump>
-      <AdminActionRow>
-        <Button
-          variant="action"
-          command={cloneCommand}
-          onPreview={onPreview}
-          onClick={() => onSendCommand(cloneCommand)}
-        >
-          clone
-        </Button>
-        <Button
-          variant="action"
-          command={reloadCommand}
-          onPreview={onPreview}
-          onClick={() => onSendCommand(reloadCommand)}
-        >
-          reload
-        </Button>
-        <Button
-          variant="action"
-          command="eval"
-          onPreview={onPreview}
-          onClick={() => onSendCommand("eval")}
-        >
-          eval
-        </Button>
-      </AdminActionRow>
-    </AdminBlock>
-  );
-}
 
 /**
  * Detail-drill view — the player has descended into a detail of the

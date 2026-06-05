@@ -186,11 +186,6 @@ interface StoreState {
    */
   pushPaneDetail: (key: string) => void;
   /**
-   * Pop the detail stack one level (back-out toward the focused
-   * Stuff). Empty stack stays empty.
-   */
-  popPaneDetail: () => void;
-  /**
    * Slice the detail stack so position `index` is the new tail.
    * Used by detail-breadcrumb clicks to back out to that level
    * without traversing one pop at a time. `index < 0` clears.
@@ -359,12 +354,6 @@ export const useStore = create<StoreState>((set) => ({
         return {};
       }
       return { paneDetailPath: [...state.paneDetailPath, trimmed] };
-    }),
-
-  popPaneDetail: () =>
-    set((state) => {
-      if (state.paneDetailPath.length === 0) return {};
-      return { paneDetailPath: state.paneDetailPath.slice(0, -1) };
     }),
 
   popPaneDetailToIndex: (index) =>

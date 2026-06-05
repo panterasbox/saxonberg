@@ -251,7 +251,11 @@ export class LookController extends CommandController<LookModel> {
       });
       return;
     }
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getLong())}\n`;
+    // Run the long through `getMarkupLong(viewer)` so detail keywords
+    // and any other contributing-mixin augmenters wrap inline —
+    // matches the location branch above; both `look <thing>` and
+    // bare `look` ship the same affordance-annotated text.
+    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.perception.look)

@@ -1,14 +1,13 @@
 /**
- * Wave 2 (inspection-pane build): subscriptions flagged
- * `focusDependent: true` install a holder-level
- * `(FieldChangedEvent.KIND, 'field', 'focus')` dependency entry so
- * the substrate marks them dirty on `setFocus` / `clearFocus` — even
- * when the natural per-result-Stuff descriptor walk would not have
- * installed a focus dep (the result set doesn't include the Focused
- * host).
+ * Subscriptions flagged `focusDependent: true` install a
+ * holder-level `(FieldChangedEvent.KIND, 'field', 'focus')`
+ * dependency entry so the substrate marks them dirty on `setFocus`
+ * / `clearFocus` — even when the natural per-result-Stuff descriptor
+ * walk would not have installed a focus dep (the result set doesn't
+ * include the Focused host itself).
  *
- * Wave 3 wires this onto canonical kinds; Wave 2 ships the substrate
- * plumbing and the test reaches the raw substrate API directly.
+ * The inspection pane's `$focus` subscription is the canonical
+ * consumer; this file exercises the substrate behavior directly.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

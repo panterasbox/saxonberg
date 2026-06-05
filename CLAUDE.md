@@ -59,7 +59,10 @@ behavior. Read the relevant doc before editing in its area.
     start, including autosave install), multiplexing, disconnect
     choreography
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
-    composer, sensor routing, MudlogApi
+    composer, sensor routing, MudlogApi, `MarkupAugmenter` pipeline
+    (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
+    the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
+    `<detail>` etc. inline)
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
     `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
     schema-on-owner generalization), lookup chain, `settings` /
@@ -79,7 +82,10 @@ behavior. Read the relevant doc before editing in its area.
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML
     view + controller MVC, the per-giver recency stack, dispatch chain
     (shape vs bind, `pass: true`), validators, scope try-list,
-    `updates_focus`, schema delivery via
+    `updates_focus`, phase-effects vocabulary
+    (`COMMAND_PHASES`, `PhaseEffect`, `collectPhaseEffects`,
+    `consumePhaseEffects`; options declare `effects:` to skip /
+    replace dispatcher phases), schema delivery via
     `system.commands.{added,removed,reset}`, frame attribution
   - [command-parsing.md](./docs/subsystems/command-parsing.md) —
     `CommandLineApi` tokenizer, `RawToken` classification, `format()`
@@ -95,7 +101,7 @@ behavior. Read the relevant doc before editing in its area.
     provider seam, PathTrie
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) —
     live MQL subscription substrate: per-Interactive registry,
-    `mql-subscribe` / `mql-unsubscribe` wire shapes,
+    `mql-subscribe` / `mql-unsubscribe` / `mql-query` wire shapes,
     `SubscribableFieldDescriptor` (flat `read` + focused-detail
     `perDetailRead`), meta-bus dependency index keyed by
     `(EventClass.KIND, attribute, value)`, `setImmediate`-batched
@@ -104,7 +110,20 @@ behavior. Read the relevant doc before editing in its area.
     vocabulary (`FieldChangedEvent`, `PropertyChangedEvent`,
     `ShadowChangedEvent`, `GenericEvent<P>`) layered onto `EventApi.fire`
     + class-based `EventApi.on`, `DescribeApi.getDisplayName` reshape
-    (drop `fallback`, add `viewer?`, bake in `'something'`)
+    (drop `fallback`, add `viewer?`, bake in `'something'`),
+    holder-level `focusDependent` / `locationDependent` dep flags
+    (subscriptions wake on `setFocus` / `setContainer`), `mql-query`
+    one-shot read channel
+  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) —
+    persistent right-column cockpit pane: two client-issued MQL
+    subscriptions (`$focus` + `focusDependent` for the focused-
+    thing body; `here` + `locationDependent` for the breadcrumb
+    root), paint/clear policy with first-delivery auto-paint,
+    unified breadcrumb (root + focus trail + detail-drill segments),
+    cardinality-polymorphic body, door-context exit synthesis,
+    client stuff registry feeding `MmlRenderer.commandFor`'s
+    `look <primaryKeyword>` routing, shared `ui/` cockpit primitives,
+    `find` snapshot-enumeration verb
   - [prompt.md](./docs/subsystems/prompt.md) — prompt substrate:
     `PromptApi` (Tier 1 surface `choice` / `confirm` / `text` /
     `mqlObject` / `mqlMany`), per-Interactive resolver map,

@@ -122,16 +122,16 @@ describe("inspection-pane slice", () => {
     expect(trail[0]?.label).toBe("a");
   });
 
-  it("pushPaneDetail / popPaneDetail / popPaneDetailToIndex maintain the drill stack", () => {
+  it("pushPaneDetail / popPaneDetailToIndex / clearPaneDetail maintain the drill stack", () => {
     useStore.getState().pushPaneDetail("counter");
     useStore.getState().pushPaneDetail("slot");
-    expect(useStore.getState().paneDetailPath).toEqual(["counter", "slot"]);
-
-    useStore.getState().popPaneDetail();
-    expect(useStore.getState().paneDetailPath).toEqual(["counter"]);
-
-    useStore.getState().pushPaneDetail("slot");
     useStore.getState().pushPaneDetail("hinge");
+    expect(useStore.getState().paneDetailPath).toEqual([
+      "counter",
+      "slot",
+      "hinge",
+    ]);
+
     useStore.getState().popPaneDetailToIndex(0);
     expect(useStore.getState().paneDetailPath).toEqual(["counter"]);
 
