@@ -1,8 +1,11 @@
 /**
- * `look --peek` tests — exercises the dispatcher's
- * `skip_focus_when_option` hook against a `look`-shaped YAML.
+ * `look --peek` tests — exercises the dispatcher's phase-effects
+ * substrate against a `look`-shaped YAML. The peek option declares
+ * `effects: [{phase: focus-update, action: skip}]`; the dispatcher
+ * honors it by bypassing the focus-update step for the bound arg
+ * while still updating pronoun memory.
  *
- * The peek flag rides the dispatcher's focus-update path (not the
+ * The peek flag rides the dispatcher's focus-update phase (not the
  * controller). The controller's prose-rendering branches are
  * unchanged; verifying focus side-effects is enough to prove the
  * gate works. Prose is exercised separately in `LookController.test.ts`
@@ -41,8 +44,8 @@ class TestGiver extends ContainerMixin(
 
 /**
  * Mirror the production `look.yaml`: drill-first scope, `extend`
- * focus update, plus the new `--peek` boolean option and the
- * `skip_focus_when_option: peek` qualifier on `target`.
+ * focus update, plus the `--peek` boolean option that declares a
+ * `focus-update / skip` effect against the dispatcher.
  */
 function lookCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
@@ -56,11 +59,12 @@ function lookCommand(): CommandDefinition {
       "    required: false",
       '    scope: ["$focus", "reachable"]',
       "    updates_focus: extend",
-      "    skip_focus_when_option: peek",
       "options:",
       "  peek:",
       "    type: boolean",
       '    description: "Render prose without changing focus"',
+      "    effects:",
+      "      - { phase: focus-update, action: skip }",
     ].join("\n"),
     "<test>"
   );
@@ -84,7 +88,7 @@ function makeContext(
   });
 }
 
-describe("look --peek (skip_focus_when_option)", () => {
+describe("look --peek (focus-update/skip phase effect)", () => {
   let location: TestLocation;
   let giver: TestGiver;
   let rose: TestThing;

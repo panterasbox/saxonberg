@@ -45,6 +45,14 @@ import { CommandLineApi, type ParsedCommand, type RawToken } from './command-lin
 import type { Mml } from './mml';
 import type { GenderedSlot } from './mql/pronoun-memory';
 import { Pronouns } from '@saxonberg/types';
+import {
+  type PhaseEffect,
+  type CommandPhase,
+  HOOKABLE_PHASES,
+  IMPLEMENTED_REPLACE_HANDLERS,
+  collectPhaseEffects,
+  validatePhaseEffect,
+} from './command-phases';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -684,28 +692,6 @@ export interface FieldDefinition {
    */
   updates_focus?: 'extend' | 'replace' | 'none';
   /**
-   * Name of a boolean option (or option-shaped model key) that, when
-   * truthy on the bound model, causes the dispatcher to SKIP the
-   * `updates_focus` step for this field. Pronoun-memory updates still
-   * fire — focus is the only thing being held back.
-   *
-   * The canonical consumer is `look --peek`: `look.yaml`'s `target`
-   * arg declares `updates_focus: extend` AND
-   * `skip_focus_when_option: peek`, so a regular `look` extends focus
-   * while `look --peek` renders the same prose without disturbing the
-   * focus chain. Any verb that wants a "render but don't move my
-   * pointer" knob can reuse this pattern; the field is generic.
-   *
-   * The dispatcher reads `model[<name>]` truthily. Unknown / unset
-   * options coerce to `undefined` / falsy, so the gate is a no-op
-   * when the player didn't supply the flag. No validation that the
-   * named option actually exists on the verb — a typo just means the
-   * gate never fires.
-   *
-   * Ignored when `updates_focus` is unset or `'none'`.
-   */
-  skip_focus_when_option?: string;
-  /**
    * Optional list of prepositions the matcher will consume as a
    * leading boundary marker for this positional field. Lowercased.
    * Typing `look at flower` against `prepositions: [at]` consumes
@@ -786,6 +772,35 @@ export interface OptionDefinition {
   validators?: string[];
   /** @internal — populated by `CommandApi.preloadAll`. */
   _resolvedValidators?: FieldValidator[];
+  /**
+   * Lifecycle effects this option applies to the dispatcher when the
+   * bound model value is truthy. Each entry names a phase from
+   * `COMMAND_PHASES` and an action (`skip` or `replace`). The
+   * dispatcher's phase walk consults the option set at every gated
+   * point and honors matching effects.
+   *
+   * Concrete shapes (see `command-phases.ts`):
+   *
+   *   `look --peek`:
+   *     options:
+   *       peek:
+   *         type: boolean
+   *         effects:
+   *           - { phase: focus-update, action: skip }
+   *
+   *   Future `--async`:
+   *     options:
+   *       async:
+   *         type: boolean
+   *         effects:
+   *           - { phase: dispatch, action: replace, with: deferred-dispatch }
+   *
+   * Schema validates phase + handler names against the documented
+   * vocabulary at YAML load time; the dispatcher throws at runtime
+   * when an effect targets a phase or replacement handler that
+   * hasn't been wired into the substrate yet.
+   */
+  effects?: PhaseEffect[];
 }
 
 /**
@@ -961,6 +976,7 @@ export class CommandApi {
       }
       try {
         await resolveCommandValidators(cmd);
+        validateCommandEffects(cmd);
         loaded += 1;
       } catch (err) {
         console.error(
@@ -1595,6 +1611,12 @@ export class CommandApi {
 
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
+    // Option-definition map for the active verb / subcommand,
+    // collected once and reused. The positional resolve loop
+    // consults it for phase-effect gating (e.g. `--peek` skipping
+    // focus-update); the option resolve loop below iterates it as
+    // its own spec map.
+    const optionDefs = collectActiveOptionDefs(subcommand, command);
     // Resolve positional `type: object` / `type: objects` fields.
     // Options of the same types are resolved in a parallel loop
     // below — they share the resolution shape but live in a
@@ -1706,14 +1728,16 @@ export class CommandApi {
         if (fieldPrep !== undefined) bound.prep = fieldPrep;
         resolved[fname] = bound;
         if (picked !== null && focused) {
-          // `skip_focus_when_option` (e.g. `look --peek`) lets a
-          // verb declare focus-update opt-out keyed on a boolean
-          // option. Pronoun memory still updates — only the focus
-          // chain is held back. Unknown option names are silently
-          // treated as falsy.
-          const skipOpt = def.skip_focus_when_option;
-          const skipFocus =
-            skipOpt !== undefined && Boolean(resolved[skipOpt]);
+          // Phase-effect gate for `focus-update`. Options declare
+          // `effects: [{phase: focus-update, action: skip}]` (e.g.
+          // `look --peek`) to suppress the focus chain update for
+          // this dispatch. Pronoun memory still updates — only the
+          // focus push is held back. `replace` against this phase
+          // is not honored today and throws to surface the gap.
+          const focusEffects = focusMode !== 'none'
+            ? consumePhaseEffects('focus-update', resolved, optionDefs)
+            : [];
+          const skipFocus = focusEffects.some((e) => e.action === 'skip');
           if (focusMode !== 'none' && !skipFocus) {
             updatePlayerFocus(focused, raw, picked, via, focusMode);
           }
@@ -1727,13 +1751,12 @@ export class CommandApi {
     // Resolve `type: object` / `type: objects` options.
     //
     // Same shape as the positional loop above: walk the active
-    // option set, find string-typed values, run them through MQL
-    // with the option's `scope:` (default `['$focus']`). Options
-    // never update player focus — that's a positional-side
-    // concept (the player drilled INTO the target via that arg);
-    // an option saying `--mql foo` is a side-channel reference,
-    // not an inspection drill.
-    const optionDefs = collectActiveOptionDefs(subcommand, command);
+    // option set (collected once above the positional loop), find
+    // string-typed values, run them through MQL with the option's
+    // `scope:` (default `['$focus']`). Options never update player
+    // focus — that's a positional-side concept (the player drilled
+    // INTO the target via that arg); an option saying `--mql foo`
+    // is a side-channel reference, not an inspection drill.
     for (const [fname, def] of Object.entries(optionDefs)) {
       const raw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
@@ -2588,6 +2611,45 @@ function collectActiveFieldDefs(
 }
 
 /**
+ * Dispatcher-side wrapper around `collectPhaseEffects` that enforces
+ * the substrate's implementation status: a `replace` action whose
+ * handler isn't in `IMPLEMENTED_REPLACE_HANDLERS` throws, and any
+ * effect targeting a phase outside `HOOKABLE_PHASES` throws.
+ *
+ * Callers consume the returned list to decide phase behavior (e.g.
+ * any entry with `action: 'skip'` → bypass the phase). Effects pass
+ * load-time validation (`validatePhaseEffect`); this gate catches
+ * vocabulary that's documented but unimplemented at the runtime
+ * boundary so half-built features can't sneak through.
+ */
+function consumePhaseEffects(
+  phase: CommandPhase,
+  activeModel: Record<string, unknown>,
+  optionDefs: Record<string, OptionDefinition>,
+): PhaseEffect[] {
+  const effects = collectPhaseEffects(phase, activeModel, optionDefs);
+  if (effects.length === 0) return effects;
+  if (!HOOKABLE_PHASES.has(phase)) {
+    throw new Error(
+      `Command phase '${phase}' is named in the vocabulary but the ` +
+        `dispatcher has not made it hookable yet — an option declared ` +
+        `an effect against it but no substrate honors the gate.`,
+    );
+  }
+  for (const effect of effects) {
+    if (effect.action === 'replace' &&
+        !IMPLEMENTED_REPLACE_HANDLERS.has(effect.with)) {
+      throw new Error(
+        `Replace handler '${effect.with}' is documented but not yet ` +
+          `implemented — an option declared 'replace' against phase ` +
+          `'${phase}' with this handler name.`,
+      );
+    }
+  }
+  return effects;
+}
+
+/**
  * Collect every option active for the current call, keyed by the
  * option's effective field name (`opt.field ?? optName`). Verb-
  * scoped options are always active; subcommand-scoped options are
@@ -2665,6 +2727,53 @@ async function resolveCommandValidators(
       fns.push(await CommandApi.resolveCommandValidator(spec, yamlPath));
     }
     cmd._resolvedValidators = fns;
+  }
+}
+
+/**
+ * Walk every option-bearing slot on a command and validate each
+ * `effects:` entry against the `PhaseEffect` shape (phase name in
+ * `COMMAND_PHASES`, action `'skip' | 'replace'`, `replace` carries a
+ * `with` handler name from `REPLACE_HANDLERS`).
+ *
+ * Load-time only — runtime gating (whether the named phase or
+ * handler is actually wired into the dispatcher) lives in
+ * `consumePhaseEffects`. Authors can declare effects against
+ * documented-but-unimplemented vocabulary; the schema accepts them,
+ * the dispatcher throws if a real command tries to fire the gate.
+ *
+ * Throws on the first malformed effect with a message naming the
+ * verb, option, and the validator's failure detail.
+ */
+function validateCommandEffects(cmd: CommandDefinition): void {
+  const checkOptions = (
+    optionsMap: Record<string, OptionDefinition>,
+    scope: string,
+  ): void => {
+    for (const [optName, def] of Object.entries(optionsMap)) {
+      const effects = def.effects;
+      if (!effects) continue;
+      if (!Array.isArray(effects)) {
+        throw new Error(
+          `${scope} option '${optName}': effects must be an array`,
+        );
+      }
+      for (let i = 0; i < effects.length; i++) {
+        const msg = validatePhaseEffect(effects[i]);
+        if (msg !== null) {
+          throw new Error(
+            `${scope} option '${optName}' effects[${i}]: ${msg}`,
+          );
+        }
+      }
+    }
+  };
+  checkOptions(cmd.verbOptions, cmd.filePath);
+  checkOptions(cmd.payload, `${cmd.filePath} (payload)`);
+  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+    if (sub.options) {
+      checkOptions(sub.options, `${cmd.filePath}#${subName}`);
+    }
   }
 }
 

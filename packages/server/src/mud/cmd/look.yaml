@@ -7,10 +7,15 @@ args:
     required: false
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    skip_focus_when_option: peek
     prepositions: [at]
     default: "$focus"
 options:
   peek:
     type: boolean
     description: "Render prose without changing focus"
+    # When --peek is present, skip the dispatcher's focus-update
+    # phase: prose renders, pronoun memory still updates, but the
+    # focus chain is not advanced. See command-phases.ts for the
+    # full vocabulary.
+    effects:
+      - { phase: focus-update, action: skip }
