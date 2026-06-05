@@ -42,6 +42,7 @@ See:
 | `packages/client/src/store/index.ts` | Pane slice (paint/clear flag, breadcrumbs, focus name, last result), stuff-registry slice (`Map<stuffId, StuffMetadata>`), `upsertStuffMetadata` |
 | `packages/client/src/services/websocket.ts` | `subscribeToCanonicalKind` / `unsubscribe`, subscription envelope routing, recursive ref-walk that feeds `upsertStuffMetadata` |
 | `packages/client/src/components/InspectionPane.tsx` | Pane component — header, paint/clear body, breadcrumbs, Refresh, admin extras |
+| `packages/client/src/components/ui/` | Shared cockpit primitives: `<List>` / `<ListItem>` / `<Field>` / `<FieldList>` / `<EntityName>` / `<Button>` + semantic theme `tokens` (see "Shared UI components and theme tokens" below) |
 | `packages/client/src/components/MmlRenderer.tsx` | `commandFor()` extended to `<item>` / `<name>` / `<location>` / `<object>` — registry lookup → `look <primaryKeyword>`, label fallback |
 
 ## Canonical subscription kind: `'me.focus'`
@@ -279,6 +280,61 @@ and erase the lesson at the moment players are most likely to
 internalize the model. Keeping them visibly distinct teaches the
 verb pair.
 
+## Body discipline: percepts, not state dump
+
+The pane body renders **what a perception verb would reveal to
+this viewer**, not the focused thing's internal state. `look` is
+vision — it reveals appearance and gross features; an estimate at
+best for hidden quantities ("looks warm," never "37.4°C").
+Internal properties are not perceivable just because they exist.
+
+This is the inspection-pane reconciliation principle (see the
+inspection-pane slate's *Reconciliation note* and the
+[message-rendering-slate](../slates/message-rendering-slate.md)):
+every fact has a *revelation condition* — which modality /
+instrument / skill reveals it, at what fidelity. The viewer
+perceives only the facts whose condition they satisfy. The pane's
+v1 surface walks this back to the simplest cut:
+
+- **Player body = percept projection.** The substrate's `'detail'`
+  field-set ships only percept-shaped fields (display name, short
+  / long description, visible contents — already per-viewer
+  filtered server-side in `ContainerMixin.contents`); the renderer
+  shows them as the look output. No slot maps, mixin lists, raw
+  fields, or property bags surface here.
+- **Raw internal state → admin section only**, role-gated. Template
+  path, stuff id, mixin composition, container path, JSON dump
+  belong in the admin extras block; never in the player body.
+- **Per-fact revelation gating beyond visible/admin is parked.**
+  The sense/modality system (feel/smell/listen as separate
+  channels), the magic lens, skill-deepens-perception, and per-
+  fact provenance all wait for the perception subsystem; the
+  spine (fact → revelation condition) is recorded here for the
+  future build, the implementation cut is "visible vs admin"
+  only.
+
+### Accumulate vs. latest — v1 ships latest-only
+
+When a viewer performs successive perception acts on the same
+focus (look, then measure, then appraise), does the pane show
+the *union* of percepts each act has revealed, or just the
+*latest* act's output?
+
+**Choice: latest-only.** The pane's `paneLastResult` snapshot is
+replaced by each subscription result / delta; there is no per-
+fact union across multiple `look` / `examine` / `measure`
+invocations. The latest-only path stays internally consistent
+because the substrate re-projects the *currently-perceivable*
+field set on every re-resolve — what the pane shows is what's
+true *now*, from this viewer, by the modalities currently in
+play.
+
+Accumulate-per-focus is the natural target once the revelation-
+condition spine lands; that work is parked alongside the
+sense/modality system. v1 does not block on it; the simpler
+shape ships and stays correct for the percepts the substrate
+currently projects.
+
 ## Cardinality-polymorphic body
 
 Same subscription, same field-set (`'detail'` always). The
@@ -510,6 +566,82 @@ rule this build establishes, do not add per-stuff attributes to
 `stuff-id`. New per-stuff metadata is a projection field on a
 subscription, not a tag attribute.
 
+## Shared UI components and theme tokens
+
+The pane composes from a small **shared** primitive set under
+`packages/client/src/components/ui/`, not pane-private styled
+divs. Three rules govern it:
+
+1. **Reusable primitives, not bespoke JSX.** Future cockpit
+   widgets (inventory, self-state strip, group windows) compose
+   from the same surface — and so does the layout-MML library
+   the [message-rendering-slate](../slates/message-rendering-slate.md)
+   schedules for its Wave 2. When that lands, its `<table>` /
+   `<list>` / `<field>` tags map onto these same React
+   components, so the subscription-driven rendering path and the
+   message-rendered path converge on one DOM shape. The pane
+   does not block on that library; it ships its own
+   subscription-record → React-component path today.
+
+2. **Semantic DOM = the flatten-linear-labeled floor.** Every
+   primitive renders the real HTML element: `<List>` is a `<ul>`
+   / `<ol>`, `<FieldList>` is a `<dl>` of `<dt>` / `<dd>` pairs,
+   `<EntityName>` is a `<button>`, `<Button>` is a `<button>`.
+   No ARIA props are needed to fake what the platform already
+   announces. Visual-only `<div>` grids are the smell to avoid.
+
+3. **Theme tokens; no hex literals.** All color / spacing / font
+   values come from `tokens.ts` — semantic names (`surface`,
+   `fg`, `accent`, `border`, `sectionLabel`) that a theme can
+   swap wholesale. There is **no** `<color>` or `<size>` MML
+   tag; coloring is a stylesheet rule keyed off semantic markup
+   (the principle from the message-rendering slate).
+
+| Primitive | Role | Renders |
+|---|---|---|
+| `<List>` / `<ListItem>` | semantic sequence | `<ul>` / `<ol>` + `<li>` |
+| `<FieldList>` / `<Field>` | labeled key/value pairs | `<dl>` + `<dt>` + `<dd>` |
+| `<EntityName>` | clickable name carrying `stuff-id` | `<button data-stuff-id="...">` |
+| `<Button>` | action target with `primary` / `action` / `ghost` variants | `<button>` |
+| `tokens` | semantic theme values (color / space / font / radius) | `as const` exports |
+
+### `stuff-id` is double duty: interactivity and styling
+
+`<EntityName>` emits a `data-stuff-id` attribute on the rendered
+button. The same attribute drives **two** layers from one source:
+
+- **Interactivity** — the click target resolution layer maps
+  `stuffId` (via the stuff registry's `primaryKeyword`) to the
+  command this affordance sends. `MmlRenderer.commandFor`
+  applies the same registry-then-label fallback for identity
+  tags; the pane mirrors it for contents-list rows and multi-
+  focus rows via the parent's `onSendCommand` sink.
+- **Styling** — a future theme stylesheet selects on
+  `[data-stuff-id]` against the viewer's social-graph bucket
+  (friend / foe / self) to colour the name. The
+  [social-graph slate](../slates/social-graph-slate.md) +
+  [message-rendering slate](../slates/message-rendering-slate.md)
+  describe the bucket model. The attribute is emitted today;
+  bucket selectors land when that subsystem does, without any
+  pane changes.
+
+One attribute, two duties — that's the slate's economy. **There
+is no `<color>` or `<size>` MML tag**, and no per-tag color
+attribute; coloring is always a stylesheet rule keyed off
+semantic markup.
+
+### Multi-focus rows: groups, eventually
+
+Per the [grouping slate](../slates/grouping-slate.md), the multi-
+cardinality `me.focus` result is in principle a **group** — `focus
+friends` resolves a group via `GroupApi`; the pane renders its
+members. v1 has neither `GroupApi` nor friend/foe bucketing, so
+the row shape is just "a list of styled names" — and that's the
+shape it stays. When `GroupApi` lands, the pane resolves the
+group server-side via the canonical kind's query and the row
+component (`<EntityName>` already carrying `stuff-id`) absorbs
+the bucket selector without further work.
+
 ## Breadcrumbs, Refresh, admin extras
 
 **Breadcrumbs.** Session-scoped LRU of the last 6 distinct focus
@@ -589,6 +721,30 @@ Per the closed-scope requirements:
 - **Other canonical kinds** — only `'me.focus'` registered in
   v1; `me.inventory`, `me.location`, `online`, `world` defer
   until the consuming widgets demand them.
+- **Sense/modality system** (feel / smell / listen as separate
+  perception channels), the **magic lens**, and
+  **skill-deepens-perception.** Recorded as the future
+  revelation-condition spine; v1's cut is "visible vs admin"
+  only. See the *Body discipline* section above.
+- **Per-fact revelation gating beyond visible/admin.** Each
+  property today is either projected into the detail field-set
+  (perceivable as part of the look output) or held to the admin
+  block. Per-fact provenance (which act revealed this fact, at
+  what fidelity) ships with the perception subsystem.
+- **Accumulate-per-focus body.** v1 ships latest-only — each
+  subscription result / delta replaces the snapshot. The union
+  of percepts across `look` / `measure` / `appraise` waits for
+  the revelation-condition spine.
+- **`GroupApi` wiring on multi-focus rows.** The grouping
+  subsystem isn't built; the row shape (`<EntityName>` carrying
+  `stuff-id`) is forward-compatible without component changes.
+- **Social-graph bucket styling.** `<EntityName>` already emits
+  `data-stuff-id`; the friend / foe / self stylesheet rules land
+  when the social-graph subsystem does.
+- **Channel stylesheets, `<color>` / `<size>` / heavy layout
+  tags.** Out of scope per the message-rendering slate's wave
+  ordering; the core stays semantic, presentational tags wait
+  for opt-in channel scopes.
 
 ## Known future considerations
 

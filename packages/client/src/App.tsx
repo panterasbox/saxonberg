@@ -15,12 +15,13 @@ import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
 import { CommandBar } from './components/CommandBar';
 import { InspectionPane } from './components/InspectionPane';
+import { tokens } from './components/ui';
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #1e1e1e;
+  background: ${tokens.color.surfaceSunken};
 `;
 
 /**

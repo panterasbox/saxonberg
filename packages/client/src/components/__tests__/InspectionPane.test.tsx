@@ -348,6 +348,108 @@ describe("InspectionPane", () => {
     expect(screen.queryByLabelText("admin extras")).toBeNull();
   });
 
+  it("contents rows carry data-stuff-id (interactivity + styling double duty)", () => {
+    attachMockWs();
+    const onSend = vi.fn();
+    render(<InspectionPane onSendCommand={onSend} />);
+    const subId = currentSubscriptionId();
+
+    deliver({
+      type: "mql-subscription-result",
+      frameId: 1,
+      subscriptionId: subId,
+      result: [
+        {
+          stuffId: "room-1",
+          displayName: "The Atrium",
+          contents: [
+            { stuffId: "apple-1", displayName: "an apple" },
+            { stuffId: "pear-1", displayName: "a pear" },
+          ],
+        },
+      ],
+    } as MqlSubscriptionResultEnvelope);
+    paintBody();
+
+    const apple = screen.getByText("an apple");
+    expect(apple.getAttribute("data-stuff-id")).toBe("apple-1");
+    const pear = screen.getByText("a pear");
+    expect(pear.getAttribute("data-stuff-id")).toBe("pear-1");
+  });
+
+  it("multi-focus rows carry data-stuff-id", () => {
+    attachMockWs();
+    const onSend = vi.fn();
+    render(<InspectionPane onSendCommand={onSend} />);
+    const subId = currentSubscriptionId();
+
+    deliver({
+      type: "mql-subscription-result",
+      frameId: 1,
+      subscriptionId: subId,
+      result: [
+        { stuffId: "alice", displayName: "Alice" },
+        { stuffId: "bob", displayName: "Bob" },
+      ],
+    } as MqlSubscriptionResultEnvelope);
+    paintBody();
+
+    expect(screen.getByText("Alice").getAttribute("data-stuff-id")).toBe(
+      "alice"
+    );
+    expect(screen.getByText("Bob").getAttribute("data-stuff-id")).toBe(
+      "bob"
+    );
+  });
+
+  it("admin extras render as a semantic definition list", () => {
+    attachMockWs();
+    const onSend = vi.fn();
+    useStore.setState({
+      auth: {
+        isAuthenticated: true,
+        user: null,
+        player: {
+          _id: "p",
+          name: "Admin",
+          pronouns: "they",
+          isAdmin: true,
+        } as never,
+      },
+    });
+    render(<InspectionPane onSendCommand={onSend} />);
+    const subId = currentSubscriptionId();
+
+    deliver({
+      type: "mql-subscription-result",
+      frameId: 1,
+      subscriptionId: subId,
+      result: [
+        {
+          stuffId: "thermo-1",
+          displayName: "a brass thermometer",
+          templatePath: "/obj/Thermometer",
+        } as never,
+      ],
+    } as MqlSubscriptionResultEnvelope);
+    paintBody();
+
+    const admin = screen.getByLabelText("admin extras");
+    // The dl-dt-dd shape is what flatten-linear-labels for screen
+    // readers and what the message-rendering slate's accessibility
+    // floor requires.
+    const dl = admin.querySelector("dl");
+    expect(dl).not.toBeNull();
+    const dts = admin.querySelectorAll("dt");
+    const dds = admin.querySelectorAll("dd");
+    expect(dts.length).toBeGreaterThan(0);
+    expect(dts.length).toBe(dds.length);
+    // Specifically: the template-path label is present as a <dt>.
+    expect(
+      Array.from(dts).some((el) => el.textContent === "Template")
+    ).toBe(true);
+  });
+
   it("admin extras render and the action buttons send their commands", () => {
     attachMockWs();
     const onSend = vi.fn();

@@ -9,6 +9,26 @@
  * inspection-pane principle: *focus is a pointer; look is the verb
  * that paints what the pointer points at*.
  *
+ * **Body = percept projection, not state dump.** Per the
+ * inspection-pane reconciliation, the body renders ONLY what a
+ * perception verb would reveal to *this viewer* — the focused
+ * thing's description and its visible contents. Internal property
+ * state (slot maps, mixin lists, raw fields) is NOT pulled into
+ * the player body just because the subscription detail field-set
+ * could carry it; raw state lives in the admin extras (role-gated)
+ * exclusively. The detail subscription already projects only
+ * percept-shaped fields server-side; this component preserves the
+ * discipline on the render side.
+ *
+ * **Accumulate vs. latest — v1 ships latest-only.** Each
+ * subscription result / delta replaces `paneLastResult` in place;
+ * there is no per-fact union across multiple `look` / `examine` /
+ * `measure` calls. The full revelation-condition spine (per-fact
+ * provenance, accumulation across modalities) is parked per the
+ * reconciliation handoff. Latest-only stays internally consistent
+ * because the substrate re-projects the *currently-perceivable*
+ * set on every re-resolve.
+ *
  * Paint/clear policy (lives in the Zustand `inspection-pane` slice,
  * not in this component's state):
  *
@@ -27,9 +47,13 @@
  *
  * Body branches on result cardinality:
  *
- * - Single record → detail view (header name + long description via
- *   `MmlRenderer` + clickable contents list).
- * - Multi record → list view, one row per match.
+ * - Single record → detail view (header name + descriptions via
+ *   `MmlRenderer` + clickable visible contents list).
+ * - Multi record → list view, one row per match. The shape will
+ *   eventually project a group via `GroupApi` (per grouping-slate);
+ *   v1 just renders a list of styled names with `stuff-id` already
+ *   threaded so the future bucket-selector lands without component
+ *   changes.
  *
  * Admin extras (template path / stuff id / mixin composition / raw
  * data dump / quick-action buttons for `clone` / `reload` / `eval`)
@@ -38,20 +62,35 @@
  * pane reads `useStore.getState().auth.player?.isAdmin` defensively
  * (returns `undefined` → hidden). When a real auth-side admin
  * marker lands, no UI change is required.
+ *
+ * Styling: every color / spacing / font value resolves through
+ * `ui/tokens.ts`. The `data-stuff-id` attribute rides every
+ * clickable name affordance (via `<EntityName>`) — one attribute,
+ * double duty (interactivity + future social-graph bucket
+ * coloring) per the message-rendering slate.
  */
 
-import React, { useEffect, useMemo } from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useMemo } from "react";
+import styled from "styled-components";
 import type {
   Envelope,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionResultEnvelope,
   StuffDetailRecord,
   StuffRefRecord,
-} from '@saxonberg/types';
-import { useStore } from '../store/index';
-import { websocketClient } from '../services/websocket';
-import { MmlRenderer } from './MmlRenderer';
+} from "@saxonberg/types";
+import { useStore } from "../store/index";
+import { websocketClient } from "../services/websocket";
+import { MmlRenderer } from "./MmlRenderer";
+import {
+  Button,
+  EntityName,
+  Field,
+  FieldList,
+  List,
+  ListItem,
+  tokens,
+} from "./ui";
 
 const PaneContainer = styled.aside`
   display: flex;
@@ -60,181 +99,88 @@ const PaneContainer = styled.aside`
   min-width: 360px;
   max-width: 360px;
   height: 100%;
-  background: #252526;
-  color: #d4d4d4;
-  border-left: 1px solid #444;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
+  background: ${tokens.color.surface};
+  color: ${tokens.color.fg};
+  border-left: 1px solid ${tokens.color.border};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
   overflow: hidden;
 `;
 
-const Breadcrumbs = styled.div`
+const Breadcrumbs = styled.nav`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #333;
-  background: #1f1f1f;
-  font-size: 12px;
-  color: #888;
-`;
-
-const BreadcrumbLink = styled.button`
-  background: none;
-  border: none;
-  color: #4ec9b0;
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 2px;
-
-  &:hover {
-    color: #7fdfc8;
-    text-decoration-style: solid;
-  }
+  gap: ${tokens.space.sm} ${tokens.space.md};
+  padding: ${tokens.space.md} ${tokens.space.lg};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surfaceMuted};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
 `;
 
 const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #333;
-  background: #2d2d30;
+  padding: ${tokens.space.md} ${tokens.space.lg};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surfaceAlt};
 `;
 
-const HeaderTitle = styled.div`
+const HeaderTitle = styled.h2`
+  margin: 0;
   font-weight: 700;
-  color: #d7ba7d;
-  font-size: 14px;
+  color: ${tokens.color.fgEmphasis};
+  font-size: ${tokens.font.title};
   word-break: break-word;
-`;
-
-const RefreshButton = styled.button`
-  background: #007acc;
-  color: white;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.6rem;
-  font-family: inherit;
-  font-size: 12px;
-
-  &:hover {
-    background: #005a9e;
-  }
-
-  &:active {
-    background: #004578;
-  }
 `;
 
 const Body = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem;
+  padding: ${tokens.space.lg};
   white-space: pre-wrap;
   line-height: 1.5;
 `;
 
-const Placeholder = styled.button`
-  background: none;
-  border: 1px dashed #555;
-  color: #888;
-  padding: 0.75rem;
-  text-align: center;
-  width: 100%;
-  cursor: pointer;
-  font: inherit;
-  border-radius: 4px;
-
-  &:hover {
-    background: #2a2a2c;
-    color: #d4d4d4;
-    border-color: #777;
-  }
-`;
-
-const SectionTitle = styled.div`
-  color: #569cd6;
-  margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
+const SectionHeading = styled.h3`
+  margin: ${tokens.space.lg} 0 ${tokens.space.sm} 0;
+  color: ${tokens.color.sectionLabel};
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 11px;
-`;
-
-const ContentsList = styled.ul`
-  margin: 0;
-  padding-left: 1.25rem;
-  list-style: none;
-`;
-
-const ContentsRow = styled.li`
-  margin: 0.15rem 0;
-`;
-
-const ItemAffordance = styled.button`
-  background: none;
-  border: none;
-  color: #4ec9b0;
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 2px;
-
-  &:hover {
-    color: #7fdfc8;
-    text-decoration-style: solid;
-  }
+  font-size: ${tokens.font.micro};
+  font-weight: 600;
 `;
 
 const AdminBlock = styled.section`
-  margin-top: 1rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed #444;
-  color: #888;
-  font-size: 11px;
+  margin-top: ${tokens.space.xl};
+  padding-top: ${tokens.space.md};
+  border-top: 1px dashed ${tokens.color.border};
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.micro};
 `;
 
-const AdminRow = styled.div`
-  margin: 0.15rem 0;
-  word-break: break-all;
-`;
-
-const AdminButtonRow = styled.div`
+const AdminActionRow = styled.div`
   display: flex;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
+  gap: ${tokens.space.md};
+  margin-top: ${tokens.space.md};
   flex-wrap: wrap;
 `;
 
-const AdminButton = styled.button`
-  background: #3c3c3c;
-  color: #d4d4d4;
-  border: 1px solid #555;
-  cursor: pointer;
-  padding: 0.25rem 0.6rem;
-  font: inherit;
-  font-size: 11px;
-
-  &:hover {
-    background: #4a4a4a;
-  }
-`;
-
 const RawDump = styled.pre`
-  background: #1e1e1e;
-  border: 1px solid #333;
-  padding: 0.5rem;
-  margin: 0.25rem 0;
-  font-size: 11px;
+  background: ${tokens.color.surfaceSunken};
+  border: 1px solid ${tokens.color.borderMuted};
+  padding: ${tokens.space.md};
+  margin: ${tokens.space.sm} 0;
+  font-size: ${tokens.font.micro};
   max-height: 200px;
   overflow: auto;
   white-space: pre;
+`;
+
+const TagSuffix = styled.span`
+  color: ${tokens.color.fgMuted};
+  margin-left: ${tokens.space.md};
 `;
 
 export interface InspectionPaneProps {
@@ -265,7 +211,7 @@ export interface InspectionPaneProps {
 function applyChanges(
   previous: ReadonlyArray<StuffRefRecord | StuffDetailRecord>,
   changes: ReadonlyArray<{
-    op: 'replace' | 'update' | 'add' | 'remove';
+    op: "replace" | "update" | "add" | "remove";
     key: string;
     fields?: Partial<StuffRefRecord | StuffDetailRecord>;
   }>
@@ -273,27 +219,27 @@ function applyChanges(
   const next = previous.slice();
   for (const change of changes) {
     const idx = next.findIndex((r) => r.stuffId === change.key);
-    if (change.op === 'remove') {
+    if (change.op === "remove") {
       if (idx >= 0) next.splice(idx, 1);
       continue;
     }
-    if (change.op === 'add') {
+    if (change.op === "add") {
       if (change.fields) {
         next.push({
           ...(change.fields as StuffDetailRecord),
           stuffId: change.key,
           displayName:
-            (change.fields as Partial<StuffDetailRecord>).displayName ?? '',
+            (change.fields as Partial<StuffDetailRecord>).displayName ?? "",
         });
       }
       continue;
     }
-    if (change.op === 'replace') {
+    if (change.op === "replace") {
       const replacement = {
         ...(change.fields as StuffDetailRecord),
         stuffId: change.key,
         displayName:
-          (change.fields as Partial<StuffDetailRecord>).displayName ?? '',
+          (change.fields as Partial<StuffDetailRecord>).displayName ?? "",
       };
       if (idx >= 0) {
         next[idx] = replacement;
@@ -324,13 +270,13 @@ function placeholderText(
 ): string {
   if (!result || result.length === 0) {
     return fragment
-      ? `${fragment || 'nothing'} focused — \`look\` to inspect`
-      : 'nothing focused — `look` to inspect';
+      ? `${fragment || "nothing"} focused — \`look\` to inspect`
+      : "nothing focused — `look` to inspect";
   }
   if (result.length === 1) {
-    return 'focused — `look` to inspect';
+    return "focused — `look` to inspect";
   }
-  const summary = fragment || 'matches';
+  const summary = fragment || "matches";
   return `${result.length} ${summary} focused — \`look\` to list`;
 }
 
@@ -355,10 +301,10 @@ function deriveHeaderName(
 }
 
 /**
- * Resolve the click-target command for a contents row. Mirrors the
- * MmlRenderer's registry-then-label fallback shape (Wave 9) for the
- * pre-Wave-9 path: prefer the row's `primaryKeyword` (substrate
- * shipped it as part of `REF_FIELDS`), fall back to `displayName`.
+ * Resolve the click-target command for a contents/match row. Mirrors
+ * the MmlRenderer's registry-then-label fallback shape (Wave 9):
+ * prefer the row's `primaryKeyword` (substrate ships it in
+ * `REF_FIELDS`), fall back to `displayName`.
  */
 function commandForRow(row: StuffRefRecord): string {
   return `look ${row.primaryKeyword ?? row.displayName}`;
@@ -383,7 +329,7 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
   }, [authPlayer]);
 
   useEffect(() => {
-    const id = websocketClient.subscribeToCanonicalKind('me.focus');
+    const id = websocketClient.subscribeToCanonicalKind("me.focus");
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;
@@ -407,15 +353,15 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
       );
     };
 
-    websocketClient.onEnvelope('mql-subscription-result', handleResult);
-    websocketClient.onEnvelope('mql-subscription-delta', handleDelta);
+    websocketClient.onEnvelope("mql-subscription-result", handleResult);
+    websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
 
     return () => {
       websocketClient.offEnvelope(
-        'mql-subscription-result',
+        "mql-subscription-result",
         handleResult
       );
-      websocketClient.offEnvelope('mql-subscription-delta', handleDelta);
+      websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
       websocketClient.unsubscribe(id);
     };
   }, []);
@@ -428,11 +374,11 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
   const placeholder = placeholderText(paneLastResult, paneFocusFragment);
 
   const handleRefresh = () => {
-    onSendCommand('look');
+    onSendCommand("look");
   };
 
   const handlePlaceholderClick = () => {
-    onSendCommand('look');
+    onSendCommand("look");
   };
 
   const handleBreadcrumbClick = (fragment: string) => {
@@ -446,17 +392,18 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
   const renderBody = () => {
     if (!paneBodyPainted) {
       return (
-        <Placeholder
+        <Button
+          variant="ghost"
           aria-label="paint pane body"
           onClick={handlePlaceholderClick}
         >
           {placeholder}
-        </Placeholder>
+        </Button>
       );
     }
     const result = paneLastResult ?? [];
     if (result.length === 0) {
-      // Painted-but-empty: edge case (look fired against a fragment
+      // Painted-but-empty edge case (look fired against a fragment
       // that resolves to nothing). Show a terse note rather than the
       // pre-look placeholder so the player sees the painted state
       // took effect.
@@ -478,21 +425,24 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
       {paneBreadcrumbs.length > 0 && (
         <Breadcrumbs aria-label="focus breadcrumbs">
           {paneBreadcrumbs.map((frag) => (
-            <BreadcrumbLink
+            <EntityName
               key={frag}
-              onClick={() => handleBreadcrumbClick(frag)}
+              label={frag}
               title={`Click to send: look ${frag}`}
-            >
-              {frag}
-            </BreadcrumbLink>
+              onClick={() => handleBreadcrumbClick(frag)}
+            />
           ))}
         </Breadcrumbs>
       )}
       <Header>
-        <HeaderTitle>{headerName ?? 'nothing focused'}</HeaderTitle>
-        <RefreshButton onClick={handleRefresh} aria-label="refresh pane">
+        <HeaderTitle>{headerName ?? "nothing focused"}</HeaderTitle>
+        <Button
+          variant="primary"
+          aria-label="refresh pane"
+          onClick={handleRefresh}
+        >
           Refresh
-        </RefreshButton>
+        </Button>
       </Header>
       <Body>{renderBody()}</Body>
     </PaneContainer>
@@ -500,13 +450,13 @@ export function InspectionPane({ onSendCommand }: InspectionPaneProps) {
 }
 
 /**
- * Single-focus body — header name (already in the pane header) + long
- * description via `MmlRenderer` + clickable contents list. Hover
- * preview routes through the same `onCommandPreview` channel `App.tsx`
- * wires for the terminal renderer; here we route clicks directly
- * through the `onSendCommand` sink and ignore the hover preview
- * (the pane has no input field to mirror into). A future revision
- * could surface hover previews in the terminal's command bar.
+ * Single-focus body — percept projection for the focused thing.
+ *
+ * Renders the prose the substrate's detail field-set ships:
+ * short + long descriptions (via `MmlRenderer`) and the visible
+ * contents list. Does NOT render slot maps, mixin lists, or raw
+ * property state in the player body — those land in the admin
+ * extras when the viewer is admin.
  */
 function renderSingle(
   record: StuffRefRecord | StuffDetailRecord,
@@ -515,16 +465,16 @@ function renderSingle(
   isAdmin: boolean
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
-  const long = detail.longDescription ?? '';
-  const short = detail.shortDescription ?? '';
+  const long = detail.longDescription ?? "";
+  const short = detail.shortDescription ?? "";
   const contents = detail.contents ?? [];
 
   return (
     <div>
-      <div>{record.displayName}</div>
+      <div data-stuff-id={record.stuffId}>{record.displayName}</div>
       {short && (
         <>
-          <SectionTitle>Short</SectionTitle>
+          <SectionHeading>Short</SectionHeading>
           <div>
             <MmlRenderer
               text={short}
@@ -536,7 +486,7 @@ function renderSingle(
       )}
       {long && (
         <>
-          <SectionTitle>Description</SectionTitle>
+          <SectionHeading>Description</SectionHeading>
           <div>
             <MmlRenderer
               text={long}
@@ -548,19 +498,19 @@ function renderSingle(
       )}
       {contents.length > 0 && (
         <>
-          <SectionTitle>Contents</SectionTitle>
-          <ContentsList aria-label="contents">
+          <SectionHeading>Contents</SectionHeading>
+          <List aria-label="contents">
             {contents.map((row) => (
-              <ContentsRow key={row.stuffId}>
-                <ItemAffordance
-                  onClick={() => onRowClick(row)}
+              <ListItem key={row.stuffId}>
+                <EntityName
+                  stuffId={row.stuffId}
+                  label={row.displayName}
                   title={`Click to send: ${commandForRow(row)}`}
-                >
-                  {row.displayName}
-                </ItemAffordance>
-              </ContentsRow>
+                  onClick={() => onRowClick(row)}
+                />
+              </ListItem>
             ))}
-          </ContentsList>
+          </List>
         </>
       )}
       {isAdmin && renderAdminExtras(record, onSendCommand)}
@@ -569,9 +519,14 @@ function renderSingle(
 }
 
 /**
- * Multi-focus body — one row per match. Each row sends `look <X>`
- * where `X` is the row's primary keyword (registry-fed via the
- * subscription substrate) or display-name fallback.
+ * Multi-focus body — one row per match.
+ *
+ * Each row is a styled name (`<EntityName>`) carrying the row's
+ * `stuff-id` for future social-graph bucket selectors. Per the
+ * grouping slate the multi-cardinality focus will eventually
+ * project a group via `GroupApi`; the v1 surface is shape-correct
+ * (list of styled names) and ready for that wiring without
+ * component changes.
  */
 function renderMulti(
   records: ReadonlyArray<StuffRefRecord | StuffDetailRecord>,
@@ -579,43 +534,42 @@ function renderMulti(
   isAdmin: boolean
 ): React.ReactElement {
   return (
-    <ContentsList aria-label="matches">
+    <List aria-label="matches">
       {records.map((row) => {
         const detail = row as StuffDetailRecord;
-        const tpath = (
-          row as unknown as { templatePath?: string }
-        ).templatePath;
+        const tpath = (row as unknown as { templatePath?: string })
+          .templatePath;
         return (
-          <ContentsRow key={row.stuffId}>
-            <ItemAffordance
-              onClick={() => onRowClick(row)}
+          <ListItem key={row.stuffId}>
+            <EntityName
+              stuffId={row.stuffId}
+              label={row.displayName}
               title={`Click to send: ${commandForRow(row)}`}
-            >
-              {row.displayName}
-            </ItemAffordance>
-            {isAdmin && tpath && (
-              <span style={{ color: '#888', marginLeft: '0.5em' }}>
-                ({tpath})
-              </span>
-            )}
+              onClick={() => onRowClick(row)}
+            />
+            {isAdmin && tpath && <TagSuffix>({tpath})</TagSuffix>}
             {detail.shortDescription && (
-              <span style={{ color: '#888', marginLeft: '0.5em' }}>
-                — {detail.shortDescription}
-              </span>
+              <TagSuffix>— {detail.shortDescription}</TagSuffix>
             )}
-          </ContentsRow>
+          </ListItem>
         );
       })}
-    </ContentsList>
+    </List>
   );
 }
 
 /**
- * Admin extras — visible only when the viewer is admin. Renders
- * template path, stuff id, mixin composition (when the projection
- * carries it), container path (ditto), raw data dump as
- * pretty-printed JSON, and quick-action buttons that route ordinary
- * admin verbs through the command bus.
+ * Admin extras — role-gated raw state.
+ *
+ * This is where the property-bag-shaped content lives: template
+ * path, stuff id, mixin composition, container path, and the raw
+ * JSON dump. Per the inspection-pane reconciliation, raw internal
+ * state belongs HERE exclusively, never in the player body.
+ *
+ * Rendered as a semantic `<dl>` (via `<FieldList>` / `<Field>`)
+ * so screen readers announce each label/value as a definition
+ * pair — the "linear-labeled flatten" the message-rendering slate
+ * mandates.
  */
 function renderAdminExtras(
   record: StuffRefRecord | StuffDetailRecord,
@@ -623,44 +577,50 @@ function renderAdminExtras(
 ): React.ReactElement {
   const r = record as unknown as Record<string, unknown>;
   const templatePath =
-    typeof r.templatePath === 'string' ? r.templatePath : undefined;
+    typeof r.templatePath === "string" ? r.templatePath : undefined;
   const stuffId = record.stuffId;
   const mixins = Array.isArray(r.mixins) ? r.mixins : undefined;
   const containerPath =
-    typeof r.containerPath === 'string' ? r.containerPath : undefined;
+    typeof r.containerPath === "string" ? r.containerPath : undefined;
 
   return (
     <AdminBlock aria-label="admin extras">
-      <SectionTitle>Admin</SectionTitle>
-      {templatePath && <AdminRow>template: {templatePath}</AdminRow>}
-      <AdminRow>stuff id: {stuffId}</AdminRow>
-      {mixins && mixins.length > 0 && (
-        <AdminRow>mixins: {mixins.join(', ')}</AdminRow>
-      )}
-      {containerPath && <AdminRow>container: {containerPath}</AdminRow>}
-      <SectionTitle>Raw</SectionTitle>
+      <SectionHeading>Admin</SectionHeading>
+      <FieldList>
+        {templatePath && <Field label="Template">{templatePath}</Field>}
+        <Field label="Stuff id">{stuffId}</Field>
+        {mixins && mixins.length > 0 && (
+          <Field label="Mixins">{mixins.join(", ")}</Field>
+        )}
+        {containerPath && (
+          <Field label="Container">{containerPath}</Field>
+        )}
+      </FieldList>
+      <SectionHeading>Raw</SectionHeading>
       <RawDump>{JSON.stringify(record, null, 2)}</RawDump>
-      <AdminButtonRow>
-        <AdminButton
+      <AdminActionRow>
+        <Button
+          variant="action"
           onClick={() =>
-            onSendCommand(
-              templatePath ? `clone ${templatePath}` : 'clone'
-            )
+            onSendCommand(templatePath ? `clone ${templatePath}` : "clone")
           }
         >
           clone
-        </AdminButton>
-        <AdminButton
+        </Button>
+        <Button
+          variant="action"
           onClick={() =>
             onSendCommand(
-              templatePath ? `reload ${templatePath}` : 'reload'
+              templatePath ? `reload ${templatePath}` : "reload"
             )
           }
         >
           reload
-        </AdminButton>
-        <AdminButton onClick={() => onSendCommand('eval')}>eval</AdminButton>
-      </AdminButtonRow>
+        </Button>
+        <Button variant="action" onClick={() => onSendCommand("eval")}>
+          eval
+        </Button>
+      </AdminActionRow>
     </AdminBlock>
   );
 }

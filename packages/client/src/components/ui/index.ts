@@ -1,0 +1,22 @@
+/**
+ * Shared UI primitives for the cockpit.
+ *
+ * Consumers (the inspection pane today; future widgets tomorrow)
+ * compose `<Field>` / `<FieldList>` for labeled facts, `<List>` /
+ * `<ListItem>` for sequences, `<EntityName>` for clickable name
+ * affordances carrying a `stuff-id`, and `<Button>` for action
+ * targets. Theme treatments come from `tokens`.
+ *
+ * The same components are the surface a future MML layout-tag
+ * renderer (per message-rendering-slate's Wave 2) will map its
+ * `<table>` / `<list>` / `<field>` tags onto, so the
+ * subscription-driven and the message-rendered paths converge on
+ * one DOM shape.
+ */
+
+export { Button } from "./Button";
+export { EntityName } from "./EntityName";
+export { Field, FieldList } from "./Field";
+export { List, ListItem } from "./List";
+export { tokens } from "./tokens";
+export type { Tokens } from "./tokens";
