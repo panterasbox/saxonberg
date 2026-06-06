@@ -334,8 +334,19 @@ function maybePushFocusBreadcrumb(
   const prevTop = previous[0];
   const nextTop = next[0];
   if (!nextTop) return; // unfocus delivery
-  if (next.length > 1) return; // multi-cardinality
-  if (prevTop && prevTop.stuffId === nextTop.stuffId) return; // no change
+  if (next.length > 1) return; // multi-cardinality: nothing single to label
+
+  // Push when single-cardinality focus is a new selection. Three
+  // cases qualify:
+  //   - different Stuff than before;
+  //   - shape changed from multi (>1 prev records) to single — the
+  //     player narrowed an ambiguous focus down to one (e.g.
+  //     `look thermometer` after a disambig left focus on `brass`);
+  //   - shape changed from empty to single.
+  const prevShapeNotSingle = previous.length !== 1;
+  const stuffChanged =
+    !prevTop || prevTop.stuffId !== nextTop.stuffId;
+  if (!stuffChanged && !prevShapeNotSingle) return;
 
   const store = useStore.getState();
   const root = store.paneBreadcrumbRoot;

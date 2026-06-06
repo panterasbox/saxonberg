@@ -228,6 +228,48 @@ describe('Drill-additive focus (extend mode)', () => {
     expect(giver.getFocus()).toBe('here:bookcase');
   });
 
+  it("replaces focus when current focus resolves multi-cardinality", async () => {
+    // Reproduces the disambiguation-leftover bug: after a `look brass`
+    // disambig prompt, the dispatcher's updates_focus: extend wrote
+    // the raw fragment `brass` into the focus chain. `brass` resolves
+    // to multiple Stuffs (two brass things in the room). A follow-up
+    // `look <one of them>` would silently no-op because resolveOne
+    // on `brass` could land on the same Stuff the player just
+    // targeted — sameStuff branch returned without updating focus,
+    // leaving the player stuck on an ambiguous fragment.
+    //
+    // Two brass-keyword things in the room with shared keyword.
+    const brassPin = makeStuff(() => new TestThing()) as TestThing;
+    brassPin.setName('brass pin');
+    brassPin.addKeyword('brass');
+    brassPin.addKeyword('pin');
+    ContainmentApi.move(
+      brassPin as unknown as Parameters<typeof ContainmentApi.move>[0],
+      location as unknown as Parameters<typeof ContainmentApi.move>[1]
+    );
+    const brassRing = makeStuff(() => new TestThing()) as TestThing;
+    brassRing.setName('brass ring');
+    brassRing.addKeyword('brass');
+    brassRing.addKeyword('ring');
+    ContainmentApi.move(
+      brassRing as unknown as Parameters<typeof ContainmentApi.move>[0],
+      location as unknown as Parameters<typeof ContainmentApi.move>[1]
+    );
+
+    // Simulate the post-disambig state — focus is the ambiguous fragment.
+    giver.setFocus('brass');
+    const cmd = lookCommand();
+    // Player follows up with `look pin` — specific keyword for one
+    // of the two brass things.
+    await CommandApi.resolveAndValidate(
+      { target: 'pin' },
+      makeContext(giver, location as unknown as Location, cmd, 'look pin')
+    );
+    // Focus must move off the ambiguous fragment to the specific
+    // keyword the player typed.
+    expect(giver.getFocus()).toBe('pin');
+  });
+
   it('pronoun substitution applies before extend (look it after look rose)', async () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
