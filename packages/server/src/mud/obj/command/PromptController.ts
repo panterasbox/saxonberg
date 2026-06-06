@@ -34,10 +34,9 @@
 import { CommandController } from '../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../api/command';
 import { MessageApi } from '../../api/message';
+import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import { PromptApi } from '../../api/prompt';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type { HasInteractive } from '../../lib/connection/HasInteractive';
 
 interface PromptModel extends CommandModel {
   subcommand: string;
@@ -60,7 +59,11 @@ export class PromptController extends CommandController<PromptModel> {
    * substrate handles multiplexed connections naturally.
    */
   private handleCancel(ctx: CommandContext): void {
-    const giver = ctx.commandGiver as Stuff & HasInteractive;
+    // requiresHasInteractive validator guarantees this; narrow to prove it.
+    const giver = ctx.commandGiver;
+    if (!MixinApi.isHasInteractive(giver)) {
+      throw new Error('PromptController: command giver has no Interactive');
+    }
 
     let total = 0;
     for (const interactive of giver.getInteractives()) {

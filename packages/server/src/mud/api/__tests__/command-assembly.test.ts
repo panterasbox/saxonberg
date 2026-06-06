@@ -462,5 +462,5 @@ function extractMessage(
   field = 'message'
 ): unknown {
   if ('model' in r) return r.model[field];
-  throw new Error(`expected model, got error: ${r.summary}`);
+  throw new Error(`expected model, got error: ${JSON.stringify(r)}`);
 }

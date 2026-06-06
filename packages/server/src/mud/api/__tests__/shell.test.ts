@@ -182,7 +182,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.target).toBe('library');
   });
 
@@ -195,7 +195,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.words).toBe('the plaza is empty');
   });
 
@@ -206,7 +206,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     // Untouched — the literal `$focus` flows to MQL.
     expect(built.model.target).toBe('$focus');
   });
@@ -219,7 +219,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
       commandGiver: npc as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.target).toBe('$focus');
   });
 });
@@ -283,7 +283,7 @@ describe('CommandApi.assemble — defaults', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.target).toBe('here');
   });
 
@@ -296,7 +296,7 @@ describe('CommandApi.assemble — defaults', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.gift).toBe('here');
     expect(built.model.recipient).toBe('bob');
   });
@@ -307,7 +307,7 @@ describe('CommandApi.assemble — defaults', () => {
       commandGiver: giver as never,
       location: location as never,
     });
-    if ('error' in built) throw new Error('assemble failed: ' + built.summary);
+    if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
     expect(built.model.gift).toBe('here');
     expect(built.model.recipient).toBe('me');
   });
