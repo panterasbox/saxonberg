@@ -5,9 +5,14 @@
  * Lives at `/obj/TopicCatalogue`, sibling to `/obj/EventRegistry`
  * per the singleton-in-`obj/` convention. The cache is transient
  * instance state; the source of truth lives on the per-topic
- * `Topic` Ideas under `/lib/messaging/Topic/`. Lookups walk a
- * three-tier resolution chain so the accessor never returns
- * "not found":
+ * `Topic` template documents under `/lib/messaging/Topic/` in the
+ * `domain` collection. The catalogue loads its descriptors
+ * directly from those template docs — Topic templates are pure
+ * data (`topic` / `family` / `label` / `description`), so there's
+ * no need to clone them as live Stuff instances at boot.
+ *
+ * Lookups walk a three-tier resolution chain so the accessor
+ * never returns "not found":
  *
  *   1. Cache hit — return the authored descriptor verbatim.
  *   2. Family-inherited — walk the dotted-path family chain looking
@@ -16,21 +21,19 @@
  *   3. Derived default — titlecased last segment as the label,
  *      `'(no description)'`, family = path prefix.
  *
- * HMR-aware: `postRegister` subscribes to `Events.StuffCreated` and
- * `Events.StuffDestructed`; the listener invalidates the cache when
- * the affected Stuff's template path is under
- * `/lib/messaging/Topic/`. Next access repopulates.
+ * `postRegister` warms the cache from mongo via
+ * `Template.findDescendants`. Descriptor edits land at next boot;
+ * a future `invalidateCache` admin verb (currently unused but
+ * left in place) would let authors trigger a refresh in-process.
  *
  * NOT Persistable. The seed YAML is `{ class: /obj/TopicCatalogue,
  * data: {} }` — there's no field state worth round-tripping. The
- * cache is rebuilt on demand from the live Topic instances.
+ * cache is rebuilt on demand by reading Template docs.
  */
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { StuffApi } from '../api/stuff';
-import { EventApi } from '../api/event';
-import { Events } from '../lib/events';
+import { Template } from '../lib/stuff/Template';
 import { Topic } from '../lib/messaging/Topic';
 import type { TopicDescriptor } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
@@ -89,30 +92,12 @@ export class TopicCatalogue extends TopicCatalogueBase {
   }
 
   /**
-   * Post-registration setup: subscribe to Stuff lifecycle events so
-   * the cache stays coherent under HMR. The listener filters on
-   * `templatePath?.startsWith('/lib/messaging/Topic/')` because
-   * `EventApi.on` has no built-in path filter.
+   * Post-registration setup: warm the cache from the `domain`
+   * collection. One mongo query at boot, then the public surface
+   * is sync.
    */
   public override async postRegister(_context?: unknown): Promise<void> {
-    EventApi.on<{ stuffId: string; templatePath?: string }>(
-      Events.StuffCreated,
-      (payload) => {
-        if (payload.templatePath?.startsWith(Topic.TEMPLATE_PATH_PREFIX)) {
-          this.invalidateCache();
-        }
-      },
-    );
-    EventApi.on<{ stuffId: string }>(
-      Events.StuffDestructed,
-      (payload) => {
-        const stuff = StuffApi.findById(payload.stuffId);
-        const path = stuff?.getTemplatePath();
-        if (path?.startsWith(Topic.TEMPLATE_PATH_PREFIX)) {
-          this.invalidateCache();
-        }
-      },
-    );
+    await this.loadCacheFromTemplates();
   }
 
   /**
@@ -131,20 +116,44 @@ export class TopicCatalogue extends TopicCatalogueBase {
 
   private ensureCache(): void {
     if (this.cache !== null) return;
-    const map = new Map<string, TopicDescriptor>();
-    // Path glob over the Topic prefix surfaces every live Topic
-    // instance. `**` matches any descendant segment.
-    const instances = StuffApi.findByPathGlob<Topic>(
-      `${Topic.TEMPLATE_PATH_PREFIX}**`,
+    // Cache was never warmed (postRegister wasn't awaited, e.g. in
+    // a unit test that doesn't go through the clone pipeline).
+    // Start with an empty cache — the fallback / derived-default
+    // tiers still produce a usable descriptor.
+    this.cache = new Map();
+  }
+
+  /**
+   * Read every `Topic` template under
+   * `Topic.TEMPLATE_PATH_PREFIX` directly from the `domain`
+   * collection and populate the cache. Skips the runtime Stuff
+   * layer entirely — Topic instances have no behavior worth
+   * cloning, only data the catalogue cares about.
+   */
+  private async loadCacheFromTemplates(): Promise<void> {
+    const templates = await Template.findDescendants(
+      Topic.TEMPLATE_PATH_PREFIX,
     );
-    for (const t of instances) {
-      const topic = t.getTopic();
-      if (!topic) continue;
-      map.set(topic, {
-        topic,
-        family: t.getFamily(),
-        label: t.getLabel(),
-        description: t.getDescription(),
+    const map = new Map<string, TopicDescriptor>();
+    for (const tpl of templates) {
+      const data = tpl.data as
+        | {
+            topic?: unknown;
+            family?: unknown;
+            label?: unknown;
+            description?: unknown;
+          }
+        | undefined;
+      if (!data || typeof data.topic !== 'string') continue;
+      map.set(data.topic, {
+        topic: data.topic,
+        family: typeof data.family === 'string' ? data.family : '',
+        label:
+          typeof data.label === 'string' && data.label.length > 0
+            ? data.label
+            : data.topic,
+        description:
+          typeof data.description === 'string' ? data.description : '',
       });
     }
     this.cache = map;

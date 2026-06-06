@@ -30,8 +30,6 @@ import {
 } from '../lib/shell/Environment';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { ClientStateMixin } from '../lib/client/ClientState';
-import { ConsoleClientStateMixin } from '../lib/client/ConsoleClientState';
 import { Events } from '../lib/events';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Location } from '../lib/stuff/Location';
@@ -60,11 +58,7 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(
-    ConsoleClientStateMixin(ClientStateMixin(ShelledCharacter)),
-  ),
-);
+const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(ShelledCharacter));
 
 export class Avatar extends AvatarBase {
   /**

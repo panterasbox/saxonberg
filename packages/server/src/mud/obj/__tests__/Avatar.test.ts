@@ -811,24 +811,30 @@ describe('Avatar', () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
       const { TopicCatalogue } = await import('../TopicCatalogue');
+      const { Template } = await import('../../lib/stuff/Template');
 
-      // Seed a TopicCatalogue singleton with one authored descriptor
-      // it returns in its snapshot.
+      // Stub the mongo read with one authored topic descriptor.
+      vi.spyOn(Template, 'findDescendants').mockImplementation(
+        async () =>
+          [
+            {
+              path: '/lib/messaging/Topic/world',
+              data: {
+                topic: 'world',
+                family: '',
+                label: 'World',
+                description: 'In-world events.',
+              },
+            },
+          ] as unknown as Template[],
+      );
+
       const cat = makeStuff(() => new TopicCatalogue());
       const stampTpl = await import(
         '../../lib/security/__tests__/test-setup'
       );
       stampTpl.stampTemplatePathForTest(cat, '/obj/TopicCatalogue');
-
-      const { Topic } = await import('../../lib/messaging/Topic');
-      const t = stampTpl.makeStuffAtPath(
-        () => new Topic(),
-        '/lib/messaging/Topic/world',
-      );
-      t.setTopic('world');
-      t.setFamily('');
-      t.setLabel('World');
-      t.setDescription('In-world events.');
+      await cat.postRegister();
 
       const avatar = makeAvatar('enter-5');
       vi.spyOn(avatar, 'getContainer').mockReturnValue({
@@ -865,9 +871,9 @@ describe('Avatar', () => {
       expect(worldEntry).toBeTruthy();
       expect(worldEntry.label).toBe('World');
 
-      // ClientStateMixin / ConsoleClientStateMixin contribute the
-      // console schema, so the snapshot ships at least the two
-      // console keys with their defaults.
+      // HasInteractiveMixin declares the console schema; the
+      // snapshot ships at least the two console keys with their
+      // defaults.
       expect(typeof passedPayload.clientState).toBe('object');
       expect(passedPayload.clientState['console.activeTab']).toBe('All');
       expect(passedPayload.clientState['console.tabs']).toEqual([

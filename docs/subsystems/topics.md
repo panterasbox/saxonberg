@@ -19,7 +19,7 @@ help system will tap the same catalogue.
 | `obj/TopicCatalogue.ts` | The singleton Idea (`/obj/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
 | `seeds/lib/messaging/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
 | `seeds/obj/TopicCatalogue.yaml` | Singleton seed (`{ class: /obj/TopicCatalogue, data: {} }`). |
-| `bootstrap.ts` | Manifest entry `{ templatePathPrefix: '/lib/messaging/Topic/' }` plus the singleton entry. |
+| `bootstrap.ts` | Manifest entry for the `/obj/TopicCatalogue` singleton. **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
 | `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }`. Shared between the server snapshot and the client cache. |
 
 ## No code-side constants mirror
@@ -60,16 +60,28 @@ methods compose its surface:
   resolution; **always returns a populated descriptor**.
 - `getSnapshot(): TopicDescriptor[]` — flat array of authored
   entries, used by the wire push.
-- `invalidateCache(): void` — drops the cached map; the next access
-  rebuilds.
+- `invalidateCache(): void` — drops the cached map. Future admin
+  verb hook for "I just edited a Topic seed, re-read it without
+  restarting"; currently unused at runtime (cache builds once at
+  boot).
 
 Cache state lives as a `Map<string, TopicDescriptor> | null` private
-instance field, populated lazily by `findByPathGlob` over the topic
-prefix. Resolution is dispatched through the standard call-security
-gate via `StuffApi.findByTemplatePath('/obj/TopicCatalogue')` —
-there's no `TopicCatalogueApi` indirection. Per
+instance field, warmed by `postRegister`'s call to
+`Template.findDescendants('/lib/messaging/Topic/')`. Resolution
+dispatches through the standard call-security gate via
+`StuffApi.findByTemplatePath('/obj/TopicCatalogue')` — there's no
+`TopicCatalogueApi` indirection. Per
 [[feedback-no-new-apis-default]], the singleton's instance methods
 are the access surface.
+
+**No pre-cloning of Topic templates.** Topic templates are pure
+data (`topic` / `family` / `label` / `description`) with no runtime
+behavior, so the catalogue reads `data.*` directly off each
+`Template` doc — no `Topic` Stuff instances are ever cloned at
+boot. The bootstrap manifest carries `/obj/TopicCatalogue`
+but **not** a `templatePathPrefix: '/lib/messaging/Topic/'` entry.
+Same pattern as species clades / materials / biomes (see the
+preamble in `mud/bootstrap.ts` for the precedent).
 
 ## Auto-fallback for unknown topics
 
@@ -108,14 +120,15 @@ login. If real demand for mid-session updates appears, the catalogue
 can be turned into an MQL-subscribed live query — but the snapshot
 shape is forward-compatible with that move.
 
-## HMR-aware cache invalidation
+## Cache invalidation
 
-`postRegister` subscribes to `Events.StuffCreated` and
-`Events.StuffDestructed`. The listener checks
-`templatePath?.startsWith('/lib/messaging/Topic/')` and fires
-`invalidateCache` only on a match. Next access rebuilds. This makes
-the catalogue HMR-clean: an author who tweaks a Topic seed sees the
-updated descriptor next time `getDescriptor` is called.
+The cache builds once at boot from mongo and stays put for the
+process lifetime. Descriptor edits written to mongo during the
+process are picked up on next boot (or via a future admin verb
+that calls `invalidateCache` + `postRegister` to re-read). Since
+the catalogue no longer holds runtime `Topic` Stuff instances,
+there are no `Events.StuffCreated/Destructed` subscriptions to
+manage.
 
 The catalogue itself is a system singleton; `canDestruct` refuses
 unconditionally (mirrors `EventRegistry`).
@@ -130,7 +143,7 @@ Both are singleton Ideas in `obj/` that own a per-X data shape:
 | Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/lib/messaging/Topic/` |
 | Code-side vocabulary | `Events` enum is the vocabulary | `MessageApi.TOPICS` is autocomplete-only; descriptors are content |
 | Auto-resolve behavior | `EventApi.on/emit` auto-registers unknown events with the default `emittableBy()` policy | `getDescriptor` auto-falls-back via family inheritance or derived default |
-| Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache is rebuilt from `Topic` instances |
+| Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache reads `Topic` template docs from mongo at boot |
 
 ## Seed YAML structure
 
@@ -155,11 +168,13 @@ emerges that needs scoped editing rights.
 
 ## Boot sequence
 
-1. `SeederManager` inserts every YAML into the `domain` collection.
-2. `BootstrapManager` clones the prefix entry: every descendant of
-   `/lib/messaging/Topic/` clones in depth-ascending order, then
-   the `/obj/TopicCatalogue` singleton.
-3. First call to `getDescriptor` (or `getSnapshot`) builds the
-   cache from the loaded Topic instances.
+1. `SeederManager` inserts every YAML into the `domain` collection
+   (including the per-topic seeds — those just sit in mongo as
+   template docs, no runtime presence).
+2. `BootstrapManager` clones `/obj/TopicCatalogue` (and nothing
+   else in the messaging substrate).
+3. `TopicCatalogue.postRegister` reads every Topic template via
+   `Template.findDescendants('/lib/messaging/Topic/')` and warms
+   the descriptor cache.
 4. Welcome-scene payload composition reads `getSnapshot()` and
    ships it to the client.

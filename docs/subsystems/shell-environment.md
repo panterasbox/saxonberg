@@ -300,11 +300,10 @@ inside the template handle the directional/bland split, so a single
 `EnvironmentMixin` is for **player-tunable knobs** the player
 configures via the `settings` shell command. UI state the cockpit
 manages through its own gestures (tabs, theme, notification prefs,
-keybinds, saved MQL queries, …) lives on a separate substrate —
-`ClientStateMixin` — with its own wire path and its own
-schema-on-mixin contribution pattern. See
-[client-state.md](./client-state.md) for the contrast and the
-contribution shape. Per
+keybinds, saved MQL queries, …) lives on `HasInteractiveMixin`'s
+`_clientState` surface — see
+[connection.md § Client state](./connection.md#client-state) for
+the storage, schema, methods, and wire path. Per
 [[feedback-settings-vs-propertied-vs-client-state]], do not reach
 for the settings command surface to persist UI-driven state.
 
