@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.connection
+  family: system
+  label: Connection
+  description: Your client's connection to the server — establishing, dropping, reconnecting.

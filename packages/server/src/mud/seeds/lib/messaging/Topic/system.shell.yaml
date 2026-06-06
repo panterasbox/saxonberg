@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell
+  family: system
+  label: Shell
+  description: Shell-tier output — the engine speaking back to the player about what just happened, distinct from in-fiction narration.

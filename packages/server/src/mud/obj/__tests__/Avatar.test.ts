@@ -805,5 +805,70 @@ describe('Avatar', () => {
         userId: 'user-1',
       });
     });
+
+    it('welcome-scene payload carries topicCatalogue from the singleton', async () => {
+      const { StuffApi } = await import('../../api/stuff');
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+      const { TopicCatalogue } = await import('../TopicCatalogue');
+
+      // Seed a TopicCatalogue singleton with one authored descriptor
+      // it returns in its snapshot.
+      const cat = makeStuff(() => new TopicCatalogue());
+      const stampTpl = await import(
+        '../../lib/security/__tests__/test-setup'
+      );
+      stampTpl.stampTemplatePathForTest(cat, '/obj/TopicCatalogue');
+
+      const { Topic } = await import('../../lib/messaging/Topic');
+      const t = stampTpl.makeStuffAtPath(
+        () => new Topic(),
+        '/lib/messaging/Topic/world',
+      );
+      t.setTopic('world');
+      t.setFamily('');
+      t.setLabel('World');
+      t.setDescription('In-world events.');
+
+      const avatar = makeAvatar('enter-5');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue({
+        stuffId: 's',
+      } as never);
+      vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
+      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+
+      // Capture the payload value as fed into MessageApi.scene chain.
+      const payloadSpy = vi.fn();
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({
+                payload: payloadSpy.mockReturnValue({ send }),
+                send,
+              }),
+            }),
+          }) as never,
+      );
+
+      await avatar.enter(fakeInteractive() as unknown as Interactive);
+
+      expect(payloadSpy).toHaveBeenCalledTimes(1);
+      const passedPayload = payloadSpy.mock.calls[0]?.[0];
+      expect(passedPayload).toBeTruthy();
+      expect(Array.isArray(passedPayload.topicCatalogue)).toBe(true);
+      expect(passedPayload.topicCatalogue.length).toBeGreaterThan(0);
+      const worldEntry = passedPayload.topicCatalogue.find(
+        (d: { topic: string }) => d.topic === 'world',
+      );
+      expect(worldEntry).toBeTruthy();
+      expect(worldEntry.label).toBe('World');
+
+      // Compiler-level sanity: clientState is present (Phase 3 will
+      // populate it; Phase 1 ships an empty object so the
+      // ConnectionEstablishedPayload type matches).
+      expect(typeof passedPayload.clientState).toBe('object');
+    });
   });
 });

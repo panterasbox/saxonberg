@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception
+  family: world
+  label: Perception
+  description: What characters see, find, or sense — including looking around, checking inventory, scrying, and locating.

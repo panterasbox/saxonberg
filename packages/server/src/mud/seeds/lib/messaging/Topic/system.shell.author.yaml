@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.author
+  family: system.shell
+  label: Author
+  description: Output of author-tier verbs — clone, reload, destruct, eval, teleport. Actor-side feedback; peers see in-fiction narration separately.
