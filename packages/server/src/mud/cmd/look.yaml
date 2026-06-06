@@ -9,6 +9,13 @@ args:
     updates_focus: extend
     prepositions: [at]
     default: "$focus"
+    # Typed ambiguity → disambiguation prompt. The click-affordance
+    # path is fine without this: MmlRenderer.commandFor emits
+    # `look <primaryKeyword>` which is canonical and resolves to a
+    # single match. Typed queries like `look brass` (in a room with
+    # multiple brass things) now ask which one instead of silently
+    # picking the top match. Cancellation aborts the dispatch.
+    onExcess: prompt
 options:
   peek:
     type: boolean
