@@ -106,8 +106,8 @@ describe('CommandBar — prompt arrival and slot switching', () => {
     });
     expect(useStore.getState().activeSlot).toBe('p1');
     expect(screen.getByPlaceholderText('Type your answer...')).toBeTruthy();
-    // Sigil flips to '?' in prompt mode.
-    expect(screen.getByText('?')).toBeTruthy();
+    // Slot picker now shows the prompt's question.
+    expect(screen.getByText('Name?')).toBeTruthy();
   });
 
   it('background prompt leaves the input on base', () => {
@@ -317,53 +317,38 @@ describe('CommandBar — submit per kind', () => {
   });
 });
 
-describe('CommandBar — shown-prompt-while-in-command-mode', () => {
+describe('CommandBar — slot picker as bottom-of-stack model', () => {
   beforeEach(() => {
     resetStore();
   });
 
-  it('slot picker shows the top prompt label even when active is base', () => {
+  it('always renders the slot picker, even with zero pending prompts', () => {
     const spies = makeSpies();
     renderBar(spies);
-    act(() => {
-      pushPrompt({
-        kind: 'mql-object',
-        promptId: 'p1',
-        label: 'Which target?',
-        matches: [
-          { stuffId: 'a', displayName: 'thermometer' },
-          { stuffId: 'b', displayName: 'altimeter' },
-        ],
-        foreground: true,
-      });
-      // Simulate the player picking the command slot from the
-      // dropdown — same store call the SlotRow click makes.
-      useStore.getState().setActiveSlot(BASE_SLOT);
-    });
-    // Slot picker still labels the prompt; input is back in command mode.
-    expect(screen.getByText('Which target?')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Enter command...')).toBeTruthy();
+    // The slot picker exists and shows the basePrompt label.
+    expect(screen.getByLabelText('Open slot picker')).toBeTruthy();
+    expect(screen.getByText('here>')).toBeTruthy();
   });
 
-  it('chip click answers the shown prompt even when active is base', () => {
+  it('slot picker shows basePrompt when active is base, even with prompts pending', () => {
     const spies = makeSpies();
     renderBar(spies);
     act(() => {
       pushPrompt({
-        kind: 'choice',
+        kind: 'text',
         promptId: 'p1',
-        label: 'Pick',
-        choices: [
-          { label: 'Apple', response: 'apple' },
-          { label: 'Pear', response: 'pear' },
-        ],
+        label: 'Which target?',
         foreground: true,
       });
+      // Player picks command from the dropdown.
       useStore.getState().setActiveSlot(BASE_SLOT);
     });
-    // Chips still render against the shown (top) prompt.
-    fireEvent.click(screen.getByText('Apple'));
-    expect(spies.onSendPromptResponse).toHaveBeenCalledWith('p1', 'apple');
+    // Slot picker reflects the ACTIVE slot — base → basePrompt.
+    expect(screen.getByText('here>')).toBeTruthy();
+    // Badge still indicates a pending prompt under the stack.
+    expect(screen.getByText('⌃1')).toBeTruthy();
+    // Input is in command mode.
+    expect(screen.getByPlaceholderText('Enter command...')).toBeTruthy();
   });
 
   it('typing a command while a prompt is pending leaves the prompt on the stack', () => {
@@ -383,6 +368,32 @@ describe('CommandBar — shown-prompt-while-in-command-mode', () => {
     expect(spies.onSendCommand).toHaveBeenCalled();
     // Prompt still pending.
     expect(useStore.getState().prompts).toHaveLength(1);
+  });
+
+  it('dropdown lists base slot first plus each pending prompt', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'text',
+        promptId: 'p1',
+        label: 'Name?',
+        foreground: true,
+      });
+      pushPrompt({
+        kind: 'text',
+        promptId: 'p2',
+        label: 'Color?',
+        foreground: true,
+      });
+    });
+    fireEvent.click(screen.getByLabelText('Open slot picker'));
+    // The dropdown has a row for base (basePrompt) AND each prompt.
+    // Color? appears twice: as the active slot picker label AND as a
+    // dropdown row. Name? only appears as a dropdown row.
+    expect(screen.getAllByText('here>').length).toBeGreaterThan(0);
+    expect(screen.getByText('Name?')).toBeTruthy();
+    expect(screen.getAllByText('Color?').length).toBeGreaterThan(0);
   });
 });
 

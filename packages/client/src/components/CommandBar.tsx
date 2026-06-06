@@ -79,27 +79,38 @@ const BarContainer = styled.div<{ $promptMode: boolean }>`
     ${(p) => (p.$promptMode ? tokens.color.accent : tokens.color.border)};
 `;
 
-const PromptRow = styled.div`
+/**
+ * Chip-affordance row — only renders when the active slot is a
+ * prompt with chip-shape affordances (choice / confirm / mql-*).
+ * Sits above the input row so chips don't fight for horizontal
+ * space with the slot picker + send button.
+ */
+const ChipsRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: ${tokens.space.md};
+  gap: ${tokens.space.sm};
   padding: ${tokens.space.md} ${tokens.space.xl} 0;
 `;
 
-const InputRow = styled.div`
+const InputRow = styled.div<{ $hasChips: boolean }>`
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: ${tokens.space.md};
-  padding: ${tokens.space.md} ${tokens.space.xl} ${tokens.space.xl};
+  padding: ${(p) =>
+      p.$hasChips ? tokens.space.md : tokens.space.xl}
+    ${tokens.space.xl} ${tokens.space.xl};
 `;
 
-const Sigil = styled.span<{ $promptMode: boolean }>`
-  font-family: ${tokens.font.family};
-  font-size: ${tokens.font.body};
-  color: ${(p) =>
-    p.$promptMode ? tokens.color.accent : tokens.color.fgEmphasis};
-  white-space: nowrap;
+/**
+ * Dropdown anchor for the picker — wraps the picker chip + the
+ * floating SlotDropdown so we can position the dropdown relative
+ * to the chip without disturbing the input flow.
+ */
+const PickerAnchor = styled.div`
+  position: relative;
+  display: flex;
+  align-items: stretch;
 `;
 
 const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
@@ -119,6 +130,7 @@ const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
         : p.$promptMode
         ? tokens.color.accent
         : tokens.color.border};
+  border-left: none;
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.body};
   transition: background 150ms, border-color 150ms;
@@ -154,23 +166,39 @@ const SendButton = styled.button<{ $promptMode: boolean }>`
 
 /* --- Slot picker -------------------------------------------------- */
 
-const SlotPicker = styled.button<{ $expanded: boolean; $hasPrompts: boolean }>`
+/**
+ * The slot picker sits inline-left of the input. It ALWAYS renders,
+ * regardless of whether prompts are pending — the command slot is
+ * just the bottom of the stack. The label shown is whatever the
+ * active slot's label is: `basePrompt` (e.g. `here>`) for command,
+ * the prompt's question for a prompt. Click to open the dropdown
+ * and pick which slot's response channel the input is bound to.
+ */
+const SlotPicker = styled.button<{ $expanded: boolean; $promptMode: boolean }>`
   display: flex;
   align-items: center;
   gap: ${tokens.space.sm};
-  padding: ${tokens.space.xs} ${tokens.space.md};
+  padding: ${tokens.space.md} ${tokens.space.md};
   background: ${(p) =>
-    p.$expanded ? tokens.color.surfaceSunken : tokens.color.surfaceMuted};
-  color: ${tokens.color.fg};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  border-radius: ${tokens.radius.sm};
+    p.$expanded
+      ? tokens.color.surfaceSunken
+      : p.$promptMode
+      ? tokens.color.surfaceMuted
+      : tokens.color.surfaceSunken};
+  color: ${(p) =>
+    p.$promptMode ? tokens.color.accent : tokens.color.fgEmphasis};
+  border: 1px solid
+    ${(p) =>
+      p.$promptMode ? tokens.color.accent : tokens.color.border};
+  border-right: none;
+  border-radius: 0;
   font-family: ${tokens.font.family};
-  font-size: ${tokens.font.small};
-  cursor: ${(p) => (p.$hasPrompts ? 'pointer' : 'default')};
+  font-size: ${tokens.font.body};
+  cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
-    background: ${(p) =>
-      p.$hasPrompts ? tokens.color.surfaceSunken : tokens.color.surfaceMuted};
+    background: ${tokens.color.surfaceSunken};
   }
 `;
 
@@ -183,16 +211,28 @@ const StackBadge = styled.span`
   font-size: ${tokens.font.micro};
 `;
 
+/**
+ * Floats above the slot picker so it doesn't shove the input row
+ * around when opened. Anchored to the PickerAnchor wrapper; opens
+ * upward (bottom: 100%) since the bar sits at the foot of the
+ * cockpit.
+ */
 const SlotDropdown = styled.ul`
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  min-width: 220px;
   background: ${tokens.color.surfaceSunken};
   border: 1px solid ${tokens.color.borderEmphasis};
   border-radius: ${tokens.radius.sm};
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: ${tokens.space.xs};
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 `;
 
 const SlotRow = styled.li<{ $active: boolean }>`
@@ -343,18 +383,7 @@ export function CommandBar({
       ? undefined
       : prompts.find((p) => p.promptId === activeSlot);
 
-  // The "shown" entry is what the slot-picker label + chips +
-  // X-cancel + validation error all render against. Decoupled from
-  // the typed-input routing (which `activeEntry` governs) so the
-  // player can be in command mode while a prompt's question stays
-  // visible and answerable via chip click. Falls back to the
-  // newest pending prompt when active is base; null when no prompts
-  // are pending at all.
-  const topPrompt: PromptEntry | undefined = prompts[prompts.length - 1];
-  const shownEntry: PromptEntry | undefined = activeEntry ?? topPrompt;
-
   const promptMode = activeEntry !== undefined;
-  const sigilText = promptMode ? '?' : basePrompt;
 
   // The input's displayed value: for base, use the controlled
   // baseValue from App (it tracks hover preview); for prompts, read
@@ -531,17 +560,17 @@ export function CommandBar({
 
   /* --- Render helpers -------------------------------------------- */
 
-  const shownChips = useMemo(() => {
-    if (!shownEntry) return null;
-    switch (shownEntry.kind) {
+  const activeChips = useMemo(() => {
+    if (!activeEntry) return null;
+    switch (activeEntry.kind) {
       case 'choice':
         return (
           <ChipRow>
-            {shownEntry.choices.map((c) => (
+            {activeEntry.choices.map((c) => (
               <Chip
                 key={c.response}
-                $primary={c.response === shownEntry.defaultChoice}
-                onClick={() => handleChipSend(shownEntry, c.response)}
+                $primary={c.response === activeEntry.defaultChoice}
+                onClick={() => handleChipSend(activeEntry, c.response)}
               >
                 {c.label}
               </Chip>
@@ -549,18 +578,18 @@ export function CommandBar({
           </ChipRow>
         );
       case 'confirm': {
-        const yesPrimary = shownEntry.defaultAnswer === 'yes';
+        const yesPrimary = activeEntry.defaultAnswer === 'yes';
         return (
           <ChipRow>
             <Chip
               $primary={yesPrimary}
-              onClick={() => handleChipSend(shownEntry, 'yes')}
+              onClick={() => handleChipSend(activeEntry, 'yes')}
             >
               Yes
             </Chip>
             <Chip
               $primary={!yesPrimary}
-              onClick={() => handleChipSend(shownEntry, 'no')}
+              onClick={() => handleChipSend(activeEntry, 'no')}
             >
               No
             </Chip>
@@ -570,10 +599,10 @@ export function CommandBar({
       case 'mql-object':
         return (
           <ChipRow>
-            {shownEntry.matches.map((m) => (
+            {activeEntry.matches.map((m) => (
               <Chip
                 key={m.stuffId}
-                onClick={() => handleChipSend(shownEntry, m.stuffId)}
+                onClick={() => handleChipSend(activeEntry, m.stuffId)}
               >
                 {m.displayName}
               </Chip>
@@ -582,22 +611,22 @@ export function CommandBar({
         );
       case 'mql-many': {
         const sel =
-          mqlManySelection[shownEntry.promptId] ?? new Set<string>();
+          mqlManySelection[activeEntry.promptId] ?? new Set<string>();
         const bounds: string[] = [];
-        if (shownEntry.min !== undefined) bounds.push(`min ${shownEntry.min}`);
-        if (shownEntry.max !== undefined) bounds.push(`max ${shownEntry.max}`);
+        if (activeEntry.min !== undefined) bounds.push(`min ${activeEntry.min}`);
+        if (activeEntry.max !== undefined) bounds.push(`max ${activeEntry.max}`);
         return (
           <ChipRow>
-            {shownEntry.matches.map((m) => (
+            {activeEntry.matches.map((m) => (
               <Chip
                 key={m.stuffId}
                 $selected={sel.has(m.stuffId)}
-                onClick={() => handleMqlManyToggle(shownEntry, m.stuffId)}
+                onClick={() => handleMqlManyToggle(activeEntry, m.stuffId)}
               >
                 {m.displayName}
               </Chip>
             ))}
-            <Chip $primary onClick={() => handleMqlManySend(shownEntry)}>
+            <Chip $primary onClick={() => handleMqlManySend(activeEntry)}>
               Send{sel.size > 0 ? ` (${sel.size})` : ''}
               {bounds.length > 0 ? ` · ${bounds.join(' · ')}` : ''}
             </Chip>
@@ -608,28 +637,37 @@ export function CommandBar({
         // Text uses the input row; no chips.
         return null;
     }
-  }, [shownEntry, mqlManySelection]);
+  }, [activeEntry, mqlManySelection]);
 
-  // Render the prompt row whenever any prompt is pending — even if
-  // the typed-input is bound to the base/command slot. The
-  // slot-picker label (and its X / chips / validation error) stays
-  // visible so the player always sees the pending question and can
-  // answer via chip click without leaving command mode.
-  const showPromptRow = prompts.length > 0;
-
-  const slotPickerLabel = shownEntry ? shownEntry.label : basePrompt;
+  // Slot picker is ALWAYS rendered. The base/command slot is just
+  // the bottom of the stack — UI treats it identically to a prompt.
+  // Label = active slot's label (basePrompt for base; prompt
+  // question for a prompt). Click opens the dropdown to switch
+  // active slot.
+  const slotPickerLabel = activeEntry ? activeEntry.label : basePrompt;
+  const hasChips = activeEntry !== undefined && activeEntry.kind !== 'text';
+  const hasValidationError = activeEntry?.validationError !== undefined;
 
   return (
     <BarContainer $promptMode={promptMode}>
-      {showPromptRow ? (
-        <PromptRow>
+      {hasChips || hasValidationError ? (
+        <ChipsRow>
+          {hasChips ? activeChips : null}
+          {hasValidationError ? (
+            <ValidationMessage>
+              {activeEntry!.validationError}
+            </ValidationMessage>
+          ) : null}
+        </ChipsRow>
+      ) : null}
+
+      <InputRow $hasChips={hasChips || hasValidationError}>
+        <PickerAnchor>
           <SlotPicker
             $expanded={dropdownOpen}
-            $hasPrompts={prompts.length > 0}
-            onClick={() => {
-              if (prompts.length > 0) setDropdownOpen((v) => !v);
-            }}
-            aria-label="Open prompt slot picker"
+            $promptMode={promptMode}
+            onClick={() => setDropdownOpen((v) => !v)}
+            aria-label="Open slot picker"
           >
             <span>{dropdownOpen ? '▾' : '▸'}</span>
             <span>{slotPickerLabel}</span>
@@ -637,32 +675,6 @@ export function CommandBar({
               <StackBadge>⌃{prompts.length}</StackBadge>
             ) : null}
           </SlotPicker>
-
-          {shownEntry ? (
-            <XButton
-              onClick={() => onCancelPrompt(shownEntry.promptId)}
-              aria-label="Cancel this prompt"
-            >
-              X
-            </XButton>
-          ) : null}
-
-          {prompts.length > 1 ? (
-            <XButton
-              onClick={() => onSendCommand('prompt cancel')}
-              aria-label="Cancel every pending prompt"
-            >
-              cancel all
-            </XButton>
-          ) : null}
-
-          {!dropdownOpen ? shownChips : null}
-
-          {shownEntry?.validationError ? (
-            <ValidationMessage>
-              {shownEntry.validationError}
-            </ValidationMessage>
-          ) : null}
 
           {dropdownOpen ? (
             <SlotDropdown>
@@ -705,11 +717,26 @@ export function CommandBar({
               ))}
             </SlotDropdown>
           ) : null}
-        </PromptRow>
-      ) : null}
+        </PickerAnchor>
 
-      <InputRow>
-        <Sigil $promptMode={promptMode}>{sigilText}</Sigil>
+        {activeEntry ? (
+          <XButton
+            onClick={() => onCancelPrompt(activeEntry.promptId)}
+            aria-label="Cancel this prompt"
+          >
+            X
+          </XButton>
+        ) : null}
+
+        {prompts.length > 1 ? (
+          <XButton
+            onClick={() => onSendCommand('prompt cancel')}
+            aria-label="Cancel every pending prompt"
+          >
+            cancel all
+          </XButton>
+        ) : null}
+
         <Input
           value={inputValue}
           onChange={(e) => {
