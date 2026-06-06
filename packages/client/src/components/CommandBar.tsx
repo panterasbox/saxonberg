@@ -343,6 +343,16 @@ export function CommandBar({
       ? undefined
       : prompts.find((p) => p.promptId === activeSlot);
 
+  // The "shown" entry is what the slot-picker label + chips +
+  // X-cancel + validation error all render against. Decoupled from
+  // the typed-input routing (which `activeEntry` governs) so the
+  // player can be in command mode while a prompt's question stays
+  // visible and answerable via chip click. Falls back to the
+  // newest pending prompt when active is base; null when no prompts
+  // are pending at all.
+  const topPrompt: PromptEntry | undefined = prompts[prompts.length - 1];
+  const shownEntry: PromptEntry | undefined = activeEntry ?? topPrompt;
+
   const promptMode = activeEntry !== undefined;
   const sigilText = promptMode ? '?' : basePrompt;
 
@@ -521,17 +531,17 @@ export function CommandBar({
 
   /* --- Render helpers -------------------------------------------- */
 
-  const activeChips = useMemo(() => {
-    if (!activeEntry) return null;
-    switch (activeEntry.kind) {
+  const shownChips = useMemo(() => {
+    if (!shownEntry) return null;
+    switch (shownEntry.kind) {
       case 'choice':
         return (
           <ChipRow>
-            {activeEntry.choices.map((c) => (
+            {shownEntry.choices.map((c) => (
               <Chip
                 key={c.response}
-                $primary={c.response === activeEntry.defaultChoice}
-                onClick={() => handleChipSend(activeEntry, c.response)}
+                $primary={c.response === shownEntry.defaultChoice}
+                onClick={() => handleChipSend(shownEntry, c.response)}
               >
                 {c.label}
               </Chip>
@@ -539,18 +549,18 @@ export function CommandBar({
           </ChipRow>
         );
       case 'confirm': {
-        const yesPrimary = activeEntry.defaultAnswer === 'yes';
+        const yesPrimary = shownEntry.defaultAnswer === 'yes';
         return (
           <ChipRow>
             <Chip
               $primary={yesPrimary}
-              onClick={() => handleChipSend(activeEntry, 'yes')}
+              onClick={() => handleChipSend(shownEntry, 'yes')}
             >
               Yes
             </Chip>
             <Chip
               $primary={!yesPrimary}
-              onClick={() => handleChipSend(activeEntry, 'no')}
+              onClick={() => handleChipSend(shownEntry, 'no')}
             >
               No
             </Chip>
@@ -560,10 +570,10 @@ export function CommandBar({
       case 'mql-object':
         return (
           <ChipRow>
-            {activeEntry.matches.map((m) => (
+            {shownEntry.matches.map((m) => (
               <Chip
                 key={m.stuffId}
-                onClick={() => handleChipSend(activeEntry, m.stuffId)}
+                onClick={() => handleChipSend(shownEntry, m.stuffId)}
               >
                 {m.displayName}
               </Chip>
@@ -572,22 +582,22 @@ export function CommandBar({
         );
       case 'mql-many': {
         const sel =
-          mqlManySelection[activeEntry.promptId] ?? new Set<string>();
+          mqlManySelection[shownEntry.promptId] ?? new Set<string>();
         const bounds: string[] = [];
-        if (activeEntry.min !== undefined) bounds.push(`min ${activeEntry.min}`);
-        if (activeEntry.max !== undefined) bounds.push(`max ${activeEntry.max}`);
+        if (shownEntry.min !== undefined) bounds.push(`min ${shownEntry.min}`);
+        if (shownEntry.max !== undefined) bounds.push(`max ${shownEntry.max}`);
         return (
           <ChipRow>
-            {activeEntry.matches.map((m) => (
+            {shownEntry.matches.map((m) => (
               <Chip
                 key={m.stuffId}
                 $selected={sel.has(m.stuffId)}
-                onClick={() => handleMqlManyToggle(activeEntry, m.stuffId)}
+                onClick={() => handleMqlManyToggle(shownEntry, m.stuffId)}
               >
                 {m.displayName}
               </Chip>
             ))}
-            <Chip $primary onClick={() => handleMqlManySend(activeEntry)}>
+            <Chip $primary onClick={() => handleMqlManySend(shownEntry)}>
               Send{sel.size > 0 ? ` (${sel.size})` : ''}
               {bounds.length > 0 ? ` · ${bounds.join(' · ')}` : ''}
             </Chip>
@@ -598,11 +608,16 @@ export function CommandBar({
         // Text uses the input row; no chips.
         return null;
     }
-  }, [activeEntry, mqlManySelection]);
+  }, [shownEntry, mqlManySelection]);
 
-  const showPromptRow = activeEntry !== undefined || prompts.length > 0;
+  // Render the prompt row whenever any prompt is pending — even if
+  // the typed-input is bound to the base/command slot. The
+  // slot-picker label (and its X / chips / validation error) stays
+  // visible so the player always sees the pending question and can
+  // answer via chip click without leaving command mode.
+  const showPromptRow = prompts.length > 0;
 
-  const slotPickerLabel = slotLabelFor(activeSlot, basePrompt, activeEntry);
+  const slotPickerLabel = shownEntry ? shownEntry.label : basePrompt;
 
   return (
     <BarContainer $promptMode={promptMode}>
@@ -623,9 +638,9 @@ export function CommandBar({
             ) : null}
           </SlotPicker>
 
-          {activeEntry ? (
+          {shownEntry ? (
             <XButton
-              onClick={() => onCancelPrompt(activeEntry.promptId)}
+              onClick={() => onCancelPrompt(shownEntry.promptId)}
               aria-label="Cancel this prompt"
             >
               X
@@ -641,11 +656,11 @@ export function CommandBar({
             </XButton>
           ) : null}
 
-          {!dropdownOpen ? activeChips : null}
+          {!dropdownOpen ? shownChips : null}
 
-          {activeEntry?.validationError ? (
+          {shownEntry?.validationError ? (
             <ValidationMessage>
-              {activeEntry.validationError}
+              {shownEntry.validationError}
             </ValidationMessage>
           ) : null}
 

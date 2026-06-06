@@ -317,6 +317,75 @@ describe('CommandBar — submit per kind', () => {
   });
 });
 
+describe('CommandBar — shown-prompt-while-in-command-mode', () => {
+  beforeEach(() => {
+    resetStore();
+  });
+
+  it('slot picker shows the top prompt label even when active is base', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'mql-object',
+        promptId: 'p1',
+        label: 'Which target?',
+        matches: [
+          { stuffId: 'a', displayName: 'thermometer' },
+          { stuffId: 'b', displayName: 'altimeter' },
+        ],
+        foreground: true,
+      });
+      // Simulate the player picking the command slot from the
+      // dropdown — same store call the SlotRow click makes.
+      useStore.getState().setActiveSlot(BASE_SLOT);
+    });
+    // Slot picker still labels the prompt; input is back in command mode.
+    expect(screen.getByText('Which target?')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Enter command...')).toBeTruthy();
+  });
+
+  it('chip click answers the shown prompt even when active is base', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'choice',
+        promptId: 'p1',
+        label: 'Pick',
+        choices: [
+          { label: 'Apple', response: 'apple' },
+          { label: 'Pear', response: 'pear' },
+        ],
+        foreground: true,
+      });
+      useStore.getState().setActiveSlot(BASE_SLOT);
+    });
+    // Chips still render against the shown (top) prompt.
+    fireEvent.click(screen.getByText('Apple'));
+    expect(spies.onSendPromptResponse).toHaveBeenCalledWith('p1', 'apple');
+  });
+
+  it('typing a command while a prompt is pending leaves the prompt on the stack', () => {
+    const spies = makeSpies();
+    renderBar(spies, '');
+    act(() => {
+      pushPrompt({
+        kind: 'text',
+        promptId: 'p1',
+        label: 'Name?',
+        foreground: true,
+      });
+      useStore.getState().setActiveSlot(BASE_SLOT);
+    });
+    const cmdInput = screen.getByPlaceholderText('Enter command...');
+    fireEvent.keyDown(cmdInput, { key: 'Enter' });
+    expect(spies.onSendCommand).toHaveBeenCalled();
+    // Prompt still pending.
+    expect(useStore.getState().prompts).toHaveLength(1);
+  });
+});
+
 describe('CommandBar — meta affordances', () => {
   beforeEach(() => {
     resetStore();
