@@ -26,12 +26,6 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // must be live before any container can destruct — bootstrap
   // guarantees that.
   { templatePath: '/domain/void' },
-  // Topic catalogue singleton + every authored Topic descriptor
-  // under `/lib/messaging/Topic/`. The catalogue scans the
-  // descendants at lookup time; bootstrapping them up-front means
-  // the first session-establish hits a warm cache.
-  { templatePath: '/obj/TopicCatalogue' },
-  { templatePathPrefix: '/lib/messaging/Topic/' },
   // Species clades are NOT bootstrapped. `SpeciesApi.isAnimate` /
   // `getKingdom` are sync, and the `requiresAnimate` validator
   // ensures the relevant clade chain via its async `preload` hook

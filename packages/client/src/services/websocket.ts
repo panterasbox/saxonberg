@@ -102,13 +102,6 @@ class WebSocketClient {
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 2000;
   private topicHandlers: Map<string, FrameHandler[]> = new Map();
-  /**
-   * Catch-all frame handlers. Fired AFTER per-topic dispatch so
-   * existing per-topic call sites (inspection pane, prompt slice)
-   * keep working unmodified. The console-foundations frame store
-   * uses this single subscription to consume every inbound frame.
-   */
-  private anyTopicHandlers: Set<FrameHandler> = new Set();
   private envelopeHandlers: Map<Envelope['type'], EnvelopeHandler[]> = new Map();
 
   /**
@@ -153,10 +146,6 @@ class WebSocketClient {
         // reconnect feels seamless (the next dispatch refreshes the
         // base prompt anyway).
         useStore.getState().clearPrompts();
-        // Frames are session-scoped; drop the buffer so scrollback
-        // doesn't span a reconnect (welcome-scene-on-reconnect
-        // anchors the new session at the top).
-        useStore.getState().clearFrames();
 
         this.attemptReconnect();
       };
@@ -238,20 +227,6 @@ class WebSocketClient {
   }
 
   /**
-   * Persist a single `ClientStateMixin` key. Mirrors the generic
-   * wire path documented in the console-foundations plan: every
-   * feature's UI mutations (tab edits, theme changes, etc.) route
-   * through this single outbound message. The server validates the
-   * key against the aggregated `ClientStateMixin` schema chain.
-   */
-  public sendClientStateWrite(key: string, value: unknown): void {
-    this.send({
-      type: 'client-state-write',
-      payload: { key, value },
-    });
-  }
-
-  /**
    * Register a handler for a specific topic. The handler fires for
    * every frame whose `topic` matches exactly. (Prefix matching can
    * be added later if a use case demands it.)
@@ -268,20 +243,6 @@ class WebSocketClient {
     if (!handlers) return;
     const index = handlers.indexOf(handler);
     if (index !== -1) handlers.splice(index, 1);
-  }
-
-  /**
-   * Register a catch-all handler. The handler fires for every
-   * inbound `MessageFrame` AFTER any matching per-topic handlers
-   * have run, regardless of topic. Used by the console foundation's
-   * frame store so previously-unseen topics still reach the buffer.
-   */
-  public onAnyTopic(handler: FrameHandler): void {
-    this.anyTopicHandlers.add(handler);
-  }
-
-  public offAnyTopic(handler: FrameHandler): void {
-    this.anyTopicHandlers.delete(handler);
   }
 
   /**
@@ -369,12 +330,6 @@ class WebSocketClient {
         for (const handler of handlers) {
           handler(messageFrame);
         }
-      }
-
-      // Catch-all dispatch — fires regardless of topic, after the
-      // per-topic loop. Console foundation's frame store hooks here.
-      for (const handler of this.anyTopicHandlers) {
-        handler(messageFrame);
       }
     } catch (error) {
       console.error('WebSocketClient: Error handling message:', error);

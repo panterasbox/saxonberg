@@ -217,13 +217,6 @@ MessageApi.scene(speaker)
   ...
 ```
 
-The catalogue substrate that turns each topic string into a
-player-facing descriptor (friendly label, description, family for
-the cockpit's filter drawer, gutter tooltips, etc.) lives in
-[topics.md](./topics.md). `MessageApi.Topics` stays server-internal
-autocomplete; the catalogue is the source of truth for everything
-beyond the raw string.
-
 `MessageApi.Topics.system.log.root` (`'system.log'`) is the prefix used
 for "all log frames" matching; `system.log.command` is the
 framework-emitted **input-echo** topic (see "Input echo at

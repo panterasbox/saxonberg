@@ -533,21 +533,6 @@ export class PersistenceManager {
         { googleProfileId: 1 }
       );
 
-      // Domain: unique index on `path` — every Template doc carries a
-      // `path` field, and the seeder + boot-time clone pipeline both
-      // assume it is one document per path. Without this index,
-      // concurrent `SeederManager.run` invocations (e.g. two
-      // tsx-watch processes racing during dev) double-insert and
-      // `BootstrapManager.run` crashes with a duplicate-templatePath
-      // error on the next boot. `createIndex` is idempotent — same
-      // spec is a no-op; an existing duplicate throws E11000 here,
-      // which the outer catch logs without crashing the process,
-      // surfacing the admin-fixable condition.
-      await this.getCollection(Collections.Domain).createIndex(
-        { path: 1 },
-        { unique: true }
-      );
-
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
       console.error('PersistenceManager: Error creating indexes:', error);

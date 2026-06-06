@@ -295,19 +295,6 @@ inside the template handle the directional/bland split, so a single
 `arriveSelf` / `arrivePeers` key covers both cases. See
 [prose.md](./prose.md) for the templating language and helpers.
 
-## Not settings: client state
-
-`EnvironmentMixin` is for **player-tunable knobs** the player
-configures via the `settings` shell command. UI state the cockpit
-manages through its own gestures (tabs, theme, notification prefs,
-keybinds, saved MQL queries, …) lives on a separate substrate —
-`ClientStateMixin` — with its own wire path and its own
-schema-on-mixin contribution pattern. See
-[client-state.md](./client-state.md) for the contrast and the
-contribution shape. Per
-[[feedback-settings-vs-propertied-vs-client-state]], do not reach
-for the settings command surface to persist UI-driven state.
-
 ## Future neighbors
 
 Planned shell mixins not built today, but whose shape constrains

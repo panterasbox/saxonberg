@@ -819,36 +819,6 @@ export interface InteractiveData {
 }
 
 /**
- * Wire-safe descriptor for an authored message topic. The
- * `TopicCatalogue` snapshot ships an array of these on session-
- * establish; the client mirrors the same three-tier resolution
- * (cache hit → family-inherited → derived default) the server uses
- * so a frame on a previously-unknown topic still resolves to a
- * populated descriptor.
- */
-export interface TopicDescriptor {
-  /** Dotted topic path (e.g. `'world.speech.say'`). */
-  topic: string;
-  /** Dotted family prefix (e.g. `'world.speech'`); `''` at root. */
-  family: string;
-  /** Friendly display label. */
-  label: string;
-  /** Authored prose description. */
-  description: string;
-}
-
-/**
- * Shape of a single console tab in the cockpit's tabbed terminal.
- * Wire transport is `Record<string, unknown>` inside `clientState`;
- * this type keeps client + server aligned on the structure.
- */
-export interface ConsoleTab {
-  name: string;
-  /** Leaf topic strings the tab suppresses. */
-  muted: string[];
-}
-
-/**
  * Payload of the `system.connection.established` MessageFrame.
  * Server composes at connection-finalization; client stashes
  * `interactiveStuffId` as `selfInteractiveId` for own-echo
@@ -869,31 +839,6 @@ export interface ConnectionEstablishedPayload {
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
   };
-  /**
-   * Authored topic descriptors. The client caches this snapshot for
-   * the session; mid-session descriptor edits land at next login.
-   * Inherited / derived shapes are NOT in the snapshot — the client
-   * runs the same three-tier resolution against its cached snapshot.
-   */
-  topicCatalogue: TopicDescriptor[];
-  /**
-   * Client UI state persisted server-side (tabs, theme, notification
-   * prefs, etc.). Dense snapshot — schema-declared keys carry their
-   * stored value or their default. Keys are open enums declared by
-   * `ClientStateMixin`-contributing mixins on the holder.
-   */
-  clientState: Record<string, unknown>;
-}
-
-/**
- * Inbound client mutation of a `ClientStateMixin` key. The server
- * validates the key against the aggregated schema chain (rejects
- * unknown keys; runs the entry's optional validator), calls
- * `setClientState`, then `save()` to persist.
- */
-export interface ClientStateWriteMessage {
-  type: 'client-state-write';
-  payload: { key: string; value: unknown };
 }
 
 // ============================================================================

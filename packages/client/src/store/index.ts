@@ -19,12 +19,10 @@ import type {
   AuthState,
   ConnectionEstablishedPayload,
   ConnectionState,
-  ConsoleTab,
   MqlMatchSummary,
   PromptChoice,
   StuffDetailRecord,
   StuffRefRecord,
-  TopicDescriptor,
 } from '@saxonberg/types';
 
 /**
@@ -127,26 +125,6 @@ export interface StuffMetadata {
 }
 
 /**
- * One frame as the cockpit's tabbed terminal stores it. `id` is
- * the server's `MessageFrame.id`; `topic` is the raw dotted-path
- * string the wire carries; `body` is the rendered MML body the
- * Terminal pipes through `MmlRenderer`; `sigil` is the optional
- * echo-paired prompt sigil for command-echo frames (only set on
- * `system.log.command.{info|warn}` deliveries).
- *
- * Sigils are held alongside the body, NOT concatenated in — the
- * Terminal renderer is responsible for prefix-concatenation at
- * render time so topic-keyed rendering decisions see a clean body.
- */
-export interface Frame {
-  id: string;
-  topic: string;
-  body: string;
-  sigil?: string;
-  timestamp: number;
-}
-
-/**
  * Combined store state.
  */
 interface StoreState {
@@ -167,79 +145,6 @@ interface StoreState {
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
-
-  // Client state — server-persisted UI bag.
-  /**
-   * Cached snapshot of `_clientState` mirrored from the server on
-   * session-establish. Keyed by dotted-string (e.g. `'console.tabs'`,
-   * `'console.activeTab'`). The shape of each value is feature-defined
-   * — components read via typed selectors and cast.
-   *
-   * Mutations: feature actions (see `consoleActions` exports) call
-   * `setLocalClientState` for the optimistic local update and emit
-   * the wire write via `websocketClient.sendClientStateWrite`. The
-   * store layer stays pure state; the wire layer handles IO.
-   */
-  clientState: Record<string, unknown>;
-  /** Wholesale replace; called from session-establish. */
-  setClientStateSnapshot: (snapshot: Record<string, unknown>) => void;
-  /**
-   * Optimistic local update of one key. Pure state mutation — does
-   * NOT emit a wire write. Composed actions (e.g. `addTab`) call
-   * this AND `websocketClient.sendClientStateWrite`.
-   */
-  setLocalClientState: (key: string, value: unknown) => void;
-
-  // Frames — typed message-frame buffer feeding the Terminal.
-  /**
-   * Catch-all message log. Every `MessageFrame` the server emits to
-   * this client is appended here (regardless of topic). Tabs filter
-   * over this single array — they don't own their own histories.
-   */
-  frames: Frame[];
-  /** Append one frame; preserves arrival order. */
-  appendFrame: (frame: Frame) => void;
-  /** Empty the buffer; called on disconnect. */
-  clearFrames: () => void;
-
-  // Console session-scoped state — not persisted, cleared on disconnect.
-  /**
-   * Unread counter per tab name. Incremented in `appendFrame` for
-   * every frame matching an inactive tab's filter; cleared on tab
-   * switch. Keys are tab names; missing keys treated as 0.
-   */
-  unreadCounts: Record<string, number>;
-  /** Bump the counter for one tab by 1. */
-  incrementUnread: (tabName: string) => void;
-  /** Clear the counter for one tab (called on tab switch). */
-  clearUnreadFor: (tabName: string) => void;
-  /**
-   * Per-tab scroll position. Captured on the active tab's scroll
-   * events and restored on tab switch. Keys are tab names.
-   */
-  scrollPositions: Record<string, number>;
-  setScrollPosition: (tabName: string, offset: number) => void;
-  /**
-   * Per-topic count of frames the ACTIVE tab muted since the start
-   * of the session. Drives the filter-drawer badges (Phase 4).
-   */
-  mutedSinceSessionStart: Record<string, number>;
-
-  // Topic catalogue — session-wide cache of authored descriptors.
-  /**
-   * `Map<topic, TopicDescriptor>`. Wholesale replaced on every
-   * session-establish from `payload.topicCatalogue`. Lookups go
-   * through `getTopicDescriptor` — three-tier resolution
-   * (cache hit → family-inherited → derived default) mirroring the
-   * server's `TopicCatalogue.getDescriptor` so a frame on a
-   * previously-unknown topic still resolves to a populated
-   * descriptor.
-   */
-  topicCatalogue: Map<string, TopicDescriptor>;
-  /** Replace the cache wholesale. Called from session-establish. */
-  setTopicCatalogue: (records: TopicDescriptor[]) => void;
-  /** Resolve a topic via the three-tier chain. Always returns a value. */
-  getTopicDescriptor: (topic: string) => TopicDescriptor;
 
   // Stuff registry — session-wide metadata cache (no eviction in v1).
   /**
@@ -546,48 +451,6 @@ interface StoreState {
 const PANE_BREADCRUMB_CAP = 6;
 
 /**
- * Three-tier topic resolution mirroring
- * `TopicCatalogue.getDescriptor` on the server. Cache hit →
- * family-inherited (walk the dotted-path chain for the nearest
- * authored ancestor) → derived default (titlecased last segment,
- * `'(no description)'`). Always returns a populated descriptor.
- */
-function resolveTopicDescriptor(
-  cache: Map<string, TopicDescriptor>,
-  topic: string
-): TopicDescriptor {
-  const authored = cache.get(topic);
-  if (authored) return authored;
-  const segments = topic.split('.');
-  for (let i = segments.length - 1; i >= 1; i--) {
-    const ancestorPath = segments.slice(0, i).join('.');
-    const ancestor = cache.get(ancestorPath);
-    if (ancestor) {
-      const leaf = segments[segments.length - 1] ?? '';
-      return {
-        topic,
-        family: ancestorPath,
-        label: `${ancestor.label} (${titleCase(leaf)})`,
-        description: ancestor.description,
-      };
-    }
-  }
-  const leaf = segments[segments.length - 1] ?? topic;
-  const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';
-  return {
-    topic,
-    family,
-    label: titleCase(leaf),
-    description: '(no description)',
-  };
-}
-
-function titleCase(segment: string): string {
-  if (!segment) return segment;
-  return segment.charAt(0).toUpperCase() + segment.slice(1);
-}
-
-/**
  * Initial auth state.
  */
 const initialAuthState: AuthState = {
@@ -609,7 +472,7 @@ const initialConnectionState: ConnectionState = {
 /**
  * Zustand store.
  */
-export const useStore = create<StoreState>((set, get) => ({
+export const useStore = create<StoreState>((set) => ({
   // Auth state
   auth: initialAuthState,
 
@@ -632,11 +495,7 @@ export const useStore = create<StoreState>((set, get) => ({
       connection: { ...state.connection, ...connection },
     })),
 
-  setConnected: (payload) => {
-    const topicMap = new Map<string, TopicDescriptor>();
-    for (const d of payload.topicCatalogue ?? []) {
-      topicMap.set(d.topic, d);
-    }
+  setConnected: (payload) =>
     set({
       connection: {
         isConnected: true,
@@ -645,8 +504,6 @@ export const useStore = create<StoreState>((set, get) => ({
         error: null,
       },
       selfInteractiveId: payload.interactiveStuffId,
-      topicCatalogue: topicMap,
-      clientState: { ...(payload.clientState ?? {}) },
       auth: {
         isAuthenticated: true,
         user: {
@@ -664,8 +521,7 @@ export const useStore = create<StoreState>((set, get) => ({
         },
         player: payload.player,
       },
-    });
-  },
+    }),
 
   setDisconnected: (error) =>
     set({
@@ -902,106 +758,6 @@ export const useStore = create<StoreState>((set, get) => ({
       activeSlot: BASE_SLOT,
       echoSnapshotQueue: [],
     })),
-
-  // Client state slice
-  clientState: {},
-
-  setClientStateSnapshot: (snapshot) =>
-    set(() => ({ clientState: { ...snapshot } })),
-
-  setLocalClientState: (key, value) =>
-    set((state) => ({
-      clientState: { ...state.clientState, [key]: value },
-    })),
-
-  // Frames slice
-  frames: [],
-
-  appendFrame: (frame) =>
-    set((state) => {
-      const tabs =
-        (state.clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [];
-      const active =
-        (state.clientState['console.activeTab'] as string | undefined) ?? 'All';
-      let unreadCounts = state.unreadCounts;
-      let mutedSinceSessionStart = state.mutedSinceSessionStart;
-      let unreadChanged = false;
-      const nextUnread: Record<string, number> = { ...unreadCounts };
-      for (const tab of tabs) {
-        if (tab.name === active) continue;
-        if (tab.muted.includes(frame.topic)) continue;
-        const prev = nextUnread[tab.name] ?? 0;
-        nextUnread[tab.name] = prev + 1;
-        unreadChanged = true;
-      }
-      if (unreadChanged) unreadCounts = nextUnread;
-      // Track frames suppressed by the active tab's mute set.
-      const activeTab = tabs.find((t) => t.name === active);
-      if (activeTab && activeTab.muted.includes(frame.topic)) {
-        mutedSinceSessionStart = {
-          ...mutedSinceSessionStart,
-          [frame.topic]: (mutedSinceSessionStart[frame.topic] ?? 0) + 1,
-        };
-      }
-      return {
-        frames: [...state.frames, frame],
-        ...(unreadChanged ? { unreadCounts } : {}),
-        ...(mutedSinceSessionStart !== state.mutedSinceSessionStart
-          ? { mutedSinceSessionStart }
-          : {}),
-      };
-    }),
-
-  clearFrames: () =>
-    set((state) =>
-      state.frames.length === 0 &&
-      Object.keys(state.unreadCounts).length === 0 &&
-      Object.keys(state.mutedSinceSessionStart).length === 0
-        ? {}
-        : {
-            frames: [],
-            unreadCounts: {},
-            mutedSinceSessionStart: {},
-          },
-    ),
-
-  unreadCounts: {},
-  incrementUnread: (tabName) =>
-    set((state) => ({
-      unreadCounts: {
-        ...state.unreadCounts,
-        [tabName]: (state.unreadCounts[tabName] ?? 0) + 1,
-      },
-    })),
-  clearUnreadFor: (tabName) =>
-    set((state) => {
-      if (!(tabName in state.unreadCounts)) return {};
-      const { [tabName]: _drop, ...rest } = state.unreadCounts;
-      return { unreadCounts: rest };
-    }),
-
-  scrollPositions: {},
-  setScrollPosition: (tabName, offset) =>
-    set((state) => ({
-      scrollPositions: { ...state.scrollPositions, [tabName]: offset },
-    })),
-
-  mutedSinceSessionStart: {},
-
-  // Topic catalogue slice
-  topicCatalogue: new Map<string, TopicDescriptor>(),
-
-  setTopicCatalogue: (records) =>
-    set(() => {
-      const map = new Map<string, TopicDescriptor>();
-      for (const d of records) {
-        map.set(d.topic, d);
-      }
-      return { topicCatalogue: map };
-    }),
-
-  getTopicDescriptor: (topic) =>
-    resolveTopicDescriptor(get().topicCatalogue, topic),
 
   // Stuff registry slice
   stuffRegistry: new Map<string, StuffMetadata>(),

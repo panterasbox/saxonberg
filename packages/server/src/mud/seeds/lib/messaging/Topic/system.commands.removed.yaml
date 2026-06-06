@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: system.commands.removed
-  family: system.commands
-  label: Removed
-  description: Verbs have been retired from this client's command schema.

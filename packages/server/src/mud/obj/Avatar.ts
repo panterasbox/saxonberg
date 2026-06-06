@@ -30,8 +30,6 @@ import {
 } from '../lib/shell/Environment';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { ClientStateMixin } from '../lib/client/ClientState';
-import { ConsoleClientStateMixin } from '../lib/client/ConsoleClientState';
 import { Events } from '../lib/events';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Location } from '../lib/stuff/Location';
@@ -46,7 +44,6 @@ import type {
 import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
 import type { Interactive } from './Interactive';
-import type { TopicCatalogue } from './TopicCatalogue';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -60,11 +57,7 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(
-    ConsoleClientStateMixin(ClientStateMixin(ShelledCharacter)),
-  ),
-);
+const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(ShelledCharacter));
 
 export class Avatar extends AvatarBase {
   /**
@@ -255,8 +248,6 @@ export class Avatar extends AvatarBase {
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
-    const catalogue =
-      StuffApi.findByTemplatePath<TopicCatalogue>('/obj/TopicCatalogue');
     const payload: ConnectionEstablishedPayload = {
       userId: interactive.getUserId() ?? '',
       socketId: interactive.getSocketId(),
@@ -271,8 +262,6 @@ export class Avatar extends AvatarBase {
         alternateNames: this.getAlternateNames(),
         pronouns: this.getPronouns(),
       },
-      topicCatalogue: catalogue?.getSnapshot() ?? [],
-      clientState: this.snapshotClientState(),
     };
     MessageApi.scene(this)
       .topic(MessageApi.Topics.system.connection.established)
