@@ -7,22 +7,24 @@ proxy wrapping, and a post-registration hook — the same plumbing every
 game-world object goes through.
 
 This is one of two persistence tracks. Auth/meta records (User,
-GoogleProfile) extend `Persistable` and live as plain MongoDB documents;
+GoogleProfile) extend `Document` and live as plain MongoDB documents;
 those are covered in [persistence.md](./persistence.md). Templates cover
 everything in the game world.
 
 ## The Template Class
 
-Templates are modelled as a `Persistable` subclass — like `User` and
-`GoogleProfile`, a Template is a record, not a game-world entity.
-`Template` itself is **abstract**; concrete subclasses (`ZoneTemplate`,
-`LeafTemplate`) are returned by `Template.findByPath` based on
+Templates are modelled as a `Document` subclass — like `User` and
+`GoogleProfile`, a Template is a record (plain persisted data, **not** a
+Stuff), not a game-world entity. It is the data a game-world Stuff is
+*cloned from*, never a live entity itself. `Template` itself is
+**abstract**; concrete subclasses (`ZoneTemplate`, `LeafTemplate`) are
+returned by `Template.findByPath` based on
 `ZoneApi.isFolderClass(doc.class)` — a structural check
 (`prototype instanceof Zone`) rather than a central allow-list. The
 base lives at `lib/stuff/Template.ts`:
 
 ```typescript
-abstract class Template extends Persistable {
+abstract class Template extends Document {
   static collectionName = 'domain';
   static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
 
@@ -47,15 +49,16 @@ shape without needing to sniff `class`. The split is the primary
 expression of the folder/leaf invariant; the `DomainHook` that fires
 on save/delete is defense-in-depth at the persistence chokepoint.
 
-`Persistable.findById<T>` is still available on the concrete subclasses
+`Document.findById<T>` is still available on the concrete subclasses
 (`LeafTemplate.findById(id)` works); on the abstract base it's a
 compile-time error because `new Template()` isn't legal — that's by
 design and is the reason `loadById` is a separate method on
-`Template`.
+`Template`. `_materialize` constructs the chosen subclass with a plain
+`new` (a Template is a `Document`, not a registered Stuff).
 
-CRUD goes through the inherited `Persistable` surface
+CRUD goes through the inherited `Document` surface
 (`save`/`delete`/`findById`/`find`) plus the helpers above. See
-[persistence.md](./persistence.md) for the `Persistable` contract.
+[persistence.md](./persistence.md) for the `Document` contract.
 
 - `path` is the canonical identifier — clones happen by path. Folder/leaf
   invariants (below) constrain paths.
@@ -411,7 +414,7 @@ persistentFields walk + an extra Mongo write at the periodic
 cadence) is negligible.
 
 v1 consumer surface: `Avatar.save()` / `Avatar.restore()` are
-two-line shims over these methods. No `PersistableStuffMixin`; no
+two-line shims over these methods. No general persist-back mixin; no
 generalization to arbitrary Stuff — but the substrate is
 class-shape-agnostic so the next consumer doesn't repeat the
 mechanism inline.
@@ -482,7 +485,7 @@ per-instance Stuff (avatars, items, NPCs) that should multiply.
 - [lifecycle.md](./lifecycle.md) — full create → register → hydrate →
   postRegister → destroy lifecycle, construction sentinel, prepareDestroy
   hook
-- [persistence.md](./persistence.md) — `Persistable`, around-save/delete
+- [persistence.md](./persistence.md) — `Document`, around-save/delete
   hooks (the mechanism `DomainHook` rides on)
 - [call-security.md](./call-security.md) — `ProxyApi.wrap`,
   `ExecutionContextApi.run`, `FrameKind.Constructor`,

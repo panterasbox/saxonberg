@@ -145,8 +145,8 @@ args:
 `);
       const parsed = CommandLineApi.parsePipeline('compose somevalue').commands[0]!;
       const r = CommandApi.assemble(parsed, def, ctx);
-      if (!('error' in r)) {
-        throw new Error(`expected error, got ${JSON.stringify(r)}`);
+      if (!('error' in r) || !('summary' in r)) {
+        throw new Error(`expected a summary-bearing error, got ${JSON.stringify(r)}`);
       }
       expect(r.summary).toMatch(/structured input/i);
     });
@@ -163,8 +163,8 @@ args:
 `);
       const parsed = CommandLineApi.parsePipeline('compose').commands[0]!;
       const r = CommandApi.assemble(parsed, def, ctx);
-      if (!('error' in r)) {
-        throw new Error(`expected error, got ${JSON.stringify(r)}`);
+      if (!('error' in r) || !('summary' in r)) {
+        throw new Error(`expected a summary-bearing error, got ${JSON.stringify(r)}`);
       }
       expect(r.summary).toMatch(/structured input/i);
     });
@@ -216,8 +216,8 @@ options:
       const def = defOf(yaml);
       const parsed = CommandLineApi.parsePipeline('render --data=foo').commands[0]!;
       const r = CommandApi.assemble(parsed, def, ctx);
-      if (!('error' in r)) {
-        throw new Error(`expected error, got ${JSON.stringify(r)}`);
+      if (!('error' in r) || !('summary' in r)) {
+        throw new Error(`expected a summary-bearing error, got ${JSON.stringify(r)}`);
       }
       expect(r.summary).toMatch(/structured input/i);
     });

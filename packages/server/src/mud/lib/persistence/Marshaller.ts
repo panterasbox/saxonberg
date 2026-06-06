@@ -35,8 +35,8 @@
  *     `static fieldMarshallers: Record<fieldName, marshallerTemplatePath>`.
  *   - `MixinApi.getAllFieldMarshallers(constructor)` walks the
  *     prototype chain collecting these maps (subclass-wins).
- *   - `PersistentHydrator.hydrate` and `Persistable.toDocument` /
- *     `Persistable.fromDocument` look up the marshaller for each
+ *   - `PersistentHydrator.hydrate` and `Document.toDocument` /
+ *     `Document.fromDocument` look up the marshaller for each
  *     field and apply `fromStored` / `toStored` around the
  *     bracket-assign / bracket-read.
  *
@@ -54,7 +54,7 @@ export abstract class Marshaller<TRuntime, TStored> extends Idea {
   /**
    * Convert raw stored persistence shape into a runtime value object.
    * Called by `PersistentHydrator.hydrate` and
-   * `Persistable.fromDocument` before bracket-assigning into the
+   * `Document.fromDocument` before bracket-assigning into the
    * target — the strict mixin setter sees the runtime type, not
    * the raw shape.
    */
@@ -62,7 +62,7 @@ export abstract class Marshaller<TRuntime, TStored> extends Idea {
 
   /**
    * Convert a runtime value object into the stored persistence
-   * shape. Called by `Persistable.toDocument` before writing into
+   * shape. Called by `Document.toDocument` before writing into
    * the doc.
    */
   public abstract toStored(runtime: TRuntime): TStored;

@@ -1,26 +1,25 @@
 /**
- * Persistable tests — CRUD surface on Stuff.
+ * Document tests — CRUD surface on a plain (non-Stuff) record.
  *
- * The interesting logic lives in `toDocument` / `fromDocument` /
- * `save` / `delete` / `findById` / `find`. PersistenceManager calls are
- * stubbed with hand-built fakes (matches the existing
- * `PersistenceManager.hooks.test.ts` pattern); no MongoDB / no
- * mongodb-memory-server.
+ * The interesting logic lives in `toDocument` / `fromDocument` / `save` /
+ * `delete` / `findById` / `find`. PersistenceManager calls are stubbed with
+ * hand-built fakes (matches the existing `PersistenceManager.hooks.test.ts`
+ * pattern); no MongoDB / no mongodb-memory-server. Documents are plain
+ * objects — constructed with `new`, never registered with StuffApi.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Persistable } from '../Persistable';
+import { Document } from '../Document';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
-import { StuffApi } from '../../../api/stuff';
 
-class Widget extends Persistable {
+class Widget extends Document {
   static collectionName = 'widgets';
   static persistentFields = ['name', 'count'];
   name: string = '';
   count: number = 0;
 }
 
-class NamelessWidget extends Persistable {
+class NamelessWidget extends Document {
   // Deliberately no collectionName set.
   static persistentFields: string[] = [];
 }
@@ -73,7 +72,7 @@ function stubPM(): PMStubs {
   };
 }
 
-describe('Persistable', () => {
+describe('Document', () => {
   let pm: PMStubs;
 
   beforeEach(() => {
@@ -83,31 +82,30 @@ describe('Persistable', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    StuffApi.clearAll();
   });
 
   describe('construction', () => {
-    it('initializes createdAt and updatedAt', async () => {
-      const w = await StuffApi.create(() => new Widget());
+    it('initializes createdAt and updatedAt', () => {
+      const w = new Widget();
       expect(w.createdAt).toBeInstanceOf(Date);
       expect(w.updatedAt).toBeInstanceOf(Date);
     });
 
-    it('_id is undefined until saved', async () => {
-      const w = await StuffApi.create(() => new Widget());
+    it('_id is undefined until saved', () => {
+      const w = new Widget();
       expect(w._id).toBeUndefined();
     });
 
-    it('is a registered Stuff with a stuffId', async () => {
-      const w = await StuffApi.create(() => new Widget());
-      expect(typeof w.stuffId).toBe('string');
-      expect(w.stuffId.length).toBeGreaterThan(0);
+    it('is a plain object, not a registered Stuff (no stuffId)', () => {
+      const w = new Widget();
+      expect((w as unknown as { stuffId?: unknown }).stuffId).toBeUndefined();
+      expect(w).toBeInstanceOf(Document);
     });
   });
 
   describe('save()', () => {
     it('writes the doc through PersistenceManager.save and stamps _id', async () => {
-      const w = await StuffApi.create(() => new Widget());
+      const w = new Widget();
       w.name = 'Alice';
       w.count = 3;
 
@@ -122,27 +120,23 @@ describe('Persistable', () => {
     });
 
     it('updates updatedAt on each save', async () => {
-      const w = await StuffApi.create(() => new Widget());
+      const w = new Widget();
       const t0 = w.updatedAt.getTime();
-      // Tick the clock by waiting one event loop turn so the date is distinct.
       await new Promise((r) => setTimeout(r, 5));
       await w.save();
       expect(w.updatedAt.getTime()).toBeGreaterThan(t0);
     });
 
     it('only stamps _id once — subsequent saves reuse the original id', async () => {
-      const w = await StuffApi.create(() => new Widget());
+      const w = new Widget();
       await w.save();
       const firstId = w._id;
       await w.save();
       expect(w._id).toBe(firstId);
     });
 
-    it('omits unset persistent fields when they are not own properties', async () => {
-      const w = await StuffApi.create(() => new Widget());
-      // The class declares `name = '' / count = 0` so they always exist
-      // as own properties. Pin this default-shape behavior so any future
-      // change to the field defaults is intentional.
+    it('writes the declared persistent fields plus timestamps', async () => {
+      const w = new Widget();
       await w.save();
       const doc = pm.saves[0]!.doc as Record<string, unknown>;
       expect(doc).toHaveProperty('name', '');
@@ -152,33 +146,29 @@ describe('Persistable', () => {
     });
 
     it('preserves _id on save when already set', async () => {
-      const w = await StuffApi.create(() => new Widget());
+      const w = new Widget();
       w._id = 'existing-id';
       await w.save();
-      // PM.save's stub returns 'inserted-id', but Persistable.save() only
-      // applies that on first save when _id was unset — the existing
-      // value should win.
       expect(w._id).toBe('existing-id');
     });
 
     it('throws when collectionName is undefined', async () => {
-      const w = await StuffApi.create(() => new NamelessWidget());
+      const w = new NamelessWidget();
       await expect(w.save()).rejects.toThrow(/collectionName not defined/);
     });
   });
 
   describe('delete()', () => {
     it('throws if called on an unsaved object', async () => {
-      const w = await StuffApi.create(() => new Widget());
+      const w = new Widget();
       await expect(w.delete()).rejects.toThrow(/Cannot delete unsaved/);
     });
 
-    it('routes through PersistenceManager.delete and destructs the Stuff', async () => {
-      const w = await StuffApi.create(() => new Widget());
+    it('routes through PersistenceManager.delete (no destruct cascade)', async () => {
+      const w = new Widget();
       w._id = 'abc';
       await w.delete();
       expect(pm.deletes).toEqual([{ collection: 'widgets', id: 'abc' }]);
-      expect(w.isDestroyed()).toBe(true);
     });
   });
 
@@ -190,7 +180,7 @@ describe('Persistable', () => {
       expect(pm.findByIds).toEqual([{ collection: 'widgets', id: 'missing' }]);
     });
 
-    it('constructs a registered Stuff and hydrates from the doc', async () => {
+    it('constructs a plain instance and hydrates from the doc', async () => {
       pm.setFindByIdResult({
         _id: 'abc',
         name: 'Loaded',
@@ -200,12 +190,23 @@ describe('Persistable', () => {
       });
       const found = await Widget.findById('abc');
       expect(found).not.toBeNull();
+      expect(found).toBeInstanceOf(Widget);
       expect(found!._id).toBe('abc');
       expect(found!.name).toBe('Loaded');
       expect(found!.count).toBe(9);
       expect(found!.createdAt).toEqual(new Date('2024-01-01'));
       expect(found!.updatedAt).toEqual(new Date('2024-01-02'));
-      expect(typeof found!.stuffId).toBe('string');
+      expect((found as unknown as { stuffId?: unknown }).stuffId).toBeUndefined();
+    });
+
+    it('is value-like: two lookups of the same id return distinct instances', async () => {
+      pm.setFindByIdResult({ _id: 'abc', name: 'X', count: 1 });
+      const a = await Widget.findById('abc');
+      const b = await Widget.findById('abc');
+      expect(a).not.toBeNull();
+      expect(b).not.toBeNull();
+      expect(a).not.toBe(b);
+      expect(a!._id).toBe(b!._id);
     });
 
     it('skips doc fields that are not in persistentFields', async () => {
@@ -217,12 +218,14 @@ describe('Persistable', () => {
       });
       const found = await Widget.findById('abc');
       expect(found).not.toBeNull();
-      expect((found as unknown as Record<string, unknown>).injected).toBeUndefined();
+      expect(
+        (found as unknown as Record<string, unknown>).injected
+      ).toBeUndefined();
     });
 
     it('throws when collectionName is undefined', async () => {
       await expect(NamelessWidget.findById('id')).rejects.toThrow(
-        /collectionName not defined/,
+        /collectionName not defined/
       );
     });
   });
@@ -237,7 +240,7 @@ describe('Persistable', () => {
       ]);
     });
 
-    it('constructs one Stuff per doc and hydrates each', async () => {
+    it('constructs one instance per doc and hydrates each', async () => {
       pm.setFindResult([
         { _id: 'a', name: 'A', count: 1 },
         { _id: 'b', name: 'B', count: 2 },
@@ -252,19 +255,44 @@ describe('Persistable', () => {
 
     it('throws when collectionName is undefined', async () => {
       await expect(NamelessWidget.find({})).rejects.toThrow(
-        /collectionName not defined/,
+        /collectionName not defined/
       );
     });
   });
 
+  describe('round-trip (stored-shape parity)', () => {
+    it('fromDocument(toDocument(x)) preserves the declared fields', () => {
+      const w = new Widget();
+      w._id = 'rt';
+      w.name = 'RoundTrip';
+      w.count = 42;
+      const stored = (
+        w as unknown as { toDocument(): Record<string, unknown> }
+      ).toDocument();
+      // Stored shape carries declared fields + timestamps + _id, nothing else
+      // (notably no stuffId).
+      expect(Object.keys(stored).sort()).toEqual(
+        ['_id', 'count', 'createdAt', 'name', 'updatedAt'].sort()
+      );
+
+      const reloaded = new Widget();
+      (
+        reloaded as unknown as { fromDocument(d: Record<string, unknown>): void }
+      ).fromDocument(stored);
+      expect(reloaded._id).toBe('rt');
+      expect(reloaded.name).toBe('RoundTrip');
+      expect(reloaded.count).toBe(42);
+    });
+  });
+
   describe('toString()', () => {
-    it('renders an unsaved instance with "(unsaved)"', async () => {
-      const w = await StuffApi.create(() => new Widget());
+    it('renders an unsaved instance with "(unsaved)"', () => {
+      const w = new Widget();
       expect(w.toString()).toBe('[Widget (unsaved)]');
     });
 
-    it('renders a saved instance with its _id', async () => {
-      const w = await StuffApi.create(() => new Widget());
+    it('renders a saved instance with its _id', () => {
+      const w = new Widget();
       w._id = 'xyz';
       expect(w.toString()).toBe('[Widget xyz]');
     });

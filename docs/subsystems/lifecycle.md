@@ -439,9 +439,10 @@ re-open the bypass the sentinel exists to close.
 
 Today, lifecycle is fully manual: every `Stuff` lives in `StuffApi`'s
 registry until something explicitly calls `StuffApi.destruct(obj)`. For
-long-running processes — especially after the Persistable refactor,
-where loaded `User`s, `Template`s, and `GoogleProfile`s now register
-and stay alive — this can grow the registry indefinitely.
+long-running processes this can grow the registry over time. (Note:
+auth/CMS records — `User`, `Template`, `GoogleProfile` — are `Document`s,
+**not** Stuff, so they are *not* registered and don't contribute to this
+growth; loaded Documents are plain objects that GC normally.)
 
 We want a mechanism by which Stuff can clean themselves up if they
 haven't been accessed in a while. Open questions before this can be
@@ -466,8 +467,8 @@ Deferred — needs design discussion before implementing. See also
 - [templates.md](./templates.md) — clone pipeline, `Hydrator`,
   `PostRegistrationMixin`, the context bag, `TemplateApi`, the
   folder/leaf invariant
-- [persistence.md](./persistence.md) — `Persistable` track (auth/meta
-  records do NOT have this lifecycle), around-save/delete hooks
+- [persistence.md](./persistence.md) — the `Document` track (auth/meta
+  records are not Stuff and have no lifecycle), around-save/delete hooks
 - [call-security.md](./call-security.md) — `@Final`, `@Unshadowable`,
   `@CallSecurity(ApiOnly)` decorators; `ProxyApi.wrap`;
   `ExecutionContextApi.run`; `FrameKind`; how `destroy()` is locked

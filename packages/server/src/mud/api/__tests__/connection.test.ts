@@ -16,7 +16,7 @@ import { PlayerApi } from '../player';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(): User {
-  return makeStuff(() => new User());
+  return new User();
 }
 
 function makeAvatar(playerId: string): Avatar {

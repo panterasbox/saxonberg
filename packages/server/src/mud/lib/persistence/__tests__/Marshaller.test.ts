@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Marshaller } from '../Marshaller';
 import { Idea } from '../../stuff/Idea';
-import { Persistable } from '../Persistable';
+import { Document, setDocumentMarshallerResolver } from '../Document';
 import { PersistentHydrator } from '../PersistentHydrator';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -105,7 +105,7 @@ function WalletMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 class TestWallet extends WalletMixin(Idea) {}
 
-class TestPersistableWallet extends WalletMixin(Persistable) {
+class TestDocumentWallet extends WalletMixin(Document) {
   static collectionName = 'test_wallets';
 }
 
@@ -116,6 +116,13 @@ describe('Marshaller framework', () => {
     registerMarshaller(
       () => new MoneyBagMarshaller(),
       MoneyBagMarshaller.templatePath
+    );
+    // Wire the Document marshaller-resolution seam to the Stuff registry
+    // (production wires this at boot in AppBootstrap). Without it the
+    // Document toDocument/fromDocument path throws "resolver not wired".
+    setDocumentMarshallerResolver(
+      (path) => StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(path),
+      (path) => StuffApi.singleton<Marshaller<unknown, unknown>>(path)
     );
   });
 
@@ -182,9 +189,9 @@ describe('Marshaller framework', () => {
     });
   });
 
-  describe('Persistable toDocument / fromDocument round-trip', () => {
+  describe('Document toDocument / fromDocument round-trip', () => {
     it('toDocument calls marshaller.toStored on the wallet field', () => {
-      const w = makeStuff(() => new TestPersistableWallet());
+      const w = new TestDocumentWallet();
       w.setWallet(MoneyBag.of({ USD: 100, EUR: 50 }));
       const doc = (
         w as unknown as { toDocument(): Record<string, unknown> }
@@ -196,7 +203,7 @@ describe('Marshaller framework', () => {
     });
 
     it('fromDocument calls marshaller.fromStored on the wallet field', () => {
-      const w = makeStuff(() => new TestPersistableWallet());
+      const w = new TestDocumentWallet();
       (
         w as unknown as { fromDocument(doc: Record<string, unknown>): void }
       ).fromDocument({ wallet: { USD: 200 } });
@@ -206,13 +213,13 @@ describe('Marshaller framework', () => {
     });
 
     it('round-trips a wallet through the persistence path', () => {
-      const w1 = makeStuff(() => new TestPersistableWallet());
+      const w1 = new TestDocumentWallet();
       w1.setWallet(MoneyBag.of({ USD: 100, EUR: 50, GBP: 25 }));
       const doc = (
         w1 as unknown as { toDocument(): Record<string, unknown> }
       ).toDocument();
 
-      const w2 = makeStuff(() => new TestPersistableWallet());
+      const w2 = new TestDocumentWallet();
       (
         w2 as unknown as { fromDocument(doc: Record<string, unknown>): void }
       ).fromDocument(doc);

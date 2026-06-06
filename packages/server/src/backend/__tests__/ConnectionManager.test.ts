@@ -52,7 +52,7 @@ function stubLifecycle(): {
 
 describe('ConnectionManager', () => {
   let cm: ConnectionManager;
-  let tally: { creates: number; destructs: Interactive[] };
+  let tally: ReturnType<typeof stubLifecycle>;
 
   beforeEach(() => {
     vi.restoreAllMocks();

@@ -365,7 +365,7 @@ describe('StuffApi', () => {
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
           if (path === '/lib/persistence/PersistentHydrator') {
-            const t = await StuffApi.create(() => new LeafTemplate());
+            const t = new LeafTemplate();
             t.path = path;
             t.class = '/lib/persistence/PersistentHydrator';
             t.hydratorClass = '/lib/persistence/PersistentHydrator';

@@ -82,8 +82,8 @@ cadence of the Avatar persist-back periodic backstop. The autosave
 concept is owned by the Avatar lifecycle substrate; declaring on the
 substrate class keeps "the concept's owner declares it" intact
 without inventing a one-off mixin. When a second persist-back
-consumer materializes (a future `PersistableStuffMixin`-style
-build), the setting moves to that mixin and Avatar composes it —
+consumer materializes (a future persistence/persist-back mixin),
+the setting moves to that mixin and Avatar composes it —
 same shape, different layer.
 
 ### Lookup chain

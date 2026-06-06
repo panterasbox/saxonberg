@@ -25,7 +25,7 @@ import { Property, type PropValue } from '../../lib/stuff/Propertied';
 async function bootstrapEventRegistry(): Promise<EventRegistry> {
   vi.spyOn(Template, 'findByPath').mockImplementation(async (path: string) => {
     if (path === '/obj/EventRegistry') {
-      const t = await StuffApi.create(() => new LeafTemplate());
+      const t = new LeafTemplate();
       t.path = path;
       t.class = '/obj/EventRegistry';
       t.hydratorClass = '/lib/persistence/PersistentHydrator';
@@ -33,7 +33,7 @@ async function bootstrapEventRegistry(): Promise<EventRegistry> {
       return t;
     }
     if (path === '/lib/persistence/PersistentHydrator') {
-      const t = await StuffApi.create(() => new LeafTemplate());
+      const t = new LeafTemplate();
       t.path = path;
       t.class = '/lib/persistence/PersistentHydrator';
       t.data = {};

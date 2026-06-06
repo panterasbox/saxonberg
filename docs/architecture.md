@@ -316,7 +316,7 @@ runtime call still resolves.
 ### Top-level branches
 
 Every concrete `Stuff` subclass MUST extend through exactly one of
-seven top-level branches, each capturing a distinct role:
+six top-level branches, each capturing a distinct role:
 
 ```
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
@@ -325,22 +325,27 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Location      stationary place
   ├── Vessel        mobile place (Container + Containable)
   ├── Agent         sentient/active actor (Character → Avatar)
-  ├── Persistable   MongoDB-backed record (User, GoogleProfile, Template)
   └── Shadow        function-shadowing host — see call-security.md
 ```
 
-Each branch lives in `lib/stuff/` (except `Persistable`, which lives
-in `lib/persistence/`) and registers itself with `Stuff` at module
-load via `Stuff._registerTopLevelBranch(BranchClass)`. The
-registration is gated by a URL allowlist on `Stuff` — only those
-seven files may register, so the branch set can't be silently
-extended from a subclass or a third-party file.
+Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
+module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
+registration is gated by a URL allowlist on `Stuff` — only those six
+files may register, so the branch set can't be silently extended from
+a subclass or a third-party file.
 
 `Stuff`'s constructor walks the prototype chain at instance-creation
 time and throws if no registered branch is found. Class-time work is
 done once per class (cached); the per-instance cost is a single
-WeakSet lookup. The error message lists the seven branches and
+WeakSet lookup. The error message lists the six branches and
 points readers here.
+
+> **Not a branch: `Document`.** Plain MongoDB-backed records (`User`,
+> `GoogleProfile`, `Template`) extend `Document` (`lib/persistence/`),
+> which is **not** in the Stuff hierarchy at all — no proxy, no
+> registry, no lifecycle. A `Document` is value-like persisted state; a
+> `Stuff` is an identity-like live entity *hydrated from* a Document.
+> See [persistence.md](./subsystems/persistence.md).
 
 ### Why the invariant
 
@@ -355,11 +360,13 @@ points readers here.
   (false — you can't pocket a ship); putting it under `Location`
   would say "locations don't move" (false for vessels). It's its own
   role.
-- **Persistable as its own branch.** Auth/CMS records are Stuff in
-  every framework respect (registered, proxy-wrapped, destructed)
-  but they're not in-world. Keeping them as a sibling branch rather
-  than a sub-tree of Idea matches that distinction and leaves room
-  to revisit later if the mental model converges.
+- **Persisted records are NOT a branch.** Auth/CMS records (`User`,
+  `GoogleProfile`, `Template`) are plain `Document`s, outside the Stuff
+  hierarchy entirely — they only need to persist, not to participate in
+  the world's method/event/shadow/perception machinery, so they don't
+  pay the proxy/registry/lifecycle cost. (An earlier design made them a
+  `Persistable extends Idea` branch; that's been retired — see
+  [persistence.md](./subsystems/persistence.md).)
 
 ### What each branch composes
 
@@ -370,13 +377,13 @@ points readers here.
 | `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
 | `Vessel` | `ContainerMixin(ContainableMixin(Stuff))` | Both Container AND Containable. `ExitableVessel` etc. layer on navigation. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
-| `Persistable` | `Stuff` | Adds `save` / `delete` / `findById` / `find`. Records (User, GoogleProfile, Template) extend Persistable. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
-`Persistable` sits on `Stuff` directly (sibling of the in-world
-branches). Records under it are loaded via `findById` / `find` rather
-than the template/clone/hydrate pipeline; otherwise they're Stuff
-like anything else. See
+Persisted records (`User`, `GoogleProfile`, `Template`) are **not**
+Stuff — they extend the standalone `Document` base
+(`lib/persistence/`), loaded via `findById` / `find` rather than the
+template/clone/hydrate pipeline, with none of the proxy/registry/
+lifecycle machinery. See
 [subsystems/persistence.md](./subsystems/persistence.md).
 
 ## Mixin Organization
@@ -616,12 +623,13 @@ say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
 - **Subsystem docs** (the load-bearing details):
   - [templates.md](./subsystems/templates.md) — clone pipeline,
     Hydrator, TemplateApi, folder/leaf invariant
-  - [persistence.md](./subsystems/persistence.md) — Persistable,
+  - [persistence.md](./subsystems/persistence.md) — the `Document` base
+    (plain records, not Stuff) vs Templates→Stuff,
     PersistenceManager, around-hooks
   - [lifecycle.md](./subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./subsystems/state-model.md) — what gets
-    persisted, Avatar self-contained, Persistable in the Idea hierarchy
+    persisted, Avatar self-contained, the `Document` track for records
   - [messaging.md](./subsystems/messaging.md) — MML, Scene composer,
     sensor routing, movement-message defaults
   - [shell-environment.md](./subsystems/shell-environment.md) —

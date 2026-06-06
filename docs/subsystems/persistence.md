@@ -1,38 +1,49 @@
 # Persistence
 
-Saxonberg persistence runs on **two tracks**, both rooted in `Idea`:
+Saxonberg persistence runs on **two tracks**, split by *what the thing
+is*:
 
-1. **`Persistable`** — auth/meta records (`User`, `GoogleProfile`) and
-   CMS assets (`Template`). An Idea-rooted base that adds an explicit
+1. **`Document`** — plain MongoDB-backed records: auth/meta data
+   (`User`, `GoogleProfile`) and CMS assets (`Template`). A standalone
+   base (**NOT** in the Stuff hierarchy) that adds an explicit
    `save`/`delete`/`findById`/`find` CRUD surface over MongoDB.
-   Construction goes through `StuffApi.create(() => new T())` like any
-   other Stuff; loaded instances register in `StuffApi` and live until
-   `instance.delete()` (which cascades to `StuffApi.destruct`) or
-   explicit `StuffApi.destruct(instance)`.
+   Construction is a plain `new T()` — no proxy wrap, no `StuffApi`
+   registry membership, no security gate, no create/destroy lifecycle.
+   A loaded `Document` is a plain object you read and drop. Documents
+   are **value-like**: two `findById` calls for the same id return two
+   distinct instances.
 2. **Templates → Stuff** — every game-world object (rooms, doors, props,
-   avatars, NPCs). Stored as `Template` records in the `domain`
-   collection, cloned into runtime `Stuff` instances by the
-   clone/hydrate/save-template pipeline. Documented in
-   [templates.md](./templates.md); not repeated here.
+   avatars, NPCs). Stored as `Template` records (themselves `Document`s)
+   in the `domain` collection, **cloned** into runtime `Stuff` instances
+   by the clone/hydrate/save-template pipeline. Documented in
+   [templates.md](./templates.md); not repeated here. Stuff is
+   **identity-like**: the registry guarantees one canonical live
+   instance.
 
-The split is about *how state arrives*, not about hierarchy. Persistable
-records are loaded as records and you read them via `findById`/`find`.
-Game-world Stuff is cloned from a Template (which itself is a
-Persistable record) and gets a Hydrator-driven setup pass. Both produce
-fully-registered Stuff at the end.
+The split is the `Document`-vs-`Stuff` distinction: a `Document` *is*
+persisted state (the row is the thing), while a `Stuff` is a live
+world entity *hydrated from* a Document (data in, entity out) — a Stuff
+is never itself a row. (This supersedes the former `Persistable extends
+Idea` design, where every persisted record was a full Stuff; see the
+[persistence-architecture slate](../slates/persistence-architecture-slate.md)
+for the rationale. The deferred tail — un-Stuffing marshallers/hooks —
+is *not* part of that change; they remain Idea-rooted Stuff for HMR.)
 
-This doc covers the `Persistable` track and the cross-cutting machinery
+This doc covers the `Document` track and the cross-cutting machinery
 (`PersistenceManager`, around-hooks, `Collections` enum) used by both.
 
-## `Persistable`
+## `Document`
 
-`Persistable` lives at `lib/persistence/Persistable.ts` and extends
-`Idea`. It adds the CRUD surface; everything else (registry, proxy
-wrap, security gate, `prepareDestroy`/`destroy` lifecycle) is inherited
-from `Stuff`.
+`Document` lives at `lib/persistence/Document.ts` and is a **plain
+class** — it does not extend `Idea`/`Stuff`. There is no proxy, no
+registry membership, no security gate, and no lifecycle. It carries
+only the CRUD + serialization surface (`save` / `delete` / `findById` /
+`find` / `toDocument` / `fromDocument`), the `createdAt` / `updatedAt`
+timestamps, and the static `collectionName` / `persistentFields`
+contract.
 
 ```typescript
-class User extends Persistable {
+class User extends Document {
   static collectionName = 'users';
   static persistentFields = ['googleProfileId', 'playerIds'];
 
@@ -40,13 +51,13 @@ class User extends Persistable {
   playerIds: string[] = [];
 }
 
-const user = await StuffApi.create(() => new User());
+const user = new User();
 user.googleProfileId = '...';
 await user.save();
 
 const found = await User.findById(id);
 const matches = await User.find({ googleProfileId: 'xyz' });
-await user.delete(); // cascades to StuffApi.destruct(user)
+await user.delete(); // deletes the row — no registry/destruct cascade
 ```
 
 Subclass contract:
@@ -62,43 +73,44 @@ Provided by the base class:
   delegates to `PersistenceManager.save(collection, doc)`, sets `_id`
   on first save.
 - `delete()` — throws if `_id` is missing; deletes via
-  `PersistenceManager`, then calls `StuffApi.destruct(this)` to
-  unregister the runtime instance. Subclasses that need to keep the
-  instance alive past the DB delete (rare) override `delete()` with
-  their own ordering.
+  `PersistenceManager`. **No `StuffApi.destruct` cascade** — a Document
+  is not registered, so there is no runtime instance to unregister.
 - `findById(id)` / `find(query)` — static. Construct fresh instances
-  via `StuffApi.create<T>(() => new this())` (so loaded instances are
-  registered + proxy-wrapped just like a fresh `await StuffApi.create`),
-  populate via `fromDocument`. Return `null` / `[]` when nothing
-  matches.
+  via a plain `new this()` (loaded instances are plain objects, **not**
+  registered or proxy-wrapped), populate via `fromDocument`. Return
+  `null` / `[]` when nothing matches.
 - `toDocument()` / `fromDocument()` — copy persistent fields plus
   `createdAt` / `updatedAt`. `_id` is included on `toDocument` only
-  when present.
+  when present. For the rare marshalled field, resolution goes through
+  an **injected resolver seam** (`setDocumentMarshallerResolver`, wired
+  once in `AppBootstrap.run`) so the persistence core never imports
+  `StuffApi`; marshallers themselves remain Idea-rooted Stuff.
 - `createdAt` / `updatedAt` — auto-managed. Set in constructor;
   `updatedAt` refreshed on every `save()`.
 
-Current inhabitants of `Persistable`: `User`, `GoogleProfile`, and
+Current inhabitants of `Document`: `User`, `GoogleProfile`, and
 `Template`. The first two are auth/meta records; `Template` is a CMS
 asset (the doc you clone game-world objects from — see
 [templates.md](./templates.md)).
 
 ## Field Aggregation
 
-`Persistable.getAllFields()` returns the union of:
+`Document.getAllFields()` returns the union of:
 
 1. The class's own `static persistentFields`.
 2. Every `static persistentFields` declared by mixins in the prototype
    chain.
 
 The walk is centralised in `MixinApi.getAllPersistentFields(constructor)`
-— `Persistable` calls it automatically. A subclass MAY override
-`static getAllPersistentFields()` for an escape hatch, but this is rare;
-the default works for both auth records and Stuff (the `PersistentHydrator`
-used by templates calls the same method).
+— `Document` calls it automatically. It is constructor-static (no
+instance/Stuff coupling), so the same walk serves the `Document` CRUD
+path **and** the Stuff `PersistentHydrator` used by templates. A
+subclass MAY override `static getAllPersistentFields()` for an escape
+hatch, but this is rare.
 
 This also means: a mixin author who adds a new persistent field declares
-it once on the mixin, and every consumer (auth record, Stuff template)
-gets it for free. No subclass changes required.
+it once on the mixin, and every consumer (a `Document` record, a Stuff
+template) gets it for free. No subclass changes required.
 
 ## `PersistenceManager`
 
@@ -182,12 +194,12 @@ for the rule it enforces. `DomainHook.aroundSave` also calls
 check for the `data.container` declarative-content field shipped with
 the spawn substrate.
 
-### Avatar persist-back uses the existing `Persistable.save` surface
+### Avatar persist-back uses the existing `Document.save` surface
 
 `Avatar.save()` is a thin two-line shim:
 `TemplateApi.snapshotToTemplate(this)` returns the mutated Template
 (without committing); the caller invokes `tpl.save()`. The
-underlying `Template.save` is the standard `Persistable.save` path
+underlying `Template.save` is the standard `Document.save` path
 (through `PersistenceManager.save(Collections.Domain, doc)` —
 fires `DomainHook` as usual). No new persistence-layer plumbing.
 The snapshot mutation step lives upstream in
@@ -334,7 +346,7 @@ instance if registered, or clones from the seeded template on first
 need. No bootstrap manifest entry is required for marshallers; they
 self-organize when first used.
 
-`Persistable.save` / `findById` / `find` pre-resolve any registered
+`Document.save` / `findById` / `find` pre-resolve any registered
 field marshallers (`preloadFieldMarshallers` instance method /
 exported `preloadFieldMarshallersFor` static counterpart used by
 `findById`/`find` and by `Template._materialize`) before the sync
@@ -468,26 +480,33 @@ chosen for:
 (The codebase DOES use decorators elsewhere — `@Final`, `@CallSecurity`,
 etc. for the security framework. Persistence didn't need that machinery.)
 
-### Why does `Persistable.delete()` cascade to `StuffApi.destruct`?
+### Why is `Document` NOT a Stuff?
 
-Because Persistable instances are registered like any other Stuff —
-leaving a live registered instance after its DB record is gone is a
-footgun. The cascade is the safe default. Subclasses that want
-different ordering override `delete()`.
+An earlier design (`Persistable extends Idea`) folded every persisted
+record into the Stuff hierarchy, to avoid "two parallel hierarchies."
+But that made the *rare* case (a live world entity) the default and
+forced the *common* case (plain document data — auth records, and soon
+dialogue trees, loot tables, lesson content) to pay proxy + registry +
+security-gate + lifecycle overhead it never uses. Most of what a
+platform persists is plain data with no game-entity behavior.
 
-### Why is `Persistable` an Idea?
+The fix isn't to make everything Stuff, nor to duplicate the
+persistence machinery — it's to **extract** the shared field-mapping
+machinery (`MixinApi.getAllPersistentFields` and friends are already
+constructor-static and neutral) and let *both* a plain `Document` base
+and the Stuff `Hydrator` consume it. One persistence story, two object
+models. A `Document` is value-like persisted state; a `Stuff` is an
+identity-like live entity hydrated from a Document. `Document` losing
+the per-object security gate is correct — document access control binds
+at the Api/collection/lease layer, not per-object. (An audit confirmed
+nothing relied on `User`/`GoogleProfile`/`Template` being Stuff.)
 
-Earlier designs kept `Persistable` outside the Stuff hierarchy —
-"records" felt different from "game-world entities." That split forced
-two parallel hierarchies, two persistence stories, and made it
-genuinely awkward to explain why `User` wasn't an `Idea` like
-everything else.
-
-Folding `Persistable` into the Idea tree resolves all of that. The
-cost is small: `User` carries a `stuffId` (useful — `StuffApi.findById`
-is universal lookup), goes through the security gate (mediated like any
-Stuff), and lives in the registry until `delete`/`destruct`. The win:
-one hierarchy, one set of conventions, one mental model.
+The one Stuff-coupling that remains is marshallers + hooks +
+`PersistentHydrator`, which stay Idea-rooted *for HMR only* (they're
+stateless strategy objects hot-swapped via the clone pipeline).
+Un-Stuffing them — re-homing them as path-resolved code modules — is a
+deferred, separate change; `Document` reaches them through the injected
+resolver seam in the meantime.
 
 ## Collections
 
@@ -515,15 +534,16 @@ Index creation is best-effort (logs and continues on failure).
   clone/hydrate/save-template pipeline for game-world objects, including
   `TemplateApi.saveTemplate` and the folder/leaf-invariant `DomainHook`
   that rides on the around-hook mechanism above.
-- [lifecycle.md](./lifecycle.md) — Stuff create/destroy lifecycle. Why
-  `Persistable.delete` doesn't call `destroy`.
+- [lifecycle.md](./lifecycle.md) — Stuff create/destroy lifecycle
+  (applies to the cloned Stuff a Template produces, not to the
+  `Document` itself).
 - [antipatterns.md § Per-Field Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks)
   — setter contract that hydration rides on.
 - [antipatterns.md § Persistent Fields Default to Scalars](../antipatterns.md#persistent-fields-default-to-scalars-marshallers-are-the-escape-hatch)
   — full statement of the scalar-default rule and the marshaller
   escape hatch, with BAD/GOOD examples.
-- [state-model.md](./state-model.md) — Persistable in the Idea
-  hierarchy, Avatar self-contained model, why Player class is gone.
+- [state-model.md](./state-model.md) — the `Document` track, Avatar
+  self-contained model, why Player class is gone.
 - [light.md](./light.md) — first major user of the scalar-default
   rule; `AmbientLitMixin` / `LightSourceMixin` / `Window`
   decompose Light value objects into scalar fields.

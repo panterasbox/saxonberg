@@ -7,13 +7,14 @@
  * Persistence: Saved to MongoDB 'google_profiles' collection
  */
 
-import { Persistable } from '../persistence/Persistable';
+import { Document } from '../persistence/Document';
 import type { GoogleProfile as IGoogleProfile } from '@saxonberg/types';
 
 /**
- * Google OAuth profile data (persistent).
+ * Google OAuth profile data (persistent). A Document — plain persisted
+ * state, NOT a Stuff.
  */
-export class GoogleProfile extends Persistable implements IGoogleProfile {
+export class GoogleProfile extends Document implements IGoogleProfile {
   /**
    * MongoDB collection name.
    */

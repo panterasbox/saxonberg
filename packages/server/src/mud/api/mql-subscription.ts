@@ -686,7 +686,13 @@ export class MqlSubscriptionApi {
    * `MqlApi.resolveOne` / `resolveMany` + `projectFields` directly;
    * this surface is the wire-facing channel.
    */
-  public static handleQuery(req: QueryRequest): void {
+  public static handleQuery(
+    // This is the wire-facing entry, so `query` / `cardinality` arrive
+    // unvalidated and are checked below — the param type reflects that
+    // rather than claiming a fully-formed QueryRequest.
+    req: Omit<QueryRequest, 'query' | 'cardinality'> &
+      Partial<Pick<QueryRequest, 'query' | 'cardinality'>>
+  ): void {
     const { interactive, queryId } = req;
 
     if (typeof req.query !== 'string') {

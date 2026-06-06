@@ -358,8 +358,8 @@ A **Registry** is:
 - Holds a **named collection of declarations** (not Stuff instances).
 - Exposes **lookup-by-name** + enumeration.
 - **Gates per-entry access** through Propertied `checkAccess`.
-- Composes `Persistable + Propertied` (and whatever else the entries
-  need).
+- Composes `Propertied` on an `Idea` base (rebuilt from seed at boot —
+  not a persisted record), plus whatever else the entries need.
 - Is **bootstrapped at engine startup** — every Registry has a
   BootstrapEntry.
 
@@ -454,6 +454,7 @@ to fit a label is over-engineering for a pure constants object.
   mechanism BootstrapManager uses for each entry.
 - [lifecycle.md](./lifecycle.md) — PostRegistration is what each
   bootstrapped instance uses for its own per-instance setup.
-- [persistence.md](./persistence.md) — Registries compose Persistable;
-  their declarations may persist across server restarts (depending on
-  the registry's semantics).
+- [persistence.md](./persistence.md) — the `Document` track; registries
+  are seeded Ideas rebuilt at boot, so a registry that needs to persist
+  declarations would use a `Document` collection rather than its own
+  runtime state.

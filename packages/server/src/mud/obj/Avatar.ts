@@ -84,7 +84,7 @@ export class Avatar extends AvatarBase {
    *
    * Schema-on-owner principle: the setting lives wherever the
    * concept lives. Autosave is purely Avatar-lifecycle policy, so
-   * Avatar is the right home. A future PersistableStuffMixin would
+   * Avatar is the right home. A future persistence/autosave mixin would
    * pull this entry up to that mixin and Avatar would compose it.
    */
   static settings: SettingsSchemaEntry[] = [

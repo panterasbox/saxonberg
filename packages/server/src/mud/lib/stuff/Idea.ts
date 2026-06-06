@@ -1,8 +1,8 @@
 /**
  * Idea - Top-level branch for incorporeal identity.
  *
- * One of the seven top-level branches sitting on Stuff (Thing,
- * Location, Idea, Agent, Vessel, Persistable, Shadow). Idea is the
+ * One of the six top-level branches sitting on Stuff (Thing,
+ * Location, Idea, Agent, Vessel, Shadow). Idea is the
  * branch for things that have identity and state but no physical
  * presence in the world — `Exit`, `Login`, `Zone`, command-staging
  * Stuff, etc. Concrete in-world things use `Thing` (item-scale

@@ -1,16 +1,14 @@
 /**
- * Tests for User (a Persistable, Idea-rooted).
+ * Tests for User (a Document — plain persisted record, NOT a Stuff).
  *
  * Covers:
  * - Persistent fields configuration (includes playerIds ownership list)
  * - Collection name configuration
- * - User IS a Stuff (has stuffId, registered with StuffApi)
+ * - User instances are plain objects (no stuffId / no StuffApi registration)
  */
 
 import { describe, it, expect } from 'vitest';
 import { User } from '../User';
-import { makeStuff } from '../../security/__tests__/test-setup';
-import { Idea } from "../../stuff/Idea";
 
 describe('User', () => {
   describe('collectionName', () => {
@@ -35,36 +33,35 @@ describe('User', () => {
 
   describe('User instance', () => {
     it('should initialize googleProfileId to empty string', () => {
-      const user = makeStuff(() => new User());
+      const user = new User();
       expect(user.googleProfileId).toBe('');
     });
 
     it('should initialize playerIds to an empty array', () => {
-      const user = makeStuff(() => new User());
+      const user = new User();
       expect(Array.isArray(user.playerIds)).toBe(true);
       expect(user.playerIds).toEqual([]);
     });
 
     it('should have _id field (undefined until saved)', () => {
-      const user = makeStuff(() => new User());
+      const user = new User();
       expect(user).toHaveProperty('_id');
       expect(user._id).toBeUndefined();
     });
 
-    it('should be a Stuff (has stuffId)', () => {
-      const user = makeStuff(() => new User());
-      expect(typeof user.stuffId).toBe('string');
-      expect(user.stuffId.length).toBeGreaterThan(0);
+    it('should be a plain object, not a registered Stuff (no stuffId)', () => {
+      const user = new User();
+      expect((user as unknown as { stuffId?: unknown }).stuffId).toBeUndefined();
     });
 
     it('should initialize createdAt and updatedAt timestamps', () => {
-      const user = makeStuff(() => new User());
+      const user = new User();
       expect(user.createdAt).toBeInstanceOf(Date);
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
     it('should allow appending to playerIds', () => {
-      const user = makeStuff(() => new User());
+      const user = new User();
       user.playerIds.push('slot-1', 'slot-2');
       expect(user.playerIds).toEqual(['slot-1', 'slot-2']);
     });

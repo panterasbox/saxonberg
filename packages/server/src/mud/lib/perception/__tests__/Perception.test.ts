@@ -14,7 +14,7 @@ import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
-import type { LightBand } from '../Light';
+import { LIGHT_BANDS } from '../Light';
 
 class PerceiverThing extends PerceptionMixin(Idea) {
   static persistentFields: string[] = [];
@@ -44,19 +44,7 @@ describe('PerceptionMixin', () => {
   });
 
   describe('perceivedBandModifier (identity default)', () => {
-    it.each<LightBand>([
-      'pitch-black',
-      'starlit',
-      'moonlit',
-      'dim',
-      'gloom',
-      'lamplight',
-      'firelight',
-      'twilight',
-      'overcast',
-      'sunlit',
-      'noon-glare',
-    ])('returns the raw band %s unchanged', (band) => {
+    it.each(LIGHT_BANDS)('returns the raw band %s unchanged', (band) => {
       expect(viewer.perceivedBandModifier(band, stubLoc)).toBe(band);
     });
 

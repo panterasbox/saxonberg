@@ -793,5 +793,5 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   `avatar.executeCommand` from `processUserMessage`
 - [call-security.md](./call-security.md) — `ExecutionContextApi.runRoot`,
   `FrameKind`, policy taxonomy
-- [persistence.md](./persistence.md) — `Persistable` track that
+- [persistence.md](./persistence.md) — the `Document` track that
   `User` and `GoogleProfile` ride on

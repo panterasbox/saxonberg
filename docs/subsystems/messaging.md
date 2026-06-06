@@ -865,7 +865,7 @@ fall through to `toContents`.
   the Stuff that compose `SensorMixin`, `VocalMixin`, `MobileMixin`
 - [lifecycle.md](./lifecycle.md) — Stuff create/destroy choreography;
   Avatar's `prepareDestroy` clears its `interactives` set
-- [persistence.md](./persistence.md) — `Persistable` / around-hook
+- [persistence.md](./persistence.md) — `Document` / around-hook
   machinery; unrelated to messaging but shares `PersistenceManager`
 - [state-model.md](./state-model.md) — Avatar self-contained design;
   Avatar runtime fields (`interactives`) are not persisted

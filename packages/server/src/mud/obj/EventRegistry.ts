@@ -6,7 +6,7 @@
  * The property's `checkAccess` (built via `emittableBy(...)` in
  * `event-policies.ts`) gates emit and subscribe through `EventApi`.
  *
- * NOT Persistable. Every event prop is `transient: true` and the
+ * Not a persisted record. Every event prop is `transient: true` and the
  * `checkAccess` closures don't survive serialization, so there's
  * nothing meaningful to round-trip. Composition stops at
  * `PropertiedMixin(Idea)` plus `PostRegistrationMixin` for the

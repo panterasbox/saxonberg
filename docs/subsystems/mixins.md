@@ -4,7 +4,7 @@ Saxonberg builds the standard model out of **mixins** — TypeScript
 class-factory functions that contribute fields, methods, and behavior to
 any base class. A `Stuff` is rarely an instance of one class; it's an
 instance of a tower of mixin layers stacked on top of `Stuff` (or a
-subtree like `Idea` / `Agent` / `Persistable`).
+subtree like `Idea` / `Agent` / `Vessel`).
 
 The supporting *infrastructure* is small — a type alias, a name registry,
 and one Api class with about a dozen helpers. The set of *patterns*
@@ -218,7 +218,7 @@ specific static. Three are recognized today:
 
 | Static | Read by | What it contributes |
 |---|---|---|
-| `static persistentFields: string[]` | `PersistentHydrator`, `Persistable.toDocument` | Field names to round-trip through the persistence pipeline |
+| `static persistentFields: string[]` | `PersistentHydrator`, `Document.toDocument` | Field names to round-trip through the persistence pipeline |
 | `static commandProvider: CommandProviderRegistry` | `CommandGiverMixin.getAvailableCommands` | YAML command files exposed when this mixin is in scope |
 | `static _mixinName: string` | `MixinApi.queryMixins` | Identity (above) |
 | `static cleanupOnDestruct(stuff: Stuff): void` | `StuffApi.destruct` dispatcher | Substrate-invariant cleanup when an instance of this mixin destructs (see below) |
@@ -620,7 +620,7 @@ for (const field of MixinApi.getAllInstructionFields(ctor)) {
 A mixin author who adds a new persistent field declares it once on the
 mixin's `persistentFields` static. Every class that composes the mixin
 — present or future — round-trips the field automatically. Same for
-`Persistable` records: `Persistable.getAllFields()` calls the same
+`Document` records: `Document.getAllFields()` calls the same
 aggregator, so auth records also pick up mixin contributions.
 
 The `setX` method (or the bracket-assign fallback through an accessor
@@ -1025,7 +1025,7 @@ contribute or whether one wins.
   `hasMixin` rule and migration recipes.
 - [persistence.md § Field
   Aggregation](./persistence.md#field-aggregation) — how
-  `persistentFields` rides the chain through `Persistable` and the
+  `persistentFields` rides the chain through `Document` and the
   Hydrator.
 - [templates.md](./templates.md) — `PersistentHydrator` and how the
   clone pipeline calls `getAllPersistentFields`.

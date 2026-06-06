@@ -18,6 +18,7 @@ import type {
   CommandModel,
   } from '../../api/command';
 import { MessageApi } from '../../api/message';
+import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Environment } from '../../lib/shell/Environment';
@@ -31,8 +32,12 @@ interface VarModel extends CommandModel {
 
 export class VarController extends CommandController<VarModel> {
   execute(model: VarModel, context: CommandContext): void {
-    // requiresEnvironment validator guarantees this cast.
-    const avatar = context.commandGiver as EnvHost;
+    // requiresEnvironment validator guarantees env capability; narrow to prove it.
+    const giver = context.commandGiver;
+    if (!MixinApi.isEnvironment(giver)) {
+      throw new Error('VarController: command giver has no environment');
+    }
+    const avatar: EnvHost = giver;
 
     const sub = model.subcommand ?? 'list';
     const name = model.name;
