@@ -120,31 +120,42 @@ slate catalogue (the menu these are drawn from) follows under
 
 Ordered so demo-readiness ramps monotonically:
 
-1. **Vitals tandem slice** — the canonical first vertical (slate
-   written, not built): a HP/MV widget over a `me.vitals`
-   subscription. Proves the whole stack end-to-end with minimum
-   throwaway code; expect it to shake out the subscription-slice
-   interface.
-   ([vitals-slate.md](./slates/vitals-slate.md))
-2. **Things-here chip strip** — first *collection* subscription +
-   the click model (hover-preview / click-send).
-3. **Inventory chip strip** — sibling to things-here; tests
-   cross-subscription behaviour on pickup.
-4. **Prompt-stack client UI** — choice / confirm / text rendering
+1. **Message-rendering** — the MML renderer + per-channel
+   stylesheets + flatten/reflow that every cockpit widget paints
+   through. Substrate for the visual upgrade everything below
+   sits on.
+   ([message-rendering-slate.md](./slates/message-rendering-slate.md))
+2. **Prompt-stack client UI** — choice / confirm / text rendering
    + MQL multi-match disambiguation (server half shipped).
    ([prompt-stack-slate.md](./slates/prompt-stack-slate.md))
-5. **Console filtering drawer** — topic toggles, search,
-   sender-scoped mute; `console.*` settings.
-   ([console-filtering-slate.md](./slates/console-filtering-slate.md))
-6. **Message-rendering** — the MML renderer + per-channel
-   stylesheets + flatten/reflow that everything above paints
-   through.
-   ([message-rendering-slate.md](./slates/message-rendering-slate.md))
 
 Then **client-pull buildout** (cockpit shell / modes /
 content-surface / theming) per the cockpit slate, and the
 **scoped-authoring GUI** (the room editor) once access lands in
 Track B.
+
+> **Retired from Track A** (so future passes don't re-suggest):
+>
+> - **Vitals tandem slice.** The original "HP/MV widget over
+>   `me.vitals`" framing reflected the scalar-HP shape Vitals had
+>   before the slate was rewritten. Vitals is now a full server
+>   substrate (anatomy + conditions + pedagogy) — not a client
+>   first-vertical. It still ships when its turn comes (Track B
+>   substrate-shaped); it's not Track A item 1.
+>   ([vitals-slate.md](./slates/vitals-slate.md))
+> - **Things-here / Inventory chip strips.** Drafted as
+>   tandem-slice training wheels before the inspection pane
+>   shipped. The pane's `here` + `contents` payload already
+>   renders clickable room contents inline; ambient awareness of
+>   state changes rides the terminal scrollback. No compelling
+>   user need surfaced in 2026-06-06 scoping. The cockpit slate's
+>   panel inventory (Room-state row) already reflects this
+>   absorption.
+> - **Console filtering drawer.** **Shipped** in the
+>   console-foundations merge (gutter stripe + filter drawer +
+>   mute-count badges + topics + tabbed terminal +
+>   `ClientStateMixin` substrate).
+>   ([console-filtering-slate.md](./slates/console-filtering-slate.md))
 
 ### Track B — Server substrate, near-term
 

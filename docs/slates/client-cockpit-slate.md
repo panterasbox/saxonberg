@@ -464,10 +464,12 @@ source of truth for the wire shape. This slate covers only the
 **client-side consumption** pattern:
 
 - Each sidebar widget opens one or more MQL subscriptions
-  (typically one of the pre-canned subscription kinds:
-  `inventory`, `things-here`, `slots`, `focus-detail`,
-  `atmosphere-here`, etc.) at mount time and unsubscribes on
-  unmount.
+  (e.g. `me.inventory`, `here.contents`, `me.slots`,
+  `$focus`-shaped detail queries) at mount time and unsubscribes
+  on unmount. The previous "pre-canned subscription kinds"
+  framing has been dropped — widgets issue raw MQL specs through
+  `subscribeMql` directly, the inspection pane is the worked
+  example.
 - Subscription results and deltas update the store; widgets
   re-render on store changes.
 - The store also drives the prompt format and the always-on
