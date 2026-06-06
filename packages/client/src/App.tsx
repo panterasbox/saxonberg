@@ -64,73 +64,33 @@ function parseLeadingVerb(text: string): { verb: string; rest: string } {
 }
 
 /**
- * Strip the `--peek` flag (and any unrecognised flag tokens) out of a
- * command's arg portion before treating it as the focus fragment for
- * breadcrumb / paint purposes. The pane needs the bare target, not
- * the option tail.
- */
-function stripFlags(rest: string): string {
-  return rest
-    .split(/\s+/)
-    .filter((tok) => tok.length > 0 && !tok.startsWith('--'))
-    .join(' ');
-}
-
-/**
  * Apply the pane-side paint/clear consequences of an outgoing
- * command. Bare `look` paints against the current focus; `look <X>`
- * paints AND drops `<X>` onto the breadcrumb trail (the player has
- * declared interest in `<X>`); `look <X> --peek` is observe-only —
- * does NOT paint, does NOT touch breadcrumbs (the requirements'
- * surface decision: peek emits prose but neither shifts focus nor
- * paints the body). `focus <X>` clears the body, sets the tracked
- * fragment, and pushes `<X>` to breadcrumbs. Every other verb is a
- * pane no-op.
+ * command. Bare `look` paints against the current focus; `look <X>
+ * --peek` is observe-only and does not paint; `focus <X>` clears
+ * the body until the next look. Every other verb is a pane no-op.
+ *
+ * Note that breadcrumb trail updates and focus-fragment tracking
+ * are NOT driven from this seam — typed commands may not actually
+ * land (disambiguation prompt cancelled, validator rejected, etc.)
+ * and the typed fragment may not match the resolved Stuff (e.g.
+ * `look brass` resolves to `a brass altimeter`). The trail and
+ * fragment are now driven by the focus subscription's delta
+ * handler in `InspectionPane`, which fires only when focus actually
+ * changes server-side, and labels the entry by the resolved Stuff's
+ * displayName / primaryKeyword instead of the user's typed
+ * fragment.
  */
 function applyOutgoingCommandToPane(text: string): void {
-  const { verb, rest } = parseLeadingVerb(text);
+  const { verb } = parseLeadingVerb(text);
   const store = useStore.getState();
   if (verb === 'look') {
     const isPeek = / --peek(\s|$)/.test(' ' + text + ' ');
     if (isPeek) return; // peek is a pane no-op
     store.setPanePainted(true);
-    const target = stripFlags(rest);
-    if (target) {
-      // Push to breadcrumb trail UNLESS the target keyword matches
-      // the current location's primaryKeyword — that's just
-      // re-focusing the room you're already in (the root); no need
-      // to add it to the trail.
-      const root = store.paneBreadcrumbRoot;
-      const isRoot =
-        root &&
-        (target === root.primaryKeyword ||
-          target.toLowerCase() === root.displayName.toLowerCase());
-      if (!isRoot) {
-        store.pushPaneBreadcrumbTrail({
-          label: target,
-          command: `look ${target}`,
-        });
-      }
-    }
     return;
   }
   if (verb === 'focus') {
     store.setPanePainted(false);
-    const target = stripFlags(rest);
-    if (target) {
-      store.setPaneFocusFragment(target);
-      const root = store.paneBreadcrumbRoot;
-      const isRoot =
-        root &&
-        (target === root.primaryKeyword ||
-          target.toLowerCase() === root.displayName.toLowerCase());
-      if (!isRoot) {
-        store.pushPaneBreadcrumbTrail({
-          label: target,
-          command: `look ${target}`,
-        });
-      }
-    }
     return;
   }
   // Other verbs: leave pane state alone.
