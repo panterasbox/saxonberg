@@ -692,11 +692,11 @@ export function CommandBar({
             onClick={() => setDropdownOpen((v) => !v)}
             aria-label="Open slot picker"
           >
-            <span>{slotPickerLabel}</span>
+            <Caret>{dropdownOpen ? '▴' : '▾'}</Caret>
             {prompts.length > 0 ? (
               <PendingCount>{prompts.length}</PendingCount>
             ) : null}
-            <Caret>{dropdownOpen ? '▴' : '▾'}</Caret>
+            <span>{slotPickerLabel}</span>
           </SlotPicker>
 
           {dropdownOpen ? (
