@@ -1,16 +1,26 @@
 /**
  * Terminal - Game output display component
  *
- * Displays message buffer with auto-scroll to bottom on new messages.
- * Each message is rendered through `MmlRenderer`, which turns
+ * Displays the typed frame buffer with auto-scroll to bottom on new
+ * frames. Each frame is rendered through `MmlRenderer`, which turns
  * semantic tags into clickable affordances that emit real commands
  * via `onCommandClick`. The slate's principle is command-bus
  * primacy — every click sends a command, no exceptions.
+ *
+ * Sigils (input-echo prompt prefixes) are held separately on each
+ * Frame and concatenated at render time, so the underlying body
+ * stays clean for topic-keyed renderers.
+ *
+ * Each row carries a `GutterStripe` colored by topic family for
+ * visual delimitation; the stripe is the frame-inspection surface
+ * (hover tooltip + click-action popover).
  */
 
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { MmlRenderer } from './MmlRenderer';
+import { GutterStripe } from './GutterStripe';
+import type { Frame } from '../store/index';
 
 const TerminalContainer = styled.div`
   flex: 1;
@@ -23,41 +33,50 @@ const TerminalContainer = styled.div`
   line-height: 1.5;
 `;
 
-const Message = styled.div`
+const FrameRow = styled.div`
+  display: flex;
+  align-items: stretch;
   margin-bottom: 0.5rem;
+`;
+
+const Body = styled.div`
+  flex: 1;
   white-space: pre-wrap;
 `;
 
 interface TerminalProps {
-  messages: string[];
+  frames: Frame[];
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
 }
 
 export function Terminal({
-  messages,
+  frames,
   onCommandClick,
   onCommandPreview,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Auto-scroll to bottom on new messages
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [frames]);
 
   return (
     <TerminalContainer ref={containerRef}>
-      {messages.map((msg, idx) => (
-        <Message key={idx}>
-          <MmlRenderer
-            text={msg}
-            onCommandClick={onCommandClick}
-            onCommandPreview={onCommandPreview}
-          />
-        </Message>
+      {frames.map((frame) => (
+        <FrameRow key={frame.id}>
+          <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
+          <Body>
+            {frame.sigil ? `${frame.sigil} ` : ''}
+            <MmlRenderer
+              text={frame.body}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
+            />
+          </Body>
+        </FrameRow>
       ))}
     </TerminalContainer>
   );

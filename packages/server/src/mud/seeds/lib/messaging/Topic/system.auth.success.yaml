@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.auth.success
+  family: system.auth
+  label: Success
+  description: Authentication completed successfully.

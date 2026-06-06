@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.connection.established
+  family: system.connection
+  label: Established
+  description: A new client connection finished handshaking — the welcome scene and bootstrap payload land on this topic.

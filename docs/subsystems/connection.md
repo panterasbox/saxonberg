@@ -371,6 +371,12 @@ removeInteractive(i)                       // primitive
 clearInteractives()                        // bulk drop (destruct-time)
 getInteractives(): ReadonlySet<...>        // safe read
 isConnected() / isLinkdead()               // count-based predicates
+
+// Persisted client UI state — see "Client state" below.
+_clientState: Record<string, unknown>      // persistent field
+getClientState<T>(key)                     // stored value, else schema default
+setClientState(key, value)                 // schema-validated write
+snapshotClientState(): Record<...>         // dense snapshot for welcome payload
 ```
 
 External code does NOT call `addInteractive`/`removeInteractive`
@@ -416,6 +422,63 @@ hooks (`connection.ts § transfer`):
 All four are **optional**. `Avatar` overrides `onLinkdead` to emit
 the global `Events.PlayerLoggedOut`. Per-device hooks aren't
 currently used.
+
+### Client state
+
+`HasInteractiveMixin` also owns the **persistent UI state**
+surface: every HasInteractive-bearing thing has, by definition, a
+client attached, and that client has settings worth keeping across
+sessions (tabbed-terminal layout, theme, notification prefs,
+keybinds, channel mutes, saved MQL queries, onboarding flags).
+Putting the storage on the same mixin pairs the two concerns —
+"I hold connections" and "I persist state for whoever's on the
+other end."
+
+**Storage.** `_clientState: Record<string, unknown>` —
+Hydrator-saved. Keys are dotted strings; values are JSON-shape per
+the schema.
+
+**Schema.** `static clientStateSchema: ClientStateSchemaEntry[]`
+on `HasInteractiveMixin` itself — one flat array. Each entry
+declares `{ key, defaultValue, description?, validator? }`. v1
+ships two entries (`console.tabs`, `console.activeTab`); future
+features append to the same array. *No* prototype-chain walker:
+the schema's scope is exactly HasInteractive-bearers, so there's
+no useful distinction between substrate keys and feature-mixin
+keys. If the array grows past comfortable, externalize (YAML /
+DB / per-feature mixin registry) — not before.
+
+**Methods.** `getClientState<T>(key)` returns the stored value or
+the schema default; `setClientState(key, value)` validates +
+writes; `snapshotClientState()` returns a dense map (every
+declared key with its stored-or-default value).
+
+**Wire surface.**
+
+- **Server → client at session-establish.**
+  `ConnectionEstablishedPayload.clientState` carries
+  `avatar.snapshotClientState()` in the welcome scene.
+- **Client → server on UI mutation.**
+  `{ type: 'client-state-write', payload: { key, value } }` —
+  generic inbound message handled by
+  `Application.handleClientStateWrite`. The handler calls
+  `avatar.setClientState(key, value)` (schema check happens
+  there) then `avatar.save()`.
+
+One generic wire path covers every feature. Adding a new key =
+append one schema entry. No feature-specific wire messages, no
+per-feature persistence shim.
+
+**Contrast with adjacent stores.**
+
+| Substrate | Purpose | Where composed |
+|---|---|---|
+| `EnvironmentMixin` (settings) | Player-tunable knobs via the `settings` shell command | Avatar + a few others |
+| `PropertiedMixin` | Universal per-Stuff key/value bag | Every Stuff in the world |
+| `HasInteractiveMixin._clientState` | UI state the server holds on behalf of a client | Only where a client attaches |
+
+See [shell-environment.md](./shell-environment.md) for settings;
+[properties.md](./properties.md) for PropertiedMixin.
 
 The transition fire-once-per-edge semantics matter: a user with two
 devices who closes one tab does NOT trigger `onLinkdead`. Only the

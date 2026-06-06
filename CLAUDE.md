@@ -63,6 +63,13 @@ behavior. Read the relevant doc before editing in its area.
     (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
     the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
     `<detail>` etc. inline)
+  - [topics.md](./docs/subsystems/topics.md) — per-topic authored
+    descriptors as `Topic` template docs under `/lib/messaging/Topic/`,
+    `TopicCatalogue` singleton in `obj/`, three-tier resolution
+    (cache hit → family-inherited → derived default), session-
+    establish wire push of the snapshot. The catalogue
+    self-loads from mongo via `Template.findDescendants` at
+    `postRegister` — no per-topic Stuff is ever cloned.
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
     `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
     schema-on-owner generalization), lookup chain, `settings` /

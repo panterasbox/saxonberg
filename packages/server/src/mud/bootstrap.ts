@@ -26,6 +26,11 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // must be live before any container can destruct — bootstrap
   // guarantees that.
   { templatePath: '/domain/void' },
+  // Topic catalogue singleton. The catalogue lazy-loads descriptors
+  // from the `domain` collection on first access — no need to
+  // pre-clone the per-topic `Topic` templates at boot. Same pattern
+  // as species clades / materials / biomes per the note above.
+  { templatePath: '/obj/TopicCatalogue' },
   // Species clades are NOT bootstrapped. `SpeciesApi.isAnimate` /
   // `getKingdom` are sync, and the `requiresAnimate` validator
   // ensures the relevant clade chain via its async `preload` hook
