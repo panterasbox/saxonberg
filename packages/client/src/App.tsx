@@ -14,6 +14,7 @@ import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
 import { TabStrip } from './components/TabStrip';
+import { FilterDrawer } from './components/FilterDrawer';
 import { CommandBar } from './components/CommandBar';
 import { InspectionPane } from './components/InspectionPane';
 import { tokens } from './components/ui';
@@ -229,6 +230,7 @@ function App() {
   // enter sequence can cancel the pending restore.
   const [inputValue, setInputValue] = useState('');
   const [flashing, setFlashing] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const userTypedRef = useRef('');
   const previewActiveRef = useRef(false);
   const restoreTimerRef = useRef<number | null>(null);
@@ -550,12 +552,15 @@ function App() {
       <ConnectionStatus />
       <Cockpit>
         <LeftColumn>
-          <TabStrip />
+          <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
           <Terminal
             frames={visibleFrames}
             onCommandClick={handleCommandClick}
             onCommandPreview={handleCommandPreview}
           />
+          {drawerOpen && (
+            <FilterDrawer onClose={() => setDrawerOpen(false)} />
+          )}
           <CommandBar
             baseValue={inputValue}
             onBaseChange={handleInputChange}

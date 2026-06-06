@@ -106,6 +106,20 @@ const PlusButton = styled.button`
   }
 `;
 
+const GearButton = styled.button`
+  margin-left: auto;
+  background: transparent;
+  color: ${tokens.color.fgMuted};
+  border: none;
+  cursor: pointer;
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.title};
+  padding: 0 ${tokens.space.sm};
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
 const ConfirmPopover = styled.div`
   position: absolute;
   top: 100%;
@@ -136,7 +150,11 @@ const ConfirmButton = styled.button`
   }
 `;
 
-export function TabStrip() {
+interface TabStripProps {
+  onToggleDrawer?: () => void;
+}
+
+export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
   const clientState = useStore((s) => s.clientState);
   const tabs = (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [
     { name: ALL_TAB, muted: [] },
@@ -327,6 +345,15 @@ export function TabStrip() {
         >
           +
         </PlusButton>
+      )}
+      {onToggleDrawer && (
+        <GearButton
+          onClick={onToggleDrawer}
+          aria-label="Open filter drawer"
+          data-testid="tab-gear"
+        >
+          ⚙
+        </GearButton>
       )}
     </Strip>
   );
