@@ -10,11 +10,16 @@
  * Sigils (input-echo prompt prefixes) are held separately on each
  * Frame and concatenated at render time, so the underlying body
  * stays clean for topic-keyed renderers.
+ *
+ * Each row carries a `GutterStripe` colored by topic family for
+ * visual delimitation; the stripe is the frame-inspection surface
+ * (hover tooltip + click-action popover).
  */
 
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { MmlRenderer } from './MmlRenderer';
+import { GutterStripe } from './GutterStripe';
 import type { Frame } from '../store/index';
 
 const TerminalContainer = styled.div`
@@ -28,8 +33,14 @@ const TerminalContainer = styled.div`
   line-height: 1.5;
 `;
 
-const Message = styled.div`
+const FrameRow = styled.div`
+  display: flex;
+  align-items: stretch;
   margin-bottom: 0.5rem;
+`;
+
+const Body = styled.div`
+  flex: 1;
   white-space: pre-wrap;
 `;
 
@@ -55,14 +66,17 @@ export function Terminal({
   return (
     <TerminalContainer ref={containerRef}>
       {frames.map((frame) => (
-        <Message key={frame.id}>
-          {frame.sigil ? `${frame.sigil} ` : ''}
-          <MmlRenderer
-            text={frame.body}
-            onCommandClick={onCommandClick}
-            onCommandPreview={onCommandPreview}
-          />
-        </Message>
+        <FrameRow key={frame.id}>
+          <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
+          <Body>
+            {frame.sigil ? `${frame.sigil} ` : ''}
+            <MmlRenderer
+              text={frame.body}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
+            />
+          </Body>
+        </FrameRow>
       ))}
     </TerminalContainer>
   );
