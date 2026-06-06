@@ -63,6 +63,18 @@ behavior. Read the relevant doc before editing in its area.
     (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
     the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
     `<detail>` etc. inline)
+  - [topics.md](./docs/subsystems/topics.md) — per-topic authored
+    descriptors as `Topic` Ideas under `/lib/messaging/Topic/`,
+    `TopicCatalogue` singleton in `obj/`, three-tier resolution
+    (cache hit → family-inherited → derived default), session-
+    establish wire push of the snapshot, HMR-aware invalidation
+  - [client-state.md](./docs/subsystems/client-state.md) —
+    `ClientStateMixin` substrate for client UI state persisted
+    server-side. Schema-on-mixin contribution
+    (`static clientStateSchema`), `getClientState` /
+    `setClientState` / `snapshotClientState`, generic inbound
+    `client-state-write` wire path, contrast with `settings` and
+    `PropertiedMixin`
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
     `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
     schema-on-owner generalization), lookup chain, `settings` /
