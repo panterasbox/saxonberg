@@ -13,9 +13,11 @@ import { useStore, type PromptEntry } from './store/index';
 import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
+import { TabStrip } from './components/TabStrip';
 import { CommandBar } from './components/CommandBar';
 import { InspectionPane } from './components/InspectionPane';
 import { tokens } from './components/ui';
+import type { ConsoleTab } from '@saxonberg/types';
 
 const AppContainer = styled.div`
   display: flex;
@@ -207,6 +209,16 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const frames = useStore((state) => state.frames);
+  const clientState = useStore((state) => state.clientState);
+  // Filter frames by the active tab's muted set. The 'All' default
+  // mutes nothing, so a fresh player sees the full firehose.
+  const activeTabName =
+    (clientState['console.activeTab'] as string | undefined) ?? 'All';
+  const tabs =
+    (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [];
+  const activeTab = tabs.find((t) => t.name === activeTabName);
+  const mutedSet = new Set(activeTab?.muted ?? []);
+  const visibleFrames = frames.filter((f) => !mutedSet.has(f.topic));
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).
@@ -538,8 +550,9 @@ function App() {
       <ConnectionStatus />
       <Cockpit>
         <LeftColumn>
+          <TabStrip />
           <Terminal
-            frames={frames}
+            frames={visibleFrames}
             onCommandClick={handleCommandClick}
             onCommandPreview={handleCommandPreview}
           />

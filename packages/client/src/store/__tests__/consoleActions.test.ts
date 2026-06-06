@@ -1,0 +1,143 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useStore } from "../index";
+import { websocketClient } from "../../services/websocket";
+import {
+  addTab,
+  renameTab,
+  deleteTab,
+  setActiveTab,
+  addMuteForActiveTab,
+  removeMuteForActiveTab,
+  getActiveTab,
+  getTabs,
+} from "../consoleActions";
+
+function resetClientState(): void {
+  useStore.setState({
+    clientState: {
+      "console.tabs": [{ name: "All", muted: [] }],
+      "console.activeTab": "All",
+    },
+  });
+}
+
+describe("consoleActions", () => {
+  let sendSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    resetClientState();
+    sendSpy = vi
+      .spyOn(websocketClient, "sendClientStateWrite")
+      .mockImplementation(() => {});
+  });
+
+  it("addTab creates a new tab and emits the wire write", () => {
+    addTab("Guild Chat");
+    const tabs = useStore.getState().clientState["console.tabs"];
+    expect(tabs).toEqual([
+      { name: "All", muted: [] },
+      { name: "Guild Chat", muted: [] },
+    ]);
+    expect(sendSpy).toHaveBeenCalledWith("console.tabs", tabs);
+  });
+
+  it("addTab rejects empty / whitespace-only names", () => {
+    addTab("   ");
+    expect(useStore.getState().clientState["console.tabs"]).toHaveLength(1);
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("addTab rejects duplicate names (no wire write)", () => {
+    addTab("All");
+    expect(useStore.getState().clientState["console.tabs"]).toHaveLength(1);
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("deleteTab is a no-op on 'All' (uncloseable invariant)", () => {
+    addTab("Other");
+    sendSpy.mockClear();
+    deleteTab("All");
+    const tabs = useStore.getState().clientState[
+      "console.tabs"
+    ] as { name: string }[];
+    expect(tabs.map((t) => t.name)).toContain("All");
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("deleteTab removes a non-All tab and emits the wire write", () => {
+    addTab("Other");
+    sendSpy.mockClear();
+    deleteTab("Other");
+    const tabs = useStore.getState().clientState[
+      "console.tabs"
+    ] as { name: string }[];
+    expect(tabs.map((t) => t.name)).toEqual(["All"]);
+    expect(sendSpy).toHaveBeenCalledWith("console.tabs", tabs);
+  });
+
+  it("deleting the active tab falls back to 'All'", () => {
+    addTab("Other");
+    setActiveTab("Other");
+    sendSpy.mockClear();
+    deleteTab("Other");
+    expect(getActiveTab()).toBe("All");
+    expect(sendSpy).toHaveBeenCalledWith("console.activeTab", "All");
+  });
+
+  it("renameTab updates the name and emits the write", () => {
+    addTab("Other");
+    sendSpy.mockClear();
+    renameTab("Other", "Renamed");
+    const tabs = getTabs();
+    expect(tabs.map((t) => t.name)).toEqual(["All", "Renamed"]);
+    expect(sendSpy).toHaveBeenCalled();
+  });
+
+  it("renameTab rejects collisions silently (no wire write)", () => {
+    addTab("Other");
+    sendSpy.mockClear();
+    renameTab("Other", "All");
+    const tabs = getTabs();
+    expect(tabs.map((t) => t.name)).toEqual(["All", "Other"]);
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("setActiveTab switches and emits the wire write", () => {
+    addTab("Other");
+    sendSpy.mockClear();
+    setActiveTab("Other");
+    expect(getActiveTab()).toBe("Other");
+    expect(sendSpy).toHaveBeenCalledWith("console.activeTab", "Other");
+  });
+
+  it("setActiveTab is a no-op for unknown tab names", () => {
+    setActiveTab("Nope");
+    expect(getActiveTab()).toBe("All");
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("addMuteForActiveTab pushes onto the active tab's muted list", () => {
+    addMuteForActiveTab("world.speech.say");
+    const tabs = getTabs();
+    expect(tabs[0]?.muted).toEqual(["world.speech.say"]);
+    expect(sendSpy).toHaveBeenCalled();
+  });
+
+  it("addMuteForActiveTab is idempotent on duplicate adds", () => {
+    addMuteForActiveTab("world.speech.say");
+    sendSpy.mockClear();
+    addMuteForActiveTab("world.speech.say");
+    expect(getTabs()[0]?.muted).toEqual(["world.speech.say"]);
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it("removeMuteForActiveTab removes one and is idempotent on misses", () => {
+    addMuteForActiveTab("world.speech.say");
+    sendSpy.mockClear();
+    removeMuteForActiveTab("world.speech.say");
+    expect(getTabs()[0]?.muted).toEqual([]);
+    sendSpy.mockClear();
+    removeMuteForActiveTab("world.speech.say");
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
+});

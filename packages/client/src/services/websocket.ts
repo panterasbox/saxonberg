@@ -238,6 +238,20 @@ class WebSocketClient {
   }
 
   /**
+   * Persist a single `ClientStateMixin` key. Mirrors the generic
+   * wire path documented in the console-foundations plan: every
+   * feature's UI mutations (tab edits, theme changes, etc.) route
+   * through this single outbound message. The server validates the
+   * key against the aggregated `ClientStateMixin` schema chain.
+   */
+  public sendClientStateWrite(key: string, value: unknown): void {
+    this.send({
+      type: 'client-state-write',
+      payload: { key, value },
+    });
+  }
+
+  /**
    * Register a handler for a specific topic. The handler fires for
    * every frame whose `topic` matches exactly. (Prefix matching can
    * be added later if a use case demands it.)

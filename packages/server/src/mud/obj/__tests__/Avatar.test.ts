@@ -865,10 +865,14 @@ describe('Avatar', () => {
       expect(worldEntry).toBeTruthy();
       expect(worldEntry.label).toBe('World');
 
-      // Compiler-level sanity: clientState is present (Phase 3 will
-      // populate it; Phase 1 ships an empty object so the
-      // ConnectionEstablishedPayload type matches).
+      // ClientStateMixin / ConsoleClientStateMixin contribute the
+      // console schema, so the snapshot ships at least the two
+      // console keys with their defaults.
       expect(typeof passedPayload.clientState).toBe('object');
+      expect(passedPayload.clientState['console.activeTab']).toBe('All');
+      expect(passedPayload.clientState['console.tabs']).toEqual([
+        { name: 'All', muted: [] },
+      ]);
     });
   });
 });
