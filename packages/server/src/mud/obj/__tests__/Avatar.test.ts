@@ -811,10 +811,10 @@ describe('Avatar', () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
       const { TopicCatalogue } = await import('../TopicCatalogue');
-      const { Template } = await import('../../lib/stuff/Template');
+      const TemplateMod = await import('../../lib/stuff/Template');
 
       // Stub the mongo read with one authored topic descriptor.
-      vi.spyOn(Template, 'findDescendants').mockImplementation(
+      vi.spyOn(TemplateMod.Template, 'findDescendants').mockImplementation(
         async () =>
           [
             {
@@ -826,7 +826,7 @@ describe('Avatar', () => {
                 description: 'In-world events.',
               },
             },
-          ] as unknown as Template[],
+          ] as unknown as InstanceType<typeof TemplateMod.Template>[],
       );
 
       const cat = makeStuff(() => new TopicCatalogue());

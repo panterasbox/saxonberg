@@ -191,13 +191,6 @@ class WebSocketClient {
     }
   }
 
-  public sendEcho(message: string): void {
-    this.send({
-      type: 'echo',
-      payload: { message, timestamp: Date.now() },
-    });
-  }
-
   public sendPing(): void {
     this.send({
       type: 'ping',

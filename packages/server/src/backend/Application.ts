@@ -23,29 +23,12 @@ import type {
   MessageFrame,
   PassportGoogleProfile,
 } from '@saxonberg/types';
-
-/**
- * Local minimal type for inbound client → server messages. Kept simple
- * — the inbound protocol isn't part of the messaging redesign (§1).
- */
-interface InboundClientMessage {
-  type: string;
-  payload?: unknown;
-  id?: string;
-}
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
-import { PromptApi, renderPromptRefresh } from '../mud/api/prompt';
-import type {
-  MqlSubscribeMessage,
-  MqlUnsubscribeMessage,
-  MqlQueryMessage,
-  PromptResponseMessage,
-  PromptCancelMessage,
-} from '@saxonberg/types';
+import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
@@ -54,6 +37,10 @@ import { Template } from '../mud/lib/stuff/Template';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
+import {
+  inboundHandlers,
+  type InboundClientMessage,
+} from './inbound/index';
 
 /**
  * Sets the class-default policy for Application's instance methods to
@@ -204,304 +191,47 @@ export class Application {
     }
   }
 
+  /**
+   * Dispatch an inbound wire message. Resolves the Interactive,
+   * looks up the handler in `inboundHandlers`, and invokes it
+   * with a `HandlerContext`. Handler bodies live in
+   * `backend/inbound/<substrate>.ts` — adding a new message type
+   * means adding a handler file there and registering it in
+   * `inbound/index.ts`. Do not grow this method.
+   */
   public processUserMessage(socketId: string, message: InboundClientMessage): void {
     const interactive = ConnectionManager.get().getInteractive(socketId);
-
     if (!interactive) {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
       return;
     }
-
     if (!this.backend) {
       console.error('Application: Backend not initialized');
       return;
     }
 
-    switch (message.type) {
-      case 'echo':
-        this.handleEchoMessage(socketId, message);
-        break;
-
-      case 'ping':
-        this.handlePingMessage(socketId, message);
-        break;
-
-      case 'command':
-        this.handleCommandMessage(socketId, message).catch((error) => {
-          console.error(`Application: Command error for socket ${socketId}:`, error);
-          if (this.backend) {
-            this.backend.sendMessageToSocket(socketId, {
-              type: 'error',
-              payload: { message: 'Command execution failed' },
-            });
-          }
-        });
-        break;
-
-      case 'mql-subscribe':
-        this.handleMqlSubscribe(socketId, message);
-        break;
-
-      case 'mql-unsubscribe':
-        this.handleMqlUnsubscribe(socketId, message);
-        break;
-
-      case 'mql-query':
-        this.handleMqlQuery(socketId, message);
-        break;
-
-      case 'prompt-response':
-        this.handlePromptResponse(socketId, message);
-        break;
-
-      case 'prompt-cancel':
-        this.handlePromptCancel(socketId, message);
-        break;
-
-      case 'client-state-write':
-        this.handleClientStateWrite(socketId, message).catch((error) => {
-          console.error(
-            `Application: client-state-write error for socket ${socketId}:`,
-            error,
-          );
-        });
-        break;
-
-      default:
-        console.warn(`Application: Unknown message type: ${message.type}`);
-        this.backend.sendMessageToSocket(socketId, {
-          type: 'error',
-          payload: {
-            message: `Unknown message type: ${message.type}`,
-          },
-        });
-    }
-  }
-
-  /**
-   * Route `mql-subscribe` to the substrate. Drops on shape mismatch
-   * without an error envelope — the substrate handles substantive
-   * checks (duplicate id, MQL parse, focus + cardinality cross-check).
-   */
-  private handleMqlSubscribe(socketId: string, message: InboundClientMessage): void {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const payload = message.payload as MqlSubscribeMessage | undefined;
-    if (!payload || typeof payload.subscriptionId !== 'string') {
-      return;
-    }
-    if (
-      typeof payload.query !== 'string' ||
-      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
-    ) {
-      return;
-    }
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: payload.subscriptionId,
-      query: payload.query,
-      cardinality: payload.cardinality,
-      fields: payload.fields,
-      detailKey: payload.detailKey,
-      focusDependent: payload.focusDependent,
-      locationDependent: payload.locationDependent,
-    });
-  }
-
-  /**
-   * Route `mql-unsubscribe` to the substrate. Silent no-op when the
-   * id is unknown (substrate behavior).
-   */
-  private handleMqlUnsubscribe(socketId: string, message: InboundClientMessage): void {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const payload = message.payload as MqlUnsubscribeMessage | undefined;
-    if (!payload || typeof payload.subscriptionId !== 'string') return;
-    MqlSubscriptionApi.handleUnsubscribe(interactive, payload.subscriptionId);
-  }
-
-  /**
-   * Route `mql-query` to the substrate's one-shot `handleQuery`
-   * surface. Drops on shape mismatch without an error envelope —
-   * the substrate handles substantive checks (focus + cardinality
-   * cross-check, parse / resolve / permission failures). The
-   * substrate's one-shot path does NOT install registry state,
-   * dependency-index entries, or listeners.
-   */
-  private handleMqlQuery(socketId: string, message: InboundClientMessage): void {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const payload = message.payload as MqlQueryMessage | undefined;
-    if (!payload || typeof payload.queryId !== 'string') {
-      return;
-    }
-    if (
-      typeof payload.query !== 'string' ||
-      (payload.cardinality !== 'one' && payload.cardinality !== 'many')
-    ) {
-      return;
-    }
-    MqlSubscriptionApi.handleQuery({
-      interactive,
-      queryId: payload.queryId,
-      query: payload.query,
-      cardinality: payload.cardinality,
-      fields: payload.fields,
-      detailKey: payload.detailKey,
-    });
-  }
-
-  /**
-   * Route `prompt-response` to the substrate. Bypasses the command
-   * bus (the slate's two-channel inbound protocol); the substrate
-   * looks up the resolver by promptId and either resolves the
-   * await or — when a validator rejects — emits
-   * `prompt-validation-failed` and keeps the prompt alive.
-   */
-  private handlePromptResponse(socketId: string, message: InboundClientMessage): void {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const payload = message.payload as PromptResponseMessage['payload'] | undefined;
-    if (
-      !payload ||
-      typeof payload.promptId !== 'string' ||
-      typeof payload.response !== 'string'
-    ) {
-      return;
-    }
-    PromptApi.handleResponse(interactive, payload);
-  }
-
-  /**
-   * Route `prompt-cancel` to the substrate — the X-button
-   * affordance on the client's prompt area. Wholesale cancel
-   * rides the command bus separately via the `prompt cancel`
-   * verb (Wave 4).
-   */
-  private handlePromptCancel(socketId: string, message: InboundClientMessage): void {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const payload = message.payload as PromptCancelMessage['payload'] | undefined;
-    if (!payload || typeof payload.promptId !== 'string') return;
-    PromptApi.handleCancel(interactive, payload);
-  }
-
-  /**
-   * Persist a client-state-write. Validates the key against the
-   * Avatar's aggregated `ClientStateMixin` schema (rejects unknown
-   * keys; runs the entry's optional validator), writes through
-   * `avatar.setClientState`, then commits via `avatar.save()`. The
-   * save fires concurrently with Avatar's periodic autosave —
-   * MongoDB's last-write-wins semantics handle the race.
-   *
-   * Per the slate, this is the ONLY new inbound path for client
-   * state. Future features (theme, notifications, keybinds)
-   * contribute new schema entries via their own mixins but reuse
-   * this same wire path.
-   */
-  private async handleClientStateWrite(
-    socketId: string,
-    message: InboundClientMessage,
-  ): Promise<void> {
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    if (!interactive) return;
-    const holder = interactive.getHolder();
-    if (!(holder instanceof Avatar)) {
-      console.warn(
-        `Application: client-state-write from socket ${socketId} ` +
-          `with no avatar holder`,
-      );
-      return;
-    }
-    const payload = message.payload as
-      | { key: unknown; value: unknown }
-      | undefined;
-    if (!payload || typeof payload.key !== 'string') return;
-    try {
-      holder.setClientState(payload.key, payload.value);
-      await holder.save();
-    } catch (error) {
-      console.warn(
-        `Application: client-state-write rejected for key ` +
-          `'${payload.key}': ` +
-          (error instanceof Error ? error.message : String(error)),
-      );
-    }
-  }
-
-  private handleEchoMessage(socketId: string, message: InboundClientMessage): void {
-    if (!this.backend) return;
-
-    this.backend.sendMessageToSocket(socketId, {
-      type: 'echo',
-      payload: message.payload,
-    });
-  }
-
-  private handlePingMessage(socketId: string, _message: InboundClientMessage): void {
-    if (!this.backend) return;
-
-    this.backend.sendMessageToSocket(socketId, {
-      type: 'pong',
-      payload: {
-        timestamp: Date.now(),
-      },
-    });
-  }
-
-  private async handleCommandMessage(socketId: string, message: InboundClientMessage): Promise<void> {
-    if (!this.backend) return;
-
-    const interactive = ConnectionManager.get().getInteractive(socketId);
-    // Avatar-specific dispatch path: builds a location-bound
-    // CommandContext. When Login (or any other HasInteractive) starts
-    // running commands of its own, that's a separate dispatch path —
-    // its CommandContext won't have a location.
-    const holder = interactive?.getHolder();
-    if (!interactive || !(holder instanceof Avatar)) {
+    const handler = inboundHandlers[message.type];
+    if (!handler) {
+      console.warn(`Application: Unknown message type: ${message.type}`);
       this.backend.sendMessageToSocket(socketId, {
         type: 'error',
-        payload: { message: 'No active character' },
+        payload: { message: `Unknown message type: ${message.type}` },
       });
       return;
     }
 
-    const commandText = (message.payload as { text: string }).text?.trim();
-    if (!commandText) {
-      // MUD-style "press Enter for a fresh prompt." Empty command
-      // line short-circuits to a dispatch-response carrying only
-      // the prompt-refresh Note. No parser, no controller, no
-      // controller side-effects. Runs even when the avatar has no
-      // container (a placeless avatar should still see their
-      // current prompt).
-      const refresh = renderPromptRefresh(holder);
-      const template: EnvelopeTemplate = {
-        type: 'dispatch-response',
-        dispatchId: nanoid(),
-        outcome: { status: 'ok', notes: [refresh] },
-      };
-      this.sendEnvelopeToInteractive(interactive, template);
-      return;
-    }
-
-    const avatar = holder;
-    // The avatar must be inside *some* Container (Location, Vessel, …)
-    // for command dispatch — the value isn't used past this guard, we
-    // just need to bail out on the placeless edge case.
-    if (!avatar.getContainer()) {
-      this.backend.sendMessageToSocket(socketId, {
-        type: 'error',
-        payload: { message: 'Avatar has no location' },
+    const result = handler(
+      { socketId, interactive, backend: this.backend, application: this },
+      message,
+    );
+    if (result instanceof Promise) {
+      result.catch((error) => {
+        console.error(
+          `Application: inbound '${message.type}' error for socket ${socketId}:`,
+          error,
+        );
       });
-      return;
     }
-
-    // executeCommand returns void; the dispatch-response envelope
-    // (fired through the Sensor pipeline to every connected
-    // Interactive) is the sole outcome carrier. Any prose the
-    // controller wanted the player to see fires via Scene inside
-    // the controller body.
-    await avatar.executeCommand(commandText, { interactive });
   }
 
   /**

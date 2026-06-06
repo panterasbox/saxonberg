@@ -167,11 +167,15 @@ describe('Application', () => {
       expect(backend.sent).toEqual([]);
     });
 
-    it('echo type → echoes the payload back', () => {
+    it('echo type → unknown-type error (handler dropped during inbound/ refactor)', () => {
       app.processUserMessage('sock-1', { type: 'echo', payload: { x: 1 } });
-      expect(backend.sent).toEqual([
-        { socketId: 'sock-1', message: { type: 'echo', payload: { x: 1 } } },
-      ]);
+      expect(backend.sent).toHaveLength(1);
+      const msg = backend.sent[0]!.message as {
+        type: string;
+        payload: { message: string };
+      };
+      expect(msg.type).toBe('error');
+      expect(msg.payload.message).toContain('echo');
     });
 
     it('ping type → responds with pong and a timestamp', () => {
