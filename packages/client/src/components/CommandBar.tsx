@@ -1,74 +1,388 @@
 /**
- * CommandBar - Command input component with history
+ * CommandBar — slot-multiplexed input for commands AND prompts.
  *
- * Text input with send button for entering game commands.
- * Features:
- * - Enter key to submit
- * - Up/Down arrow keys for command history navigation
- * - Escape key to clear input
- * - History persisted to localStorage
+ * The bar holds state for every pending prompt **plus** the always-
+ * present base command slot. One slot is "active" at a time and
+ * owns the input; switching slots swaps the draft text in and out
+ * via the store's `promptDrafts` map. Each slot remembers its
+ * draft until submitted or its prompt dismisses.
+ *
+ * Layout (two rows):
+ *
+ *   ┌──────────────────────────────────────────────────────────┐
+ *   │ [▾ Slot label  ⌃N]   [chips/affordances for active slot] │
+ *   │ [sigil] [input draft text                ]   [submit]    │
+ *   └──────────────────────────────────────────────────────────┘
+ *
+ * Slot picker (top-left) is a dropdown when prompts are pending —
+ * lists base + every prompt with its kind chip, draft preview, X-
+ * cancel button. Clicking a row makes that slot active.
+ *
+ * Submit semantics by active slot:
+ *
+ *   - `base` → command-bus `command` (empty Enter still goes; the
+ *     server's short-circuit refreshes the base prompt).
+ *   - `text` → `prompt-response` with the typed draft.
+ *   - `confirm` → typed `y`/`n`/`yes`/`no` (case-insensitive)
+ *     resolves to `'yes'`/`'no'` on Enter; chip click bypasses
+ *     the input entirely.
+ *   - `choice` / `mql-object` → chip click is the canonical send
+ *     path; Enter on the bare input is a no-op (we don't try to
+ *     match typed text against choices in v1).
+ *   - `mql-many` → toggle chips + a Send-(N) chip JSON-encodes
+ *     the selected stuffId array.
+ *
+ * Per-slot X-cancel sends `prompt-cancel` for that promptId. The
+ * "cancel all" affordance (when > 1 prompt pending) sends the
+ * `prompt cancel` verb through the command bus.
+ *
+ * History persists to localStorage as before — but only the base
+ * slot walks history (ArrowUp/Down). Prompt slots treat arrows as
+ * plain text-edit keys.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
-
-const BarContainer = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #2d2d2d;
-  border-top: 1px solid #444;
-`;
-
-const Input = styled.input<{ $flashing?: boolean }>`
-  flex: 1;
-  padding: 0.5rem;
-  background: ${(p) => (p.$flashing ? '#264f3e' : '#1e1e1e')};
-  color: #d4d4d4;
-  border: 1px solid ${(p) => (p.$flashing ? '#4ec9b0' : '#444')};
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  transition: background 150ms, border-color 150ms;
-
-  &:focus {
-    outline: none;
-    border-color: ${(p) => (p.$flashing ? '#4ec9b0' : '#007acc')};
-  }
-`;
-
-const Button = styled.button`
-  padding: 0.5rem 1rem;
-  background: #007acc;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-
-  &:hover {
-    background: #005a9e;
-  }
-
-  &:active {
-    background: #004578;
-  }
-`;
+import {
+  useStore,
+  BASE_SLOT,
+  type PromptEntry,
+} from '../store/index';
+import { tokens } from './ui/tokens';
 
 interface CommandBarProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSend: (text: string) => void;
+  /**
+   * The base-slot draft text. Controlled by App because it doubles
+   * as the hover-preview display channel (clickable-affordance
+   * mouseenter writes here transiently). Per-prompt drafts are
+   * read/written directly through the store.
+   */
+  baseValue: string;
+  onBaseChange: (value: string) => void;
+  onSendCommand: (text: string) => void;
+  onSendPromptResponse: (promptId: string, response: string) => void;
+  onCancelPrompt: (promptId: string) => void;
+  /** Post-click flash signal forwarded from App. */
   flashing?: boolean;
 }
 
 const HISTORY_KEY = 'saxonberg-command-history';
 const MAX_HISTORY = 100;
 
-export function CommandBar({ value, onChange, onSend, flashing }: CommandBarProps) {
+/* --- Layout primitives -------------------------------------------- */
+
+const BarContainer = styled.div<{ $promptMode: boolean }>`
+  display: flex;
+  flex-direction: column;
+  background: ${tokens.color.surfaceAlt};
+  border-top: 1px solid
+    ${(p) => (p.$promptMode ? tokens.color.accent : tokens.color.border)};
+`;
+
+const PromptRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${tokens.space.md};
+  padding: ${tokens.space.md} ${tokens.space.xl} 0;
+`;
+
+const InputRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.md};
+  padding: ${tokens.space.md} ${tokens.space.xl} ${tokens.space.xl};
+`;
+
+const Sigil = styled.span<{ $promptMode: boolean }>`
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+  color: ${(p) =>
+    p.$promptMode ? tokens.color.accent : tokens.color.fgEmphasis};
+  white-space: nowrap;
+`;
+
+const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
+  flex: 1;
+  padding: ${tokens.space.md};
+  background: ${(p) =>
+    p.$flashing
+      ? '#264f3e'
+      : p.$promptMode
+      ? tokens.color.surfaceMuted
+      : tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid
+    ${(p) =>
+      p.$flashing
+        ? tokens.color.accent
+        : p.$promptMode
+        ? tokens.color.accent
+        : tokens.color.border};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+  transition: background 150ms, border-color 150ms;
+
+  &:focus {
+    outline: none;
+    border-color: ${(p) =>
+      p.$flashing
+        ? tokens.color.accent
+        : p.$promptMode
+        ? tokens.color.accentHover
+        : tokens.color.primary};
+  }
+`;
+
+const SendButton = styled.button<{ $promptMode: boolean }>`
+  padding: ${tokens.space.md} ${tokens.space.xl};
+  background: ${(p) =>
+    p.$promptMode ? tokens.color.accent : tokens.color.primary};
+  color: ${(p) =>
+    p.$promptMode ? tokens.color.surfaceSunken : 'white'};
+  border: none;
+  cursor: pointer;
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+  white-space: nowrap;
+
+  &:hover {
+    background: ${(p) =>
+      p.$promptMode ? tokens.color.accentHover : tokens.color.primaryHover};
+  }
+`;
+
+/* --- Slot picker -------------------------------------------------- */
+
+const SlotPicker = styled.button<{ $expanded: boolean; $hasPrompts: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  background: ${(p) =>
+    p.$expanded ? tokens.color.surfaceSunken : tokens.color.surfaceMuted};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.borderEmphasis};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  cursor: ${(p) => (p.$hasPrompts ? 'pointer' : 'default')};
+
+  &:hover {
+    background: ${(p) =>
+      p.$hasPrompts ? tokens.color.surfaceSunken : tokens.color.surfaceMuted};
+  }
+`;
+
+const StackBadge = styled.span`
+  display: inline-block;
+  padding: 0 ${tokens.space.sm};
+  background: ${tokens.color.accent};
+  color: ${tokens.color.surfaceSunken};
+  border-radius: ${tokens.radius.sm};
+  font-size: ${tokens.font.micro};
+`;
+
+const SlotDropdown = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: ${tokens.color.surfaceSunken};
+  border: 1px solid ${tokens.color.borderEmphasis};
+  border-radius: ${tokens.radius.sm};
+`;
+
+const SlotRow = styled.li<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  background: ${(p) => (p.$active ? tokens.color.surfaceMuted : 'transparent')};
+  border-left: 2px solid
+    ${(p) => (p.$active ? tokens.color.accent : 'transparent')};
+  font-size: ${tokens.font.small};
+
+  &:hover {
+    background: ${tokens.color.surfaceMuted};
+  }
+`;
+
+const SlotRowLabel = styled.button`
+  flex: 1;
+  background: none;
+  border: none;
+  color: ${tokens.color.fg};
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: ${tokens.color.accentHover};
+  }
+`;
+
+const KindChip = styled.span`
+  padding: 0 ${tokens.space.sm};
+  background: ${tokens.color.surfaceAlt};
+  color: ${tokens.color.fgMuted};
+  border-radius: ${tokens.radius.sm};
+  font-size: ${tokens.font.micro};
+`;
+
+const DraftPreview = styled.span`
+  color: ${tokens.color.fgMuted};
+  font-style: italic;
+  font-size: ${tokens.font.micro};
+`;
+
+const XButton = styled.button`
+  padding: 0 ${tokens.space.sm};
+  background: transparent;
+  color: ${tokens.color.fgMuted};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fg};
+    border-color: ${tokens.color.fgMuted};
+  }
+`;
+
+/* --- Chip affordances --------------------------------------------- */
+
+const ChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${tokens.space.sm};
+`;
+
+const Chip = styled.button<{ $primary?: boolean; $selected?: boolean }>`
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  background: ${(p) =>
+    p.$selected
+      ? tokens.color.accent
+      : p.$primary
+      ? tokens.color.primary
+      : tokens.color.actionBg};
+  color: ${(p) =>
+    p.$selected
+      ? tokens.color.surfaceSunken
+      : p.$primary
+      ? 'white'
+      : tokens.color.fg};
+  border: 1px solid
+    ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+
+  &:hover {
+    background: ${(p) =>
+      p.$selected ? tokens.color.accentHover : tokens.color.actionBgHover};
+  }
+`;
+
+const ValidationMessage = styled.div`
+  flex-basis: 100%;
+  color: #e06c75;
+  font-size: ${tokens.font.small};
+  padding: 0 ${tokens.space.sm};
+`;
+
+/* --- Helpers ------------------------------------------------------ */
+
+function slotLabelFor(slot: string, base: string, entry?: PromptEntry): string {
+  if (slot === BASE_SLOT) return base;
+  return entry ? entry.label : '(dismissed)';
+}
+
+function kindLabelFor(entry: PromptEntry): string {
+  return entry.kind;
+}
+
+function parseConfirmInput(text: string): 'yes' | 'no' | null {
+  const t = text.trim().toLowerCase();
+  if (t === 'y' || t === 'yes') return 'yes';
+  if (t === 'n' || t === 'no') return 'no';
+  return null;
+}
+
+function submitButtonLabel(entry: PromptEntry | undefined): string {
+  if (!entry) return 'Send';
+  if (entry.kind === 'text' || entry.kind === 'confirm') return 'Respond';
+  return 'Respond';
+}
+
+/* --- Component ---------------------------------------------------- */
+
+export function CommandBar({
+  baseValue,
+  onBaseChange,
+  onSendCommand,
+  onSendPromptResponse,
+  onCancelPrompt,
+  flashing,
+}: CommandBarProps) {
+  const prompts = useStore((s) => s.prompts);
+  const activeSlot = useStore((s) => s.activeSlot);
+  const promptDrafts = useStore((s) => s.promptDrafts);
+  const basePrompt = useStore((s) => s.basePrompt);
+  const setActiveSlot = useStore((s) => s.setActiveSlot);
+  const setDraft = useStore((s) => s.setDraft);
+
+  const activeEntry: PromptEntry | undefined =
+    activeSlot === BASE_SLOT
+      ? undefined
+      : prompts.find((p) => p.promptId === activeSlot);
+
+  const promptMode = activeEntry !== undefined;
+  const sigilText = promptMode ? '?' : basePrompt;
+
+  // The input's displayed value: for base, use the controlled
+  // baseValue from App (it tracks hover preview); for prompts, read
+  // straight from store.
+  const inputValue =
+    activeSlot === BASE_SLOT
+      ? baseValue
+      : promptDrafts[activeSlot] ?? '';
+
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Load history from localStorage on mount
+  // Multi-select state for mql-many — keyed by promptId so the
+  // selection persists across slot switches the same way drafts do.
+  const [mqlManySelection, setMqlManySelection] = useState<
+    Record<string, Set<string>>
+  >({});
+
+  // Reset mql-many selection when the prompt dismisses (the key
+  // would otherwise grow unbounded across long sessions).
+  useEffect(() => {
+    setMqlManySelection((prev) => {
+      const pendingIds = new Set(prompts.map((p) => p.promptId));
+      let changed = false;
+      const next: Record<string, Set<string>> = {};
+      for (const [k, v] of Object.entries(prev)) {
+        if (pendingIds.has(k)) {
+          next[k] = v;
+        } else {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [prompts]);
+
+  // History persistence — unchanged from the pre-refactor shape.
   useEffect(() => {
     const stored = localStorage.getItem(HISTORY_KEY);
     if (stored) {
@@ -82,72 +396,332 @@ export function CommandBar({ value, onChange, onSend, flashing }: CommandBarProp
       }
     }
   }, []);
-
-  // Save history to localStorage whenever it changes
   useEffect(() => {
     if (history.length > 0) {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     }
   }, [history]);
 
-  const handleSubmit = () => {
-    const command = value.trim();
-    if (command) {
-      onSend(command);
+  /* --- Submit handlers -------------------------------------------- */
 
-      // Add to history (avoid consecutive duplicates)
+  const submitBase = () => {
+    onSendCommand(baseValue);
+    const trimmed = baseValue.trim();
+    if (trimmed) {
       setHistory((prev) => {
-        const filtered = prev[0] === command ? prev : [command, ...prev];
+        const filtered = prev[0] === trimmed ? prev : [trimmed, ...prev];
         return filtered.slice(0, MAX_HISTORY);
       });
+    }
+    onBaseChange('');
+    setHistoryIndex(-1);
+  };
 
-      onChange('');
-      setHistoryIndex(-1);
+  const submitActive = () => {
+    if (!activeEntry) {
+      submitBase();
+      return;
+    }
+    const draft = promptDrafts[activeSlot] ?? '';
+    switch (activeEntry.kind) {
+      case 'text': {
+        if (!draft) return;
+        onSendPromptResponse(activeEntry.promptId, draft);
+        // Draft drops in dismissPrompt; clear locally as a UI
+        // affordance too so the input visually empties before the
+        // dismissed envelope round-trips.
+        setDraft(activeSlot, '');
+        return;
+      }
+      case 'confirm': {
+        const decoded = parseConfirmInput(draft);
+        if (!decoded) return;
+        onSendPromptResponse(activeEntry.promptId, decoded);
+        setDraft(activeSlot, '');
+        return;
+      }
+      case 'choice':
+      case 'mql-object':
+      case 'mql-many':
+        // Chip-only kinds: Enter on bare input is a no-op.
+        return;
     }
   };
+
+  const handleChipSend = (entry: PromptEntry, response: string) => {
+    onSendPromptResponse(entry.promptId, response);
+    setDraft(entry.promptId, '');
+  };
+
+  const handleMqlManyToggle = (entry: PromptEntry, stuffId: string) => {
+    setMqlManySelection((prev) => {
+      const cur = prev[entry.promptId] ?? new Set<string>();
+      const next = new Set(cur);
+      if (next.has(stuffId)) {
+        next.delete(stuffId);
+      } else {
+        next.add(stuffId);
+      }
+      return { ...prev, [entry.promptId]: next };
+    });
+  };
+
+  const handleMqlManySend = (entry: PromptEntry) => {
+    const sel = mqlManySelection[entry.promptId] ?? new Set<string>();
+    onSendPromptResponse(entry.promptId, JSON.stringify([...sel]));
+    setMqlManySelection((prev) => {
+      const next = { ...prev };
+      delete next[entry.promptId];
+      return next;
+    });
+  };
+
+  /* --- Key handling ---------------------------------------------- */
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleSubmit();
-    } else if (e.key === 'ArrowUp') {
+      submitActive();
+      return;
+    }
+    if (e.key === 'Escape') {
       e.preventDefault();
-      // Move backward in history (toward older commands)
+      // Esc on a prompt slot returns to base without dismissing —
+      // per slate, Esc is back-out, not kill. Esc on base clears
+      // the input (legacy behavior).
+      if (promptMode) {
+        setActiveSlot(BASE_SLOT);
+        return;
+      }
+      onBaseChange('');
+      setHistoryIndex(-1);
+      return;
+    }
+    // History only on base. Prompt slots treat arrows as plain
+    // text-edit keys (some prompt responses are multi-line-ish).
+    if (!promptMode && e.key === 'ArrowUp') {
+      e.preventDefault();
       if (history.length > 0) {
         const newIndex = Math.min(historyIndex + 1, history.length - 1);
         setHistoryIndex(newIndex);
-        onChange(history[newIndex] || '');
+        onBaseChange(history[newIndex] || '');
       }
-    } else if (e.key === 'ArrowDown') {
+    } else if (!promptMode && e.key === 'ArrowDown') {
       e.preventDefault();
-      // Move forward in history (toward newer commands)
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         setHistoryIndex(newIndex);
-        onChange(history[newIndex] || '');
+        onBaseChange(history[newIndex] || '');
       } else if (historyIndex === 0) {
-        // At newest command, clear input
         setHistoryIndex(-1);
-        onChange('');
+        onBaseChange('');
       }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      onChange('');
-      setHistoryIndex(-1);
     }
   };
 
+  /* --- Render helpers -------------------------------------------- */
+
+  const activeChips = useMemo(() => {
+    if (!activeEntry) return null;
+    switch (activeEntry.kind) {
+      case 'choice':
+        return (
+          <ChipRow>
+            {activeEntry.choices.map((c) => (
+              <Chip
+                key={c.response}
+                $primary={c.response === activeEntry.defaultChoice}
+                onClick={() => handleChipSend(activeEntry, c.response)}
+              >
+                {c.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        );
+      case 'confirm': {
+        const yesPrimary = activeEntry.defaultAnswer === 'yes';
+        return (
+          <ChipRow>
+            <Chip
+              $primary={yesPrimary}
+              onClick={() => handleChipSend(activeEntry, 'yes')}
+            >
+              Yes
+            </Chip>
+            <Chip
+              $primary={!yesPrimary}
+              onClick={() => handleChipSend(activeEntry, 'no')}
+            >
+              No
+            </Chip>
+          </ChipRow>
+        );
+      }
+      case 'mql-object':
+        return (
+          <ChipRow>
+            {activeEntry.matches.map((m) => (
+              <Chip
+                key={m.stuffId}
+                onClick={() => handleChipSend(activeEntry, m.stuffId)}
+              >
+                {m.displayName}
+              </Chip>
+            ))}
+          </ChipRow>
+        );
+      case 'mql-many': {
+        const sel =
+          mqlManySelection[activeEntry.promptId] ?? new Set<string>();
+        const bounds: string[] = [];
+        if (activeEntry.min !== undefined) bounds.push(`min ${activeEntry.min}`);
+        if (activeEntry.max !== undefined) bounds.push(`max ${activeEntry.max}`);
+        return (
+          <ChipRow>
+            {activeEntry.matches.map((m) => (
+              <Chip
+                key={m.stuffId}
+                $selected={sel.has(m.stuffId)}
+                onClick={() => handleMqlManyToggle(activeEntry, m.stuffId)}
+              >
+                {m.displayName}
+              </Chip>
+            ))}
+            <Chip $primary onClick={() => handleMqlManySend(activeEntry)}>
+              Send{sel.size > 0 ? ` (${sel.size})` : ''}
+              {bounds.length > 0 ? ` · ${bounds.join(' · ')}` : ''}
+            </Chip>
+          </ChipRow>
+        );
+      }
+      case 'text':
+        // Text uses the input row; no chips.
+        return null;
+    }
+  }, [activeEntry, mqlManySelection]);
+
+  const showPromptRow = activeEntry !== undefined || prompts.length > 0;
+
+  const slotPickerLabel = slotLabelFor(activeSlot, basePrompt, activeEntry);
+
   return (
-    <BarContainer>
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Enter command..."
-        autoFocus
-        $flashing={flashing}
-      />
-      <Button onClick={handleSubmit}>Send</Button>
+    <BarContainer $promptMode={promptMode}>
+      {showPromptRow ? (
+        <PromptRow>
+          <SlotPicker
+            $expanded={dropdownOpen}
+            $hasPrompts={prompts.length > 0}
+            onClick={() => {
+              if (prompts.length > 0) setDropdownOpen((v) => !v);
+            }}
+            aria-label="Open prompt slot picker"
+          >
+            <span>{dropdownOpen ? '▾' : '▸'}</span>
+            <span>{slotPickerLabel}</span>
+            {prompts.length > 0 ? (
+              <StackBadge>⌃{prompts.length}</StackBadge>
+            ) : null}
+          </SlotPicker>
+
+          {activeEntry ? (
+            <XButton
+              onClick={() => onCancelPrompt(activeEntry.promptId)}
+              aria-label="Cancel this prompt"
+            >
+              X
+            </XButton>
+          ) : null}
+
+          {prompts.length > 1 ? (
+            <XButton
+              onClick={() => onSendCommand('prompt cancel')}
+              aria-label="Cancel every pending prompt"
+            >
+              cancel all
+            </XButton>
+          ) : null}
+
+          {!dropdownOpen ? activeChips : null}
+
+          {activeEntry?.validationError ? (
+            <ValidationMessage>
+              {activeEntry.validationError}
+            </ValidationMessage>
+          ) : null}
+
+          {dropdownOpen ? (
+            <SlotDropdown>
+              <SlotRow $active={activeSlot === BASE_SLOT}>
+                <SlotRowLabel
+                  onClick={() => {
+                    setActiveSlot(BASE_SLOT);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {basePrompt}
+                </SlotRowLabel>
+                <KindChip>command</KindChip>
+                {promptDrafts[BASE_SLOT] ? (
+                  <DraftPreview>
+                    {promptDrafts[BASE_SLOT].slice(0, 32)}
+                  </DraftPreview>
+                ) : null}
+              </SlotRow>
+              {prompts.map((p) => (
+                <SlotRow key={p.promptId} $active={activeSlot === p.promptId}>
+                  <SlotRowLabel
+                    onClick={() => {
+                      setActiveSlot(p.promptId);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    {p.label}
+                  </SlotRowLabel>
+                  <KindChip>{kindLabelFor(p)}</KindChip>
+                  {promptDrafts[p.promptId] ? (
+                    <DraftPreview>
+                      {promptDrafts[p.promptId]!.slice(0, 32)}
+                    </DraftPreview>
+                  ) : null}
+                  <XButton onClick={() => onCancelPrompt(p.promptId)}>
+                    X
+                  </XButton>
+                </SlotRow>
+              ))}
+            </SlotDropdown>
+          ) : null}
+        </PromptRow>
+      ) : null}
+
+      <InputRow>
+        <Sigil $promptMode={promptMode}>{sigilText}</Sigil>
+        <Input
+          value={inputValue}
+          onChange={(e) => {
+            if (activeSlot === BASE_SLOT) {
+              onBaseChange(e.target.value);
+            } else {
+              setDraft(activeSlot, e.target.value);
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder={
+            promptMode
+              ? activeEntry && activeEntry.kind === 'text'
+                ? activeEntry.placeholder ?? 'Type your answer...'
+                : activeEntry && activeEntry.kind === 'confirm'
+                ? 'y / n (or click)'
+                : 'Click a choice above, or Esc to return to commands'
+              : 'Enter command...'
+          }
+          autoFocus
+          $flashing={flashing}
+          $promptMode={promptMode}
+        />
+        <SendButton $promptMode={promptMode} onClick={submitActive}>
+          {submitButtonLabel(activeEntry)}
+        </SendButton>
+      </InputRow>
     </BarContainer>
   );
 }

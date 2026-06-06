@@ -206,6 +206,7 @@ export class PromptApi {
     choices: PromptChoice[],
     opts?: ChoicePromptOpts<T>,
   ): Promise<T> {
+    const foreground = opts?.foreground ?? true;
     return this.#push<T>(
       interactive,
       'choice',
@@ -213,6 +214,7 @@ export class PromptApi {
         kind: 'prompt-choice',
         label,
         choices,
+        foreground,
         ...(opts?.defaultChoice !== undefined
           ? { defaultChoice: opts.defaultChoice }
           : {}),
@@ -229,6 +231,7 @@ export class PromptApi {
     defaultAnswer: 'yes' | 'no' = 'no',
     opts?: PromptOpts<boolean>,
   ): Promise<boolean> {
+    const foreground = opts?.foreground ?? true;
     return this.#push<boolean>(
       interactive,
       'confirm',
@@ -236,6 +239,7 @@ export class PromptApi {
         kind: 'prompt-confirm',
         label,
         defaultAnswer,
+        foreground,
       }),
       opts,
     );
@@ -248,12 +252,14 @@ export class PromptApi {
     label: string,
     opts?: TextPromptOpts,
   ): Promise<string> {
+    const foreground = opts?.foreground ?? true;
     return this.#push<string>(
       interactive,
       'text',
       (): TextPromptNote => ({
         kind: 'prompt-text',
         label,
+        foreground,
         ...(opts?.placeholder !== undefined
           ? { placeholder: opts.placeholder }
           : {}),
@@ -275,6 +281,7 @@ export class PromptApi {
       stuffId: s.stuffId,
       displayName: DescribeApi.getDisplayName(s, viewer),
     }));
+    const foreground = opts?.foreground ?? true;
     return this.#push<Stuff | null>(
       interactive,
       'mqlObject',
@@ -282,6 +289,7 @@ export class PromptApi {
         kind: 'prompt-mql-object',
         label,
         matches: projected,
+        foreground,
       }),
       opts,
     );
@@ -300,6 +308,7 @@ export class PromptApi {
       stuffId: s.stuffId,
       displayName: DescribeApi.getDisplayName(s, viewer),
     }));
+    const foreground = opts?.foreground ?? true;
     return this.#push<Stuff[]>(
       interactive,
       'mqlMany',
@@ -307,6 +316,7 @@ export class PromptApi {
         kind: 'prompt-mql-many',
         label,
         matches: projected,
+        foreground,
         ...(opts?.min !== undefined ? { min: opts.min } : {}),
         ...(opts?.max !== undefined ? { max: opts.max } : {}),
       }),
