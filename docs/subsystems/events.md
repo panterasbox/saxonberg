@@ -320,7 +320,7 @@ single-target alternative.
 template path `/obj/EventRegistry`. Bootstrapped by `BootstrapManager`
 (see [bootstrap.md](./bootstrap.md)).
 
-**Not Persistable.** Every event prop is `transient: true`, the
+**Not a persisted record.** Every event prop is `transient: true`, the
 `checkAccess` closures don't survive serialization, and there's
 nothing meaningful to round-trip. Composition deliberately stops at
 `PropertiedMixin(Idea)`.

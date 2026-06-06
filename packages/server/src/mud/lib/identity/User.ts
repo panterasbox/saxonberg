@@ -4,17 +4,16 @@
  * Auth-layer record linked to an OAuth provider. Owns one or more
  * character slots via `playerIds`. Lives in MongoDB `users` collection.
  *
- * User is a Persistable (Idea-rooted). It carries a `stuffId`, registers
- * with `StuffApi`, and is destroyed via `StuffApi.destruct` (which
- * `Persistable.delete` cascades to). Construct with
- * `await StuffApi.create(() => new User())`. No template, no zone, no
- * clone pipeline.
+ * User is a Document — plain persisted state, NOT a Stuff. It is not
+ * registered with `StuffApi`, not proxy-wrapped, and has no lifecycle.
+ * Construct with a plain `new User()`; persist with `save()`; load with
+ * `User.findById` / `User.find`.
  */
 
-import { Persistable } from '../persistence/Persistable';
+import { Document } from '../persistence/Document';
 import type { User as IUser } from '@saxonberg/types';
 
-export class User extends Persistable implements IUser {
+export class User extends Document implements IUser {
   static collectionName = 'users';
 
   /**

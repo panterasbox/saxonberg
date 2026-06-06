@@ -234,7 +234,7 @@ describe('PlayerApi', () => {
     let mockAvatar2: Avatar;
 
     function makeUser(id: string, playerIds: string[] = []): User {
-      const user = makeStuff(() => new User());
+      const user = new User();
       // MIGRATION: User has not yet been migrated to the methods-only
       // contract; bracket assignment until `setUserId` / `setPlayerIds`
       // land on the User class.

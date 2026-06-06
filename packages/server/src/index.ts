@@ -101,4 +101,4 @@ export { Interactive } from './mud/obj/Interactive';
 export type { HasInteractive } from './mud/lib/connection/HasInteractive';
 export { HasInteractiveMixin } from './mud/lib/connection/HasInteractive';
 export { Agent } from './mud/lib/stuff/Agent';
-export { Persistable } from './mud/lib/persistence/Persistable';
+export { Document } from './mud/lib/persistence/Document';

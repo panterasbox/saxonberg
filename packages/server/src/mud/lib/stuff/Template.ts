@@ -7,10 +7,11 @@
  * loads a Template by path, dynamic-imports the backing class, optionally
  * runs the hydrator over `data`, and runs `postRegister`.
  *
- * Template is a `Persistable`, not a `Stuff` — like `User` and
- * `GoogleProfile`, it's a record, not a game-world entity. CRUD goes
- * through the inherited `save`/`delete`/`findById`/`find` surface plus
- * the `findByPath` / `findDescendants` helpers below.
+ * Template is a `Document`, not a `Stuff` — like `User` and
+ * `GoogleProfile`, it's a record, not a game-world entity (it is the data
+ * a game-world Stuff is *cloned from*, never a live entity itself). CRUD
+ * goes through the inherited `save`/`delete`/`findById`/`find` surface
+ * plus the `findByPath` / `findDescendants` helpers below.
  *
  * **Folder/leaf type split.** `Template` is abstract; concrete
  * subclasses are `ZoneTemplate` (folders — any class extending
@@ -26,9 +27,9 @@
  * The Phase Z2 type split is the primary expression of the invariant;
  * the hook is defense-in-depth at the persistence chokepoint.
  */
-import { Persistable, preloadFieldMarshallersFor } from '../persistence/Persistable';
+import { Document, preloadFieldMarshallersFor } from '../persistence/Document';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
-import { StuffApi } from '../../api/stuff';
+import { type AnyConstructor } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
 
 /**
@@ -37,7 +38,7 @@ import { ZoneApi } from '../../api/zone';
  */
 type DomainDoc = Record<string, unknown> & { class?: unknown };
 
-export abstract class Template extends Persistable {
+export abstract class Template extends Document {
   static collectionName = 'domain';
   static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
 
@@ -67,8 +68,9 @@ export abstract class Template extends Persistable {
    * distinction is what lets callers reason about folder-vs-leaf
    * without sniffing `class`.
    *
-   * Constructed via `StuffApi.create` so the loaded record is registered
-   * + proxy-wrapped like any other Stuff.
+   * Constructed with a plain `new` — a Template is a `Document`, not a
+   * registered Stuff, so there is no `StuffApi.create` and no registry
+   * entry to accumulate.
    */
   protected static async _materialize(doc: DomainDoc): Promise<Template> {
     const classPath = typeof doc.class === 'string' ? doc.class : '';
@@ -79,23 +81,21 @@ export abstract class Template extends Persistable {
     let instance: Template;
     if (isFolder) {
       const { ZoneTemplate } = await import('./ZoneTemplate');
-      instance = await StuffApi.create(() => new ZoneTemplate());
+      instance = new ZoneTemplate();
     } else {
       const { LeafTemplate } = await import('./LeafTemplate');
-      instance = await StuffApi.create(() => new LeafTemplate());
+      instance = new LeafTemplate();
     }
     // Preflight any marshaller singletons for the chosen subclass
     // before the sync `fromDocument` walk, mirroring the pattern in
-    // `Persistable.findById` / `find`. Template subclasses today
+    // `Document.findById` / `find`. Template subclasses today
     // don't compose marshaller-typed fields, but a future
     // `ZoneTemplate` / `LeafTemplate` extension that does would
-    // otherwise hit the sync `findByTemplatePath` "not registered"
-    // throw inside `fromDocument`.
-    await preloadFieldMarshallersFor(
-      instance.constructor as new (...args: unknown[]) => Persistable
-    );
-    // Reflect persisted fields onto the instance via the public seam
-    // Persistable provides for hydration. (It's protected, so we cast.)
+    // otherwise hit the sync resolver "not registered" throw inside
+    // `fromDocument`.
+    await preloadFieldMarshallersFor(instance.constructor as AnyConstructor);
+    // Reflect persisted fields onto the instance via the hydration seam
+    // Document provides. (It's protected, so we cast.)
     (instance as unknown as { fromDocument(d: DomainDoc): void }).fromDocument(
       doc
     );
@@ -138,7 +138,7 @@ export abstract class Template extends Persistable {
    * Load a Template by `_id` and return it as the right subclass
    * (`ZoneTemplate` / `LeafTemplate`).
    *
-   * Distinct from the inherited `Persistable.findById<T>`: that method
+   * Distinct from the inherited `Document.findById<T>`: that method
    * is generic over the calling class and does `new this()`, which is
    * illegal on the abstract `Template` base. Concrete subclasses
    * (`ZoneTemplate.findById(id)` / `LeafTemplate.findById(id)`) still

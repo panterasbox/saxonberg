@@ -45,14 +45,15 @@ behavior. Read the relevant doc before editing in its area.
     `populates:` / `container:` instruction fields and their Phase 2
     appliers, `TemplateApi.snapshotToTemplate` /
     `restoreFromTemplate` persist-back surface
-  - [persistence.md](./docs/subsystems/persistence.md) — Persistable,
+  - [persistence.md](./docs/subsystems/persistence.md) — the `Document`
+    base (plain records, not Stuff) vs Templates→Stuff,
     PersistenceManager, around-save/delete hooks
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
     persisted, Avatar self-contained (v1 persist-back through
-    `Avatar.save()` / `Avatar.restore()`), Persistable in the Idea
-    hierarchy
+    `Avatar.save()` / `Avatar.restore()`), the `Document` track for
+    auth/meta records
   - [connection.md](./docs/subsystems/connection.md) — login/logout
     flow, WebSocket upgrade, `Interactive`/`Login`/`Avatar` handoff,
     `Login.enter` (connection routing) + `Avatar.enter` (session
@@ -601,7 +602,7 @@ bypass it. Common cases:
 | `door.setIsOpen(true)` / `door.getIsOpen()` | `door.setOpen(true)` / `door.isOpen()` — boolean fields use the noun form on field/setter/YAML, predicate form on the getter |
 | `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |
 | `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
-| `(stuff as any).save?.()` to round-trip arbitrary Stuff to its template | `Avatar.save()` is the only v1 consumer (`if (stuff instanceof Avatar) await stuff.save()`). The substrate (`TemplateApi.snapshotToTemplate` / `restoreFromTemplate`) is general but only Avatar exercises it in v1. No `PersistableStuffMixin` yet. |
+| `(stuff as any).save?.()` to round-trip arbitrary Stuff to its template | `Avatar.save()` is the only v1 consumer (`if (stuff instanceof Avatar) await stuff.save()`). The substrate (`TemplateApi.snapshotToTemplate` / `restoreFromTemplate`) is general but only Avatar exercises it in v1. No general persist-back mixin yet. |
 | Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/CloneController.ts`. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
@@ -653,8 +654,8 @@ multiplexing, disconnect): see
 
 ## MongoDB Collections
 
-- `users` — auth records (`Persistable`)
-- `google_profiles` — OAuth profile data (`Persistable`)
+- `users` — auth records (`Document`)
+- `google_profiles` — OAuth profile data (`Document`)
 - `domain` — object templates for the CMS (Avatar, rooms, NPCs, …)
 
 ## Session Notes for Claude

@@ -231,7 +231,7 @@ describe('BootstrapManager + EventRegistry integration', () => {
     vi.spyOn(Template, 'findByPath').mockImplementation(
       async (path: string) => {
         if (path === '/obj/EventRegistry') {
-          const t = await StuffApi.create(() => new LeafTemplate());
+          const t = new LeafTemplate();
           t.path = path;
           t.class = '/obj/EventRegistry';
           t.hydratorClass = '/lib/persistence/PersistentHydrator';
@@ -239,7 +239,7 @@ describe('BootstrapManager + EventRegistry integration', () => {
           return t;
         }
         if (path === '/lib/persistence/PersistentHydrator') {
-          const t = await StuffApi.create(() => new LeafTemplate());
+          const t = new LeafTemplate();
           t.path = path;
           t.class = '/lib/persistence/PersistentHydrator';
           t.data = {};

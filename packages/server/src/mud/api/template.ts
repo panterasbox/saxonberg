@@ -2,7 +2,7 @@
  * TemplateApi — typed convenience wrapper + folder/leaf validation
  * utilities for the `domain` collection.
  *
- * Templates themselves are modelled as `Template extends Persistable`
+ * Templates themselves are modelled as `Template extends Document`
  * (`lib/stuff/Template`) — the standard CRUD surface
  * (`save`/`findById`/`find`/`delete`) lives there, alongside the
  * `findByPath` and `findDescendants` helpers. This Api class layers on:
@@ -45,7 +45,7 @@ export class TemplateApi {
   /**
    * Upsert a Template at `path`. Looks up an existing Template at the
    * same path (so the underlying upsert reuses its `_id`), populates
-   * the four fields, and saves through `Persistable.save()`. The
+   * the four fields, and saves through `Document.save()`. The
    * folder/leaf invariant fires through `DomainHook` against the PM
    * chokepoint — direct `template.save()` is equivalent.
    *
@@ -60,8 +60,8 @@ export class TemplateApi {
     const tpl =
       (await Template.findByPath(path)) ??
       ((await ZoneApi.isFolderClass(classPath))
-        ? await StuffApi.create(() => new ZoneTemplate())
-        : await StuffApi.create(() => new LeafTemplate()));
+        ? new ZoneTemplate()
+        : new LeafTemplate());
     tpl.path = path;
     tpl.class = classPath;
     tpl.data = data;

@@ -240,7 +240,7 @@ export class MixinApi {
    * at use time.
    *
    * Mirrors the shape of {@link getAllPersistentFields} and is the
-   * companion lookup for `PersistentHydrator` / `Persistable`'s
+   * companion lookup for `PersistentHydrator` / `Document`'s
    * marshaller-aware coercion path.
    *
    * @param constructor - The class constructor to inspect

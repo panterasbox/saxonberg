@@ -26,7 +26,7 @@
  * a future `invalidateCache` admin verb (currently unused but
  * left in place) would let authors trigger a refresh in-process.
  *
- * NOT Persistable. The seed YAML is `{ class: /obj/TopicCatalogue,
+ * Not a persisted record. The seed YAML is `{ class: /obj/TopicCatalogue,
  * data: {} }` — there's no field state worth round-tripping. The
  * cache is rebuilt on demand by reading Template docs.
  */

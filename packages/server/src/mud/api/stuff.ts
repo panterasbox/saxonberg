@@ -235,8 +235,7 @@ export class StuffApi {
     context?: unknown
   ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
-    //    Template → Persistable → Idea → Stuff → StuffApi cycle at module
-    //    init time.
+    //    Template module-load cycle at init time.
     const { Template } = await import('../lib/stuff/Template');
     const template = await Template.findByPath(templatePath);
     if (!template) {
@@ -803,8 +802,8 @@ export class StuffApi {
   }
 
   /**
-   * Sync lookup for live Template-shaped Stuff (Persistables that
-   * carry a `path` field) by exact `path`. Backs the MQL path-atom
+   * Sync lookup for live templated Stuff instances (those that carry
+   * a `path` field) by exact `path`. Backs the MQL path-atom
    * fallback: when `findByPathGlob` returns no clones, the resolver
    * falls back to this so a non-glob path can address the template
    * record itself (e.g. `destruct /obj/Avatar/foo` to remove the

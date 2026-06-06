@@ -50,27 +50,28 @@ for that escape hatch.
 
 ## The Data Model
 
-### User is a Persistable (Idea-rooted, but not cloned)
+### User is a Document (a plain record, not a Stuff)
 
 User is **meta-game**, not game-world: it's auth-layer (identity,
 authentication, session context). It doesn't live in a zone, doesn't
 have a `templatePath`, doesn't get cloned, doesn't hydrate, doesn't
 participate in the Stuff filesystem.
 
-But it IS in the Idea hierarchy. `User extends Persistable extends Idea`.
-That gives User a `stuffId`, lifecycle (`StuffApi.destruct` for
-cleanup), and the call-security gate. Construction goes through
-`await StuffApi.create(() => new User())`; loading via
-`User.findById(...)` does the same internally. Lookup by Mongo `_id` or
-`googleProfileId` via the inherited `find`/`findById` statics.
+It is **not** in the Stuff hierarchy at all. `User extends Document` —
+a plain MongoDB-backed record with no `stuffId`, no registry
+membership, no proxy, and no lifecycle. Construction is a plain
+`new User()`; loading via `User.findById(...)`. Lookup by Mongo `_id`
+or `googleProfileId` via the inherited `find`/`findById` statics. It's
+value-like: two `findById` calls for the same id return distinct
+instances.
 
-See [persistence.md](./persistence.md) for the `Persistable` contract
+See [persistence.md](./persistence.md) for the `Document` contract
 in detail.
 
 ### User owns its list of characters
 
 ```typescript
-class User extends Persistable {
+class User extends Document {
   static collectionName = 'users';
   static persistentFields = ['googleProfileId', 'playerIds'];
   googleProfileId: string = '';
@@ -218,10 +219,9 @@ non-Zone templates may not. Enforced by `DomainHook` against the PM
 chokepoint. See [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant).
 
 `users` and `google_profiles` stay as their own collections — they're
-Persistable records, not templates. Their `Persistable` lifecycle
-(`StuffApi.create` to construct, `findById`/`find` to load,
-`save`/`delete` for the DB round-trip) is independent of the
-template/clone pipeline.
+`Document` records, not templates. Their lifecycle (plain `new` to
+construct, `findById`/`find` to load, `save`/`delete` for the DB
+round-trip) is independent of the template/clone pipeline.
 
 ## Stamped-on-Stuff Fields
 
@@ -292,8 +292,8 @@ Out of scope for v1:
   fields plus derived `data.container` ship. Items in the avatar's
   inventory don't round-trip; if a player picks up a sword, the
   sword is gone on restart.
-- **Generalization to non-Avatar Stuff** — no `PersistableStuffMixin`,
-  no save/restore on rooms/items/doors. The substrate is shape-
+- **Generalization to non-Avatar Stuff** — no general persist-back
+  mixin, no save/restore on rooms/items/doors. The substrate is shape-
   agnostic so the next consumer doesn't repeat the mechanism inline.
 - **Multi-process coordination** — concurrent saves resolve as
   last-write-wins via MongoDB's `replaceOne`. Cross-process locking
@@ -312,7 +312,7 @@ Out of scope for v1:
   wrap, synthetic constructor frame, destruct → canDestruct veto
   → onDestruct witness → cleanupOnDestruct walk → shadow detach
   → destroy → unregister
-- [persistence.md](./persistence.md) — the `Persistable` track for
+- [persistence.md](./persistence.md) — the `Document` track for
   auth/meta records (User, GoogleProfile); around-save/delete hooks
 - [call-security.md](./call-security.md) — `templatePath` stamping
   feeds `FromTemplate` policies; `Stuff.destroy` decorator stack

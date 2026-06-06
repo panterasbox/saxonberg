@@ -1216,8 +1216,8 @@ explicitly calls `StuffApi.destruct(shadow)`.
 
 ### Persistence
 
-Shadow is a sibling of Idea (not under it), so it doesn't get the
-`Persistable` CRUD surface (`save`/`find`/`findById`/`delete`).
+Shadow is a sibling of Idea (not under it), and it isn't a `Document`,
+so it has no CRUD surface (`save`/`find`/`findById`/`delete`).
 Persistence happens through the **template/clone pipeline only** (see
 [templates.md](./templates.md)).
 
@@ -1440,9 +1440,9 @@ yet drives the priority.
 - [templates.md](./templates.md) — `ProxyApi.wrap` in the clone
   pipeline, `templatePath` stamping (feeds `FromTemplate` policies),
   Hydrator's role
-- [persistence.md](./persistence.md) — `Persistable` is NOT mediated by
-  the Proxy / security gate (auth records have no game identity);
-  setter-based field invariants
+- [persistence.md](./persistence.md) — `Document` records are not Stuff,
+  so they're not mediated by the Proxy / security gate (auth records
+  have no game identity); setter-based field invariants
 - [state-model.md](./state-model.md) — `templatePath` and `zone`
   stamping at clone time
 - [antipatterns.md § Per-Field

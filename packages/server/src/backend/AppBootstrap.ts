@@ -17,6 +17,9 @@ import { SeederManager } from './SeederManager';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
+import { setDocumentMarshallerResolver } from '../mud/lib/persistence/Document';
+import { StuffApi } from '../mud/api/stuff';
+import type { Marshaller } from '../mud/lib/persistence/Marshaller';
 // Side-effecting import: registers the live `online`/`world` provider
 // so MQL queries against admin-tier seeds reflect connected
 // interactives. Pulled in here (off the eager command/MqlApi chain)
@@ -66,6 +69,15 @@ export class AppBootstrap {
    *      boot.
    */
   public static async run(config: AppBootstrapConfig): Promise<void> {
+    // Wire the Document marshaller-resolution seam before any save/clone
+    // path can run. Marshallers remain Idea-rooted Stuff (resolved via the
+    // registry / singleton lazy-clone); Document stays free of a StuffApi
+    // import and reaches them only through this seam.
+    setDocumentMarshallerResolver(
+      (path) => StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(path),
+      (path) => StuffApi.singleton<Marshaller<unknown, unknown>>(path)
+    );
+
     console.info(`Connecting to MongoDB database '${config.dbName}'...`);
     await PersistenceManager.get().connect(config.mongoUri, config.dbName);
     console.info('MongoDB connection successful');

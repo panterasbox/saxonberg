@@ -302,7 +302,7 @@ export class Application {
       return user._id!;
     }
 
-    const user = await StuffApi.create(() => new User());
+    const user = new User();
     user.googleProfileId = googleProfileId;
     await user.save();
     console.info(`Application: Created new User ${user._id}`);
