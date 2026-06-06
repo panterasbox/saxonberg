@@ -31,6 +31,7 @@ describe('Prompt wire types — shape', () => {
         { label: 'A', response: 'a' },
         { label: 'B', response: 'b' },
       ],
+      foreground: true,
     };
     const asNote: Note = note;
     expect(asNote.kind).toBe('prompt-choice');
@@ -41,6 +42,7 @@ describe('Prompt wire types — shape', () => {
       kind: 'prompt-confirm',
       label: 'Continue?',
       defaultAnswer: 'yes',
+      foreground: true,
     };
     const asNote: Note = note;
     expect(asNote.kind).toBe('prompt-confirm');
@@ -51,6 +53,7 @@ describe('Prompt wire types — shape', () => {
       kind: 'prompt-text',
       label: 'Name?',
       placeholder: 'enter your name',
+      foreground: true,
     };
     const asNote: Note = note;
     expect(asNote.kind).toBe('prompt-text');
@@ -64,6 +67,7 @@ describe('Prompt wire types — shape', () => {
         { stuffId: 'a', displayName: 'rusty sword' },
         { stuffId: 'b', displayName: 'iron sword' },
       ],
+      foreground: true,
     };
     const asNote: Note = note;
     expect(asNote.kind).toBe('prompt-mql-object');
@@ -79,6 +83,7 @@ describe('Prompt wire types — shape', () => {
       ],
       min: 1,
       max: 2,
+      foreground: false,
     };
     const asNote: Note = note;
     expect(asNote.kind).toBe('prompt-mql-many');

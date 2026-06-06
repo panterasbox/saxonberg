@@ -246,27 +246,49 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Read the primary keyword for this Stuff. Returns the authored
      * value when it appears in the current derived keyword pool;
-     * otherwise the first derived-pool entry; otherwise `undefined`.
+     * otherwise the **last** derived-pool entry; otherwise
+     * `undefined`.
+     *
+     * Last-pool-entry (rather than first) is the better default for
+     * English modifier-noun phrases. Derived-pool ordering is
+     * authored keywords first, then tokenized `name` (NamedMixin),
+     * then tokenized `shortDescription` (VisibleMixin). For a Named
+     * "Oak Door" the tokens land in order `['oak', 'door']`; for
+     * `'a brass thermometer'` the tokens land `['brass',
+     * 'thermometer']`. In both cases the head noun is the trailing
+     * token — what a player would naturally type to refer to the
+     * thing — and what `look <X>` click-affordances should send.
+     *
+     * Authors who need a non-trailing keyword pin it explicitly via
+     * `setPrimaryKeyword(...)`. The substrate default is just a
+     * sensible last-resort.
      *
      * Intentionally does NOT call `setPrimaryKeyword` from the getter
-     * — the setter validates against the pool and would feedback-
-     * loop with a derived-pool change. Authoring is a separate event
-     * from rendering.
+     * — the setter is a separate event surface from rendering.
      */
     getPrimaryKeyword(): string | undefined {
       const pool = this.keywords;
       if (this.primaryKeyword !== undefined && pool.includes(this.primaryKeyword)) {
         return this.primaryKeyword;
       }
-      return pool[0];
+      return pool[pool.length - 1];
     }
 
     /**
-     * Author-set the primary keyword. Fail-soft validation: a value
-     * not in the current derived keyword pool is ignored with a
-     * `console.warn` (same shape other fact-mixin setters use). On
-     * acceptance, fires `FieldChangedEvent { field: 'primaryKeyword' }`
-     * so subscriptions re-project.
+     * Author-set the primary keyword. Stores the normalized value
+     * unconditionally; pool-membership is a cross-field invariant
+     * (the pool depends on `shortDescription` via VisibleMixin and
+     * `name` via NamedMixin) and the Hydrator's Phase 1 dispatch
+     * makes no ordering guarantee across mixins. Validating in the
+     * setter would (and did) silently drop authored values when this
+     * mixin's setter ran before the others contributing to the pool.
+     *
+     * The getter (`getPrimaryKeyword`) does the lookup: if the
+     * stored value is in the current pool, return it; otherwise fall
+     * back to `pool[0]`. That keeps authored intent honored
+     * regardless of hydration order, and a runtime caller passing a
+     * bogus value gets the same silent override behavior the getter
+     * already implements for any out-of-pool entry.
      *
      * Passing `undefined` clears the explicit override; subsequent
      * `getPrimaryKeyword()` calls fall back to the derived-pool head.
@@ -280,13 +302,19 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           );
           return;
         }
+        // Pool-membership check is informational: an out-of-pool
+        // value at runtime is a developer mistake worth flagging,
+        // but we still store the value so the getter can resolve
+        // correctly when the pool catches up (e.g., a future
+        // `setShortDescription` adds the missing keyword). An empty
+        // pool indicates Hydrator Phase 1 hasn't reached the
+        // pool-feeding mixins yet — skip the warn there.
         const pool = this.keywords;
-        if (!pool.includes(normalized)) {
+        if (pool.length > 0 && !pool.includes(normalized)) {
           console.warn(
             `PerceptibleMixin.setPrimaryKeyword: '${normalized}' not in ` +
-              `keyword pool [${pool.join(', ')}]; ignoring`,
+              `keyword pool [${pool.join(', ')}]; storing anyway`,
           );
-          return;
         }
         this.primaryKeyword = MqlSubscriptionApi.fireFieldChange(
           this,

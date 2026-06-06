@@ -29,14 +29,21 @@
 
 import type {
   ConnectionEstablishedPayload,
+  DispatchResponseEnvelope,
   Envelope,
   MessageFrame,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionResultEnvelope,
+  Note,
+  PromptEnvelope,
   StuffDetailRecord,
   StuffRefRecord,
 } from '@saxonberg/types';
-import { useStore, type StuffMetadata } from '../store/index';
+import {
+  useStore,
+  type PromptEntry,
+  type StuffMetadata,
+} from '../store/index';
 
 interface OutboundClientMessage {
   type: string;
@@ -131,6 +138,14 @@ class WebSocketClient {
         this.ws = null;
 
         useStore.getState().setDisconnected();
+        // Pending prompts targeted THIS connection's Interactive.
+        // The server's host-disconnected cancelAll already rejected
+        // every await on its side; dropping the client mirror keeps
+        // both halves in sync. Base prompt + draft for the base
+        // slot are preserved across the disconnect so a quick
+        // reconnect feels seamless (the next dispatch refreshes the
+        // base prompt anyway).
+        useStore.getState().clearPrompts();
 
         this.attemptReconnect();
       };
@@ -176,6 +191,38 @@ class WebSocketClient {
     this.send({
       type: 'ping',
       payload: { timestamp: Date.now() },
+    });
+  }
+
+  /**
+   * Send a response to an active server-side prompt. Routes via
+   * the `prompt-response` inbound channel — bypasses the command
+   * bus per the substrate's two-channel design.
+   *
+   * `response` is the wire-string form per the prompt kind:
+   * passthrough for `text` / `choice`; `'yes'`/`'no'` for
+   * `confirm`; stuffId for `mql-object`; JSON-encoded string
+   * array of stuffIds for `mql-many`. Callers package per kind
+   * (CommandBar / PromptArea); this method does no encoding.
+   */
+  public sendPromptResponse(promptId: string, response: string): void {
+    this.send({
+      type: 'prompt-response',
+      payload: { promptId, response },
+    });
+  }
+
+  /**
+   * Cancel a specific active prompt — the X-button affordance on
+   * the prompt slot. Substrate rejects the await with
+   * `PromptCancelledError('cancelled')` and ships a
+   * `prompt-dismissed` envelope. Wholesale cancel rides the
+   * command bus as `prompt cancel`, not this channel.
+   */
+  public sendPromptCancel(promptId: string): void {
+    this.send({
+      type: 'prompt-cancel',
+      payload: { promptId },
     });
   }
 
@@ -243,6 +290,13 @@ class WebSocketClient {
         // inspection-pane plan W7: the registry is the wire-fed cache
         // every `MmlRenderer.commandFor` lookup reads.
         this.feedStuffRegistry(envelope);
+
+        // Side-effect: keep the prompt-stack slice and base-prompt
+        // string in sync. Two envelope shapes feed it: `prompt`
+        // envelopes (push/dismiss/annotate the stack), and
+        // `dispatch-response` envelopes whose `outcome.notes`
+        // optionally carry a `prompt-refresh` Note.
+        this.applyPromptSideEffects(envelope);
 
         const handlers = this.envelopeHandlers.get(envelope.type);
         if (handlers) {
@@ -339,6 +393,128 @@ class WebSocketClient {
         type: 'mql-unsubscribe',
         payload: { subscriptionId },
       });
+    }
+  }
+
+  /**
+   * Dispatch the per-envelope side effects the prompt substrate
+   * needs:
+   *
+   *   - `prompt` envelopes drive `pushPrompt` / `dismissPrompt` /
+   *     `setPromptValidationError`.
+   *   - `dispatch-response` envelopes get scanned for
+   *     `prompt-refresh` Notes; each one updates `basePrompt`.
+   *
+   * PromptArea / CommandBar subscribe to the resulting state — the
+   * websocket layer never talks to them directly.
+   */
+  private applyPromptSideEffects(envelope: Envelope): void {
+    if (envelope.type === 'prompt') {
+      this.handlePromptEnvelope(envelope as PromptEnvelope);
+      return;
+    }
+    if (envelope.type === 'dispatch-response') {
+      const env = envelope as DispatchResponseEnvelope;
+      for (const note of env.outcome.notes) {
+        if (note.kind === 'prompt-refresh') {
+          useStore.getState().setBasePrompt(note.rendered);
+        }
+      }
+    }
+  }
+
+  /**
+   * Walk a `PromptEnvelope`'s `outcome.notes` and translate each
+   * one into a store mutation. The substrate ships exactly one
+   * substrate-side note per delivery:
+   *
+   *   - `prompt-choice` / `prompt-confirm` / `prompt-text` /
+   *     `prompt-mql-object` / `prompt-mql-many` → push entry.
+   *   - `prompt-validation-failed` → annotate existing entry.
+   *   - `prompt-dismissed` → remove entry (answered, cancelled,
+   *     or host-disconnected).
+   */
+  private handlePromptEnvelope(envelope: PromptEnvelope): void {
+    const store = useStore.getState();
+    const promptId = envelope.promptId;
+    for (const note of envelope.outcome.notes) {
+      const entry = this.promptEntryFromNote(promptId, note);
+      if (entry) {
+        store.pushPrompt(entry);
+        continue;
+      }
+      if (note.kind === 'prompt-validation-failed') {
+        store.setPromptValidationError(promptId, note.message);
+        continue;
+      }
+      if (note.kind === 'prompt-dismissed') {
+        store.dismissPrompt(promptId);
+        continue;
+      }
+    }
+  }
+
+  /**
+   * Map a substrate Note onto a `PromptEntry` for the store, or
+   * return `null` if the note isn't a push-shape kind. Keeps the
+   * discriminator walk in one place so `handlePromptEnvelope`
+   * doesn't have to re-walk the union for the validation /
+   * dismissed branches.
+   */
+  private promptEntryFromNote(
+    promptId: string,
+    note: Note
+  ): PromptEntry | null {
+    switch (note.kind) {
+      case 'prompt-choice':
+        return {
+          kind: 'choice',
+          promptId,
+          label: note.label,
+          choices: note.choices,
+          foreground: note.foreground,
+          ...(note.defaultChoice !== undefined
+            ? { defaultChoice: note.defaultChoice }
+            : {}),
+        };
+      case 'prompt-confirm':
+        return {
+          kind: 'confirm',
+          promptId,
+          label: note.label,
+          defaultAnswer: note.defaultAnswer,
+          foreground: note.foreground,
+        };
+      case 'prompt-text':
+        return {
+          kind: 'text',
+          promptId,
+          label: note.label,
+          foreground: note.foreground,
+          ...(note.placeholder !== undefined
+            ? { placeholder: note.placeholder }
+            : {}),
+        };
+      case 'prompt-mql-object':
+        return {
+          kind: 'mql-object',
+          promptId,
+          label: note.label,
+          matches: note.matches,
+          foreground: note.foreground,
+        };
+      case 'prompt-mql-many':
+        return {
+          kind: 'mql-many',
+          promptId,
+          label: note.label,
+          matches: note.matches,
+          foreground: note.foreground,
+          ...(note.min !== undefined ? { min: note.min } : {}),
+          ...(note.max !== undefined ? { max: note.max } : {}),
+        };
+      default:
+        return null;
     }
   }
 

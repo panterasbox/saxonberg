@@ -3234,6 +3234,25 @@ function updatePlayerFocus(
 
   // Extend mode.
   const currentFocus = giver.getFocus();
+  const currentMany = MqlApi.resolveMany(currentFocus, {
+    commandGiver: giver,
+    scope: currentFocus,
+  });
+  if (currentMany.stuff.length > 1) {
+    // Current focus resolves to multiple Stuffs — an ambiguous
+    // fragment, often left over from a disambiguation prompt
+    // (`look brass` → multi-match → PromptApi.mqlObject pick →
+    // focus extended with raw fragment 'brass'). The same-stuff
+    // short-circuit below assumes a single-anchor focus the
+    // player is drilling into; that premise doesn't hold here,
+    // and worse, resolveOne picks the top match nondeterministically
+    // relative to the player's intent, so a follow-up `look <X>`
+    // where X happens to match the top-scored brass-match would
+    // silently no-op. Replace focus to escape the multi-anchor
+    // state.
+    giver.setFocus(fragment);
+    return;
+  }
   const currentAnchor = MqlApi.resolveOne(currentFocus, {
     commandGiver: giver,
     scope: currentFocus,

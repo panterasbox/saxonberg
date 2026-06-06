@@ -338,17 +338,21 @@ describe('PerceptibleMixin', () => {
   });
 
   describe('primaryKeyword (Wave 1)', () => {
-    it('defaults to keywords[0] when no explicit value set (Named pool)', () => {
+    it('defaults to the last pool token when no explicit value set (Named pool)', () => {
       const named = makeStuff(() => new NamedTestObject());
       named.setName('Oak Door');
-      // Derived pool from name: ['oak', 'door']
-      expect(named.getPrimaryKeyword()).toBe('oak');
+      // Derived pool from name: ['oak', 'door']. Last token is the
+      // head noun — what a player would type for the canonical
+      // `look <X>` reference.
+      expect(named.getPrimaryKeyword()).toBe('door');
     });
 
-    it('defaults to keywords[0] when no explicit value set (authored pool)', () => {
+    it('defaults to the last pool token when no explicit value set (authored pool)', () => {
       obj.addKeyword('flower');
       obj.addKeyword('plant');
-      expect(obj.getPrimaryKeyword()).toBe('flower');
+      // Authored keywords land in the pool in insertion order;
+      // the trailing one is the default canonical.
+      expect(obj.getPrimaryKeyword()).toBe('plant');
     });
 
     it('returns the authored value when valid', () => {
@@ -365,8 +369,9 @@ describe('PerceptibleMixin', () => {
       v.setPrimaryKeyword('pony');
       expect(warn).toHaveBeenCalled();
       warn.mockRestore();
-      // Falls back to derived pool head: 'brass'
-      expect(v.getPrimaryKeyword()).toBe('brass');
+      // Stored anyway (cross-field invariant; setter is informational).
+      // Getter falls back to the trailing pool entry: 'thermometer'.
+      expect(v.getPrimaryKeyword()).toBe('thermometer');
     });
 
     it('returns undefined when keyword pool is empty', () => {
@@ -384,10 +389,11 @@ describe('PerceptibleMixin', () => {
     it('setting undefined clears the authored override', () => {
       const v = makeStuff(() => new VisibleTestObject());
       v.setShortDescription('a brass thermometer');
-      v.setPrimaryKeyword('thermometer');
-      expect(v.getPrimaryKeyword()).toBe('thermometer');
-      v.setPrimaryKeyword(undefined);
+      v.setPrimaryKeyword('brass');
       expect(v.getPrimaryKeyword()).toBe('brass');
+      v.setPrimaryKeyword(undefined);
+      // Falls back to derived-pool default: the last token.
+      expect(v.getPrimaryKeyword()).toBe('thermometer');
     });
 
     it('Stuff.subscribableFields.primaryKeyword projects undefined for non-Perceptible host (substrate omits)', () => {

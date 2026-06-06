@@ -9,7 +9,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { useStore } from './store/index';
+import { useStore, type PromptEntry } from './store/index';
 import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
@@ -64,10 +64,8 @@ function parseLeadingVerb(text: string): { verb: string; rest: string } {
 }
 
 /**
- * Strip the `--peek` flag (and any unrecognised flag tokens) out of a
- * command's arg portion before treating it as the focus fragment for
- * breadcrumb / paint purposes. The pane needs the bare target, not
- * the option tail.
+ * Strip the `--peek` flag (and any other flag tokens) so the
+ * remainder reads as the bare target the player typed.
  */
 function stripFlags(rest: string): string {
   return rest
@@ -78,14 +76,18 @@ function stripFlags(rest: string): string {
 
 /**
  * Apply the pane-side paint/clear consequences of an outgoing
- * command. Bare `look` paints against the current focus; `look <X>`
- * paints AND drops `<X>` onto the breadcrumb trail (the player has
- * declared interest in `<X>`); `look <X> --peek` is observe-only —
- * does NOT paint, does NOT touch breadcrumbs (the requirements'
- * surface decision: peek emits prose but neither shifts focus nor
- * paints the body). `focus <X>` clears the body, sets the tracked
- * fragment, and pushes `<X>` to breadcrumbs. Every other verb is a
- * pane no-op.
+ * command. Bare `look` paints against the current focus; `look <X>
+ * --peek` is observe-only and does not paint; `focus <X>` clears
+ * the body until the next look. Every other verb is a pane no-op.
+ *
+ * For `look <X>` / `focus <X>` with a typed target, also stash the
+ * typed fragment as the pending breadcrumb-trail label. The
+ * inspection pane's focus-subscription handler consumes it when
+ * the focus change confirms server-side, so the trail entry reads
+ * as what the player typed instead of the resolved Stuff's
+ * primaryKeyword. The breadcrumb-push wiring still skips when
+ * focus didn't actually change, so a cancelled disambiguation or a
+ * rejected command never adds a trail entry.
  */
 function applyOutgoingCommandToPane(text: string): void {
   const { verb, rest } = parseLeadingVerb(text);
@@ -95,42 +97,13 @@ function applyOutgoingCommandToPane(text: string): void {
     if (isPeek) return; // peek is a pane no-op
     store.setPanePainted(true);
     const target = stripFlags(rest);
-    if (target) {
-      // Push to breadcrumb trail UNLESS the target keyword matches
-      // the current location's primaryKeyword — that's just
-      // re-focusing the room you're already in (the root); no need
-      // to add it to the trail.
-      const root = store.paneBreadcrumbRoot;
-      const isRoot =
-        root &&
-        (target === root.primaryKeyword ||
-          target.toLowerCase() === root.displayName.toLowerCase());
-      if (!isRoot) {
-        store.pushPaneBreadcrumbTrail({
-          label: target,
-          command: `look ${target}`,
-        });
-      }
-    }
+    if (target) store.setPendingTrailLabel(target);
     return;
   }
   if (verb === 'focus') {
     store.setPanePainted(false);
     const target = stripFlags(rest);
-    if (target) {
-      store.setPaneFocusFragment(target);
-      const root = store.paneBreadcrumbRoot;
-      const isRoot =
-        root &&
-        (target === root.primaryKeyword ||
-          target.toLowerCase() === root.displayName.toLowerCase());
-      if (!isRoot) {
-        store.pushPaneBreadcrumbTrail({
-          label: target,
-          command: `look ${target}`,
-        });
-      }
-    }
+    if (target) store.setPendingTrailLabel(target);
     return;
   }
   // Other verbs: leave pane state alone.
@@ -167,6 +140,65 @@ const LoginText = styled.p`
   font-size: 14px;
   line-height: 1.6;
 `;
+
+/**
+ * Render the player-facing label for a prompt response. For chip-
+ * driven kinds we resolve the wire response back to the human-
+ * readable label so the terminal scrollback reads `Which sword? →
+ * rusty sword` instead of `Which sword? → <stuffId>`. Returns
+ * `null` when the prompt isn't in the store (already dismissed by
+ * the time we render), since the line wouldn't have context.
+ */
+function formatResponseEcho(
+  promptId: string,
+  response: string
+): string | null {
+  const entry = useStore
+    .getState()
+    .prompts.find((p) => p.promptId === promptId);
+  if (!entry) return null;
+  let resolved: string;
+  switch (entry.kind) {
+    case 'text':
+      resolved = response;
+      break;
+    case 'confirm':
+      resolved = response === 'yes' ? 'Yes' : 'No';
+      break;
+    case 'choice': {
+      const hit = entry.choices.find((c) => c.response === response);
+      resolved = hit ? hit.label : response;
+      break;
+    }
+    case 'mql-object': {
+      const hit = entry.matches.find((m) => m.stuffId === response);
+      resolved = hit ? hit.displayName : response;
+      break;
+    }
+    case 'mql-many': {
+      try {
+        const ids: unknown = JSON.parse(response);
+        if (!Array.isArray(ids)) {
+          resolved = response;
+          break;
+        }
+        const names = ids.map((id) => {
+          const hit = entry.matches.find((m) => m.stuffId === id);
+          return hit ? hit.displayName : String(id);
+        });
+        resolved = names.join(', ');
+      } catch {
+        resolved = response;
+      }
+      break;
+    }
+    default: {
+      const _exhaustive: never = entry;
+      resolved = response;
+    }
+  }
+  return `${entry.label} → ${resolved}`;
+}
 
 /**
  * App component.
@@ -253,8 +285,6 @@ function App() {
       'system.shell.help',
       'system.shell.movement',
       'system.command.error',
-      'system.log.command.info',
-      'system.log.command.warn',
       'system.connection.established',
     ];
     const handle = (frame: { body: string }) => {
@@ -263,10 +293,25 @@ function App() {
     for (const topic of renderTopics) {
       websocketClient.onTopic(topic, handle);
     }
+    // Input-echo (system.log.command.info/warn) gets a dedicated
+    // handler that pairs each arriving echo with the FIFO snapshot
+    // pushed at command send time — so the rendered echo line
+    // carries the base-prompt sigil that was active when the player
+    // pressed Enter, not whatever the sigil happens to be now.
+    const handleEcho = (frame: { body: string }) => {
+      if (!frame.body) return;
+      const snap = useStore.getState().shiftEchoSnapshot();
+      const sigil = snap?.sigil ?? useStore.getState().basePrompt;
+      setMessages((prev) => [...prev, `${sigil} ${frame.body}`]);
+    };
+    websocketClient.onTopic('system.log.command.info', handleEcho);
+    websocketClient.onTopic('system.log.command.warn', handleEcho);
     return () => {
       for (const topic of renderTopics) {
         websocketClient.offTopic(topic, handle);
       }
+      websocketClient.offTopic('system.log.command.info', handleEcho);
+      websocketClient.offTopic('system.log.command.warn', handleEcho);
     };
   }, []);
 
@@ -307,10 +352,55 @@ function App() {
     // header regardless of which verb triggered them.
     applyOutgoingCommandToPane(text);
 
+    // Push an echo-pairing snapshot for non-empty commands. The
+    // server's empty-command short-circuit doesn't fire an input-
+    // echo MessageFrame, so an empty submission must not queue a
+    // snapshot — otherwise the FIFO drifts out of alignment with
+    // the inbound echoes.
+    if (text.trim().length > 0) {
+      useStore.getState().pushEchoSnapshot({
+        slot: 'base',
+        sigil: useStore.getState().basePrompt,
+      });
+    }
+
     websocketClient.send({
       type: 'command',
       payload: { text },
     });
+  };
+
+  /**
+   * Send a response to an active server-side prompt. Emits the
+   * resolution echo line locally at send time — prompt responses
+   * don't ride the system.log.command.* echo channel, so the
+   * snapshot-pairing path doesn't apply here. The label-prefixed
+   * line lands in the scroll regardless of which prompt is active
+   * by the time the dismissed envelope round-trips.
+   */
+  const sendPromptResponse = (promptId: string, response: string) => {
+    if (!websocketClient.isConnected()) {
+      console.warn('Cannot send prompt response: not connected');
+      return;
+    }
+    const echo = formatResponseEcho(promptId, response);
+    if (echo) setMessages((prev) => [...prev, echo]);
+    websocketClient.sendPromptResponse(promptId, response);
+  };
+
+  /**
+   * Cancel a specific pending prompt (the X-button affordance).
+   * Wholesale cancel rides the command bus via `prompt cancel` and
+   * goes through `sendCommand`. No terminal echo for v1 —
+   * cancellation is interactive-visible (the prompt vanishes from
+   * the slot picker).
+   */
+  const cancelPrompt = (promptId: string) => {
+    if (!websocketClient.isConnected()) {
+      console.warn('Cannot cancel prompt: not connected');
+      return;
+    }
+    websocketClient.sendPromptCancel(promptId);
   };
 
   /**
@@ -382,19 +472,48 @@ function App() {
   };
 
   useEffect(() => {
-    // Debug hook: lets us inject a fake server message from the
-    // browser console while semantic tag emission is still being
-    // built out on the server. Example:
-    //   __injectMessage('Exits: <exit dir="north">north</exit>, <exit dir="south">south</exit>.')
+    // Debug hooks for driving substrate UI from the browser console
+    // without server-side wiring. Per the prompt-stack slate's
+    // "Client build" wave 1: `__pushPrompt`, `__popPrompt`,
+    // `__validateFail`. Use these to exercise the CommandBar's
+    // slot multiplexing + chip rendering before content adopts
+    // `PromptApi`-pushing verbs. Also exposes `useStore` for
+    // ad-hoc inspection.
+    //
+    //   __pushPrompt({ kind: 'text', promptId: 'p1', label: 'Name?', foreground: true })
+    //   __popPrompt('p1')
+    //   __validateFail('p1', 'too short')
+    //   __injectMessage('<exit dir="south">south</exit>')
     const w = window as unknown as {
       __injectMessage?: (text: string) => void;
+      __pushPrompt?: (entry: PromptEntry) => void;
+      __popPrompt?: (promptId: string) => void;
+      __validateFail?: (promptId: string, message: string | null) => void;
+      __store?: typeof useStore;
     };
     w.__injectMessage = (text: string) => {
       console.info('__injectMessage:', text);
       setMessages((prev) => [...prev, text]);
     };
+    w.__pushPrompt = (entry: PromptEntry) => {
+      console.info('__pushPrompt:', entry);
+      useStore.getState().pushPrompt(entry);
+    };
+    w.__popPrompt = (promptId: string) => {
+      console.info('__popPrompt:', promptId);
+      useStore.getState().dismissPrompt(promptId);
+    };
+    w.__validateFail = (promptId: string, message: string | null) => {
+      console.info('__validateFail:', promptId, message);
+      useStore.getState().setPromptValidationError(promptId, message);
+    };
+    w.__store = useStore;
     return () => {
       delete w.__injectMessage;
+      delete w.__pushPrompt;
+      delete w.__popPrompt;
+      delete w.__validateFail;
+      delete w.__store;
     };
   }, []);
 
@@ -432,9 +551,11 @@ function App() {
             onCommandPreview={handleCommandPreview}
           />
           <CommandBar
-            value={inputValue}
-            onChange={handleInputChange}
-            onSend={sendCommand}
+            baseValue={inputValue}
+            onBaseChange={handleInputChange}
+            onSendCommand={sendCommand}
+            onSendPromptResponse={sendPromptResponse}
+            onCancelPrompt={cancelPrompt}
             flashing={flashing}
           />
         </LeftColumn>

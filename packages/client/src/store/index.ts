@@ -19,9 +19,94 @@ import type {
   AuthState,
   ConnectionEstablishedPayload,
   ConnectionState,
+  MqlMatchSummary,
+  PromptChoice,
   StuffDetailRecord,
   StuffRefRecord,
 } from '@saxonberg/types';
+
+/**
+ * Client mirror of one entry on the per-Interactive prompt stack.
+ * One per active server-pushed `PromptEnvelope`, keyed by
+ * `promptId`. The substrate ships the entry's shape in
+ * `outcome.notes`; this discriminator gives the renderer a
+ * single field to branch on without re-walking notes.
+ *
+ * `foreground` mirrors the wire-level UX hint from the substrate:
+ * when `true` (default) the client makes this prompt the active
+ * slot on arrival; when `false` it appends to the stack without
+ * seizing input.
+ *
+ * `validationError` is set when the substrate keeps the prompt
+ * alive via `prompt-validation-failed`. The renderer surfaces it
+ * inline; the player retries on the same id.
+ */
+export type PromptEntry =
+  | {
+      kind: 'choice';
+      promptId: string;
+      label: string;
+      choices: PromptChoice[];
+      defaultChoice?: string;
+      foreground: boolean;
+      validationError?: string;
+    }
+  | {
+      kind: 'confirm';
+      promptId: string;
+      label: string;
+      defaultAnswer: 'yes' | 'no';
+      foreground: boolean;
+      validationError?: string;
+    }
+  | {
+      kind: 'text';
+      promptId: string;
+      label: string;
+      placeholder?: string;
+      foreground: boolean;
+      validationError?: string;
+    }
+  | {
+      kind: 'mql-object';
+      promptId: string;
+      label: string;
+      matches: MqlMatchSummary[];
+      foreground: boolean;
+      validationError?: string;
+    }
+  | {
+      kind: 'mql-many';
+      promptId: string;
+      label: string;
+      matches: MqlMatchSummary[];
+      min?: number;
+      max?: number;
+      foreground: boolean;
+      validationError?: string;
+    };
+
+/**
+ * Reserved key for the always-present base command slot on the
+ * CommandBar's slot picker. Distinguishes from `promptId`s, which
+ * are nanoids and therefore never collide.
+ */
+export const BASE_SLOT = 'base' as const;
+
+/**
+ * One pending echo-pairing snapshot. The CommandBar pushes one of
+ * these onto the FIFO queue every time a command goes out; the
+ * websocket service shifts one off on every inbound input-echo
+ * MessageFrame (`system.log.command.{info|warn}`) and uses it to
+ * annotate the rendered terminal line. Slot is the active slot at
+ * send time (`BASE_SLOT` or a promptId); sigil is the base-prompt
+ * string at send time, so the scrollback stays internally
+ * consistent even if focus moves before the echo arrives.
+ */
+export interface EchoSnapshot {
+  slot: string;
+  sigil: string;
+}
 
 /**
  * Per-stuff metadata cached on the client for rendering paths that
@@ -239,6 +324,124 @@ interface StoreState {
   setPaneDoorContext: (
     ctx: { stuffId: string; direction: string } | null
   ) => void;
+  /**
+   * Typed keyword/fragment from the player's most recent
+   * focus-changing command (`look <X>` / `focus <X>`), stashed so
+   * the breadcrumb-trail push can label entries by what the player
+   * actually typed instead of the focused Stuff's primaryKeyword.
+   *
+   * Set by the outgoing-command seam in App.tsx; consumed (read +
+   * cleared) by the focus-subscription delivery path in
+   * InspectionPane when it pushes a trail entry. `null` between
+   * commands or after consumption — in which case the trail push
+   * falls back to primaryKeyword.
+   */
+  pendingTrailLabel: string | null;
+  /** Set the pending typed label for the next breadcrumb push. */
+  setPendingTrailLabel: (label: string | null) => void;
+
+  // Prompt-stack slice -------------------------------------------------
+  /**
+   * Per-Interactive prompt stack ordered by arrival. Server
+   * pushes append; dismissals remove by `promptId`. Doesn't
+   * include the base command slot — that's an implicit always-
+   * present slot keyed by `BASE_SLOT`.
+   */
+  prompts: PromptEntry[];
+  /**
+   * Per-slot draft text. Keyed by `BASE_SLOT` for the base
+   * command line, or by `promptId` for each pending prompt.
+   * Persists across active-slot switches so a half-typed
+   * response survives the player checking on a different prompt.
+   * Removed when its prompt dismisses; the base entry persists
+   * for the session.
+   */
+  promptDrafts: Record<string, string>;
+  /**
+   * Which slot the CommandBar input is currently bound to. Either
+   * `BASE_SLOT` or a `promptId` from `prompts`. Set to a new
+   * arrival iff `foreground` is true; preserved otherwise.
+   */
+  activeSlot: string;
+  /**
+   * Server-rendered base-prompt string from the most recent
+   * `prompt-refresh` Note. Defaults to a quiet `'>'` until the
+   * first dispatch-response lands. Shown as the CommandBar sigil
+   * when the base slot is active.
+   */
+  basePrompt: string;
+  /**
+   * FIFO queue of pending echo-pairing snapshots. One per
+   * outbound command; shifted by the inbound `system.log.command.*`
+   * handler so the rendered echo line carries the prompt context
+   * that was active when the command was sent (per the slate's
+   * snapshot-on-send pattern).
+   */
+  echoSnapshotQueue: EchoSnapshot[];
+  /**
+   * Push a fresh prompt entry. If `entry.foreground` is true (the
+   * default), the active slot flips to the new entry; if false,
+   * the entry joins the stack but active stays put. Idempotent
+   * on duplicate `promptId` (substrate should never re-push the
+   * same id, but the dedupe keeps client state honest).
+   */
+  pushPrompt: (entry: PromptEntry) => void;
+  /**
+   * Remove a prompt by id. Drops its draft. If the dismissed
+   * prompt was active, fall through to the new top of stack, or
+   * back to `BASE_SLOT` when the stack empties.
+   */
+  dismissPrompt: (promptId: string) => void;
+  /**
+   * Annotate (or clear) a prompt's inline validation error. The
+   * server keeps the prompt alive when the validator rejects;
+   * the renderer surfaces the message and waits for a fresh
+   * response on the same id.
+   */
+  setPromptValidationError: (
+    promptId: string,
+    message: string | null
+  ) => void;
+  /**
+   * Switch the active slot. Pass `BASE_SLOT` to return to command
+   * mode. Pass a `promptId` to bind input to that prompt. Unknown
+   * slots are no-ops (so a stale UI click after the prompt
+   * dismissed doesn't strand the state).
+   */
+  setActiveSlot: (slot: string) => void;
+  /**
+   * Replace the draft text for a slot. Writes to `BASE_SLOT` or
+   * any pending prompt id; unknown slots are stored anyway so
+   * a same-tick race (typing while a prompt dismisses) doesn't
+   * silently swallow input.
+   */
+  setDraft: (slot: string, text: string) => void;
+  /**
+   * Replace the base-prompt string. Called whenever a
+   * `prompt-refresh` Note arrives on a dispatch-response.
+   */
+  setBasePrompt: (rendered: string) => void;
+  /**
+   * Push an echo-pairing snapshot onto the FIFO queue. Called by
+   * the App's `sendCommand` seam at command send time.
+   */
+  pushEchoSnapshot: (snap: EchoSnapshot) => void;
+  /**
+   * Pop the FIFO head and return it; `null` when the queue is
+   * empty (which can happen on server-initiated echoes the
+   * client didn't trigger — disconnect-replay, audit injection,
+   * etc.).
+   */
+  shiftEchoSnapshot: () => EchoSnapshot | null;
+  /**
+   * Drop all prompt state. Called by the WebSocket service on
+   * disconnect — pending awaits server-side are already being
+   * cancelled via `cancelAll('host-disconnected')` and the
+   * client-side stack should match. Base prompt is preserved
+   * across disconnects (reconnect refreshes it on the next
+   * dispatch).
+   */
+  clearPrompts: () => void;
 }
 
 /**
@@ -340,6 +543,12 @@ export const useStore = create<StoreState>((set) => ({
   paneBreadcrumbTrail: [],
   paneDetailPath: [],
   paneDoorContext: null,
+  pendingTrailLabel: null,
+
+  setPendingTrailLabel: (label) =>
+    set((state) =>
+      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label }
+    ),
 
   setPanePainted: (painted) =>
     set(() => ({
@@ -438,6 +647,116 @@ export const useStore = create<StoreState>((set) => ({
   setPaneFocusFragment: (fragment) =>
     set(() => ({
       paneFocusFragment: fragment,
+    })),
+
+  // Prompt-stack slice (initial cleared state)
+  prompts: [],
+  promptDrafts: { [BASE_SLOT]: '' },
+  activeSlot: BASE_SLOT,
+  basePrompt: '>',
+  echoSnapshotQueue: [],
+
+  pushPrompt: (entry) =>
+    set((state) => {
+      // Dedupe on promptId — if a duplicate id arrives (substrate
+      // bug or replay), replace the existing entry so the renderer
+      // doesn't double-display it.
+      const filtered = state.prompts.filter(
+        (p) => p.promptId !== entry.promptId
+      );
+      const prompts = [...filtered, entry];
+      const drafts = state.promptDrafts[entry.promptId] !== undefined
+        ? state.promptDrafts
+        : { ...state.promptDrafts, [entry.promptId]: '' };
+      // foreground: true → take the active slot; false → leave
+      // whatever the player was on. Per the slate's auto-switch
+      // default.
+      const activeSlot = entry.foreground ? entry.promptId : state.activeSlot;
+      return { prompts, promptDrafts: drafts, activeSlot };
+    }),
+
+  dismissPrompt: (promptId) =>
+    set((state) => {
+      const prompts = state.prompts.filter((p) => p.promptId !== promptId);
+      if (prompts.length === state.prompts.length) {
+        // Nothing to dismiss. Fall back to BASE if active was the
+        // missing id anyway (paranoia for stale UI state).
+        return state.activeSlot === promptId
+          ? { activeSlot: BASE_SLOT }
+          : {};
+      }
+      // Drop the draft for the dismissed slot. The base slot's
+      // draft is never the target here (BASE_SLOT never matches a
+      // promptId).
+      const { [promptId]: _drop, ...promptDrafts } = state.promptDrafts;
+      let activeSlot: string = state.activeSlot;
+      if (activeSlot === promptId) {
+        const newTop = prompts[prompts.length - 1];
+        activeSlot = newTop ? newTop.promptId : BASE_SLOT;
+      }
+      return { prompts, promptDrafts, activeSlot };
+    }),
+
+  setPromptValidationError: (promptId, message) =>
+    set((state) => {
+      let changed = false;
+      const prompts = state.prompts.map((p) => {
+        if (p.promptId !== promptId) return p;
+        if (message === null) {
+          if (p.validationError === undefined) return p;
+          changed = true;
+          const { validationError: _drop, ...rest } = p;
+          return rest as PromptEntry;
+        }
+        if (p.validationError === message) return p;
+        changed = true;
+        return { ...p, validationError: message } as PromptEntry;
+      });
+      return changed ? { prompts } : {};
+    }),
+
+  setActiveSlot: (slot) =>
+    set((state) => {
+      if (slot === state.activeSlot) return {};
+      if (slot === BASE_SLOT) return { activeSlot: BASE_SLOT };
+      if (!state.prompts.some((p) => p.promptId === slot)) return {};
+      return { activeSlot: slot };
+    }),
+
+  setDraft: (slot, text) =>
+    set((state) => {
+      if (state.promptDrafts[slot] === text) return {};
+      return { promptDrafts: { ...state.promptDrafts, [slot]: text } };
+    }),
+
+  setBasePrompt: (rendered) =>
+    set((state) => {
+      if (state.basePrompt === rendered) return {};
+      return { basePrompt: rendered };
+    }),
+
+  pushEchoSnapshot: (snap) =>
+    set((state) => ({
+      echoSnapshotQueue: [...state.echoSnapshotQueue, snap],
+    })),
+
+  shiftEchoSnapshot: () => {
+    let popped: EchoSnapshot | null = null;
+    set((state) => {
+      if (state.echoSnapshotQueue.length === 0) return {};
+      const [head, ...rest] = state.echoSnapshotQueue;
+      popped = head ?? null;
+      return { echoSnapshotQueue: rest };
+    });
+    return popped;
+  },
+
+  clearPrompts: () =>
+    set(() => ({
+      prompts: [],
+      promptDrafts: { [BASE_SLOT]: '' },
+      activeSlot: BASE_SLOT,
+      echoSnapshotQueue: [],
     })),
 
   // Stuff registry slice

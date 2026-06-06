@@ -218,23 +218,36 @@ export interface PromptChoice {
   response: string;
 }
 
+/**
+ * UX-hint flag carried on every push-shape prompt Note. `true` (the
+ * default) tells the client to auto-focus the new prompt — the
+ * input swaps to its response channel immediately. `false` joins the
+ * stack without seizing the active slot — the player notices via
+ * the stack-depth badge and switches in when they choose.
+ *
+ * The server's `PromptOpts.foreground` opt is the source of truth;
+ * this field carries that decision onto the wire.
+ */
 export interface ChoicePromptNote {
   kind: 'prompt-choice';
   label: string;
   choices: PromptChoice[];
   defaultChoice?: string;
+  foreground: boolean;
 }
 
 export interface ConfirmPromptNote {
   kind: 'prompt-confirm';
   label: string;
   defaultAnswer: 'yes' | 'no';
+  foreground: boolean;
 }
 
 export interface TextPromptNote {
   kind: 'prompt-text';
   label: string;
   placeholder?: string;
+  foreground: boolean;
 }
 
 /**
@@ -252,6 +265,7 @@ export interface MqlObjectPromptNote {
   kind: 'prompt-mql-object';
   label: string;
   matches: MqlMatchSummary[];
+  foreground: boolean;
 }
 
 export interface MqlManyPromptNote {
@@ -262,6 +276,7 @@ export interface MqlManyPromptNote {
   min?: number;
   /** Substrate-enforced maximum selection count (default unbounded). */
   max?: number;
+  foreground: boolean;
 }
 
 /**

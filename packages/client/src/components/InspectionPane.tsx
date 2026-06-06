@@ -308,6 +308,76 @@ function deriveHeaderName(
 }
 
 /**
+ * Push a breadcrumb trail entry when focus actually changes
+ * server-side (not optimistically on command-send). Called from the
+ * focus-subscription delivery path with the previous + next record
+ * sets. Skips:
+ *
+ *   - First delivery (no prior records — initial focus, not a
+ *     navigation).
+ *   - Same-stuffId deliveries (focus didn't actually move).
+ *   - Multi-cardinality next records (no single Stuff to label
+ *     by; trail entries are single-target navigation anchors).
+ *   - Focus changes to the current breadcrumb root (the location
+ *     itself doesn't belong in the trail).
+ *
+ * The pushed entry uses the focused Stuff's `displayName` for the
+ * label and `look <primaryKeyword>` for the click-to-revisit
+ * command, so re-navigation hits a canonical keyword and won't
+ * trigger another disambiguation prompt.
+ */
+function maybePushFocusBreadcrumb(
+  previous: (StuffRefRecord | StuffDetailRecord)[] | null,
+  next: (StuffRefRecord | StuffDetailRecord)[],
+): void {
+  if (previous === null) return; // first delivery
+  const prevTop = previous[0];
+  const nextTop = next[0];
+  if (!nextTop) return; // unfocus delivery
+  if (next.length > 1) return; // multi-cardinality: nothing single to label
+
+  // Push when single-cardinality focus is a new selection. Three
+  // cases qualify:
+  //   - different Stuff than before;
+  //   - shape changed from multi (>1 prev records) to single — the
+  //     player narrowed an ambiguous focus down to one (e.g.
+  //     `look thermometer` after a disambig left focus on `brass`);
+  //   - shape changed from empty to single.
+  const prevShapeNotSingle = previous.length !== 1;
+  const stuffChanged =
+    !prevTop || prevTop.stuffId !== nextTop.stuffId;
+  if (!stuffChanged && !prevShapeNotSingle) return;
+
+  const store = useStore.getState();
+  const root = store.paneBreadcrumbRoot;
+  if (root && root.stuffId === nextTop.stuffId) {
+    // Back at root — drop the pending label too so it doesn't bleed
+    // into a future, unrelated trail push.
+    if (store.pendingTrailLabel !== null) {
+      store.setPendingTrailLabel(null);
+    }
+    return;
+  }
+
+  // Prefer the typed-fragment label stashed by the App's outgoing-
+  // command seam — that's the keyword the player actually used and
+  // expects to see. Fall back to primaryKeyword (or displayName) when
+  // the focus change wasn't triggered by a typed look/focus (e.g. a
+  // server-side focus update). Consume the pending label so it
+  // doesn't apply to subsequent unrelated focus changes.
+  const typed = store.pendingTrailLabel;
+  if (typed !== null) store.setPendingTrailLabel(null);
+  const keyword = nextTop.primaryKeyword;
+  const label = typed ?? keyword ?? nextTop.displayName;
+  const command = `look ${label}`;
+  store.pushPaneBreadcrumbTrail({
+    stuffId: nextTop.stuffId,
+    label,
+    command,
+  });
+}
+
+/**
  * Resolve the click-target command for a contents/match row. Mirrors
  * the MmlRenderer's registry-then-label fallback shape (Wave 9):
  * prefer the row's `primaryKeyword` (substrate ships it in
@@ -365,6 +435,7 @@ export function InspectionPane({
         const hadPriorResult = store.paneLastResult !== null;
         const previousStuffId = store.paneLastResult?.[0]?.stuffId;
         const nextStuffId = records[0]?.stuffId;
+        maybePushFocusBreadcrumb(store.paneLastResult, records);
         store.setPaneResult(records);
         store.setPaneFocusName(
           deriveHeaderName(records, store.paneFocusFragment)
@@ -410,6 +481,7 @@ export function InspectionPane({
         const previousStuffId = previous[0]?.stuffId;
         const patched = applyChanges(previous, env.changes);
         const nextStuffId = patched[0]?.stuffId;
+        maybePushFocusBreadcrumb(store.paneLastResult, patched);
         store.setPaneResult(patched);
         store.setPaneFocusName(
           deriveHeaderName(patched, store.paneFocusFragment)
