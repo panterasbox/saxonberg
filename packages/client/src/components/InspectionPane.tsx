@@ -350,13 +350,29 @@ function maybePushFocusBreadcrumb(
 
   const store = useStore.getState();
   const root = store.paneBreadcrumbRoot;
-  if (root && root.stuffId === nextTop.stuffId) return; // back at root
+  if (root && root.stuffId === nextTop.stuffId) {
+    // Back at root — drop the pending label too so it doesn't bleed
+    // into a future, unrelated trail push.
+    if (store.pendingTrailLabel !== null) {
+      store.setPendingTrailLabel(null);
+    }
+    return;
+  }
 
+  // Prefer the typed-fragment label stashed by the App's outgoing-
+  // command seam — that's the keyword the player actually used and
+  // expects to see. Fall back to primaryKeyword (or displayName) when
+  // the focus change wasn't triggered by a typed look/focus (e.g. a
+  // server-side focus update). Consume the pending label so it
+  // doesn't apply to subsequent unrelated focus changes.
+  const typed = store.pendingTrailLabel;
+  if (typed !== null) store.setPendingTrailLabel(null);
   const keyword = nextTop.primaryKeyword;
-  const command = keyword ? `look ${keyword}` : 'look';
+  const label = typed ?? keyword ?? nextTop.displayName;
+  const command = `look ${label}`;
   store.pushPaneBreadcrumbTrail({
     stuffId: nextTop.stuffId,
-    label: keyword ?? nextTop.displayName,
+    label,
     command,
   });
 }

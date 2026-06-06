@@ -64,33 +64,46 @@ function parseLeadingVerb(text: string): { verb: string; rest: string } {
 }
 
 /**
+ * Strip the `--peek` flag (and any other flag tokens) so the
+ * remainder reads as the bare target the player typed.
+ */
+function stripFlags(rest: string): string {
+  return rest
+    .split(/\s+/)
+    .filter((tok) => tok.length > 0 && !tok.startsWith('--'))
+    .join(' ');
+}
+
+/**
  * Apply the pane-side paint/clear consequences of an outgoing
  * command. Bare `look` paints against the current focus; `look <X>
  * --peek` is observe-only and does not paint; `focus <X>` clears
  * the body until the next look. Every other verb is a pane no-op.
  *
- * Note that breadcrumb trail updates and focus-fragment tracking
- * are NOT driven from this seam — typed commands may not actually
- * land (disambiguation prompt cancelled, validator rejected, etc.)
- * and the typed fragment may not match the resolved Stuff (e.g.
- * `look brass` resolves to `a brass altimeter`). The trail and
- * fragment are now driven by the focus subscription's delta
- * handler in `InspectionPane`, which fires only when focus actually
- * changes server-side, and labels the entry by the resolved Stuff's
- * displayName / primaryKeyword instead of the user's typed
- * fragment.
+ * For `look <X>` / `focus <X>` with a typed target, also stash the
+ * typed fragment as the pending breadcrumb-trail label. The
+ * inspection pane's focus-subscription handler consumes it when
+ * the focus change confirms server-side, so the trail entry reads
+ * as what the player typed instead of the resolved Stuff's
+ * primaryKeyword. The breadcrumb-push wiring still skips when
+ * focus didn't actually change, so a cancelled disambiguation or a
+ * rejected command never adds a trail entry.
  */
 function applyOutgoingCommandToPane(text: string): void {
-  const { verb } = parseLeadingVerb(text);
+  const { verb, rest } = parseLeadingVerb(text);
   const store = useStore.getState();
   if (verb === 'look') {
     const isPeek = / --peek(\s|$)/.test(' ' + text + ' ');
     if (isPeek) return; // peek is a pane no-op
     store.setPanePainted(true);
+    const target = stripFlags(rest);
+    if (target) store.setPendingTrailLabel(target);
     return;
   }
   if (verb === 'focus') {
     store.setPanePainted(false);
+    const target = stripFlags(rest);
+    if (target) store.setPendingTrailLabel(target);
     return;
   }
   // Other verbs: leave pane state alone.

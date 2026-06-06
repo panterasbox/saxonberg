@@ -324,6 +324,21 @@ interface StoreState {
   setPaneDoorContext: (
     ctx: { stuffId: string; direction: string } | null
   ) => void;
+  /**
+   * Typed keyword/fragment from the player's most recent
+   * focus-changing command (`look <X>` / `focus <X>`), stashed so
+   * the breadcrumb-trail push can label entries by what the player
+   * actually typed instead of the focused Stuff's primaryKeyword.
+   *
+   * Set by the outgoing-command seam in App.tsx; consumed (read +
+   * cleared) by the focus-subscription delivery path in
+   * InspectionPane when it pushes a trail entry. `null` between
+   * commands or after consumption — in which case the trail push
+   * falls back to primaryKeyword.
+   */
+  pendingTrailLabel: string | null;
+  /** Set the pending typed label for the next breadcrumb push. */
+  setPendingTrailLabel: (label: string | null) => void;
 
   // Prompt-stack slice -------------------------------------------------
   /**
@@ -528,6 +543,12 @@ export const useStore = create<StoreState>((set) => ({
   paneBreadcrumbTrail: [],
   paneDetailPath: [],
   paneDoorContext: null,
+  pendingTrailLabel: null,
+
+  setPendingTrailLabel: (label) =>
+    set((state) =>
+      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label }
+    ),
 
   setPanePainted: (painted) =>
     set(() => ({
