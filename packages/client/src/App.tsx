@@ -206,7 +206,7 @@ function formatResponseEcho(
 function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
-  const [messages, setMessages] = useState<string[]>([]);
+  const frames = useStore((state) => state.frames);
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).
@@ -260,58 +260,39 @@ function App() {
   }, [auth.isAuthenticated, connection.isConnected]);
 
   useEffect(() => {
-    // Render every frame body the server sends. MML tags appear as
-    // literal text for now (parsing deferred per §14). We listen on
-    // the topics the v1 server actually emits to the terminal —
-    // every `world.*` topic (in-fiction prose) and the `system.shell.*`
-    // family (engine-talking-back-to-the-avatar), plus the
-    // dispatcher-emitted `system.command.error` for framework-level
-    // command failures (parse / MQL / validator / controller-throw)
-    // so a bad command surfaces WHY without relying on envelope
-    // rendering.
-    const renderTopics = [
-      'world.speech.say',
-      'world.speech.tell',
-      'world.perception.look',
-      'world.perception.inventory',
-      'world.perception.scry',
-      'world.perception.locate',
-      'world.narration.movement',
-      'world.narration.teleport',
-      'world.narration.action',
-      'world.identity.change',
-      'system.shell.fs',
-      'system.shell.author',
-      'system.shell.help',
-      'system.shell.movement',
-      'system.command.error',
-      'system.connection.established',
-    ];
-    const handle = (frame: { body: string }) => {
-      if (frame.body) setMessages((prev) => [...prev, frame.body]);
-    };
-    for (const topic of renderTopics) {
-      websocketClient.onTopic(topic, handle);
-    }
-    // Input-echo (system.log.command.info/warn) gets a dedicated
-    // handler that pairs each arriving echo with the FIFO snapshot
-    // pushed at command send time — so the rendered echo line
+    // Single catch-all subscription feeds the typed frame buffer.
+    // Replaces the prior per-topic allowlist — frames on previously-
+    // unknown topics still reach the store via this path. The Terminal
+    // renders the buffer; tab-level filtering (Phase 3+) reads from
+    // the same buffer.
+    //
+    // Echo frames (`system.log.command.{info|warn}`) pair against the
+    // FIFO echo-snapshot queue at arrival time so the rendered line
     // carries the base-prompt sigil that was active when the player
-    // pressed Enter, not whatever the sigil happens to be now.
-    const handleEcho = (frame: { body: string }) => {
+    // pressed Enter, regardless of where focus has moved since. The
+    // sigil is kept on the Frame alongside the body; the Terminal
+    // concatenates at render time.
+    const handle = (frame: import('@saxonberg/types').MessageFrame) => {
       if (!frame.body) return;
-      const snap = useStore.getState().shiftEchoSnapshot();
-      const sigil = snap?.sigil ?? useStore.getState().basePrompt;
-      setMessages((prev) => [...prev, `${sigil} ${frame.body}`]);
-    };
-    websocketClient.onTopic('system.log.command.info', handleEcho);
-    websocketClient.onTopic('system.log.command.warn', handleEcho);
-    return () => {
-      for (const topic of renderTopics) {
-        websocketClient.offTopic(topic, handle);
+      const isEcho =
+        frame.topic === 'system.log.command.info' ||
+        frame.topic === 'system.log.command.warn';
+      let sigil: string | undefined;
+      if (isEcho) {
+        const snap = useStore.getState().shiftEchoSnapshot();
+        sigil = snap?.sigil ?? useStore.getState().basePrompt;
       }
-      websocketClient.offTopic('system.log.command.info', handleEcho);
-      websocketClient.offTopic('system.log.command.warn', handleEcho);
+      useStore.getState().appendFrame({
+        id: frame.id,
+        topic: frame.topic,
+        body: frame.body,
+        timestamp: frame.meta?.timestamp ?? Date.now(),
+        ...(sigil !== undefined ? { sigil } : {}),
+      });
+    };
+    websocketClient.onAnyTopic(handle);
+    return () => {
+      websocketClient.offAnyTopic(handle);
     };
   }, []);
 
@@ -384,7 +365,14 @@ function App() {
       return;
     }
     const echo = formatResponseEcho(promptId, response);
-    if (echo) setMessages((prev) => [...prev, echo]);
+    if (echo) {
+      useStore.getState().appendFrame({
+        id: `prompt-echo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        topic: 'system.log.command.info',
+        body: echo,
+        timestamp: Date.now(),
+      });
+    }
     websocketClient.sendPromptResponse(promptId, response);
   };
 
@@ -493,7 +481,12 @@ function App() {
     };
     w.__injectMessage = (text: string) => {
       console.info('__injectMessage:', text);
-      setMessages((prev) => [...prev, text]);
+      useStore.getState().appendFrame({
+        id: `inject-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        topic: 'world.narration.action',
+        body: text,
+        timestamp: Date.now(),
+      });
     };
     w.__pushPrompt = (entry: PromptEntry) => {
       console.info('__pushPrompt:', entry);
@@ -546,7 +539,7 @@ function App() {
       <Cockpit>
         <LeftColumn>
           <Terminal
-            messages={messages}
+            frames={frames}
             onCommandClick={handleCommandClick}
             onCommandPreview={handleCommandPreview}
           />

@@ -126,6 +126,26 @@ export interface StuffMetadata {
 }
 
 /**
+ * One frame as the cockpit's tabbed terminal stores it. `id` is
+ * the server's `MessageFrame.id`; `topic` is the raw dotted-path
+ * string the wire carries; `body` is the rendered MML body the
+ * Terminal pipes through `MmlRenderer`; `sigil` is the optional
+ * echo-paired prompt sigil for command-echo frames (only set on
+ * `system.log.command.{info|warn}` deliveries).
+ *
+ * Sigils are held alongside the body, NOT concatenated in — the
+ * Terminal renderer is responsible for prefix-concatenation at
+ * render time so topic-keyed rendering decisions see a clean body.
+ */
+export interface Frame {
+  id: string;
+  topic: string;
+  body: string;
+  sigil?: string;
+  timestamp: number;
+}
+
+/**
  * Combined store state.
  */
 interface StoreState {
@@ -146,6 +166,18 @@ interface StoreState {
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
+
+  // Frames — typed message-frame buffer feeding the Terminal.
+  /**
+   * Catch-all message log. Every `MessageFrame` the server emits to
+   * this client is appended here (regardless of topic). Tabs filter
+   * over this single array — they don't own their own histories.
+   */
+  frames: Frame[];
+  /** Append one frame; preserves arrival order. */
+  appendFrame: (frame: Frame) => void;
+  /** Empty the buffer; called on disconnect. */
+  clearFrames: () => void;
 
   // Topic catalogue — session-wide cache of authored descriptors.
   /**
@@ -531,7 +563,7 @@ const initialConnectionState: ConnectionState = {
 /**
  * Zustand store.
  */
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set, get) => ({
   // Auth state
   auth: initialAuthState,
 
@@ -824,6 +856,15 @@ export const useStore = create<StoreState>((set) => ({
       echoSnapshotQueue: [],
     })),
 
+  // Frames slice
+  frames: [],
+
+  appendFrame: (frame) =>
+    set((state) => ({ frames: [...state.frames, frame] })),
+
+  clearFrames: () =>
+    set((state) => (state.frames.length === 0 ? {} : { frames: [] })),
+
   // Topic catalogue slice
   topicCatalogue: new Map<string, TopicDescriptor>(),
 
@@ -836,10 +877,8 @@ export const useStore = create<StoreState>((set) => ({
       return { topicCatalogue: map };
     }),
 
-  getTopicDescriptor: (topic) => {
-    const cache = useStore.getState().topicCatalogue;
-    return resolveTopicDescriptor(cache, topic);
-  },
+  getTopicDescriptor: (topic) =>
+    resolveTopicDescriptor(get().topicCatalogue, topic),
 
   // Stuff registry slice
   stuffRegistry: new Map<string, StuffMetadata>(),
