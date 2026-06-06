@@ -96,10 +96,15 @@ const ChipsRow = styled.div`
 const InputRow = styled.div<{ $hasChips: boolean }>`
   display: flex;
   align-items: stretch;
-  gap: ${tokens.space.md};
   padding: ${(p) =>
       p.$hasChips ? tokens.space.md : tokens.space.xl}
     ${tokens.space.xl} ${tokens.space.xl};
+
+  /* Picker and input share an edge — no gap. Send button sits with a
+   * slight breather to keep the click target distinct. */
+  > button:last-child {
+    margin-left: ${tokens.space.md};
+  }
 `;
 
 /**
@@ -202,13 +207,31 @@ const SlotPicker = styled.button<{ $expanded: boolean; $promptMode: boolean }>`
   }
 `;
 
-const StackBadge = styled.span`
+/**
+ * Pending-prompt count rendered on the right edge of the slot
+ * picker chip. Only shows when at least one prompt is pending.
+ * Counts every prompt slot (not including the always-present
+ * base/command slot at the bottom of the stack) — same number
+ * regardless of whether the active slot is base or a prompt, so
+ * the player has a stable cue for "you've got N pending questions
+ * underneath."
+ */
+const PendingCount = styled.span`
   display: inline-block;
-  padding: 0 ${tokens.space.sm};
-  background: ${tokens.color.accent};
-  color: ${tokens.color.surfaceSunken};
-  border-radius: ${tokens.radius.sm};
-  font-size: ${tokens.font.micro};
+  padding: 0 ${tokens.space.xs};
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
+`;
+
+/**
+ * Dropdown caret on the right of the slot picker chip — gives the
+ * "this opens a menu" affordance the bare label was missing.
+ * Flips ▾/▴ based on open state.
+ */
+const Caret = styled.span`
+  display: inline-block;
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
 `;
 
 /**
@@ -669,11 +692,11 @@ export function CommandBar({
             onClick={() => setDropdownOpen((v) => !v)}
             aria-label="Open slot picker"
           >
-            <span>{dropdownOpen ? '▾' : '▸'}</span>
             <span>{slotPickerLabel}</span>
             {prompts.length > 0 ? (
-              <StackBadge>⌃{prompts.length}</StackBadge>
+              <PendingCount>{prompts.length}</PendingCount>
             ) : null}
+            <Caret>{dropdownOpen ? '▴' : '▾'}</Caret>
           </SlotPicker>
 
           {dropdownOpen ? (
@@ -718,24 +741,6 @@ export function CommandBar({
             </SlotDropdown>
           ) : null}
         </PickerAnchor>
-
-        {activeEntry ? (
-          <XButton
-            onClick={() => onCancelPrompt(activeEntry.promptId)}
-            aria-label="Cancel this prompt"
-          >
-            X
-          </XButton>
-        ) : null}
-
-        {prompts.length > 1 ? (
-          <XButton
-            onClick={() => onSendCommand('prompt cancel')}
-            aria-label="Cancel every pending prompt"
-          >
-            cancel all
-          </XButton>
-        ) : null}
 
         <Input
           value={inputValue}

@@ -345,8 +345,8 @@ describe('CommandBar — slot picker as bottom-of-stack model', () => {
     });
     // Slot picker reflects the ACTIVE slot — base → basePrompt.
     expect(screen.getByText('here>')).toBeTruthy();
-    // Badge still indicates a pending prompt under the stack.
-    expect(screen.getByText('⌃1')).toBeTruthy();
+    // Pending-prompt count is shown alongside (1 prompt on the stack).
+    expect(screen.getByText('1')).toBeTruthy();
     // Input is in command mode.
     expect(screen.getByPlaceholderText('Enter command...')).toBeTruthy();
   });
@@ -402,7 +402,7 @@ describe('CommandBar — meta affordances', () => {
     resetStore();
   });
 
-  it('per-prompt X-cancel calls onCancelPrompt for that promptId', () => {
+  it('dropdown row X cancels the corresponding prompt', () => {
     const spies = makeSpies();
     renderBar(spies);
     act(() => {
@@ -413,29 +413,13 @@ describe('CommandBar — meta affordances', () => {
         foreground: true,
       });
     });
-    fireEvent.click(screen.getByLabelText('Cancel this prompt'));
+    // Open the dropdown.
+    fireEvent.click(screen.getByLabelText('Open slot picker'));
+    // Each prompt row carries an X button. (The base row doesn't.)
+    const xButtons = screen.getAllByText('X');
+    expect(xButtons).toHaveLength(1);
+    fireEvent.click(xButtons[0]!);
     expect(spies.onCancelPrompt).toHaveBeenCalledWith('p1');
-  });
-
-  it('"cancel all" sends the prompt cancel verb through onSendCommand', () => {
-    const spies = makeSpies();
-    renderBar(spies);
-    act(() => {
-      pushPrompt({
-        kind: 'text',
-        promptId: 'p1',
-        label: 'A?',
-        foreground: true,
-      });
-      pushPrompt({
-        kind: 'text',
-        promptId: 'p2',
-        label: 'B?',
-        foreground: true,
-      });
-    });
-    fireEvent.click(screen.getByLabelText('Cancel every pending prompt'));
-    expect(spies.onSendCommand).toHaveBeenCalledWith('prompt cancel');
   });
 
   it('renders the inline validation error message', () => {
@@ -455,7 +439,7 @@ describe('CommandBar — meta affordances', () => {
     expect(screen.getByText('must be 3-20 chars')).toBeTruthy();
   });
 
-  it('shows the stack badge when more than one prompt is pending', () => {
+  it('shows the pending-prompt count when one or more prompts are pending', () => {
     const spies = makeSpies();
     renderBar(spies);
     act(() => {
@@ -472,6 +456,6 @@ describe('CommandBar — meta affordances', () => {
         foreground: true,
       });
     });
-    expect(screen.getByText('⌃2')).toBeTruthy();
+    expect(screen.getByText('2')).toBeTruthy();
   });
 });
