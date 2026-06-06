@@ -1,16 +1,21 @@
 /**
  * Terminal - Game output display component
  *
- * Displays message buffer with auto-scroll to bottom on new messages.
- * Each message is rendered through `MmlRenderer`, which turns
+ * Displays the typed frame buffer with auto-scroll to bottom on new
+ * frames. Each frame is rendered through `MmlRenderer`, which turns
  * semantic tags into clickable affordances that emit real commands
  * via `onCommandClick`. The slate's principle is command-bus
  * primacy — every click sends a command, no exceptions.
+ *
+ * Sigils (input-echo prompt prefixes) are held separately on each
+ * Frame and concatenated at render time, so the underlying body
+ * stays clean for topic-keyed renderers.
  */
 
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { MmlRenderer } from './MmlRenderer';
+import type { Frame } from '../store/index';
 
 const TerminalContainer = styled.div`
   flex: 1;
@@ -29,31 +34,31 @@ const Message = styled.div`
 `;
 
 interface TerminalProps {
-  messages: string[];
+  frames: Frame[];
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
 }
 
 export function Terminal({
-  messages,
+  frames,
   onCommandClick,
   onCommandPreview,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Auto-scroll to bottom on new messages
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [frames]);
 
   return (
     <TerminalContainer ref={containerRef}>
-      {messages.map((msg, idx) => (
-        <Message key={idx}>
+      {frames.map((frame) => (
+        <Message key={frame.id}>
+          {frame.sigil ? `${frame.sigil} ` : ''}
           <MmlRenderer
-            text={msg}
+            text={frame.body}
             onCommandClick={onCommandClick}
             onCommandPreview={onCommandPreview}
           />
