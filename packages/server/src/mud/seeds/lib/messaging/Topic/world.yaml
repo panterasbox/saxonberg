@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world
+  family: ""
+  label: World
+  description: Things happening in the world the player inhabits — speech, perception, movement, and other in-fiction events.

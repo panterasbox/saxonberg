@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system
+  family: ""
+  label: System
+  description: Engine-level messages — connection lifecycle, authentication, shell tooling, dispatcher diagnostics. Not in-fiction.

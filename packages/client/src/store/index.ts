@@ -23,6 +23,7 @@ import type {
   PromptChoice,
   StuffDetailRecord,
   StuffRefRecord,
+  TopicDescriptor,
 } from '@saxonberg/types';
 
 /**
@@ -145,6 +146,22 @@ interface StoreState {
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
+
+  // Topic catalogue — session-wide cache of authored descriptors.
+  /**
+   * `Map<topic, TopicDescriptor>`. Wholesale replaced on every
+   * session-establish from `payload.topicCatalogue`. Lookups go
+   * through `getTopicDescriptor` — three-tier resolution
+   * (cache hit → family-inherited → derived default) mirroring the
+   * server's `TopicCatalogue.getDescriptor` so a frame on a
+   * previously-unknown topic still resolves to a populated
+   * descriptor.
+   */
+  topicCatalogue: Map<string, TopicDescriptor>;
+  /** Replace the cache wholesale. Called from session-establish. */
+  setTopicCatalogue: (records: TopicDescriptor[]) => void;
+  /** Resolve a topic via the three-tier chain. Always returns a value. */
+  getTopicDescriptor: (topic: string) => TopicDescriptor;
 
   // Stuff registry — session-wide metadata cache (no eviction in v1).
   /**
@@ -451,6 +468,48 @@ interface StoreState {
 const PANE_BREADCRUMB_CAP = 6;
 
 /**
+ * Three-tier topic resolution mirroring
+ * `TopicCatalogue.getDescriptor` on the server. Cache hit →
+ * family-inherited (walk the dotted-path chain for the nearest
+ * authored ancestor) → derived default (titlecased last segment,
+ * `'(no description)'`). Always returns a populated descriptor.
+ */
+function resolveTopicDescriptor(
+  cache: Map<string, TopicDescriptor>,
+  topic: string
+): TopicDescriptor {
+  const authored = cache.get(topic);
+  if (authored) return authored;
+  const segments = topic.split('.');
+  for (let i = segments.length - 1; i >= 1; i--) {
+    const ancestorPath = segments.slice(0, i).join('.');
+    const ancestor = cache.get(ancestorPath);
+    if (ancestor) {
+      const leaf = segments[segments.length - 1] ?? '';
+      return {
+        topic,
+        family: ancestorPath,
+        label: `${ancestor.label} (${titleCase(leaf)})`,
+        description: ancestor.description,
+      };
+    }
+  }
+  const leaf = segments[segments.length - 1] ?? topic;
+  const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';
+  return {
+    topic,
+    family,
+    label: titleCase(leaf),
+    description: '(no description)',
+  };
+}
+
+function titleCase(segment: string): string {
+  if (!segment) return segment;
+  return segment.charAt(0).toUpperCase() + segment.slice(1);
+}
+
+/**
  * Initial auth state.
  */
 const initialAuthState: AuthState = {
@@ -495,7 +554,11 @@ export const useStore = create<StoreState>((set) => ({
       connection: { ...state.connection, ...connection },
     })),
 
-  setConnected: (payload) =>
+  setConnected: (payload) => {
+    const topicMap = new Map<string, TopicDescriptor>();
+    for (const d of payload.topicCatalogue ?? []) {
+      topicMap.set(d.topic, d);
+    }
     set({
       connection: {
         isConnected: true,
@@ -504,6 +567,7 @@ export const useStore = create<StoreState>((set) => ({
         error: null,
       },
       selfInteractiveId: payload.interactiveStuffId,
+      topicCatalogue: topicMap,
       auth: {
         isAuthenticated: true,
         user: {
@@ -521,7 +585,8 @@ export const useStore = create<StoreState>((set) => ({
         },
         player: payload.player,
       },
-    }),
+    });
+  },
 
   setDisconnected: (error) =>
     set({
@@ -758,6 +823,23 @@ export const useStore = create<StoreState>((set) => ({
       activeSlot: BASE_SLOT,
       echoSnapshotQueue: [],
     })),
+
+  // Topic catalogue slice
+  topicCatalogue: new Map<string, TopicDescriptor>(),
+
+  setTopicCatalogue: (records) =>
+    set(() => {
+      const map = new Map<string, TopicDescriptor>();
+      for (const d of records) {
+        map.set(d.topic, d);
+      }
+      return { topicCatalogue: map };
+    }),
+
+  getTopicDescriptor: (topic) => {
+    const cache = useStore.getState().topicCatalogue;
+    return resolveTopicDescriptor(cache, topic);
+  },
 
   // Stuff registry slice
   stuffRegistry: new Map<string, StuffMetadata>(),

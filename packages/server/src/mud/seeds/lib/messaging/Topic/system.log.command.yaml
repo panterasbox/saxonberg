@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.log.command
+  family: system.log
+  label: Command
+  description: Per-command log emissions — input echoes and dispatcher-level reporting. Dynamic per-level leaves (info, warn) inherit from this family.

@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.scry
+  family: world.perception
+  label: Scry
+  description: In-fiction remote perception — what a character sees through an instrument, privilege, or scrying glass.

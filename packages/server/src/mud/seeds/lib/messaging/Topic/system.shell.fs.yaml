@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.fs
+  family: system.shell
+  label: Filesystem
+  description: Output of workspace filesystem verbs — pwd, cd, ls, cat, grep, write, mkdir, rm, cp, mv.
