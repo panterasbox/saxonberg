@@ -19,6 +19,7 @@ import type {
   AuthState,
   ConnectionEstablishedPayload,
   ConnectionState,
+  ConsoleTab,
   MqlMatchSummary,
   PromptChoice,
   StuffDetailRecord,
@@ -167,6 +168,28 @@ interface StoreState {
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
 
+  // Client state — server-persisted UI bag.
+  /**
+   * Cached snapshot of `_clientState` mirrored from the server on
+   * session-establish. Keyed by dotted-string (e.g. `'console.tabs'`,
+   * `'console.activeTab'`). The shape of each value is feature-defined
+   * — components read via typed selectors and cast.
+   *
+   * Mutations: feature actions (see `consoleActions` exports) call
+   * `setLocalClientState` for the optimistic local update and emit
+   * the wire write via `websocketClient.sendClientStateWrite`. The
+   * store layer stays pure state; the wire layer handles IO.
+   */
+  clientState: Record<string, unknown>;
+  /** Wholesale replace; called from session-establish. */
+  setClientStateSnapshot: (snapshot: Record<string, unknown>) => void;
+  /**
+   * Optimistic local update of one key. Pure state mutation — does
+   * NOT emit a wire write. Composed actions (e.g. `addTab`) call
+   * this AND `websocketClient.sendClientStateWrite`.
+   */
+  setLocalClientState: (key: string, value: unknown) => void;
+
   // Frames — typed message-frame buffer feeding the Terminal.
   /**
    * Catch-all message log. Every `MessageFrame` the server emits to
@@ -178,6 +201,29 @@ interface StoreState {
   appendFrame: (frame: Frame) => void;
   /** Empty the buffer; called on disconnect. */
   clearFrames: () => void;
+
+  // Console session-scoped state — not persisted, cleared on disconnect.
+  /**
+   * Unread counter per tab name. Incremented in `appendFrame` for
+   * every frame matching an inactive tab's filter; cleared on tab
+   * switch. Keys are tab names; missing keys treated as 0.
+   */
+  unreadCounts: Record<string, number>;
+  /** Bump the counter for one tab by 1. */
+  incrementUnread: (tabName: string) => void;
+  /** Clear the counter for one tab (called on tab switch). */
+  clearUnreadFor: (tabName: string) => void;
+  /**
+   * Per-tab scroll position. Captured on the active tab's scroll
+   * events and restored on tab switch. Keys are tab names.
+   */
+  scrollPositions: Record<string, number>;
+  setScrollPosition: (tabName: string, offset: number) => void;
+  /**
+   * Per-topic count of frames the ACTIVE tab muted since the start
+   * of the session. Drives the filter-drawer badges (Phase 4).
+   */
+  mutedSinceSessionStart: Record<string, number>;
 
   // Topic catalogue — session-wide cache of authored descriptors.
   /**
@@ -600,6 +646,7 @@ export const useStore = create<StoreState>((set, get) => ({
       },
       selfInteractiveId: payload.interactiveStuffId,
       topicCatalogue: topicMap,
+      clientState: { ...(payload.clientState ?? {}) },
       auth: {
         isAuthenticated: true,
         user: {
@@ -856,14 +903,90 @@ export const useStore = create<StoreState>((set, get) => ({
       echoSnapshotQueue: [],
     })),
 
+  // Client state slice
+  clientState: {},
+
+  setClientStateSnapshot: (snapshot) =>
+    set(() => ({ clientState: { ...snapshot } })),
+
+  setLocalClientState: (key, value) =>
+    set((state) => ({
+      clientState: { ...state.clientState, [key]: value },
+    })),
+
   // Frames slice
   frames: [],
 
   appendFrame: (frame) =>
-    set((state) => ({ frames: [...state.frames, frame] })),
+    set((state) => {
+      const tabs =
+        (state.clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [];
+      const active =
+        (state.clientState['console.activeTab'] as string | undefined) ?? 'All';
+      let unreadCounts = state.unreadCounts;
+      let mutedSinceSessionStart = state.mutedSinceSessionStart;
+      let unreadChanged = false;
+      const nextUnread: Record<string, number> = { ...unreadCounts };
+      for (const tab of tabs) {
+        if (tab.name === active) continue;
+        if (tab.muted.includes(frame.topic)) continue;
+        const prev = nextUnread[tab.name] ?? 0;
+        nextUnread[tab.name] = prev + 1;
+        unreadChanged = true;
+      }
+      if (unreadChanged) unreadCounts = nextUnread;
+      // Track frames suppressed by the active tab's mute set.
+      const activeTab = tabs.find((t) => t.name === active);
+      if (activeTab && activeTab.muted.includes(frame.topic)) {
+        mutedSinceSessionStart = {
+          ...mutedSinceSessionStart,
+          [frame.topic]: (mutedSinceSessionStart[frame.topic] ?? 0) + 1,
+        };
+      }
+      return {
+        frames: [...state.frames, frame],
+        ...(unreadChanged ? { unreadCounts } : {}),
+        ...(mutedSinceSessionStart !== state.mutedSinceSessionStart
+          ? { mutedSinceSessionStart }
+          : {}),
+      };
+    }),
 
   clearFrames: () =>
-    set((state) => (state.frames.length === 0 ? {} : { frames: [] })),
+    set((state) =>
+      state.frames.length === 0 &&
+      Object.keys(state.unreadCounts).length === 0 &&
+      Object.keys(state.mutedSinceSessionStart).length === 0
+        ? {}
+        : {
+            frames: [],
+            unreadCounts: {},
+            mutedSinceSessionStart: {},
+          },
+    ),
+
+  unreadCounts: {},
+  incrementUnread: (tabName) =>
+    set((state) => ({
+      unreadCounts: {
+        ...state.unreadCounts,
+        [tabName]: (state.unreadCounts[tabName] ?? 0) + 1,
+      },
+    })),
+  clearUnreadFor: (tabName) =>
+    set((state) => {
+      if (!(tabName in state.unreadCounts)) return {};
+      const { [tabName]: _drop, ...rest } = state.unreadCounts;
+      return { unreadCounts: rest };
+    }),
+
+  scrollPositions: {},
+  setScrollPosition: (tabName, offset) =>
+    set((state) => ({
+      scrollPositions: { ...state.scrollPositions, [tabName]: offset },
+    })),
+
+  mutedSinceSessionStart: {},
 
   // Topic catalogue slice
   topicCatalogue: new Map<string, TopicDescriptor>(),

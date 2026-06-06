@@ -258,6 +258,15 @@ export class Application {
         this.handlePromptCancel(socketId, message);
         break;
 
+      case 'client-state-write':
+        this.handleClientStateWrite(socketId, message).catch((error) => {
+          console.error(
+            `Application: client-state-write error for socket ${socketId}:`,
+            error,
+          );
+        });
+        break;
+
       default:
         console.warn(`Application: Unknown message type: ${message.type}`);
         this.backend.sendMessageToSocket(socketId, {
@@ -375,6 +384,49 @@ export class Application {
     const payload = message.payload as PromptCancelMessage['payload'] | undefined;
     if (!payload || typeof payload.promptId !== 'string') return;
     PromptApi.handleCancel(interactive, payload);
+  }
+
+  /**
+   * Persist a client-state-write. Validates the key against the
+   * Avatar's aggregated `ClientStateMixin` schema (rejects unknown
+   * keys; runs the entry's optional validator), writes through
+   * `avatar.setClientState`, then commits via `avatar.save()`. The
+   * save fires concurrently with Avatar's periodic autosave —
+   * MongoDB's last-write-wins semantics handle the race.
+   *
+   * Per the slate, this is the ONLY new inbound path for client
+   * state. Future features (theme, notifications, keybinds)
+   * contribute new schema entries via their own mixins but reuse
+   * this same wire path.
+   */
+  private async handleClientStateWrite(
+    socketId: string,
+    message: InboundClientMessage,
+  ): Promise<void> {
+    const interactive = ConnectionManager.get().getInteractive(socketId);
+    if (!interactive) return;
+    const holder = interactive.getHolder();
+    if (!(holder instanceof Avatar)) {
+      console.warn(
+        `Application: client-state-write from socket ${socketId} ` +
+          `with no avatar holder`,
+      );
+      return;
+    }
+    const payload = message.payload as
+      | { key: unknown; value: unknown }
+      | undefined;
+    if (!payload || typeof payload.key !== 'string') return;
+    try {
+      holder.setClientState(payload.key, payload.value);
+      await holder.save();
+    } catch (error) {
+      console.warn(
+        `Application: client-state-write rejected for key ` +
+          `'${payload.key}': ` +
+          (error instanceof Error ? error.message : String(error)),
+      );
+    }
   }
 
   private handleEchoMessage(socketId: string, message: InboundClientMessage): void {
