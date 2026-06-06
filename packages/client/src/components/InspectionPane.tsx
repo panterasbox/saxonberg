@@ -356,7 +356,7 @@ function maybePushFocusBreadcrumb(
   const command = keyword ? `look ${keyword}` : 'look';
   store.pushPaneBreadcrumbTrail({
     stuffId: nextTop.stuffId,
-    label: nextTop.displayName,
+    label: keyword ?? nextTop.displayName,
     command,
   });
 }
