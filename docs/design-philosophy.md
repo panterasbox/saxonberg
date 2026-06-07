@@ -473,6 +473,12 @@ typed shape; authors compose semantics.**
 Ranged actions become a Conduit-channel question with skill-
 check resolution.
 
+> The fuller treatment now lives in
+> [combat-tactics-slate.md](./slates/combat-tactics-slate.md): combat as
+> abstract **engaged relationships** rather than geometry, with
+> party-level tactics layered on top. This section keeps the
+> Conduit-channel mechanics that slate's Thesis 1 builds on.
+
 ### Conduit gains a physical-passability dimension
 
 Conduits already carry channel-keyed transmissivity for light
@@ -633,9 +639,11 @@ re-derive them.
   — tagged regions, range bands. Probably comes alongside the
   first content that demands it (an archery range, a tavern
   with named seats).
-- **Ranged-action slate** for projectiles, throwing, shooting.
-  Composed from existing primitives + one new Conduit
-  transmissivity dimension; small.
+- **Combat-tactics slate** —
+  [combat-tactics-slate.md](./slates/combat-tactics-slate.md), now
+  drafted. Folds ranged actions (the abstract engaged-relationship model
+  + one new Conduit `physical` dimension) into the broader combat design
+  rather than a standalone ranged slate.
 - **Capacity-typed-constraints integration** — extends the
   embodiment subsystem's slot capacity story (see
   [slot.md](./subsystems/slot.md)) to containment scopes with the

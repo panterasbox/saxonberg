@@ -111,8 +111,8 @@ is parallel.* A glance at a map delivers fifty spatial relations at
 once; prose has to serialize them into fifty clauses. Graphics earn
 their keep exactly where the information is inherently parallel or
 spatial and serializing it would cost more reading than it's worth —
-maps, at-a-glance status, the geometry that would make ranged combat
-legible. Everywhere else, text's universality wins. The *decorational*
+maps, at-a-glance status, the geometry of a floor plan grasped at a
+glance. Everywhere else, text's universality wins. The *decorational*
 layer is the designated escape valve for those cases (see the downsides
 below).
 
@@ -333,11 +333,13 @@ Text earns its place, but the argument owns its costs.
   — map panels, models, status visualizations are the escape valve for
   parallel information, layered over (never under) the text substrate of
   record.
-- **Some content genuinely wants geometry.** Ranged combat is the
-  standing example: it's a self-imposed limitation that follows from
-  bag-of-stuff rooms, and where it bites, the answer is opt-in spatial
-  fidelity (see [design-philosophy.md](./design-philosophy.md)), not
-  pretending prose serializes it well.
+- **Some content genuinely wants geometry.** A lab where which beaker
+  sits on which burner matters, or a precision spatial puzzle, earns
+  opt-in sub-room fidelity (see
+  [design-philosophy.md](./design-philosophy.md)). Ranged combat *looks*
+  like it belongs here but doesn't — it's modeled as abstract engaged
+  relationships, not coordinates (see
+  [combat-tactics-slate.md](./slates/combat-tactics-slate.md)).
 
 None of these unseat text; they mark where it is *rendered alongside*
 something richer. The substrate stays text; the decoration handles the
