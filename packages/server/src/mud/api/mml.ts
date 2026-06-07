@@ -42,6 +42,13 @@
  * markdown parser, mention resolvers, entity helpers, URI schemes.
  * Tests stay against this public surface — internals are not part
  * of the contract.
+ *
+ * **HARD RULE: nothing outside `api/mml.ts` may import from
+ * `api/mml/`.** The subdirectory is private to this module. If a
+ * consumer needs something currently only exposed there (a type,
+ * a helper), re-export it from this file — don't reach into the
+ * subdir. Same enforcement convention as `api/mql/`. Code review
+ * gates this; grep `from '.*api/mml/'` to audit.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
