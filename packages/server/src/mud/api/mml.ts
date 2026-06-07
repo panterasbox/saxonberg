@@ -385,7 +385,7 @@ export class Mml {
    *
    * v1 wiring: command and stuff-ref schemes are clickable; `mudq:` is
    * namespace-reserved but inert (the client paints it but runs no
-   * handler). See `docs/plans/message-rendering-plan.md` D3.
+   * handler) — click semantics are deferred to a follow-up build.
    */
   static link(href: string, label: string | Mml): Mml {
     if (!isKnownLinkScheme(href)) {
@@ -563,11 +563,11 @@ export class Mml {
   }
 
   /**
-   * Factory: a `MentionResolver` over the speakers' perceivable
+   * Factory: a `MentionResolver` over the speaker's perceivable
    * neighbors. Matches against display names (case-insensitive)
    * and returns the first hit. Ties fall through silently (per the
    * "silent on miss" contract). Used by `VocalMixin.say`,
-   * `TellController`, and the (future) emote handler when they call
+   * `AetherMixin.tell`, and the (future) emote handler when they call
    * `Mml.markdownToMml(text, resolver)` on user-supplied prose.
    */
   static perceiverMentionResolver(speaker: Stuff): MentionResolver {

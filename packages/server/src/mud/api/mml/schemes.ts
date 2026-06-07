@@ -6,7 +6,7 @@
  *  - `mudref:` — stuff-id reference (resolves to `look <kw>` or
  *    `look #id` on click)
  *  - `mudq:`   — MQL query reference (v1 inert — no click handler
- *    runs; see `docs/plans/message-rendering-plan.md` D3)
+ *    runs; click semantics deferred to a follow-up build)
  *
  * All three are opaque-form per RFC 3986 (`scheme:payload`, no `//`).
  * Any other scheme (http, https, javascript, data, …) is stripped at

@@ -440,32 +440,44 @@ the schema.
 
 **Schema.** `static clientStateSchema: ClientStateSchemaEntry[]`
 on `HasInteractiveMixin` itself — one flat array. Each entry
-declares `{ key, defaultValue, description?, validator? }`. v1
-ships two entries (`console.tabs`, `console.activeTab`); future
-features append to the same array. *No* prototype-chain walker:
-the schema's scope is exactly HasInteractive-bearers, so there's
-no useful distinction between substrate keys and feature-mixin
-keys. If the array grows past comfortable, externalize (YAML /
-DB / per-feature mixin registry) — not before.
+declares `{ key, defaultValue, description?, validator? }`.
+Today's entries (`console.tabs`, `console.activeTab`, and
+`style.overlay` from the message-rendering build); future features
+append to the same array. *No* prototype-chain walker: the
+schema's scope is exactly HasInteractive-bearers, so there's no
+useful distinction between substrate keys and feature-mixin keys.
+If the array grows past comfortable, externalize (YAML / DB /
+per-feature mixin registry) — not before.
 
 **Methods.** `getClientState<T>(key)` returns the stored value or
 the schema default; `setClientState(key, value)` validates +
 writes; `snapshotClientState()` returns a dense map (every
-declared key with its stored-or-default value).
+declared key with its stored-or-default value);
+`pushClientStateUpdate(key, value)` pushes the authoritative
+value to every connected Interactive.
 
-**Wire surface.**
+**Wire surface.** Three flows:
 
 - **Server → client at session-establish.**
   `ConnectionEstablishedPayload.clientState` carries
   `avatar.snapshotClientState()` in the welcome scene.
 - **Client → server on UI mutation.**
   `{ type: 'client-state-write', payload: { key, value } }` —
-  generic inbound message handled by
-  `Application.handleClientStateWrite`. The handler calls
+  generic inbound message. The handler calls
   `avatar.setClientState(key, value)` (schema check happens
   there) then `avatar.save()`.
+- **Server → client on server-initiated mutation.**
+  `{ type: 'client-state-update', payload: { key, value } }` —
+  outbound push parallel to `client-state-write`. Server code
+  that mutates a key out-of-band (the `style` verb is the v1
+  caller) calls `host.pushClientStateUpdate(key, value)` so the
+  client re-renders without waiting on the next reconnect
+  snapshot. The implementation is strategy-injected
+  (`setClientStateUpdatePush` in `HasInteractive.ts`) to break
+  the `Application → Avatar/Login → HasInteractive → Application`
+  load-time cycle that direct import would create.
 
-One generic wire path covers every feature. Adding a new key =
+One generic wire trio covers every feature. Adding a new key =
 append one schema entry. No feature-specific wire messages, no
 per-feature persistence shim.
 

@@ -1,11 +1,20 @@
 # Message rendering & styling slate (working doc)
 
-> **Status: model settled, forks leaned.** How a message goes from MML to
-> what the player sees — while the message *string always stays complete*.
+> **Status: Wave 1 shipped (2026-06).** Substrate lives in
+> [docs/subsystems/message-rendering.md](../subsystems/message-rendering.md):
+> nested-aware client renderer, stylesheet engine + two themes,
+> per-message-type templates (chat / say / tell / emote / default),
+> Discord-dialect markdown → MML, custom URI scheme links, mentions,
+> `style` verb on a per-Avatar overlay, `AetherMixin` for non-acoustic
+> comms. Wave 2 (layout library) and Wave 3 (channel stylesheets +
+> extensibility) remain open design surface — the build order at the
+> bottom of this slate is still the working plan for those.
+>
+> The original framing: how a message goes from MML to what the
+> player sees — while the message *string always stays complete*.
 > Covers the MML structure (three tag categories + the flatten
 > discipline), the client styling engine, the layout library, Markdown
-> ↔ MML, channel stylesheets, and accessibility. Shapes MML (currently
-> partial — see messaging.md) toward what rendering needs.
+> ↔ MML, channel stylesheets, and accessibility.
 
 Working slate for **client-side message rendering**. The driver was
 "different colors for different channels," but the real subject is the

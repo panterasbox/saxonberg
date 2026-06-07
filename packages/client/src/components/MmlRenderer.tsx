@@ -89,9 +89,9 @@ export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | nu
 /**
  * Map a `<link href>` to the command its click should dispatch. The
  * three custom URI schemes are scheme-routed; `mudq:` returns `null`
- * (inert — see `docs/plans/message-rendering-plan.md` D3); any other
- * scheme also returns null (the markdown parser should have stripped
- * them, but tolerate gracefully here).
+ * (inert in v1 — the namespace is reserved but click semantics are
+ * not yet decided); any other scheme also returns null (the markdown
+ * parser should have stripped them, but tolerate gracefully here).
  */
 function commandForLink(href: string): string | null {
   if (href.startsWith('mudcmd:')) {
@@ -141,7 +141,7 @@ const ClickableSpan = styled.span`
  * clickable link: no underline, no cursor change, no hover state.
  * A subtle accent color signals "this is a known link kind that
  * doesn't do anything yet" without misleading the reader into
- * clicking. See `docs/plans/message-rendering-plan.md` D3.
+ * clicking.
  */
 const InertLinkSpan = styled.span`
   color: #88a;
@@ -210,8 +210,9 @@ const MentionSpan = styled.span<{ $self: boolean }>`
  * children render through the same function, so nested clickable
  * tags (e.g., a `<link>` whose label contains a `<strong>`) compose
  * cleanly. Each unique tag's treatment is a styled component above;
- * the stylesheet engine (Chunk C, future) will layer user-overlay
- * treatments on top.
+ * the stylesheet engine in `lib/style/` layers user-overlay
+ * treatments on top via the resolved `Stylesheet` carried through
+ * the per-message-type templates.
  */
 function renderNodes(
   nodes: MmlNode[],
@@ -256,10 +257,10 @@ function renderNode(
     case 'chan':
       return <ChanChip key={key}>{children}</ChanChip>;
     case 'msg':
-      // No wrapper styling for v1 — `<msg>` is a region marker the
-      // per-message-type templates (Chunk E) consume for layout
-      // (chat's hanging-indent column). For inline rendering it
-      // passes through.
+      // No wrapper styling — `<msg>` is a region marker the
+      // per-message-type templates consume for layout (chat's
+      // hanging-indent column). For inline rendering it passes
+      // through.
       return <React.Fragment key={key}>{children}</React.Fragment>;
     case 'mention': {
       const matchesViewer =

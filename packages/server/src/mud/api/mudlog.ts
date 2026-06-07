@@ -189,8 +189,8 @@ export class MudlogApi {
   }
 }
 
-// Re-export the level constant list for parity with `MessageApi.Topics`-style
-// consumers; useful for diagnostic UIs that want to render every level.
+// Re-export the level constant list for diagnostic UIs that want to
+// render every level.
 export const MUDLOG_LEVELS = LEVELS;
 
 SecurityApi.decorateApiClass(MudlogApi);

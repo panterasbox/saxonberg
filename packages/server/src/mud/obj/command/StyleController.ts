@@ -322,10 +322,6 @@ export class StyleController extends CommandController<StyleModel> {
   }
 
   private send(context: CommandContext, body: Mml): void {
-    // Literal topic string — the project moved the topic-vocabulary
-    // source of truth to per-topic YAML seeds (TopicCatalogue); the
-    // legacy `MessageApi.Topics` constant tree is preserved for the
-    // ~175 existing emit sites but not extended for new topics.
     MessageApi.scene(context.commandGiver)
       .topic('system.style')
       .toSelf(body)

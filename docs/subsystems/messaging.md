@@ -208,26 +208,28 @@ Conventions:
   needing to render envelopes. See
   [response-envelope.md § Envelope vs scene split](./response-envelope.md#envelope-vs-scene-split).
 
-`MessageApi.Topics` exposes the canonical constants so call sites get
-autocomplete, grep-ability, and rename safety:
+Topic strings are emitted as **dotted-path string literals** at call
+sites:
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic(MessageApi.Topics.world.speech.say)
+  .topic('world.speech.say')
   ...
 ```
 
-The catalogue substrate that turns each topic string into a
-player-facing descriptor (friendly label, description, family for
-the cockpit's filter drawer, gutter tooltips, etc.) lives in
-[topics.md](./topics.md). `MessageApi.Topics` stays server-internal
-autocomplete; the catalogue is the source of truth for everything
-beyond the raw string.
+The `MessageApi.Topics` constant tree (the earlier shape) was
+**retired** during the message-rendering build — the parallel data
+in code + YAML led to two sources of truth. The authored source of
+truth for the topic vocabulary lives on per-topic YAML leaf Ideas
+under `seeds/lib/messaging/Topic/`. The `TopicCatalogue` singleton
+self-loads them at boot and turns each topic string into a
+player-facing descriptor (friendly label, description, family for the
+cockpit's filter drawer, gutter tooltips, etc.). See
+[topics.md](./topics.md).
 
-`MessageApi.Topics.system.log.root` (`'system.log'`) is the prefix used
-for "all log frames" matching; `system.log.command` is the
-framework-emitted **input-echo** topic (see "Input echo at
-`system.log.command.*`" below).
+`'system.log'` is the prefix used for "all log frames" matching;
+`system.log.command` is the framework-emitted **input-echo** topic
+(see "Input echo at `system.log.command.*`" below).
 
 ## Tags
 
@@ -259,25 +261,57 @@ class Mml {
   // Constructor is private. Two factory paths:
   static compose(strings, ...values): Mml      // safe — escapes raw values
   static fromMarkup(raw: string): Mml          // explicit trust assertion
-  static format(template: string, vars): Mml   // {name}-placeholder template
 
-  // Vocabulary
+  // Identity vocabulary
   static name(stuff: Stuff): Mml               // <name stuff-id="…">…</name>
-  static speech(text: string): Mml             // <speech>"…"</speech>
+  static speech(text: string | Mml): Mml       // <speech>"…"</speech>
   static location(stuff: Stuff): Mml           // <location stuff-id="…">…</location>
   static direction(d: string): Mml             // <direction>…</direction>
+  static exit(exit: Exit): Mml                 // <exit dir="…" stuff-id="…">…</exit>
   static object(stuff: Stuff): Mml             // <object stuff-id="…">…</object>
   static item(stuff: Stuff): Mml               // <item stuff-id="…">…</item>
-  static list(items: Mml[]): Mml               // joined with commas/and
+  static player(stuff: Stuff): Mml             // <player stuff-id="…">…</player>
+  static npc(stuff: Stuff): Mml                // <npc stuff-id="…">…</npc>
 
-  // Helpers
+  // Chat / messaging vocabulary
+  static chan(id: string, label: string): Mml  // <chan id="…">[Label]</chan>
+  static msg(body: string | Mml): Mml          // <msg>…</msg>
+  static mention(stuffId: string, label: string): Mml // <mention stuff-id="…">@…</mention>
+  static link(href: string, label: string | Mml): Mml // <link href="…">…</link>
+
+  // Emphasis (Discord-dialect markdown subset)
+  static strong(body): Mml; static em(body): Mml
+  static code(text): Mml;   static pre(text): Mml
+  static blockquote(body): Mml; static strike(body): Mml
+  static unorderedList(items: Mml[]): Mml
+  static orderedList(items: Mml[]): Mml
+  static li(body): Mml
+
+  // Joining
+  static list(items: Mml[], opts?: { style? }): Mml  // commas/and or block
+
+  // Projection
   static escape(text: string): string          // five-entity escape
-  static stripTags(body: string): string       // plain-text projection
+  static stripTags(body: string): string       // bare-plain (drops emphasis)
+  static flatten(body: string): string         // markdown-preserving
 
-  toString(): string
+  // Markdown pipeline (server-authoritative, see message-rendering.md)
+  static markdownToMml(text: string, resolver?: MentionResolver): Mml
+  static perceiverMentionResolver(speaker: Stuff): MentionResolver
+  static channelMentionResolver(participants: Iterable<Stuff>): MentionResolver
+
+  toString(viewer?): string
   toJSON(): string
 }
 ```
+
+The new vocabulary (chat / messaging tags + emphasis subset) and the
+markdown pipeline are documented in detail in
+[message-rendering.md](./message-rendering.md). The implementation
+internals live in a sibling `api/mml/` directory (tree parser,
+flatten serializer, markdown parser, mention resolvers, entity
+helpers, link schemes); **nothing outside `api/mml.ts` may import
+from `api/mml/`** — same isolation rule as `api/mql/`.
 
 The private constructor + named factories pattern makes trust explicit:
 every site that wraps an untrusted-shape string says `Mml.fromMarkup(...)`,
@@ -309,8 +343,14 @@ markup-producers that need it.
 
 `stripTags` parses with a small state machine and decodes the five
 built-in entities. Used by clients or log capture that need a
-plain-text projection. Tolerates unclosed tags by dropping their
-characters.
+plain-text projection (bare-plain — markdown emphasis drops out).
+Tolerates unclosed tags by dropping their characters.
+
+`flatten` runs the same parse but emits per-tag failsafe forms
+(emphasis preserved as `**bold**`, lists serialized linear-labeled,
+etc.) — for log-capture / archive-export paths that want a
+round-tripable markdown projection. See
+[message-rendering.md § `Mml.flatten` vs `Mml.stripTags`](./message-rendering.md#mmlflatten-vs-mmlstriptags).
 
 ### MarkupAugmenter — inline-affordance pipeline
 
@@ -371,7 +411,7 @@ dispatches them all.
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic(MessageApi.Topics.world.speech.say)
+  .topic('world.speech.say')
   .toSelf(Mml.compose`You say, ${Mml.speech(text)}`)
   .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(text)}`)
   .payload({ speaker: MessageApi.refOf(speaker), text })
@@ -436,7 +476,10 @@ Constraints enforced inside the builder:
 
 `VocalMixin.say(text)` is Layer 4 sugar — the canonical "speak in your
 current scope" pattern. Speakers get `say` for free as long as they
-compose the mixin.
+compose the mixin. The user-supplied text runs through
+`Mml.markdownToMml` (Discord-dialect subset; see
+[message-rendering.md](./message-rendering.md)) with the speaker's
+perceiver mention resolver before being wrapped in `<speech>`.
 
 Scope is inferred from the speaker's composition (the **vessels rule**):
 
@@ -457,6 +500,26 @@ A speaker that's neither — composition error — throws.
 narration; its base-class constraint
 (`TBase extends MixinConstructor<Stuff & Containable>`) makes the
 guarantee compile-time.
+
+### AetherMixin — the non-acoustic sibling
+
+`AetherMixin` is the parallel capability mixin for non-acoustic
+transport — `tell` today, future channel `chat` and remote `emote`.
+The Aether is the in-fiction comm-network (implant network, magical
+resonance field, hybrid mesh — diegetically per zone). A character
+can compose Vocal without Aether (mute) or Aether without Vocal
+(post-vocal-loss with an implant); both are independent.
+
+`AetherMixin.tell(target, text)` fires `world.speech.tell` with
+chat-form bodies (`<speaker> → <target>: <body>` self,
+`<speaker> → you: <body>` target). Self is a valid target. Markdown
+parsing runs through `Mml.markdownToMml` with the speaker's perceiver
+mention resolver, same as `VocalMixin.say`.
+
+Avatar composes `AetherMixin` because players have implants per the
+char-gen / augmentation slates' diegetic story. NPCs opt in
+per-class when content requires it. See
+[message-rendering.md § AetherMixin](./message-rendering.md#aethermixin--non-acoustic-transport).
 
 ## Routing pipeline
 
@@ -861,6 +924,14 @@ fall through to `toContents`.
 
 ## Cross-References
 
+- [message-rendering.md](./message-rendering.md) — full MML vocabulary
+  including the chat/messaging tags + emphasis subset, the markdown
+  pipeline, `AetherMixin`, client-side renderer, stylesheet engine,
+  themes, per-message-type templates, the `style` verb, and the
+  `client-state-update` push wire
+- [topics.md](./topics.md) — `TopicCatalogue` (authored topic
+  descriptors; the source of truth after the `MessageApi.Topics`
+  constant tree retirement)
 - [templates.md](./templates.md) — template clone pipeline that creates
   the Stuff that compose `SensorMixin`, `VocalMixin`, `MobileMixin`
 - [lifecycle.md](./lifecycle.md) — Stuff create/destroy choreography;
