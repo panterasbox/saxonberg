@@ -27,6 +27,7 @@ export const Mixins = {
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
+  Aether: 'AetherMixin',
   Perceptible: 'PerceptibleMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',

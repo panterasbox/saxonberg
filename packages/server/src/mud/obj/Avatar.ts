@@ -30,6 +30,7 @@ import {
 } from '../lib/shell/Environment';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
+import { AetherMixin } from '../lib/message/Aether';
 import { Events } from '../lib/events';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
 import { Location } from '../lib/stuff/Location';
@@ -58,7 +59,13 @@ export interface AvatarInitContext {
   playerId?: string;
 }
 
-const AvatarBase = PostRegistrationMixin(HasInteractiveMixin(ShelledCharacter));
+// AetherMixin composes onto Avatar — players have implants (per the
+// char-gen / augmentation slates' diegetic story); NPCs opt in
+// per-class by composing AetherMixin themselves when content requires
+// it. The mixin gates `tell` and (future) chat / remote-emote.
+const AvatarBase = PostRegistrationMixin(
+  HasInteractiveMixin(AetherMixin(ShelledCharacter)),
+);
 
 export class Avatar extends AvatarBase {
   /**

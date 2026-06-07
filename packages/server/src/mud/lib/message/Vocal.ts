@@ -29,7 +29,10 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'VocalMixin';
 
     static commandContributions: CommandContributions = {
-      self: ['say.yaml', 'tell.yaml'],
+      // `tell` moved to `AetherMixin` — non-acoustic comms ride
+      // the Aether network, not the vocal apparatus. Vocal stays
+      // the acoustic transport (say + future whisper/shout/sing).
+      self: ['say.yaml'],
       environment: [],
       inventory: [],
       peers: [],
