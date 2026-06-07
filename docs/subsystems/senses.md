@@ -166,22 +166,19 @@ work.
 ### `Mml.augment` + `MarkupAugmenter` widened with `opts?: AugmentOpts`
 
 The substrate walker is exposed as `Mml.augment(text, host, viewer,
-opts?)` — a static on the `Mml` class (the bare `augmentMarkup`
-function export was retired). Callers thread through the class
-handle: `import { Mml } from '../../api/mml'; Mml.augment(...)`.
+opts?)` — a static on the `Mml` class. Callers thread through the
+class handle: `import { Mml } from '../../api/mml'; Mml.augment(...)`.
 
-
-The augmenter contract is now
-`(text, host, viewer, opts?: AugmentOpts) => string`. Existing 3-arg
-augmenters keep working (covariant params). Existing call sites of
-`augmentMarkup` keep working (the new param is optional). Verbs that
-care about the filter pass it explicitly:
+The augmenter contract is `(text, host, viewer, opts?: AugmentOpts)
+=> string`. The optional `opts` parameter is the senses build's
+addition; older 3-arg augmenters keep working (TypeScript covariant
+params). Verbs that care about the filter pass it explicitly:
 
 ```ts
-location.getMarkupLong(viewer, { filter: ['vision'] });        // look
-location.getMarkupLong(viewer, { filter: ['smell'] });         // smell
-location.getMarkupLong(viewer, { filter: deriveSensorium(viewer) }); // sense
-location.getMarkupLong(viewer);                                // subscription — gestalt default
+location.getMarkupLong(viewer, { filter: ['vision'] });             // look
+location.getMarkupLong(viewer, { filter: ['smell'] });              // smell
+location.getMarkupLong(viewer, { filter: SpeciesApi.deriveSensorium(viewer) }); // sense
+location.getMarkupLong(viewer);                                     // subscription — gestalt default
 ```
 
 The inspection-pane subscription's `read = (stuff, viewer) =>
@@ -487,3 +484,37 @@ times; the substrate's filter does the per-viewer per-verb work.
   scalar-default round-trip.
 - [docs/subsystems/command-spec.md](./command-spec.md) — author
   guide for the verb framework the new verbs follow.
+
+## History
+
+Initial substrate ship (2026-06, MR !37). The design landed in
+three MR-iteration rounds before the final shape; key shifts:
+
+- **`SenseChannel` vocabulary home.** First proposed on
+  `lib/species/BodyPlan.ts` (alongside `SensoryPort.modality`).
+  MR feedback relocated it to `lib/description/Perceiver.ts` —
+  the actor-side perception surface is the canonical home for the
+  channel vocabulary; BodyPlan references the type but Perceiver
+  declares it.
+- **`Mml.augment` static (was bare `augmentMarkup` function).**
+  Round 1 followed the existing pattern (bare function export
+  from `api/mml.ts`); MR feedback folded it into the `Mml` class
+  as a static method to thread through the API class handle.
+- **`SpeciesApi.deriveSensorium` (was bare function on BodyPlan).**
+  Same principle as augment — moved off the lib module onto an
+  API class.
+- **Topic vocabulary evolution.** Three rounds:
+  - Round 1: per-verb topics (`world.perception.{look, smell,
+    listen, feel, taste, sense}`).
+  - Round 2: channel-named topics (`.vision`, `.hearing`, etc.),
+    with `SenseController` deriving topic from filtered body
+    content via the now-deleted `Mml.collectSenseChannels`.
+    Reverted: collapsed too much (80% of frames at 6 topics) and
+    conflated kind-of-frame with sensory-channel axes.
+  - Round 3 (final): hierarchical verb-leafed topics under
+    `world.perception.{sense, ambient, measurement, search}`
+    parents. Channel attribution stays orthogonal — lives in
+    body MML. Shell-query verbs (alias, var, settings, focus,
+    player) moved to `system.shell.*` family. 22 controllers
+    updated; ambient subtree uses channel-named leaves because
+    ambient has no verb to name them.

@@ -234,8 +234,9 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
  *     single-sense verbs pass `[channel]`; `look` passes
  *     `['vision']`; `sense` passes the viewer's full sensorium).
  *     Default-absent → fall back to the viewer's full sensorium.
- *   - `sensorium` comes from `deriveSensorium(viewer)` — viewer →
- *     Organism → Species → BodyPlan → `getModalities()`. A viewer
+ *   - `sensorium` comes from `SpeciesApi.deriveSensorium(viewer)`
+ *     — viewer → Organism → Species → BodyPlan → `getModalities()`.
+ *     A viewer
  *     without that chain has `[]` as their sensorium, so every
  *     `<sense>` region strips and only untagged prose survives
  *     (the right behavior for test fixtures and the dark-room AC).

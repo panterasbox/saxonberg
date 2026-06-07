@@ -78,7 +78,7 @@ describe('BodyPlan', () => {
   });
 
   describe('getModalities (senses build)', () => {
-    it('returns deduped channel list from sensoryPorts; AC #16', () => {
+    it('returns deduped channel list from sensoryPorts', () => {
       const bp = makeStuff(() => new BodyPlan());
       bp.setSensoryPorts([
         { modality: 'vision', count: 2, position: 'frontal' },
@@ -97,7 +97,7 @@ describe('BodyPlan', () => {
       ]);
     });
 
-    it('returns [] for a sessile body plan with no ports; AC #17', () => {
+    it('returns [] for a sessile body plan with no ports', () => {
       const bp = makeStuff(() => new BodyPlan());
       bp.setName('sessile');
       expect(bp.getModalities()).toEqual([]);

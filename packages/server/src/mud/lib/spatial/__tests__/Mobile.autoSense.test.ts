@@ -2,11 +2,9 @@
  * Mobile.autoSenseOnArrival — substrate-level test that the renamed
  * hook fires the `sense` verb (not `look`).
  *
- * AC #29 (`Avatar.enter` calls `autoSenseOnArrival` → forces `sense`)
- * and AC #30 (`Mobile.traverse` / `teleport` / Goto `-l` fallback
- * route through the same hook) ride this contract — the four call
- * sites delegate to this one method, so verifying the verb text
- * here gates all four.
+ * The four on-entry call sites (Avatar.enter, Mobile.traverse,
+ * Mobile.teleport, Goto -l fallback) all delegate to this one
+ * method, so verifying the verb text here gates all four.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -43,7 +41,7 @@ class CapturingMobile extends Base {
 }
 
 describe('Mobile.autoSenseOnArrival', () => {
-  it('forces the `sense` verb (not `look`); AC #29 / #30', async () => {
+  it('forces the `sense` verb (not `look`)', async () => {
     const mover = makeStuff(() => new CapturingMobile());
     await mover.autoSenseOnArrival();
     expect(mover.forced).toEqual([{ text: 'sense', forced: true }]);

@@ -1,16 +1,17 @@
 /**
  * senseStripAugmenter — pipeline-level behavior tests.
  *
- * Covers AC #7, #9–#13, #14, #15 of the senses build:
- *   - flatten/stripTags transparency through `<sense>` (AC #7)
- *   - filter/sensorium strip combinations (AC #9-#12)
- *   - registration on VisibleMixin (AC #13)
- *   - `<detail sense="touch">` strip rule keeps inner text (AC #14)
- *   - bare `<detail key="X">` defaults to vision sense (AC #15)
+ * Covers:
+ *   - flatten/stripTags transparency through `<sense>`.
+ *   - `Mml.stripBySense` pure-function strip rules per tag.
+ *   - filter / sensorium intersection on `senseStripAugmenter`.
+ *   - registration on `VisibleMixin.markupAugmenters`.
+ *   - `<detail sense="X">` strip-keep-children-on-miss rule.
+ *   - bare `<detail key="X">` defaults to vision sense.
  *
- * AC #8 (client-side parseMml transparency) lives in the client
- * test file; AC #16/#17/#18 (BodyPlan.getModalities +
- * deriveSensorium) live in `BodyPlan.test.ts`.
+ * Client-side `<sense>` parse transparency lives in
+ * `parseMml.test.ts`; BodyPlan.getModalities and
+ * SpeciesApi.deriveSensorium live in their own test files.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -74,7 +75,7 @@ describe('senseStripAugmenter (senses build)', () => {
     StuffApi.clearAll();
   });
 
-  describe('Mml transparency through <sense>; AC #7', () => {
+  describe('Mml transparency through <sense>', () => {
     it('flatten emits children verbatim for <sense>', () => {
       expect(Mml.flatten('<sense channel="smell">garlic</sense>')).toBe(
         'garlic',
@@ -121,7 +122,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(out).toBe('<sense channel="vision">A</sense>C');
     });
 
-    it('<detail sense="touch"> stripped on miss keeps inner children; AC #14 miss', () => {
+    it('<detail sense="touch"> stripped on miss keeps inner children', () => {
       const out = Mml.stripBySense(
         '<detail key="bookcase" sense="touch">cool wood</detail>',
         new Set<SenseChannel>(['vision']),
@@ -129,7 +130,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(out).toBe('cool wood');
     });
 
-    it('<detail sense="touch"> preserved on hit; AC #14 hit', () => {
+    it('<detail sense="touch"> preserved on hit', () => {
       const out = Mml.stripBySense(
         '<detail key="bookcase" sense="touch">cool wood</detail>',
         new Set<SenseChannel>(['touch']),
@@ -139,7 +140,7 @@ describe('senseStripAugmenter (senses build)', () => {
       );
     });
 
-    it('bare <detail> defaults to vision; AC #15 hit', () => {
+    it('bare <detail> defaults to vision', () => {
       const out = Mml.stripBySense(
         '<detail key="bookcase">leather spines</detail>',
         new Set<SenseChannel>(['vision']),
@@ -149,7 +150,7 @@ describe('senseStripAugmenter (senses build)', () => {
       );
     });
 
-    it('bare <detail> stripped when vision absent; AC #15 miss', () => {
+    it('bare <detail> stripped when vision absent', () => {
       const out = Mml.stripBySense(
         '<detail key="bookcase">leather spines</detail>',
         new Set<SenseChannel>(['touch']),
@@ -175,7 +176,7 @@ describe('senseStripAugmenter (senses build)', () => {
   });
 
   describe('senseStripAugmenter — filter + sensorium intersection', () => {
-    it('filter [vision], full sensorium → vision + untagged kept, smell stripped; AC #9', () => {
+    it('filter [vision], full sensorium → vision + untagged kept, smell stripped', () => {
       const viewer = makeViewerWithSensorium([
         'vision',
         'hearing',
@@ -190,7 +191,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(out).toBe('<sense channel="vision">A</sense>C');
     });
 
-    it('filter [vision], sensorium [smell] → vision stripped despite filter (sensorium gate); AC #10', () => {
+    it('filter [vision], sensorium [smell] → vision stripped despite filter (sensorium gate)', () => {
       const viewer = makeViewerWithSensorium(['smell']);
       const host = makeStuff(() => new Thing());
       const text =
@@ -203,7 +204,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(out).toBe('C');
     });
 
-    it('filter [smell] with sightless viewer keeps smell + untagged; mirrors AC #10', () => {
+    it('filter [smell] with sightless viewer keeps smell + untagged', () => {
       const viewer = makeViewerWithSensorium(['smell']);
       const host = makeStuff(() => new Thing());
       const text =
@@ -214,7 +215,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(out).toBe('<sense channel="smell">B</sense>C');
     });
 
-    it('filter [vision, smell] (gestalt-style) keeps both for full-sensory viewer; AC #11', () => {
+    it('filter [vision, smell] (gestalt-style) keeps both for full-sensory viewer', () => {
       const viewer = makeViewerWithSensorium(['vision', 'smell']);
       const host = makeStuff(() => new Thing());
       const text =
@@ -227,7 +228,7 @@ describe('senseStripAugmenter (senses build)', () => {
       );
     });
 
-    it('untagged prose always preserved regardless of filter/sensorium; AC #12', () => {
+    it('untagged prose always preserved regardless of filter/sensorium', () => {
       const viewer = makeViewerWithSensorium([]);
       const host = makeStuff(() => new Thing());
       const text = 'plain text with no sense tags';
@@ -263,7 +264,7 @@ describe('senseStripAugmenter (senses build)', () => {
     });
   });
 
-  describe('Registration on VisibleMixin; AC #13', () => {
+  describe('Registration on VisibleMixin', () => {
     it('VisibleMixin.markupAugmenters contains senseStripAugmenter', () => {
       const augmenters = MixinApi.getAllMarkupAugmenters(
         VisibleDetailedThing as unknown as Parameters<
@@ -290,7 +291,7 @@ describe('senseStripAugmenter (senses build)', () => {
       expect(smellOnly).toContain('Untagged tail.');
     });
 
-    it('end-to-end: vision-only authoring renders identically to before; AC #29 cousin', () => {
+    it('end-to-end: vision-only authoring renders identically to before', () => {
       // Existing rooms have no <sense> regions — output is unchanged
       // by the senseStripAugmenter. This guards against a regression
       // where the augmenter would touch plain prose.

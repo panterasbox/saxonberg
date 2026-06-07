@@ -158,7 +158,7 @@ describe('SpeciesApi', () => {
   });
 
   describe('deriveSensorium (senses build)', () => {
-    it('walks viewer → species → bodyPlan → getModalities; AC #18', () => {
+    it('walks viewer → species → bodyPlan → getModalities', () => {
       const biped = withTemplatePath(
         makeStuff(() => new BodyPlan()),
         '/lib/body-plans/biped',

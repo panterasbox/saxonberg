@@ -1,13 +1,13 @@
 /**
- * SmellController tests — covers AC #21, #22, #24, #25 (and AC #23's
- * "smell mirror" — sibling tests for listen/feel/taste rely on the
- * shared `SingleSenseControllerBase` exercised here).
+ * SmellController tests — full coverage of the four branches.
+ * Sibling tests for listen/feel/taste rely on the shared
+ * `SingleSenseControllerBase` exercised here.
  *
  * Branches under test:
- *   - bare `smell` fires Scene at `world.perception.smell` with the
- *     location's long filtered to `['smell']`.
- *   - `smell <target>` resolves via MQL, reads `getDetail(id, 'smell')`,
- *     polite fallback on null.
+ *   - bare `smell` fires Scene at `world.perception.sense.smell`
+ *     with the location's long filtered to `['smell']`.
+ *   - `smell <target>` resolves via MQL, reads
+ *     `getDetail(id, 'smell')`, polite fallback on null.
  *   - non-Detailed / nothing-to-perceive targets get polite refusal.
  *   - targets outside MQL scope aren't addressable.
  */
@@ -161,7 +161,7 @@ describe('SmellController', () => {
     expect(lastFrame?.body).toContain('mystery-thing');
   });
 
-  it('non-Detailed direct target → polite refusal; AC #24', () => {
+  it('non-Detailed direct target → polite refusal', () => {
     const fakeStuff = { stuffId: 'fake' } as Stuff;
     const target: MqlOneResult = { stuff: fakeStuff, raw: 'fake' };
     const controller = makeStuff(() => new SmellController());
@@ -175,7 +175,7 @@ describe('SmellController', () => {
     );
   });
 
-  it('detail-via with smell slot populated renders the slot; AC #22 hit', () => {
+  it('detail-via with smell slot populated renders the slot', () => {
     fix.location.setDetail(['leather'], {
       smell: 'old leather and tobacco',
     });
@@ -195,7 +195,7 @@ describe('SmellController', () => {
     expect(lastFrame?.body).toContain('old leather and tobacco');
   });
 
-  it('detail-via with no smell slot → polite fallback; AC #22 miss', () => {
+  it('detail-via with no smell slot → polite fallback', () => {
     // Vision-only legacy detail; getDetail('book', 'smell') = null.
     fix.location.setDetail(['book'], 'A leather-bound tome.');
     const target: MqlOneResult = {
@@ -214,7 +214,7 @@ describe('SmellController', () => {
     );
   });
 
-  it('bare smell on a vision-only location → polite refusal; AC #21 negative', () => {
+  it('bare smell on a vision-only location → polite refusal', () => {
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
     }).setLongDescription(
@@ -229,7 +229,7 @@ describe('SmellController', () => {
     expect(lastFrame?.body).toContain("don't perceive");
   });
 
-  it('bare smell on a location with smell region renders it; AC #21 positive', () => {
+  it('bare smell on a location with smell region renders it', () => {
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
     }).setLongDescription(
@@ -258,7 +258,7 @@ describe('SmellController', () => {
     expect(lastFrame?.body).toContain('Plain prose, no sense tags.');
   });
 
-  it('targets outside MQL scope are unresolvable; AC #25', () => {
+  it('targets outside MQL scope are unresolvable', () => {
     const result = MqlApi.resolveOne('nonsense-thing-9001', {
       commandGiver: fix.giver,
       scope: 'reachable',

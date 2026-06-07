@@ -15,9 +15,11 @@
  * each runs the augmenter with the viewer's full sensorium filter:
  *
  *   - **Detail-via** — `target.via.detailPath` set. Detail lookup
- *     uses sense `'vision'` per AC #27 (the gestalt's detail-drill
- *     default; smell/touch/etc. require the verb-specific single-
- *     sense form).
+ *     uses sense `'vision'` — the gestalt's detail-drill default
+ *     mirrors the slate's "click = look" rule: clicking a detail
+ *     chip drills into the visible representation. Smell / touch /
+ *     etc. require the verb-specific single-sense form
+ *     (`smell <detail>`, `feel <detail>`).
  *
  *   - **Location** — render name + filtered long + exits + occupants.
  *     The vision-bound affordances (exits, occupant list) stay because
@@ -87,9 +89,10 @@ export class SenseController extends CommandController<SenseModel> {
       });
       return;
     }
-    // Detail lookup uses sense='vision' — AC #27 / the slate's
-    // "click = look" rule. The single-sense verbs are the path for
-    // smell/touch/etc. detail prose.
+    // Detail lookup uses sense='vision' — the gestalt's detail-
+    // drill default mirrors the slate's "click = look" rule. The
+    // single-sense verbs are the path for smell/touch/etc. detail
+    // prose.
     const dotted = detailPath.join('.');
     const description = host.getDetail(dotted, 'vision');
     if (description === null) {

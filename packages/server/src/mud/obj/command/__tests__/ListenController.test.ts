@@ -1,7 +1,7 @@
 /**
- * ListenController mirror — same SingleSenseControllerBase pipeline
- * with `hearing` channel + `world.perception.hearing` topic. AC #23
- * "listen mirrors smell in shape".
+ * ListenController smoke — same SingleSenseControllerBase pipeline
+ * with `hearing` channel + `world.perception.sense.listen` topic.
+ * Wider coverage lives in SmellController.test.ts.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

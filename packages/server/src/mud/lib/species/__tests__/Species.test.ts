@@ -102,25 +102,25 @@ describe('Species', () => {
   });
 
   describe('olfactoryProfile (senses build)', () => {
-    it('round-trips a valid profile; AC #19', () => {
+    it('round-trips a valid profile', () => {
       const s = makeStuff(() => new Species());
       s.setOlfactoryProfile({ acuity: 'keen' });
       expect(s.getOlfactoryProfile()).toEqual({ acuity: 'keen' });
     });
 
-    it('round-trips null; AC #19', () => {
+    it('round-trips null', () => {
       const s = makeStuff(() => new Species());
       s.setOlfactoryProfile({ acuity: 'normal' });
       s.setOlfactoryProfile(null);
       expect(s.getOlfactoryProfile()).toBeNull();
     });
 
-    it('defaults to null on construction; AC #20', () => {
+    it('defaults to null on construction', () => {
       const s = makeStuff(() => new Species());
       expect(s.getOlfactoryProfile()).toBeNull();
     });
 
-    it('observable presence vs absence; AC #20', () => {
+    it('observable presence vs absence', () => {
       const dog = makeStuff(() => new Species());
       dog.setOlfactoryProfile({ acuity: 'keen' });
       const rock = makeStuff(() => new Species());

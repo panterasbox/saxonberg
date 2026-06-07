@@ -1,12 +1,10 @@
 /**
- * SenseController tests — covers AC #26, #27, #28.
+ * SenseController tests — gestalt verb behavior.
  *
- * AC #29 / #30 (auto-on-entry switch — Avatar.enter / Mobile
- * arrival hook) ride `Mobile.autoSenseOnArrival` which is already
- * verified by the rename (call sites updated, full server suite
- * green); their explicit gate lives below as a substrate test
- * that asserts `autoSenseOnArrival` forces the `sense` verb (not
- * `look`).
+ * The auto-on-entry switch (Avatar.enter / Mobile arrival hook)
+ * rides `Mobile.autoSenseOnArrival` and is gated separately in
+ * `Mobile.autoSense.test.ts` (substrate test that asserts the
+ * hook forces the `sense` verb, not `look`).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -125,7 +123,7 @@ function modelOf(target: MqlOneResult | undefined): CommandModel {
 }
 
 describe('SenseController', () => {
-  it('bare sense fires world.perception.sense.sense with viewer-sensorium filter; AC #26', () => {
+  it('bare sense fires world.perception.sense.sense with viewer-sensorium filter', () => {
     const fix = makeFixture(['vision', 'hearing', 'smell']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -175,7 +173,7 @@ describe('SenseController', () => {
     expect(f?.topic).toBe('world.perception.sense.sense');
   });
 
-  it('sense <target> mirrors look <target> shape with gestalt filter; AC #27', () => {
+  it('sense <target> mirrors look <target> shape with gestalt filter', () => {
     const fix = makeFixture(['vision', 'hearing']);
     // Author a separate Stuff with multi-sense long.
     const item = makeStuff(() => new TestLocation()) as TestLocation & {
@@ -195,7 +193,7 @@ describe('SenseController', () => {
     expect(f?.body).toContain('It rings softly.');
   });
 
-  it('sense detail uses vision sense for lookup; AC #27 detail rule', () => {
+  it('sense detail uses vision sense for lookup', () => {
     const fix = makeFixture(['vision', 'hearing']);
     fix.location.setDetail(['plaque'], {
       vision: 'A bronze plaque.',
@@ -213,7 +211,7 @@ describe('SenseController', () => {
     expect(f?.body).not.toContain('should NOT come back');
   });
 
-  it('dark-room substrate: sightless-by-construction viewer sees only hearing region; AC #28', () => {
+  it('dark-room substrate: sightless-by-construction viewer sees only hearing region', () => {
     // Sightless-by-construction sensorium (no LightApi integration v1).
     const fix = makeFixture(['hearing']);
     (fix.location as unknown as {
@@ -230,7 +228,7 @@ describe('SenseController', () => {
     expect(f?.body).toContain('Water drips somewhere.');
   });
 
-  it('sighted+hearing viewer sees both vision + hearing regions; AC #28 mirror', () => {
+  it('sighted+hearing viewer sees both vision + hearing regions', () => {
     const fix = makeFixture(['vision', 'hearing']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -246,7 +244,7 @@ describe('SenseController', () => {
     expect(f?.body).toContain('Water drips somewhere.');
   });
 
-  it('vision-only authored long renders identically for vision-bearing viewer; AC #29 invariant', () => {
+  it('vision-only authored long renders identically for vision-bearing viewer', () => {
     const fix = makeFixture(['vision', 'hearing']);
     // Existing-style legacy long with no <sense> regions.
     (fix.location as unknown as {

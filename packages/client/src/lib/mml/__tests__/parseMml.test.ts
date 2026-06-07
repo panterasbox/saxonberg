@@ -137,7 +137,7 @@ describe('parseMml — tolerance', () => {
   });
 });
 
-describe('parseMml — <sense> tag transparency (senses build AC #8)', () => {
+describe('parseMml — <sense> tag transparency (senses build)', () => {
   it('recognizes <sense channel="X"> as a tag node with channel attr', () => {
     const parsed = parseMml('<sense channel="smell">garlic</sense>');
     expect(parsed).toEqual([

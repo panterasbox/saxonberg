@@ -1,6 +1,8 @@
 /**
- * FeelController mirror — channel = `touch`, topic =
- * `world.perception.touch`. AC #23 mirror.
+ * FeelController smoke — channel = `touch`, topic =
+ * `world.perception.sense.feel`. Wider coverage lives in
+ * SmellController.test.ts (the shared SingleSenseControllerBase
+ * pipeline is exercised once there).
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

@@ -1,6 +1,7 @@
 /**
- * TasteController mirror — channel = `taste`, topic =
- * `world.perception.taste`. AC #23 mirror.
+ * TasteController smoke — channel = `taste`, topic =
+ * `world.perception.sense.taste`. Wider coverage lives in
+ * SmellController.test.ts.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

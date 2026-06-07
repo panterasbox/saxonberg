@@ -118,24 +118,35 @@ slate catalogue (the menu these are drawn from) follows under
 
 ### Track A — Client (cockpit), near-term
 
-Ordered so demo-readiness ramps monotonically:
+The two original near-term items both shipped (message-rendering
+2026-06; prompt-stack absorbed into the CommandBar's slot multiplexer
+during the console-foundations merge — see retired list below). What
+remains in the near-term Track A queue:
 
-1. **Message-rendering** — the MML renderer + per-channel
-   stylesheets + flatten/reflow that every cockpit widget paints
-   through. Substrate for the visual upgrade everything below
-   sits on.
-   ([message-rendering-slate.md](./slates/message-rendering-slate.md))
-2. **Prompt-stack client UI** — choice / confirm / text rendering
-   + MQL multi-match disambiguation (server half shipped).
-   ([prompt-stack-slate.md](./slates/prompt-stack-slate.md))
-
-Then **client-pull buildout** (cockpit shell / modes /
-content-surface / theming) per the cockpit slate, and the
-**scoped-authoring GUI** (the room editor) once access lands in
-Track B.
+1. **Client-pull cockpit buildout** — cockpit shell, modes
+   (world / study / classroom / tutor), content surface (video +
+   transcript), theming polish. Per
+   [client-cockpit-slate.md](./slates/client-cockpit-slate.md);
+   decomposes into per-track requirements docs at build time.
+2. **Scoped-authoring GUI** (the room editor) — blocked on
+   access landing in Track B; will pair with the new-player flow.
+   ([scoped-authoring-slate.md](./slates/scoped-authoring-slate.md))
 
 > **Retired from Track A** (so future passes don't re-suggest):
 >
+> - **Message-rendering.** Shipped 2026-06 — see
+>   [message-rendering.md](./subsystems/message-rendering.md).
+>   Nested-aware renderer, stylesheet engine + two themes, per-
+>   message-type templates, Discord-dialect markdown, custom URI
+>   schemes, mentions, `style` verb + overlay.
+> - **Prompt-stack client UI.** Shipped in the console-foundations
+>   merge. The CommandBar is a slot-multiplexed input that absorbs
+>   every Tier 1 kind (choice / confirm / text / mql-object /
+>   mql-many) directly — no separate `PromptArea` component. Slot
+>   picker, draft state per slot, chip affordances, X-cancel, mode
+>   sigils + tints, echo-snapshot pairing all land there.
+>   ([prompt-stack-slate.md](./slates/prompt-stack-slate.md) stays
+>   open for Tier 2/3 kinds and future-wave server polish.)
 > - **Vitals tandem slice.** The original "HP/MV widget over
 >   `me.vitals`" framing reflected the scalar-HP shape Vitals had
 >   before the slate was rewritten. Vitals is now a full server
@@ -167,7 +178,16 @@ Ordered by leverage + dependency:
    ([access-slate.md](./slates/access-slate.md))
 2. **Senses** — the unified `PerceptionChannel` substrate
    (sound = the hearing channel); high content leverage,
-   `analyze`/`measure` are text verbs.
+   `analyze`/`measure` are text verbs. **Partial shipment**
+   (2026-06): the multi-sense authoring surface is in place —
+   per-sense `Detail` slot map, `<sense channel="X">` MML,
+   `senseStripAugmenter`, the four single-sense verbs, gestalt
+   `sense` verb, auto-on-entry switch, perception topic
+   vocabulary, hierarchical channel-named topic tree. See
+   [senses.md](./subsystems/senses.md). Still ahead: full
+   `PerceptionChannel` substrate (propagation walks, attenuation,
+   masking, field/contact/network family physics, ESP-as-channel
+   registration, smell trails, ambient producers).
    ([senses-slate.md](./slates/senses-slate.md))
 3. **Social cluster (server halves)** — emotes (`SoulMixin`) +
    comms transports (say/whisper/tell) + the grouping facade.
@@ -408,33 +428,21 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   [mql-subscription-slate](./slates/mql-subscription-slate.md) on
   the wire side.
 
-- [docs/slates/message-rendering-slate.md](./slates/message-rendering-slate.md)
-  — how a server message becomes styled terminal output: the
-  **tagged-complete-string** model (the string captures sender +
-  channel + body as semantic MML); flatten (failsafe) / reflow
-  discipline; three tag categories (semantic / layout /
-  presentational-inline); the manual-layout tag library;
-  Markdown ↔ MML (Discord dialect); per-channel stylesheets;
-  accessibility; provenance as a tagged label. **Track A item 6**;
-  feeds every widget's painting.
-
-- **Prompt stack + inspection pane (shipped)** — both graduated to
-  subsystems ([prompt.md](./subsystems/prompt.md),
+- **Message rendering + prompt stack + inspection pane (shipped)** —
+  all three graduated to subsystems
+  ([message-rendering.md](./subsystems/message-rendering.md),
+  [prompt.md](./subsystems/prompt.md),
   [inspection-pane.md](./subsystems/inspection-pane.md)); see
-  **Foundation**. The server `PromptApi` and the focus pane are
-  live; the remaining prompt-stack *client* polish (choice/confirm
-  rendering) is **Track A item 4**. Slate drafts remain for design
-  history.
-
-- [docs/slates/message-rendering-slate.md](./slates/message-rendering-slate.md)
-  — how a server message becomes styled terminal output. The
-  **tagged-complete-string** model (the string captures everything —
-  sender, channel, body — as semantic MML); `flatten` (failsafe) /
-  `reflow` discipline; three tag categories (semantic / layout /
-  presentational-inline); the manual-layout tag library (`<pre>` etc.);
-  Markdown ↔ MML (Discord dialect, flatten-to-markdown); per-channel
-  stylesheets; accessibility; provenance as a tagged label. Pairs with
-  the MML semantic-tag work in the cockpit slate and the punch list.
+  **Foundation**. Message rendering shipped 2026-06 (nested-aware
+  renderer, stylesheet engine + two themes, per-message-type
+  templates, Discord-dialect markdown, custom URI schemes, mentions,
+  `style` verb + overlay). The server `PromptApi` is live, the focus
+  pane is live, and the prompt-stack client UI shipped in the
+  console-foundations merge via the CommandBar's slot multiplexer
+  (every Tier 1 kind renders through one surface). The message-
+  rendering slate stays open for Wave 2 (layout library) + Wave 3
+  (channel stylesheets); the prompt-stack slate stays open for
+  Tier 2/3 kinds.
 
 - [docs/slates/console-filtering-slate.md](./slates/console-filtering-slate.md)
   — sister surface to the inspection pane: client-side toolkit for
@@ -453,13 +461,15 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 Tactical work that doesn't need a slate. Pull these in
 opportunistically.
 
-- **Interactive prompt stack (Framework 11)** — *server shipped*
-  (`PromptApi` choice / confirm / text / mqlObject + cardinality
-  disambiguation; see [prompt.md](./subsystems/prompt.md)). The
-  matching **client UI** is Track A item 4.
-- **MQL disambiguation prompts** — *shipped* end-to-end on the
-  server (`onExcess: prompt` → `PromptApi.mqlObject`); the client
-  rendering rides Track A item 4.
+- **Interactive prompt stack (Framework 11)** — *shipped*. Server
+  (`PromptApi` choice / confirm / text / mqlObject / mqlMany +
+  cardinality disambiguation; see
+  [prompt.md](./subsystems/prompt.md)) and client (CommandBar slot
+  multiplexer) both live end-to-end. Tier 2/3 kinds remain in the
+  slate.
+- **MQL disambiguation prompts** — *shipped* end-to-end (`onExcess:
+  prompt` → `PromptApi.mqlObject` → CommandBar chip render → typed
+  or chip-click response).
 - **MQL sort / named-group operators** (`:sort.X`, `@@group`).
   Add when demand is real.
 - **Real authoring-tier permission check** in MQL — replace the

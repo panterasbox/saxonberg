@@ -840,7 +840,7 @@ describe('DetailedMixin', () => {
   });
 
   describe('Per-sense slot map (senses build)', () => {
-    it('round-trips new-shape detail via slot map; AC #1', () => {
+    it('round-trips new-shape detail via slot map', () => {
       const count = obj.setDetail(['bookcase', 'shelves'], {
         vision: 'Hand-tooled leather spines.',
         touch: 'Smooth walnut, grain runs vertical.',
@@ -857,7 +857,7 @@ describe('DetailedMixin', () => {
       expect(obj.getDetail('bookcase', 'taste')).toBeNull();
     });
 
-    it('legacy string detail populates vision slot; AC #2', () => {
+    it('legacy string detail populates vision slot', () => {
       obj.setDetail(['bookcase'], 'A tall walnut bookcase.');
       // No-arg form returns vision.
       expect(obj.getDetail('bookcase')).toBe('A tall walnut bookcase.');
@@ -870,7 +870,7 @@ describe('DetailedMixin', () => {
       expect(obj.getDetail('bookcase', 'smell')).toBeNull();
     });
 
-    it('rejects empty slot map; AC #1 invariant', () => {
+    it('rejects empty slot map', () => {
       expect(() => obj.setDetail(['x'], {})).toThrow(/at least one/i);
     });
 
@@ -883,7 +883,7 @@ describe('DetailedMixin', () => {
       ).toThrow(/must be a string/i);
     });
 
-    it('aliases share one Detail under new shape; AC #4', () => {
+    it('aliases share one Detail under new shape', () => {
       obj.setDetail(['bookcase', 'shelves'], {
         vision: 'Hand-tooled leather spines.',
       });
@@ -898,7 +898,7 @@ describe('DetailedMixin', () => {
       );
     });
 
-    it('getDetailEntries projects vision slot into description; AC #5', () => {
+    it('getDetailEntries projects vision slot into description', () => {
       obj.setDetail(['bookcase'], {
         vision: 'Visible prose.',
         touch: 'Tactile prose.',
@@ -920,7 +920,7 @@ describe('DetailedMixin', () => {
       ]);
     });
 
-    it('hasDetail returns true when any sense slot is populated; AC #6', () => {
+    it('hasDetail returns true when any sense slot is populated', () => {
       obj.setDetail(['drip'], { hearing: 'a slow drip' });
       expect(obj.hasDetail('drip')).toBe(true);
       obj.setDetail(['ribbon'], { touch: 'silk' });
@@ -944,7 +944,7 @@ describe('DetailedMixin', () => {
   });
 
   describe('applyDetails (senses build)', () => {
-    it('accepts legacy { keywords, description } shape; AC #2', () => {
+    it('accepts legacy { keywords, description } shape', () => {
       obj.applyDetails({
         bookcase: {
           keywords: ['shelves'],
@@ -958,7 +958,7 @@ describe('DetailedMixin', () => {
       expect(obj.getDetail('bookcase', 'touch')).toBeNull();
     });
 
-    it('accepts new per-sense shape; AC #1', () => {
+    it('accepts new per-sense shape', () => {
       obj.applyDetails({
         bookcase: {
           keywords: ['shelves'],
@@ -977,7 +977,7 @@ describe('DetailedMixin', () => {
       );
     });
 
-    it('rejects mixed { description, vision } entry; AC #3', () => {
+    it('rejects mixed { description, vision } entry', () => {
       expect(() =>
         obj.applyDetails({
           bookcase: {
@@ -988,7 +988,7 @@ describe('DetailedMixin', () => {
       ).toThrow(/mixes legacy 'description' with per-sense/);
     });
 
-    it('persistence migration: legacy { description } round-trips into vision slot; AC #1/#2 (R22)', () => {
+    it('persistence migration: legacy { description } round-trips into vision slot', () => {
       // Simulate the pre-existing persisted shape — applier consumes
       // legacy `description:` and writes the runtime instance with
       // populated `vision` slot. This is the no-script migration
