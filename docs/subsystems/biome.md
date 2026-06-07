@@ -76,6 +76,43 @@ planet" biome can sit at any admin path and explicitly extend
 `/lib/biome/universe` (or any other biome); the path doesn't
 constrain its inheritance.
 
+## Organizing the inheritance tree — the spine
+
+The `_extendsBiomePath` tree is the *mechanism*; this is the *principle* for
+**where a biome sits** in it. **Order by atmospheric dominance** — each level
+down is the next-biggest determiner of what a biome exists to carry (temp /
+humidity / pressure / light / medium). Coarse → fine:
+
+1. **medium** — air / water / vacuum (biggest lever: breathability, pressure,
+   density)
+2. **sky exposure** — outdoor / indoor / subterranean (weather, light, thermal
+   stability)
+3. **climate** — temperate / arid / tropical / polar (the temp + humidity
+   envelope)
+4. **surface / cover** — forested / grassland / sandy / **paved** / **urban** …
+   (local humidity, thermal mass, the ground)
+
+Placement rule: **coarser = bigger lever.** A node's home is found by asking
+"how much does this move the actual numbers vs. its neighbors." Depth =
+specificity, and that's fine — a deep biome like `outdoor/temperate/urban` is
+**reusable** (any temperate city street).
+
+**Cross-cutting attributes are cousins, not parent/child.** "urban" (paved +
+built density + heat-island) and "paved" (bare hard surface — thermal mass,
+runoff) both sit at the surface level on *different* branches: a rural highway
+is paved-not-urban, a city park urban-not-paved.
+
+**Reusable atmospheric *type* vs. place *identity* — the load-bearing line.** A
+biome is a reusable environmental type; it is **never a specific place.**
+"Terminus deferred-city street" is *not* a biome — `outdoor/temperate/urban`
+is, and **Terminus is the `SpatialZone`** that uses it and adds the
+place-specific overrides + mood. Single-inheritance means a leaf carries the
+**dominant** atmospheric stack; leftover bits that are more *identity* than
+*atmosphere* live on the **zone** as overrides (the spatial zone sits in the
+resolve chain above the biome — see *The override chain*). Two
+genuinely-atmospheric axes with no dominant (coastal-urban) → a combined leaf,
+or let the zone carry one; rare, per-case.
+
 ## `Biome` class
 
 A leaf `extends Idea`. Nine persistent fields:

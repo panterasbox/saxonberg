@@ -173,6 +173,78 @@ never as a remodel of the registrar into a temple.
 
 ---
 
+## The surround — the city past the gates (deferred)
+
+EU sits inside a city. The temptation is to make that city a revival of
+the old Eternal City — but that **dilutes the aesthetic by splitting the
+EotL influence across two places**, and neither ends up the strong one.
+The decision is the opposite:
+
+**EU holds the *entire* EotL homage.** All of it — the un-genred strange
+finish, the named roads (Tanelorn), the impossible storefronts, the
+deadpan whimsy — lives on campus. The campus is where we "blow our load,"
+deliberately. The surround does **not** get EC canon, because the surround
+is not EC.
+
+**The surround is a deliberately distinct city, and the contrast is
+*grounding*.** Step through the gate and the world gets more **real** —
+lived-in, weighty, an ordinary sky overhead. This is the chosen
+relationship (over "strange in a different register"), because:
+
+- it makes the campus's strangeness *pop* — you only register the
+  sourceless sky because the city outside has a normal one;
+- it's honest: a campus *is* a bubble; the world outside it is the world;
+- it gives the eventual city a *direction* without owing a feel now (it
+  grounds, it doesn't out-weird the campus);
+- it gives onboarding a graduation arc — start in the safe weird enclave,
+  the bigger realer world waits past the gates.
+
+**Status: deferred, and formless for the demo.** The TPA stop drops a
+first-timer just *outside* the campus gate (transit-stop-at-the-edge, not
+a pad on the Quad); for the demo, what surrounds that stop is an
+undefined nowhere — described as such, never shown as a blank room. The
+city is a far-future content effort; this section exists only to stop a
+future author from respawning EC out there.
+
+**The geography is a gradient** — worth reserving *structurally* now even
+with the city's feel deferred: the **campus enclave** (its sourceless sky)
+sits inside the **urban** city, and past the city is **wilderness**. In
+biome terms: an `urban` baseline → { the city (deferred) ; the
+`eternal-campus-grounds` leaf that overrides the sky } , with `wilderness`
+→ forest / meadow / … as a sibling branch under `outdoor`. Locking the
+gradient gives the biome model a real three-tier consumer and reserves the
+right shape; the city's *contents* stay deferred.
+
+**The city's name — leading candidate: _Terminus_** *(penciled in, not
+final).* A real city-naming tradition (Atlanta began as "Terminus"),
+grounded with a touch of noir, and a clean deep-cut homage — not to
+*Eternal City* the place but to *End of the Line* the **mud**. That splits
+the homage cleanly: the **campus** honours the place (EC's strange
+finish); the **city** honours the game's own name. It also rhymes with the
+arrival fiction — you teleport *to* the terminus, the grounded end of the
+line, and the dreamlike campus rises out of it. Held open in case a better
+*grounded* name surfaces; the explicitly-rejected default is "Eternal
+City" itself — the mythic register belongs to the University, not to a
+grounding-contrast city. (The obscure-MUD reference won't register with
+players; this naming discipline is for *us*, so we don't quietly rebuild
+EC out there.)
+
+**Address — University Avenue.** The campus fronts **University Avenue** in
+Terminus: a deliberately on-the-nose street name (a *designed* world puts
+the university on University Ave) and a cheap, concrete way to say *you're
+in a city, not floating in space.* The TPA stop sits on University Avenue
+just outside the campus gate; for the demo the avenue fades into unrendered
+haze a block out (the rest of Terminus, deferred). Grounding the stop on a
+named street — ordinary sky and all — also makes the campus's sourceless
+sky a *reveal* the moment you cross the gate.
+
+> Naming note: "Eternal" is earned by the **University** and the
+> **teleport network** (the un-genred, everywhere-and-nowhere,
+> exists-across-all-realities quality). Whether the city shares it is the
+> open question above.
+
+---
+
 ## The model — the v1 campus
 
 ### Topology: walkable, decentralized, sparse terminals

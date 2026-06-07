@@ -172,7 +172,7 @@ decide + emit; specs (data) configure them.**
 
 | Brain (examples) | Rung | Tier |
 |---|---|---|
-| `random-chatter`, `wanders`, `patrols`, `greets`, `reacts` | canned | **data** (config) |
+| `idles`, `random-chatter`, `wanders`, `patrols`, `greets`, `reacts` | canned | **data** (config) |
 | `tree-dialogue` | tree | **data** (the tree is data/content) |
 | `intent-dialogue` | intent-match | **data** (rules/synonyms) |
 | `scripted-behavior` | scripted | **code** (config *is* a script — isolation-gated) |
@@ -378,9 +378,10 @@ palette-discoverable.
 
 **Wave 1 — `Behaved` + the canned brains + wiring.** The `Behaved` mixin
 (reads `behaviors:`, path-resolves + re-resolves brains, wires to substrate);
-the canned brains (`random-chatter`, `wanders`, `patrols`, `greets`,
-`reacts`) as path-resolved modules; cadence + event triggers; engagement-slot
-contention. The behavior spec-list editor + brain path-picker.
+the canned brains (`idles` — a cadence sampler over a *mixed* emission pool
+(emotes + verbs + sequences), surfaced by Gus's idle business;
+`random-chatter`, `wanders`, `patrols`, `greets`, `reacts`) as path-resolved
+modules; cadence + event triggers; engagement-slot contention. The behavior spec-list editor + brain path-picker.
 
 **Wave 2 — dialogue brains + the tree widget.** `tree-dialogue` /
 `intent-dialogue` brains (consuming npc-dialogue's responders); the

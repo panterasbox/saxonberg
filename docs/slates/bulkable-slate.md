@@ -281,6 +281,12 @@ Stacks ship with `drop`, `get`, `give`. Bulk verbs are different:
 - **`drink`** — actor consumes from a fluid (Edible / Drinkable mixin
   combo)
 - **`eat`** — actor consumes from a solid bulk (bread, cheese)
+
+> **Thermal note:** a fluid's *temperature* (hot coffee, iced water) is **not**
+> a `Drinkable` concern — it's the orthogonal **`Thermal`** capability
+> (`docs/slates/thermal-slate.md`), which composes alongside `Drinkable` on
+> vessels that care (a thermos = `Drinkable` + `Thermal`; a paper cup =
+> `Drinkable` only). Keep `barrier`/temperature off this mixin.
 - **`cut`** — slice off a portion (requires Subdivisible + a cutting
   tool validator)
 - **`scoop`** — take a portion via container (sand, flour)

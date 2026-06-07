@@ -516,6 +516,9 @@ a corpse — autopsy reveals organ-level trauma a living exam can't):
   room temp), the same `K` / thermal `Quantity` the clinical
   thermometer already uses. Decomposition over time means **evidence
   degrades** — forensic difficulty rises with time since death.
+  *(Algor mortis is a consumer of the generic **`Thermal`** capability —
+  `docs/slates/thermal-slate.md` — which owns the cool-toward-ambient
+  `τ = R·C` model; this body case shares it rather than re-deriving it.)*
 
 The pedagogy is the **evidence-vs-answer-key gap**: the examiner
 reads signs and concludes (and can be wrong); the stamped cause is

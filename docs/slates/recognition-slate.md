@@ -55,6 +55,12 @@ perceiving target T?"
 
 ## The DescribeApi v2 pipeline
 
+> **Naming / home (refinement below):** this pipeline is homed on
+> `PerceptionApi.describe(viewer, target)`; the name "DescribeApi" **retires**,
+> its self-presentation half becoming the `Stuff.getPresentation()` instance
+> method. See *Self-presentation vs. viewer-perception* below for the A/B
+> split and where each pipeline step lands.
+
 Every perception-rendering call routes through this pipeline:
 
 ```
@@ -104,6 +110,75 @@ about viewer state — DescribeApi v2 negotiates recognition,
 perception, and bucket-verbosity, then asks Globbable for the
 data it needs to build the count-bearing identity. See
 [subsystems/glob.md § Display rendering](../subsystems/glob.md#display-rendering--describeapiformatname).
+
+---
+
+## Self-presentation vs. viewer-perception — `getPresentation()` and the DescribeApi split
+
+"DescribeApi" conflated **two concerns**. Splitting them homes each correctly
+("polymorphic step on the class, orchestration on the Api" — cf.
+`Zone.lookupField` vs `ZoneApi`):
+
+- **(A) Self-presentation** — *"what's this object's display string?"* Its
+  name (`Named`) **or** `shortDescription`, + **status** (if it's a
+  `StatusMixin` agent), + **viewer-independent** affixes (wielded, count,
+  posture). The object describing *itself*; polymorphic over its mixins; the
+  contract surface other Stuff wants — and what most of the ~76 legacy
+  `getDisplayName` callers actually need (a label for a message, not a
+  perception negotiation). → **an instance method on `Stuff`:
+  `getPresentation()`** (renamed from `getDisplayName` — "Name" wrongly
+  implied `Named`, but the string is name-*or*-shortDescription + status +
+  affixes). **No `viewer` param** — viewer-relativity lives wholly in (B).
+
+- **(B) Viewer-perception** — *"what does viewer V see perceiving target
+  T?"* Recognition lookup, disguise resolution, bucket verbosity — a stateful
+  negotiation between two parties. → **the Api**, entry point
+  **`PerceptionApi.describe(viewer, target)`** (the pipeline above). It calls
+  `target.getPresentation()` as its baseline, then layers the viewer-relative
+  steps.
+
+So **the name "DescribeApi" retires**: self-presentation → `getPresentation()`
+on Stuff; the viewer pipeline → `PerceptionApi.describe`.
+
+**How the pipeline steps split across A/B:**
+
+| Pipeline step | Home |
+|---|---|
+| 2. presented identity (disguise-applied) | `getPresentation()` baseline; disguise **shadows it** (target state — viewer-independent) |
+| 3. recognition lookup (known vs salient) | **(B)** PerceptionApi — viewer-relative |
+| 4. bucket verbosity | **(B)** PerceptionApi — viewer-relative |
+| 5. decoration | **splits** — viewer-independent tags (wielded, count, posture, status) ride `getPresentation()`; viewer-relative collapsing (bucket counts) is (B) |
+
+**Affix mechanism.** The viewer-independent decorations compose via the
+**`MarkupAugmenter` pattern** — a `static`-on-mixin contributor collected by a
+`MixinApi` walker (mirroring `getAllMarkupAugmenters`), each nullable and
+ordered (prefix count, postfix state). `Globbable`'s count is one such
+contributor on the **identity side** (decorations wrap it intact — "30 burning
+coins"), so the old `DescribeApi.formatName` **folds into `getPresentation()`**
+as a Globbable affix rather than a standalone method.
+
+### `StatusMixin` — the settable activity-status (new)
+
+The one genuinely new piece. An **agent** mixin holding a **settable
+activity-status** string — the second half of the simple public surface
+**`{{name}} {{status}}`** (e.g. "Gus, **the crossing guard, watching the empty
+road**"). It feeds the decoration slice of `getPresentation()`.
+
+- **Settable three ways:** a player **`status`** command; an NPC's **behavior
+  brains** at runtime (the `idles` / `greets` brains set it as a side effect —
+  idle → "watching the empty road," greeting → "seeing a newcomer across");
+  or a **static default** for the many NPCs whose status never changes.
+- **Distinct from the slate's "status flags"** (step 5: poisoned / glowing /
+  on fire), which are **derived** from effects/conditions. StatusMixin's
+  status is **authored/set**. Both land in decoration, different sources —
+  don't merge them into one field.
+- **The value may grow structured** (a Liquid template against behavior
+  context) without changing the dumb **Name + Status** public API. The seam
+  stays simple; the implementation needn't.
+
+This is a near-term, buildable refactor (the `getPresentation()` rename + the
+affix walk + `StatusMixin`) that the larger viewer-perception pipeline (B)
+then sits on top of.
 
 ---
 

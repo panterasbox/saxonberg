@@ -17,6 +17,12 @@ The load-bearing decisions:
 1. **A directed network of public terminals.** Terminals are nodes;
    **routes (hyperlanes)** are *directed edges*; **not all-to-all** — an
    authored topology. You travel only where a terminal routes.
+   **Topology is per-terminal authorial + emergent:** whoever places a
+   terminal in a room wires its destinations (like authoring an exit); the
+   MUD-wide network is just the sum of those choices — no central planner
+   determines routes. The **Authority** (oversight group) owns **standard +
+   health, not shape**: the uniform device spec (why every terminal looks
+   identical) and the wear/maintenance loop — never the topology.
 
 2. **Terminals are *public infrastructure*; the last mile is on foot.**
    Terminals live in lobbies / stops / hubs — never in private/instanced
@@ -77,6 +83,32 @@ See also:
 4. **Teleport, not conveyance** — distinct from locomotion.
 5. **Built to be living infrastructure** — dynamic seam now, disruption
    loop later.
+
+---
+
+## Why teleport (and why it's magic)
+
+Principle 4 says teleport, not conveyance. The *reason* is load-bearing:
+the network connects places that aren't physically connectable. A tube,
+a train, a bus can only reach what's on the same continuous ground — but
+this world is **un-genred** (see
+[design-philosophy.md](../design-philosophy.md) /
+[eternal-university-slate.md](./eternal-university-slate.md)), and its
+destinations don't share a ground. You can't take a tube ride to Narnia
+or a space station; only **magic teleport** can stitch a fantasy campus,
+a sci-fi station, and a pocket-universe lounge into one transit map.
+
+So the network's *reach is the un-genre thesis made navigable*: the
+departures board lists places that have no business on the same map, and
+that incongruity is exactly the "you're in for anything" promise in
+concrete, walkable form. The route map is a content surface for it (see
+the EU staging Stop) — most stops mundane, a few impossible, the lines
+running *out* past the edge of any one reality.
+
+**Naming note.** The operator's "Eternal" is earned by this
+everywhere-and-nowhere reach, not by any one city. Per the EU slate's
+naming note, *"Eternal"* belongs to the **University** and the **teleport
+network**; whether the surround city shares it is open there.
 
 ---
 
