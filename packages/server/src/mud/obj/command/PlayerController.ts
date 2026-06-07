@@ -63,7 +63,7 @@ export class PlayerController extends CommandController<PlayerModel> {
     this.send(
       context,
       Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`,
-      MessageApi.Topics.world.identity.change
+      'world.identity.change'
     );
     return;
   }
@@ -109,7 +109,7 @@ export class PlayerController extends CommandController<PlayerModel> {
     this.send(
       context,
       Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`,
-      MessageApi.Topics.world.identity.change
+      'world.identity.change'
     );
     return;
   }
@@ -132,7 +132,7 @@ export class PlayerController extends CommandController<PlayerModel> {
   private send(
     context: CommandContext,
     body: Mml,
-    topic: string = MessageApi.Topics.world.perception.look
+    topic: string = 'world.perception.look'
   ): void {
     MessageApi.scene(context.commandGiver)
       .topic(topic)

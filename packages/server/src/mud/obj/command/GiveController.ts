@@ -40,7 +40,7 @@ export class GiveController extends CommandController<GiveModel> {
 
     if (!item) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`You don't have any '${model.item.raw}'.`)
         .send();
       context.note({
@@ -52,7 +52,7 @@ export class GiveController extends CommandController<GiveModel> {
     }
     if (!recipient) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`You don't see any '${model.recipient.raw}' here.`)
         .send();
       context.note({
@@ -79,7 +79,7 @@ export class GiveController extends CommandController<GiveModel> {
     );
 
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic('world.perception.inventory')
       .toSelf(Mml.compose`You give ${Mml.item(item)} to ${Mml.name(recipient)}.`)
       .toPeers(
         Mml.compose`${Mml.name(giver)} gives ${Mml.item(item)} to ${Mml.name(recipient)}.`,
@@ -88,7 +88,7 @@ export class GiveController extends CommandController<GiveModel> {
     // Recipient's own scene-message for receipt. Separate Scene so
     // the recipient gets their own envelope frame.
     MessageApi.scene(recipient)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic('world.perception.inventory')
       .toSelf(Mml.compose`${Mml.name(giver)} gives you ${Mml.item(item)}.`)
       .send();
   }

@@ -23,7 +23,7 @@ export class PwdController extends CommandController<PwdModel> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.system.shell.fs)
+        .topic('system.shell.fs')
         .toSelf(Mml.fromMarkup('\nthis character has no workspace\n'))
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'WorkspaceMixin' });
@@ -38,7 +38,7 @@ export class PwdController extends CommandController<PwdModel> {
         )
       : Mml.fromMarkup(`\n${giver.getActiveCwd()}\n`);
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.system.shell.fs)
+      .topic('system.shell.fs')
       .toSelf(body)
       .send();
   }

@@ -36,7 +36,7 @@ export class TellController extends CommandController<TellModel> {
     const speaker = context.commandGiver;
     if (!MixinApi.isAether(speaker)) {
       MessageApi.scene(speaker)
-        .topic(MessageApi.Topics.world.speech.tell)
+        .topic('world.speech.tell')
         .toSelf(Mml.compose`You aren't tuned to the Aether.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'AetherMixin' });

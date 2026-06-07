@@ -277,7 +277,7 @@ export class Avatar extends AvatarBase {
       clientState: this.snapshotClientState(),
     };
     MessageApi.scene(this)
-      .topic(MessageApi.Topics.system.connection.established)
+      .topic('system.connection.established')
       .toSelf(Mml.compose`Welcome back, ${this.getFullName()}!`)
       .payload(payload)
       .send();

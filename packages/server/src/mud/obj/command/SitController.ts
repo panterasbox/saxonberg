@@ -31,7 +31,7 @@ export class SitController extends CommandController<SitModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.narration.action)
+        .topic('world.narration.action')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -60,7 +60,7 @@ export class SitController extends CommandController<SitModel> {
     );
     if (!result.ok) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.narration.action)
+        .topic('world.narration.action')
         .toSelf(Mml.compose`${result.summary}`)
         .send();
       context.note({
@@ -72,7 +72,7 @@ export class SitController extends CommandController<SitModel> {
     }
 
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.narration.action)
+      .topic('world.narration.action')
       .toSelf(Mml.compose`You sit down.`)
       .toPeers(Mml.compose`${Mml.name(giver)} sits down.`)
       .send();

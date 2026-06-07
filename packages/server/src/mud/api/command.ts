@@ -2153,10 +2153,10 @@ export class CommandApi {
     if (!MixinApi.isSensor(recipient)) return;
     const topic =
       kind === 'added'
-        ? MessageApi.Topics.system.commands.added
+        ? 'system.commands.added'
         : kind === 'removed'
-          ? MessageApi.Topics.system.commands.removed
-          : MessageApi.Topics.system.commands.reset;
+          ? 'system.commands.removed'
+          : 'system.commands.reset';
 
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };
     const ctx = ExecutionContextApi.getCurrentCommandContext();

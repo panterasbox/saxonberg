@@ -172,7 +172,7 @@ export class HelpController extends CommandController<HelpModel> {
 
   private tell(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.system.shell.help)
+      .topic('system.shell.help')
       .toSelf(body)
       .send();
   }

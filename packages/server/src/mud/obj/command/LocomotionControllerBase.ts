@@ -58,7 +58,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       // any other failure.
       context.note({ kind: 'mixin-missing', mixin: 'MobileMixin' });
       MessageApi.scene(actor)
-        .topic(MessageApi.Topics.system.shell.movement)
+        .topic('system.shell.movement')
         .toSelf(Mml.fromMarkup("You can't move."))
         .send();
       return;
@@ -160,7 +160,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   ): void {
     const prose = this.composeRejection(guard, mode, model);
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.system.shell.movement)
+      .topic('system.shell.movement')
       .toSelf(Mml.fromMarkup(prose))
       .send();
     context.note({

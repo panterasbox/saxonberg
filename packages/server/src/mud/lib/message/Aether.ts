@@ -80,7 +80,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
         Mml.perceiverMentionResolver(speaker),
       );
       MessageApi.scene(speaker)
-        .topic(MessageApi.Topics.world.speech.tell)
+        .topic('world.speech.tell')
         .toSelf(
           Mml.compose`${Mml.name(speaker)} → ${Mml.name(target)}: ${parsed}`,
         )

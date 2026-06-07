@@ -80,7 +80,7 @@ export class MvController extends CommandController<MvModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.system.shell.fs)
+      .topic('system.shell.fs')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

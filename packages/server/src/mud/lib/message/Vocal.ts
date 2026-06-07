@@ -53,7 +53,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const peersBody = Mml.compose`${Mml.name(speaker)} says, ${speechFragment}`;
 
       const scene = MessageApi.scene(speaker)
-        .topic(MessageApi.Topics.world.speech.say)
+        .topic('world.speech.say')
         .toSelf(selfBody)
         .payload({
           speaker: MessageApi.refOf(speaker),
