@@ -136,3 +136,41 @@ describe('parseMml — tolerance', () => {
     });
   });
 });
+
+describe('parseMml — <sense> tag transparency (senses build AC #8)', () => {
+  it('recognizes <sense channel="X"> as a tag node with channel attr', () => {
+    const parsed = parseMml('<sense channel="smell">garlic</sense>');
+    expect(parsed).toEqual([
+      tag('sense', [text('garlic')], { channel: 'smell' }),
+    ]);
+  });
+
+  it('handles nested sense regions transparently', () => {
+    const parsed = parseMml(
+      '<sense channel="vision">A<sense channel="smell">B</sense>C</sense>',
+    );
+    expect(parsed).toEqual([
+      tag(
+        'sense',
+        [
+          text('A'),
+          tag('sense', [text('B')], { channel: 'smell' }),
+          text('C'),
+        ],
+        { channel: 'vision' },
+      ),
+    ]);
+  });
+
+  it('handles <detail sense="touch"> attribute parsing', () => {
+    const parsed = parseMml(
+      '<detail key="bookcase" sense="touch">cool wood</detail>',
+    );
+    expect(parsed).toEqual([
+      tag('detail', [text('cool wood')], {
+        key: 'bookcase',
+        sense: 'touch',
+      }),
+    ]);
+  });
+});

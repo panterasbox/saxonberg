@@ -67,9 +67,25 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `find` rides here too: it's a snapshot-shaped sibling of
      * `look` (enumerate without binding focus). Discovery wiring
      * is `look`'s — perception, not focus management.
+     *
+     * The four single-sense verbs (`smell` / `listen` / `feel` /
+     * `taste`) and the gestalt `sense` ride the same actor-side
+     * bucket — they're perception verbs in the contact family,
+     * gated per-verb by `requires*` sensorium validators (see
+     * `lib/command/validators/`).
      */
     static commandContributions: CommandContributions = {
-      self: ['look.yaml', 'scry.yaml', 'locate.yaml', 'find.yaml'],
+      self: [
+        'look.yaml',
+        'scry.yaml',
+        'locate.yaml',
+        'find.yaml',
+        'smell.yaml',
+        'listen.yaml',
+        'feel.yaml',
+        'taste.yaml',
+        'sense.yaml',
+      ],
       environment: [],
       inventory: [],
       peers: [],

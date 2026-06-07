@@ -31,6 +31,25 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { SlotSpec } from '../slot/Slotted';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
+import type { Organism } from './Organism';
+
+/**
+ * Canonical physical-sense channel vocabulary. Used consistently
+ * across the senses substrate: `SensoryPort.modality` field on
+ * BodyPlan, `Detail` per-sense slot map keys, `<sense channel="X">`
+ * MML wrapper attribute, the `senseStripAugmenter` filter, and the
+ * `requires*` verb-level validators. ESP / alien channels (e.g.
+ * `echolocation`, `electroreception`) are explicitly NOT in this
+ * union for v1 — see the senses subsystem doc for the rationale.
+ */
+export type SenseChannel =
+  | 'vision'
+  | 'hearing'
+  | 'smell'
+  | 'touch'
+  | 'taste';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -39,8 +58,14 @@ import type { SlotSpec } from '../slot/Slotted';
  * fields a `SensoryPortMarshaller` handles serialization.
  */
 export interface SensoryPort {
-  /** `'sight'`, `'hearing'`, `'smell'`, `'taste'`, `'touch'`. */
-  modality: string;
+  /**
+   * Sense-channel vocabulary — one of the five physical channels
+   * declared by `SenseChannel`. The eyes-modality entry uses
+   * `'vision'` (the channel/process word), not the legacy organ
+   * word `'sight'`; the substrate's vocabulary is unified across
+   * BodyPlan / Detail / `<sense>` MML / SenseChannel TS type.
+   */
+  modality: SenseChannel;
   /** How many of this port the body plan declares. */
   count: number;
   /** `'frontal'`, `'lateral'`, `'dorsal'`, `'forward'`, `'circumferential'`. */
@@ -148,4 +173,45 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public setSensoryPorts(value: SensoryPort[]): void {
     this.sensoryPorts = value;
   }
+
+  /**
+   * Derived helper — the deduped list of sense channels this body
+   * plan instantiates. Built from `sensoryPorts` in insertion order
+   * (a Set preserves first-insertion order). A sessile body plan
+   * with no ports returns `[]`.
+   *
+   * Used by the `senseStripAugmenter` to determine a viewer's
+   * sensorium and by the `requires*` verb-level validators to
+   * decide whether the giver can drive a single-sense verb.
+   *
+   * ESP / alien channels are NOT included — `SenseChannel`'s union
+   * is physical-senses only. When ESP-as-channel registration
+   * lands (Wave 2+), a sibling helper on the ESP organ surface
+   * extends the sensorium with non-physical channels.
+   */
+  public getModalities(): SenseChannel[] {
+    return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
+  }
+}
+
+/**
+ * Resolve a viewer's perceptible sense channels by walking
+ * viewer → Organism → Species → BodyPlan → `getModalities()`.
+ * Returns `[]` when any step is null — a test fixture without a
+ * Species, a sessile organism, a non-Organism viewer.
+ *
+ * Lives here (not on a Stuff method) so non-Organism callers — the
+ * augmenter, the validators — can ask the question without first
+ * narrowing the host. Shared by the augmenter in
+ * `lib/description/Visible.ts` and the four `requires*` validators
+ * in `lib/command/validators/`.
+ */
+export function deriveSensorium(viewer: Stuff): SenseChannel[] {
+  if (!MixinApi.isOrganism(viewer)) return [];
+  const organism = viewer as Stuff & Organism;
+  const species = organism.getSpecies();
+  if (!species) return [];
+  const bodyPlan = species.getBodyPlan();
+  if (!bodyPlan) return [];
+  return bodyPlan.getModalities();
 }

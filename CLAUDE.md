@@ -202,6 +202,23 @@ behavior. Read the relevant doc before editing in its area.
     `LightSourceMixin`, the Boundary substrate (`Adornable`,
     `Adornment`, `Boundary`, `BoundaryAnchor`, `Conduit`
     interfaces), `Window`, the Door retrofit, per-viewer perception
+  - [senses.md](./docs/subsystems/senses.md) — multi-sense authoring
+    substrate: `SenseChannel` vocabulary (`vision` / `hearing` /
+    `smell` / `touch` / `taste`) declared on BodyPlan; per-sense
+    `Detail` slot map with legacy + new authoring;
+    `<sense channel="X">` MML wrapper + `<detail sense="X">`
+    attribute; `senseStripAugmenter` on `VisibleMixin` driven by a
+    per-call `opts.filter` ∩ `deriveSensorium(viewer)`;
+    `Mml.stripBySense` walks the parsed tree to drop out-of-filter
+    regions; `BodyPlan.getModalities()` + `deriveSensorium`;
+    `Species.olfactoryProfile` scalar; four contact-only single-sense
+    verbs (`smell` / `listen` / `feel` / `taste`) sharing
+    `SingleSenseControllerBase`, each gated by a `requires*`
+    sensorium validator; gestalt `sense` verb keeps room-presentation
+    chrome (exits + occupants); `Mobile.autoLookOnArrival` renamed
+    to `autoSenseOnArrival` (forces `sense` not `look`) — the four
+    on-entry call sites (`Avatar.enter`, `Mobile.traverse` /
+    `teleport`, `Goto -l`) all route through it.
   - [quantities.md](./docs/subsystems/quantities.md) —
     `Quantity<U>` substrate (Unit catalog, tag-table registry,
     same-unit math, parse/fromTag/Mml emission),

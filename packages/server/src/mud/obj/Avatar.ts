@@ -219,10 +219,11 @@ export class Avatar extends AvatarBase {
    *   2. Install the periodic-save backstop via `startAutoSave()`.
    *   3. Send the welcome scene with the connection-established
    *      payload the client needs for bootstrap.
-   *   4. Force a `look` so the player sees their starting location —
-   *      delegated to `MobileMixin.autoLookOnArrival` (the same hook
-   *      that fires after a traversal), so we share the focus-reset
-   *      and forceCommand plumbing instead of reimplementing `look`.
+   *   4. Force a `sense` so the player perceives their starting
+   *      location across every channel they possess — delegated
+   *      to `MobileMixin.autoSenseOnArrival` (the same hook that
+   *      fires after a traversal), so we share the focus-reset and
+   *      forceCommand plumbing instead of reimplementing `sense`.
    *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
    *
    * **One call per session-start, not per connection.** When a second
@@ -282,11 +283,12 @@ export class Avatar extends AvatarBase {
       .payload(payload)
       .send();
 
-    // Force a look so the player sees where they are. Reuses
-    // MobileMixin's auto-look-on-arrival path (which forceCommand's
-    // the `look` verb and resets focus first) rather than
-    // reimplementing the description rendering here.
-    await this.autoLookOnArrival();
+    // Force a sense so the player perceives where they are across
+    // every channel they possess. Reuses MobileMixin's auto-sense-
+    // on-arrival path (which forceCommand's the `sense` verb and
+    // resets focus first) rather than reimplementing the
+    // description rendering here.
+    await this.autoSenseOnArrival();
 
     // Avatar is in-world; the user is logged in. Engine-level event
     // for any observer (audit, achievements) that doesn't care

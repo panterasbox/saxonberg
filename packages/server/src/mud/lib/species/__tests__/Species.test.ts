@@ -101,6 +101,54 @@ describe('Species', () => {
     });
   });
 
+  describe('olfactoryProfile (senses build)', () => {
+    it('round-trips a valid profile; AC #19', () => {
+      const s = makeStuff(() => new Species());
+      s.setOlfactoryProfile({ acuity: 'keen' });
+      expect(s.getOlfactoryProfile()).toEqual({ acuity: 'keen' });
+    });
+
+    it('round-trips null; AC #19', () => {
+      const s = makeStuff(() => new Species());
+      s.setOlfactoryProfile({ acuity: 'normal' });
+      s.setOlfactoryProfile(null);
+      expect(s.getOlfactoryProfile()).toBeNull();
+    });
+
+    it('defaults to null on construction; AC #20', () => {
+      const s = makeStuff(() => new Species());
+      expect(s.getOlfactoryProfile()).toBeNull();
+    });
+
+    it('observable presence vs absence; AC #20', () => {
+      const dog = makeStuff(() => new Species());
+      dog.setOlfactoryProfile({ acuity: 'keen' });
+      const rock = makeStuff(() => new Species());
+      // null indicates "no smell" for a species (a rock); a non-null
+      // value indicates the species has a smell sense.
+      expect(dog.getOlfactoryProfile()).not.toBeNull();
+      expect(rock.getOlfactoryProfile()).toBeNull();
+    });
+
+    it('rejects unknown acuity value; per-field invariant', () => {
+      const s = makeStuff(() => new Species());
+      expect(() =>
+        s.setOlfactoryProfile({
+          // @ts-expect-error deliberately invalid value
+          acuity: 'bionic',
+        }),
+      ).toThrow(/acuity must be one of/);
+    });
+
+    it('rejects non-object profile', () => {
+      const s = makeStuff(() => new Species());
+      expect(() =>
+        // @ts-expect-error deliberately invalid value
+        s.setOlfactoryProfile('keen'),
+      ).toThrow(/must be null or a profile object/);
+    });
+  });
+
   // ────────────────────────────────────────────────────────────
   // R2.4 cleanup on destruct (OPEN-4 resolution).
   // ────────────────────────────────────────────────────────────

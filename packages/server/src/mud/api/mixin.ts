@@ -650,8 +650,13 @@ export class MixinApi {
    */
   public static getAllMarkupAugmenters(
     constructor: AnyConstructor,
-  ): Array<(text: string, host: unknown, viewer: unknown) => string> {
-    type AugFn = (text: string, host: unknown, viewer: unknown) => string;
+  ): Array<(text: string, host: unknown, viewer: unknown, opts?: unknown) => string> {
+    type AugFn = (
+      text: string,
+      host: unknown,
+      viewer: unknown,
+      opts?: unknown,
+    ) => string;
     // Walk leaf → root, collecting contributing levels.
     const chain: AugFn[][] = [];
     let current: unknown = constructor;

@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.feel
+  family: world.perception
+  label: Feel
+  description: Output of feeling your surroundings or a specific thing — what the perceiver picks up on the touch channel.

@@ -23,6 +23,11 @@ class DetailedThing extends DetailedMixin(Idea) {
 /**
  * Canonical serialization of a DetailMap — used to compare structural
  * equality regardless of order or whether inner Maps are undefined vs empty.
+ *
+ * The existing test fixtures populate Details via the legacy
+ * string-description overload of `setDetail`, which routes to the
+ * `vision` slot. The helper reads `detail.vision` and surfaces it as
+ * `description` for assertion back-compat.
  */
 type SerializedDetail = {
   description: string;
@@ -32,7 +37,7 @@ function serialize(map: DetailMap): Record<string, SerializedDetail> {
   const out: Record<string, SerializedDetail> = {};
   for (const [id, detail] of map.entries()) {
     out[id] = {
-      description: detail.description,
+      description: detail.vision ?? '',
       children:
         detail.details && detail.details.size > 0
           ? serialize(detail.details)
@@ -529,12 +534,14 @@ describe('DetailedMixin', () => {
       obj.setDetail(['child'], 'Child.', 'parent');
       obj.setDetail(['grandchild'], 'Grandchild.', 'parent.child');
 
-      // Serialize (requires custom serialization for nested Maps)
+      // Serialize (requires custom serialization for nested Maps).
+      // Fixtures populate via the legacy string overload, which
+      // routes to the `vision` slot — round-trip through `vision`.
       const serialize = (details: Map<string, any>): any => {
         return Array.from(details.entries()).map(([key, detail]) => [
           key,
           {
-            description: detail.description,
+            vision: detail.vision,
             details: detail.details ? serialize(detail.details) : undefined,
           },
         ]);
@@ -545,7 +552,7 @@ describe('DetailedMixin', () => {
           data.map(([key, detail]: [string, any]) => [
             key,
             {
-              description: detail.description,
+              vision: detail.vision,
               details: detail.details ? deserialize(detail.details) : undefined,
             },
           ])
@@ -829,6 +836,181 @@ describe('DetailedMixin', () => {
         description: 'a small lock',
         hasChildren: false,
       });
+    });
+  });
+
+  describe('Per-sense slot map (senses build)', () => {
+    it('round-trips new-shape detail via slot map; AC #1', () => {
+      const count = obj.setDetail(['bookcase', 'shelves'], {
+        vision: 'Hand-tooled leather spines.',
+        touch: 'Smooth walnut, grain runs vertical.',
+      });
+      expect(count).toBe(2);
+      expect(obj.getDetail('bookcase', 'vision')).toBe(
+        'Hand-tooled leather spines.',
+      );
+      expect(obj.getDetail('bookcase', 'touch')).toBe(
+        'Smooth walnut, grain runs vertical.',
+      );
+      expect(obj.getDetail('bookcase', 'smell')).toBeNull();
+      expect(obj.getDetail('bookcase', 'hearing')).toBeNull();
+      expect(obj.getDetail('bookcase', 'taste')).toBeNull();
+    });
+
+    it('legacy string detail populates vision slot; AC #2', () => {
+      obj.setDetail(['bookcase'], 'A tall walnut bookcase.');
+      // No-arg form returns vision.
+      expect(obj.getDetail('bookcase')).toBe('A tall walnut bookcase.');
+      // Explicit vision arg returns same value.
+      expect(obj.getDetail('bookcase', 'vision')).toBe(
+        'A tall walnut bookcase.',
+      );
+      // Non-vision senses return null.
+      expect(obj.getDetail('bookcase', 'touch')).toBeNull();
+      expect(obj.getDetail('bookcase', 'smell')).toBeNull();
+    });
+
+    it('rejects empty slot map; AC #1 invariant', () => {
+      expect(() => obj.setDetail(['x'], {})).toThrow(/at least one/i);
+    });
+
+    it('rejects non-string slot value', () => {
+      expect(() =>
+        obj.setDetail(['x'], {
+          // @ts-expect-error deliberately invalid value
+          vision: 42,
+        }),
+      ).toThrow(/must be a string/i);
+    });
+
+    it('aliases share one Detail under new shape; AC #4', () => {
+      obj.setDetail(['bookcase', 'shelves'], {
+        vision: 'Hand-tooled leather spines.',
+      });
+      expect(obj.getDetail('bookcase', 'vision')).toBe(
+        'Hand-tooled leather spines.',
+      );
+      expect(obj.getDetail('shelves', 'vision')).toBe(
+        'Hand-tooled leather spines.',
+      );
+      expect(obj.peekDetails().get('bookcase')).toBe(
+        obj.peekDetails().get('shelves'),
+      );
+    });
+
+    it('getDetailEntries projects vision slot into description; AC #5', () => {
+      obj.setDetail(['bookcase'], {
+        vision: 'Visible prose.',
+        touch: 'Tactile prose.',
+      });
+      const entries = obj.getDetailEntries();
+      expect(entries).toEqual([
+        { ids: ['bookcase'], description: 'Visible prose.', hasChildren: false },
+      ]);
+      // Touch slot must NOT leak into the wire projection (v1 wire
+      // shape stays single-channel for back-compat).
+      expect(JSON.stringify(entries)).not.toContain('Tactile prose.');
+    });
+
+    it('getDetailEntries surfaces empty description when no vision slot', () => {
+      obj.setDetail(['drip'], { hearing: 'a slow drip' });
+      const entries = obj.getDetailEntries();
+      expect(entries).toEqual([
+        { ids: ['drip'], description: '', hasChildren: false },
+      ]);
+    });
+
+    it('hasDetail returns true when any sense slot is populated; AC #6', () => {
+      obj.setDetail(['drip'], { hearing: 'a slow drip' });
+      expect(obj.hasDetail('drip')).toBe(true);
+      obj.setDetail(['ribbon'], { touch: 'silk' });
+      expect(obj.hasDetail('ribbon')).toBe(true);
+    });
+
+    it('two-arg getDetail with non-sense string treats arg as legacy parent', () => {
+      obj.setDetail(['handle'], 'A brass handle.');
+      obj.setDetail(['lock'], { vision: 'A keyhole.' }, 'handle');
+      // 'handle' is not a SenseChannel literal → treated as parent.
+      expect(obj.getDetail('lock', 'handle')).toBe('A keyhole.');
+    });
+
+    it('three-arg getDetail composes sense + parent', () => {
+      obj.setDetail(['handle'], 'A brass handle.');
+      obj.setDetail(['lock'], { vision: 'A keyhole.', touch: 'cold metal' }, 'handle');
+      expect(obj.getDetail('lock', 'vision', 'handle')).toBe('A keyhole.');
+      expect(obj.getDetail('lock', 'touch', 'handle')).toBe('cold metal');
+      expect(obj.getDetail('lock', 'smell', 'handle')).toBeNull();
+    });
+  });
+
+  describe('applyDetails (senses build)', () => {
+    it('accepts legacy { keywords, description } shape; AC #2', () => {
+      obj.applyDetails({
+        bookcase: {
+          keywords: ['shelves'],
+          description: 'A tall walnut bookcase.',
+        },
+      });
+      expect(obj.getDetail('bookcase')).toBe('A tall walnut bookcase.');
+      expect(obj.getDetail('shelves', 'vision')).toBe(
+        'A tall walnut bookcase.',
+      );
+      expect(obj.getDetail('bookcase', 'touch')).toBeNull();
+    });
+
+    it('accepts new per-sense shape; AC #1', () => {
+      obj.applyDetails({
+        bookcase: {
+          keywords: ['shelves'],
+          vision: 'Hand-tooled leather spines.',
+          touch: 'Smooth walnut, grain runs vertical.',
+        },
+      });
+      expect(obj.getDetail('bookcase', 'vision')).toBe(
+        'Hand-tooled leather spines.',
+      );
+      expect(obj.getDetail('bookcase', 'touch')).toBe(
+        'Smooth walnut, grain runs vertical.',
+      );
+      expect(obj.getDetail('shelves', 'touch')).toBe(
+        'Smooth walnut, grain runs vertical.',
+      );
+    });
+
+    it('rejects mixed { description, vision } entry; AC #3', () => {
+      expect(() =>
+        obj.applyDetails({
+          bookcase: {
+            description: 'legacy',
+            vision: 'new',
+          },
+        }),
+      ).toThrow(/mixes legacy 'description' with per-sense/);
+    });
+
+    it('persistence migration: legacy { description } round-trips into vision slot; AC #1/#2 (R22)', () => {
+      // Simulate the pre-existing persisted shape — applier consumes
+      // legacy `description:` and writes the runtime instance with
+      // populated `vision` slot. This is the no-script migration
+      // path: re-hydration on first load transparently converts.
+      obj.applyDetails({
+        bookcase: { description: 'Pre-existing legacy text.' },
+      });
+      const peek = obj.peekDetails().get('bookcase');
+      expect(peek?.vision).toBe('Pre-existing legacy text.');
+      // Re-serializing for persistence (the wire projection used by
+      // the inspection-pane subscription) reads the new-shape slot.
+      const entries = obj.getDetailEntries();
+      expect(entries[0]?.description).toBe('Pre-existing legacy text.');
+    });
+
+    it('skips entries with neither description nor sense slot', () => {
+      obj.applyDetails({
+        broken: { keywords: ['nope'] },
+        good: { vision: 'okay' },
+      });
+      expect(obj.hasDetail('broken')).toBe(false);
+      expect(obj.getDetail('good', 'vision')).toBe('okay');
     });
   });
 });

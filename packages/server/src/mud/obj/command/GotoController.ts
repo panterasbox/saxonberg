@@ -4,7 +4,7 @@
  * Orchestration shape: try `Mobile.teleport` first (the polished
  * path with announcements + auto-look); on Mobile-level veto, fall
  * back to `ContainmentApi.move` (or `forceMove` with `-f`). The
- * `-l` flag re-fires `autoLookOnArrival` on the raw-move fallback
+ * `-l` flag re-fires `autoSenseOnArrival` on the raw-move fallback
  * path so the avatar still sees where they landed when the polished
  * path was bypassed.
  *
@@ -78,8 +78,8 @@ export class GotoController extends CommandController<GotoModel> {
     }
     if (model.look && MixinApi.isMobile(giver)) {
       // Fire-and-forget; same swallow rationale as in `Mobile.teleport`
-      // — an auto-look failure shouldn't cancel an already-completed move.
-      void giver.autoLookOnArrival().catch(() => {});
+      // — an auto-sense failure shouldn't cancel an already-completed move.
+      void giver.autoSenseOnArrival().catch(() => {});
     }
     this.tell(context, `\narrived at ${destName} (fallback)\n`);
     return;

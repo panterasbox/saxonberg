@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.taste
+  family: world.perception
+  label: Taste
+  description: Output of tasting your surroundings or a specific thing — what the perceiver picks up on the taste channel.

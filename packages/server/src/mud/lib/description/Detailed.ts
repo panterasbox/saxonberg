@@ -39,11 +39,20 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { SenseChannel } from '../species/BodyPlan';
 
 export const PATH_DELIM = '.';
 
 export type DetailId = string;
 export type DetailMap = Map<DetailId, Detail>;
+
+/**
+ * Per-sense slot map used by `setDetail`'s new-shape overload and
+ * `applyDetails`' new-shape branch. Each key is optional; at least
+ * one slot must be populated, and empty-string slot values are
+ * rejected by the per-field invariant on `setDetail`.
+ */
+export type DetailSlots = Partial<Record<SenseChannel, string>>;
 
 /**
  * Detail entry with hierarchical structure.
@@ -52,10 +61,24 @@ export type DetailMap = Map<DetailId, Detail>;
  * are represented by multiple keys in the containing Map pointing to the same
  * `Detail` object. To enumerate aliases for a given Detail, walk the parent
  * Map and filter by identity — there is no per-Detail alias list.
+ *
+ * Per-sense slot map: each sense channel is an optional string. At
+ * least one slot must be populated when the Detail is created (the
+ * invariant lives on `setDetail`). The legacy `description` field
+ * has been retired; legacy authoring (`{ description: "X" }`) still
+ * round-trips by populating the `vision` slot at applier time.
  */
 export interface Detail {
-  /** Description text */
-  description: string;
+  /** Sighted-channel description text. */
+  vision?: string;
+  /** Hearing-channel description text. */
+  hearing?: string;
+  /** Smell-channel description text. */
+  smell?: string;
+  /** Touch-channel description text. */
+  touch?: string;
+  /** Taste-channel description text. */
+  taste?: string;
   /** Nested child details (optional) */
   details: Map<DetailId, Detail> | undefined;
 }
@@ -66,6 +89,12 @@ export interface Detail {
  * `ids` array carries every alias. `hasChildren` is a hint that
  * nested details exist behind a drill-down query (the wire
  * representation surfaces it; clients decide whether to fetch).
+ *
+ * The `description` field projects the Detail's `vision` slot for
+ * wire back-compat with the inspection-pane subscription substrate
+ * (the v1 wire shape stays single-channel; non-vision slots are
+ * server-side state only). An entry with no vision slot populated
+ * surfaces here with an empty `description` string.
  */
 export interface DetailEntry {
   ids: DetailId[];
@@ -77,8 +106,24 @@ export interface DetailEntry {
  * Interface for objects with hierarchical details.
  */
 export interface Detailed {
-  /** Get single detail description */
-  getDetail(id: DetailId, parent?: DetailId): string | null;
+  /**
+   * Get a detail's per-sense description text.
+   *
+   * Three argument forms (deduced by the runtime, see the
+   * implementation):
+   * - `getDetail(id)` — returns the `vision` slot (back-compat).
+   * - `getDetail(id, sense)` — returns the named sense slot.
+   * - `getDetail(id, sense, parent)` — sense + nested parent path.
+   * - `getDetail(id, parent)` — back-compat shape; `parent` is a
+   *   string that doesn't match a SenseChannel literal. Returns
+   *   the `vision` slot at the nested path.
+   *
+   * Returns `null` when the detail doesn't exist or the requested
+   * sense slot is unpopulated.
+   */
+  getDetail(id: DetailId): string | null;
+  getDetail(id: DetailId, sense: SenseChannel, parent?: DetailId): string | null;
+  getDetail(id: DetailId, parent: DetailId): string | null;
 
   /** Get all detail IDs at level */
   getDetailIds(parent?: DetailId): DetailId[] | null;
@@ -89,8 +134,16 @@ export interface Detailed {
   /** Membership test for a single detail id at the given level. */
   hasDetail(id: DetailId, parent?: DetailId): boolean;
 
-  /** Set detail(s) - supports multiple IDs (aliases) */
+  /**
+   * Set detail(s) — supports multiple IDs (aliases). Two shapes:
+   * - Legacy: `setDetail(ids, "description string", parent?)` —
+   *   populates the `vision` slot. Preserved for older call sites.
+   * - New: `setDetail(ids, { vision, hearing, smell, touch, taste },
+   *   parent?)` — per-slot population. At least one slot must be
+   *   non-empty; the per-field invariant rejects an all-empty map.
+   */
   setDetail(ids: DetailId[], description: string, parent?: DetailId): number;
+  setDetail(ids: DetailId[], slots: DetailSlots, parent?: DetailId): number;
 
   /** Remove detail(s) */
   removeDetail(ids: DetailId[], parent?: DetailId): number;
@@ -199,10 +252,33 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected details: DetailMap = new Map();
 
     /**
-     * Get single detail description.
+     * Get a detail's per-sense slot value.
+     *
+     * Overload-friendly runtime dispatch:
+     * - `getDetail(id)` — returns `vision` slot.
+     * - `getDetail(id, sense)` where `sense` is a `SenseChannel`
+     *   literal (`'vision' | 'hearing' | 'smell' | 'touch' | 'taste'`)
+     *   — returns that slot.
+     * - `getDetail(id, sense, parent)` — sense + nested parent.
+     * - `getDetail(id, parent)` where the second arg is NOT a known
+     *   sense channel — treats it as legacy parent and returns the
+     *   `vision` slot at the nested path.
      */
-    getDetail(id: DetailId, parent?: DetailId): string | null {
-      const resolved = this.resolveParent(parent, id);
+    getDetail(
+      id: DetailId,
+      senseOrParent?: SenseChannel | DetailId,
+      parent?: DetailId,
+    ): string | null {
+      let sense: SenseChannel = 'vision';
+      let resolvedParent: DetailId | undefined = parent;
+      if (typeof senseOrParent === 'string') {
+        if (isSenseChannel(senseOrParent)) {
+          sense = senseOrParent;
+        } else {
+          resolvedParent = senseOrParent;
+        }
+      }
+      const resolved = this.resolveParent(resolvedParent, id);
       if (!resolved) {
         return null;
       }
@@ -211,7 +287,9 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
         return null;
       }
       const detail = details.get(resolvedId);
-      return detail?.description ?? null;
+      if (!detail) return null;
+      const slot = detail[sense];
+      return typeof slot === 'string' ? slot : null;
     }
 
     /**
@@ -231,14 +309,17 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Membership test for a single detail id at the given level.
-     * Cheaper than `getDetailIds(parent)?.includes(id)`.
+     * Returns true iff the detail exists and ANY sense slot is
+     * populated (cheaper than walking the slot map externally).
      */
     hasDetail(id: DetailId, parent?: DetailId): boolean {
       const resolved = this.resolveParent(parent, id);
       if (!resolved) return false;
       const [details, resolvedId] = resolved;
       if (!resolvedId || !details) return false;
-      return details.has(resolvedId);
+      const detail = details.get(resolvedId);
+      if (!detail) return false;
+      return SENSE_CHANNELS.some((ch) => typeof detail[ch] === 'string');
     }
 
     /**
@@ -257,15 +338,28 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Set detail(s) - supports multiple IDs (aliases).
+     * Set detail(s) — supports multiple IDs (aliases). Accepts both
+     * the legacy string-description shape and the new per-sense slot
+     * map shape:
+     *   `setDetail(ids, "A brass handle.")` → populates `vision` slot.
+     *   `setDetail(ids, { vision: "...", touch: "..." })` → per-slot.
      *
-     * All IDs in a single call share one Detail object (alias semantics).
-     * Separate calls always produce separate Detail objects, even when
-     * descriptions match.
+     * All IDs in a single call share one Detail object (alias
+     * semantics). Separate calls always produce separate Detail
+     * objects, even when slot values match.
+     *
+     * Per-field invariants: the slot-map shape must populate at
+     * least one channel (empty maps throw); empty-string slot values
+     * are rejected. A legacy string-description shape accepts empty
+     * string (preserves prior behavior for tests / edge cases).
      */
-    setDetail(ids: DetailId[], description: string, parent?: DetailId): number {
+    setDetail(
+      ids: DetailId[],
+      descriptionOrSlots: string | DetailSlots,
+      parent?: DetailId,
+    ): number {
       let result = 0;
-      const detail: Detail = { description, details: undefined };
+      const detail: Detail = buildDetail(descriptionOrSlots);
 
       for (const id of ids) {
         const resolved = this.resolveParent(parent, id);
@@ -334,14 +428,18 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * map into the runtime `Map<DetailId, Detail>`. Phase 1 of the
      * hydrator bracket-assigned the plain YAML object onto
      * `this.details`, breaking the Map shape; the first thing we
-     * do is reset it. Then walk the entries, each shaped
-     * `{ keywords?: string[], description: string }`, and call
-     * `setDetail` for each — aliases are `[key, ...keywords]` with
-     * duplicates squashed.
+     * do is reset it. Then walk the entries — each shaped either
+     * legacy (`{ keywords?, description: string }`) or new
+     * (`{ keywords?, vision?, hearing?, smell?, touch?, taste? }`)
+     * — and call `setDetail` for each. Aliases are `[key, ...keywords]`
+     * with duplicates squashed.
      *
-     * Malformed entries (no description, non-object payload) are
-     * skipped with a warn. Nested children via the `details:`
-     * sub-key are deferred to a future revision; v1 is flat.
+     * Mixed-shape entries (legacy `description` AND any per-sense
+     * slot key in the same entry) throw — authors pick one shape per
+     * entry. Malformed entries (no recognized shape, non-object
+     * payload) are skipped with a warn. Nested children via the
+     * `details:` sub-key are deferred to a future revision; v1 is
+     * flat.
      */
     applyDetails(data: Record<string, unknown>): void {
       this.details = new Map();
@@ -351,10 +449,27 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           console.warn(`applyDetails: malformed entry '${key}' skipped`);
           continue;
         }
-        const entry = raw as { keywords?: unknown; description?: unknown };
-        if (typeof entry.description !== 'string') {
+        const entry = raw as {
+          keywords?: unknown;
+          description?: unknown;
+        } & Partial<Record<SenseChannel, unknown>>;
+        const hasDescription = typeof entry.description === 'string';
+        const slotSubset: DetailSlots = {};
+        for (const ch of SENSE_CHANNELS) {
+          const value = entry[ch];
+          if (typeof value === 'string') slotSubset[ch] = value;
+        }
+        const hasAnySlot = SENSE_CHANNELS.some((ch) => ch in slotSubset);
+        if (hasDescription && hasAnySlot) {
+          throw new Error(
+            `applyDetails: entry '${key}' mixes legacy 'description' ` +
+              `with per-sense slot key(s); pick one shape per entry`,
+          );
+        }
+        if (!hasDescription && !hasAnySlot) {
           console.warn(
-            `applyDetails: entry '${key}' missing description, skipped`,
+            `applyDetails: entry '${key}' missing description or ` +
+              `any sense slot, skipped`,
           );
           continue;
         }
@@ -366,7 +481,11 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
             }
           }
         }
-        this.setDetail(aliases, entry.description);
+        if (hasDescription) {
+          this.setDetail(aliases, entry.description as string);
+        } else {
+          this.setDetail(aliases, slotSubset);
+        }
       }
     }
 
@@ -399,7 +518,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
         const ids = grouped.get(detail)!;
         out.push({
           ids,
-          description: detail.description,
+          description: detail.vision ?? '',
           hasChildren: !!detail.details && detail.details.size > 0,
         });
       }
@@ -426,7 +545,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       return {
         ids,
-        description: detail.description,
+        description: detail.vision ?? '',
         hasChildren: !!detail.details && detail.details.size > 0,
       };
     }
@@ -522,6 +641,73 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return result;
     }
   };
+}
+
+/**
+ * Canonical sense-channel set used by the slot-map machinery. Kept
+ * in sync with the `SenseChannel` union exported from
+ * `lib/species/BodyPlan.ts` — adding a channel requires touching
+ * both (the union for type-level checking, this constant for the
+ * runtime walk).
+ */
+const SENSE_CHANNELS: readonly SenseChannel[] = [
+  'vision',
+  'hearing',
+  'smell',
+  'touch',
+  'taste',
+];
+
+/**
+ * Runtime guard for the SenseChannel union. Used by `getDetail`'s
+ * 2-arg overload dispatch to distinguish `getDetail(id, sense)` from
+ * `getDetail(id, parent)` — only the five known channel literals
+ * route to the sense-arg branch; any other string is treated as a
+ * legacy parent path.
+ */
+function isSenseChannel(value: string): value is SenseChannel {
+  return (SENSE_CHANNELS as readonly string[]).includes(value);
+}
+
+/**
+ * Build a fresh Detail object from a `setDetail` payload. Accepts
+ * either the legacy string-description form (populates `vision`) or
+ * a `DetailSlots` map (per-slot population). Enforces the
+ * per-field invariants: slot-map shape must populate at least one
+ * channel and every populated slot must be a string.
+ */
+function buildDetail(input: string | DetailSlots): Detail {
+  const detail: Detail = { details: undefined };
+  if (typeof input === 'string') {
+    detail.vision = input;
+    return detail;
+  }
+  if (!input || typeof input !== 'object') {
+    throw new TypeError(
+      'Detailed.setDetail: slot-map arg must be an object with at ' +
+        'least one populated sense slot',
+    );
+  }
+  let populated = 0;
+  for (const ch of SENSE_CHANNELS) {
+    const value = input[ch];
+    if (value === undefined) continue;
+    if (typeof value !== 'string') {
+      throw new TypeError(
+        `Detailed.setDetail: slot '${ch}' must be a string, ` +
+          `got ${typeof value}`,
+      );
+    }
+    detail[ch] = value;
+    populated++;
+  }
+  if (populated === 0) {
+    throw new TypeError(
+      'Detailed.setDetail: slot-map arg must populate at least one ' +
+        'sense channel (vision/hearing/smell/touch/taste)',
+    );
+  }
+  return detail;
 }
 
 /**

@@ -1,9 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import { BodyPlan } from '../BodyPlan';
+import { BodyPlan, deriveSensorium } from '../BodyPlan';
+import { Species } from '../Species';
 import { Idea } from '../../stuff/Idea';
+import { Thing } from '../../stuff/Thing';
+import { OrganismMixin } from '../Organism';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
+import { StuffApi } from '../../../api/stuff';
+import type { Stuff } from '../../stuff/Stuff';
+
+function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
+  return obj;
+}
+
+class OrganismThing extends OrganismMixin(Thing) {
+  static persistentFields: string[] = [];
+}
 
 describe('BodyPlan', () => {
   it('extends Idea via SingletonMixin', () => {
@@ -23,7 +40,7 @@ describe('BodyPlan', () => {
     ]);
     bp.setLocomotionModes(['walk']);
     bp.setSensoryPorts([
-      { modality: 'sight', count: 2, position: 'frontal' },
+      { modality: 'vision', count: 2, position: 'frontal' },
     ]);
     expect(bp.getName()).toBe('biped');
     expect(bp.getSlots()).toEqual([
@@ -34,7 +51,7 @@ describe('BodyPlan', () => {
     ]);
     expect(bp.getLocomotionModes()).toEqual(['walk']);
     expect(bp.getSensoryPorts()).toEqual([
-      { modality: 'sight', count: 2, position: 'frontal' },
+      { modality: 'vision', count: 2, position: 'frontal' },
     ]);
   });
 
@@ -75,6 +92,105 @@ describe('BodyPlan', () => {
     ];
     bp.setSlots(ordered);
     expect(bp.getSlots().map(s => s.name)).toEqual(['a', 'b', 'c']);
+  });
+
+  describe('getModalities (senses build)', () => {
+    it('returns deduped channel list from sensoryPorts; AC #16', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setSensoryPorts([
+        { modality: 'vision', count: 2, position: 'frontal' },
+        { modality: 'hearing', count: 2, position: 'lateral' },
+        { modality: 'smell', count: 1, position: 'forward' },
+        { modality: 'taste', count: 1, position: 'forward' },
+        { modality: 'touch', count: 1, position: 'circumferential' },
+      ]);
+      // Insertion-order preservation via Set.
+      expect(bp.getModalities()).toEqual([
+        'vision',
+        'hearing',
+        'smell',
+        'taste',
+        'touch',
+      ]);
+    });
+
+    it('returns [] for a sessile body plan with no ports; AC #17', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setName('sessile');
+      expect(bp.getModalities()).toEqual([]);
+    });
+
+    it('dedupes when one channel has multiple ports', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setSensoryPorts([
+        { modality: 'vision', count: 2, position: 'frontal' },
+        { modality: 'vision', count: 2, position: 'dorsal' },
+        { modality: 'hearing', count: 2, position: 'lateral' },
+      ]);
+      expect(bp.getModalities()).toEqual(['vision', 'hearing']);
+    });
+  });
+
+  describe('deriveSensorium (senses build)', () => {
+    it('walks viewer → species → bodyPlan → getModalities; AC #18', () => {
+      StuffApi.clearAll();
+      const biped = withTemplatePath(
+        makeStuff(() => new BodyPlan()),
+        '/lib/body-plans/biped',
+      );
+      biped.setSensoryPorts([
+        { modality: 'vision', count: 2, position: 'frontal' },
+        { modality: 'hearing', count: 2, position: 'lateral' },
+      ]);
+      const sapiens = withTemplatePath(
+        makeStuff(() => new Species()),
+        '/lib/species/animalia/homo-sapiens',
+      );
+      sapiens.setBodyPlan(biped);
+
+      const actor = makeStuff(() => new OrganismThing());
+      actor.setSpecies(sapiens);
+
+      expect(deriveSensorium(actor)).toEqual(['vision', 'hearing']);
+    });
+
+    it('returns [] for non-Organism viewer (test fixture)', () => {
+      const fixture = makeStuff(() => new Thing());
+      expect(deriveSensorium(fixture)).toEqual([]);
+    });
+
+    it('returns [] for Organism without a Species', () => {
+      StuffApi.clearAll();
+      const actor = makeStuff(() => new OrganismThing());
+      expect(deriveSensorium(actor)).toEqual([]);
+    });
+
+    it('returns [] for Organism whose Species lacks a BodyPlan', () => {
+      StuffApi.clearAll();
+      const orphan = withTemplatePath(
+        makeStuff(() => new Species()),
+        '/lib/species/animalia/orphan',
+      );
+      const actor = makeStuff(() => new OrganismThing());
+      actor.setSpecies(orphan);
+      expect(deriveSensorium(actor)).toEqual([]);
+    });
+
+    it('returns [] for sessile body plan (no ports)', () => {
+      StuffApi.clearAll();
+      const sessile = withTemplatePath(
+        makeStuff(() => new BodyPlan()),
+        '/lib/body-plans/sessile',
+      );
+      const moss = withTemplatePath(
+        makeStuff(() => new Species()),
+        '/lib/species/plantae/moss',
+      );
+      moss.setBodyPlan(sessile);
+      const actor = makeStuff(() => new OrganismThing());
+      actor.setSpecies(moss);
+      expect(deriveSensorium(actor)).toEqual([]);
+    });
   });
 
   describe('defaultLocomotionMode', () => {
