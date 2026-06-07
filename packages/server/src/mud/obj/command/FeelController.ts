@@ -8,5 +8,5 @@ import type { SenseChannel } from '../../lib/description/Perceiver';
 
 export class FeelController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'touch';
-  protected readonly sceneTopic = 'world.perception.feel';
+  protected readonly sceneTopic = 'world.perception.touch';
 }

@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.touch
+  family: world.perception
+  label: Touch
+  description: Output the perceiver feels — feel-verb output, contact sensations, anything that lands on the touch channel.

@@ -239,9 +239,19 @@ resolves via MQL and reads `host.getDetail(dotted, senseChannel)`.
 | Verb     | Channel   | Topic                         | Validator         |
 | -------- | --------- | ----------------------------- | ----------------- |
 | `smell`  | `smell`   | `world.perception.smell`      | `requiresSmell`   |
-| `listen` | `hearing` | `world.perception.listen`     | `requiresHearing` |
-| `feel`   | `touch`   | `world.perception.feel`       | `requiresTouch`   |
+| `listen` | `hearing` | `world.perception.hearing`    | `requiresHearing` |
+| `feel`   | `touch`   | `world.perception.touch`      | `requiresTouch`   |
 | `taste`  | `taste`   | `world.perception.taste`      | `requiresTaste`   |
+
+Topics are channel-named (not verb-named) — `listen` fires at
+`world.perception.hearing` because that's the *channel* the frame's
+content lands on, not the verb that produced it. This unifies with
+future ambient events: a smell drifting in from next room and a
+deliberate `smell` verb both fire at `world.perception.smell`. The
+same principle drives `LookController` to emit at
+`world.perception.vision` (and the 17 other "user-reads-output"
+controllers — measure / analyze instruments, find, focus, settings,
+var — that historically used `world.perception.look`).
 
 Verb-level validators in `lib/command/validators/requires*.ts` gate
 the giver-side sensorium check via `deriveSensorium(giver).includes(channel)`.
@@ -272,6 +282,28 @@ single-sense form).
 occupant list) that `LookController` had — the vision-bound
 affordances stay because `sense` IS the room-presentation verb
 now.
+
+**Topic is derived from body content, not the verb.** `sense` is
+the one verb whose filtered body shape varies with the room's
+authored content. The controller walks the filtered prose with
+`Mml.collectSenseChannels(body)` to compute the topic:
+
+- Empty channel set (untagged prose only) → `world.perception.vision`
+  (the legacy untagged-prose default; existing rooms with no
+  `<sense>` regions are vision-implicit).
+- Singleton `{X}` → `world.perception.X` (the body landed
+  exclusively on channel X — a `sense` in a vision-only room fires
+  the same topic as `look` would).
+- Multiple → `world.perception.gestalt` (genuine multi-channel
+  content).
+
+So **same body content = same topic, regardless of verb**. A
+sense-on-vision-only-room and a look-on-the-same-room both fire at
+`world.perception.vision`; only when the body actually carries
+multiple channels does the gestalt topic appear. Filter-by-channel
+in the cockpit (mute hearing events) works uniformly across
+deliberate verbs, ambient events, and the gestalt's
+content-collapses-to-one-channel cases.
 
 No `requiresVision` / `requiresSense` validator — the gestalt filter
 is the viewer's full sensorium; the augmenter naturally produces an

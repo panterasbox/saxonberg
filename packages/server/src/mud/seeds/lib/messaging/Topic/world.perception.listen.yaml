@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.listen
-  family: world.perception
-  label: Listen
-  description: Output of listening to your surroundings or a specific source — what the perceiver picks up on the hearing channel.

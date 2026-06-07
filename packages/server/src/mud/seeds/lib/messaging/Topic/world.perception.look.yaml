@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.look
-  family: world.perception
-  label: Look
-  description: Output of looking at a location, character, or item — what the perceiver sees in the moment.

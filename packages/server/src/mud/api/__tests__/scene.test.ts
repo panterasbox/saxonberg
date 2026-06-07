@@ -291,7 +291,7 @@ describe('Scene attribution stamping', () => {
         },
         () => {
           MessageApi.scene(alice)
-            .topic('world.perception.look')
+            .topic('world.perception.vision')
             .toSelf(Mml.compose`look body`)
             .send();
         }

@@ -1,6 +1,6 @@
 /**
  * ListenController mirror — same SingleSenseControllerBase pipeline
- * with `hearing` channel + `world.perception.listen` topic. AC #23
+ * with `hearing` channel + `world.perception.hearing` topic. AC #23
  * "listen mirrors smell in shape".
  */
 
@@ -135,7 +135,7 @@ describe('ListenController', () => {
     const c = makeStuff(() => new ListenController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.listen');
+    expect(f?.topic).toBe('world.perception.hearing');
     expect(f?.body).toContain('soft drip');
     expect(f?.body).not.toContain('silent');
   });

@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.hearing
+  family: world.perception
+  label: Hearing
+  description: Output the perceiver hears — listen-verb output, ambient sound events, anything that lands on the hearing channel.

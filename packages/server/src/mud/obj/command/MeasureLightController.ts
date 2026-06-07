@@ -2,7 +2,7 @@
  * MeasureLightController — handler for `measure light [<location>]`.
  *
  * Reads `LightApi.lightAt(loc).intensity` (a `Quantity<'lux'>`) and
- * emits a single self-frame at `world.perception.look` with a
+ * emits a single self-frame at `world.perception.vision` with a
  * canonical readout. Photometer hosts the verb on its `inventory`
  * bucket — the player gains `measure light` while carrying one.
  */
@@ -32,7 +32,7 @@ export class MeasureLightController extends CommandController<MeasureLightModel>
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.vision')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'location', query: raw });
@@ -41,7 +41,7 @@ export class MeasureLightController extends CommandController<MeasureLightModel>
     if (!MixinApi.isContainer(target.stuff)) {
       const detail = `${DescribeApi.getDisplayName(target.stuff)} isn't a place`;
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.vision')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -58,7 +58,7 @@ export class MeasureLightController extends CommandController<MeasureLightModel>
     const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml()}\n`;
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.look')
+      .topic('world.perception.vision')
       .toSelf(body)
       .send();
 

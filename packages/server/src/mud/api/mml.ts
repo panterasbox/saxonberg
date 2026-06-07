@@ -660,6 +660,36 @@ export class Mml {
   }
 
   /**
+   * Walk an MML body and collect the set of sense channels its
+   * surviving `<sense channel="X">` and `<detail sense="X">` regions
+   * attribute to. Used by `SenseController` to derive the perception
+   * topic from the body's actual content (vs. from the verb's name):
+   *
+   *   - Empty set → caller defaults to `'vision'` (legacy
+   *     untagged-prose convention; existing rooms with no `<sense>`
+   *     regions are vision-implicit).
+   *   - Singleton `{X}` → emit at `world.perception.X` (the
+   *     filtered body landed exclusively on channel X).
+   *   - Multi → emit at `world.perception.gestalt` (the body
+   *     genuinely carries multi-channel content).
+   *
+   * Bare `<detail key="K">` (no `sense=`) does NOT contribute a
+   * channel — it's a legacy click-affordance wrap, not a
+   * channel-attributed region. Authors who want the `<detail>` to
+   * also pin a channel use the explicit `sense=` attribute.
+   *
+   * Like `stripBySense`, this lives on `Mml` so the "nothing
+   * outside `api/mml.ts` imports `api/mml/`" rule holds — internal
+   * `parseToTree` access stays scoped here.
+   */
+  static collectSenseChannels(body: string): Set<SenseChannel> {
+    const out = new Set<SenseChannel>();
+    if (!body) return out;
+    collectChannelsFromNodes(parseToTree(body), out);
+    return out;
+  }
+
+  /**
    * Strip MML tags from a markup body, decoding the five built-in
    * entities. Used by clients/log capture that need a plain-text
    * projection. State-machine parser; tolerates unclosed tags by
@@ -801,6 +831,41 @@ function stripSenseNodes(
     });
   }
   return out;
+}
+
+/**
+ * Walk a parsed MML tree collecting the channel attributes of
+ * `<sense channel="X">` regions and `<detail sense="X">` wraps.
+ * Used by `Mml.collectSenseChannels`. Recurses into other tags so
+ * nested `<sense>` regions inside arbitrary wrappers still
+ * contribute. Bare `<detail>` (no `sense=`) does NOT contribute —
+ * it's a legacy click-affordance wrap.
+ */
+function collectChannelsFromNodes(
+  nodes: readonly MmlNode[],
+  out: Set<SenseChannel>,
+): void {
+  for (const node of nodes) {
+    if (node.kind === 'text') continue;
+    if (node.tag === 'sense') {
+      const channel = node.attrs.channel as SenseChannel | undefined;
+      if (channel) out.add(channel);
+      // Recurse — a parent `<sense>` may wrap nested children with
+      // different channels (uncommon, but the walker handles it).
+      collectChannelsFromNodes(node.children, out);
+      continue;
+    }
+    if (node.tag === 'detail') {
+      // Explicit `sense=` contributes; bare `<detail key="K">` does
+      // not (it's a click-affordance wrap, not a channel
+      // attribution).
+      const senseAttr = node.attrs.sense as SenseChannel | undefined;
+      if (senseAttr) out.add(senseAttr);
+      collectChannelsFromNodes(node.children, out);
+      continue;
+    }
+    collectChannelsFromNodes(node.children, out);
+  }
 }
 
 /**

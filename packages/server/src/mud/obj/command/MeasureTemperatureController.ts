@@ -4,7 +4,7 @@
  *
  * Reads `BiomeApi.resolveTemperatureFor(actor.getContainer(),
  * detailKey?)` and emits a single self-frame at
- * `world.perception.look` with the canonical Kelvin reading plus
+ * `world.perception.vision` with the canonical Kelvin reading plus
  * its thermal tag. Refuses with a controller-rejected note when
  * the actor isn't carrying a Thermometer.
  */
@@ -40,7 +40,7 @@ export class MeasureTemperatureController extends CommandController<MeasureTempe
         detail: 'no thermometer in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.vision')
         .toSelf(Mml.compose`You need a thermometer in hand.`)
         .send();
       return;
@@ -55,7 +55,7 @@ export class MeasureTemperatureController extends CommandController<MeasureTempe
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.vision')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -67,7 +67,7 @@ export class MeasureTemperatureController extends CommandController<MeasureTempe
     );
     const body = Mml.compose`Temperature: ${t.formatMml(undefined, 'thermal')} (${t.tag('thermal')})\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.look')
+      .topic('world.perception.vision')
       .toSelf(body)
       .send();
   }

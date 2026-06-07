@@ -1,6 +1,6 @@
 /**
  * FeelController mirror — channel = `touch`, topic =
- * `world.perception.feel`. AC #23 mirror.
+ * `world.perception.touch`. AC #23 mirror.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -131,7 +131,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.feel');
+    expect(f?.topic).toBe('world.perception.touch');
     expect(f?.body).toContain('rough oak');
   });
 
@@ -145,7 +145,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.feel');
+    expect(f?.topic).toBe('world.perception.touch');
     expect(f?.body).toContain("don't perceive");
   });
 });

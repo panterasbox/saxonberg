@@ -58,7 +58,7 @@ export class AnalyzeAtmosphereController extends CommandController<AnalyzeAtmosp
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.vision')
         .toSelf(Mml.compose`You aren't anywhere to analyze.`)
         .send();
       return;
@@ -133,7 +133,7 @@ export class AnalyzeAtmosphereController extends CommandController<AnalyzeAtmosp
       body = Mml.compose`${body}${line}\n`;
     }
     MessageApi.scene(giver)
-      .topic('world.perception.look')
+      .topic('world.perception.vision')
       .toSelf(body)
       .send();
   }

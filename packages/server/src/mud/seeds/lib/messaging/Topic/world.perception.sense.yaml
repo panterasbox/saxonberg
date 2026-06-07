@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.sense
-  family: world.perception
-  label: Sense
-  description: Output of taking in surroundings across every sense the perceiver possesses — the gestalt verb and the auto-on-entry hook.
