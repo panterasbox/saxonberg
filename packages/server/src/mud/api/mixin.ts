@@ -28,6 +28,7 @@ import type { Surfaced } from '../lib/spatial/Surfaced';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
+import type { Aether } from '../lib/message/Aether';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Visible } from '../lib/description/Visible';
@@ -363,6 +364,10 @@ export class MixinApi {
 
   public static isVocal(obj: Stuff): obj is Stuff & Vocal {
     return this.hasMixin(obj, Mixins.Vocal);
+  }
+
+  public static isAether(obj: Stuff): obj is Stuff & Aether {
+    return this.hasMixin(obj, Mixins.Aether);
   }
 
   public static isNamed(obj: Stuff): obj is Stuff & Named {

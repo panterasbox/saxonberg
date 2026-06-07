@@ -63,14 +63,34 @@ behavior. Read the relevant doc before editing in its area.
     composer, sensor routing, MudlogApi, `MarkupAugmenter` pipeline
     (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
     the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
-    `<detail>` etc. inline)
+    `<detail>` etc. inline), VocalMixin + AetherMixin capability split.
+    Topic strings emit as dotted literals; the `MessageApi.Topics`
+    constant tree was retired in favor of the TopicCatalogue YAML
+    source of truth.
+  - [message-rendering.md](./docs/subsystems/message-rendering.md) —
+    end-to-end rendering substrate. Server: MML semantic core
+    extensions (`<chan>` / `<msg>` / `<player>` / `<npc>` /
+    `<mention>` / `<link>` + emphasis subset), `Mml.flatten` vs
+    `Mml.stripTags`, `Mml.markdownToMml` Discord-dialect parser,
+    `MentionResolver` factories, custom URI schemes (`mudcmd:` /
+    `mudref:` / `mudq:`), `api/mml/` module isolation rule,
+    `AetherMixin` for non-acoustic transport. Client: `parseMml`
+    nested-aware parser, `MmlRenderer` tree → React, per-message-type
+    templates (chat / say / tell / emote / default), stylesheet
+    engine (5 selector kinds, theme + overlay + plain-mode cascade),
+    default + high-contrast themes, `BucketResolver` friend/foe stub,
+    `style` verb on `HasInteractiveMixin.clientState['style.overlay']`,
+    `client-state-update` outbound push wire + strategy-injection
+    pattern.
   - [topics.md](./docs/subsystems/topics.md) — per-topic authored
     descriptors as `Topic` template docs under `/lib/messaging/Topic/`,
     `TopicCatalogue` singleton in `obj/`, three-tier resolution
     (cache hit → family-inherited → derived default), session-
     establish wire push of the snapshot. The catalogue
     self-loads from mongo via `Template.findDescendants` at
-    `postRegister` — no per-topic Stuff is ever cloned.
+    `postRegister` — no per-topic Stuff is ever cloned. Authored
+    source of truth for the topic vocabulary (`MessageApi.Topics`
+    constant tree retired).
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
     `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
     schema-on-owner generalization), lookup chain, `settings` /

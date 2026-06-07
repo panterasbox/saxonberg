@@ -17,7 +17,7 @@ export class InventoryController extends CommandController {
     const actor = context.commandGiver;
     if (!MixinApi.isContainer(actor)) {
       MessageApi.scene(actor)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`You have no inventory.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
@@ -35,7 +35,7 @@ export class InventoryController extends CommandController {
     }
 
     MessageApi.scene(actor)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic('world.perception.inventory')
       .toSelf(body)
       .send();
 

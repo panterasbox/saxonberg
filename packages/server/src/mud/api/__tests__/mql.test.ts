@@ -85,8 +85,12 @@ describe('MQL resolver — direct seeds', () => {
       _MqlAdminFlag.granter = () => false;
     });
 
-    it('online rejects without admin', () => {
-      expect(() => resolve('online', ctx)).toThrow(MqlPermissionError);
+    it('online resolves without admin (public — who-style listing)', () => {
+      // `online` was previously admin-gated; the gate was lifted
+      // because tells / who-style commands inherently expose online
+      // status anyway, and listing players is normal MUD social
+      // fabric. Future hide-from-listings infra can layer on top.
+      expect(() => resolve('online', ctx)).not.toThrow();
     });
 
     it('world rejects without admin', () => {
@@ -686,8 +690,8 @@ describe('MQL resolver — mid-chain seed semantics', () => {
     expect(out).toEqual([]);
   });
 
-  it('flower:online from a non-admin throws', () => {
-    expect(() => resolve('flower:online', ctx)).toThrow(MqlPermissionError);
+  it('flower:online resolves without admin (online is public)', () => {
+    expect(() => resolve('flower:online', ctx)).not.toThrow();
   });
 });
 
@@ -784,8 +788,8 @@ describe('MQL resolver — predicates', () => {
     expect(out).toEqual([]);
   });
 
-  it(':online requires admin tier', () => {
-    expect(() => resolve('me:online', ctx)).toThrow(MqlPermissionError);
+  it(':online resolves without admin (public)', () => {
+    expect(() => resolve('me:online', ctx)).not.toThrow();
   });
 
   it(':admin requires admin tier', () => {

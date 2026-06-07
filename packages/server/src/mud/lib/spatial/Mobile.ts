@@ -628,8 +628,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     ): void {
       const self = this as unknown as Stuff;
       const topic = exit
-        ? MessageApi.Topics.world.narration.movement
-        : MessageApi.Topics.world.narration.teleport;
+        ? 'world.narration.movement'
+        : 'world.narration.teleport';
       const scene = MessageApi.scene(self).topic(topic);
 
       // toSelf only when the mover is actually a Sensor — a future

@@ -32,26 +32,11 @@ class HauntedPlace extends SensorMixin(ContainerMixin(Idea)) {
   }
 }
 
-describe('MessageApi.Topics / Tags', () => {
-  it('exposes well-known topic strings', () => {
-    expect(MessageApi.Topics.world.speech.say).toBe('world.speech.say');
-    expect(MessageApi.Topics.world.speech.tell).toBe('world.speech.tell');
-    expect(MessageApi.Topics.world.perception.look).toBe(
-      'world.perception.look'
-    );
-    expect(MessageApi.Topics.world.narration.movement).toBe(
-      'world.narration.movement'
-    );
-    expect(MessageApi.Topics.world.narration.teleport).toBe(
-      'world.narration.teleport'
-    );
-    expect(MessageApi.Topics.system.connection.established).toBe(
-      'system.connection.established'
-    );
-    expect(MessageApi.Topics.system.log.command).toBe('system.log.command');
-    expect(MessageApi.Topics.system.log.root).toBe('system.log');
-  });
-
+describe('MessageApi.Tags', () => {
+  // `MessageApi.Topics` was retired — topic strings are emitted as
+  // literals at call sites; the authored source of truth is the
+  // `TopicCatalogue` (per-topic YAML leaf Ideas). Audience tags
+  // remain framework-defined constants.
   it('exposes audience tag constants', () => {
     expect(MessageApi.Tags.Audience.Actor).toBe('audience:actor');
     expect(MessageApi.Tags.Audience.Target).toBe('audience:target');

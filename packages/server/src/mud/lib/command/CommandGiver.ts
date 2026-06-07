@@ -596,7 +596,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           const prose = proseForFrameworkNote(note);
           if (prose === null) continue;
           MessageApi.scene(giverAsStuff as Stuff & Sensor)
-            .topic(MessageApi.Topics.system.command.error)
+            .topic('system.command.error')
             .toSelf(Mml.compose`${prose}`)
             .send();
         }

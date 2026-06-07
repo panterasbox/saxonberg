@@ -48,7 +48,7 @@ export class DismountController extends CommandController<CommandModel> {
     giver.setPosture(Postures.Stand);
     if (mount) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.narration.action)
+        .topic('world.narration.action')
         .toSelf(Mml.compose`You dismount ${Mml.item(mount)}.`)
         .toPeers(
           Mml.compose`${Mml.name(giver)} dismounts ${Mml.item(mount)}.`

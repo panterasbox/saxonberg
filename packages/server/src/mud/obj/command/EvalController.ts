@@ -122,7 +122,7 @@ export class EvalController extends CommandController<EvalModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.system.shell.author)
+      .topic('system.shell.author')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

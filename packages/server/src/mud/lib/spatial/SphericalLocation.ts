@@ -14,12 +14,19 @@ import { SphericalCoordinatesMixin } from './SphericalCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { SingletonMixin } from '../stuff/Singleton';
 import { Quantity } from '../quantity';
 import type { SphericalZone } from './SphericalZone';
 import type { Stuff } from '../stuff/Stuff';
 
-const SphericalLocationBase = PostRegistrationMixin(
-  ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
+// SphericalLocation is singleton-shaped — same rationale as
+// `CartesianLocation`: every authored location is unique-by-path.
+// Required so `Avatar.save()` can snapshot `data.container` against
+// a spherical room without tripping the singleton-container validator.
+const SphericalLocationBase = SingletonMixin(
+  PostRegistrationMixin(
+    ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
+  )
 );
 
 export class SphericalLocation extends SphericalLocationBase {

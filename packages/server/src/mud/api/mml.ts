@@ -10,7 +10,8 @@
  * `Mml.fromMarkup`.
  *
  * The vocabulary helpers (`name`, `speech`, `location`, `direction`,
- * `object`, `item`, `list`) emit Mml fragments that interpolate verbatim
+ * `object`, `item`, `chan`, `msg`, `player`, `npc`, `mention`, `link`,
+ * emphasis tags, `list`) emit Mml fragments that interpolate verbatim
  * inside `Mml.compose`; raw string arguments to vocabulary helpers are
  * always re-escaped — devs who want nested markup must compose with Mml
  * fragments explicitly.
@@ -20,8 +21,34 @@
  * Liquid-syntax templates with conditionals and filter chains, same
  * Mml-aware escape rules as `Mml.compose`.
  *
- * `stripTags(body)` parses out tags using a small state machine and
- * decodes the five built-in entities (&lt;, &gt;, &amp;, &quot;, &apos;).
+ * Two text-projection paths sit on the same parse machinery:
+ *  - `stripTags(body)` — drop every tag, decode entities. Used by
+ *    the v1 plain-mode collapse (acceptance criterion #23 wants the
+ *    failsafe linear string with no markdown emphasis).
+ *  - `flatten(body)` — emit each tag's per-tag failsafe form
+ *    (markdown emphasis preserved, lists/quotes serialized
+ *    linear-labeled). Round-trips with `markdownToMml` for logs and
+ *    archive exports.
+ *
+ * `markdownToMml(text, resolver)` parses the Discord-dialect subset
+ * (bold / italic / code / pre / blockquote / list / strike + the
+ * `[label](URI)` in-world refs + `@<name>` mentions) into MML. Called
+ * by `VocalMixin.say` and `TellController` on user-supplied speech;
+ * the resolver is built from the call site's scope (perceivable
+ * Stuff for say/tell/emote, channel participants for chat).
+ *
+ * Implementation internals live in sibling files under `api/mml/`
+ * (same shape as `api/mql/`): tree parse, flatten serializer,
+ * markdown parser, mention resolvers, entity helpers, URI schemes.
+ * Tests stay against this public surface — internals are not part
+ * of the contract.
+ *
+ * **HARD RULE: nothing outside `api/mml.ts` may import from
+ * `api/mml/`.** The subdirectory is private to this module. If a
+ * consumer needs something currently only exposed there (a type,
+ * a helper), re-export it from this file — don't reach into the
+ * subdir. Same enforcement convention as `api/mql/`. Code review
+ * gates this; grep `from '.*api/mml/'` to audit.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -30,6 +57,19 @@ import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
+import { escapeText, decodeEntity } from './mml/entities';
+import { flatten as flattenInternal } from './mml/flatten';
+import { isKnownLinkScheme } from './mml/schemes';
+import {
+  ChannelMentionResolver,
+  PerceiverMentionResolver,
+  type MentionResolver,
+} from './mml/mention';
+import { parseMarkdown } from './mml/markdown';
+
+// Re-export the MentionResolver interface so consumers can keep
+// `import { MentionResolver } from '../mml'`.
+export type { MentionResolver };
 
 /**
  * Markup augmenter — a pure text-in → text-out transformation that
@@ -101,26 +141,6 @@ export function augmentMarkup(
     result = aug(result, host, viewer);
   }
   return result;
-}
-
-/**
- * Escape characters that would otherwise be parsed as MML
- * tag/attribute structure. Safe for both text content and attribute
- * values when the latter use `"..."` delimiters (our convention).
- *
- * Apostrophe (`'`) deliberately NOT escaped: it has no special
- * meaning in either XML text content or `"..."`-quoted attribute
- * values, and emitting `&apos;` instead of `'` shows up as literal
- * `&apos;` in the current raw-rendering client. When MML parsing
- * lands on the client this can become moot, but until then the
- * smaller escape set keeps prose readable.
- */
-function escapeText(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 /**
@@ -213,22 +233,19 @@ export class Mml {
     );
   }
 
-  /** Wrap text in `<speech>"..."</speech>`, escaping the inner text. */
-  static speech(text: string): Mml {
-    return Mml.fromMarkup(`<speech>"${escapeText(text)}"</speech>`);
-  }
-
   /**
-   * Wrap a system label in `<sys>` — non-actionable, styled by the
-   * client renderer as a muted italic label with a decorative
-   * prefix marker. Use for the chrome labels around system lines
-   * (e.g. `<sys>Exits:</sys> <exit>south</exit>`,
-   * `<sys>You also see:</sys>`), where the visual distinction
-   * carries the "this is the engine talking, not the world" signal
-   * without burning vertical whitespace.
+   * Wrap text in `<speech>"..."</speech>`, escaping the inner text.
+   *
+   * Accepts a raw string (the common case — a literal said by the
+   * speaker) OR an already-parsed Mml fragment (the markdown-pipeline
+   * case where `markdownToMml` has already turned `**bold**`/etc. into
+   * MML). The body inside the quotes is emitted verbatim for Mml
+   * arguments and escaped for raw strings — same trust split as
+   * `Mml.compose`.
    */
-  static sys(text: string): Mml {
-    return Mml.fromMarkup(`<sys>${escapeText(text)}</sys>`);
+  static speech(text: string | Mml): Mml {
+    const inner = text instanceof Mml ? text.toString() : escapeText(text);
+    return Mml.fromMarkup(`<speech>"${inner}"</speech>`);
   }
 
   /**
@@ -289,6 +306,166 @@ export class Mml {
   }
 
   /**
+   * Render a channel chip inside `<chan id="...">[Label]</chan>`. The
+   * `id` is the channel key (e.g. `"gossip"`); the label is what
+   * flattens out of the body when the rich render is unavailable
+   * (e.g. `"[Gossip]"`). The client paints the chip with the channel's
+   * stylesheet treatment; flatten emits the label verbatim.
+   */
+  static chan(id: string, label: string): Mml {
+    return Mml.fromMarkup(
+      `<chan id="${escapeText(id)}">${escapeText(label)}</chan>`
+    );
+  }
+
+  /**
+   * Wrap a message body region in `<msg>...</msg>`. The user-content
+   * region of a chat / say / tell / emote line; carries whatever
+   * inline markdown emphasis `markdownToMml` produced. Accepts either
+   * an already-MML body (the common case after `markdownToMml`) or
+   * a raw string (escaped). The chat template (client-side) reflows
+   * this region into its content column with hanging indent.
+   */
+  static msg(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<msg>${inner}</msg>`);
+  }
+
+  /**
+   * Render a player's display name inside `<player stuff-id="...">`
+   * tags. Same identity-tagging contract as `name`; the renderer
+   * applies friend/foe coloring on player-tagged references through
+   * the stylesheet's `attribute → bucket` selector.
+   */
+  static player(stuff: Stuff): Mml {
+    const display = DescribeApi.getDisplayName(stuff);
+    return Mml.fromMarkup(
+      `<player stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</player>`
+    );
+  }
+
+  /**
+   * Render an NPC's display name inside `<npc stuff-id="...">` tags.
+   * Sibling to `player` — same shape, but the stylesheet can give
+   * them distinct treatments (NPCs aren't friend/foe candidates the
+   * same way other players are).
+   */
+  static npc(stuff: Stuff): Mml {
+    const display = DescribeApi.getDisplayName(stuff);
+    return Mml.fromMarkup(
+      `<npc stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</npc>`
+    );
+  }
+
+  /**
+   * Render an explicit `@mention` of a player. The `stuff-id` enables
+   * the renderer's viewer-relative highlight: if the mentioned
+   * stuff-id matches the viewer's own stuff-id, the mention lights
+   * up with the `mention.match` treatment; otherwise it gets the
+   * quieter `mention.other` treatment. Flatten emits the label
+   * verbatim (which is `"@Name"`).
+   *
+   * Produced by `markdownToMml`'s `@<word>` handling when the
+   * resolver finds a target; mentions whose word doesn't resolve stay
+   * as plain `@word` text (the parser emits no tag).
+   */
+  static mention(stuffId: string, label: string): Mml {
+    return Mml.fromMarkup(
+      `<mention stuff-id="${escapeText(stuffId)}">${escapeText(label)}</mention>`
+    );
+  }
+
+  /**
+   * Render an in-world ref clickable link. `href` MUST start with one
+   * of the project-defined custom URI schemes (`mudcmd:` for command
+   * links, `mudref:` for stuff-id references, `mudq:` for MQL query
+   * references); anything else throws. This is the server-internal
+   * compose surface — user-input link parsing (which is where unknown
+   * schemes get stripped) happens in `markdownToMml`, not here.
+   *
+   * v1 wiring: command and stuff-ref schemes are clickable; `mudq:` is
+   * namespace-reserved but inert (the client paints it but runs no
+   * handler) — click semantics are deferred to a follow-up build.
+   */
+  static link(href: string, label: string | Mml): Mml {
+    if (!isKnownLinkScheme(href)) {
+      throw new Error(
+        `Mml.link: unsupported scheme in href "${href}". ` +
+          `Allowed: mudcmd:, mudref:, mudq:.`,
+      );
+    }
+    const inner = label instanceof Mml ? label.toString() : escapeText(label);
+    return Mml.fromMarkup(`<link href="${escapeText(href)}">${inner}</link>`);
+  }
+
+  /** Wrap body in `<strong>...</strong>` (markdown `**bold**`). */
+  static strong(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<strong>${inner}</strong>`);
+  }
+
+  /** Wrap body in `<em>...</em>` (markdown `*italic*` / `_italic_`). */
+  static em(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<em>${inner}</em>`);
+  }
+
+  /** Wrap body in `<code>...</code>` (markdown `` `code` ``). */
+  static code(body: string): Mml {
+    return Mml.fromMarkup(`<code>${escapeText(body)}</code>`);
+  }
+
+  /** Wrap body in `<pre>...</pre>` (markdown ` ```block``` `). */
+  static pre(body: string): Mml {
+    return Mml.fromMarkup(`<pre>${escapeText(body)}</pre>`);
+  }
+
+  /** Wrap body in `<blockquote>...</blockquote>` (markdown `> quote`). */
+  static blockquote(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<blockquote>${inner}</blockquote>`);
+  }
+
+  /** Wrap body in `<strike>...</strike>` (markdown `~~strike~~`). */
+  static strike(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<strike>${inner}</strike>`);
+  }
+
+  /**
+   * Wrap a single list item in `<li>...</li>` (the markdown list-line
+   * payload). Distinct from `<item>`, which is the identity tag for
+   * game items — overloading `<item>` would break the renderer's
+   * per-tag treatment lookup.
+   */
+  static li(body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<li>${inner}</li>`);
+  }
+
+  /**
+   * Wrap a sequence of `<li>` items in an unordered `<list>` envelope
+   * (markdown `- item` lines). The renderer's v1 default template
+   * emits them inline through the flatten serializer — the rich
+   * layout (proper bullets / indent) is Wave 2's layout-library
+   * concern.
+   */
+  static unorderedList(items: Mml[]): Mml {
+    const inner = items.map((i) => i.toString()).join('');
+    return Mml.fromMarkup(`<list>${inner}</list>`);
+  }
+
+  /**
+   * Wrap a sequence of `<li>` items in an ordered `<list ordered="true">`
+   * envelope (markdown `1. item` / `2. item` lines). Flatten emits
+   * `1. `, `2. `, … prefixes.
+   */
+  static orderedList(items: Mml[]): Mml {
+    const inner = items.map((i) => i.toString()).join('');
+    return Mml.fromMarkup(`<list ordered="true">${inner}</list>`);
+  }
+
+  /**
    * Join a list of Mml fragments. Default behavior is "auto" — inline
    * (English-style commas + "and") for short lists, multi-line
    * (one indented item per line, no trailing punctuation) once the
@@ -345,10 +522,80 @@ export class Mml {
   }
 
   /**
+   * Flatten an MML body to a markdown-emphasis-preserving string.
+   * Each tag is replaced by its defined failsafe form; the result
+   * round-trips through `markdownToMml`. Used for log capture,
+   * archive exports, and the markdown round-trip tests — distinct
+   * from `stripTags`, which drops emphasis entirely for the
+   * plain-mode collapse. Implementation in `api/mml/flatten.ts`.
+   */
+  static flatten(body: string): string {
+    return flattenInternal(body);
+  }
+
+  /**
+   * Parse a Discord-dialect markdown subset into MML. Handles:
+   *
+   *   - `**bold**`              → `<strong>`
+   *   - `*italic*` / `_italic_` → `<em>`
+   *   - `` `code` ``            → `<code>`
+   *   - ` ```block``` `         → `<pre>` (verbatim; markdown inside is not parsed)
+   *   - `> quote`               → `<blockquote>` (one per consecutive line run)
+   *   - `- item` / `1. item`    → `<list>` of `<li>` (one level only)
+   *   - `~~strike~~`            → `<strike>`
+   *   - `[label](URI)`          → `<link href="URI">label</link>` for
+   *                                whitelisted URI schemes; bare label
+   *                                survives if scheme is unknown
+   *   - `@<word>`               → `<mention stuff-id="X">@Word</mention>`
+   *                                if the resolver finds a target; bare
+   *                                `@word` text survives on miss
+   *
+   * Out of scope for v1: nested lists, GFM tables, headers, inline
+   * HTML, multi-paragraph code-block context. Code spans and code
+   * blocks are opaque — markdown emphasis inside them is preserved
+   * verbatim.
+   *
+   * Pure on the resolver — if no resolver is passed, `@<word>` always
+   * leaves the literal text. Implementation in `api/mml/markdown.ts`.
+   */
+  static markdownToMml(text: string, resolver?: MentionResolver): Mml {
+    return Mml.fromMarkup(parseMarkdown(text, resolver));
+  }
+
+  /**
+   * Factory: a `MentionResolver` over the speaker's perceivable
+   * neighbors. Matches against display names (case-insensitive)
+   * and returns the first hit. Ties fall through silently (per the
+   * "silent on miss" contract). Used by `VocalMixin.say`,
+   * `AetherMixin.tell`, and the (future) emote handler when they call
+   * `Mml.markdownToMml(text, resolver)` on user-supplied prose.
+   */
+  static perceiverMentionResolver(speaker: Stuff): MentionResolver {
+    return new PerceiverMentionResolver(speaker);
+  }
+
+  /**
+   * Factory: a `MentionResolver` over an explicit participant set
+   * (e.g., a chat channel's tuned-in roster). The (future) chat
+   * substrate constructs the iterable at emit time; this build's
+   * tests use the factory directly with a fixture set. Same
+   * silent-on-miss contract as `perceiverMentionResolver`.
+   */
+  static channelMentionResolver(
+    participants: Iterable<Stuff>,
+  ): MentionResolver {
+    return new ChannelMentionResolver(participants);
+  }
+
+  /**
    * Strip MML tags from a markup body, decoding the five built-in
    * entities. Used by clients/log capture that need a plain-text
    * projection. State-machine parser; tolerates unclosed tags by
    * dropping their characters.
+   *
+   * Distinct from `flatten` — strip removes emphasis markdown
+   * entirely (used by v1 plain-mode collapse), flatten preserves it
+   * (used by markdown round-trip / log capture).
    */
   static stripTags(body: string): string {
     let out = '';
@@ -423,23 +670,6 @@ export class Mml {
    */
   toJSON(): string {
     return this.toString();
-  }
-}
-
-function decodeEntity(name: string): string | null {
-  switch (name) {
-    case 'lt':
-      return '<';
-    case 'gt':
-      return '>';
-    case 'amp':
-      return '&';
-    case 'quot':
-      return '"';
-    case 'apos':
-      return "'";
-    default:
-      return null;
   }
 }
 

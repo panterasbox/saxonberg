@@ -1,15 +1,14 @@
 /**
  * WebSocket Client Service
  *
- * Inbound messages from the server are now `MessageFrame<T>` objects
- * with a `topic` (e.g. `world.speech.say`, `system.connection.established`)
+ * Inbound messages from the server are `MessageFrame<T>` objects with
+ * a `topic` (e.g. `world.speech.say`, `system.connection.established`)
  * and a rendered MML `body`. We dispatch by topic prefix to the
  * built-in handlers and to caller-registered listeners. MML parsing
- * is deferred — the body renders as plain text with literal tags
- * visible (per §14 of the messaging requirements).
+ * happens at render time inside `MmlRenderer` / `parseMml`; the
+ * websocket layer just hands the body string through.
  *
- * Outbound messages still use the simple `{ type, payload }` envelope
- * — the inbound protocol redesign is out of scope (§1.2).
+ * Outbound messages use the simple `{ type, payload }` envelope.
  *
  * MQL subscription substrate integration:
  *
@@ -300,6 +299,25 @@ class WebSocketClient {
   private handleMessage(data: string): void {
     try {
       const frame: unknown = JSON.parse(data);
+
+      // Server→client raw push for `ClientStateMixin` keys. Bypasses
+      // the Sensor pipeline (no frameId, no topic) — substrate
+      // plumbing, not narrative. Dispatched directly to the store.
+      if (
+        typeof frame === 'object' &&
+        frame !== null &&
+        (frame as { type?: unknown }).type === 'client-state-update' &&
+        (frame as { frameId?: unknown }).frameId === undefined
+      ) {
+        const update = frame as {
+          type: 'client-state-update';
+          payload: { key: string; value: unknown };
+        };
+        useStore
+          .getState()
+          .setLocalClientState(update.payload.key, update.payload.value);
+        return;
+      }
 
       // Envelope frames carry `type` + numeric `frameId`; MessageFrames
       // carry `topic`. Two channels, two shapes — discriminate

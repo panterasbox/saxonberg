@@ -29,7 +29,7 @@ export class WeighController extends CommandController<WeighModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
@@ -38,7 +38,7 @@ export class WeighController extends CommandController<WeighModel> {
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
       const detail = `${DescribeApi.getDisplayName(target.stuff)} can't be weighed`;
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -53,7 +53,7 @@ export class WeighController extends CommandController<WeighModel> {
     const body = Mml.compose`${Mml.name(target.stuff)} weighs ${mass.formatMml()}.\n`;
 
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
 

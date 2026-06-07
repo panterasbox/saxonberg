@@ -27,6 +27,29 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Interactive } from '../../obj/Interactive';
+import type { CommandContributions } from '../../api/command';
+
+/**
+ * Strategy-injected `client-state-update` push function. The
+ * Application module calls `setClientStateUpdatePush` once during
+ * boot to wire its own `sendClientStateUpdateToInteractive` here —
+ * we don't import `Application` directly because doing so creates
+ * a load-time cycle (Application → Avatar/Login → HasInteractive),
+ * and HasInteractive is consumed at module-evaluation time by Login.
+ * The setter pattern defers the resolution until after both modules
+ * have finished loading.
+ */
+type PushImpl = (interactive: Interactive, key: string, value: unknown) => void;
+let _pushImpl: PushImpl | null = null;
+
+/**
+ * Wire the client-state-update push. Called once by `Application`
+ * during boot; tests can call it with a spy to assert push behavior
+ * without standing up a real backend.
+ */
+export function setClientStateUpdatePush(impl: PushImpl | null): void {
+  _pushImpl = impl;
+}
 
 /**
  * One client-state schema entry. Declared in
@@ -109,6 +132,16 @@ export interface HasInteractive {
    * `ConnectionEstablishedPayload.clientState`.
    */
   snapshotClientState(): Record<string, unknown>;
+
+  /**
+   * Push an authoritative client-state value to every connected
+   * Interactive on this host (server→client `client-state-update`).
+   * Used after server-initiated mutations (the `style` verb) so the
+   * client re-renders without waiting on a reconnect snapshot.
+   * Caller is responsible for having already called `setClientState`
+   * and persisted; this is the push half only.
+   */
+  pushClientStateUpdate(key: string, value: unknown): void;
 }
 
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -141,7 +174,39 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           'Cockpit tabbed-terminal active tab name. Falls back ' +
           'to "All" if the named tab is unknown.',
       },
+      {
+        key: 'style.overlay',
+        defaultValue: {},
+        description:
+          "Reader-owned visual customization overlay (themes, " +
+          "channel colors, plain-mode, mention prefs). One JSON " +
+          "blob keyed by dotted selector; edited via the `style` " +
+          "verb. The cockpit's stylesheet engine reads this and " +
+          "layers it on top of the theme.",
+        // Permissive validator: only require an object at the top
+        // level. Selector / treatment shape is enforced lazily by
+        // the resolver (unknown selectors no-op) so mid-edit
+        // partial states from a future visual editor don't trip.
+        validator: (v) =>
+          typeof v === 'object' && v !== null && !Array.isArray(v)
+            ? true
+            : 'must be a JSON object',
+      },
     ];
+
+    /**
+     * Verbs that travel with every HasInteractive-bearing host
+     * (Avatar today, future cockpit-bearing classes tomorrow). The
+     * `style` verb belongs here because the overlay it edits IS the
+     * client state on this mixin; co-locating verb + schema keeps
+     * the wiring local.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['style.yaml'],
+      environment: [],
+      inventory: [],
+      peers: [],
+    };
 
     /**
      * Connected Interactives. Host-internal storage; external consumers
@@ -228,6 +293,24 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       }
       if (!this._clientState) this._clientState = {};
       this._clientState[key] = value;
+    }
+
+    /**
+     * Push an authoritative client-state value out to every
+     * connected Interactive on this host. Parallel to the existing
+     * `client-state-write` inbound flow but flips the direction —
+     * server mutates, client follows. Used by the `style` verb
+     * (and future server-initiated client-state changes) so the
+     * client re-renders without waiting for a reconnect snapshot.
+     *
+     * Caller MUST have already called `setClientState(key, value)`
+     * + `save()`. This is the push half; persistence is upstream.
+     */
+    public pushClientStateUpdate(key: string, value: unknown): void {
+      if (!_pushImpl) return; // Pre-boot or test without wired push
+      for (const interactive of this.interactives) {
+        _pushImpl(interactive, key, value);
+      }
     }
 
     public snapshotClientState(): Record<string, unknown> {

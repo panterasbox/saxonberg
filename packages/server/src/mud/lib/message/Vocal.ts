@@ -29,7 +29,10 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'VocalMixin';
 
     static commandContributions: CommandContributions = {
-      self: ['say.yaml', 'tell.yaml'],
+      // `tell` moved to `AetherMixin` — non-acoustic comms ride
+      // the Aether network, not the vocal apparatus. Vocal stays
+      // the acoustic transport (say + future whisper/shout/sing).
+      self: ['say.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -37,12 +40,20 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     say(text: string): void {
       const speaker = this as unknown as Stuff;
-      const speechFragment = Mml.speech(text);
+      // Run user-supplied speech through the markdown→MML pipeline
+      // so `**bold**`, `*italic*`, `` `code` ``, `@name`, and
+      // `[label](mudcmd:…)` all work in player chat. Mention scope
+      // = the speaker's perceivable neighbors (same room).
+      const parsed = Mml.markdownToMml(
+        text,
+        Mml.perceiverMentionResolver(speaker),
+      );
+      const speechFragment = Mml.speech(parsed);
       const selfBody = Mml.compose`You say, ${speechFragment}`;
       const peersBody = Mml.compose`${Mml.name(speaker)} says, ${speechFragment}`;
 
       const scene = MessageApi.scene(speaker)
-        .topic(MessageApi.Topics.world.speech.say)
+        .topic('world.speech.say')
         .toSelf(selfBody)
         .payload({
           speaker: MessageApi.refOf(speaker),

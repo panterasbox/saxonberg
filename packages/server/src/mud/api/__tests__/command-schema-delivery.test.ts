@@ -83,7 +83,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     giver.onConnectionAttached({} as Interactive);
     const frames = commandsFrames(giver);
     const resets = frames.filter(
-      (f) => f.topic === MessageApi.Topics.system.commands.reset
+      (f) => f.topic === 'system.commands.reset'
     );
     expect(resets).toHaveLength(1);
     const payload = resets[0]!.payload as Array<{ verbs: string[] }>;
@@ -99,7 +99,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, giver);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === MessageApi.Topics.system.commands.added
+      (f) => f.topic === 'system.commands.added'
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -114,7 +114,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === MessageApi.Topics.system.commands.removed
+      (f) => f.topic === 'system.commands.removed'
     );
     expect(removes.length).toBeGreaterThan(0);
     const payload = removes[0]!.payload as { verb?: string };
@@ -132,7 +132,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, loc);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === MessageApi.Topics.system.commands.added
+      (f) => f.topic === 'system.commands.added'
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -149,7 +149,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === MessageApi.Topics.system.commands.removed
+      (f) => f.topic === 'system.commands.removed'
     );
     expect(removes.length).toBeGreaterThan(0);
   });
@@ -166,7 +166,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.onConnectionAttached({} as Interactive);
     const reset = commandsFrames(giver).find(
-      (f) => f.topic === MessageApi.Topics.system.commands.reset
+      (f) => f.topic === 'system.commands.reset'
     )!;
     const payload = reset.payload as Array<{
       verbs: string[];

@@ -95,7 +95,7 @@ export class DropController extends CommandController<DropModel> {
   ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
@@ -111,7 +111,7 @@ export class DropController extends CommandController<DropModel> {
     }
     if (droppedNames.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`Nothing dropped.`)
         .send();
       context.note({
@@ -137,13 +137,13 @@ export class DropController extends CommandController<DropModel> {
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
-            .topic(MessageApi.Topics.world.perception.inventory)
+            .topic('world.perception.inventory')
             .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
             .send();
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
-            .topic(MessageApi.Topics.world.perception.inventory)
+            .topic('world.perception.inventory')
             .toSelf(
               Mml.compose`You only have ${String(note.available)} of those.`,
             )
@@ -158,7 +158,7 @@ export class DropController extends CommandController<DropModel> {
 
     if (!result.ok || result.payloads.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`Nothing dropped.`)
         .send();
       context.note({
@@ -183,7 +183,7 @@ export class DropController extends CommandController<DropModel> {
     }
     ContainmentApi.move(operand, context.location);
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic('world.perception.inventory')
       .toSelf(Mml.compose`You drop ${Mml.item(operand)}.`)
       .toPeers(
         Mml.compose`${Mml.name(context.commandGiver)} drops ${Mml.item(operand)}.`

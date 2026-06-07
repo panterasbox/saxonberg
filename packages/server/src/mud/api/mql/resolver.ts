@@ -291,7 +291,10 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff([ctx.commandGiver]);
     }
     if (w === 'online') {
-      checkTier('admin', 'online', ctx.commandGiver);
+      // `online` is ungated — listing who's playing is normal MUD
+      // social fabric (`who`-style commands), not a privacy concern.
+      // Future hide-from-listings infra (per-player opt-out) can
+      // layer on top without changing the seed itself.
       return matchesFromStuff(allOnlineCommandGivers());
     }
     if (w === 'world') {
@@ -556,11 +559,8 @@ function candidatesForScopePart(
   if (lower === 'peers') return candidatesForPeers(ctx.commandGiver);
   if (lower === 'reachable') return candidatesForReachable(ctx.commandGiver);
   if (lower === 'online') {
-    try {
-      checkTier('admin', 'online', ctx.commandGiver);
-    } catch {
-      return [];
-    }
+    // Ungated for the same reason as the seed promotion above —
+    // who's online is normal social fabric, not privacy-tier info.
     return candidatesForFlat(allOnlineCommandGivers());
   }
   if (lower === 'world') {

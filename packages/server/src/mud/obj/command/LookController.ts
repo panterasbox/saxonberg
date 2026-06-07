@@ -57,7 +57,7 @@ export class LookController extends CommandController<LookModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
@@ -101,7 +101,7 @@ export class LookController extends CommandController<LookModel> {
   ): void {
     if (!MixinApi.isDetailed(host)) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You can't make out any detail there.`)
         .send();
       context.note({
@@ -115,7 +115,7 @@ export class LookController extends CommandController<LookModel> {
     const description = host.getDetail(dotted);
     if (description === null) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You can't make out any '${dotted}' there.`)
         .send();
       context.note({
@@ -129,7 +129,7 @@ export class LookController extends CommandController<LookModel> {
     const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;
 
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
 
@@ -173,7 +173,7 @@ export class LookController extends CommandController<LookModel> {
       visibleContents.length === 0
     ) {
       MessageApi.scene(actor)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`Your surroundings are indistinct.`)
         .send();
       return;
@@ -217,11 +217,11 @@ export class LookController extends CommandController<LookModel> {
     if (visibleContents.length > 0) {
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
-      body = Mml.compose`${body}\n${Mml.sys('You also see:')} ${list}.`;
+      body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
     MessageApi.scene(actor)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
 
@@ -241,7 +241,7 @@ export class LookController extends CommandController<LookModel> {
     if (!MixinApi.isVisible(target)) {
       const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You can't see ${name}.`)
         .send();
       context.note({
@@ -258,7 +258,7 @@ export class LookController extends CommandController<LookModel> {
     const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     MessageApi.scene(actor)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
 
@@ -282,15 +282,16 @@ export class LookController extends CommandController<LookModel> {
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);
-    // `<sys>` wraps the structural label only — non-actionable,
-    // styled by the client renderer as muted italic with a
-    // decorative prefix marker. The inner `<exit>` tags stay
-    // flat-adjacent so the client's regex parser still picks them
-    // up (no nesting). "Obvious" stays in the label: a Location
-    // may have hidden exits that only surface under specific
-    // conditions (a hint in the prose, a perception check, a
-    // revealed door); the qualifier signals "what you can see
-    // right now" without claiming "this is all there is."
-    return Mml.compose`${Mml.sys('Obvious exits:')} ${joined}.`;
+    // `── ` is a typographic ornament (em-dash glyph) the controller
+    // emits as literal prose to separate the labeled section from
+    // the description above. No tag, no element selector — the
+    // glyph carries its own visual weight by being on the page,
+    // like a chapter-ornament in a book.
+    // "Obvious" stays in the label: a Location may have hidden exits
+    // that only surface under specific conditions (a hint in the
+    // prose, a perception check, a revealed door); the qualifier
+    // signals "what you can see right now" without claiming "this is
+    // all there is."
+    return Mml.compose`── Obvious exits: ${joined}.`;
   }
 }

@@ -860,6 +860,10 @@ export interface ConnectionEstablishedPayload {
   sessionId: string;
   /** Freshly-minted Interactive's stuffId. */
   interactiveStuffId: string;
+  /** The connected Avatar's stuffId — used by the renderer for
+   *  self-mention / own-name highlight comparisons (mention
+   *  `stuff-id="X"` matches this → self-match treatment). */
+  avatarStuffId: string;
   player: {
     _id: string;
     honorific?: string;
@@ -895,6 +899,69 @@ export interface ClientStateWriteMessage {
   type: 'client-state-write';
   payload: { key: string; value: unknown };
 }
+
+/**
+ * Outbound server→client push of a `ClientStateMixin` value. Server
+ * code that mutates a client-state key out-of-band (e.g. the `style`
+ * verb writes the overlay, an admin rewrites a player's tab layout)
+ * pushes the new value so the client can re-render immediately
+ * without waiting for the reconnect snapshot.
+ *
+ * Distinct from `ClientStateWriteMessage` (which is the *client's*
+ * optimistic mutation, server-validated). The two messages share no
+ * shape beyond `{key, value}` because the contracts differ — write is
+ * a request, update is an authoritative push.
+ */
+export interface ClientStateUpdateMessage {
+  type: 'client-state-update';
+  payload: { key: string; value: unknown };
+}
+
+// ============================================================================
+// Style overlay (message-rendering Wave 1)
+// ============================================================================
+
+/**
+ * A single visual treatment applied to a selector match. Bounded
+ * vocabulary: the stylesheet engine recognizes the keys below and
+ * no-ops on anything else. Color values are palette tokens or
+ * raw CSS color strings — the renderer trusts them; the channel
+ * gating is at the editor (`style` verb validators), not at render
+ * time.
+ */
+export interface StyleTreatment {
+  fg?: string;
+  bg?: string;
+  weight?: 'normal' | 'bold';
+  italic?: boolean;
+  prefix?: string;
+  chip?: boolean;
+  indent?: 'hang' | 'block' | 'none';
+}
+
+/**
+ * Reader-owned visual customization overlay, persisted as one blob on
+ * `HasInteractiveMixin.clientState` under key `style.overlay`. Keys
+ * are dotted selectors; values are either scalars (for the toggle
+ * keys) or `StyleTreatment` objects.
+ *
+ * Selector vocabulary the engine recognizes:
+ *   - `theme`             — `'default' | 'high-contrast'`
+ *   - `plain`             — boolean (global plain-mode)
+ *   - `plain.channel.<k>` — boolean (per-channel plain-mode)
+ *   - `mention.self`      — boolean (own-name highlight; default ON)
+ *   - `channel.<k>.color` — `string`
+ *   - `element.<tag>`     — `StyleTreatment`
+ *   - `topic.<prefix>`    — `StyleTreatment`
+ *   - `attribute.<attr>.<value>` — `StyleTreatment`
+ *   - `mention.match`     — `StyleTreatment` (self-mention)
+ *   - `mention.other`     — `StyleTreatment` (mention of someone else)
+ *
+ * Unknown selectors are silently ignored by the engine; the
+ * `client-state-write` validator accepts any object shape so a
+ * future visual editor can write partial states mid-edit.
+ */
+export type StyleOverlay = Record<string, string | boolean | StyleTreatment>;
 
 // ============================================================================
 // API Response Types

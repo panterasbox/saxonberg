@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.style
+  family: system
+  label: Style
+  description: Output from the `style` verb — overlay listings, theme swap confirmations, per-channel color changes.

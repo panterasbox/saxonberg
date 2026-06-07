@@ -39,7 +39,7 @@ export class MeasureAltitudeController extends CommandController<MeasureAltitude
         detail: 'no altimeter in hand',
       });
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You need an altimeter in hand.`)
         .send();
       return;
@@ -54,7 +54,7 @@ export class MeasureAltitudeController extends CommandController<MeasureAltitude
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -72,7 +72,7 @@ export class MeasureAltitudeController extends CommandController<MeasureAltitude
         detail: `unknown atmosphere '${atmosphere}'`,
       });
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(
           Mml.compose`Your altimeter has no calibration for '${atmosphere}'.`,
         )
@@ -86,7 +86,7 @@ export class MeasureAltitudeController extends CommandController<MeasureAltitude
         detail: 'vacuum — no medium to define altitude',
       });
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic('world.perception.look')
         .toSelf(
           Mml.compose`In vacuum, altitude has no barometric meaning.`,
         )
@@ -107,7 +107,7 @@ export class MeasureAltitudeController extends CommandController<MeasureAltitude
 
     const body = Mml.compose`Altitude: ${altitude.formatMml()}\n`;
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
   }

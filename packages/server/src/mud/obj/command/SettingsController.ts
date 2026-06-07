@@ -192,7 +192,7 @@ export class SettingsController extends CommandController<SettingsModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic(MessageApi.Topics.world.perception.look)
+      .topic('world.perception.look')
       .toSelf(body)
       .send();
   }

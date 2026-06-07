@@ -124,6 +124,7 @@ export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
   return out;
 }
 
+
 /**
  * Build the candidate pool for `reachable` — the union of the giver,
  * `here`, `peers`, and `inventory` pools. Lets a single seed name

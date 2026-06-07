@@ -25,7 +25,7 @@ export class SayController extends CommandController<SayModel> {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
       MessageApi.scene(speaker)
-        .topic(MessageApi.Topics.world.speech.say)
+        .topic('world.speech.say')
         .toSelf(Mml.compose`You cannot speak.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });

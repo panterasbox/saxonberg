@@ -4,7 +4,7 @@
  * Public surface:
  *   - `MessageApi.scene(actor)` → fluent Scene builder for multi-audience
  *     composition with auto-stamped commandId/causingCommandId.
- *   - `MessageApi.Topics`, `MessageApi.Tags` → string constants for
+ *   - `MessageApi.Tags` → audience tag string constants for
  *     topic and tag values.
  *   - `MessageApi.refOf(stuff)` → wire-safe StuffRef.
  *   - `MessageApi.getSensors`, `messageContents`, `messageContainer`
@@ -286,87 +286,18 @@ function capitalize(s: string): string {
 }
 
 /**
- * Topic constants. See requirements §5.2 — `system.log.root` is for
- * prefix matching/filtering; framework-known categories are explicit.
+ * Topic strings are emitted as **dotted-path string literals** at
+ * call sites (e.g., `.topic('world.speech.say')`). The authored
+ * source of truth for the topic vocabulary lives on per-topic YAML
+ * leaf Ideas under `seeds/lib/messaging/Topic/` (loaded into the
+ * `TopicCatalogue` singleton at boot — see
+ * `docs/subsystems/topics.md`). Keeping a parallel `TOPICS` constant
+ * tree in code led to the same data living in two places; the tree
+ * has been retired in favor of literals.
+ *
+ * Audience tags stay constants because they're not authored content —
+ * they're framework-defined frame metadata.
  */
-const TOPICS = {
-  world: {
-    speech: {
-      say: 'world.speech.say',
-      tell: 'world.speech.tell',
-    },
-    perception: {
-      look: 'world.perception.look',
-      inventory: 'world.perception.inventory',
-      // scry / locate are in-fiction perception verbs — the avatar
-      // uses an instrument (or privilege) to perceive a remote
-      // target. Output from `world.perception.*` is what the
-      // perceiver sees.
-      scry: 'world.perception.scry',
-      locate: 'world.perception.locate',
-    },
-    narration: {
-      movement: 'world.narration.movement',
-      teleport: 'world.narration.teleport',
-      // TODO(topics): provisional bucket for state-change narration
-      // (open/close, lock/unlock, …); revisit when the broader topic
-      // taxonomy review lands.
-      action: 'world.narration.action',
-    },
-    // TODO(topics): provisional namespace for identity events (name,
-    // pronouns, honorific changes); revisit alongside `narration.action`.
-    identity: {
-      change: 'world.identity.change',
-    },
-  },
-  system: {
-    connection: {
-      established: 'system.connection.established',
-      lost: 'system.connection.lost',
-    },
-    auth: {
-      success: 'system.auth.success',
-      failed: 'system.auth.failed',
-    },
-    log: {
-      root: 'system.log',
-      command: 'system.log.command',
-    },
-    commands: {
-      added: 'system.commands.added',
-      removed: 'system.commands.removed',
-      reset: 'system.commands.reset',
-    },
-    // Dispatcher-emitted prose for framework-level command failures
-    // (parse / MQL / validator / controller-throw). The envelope
-    // already carries the structured note; the scene under this
-    // topic carries the human-readable prose so a player typing a
-    // bad command sees WHY without needing client-side envelope
-    // rendering. Controller-side failures (controller-rejected,
-    // mixin-missing, locomotion-gate-failed, etc.) are NOT
-    // auto-prosed here — controllers fire their own scenes with
-    // domain-specific wording.
-    command: {
-      error: 'system.command.error',
-    },
-    // Shell-tier output: the engine talking back to the avatar
-    // about what just happened, distinct from in-fiction
-    // narration. Grouped by category rather than per-verb so the
-    // constants table doesn't fan out — consumers that want to
-    // filter on a specific verb match against `meta` instead.
-    //
-    // Pre-existing controllers (alias / player / settings / var)
-    // currently fire on `world.perception.look` for the same
-    // shell-output role; migrating them is out of scope for the
-    // shell-tooling MR. Future taxonomy review picks them up.
-    shell: {
-      fs: 'system.shell.fs',           // pwd/cd/ls/cat/grep/write/mkdir/rm/cp/mv
-      author: 'system.shell.author',   // clone/reload/destruct/eval/teleport (actor-side)
-      help: 'system.shell.help',       // help
-      movement: 'system.shell.movement', // goto (actor-side; peers see world.narration.movement)
-    },
-  },
-} as const;
 
 const TAGS = {
   Audience: {
@@ -381,7 +312,6 @@ const TAGS = {
  * Message distribution and Scene factory.
  */
 export class MessageApi {
-  static readonly Topics = TOPICS;
   static readonly Tags = TAGS;
 
   /**

@@ -164,6 +164,11 @@ interface StoreState {
    * filtering in multi-device deployments.
    */
   selfInteractiveId: string | null;
+  /**
+   * The stuffId of the connected Avatar — used by `MmlRenderer` for
+   * self-mention / own-name highlight comparisons.
+   */
+  selfAvatarId: string | null;
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
@@ -626,6 +631,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Connection state
   connection: initialConnectionState,
   selfInteractiveId: null,
+  selfAvatarId: null,
 
   setConnection: (connection) =>
     set((state) => ({
@@ -645,6 +651,7 @@ export const useStore = create<StoreState>((set, get) => ({
         error: null,
       },
       selfInteractiveId: payload.interactiveStuffId,
+      selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
       clientState: { ...(payload.clientState ?? {}) },
       auth: {
@@ -676,6 +683,7 @@ export const useStore = create<StoreState>((set, get) => ({
         error: error || null,
       },
       selfInteractiveId: null,
+      selfAvatarId: null,
     }),
 
   // Inspection-pane slice (initial cleared state)

@@ -86,7 +86,7 @@ export class GetController extends CommandController<GetModel> {
   ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
@@ -105,7 +105,7 @@ export class GetController extends CommandController<GetModel> {
     }
     if (pickedNames.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`Nothing picked up.`)
         .send();
       context.note({
@@ -131,13 +131,13 @@ export class GetController extends CommandController<GetModel> {
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
-            .topic(MessageApi.Topics.world.perception.inventory)
+            .topic('world.perception.inventory')
             .toSelf(Mml.compose`You don't see any '${raw}' here.`)
             .send();
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
-            .topic(MessageApi.Topics.world.perception.inventory)
+            .topic('world.perception.inventory')
             .toSelf(Mml.compose`Only ${String(note.available)} of those here.`)
             .send();
           return;
@@ -152,7 +152,7 @@ export class GetController extends CommandController<GetModel> {
 
     if (!result.ok || result.payloads.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic('world.perception.inventory')
         .toSelf(Mml.compose`Nothing picked up.`)
         .send();
       context.note({
@@ -183,7 +183,7 @@ export class GetController extends CommandController<GetModel> {
     }
     ContainmentApi.move(operand, giver);
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic('world.perception.inventory')
       .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(operand)}.`)
       .send();

@@ -1,169 +1,121 @@
 /**
- * MmlRenderer - Inline MML → clickable React nodes
+ * MmlRenderer — MML tree → clickable React nodes.
  *
- * Parses an MML string into a flat list of text + tag nodes and
- * renders each tag as a clickable span that emits a real command
- * via `onCommandClick`. The principle is command-bus primacy: every
- * click resolves to a typed command equivalent.
+ * Replaces the prior flat-regex parser with the nested-aware tree
+ * parser in `lib/mml/parseMml.ts`. Every clickable element wraps
+ * its recursively-rendered children in a `ClickableSpan`; the
+ * stylesheet engine paints non-clickable tags with treatment from
+ * the resolved theme + user overlay (see `lib/style/`).
  *
- * v0 handles `<exit dir="X">label</exit>` only. Other tags pass
- * through as their text content (forward-compatible with the rest
- * of the taxonomy as the server starts emitting them).
- *
- * **Known limitation — flat tags only.** Parsing is regex-based;
- * the content match is `[^<]*` so any `<` inside a tag body kills
- * the match. The server's `Mml.compose` (`api/mml.ts`) natively
- * supports nesting via tagged-template interpolation, so authored
- * prose that does `Mml.compose\`${Mml.item(x)} contains
- * ${Mml.quantity(y)}\`` will produce nested tags this regex can't
- * handle. When the first nested case appears in real server prose,
- * swap this for a state-machine parser modelled on the server's
- * `stripTags` — ~150 lines, returns a tree, recursive renderer
- * wraps children of clickable tags in a ClickableSpan.
+ * Click model preserved:
+ *  - `<exit dir="X">label</exit>` → `go X` on click.
+ *  - `<detail key="X">label</detail>` → `look X` on click.
+ *  - Identity tags (`<item>`, `<name>`, `<location>`, `<object>`,
+ *    `<player>`, `<npc>`) with `stuff-id` → registry lookup, then
+ *    `look <primaryKeyword>` (hit) or `look <label>` (miss).
+ *  - `<link href="…">label</link>` → scheme-routed by `commandFor`:
+ *    `mudcmd:` / `mudref:` go through the command bus; `mudq:` is
+ *    inert in v1 (rendered as `InertLinkSpan`, no click handler).
+ *  - `<mention stuff-id="X">label</mention>` → no click; renderer
+ *    consults the stylesheet's `mention.match` vs `mention.other`
+ *    treatment based on whether `X` matches the viewer's stuffId.
  */
 
 import React from 'react';
 import styled from 'styled-components';
 import { useStore } from '../store';
+import { parseMml, type MmlNode } from '../lib/mml/parseMml';
 
 interface MmlRendererProps {
   text: string;
   onCommandClick: (command: string) => void;
   /**
    * Hover handler. Called with the previewed command on mouse-enter,
-   * and `null` on mouse-leave. Lets the parent show the command in
-   * the input field before the user commits — the educational lever
-   * for the click → typed-command translation.
+   * `null` on mouse-leave. The parent shows the command in the input
+   * field before the user commits — the educational lever for the
+   * click → typed-command translation.
    */
   onCommandPreview: (command: string | null) => void;
-}
-
-type ParsedNode =
-  | { kind: 'text'; text: string }
-  | { kind: 'tag'; tag: string; attrs: Record<string, string>; label: string };
-
-const TAG_REGEX = /<(\w+)([^>]*)>([^<]*)<\/\1>/g;
-// Attribute names match XML/HTML conventions — letters, digits,
-// underscores, AND hyphens. MML uses kebab-case for compound names
-// (e.g. `stuff-id` from the server-side Mml.compose surface), so the
-// hyphen MUST be in the character class. `\w+` alone would split
-// `stuff-id="X"` into a bare `id` attribute, dropping the prefix.
-const ATTR_REGEX = /([\w-]+)\s*=\s*"([^"]*)"/g;
-
-/**
- * Decode the five MML-recognised entities. Mirrors the server-side
- * `Mml.escape` / `Mml.stripTags` contract in `api/mml.ts`: the server
- * emits `<`, `>`, `&`, `"`, `'` as `&lt;`, `&gt;`, `&amp;`, `&quot;`,
- * `&apos;` and expects the renderer to undo the substitution before
- * display. `&amp;` is replaced last so an escaped entity-like
- * sequence (`&amp;lt;` ⇒ literal `&lt;`) survives intact.
- */
-function decodeEntities(text: string): string {
-  return text
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&');
-}
-
-function parseAttrs(attrsStr: string): Record<string, string> {
-  const attrs: Record<string, string> = {};
-  let match: RegExpExecArray | null;
-  ATTR_REGEX.lastIndex = 0;
-  while ((match = ATTR_REGEX.exec(attrsStr)) !== null) {
-    attrs[match[1]!] = decodeEntities(match[2]!);
-  }
-  return attrs;
-}
-
-function parseMml(text: string): ParsedNode[] {
-  const nodes: ParsedNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  TAG_REGEX.lastIndex = 0;
-  while ((match = TAG_REGEX.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      nodes.push({
-        kind: 'text',
-        text: decodeEntities(text.slice(lastIndex, match.index)),
-      });
-    }
-    const tag = match[1]!;
-    const attrs = parseAttrs(match[2] ?? '');
-    const label = decodeEntities(match[3] ?? '');
-    nodes.push({ kind: 'tag', tag, attrs, label });
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    nodes.push({ kind: 'text', text: decodeEntities(text.slice(lastIndex)) });
-  }
-  return nodes;
+  /**
+   * Viewer's own stuffId. Used by `<mention>` to apply
+   * self-vs-other treatment. Optional because some render contexts
+   * (system messages composed at boot, fixtures) have no viewer
+   * attached yet — in that case mentions render with the other
+   * treatment.
+   */
+  viewerStuffId?: string;
 }
 
 /**
- * Map a tag node to the command its click should send.
- * Returns null if the tag is not actionable (rendered as plain text).
+ * Decide what command a clickable tag's click should dispatch. Returns
+ * `null` for tags with no actionable click (most rendering tags) and
+ * for the v1-inert `mudq:` link scheme.
  *
- * The exit click emits the canonical `go <dir>` form rather than
- * the bare-direction alias. Both work on the server (cardinal-
- * direction aliases ship as defaults on `MobileMixin`), but the
- * pedagogical principle of the click model is "show the structured
- * verb." A new user clicks `north` and sees `go north` populate the
- * input, which generalizes — to `go to <place>`, `swim north`,
- * `climb up`, etc. — far better than the abbreviation does.
- * Keyboard users still get `n` / `north` as typing shortcuts.
- *
- * Identity tags (`<item>`, `<name>`, `<location>`, `<object>`)
- * carrying a `stuff-id` attribute look the stuff up in the session-
- * wide registry (populated by every MQL subscription / query
- * consumer; see `services/websocket.ts` + `store/index.ts`). When the
- * registry hit carries a `primaryKeyword`, the click sends
- * `look <primaryKeyword>` — the canonical disambiguator the server
- * resolves cleanly. Registry miss (or missing `primaryKeyword`)
- * falls back to `look <label>`; the visible label is the player's
- * best-available reference and matches what they would have typed
- * by hand. Identity tags without a `stuff-id` (legacy emitters,
- * pre-Wave-1 server prose) also fall back to label-shape.
- *
- * Registry access is a snapshot read (`useStore.getState()`), NOT a
- * React subscription — the renderer just needs the snapshot at
- * render time. Re-renders happen naturally when the parent (terminal,
- * inspection pane body) re-renders for its own reasons.
- *
- * `<direction>` and `<speech>` remain non-actionable: directions
- * without an exit context are just text, and speech is part of the
- * narrative tag family, not the affordance family.
+ * Exported for testing — the renderer-internal switch lives in
+ * `renderTag` below; this is the click-route table.
  */
-function commandFor(node: Extract<ParsedNode, { kind: 'tag' }>): string | null {
+export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | null {
   if (node.tag === 'exit') {
-    return `go ${node.attrs.dir ?? node.label}`;
+    const dir = node.attrs.dir ?? labelOf(node);
+    return `go ${dir}`;
   }
   if (node.tag === 'detail') {
-    // `<detail key="X">word</detail>` — auto-linked detail keyword
-    // inline in long-description prose. Clicking drills into the
-    // detail on the currently-focused Stuff. The key is canonical
-    // (the YAML detail-map key); aliases still resolve by typing.
-    const key = node.attrs.key ?? node.label;
+    const key = node.attrs.key ?? labelOf(node);
     return `look ${key}`;
+  }
+  if (node.tag === 'link') {
+    return commandForLink(node.attrs.href ?? '');
   }
   if (
     node.tag === 'item' ||
     node.tag === 'name' ||
     node.tag === 'location' ||
-    node.tag === 'object'
+    node.tag === 'object' ||
+    node.tag === 'player' ||
+    node.tag === 'npc'
   ) {
     const stuffId = node.attrs['stuff-id'];
+    const label = labelOf(node);
     if (stuffId) {
       const meta = useStore.getState().stuffRegistry.get(stuffId);
       const keyword = meta?.primaryKeyword;
-      if (keyword) {
-        return `look ${keyword}`;
-      }
+      if (keyword) return `look ${keyword}`;
     }
-    return `look ${node.label}`;
+    return `look ${label}`;
   }
   return null;
+}
+
+/**
+ * Map a `<link href>` to the command its click should dispatch. The
+ * three custom URI schemes are scheme-routed; `mudq:` returns `null`
+ * (inert in v1 — the namespace is reserved but click semantics are
+ * not yet decided); any other scheme also returns null (the markdown
+ * parser should have stripped them, but tolerate gracefully here).
+ */
+function commandForLink(href: string): string | null {
+  if (href.startsWith('mudcmd:')) {
+    return decodeURIComponent(href.slice('mudcmd:'.length));
+  }
+  if (href.startsWith('mudref:')) {
+    const id = href.slice('mudref:'.length);
+    const meta = useStore.getState().stuffRegistry.get(id);
+    const keyword = meta?.primaryKeyword;
+    return keyword ? `look ${keyword}` : `look #${id}`;
+  }
+  // mudq: — inert; any other scheme — inert (renderer paints styled
+  // text with no click handler).
+  return null;
+}
+
+/**
+ * The visible-text content of a tag node (recursive). Used as the
+ * click-routing label fallback when no canonical attribute is
+ * available (e.g., `<item>sword</item>` with no `stuff-id`).
+ */
+function labelOf(node: MmlNode): string {
+  if (node.kind === 'text') return node.text;
+  return node.children.map(labelOf).join('');
 }
 
 const ClickableSpan = styled.span`
@@ -184,54 +136,228 @@ const ClickableSpan = styled.span`
 `;
 
 /**
- * Styled treatment for `<sys>` — chrome labels around system lines
- * ("Exits:", "You also see:"). Muted colour + italic + a decorative
- * `── ` prefix carried via `::before`, so the marker reads as
- * styling (not text) for assistive tech and the message body's
- * flatten still says "Exits:" cleanly.
+ * Inert link affordance for `mudq:` URIs (and any other namespaced
+ * link the v1 build can't route). Deliberately NOT styled like a
+ * clickable link: no underline, no cursor change, no hover state.
+ * A subtle accent color signals "this is a known link kind that
+ * doesn't do anything yet" without misleading the reader into
+ * clicking.
  */
-const SysSpan = styled.span`
-  color: #888;
+const InertLinkSpan = styled.span`
+  color: #88a;
   font-style: italic;
-
-  &::before {
-    content: '── ';
-    color: #555;
-    font-style: normal;
-  }
 `;
+
+/**
+ * Speech body — rendered as plain text in quotes (the body itself
+ * carries the `"..."` characters, and the framing "X says," precedes
+ * it). No frame-level italic or bold: per-word `*italic*` and
+ * `**bold**` are how emphasis lands inside speech, and frame-level
+ * decoration would erase them.
+ */
+const SpeechSpan = styled.span``;
+
+const StrongSpan = styled.span`
+  font-weight: bold;
+`;
+
+const EmSpan = styled.span`
+  font-style: italic;
+`;
+
+const CodeSpan = styled.span`
+  font-family: monospace;
+  background: #2a2a2a;
+  padding: 0 3px;
+  border-radius: 2px;
+`;
+
+const StrikeSpan = styled.span`
+  text-decoration: line-through;
+`;
+
+const PreBlock = styled.pre`
+  margin: 0;
+  font-family: monospace;
+  background: #2a2a2a;
+  padding: 4px 6px;
+  border-radius: 3px;
+  white-space: pre-wrap;
+`;
+
+const Blockquote = styled.blockquote`
+  margin: 0;
+  padding: 0 0 0 8px;
+  border-left: 2px solid #555;
+  color: #bbb;
+`;
+
+const ChanChip = styled.span`
+  color: #c8b76a;
+  font-weight: 500;
+`;
+
+const MentionSpan = styled.span<{ $self: boolean }>`
+  color: ${(p) => (p.$self ? '#ffd966' : '#a89bd8')};
+  font-weight: ${(p) => (p.$self ? 600 : 400)};
+  background: ${(p) => (p.$self ? 'rgba(255, 217, 102, 0.12)' : 'transparent')};
+  padding: ${(p) => (p.$self ? '0 2px' : '0')};
+  border-radius: ${(p) => (p.$self ? '2px' : '0')};
+`;
+
+/**
+ * Render a tree of MML nodes into React. Recursive — every tag's
+ * children render through the same function, so nested clickable
+ * tags (e.g., a `<link>` whose label contains a `<strong>`) compose
+ * cleanly. Each unique tag's treatment is a styled component above;
+ * the stylesheet engine in `lib/style/` layers user-overlay
+ * treatments on top via the resolved `Stylesheet` carried through
+ * the per-message-type templates.
+ */
+function renderNodes(
+  nodes: MmlNode[],
+  ctx: RenderCtx,
+): React.ReactNode[] {
+  return nodes.map((node, idx) => renderNode(node, idx, ctx));
+}
+
+interface RenderCtx {
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+  viewerStuffId?: string;
+}
+
+function renderNode(
+  node: MmlNode,
+  key: number,
+  ctx: RenderCtx,
+): React.ReactNode {
+  if (node.kind === 'text') {
+    return <React.Fragment key={key}>{node.text}</React.Fragment>;
+  }
+
+  const children = renderNodes(node.children, ctx);
+
+  // Inline / presentational tags — no click handlers, just styled.
+  switch (node.tag) {
+    case 'speech':
+      return <SpeechSpan key={key}>{children}</SpeechSpan>;
+    case 'strong':
+      return <StrongSpan key={key}>{children}</StrongSpan>;
+    case 'em':
+      return <EmSpan key={key}>{children}</EmSpan>;
+    case 'code':
+      return <CodeSpan key={key}>{children}</CodeSpan>;
+    case 'pre':
+      return <PreBlock key={key}>{children}</PreBlock>;
+    case 'blockquote':
+      return <Blockquote key={key}>{children}</Blockquote>;
+    case 'strike':
+      return <StrikeSpan key={key}>{children}</StrikeSpan>;
+    case 'chan':
+      return <ChanChip key={key}>{children}</ChanChip>;
+    case 'msg':
+      // No wrapper styling — `<msg>` is a region marker the
+      // per-message-type templates consume for layout (chat's
+      // hanging-indent column). For inline rendering it passes
+      // through.
+      return <React.Fragment key={key}>{children}</React.Fragment>;
+    case 'mention': {
+      const matchesViewer =
+        ctx.viewerStuffId !== undefined &&
+        node.attrs['stuff-id'] === ctx.viewerStuffId;
+      return (
+        <MentionSpan key={key} $self={matchesViewer}>
+          {children}
+        </MentionSpan>
+      );
+    }
+    case 'list': {
+      const ordered = node.attrs.ordered === 'true';
+      // v1 inline rendering: emit children with a separator. The
+      // Wave 2 layout-library lift turns this into proper <ol>/<ul>
+      // with indent + bullets.
+      return (
+        <React.Fragment key={key}>
+          {node.children
+            .filter((c): c is Extract<MmlNode, { kind: 'tag' }> =>
+              c.kind === 'tag' && c.tag === 'li',
+            )
+            .map((li, liIdx) => (
+              <React.Fragment key={liIdx}>
+                {ordered ? `${liIdx + 1}. ` : '- '}
+                {renderNodes(li.children, ctx)}
+                {liIdx < node.children.length - 1 ? '\n' : ''}
+              </React.Fragment>
+            ))}
+        </React.Fragment>
+      );
+    }
+    case 'li':
+      // Should only render here if a stray `<li>` appears outside a
+      // `<list>` — fall back to a dashed line.
+      return (
+        <React.Fragment key={key}>
+          {'- '}
+          {children}
+        </React.Fragment>
+      );
+    case 'link': {
+      const href = node.attrs.href ?? '';
+      const cmd = commandForLink(href);
+      if (cmd === null) {
+        // mudq: or unknown scheme — inert.
+        return <InertLinkSpan key={key}>{children}</InertLinkSpan>;
+      }
+      return (
+        <ClickableSpan
+          key={key}
+          onClick={() => ctx.onCommandClick(cmd)}
+          onMouseEnter={() => ctx.onCommandPreview(cmd)}
+          onMouseLeave={() => ctx.onCommandPreview(null)}
+          title={`Click to send: ${cmd}`}
+        >
+          {children}
+        </ClickableSpan>
+      );
+    }
+  }
+
+  // Clickable identity tags — delegate to commandFor for the routing.
+  const cmd = commandFor(node);
+  if (cmd === null) {
+    // Unknown tag → render children verbatim (forward-compatible with
+    // future server-side tag additions).
+    return <React.Fragment key={key}>{children}</React.Fragment>;
+  }
+
+  return (
+    <ClickableSpan
+      key={key}
+      onClick={() => ctx.onCommandClick(cmd)}
+      onMouseEnter={() => ctx.onCommandPreview(cmd)}
+      onMouseLeave={() => ctx.onCommandPreview(null)}
+      title={`Click to send: ${cmd}`}
+    >
+      {children}
+    </ClickableSpan>
+  );
+}
 
 export function MmlRenderer({
   text,
   onCommandClick,
   onCommandPreview,
+  viewerStuffId,
 }: MmlRendererProps) {
-  const nodes = React.useMemo(() => parseMml(text), [text]);
+  const tree = React.useMemo(() => parseMml(text), [text]);
 
   return (
     <>
-      {nodes.map((node, idx) => {
-        if (node.kind === 'text') {
-          return <React.Fragment key={idx}>{node.text}</React.Fragment>;
-        }
-        if (node.tag === 'sys') {
-          return <SysSpan key={idx}>{node.label}</SysSpan>;
-        }
-        const cmd = commandFor(node);
-        if (cmd === null) {
-          return <React.Fragment key={idx}>{node.label}</React.Fragment>;
-        }
-        return (
-          <ClickableSpan
-            key={idx}
-            onClick={() => onCommandClick(cmd)}
-            onMouseEnter={() => onCommandPreview(cmd)}
-            onMouseLeave={() => onCommandPreview(null)}
-            title={`Click to send: ${cmd}`}
-          >
-            {node.label}
-          </ClickableSpan>
-        );
+      {renderNodes(tree, {
+        onCommandClick,
+        onCommandPreview,
+        viewerStuffId,
       })}
     </>
   );
