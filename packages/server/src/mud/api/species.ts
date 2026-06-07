@@ -15,6 +15,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Organism } from '../lib/species/Organism';
 import type { Clade, CladeRank } from '../lib/species/Clade';
+import type { SenseChannel } from '../lib/description/Perceiver';
 import { MixinApi } from './mixin';
 import { Template } from '../lib/stuff/Template';
 import { StuffApi } from './stuff';
@@ -26,6 +27,34 @@ interface CladeShape {
 }
 
 export class SpeciesApi {
+  /**
+   * Resolve a viewer's perceptible sense channels by walking
+   * viewer → Organism → Species → BodyPlan → `getModalities()`.
+   * Returns `[]` when any step is null — a non-Organism viewer (a
+   * test fixture, a sessile fixture), an Organism without a
+   * Species, a Species without a BodyPlan, or a sessile BodyPlan
+   * with no sensoryPorts.
+   *
+   * Lives here (not on a Stuff method) so non-Organism callers —
+   * the `senseStripAugmenter` and the four `requires*`
+   * verb-level validators — can ask the question without first
+   * narrowing the host.
+   *
+   * The result feeds both the augmenter (`filter ∩ sensorium`
+   * gates `<sense channel="X">` regions) and the validators
+   * (`includes(channel)` decides whether a single-sense verb is
+   * even dispatchable for this giver).
+   */
+  public static deriveSensorium(viewer: Stuff): SenseChannel[] {
+    if (!MixinApi.isOrganism(viewer)) return [];
+    const organism = viewer as Stuff & Organism;
+    const species = organism.getSpecies();
+    if (!species) return [];
+    const bodyPlan = species.getBodyPlan();
+    if (!bodyPlan) return [];
+    return bodyPlan.getModalities();
+  }
+
   /**
    * Walk the species' template-path ancestors and return the first
    * Clade whose `rank === 'kingdom'`. Returns `null` if no kingdom

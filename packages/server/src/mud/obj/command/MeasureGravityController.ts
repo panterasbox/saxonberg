@@ -36,7 +36,7 @@ export class MeasureGravityController extends CommandController<MeasureGravityMo
         detail: 'no gravity meter in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.measurement.measure-gravity')
         .toSelf(Mml.compose`You need a gravity meter in hand.`)
         .send();
       return;
@@ -51,7 +51,7 @@ export class MeasureGravityController extends CommandController<MeasureGravityMo
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.look')
+        .topic('world.perception.measurement.measure-gravity')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -63,7 +63,7 @@ export class MeasureGravityController extends CommandController<MeasureGravityMo
     );
     const body = Mml.compose`Gravity: ${g.formatMml()} (${g.tag()})\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.look')
+      .topic('world.perception.measurement.measure-gravity')
       .toSelf(body)
       .send();
   }

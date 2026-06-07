@@ -29,6 +29,30 @@ import type { Clade } from './Clade';
 import type { Material } from '../material/Material';
 import type { VisionProfile } from '../perception/Light';
 
+/**
+ * Per-species smell capability descriptor.
+ *
+ * v1 ships a single coarse `acuity` scalar — there's no propagation
+ * walk yet (smell stays contact-only this build), so the field's
+ * shape is the deliverable; no math consumes the value. When the
+ * `PerceptionChannel` substrate lands (Wave 2+ per the senses
+ * slate) and smell gains a propagation walk, this extracts to a
+ * `lib/perception/Smell.ts` value-object module following the
+ * `Light.ts` precedent (Quantity-based fields, parallel to
+ * `VisionProfile`).
+ *
+ * Acuity values:
+ *   - `'keen'`   — dog-class. Picks up faint trails.
+ *   - `'normal'` — human-class baseline.
+ *   - `'dull'`   — covid-recovery / hyposmic.
+ *   - `'none'`   — anosmic / smell-less (a rock, a sea cucumber).
+ */
+export interface OlfactoryProfile {
+  acuity: 'keen' | 'normal' | 'dull' | 'none';
+}
+
+const OLFACTORY_ACUITY_VALUES = ['keen', 'normal', 'dull', 'none'] as const;
+
 export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
@@ -98,6 +122,14 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected visionProfile: VisionProfile | null = null;
 
+  /**
+   * Per-species smell capability — minimal `acuity` scalar.
+   * `null` for species with no notable smell (a rock, a vacuum-borne
+   * construct). v1 has no consumer of the value beyond shape; future
+   * smell-propagation work draws on it.
+   */
+  protected olfactoryProfile: OlfactoryProfile | null = null;
+
   static persistentFields = [
     'binomial',
     'commonNames',
@@ -112,6 +144,7 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
     'circadianBand',
     'diet',
     'visionProfile',
+    'olfactoryProfile',
   ];
 
   public getBinomial(): string { return this.binomial; }
@@ -192,6 +225,28 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   public getVisionProfile(): VisionProfile | null { return this.visionProfile; }
   public setVisionProfile(value: VisionProfile | null): void {
     this.visionProfile = value;
+  }
+
+  public getOlfactoryProfile(): OlfactoryProfile | null {
+    return this.olfactoryProfile;
+  }
+  public setOlfactoryProfile(value: OlfactoryProfile | null): void {
+    if (value !== null) {
+      if (typeof value !== 'object') {
+        throw new TypeError(
+          'Species.setOlfactoryProfile: must be null or a profile object',
+        );
+      }
+      if (
+        !(OLFACTORY_ACUITY_VALUES as readonly string[]).includes(value.acuity)
+      ) {
+        throw new TypeError(
+          `Species.setOlfactoryProfile: acuity must be one of ` +
+            `${OLFACTORY_ACUITY_VALUES.join(', ')}, got '${String(value.acuity)}'`,
+        );
+      }
+    }
+    this.olfactoryProfile = value;
   }
 
   /**

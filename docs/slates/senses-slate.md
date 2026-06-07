@@ -1,10 +1,35 @@
 # Senses slate (working doc)
 
-> **Status: substrate set, forks leaned.** The unified perception
-> substrate — all five senses as instances of one `PerceptionChannel`,
-> a convenience "take in everything" verb, and the per-viewer percept
-> model that feeds the inspection pane. **Absorbs and retires the old
-> sound slate** (sound becomes the *hearing* instance).
+> **Status: authoring surface SHIPPED 2026-06; PerceptionChannel
+> substrate still ahead.** The slate's *authoring-discipline* slice
+> graduated: per-sense `Detail` slot map, `<sense channel="X">` MML
+> wrapper, `senseStripAugmenter`, the four single-sense verbs
+> (smell/listen/feel/taste), gestalt `sense` verb, auto-on-entry
+> switch, hierarchical perception topic vocabulary
+> (`world.perception.{sense,ambient,measurement,search}.*`),
+> `BodyPlan.getModalities()`, `SpeciesApi.deriveSensorium()`,
+> `Species.olfactoryProfile`. See
+> [docs/subsystems/senses.md](../subsystems/senses.md) for the
+> shipped surface.
+>
+> Still in this slate: the unified `PerceptionChannel` substrate —
+> five physical senses as one substrate's instances + the per-viewer
+> percept model that feeds the inspection pane. **Absorbs and
+> retires the old sound slate** (sound becomes the *hearing*
+> instance). Open work below covers field/contact/network family
+> physics, propagation walks, attenuation/masking, per-species
+> sensitivity profiles beyond `olfactoryProfile`, ESP-as-channel
+> registration, smell trails, ambient producers, the sensorium-
+> relative stealth, alien channels (echolocation /
+> electroreception / pit-sensing).
+>
+> Refinement (2026-06, pre-ship): ESP organ universalized across
+> sentient beings (open Q #12 resolved → emotes stay telepathic-only;
+> the dog perceives the wave via its empathic organ, no double-event
+> needed); authoring discipline settled as **events single-channel
+> per frame, state multi-sense via MML `<sense>` tags + per-sense
+> Detail slot maps** so content authors never write the same thing
+> five times.
 
 Working slate for **the senses** — how a being perceives the world
 across vision, hearing, smell, touch, and taste. Light (vision) is
@@ -196,13 +221,36 @@ the verbal/emotive line the language decision already drew):
 (DM vs chat is *routing* within the verbal channel — conversations/
 membership — not a separate sense.)
 
-**Organ = the implant; gated like any sense, but ungated *by design*.**
-A channel exists iff you have the organ (the implant); the baseline
-implant is **universal among citizens + hardened**, so everyone has
-verbal + emotive ESP and **emotes/DM/chat always land** — the ungating is
-now *explained* (universal organ + network physics with no falloff/
-masking), not merely asserted. Per-channel physics keeps it ungated even
-though it's a sense.
+**Organ = ESP-sensitive organ; multiple diegetic shapes; ungated *by design*.**
+A channel exists iff you have the organ. The setting's diegetic
+inventory of ESP-sensitive organs is broad:
+
+- **Implants** — the citizen-default. The baseline implant is
+  **universal among citizens + hardened**, so every citizen has
+  verbal + emotive ESP.
+- **Natural empathy** — the biological / magical-creature path.
+  Animals, familiars, magical beings, sentient plants — whatever the
+  setting wants — declare an empathic organ on their `BodyPlan`. A
+  dog's empathic organ is the same channel slot as a citizen's
+  implant; the diegetic flavor differs, the substrate sees one
+  thing: organ present, channel enabled.
+
+The practical rule is **sentience implies telepathy in this universe**.
+If a being meaningfully perceives and reacts to the world (the dog, the
+cat, the parrot in the corner), its `BodyPlan` declares an ESP organ —
+implant, empathy, or magical bond, content's call. **Emotes / DM / chat
+land on everyone sentient in the room.** Only the genuinely-inanimate
+(rock, kettle, bookshelf) lack the organ, and they weren't perceiving
+anything anyway. Per-channel physics keeps it ungated even though it's
+a sense: universal organ across the sentient population + network
+physics with no falloff / masking.
+
+This resolves the dog-doesn't-perceive-the-wave tension cleanly. The
+dog has the empathic organ; the emote frame lands. No physical-motion
+second event needed, no per-event content burden for differential
+rendering across senses — one emote, one channel, every sentient being
+in the room perceives it. See **Authoring surface — events vs. state**
+below for why this split keeps content buildable.
 
 **Multiplicity buys expressiveness** (the reason it's a family, not one
 blob):
@@ -222,16 +270,6 @@ imagery / sensory-share ("send me what you're seeing"), presence-
 awareness (who's on the network), and a true **empathic *sense***
 (perceive feelings nobody transmitted — distinct from receiving a
 transmitted emote). Built when earned.
-
-**The one open consequence:** organ-gating means **non-implant beings
-(wild animals, primitive NPCs) lack ESP** → they don't perceive ESP-
-delivered emotes/chat. Fine for players (universal implant). It surfaces
-a real question: are emotes **purely telepathic** (a dog never perceives
-your "wave"), or do they *also* throw a physical-expression signal on a
-sensory channel (the dog sees you wave via vision)? *Lean: telepathic-
-only* (consistent with the locked "emotes are magic/ESP"), with
-physically-visible *actions* being a separate, genuinely-sensory thing —
-but it's your call (Open Q below).
 
 ---
 
@@ -378,6 +416,118 @@ The senses substrate is what makes that model real.
 
 ---
 
+## Authoring surface — events vs. state
+
+Where the multi-sense complexity lives matters for keeping content
+authorable. The substrate's discipline is **events are single-channel;
+state is multi-sense via tags**. Authors never write the same content
+five times.
+
+### Events stay single-channel per frame
+
+A `Scene.send` rides ONE channel. A say rides the hearing channel; an
+emote rides the emotive ESP channel; a footstep rides hearing; the
+snick of a match igniting rides hearing. The substrate handles
+per-recipient detection on that channel — whoever's sensorium has it,
+and is in range, perceives the frame.
+
+Multi-modal events (a door slamming makes a sound AND is visible) are
+authored as separate Scenes when both channels matter; in practice
+authors typically pick the *salient* channel (the slam is acoustic;
+the door changing from open to closed is a state change anyone
+looking after will notice).
+
+This is the rule that resolves the "Bobalu's wave needs five sensory
+versions" nightmare. It doesn't. One emote on the emotive ESP channel,
+delivered to every sentient organ in the room.
+
+### Events that leave persistent affordances
+
+A wax candle being lit is one event — a single hearing-channel frame
+for the snick-and-fizz of the match. The *lit candle* is then
+persistent state in the room with multi-sense affordances (vision:
+flickering light; touch: heat; smell: the smoke). Anyone in the room
+at the moment hears the lighting; anyone who walks in afterward looks
+/ sniffs / feels and queries the affordances per the state-authoring
+rules below.
+
+The substrate never tries to fan one event across all senses. The
+event is one channel; the affordance it leaves behind is queryable
+per-sense for as long as the affordance persists. This mirrors how
+reality works — events are single sensory hits, things afford across
+senses.
+
+### State goes multi-sense via MML `<sense>` tags
+
+Room and Stuff long-descriptions are authored once with per-sense
+inline regions:
+
+```mml
+The kitchen is warm.
+<sense channel="smell">Garlic and roasting bread.</sense>
+<sense channel="hearing">The steady sizzle of bacon, a kettle hissing.</sense>
+<sense channel="touch">Gritty flour dusts the countertop.</sense>
+A <detail key="bookcase">tall walnut bookcase</detail> stands against the north wall.
+```
+
+A `senseStripAugmenter` sits in the existing `markupAugmenters`
+pipeline. At compose-time it reads the viewer's sensorium and strips
+any `<sense channel="X">…</sense>` whose channel isn't in the viewer's
+set. **Untagged text is the default — perceivable to anyone — so
+existing prose doesn't need to be retrofitted.**
+
+Same room serves every sensorium. A blind viewer's prose drops the
+visual regions; a bat's prose surfaces echolocation regions where
+authored.
+
+### Detail entries are multi-sense, shared keyword
+
+A `Detail` keyword refers to the *thing*, not to a particular sensory
+rendering of it. So one keyword (`bookcase`) carries per-sense
+entries:
+
+```yaml
+details:
+  bookcase:
+    aliases: [shelves]
+    vision: "Hand-tooled leather spines, dust along the top edge..."
+    touch: "Smooth walnut, grain runs vertical; one spine is gilt and
+            cool to the fingertip..."
+    echolocation: "A solid broad mass against the wall, motionless;
+                   small variations in the returns suggest..."
+```
+
+Lookup becomes sense-aware: `host.getDetail('bookcase', 'vision')`.
+Single-sense verbs pass their sense; missing entries (no `smell` for
+a non-smelly object) fall through to a polite "you don't perceive
+anything notable about the bookcase that way" — same shape as today's
+lookup-miss path.
+
+Aliases stay at the keyword level (aliases describe the thing, not a
+sense's view of it).
+
+A `<detail key="X">` wrap with no explicit `sense=` attribute defaults
+to vision — backwards-compatible with all existing detail authoring.
+The explicit `sense="X"` form is for non-default-sense entries.
+
+### Augmenter behavior under the gestalt
+
+The `<detail>` augmenter wraps a keyword in click-targetable MML for
+any sense the viewer has at least one entry for. So a `bookcase`
+whose only entry is `touch` will be wrapped for a viewer with touch
+(so they can `feel bookcase` and drill into it), and won't be wrapped
+for a viewer without touch.
+
+The click defaults to `look <kw>` — the dominant verb stays dominant.
+If the click lands on something with no vision detail, the same
+polite lookup-miss path fires and the player learns to type
+`feel <kw>` / `smell <kw>` for sense-specific exploration. The
+sense-aware-click variant (gestalt composer threads per-fragment sense
+provenance into `<detail sense="…">`, so clicks dispatch to the
+sense-appropriate verb) is a v2 polish; v1 keeps click = look.
+
+---
+
 ## Worked scenarios
 
 - **Enter a dark cellar:** auto-gestalt fires; vision is dark, so the
@@ -417,10 +567,23 @@ The senses substrate is what makes that model real.
 - **messaging / `SensorMixin`** — the unification: `onMessage` reception
   *is* sensing; a frame's channel = the sense. The senses substrate
   becomes the perceptual layer of messaging.
-- **comms / implant / emotes** — ESP is a sense-channel family here; the
-  implant is its organ. Comms/emotes deliver *on* these channels; the
-  language gate is the verbal channel's property; ungated emote delivery
-  is preserved (universal hardened organ + network physics).
+- **DetailedMixin + MarkupAugmenter** — Detail entries gain a per-sense
+  slot map (`{vision, hearing, smell, touch, taste, echolocation, …}`,
+  shared keyword, aliases at the keyword level); `getDetail(key, sense)`
+  lookup. A new `senseStripAugmenter` in the existing `markupAugmenters`
+  pipeline reads the viewer's sensorium and strips
+  `<sense channel="X">…</sense>` regions inaccessible to the viewer;
+  the `<detail>` augmenter wraps any keyword the viewer has at least
+  one sense's entry for. Untagged prose and `<detail>` without `sense=`
+  default to vision / perceivable-by-anyone, so existing content
+  doesn't need retrofitting.
+- **comms / implant / emotes** — ESP is a sense-channel family here;
+  the organ is authored per-creature on the `BodyPlan` (citizens get
+  implants, animals get natural empathy, magical beings get magical
+  bonds — same channel slot, diegetic flavor varies). Comms / emotes
+  deliver *on* these channels; the language gate is the verbal
+  channel's property; ungated emote delivery is preserved (universal
+  organ across sentient beings + network physics).
 
 ---
 
@@ -465,11 +628,14 @@ The senses substrate is what makes that model real.
     channels (imagery/presence/empathic-sense) deferred. The split is
     earned by the verbal/emotive language distinction; multiplicity buys
     implant-tiers/innate-variation/independent-jamming.
-12. **Emotes: telepathic-only or also physical?** Organ-gating means
-    non-implant beings (animals) lack ESP → don't perceive emotes. *Lean:
-    emotes are telepathic-only (consistent with "emotes are magic"); a
-    physically-visible **action** a dog can see is a separate, sensory
-    thing.* Genuinely open — your call.
+12. **Emotes: telepathic-only or also physical?** *Resolved: telepathic-
+    only.* The animal-doesn't-perceive-the-wave tension dissolves by
+    universalizing the ESP organ across sentient creatures — animals,
+    familiars, magical beings each declare an empathic organ on their
+    `BodyPlan` (the diegetic flavor varies: implant, biological empathy,
+    magical bond; the substrate sees one channel-slot, present). See
+    **ESP — a channel family** above. One emote, one channel, every
+    sentient being in the room perceives it; no double-event needed.
 13. **Do ESP channels join the room gestalt?** *Lean no* — chat/DM aren't
     "in the room"; they render to the comms buffer, not the look-gestalt.
     Network channels paint a different surface than field/contact ones.
@@ -535,11 +701,15 @@ This slate boils down to:
 - The **five physical senses** as instances (vision/hearing
   shipped/absorbed; smell/touch/taste new) with their physics + ties
   (biome/Material/vitals/consumables).
-- **ESP as a channel family** (network physics): **verbal** (language-
-  gated) + **emotive** (language-free) baseline channels, the **implant
-  as their organ** (universal + hardened → emotes/DM/chat always land;
-  tiers/innate variation add channels), render-to-comms-buffer; further
-  ESP channels (imagery/presence/empathic-sense) deferred-with-seam.
+- **ESP as a channel family** (network physics): **verbal**
+  (language-gated) + **emotive** (language-free) baseline channels, the
+  **organ authored per-creature on the `BodyPlan`** — citizen implants,
+  animal natural empathy, magical bonds all instantiate the same
+  channel slot — **universally present across sentient beings** so
+  emotes / DM / chat always land on every sentient being in the room;
+  tiers / innate variation add channels; render-to-comms-buffer;
+  further ESP channels (imagery / presence / empathic-sense)
+  deferred-with-seam.
 - The **species/body-type interface**: the three-layer attach (organ on
   `BodyPlan` *gates* the channel × `Species` profile *tunes* it × vitals
   condition *modulates* it); the three new sensitivity profiles; **alien
@@ -547,6 +717,19 @@ This slate boils down to:
   (emit-and-perceive-the-return) sub-pattern; **differential rendering**
   (per-channel render idioms); the sensorium-relative stealth/NPC-detection
   payoff.
+- The **authoring discipline** that keeps it buildable: **events are
+  single-channel per `Scene.send`**; **state (room / Stuff descriptions
+  + Detail entries) is multi-sense** via `<sense channel="X">…</sense>`
+  MML wrappers and per-sense slot maps on Detail entries (shared
+  keyword, aliases at the keyword level). A `senseStripAugmenter`
+  filters the prose to the viewer's sensorium at compose-time;
+  default-untagged regions are perceivable to everyone, preserving
+  backwards compatibility with all existing detail authoring
+  (`<detail key="X">` without `sense=` defaults to vision). Click
+  defaults to `look <kw>`; sense-specific drill is typed. Events that
+  leave persistent affordances (lighting a candle → light + heat +
+  smell affordances in the room) are one-channel events plus
+  multi-sense state.
 - The **gestalt verb** (`sense`) + auto-on-entry + the salient-weave,
   viewer-relative, dark-playable output + the pedagogical-seam mode; the
   single-sense verbs.

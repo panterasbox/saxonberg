@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.locate
-  family: world.perception
-  label: Locate
-  description: In-fiction location lookup — finding where someone or something is in the world.

@@ -31,6 +31,7 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { SlotSpec } from '../slot/Slotted';
+import type { SenseChannel } from '../description/Perceiver';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -39,8 +40,14 @@ import type { SlotSpec } from '../slot/Slotted';
  * fields a `SensoryPortMarshaller` handles serialization.
  */
 export interface SensoryPort {
-  /** `'sight'`, `'hearing'`, `'smell'`, `'taste'`, `'touch'`. */
-  modality: string;
+  /**
+   * Sense-channel vocabulary — one of the five physical channels
+   * declared by `SenseChannel`. The eyes-modality entry uses
+   * `'vision'` (the channel/process word), not the legacy organ
+   * word `'sight'`; the substrate's vocabulary is unified across
+   * BodyPlan / Detail / `<sense>` MML / SenseChannel TS type.
+   */
+  modality: SenseChannel;
   /** How many of this port the body plan declares. */
   count: number;
   /** `'frontal'`, `'lateral'`, `'dorsal'`, `'forward'`, `'circumferential'`. */
@@ -147,5 +154,24 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getSensoryPorts(): readonly SensoryPort[] { return this.sensoryPorts; }
   public setSensoryPorts(value: SensoryPort[]): void {
     this.sensoryPorts = value;
+  }
+
+  /**
+   * Derived helper — the deduped list of sense channels this body
+   * plan instantiates. Built from `sensoryPorts` in insertion order
+   * (a Set preserves first-insertion order). A sessile body plan
+   * with no ports returns `[]`.
+   *
+   * Used by the `senseStripAugmenter` to determine a viewer's
+   * sensorium and by the `requires*` verb-level validators to
+   * decide whether the giver can drive a single-sense verb.
+   *
+   * ESP / alien channels are NOT included — `SenseChannel`'s union
+   * is physical-senses only. When ESP-as-channel registration
+   * lands (Wave 2+), a sibling helper on the ESP organ surface
+   * extends the sensorium with non-physical channels.
+   */
+  public getModalities(): SenseChannel[] {
+    return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
   }
 }

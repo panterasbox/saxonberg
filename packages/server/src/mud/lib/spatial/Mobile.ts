@@ -74,10 +74,17 @@ export interface Mobile {
    * verb's raw-move fallback (`-l` flag re-fires this when
    * Mobile.teleport's polished path was bypassed). No-op for
    * movers that aren't CommandGivers — scripted NPCs can move
-   * without auto-looking. Errors are swallowed: a flaky look
+   * without auto-sensing. Errors are swallowed: a flaky sense
    * shouldn't fail the movement.
+   *
+   * Switched from `look` to `sense` by the senses build so the
+   * mover perceives the new room across every channel they possess
+   * (vision, hearing, smell, touch, taste) without typing five
+   * commands. Vision-only rooms render identically because the
+   * augmenter's filter ∩ sensorium = vision for any room with no
+   * `<sense>` regions authored.
    */
-  autoLookOnArrival(): Promise<void>;
+  autoSenseOnArrival(): Promise<void>;
 
   /** Optional pre-traversal veto on the mover. */
   canTraverse?(via: Exit): VetoResult;
@@ -432,14 +439,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       }
       callTraverseHook(this, 'onTraversed', [exit]);
 
-      // Auto-look on arrival. Fired through the dispatcher so the
-      // resulting Command frame is tagged `forced: true` and `look`'s
+      // Auto-sense on arrival. Fired through the dispatcher so the
+      // resulting Command frame is tagged `forced: true` and `sense`'s
       // `updates_focus: extend` re-anchors the mover's focus chain
       // for the new room (the `clearFocus()` call inside
-      // `autoLookOnArrival` resets the chain to "here" first, so
+      // `autoSenseOnArrival` resets the chain to "here" first, so
       // extend simply produces "here" again — focus is well-defined
       // on arrival).
-      await this.autoLookOnArrival();
+      await this.autoSenseOnArrival();
     }
 
     /**
@@ -461,10 +468,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       ContainmentApi.move(this as unknown as Stuff & Containable, destination);
       if (!silent) {
         this.announceArrival(destination, undefined);
-        // Auto-look on arrival, same as `traverse`. Fire-and-forget
+        // Auto-sense on arrival, same as `traverse`. Fire-and-forget
         // because `teleport` keeps a synchronous signature; failures
-        // in the look (rare — same room rendering) are swallowed.
-        void this.autoLookOnArrival().catch(() => {});
+        // in the sense (rare — same room rendering) are swallowed.
+        void this.autoSenseOnArrival().catch(() => {});
       }
     }
 
@@ -488,32 +495,39 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     /**
-     * Fire `look` on this mover as a forced command. Used after a
+     * Fire `sense` on this mover as a forced command. Used after a
      * successful traversal to render the new room, and by the goto
      * verb's raw-move fallback (`-l` flag) when Mobile.teleport's
      * polished path was bypassed.
      *
+     * Switched from `look` to `sense` by the senses build so the
+     * mover perceives the new room across every channel they
+     * possess (vision, hearing, smell, touch, taste) without
+     * typing five commands. Existing vision-only rooms render
+     * identically because the augmenter's filter ∩ sensorium =
+     * vision for any room with no `<sense>` regions authored.
+     *
      * No-op for movers that aren't CommandGivers — scripted NPCs
-     * can move without auto-looking. Errors are swallowed: a flaky
-     * look shouldn't fail the movement; the mover already received
+     * can move without auto-sensing. Errors are swallowed: a flaky
+     * sense shouldn't fail the movement; the mover already received
      * an arrival narration from `announceArrival`, so the
-     * auto-look is additive context.
+     * auto-sense is additive context.
      *
      * Resets focus to "here" first when the mover is Focused —
-     * bare `look` is `default: "$focus"`, so without the reset the
-     * auto-look would carry stale drilled focus from the prior
+     * bare `sense` is `default: "$focus"`, so without the reset the
+     * auto-sense would carry stale drilled focus from the prior
      * room into the new one (typical case: focus was on `widget`,
-     * the player walks into a room with no widget, the auto-look
+     * the player walks into a room with no widget, the auto-sense
      * comes up empty).
      */
-    async autoLookOnArrival(): Promise<void> {
+    async autoSenseOnArrival(): Promise<void> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
       try {
         await CommandApi.forceCommand(
           self as Stuff & CommandGiver,
-          'look',
+          'sense',
         );
       } catch {
         // Swallow — see jsdoc.

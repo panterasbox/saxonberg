@@ -23,7 +23,7 @@ describe('BodyPlan', () => {
     ]);
     bp.setLocomotionModes(['walk']);
     bp.setSensoryPorts([
-      { modality: 'sight', count: 2, position: 'frontal' },
+      { modality: 'vision', count: 2, position: 'frontal' },
     ]);
     expect(bp.getName()).toBe('biped');
     expect(bp.getSlots()).toEqual([
@@ -34,7 +34,7 @@ describe('BodyPlan', () => {
     ]);
     expect(bp.getLocomotionModes()).toEqual(['walk']);
     expect(bp.getSensoryPorts()).toEqual([
-      { modality: 'sight', count: 2, position: 'frontal' },
+      { modality: 'vision', count: 2, position: 'frontal' },
     ]);
   });
 
@@ -75,6 +75,43 @@ describe('BodyPlan', () => {
     ];
     bp.setSlots(ordered);
     expect(bp.getSlots().map(s => s.name)).toEqual(['a', 'b', 'c']);
+  });
+
+  describe('getModalities (senses build)', () => {
+    it('returns deduped channel list from sensoryPorts', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setSensoryPorts([
+        { modality: 'vision', count: 2, position: 'frontal' },
+        { modality: 'hearing', count: 2, position: 'lateral' },
+        { modality: 'smell', count: 1, position: 'forward' },
+        { modality: 'taste', count: 1, position: 'forward' },
+        { modality: 'touch', count: 1, position: 'circumferential' },
+      ]);
+      // Insertion-order preservation via Set.
+      expect(bp.getModalities()).toEqual([
+        'vision',
+        'hearing',
+        'smell',
+        'taste',
+        'touch',
+      ]);
+    });
+
+    it('returns [] for a sessile body plan with no ports', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setName('sessile');
+      expect(bp.getModalities()).toEqual([]);
+    });
+
+    it('dedupes when one channel has multiple ports', () => {
+      const bp = makeStuff(() => new BodyPlan());
+      bp.setSensoryPorts([
+        { modality: 'vision', count: 2, position: 'frontal' },
+        { modality: 'vision', count: 2, position: 'dorsal' },
+        { modality: 'hearing', count: 2, position: 'lateral' },
+      ]);
+      expect(bp.getModalities()).toEqual(['vision', 'hearing']);
+    });
   });
 
   describe('defaultLocomotionMode', () => {

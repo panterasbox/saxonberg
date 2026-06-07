@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.sense.listen
+  family: world.perception.sense
+  label: Listen
+  description: Output of the listen verb — deliberate auditory attention.

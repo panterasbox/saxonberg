@@ -54,6 +54,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Exit } from '../lib/boundary/Exit';
+import type { SenseChannel } from '../lib/description/Perceiver';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
@@ -66,6 +67,7 @@ import {
   type MentionResolver,
 } from './mml/mention';
 import { parseMarkdown } from './mml/markdown';
+import { parseToTree, type MmlNode } from './mml/tree';
 
 // Re-export the MentionResolver interface so consumers can keep
 // `import { MentionResolver } from '../mml'`.
@@ -83,7 +85,7 @@ export type { MentionResolver };
  *       static markupAugmenters: MarkupAugmenter[] = [wrapFooKeywords];
  *     }
  *
- * The substrate's `augmentMarkup(text, host, viewer)` helper walks
+ * The substrate's `Mml.augment(text, host, viewer, opts?)` static walks
  * the host's prototype chain, collects every declared augmenter,
  * and applies them in parent-first → child-last order. Each
  * augmenter sees the text as it stands after prior augmenters have
@@ -112,24 +114,38 @@ export type MarkupAugmenter = (
   text: string,
   host: Stuff,
   viewer: Stuff,
+  opts?: AugmentOpts,
 ) => string;
 
 /**
- * Walk the host's prototype chain via `MixinApi.getAllMarkupAugmenters`,
- * fold every contributed augmenter through the text in
- * parent-first → child-last order, return the result.
+ * Per-call options threaded through `Mml.augment` to the
+ * individual augmenters. The senses build introduces `filter`: the
+ * sense-channel allowlist for the `senseStripAugmenter` (the verb
+ * decides; `look` passes `['vision']`, `sense` passes the viewer's
+ * full sensorium, the four single-sense verbs pass their own
+ * channel). Default-absent `filter` means "no per-call constraint —
+ * the augmenter uses the viewer's full sensorium" (the gestalt
+ * fallback).
  *
- * Empty input short-circuits to the empty string (no point running
- * augmenters over nothing).
- *
- * Used by `VisibleMixin.getMarkupLong(viewer)`; future host-level
- * markup methods (`getMarkupShort`, scene-prose composition, etc.)
- * use the same helper.
+ * Optional and forward-compatible: existing augmenters that don't
+ * read `opts` keep working unchanged. New per-call concerns add
+ * fields here without changing call sites that don't care.
  */
-export function augmentMarkup(
+export interface AugmentOpts {
+  filter?: readonly SenseChannel[];
+}
+
+/**
+ * Implementation of `Mml.augment` — lifted out of the class body so
+ * the class-static surface stays compact and so the walker can keep
+ * close to its companions (`MarkupAugmenter` type, `AugmentOpts`
+ * shape). See `Mml.augment` for the public-surface docstring.
+ */
+function augmentMarkupImpl(
   text: string,
   host: Stuff,
   viewer: Stuff,
+  opts?: AugmentOpts,
 ): string {
   if (!text) return text;
   const ctor = (host as { constructor: unknown }).constructor;
@@ -138,7 +154,7 @@ export function augmentMarkup(
   ) as MarkupAugmenter[];
   let result = text;
   for (const aug of augmenters) {
-    result = aug(result, host, viewer);
+    result = aug(result, host, viewer, opts);
   }
   return result;
 }
@@ -534,6 +550,31 @@ export class Mml {
   }
 
   /**
+   * Walk the host's prototype chain via
+   * `MixinApi.getAllMarkupAugmenters`, fold every contributed
+   * augmenter through the text in parent-first → child-last order,
+   * return the result. Empty input short-circuits to the empty
+   * string (no point running augmenters over nothing).
+   *
+   * Used by `VisibleMixin.getMarkupLong(viewer, opts?)`; future
+   * host-level markup methods (`getMarkupShort`, scene-prose
+   * composition, etc.) use the same surface.
+   *
+   * `opts` is threaded verbatim to every augmenter. Default-absent
+   * means each augmenter sees `undefined` and falls back to its own
+   * default behavior — the `senseStripAugmenter` falls back to the
+   * viewer's full sensorium.
+   */
+  static augment(
+    text: string,
+    host: Stuff,
+    viewer: Stuff,
+    opts?: AugmentOpts,
+  ): string {
+    return augmentMarkupImpl(text, host, viewer, opts);
+  }
+
+  /**
    * Parse a Discord-dialect markdown subset into MML. Handles:
    *
    *   - `**bold**`              → `<strong>`
@@ -585,6 +626,37 @@ export class Mml {
     participants: Iterable<Stuff>,
   ): MentionResolver {
     return new ChannelMentionResolver(participants);
+  }
+
+  /**
+   * Sense-aware tag strip — parse the body, walk the tree, drop
+   * `<sense>` regions and `<detail sense=>` wrappings whose channel
+   * isn't in the allowed set, re-serialize.
+   *
+   * The two strip rules differ:
+   *   - `<sense channel="X">…</sense>` — channel ∉ allowed → drop
+   *     the tag AND its children entirely (the region is the
+   *     authored sense-attributed content; it vanishes for viewers
+   *     who don't perceive on X).
+   *   - `<detail key="K" sense="X">…</detail>` — sense ∉ allowed
+   *     → drop the `<detail>` wrapping but KEEP the inner children
+   *     flattened inline (the keyword is still readable prose;
+   *     only the click-affordance disappears). `<detail>` with no
+   *     `sense=` attribute defaults to `'vision'`.
+   *   - All other tags — preserved with children re-serialized.
+   *
+   * Used by `senseStripAugmenter` in `lib/description/Visible.ts`;
+   * lives here so the hard "nothing outside `api/mml.ts` imports
+   * `api/mml/`" rule is satisfied — internal `parseToTree` access
+   * stays scoped to this module.
+   */
+  static stripBySense(
+    body: string,
+    allowed: ReadonlySet<SenseChannel>,
+  ): string {
+    if (!body) return body;
+    const tree = parseToTree(body);
+    return serializeTree(stripSenseNodes(tree, allowed));
   }
 
   /**
@@ -671,6 +743,88 @@ export class Mml {
   toJSON(): string {
     return this.toString();
   }
+}
+
+/**
+ * Walk a parsed MML tree applying the sense-strip rules. Used by
+ * `Mml.stripBySense`. Returns a new flat node array — `<detail>`
+ * wrappings that get stripped replace themselves with their
+ * (recursively-stripped) child nodes inline, so the caller's
+ * serializer sees the children at the original position.
+ */
+function stripSenseNodes(
+  nodes: readonly MmlNode[],
+  allowed: ReadonlySet<SenseChannel>,
+): MmlNode[] {
+  const out: MmlNode[] = [];
+  for (const node of nodes) {
+    if (node.kind === 'text') {
+      out.push(node);
+      continue;
+    }
+    if (node.tag === 'sense') {
+      const channel = node.attrs.channel as SenseChannel | undefined;
+      if (channel && allowed.has(channel)) {
+        // Keep the tag; recurse into children. The wrap stays so
+        // downstream tooling can still see the channel attribution.
+        out.push({
+          kind: 'tag',
+          tag: node.tag,
+          attrs: node.attrs,
+          children: stripSenseNodes(node.children, allowed),
+        });
+      }
+      // else: drop tag AND children entirely.
+      continue;
+    }
+    if (node.tag === 'detail') {
+      const senseAttr = (node.attrs.sense ?? 'vision') as SenseChannel;
+      if (allowed.has(senseAttr)) {
+        out.push({
+          kind: 'tag',
+          tag: node.tag,
+          attrs: node.attrs,
+          children: stripSenseNodes(node.children, allowed),
+        });
+      } else {
+        // Drop the wrap, keep children inline (stripped recursively).
+        out.push(...stripSenseNodes(node.children, allowed));
+      }
+      continue;
+    }
+    // Any other tag — preserve, recurse children.
+    out.push({
+      kind: 'tag',
+      tag: node.tag,
+      attrs: node.attrs,
+      children: stripSenseNodes(node.children, allowed),
+    });
+  }
+  return out;
+}
+
+/**
+ * Re-serialize a parsed MML tree to a markup string. Used by
+ * `Mml.stripBySense`. Text nodes round-trip raw — the parser
+ * decoded entities on the way in, so the way out re-escapes them
+ * to preserve the round-trip contract; `<`/`>`/`&`/`"`/`'`
+ * inside text content stays escaped on the wire.
+ */
+function serializeTree(nodes: readonly MmlNode[]): string {
+  let out = '';
+  for (const node of nodes) {
+    if (node.kind === 'text') {
+      out += escapeText(node.text);
+      continue;
+    }
+    const attrPart = Object.entries(node.attrs)
+      .map(([k, v]) => ` ${k}="${escapeText(v)}"`)
+      .join('');
+    out += `<${node.tag}${attrPart}>`;
+    out += serializeTree(node.children);
+    out += `</${node.tag}>`;
+  }
+  return out;
 }
 
 SecurityApi.decorateApiClass(Mml);

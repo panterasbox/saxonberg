@@ -26,7 +26,7 @@
  *     admins see template paths universally; non-admins never.
  *
  * Topic / channel:
- *   - Emits via `MessageApi.scene(...).topic(world.perception.look)`,
+ *   - Emits via `MessageApi.scene(...).topic(world.perception.vision)`,
  *     the same private-observation topic family as `look`. `find`
  *     is a perception verb (the actor surveys what matches a query);
  *     it just doesn't bind the result to focus.
@@ -73,7 +73,7 @@ export class FindController extends CommandController<FindModel> {
           ? Mml.compose`No matches for '${raw}'.\n`
           : Mml.compose`No matches.\n`;
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.look')
+        .topic('world.perception.search.find')
         .toSelf(body)
         .send();
       return;
@@ -108,7 +108,7 @@ export class FindController extends CommandController<FindModel> {
     }
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.look')
+      .topic('world.perception.search.find')
       .toSelf(body)
       .send();
   }

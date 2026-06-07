@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.measurement.measure-humidity
+  family: world.perception.measurement
+  label: Measure Humidity
+  description: Output of the measure humidity subcommand — relative humidity percent.

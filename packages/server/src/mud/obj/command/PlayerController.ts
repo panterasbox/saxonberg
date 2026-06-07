@@ -132,7 +132,7 @@ export class PlayerController extends CommandController<PlayerModel> {
   private send(
     context: CommandContext,
     body: Mml,
-    topic: string = 'world.perception.look'
+    topic: string = 'system.shell.player'
   ): void {
     MessageApi.scene(context.commandGiver)
       .topic(topic)

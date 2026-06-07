@@ -202,6 +202,37 @@ behavior. Read the relevant doc before editing in its area.
     `LightSourceMixin`, the Boundary substrate (`Adornable`,
     `Adornment`, `Boundary`, `BoundaryAnchor`, `Conduit`
     interfaces), `Window`, the Door retrofit, per-viewer perception
+  - [senses.md](./docs/subsystems/senses.md) — multi-sense authoring
+    substrate: `SenseChannel` vocabulary (`vision` / `hearing` /
+    `smell` / `touch` / `taste`) + `SENSE_CHANNELS` runtime array
+    declared on `PerceiverMixin` (actor-side perception surface);
+    per-sense `Detail` slot map with legacy + new authoring;
+    `<sense channel="X">` MML wrapper + `<detail sense="X">`
+    attribute; `senseStripAugmenter` on `VisibleMixin` driven by a
+    per-call `opts.filter` ∩ `SpeciesApi.deriveSensorium(viewer)`;
+    `Mml.stripBySense` walks the parsed tree to drop out-of-filter
+    regions; `Mml.augment` static (the bare `augmentMarkup` export
+    was retired); `BodyPlan.getModalities()` +
+    `SpeciesApi.deriveSensorium`; `Species.olfactoryProfile` scalar;
+    four contact-only single-sense verbs (`smell` / `listen` /
+    `feel` / `taste`) sharing `SingleSenseControllerBase`, each
+    gated by a `requires*` sensorium validator; gestalt `sense`
+    verb keeps room-presentation chrome (exits + occupants).
+    Perception topics organized hierarchically — `topic = kind of
+    event` (verb-leafed for verb-generated frames, channel-leafed
+    for ambient): `world.perception.sense.{look,sense,smell,listen,
+    feel,taste,scry}` for direct perception; `world.perception.
+    ambient.{vision,hearing,smell,touch,taste}` for unbidden
+    perceptual input; `world.perception.measurement.{measure-*,
+    analyze-*,weigh}` for instrument readouts;
+    `world.perception.search.{find,locate}` for search results;
+    `world.perception.inventory` for possession listings. Shell
+    queries land at `system.shell.{alias,var,settings,focus,player}`.
+    Channel attribution lives in body MML (orthogonal to topic).
+    `Mobile.autoLookOnArrival` renamed to `autoSenseOnArrival`
+    (forces `sense` not `look`) — the four on-entry call sites
+    (`Avatar.enter`, `Mobile.traverse` / `teleport`, `Goto -l`) all
+    route through it.
   - [quantities.md](./docs/subsystems/quantities.md) —
     `Quantity<U>` substrate (Unit catalog, tag-table registry,
     same-unit math, parse/fromTag/Mml emission),

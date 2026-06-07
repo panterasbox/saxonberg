@@ -111,7 +111,7 @@ export class VarController extends CommandController<VarModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.look')
+      .topic('system.shell.var')
       .toSelf(body)
       .send();
   }
