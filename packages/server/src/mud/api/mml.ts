@@ -36,6 +36,12 @@
  * by `VocalMixin.say` and `TellController` on user-supplied speech;
  * the resolver is built from the call site's scope (perceivable
  * Stuff for say/tell/emote, channel participants for chat).
+ *
+ * Implementation internals live in sibling files under `api/mml/`
+ * (same shape as `api/mql/`): tree parse, flatten serializer,
+ * markdown parser, mention resolvers, entity helpers, URI schemes.
+ * Tests stay against this public surface — internals are not part
+ * of the contract.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -44,6 +50,19 @@ import type { Exit } from '../lib/boundary/Exit';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
+import { escapeText, decodeEntity } from './mml/entities';
+import { flatten as flattenInternal } from './mml/flatten';
+import { isKnownLinkScheme } from './mml/schemes';
+import {
+  ChannelMentionResolver,
+  PerceiverMentionResolver,
+  type MentionResolver,
+} from './mml/mention';
+import { parseMarkdown } from './mml/markdown';
+
+// Re-export the MentionResolver interface so consumers can keep
+// `import { MentionResolver } from '../mml'`.
+export type { MentionResolver };
 
 /**
  * Markup augmenter — a pure text-in → text-out transformation that
@@ -115,26 +134,6 @@ export function augmentMarkup(
     result = aug(result, host, viewer);
   }
   return result;
-}
-
-/**
- * Escape characters that would otherwise be parsed as MML
- * tag/attribute structure. Safe for both text content and attribute
- * values when the latter use `"..."` delimiters (our convention).
- *
- * Apostrophe (`'`) deliberately NOT escaped: it has no special
- * meaning in either XML text content or `"..."`-quoted attribute
- * values, and emitting `&apos;` instead of `'` shows up as literal
- * `&apos;` in the current raw-rendering client. When MML parsing
- * lands on the client this can become moot, but until then the
- * smaller escape set keeps prose readable.
- */
-function escapeText(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 /**
@@ -300,51 +299,6 @@ export class Mml {
   }
 
   /**
-   * Join a list of Mml fragments. Default behavior is "auto" — inline
-   * (English-style commas + "and") for short lists, multi-line
-   * (one indented item per line, no trailing punctuation) once the
-   * count crosses `INLINE_LIST_THRESHOLD`. Empty list emits `nothing`.
-   * Single item emits as-is.
-   *
-   * Vertical-space discipline (see `inspection-pane.md`): a short
-   * list reads better inline (one wrap-line), but past ~5 items the
-   * comma-string degrades into a wall of text. The multi-line shape
-   * trades one extra newline per item for far better scannability
-   * and stops drowning the surrounding prose.
-   *
-   * Callers that want a specific shape can pass `{ style: 'inline' }`
-   * or `{ style: 'block' }` to override. The new MML `<list>`
-   * envelope is deferred until the renderer's planned state-machine
-   * upgrade can handle nested tags; until then, `style: 'block'`
-   * just inserts newlines between the existing flat per-item tags
-   * — the renderer already handles plain text + flat tags side by
-   * side.
-   */
-  static list(
-    items: Mml[],
-    options?: { style?: 'auto' | 'inline' | 'block' }
-  ): Mml {
-    if (items.length === 0) return Mml.fromMarkup('nothing');
-    if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
-
-    const style = options?.style ?? 'auto';
-    const useBlock =
-      style === 'block' ||
-      (style === 'auto' && items.length > INLINE_LIST_THRESHOLD);
-
-    if (useBlock) {
-      const lines = items.map((i) => `  ${i.toString()}`).join('\n');
-      return Mml.fromMarkup(`\n${lines}`);
-    }
-
-    if (items.length === 2) {
-      return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
-    }
-    const head = items.slice(0, -1).map((i) => i.toString()).join(', ');
-    return Mml.fromMarkup(`${head}, and ${items[items.length - 1]!.toString()}`);
-  }
-
-  /**
    * Render a channel chip inside `<chan id="...">[Label]</chan>`. The
    * `id` is the channel key (e.g. `"gossip"`); the label is what
    * flattens out of the body when the rich render is unavailable
@@ -505,6 +459,51 @@ export class Mml {
   }
 
   /**
+   * Join a list of Mml fragments. Default behavior is "auto" — inline
+   * (English-style commas + "and") for short lists, multi-line
+   * (one indented item per line, no trailing punctuation) once the
+   * count crosses `INLINE_LIST_THRESHOLD`. Empty list emits `nothing`.
+   * Single item emits as-is.
+   *
+   * Vertical-space discipline (see `inspection-pane.md`): a short
+   * list reads better inline (one wrap-line), but past ~5 items the
+   * comma-string degrades into a wall of text. The multi-line shape
+   * trades one extra newline per item for far better scannability
+   * and stops drowning the surrounding prose.
+   *
+   * Callers that want a specific shape can pass `{ style: 'inline' }`
+   * or `{ style: 'block' }` to override. The new MML `<list>`
+   * envelope is deferred until the renderer's planned state-machine
+   * upgrade can handle nested tags; until then, `style: 'block'`
+   * just inserts newlines between the existing flat per-item tags
+   * — the renderer already handles plain text + flat tags side by
+   * side.
+   */
+  static list(
+    items: Mml[],
+    options?: { style?: 'auto' | 'inline' | 'block' }
+  ): Mml {
+    if (items.length === 0) return Mml.fromMarkup('nothing');
+    if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
+
+    const style = options?.style ?? 'auto';
+    const useBlock =
+      style === 'block' ||
+      (style === 'auto' && items.length > INLINE_LIST_THRESHOLD);
+
+    if (useBlock) {
+      const lines = items.map((i) => `  ${i.toString()}`).join('\n');
+      return Mml.fromMarkup(`\n${lines}`);
+    }
+
+    if (items.length === 2) {
+      return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
+    }
+    const head = items.slice(0, -1).map((i) => i.toString()).join(', ');
+    return Mml.fromMarkup(`${head}, and ${items[items.length - 1]!.toString()}`);
+  }
+
+  /**
    * Escape the five reserved characters (`<`, `>`, `&`, `"`, `'`) so
    * a raw string can be embedded inside MML markup without being
    * parsed as tag/attribute structure. Same rule `Mml.compose`
@@ -516,22 +515,15 @@ export class Mml {
   }
 
   /**
-   * Flatten an MML body to a markdown-emphasis-preserving string. Each
-   * tag is replaced by its defined failsafe form (see the per-tag
-   * table in `flattenNode` below). Used for log capture, archive
-   * exports, and the markdown round-trip tests — distinct from
-   * `stripTags`, which drops emphasis entirely for the plain-mode
-   * collapse.
-   *
-   * Walks the body through `parseToTree` (recursive descent over
-   * the MML tag grammar) and emits per-node flatten output. Unknown
-   * tags fall back to their children's flatten (forward-compatible
-   * with future tag additions; the renderer is the authoritative
-   * styling layer).
+   * Flatten an MML body to a markdown-emphasis-preserving string.
+   * Each tag is replaced by its defined failsafe form; the result
+   * round-trips through `markdownToMml`. Used for log capture,
+   * archive exports, and the markdown round-trip tests — distinct
+   * from `stripTags`, which drops emphasis entirely for the
+   * plain-mode collapse. Implementation in `api/mml/flatten.ts`.
    */
   static flatten(body: string): string {
-    const tree = parseToTree(body);
-    return flattenNodes(tree);
+    return flattenInternal(body);
   }
 
   /**
@@ -557,7 +549,7 @@ export class Mml {
    * verbatim.
    *
    * Pure on the resolver — if no resolver is passed, `@<word>` always
-   * leaves the literal text.
+   * leaves the literal text. Implementation in `api/mml/markdown.ts`.
    */
   static markdownToMml(text: string, resolver?: MentionResolver): Mml {
     return Mml.fromMarkup(parseMarkdown(text, resolver));
@@ -593,6 +585,10 @@ export class Mml {
    * entities. Used by clients/log capture that need a plain-text
    * projection. State-machine parser; tolerates unclosed tags by
    * dropping their characters.
+   *
+   * Distinct from `flatten` — strip removes emphasis markdown
+   * entirely (used by v1 plain-mode collapse), flatten preserves it
+   * (used by markdown round-trip / log capture).
    */
   static stripTags(body: string): string {
     let out = '';
@@ -668,605 +664,6 @@ export class Mml {
   toJSON(): string {
     return this.toString();
   }
-}
-
-function decodeEntity(name: string): string | null {
-  switch (name) {
-    case 'lt':
-      return '<';
-    case 'gt':
-      return '>';
-    case 'amp':
-      return '&';
-    case 'quot':
-      return '"';
-    case 'apos':
-      return "'";
-    default:
-      return null;
-  }
-}
-
-/**
- * Decode all entities in a text run. Mirrors the renderer's contract
- * (`packages/client/src/lib/mml/parseMml.ts` decodes the same five).
- */
-function decodeEntities(text: string): string {
-  return text.replace(/&(lt|gt|amp|quot|apos);/g, (_, name) => {
-    const decoded = decodeEntity(name);
-    return decoded ?? `&${name};`;
-  });
-}
-
-// ============================================================================
-// MML parse tree — server-side for `flatten`
-// ============================================================================
-
-type MmlNode =
-  | { kind: 'text'; text: string }
-  | {
-      kind: 'tag';
-      tag: string;
-      attrs: Record<string, string>;
-      children: MmlNode[];
-    };
-
-/**
- * Parse an MML body into a tree. Recursive-descent over a small tag
- * grammar; tolerates unclosed tags by treating remaining input as
- * text once the close fails to match. Decodes entities in text and
- * attribute values per the established contract.
- *
- * Used internally by `Mml.flatten`. The client renderer has its own
- * (parallel) parser in `packages/client/src/lib/mml/parseMml.ts` so
- * the server tree and client tree don't share a dependency.
- */
-function parseToTree(body: string): MmlNode[] {
-  const state = { input: body, pos: 0 };
-  return parseNodes(state, null);
-}
-
-function parseNodes(
-  state: { input: string; pos: number },
-  closingTag: string | null,
-): MmlNode[] {
-  const out: MmlNode[] = [];
-  let textBuf = '';
-
-  while (state.pos < state.input.length) {
-    const ch = state.input[state.pos]!;
-
-    if (ch === '<') {
-      // Could be opening tag, closing tag, or stray `<` (unlikely from
-      // escaped input but tolerated).
-      const tagInfo = readTagOpen(state);
-      if (!tagInfo) {
-        textBuf += ch;
-        state.pos++;
-        continue;
-      }
-      if (tagInfo.kind === 'close') {
-        if (tagInfo.tag === closingTag) {
-          if (textBuf) out.push({ kind: 'text', text: decodeEntities(textBuf) });
-          return out;
-        }
-        // Unexpected close — drop the tag, continue
-        continue;
-      }
-      if (textBuf) {
-        out.push({ kind: 'text', text: decodeEntities(textBuf) });
-        textBuf = '';
-      }
-      if (tagInfo.selfClosing) {
-        out.push({ kind: 'tag', tag: tagInfo.tag, attrs: tagInfo.attrs, children: [] });
-      } else {
-        const children = parseNodes(state, tagInfo.tag);
-        out.push({ kind: 'tag', tag: tagInfo.tag, attrs: tagInfo.attrs, children });
-      }
-      continue;
-    }
-
-    textBuf += ch;
-    state.pos++;
-  }
-
-  if (textBuf) out.push({ kind: 'text', text: decodeEntities(textBuf) });
-  return out;
-}
-
-type TagOpen =
-  | { kind: 'open'; tag: string; attrs: Record<string, string>; selfClosing: boolean }
-  | { kind: 'close'; tag: string };
-
-/**
- * Read a single tag at `state.pos` (which MUST be on `<`). Advances
- * `state.pos` past the matching `>` on success. Returns `null` if the
- * content at `<` doesn't look like a tag (stray `<` in text).
- */
-function readTagOpen(state: {
-  input: string;
-  pos: number;
-}): TagOpen | null {
-  const { input } = state;
-  const close = input.indexOf('>', state.pos + 1);
-  if (close === -1) return null;
-  const raw = input.slice(state.pos + 1, close);
-  state.pos = close + 1;
-
-  let isClose = false;
-  let body = raw;
-  if (body.startsWith('/')) {
-    isClose = true;
-    body = body.slice(1);
-  }
-
-  const selfClosing = body.endsWith('/');
-  if (selfClosing) body = body.slice(0, -1);
-
-  body = body.trim();
-  const spaceIdx = body.indexOf(' ');
-  const tag =
-    spaceIdx === -1 ? body.toLowerCase() : body.slice(0, spaceIdx).toLowerCase();
-
-  if (isClose) return { kind: 'close', tag };
-
-  const attrs: Record<string, string> = {};
-  if (spaceIdx !== -1) {
-    const attrPart = body.slice(spaceIdx + 1);
-    const ATTR = /([\w-]+)\s*=\s*"([^"]*)"/g;
-    let m: RegExpExecArray | null;
-    while ((m = ATTR.exec(attrPart)) !== null) {
-      attrs[m[1]!] = decodeEntities(m[2]!);
-    }
-  }
-
-  return { kind: 'open', tag, attrs, selfClosing };
-}
-
-/**
- * Walk a parsed MML tree and emit the markdown-emphasis-preserving
- * flatten string. Per-tag table below; unknown tags fall back to
- * their children's flatten (forward-compatible).
- *
- * The flatten serializer is the inverse of `markdownToMml` for the
- * Discord-subset tags — round-trip tests gate this.
- */
-function flattenNodes(nodes: MmlNode[]): string {
-  return nodes.map(flattenNode).join('');
-}
-
-function flattenNode(n: MmlNode): string {
-  if (n.kind === 'text') return n.text;
-  const inner = flattenNodes(n.children);
-  switch (n.tag) {
-    case 'strong':
-      return `**${inner}**`;
-    case 'em':
-      return `*${inner}*`;
-    case 'code':
-      return `\`${inner}\``;
-    case 'pre':
-      return `\`\`\`${inner}\`\`\``;
-    case 'blockquote':
-      return inner
-        .split('\n')
-        .map((line) => (line.length ? `> ${line}` : '>'))
-        .join('\n');
-    case 'strike':
-      return `~~${inner}~~`;
-    case 'list': {
-      const ordered = n.attrs.ordered === 'true';
-      const items = n.children.filter(
-        (c): c is Extract<MmlNode, { kind: 'tag' }> =>
-          c.kind === 'tag' && c.tag === 'li',
-      );
-      return items
-        .map((li, idx) => {
-          const t = flattenNodes(li.children);
-          return ordered ? `${idx + 1}. ${t}` : `- ${t}`;
-        })
-        .join('\n');
-    }
-    case 'li':
-      // Should only be reached if a stray `<li>` appears outside a
-      // `<list>` — emit a dashed line as the safest failsafe.
-      return `- ${inner}`;
-    // Identity / role / inline tags: children verbatim. The
-    // tagging layer is for rendering; flatten just emits the
-    // already-escaped text.
-    default:
-      return inner;
-  }
-}
-
-// ============================================================================
-// Custom URI schemes for in-world refs
-// ============================================================================
-
-/**
- * Project-defined custom URI schemes the renderer dispatches by:
- *  - `mudcmd:` — opaque command line (clicker dispatch through command bus)
- *  - `mudref:` — stuff-id reference (resolves to `look <kw>` or `look #id`)
- *  - `mudq:`   — MQL query reference (v1 inert — no click handler runs;
- *                see `docs/plans/message-rendering-plan.md` D3)
- *
- * All three are opaque-form per RFC 3986 (`scheme:payload`, no `//`).
- * Any other scheme (http, https, javascript, data, …) is stripped at
- * markdown-parse time; bare labels survive as plain text.
- */
-const KNOWN_LINK_SCHEMES = ['mudcmd:', 'mudref:', 'mudq:'] as const;
-
-function isKnownLinkScheme(href: string): boolean {
-  return KNOWN_LINK_SCHEMES.some((s) => href.startsWith(s));
-}
-
-// ============================================================================
-// MentionResolver — server-side mention scope plumbing
-// ============================================================================
-
-/**
- * Resolves a literal `@<word>` from user-supplied prose to a stuff-id
- * or null (silent miss). The call site builds a resolver scoped to
- * the right audience set: chat channels enumerate tuned-in
- * participants; say/tell/emote enumerate the speaker's perceivable
- * neighbors.
- */
-export interface MentionResolver {
-  resolveMention(word: string): string | null;
-}
-
-/**
- * Match a single `Stuff`'s display name against a mention word.
- * Case-insensitive on the head-word — "@bobalu" matches "Bobalu",
- * "Bobalu Smallberries", and "Bobalu the Brave". Returns true on
- * any match; ties (multiple candidates matching the same word) are
- * left to the caller, which picks first-match-wins.
- */
-function nameMatchesMention(displayName: string, word: string): boolean {
-  const headWord = displayName.split(/\s+/)[0] ?? '';
-  return headWord.toLowerCase() === word.toLowerCase();
-}
-
-/**
- * Resolver against the speaker's perceivable neighbors — for v1, the
- * Stuff sharing the speaker's immediate container (i.e., room
- * occupants when the speaker is an Avatar / NPC). When perception
- * grows beyond room-immediate (windows / scry / etc.) this is the
- * seam to widen; for the v1 acceptance criteria, room-immediate
- * matches "matches what the user could plausibly target."
- *
- * Returns `null` if the speaker has no container (loose Stuff) or
- * none of the container's contents matches the word.
- */
-class PerceiverMentionResolver implements MentionResolver {
-  constructor(private readonly speaker: Stuff) {}
-
-  resolveMention(word: string): string | null {
-    if (!MixinApi.isContainable(this.speaker)) return null;
-    const container = this.speaker.getContainer();
-    if (!container || !MixinApi.isContainer(container)) return null;
-    // Speaker IS a candidate — self-mention is the canonical
-    // own-name highlight path. The renderer compares the mention's
-    // stuff-id against the viewer's; when they match, the self-match
-    // treatment fires.
-    const speakerDisplay = DescribeApi.getDisplayName(this.speaker);
-    if (nameMatchesMention(speakerDisplay, word)) return this.speaker.stuffId;
-    for (const candidate of container.getContents()) {
-      if (candidate.stuffId === this.speaker.stuffId) continue;
-      const display = DescribeApi.getDisplayName(candidate);
-      if (nameMatchesMention(display, word)) return candidate.stuffId;
-    }
-    return null;
-  }
-}
-
-/**
- * Resolver against an explicit participant set. Used by the (future)
- * chat substrate and by tests that need a fixture roster. Stable
- * iteration: the first matching participant wins, mirroring the
- * silent-on-tie behavior of `PerceiverMentionResolver`.
- */
-class ChannelMentionResolver implements MentionResolver {
-  constructor(private readonly participants: Iterable<Stuff>) {}
-
-  resolveMention(word: string): string | null {
-    for (const candidate of this.participants) {
-      const display = DescribeApi.getDisplayName(candidate);
-      if (nameMatchesMention(display, word)) return candidate.stuffId;
-    }
-    return null;
-  }
-}
-
-// ============================================================================
-// Markdown → MML — Discord-dialect subset
-// ============================================================================
-
-/**
- * Parse a Discord-dialect markdown subset into MML markup. The
- * subset is fixed (see `Mml.markdownToMml` docstring) — narrower
- * than full markdown, never grows toward CommonMark. Code spans /
- * code blocks are opaque; inline emphasis applies to plain runs;
- * line-start markers (`>`, `-`, `1.`) drive block-level wrapping.
- *
- * Order of operations:
- *   1. Sentinel-substitute code blocks (` ```...``` `) and code spans
- *      (`` `...` ``) so subsequent passes don't munge them.
- *   2. Split into blocks (paragraph / blockquote-run / list-run)
- *      by line-leading marker.
- *   3. For each text run inside a block, run inline transforms
- *      (links, mentions, emphasis, strike).
- *   4. Restore code sentinels back to their MML tags.
- *
- * Escape semantics: at every layer, raw user text is escaped via
- * `escapeText` before it lands in the output stream. Trusted
- * markup (the tags we emit) bypasses escape.
- */
-function parseMarkdown(text: string, resolver?: MentionResolver): string {
-  // Phase 1 — extract code blocks (multi-line) and code spans (single-line)
-  // so subsequent passes don't munge their contents.
-  const codeBlocks: string[] = [];
-  let working = text.replace(/```([\s\S]*?)```/g, (_, content: string) => {
-    const idx = codeBlocks.length;
-    codeBlocks.push(content);
-    return ` CB${idx} `;
-  });
-  const codeSpans: string[] = [];
-  working = working.replace(/`([^`\n]+)`/g, (_, content: string) => {
-    const idx = codeSpans.length;
-    codeSpans.push(content);
-    return ` CS${idx} `;
-  });
-
-  // Phase 2 — block-level segmentation.
-  const lines = working.split('\n');
-  const out: string[] = [];
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i]!;
-
-    // Blockquote run
-    if (/^>\s?/.test(line)) {
-      const quoteLines: string[] = [];
-      while (i < lines.length && /^>\s?/.test(lines[i]!)) {
-        quoteLines.push(lines[i]!.replace(/^>\s?/, ''));
-        i++;
-      }
-      const inner = quoteLines.map((l) => processInline(l, resolver)).join('\n');
-      out.push(`<blockquote>${inner}</blockquote>`);
-      if (i < lines.length) out.push('\n');
-      continue;
-    }
-
-    // List run (unordered or ordered, but not mixed; first-line marker wins)
-    const ulMatch = /^-\s+(.*)$/.exec(line);
-    const olMatch = /^\d+\.\s+(.*)$/.exec(line);
-    if (ulMatch || olMatch) {
-      const ordered = !!olMatch;
-      const itemRe = ordered ? /^\d+\.\s+(.*)$/ : /^-\s+(.*)$/;
-      const items: string[] = [];
-      while (i < lines.length) {
-        const m = itemRe.exec(lines[i]!);
-        if (!m) break;
-        items.push(`<li>${processInline(m[1]!, resolver)}</li>`);
-        i++;
-      }
-      const attr = ordered ? ' ordered="true"' : '';
-      out.push(`<list${attr}>${items.join('')}</list>`);
-      if (i < lines.length) out.push('\n');
-      continue;
-    }
-
-    // Plain paragraph line
-    out.push(processInline(line, resolver));
-    i++;
-    // Preserve line break between non-block lines
-    if (i < lines.length) out.push('\n');
-  }
-
-  let result = out.join('');
-
-  // Phase 4 — restore code sentinels to their MML tags.
-  result = result.replace(/ CB(\d+) /g, (_, idxStr: string) => {
-    const idx = Number(idxStr);
-    return `<pre>${escapeText(codeBlocks[idx] ?? '')}</pre>`;
-  });
-  result = result.replace(/ CS(\d+) /g, (_, idxStr: string) => {
-    const idx = Number(idxStr);
-    return `<code>${escapeText(codeSpans[idx] ?? '')}</code>`;
-  });
-
-  return result;
-}
-
-/**
- * Apply inline transforms (links, mentions, emphasis, strike) to a
- * single line of text. Operates in a single left-to-right pass; each
- * match consumes its slice and the leading plain text is escaped.
- *
- * Match priority is fixed: links → mentions → strike → strong → em.
- * Code spans / blocks are already substituted to sentinels before
- * this runs, so emphasis can't bleed into code.
- */
-function processInline(text: string, resolver?: MentionResolver): string {
-  // Recursive-descent over a tiny grammar.
-  let out = '';
-  let i = 0;
-  while (i < text.length) {
-    // Try matchers in priority order. Each matcher reads from `text`
-    // starting at `i`; on success it returns the markup to emit + the
-    // position past the consumed slice.
-    const linkM = matchLink(text, i, resolver);
-    if (linkM) {
-      out += linkM.markup;
-      i = linkM.next;
-      continue;
-    }
-    const mentionM = matchMention(text, i, resolver);
-    if (mentionM) {
-      out += mentionM.markup;
-      i = mentionM.next;
-      continue;
-    }
-    const strikeM = matchStrike(text, i, resolver);
-    if (strikeM) {
-      out += strikeM.markup;
-      i = strikeM.next;
-      continue;
-    }
-    const strongM = matchStrong(text, i, resolver);
-    if (strongM) {
-      out += strongM.markup;
-      i = strongM.next;
-      continue;
-    }
-    const emM = matchEm(text, i, resolver);
-    if (emM) {
-      out += emM.markup;
-      i = emM.next;
-      continue;
-    }
-    // Sentinel passthrough — leave code sentinels intact so Phase 4
-    // can restore them.
-    if (text[i] === ' ') {
-      // Read up to the next  
-      const end = text.indexOf(' ', i + 1);
-      if (end !== -1) {
-        out += text.slice(i, end + 1);
-        i = end + 1;
-        continue;
-      }
-    }
-    out += escapeText(text[i]!);
-    i++;
-  }
-  return out;
-}
-
-interface InlineMatch {
-  markup: string;
-  next: number;
-}
-
-function matchLink(
-  text: string,
-  i: number,
-  resolver?: MentionResolver,
-): InlineMatch | null {
-  if (text[i] !== '[') return null;
-  const closeBracket = text.indexOf(']', i + 1);
-  if (closeBracket === -1) return null;
-  if (text[closeBracket + 1] !== '(') return null;
-
-  // Balanced paren scan — `[bogus](javascript:alert(1))` has nested
-  // parens inside the URI, so a naive `indexOf(')')` would terminate
-  // at the inner `)`. Walk forward keeping a depth counter; the URI
-  // ends at the close-paren that returns depth to zero.
-  let depth = 1;
-  let closeParen = -1;
-  for (let p = closeBracket + 2; p < text.length; p++) {
-    const c = text[p];
-    if (c === '(') depth++;
-    else if (c === ')') {
-      depth--;
-      if (depth === 0) {
-        closeParen = p;
-        break;
-      }
-    }
-  }
-  if (closeParen === -1) return null;
-
-  const label = text.slice(i + 1, closeBracket);
-  const uri = text.slice(closeBracket + 2, closeParen);
-
-  // Process the label inline (mentions / emphasis allowed in labels).
-  const labelMarkup = processInline(label, resolver);
-
-  if (isKnownLinkScheme(uri)) {
-    return {
-      markup: `<link href="${escapeText(uri)}">${labelMarkup}</link>`,
-      next: closeParen + 1,
-    };
-  }
-
-  // Unknown scheme: strip the URI, keep the label.
-  return { markup: labelMarkup, next: closeParen + 1 };
-}
-
-function matchMention(
-  text: string,
-  i: number,
-  resolver?: MentionResolver,
-): InlineMatch | null {
-  if (text[i] !== '@') return null;
-  // Word boundary check — `email@addr.com` shouldn't trigger.
-  if (i > 0 && /[A-Za-z0-9]/.test(text[i - 1]!)) return null;
-  const match = /^@([A-Za-z][A-Za-z0-9'-]*)/.exec(text.slice(i));
-  if (!match) return null;
-  const word = match[1]!;
-  const next = i + match[0].length;
-
-  if (!resolver) {
-    return { markup: escapeText(match[0]), next };
-  }
-  const stuffId = resolver.resolveMention(word);
-  if (!stuffId) {
-    return { markup: escapeText(match[0]), next };
-  }
-  return {
-    markup: `<mention stuff-id="${escapeText(stuffId)}">${escapeText(match[0])}</mention>`,
-    next,
-  };
-}
-
-function matchStrong(
-  text: string,
-  i: number,
-  resolver?: MentionResolver,
-): InlineMatch | null {
-  if (text.slice(i, i + 2) !== '**') return null;
-  const end = text.indexOf('**', i + 2);
-  if (end === -1 || end === i + 2) return null;
-  const inner = text.slice(i + 2, end);
-  return {
-    markup: `<strong>${processInline(inner, resolver)}</strong>`,
-    next: end + 2,
-  };
-}
-
-function matchEm(
-  text: string,
-  i: number,
-  resolver?: MentionResolver,
-): InlineMatch | null {
-  const ch = text[i];
-  if (ch !== '*' && ch !== '_') return null;
-  // Reject `_` mid-word ("snake_case") — Discord doesn't either.
-  if (ch === '_' && i > 0 && /[A-Za-z0-9]/.test(text[i - 1]!)) return null;
-  const end = text.indexOf(ch, i + 1);
-  if (end === -1 || end === i + 1) return null;
-  if (ch === '_' && /[A-Za-z0-9]/.test(text[end + 1] ?? '')) return null;
-  const inner = text.slice(i + 1, end);
-  return {
-    markup: `<em>${processInline(inner, resolver)}</em>`,
-    next: end + 1,
-  };
-}
-
-function matchStrike(
-  text: string,
-  i: number,
-  resolver?: MentionResolver,
-): InlineMatch | null {
-  if (text.slice(i, i + 2) !== '~~') return null;
-  const end = text.indexOf('~~', i + 2);
-  if (end === -1) return null;
-  const inner = text.slice(i + 2, end);
-  return {
-    markup: `<strike>${processInline(inner, resolver)}</strike>`,
-    next: end + 2,
-  };
 }
 
 SecurityApi.decorateApiClass(Mml);
