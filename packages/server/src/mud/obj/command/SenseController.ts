@@ -38,7 +38,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
-import { deriveSensorium } from '../../lib/species/BodyPlan';
+import { SpeciesApi } from '../../api/species';
 import type { Exit } from '../../lib/boundary/Exit';
 
 interface SenseModel extends CommandModel {
@@ -117,7 +117,7 @@ export class SenseController extends CommandController<SenseModel> {
   private senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
-    const sensorium = deriveSensorium(actor);
+    const sensorium = SpeciesApi.deriveSensorium(actor);
     const hasVisible = MixinApi.isVisible(location);
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
@@ -179,7 +179,7 @@ export class SenseController extends CommandController<SenseModel> {
 
   private senseTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
-    const sensorium = deriveSensorium(actor);
+    const sensorium = SpeciesApi.deriveSensorium(actor);
     if (!MixinApi.isVisible(target)) {
       const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)

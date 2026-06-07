@@ -31,25 +31,7 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { SlotSpec } from '../slot/Slotted';
-import { MixinApi } from '../../api/mixin';
-import type { Stuff } from '../stuff/Stuff';
-import type { Organism } from './Organism';
-
-/**
- * Canonical physical-sense channel vocabulary. Used consistently
- * across the senses substrate: `SensoryPort.modality` field on
- * BodyPlan, `Detail` per-sense slot map keys, `<sense channel="X">`
- * MML wrapper attribute, the `senseStripAugmenter` filter, and the
- * `requires*` verb-level validators. ESP / alien channels (e.g.
- * `echolocation`, `electroreception`) are explicitly NOT in this
- * union for v1 — see the senses subsystem doc for the rationale.
- */
-export type SenseChannel =
-  | 'vision'
-  | 'hearing'
-  | 'smell'
-  | 'touch'
-  | 'taste';
+import type { SenseChannel } from '../description/Perceiver';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -192,26 +174,4 @@ export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getModalities(): SenseChannel[] {
     return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
   }
-}
-
-/**
- * Resolve a viewer's perceptible sense channels by walking
- * viewer → Organism → Species → BodyPlan → `getModalities()`.
- * Returns `[]` when any step is null — a test fixture without a
- * Species, a sessile organism, a non-Organism viewer.
- *
- * Lives here (not on a Stuff method) so non-Organism callers — the
- * augmenter, the validators — can ask the question without first
- * narrowing the host. Shared by the augmenter in
- * `lib/description/Visible.ts` and the four `requires*` validators
- * in `lib/command/validators/`.
- */
-export function deriveSensorium(viewer: Stuff): SenseChannel[] {
-  if (!MixinApi.isOrganism(viewer)) return [];
-  const organism = viewer as Stuff & Organism;
-  const species = organism.getSpecies();
-  if (!species) return [];
-  const bodyPlan = species.getBodyPlan();
-  if (!bodyPlan) return [];
-  return bodyPlan.getModalities();
 }

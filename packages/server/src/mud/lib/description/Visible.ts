@@ -25,12 +25,12 @@ import {
 } from '../../api/mql-subscription';
 import type { Stuff } from '../stuff/Stuff';
 import {
-  augmentMarkup,
   Mml,
   type AugmentOpts,
   type MarkupAugmenter,
 } from '../../api/mml';
-import { deriveSensorium, type SenseChannel } from '../species/BodyPlan';
+import { SpeciesApi } from '../../api/species';
+import type { SenseChannel } from './Perceiver';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -148,7 +148,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       {
         // `getMarkupLong(viewer)` is the host-level affordance-
         // annotated long description. The substrate's
-        // `augmentMarkup` helper walks every contributing mixin's
+        // `Mml.augment` static walks every contributing mixin's
         // `static markupAugmenters` and folds them through the raw
         // text — Detailed wraps detail keys in `<detail>` today;
         // future mixins (Exitable's direction auto-link, Language's
@@ -207,14 +207,14 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Affordance-annotated long description — see the interface
      * docstring for the augmenter pipeline contract. Calls
-     * `augmentMarkup` with the host (`this`), the supplied
-     * `viewer`, and the per-call `opts` (the senses build threads
+     * `Mml.augment` with the host (`this`), the supplied `viewer`,
+     * and the per-call `opts` (the senses build threads
      * `opts.filter` through here for verb-specific sense filtering).
      * Every contributing mixin's augmenters run in
      * parent-first → child-last order.
      */
     getMarkupLong(viewer: Stuff, opts?: AugmentOpts): string {
-      return augmentMarkup(
+      return Mml.augment(
         this.getLong(),
         this as unknown as Stuff,
         viewer,
@@ -252,7 +252,7 @@ export function senseStripAugmenter(
   viewer: Stuff,
   opts?: AugmentOpts,
 ): string {
-  const sensorium = deriveSensorium(viewer);
+  const sensorium = SpeciesApi.deriveSensorium(viewer);
   const filter = opts?.filter ?? sensorium;
   const allowed = new Set<SenseChannel>();
   for (const ch of filter) {

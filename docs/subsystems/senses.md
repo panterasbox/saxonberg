@@ -37,11 +37,18 @@ contact-only reads, regex-clean strip, no propagation.
 ### `SenseChannel` vocabulary
 
 Canonical physical-sense channel union, declared in
-`lib/species/BodyPlan.ts`:
+`lib/description/Perceiver.ts` alongside the runtime
+`SENSE_CHANNELS` array:
 
 ```ts
 export type SenseChannel = 'vision' | 'hearing' | 'smell' | 'touch' | 'taste';
+export const SENSE_CHANNELS: readonly SenseChannel[] = [...];
 ```
+
+Perceiver is the actor-side surface that perceives across these
+channels, so the vocabulary's home is here — BodyPlan declares
+which ports a body has but uses this type to label them; Detail
+stores the prose per channel but uses this type to key its slots.
 
 Used consistently across every surface: `SensoryPort.modality`,
 `Detail` per-sense slot map keys, `<sense channel="X">` MML wrapper
@@ -138,12 +145,12 @@ Untagged prose is always preserved.
 
 A new entry on `VisibleMixin.markupAugmenters`. Reads the per-call
 `opts.filter` (a `readonly SenseChannel[]`) and the viewer's
-sensorium (from `deriveSensorium(viewer)`); strips regions whose
-channel isn't in `filter ∩ sensorium`.
+sensorium (from `SpeciesApi.deriveSensorium(viewer)`); strips
+regions whose channel isn't in `filter ∩ sensorium`.
 
 ```ts
 function senseStripAugmenter(text, host, viewer, opts?) {
-  const sensorium = deriveSensorium(viewer);
+  const sensorium = SpeciesApi.deriveSensorium(viewer);
   const filter = opts?.filter ?? sensorium;          // gestalt fallback
   const allowed = new Set(filter.filter((ch) => sensorium.includes(ch)));
   return Mml.stripBySense(text, allowed);
@@ -156,7 +163,13 @@ The augmenter ordering: `senseStripAugmenter` runs FIRST
 because wrapping inside a region destined for the strip is wasted
 work.
 
-### `MarkupAugmenter` widened with `opts?: AugmentOpts`
+### `Mml.augment` + `MarkupAugmenter` widened with `opts?: AugmentOpts`
+
+The substrate walker is exposed as `Mml.augment(text, host, viewer,
+opts?)` — a static on the `Mml` class (the bare `augmentMarkup`
+function export was retired). Callers thread through the class
+handle: `import { Mml } from '../../api/mml'; Mml.augment(...)`.
+
 
 The augmenter contract is now
 `(text, host, viewer, opts?: AugmentOpts) => string`. Existing 3-arg
@@ -176,22 +189,22 @@ stuff.getMarkupLong(viewer)` passes no opts and naturally gets the
 viewer's full sensorium — the right "what does this viewer perceive
 right now?" projection for the cockpit.
 
-### `BodyPlan.getModalities()` + `deriveSensorium(viewer)`
+### `BodyPlan.getModalities()` + `SpeciesApi.deriveSensorium(viewer)`
 
 `BodyPlan.getModalities(): SenseChannel[]` returns the deduped
 channel list from `sensoryPorts`. A sessile body plan with no ports
 returns `[]`.
 
-`deriveSensorium(viewer)` is the canonical viewer → sensorium walker.
-Walks viewer → Organism → Species → BodyPlan → `getModalities()`;
-returns `[]` when any step is null (a non-Organism viewer, an Organism
-without a Species, etc.). Shared by the augmenter AND the four
-`requires*` validators.
+`SpeciesApi.deriveSensorium(viewer)` is the canonical viewer →
+sensorium walker. Walks viewer → Organism → Species → BodyPlan →
+`getModalities()`; returns `[]` when any step is null (a
+non-Organism viewer, an Organism without a Species, etc.). Shared
+by the augmenter AND the four `requires*` validators.
 
-Both live in `lib/species/BodyPlan.ts` because BodyPlan IS the
-canonical declaration site for what sense channels exist for an
-organism — the dependency direction is clean (description / api /
-command → species).
+`SenseChannel` is declared in `lib/description/Perceiver.ts` (the
+actor-side perception surface). `SpeciesApi.deriveSensorium` lives
+on the API class so consumers thread through the api/ layer rather
+than importing a bare function from lib/.
 
 ### `Species.olfactoryProfile`
 

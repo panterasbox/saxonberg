@@ -39,7 +39,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { SenseChannel } from '../species/BodyPlan';
+import { SENSE_CHANNELS, type SenseChannel } from './Perceiver';
 
 export const PATH_DELIM = '.';
 
@@ -644,26 +644,12 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
 }
 
 /**
- * Canonical sense-channel set used by the slot-map machinery. Kept
- * in sync with the `SenseChannel` union exported from
- * `lib/species/BodyPlan.ts` — adding a channel requires touching
- * both (the union for type-level checking, this constant for the
- * runtime walk).
- */
-const SENSE_CHANNELS: readonly SenseChannel[] = [
-  'vision',
-  'hearing',
-  'smell',
-  'touch',
-  'taste',
-];
-
-/**
- * Runtime guard for the SenseChannel union. Used by `getDetail`'s
+ * Runtime guard for the `SenseChannel` union. Used by `getDetail`'s
  * 2-arg overload dispatch to distinguish `getDetail(id, sense)` from
  * `getDetail(id, parent)` — only the five known channel literals
  * route to the sense-arg branch; any other string is treated as a
- * legacy parent path.
+ * legacy parent path. Backed by the canonical `SENSE_CHANNELS`
+ * array exported from `Perceiver.ts`.
  */
 function isSenseChannel(value: string): value is SenseChannel {
   return (SENSE_CHANNELS as readonly string[]).includes(value);

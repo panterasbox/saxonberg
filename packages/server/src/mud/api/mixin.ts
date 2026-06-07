@@ -633,7 +633,7 @@ export class MixinApi {
   /**
    * Walk the prototype chain unioning the static `markupAugmenters`
    * arrays declared at each level. Returned in **parent-first →
-   * child-last** order so `augmentMarkup`'s fold applies the more
+   * child-last** order so `Mml.augment`'s fold applies the more
    * fundamental transformations first and the more specific
    * (deeper in the chain) ones last — same intuition as CSS
    * specificity.
@@ -644,7 +644,7 @@ export class MixinApi {
    * override semantics, so we order for readability instead.
    *
    * The augmenter signature `(text, host, viewer) => string` is
-   * defined in `api/mml.ts` (alongside the `augmentMarkup` helper);
+   * defined in `api/mml.ts` (alongside the `Mml.augment` static);
    * we use a structural local type here to avoid a runtime import
    * cycle (mixin.ts is below mml.ts in the layering).
    */

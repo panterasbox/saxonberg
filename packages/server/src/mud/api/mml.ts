@@ -54,7 +54,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Exit } from '../lib/boundary/Exit';
-import type { SenseChannel } from '../lib/species/BodyPlan';
+import type { SenseChannel } from '../lib/description/Perceiver';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
@@ -85,7 +85,7 @@ export type { MentionResolver };
  *       static markupAugmenters: MarkupAugmenter[] = [wrapFooKeywords];
  *     }
  *
- * The substrate's `augmentMarkup(text, host, viewer)` helper walks
+ * The substrate's `Mml.augment(text, host, viewer, opts?)` static walks
  * the host's prototype chain, collects every declared augmenter,
  * and applies them in parent-first → child-last order. Each
  * augmenter sees the text as it stands after prior augmenters have
@@ -118,7 +118,7 @@ export type MarkupAugmenter = (
 ) => string;
 
 /**
- * Per-call options threaded through `augmentMarkup` to the
+ * Per-call options threaded through `Mml.augment` to the
  * individual augmenters. The senses build introduces `filter`: the
  * sense-channel allowlist for the `senseStripAugmenter` (the verb
  * decides; `look` passes `['vision']`, `sense` passes the viewer's
@@ -136,23 +136,12 @@ export interface AugmentOpts {
 }
 
 /**
- * Walk the host's prototype chain via `MixinApi.getAllMarkupAugmenters`,
- * fold every contributed augmenter through the text in
- * parent-first → child-last order, return the result.
- *
- * Empty input short-circuits to the empty string (no point running
- * augmenters over nothing).
- *
- * Used by `VisibleMixin.getMarkupLong(viewer)`; future host-level
- * markup methods (`getMarkupShort`, scene-prose composition, etc.)
- * use the same helper.
- *
- * `opts` is threaded verbatim to every augmenter. Default-absent
- * means each augmenter sees `undefined` and falls back to its own
- * default behavior — the `senseStripAugmenter` falls back to the
- * viewer's full sensorium.
+ * Implementation of `Mml.augment` — lifted out of the class body so
+ * the class-static surface stays compact and so the walker can keep
+ * close to its companions (`MarkupAugmenter` type, `AugmentOpts`
+ * shape). See `Mml.augment` for the public-surface docstring.
  */
-export function augmentMarkup(
+function augmentMarkupImpl(
   text: string,
   host: Stuff,
   viewer: Stuff,
@@ -558,6 +547,31 @@ export class Mml {
    */
   static flatten(body: string): string {
     return flattenInternal(body);
+  }
+
+  /**
+   * Walk the host's prototype chain via
+   * `MixinApi.getAllMarkupAugmenters`, fold every contributed
+   * augmenter through the text in parent-first → child-last order,
+   * return the result. Empty input short-circuits to the empty
+   * string (no point running augmenters over nothing).
+   *
+   * Used by `VisibleMixin.getMarkupLong(viewer, opts?)`; future
+   * host-level markup methods (`getMarkupShort`, scene-prose
+   * composition, etc.) use the same surface.
+   *
+   * `opts` is threaded verbatim to every augmenter. Default-absent
+   * means each augmenter sees `undefined` and falls back to its own
+   * default behavior — the `senseStripAugmenter` falls back to the
+   * viewer's full sensorium.
+   */
+  static augment(
+    text: string,
+    host: Stuff,
+    viewer: Stuff,
+    opts?: AugmentOpts,
+  ): string {
+    return augmentMarkupImpl(text, host, viewer, opts);
   }
 
   /**

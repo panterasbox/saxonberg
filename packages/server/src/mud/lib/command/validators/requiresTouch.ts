@@ -5,11 +5,11 @@
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { deriveSensorium } from '../../species/BodyPlan';
+import { SpeciesApi } from '../../../api/species';
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
-  if (deriveSensorium(giver).includes('touch')) return undefined;
+  if (SpeciesApi.deriveSensorium(giver).includes('touch')) return undefined;
   return "You can't feel anything.";
 };
 

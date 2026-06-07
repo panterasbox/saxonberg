@@ -17,11 +17,11 @@
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { deriveSensorium } from '../../species/BodyPlan';
+import { SpeciesApi } from '../../../api/species';
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
-  if (deriveSensorium(giver).includes('hearing')) return undefined;
+  if (SpeciesApi.deriveSensorium(giver).includes('hearing')) return undefined;
   return "You can't hear.";
 };
 

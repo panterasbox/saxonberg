@@ -35,6 +35,58 @@ import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 
 /**
+ * Canonical physical-sense channel vocabulary. The Perceiver-side
+ * declaration of "what channels does an actor perceive on?" — used
+ * consistently across every surface that touches sense-channel
+ * data:
+ *
+ *   - `BodyPlan.SensoryPort.modality` (anatomy: which ports a body
+ *     plan instantiates).
+ *   - `Detail`'s per-sense slot map keys (state authoring).
+ *   - `<sense channel="X">…</sense>` MML wrapper attribute
+ *     (state-multi-sense MML wrapper).
+ *   - `SpeciesApi.deriveSensorium` return type (the runtime walker
+ *     from viewer → species → bodyplan).
+ *   - `senseStripAugmenter` filter (per-call options).
+ *   - The four `requires*` verb-level validators
+ *     (`requiresHearing` / `requiresSmell` / `requiresTouch` /
+ *     `requiresTaste`).
+ *
+ * Perceiver is the actor-side surface that perceives across these
+ * channels, so the vocabulary's home is here — BodyPlan declares
+ * which ports a body has but uses this type to label them; Detail
+ * stores the prose per channel but uses this type to key its
+ * slots. ESP / alien channels (e.g. `echolocation`,
+ * `electroreception`) are explicitly NOT in this v1 union; see the
+ * senses subsystem doc for the rationale.
+ */
+export type SenseChannel =
+  | 'vision'
+  | 'hearing'
+  | 'smell'
+  | 'touch'
+  | 'taste';
+
+/**
+ * Runtime equivalent of the `SenseChannel` union — used by code
+ * that needs to walk all channels (`Detailed`'s `hasDetail` slot
+ * scan, `applyDetails`' per-channel YAML extraction, the strip
+ * augmenter's per-channel filtering). Adding a channel requires
+ * touching both this constant AND the `SenseChannel` union above.
+ *
+ * Order matches the union: vision / hearing / smell / touch / taste.
+ * Insertion order matters for `getModalities()` which dedups via
+ * Set (preserves first-insertion order).
+ */
+export const SENSE_CHANNELS: readonly SenseChannel[] = [
+  'vision',
+  'hearing',
+  'smell',
+  'touch',
+  'taste',
+];
+
+/**
  * Public shape provided by `PerceiverMixin`. v1 has no methods —
  * the mixin's value is the verb contributions and the
  * compositional marker. Methods may land later (e.g.,

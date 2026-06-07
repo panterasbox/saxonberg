@@ -6,7 +6,7 @@
  */
 
 import { SingleSenseControllerBase } from './SingleSenseControllerBase';
-import type { SenseChannel } from '../../lib/species/BodyPlan';
+import type { SenseChannel } from '../../lib/description/Perceiver';
 
 export class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';

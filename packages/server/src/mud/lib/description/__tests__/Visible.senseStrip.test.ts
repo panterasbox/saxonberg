@@ -22,8 +22,9 @@ import {
 import { DetailedMixin } from '../Detailed';
 import { Thing } from '../../stuff/Thing';
 import { Species } from '../../species/Species';
-import { BodyPlan, type SenseChannel } from '../../species/BodyPlan';
+import { BodyPlan } from '../../species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
+import type { SenseChannel } from '../Perceiver';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';

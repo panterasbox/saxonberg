@@ -1,26 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { BodyPlan, deriveSensorium } from '../BodyPlan';
-import { Species } from '../Species';
+import { BodyPlan } from '../BodyPlan';
 import { Idea } from '../../stuff/Idea';
-import { Thing } from '../../stuff/Thing';
-import { OrganismMixin } from '../Organism';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
-import {
-  makeStuff,
-  stampTemplatePathForTest,
-} from '../../security/__tests__/test-setup';
-import { StuffApi } from '../../../api/stuff';
-import type { Stuff } from '../../stuff/Stuff';
-
-function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
-  stampTemplatePathForTest(obj, path);
-  return obj;
-}
-
-class OrganismThing extends OrganismMixin(Thing) {
-  static persistentFields: string[] = [];
-}
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('BodyPlan', () => {
   it('extends Idea via SingletonMixin', () => {
@@ -128,68 +111,6 @@ describe('BodyPlan', () => {
         { modality: 'hearing', count: 2, position: 'lateral' },
       ]);
       expect(bp.getModalities()).toEqual(['vision', 'hearing']);
-    });
-  });
-
-  describe('deriveSensorium (senses build)', () => {
-    it('walks viewer → species → bodyPlan → getModalities; AC #18', () => {
-      StuffApi.clearAll();
-      const biped = withTemplatePath(
-        makeStuff(() => new BodyPlan()),
-        '/lib/body-plans/biped',
-      );
-      biped.setSensoryPorts([
-        { modality: 'vision', count: 2, position: 'frontal' },
-        { modality: 'hearing', count: 2, position: 'lateral' },
-      ]);
-      const sapiens = withTemplatePath(
-        makeStuff(() => new Species()),
-        '/lib/species/animalia/homo-sapiens',
-      );
-      sapiens.setBodyPlan(biped);
-
-      const actor = makeStuff(() => new OrganismThing());
-      actor.setSpecies(sapiens);
-
-      expect(deriveSensorium(actor)).toEqual(['vision', 'hearing']);
-    });
-
-    it('returns [] for non-Organism viewer (test fixture)', () => {
-      const fixture = makeStuff(() => new Thing());
-      expect(deriveSensorium(fixture)).toEqual([]);
-    });
-
-    it('returns [] for Organism without a Species', () => {
-      StuffApi.clearAll();
-      const actor = makeStuff(() => new OrganismThing());
-      expect(deriveSensorium(actor)).toEqual([]);
-    });
-
-    it('returns [] for Organism whose Species lacks a BodyPlan', () => {
-      StuffApi.clearAll();
-      const orphan = withTemplatePath(
-        makeStuff(() => new Species()),
-        '/lib/species/animalia/orphan',
-      );
-      const actor = makeStuff(() => new OrganismThing());
-      actor.setSpecies(orphan);
-      expect(deriveSensorium(actor)).toEqual([]);
-    });
-
-    it('returns [] for sessile body plan (no ports)', () => {
-      StuffApi.clearAll();
-      const sessile = withTemplatePath(
-        makeStuff(() => new BodyPlan()),
-        '/lib/body-plans/sessile',
-      );
-      const moss = withTemplatePath(
-        makeStuff(() => new Species()),
-        '/lib/species/plantae/moss',
-      );
-      moss.setBodyPlan(sessile);
-      const actor = makeStuff(() => new OrganismThing());
-      actor.setSpecies(moss);
-      expect(deriveSensorium(actor)).toEqual([]);
     });
   });
 

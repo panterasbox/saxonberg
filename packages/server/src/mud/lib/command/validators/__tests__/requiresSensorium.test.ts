@@ -14,7 +14,8 @@ import { Idea } from '../../../stuff/Idea';
 import { Thing } from '../../../stuff/Thing';
 import { OrganismMixin } from '../../../species/Organism';
 import { Species } from '../../../species/Species';
-import { BodyPlan, type SenseChannel } from '../../../species/BodyPlan';
+import { BodyPlan } from '../../../species/BodyPlan';
+import type { SenseChannel } from '../../../description/Perceiver';
 import {
   CommandApi,
   type CommandContext,
