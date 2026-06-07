@@ -217,7 +217,7 @@ export class LookController extends CommandController<LookModel> {
     if (visibleContents.length > 0) {
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
-      body = Mml.compose`${body}\n${Mml.sys('You also see:')} ${list}.`;
+      body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
     MessageApi.scene(actor)
@@ -282,15 +282,16 @@ export class LookController extends CommandController<LookModel> {
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);
-    // `<sys>` wraps the structural label only — non-actionable,
-    // styled by the client renderer as muted italic with a
-    // decorative prefix marker. The inner `<exit>` tags stay
-    // flat-adjacent so the client's regex parser still picks them
-    // up (no nesting). "Obvious" stays in the label: a Location
-    // may have hidden exits that only surface under specific
-    // conditions (a hint in the prose, a perception check, a
-    // revealed door); the qualifier signals "what you can see
-    // right now" without claiming "this is all there is."
-    return Mml.compose`${Mml.sys('Obvious exits:')} ${joined}.`;
+    // `── ` is a typographic ornament (em-dash glyph) the controller
+    // emits as literal prose to separate the labeled section from
+    // the description above. No tag, no element selector — the
+    // glyph carries its own visual weight by being on the page,
+    // like a chapter-ornament in a book.
+    // "Obvious" stays in the label: a Location may have hidden exits
+    // that only surface under specific conditions (a hint in the
+    // prose, a perception check, a revealed door); the qualifier
+    // signals "what you can see right now" without claiming "this is
+    // all there is."
+    return Mml.compose`── Obvious exits: ${joined}.`;
   }
 }

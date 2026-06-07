@@ -171,13 +171,15 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('permission error → mql-query-error with reason: permission', async () => {
     const { interactive, envelopes } = await setup();
-    // `online` is an admin-tier seed. With the granter returning false,
+    // `world` is an admin-tier seed. With the granter returning false,
     // MqlApi throws MqlPermissionError; the substrate maps that to
-    // reason: 'permission'.
+    // reason: 'permission'. (Previously this test used `online`, but
+    // `online` was un-gated when tell adopted it as a scope —
+    // who-style listings are public social fabric.)
     MqlSubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-perm',
-      query: 'online',
+      query: 'world',
       cardinality: 'many',
     });
     const err = envelopes.find((e) => e.type === 'mql-query-error');

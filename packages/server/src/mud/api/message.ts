@@ -318,6 +318,20 @@ const TOPICS = {
     identity: {
       change: 'world.identity.change',
     },
+    // Family root for player-authored chat-channel frames. Per-channel
+    // leaves live one level deeper (`world.chat.gossip`, etc.) and are
+    // matched by the stylesheet's topic-cascade selector. No channel
+    // substrate ships in this MR — emitters wait on the chat slate;
+    // this constant exists so per-channel topics have a defined
+    // anchor.
+    chat: {
+      root: 'world.chat',
+    },
+    // Family root for emote frames. Concrete leaves come with the
+    // emote slate.
+    emote: {
+      root: 'world.emote',
+    },
   },
   system: {
     connection: {
@@ -365,6 +379,8 @@ const TOPICS = {
       help: 'system.shell.help',       // help
       movement: 'system.shell.movement', // goto (actor-side; peers see world.narration.movement)
     },
+    // `style` verb output (current overlay, mutation confirmations).
+    style: 'system.style',
   },
 } as const;
 

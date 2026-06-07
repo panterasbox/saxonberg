@@ -224,12 +224,20 @@ describe("MmlRenderer", () => {
       expect(onCommandPreview).not.toHaveBeenCalled();
     });
 
-    it("<speech> renders as plain text (non-actionable)", () => {
+    it("<speech> renders as plain text in its quotes, non-actionable", () => {
+      // Frame-level italic was making per-word `*italic*` invisible
+      // inside speech (italic-inflation, same anti-pattern as
+      // bold-inflation). Speech now renders with no frame-level
+      // styling; the body's quote characters + "X says," framing
+      // already mark it as speech, leaving `*italic*` free to
+      // emphasize per-word.
       const { container, onCommandPreview } = renderRenderer(
         "<speech>hello there</speech>"
       );
       expect(container.textContent).toBe("hello there");
-      expect(container.querySelector("span")).toBeNull();
+      const span = container.querySelector("span");
+      expect(span).not.toBeNull();
+      expect(window.getComputedStyle(span!).fontStyle).not.toBe("italic");
       expect(onCommandPreview).not.toHaveBeenCalled();
     });
 

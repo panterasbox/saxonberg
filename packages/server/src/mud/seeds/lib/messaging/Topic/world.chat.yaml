@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.chat
+  family: world
+  label: Chat
+  description: Player-authored chat-channel frames. Per-channel leaves live one level deeper (`world.chat.gossip`, etc.) and inherit from this root.

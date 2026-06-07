@@ -25,6 +25,7 @@ import type {
 } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
+import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type { Interactive } from '../mud/obj/Interactive';
 import { Login } from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
@@ -69,6 +70,14 @@ export class Application {
 
   public initialize(backend: IBackend): void {
     this.backend = backend;
+    // Wire the strategy-injected `client-state-update` push so
+    // HasInteractiveMixin can reach Application without importing
+    // it (import cycle would break Login's module-eval-time
+    // `HasInteractiveMixin(Idea)` call). See setClientStateUpdatePush
+    // in `mud/lib/connection/HasInteractive.ts`.
+    setClientStateUpdatePush((interactive, key, value) =>
+      this.sendClientStateUpdateToInteractive(interactive, key, value),
+    );
     console.info('Application: Initialized with Backend');
   }
 
@@ -114,6 +123,28 @@ export class Application {
       frameId: interactive.nextFrameId(),
     } as Envelope;
     this.backend.sendEnvelopeToSocket(socketId, stamped);
+  }
+
+  /**
+   * Server→client push of a `ClientStateMixin` key. Used when the
+   * server mutates an overlay-shaped client-state key out-of-band
+   * (the `style` verb is the v1 caller); the client receives the
+   * authoritative value and re-renders without waiting on the
+   * reconnect snapshot. Sibling of {@link sendMessageToInteractive}
+   * — bypasses the Sensor pipeline (no frame, no `frameId`); it's
+   * wire-substrate plumbing, not narrative.
+   */
+  public sendClientStateUpdateToInteractive(
+    interactive: Interactive,
+    key: string,
+    value: unknown,
+  ): void {
+    const socketId = interactive.getSocketId();
+    if (!this.backend || !socketId) return;
+    this.backend.sendMessageToSocket(socketId, {
+      type: 'client-state-update',
+      payload: { key, value },
+    });
   }
 
   /**

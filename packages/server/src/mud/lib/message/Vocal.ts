@@ -37,7 +37,15 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     say(text: string): void {
       const speaker = this as unknown as Stuff;
-      const speechFragment = Mml.speech(text);
+      // Run user-supplied speech through the markdown→MML pipeline
+      // so `**bold**`, `*italic*`, `` `code` ``, `@name`, and
+      // `[label](mudcmd:…)` all work in player chat. Mention scope
+      // = the speaker's perceivable neighbors (same room).
+      const parsed = Mml.markdownToMml(
+        text,
+        Mml.perceiverMentionResolver(speaker),
+      );
+      const speechFragment = Mml.speech(parsed);
       const selfBody = Mml.compose`You say, ${speechFragment}`;
       const peersBody = Mml.compose`${Mml.name(speaker)} says, ${speechFragment}`;
 

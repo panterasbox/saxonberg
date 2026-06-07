@@ -91,7 +91,7 @@ function isAdmin(target: Stuff, _giver: Stuff & CommandGiver): boolean {
  */
 export const MQL_PREDICATES: Readonly<Record<string, MqlPredicate>> = {
   living: { tier: 'public', check: isLiving },
-  online: { tier: 'admin', check: isOnline },
+  online: { tier: 'public', check: isOnline },
   mine: { tier: 'public', check: isMine },
   here: { tier: 'public', check: isHere },
   visible: { tier: 'public', check: isVisible },

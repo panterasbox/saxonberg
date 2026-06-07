@@ -256,6 +256,7 @@ export class Avatar extends AvatarBase {
       socketId: interactive.getSocketId(),
       sessionId: interactive.getSessionId(),
       interactiveStuffId: interactive.stuffId,
+      avatarStuffId: this.stuffId,
       player: {
         _id: this.getPlayerId(),
         honorific: this.getHonorific(),

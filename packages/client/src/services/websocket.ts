@@ -301,6 +301,25 @@ class WebSocketClient {
     try {
       const frame: unknown = JSON.parse(data);
 
+      // Server→client raw push for `ClientStateMixin` keys. Bypasses
+      // the Sensor pipeline (no frameId, no topic) — substrate
+      // plumbing, not narrative. Dispatched directly to the store.
+      if (
+        typeof frame === 'object' &&
+        frame !== null &&
+        (frame as { type?: unknown }).type === 'client-state-update' &&
+        (frame as { frameId?: unknown }).frameId === undefined
+      ) {
+        const update = frame as {
+          type: 'client-state-update';
+          payload: { key: string; value: unknown };
+        };
+        useStore
+          .getState()
+          .setLocalClientState(update.payload.key, update.payload.value);
+        return;
+      }
+
       // Envelope frames carry `type` + numeric `frameId`; MessageFrames
       // carry `topic`. Two channels, two shapes — discriminate
       // structurally.

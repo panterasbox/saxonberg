@@ -26,6 +26,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { PopulatesMixin } from '../stuff/Populates';
+import { SingletonMixin } from '../stuff/Singleton';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -33,11 +34,19 @@ import type { CartesianZone } from './CartesianZone';
 import type { Exit } from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 
-const CartesianLocationBase = PostRegistrationMixin(
-  PopulatesMixin(
-    DetailedMixin(
-      PerceptibleMixin(
-        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+// CartesianLocation is singleton-shaped: every cartesian room is
+// uniquely identified by its template path (a `[x,y,z]` cell in a
+// specific zone). The mixin enforces this at clone-time; the same
+// shape also satisfies `TemplateApi.validateSingletonContainerTarget`,
+// which is what `Avatar.save()` needs when snapshotting
+// `data.container` back to the player's per-room landing point.
+const CartesianLocationBase = SingletonMixin(
+  PostRegistrationMixin(
+    PopulatesMixin(
+      DetailedMixin(
+        PerceptibleMixin(
+          ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+        )
       )
     )
   )

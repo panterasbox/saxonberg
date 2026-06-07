@@ -5,8 +5,17 @@ validators:
   - /lib/command/validators/requiresAnimate
 args:
   - name: target
-    type: string
+    type: object
     required: true
+    scope: "online"
+    # `mustBeAgent` filters Login objects (HasInteractive but not
+    # Agent) and any other non-actor command-giver out of the
+    # candidate set; only Avatars and NPCs that extend Agent pass.
+    validators:
+      - /lib/command/validators/mustBeAgent
+    # Typed ambiguity (two players matching the same keyword) →
+    # disambiguation prompt instead of silently picking the top.
+    onExcess: prompt
   - name: message
     type: string
     required: true
