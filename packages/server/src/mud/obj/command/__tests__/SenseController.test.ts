@@ -125,7 +125,7 @@ function modelOf(target: MqlOneResult | undefined): CommandModel {
 }
 
 describe('SenseController', () => {
-  it('bare sense on multi-channel room → world.perception.gestalt; AC #26', () => {
+  it('bare sense fires world.perception.sense.sense with viewer-sensorium filter; AC #26', () => {
     const fix = makeFixture(['vision', 'hearing', 'smell']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -139,16 +139,17 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    // Body's surviving channels = {vision, hearing, smell} → gestalt.
-    expect(f?.topic).toBe('world.perception.gestalt');
+    // Topic is fixed per the verb-as-topic principle — channel
+    // attribution lives in body MML, not in the topic.
+    expect(f?.topic).toBe('world.perception.sense.sense');
     expect(f?.body).toContain('A bright hall.');
     expect(f?.body).toContain('Footsteps echo.');
     expect(f?.body).toContain('Old varnish.');
-    // Taste isn't in the viewer's sensorium → stripped.
+    // Taste isn't in the viewer's sensorium → stripped from body.
     expect(f?.body).not.toContain('should be stripped');
   });
 
-  it('sense on vision-only-content room → world.perception.vision (collapses to channel)', () => {
+  it('sense fires same topic regardless of body content (vision-only room)', () => {
     const fix = makeFixture(['vision', 'hearing', 'smell']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -159,25 +160,10 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    // Singleton {vision} → topic comes from the content, not the verb.
-    expect(f?.topic).toBe('world.perception.vision');
+    expect(f?.topic).toBe('world.perception.sense.sense');
   });
 
-  it('sense on smell-only-content room → world.perception.smell', () => {
-    const fix = makeFixture(['vision', 'smell']);
-    (fix.location as unknown as {
-      setLongDescription: (s: string) => void;
-    }).setLongDescription(
-      '<sense channel="smell">Old leather and tobacco.</sense>',
-    );
-    const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
-    const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
-    const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.smell');
-  });
-
-  it('sense on untagged-only-prose room → defaults to world.perception.vision', () => {
+  it('sense on untagged-only-prose room fires same topic', () => {
     const fix = makeFixture(['vision', 'hearing']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -186,9 +172,7 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    // No <sense> regions → empty channel set → defaults to vision
-    // (legacy untagged-prose convention).
-    expect(f?.topic).toBe('world.perception.vision');
+    expect(f?.topic).toBe('world.perception.sense.sense');
   });
 
   it('sense <target> mirrors look <target> shape with gestalt filter; AC #27', () => {

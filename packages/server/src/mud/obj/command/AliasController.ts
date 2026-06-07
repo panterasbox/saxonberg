@@ -191,7 +191,7 @@ export class AliasController extends CommandController<AliasModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.vision')
+      .topic('system.shell.alias')
       .toSelf(body)
       .send();
   }

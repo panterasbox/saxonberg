@@ -201,7 +201,7 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message1 = makeFrame('world.perception.vision', 'Test');
+      const message1 = makeFrame('world.perception.sense.look', 'Test');
       const message2 = makeFrame('system.log.info', 'note');
       const message3 = makeFrame('world.speech.say', 'hi');
 

@@ -36,7 +36,7 @@ export class MeasureHumidityController extends CommandController<MeasureHumidity
         detail: 'no hygrometer in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.vision')
+        .topic('world.perception.measurement.measure-humidity')
         .toSelf(Mml.compose`You need a hygrometer in hand.`)
         .send();
       return;
@@ -51,7 +51,7 @@ export class MeasureHumidityController extends CommandController<MeasureHumidity
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.vision')
+        .topic('world.perception.measurement.measure-humidity')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -63,7 +63,7 @@ export class MeasureHumidityController extends CommandController<MeasureHumidity
     );
     const body = Mml.compose`Humidity: ${h.formatMml()} (${h.tag()})\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.vision')
+      .topic('world.perception.measurement.measure-humidity')
       .toSelf(body)
       .send();
   }

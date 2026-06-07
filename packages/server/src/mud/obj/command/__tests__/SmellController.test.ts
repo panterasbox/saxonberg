@@ -157,7 +157,7 @@ describe('SmellController', () => {
       expect.objectContaining({ kind: 'empty-result', field: 'target' }),
     );
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.smell');
+    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
     expect(lastFrame?.body).toContain('mystery-thing');
   });
 
@@ -191,7 +191,7 @@ describe('SmellController', () => {
       expect.objectContaining({ kind: 'controller-rejected' }),
     );
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.smell');
+    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
     expect(lastFrame?.body).toContain('old leather and tobacco');
   });
 
@@ -225,7 +225,7 @@ describe('SmellController', () => {
     const ctx = makeContext(fix, 'smell here');
     controller.execute(makeModel(target), ctx);
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.smell');
+    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
     expect(lastFrame?.body).toContain("don't perceive");
   });
 
@@ -241,7 +241,7 @@ describe('SmellController', () => {
     const ctx = makeContext(fix, 'smell here');
     controller.execute(makeModel(target), ctx);
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.smell');
+    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
     expect(lastFrame?.body).not.toContain('A wide stone plaza.');
     expect(lastFrame?.body).toContain('Wet stone and ozone');
   });

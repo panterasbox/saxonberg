@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.sense.taste
+  family: world.perception.sense
+  label: Taste
+  description: Output of the taste verb — deliberate gustatory attention.

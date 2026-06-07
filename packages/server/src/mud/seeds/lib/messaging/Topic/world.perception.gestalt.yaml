@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.gestalt
-  family: world.perception
-  label: Gestalt
-  description: Multi-channel perception output — the sense verb's body carries surviving regions across several channels at once. Fires only when the body has content from more than one channel; single-channel bodies emit at the channel's own topic.

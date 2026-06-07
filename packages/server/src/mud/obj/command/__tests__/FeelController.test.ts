@@ -131,7 +131,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.touch');
+    expect(f?.topic).toBe('world.perception.sense.feel');
     expect(f?.body).toContain('rough oak');
   });
 
@@ -145,7 +145,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.touch');
+    expect(f?.topic).toBe('world.perception.sense.feel');
     expect(f?.body).toContain("don't perceive");
   });
 });

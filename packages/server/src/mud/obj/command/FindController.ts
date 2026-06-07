@@ -73,7 +73,7 @@ export class FindController extends CommandController<FindModel> {
           ? Mml.compose`No matches for '${raw}'.\n`
           : Mml.compose`No matches.\n`;
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.vision')
+        .topic('world.perception.search.find')
         .toSelf(body)
         .send();
       return;
@@ -108,7 +108,7 @@ export class FindController extends CommandController<FindModel> {
     }
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.vision')
+      .topic('world.perception.search.find')
       .toSelf(body)
       .send();
   }

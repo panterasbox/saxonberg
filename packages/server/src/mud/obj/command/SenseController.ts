@@ -45,49 +45,7 @@ interface SenseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-/**
- * Default perception topic — used when the frame's body carries no
- * channel attribution (polite refusals, no-target paths, legacy
- * untagged prose). Matches the slate's "untagged prose is
- * vision-implicit" rule.
- */
-const DEFAULT_TOPIC = 'world.perception.vision';
-
-/**
- * Topic when the body genuinely spans more than one channel — only
- * the multi-channel `sense` verb can reach this state, and only
- * when the room's authored content actually has surviving regions
- * on multiple channels after the filter intersection.
- */
-const GESTALT_TOPIC = 'world.perception.gestalt';
-
-/**
- * Resolve the perception topic for a frame whose body is
- * `filteredText` (the augmented, sense-stripped prose the viewer
- * will actually see). Walks the body's surviving
- * `<sense channel="X">` and `<detail sense="X">` regions:
- *
- *   - Empty channel set → `DEFAULT_TOPIC` (vision; untagged prose
- *     default).
- *   - Singleton `{X}` → `world.perception.X` (the body lives
- *     exclusively on that channel — could be sense-on-vision-only-
- *     room collapsing to vision, sense-on-smell-only-room
- *     collapsing to smell, etc.).
- *   - Multi → `GESTALT_TOPIC` (genuine multi-channel content).
- *
- * The principle: the topic describes the content the frame
- * carries, not the verb that produced it. A `sense` invocation
- * whose filtered body lands on only vision fires the same topic
- * as a `look` would.
- */
-function resolveTopic(filteredText: string): string {
-  const channels = Mml.collectSenseChannels(filteredText);
-  if (channels.size === 0) return DEFAULT_TOPIC;
-  if (channels.size === 1) {
-    return `world.perception.${channels.values().next().value}`;
-  }
-  return GESTALT_TOPIC;
-}
+const SCENE_TOPIC = 'world.perception.sense.sense';
 
 export class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
@@ -95,7 +53,7 @@ export class SenseController extends CommandController<SenseModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
-        .topic(DEFAULT_TOPIC)
+        .topic(SCENE_TOPIC)
         .toSelf(Mml.compose`You don't perceive any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
@@ -119,7 +77,7 @@ export class SenseController extends CommandController<SenseModel> {
     const actor = context.commandGiver;
     if (!MixinApi.isDetailed(host)) {
       MessageApi.scene(actor)
-        .topic(DEFAULT_TOPIC)
+        .topic(SCENE_TOPIC)
         .toSelf(Mml.compose`You don't perceive anything notable there.`)
         .send();
       context.note({
@@ -136,7 +94,7 @@ export class SenseController extends CommandController<SenseModel> {
     const description = host.getDetail(dotted, 'vision');
     if (description === null) {
       MessageApi.scene(actor)
-        .topic(DEFAULT_TOPIC)
+        .topic(SCENE_TOPIC)
         .toSelf(
           Mml.compose`You don't perceive anything notable about '${dotted}' that way.`,
         )
@@ -151,7 +109,7 @@ export class SenseController extends CommandController<SenseModel> {
     const tip = detailPath[detailPath.length - 1]!;
     const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;
     MessageApi.scene(actor)
-      .topic(resolveTopic(description))
+      .topic(SCENE_TOPIC)
       .toSelf(body)
       .send();
   }
@@ -180,7 +138,7 @@ export class SenseController extends CommandController<SenseModel> {
       visibleContents.length === 0
     ) {
       MessageApi.scene(actor)
-        .topic(DEFAULT_TOPIC)
+        .topic(SCENE_TOPIC)
         .toSelf(Mml.compose`Your surroundings are indistinct.`)
         .send();
       return;
@@ -213,11 +171,8 @@ export class SenseController extends CommandController<SenseModel> {
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
-    // Topic comes from the filtered prose (where channel attribution
-    // lives) — not the verb name. A vision-only-authored room makes
-    // sense fire at vision, same as look would.
     MessageApi.scene(actor)
-      .topic(resolveTopic(longText))
+      .topic(SCENE_TOPIC)
       .toSelf(body)
       .send();
   }
@@ -228,7 +183,7 @@ export class SenseController extends CommandController<SenseModel> {
     if (!MixinApi.isVisible(target)) {
       const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)
-        .topic(DEFAULT_TOPIC)
+        .topic(SCENE_TOPIC)
         .toSelf(Mml.compose`You can't perceive ${name}.`)
         .send();
       context.note({
@@ -241,7 +196,7 @@ export class SenseController extends CommandController<SenseModel> {
     const filteredText = target.getMarkupLong(actor, { filter: sensorium });
     const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
     MessageApi.scene(actor)
-      .topic(resolveTopic(filteredText))
+      .topic(SCENE_TOPIC)
       .toSelf(body)
       .send();
   }

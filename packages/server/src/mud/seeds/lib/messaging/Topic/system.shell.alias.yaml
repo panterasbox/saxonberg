@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.alias
+  family: system.shell
+  label: Alias
+  description: Output of the alias verb — alias listings and edit confirmations.

@@ -131,7 +131,7 @@ describe('TasteController', () => {
     const c = makeStuff(() => new TasteController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.taste');
+    expect(f?.topic).toBe('world.perception.sense.taste');
     expect(f?.body).toContain('tart');
   });
 });

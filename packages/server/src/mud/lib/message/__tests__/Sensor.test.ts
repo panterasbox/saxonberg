@@ -77,10 +77,10 @@ describe('SensorMixin.filterMessage shadow interception', () => {
     ShadowApi.attach(sensor, shadow);
 
     sensor.onMessage(frame('world.speech.say', 'hi'));
-    sensor.onMessage(frame('world.perception.vision', 'see'));
+    sensor.onMessage(frame('world.perception.sense.look', 'see'));
 
     expect(sensor.received).toHaveLength(1);
-    expect(sensor.received[0]!.topic).toBe('world.perception.vision');
+    expect(sensor.received[0]!.topic).toBe('world.perception.sense.look');
   });
 
   it('a shadow that mutates the frame returns a new object (immutable convention)', () => {

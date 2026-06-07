@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.var
+  family: system.shell
+  label: Var
+  description: Output of the var verb — environment variable listings and edit confirmations.

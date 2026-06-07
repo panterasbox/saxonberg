@@ -10,5 +10,5 @@ import type { SenseChannel } from '../../lib/description/Perceiver';
 
 export class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';
-  protected readonly sceneTopic = 'world.perception.hearing';
+  protected readonly sceneTopic = 'world.perception.sense.listen';
 }

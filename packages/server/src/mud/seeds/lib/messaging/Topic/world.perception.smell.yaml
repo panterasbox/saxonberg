@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.smell
-  family: world.perception
-  label: Smell
-  description: Output of smelling your surroundings or a specific thing — what the perceiver picks up on the smell channel.

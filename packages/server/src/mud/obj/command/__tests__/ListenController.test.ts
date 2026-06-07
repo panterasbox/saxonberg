@@ -135,7 +135,7 @@ describe('ListenController', () => {
     const c = makeStuff(() => new ListenController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.hearing');
+    expect(f?.topic).toBe('world.perception.sense.listen');
     expect(f?.body).toContain('soft drip');
     expect(f?.body).not.toContain('silent');
   });

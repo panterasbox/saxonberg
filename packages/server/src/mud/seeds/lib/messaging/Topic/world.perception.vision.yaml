@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.vision
-  family: world.perception
-  label: Vision
-  description: Output the perceiver sees — look prose, instrument readouts, list output, focus reports, find/locate results, anything the actor reads.

@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: world.perception.measurement
+  family: world.perception
+  label: Measurement
+  description: Parent topic for instrument-mediated quantitative readouts. The actor used a tool to extract data from the environment or a specific Stuff; the body carries the measurement with provenance attribution.

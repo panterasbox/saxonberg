@@ -36,7 +36,7 @@ export class MeasurePressureController extends CommandController<MeasurePressure
         detail: 'no barometer in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.vision')
+        .topic('world.perception.measurement.measure-pressure')
         .toSelf(Mml.compose`You need a barometer in hand.`)
         .send();
       return;
@@ -51,7 +51,7 @@ export class MeasurePressureController extends CommandController<MeasurePressure
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.vision')
+        .topic('world.perception.measurement.measure-pressure')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -63,7 +63,7 @@ export class MeasurePressureController extends CommandController<MeasurePressure
     );
     const body = Mml.compose`Pressure: ${p.formatMml()} (${p.tag()})\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.vision')
+      .topic('world.perception.measurement.measure-pressure')
       .toSelf(body)
       .send();
   }

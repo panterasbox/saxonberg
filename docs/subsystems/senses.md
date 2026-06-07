@@ -232,26 +232,23 @@ those land per content demand.
 Four contact-only verbs sharing a common `SingleSenseControllerBase`.
 Each subclass pins two abstract properties: `senseChannel` (the
 `SenseChannel` literal — note `listen`'s channel is `'hearing'`,
-not `'listen'`) and `sceneTopic` (the dotted Scene topic). Bare form
-renders the current location filtered to that channel; targeted form
-resolves via MQL and reads `host.getDetail(dotted, senseChannel)`.
+not `'listen'`, because channel ≠ verb name) and `sceneTopic` (the
+dotted Scene topic). Bare form renders the current location filtered
+to that channel; targeted form resolves via MQL and reads
+`host.getDetail(dotted, senseChannel)`.
 
-| Verb     | Channel   | Topic                         | Validator         |
-| -------- | --------- | ----------------------------- | ----------------- |
-| `smell`  | `smell`   | `world.perception.smell`      | `requiresSmell`   |
-| `listen` | `hearing` | `world.perception.hearing`    | `requiresHearing` |
-| `feel`   | `touch`   | `world.perception.touch`      | `requiresTouch`   |
-| `taste`  | `taste`   | `world.perception.taste`      | `requiresTaste`   |
+| Verb     | Channel   | Topic                              | Validator         |
+| -------- | --------- | ---------------------------------- | ----------------- |
+| `smell`  | `smell`   | `world.perception.sense.smell`     | `requiresSmell`   |
+| `listen` | `hearing` | `world.perception.sense.listen`    | `requiresHearing` |
+| `feel`   | `touch`   | `world.perception.sense.feel`      | `requiresTouch`   |
+| `taste`  | `taste`   | `world.perception.sense.taste`     | `requiresTaste`   |
 
-Topics are channel-named (not verb-named) — `listen` fires at
-`world.perception.hearing` because that's the *channel* the frame's
-content lands on, not the verb that produced it. This unifies with
-future ambient events: a smell drifting in from next room and a
-deliberate `smell` verb both fire at `world.perception.smell`. The
-same principle drives `LookController` to emit at
-`world.perception.vision` (and the 17 other "user-reads-output"
-controllers — measure / analyze instruments, find, focus, settings,
-var — that historically used `world.perception.look`).
+Topics are **verb-named, organized hierarchically under
+`world.perception.sense.*`**. Topic = the kind of event the frame
+represents; channel attribution lives separately in body MML. See
+the *Perception topic vocabulary* section below for the full
+organizing principle.
 
 Verb-level validators in `lib/command/validators/requires*.ts` gate
 the giver-side sensorium check via `deriveSensorium(giver).includes(channel)`.
@@ -283,27 +280,12 @@ occupant list) that `LookController` had — the vision-bound
 affordances stay because `sense` IS the room-presentation verb
 now.
 
-**Topic is derived from body content, not the verb.** `sense` is
-the one verb whose filtered body shape varies with the room's
-authored content. The controller walks the filtered prose with
-`Mml.collectSenseChannels(body)` to compute the topic:
-
-- Empty channel set (untagged prose only) → `world.perception.vision`
-  (the legacy untagged-prose default; existing rooms with no
-  `<sense>` regions are vision-implicit).
-- Singleton `{X}` → `world.perception.X` (the body landed
-  exclusively on channel X — a `sense` in a vision-only room fires
-  the same topic as `look` would).
-- Multiple → `world.perception.gestalt` (genuine multi-channel
-  content).
-
-So **same body content = same topic, regardless of verb**. A
-sense-on-vision-only-room and a look-on-the-same-room both fire at
-`world.perception.vision`; only when the body actually carries
-multiple channels does the gestalt topic appear. Filter-by-channel
-in the cockpit (mute hearing events) works uniformly across
-deliberate verbs, ambient events, and the gestalt's
-content-collapses-to-one-channel cases.
+**Topic is fixed: `world.perception.sense.sense`.** Topic =
+kind-of-event (the gestalt act). Channel attribution rides body
+MML — the viewer-visible body contains `<sense channel="X">`
+regions for whichever channels survived the filter intersection.
+Filter-by-channel in the cockpit is a body-MML concern, not a
+topic concern.
 
 No `requiresVision` / `requiresSense` validator — the gestalt filter
 is the viewer's full sensorium; the augmenter naturally produces an
@@ -311,6 +293,92 @@ appropriate render for whatever channels the viewer has (vision-only
 authoring renders identically for a vision-bearing viewer; a
 sightless viewer's gestalt strips the vision regions and presents
 the rest).
+
+### Perception topic vocabulary
+
+Topics across the system follow the principle: **topic = the kind
+of event/data the frame represents**. Hierarchical, with wildcards
+at any level. Per-verb leaves at the bottom; kind-level
+intermediates group leaves for wildcard aggregation. Channel
+attribution is orthogonal — it lives in body MML, not topics.
+
+The perception family looks like this:
+
+```
+world.perception.
+├── sense.       ← verbs (deliberate query)
+│   ├── look      LookController
+│   ├── sense     SenseController
+│   ├── smell     SmellController
+│   ├── listen    ListenController
+│   ├── feel      FeelController
+│   ├── taste     TasteController
+│   └── scry      ScryController
+├── ambient.     ← channels (passive arrival, no verb)
+│   ├── vision
+│   ├── hearing
+│   ├── smell
+│   ├── touch
+│   └── taste
+├── measurement.    ← instrument-mediated quantitative readouts
+│   ├── measure-temperature      MeasureTemperatureController
+│   ├── measure-pressure         MeasurePressureController
+│   ├── measure-humidity         MeasureHumidityController
+│   ├── measure-gravity          MeasureGravityController
+│   ├── measure-altitude         MeasureAltitudeController
+│   ├── measure-light            MeasureLightController
+│   ├── measure-atmosphere       MeasureAtmosphereController
+│   ├── analyze-atmosphere       AnalyzeAtmosphereController
+│   ├── analyze-chemistry        AnalyzeChemistryController
+│   ├── analyze-light            AnalyzeLightController
+│   └── weigh                    WeighController
+├── search.      ← search/match results
+│   ├── find      FindController
+│   └── locate    LocateController
+└── inventory    Get/Drop/InventoryController
+```
+
+Each sub-family has its own axis:
+
+- **sense** is verb-leafed. Each verb is a distinguishable kind of
+  deliberate query producing a different shape of prose.
+- **ambient** is channel-leafed because ambient events have no verb
+  to name them — they're "the world fed perceptual content
+  unbidden, on this channel." Five channel leaves mirror the
+  `SenseChannel` vocabulary.
+- **measurement** is verb-leafed (per-instrument). Each instrument
+  reads a different physical quantity; the leaves are fine-grained
+  so per-instrument styling/filtering works.
+- **search** is verb-leafed. find / locate are different scopes of
+  search (local vs world-scope).
+
+Wildcards aggregate: `world.perception.sense.*` matches all
+deliberate first-person perception; `world.perception.ambient.*`
+matches all unbidden perceptual input; `world.perception.measurement.*`
+matches all instrument output.
+
+Shell-query verbs land outside the perception family — they're
+state queries about the player's own setup, not perceptual events:
+
+```
+system.shell.
+├── alias       AliasController
+├── var         VarController
+├── settings    SettingsController
+├── focus       FocusController
+└── player      PlayerController
+```
+
+(Plus the pre-existing `system.shell.{author, fs, help, movement}`
+leaves.)
+
+**Other agents:** an NPC speaking rides `world.speech.say` exactly
+like a player speaking — different *generators*, same kind of
+event. The agent's identity rides payload/actor fields, not the
+topic. Same principle for NPC emotes (`world.emote`), NPC actions
+narrated to witnesses (`world.narration.action`), and NPC
+perception (the NPC's own controller fires perception frames to
+the NPC's own Sensor at the same perception topics).
 
 ### Auto-on-entry switches to `sense`
 

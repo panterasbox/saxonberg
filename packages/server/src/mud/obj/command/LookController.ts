@@ -57,7 +57,7 @@ export class LookController extends CommandController<LookModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.vision')
+        .topic('world.perception.sense.look')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
@@ -101,7 +101,7 @@ export class LookController extends CommandController<LookModel> {
   ): void {
     if (!MixinApi.isDetailed(host)) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.vision')
+        .topic('world.perception.sense.look')
         .toSelf(Mml.compose`You can't make out any detail there.`)
         .send();
       context.note({
@@ -115,7 +115,7 @@ export class LookController extends CommandController<LookModel> {
     const description = host.getDetail(dotted);
     if (description === null) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.vision')
+        .topic('world.perception.sense.look')
         .toSelf(Mml.compose`You can't make out any '${dotted}' there.`)
         .send();
       context.note({
@@ -129,7 +129,7 @@ export class LookController extends CommandController<LookModel> {
     const body = Mml.compose`\n${tip}\n\n${Mml.fromMarkup(description)}\n`;
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.vision')
+      .topic('world.perception.sense.look')
       .toSelf(body)
       .send();
 
@@ -173,7 +173,7 @@ export class LookController extends CommandController<LookModel> {
       visibleContents.length === 0
     ) {
       MessageApi.scene(actor)
-        .topic('world.perception.vision')
+        .topic('world.perception.sense.look')
         .toSelf(Mml.compose`Your surroundings are indistinct.`)
         .send();
       return;
@@ -221,7 +221,7 @@ export class LookController extends CommandController<LookModel> {
     }
 
     MessageApi.scene(actor)
-      .topic('world.perception.vision')
+      .topic('world.perception.sense.look')
       .toSelf(body)
       .send();
 
@@ -241,7 +241,7 @@ export class LookController extends CommandController<LookModel> {
     if (!MixinApi.isVisible(target)) {
       const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)
-        .topic('world.perception.vision')
+        .topic('world.perception.sense.look')
         .toSelf(Mml.compose`You can't see ${name}.`)
         .send();
       context.note({
@@ -258,7 +258,7 @@ export class LookController extends CommandController<LookModel> {
     const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     MessageApi.scene(actor)
-      .topic('world.perception.vision')
+      .topic('world.perception.sense.look')
       .toSelf(body)
       .send();
 
