@@ -15,6 +15,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Organism } from '../lib/species/Organism';
 import type { Clade, CladeRank } from '../lib/species/Clade';
+import type { Species } from '../lib/species/Species';
 import { MixinApi } from './mixin';
 import { Template } from '../lib/stuff/Template';
 import { StuffApi } from './stuff';
@@ -127,6 +128,50 @@ export class SpeciesApi {
     if (name === 'Animalia') return state === 'alive' || state === 'undead';
     if (name === 'Constructa') return state === 'powered';
     return false;
+  }
+
+  /**
+   * Ensure the actor's species + every clade ancestor + the body
+   * plan are live runtime singletons. v1's `Species` / `Clade` /
+   * `BodyPlan` templates are NOT bootstrapped — they lazy-load on
+   * first access via `findByTemplatePath`. Callers that need a
+   * synchronous walk of `getSpecies()` / `getBodyPlan()` / kingdom
+   * resolution preload via this helper first.
+   *
+   * No-op for non-Organism actors and for Organisms with no
+   * `_speciesPath` — the sync downstream surfaces handle those
+   * cases (`getSpecies()` returns null; `sensorium` returns []).
+   *
+   * Consumers today: `requiresAnimate` (kingdom walk),
+   * `requires<Sense>` / `requires<ESP>` (sensorium walk),
+   * `LocomotionApi.preloadActorAnatomy` (body-plan locomotion gate),
+   * `Avatar.bootstrapBaselineImplant` (BodyPlanSlots cranial slot
+   * resolution).
+   */
+  public static async preloadAnatomy(actor: Stuff): Promise<void> {
+    if (!MixinApi.isOrganism(actor)) return;
+    const speciesPath = (actor as unknown as { _speciesPath: string | null })
+      ._speciesPath;
+    if (!speciesPath) return;
+    // Tolerant ensure: ancestor path segments without a seeded
+    // template (e.g. `/lib/species/animalia/chordata/mammalia` —
+    // folders without a Clade record) throw `singleton`; we
+    // continue so the kingdom walk's `findByTemplatePath`-null
+    // branch can surface the gap downstream when needed.
+    const ensure = async (path: string): Promise<void> => {
+      try {
+        await StuffApi.singleton(path);
+      } catch {
+        /* missing ancestor — skip */
+      }
+    };
+    await ensure(speciesPath);
+    await Promise.all(Template.ancestorPaths(speciesPath).map(ensure));
+
+    const species = StuffApi.findByTemplatePath<Species>(speciesPath);
+    if (!species) return;
+    const bodyPlanPath = species.getBodyPlanPath();
+    if (bodyPlanPath) await ensure(bodyPlanPath);
   }
 }
 

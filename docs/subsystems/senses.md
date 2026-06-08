@@ -557,7 +557,7 @@ Augment conferral flows in transparently — the augment doesn't
 enumerate modalities itself; `MixinApi.getActiveMixins` includes
 augment-conferred mixins automatically, and those mixins' grants
 flow through. v1 case: every Avatar bootstraps a
-`BaselineCommImplant` that confers `AetherMixin`; AetherMixin's
+`AetherImplant` that confers `AetherMixin`; AetherMixin's
 `_grantsModalities = ['verbal-esp', 'emotive-esp']` then surfaces
 in the sensorium. See [augmentation.md](./augmentation.md) for the
 full substrate.

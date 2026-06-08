@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import {
-  VisionModality,
-  MAX_HOPS,
-  EXIT_TAU,
-} from '../VisionModality';
+import { VisionModality } from '../VisionModality';
+import { MAX_HOPS, EXIT_TAU } from '../../Modality';
 import { Light } from '../../Light';
 import { CartesianLocation } from '../../../spatial/CartesianLocation';
 import { CartesianZone } from '../../../spatial/CartesianZone';

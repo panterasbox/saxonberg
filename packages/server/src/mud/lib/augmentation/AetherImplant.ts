@@ -1,8 +1,9 @@
 /**
- * BaselineCommImplant — Wave 1 implantable Stuff template.
+ * AetherImplant — Wave 1 implantable Stuff template.
  *
- * The default cybernetic comm implant every Avatar bootstrap-installs.
- * Composes:
+ * The default cybernetic implant every Avatar bootstrap-installs.
+ * Taps the aether so the bearer can send and receive dms (and
+ * future emote/chat) over the implant network. Composes:
  *   - SlottableMixin → can be placed in a Slotted host's slot.
  *   - TangibleMixin → small physical object with mass + material.
  *   - AugmentMixin → confers `AetherMixin` when installed.
@@ -14,8 +15,8 @@
  * idempotently.
  *
  * Diegetically: a small, brass-and-silicon device the size of a
- * coin, hardened against impact and most field damage; the universal
- * baseline that lets Avatars send dms to one another.
+ * coin, hardened against impact and most field damage; the
+ * universal default that lets Avatars send dms to one another.
  */
 
 import { Thing } from '../stuff/Thing';
@@ -23,10 +24,10 @@ import { SlottableMixin } from '../slot/Slottable';
 import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
 
-const BaselineCommImplantBase = AugmentMixin(SlottableMixin(TangibleMixin(Thing)));
+const AetherImplantBase = AugmentMixin(SlottableMixin(TangibleMixin(Thing)));
 
-export class BaselineCommImplant extends BaselineCommImplantBase {
-  static readonly TEMPLATE_PATH = '/lib/augmentation/BaselineCommImplant';
+export class AetherImplant extends AetherImplantBase {
+  static readonly TEMPLATE_PATH = '/lib/augmentation/AetherImplant';
 
   override confers(): readonly string[] {
     return ['AetherMixin'];

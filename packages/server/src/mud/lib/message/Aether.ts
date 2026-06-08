@@ -53,8 +53,8 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Augment-gated marker: AetherMixin is composed natively on
      * every Avatar (so methods + state exist) but is inert unless
-     * an installed augment confers it. The baseline comm implant
-     * (`/lib/augmentation/BaselineCommImplant`) is the v1 conferrer;
+     * an installed augment confers it. The AetherImplant
+     * (`/lib/augmentation/AetherImplant`) is the v1 conferrer;
      * `MixinApi.getActiveMixins` reflects implant presence in real
      * time.
      */

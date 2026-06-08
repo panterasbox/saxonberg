@@ -1421,12 +1421,12 @@ grants. Decentralized declarations beat coupled lists.
 
 ```ts
 // WRONG — augment owns the modality list directly
-class BaselineCommImplant extends AugmentMixin(...) {
+class AetherImplant extends AugmentMixin(...) {
   contributedModalities = ['verbal-esp', 'emotive-esp'];
 }
 
 // RIGHT — augment names mixins; the mixin owns its grants
-class BaselineCommImplant extends AugmentMixin(...) {
+class AetherImplant extends AugmentMixin(...) {
   override confers() { return ['AetherMixin']; }
 }
 // AetherMixin declares its own:

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SoundModality } from '../SoundModality';
-import { MAX_HOPS } from '../VisionModality';
+import { MAX_HOPS } from '../../Modality';
 import { Sound } from '../../Sound';
 import { SoundSourceMixin } from '../../SoundSource';
 import { AtmosphericMixin } from '../../../biome/Atmospheric';

@@ -63,6 +63,32 @@ export type Signal = unknown;
  */
 export type Percept = unknown;
 
+/**
+ * Shared propagation-walk constants for the `'field'` modalities
+ * (vision, smell, sound, and future ESP). Vision was the original
+ * exporter — the walk relocated from the retired `LightApi` —
+ * but the constants are substrate-shared, not vision-owned. Per
+ * the requirements doc's "Per-modality walks, not a generic
+ * walker" decision, the modalities each implement their own walk
+ * body; what they share is the depth-budget + per-exit attenuation
+ * tuning, which lives here on the substrate's neutral home.
+ *
+ * `MAX_HOPS = 2` — maximum recursion depth. Smell / sound / vision
+ * each guard with `if (depth > MAX_HOPS) return acc`.
+ *
+ * `EXIT_TAU = 1.0` — per-doorless-exit linear attenuation factor.
+ * `1.0` means "no extra dimming on exit traversal" — the boundary's
+ * own conduit transmissivity does the work for doored / shuttered
+ * cases.
+ *
+ * A per-modality override knob hasn't earned its place yet; if a
+ * future modality needs different depth or attenuation, add a
+ * `maxHops()` / `exitTau()` accessor on the modality singleton with
+ * these as defaults.
+ */
+export const MAX_HOPS = 2;
+export const EXIT_TAU = 1.0;
+
 export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Canonical modality name (e.g. `'vision'`, `'sound'`). */
   protected name: string = '';

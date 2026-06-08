@@ -697,7 +697,16 @@ describe('Avatar', () => {
       const ix = fakeInteractive() as unknown as Interactive;
       await avatar.enter(ix);
 
-      expect(singletonSpy).not.toHaveBeenCalled();
+      // `singleton` IS called (for modality preloads + the
+      // species / body-plan anatomy preload in the augment
+      // bootstrap); the assertion that matters is no call for
+      // the fallback starting-location path.
+      const { DEFAULT_STARTING_LOCATION_PATH } = await import(
+        '../../config/constants'
+      );
+      expect(singletonSpy).not.toHaveBeenCalledWith(
+        DEFAULT_STARTING_LOCATION_PATH,
+      );
       expect(teleportSpy).not.toHaveBeenCalled();
       expect(startSpy).toHaveBeenCalledTimes(1);
     });

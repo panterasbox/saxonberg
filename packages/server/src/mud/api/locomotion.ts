@@ -25,6 +25,7 @@ import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
+import { SpeciesApi } from './species';
 import { SlotApi } from './slot';
 import type { MixinName } from '../lib/mixin';
 import { Postures } from '../lib/slot/Postured';
@@ -103,18 +104,14 @@ export class LocomotionApi {
    * Idiomatically paired with `loadMode` at locomotion entry points.
    */
   public static async preloadActorAnatomy(actor: Stuff): Promise<void> {
-    if (!MixinApi.isOrganism(actor)) return;
-    const speciesPath = (actor as unknown as { _speciesPath: string | null })
-      ._speciesPath;
-    if (!speciesPath) return;
-    const { Species } = await import('../lib/species/Species');
-    const { BodyPlan } = await import('../lib/species/BodyPlan');
-    const species = await StuffApi.singleton<InstanceType<typeof Species>>(
-      speciesPath,
-    );
-    const bodyPlanPath = species.getBodyPlanPath();
-    if (!bodyPlanPath) return;
-    await StuffApi.singleton<InstanceType<typeof BodyPlan>>(bodyPlanPath);
+    // Thin delegate — kept as a locomotion-domain entry point but the
+    // anatomy-load itself lives on `SpeciesApi.preloadAnatomy` (the
+    // home where species + clade + body plan are the substrate it
+    // serves). Sense / ESP validators call `SpeciesApi.preloadAnatomy`
+    // directly; locomotion verbs still go through here so the
+    // `loadMode` / `preloadActorAnatomy` pairing at locomotion entry
+    // points reads cleanly.
+    await SpeciesApi.preloadAnatomy(actor);
   }
 
   /** Short name → full path; full path passes through. */

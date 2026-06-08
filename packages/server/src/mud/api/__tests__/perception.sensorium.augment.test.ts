@@ -17,7 +17,7 @@ import { OrganismMixin } from '../../lib/species/Organism';
 import { AetherMixin } from '../../lib/message/Aether';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { Thing } from '../../lib/stuff/Thing';
-import { BaselineCommImplant } from '../../lib/augmentation/BaselineCommImplant';
+import { AetherImplant } from '../../lib/augmentation/AetherImplant';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -28,7 +28,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 class AvatarLike extends SlottedMixin(AetherMixin(OrganismMixin(Thing))) {
   static persistentFields: string[] = [];
   // staticSlots is consulted by Slotted to know what slot names exist.
-  // The test's cranial slot accepts SlottableMixin (the BaselineCommImplant
+  // The test's cranial slot accepts SlottableMixin (the AetherImplant
   // composes it via AugmentMixin → SlottableMixin → TangibleMixin → Thing).
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
@@ -80,9 +80,9 @@ describe('PerceptionApi.sensorium — augment-conferred ESP modalities', () => {
     expect(names).not.toContain('emotive-esp');
   });
 
-  it('installing the BaselineCommImplant adds ESP modalities', () => {
+  it('installing the AetherImplant adds ESP modalities', () => {
     const avatar = makeAvatarLike() as AvatarLike;
-    const implant = makeStuff(() => new BaselineCommImplant());
+    const implant = makeStuff(() => new AetherImplant());
     avatar.occupy(implant, 'cranial');
     const names = PerceptionApi.sensorium(avatar)
       .map((m) => m.getName())
@@ -93,7 +93,7 @@ describe('PerceptionApi.sensorium — augment-conferred ESP modalities', () => {
 
   it('removing the implant strips ESP modalities (lazy walk, no caching)', () => {
     const avatar = makeAvatarLike() as AvatarLike;
-    const implant = makeStuff(() => new BaselineCommImplant());
+    const implant = makeStuff(() => new AetherImplant());
     avatar.occupy(implant, 'cranial');
     expect(PerceptionApi.sensorium(avatar).map((m) => m.getName())).toContain(
       'verbal-esp',

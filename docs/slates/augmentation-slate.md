@@ -4,7 +4,7 @@
 > (`AugmentMixin.confers`, `MixinApi.getActiveMixins` / `isActive`,
 > `_augmentGated` + `_grantsModalities` mixin self-declarations,
 > `@RequiresActive` decorator, cranial slot on biped/quadruped,
-> `BaselineCommImplant` template, `Avatar.enter` bootstrap, the
+> `AetherImplant` template, `Avatar.enter` bootstrap, the
 > verb-level `requiresVerbalESP` / `requiresEmotiveESP` validators).
 > See [docs/subsystems/augmentation.md](../subsystems/augmentation.md)
 > for the shipped doc. Wave 2+ items below remain.

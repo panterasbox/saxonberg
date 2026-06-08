@@ -31,24 +31,28 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // pre-clone the per-topic `Topic` templates at boot. Same pattern
   // as species clades / materials / biomes per the note above.
   { templatePath: '/obj/TopicCatalogue' },
-  // Species clades are NOT bootstrapped. `SpeciesApi.isAnimate` /
-  // `getKingdom` are sync, and the `requiresAnimate` validator
-  // ensures the relevant clade chain via its async `preload` hook
-  // (see `lib/command/validators/requiresAnimate.ts`); the
-  // dispatcher awaits validator preloads before the sync validator
-  // phase runs. Same pattern is available for Materials / Biomes
-  // / etc. as they grow validator coverage.
+  // Species clades, perception modalities, and augmentation
+  // templates are NOT bootstrapped. Same lazy-load pattern as
+  // locomotion modes / topic-catalogue leaves:
   //
-  // Perception modality singletons (vision / smell / sound / touch /
-  // taste / verbal-esp / emotive-esp). Eager-cloned because the
-  // sensorium walk + per-frame reception gating call into them on
-  // hot paths (every `filterMessage`, every single-sense verb
-  // validator); lazy-loading would force async ripple through
-  // `SensorMixin`. Same shape `TopicCatalogue` uses for its leaf
-  // descriptors — bootstrap-cloned, sync-resolved thereafter.
-  { templatePathPrefix: '/lib/perception/modalities/' },
-  // Augmentation Wave 1 — bootstrap the BaselineCommImplant template
-  // so Avatar.enter can clone it idempotently into every Avatar's
-  // cranial slot.
-  { templatePathPrefix: '/lib/augmentation/' },
+  //   - **Species / clades** lazy-load via
+  //     `SpeciesApi.preloadAnatomy` (called from the
+  //     `requiresAnimate` and `requires<Sense>`/`requires<ESP>`
+  //     validators' async `preload` hooks).
+  //   - **Perception modalities** lazy-load via
+  //     `PerceptionApi.modalityByName` — the lookup falls back to
+  //     `StuffApi.singleton(path)` on first access. The sense /
+  //     ESP validators' `preload` ensures the relevant modality
+  //     singletons are warm before the sync validator body runs.
+  //     `SensorMixin.filterMessage`'s "modality not loaded → let
+  //     the frame through" path is the documented graceful
+  //     degradation on cold start.
+  //   - **AetherImplant** lazy-loads via
+  //     `StuffApi.clone(AetherImplant.TEMPLATE_PATH)` in
+  //     `Avatar.enter`'s `bootstrapAetherImplant` (already async).
+  //     No bootstrap pre-clone needed.
+  //
+  // Adding any of these back to the manifest would be a regression
+  // in boot-time work for no real benefit — the lazy paths are
+  // proven by locomotion / topics / species.
 ];

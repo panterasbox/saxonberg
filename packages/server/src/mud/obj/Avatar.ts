@@ -17,9 +17,9 @@ import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
 import { MixinApi } from '../api/mixin';
-import { BaselineCommImplant } from '../lib/augmentation/BaselineCommImplant';
-import type { Species } from '../lib/species/Species';
-import type { BodyPlan } from '../lib/species/BodyPlan';
+import { SpeciesApi } from '../api/species';
+import { PerceptionApi } from '../api/perception';
+import { AetherImplant } from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
@@ -259,7 +259,16 @@ export class Avatar extends AvatarBase {
     // — re-entry on an Avatar already carrying the implant is a no-op.
     // Char-gen will take over installation ceremony when that slate
     // ships; this is the v1 default-issuance path.
-    await this.bootstrapBaselineImplant();
+    await this.bootstrapAetherImplant();
+
+    // Warm perception modality singletons so the welcome scene's
+    // auto-sense + every subsequent sync sensorium walk
+    // (`senseStripAugmenter`, the cockpit pane, etc.) resolve
+    // modalities by-name. Modalities are no longer bootstrap-
+    // eager-loaded; this preload is the per-session warm-up.
+    // Tolerant of seed-missing — `preloadModalities` catches per-
+    // singleton failures.
+    await PerceptionApi.preloadModalities();
 
     this.startAutoSave();
 
@@ -330,7 +339,7 @@ export class Avatar extends AvatarBase {
    * for the Avatar's ESP modalities to land in `PerceptionApi.sensorium`
    * (AetherMixin is augment-gated; the implant confers it).
    */
-  private async bootstrapBaselineImplant(): Promise<void> {
+  private async bootstrapAetherImplant(): Promise<void> {
     // Defensive wrapper — bootstrap MUST NOT crash Avatar.enter
     // when templates / persistence / species are unavailable (test
     // fixtures, dev databases that lack the augmentation seeds,
@@ -338,21 +347,12 @@ export class Avatar extends AvatarBase {
     // sense / dm verbs surface their own polite refusals downstream.
     try {
       if (!MixinApi.isSlotted(this)) return;
-      if (!MixinApi.isOrganism(this)) return;
       // Ensure species + body plan are loaded so the BodyPlanSlots
       // override sees the cranial slot when we query it. Without
       // this preload, `getSlotNames()` returns [] until the species
       // singleton is first touched by another verb, and the bootstrap
       // throws "unknown slot 'cranial'" on the very first session-start.
-      const speciesPath = (this as unknown as { _speciesPath: string | null })
-        ._speciesPath;
-      if (speciesPath) {
-        const species = await StuffApi.singleton<Species>(speciesPath);
-        const bpPath = species.getBodyPlanPath();
-        if (bpPath) {
-          await StuffApi.singleton<BodyPlan>(bpPath);
-        }
-      }
+      await SpeciesApi.preloadAnatomy(this);
       try {
         const existing = this.getOccupants('cranial');
         if (existing.size > 0) return;
@@ -360,13 +360,13 @@ export class Avatar extends AvatarBase {
         // No cranial slot on this body plan (sessile etc.).
         return;
       }
-      const implant = await StuffApi.clone<BaselineCommImplant>(
-        BaselineCommImplant.TEMPLATE_PATH,
+      const implant = await StuffApi.clone<AetherImplant>(
+        AetherImplant.TEMPLATE_PATH,
       );
       this.occupy(implant, 'cranial');
     } catch (err) {
       console.warn(
-        `Avatar.bootstrapBaselineImplant skipped for ${this.stuffId}:`,
+        `Avatar.bootstrapAetherImplant skipped for ${this.stuffId}:`,
         err instanceof Error ? err.message : String(err),
       );
     }

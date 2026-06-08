@@ -22,7 +22,6 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import { Touch } from '../Touch';
 import { MixinApi } from '../../../api/mixin';
-import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';
 
@@ -49,19 +48,5 @@ export class TouchModality extends Modality {
   ): Promise<Touch> {
     const t = await BiomeApi.resolveTemperatureFor(loc, detailKey);
     return Touch.of(t);
-  }
-
-  /** Resolve the loaded TouchModality singleton. */
-  public static singleton(): TouchModality {
-    const inst = StuffApi.findByTemplatePath<TouchModality>(
-      '/lib/perception/modalities/touch',
-    );
-    if (!inst) {
-      throw new Error(
-        'TouchModality.singleton: no TouchModality loaded at ' +
-          '/lib/perception/modalities/touch — check bootstrap',
-      );
-    }
-    return inst;
   }
 }

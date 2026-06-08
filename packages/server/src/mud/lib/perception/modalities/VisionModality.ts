@@ -13,7 +13,7 @@
  * `PerceptionApi`; this file is the modality's implementation.
  */
 
-import { Modality } from '../Modality';
+import { Modality, MAX_HOPS, EXIT_TAU } from '../Modality';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import type { Sensor } from '../../message/Sensor';
@@ -29,6 +29,7 @@ import type {
 import { Quantity } from '../../quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { PerceptionApi } from '../../../api/perception';
 import type { LightConduit, BoundarySide } from '../../boundary/Conduit';
 import type { Conduit } from '../../boundary/Conduit';
 import type { Boundary } from '../../boundary/Boundary';
@@ -39,12 +40,6 @@ import {
   compareBand,
   REQUIRED_BAND_FOR_DETAIL,
 } from '../Light';
-
-/** Maximum recursion depth for the propagation walk. */
-export const MAX_HOPS = 2;
-
-/** Per-exit attenuation factor; 1.0 means "no extra dimming on exit traversal." */
-export const EXIT_TAU = 1.0;
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -129,19 +124,15 @@ export class VisionModality extends Modality {
   }
 
   /**
-   * Per-viewer band perception (static convenience). Walks the
-   * vision signal at `loc` then applies the band-shift + shadow
-   * seam. Equivalent to dispatching through
-   * `PerceptionApi.perceiveAt(viewer, loc, vision).band` but
-   * doesn't need the modality singleton resolved at the call site
-   * (used by call sites that have the Light value in hand or
-   * want to avoid the resolution round-trip).
+   * Per-viewer band perception. Routes through `PerceptionApi` to
+   * resolve the vision singleton, computes the signal, then applies
+   * the band-shift + shadow seam.
    */
   public static perceivedBand(
     viewer: Stuff & Sensor & Perception,
     loc: Stuff & Container,
   ): LightBand {
-    const inst = VisionModality.singleton();
+    const inst = vision();
     const signal = inst.signalAt(loc);
     return inst.perceiveFor(viewer, loc, signal).band;
   }
@@ -173,12 +164,32 @@ export class VisionModality extends Modality {
   }
 
   /**
+   * Read the vision signal at `loc` — convenience wrapper around
+   * `PerceptionApi.modalityByName('vision').signalAt(loc)`. Returns
+   * `Light.ZERO` when the walk surfaces no contribution. Lives on
+   * the modality class as vision-domain ergonomics, not as a
+   * backing-class accessor — the lookup goes through
+   * `PerceptionApi` so the template surface stays the single
+   * source of truth.
+   */
+  public static lightAt(loc: Stuff & Container): Light {
+    return vision().signalAt(loc);
+  }
+
+  /**
+   * Derive the lux band at `loc` from the vision signal. Skips the
+   * per-viewer band-shift — for that, call `perceivedBand`.
+   */
+  public static bandAt(loc: Stuff & Container): LightBand {
+    return bandFor(VisionModality.lightAt(loc).intensity.rawValue());
+  }
+
+  /**
    * Concealment surface for Hidden / Stealthing. Maps the band at
    * `loc` into one of five tiers — darker rooms shadow more.
    */
   public static shadowsAt(loc: Stuff & Container): ShadowQuality {
-    const inst = VisionModality.singleton();
-    const signal = inst.signalAt(loc);
+    const signal = vision().signalAt(loc);
     const band = bandFor(signal.intensity.rawValue());
     switch (band) {
       case 'pitch-black':
@@ -193,46 +204,16 @@ export class VisionModality extends Modality {
         return 'none';
     }
   }
+}
 
-  /**
-   * Static convenience: read the vision signal at `loc` and return
-   * a typed `Light`. Equivalent to dispatching through
-   * `PerceptionApi.signalAt(loc, vision)` but doesn't need the
-   * modality singleton resolved at the call site. Returns
-   * `Light.ZERO` when the walk surfaces no contribution — same
-   * shape as the pre-migration `LightApi.lightAt` contract.
-   */
-  public static lightAt(loc: Stuff & Container): Light {
-    return VisionModality.singleton().signalAt(loc);
-  }
-
-  /**
-   * Static convenience: derive the lux band at `loc` from the
-   * vision signal. Skips the per-viewer band-shift — for that,
-   * call `perceivedBand`.
-   */
-  public static bandAt(loc: Stuff & Container): LightBand {
-    return bandFor(VisionModality.lightAt(loc).intensity.rawValue());
-  }
-
-  /**
-   * Resolve the loaded VisionModality singleton via
-   * `StuffApi.findByTemplatePath`. Throws when the singleton isn't
-   * bootstrapped — same shape as the rest of the modality lookup
-   * chain.
-   */
-  public static singleton(): VisionModality {
-    const inst = StuffApi.findByTemplatePath<VisionModality>(
-      '/lib/perception/modalities/vision',
-    );
-    if (!inst) {
-      throw new Error(
-        'VisionModality.singleton: no VisionModality loaded at ' +
-          `/lib/perception/modalities/vision — check bootstrap`,
-      );
-    }
-    return inst;
-  }
+/**
+ * Internal singleton lookup. Routes through `PerceptionApi` rather
+ * than accessing the backing class directly — modalities are
+ * template-loaded Ideas; consumers (including this file's own
+ * static helpers) discover them via the substrate's surface.
+ */
+function vision(): VisionModality {
+  return PerceptionApi.modalityByName('vision') as VisionModality;
 }
 
 function isPerception(viewer: Stuff): viewer is Stuff & Sensor & Perception {

@@ -13,7 +13,7 @@
 
 import type { CommandValidator } from '../../../api/command';
 import { PerceptionApi } from '../../../api/perception';
-import { preloadActorAnatomy } from './preloadActorAnatomy';
+// (anatomy + modalities preloaded via PerceptionApi.preloadForSenseGate)
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
@@ -22,6 +22,6 @@ const validator: CommandValidator = (context) => {
   return 'You have no way to send a thought.';
 };
 
-validator.preload = preloadActorAnatomy;
+validator.preload = (ctx) => PerceptionApi.preloadForSenseGate(ctx.commandGiver);
 
 export default validator;

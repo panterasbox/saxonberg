@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SmellModality } from '../SmellModality';
-import { MAX_HOPS } from '../VisionModality';
+import { MAX_HOPS } from '../../Modality';
 import { Smell } from '../../Smell';
 import { SmellSourceMixin } from '../../SmellSource';
 import { AtmosphericMixin } from '../../../biome/Atmospheric';

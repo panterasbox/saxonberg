@@ -75,7 +75,7 @@ import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 // to derive slots from species → bodyPlan) and below OrganismMixin
 // (which provides the species reference BodyPlanSlots reads).
 // Required for wear/wield AND for the augmentation Wave 1 cranial
-// slot the BaselineCommImplant occupies. Per docs/subsystems/slot.md
+// slot the AetherImplant occupies. Per docs/subsystems/slot.md
 // the standard organism-body-plan slot pattern.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(

@@ -25,9 +25,10 @@ import { Modality } from '../Modality';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import { Sound, type SoundSourceRef, SOUND_SOURCE_CAP } from '../Sound';
-import { MAX_HOPS, EXIT_TAU } from './VisionModality';
+import { MAX_HOPS, EXIT_TAU } from '../Modality';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
 import type { Adornment } from '../../boundary/Adornment';
 import type { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
@@ -259,20 +260,15 @@ export class SoundModality extends Modality {
     return result;
   }
 
-  public static singleton(): SoundModality {
-    const inst = StuffApi.findByTemplatePath<SoundModality>(
-      '/lib/perception/modalities/sound',
-    );
-    if (!inst) {
-      throw new Error(
-        'SoundModality.singleton: no SoundModality loaded at ' +
-          '/lib/perception/modalities/sound — check bootstrap',
-      );
-    }
-    return inst;
-  }
-
+  /**
+   * Read the sound signal at `loc` — convenience wrapper around
+   * `PerceptionApi.modalityByName('sound').signalAt(loc)`. The
+   * lookup goes through `PerceptionApi` so the template surface
+   * stays the single source of truth.
+   */
   public static soundAt(loc: Stuff & Container): Sound | null {
-    return SoundModality.singleton().signalAt(loc);
+    return (
+      PerceptionApi.modalityByName('sound') as SoundModality
+    ).signalAt(loc);
   }
 }

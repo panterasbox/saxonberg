@@ -10,7 +10,7 @@ Wave 1 ships the substrate (`AugmentMixin.confers`,
 `MixinApi.getActiveMixins` / `isActive`, the `@RequiresActive`
 decorator, the `_augmentGated` / `_grantsModalities` mixin
 declarations), the cranial slot on biped/quadruped body plans, the
-`BaselineCommImplant` template, and the Avatar bootstrap that
+`AetherImplant` template, and the Avatar bootstrap that
 installs it. Wave 2+ adds an install/remove procedure, other
 augments, char-gen loadout selection, failure modes / power state,
 and the generalized "contribute capability" surface beyond modalities
@@ -150,16 +150,16 @@ The "implant" kind is documented prose on the slot's name, not a
 new validator enum. Sessile body plans deliberately omit the
 cranial slot (plants don't get implants in v1).
 
-## `BaselineCommImplant`
+## `AetherImplant`
 
 The Wave 1 implant template:
 
 ```ts
-// lib/augmentation/BaselineCommImplant.ts
-export class BaselineCommImplant
+// lib/augmentation/AetherImplant.ts
+export class AetherImplant
   extends AugmentMixin(SlottableMixin(TangibleMixin(Thing)))
 {
-  static readonly TEMPLATE_PATH = '/lib/augmentation/BaselineCommImplant';
+  static readonly TEMPLATE_PATH = '/lib/augmentation/AetherImplant';
 
   override confers(): readonly string[] {
     return ['AetherMixin'];
@@ -170,14 +170,14 @@ export class BaselineCommImplant
 Hardened per the slate: no power state, no failure modes, no fuel.
 Diegetically a small brass-and-silicon device. Every Avatar
 bootstrap-installs one in the cranial slot via `Avatar.enter`'s
-`bootstrapBaselineImplant` path (idempotent: re-entry on an Avatar
+`bootstrapAetherImplant` path (idempotent: re-entry on an Avatar
 already carrying anything cranial is a no-op).
 
 ## How other augment kinds plug in (substrate proof)
 
 | Augment Stuff | `confers()` returns | Mixin's grants | Consumer subsystem |
 |---|---|---|---|
-| `BaselineCommImplant` (v1) | `['AetherMixin']` | `_grantsModalities` | `PerceptionApi.sensorium` |
+| `AetherImplant` (v1) | `['AetherMixin']` | `_grantsModalities` | `PerceptionApi.sensorium` |
 | `ThermalVisionImplant` (future) | `['ThermalVisionMixin']` | `_grantsModalities` | `PerceptionApi.sensorium` |
 | `CyberArm` (future) | `['ProstheticArmMixin']` | `_grantsSlots`, `_grantsAttributeMasks` | `SlotApi`, `PropertiedMixin` |
 | `TranslationChip` (future) | `['TranslationMixin']` | `_grantsLanguages` | `LanguageApi` (future) |
@@ -198,7 +198,7 @@ What ships:
 - `MixinApi.getActiveMixins` / `isActive` + predicate routing.
 - `@RequiresActive` decorator (inlined equivalent in AetherMixin).
 - Cranial slot on biped/quadruped body plans.
-- BaselineCommImplant template + Avatar.enter bootstrap.
+- AetherImplant template + Avatar.enter bootstrap.
 - `requiresVerbalESP` + `requiresEmotiveESP` verb-level validators.
 - Reception-gating integration (`Scene.modality` + filterMessage)
   drops `dm` frames for implant-less recipients.
@@ -235,7 +235,7 @@ What's reserved for Wave 2+ (see slate):
 ```
 lib/augmentation/
 ├── Augment.ts                  AugmentMixin
-├── BaselineCommImplant.ts      Wave 1 implant template
+├── AetherImplant.ts      Wave 1 implant template
 └── __tests__/Augment.test.ts
 
 lib/security/
@@ -243,7 +243,7 @@ lib/security/
 └── __tests__/RequiresActive.test.ts
 
 seeds/lib/augmentation/
-└── BaselineCommImplant.yaml    Hydrator-ready seed
+└── AetherImplant.yaml    Hydrator-ready seed
 
 api/mixin.ts                    getActiveMixins / isActive
                                 + isAugment predicate

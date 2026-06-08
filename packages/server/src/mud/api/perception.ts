@@ -28,6 +28,7 @@ import { Modality } from '../lib/perception/Modality';
 import type { Signal, Percept } from '../lib/perception/Modality';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
+import { SpeciesApi } from './species';
 import { SecurityApi } from './security';
 
 /** Template-path prefix shared by every modality singleton. */
@@ -173,7 +174,61 @@ export class PerceptionApi {
   public static canPerceive(viewer: Stuff, modality: Modality): boolean {
     return this.sensorium(viewer).some((c) => c === modality);
   }
+
+  /**
+   * Lazy-load every v1 modality singleton. The substrate is no
+   * longer bootstrap-eager-loaded — modalities follow the same
+   * pattern as locomotion modes / species clades: singletons load
+   * on first verb-level demand via their validator's async
+   * `preload` hook. After this call, sync `modalityByName` /
+   * `modalityByOrganKey` lookups resolve.
+   *
+   * Tolerant of individual template misses (a fresh DB without
+   * the seeds yet, an in-progress migration); each modality's
+   * `StuffApi.singleton` failure logs and the cache simply omits
+   * that modality. Sense / ESP validators surface their polite
+   * refusal downstream when their modality is missing.
+   */
+  public static async preloadModalities(): Promise<void> {
+    await Promise.all(
+      V1_MODALITY_NAMES.map((name) =>
+        StuffApi.singleton(`${MODALITY_PREFIX}${name}`).catch(() => null),
+      ),
+    );
+    // Drop the lazy cache so the next sync lookup re-reads via
+    // `findByPathGlob` and picks up the freshly-cloned singletons.
+    invalidateModalityCache();
+  }
+
+  /**
+   * Combined async preload for sense / ESP verb-level validators.
+   * Warms anatomy (species + clades + body plan) AND modality
+   * singletons in parallel — the two everything-must-be-live
+   * concerns the validators' sync body assumes. Validators wire
+   * this into their `preload` hook.
+   */
+  public static async preloadForSenseGate(actor: Stuff): Promise<void> {
+    await Promise.all([
+      SpeciesApi.preloadAnatomy(actor),
+      PerceptionApi.preloadModalities(),
+    ]);
+  }
 }
+
+/**
+ * v1 modality name list — single source of truth for the
+ * `preloadModalities` walk. Stays in step with the seven seed
+ * YAMLs under `seeds/lib/perception/modalities/`.
+ */
+const V1_MODALITY_NAMES: readonly string[] = [
+  'vision',
+  'smell',
+  'sound',
+  'touch',
+  'taste',
+  'verbal-esp',
+  'emotive-esp',
+];
 
 /**
  * Walk the viewer's BodyPlan and resolve each sensoryPort organ key

@@ -7,7 +7,7 @@
  * source attribution list). Walk shape mirrors `VisionModality`'s:
  * contents-side emitters + fixture-side emitters + cross-boundary
  * via SmellConduit + cross-exit at base transmissivity. Depth-capped
- * via VisionModality's shared `MAX_HOPS`; cycle-guarded via the
+ * via `MAX_HOPS` (from `Modality.ts`); cycle-guarded via the
  * `visited` set.
  *
  * Vacuum check: a scope whose `_atmosphere` field reads `'vacuum'`
@@ -20,9 +20,10 @@ import { Modality } from '../Modality';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import { Smell, type SmellSourceRef, SMELL_SOURCE_CAP } from '../Smell';
-import { MAX_HOPS, EXIT_TAU } from './VisionModality';
+import { MAX_HOPS, EXIT_TAU } from '../Modality';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { PerceptionApi } from '../../../api/perception';
 import type { Adornment } from '../../boundary/Adornment';
 import type { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import type { Boundary } from '../../boundary/Boundary';
@@ -235,7 +236,7 @@ export class SmellModality extends Modality {
    * Total smell at `loc`. Walks contents-side emitters (b),
    * fixture-side emitters (c), cross-boundary propagation via
    * `SmellConduit` (d), and cross-exit propagation (e).
-   * Bounded by `VisionModality.MAX_HOPS`; cycle-guarded via the
+   * Bounded by `MAX_HOPS` (substrate-shared); cycle-guarded via the
    * `visited` set. Returns `null` when the walk surfaces no
    * contribution — matches the modality default-null contract for
    * consumers that branch on presence.
@@ -250,29 +251,14 @@ export class SmellModality extends Modality {
   }
 
   /**
-   * Static convenience: resolve the loaded SmellModality singleton.
-   * Same shape as `VisionModality.singleton` etc.
-   */
-  public static singleton(): SmellModality {
-    const inst = StuffApi.findByTemplatePath<SmellModality>(
-      '/lib/perception/modalities/smell',
-    );
-    if (!inst) {
-      throw new Error(
-        'SmellModality.singleton: no SmellModality loaded at ' +
-          '/lib/perception/modalities/smell — check bootstrap',
-      );
-    }
-    return inst;
-  }
-
-  /**
-   * Static convenience: read the smell signal at `loc` and return
-   * a `Smell | null`. Equivalent to dispatching through
-   * `PerceptionApi.signalAt(loc, smell)` but doesn't need the
-   * modality singleton resolved at the call site.
+   * Read the smell signal at `loc` — convenience wrapper around
+   * `PerceptionApi.modalityByName('smell').signalAt(loc)`. The
+   * lookup goes through `PerceptionApi` so the template surface
+   * stays the single source of truth.
    */
   public static smellAt(loc: Stuff & Container): Smell | null {
-    return SmellModality.singleton().signalAt(loc);
+    return (
+      PerceptionApi.modalityByName('smell') as SmellModality
+    ).signalAt(loc);
   }
 }
