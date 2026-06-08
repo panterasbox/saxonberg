@@ -133,6 +133,30 @@ kg:
     - { tag: rock-like,  threshold: 2000 }
     - { tag: metal-like, threshold: 6000 }
 
+# Sound pressure level (decibels). MUD-game calibration aligned with
+# everyday acoustic intuition:
+#   ~30 dB whisper, ~60 dB normal conversation, ~80 dB busy street,
+#   ~110 dB jackhammer at 1m, ~140 dB jet engine close-by.
+dB:
+  default:
+    - { tag: silent,        threshold: 0 }
+    - { tag: faint,         threshold: 15 }
+    - { tag: quiet,         threshold: 30 }
+    - { tag: conversation,  threshold: 50 }
+    - { tag: loud,          threshold: 75 }
+    - { tag: piercing,      threshold: 100 }
+    - { tag: deafening,     threshold: 120 }
+
+# Sound frequency (Hertz). Coarse vocabulary for prose.
+Hz:
+  default:
+    - { tag: sub-bass, threshold: 0 }
+    - { tag: bass,     threshold: 60 }
+    - { tag: low,      threshold: 250 }
+    - { tag: midrange, threshold: 500 }
+    - { tag: high,     threshold: 4000 }
+    - { tag: ultra,    threshold: 16000 }
+
 # Smell concentration (parts-per-million). Calibrated against the
 # per-species olfactory profile thresholds in SmellController
 # (keen: 1, normal: 10, dull: 100). Casual prose vocabulary for
@@ -149,5 +173,5 @@ ppm:
 # Tagless units (declared in the Unit type but with no tag table):
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.
-#   - g, m, m³, km, cm, mm, s, ms, dB, Hz, N, J, W — ditto.
+#   - g, m, m³, km, cm, mm, s, ms, N, J, W — ditto.
 # `Quantity.tag()` falls back to canonical format for these.

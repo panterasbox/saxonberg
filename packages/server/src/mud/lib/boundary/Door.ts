@@ -65,6 +65,7 @@ import type {
   BoundarySide,
 } from './Conduit';
 import type { SmellConduit } from './SmellConduit';
+import type { SoundConduit } from './SoundConduit';
 
 const DoorBase = SealableMixin(Boundary);
 
@@ -131,6 +132,7 @@ export class Door extends DoorBase {
       lineOfSightFor(this),
       movementConduitFor(this),
       smellConduitFor(this),
+      soundConduitFor(this),
     ];
   }
 
@@ -210,6 +212,17 @@ function smellConduitFor(door: Door): SmellConduit {
   return {
     conduitKind: 'smell',
     // v1 Door: closed → 0 (blocks smell), open → 1 (transparent).
+    transmissivity(from, to) {
+      return door.transmissivity(from, to);
+    },
+  };
+}
+
+function soundConduitFor(door: Door): SoundConduit {
+  return {
+    conduitKind: 'sound',
+    // v1 Door: binary open/closed. Future muffled-door subclasses
+    // can return a partial transmissivity (~0.01 = -20 dB) instead.
     transmissivity(from, to) {
       return door.transmissivity(from, to);
     },
