@@ -79,7 +79,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
      * slates ship.
      */
     static commandContributions: CommandContributions = {
-      self: ['tell.yaml'],
+      self: ['dm.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -114,7 +114,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
         Mml.perceiverMentionResolver(speaker),
       );
       MessageApi.scene(speaker)
-        .topic('world.speech.tell')
+        .topic('world.speech.dm')
         .modality('verbal-esp')
         .toSelf(
           Mml.compose`${Mml.name(speaker)} → ${Mml.name(target)}: ${parsed}`,

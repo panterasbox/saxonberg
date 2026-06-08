@@ -83,7 +83,7 @@ describe('Command-YAML migration parity', () => {
       'player',
       'say',
       'settings',
-      'tell',
+      'dm',
       'var',
     ];
     for (const v of verbs) {
