@@ -658,7 +658,7 @@ describe('Avatar', () => {
       };
     }
 
-    it('uses avatar.getContainer() when the avatar is already placed (no fallback singleton call)', async () => {
+    it('reads the starting location from getContainer() and does not call into StuffApi.singleton', async () => {
       const { StuffApi } = await import('../../api/stuff');
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
@@ -680,7 +680,6 @@ describe('Avatar', () => {
         .mockResolvedValue({} as never);
       vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
 
-      // Stub MessageApi.scene to no-op.
       const send = vi.fn();
       vi.spyOn(MessageApi, 'scene').mockImplementation(
         () =>
@@ -697,60 +696,23 @@ describe('Avatar', () => {
       const ix = fakeInteractive() as unknown as Interactive;
       await avatar.enter(ix);
 
-      // `singleton` IS called (for modality preloads + the
-      // species / body-plan anatomy preload in the augment
-      // bootstrap); the assertion that matters is no call for
-      // the fallback starting-location path.
-      const { DEFAULT_STARTING_LOCATION_PATH } = await import(
-        '../../config/constants'
-      );
-      expect(singletonSpy).not.toHaveBeenCalledWith(
-        DEFAULT_STARTING_LOCATION_PATH,
-      );
+      // enter() is pure ceremony — no template-resolution calls
+      // and no teleport. Container placement and default-loadout
+      // install run during clone (applyContainer + postRegister)
+      // before enter ever fires.
+      expect(singletonSpy).not.toHaveBeenCalled();
       expect(teleportSpy).not.toHaveBeenCalled();
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to DEFAULT_STARTING_LOCATION_PATH when avatar has no container', async () => {
-      const { StuffApi } = await import('../../api/stuff');
-      const { MessageApi } = await import('../../api/message');
-      const { EventApi } = await import('../../api/event');
-      const { DEFAULT_STARTING_LOCATION_PATH } = await import(
-        '../../config/constants'
-      );
-
+    it('throws when the avatar has no container (data integrity backstop)', async () => {
       const avatar = makeAvatar('enter-2');
       vi.spyOn(avatar, 'getContainer').mockReturnValue(null);
-      const teleportSpy = vi
-        .spyOn(avatar, 'teleport')
-        .mockImplementation(() => undefined);
-      vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
-
-      const fallback = { stuffId: 'fallback-stuffId' } as never;
-      const singletonSpy = vi
-        .spyOn(StuffApi, 'singleton')
-        .mockResolvedValue(fallback);
-      vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
-
-      const send = vi.fn();
-      vi.spyOn(MessageApi, 'scene').mockImplementation(
-        () =>
-          ({
-            topic: () => ({
-              toSelf: () => ({
-                payload: () => ({ send }),
-                send,
-              }),
-            }),
-          }) as never
-      );
 
       const ix = fakeInteractive() as unknown as Interactive;
-      await avatar.enter(ix);
-
-      expect(singletonSpy).toHaveBeenCalledWith(DEFAULT_STARTING_LOCATION_PATH);
-      expect(teleportSpy).toHaveBeenCalledTimes(1);
-      expect(teleportSpy).toHaveBeenCalledWith(fallback, { silent: true });
+      await expect(avatar.enter(ix)).rejects.toThrow(
+        /has no container/
+      );
     });
 
     it('starts autosave', async () => {

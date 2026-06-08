@@ -23,6 +23,14 @@ class: /obj/Avatar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   pronouns: they
+  # Default starting location for freshly-created avatars. Phase 2
+  # `applyContainer` places the runtime avatar into this Location at
+  # clone time. `Avatar.save()` rewrites this field to wherever the
+  # avatar logged out from, so subsequent sessions resume in place;
+  # only the very first session lands at the declared default. Keep
+  # this in sync with `DEFAULT_STARTING_LOCATION_PATH` in
+  # `mud/config/constants.ts`.
+  container: /domain/eternal/duncan-hall/lobby
   # Race-build defaults: every freshly-created Avatar template forks
   # these values. Existing per-user templates predate this addition;
   # OrganismMixin's getSpecies() returns null and getLifecycleState()
