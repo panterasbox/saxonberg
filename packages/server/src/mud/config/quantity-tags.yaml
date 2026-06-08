@@ -133,6 +133,19 @@ kg:
     - { tag: rock-like,  threshold: 2000 }
     - { tag: metal-like, threshold: 6000 }
 
+# Smell concentration (parts-per-million). Calibrated against the
+# per-species olfactory profile thresholds in SmellController
+# (keen: 1, normal: 10, dull: 100). Casual prose vocabulary for
+# render-time tags.
+ppm:
+  default:
+    - { tag: imperceptible, threshold: 0 }
+    - { tag: trace,         threshold: 1 }
+    - { tag: faint,         threshold: 10 }
+    - { tag: noticeable,    threshold: 50 }
+    - { tag: pungent,       threshold: 100 }
+    - { tag: overpowering,  threshold: 500 }
+
 # Tagless units (declared in the Unit type but with no tag table):
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.

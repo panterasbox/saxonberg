@@ -23,7 +23,7 @@
  */
 
 /** Stable kind tag for the conduit registry. */
-export type ConduitKind = 'light' | 'sight' | 'movement' | 'sound';
+export type ConduitKind = 'light' | 'sight' | 'movement' | 'sound' | 'smell';
 
 /** Side tag for a Boundary's two anchors. */
 export type BoundarySide = 'A' | 'B';
@@ -75,10 +75,8 @@ export interface MovementConduit extends Conduit {
 }
 
 /**
- * Sound conduit slot. Reserved for the future Sound subsystem; no v1
- * implementation ships. Defining the kind tag now keeps the registry
- * shape closed.
+ * Sound conduit slot. The full `SoundConduit` interface (with
+ * `transmissivity`) lives in its own file `SoundConduit.ts` —
+ * declared here as a kind tag so the conduit registry shape stays
+ * closed.
  */
-export interface SoundConduit extends Conduit {
-  readonly conduitKind: 'sound';
-}

@@ -133,7 +133,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
       .send();
   }
 
-  private senseLocation(context: CommandContext): void {
+  protected senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
     if (!MixinApi.isVisible(location)) {

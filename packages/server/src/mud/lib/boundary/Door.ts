@@ -64,6 +64,7 @@ import type {
   MovementConduit,
   BoundarySide,
 } from './Conduit';
+import type { SmellConduit } from './SmellConduit';
 
 const DoorBase = SealableMixin(Boundary);
 
@@ -129,6 +130,7 @@ export class Door extends DoorBase {
       lightConduitFor(this),
       lineOfSightFor(this),
       movementConduitFor(this),
+      smellConduitFor(this),
     ];
   }
 
@@ -200,6 +202,16 @@ function movementConduitFor(door: Door): MovementConduit {
     conduitKind: 'movement',
     canPassThrough(from, to, mode) {
       return door.canPassThrough(from, to, mode);
+    },
+  };
+}
+
+function smellConduitFor(door: Door): SmellConduit {
+  return {
+    conduitKind: 'smell',
+    // v1 Door: closed → 0 (blocks smell), open → 1 (transparent).
+    transmissivity(from, to) {
+      return door.transmissivity(from, to);
     },
   };
 }

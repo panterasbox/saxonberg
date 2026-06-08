@@ -33,10 +33,10 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
     expect(MixinApi.isContainable(door)).toBe(true);
   });
 
-  it('getConduits returns Light, Sight, and Movement conduits', () => {
+  it('getConduits returns Light, Sight, Movement, and Smell conduits', () => {
     const door = makeStuff(() => new Door());
     const kinds = door.getConduits().map((c) => c.conduitKind).sort();
-    expect(kinds).toEqual(['light', 'movement', 'sight']);
+    expect(kinds).toEqual(['light', 'movement', 'sight', 'smell']);
   });
 
   it('all three conduits gate on isOpen', () => {

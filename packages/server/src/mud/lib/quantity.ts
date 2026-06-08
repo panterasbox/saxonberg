@@ -51,7 +51,7 @@ export type Unit =
   // Sound (declared now, channel ships later)
   | 'dB' | 'Hz'
   // Chemistry / material
-  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³'
+  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
   // Pressure / force / energy / power
   | 'Pa' | 'N' | 'J' | 'W'
   // Ratio (humidity, etc.) — bare percent string
@@ -95,6 +95,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   'g/mol': ARITHMETIC_OPS,
   'mol/L': ARITHMETIC_OPS,
   'kg/m³': ARITHMETIC_OPS,
+  ppm: ARITHMETIC_OPS,
   Pa: ARITHMETIC_OPS,
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,

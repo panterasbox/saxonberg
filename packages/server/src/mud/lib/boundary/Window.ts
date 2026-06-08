@@ -43,6 +43,7 @@ import type {
   LineOfSight,
   BoundarySide,
 } from './Conduit';
+import type { SmellConduit } from './SmellConduit';
 import type { ColorTag } from '../perception/Light';
 
 const WindowBase = SealableMixin(Boundary);
@@ -197,7 +198,11 @@ export class Window extends WindowBase {
    * `this.transmissivity` / `this.canSeeThrough`.
    */
   public override getConduits(): readonly Conduit[] {
-    return [lightConduitFor(this), lineOfSightFor(this)];
+    return [
+      lightConduitFor(this),
+      lineOfSightFor(this),
+      smellConduitFor(this),
+    ];
   }
 
   public transmissivity(from: BoundarySide, to: BoundarySide): number {
@@ -353,6 +358,17 @@ function lineOfSightFor(window: Window): LineOfSight {
     conduitKind: 'sight',
     canSeeThrough(from, to) {
       return window.canSeeThrough(from, to);
+    },
+  };
+}
+
+function smellConduitFor(window: Window): SmellConduit {
+  return {
+    conduitKind: 'smell',
+    // Closed shutter blocks smell; open window passes the host's
+    // transmissivity (mirrors the light-side gating).
+    transmissivity(from, to) {
+      return window.transmissivity(from, to);
     },
   };
 }

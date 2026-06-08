@@ -53,6 +53,7 @@ import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
+import type { SmellSource } from '../lib/perception/SmellSource';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
@@ -480,6 +481,10 @@ export class MixinApi {
 
   public static isLightSource(obj: Stuff): obj is Stuff & LightSource {
     return this.hasMixin(obj, Mixins.LightSource);
+  }
+
+  public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
+    return this.hasMixin(obj, Mixins.SmellSource);
   }
 
   public static isPerception(obj: Stuff): obj is Stuff & Perception {
