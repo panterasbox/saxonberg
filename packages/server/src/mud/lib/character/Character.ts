@@ -41,6 +41,8 @@ import { CommandGiverMixin } from '../command/CommandGiver';
 import { OrganismMixin } from '../species/Organism';
 import { PosedMixin } from './Posed';
 import { EngagedMixin } from '../activity/Engaged';
+import { SlottedMixin } from '../slot/Slotted';
+import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 
 // Compose mixins:
 //   CommandGiver + Mobile + Container + Containable + Visible +
@@ -53,7 +55,7 @@ import { EngagedMixin } from '../activity/Engaged';
 // VisibleMixin is target-shape only — description state, no verbs.
 // Sensor + Perception together = the full perceiver substrate:
 // Sensor handles channel-side message receipt, Perception handles
-// the subjective interpretation seams that LightApi (and future
+// the subjective interpretation seams that VisionModality (and future
 // hearing/etc.) ask the viewer to modulate. PerceiverMixin sits
 // directly above Sensor (it requires Sensor for output routing)
 // and owns the perception verb surface as a separate role from
@@ -69,6 +71,12 @@ import { EngagedMixin } from '../activity/Engaged';
 // to mobility — a stationary forge-bound creature is Engaged but not
 // Mobile — but co-composing on Character gets both surfaces on every
 // PC and NPC in one shot.
+// BodyPlanSlotsMixin sits above SlottedMixin (overrides its defaults
+// to derive slots from species → bodyPlan) and below OrganismMixin
+// (which provides the species reference BodyPlanSlots reads).
+// Required for wear/wield AND for the augmentation Wave 1 cranial
+// slot the AetherImplant occupies. Per docs/subsystems/slot.md
+// the standard organism-body-plan slot pattern.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
     EngagedMixin(
@@ -79,7 +87,13 @@ const CharacterBase = CommandGiverMixin(
               PerceptionMixin(
                 PerceiverMixin(
                   SensorMixin(
-                    GenderedMixin(PosedMixin(OrganismMixin(NamedMixin(Agent))))
+                    GenderedMixin(
+                      PosedMixin(
+                        BodyPlanSlotsMixin(
+                          SlottedMixin(OrganismMixin(NamedMixin(Agent))),
+                        ),
+                      ),
+                    ),
                   )
                 )
               )

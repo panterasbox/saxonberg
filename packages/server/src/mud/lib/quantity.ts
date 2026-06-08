@@ -51,7 +51,7 @@ export type Unit =
   // Sound (declared now, channel ships later)
   | 'dB' | 'Hz'
   // Chemistry / material
-  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³'
+  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
   // Pressure / force / energy / power
   | 'Pa' | 'N' | 'J' | 'W'
   // Ratio (humidity, etc.) — bare percent string
@@ -74,6 +74,27 @@ const arithScale = (value: number, factor: number): number => value * factor;
 const ARITHMETIC_OPS: UnitOps = { add: arithAdd, scale: arithScale };
 
 /**
+ * Decibel arithmetic: amplitude in dB combines logarithmically.
+ * For incoherent sound sources the canonical sum is
+ *   10 * log10(10^(a/10) + 10^(b/10))
+ * which produces ~3 dB more than the louder of two equal-amplitude
+ * sources (60 dB + 60 dB → 63.01 dB), not 120 dB. Multiplication on
+ * linear amplitude corresponds to adding `10 * log10(factor)` to the
+ * dB value, with `factor === 0` resolving to negative infinity (we
+ * floor at the practical minimum of -120 dB for numeric stability).
+ */
+const dBAdd = (a: number, b: number): number =>
+  10 * Math.log10(Math.pow(10, a / 10) + Math.pow(10, b / 10));
+
+const dBScale = (value: number, factor: number): number => {
+  if (factor <= 0) return -120;
+  if (factor === 1) return value;
+  return value + 10 * Math.log10(factor);
+};
+
+const DECIBEL_OPS: UnitOps = { add: dBAdd, scale: dBScale };
+
+/**
  * Math is registered per-unit to leave room for non-arithmetic ops
  * (decibel addition) without retrofitting the world. v1 entries are
  * the units that hosts/tests actually exercise add/scale on.
@@ -91,10 +112,12 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   lux: ARITHMETIC_OPS,
   lumen: ARITHMETIC_OPS,
   Hz: ARITHMETIC_OPS,
+  dB: DECIBEL_OPS,
   mol: ARITHMETIC_OPS,
   'g/mol': ARITHMETIC_OPS,
   'mol/L': ARITHMETIC_OPS,
   'kg/m³': ARITHMETIC_OPS,
+  ppm: ARITHMETIC_OPS,
   Pa: ARITHMETIC_OPS,
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,

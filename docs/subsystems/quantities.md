@@ -266,11 +266,31 @@ v1 calls it from a test harness when needed.
 | `K` | `color` | `warm`/`neutral`/`cool`/`daylight`/`blue` |
 | `kg` | `default` | `feather`/`light`/`medium`/`heavy`/`enormous` |
 | `kg/m³` | `default` | `gas-like`/`water-like`/`rock-like`/`metal-like` |
+| `ppm` | `default` | `imperceptible`/`trace`/`faint`/`noticeable`/`pungent`/`overpowering` (smell concentration) |
+| `dB` | `default` | `silent`/`faint`/`quiet`/`conversation`/`loud`/`piercing`/`deafening` (sound pressure level) |
+| `Hz` | `default` | `sub-bass`/`bass`/`low`/`midrange`/`high`/`ultra` (frequency) |
 
 Tagless units in the catalog (`g/mol`, `mol`, `mol/L`, `g`, `m`,
-`s`, `Pa`, `N`, `J`, `W`, `dB`, `Hz`, …) deliberately have no tag
-table — they don't have a casual-prose vocabulary. `Quantity.tag()`
-falls back to canonical format for them (`"55.845 g/mol"`).
+`s`, `Pa`, `N`, `J`, `W`, …) deliberately have no tag table — they
+don't have a casual-prose vocabulary. `Quantity.tag()` falls back to
+canonical format for them (`"55.845 g/mol"`).
+
+### dB arithmetic — logarithmic add
+
+The `dB` unit's `UnitOps` registry overrides `add` and `scale` to
+implement decibel arithmetic correctly:
+
+- `add(a, b) = 10 * log10(10^(a/10) + 10^(b/10))` — incoherent-sum
+  formula. Two 60 dB sources sum to ~63 dB, not 120.
+- `scale(value, factor)` — multiplying linear amplitude by a factor
+  corresponds to adding `10 * log10(factor)` to the dB value;
+  `factor === 0` resolves to a practical -120 dB floor.
+
+The sound propagation walk in `SoundModality.signalAt` uses LINEAR
+amplitude internally (sums `10^(dB/10)` terms across contributing
+sources, applies the conduit transmissivity as a multiplier on the
+linear scale) and converts back to dB at the wrap step — the
+physically-correct merge for incoherent sources.
 
 ## Mml emission — `<quantity>` markup
 

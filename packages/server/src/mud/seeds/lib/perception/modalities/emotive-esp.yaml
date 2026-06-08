@@ -1,0 +1,8 @@
+# EmotiveESPModality — emotive-broadcast-ESP singleton.
+# Future emote verbs ride this modality as the carrier.
+class: /lib/perception/modalities/EmotiveESPModality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: emotive-esp
+  family: field
+  modality: emotive-esp

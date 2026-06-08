@@ -11,10 +11,11 @@
  *
  * Client-side `<sense>` parse transparency lives in
  * `parseMml.test.ts`; BodyPlan.getModalities and
- * SpeciesApi.deriveSensorium live in their own test files.
+ * PerceptionApi.sensorium live in their own test files.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import {
   VisibleMixin,
   senseStripAugmenter,
@@ -73,6 +74,7 @@ function makeViewerWithSensorium(channels: SenseChannel[]): Stuff {
 describe('senseStripAugmenter (senses build)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
+    buildAllModalities();
   });
 
   describe('Mml transparency through <sense>', () => {

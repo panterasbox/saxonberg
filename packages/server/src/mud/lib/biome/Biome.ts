@@ -70,6 +70,14 @@ export class Biome extends Idea {
   protected _defaultAtmosphere: string | null = null;
 
   /**
+   * Default ambient sound level for descendants. Parallel to the
+   * other `_defaultX` fields — the biome chain
+   * (`BiomeApi.resolveAmbientSoundLevelFor`) resolves it per scope.
+   * `null` falls through.
+   */
+  protected _defaultAmbientSoundLevel: Quantity<'dB'> | null = null;
+
+  /**
    * Ambient sound MML — biome-shaped prose rendered when a sound-
    * slate consumer asks. Consumer is deferred; the field ships so
    * authoring can begin.
@@ -87,6 +95,7 @@ export class Biome extends Idea {
     '_defaultHumidity',
     '_defaultGravity',
     '_defaultAtmosphere',
+    '_defaultAmbientSoundLevel',
     '_ambientSoundMml',
     '_ambientSmellMml',
   ];
@@ -96,6 +105,7 @@ export class Biome extends Idea {
     _defaultPressure: QuantityMarshaller.pathFor('Pa'),
     _defaultHumidity: QuantityMarshaller.pathFor('%'),
     _defaultGravity: QuantityMarshaller.pathFor('m/s²'),
+    _defaultAmbientSoundLevel: QuantityMarshaller.pathFor('dB'),
   };
 
   // ---------- name ----------
@@ -192,6 +202,18 @@ export class Biome extends Idea {
   }
   public setDefaultAtmosphere(value: string | null): void {
     this._defaultAtmosphere = value;
+  }
+
+  public getDefaultAmbientSoundLevel(): Quantity<'dB'> | null {
+    return this._defaultAmbientSoundLevel;
+  }
+  public setDefaultAmbientSoundLevel(value: Quantity<'dB'> | null): void {
+    if (value === null) {
+      this._defaultAmbientSoundLevel = null;
+      return;
+    }
+    Biome.assertQuantity(value, 'dB', 'defaultAmbientSoundLevel');
+    this._defaultAmbientSoundLevel = value;
   }
 
   // ---------- ambient sensory texture ----------

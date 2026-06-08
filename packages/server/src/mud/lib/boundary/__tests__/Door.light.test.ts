@@ -1,9 +1,10 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Door } from '../Door';
 import { Boundary } from '../Boundary';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
-import { LightApi } from '../../../api/light';
+import { VisionModality } from '../../perception/modalities/VisionModality';
+import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import { Light } from '../../perception/Light';
 import { LightSourceMixin } from '../../perception/LightSource';
 import { Thing } from '../../stuff/Thing';
@@ -16,6 +17,9 @@ import type { LightConduit, LineOfSight, MovementConduit } from '../Conduit';
 class Candle extends LightSourceMixin(Thing) {}
 
 describe('Door retrofit — Boundary identity and conduit registry', () => {
+  beforeEach(() => {
+    buildAllModalities();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -29,10 +33,10 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
     expect(MixinApi.isContainable(door)).toBe(true);
   });
 
-  it('getConduits returns Light, Sight, and Movement conduits', () => {
+  it('getConduits returns Light, Sight, Movement, Smell, and Sound conduits', () => {
     const door = makeStuff(() => new Door());
     const kinds = door.getConduits().map((c) => c.conduitKind).sort();
-    expect(kinds).toEqual(['light', 'movement', 'sight']);
+    expect(kinds).toEqual(['light', 'movement', 'sight', 'smell', 'sound']);
   });
 
   it('all three conduits gate on isOpen', () => {
@@ -98,6 +102,9 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
 });
 
 describe('Door retrofit — closed door blocks light propagation', () => {
+  beforeEach(() => {
+    buildAllModalities();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -129,11 +136,11 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
 
-    expect(LightApi.lightAt(a).intensity.rawValue()).toBe(40);
-    expect(LightApi.lightAt(b)).toBe(Light.ZERO);
+    expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(40);
+    expect(VisionModality.lightAt(b)).toBe(Light.ZERO);
 
     door.open();
-    expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
+    expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('an exit with no door still leaks light fully', async () => {
@@ -142,7 +149,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
-    expect(LightApi.lightAt(b).intensity.rawValue()).toBe(40);
+    expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('shares neighbor across two paths only when no double-counting', async () => {
@@ -166,6 +173,6 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     ContainmentApi.move(candle, b);
 
     // Single contribution through the door — not 2×.
-    expect(LightApi.lightAt(a).intensity.rawValue()).toBe(20);
+    expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(20);
   });
 });

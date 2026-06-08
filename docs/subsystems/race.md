@@ -282,7 +282,23 @@ deferred until a sub-clade lands and earns the inheritance machinery.
   three-tier chain `LocomotionApi.defaultModeFor(actor)` consults
   (layer 1 is the explicit setting, layer 3 is universe `'walk'`).
   `null` for sessile body plans.
-- `sensoryPorts` — anatomy only: `{ modality, count, position }`
+- `sensoryPorts` — anatomy only: `{ modality, count, position }`.
+  Indexed against the perception substrate's
+  `PerceptionApi.modalityByOrganKey` — `sensoryPort.modality` is the
+  organ key (`'vision'`, `'hearing'`, `'smell'`, `'touch'`,
+  `'taste'`). ESP modalities (`'verbal-esp'`, `'emotive-esp'`) are
+  reserved values the substrate accepts but no v1 species declares —
+  ESP capability arrives via augment-conferral instead (see
+  [augmentation.md](./augmentation.md)). A future telepath species
+  (magical empath, alien biological aether receiver) MAY declare an
+  ESP modality on its BodyPlan; the substrate handles it.
+
+The biped and quadruped body plans also declare a `cranial` slot
+(`accepts: SlottableMixin`) — the v1 implant slot the baseline comm
+implant occupies via `Avatar.enter`'s bootstrap. Sessile body plans
+deliberately omit the cranial slot (plants don't get implants).
+See [augmentation.md](./augmentation.md) for the full implant
+substrate.
 
 The unified slot universe lets all body-side affordances flow from
 one declaration. A quadruped's `back:1` slot

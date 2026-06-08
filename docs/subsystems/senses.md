@@ -1,19 +1,31 @@
 # Senses
 
-The multi-sense authoring substrate. Content authors write rooms once
-with `<sense channel="X">` regions and per-sense `Detail` slot maps;
-viewers see only what their sensorium can perceive; the four
+The multi-sense perception substrate. Content authors write rooms
+once with `<sense channel="X">` regions and per-sense `Detail` slot
+maps; viewers see only what their sensorium can perceive; the four
 contact-family single-sense verbs (`smell` / `listen` / `feel` /
 `taste`) and the gestalt verb (`sense`) all route through the same
 substrate. Auto-on-entry fires `sense` so a player perceives a new
 room across their full sensorium without typing.
 
-This is the **authoring + presentation surface** for the senses
-substrate the [senses slate](../slates/senses-slate.md) outlines. The
-slate's full `PerceptionChannel` substrate (propagation walks,
-attenuation, masking, ESP-as-channel registration) is Wave 2+; nothing
-here implements field-physics. The surface stays surgical:
-contact-only reads, regex-clean strip, no propagation.
+This doc covers BOTH halves of the substrate:
+
+1. **The authoring half** — `<sense channel="X">` MML wrappers,
+   per-sense `Detail` slot maps, the `senseStripAugmenter`. Shipped
+   in the 2026-06 senses build.
+2. **The physics half** — `PerceptionApi`, the seven `Modality`
+   singletons (vision / smell / sound / touch / taste / verbal-esp
+   / emotive-esp), the field propagation walks for vision / smell /
+   sound, contact thermoreception for touch, per-frame modality
+   attribution at `Scene.modality` + `SensorMixin.filterMessage`,
+   organ-gates-modality with the augmentation widening
+   (`PerceptionApi.sensorium` walks BodyPlan organs + active-mixin
+   `_grantsModalities`). Shipped in the 2026-06 perception build.
+
+The slate's deferred items — smell trails / temporal persistence,
+active-sense (echolocation), full ESP field walk, per-species
+hearing / tactile / gustatory profiles, vitals burn-damage on
+scalding contact — remain Wave 3+.
 
 ## Substrate consumed
 
@@ -418,6 +430,215 @@ discipline:
 
 This split means content authors don't write the same thing five
 times; the substrate's filter does the per-viewer per-verb work.
+
+## The physics substrate (2026-06 perception build)
+
+### `Modality` singletons + `PerceptionApi`
+
+The physics half centers on a single `PerceptionApi` and a
+`Modality` base class modeled on
+[`LocomotionMode`](./locomotion.md):
+
+```ts
+// lib/perception/Modality.ts
+export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
+  // Persistent: name, family ('field' | 'contact' | 'network'),
+  // modality (BodyPlan organ key).
+  public signalAt(loc): Signal | null { return null; }
+  public perceiveFor(viewer, loc, signal): Percept | null { return null; }
+}
+```
+
+Seven concrete subclasses under `lib/perception/modalities/`:
+`VisionModality`, `SmellModality`, `SoundModality`, `TouchModality`,
+`TasteModality`, `VerbalESPModality`, `EmotiveESPModality`. Each
+has a seed YAML at `seeds/lib/perception/modalities/<name>.yaml`;
+`bootstrap.ts`'s `templatePathPrefix` entry clones the seven at
+boot.
+
+`PerceptionApi` (the single Api):
+
+```ts
+class PerceptionApi {
+  static modalityByName(name: string): Modality;
+  static modalityByOrganKey(key: string): Modality | null;
+  static signalAt(loc, modality): Signal | null;
+  static perceiveAt(viewer, loc, modality): Percept | null;
+  static sensorium(viewer): readonly Modality[];
+  static canPerceive(viewer, modality): boolean;
+}
+```
+
+Modality singletons are addressed by **name** in `modalityByName`
+(`'vision'`, `'smell'`, `'sound'`, `'touch'`, `'taste'`,
+`'verbal-esp'`, `'emotive-esp'`) and by **organ key** in
+`modalityByOrganKey` (`'hearing'` for the sound modality;
+`'verbal-esp'` for the verbal-ESP modality). For physical modalities
+the two diverge only on sound (name 'sound', organ key 'hearing').
+
+### Propagation walks (field modalities)
+
+Vision, smell, and sound implement their own propagation walk in
+`Modality.signalAt`. The walks share structural shape (ambient +
+contents-side emitters + fixture-side emitters + cross-boundary via
+Conduit + cross-exit at base transmissivity, depth-capped via
+`MAX_HOPS = 2`, cycle-guarded via a `visited` set, vacuum scope
+blocks at the recipient) but remain independent code per the
+"per-modality walks, not a generic walker" decision in the
+requirements doc.
+
+- **Vision** (relocated from the retired `LightApi.lightAt`):
+  lumen-flux accumulator, sources → `Light` value object with lux
+  intensity + flux-weighted color temperature + capped 3-entry
+  source list. Door + Window participate via `LightConduit`.
+- **Smell**: ppm concentration accumulator with per-identity
+  totals, dominant identity by total concentration, capped 3-entry
+  source list. Door + Window participate via `SmellConduit`.
+- **Sound**: linear-amplitude accumulator (`10^(dB/10)` terms)
+  converted back to dB at wrap — physically correct merge for
+  incoherent sources. Two 60 dB sources sum to ~63 dB (not 120).
+  Door + Window participate via `SoundConduit`. Ambient floor seeds
+  from the universe-root biome's `_defaultAmbientSoundLevel` (full
+  async biome-chain integration deferred).
+
+### Touch (contact modality)
+
+Touch is contact-only — no propagation walk. `TouchModality` exposes
+two surfaces:
+
+- `signalAt(loc)` (sync substrate contract) reads only the scope's
+  inline `_temperature` field.
+- `touchAt(loc, detailKey?)` (async) walks the full biome chain via
+  `BiomeApi.resolveTemperatureFor`. `FeelController`'s bare-form
+  and detail-via branches consume this.
+
+`Touch` carries a K temperature plus a coarse band (`cold` / `cool`
+/ `comfortable` / `warm` / `hot` / `scalding`) calibrated against
+the universe-baseline 295 K. Bare `feel` prepends "The air feels
+<band>."; detail-via `feel <target>` prepends "It feels <band>."
+above the per-Detail `touch` slot prose. Vitals burn-damage on
+scalding contact is an explicit non-goal — the prose surfaces
+"scalding" without a damage hook.
+
+### Per-frame modality attribution
+
+`MessageFrame.meta` gains `modality?: string`. Producers stamp it
+via `Scene.modality(name)` at compose time:
+
+- `VocalMixin.say` → `'hearing'`
+- `AetherMixin.tell` → `'verbal-esp'`
+- Multi-modality events (door slam = sight + sound) stay authored
+  as separate `Scene.send` calls per modality, one frame per
+  modality.
+
+System / log / narrative frames omit the call and deliver
+unconditionally.
+
+`SensorMixin.filterMessage` consults the recipient's
+`PerceptionApi.sensorium` (organ-key indexed) and drops frames
+whose modality isn't in it. **Actor self-frames** (`audience:actor`
+tag, auto-attached by `Scene.toSelf`) ALWAYS deliver — you always
+perceive your own acts diegetically.
+
+The augmenter's existing per-region `<sense channel="X">` strip is
+**orthogonal** to this check. Both live: `filterMessage` decides
+whether the frame arrives at all; the augmenter decides which
+regions of the frame's body MML the viewer sees within an arrived
+frame.
+
+### Organ-gates-modality widened with augments
+
+`PerceptionApi.sensorium(viewer)` walks (a) the viewer's BodyPlan
+`sensoryPorts.modality` strings via `modalityByOrganKey`, AND (b)
+`MixinApi.getActiveMixins(viewer)` collecting each active mixin's
+`_grantsModalities`. Returns the deduped union.
+
+Augment conferral flows in transparently — the augment doesn't
+enumerate modalities itself; `MixinApi.getActiveMixins` includes
+augment-conferred mixins automatically, and those mixins' grants
+flow through. v1 case: every Avatar bootstraps a
+`AetherImplant` that confers `AetherMixin`; AetherMixin's
+`_grantsModalities = ['verbal-esp', 'emotive-esp']` then surfaces
+in the sensorium. See [augmentation.md](./augmentation.md) for the
+full substrate.
+
+`SpeciesApi.deriveSensorium` retired; callers route through
+`PerceptionApi.sensorium`.
+
+### Hybrid ESP framing
+
+ESP modalities are tagged `family: 'field'` honestly — the
+underlying physics IS a field (the aether). v1 ships only the
+network-routing layer (`AetherMixin.tell`, renamed from the
+verb-level `tell` to `dm`); the field-half (eavesdropping in range,
+encryption stripping for non-addressee dms, the local aether-field
+walk via a future `AetherConduit`) is reserved for a future
+ESP-physics build. `VerbalESPModality.signalAt` /
+`EmotiveESPModality.signalAt` return `null` in v1 — the documented
+reserved seam.
+
+ESP organs are NOT declared on any v1 species' BodyPlan. ESP
+arrives via the baseline comm implant (augment-conferred
+AetherMixin). The fantasy/alien-species path stays reserved — a
+future telepath species (magical empath, alien biological aether
+receiver) can either declare an ESP modality on its BodyPlan via
+the existing `sensoryPorts` mechanism, OR carry a slotted
+biological-empathy organ that confers AetherMixin the same way the
+implant does.
+
+### Bare-verb upgrades
+
+The four contact-family verbs upgrade their bare forms:
+
+- Bare `smell` reads `SmellModality.smellAt`, applies the viewer's
+  `Species.olfactoryProfile.acuity` threshold (keen:1 / normal:10
+  / dull:100 / none:Infinity ppm), renders prose with source
+  attribution.
+- Bare `listen` reads `SoundModality.soundAt`, gates on a default
+  10 dB hearing threshold, renders prose with source attribution.
+- Bare `feel` prepends an ambient-temperature band line; targeted
+  `feel <target>` with detailPath prepends per-detail temperature.
+- Bare `taste` unchanged (contact-only authoring this build).
+
+The targeted form of each verb keeps its per-Detail slot read
+inherited from `SingleSenseControllerBase`.
+
+### Masking
+
+A viewer's effective threshold on a modality is
+`max(viewer_threshold, ambient_signal_strength_on_modality)`. For
+sound: ambient comes from the biome's `_defaultAmbientSoundLevel`
+resolved at the viewer's scope. For smell: ambient comes from the
+room's own smell signal (non-target sources). Per-frequency-band
+masking and per-odor-class masking are out of scope.
+
+### File layout (physics half)
+
+```
+lib/perception/
+├── Modality.ts                    Substrate base
+├── modalities/
+│   ├── VisionModality.ts          Walk + static helpers (lightAt, bandAt, perceivedBand, canSee, shadowsAt)
+│   ├── SmellModality.ts           Walk + smellAt static
+│   ├── SoundModality.ts           Walk + soundAt static (dB arithmetic)
+│   ├── TouchModality.ts           signalAt (sync inline) + touchAt (async biome chain)
+│   ├── TasteModality.ts           (taste is contact authoring only)
+│   ├── VerbalESPModality.ts       (signalAt null v1)
+│   └── EmotiveESPModality.ts      (signalAt null v1)
+├── Light.ts                       Value object + bandFor + LIGHT_BANDS + applyBandShift + compareBand + ShadowQuality
+├── Smell.ts                       Value object (ppm + identity + sources)
+├── Sound.ts                       Value object (dB + character + sources)
+├── Touch.ts                       Value object (K + TouchBand) + bandFor
+├── LightSource.ts                 Mixin + LightSourceObserver hook contract
+├── SmellSource.ts                 Mixin + SmellSourceObserver hook contract
+├── SoundSource.ts                 Mixin + SoundSourceObserver hook contract
+└── (Perception.ts, AmbientLit.ts, Scryable.ts — substrate unchanged)
+
+api/perception.ts                  PerceptionApi (single dispatch surface)
+lib/boundary/SmellConduit.ts       Conduit interface
+lib/boundary/SoundConduit.ts       Conduit interface
+seeds/lib/perception/modalities/   Seven seed YAMLs
+```
 
 ## What's NOT in this build (Wave 2+)
 

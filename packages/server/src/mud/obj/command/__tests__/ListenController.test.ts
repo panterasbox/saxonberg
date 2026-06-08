@@ -33,6 +33,7 @@ import { Species } from '../../../lib/species/Species';
 import { BodyPlan } from '../../../lib/species/BodyPlan';
 import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
+import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 import { ContainmentApi } from '../../../api/containment';
 
 const ReceivingGiverBase = OrganismMixin(
@@ -65,6 +66,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 
 function makeFixture(): { giver: ReceivingGiver; location: TestLocation } {
   StuffApi.clearAll();
+  buildAllModalities();
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
     '/lib/body-plans/test-listen',

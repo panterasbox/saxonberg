@@ -63,6 +63,8 @@ export interface Adornable {
   getFixtures(): readonly (Stuff & Adornment)[];
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
+  getFixtureSmellSources(): (Stuff & Adornment)[];
+  getFixtureSoundSources(): (Stuff & Adornment)[];
 }
 
 export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>>(
@@ -149,6 +151,22 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       const out: (Stuff & Adornment)[] = [];
       for (const f of this.fixtureSlots.values()) {
         if (isLightSourceMarker(f)) out.push(f);
+      }
+      return out;
+    }
+
+    getFixtureSmellSources(): (Stuff & Adornment)[] {
+      const out: (Stuff & Adornment)[] = [];
+      for (const f of this.fixtureSlots.values()) {
+        if (isSmellSourceMarker(f)) out.push(f);
+      }
+      return out;
+    }
+
+    getFixtureSoundSources(): (Stuff & Adornment)[] {
+      const out: (Stuff & Adornment)[] = [];
+      for (const f of this.fixtureSlots.values()) {
+        if (isSoundSourceMarker(f)) out.push(f);
       }
       return out;
     }
@@ -250,12 +268,24 @@ function isBoundaryAnchorMarker(f: object): boolean {
 }
 
 function isLightSourceMarker(f: object): boolean {
+  return hasMixinNamed(f, 'LightSourceMixin');
+}
+
+function isSmellSourceMarker(f: object): boolean {
+  return hasMixinNamed(f, 'SmellSourceMixin');
+}
+
+function isSoundSourceMarker(f: object): boolean {
+  return hasMixinNamed(f, 'SoundSourceMixin');
+}
+
+function hasMixinNamed(f: object, mixinName: string): boolean {
   const ctor = (f as { constructor?: { _mixinName?: string } | undefined })
     .constructor;
   let proto: object | null = ctor as object | null;
   while (proto) {
     const named = (proto as { _mixinName?: string })._mixinName;
-    if (named === 'LightSourceMixin') return true;
+    if (named === mixinName) return true;
     proto = Object.getPrototypeOf(proto) as object | null;
   }
   return false;

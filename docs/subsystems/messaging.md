@@ -424,6 +424,15 @@ Surface:
   `Stuff`. Compositional requirements (Sensor, Containable, Container)
   are checked per `.toX()` method, not at the factory.
 - `.topic(path)` — required.
+- `.modality(name)` — optional. Stamps the perception-modality
+  attribution on every composed frame's `meta.modality`. Reception
+  gating at `SensorMixin.filterMessage` drops the frame for
+  recipients whose sensorium doesn't include this modality (except
+  actor self-frames, which always deliver). Sensory producers
+  populate it: `VocalMixin.say` → `'hearing'`, `AetherMixin.tell`
+  → `'verbal-esp'`. System / log / narrative frames omit it and
+  deliver unconditionally. See [senses.md](./senses.md) for the
+  cross-modality substrate.
 - `.tags(tags[])` — optional shared tags merged with per-audience auto-tags.
 - `.payload(p)` — optional shared payload, used for any audience that
   doesn't override.
@@ -580,6 +589,12 @@ onMessage(frame: MessageFrame): void {
 }
 
 protected filterMessage(frame: MessageFrame): MessageFrame | null {
+  // Built-in modality-attribution check (2026-06 perception build):
+  // drops frames whose `meta.modality` organ key isn't in the
+  // recipient's PerceptionApi.sensorium. Actor self-frames bypass
+  // (audience:actor tag). System / log / narrative frames omit
+  // meta.modality and deliver unconditionally.
+  // ...shadows further extend this contract.
   return frame;                            // shadowable
 }
 

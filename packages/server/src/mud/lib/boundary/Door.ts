@@ -8,7 +8,7 @@
  * Door additionally lives in each adjacent room's
  * `Adornable.getFixtures()` via a `BoundaryAnchor` per side. This
  * lets a closed Door block light propagation between its two rooms
- * via the cross-boundary walk in `LightApi.lightAt`, alongside the
+ * via the cross-boundary walk in `VisionModality.lightAt`, alongside the
  * pre-existing movement gate on `Exit.canTraverse`.
  *
  * Composition: `SealableMixin(Boundary)`. Boundary already supplies
@@ -64,6 +64,8 @@ import type {
   MovementConduit,
   BoundarySide,
 } from './Conduit';
+import type { SmellConduit } from './SmellConduit';
+import type { SoundConduit } from './SoundConduit';
 
 const DoorBase = SealableMixin(Boundary);
 
@@ -129,6 +131,8 @@ export class Door extends DoorBase {
       lightConduitFor(this),
       lineOfSightFor(this),
       movementConduitFor(this),
+      smellConduitFor(this),
+      soundConduitFor(this),
     ];
   }
 
@@ -200,6 +204,27 @@ function movementConduitFor(door: Door): MovementConduit {
     conduitKind: 'movement',
     canPassThrough(from, to, mode) {
       return door.canPassThrough(from, to, mode);
+    },
+  };
+}
+
+function smellConduitFor(door: Door): SmellConduit {
+  return {
+    conduitKind: 'smell',
+    // v1 Door: closed → 0 (blocks smell), open → 1 (transparent).
+    transmissivity(from, to) {
+      return door.transmissivity(from, to);
+    },
+  };
+}
+
+function soundConduitFor(door: Door): SoundConduit {
+  return {
+    conduitKind: 'sound',
+    // v1 Door: binary open/closed. Future muffled-door subclasses
+    // can return a partial transmissivity (~0.01 = -20 dB) instead.
+    transmissivity(from, to) {
+      return door.transmissivity(from, to);
     },
   };
 }

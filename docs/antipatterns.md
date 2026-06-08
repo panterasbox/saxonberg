@@ -1384,3 +1384,114 @@ controller chooses whether to pick a default ("settings list" as
 the default for bare `settings`) or fail. That decision is
 content; only the controller knows. The `default:` branch above
 is for *typos*, and the framework owns that.
+
+
+## Don't add a per-sense Api — modalities are singletons
+
+Adding `SmellApi`, `SoundApi`, or any per-modality static class is
+the wrong shape. Modalities are templated `Idea` singletons
+extending the `Modality` base class — the
+[`LocomotionMode`](./subsystems/locomotion.md) pattern. A new
+modality is a new subclass + seed YAML, not a new Api class.
+
+```ts
+// WRONG
+class SmellApi {
+  static signalAt(loc) { ... }
+}
+
+// RIGHT
+class SmellModality extends Modality {
+  signalAt(loc) { ... }
+}
+// Outside callers go through PerceptionApi:
+PerceptionApi.signalAt(loc, smellModality);
+```
+
+The single `PerceptionApi` is the modality-agnostic dispatch
+surface (`signalAt`, `perceiveAt`, `sensorium`, `canPerceive`).
+Per-modality state and walks live on the modality singleton; per-
+modality value types live in `lib/perception/`. See
+[senses.md § Modality singletons + PerceptionApi](./subsystems/senses.md).
+
+## Don't model augments by listing grants directly
+
+An augment names mixins it confers; the mixin declares its own
+grants. Decentralized declarations beat coupled lists.
+
+```ts
+// WRONG — augment owns the modality list directly
+class AetherImplant extends AugmentMixin(...) {
+  contributedModalities = ['verbal-esp', 'emotive-esp'];
+}
+
+// RIGHT — augment names mixins; the mixin owns its grants
+class AetherImplant extends AugmentMixin(...) {
+  override confers() { return ['AetherMixin']; }
+}
+// AetherMixin declares its own:
+class AetherMixin {
+  static _grantsModalities = ['verbal-esp', 'emotive-esp'];
+}
+```
+
+Each grant kind (`_grantsModalities`, future `_grantsLanguages` /
+`_grantsAttributeMasks` / `_grantsVitalFunctions` / `_grantsSlots`)
+is one field on the mixin; each consumer subsystem walks the
+active mixin set for its kind. New augments need no framework
+change — just a new Stuff template with a `confers` list. See
+[augmentation.md](./subsystems/augmentation.md).
+
+## Augment-gated mixins MUST decorate their methods with @RequiresActive
+
+A mixin with `_augmentGated: true` activates only when an augment
+confers it. The verb-level validator (`requiresVerbalESP` etc.) is
+the polite early-catch for command dispatch; the
+`@RequiresActive('<MixinName>')` decorator is the runtime backstop
+for any direct caller. Skipping the decorator leaves a gap any
+non-verb consumer hits.
+
+```ts
+// WRONG — gated mixin with unguarded method
+class AetherMixin extends ... {
+  static _augmentGated = true;
+  static _grantsModalities = ['verbal-esp', 'emotive-esp'];
+
+  tell(target, text) { ... }   // direct caller bypasses validator!
+}
+
+// RIGHT — decorator (or inlined equivalent for class-factory
+// mixins where TS1206 blocks the decorator)
+class AetherMixin extends ... {
+  static _augmentGated = true;
+  static _grantsModalities = ['verbal-esp', 'emotive-esp'];
+
+  tell(target, text) {
+    // Inlined @RequiresActive('AetherMixin') for class-factory mixins
+    if (!MixinApi.isActive(this, 'AetherMixin')) {
+      throw new InactiveCapabilityError('AetherMixin', 'tell');
+    }
+    ...
+  }
+}
+```
+
+## Don't mint a parallel `isFooActive` predicate
+
+`MixinApi.isFoo` uniformly answers the runtime active question for
+every mixin (un-gated and gated alike) — the predicate generator
+routes through `isActive` post-augmentation-Wave-1. Don't add a
+sibling `isAetherActive` alongside `isAether`; callers shouldn't
+have to know which one to use.
+
+```ts
+// WRONG
+if (MixinApi.isAetherActive(avatar)) { ... }
+
+// RIGHT
+if (MixinApi.isAether(avatar)) { ... }  // active state, uniformly
+```
+
+Build-time-only composition checks (rare; usually content-content
+introspection during seeding) use the low-level
+`MixinApi.hasMixin(stuff.constructor, name)` directly.

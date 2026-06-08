@@ -45,8 +45,6 @@ import { MixinApi } from '../../api/mixin';
  *   - `Detail`'s per-sense slot map keys (state authoring).
  *   - `<sense channel="X">…</sense>` MML wrapper attribute
  *     (state-multi-sense MML wrapper).
- *   - `SpeciesApi.deriveSensorium` return type (the runtime walker
- *     from viewer → species → bodyplan).
  *   - `senseStripAugmenter` filter (per-call options).
  *   - The four `requires*` verb-level validators
  *     (`requiresHearing` / `requiresSmell` / `requiresTouch` /

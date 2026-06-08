@@ -43,6 +43,8 @@ import type {
   LineOfSight,
   BoundarySide,
 } from './Conduit';
+import type { SmellConduit } from './SmellConduit';
+import type { SoundConduit } from './SoundConduit';
 import type { ColorTag } from '../perception/Light';
 
 const WindowBase = SealableMixin(Boundary);
@@ -197,7 +199,12 @@ export class Window extends WindowBase {
    * `this.transmissivity` / `this.canSeeThrough`.
    */
   public override getConduits(): readonly Conduit[] {
-    return [lightConduitFor(this), lineOfSightFor(this)];
+    return [
+      lightConduitFor(this),
+      lineOfSightFor(this),
+      smellConduitFor(this),
+      soundConduitFor(this),
+    ];
   }
 
   public transmissivity(from: BoundarySide, to: BoundarySide): number {
@@ -353,6 +360,29 @@ function lineOfSightFor(window: Window): LineOfSight {
     conduitKind: 'sight',
     canSeeThrough(from, to) {
       return window.canSeeThrough(from, to);
+    },
+  };
+}
+
+function smellConduitFor(window: Window): SmellConduit {
+  return {
+    conduitKind: 'smell',
+    // Closed shutter blocks smell; open window passes the host's
+    // transmissivity (mirrors the light-side gating).
+    transmissivity(from, to) {
+      return window.transmissivity(from, to);
+    },
+  };
+}
+
+function soundConduitFor(window: Window): SoundConduit {
+  return {
+    conduitKind: 'sound',
+    // Closed shutter blocks sound; open window transmits with the
+    // same factor as light. Acoustic specifics (frequency-dependent
+    // attenuation, glass-vs-paper) are future polish.
+    transmissivity(from, to) {
+      return window.transmissivity(from, to);
     },
   };
 }

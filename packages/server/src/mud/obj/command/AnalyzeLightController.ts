@@ -17,7 +17,8 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { LightApi } from '../../api/light';
+import { PerceptionApi } from '../../api/perception';
+import { Light } from '../../lib/perception/Light';
 import { Mml } from '../../api/mml';
 import { Quantity } from '../../lib/quantity';
 import { DescribeApi } from '../../api/describe';
@@ -54,7 +55,8 @@ export class AnalyzeLightController extends CommandController<AnalyzeLightModel>
       return;
     }
     const loc = target.stuff as Stuff & Container;
-    const light = LightApi.lightAt(loc);
+    const vision = PerceptionApi.modalityByName('vision');
+    const light = (PerceptionApi.signalAt(loc, vision) as Light | null) ?? Light.ZERO;
 
     const lines: Mml[] = [];
     lines.push(Mml.compose`Light analysis at ${Mml.location(loc)}:`);

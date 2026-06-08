@@ -26,9 +26,10 @@
  * numeric / string / Quantity input for authoring ergonomics.
  *
  * Witness hook: `setEmittedFlux` and `setEmittedColorTemperature`
- * fire `onLightSourceChanged` (defined in `api/light.ts`) on the
- * immediate environment when the stored value actually changes. v1
- * fans out to the IMMEDIATE environment only.
+ * fire `onLightSourceChanged` (the `LightSourceObserver` contract,
+ * declared below) on the immediate environment when the stored
+ * value actually changes. v1 fans out to the IMMEDIATE environment
+ * only.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -42,6 +43,28 @@ export interface LightSource {
   setEmittedFlux(value: Quantity<'lumen'> | number | string): void;
   getEmittedColorTemperature(): Quantity<'K'> | null;
   setEmittedColorTemperature(value: Quantity<'K'> | string | null): void;
+}
+
+/**
+ * Witness hook fired on a light source's immediate environment when
+ * `setEmittedFlux` or `setEmittedColorTemperature` results in a
+ * different stored emission. Optional — implement only the host
+ * Containers that care (typically a Location's caching layer or a
+ * Vessel's lit-state observer).
+ *
+ * Lives next to `LightSourceMixin` (the firer) so the cross-module
+ * contract reads from one place. Receivers compose this interface
+ * structurally and rely on TypeScript's structural typing — no
+ * mixin marker.
+ */
+export interface LightSourceObserver {
+  onLightSourceChanged?(
+    source: Stuff,
+    oldFlux: Quantity<'lumen'>,
+    newFlux: Quantity<'lumen'>,
+    oldColorTemperature: Quantity<'K'> | null,
+    newColorTemperature: Quantity<'K'> | null,
+  ): void;
 }
 
 export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -225,7 +248,7 @@ function coerceColorTempInput(
 /**
  * Fire `onLightSourceChanged` on the source's immediate environment
  * if the host is Containable and the environment's hook is present.
- * The hook contract is `LightSourceObserver` in `api/light.ts`.
+ * The hook contract is `LightSourceObserver` (declared above).
  */
 function fireOnLightSourceChanged(
   source: Stuff,

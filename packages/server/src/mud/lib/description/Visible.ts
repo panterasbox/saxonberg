@@ -29,8 +29,9 @@ import {
   type AugmentOpts,
   type MarkupAugmenter,
 } from '../../api/mml';
-import { SpeciesApi } from '../../api/species';
+import { PerceptionApi } from '../../api/perception';
 import type { SenseChannel } from './Perceiver';
+import { SENSE_CHANNELS } from './Perceiver';
 
 /**
  * Mixin that adds description properties for visible objects.
@@ -234,12 +235,14 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
  *     single-sense verbs pass `[channel]`; `look` passes
  *     `['vision']`; `sense` passes the viewer's full sensorium).
  *     Default-absent → fall back to the viewer's full sensorium.
- *   - `sensorium` comes from `SpeciesApi.deriveSensorium(viewer)`
- *     — viewer → Organism → Species → BodyPlan → `getModalities()`.
- *     A viewer
- *     without that chain has `[]` as their sensorium, so every
- *     `<sense>` region strips and only untagged prose survives
- *     (the right behavior for test fixtures and the dark-room AC).
+ *   - `sensorium` comes from `PerceptionApi.sensorium(viewer)`
+ *     mapped down to its `SenseChannel`-typed organ-key subset
+ *     — viewer → Organism → Species → BodyPlan → `getModalities()`
+ *     PLUS contributions from active-mixin `_grantsModalities`
+ *     (Phase 6). A viewer without that chain has `[]` as their
+ *     sensorium, so every `<sense>` region strips and only
+ *     untagged prose survives (the right behavior for test
+ *     fixtures and the dark-room AC).
  *
  * Untagged prose is always preserved (the rule lives in
  * `Mml.stripBySense` — text nodes outside `<sense>`/`<detail>` are
@@ -253,7 +256,22 @@ export function senseStripAugmenter(
   viewer: Stuff,
   opts?: AugmentOpts,
 ): string {
-  const sensorium = SpeciesApi.deriveSensorium(viewer);
+  // The augmenter cares about the `SenseChannel`-typed subset of the
+  // viewer's sensorium (the five physical channels) — those are the
+  // values that can appear inside `<sense channel="X">` regions and
+  // `<detail sense="X">` wrappings. ESP modalities are NOT in
+  // `SenseChannel`'s union; they ride frame-level `meta.modality`
+  // gating, not per-region body MML stripping. Filter the
+  // PerceptionApi result down to the physical organ keys here.
+  const allModalities = PerceptionApi.sensorium(viewer);
+  const physicalSet = new Set<SenseChannel>(SENSE_CHANNELS);
+  const sensorium: SenseChannel[] = [];
+  for (const m of allModalities) {
+    const organ = m.getModality();
+    if (physicalSet.has(organ as SenseChannel)) {
+      sensorium.push(organ as SenseChannel);
+    }
+  }
   const filter = opts?.filter ?? sensorium;
   const allowed = new Set<SenseChannel>();
   for (const ch of filter) {

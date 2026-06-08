@@ -60,11 +60,11 @@ describe('Window', () => {
     expect(() => w.setDirectionalOverrides({ aToB: 2 })).toThrow(RangeError);
   });
 
-  it('getConduits returns a light + sight pair', () => {
+  it('getConduits returns a light + sight + smell + sound quadruple', () => {
     const w = makeStuff(() => new Window());
     const conduits = w.getConduits();
     const kinds = conduits.map((c) => c.conduitKind).sort();
-    expect(kinds).toEqual(['light', 'sight']);
+    expect(kinds).toEqual(['light', 'sight', 'smell', 'sound']);
 
     w.open();
     w.setBaseTransmissivity(0.5);

@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.speech.tell
-  family: world.speech
-  label: Tell
-  description: A private message directed at a specific recipient. Only the speaker and target see it.

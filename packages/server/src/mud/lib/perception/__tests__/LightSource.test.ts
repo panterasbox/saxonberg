@@ -4,7 +4,8 @@ import { Thing } from '../../stuff/Thing';
 import { CartesianLocation } from '../../spatial/CartesianLocation';
 import { CartesianZone } from '../../spatial/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
-import { LightApi } from '../../../api/light';
+import { VisionModality } from '../modalities/VisionModality';
+import { buildAllModalities } from '../modalities/__tests__/test-helpers';
 import { AmbientLitMixin } from '../AmbientLit';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -21,6 +22,7 @@ class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 describe('LightSourceMixin', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
+    buildAllModalities();
   });
   afterEach(() => {
     StuffApi.clearAll();
@@ -103,7 +105,7 @@ describe('LightSourceMixin', () => {
     expect(hook).toHaveBeenCalledTimes(1);
   });
 
-  describe('integration with LightApi.lightAt', () => {
+  describe('integration with VisionModality.lightAt', () => {
     it('a candle in a room contributes lux to the room', () => {
       const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² scale
@@ -114,7 +116,7 @@ describe('LightSourceMixin', () => {
       candle.setEmittedColorTemperature('warm');
       ContainmentApi.move(candle, room);
 
-      const total = LightApi.lightAt(room);
+      const total = VisionModality.lightAt(room);
       // Default sizeScale = 1 m² → 10 lumens / 1 m² = 10 lux.
       expect(total.intensity.rawValue()).toBe(10);
       expect(total.colorTemperature!.rawValue()).toBe(2700);
@@ -131,12 +133,12 @@ describe('LightSourceMixin', () => {
       candle.setEmittedFlux(10);
 
       ContainmentApi.move(candle, a);
-      expect(LightApi.lightAt(a).intensity.rawValue()).toBeGreaterThanOrEqual(10);
-      expect(LightApi.lightAt(b).intensity.rawValue()).toBe(0);
+      expect(VisionModality.lightAt(a).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(0);
 
       ContainmentApi.move(candle, b);
-      expect(LightApi.lightAt(b).intensity.rawValue()).toBeGreaterThanOrEqual(10);
-      expect(LightApi.lightAt(a).intensity.rawValue()).toBe(0);
+      expect(VisionModality.lightAt(b).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(0);
     });
 
     it('setEmittedFlux(0) zeroes the contribution', () => {
@@ -149,9 +151,9 @@ describe('LightSourceMixin', () => {
       candle.setEmittedFlux(20);
       ContainmentApi.move(candle, room);
 
-      expect(LightApi.lightAt(room).intensity.rawValue()).toBe(25);
+      expect(VisionModality.lightAt(room).intensity.rawValue()).toBe(25);
       candle.setEmittedFlux(0);
-      expect(LightApi.lightAt(room).intensity.rawValue()).toBe(5);
+      expect(VisionModality.lightAt(room).intensity.rawValue()).toBe(5);
     });
   });
 });

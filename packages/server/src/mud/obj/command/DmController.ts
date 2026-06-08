@@ -1,5 +1,5 @@
 /**
- * TellController — send a private message to another player.
+ * DmController — send a direct message (dm) to another player.
  *
  * Thin shim: validates the framework-resolved target, narrows the
  * speaker to `Aether`-capable, and delegates to `aether.tell(target,
@@ -10,8 +10,11 @@
  *
  * Target resolution is handled by the command framework via the
  * YAML's `scope: "online"` + `mustBeAgent` validator — no custom
- * lookup in the controller. Self-tell works because self is in the
+ * lookup in the controller. Self-dm works because self is in the
  * `online` candidate pool and `mustBeAgent` accepts Avatars.
+ *
+ * Renamed from `TellController` — the verb is `dm` now, with `tell`
+ * (and `whisper`) kept as aliases for muscle memory.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -26,18 +29,18 @@ import { MqlApi } from '../../api/mql';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-interface TellModel extends CommandModel {
+interface DmModel extends CommandModel {
   target: FieldValue;
   message: string;
 }
 
-export class TellController extends CommandController<TellModel> {
-  execute(model: TellModel, context: CommandContext): void {
+export class DmController extends CommandController<DmModel> {
+  execute(model: DmModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isAether(speaker)) {
       MessageApi.scene(speaker)
-        .topic('world.speech.tell')
-        .toSelf(Mml.compose`You aren't tuned to the Aether.`)
+        .topic('world.speech.dm')
+        .toSelf(Mml.compose`You have no way to send a thought.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'AetherMixin' });
       return;
@@ -45,7 +48,6 @@ export class TellController extends CommandController<TellModel> {
 
     const stuffs = MqlApi.extractStuffs(model.target);
     if (!stuffs || stuffs.length === 0) {
-      // Framework's empty-result path should have caught this.
       context.note({ kind: 'empty-result', field: 'target', query: '' });
       return;
     }

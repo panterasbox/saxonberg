@@ -102,7 +102,7 @@ Perception splits into two orthogonal mixins:
 
 | Mixin | Layer | What it carries | Composers |
 |---|---|---|---|
-| `Sensor` | **channel** | `onMessage(frame)` + the shadowable `filterMessage` hook. You receive perceptual input as message frames through the messaging subsystem; vision, hearing, ESP all ride this — the frame's metadata names the channel. Channel-level filtering (deaf, blind, magical-sense-enabled) lives here. | Anything that *receives* perceptual input. |
+| `Sensor` | **channel** | `onMessage(frame)` + the shadowable `filterMessage` hook. You receive perceptual input as message frames through the messaging subsystem; vision, hearing, ESP all ride this — the frame's `meta.modality` names the modality. Modality-level filtering (deaf, blind, no-implant) lives here and is wired in the 2026-06 perception build: `Scene.modality(name)` stamps the frame; `filterMessage` drops it when the recipient's `PerceptionApi.sensorium` doesn't include the modality (actor self-frames bypass via the `audience:actor` tag). | Anything that *receives* perceptual input. |
 | `Perception` | **interpretation** | `perceivedBandModifier(raw, loc)`, `canSeeOverride(target, detail, raw)`, `getVisionProfile()`, future `perceivedVolumeModifier` / `canHearOverride` / `getHearingProfile`. The seams query Apis dispatch through when the framework asks "what does this entity perceive?" Identity defaults pass the raw answer through; Shadows on the host modulate. | Anything *queryable as a viewer* — entities with subjective experience to be asked about. |
 
 All viewer-aware query Apis take **`Stuff & Sensor & Perception`**

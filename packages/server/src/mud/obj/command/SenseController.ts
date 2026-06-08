@@ -40,8 +40,30 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
-import { SpeciesApi } from '../../api/species';
+import { PerceptionApi } from '../../api/perception';
+import { SENSE_CHANNELS, type SenseChannel } from '../../lib/description/Perceiver';
 import type { Exit } from '../../lib/boundary/Exit';
+
+/**
+ * The `senseStripAugmenter`'s `filter` is `SenseChannel`-typed —
+ * the five physical channels. The gestalt verb passes the viewer's
+ * full physical sensorium as the filter (so every region they
+ * naturally perceive survives). Reduce
+ * `PerceptionApi.sensorium(actor)` to its `SenseChannel`-typed
+ * subset (drops ESP modalities; those ride per-frame `meta.modality`
+ * gating, not per-region body MML).
+ */
+function physicalSensorium(actor: Stuff): SenseChannel[] {
+  const physical = new Set<SenseChannel>(SENSE_CHANNELS);
+  const out: SenseChannel[] = [];
+  for (const m of PerceptionApi.sensorium(actor)) {
+    const organ = m.getModality();
+    if (physical.has(organ as SenseChannel)) {
+      out.push(organ as SenseChannel);
+    }
+  }
+  return out;
+}
 
 interface SenseModel extends CommandModel {
   target?: MqlOneResult;
@@ -120,7 +142,7 @@ export class SenseController extends CommandController<SenseModel> {
   private senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
-    const sensorium = SpeciesApi.deriveSensorium(actor);
+    const sensorium = physicalSensorium(actor);
     const hasVisible = MixinApi.isVisible(location);
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
@@ -182,7 +204,7 @@ export class SenseController extends CommandController<SenseModel> {
 
   private senseTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
-    const sensorium = SpeciesApi.deriveSensorium(actor);
+    const sensorium = physicalSensorium(actor);
     if (!MixinApi.isVisible(target)) {
       const name = DescribeApi.getDisplayName(target);
       MessageApi.scene(actor)

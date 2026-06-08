@@ -197,27 +197,56 @@ behavior. Read the relevant doc before editing in its area.
     awaits zone resolution). Everything that lives on the seams
     between containment scopes.
   - [light.md](./docs/subsystems/light.md) — Light value object,
-    `LightApi` propagation walk (`lightAt`, `bandAt`,
-    `perceivedBand`, `canSee`, `shadowsAt`), `AmbientLitMixin`,
+    vision modality lives at `VisionModality.signalAt` (the propagation
+    walk relocated from the retired `LightApi`); static helpers
+    `VisionModality.lightAt`, `bandAt`, `perceivedBand`, `canSee`,
+    `shadowsAt`, `viewerVisionProfile`. Outside callers dispatch
+    via `PerceptionApi.signalAt(loc, VisionModality)`. `Light.ts`
+    owns `bandFor` + `LIGHT_BANDS` + `ShadowQuality`. `AmbientLitMixin`,
     `LightSourceMixin`, the Boundary substrate (`Adornable`,
     `Adornment`, `Boundary`, `BoundaryAnchor`, `Conduit`
     interfaces), `Window`, the Door retrofit, per-viewer perception
-  - [senses.md](./docs/subsystems/senses.md) — multi-sense authoring
-    substrate: `SenseChannel` vocabulary (`vision` / `hearing` /
-    `smell` / `touch` / `taste`) + `SENSE_CHANNELS` runtime array
-    declared on `PerceiverMixin` (actor-side perception surface);
-    per-sense `Detail` slot map with legacy + new authoring;
-    `<sense channel="X">` MML wrapper + `<detail sense="X">`
-    attribute; `senseStripAugmenter` on `VisibleMixin` driven by a
-    per-call `opts.filter` ∩ `SpeciesApi.deriveSensorium(viewer)`;
+  - [augmentation.md](./docs/subsystems/augmentation.md) — augment-
+    confers-mixin substrate (Wave 1): `AugmentMixin.confers()`
+    naming the mixins it activates; `MixinApi.getActiveMixins` /
+    `isActive` walking native composition ∪ augment-conferred;
+    mixin self-declarations (`_augmentGated`, `_grantsModalities`,
+    open shape for `_grantsLanguages` / `_grantsAttributeMasks` /
+    `_grantsVitalFunctions` / `_grantsSlots`); `@RequiresActive`
+    method decorator + `InactiveCapabilityError`; cranial slot on
+    biped/quadruped body plans; `AetherImplant` (Wave 1 implant
+    template); `Avatar.installDefaultLoadout` dispatched from
+    `postRegister` during the clone cascade. Wave 1 ships the
+    framework + the baseline implant; Wave 2+ adds other augments,
+    install/remove procedure, char-gen loadout, failure modes.
+  - [senses.md](./docs/subsystems/senses.md) — multi-sense perception
+    substrate. Authoring half (2026-06 senses build):
+    `SenseChannel` vocabulary (`vision` / `hearing` / `smell` /
+    `touch` / `taste`) + `SENSE_CHANNELS` runtime array declared on
+    `PerceiverMixin`; per-sense `Detail` slot map with legacy + new
+    authoring; `<sense channel="X">` MML wrapper + `<detail sense="X">`
+    attribute; `senseStripAugmenter` on `VisibleMixin`;
     `Mml.stripBySense` walks the parsed tree to drop out-of-filter
     regions; `Mml.augment` static (the bare `augmentMarkup` export
-    was retired); `BodyPlan.getModalities()` +
-    `SpeciesApi.deriveSensorium`; `Species.olfactoryProfile` scalar;
+    was retired). Physics half (2026-06 perception build):
+    `Modality` base class + seven singletons (`VisionModality`,
+    `SmellModality`, `SoundModality`, `TouchModality`,
+    `TasteModality`, `VerbalESPModality`, `EmotiveESPModality`);
+    `PerceptionApi` with `modalityByName`, `modalityByOrganKey`,
+    `signalAt`, `perceiveAt`, `sensorium`, `canPerceive`;
+    propagation walks for vision (relocated from LightApi) + smell
+    + sound (linear-amplitude accumulation, logarithmic dB merge);
+    touch contact reads via biome chain;
+    `BodyPlan.sensoryPorts.modality` indexed by `modalityByOrganKey`;
+    sensorium walks BodyPlan organs + active-mixin
+    `_grantsModalities` (AetherMixin contributes ESP modalities
+    when the baseline comm implant is installed); per-frame
+    modality attribution at `Scene.modality(name)` +
+    `SensorMixin.filterMessage` (actor self-frame bypass). The
+    `Species.olfactoryProfile` scalar drives smell thresholds; the
     four contact-only single-sense verbs (`smell` / `listen` /
-    `feel` / `taste`) sharing `SingleSenseControllerBase`, each
-    gated by a `requires*` sensorium validator; gestalt `sense`
-    verb keeps room-presentation chrome (exits + occupants).
+    `feel` / `taste`) bare forms upgrade to true field reads;
+    gestalt `sense` verb keeps room-presentation chrome.
     Perception topics organized hierarchically — `topic = kind of
     event` (verb-leafed for verb-generated frames, channel-leafed
     for ambient): `world.perception.sense.{look,sense,smell,listen,

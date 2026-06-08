@@ -39,6 +39,10 @@ interface Registration {
 const REGISTRATIONS: Registration[] = [
   { prefix: 'world.chat', template: chatTemplate },
   { prefix: 'world.speech.say', template: sayTemplate },
+  { prefix: 'world.speech.dm', template: tellTemplate },
+  // Back-compat for any persisted frame still carrying the old
+  // `world.speech.tell` topic. Both topics render through the same
+  // tellTemplate so the experience is identical pre / post rename.
   { prefix: 'world.speech.tell', template: tellTemplate },
   { prefix: 'world.emote', template: emoteTemplate },
 ];

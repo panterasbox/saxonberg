@@ -16,6 +16,9 @@ import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
+import { MixinApi } from '../api/mixin';
+import { SpeciesApi } from '../api/species';
+import { AetherImplant } from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
@@ -32,10 +35,6 @@ import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { AetherMixin } from '../lib/message/Aether';
 import { Events } from '../lib/events';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../config/constants';
-import { Location } from '../lib/stuff/Location';
-import type { Stuff } from '../lib/stuff/Stuff';
-import type { Container } from '../lib/spatial/Container';
 import type { User } from '../lib/identity/User';
 import type {
   ConnectionEstablishedPayload,
@@ -163,8 +162,16 @@ export class Avatar extends AvatarBase {
   /**
    * Post-registration setup called by the clone pipeline (Spring
    * `@PostConstruct`-style). Stamps runtime-only references (user,
-   * playerId) from the caller-supplied context, then registers with
-   * PlayerApi so later lookups by playerId resolve to this instance.
+   * playerId) from the caller-supplied context, registers with
+   * PlayerApi so later lookups by playerId resolve to this instance,
+   * and installs the v1 default-issuance loadout (currently just the
+   * AetherImplant in the cranial slot).
+   *
+   * Default loadout install lives here — at clone time, alongside
+   * the rest of the instance wiring — rather than in `Avatar.enter`
+   * (which is session-start ceremony, not setup). When char-gen
+   * ships, the loadout install moves there with the rest of
+   * character creation.
    */
   public override async postRegister(context?: AvatarInitContext): Promise<void> {
     if (context?.user) this.user = context.user;
@@ -173,6 +180,8 @@ export class Avatar extends AvatarBase {
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
+
+    await this.installDefaultLoadout();
   }
 
   /**
@@ -208,23 +217,24 @@ export class Avatar extends AvatarBase {
   /**
    * Begin this Avatar's playable session. Called by `Login.enter`
    * after the Interactive has been transferred from Login to this
-   * Avatar. Owns everything that's "playing as this avatar":
+   * Avatar. Pure session-start ceremony:
    *
-   *   1. Resolve the starting location — consult the live container
-   *      first (set by the Avatar template's `data.container` via
-   *      Phase 2 `applyContainer` during clone, or by
-   *      `Avatar.restore()` re-hydrating saved state). Only fall back
-   *      to `DEFAULT_STARTING_LOCATION_PATH` for a brand-new avatar
-   *      with no declared spawn.
-   *   2. Install the periodic-save backstop via `startAutoSave()`.
-   *   3. Send the welcome scene with the connection-established
+   *   1. Install the periodic-save backstop via `startAutoSave()`.
+   *   2. Send the welcome scene with the connection-established
    *      payload the client needs for bootstrap.
-   *   4. Force a `sense` so the player perceives their starting
+   *   3. Force a `sense` so the player perceives their starting
    *      location across every channel they possess — delegated
    *      to `MobileMixin.autoSenseOnArrival` (the same hook that
    *      fires after a traversal), so we share the focus-reset and
    *      forceCommand plumbing instead of reimplementing `sense`.
-   *   5. Emit `Events.PlayerLoggedIn` for engine-level observers.
+   *   4. Emit `Events.PlayerLoggedIn` for engine-level observers.
+   *
+   * Starting location and default loadout are NOT this method's
+   * concern. The Avatar's container is set declaratively by the
+   * template's `data.container` field (Phase 2 `applyContainer`
+   * during clone) or by `Avatar.restore()` re-hydrating saved
+   * state; default loadout (currently the AetherImplant) is
+   * installed in `postRegister`. Both run before `enter` fires.
    *
    * **One call per session-start, not per connection.** When a second
    * Interactive multiplexes onto an already-playing Avatar,
@@ -235,17 +245,13 @@ export class Avatar extends AvatarBase {
    * method as session-start-only.
    */
   public async enter(interactive: Interactive): Promise<void> {
-    let startingLocation: (Stuff & Container) | null = this.getContainer();
+    const startingLocation = this.getContainer();
     if (!startingLocation) {
-      startingLocation = await StuffApi.singleton<Location>(
-        DEFAULT_STARTING_LOCATION_PATH
+      throw new Error(
+        `Avatar.enter: ${this.getFullName()} has no container. ` +
+          `Avatar templates must declare 'data.container'; the seed at ` +
+          `'${Avatar.SEED_TEMPLATE_PATH}' sets a default that's copied at signup.`
       );
-      // Silent spawn: a freshly-cloned avatar shouldn't be announced
-      // as "vanishing" from somewhere or "appearing out of thin air"
-      // before the player has even seen the location. We still want
-      // the auto-look — fired explicitly below after the welcome
-      // scene so the order is welcome → look.
-      this.teleport(startingLocation, { silent: true });
     }
     console.info(
       `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`
@@ -310,6 +316,52 @@ export class Avatar extends AvatarBase {
    * the mixin proxy receiver can't reach `#`-private slots.
    */
   private periodicSaveHandle: ScheduleHandle | null = null;
+
+  /**
+   * Install the v1 default loadout — currently the AetherImplant in
+   * the cranial slot. Called from `postRegister`, runs once per clone
+   * (every login, since the runtime Avatar is destructed at logout
+   * and re-cloned on the next session).
+   *
+   * Stand-in for char-gen's baseline-implant issuance; when char-gen
+   * ships, the loadout install moves there. Required for the Avatar's
+   * ESP modalities to land in `PerceptionApi.sensorium` (AetherMixin
+   * is augment-gated; the implant confers it).
+   *
+   * Idempotent on a single clone: if the cranial slot is already
+   * occupied (test fixtures, future loadouts that pre-populate the
+   * slot), the install short-circuits. Defensive wrapper around the
+   * whole body so a missing seed / species / body plan in a fresh
+   * dev DB doesn't crash the clone cascade — failures log and the
+   * sense / dm verbs surface their own polite refusals downstream.
+   */
+  private async installDefaultLoadout(): Promise<void> {
+    try {
+      if (!MixinApi.isSlotted(this)) return;
+      // Ensure species + body plan are loaded so the BodyPlanSlots
+      // override sees the cranial slot when we query it. Without
+      // this preload, `getSlotNames()` returns [] until the species
+      // singleton is first touched by another verb, and the install
+      // throws "unknown slot 'cranial'" on the very first clone.
+      await SpeciesApi.preloadAnatomy(this);
+      try {
+        const existing = this.getOccupants('cranial');
+        if (existing.size > 0) return;
+      } catch {
+        // No cranial slot on this body plan (sessile etc.).
+        return;
+      }
+      const implant = await StuffApi.clone<AetherImplant>(
+        AetherImplant.TEMPLATE_PATH,
+      );
+      this.occupy(implant, 'cranial');
+    } catch (err) {
+      console.warn(
+        `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
 
   /**
    * Install the periodic-save timer. Idempotent — calling twice is

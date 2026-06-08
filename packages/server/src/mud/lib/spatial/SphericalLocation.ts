@@ -54,7 +54,7 @@ export class SphericalLocation extends SphericalLocationBase {
   }
 
   /**
-   * Effective receiving-surface area used by `LightApi.lightAt` to
+   * Effective receiving-surface area used by `VisionModality.lightAt` to
    * convert accumulated lumens to lux. v1 commits to the room's own
    * radius (interpreted as m²) — bigger spheres read dimmer for the
    * same total flux. The exact-physics version (full surface area

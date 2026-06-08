@@ -1,0 +1,9 @@
+# VisionModality — the vision singleton.
+# Field modality; signalAt walk lands in Phase 2 (relocated from
+# the retired LightApi.lightAt).
+class: /lib/perception/modalities/VisionModality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: vision
+  family: field
+  modality: vision

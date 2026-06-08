@@ -22,6 +22,8 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
+import type { Stuff } from '../stuff/Stuff';
+import { PerceptionApi } from '../../api/perception';
 
 /**
  * Public shape provided by SensorMixin.
@@ -48,13 +50,35 @@ export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Shadowable extension point. Default returns the frame unchanged.
+     * Shadowable extension point. Default checks per-frame modality
+     * attribution: when `frame.meta.modality` is set, drops the frame
+     * unless the recipient's `PerceptionApi.sensorium` includes the
+     * named modality. Actor self-frames (carrying `audience:actor`)
+     * always deliver — you always perceive your own acts.
+     *
      * Game content shadows this to drop frames (return null) or
      * transform them (return a modified copy — treat the input as
      * immutable). Per-recipient interception, lifecycle bound to the
      * shadow's host.
      */
     protected filterMessage(frame: MessageFrame): MessageFrame | null {
+      const modalityKey = frame.meta?.modality;
+      if (!modalityKey) return frame;
+      if (frame.tags?.includes('audience:actor')) return frame;
+      // Producers stamp `meta.modality` with the modality's organ key
+      // (`'hearing'` for sound, `'verbal-esp'` for verbal ESP). The
+      // recipient-side gate resolves it via `modalityByOrganKey`,
+      // which is what `PerceptionApi.sensorium` indexes against.
+      const modality = PerceptionApi.modalityByOrganKey(modalityKey);
+      if (!modality) {
+        // Unknown organ key — let the frame through rather than
+        // silently drop. A content-side bug surfaces as visible
+        // delivery, not silent loss.
+        return frame;
+      }
+      if (!PerceptionApi.canPerceive(this as unknown as Stuff, modality)) {
+        return null;
+      }
       return frame;
     }
 

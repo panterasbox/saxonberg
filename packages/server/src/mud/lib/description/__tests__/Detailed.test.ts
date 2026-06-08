@@ -318,7 +318,7 @@ describe('DetailedMixin', () => {
       const detailB = obj.peekDetails().get('b');
 
       expect(detailA).not.toBe(detailB);
-      expect(detailA!.description).toBe(detailB!.description);
+      expect(detailA!.vision).toBe(detailB!.vision);
     });
   });
 

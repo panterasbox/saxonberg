@@ -378,8 +378,8 @@ activity slate's concern (engagement-slot conflict checks).
 - A `for` loop over a 10,000-element array doing `something()`
   per element. 10k × 10µs = 100ms loop block.
 - Shadow-heavy MQL queries on big rooms.
-- Recursive light propagation (`LightApi.lightAt` already runs
-  depth-bounded — good).
+- Recursive light propagation (`VisionModality.signalAt`, dispatched
+  through `PerceptionApi.signalAt`, already runs depth-bounded — good).
 
 ### General rule
 

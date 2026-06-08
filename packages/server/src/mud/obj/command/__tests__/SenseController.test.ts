@@ -37,6 +37,7 @@ import { BodyPlan } from '../../../lib/species/BodyPlan';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
+import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 import { ContainmentApi } from '../../../api/containment';
 
 const Base = OrganismMixin(
@@ -67,6 +68,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 }
 function makeFixture(channels: SenseChannel[]): { giver: ReceivingGiver; location: TestLocation } {
   StuffApi.clearAll();
+  buildAllModalities();
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
     `/lib/body-plans/test-sense-${channels.join('-') || 'sessile'}`,
@@ -212,7 +214,7 @@ describe('SenseController', () => {
   });
 
   it('dark-room substrate: sightless-by-construction viewer sees only hearing region', () => {
-    // Sightless-by-construction sensorium (no LightApi integration v1).
+    // Sightless-by-construction sensorium.
     const fix = makeFixture(['hearing']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
