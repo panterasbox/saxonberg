@@ -129,8 +129,18 @@ A leaf `extends Idea`. Nine persistent fields:
 - `_defaultHumidity: Quantity<'%'> | null`
 - `_defaultGravity: Quantity<'m/s²'> | null`
 - `_defaultAtmosphere: string | null`
-- `_ambientSoundMml: string | null`
-- `_ambientSmellMml: string | null`
+- `_defaultAmbientSoundLevel: Quantity<'dB'> | null` — universe-root
+  biome's value seeds the sync ambient floor on `SoundModality`'s
+  depth-0 walk (2026-06 perception build). The full async biome-chain
+  resolver for ambient sound is deferred; root-only is sufficient for
+  v1 because content-room scenes either author explicit sources or
+  inherit the same baseline everywhere.
+- `_ambientSoundMml: string | null` — narrative prose (not
+  propagating signal).
+- `_ambientSmellMml: string | null` — narrative prose (not
+  propagating signal). Per-room ambient smell ships via
+  `SmellSourceMixin` emitters in the room rather than a typed biome
+  field.
 
 `null` on a Quantity / string default means "fall through to my
 extends parent." A leaf biome carrying only `_ambientSoundMml`

@@ -1,13 +1,23 @@
 # Sound slate (working doc)
 
-> **⚰️ RETIRED as a standalone slate — superseded by
-> [senses-slate.md](./senses-slate.md).** Sound is now the **hearing**
-> instance of the unified `PerceptionChannel` substrate; the
-> substrate-level decisions live in the senses slate. This file is
-> **retained** for its detailed acoustic spec (the worked examples, the
-> propagation/masking/RT60 detail, the per-seam design), which graduates
-> into the hearing-instance build/requirements. Do not start new design
-> here — work in the senses slate; mine this for the acoustic depth.
+> **⚰️ RETIRED — hearing instance shipped 2026-06.** This slate's
+> core graduated into Phase 4 of the perception substrate build (see
+> [docs/subsystems/senses.md](../subsystems/senses.md)). Shipped:
+> `Sound` value object (dB + character + 3-entry source list),
+> `SoundSourceMixin`, `SoundConduit` (Door + Window),
+> `SoundModality.signalAt` walk with LINEAR-amplitude accumulation
+> + logarithmic dB merge at the wrap step (physically correct for
+> incoherent sources), `Biome._defaultAmbientSoundLevel` field,
+> universe-root sync ambient floor, bare `listen` verb upgrade,
+> dB UnitOps registry, dB + Hz tag tables. Door / Window now expose
+> five conduits (light, sight, movement, smell, sound).
+>
+> Deferred polish: SoundLevelMeter instrument + `measure sound`
+> sub-verb, async biome-chain `resolveAmbientSoundLevelFor` walker,
+> RT60 / reverberation, partial-transmissivity muffled-door
+> subclasses, per-species `hearingProfile`. The acoustic spec
+> below is **retained** as the depth source for those future
+> polishes — do not start new design here, mine for depth.
 
 Working slate for the sound subsystem — propagation through the
 Boundary substrate, three source kinds (ambient / activity-driven

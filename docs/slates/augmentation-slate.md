@@ -1,12 +1,13 @@
 # Augmentation slate (working doc)
 
-> **Status: framework set, build it baseline-first.** Renamed/broadened
-> from the old implant stub. The umbrella is **augmentation** — *acquired*
-> (non-innate) capability-granting body modifications; **implant** is its
-> central internal/cybernetic form, and the **baseline comm implant** is
-> the only piece the current infrastructure actually requires. The frame
-> is cheap to write down (and keeps the baseline from being a one-off
-> hack); the full roster is the framework *growing*, in later waves.
+> **Status: Wave 1 shipped 2026-06.** The substrate is real
+> (`AugmentMixin.confers`, `MixinApi.getActiveMixins` / `isActive`,
+> `_augmentGated` + `_grantsModalities` mixin self-declarations,
+> `@RequiresActive` decorator, cranial slot on biped/quadruped,
+> `BaselineCommImplant` template, `Avatar.enter` bootstrap, the
+> verb-level `requiresVerbalESP` / `requiresEmotiveESP` validators).
+> See [docs/subsystems/augmentation.md](../subsystems/augmentation.md)
+> for the shipped doc. Wave 2+ items below remain.
 
 Working slate for **augmentation** — how an avatar acquires capabilities
 its species didn't give it: sensors, limbs, organs, cognition. We

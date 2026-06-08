@@ -1,27 +1,31 @@
 # Senses slate (working doc)
 
-> **Status: authoring surface SHIPPED 2026-06; PerceptionChannel
-> substrate still ahead.** The slate's *authoring-discipline* slice
-> graduated: per-sense `Detail` slot map, `<sense channel="X">` MML
-> wrapper, `senseStripAugmenter`, the four single-sense verbs
-> (smell/listen/feel/taste), gestalt `sense` verb, auto-on-entry
-> switch, hierarchical perception topic vocabulary
-> (`world.perception.{sense,ambient,measurement,search}.*`),
-> `BodyPlan.getModalities()`, `SpeciesApi.deriveSensorium()`,
-> `Species.olfactoryProfile`. See
+> **Status: Wave 1 SHIPPED 2026-06 — authoring half + physics half
+> both landed.** Authoring (2026-06 senses build): per-sense
+> `Detail` slot map, `<sense channel="X">` MML wrapper,
+> `senseStripAugmenter`, the four single-sense verbs, gestalt
+> `sense` verb, auto-on-entry switch, hierarchical perception topic
+> vocabulary, `BodyPlan.getModalities()`, `Species.olfactoryProfile`.
+> Physics (2026-06 perception build): `Modality` base class + seven
+> singletons + `PerceptionApi`; field propagation walks for vision
+> (relocated from retired `LightApi`), smell (ppm + identity +
+> conduit), sound (dB + logarithmic merge + linear-amplitude
+> accumulation); touch ambient + per-detail temperature via biome
+> chain; ESP via augment-conferred AetherMixin; per-frame modality
+> attribution at `Scene.modality` + `SensorMixin.filterMessage`;
+> `SpeciesApi.deriveSensorium` retired in favor of
+> `PerceptionApi.sensorium`. See
 > [docs/subsystems/senses.md](../subsystems/senses.md) for the
-> shipped surface.
+> shipped substrate.
 >
-> Still in this slate: the unified `PerceptionChannel` substrate —
-> five physical senses as one substrate's instances + the per-viewer
-> percept model that feeds the inspection pane. **Absorbs and
-> retires the old sound slate** (sound becomes the *hearing*
-> instance). Open work below covers field/contact/network family
-> physics, propagation walks, attenuation/masking, per-species
-> sensitivity profiles beyond `olfactoryProfile`, ESP-as-channel
-> registration, smell trails, ambient producers, the sensorium-
-> relative stealth, alien channels (echolocation /
-> electroreception / pit-sensing).
+> Still ahead (Wave 2/3 open work below): smell trails / temporal
+> persistence, active-sense pattern (echolocation), full ESP local-
+> field walk (eavesdropping in range, encryption stripping for
+> non-addressee dms), per-species `hearingProfile` / `tactileProfile`
+> / `gustatoryProfile`, vitals burn-damage on scalding contact, RT60
+> / reverberation acoustic modeling, NPC scent-tracking AI,
+> sensorium-relative stealth, alien channels (electroreception /
+> magnetoreception / pit-sensing), chemesthesis as its own modality.
 >
 > Refinement (2026-06, pre-ship): ESP organ universalized across
 > sentient beings (open Q #12 resolved → emotes stay telepathic-only;

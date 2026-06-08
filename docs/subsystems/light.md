@@ -7,12 +7,28 @@ quantity that flows between rooms through `Boundary` substrate
 perceived per-viewer through a `Sensor`-aware query layer that
 threads through the cross-cutting perception pattern.
 
+**Build state:** the 2026-06 perception substrate retired
+`LightApi`. The propagation walk relocated into
+`VisionModality.signalAt` and outside consumers route via
+`PerceptionApi.signalAt(loc, VisionModality)`. Vision-modality
+domain helpers (`bandFor`, `applyBandShift`, `compareBand`,
+`REQUIRED_BAND_FOR_DETAIL`, the `ShadowQuality` type) live in
+`Light.ts` next to the `LightBand` vocabulary. Per-viewer queries
+(`perceivedBand`, `canSee`, `viewerVisionProfile`, `shadowsAt`) are
+static methods on `VisionModality`. The Light value object,
+`AmbientLitMixin`, `LightSourceMixin`, and the conduit interfaces
+ship unchanged. See [senses.md](./senses.md) for the cross-modality
+substrate and [augmentation.md](./augmentation.md) for the
+augment-conferred ESP modalities.
+
 The subsystem ships:
 
 - A pure-value `Light` class with `intensity` + `color` + `sources`.
-- `LightApi` with the propagation walk (`lightAt`, `bandAt`,
-  `shadowsAt`) and per-viewer queries (`perceivedBand`, `canSee`,
-  `viewerVisionProfile`).
+- `VisionModality.signalAt(loc)` (sync substrate contract) —
+  propagation walk; static convenience helpers `VisionModality.lightAt`,
+  `bandAt`, `perceivedBand`, `canSee`, `shadowsAt`,
+  `viewerVisionProfile`. (Outside-modality dispatch goes through
+  `PerceptionApi.signalAt(loc, VisionModality)`.)
 - `AmbientLitMixin` and `LightSourceMixin` for inherent ambient and
   for emitter-side contributions.
 - `Boundary`, `BoundaryAnchor`, and the `Conduit` interfaces — the
@@ -49,7 +65,8 @@ Sibling docs cover related ground without overlap:
 | `AmbientLitMixin` | mixin | Inherent ambient light a Container exposes. Persistent: `ambientIntensity` (lumens), `ambientColorTemperature` (Kelvin). Runtime API surfaces `Quantity` values via `getAmbientFlux` / `getAmbientColorTemperature`. |
 | `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity` (lumens), `emittedColorTemperature` (Kelvin). Runtime: `getEmittedFlux` / `getEmittedColorTemperature`. Fires `onLightSourceChanged` Witness hook (contract in `api/light.ts`) on the immediate environment when emission changes. |
 | `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `api/light.ts` so consumer Containers (the receiver side) don't have to reach into `lib/perception/` to implement it. |
-| `LightApi` | static API | `lightAt(loc)`, `bandAt(loc)`, `bandFor(luxValue)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`. |
+| `VisionModality` | `Modality` singleton | `signalAt(loc)` (the walk), `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`, `singleton()`. Outside callers route through `PerceptionApi.signalAt(loc, VisionModality)`. |
+| `bandFor(lux)` | helper in `Light.ts` | Map a lux numeric to a `LightBand` via the registered tag-table. Sits next to `LIGHT_BANDS`. |
 | `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
 | `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
