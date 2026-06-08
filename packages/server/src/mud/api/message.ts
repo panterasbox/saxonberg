@@ -71,6 +71,7 @@ export class Scene {
 
   #actor: Stuff;
   #topic: string | null = null;
+  #modality: string | null = null;
   #sharedTags: string[] = [];
   #sharedPayload: unknown = undefined;
   #frames: AudienceFrame[] = [];
@@ -91,6 +92,20 @@ export class Scene {
   /** Set the topic. Required before `.send()`. */
   topic(path: string): this {
     this.#topic = path;
+    return this;
+  }
+
+  /**
+   * Stamp the perception-modality attribution on every composed
+   * frame's `meta.modality`. Used by sensory producers
+   * (`VocalMixin.say` → `'hearing'`, `AetherMixin.tell` →
+   * `'verbal-esp'`) so reception-side gating at
+   * `SensorMixin.filterMessage` can drop frames whose modality
+   * isn't in the recipient's sensorium. System / log / narrative
+   * frames omit this call and deliver unconditionally.
+   */
+  modality(name: string): this {
+    this.#modality = name;
     return this;
   }
 
@@ -223,6 +238,7 @@ export class Scene {
         const meta: MessageFrame['meta'] = { timestamp: Date.now() };
         if (commandId !== undefined) meta.commandId = commandId;
         if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
+        if (this.#modality !== null) meta.modality = this.#modality;
         const body =
           af.body instanceof Mml ? af.body.toString(recipient) : af.body;
         const frame: MessageFrame = {

@@ -115,6 +115,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       MessageApi.scene(speaker)
         .topic('world.speech.tell')
+        .modality('verbal-esp')
         .toSelf(
           Mml.compose`${Mml.name(speaker)} → ${Mml.name(target)}: ${parsed}`,
         )

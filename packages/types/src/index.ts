@@ -49,6 +49,20 @@ export interface MessageFrame<T = unknown> {
     commandId?: string;
     causingCommandId?: string;
     frameId?: number;
+    /**
+     * Perception-modality attribution. When present, the frame is
+     * dropped at `SensorMixin.filterMessage` for recipients whose
+     * sensorium doesn't include the named modality (except for
+     * actor self-frames, which always deliver). Frames without
+     * `meta.modality` deliver unconditionally — system / log /
+     * narrative frames don't ride a sensory channel.
+     *
+     * Producer-side: `Scene.modality(name)` stamps this; the
+     * canonical names are the modality singleton names
+     * (`'vision'`, `'hearing'`, `'smell'`, `'touch'`, `'taste'`,
+     * `'verbal-esp'`, `'emotive-esp'`).
+     */
+    modality?: string;
   };
 }
 

@@ -54,6 +54,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       const scene = MessageApi.scene(speaker)
         .topic('world.speech.say')
+        .modality('hearing')
         .toSelf(selfBody)
         .payload({
           speaker: MessageApi.refOf(speaker),
