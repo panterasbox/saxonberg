@@ -33,7 +33,7 @@
  * `markdownToMml(text, resolver)` parses the Discord-dialect subset
  * (bold / italic / code / pre / blockquote / list / strike + the
  * `[label](URI)` in-world refs + `@<name>` mentions) into MML. Called
- * by `VocalMixin.say` and `TellController` on user-supplied speech;
+ * by `VocalMixin.say` and `DmController` on user-supplied speech;
  * the resolver is built from the call site's scope (perceivable
  * Stuff for say/tell/emote, channel participants for chat).
  *

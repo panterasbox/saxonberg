@@ -214,8 +214,9 @@ behavior. Read the relevant doc before editing in its area.
     open shape for `_grantsLanguages` / `_grantsAttributeMasks` /
     `_grantsVitalFunctions` / `_grantsSlots`); `@RequiresActive`
     method decorator + `InactiveCapabilityError`; cranial slot on
-    biped/quadruped body plans; `BaselineCommImplant` (Wave 1
-    implant template); `Avatar.enter` bootstrap. Wave 1 ships the
+    biped/quadruped body plans; `AetherImplant` (Wave 1 implant
+    template); `Avatar.installDefaultLoadout` dispatched from
+    `postRegister` during the clone cascade. Wave 1 ships the
     framework + the baseline implant; Wave 2+ adds other augments,
     install/remove procedure, char-gen loadout, failure modes.
   - [senses.md](./docs/subsystems/senses.md) — multi-sense perception

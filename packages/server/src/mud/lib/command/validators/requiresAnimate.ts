@@ -44,7 +44,7 @@ const validator: CommandValidator = (context) => {
  * (species template never cloned) and `isAnimate` would report
  * false for an otherwise-alive Homo sapiens avatar. Delegates to
  * `SpeciesApi.preloadAnatomy` — the shared substrate helper that
- * the sense / ESP validators and `Avatar.bootstrapBaselineImplant`
+ * the sense / ESP validators and `Avatar.installDefaultLoadout`
  * also use.
  */
 validator.preload = (context) =>

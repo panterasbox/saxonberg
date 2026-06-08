@@ -169,9 +169,11 @@ export class AetherImplant
 
 Hardened per the slate: no power state, no failure modes, no fuel.
 Diegetically a small brass-and-silicon device. Every Avatar
-bootstrap-installs one in the cranial slot via `Avatar.enter`'s
-`bootstrapAetherImplant` path (idempotent: re-entry on an Avatar
-already carrying anything cranial is a no-op).
+installs one in the cranial slot via `Avatar.installDefaultLoadout`,
+dispatched from `postRegister` during the clone cascade (runs once
+per clone = once per session, since the runtime Avatar is destructed
+at logout). Idempotent on a single clone: re-entry on an Avatar
+already carrying anything cranial is a no-op.
 
 ## How other augment kinds plug in (substrate proof)
 
@@ -198,7 +200,8 @@ What ships:
 - `MixinApi.getActiveMixins` / `isActive` + predicate routing.
 - `@RequiresActive` decorator (inlined equivalent in AetherMixin).
 - Cranial slot on biped/quadruped body plans.
-- AetherImplant template + Avatar.enter bootstrap.
+- AetherImplant template + Avatar.installDefaultLoadout (from
+  postRegister) clone-time install.
 - `requiresVerbalESP` + `requiresEmotiveESP` verb-level validators.
 - Reception-gating integration (`Scene.modality` + filterMessage)
   drops `dm` frames for implant-less recipients.

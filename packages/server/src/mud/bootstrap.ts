@@ -52,8 +52,9 @@ export const bootstrapManifest: BootstrapEntry[] = [
   //     degradation for any pre-validator render call.
   //   - **AetherImplant** lazy-loads via
   //     `StuffApi.clone(AetherImplant.TEMPLATE_PATH)` in
-  //     `Avatar.enter`'s `bootstrapAetherImplant` (already async).
-  //     No bootstrap pre-clone needed.
+  //     `Avatar.installDefaultLoadout` (dispatched from `postRegister`
+  //     during the clone cascade — see Avatar.ts). No bootstrap
+  //     pre-clone needed.
   //
   // Adding any of these back to the manifest would be a regression
   // in boot-time work for no real benefit — the lazy paths are

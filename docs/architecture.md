@@ -441,6 +441,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/activity/` | `EngagedMixin` | actor-side engagement slot map (`body`/`hands`/`attention`/`voice`); runtime-only. `_setEngagement` / `_clearEngagement` are ApiOnly-gated; only `SchedulerApi` may mutate. Composed by `Character`. Provides the `cancel` verb and `stop` default alias. |
 | `lib/biome/` | `AtmosphericMixin` | biome ref + atmospheric overrides (temperature/pressure/humidity/gravity/atmosphere) at room or per-Detail scope. Composed by `Location` and `Vessel`. See [biome.md](./subsystems/biome.md). |
 | `lib/biome/` | `SkyExposedMixin` | trait stamp for biomes whose Locations look out on the open sky. Composed by `SkyExposedBiome`. |
+| `lib/perception/` | `SmellSourceMixin` | "this Stuff emits an odor"; `getEmittedConcentration()` (ppm `Quantity`) + `getOdorIdentity()` (string). Composed by smelly Thing templates (candle, garlic, etc.) and fixture-side Adornments. See [senses.md](./subsystems/senses.md). |
+| `lib/perception/` | `SoundSourceMixin` | "this Stuff emits sound"; `getEmittedAmplitude()` (dB `Quantity`) + `getSoundCharacter()` (string). Composed by noisy Thing templates and fixture-side Adornments. |
+| `lib/augmentation/` | `AugmentMixin` | "this Stuff is an installable augment"; declares `confers(): readonly string[]` listing mixin names activated when installed. Wave 1 vocabulary surfaces `_augmentGated` / `_grantsModalities` on the mixins themselves. See [augmentation.md](./subsystems/augmentation.md). |
+| `lib/message/` | `AetherMixin` | "this Stuff can transmit and receive over the Aether (non-acoustic comm network)". Augment-gated (`_augmentGated = true`); inert until `AetherImplant` confers it. Grants the `dm` verb (`tell`/`whisper` aliases) and contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`. |
 
 ### Mixin Composition Constraints
 

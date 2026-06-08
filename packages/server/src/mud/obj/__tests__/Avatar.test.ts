@@ -778,7 +778,6 @@ describe('Avatar', () => {
     });
 
     it('welcome-scene payload carries topicCatalogue from the singleton', async () => {
-      const { StuffApi } = await import('../../api/stuff');
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
       const { TopicCatalogue } = await import('../TopicCatalogue');

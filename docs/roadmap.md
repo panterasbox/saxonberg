@@ -27,9 +27,11 @@ The substrate is in place. Major shipped surfaces:
   doors, windows, the Boundary substrate (Adornable +
   Adornment + Conduit), Sealable.
 - **Light & Boundary subsystem** — Light value object,
-  propagation walk via `LightApi.lightAt`, per-viewer perception
-  (`LightApi.canSee`, `perceivedBand`), the Boundary substrate's
-  channel-keyed transmissivity readied for future channels.
+  propagation walk via `VisionModality.signalAt` (dispatched through
+  `PerceptionApi.signalAt`), per-viewer perception
+  (`VisionModality.canSee`, `perceivedBand`), the Boundary
+  substrate's channel-keyed transmissivity (one of five conduit
+  kinds shipped with the perception substrate).
 - **Quantities substrate** — `Quantity<U>` value object,
   per-unit math op table, tag-table registry, YAML-authored
   scales, `<quantity>` Mml emission, marshaller integration.
@@ -176,18 +178,23 @@ Ordered by leverage + dependency:
    scoped-authoring and spoiler, and absorbs the
    communication-policy slate. Pure server.
    ([access-slate.md](./slates/access-slate.md))
-2. **Senses** — the unified `PerceptionChannel` substrate
-   (sound = the hearing channel); high content leverage,
-   `analyze`/`measure` are text verbs. **Partial shipment**
-   (2026-06): the multi-sense authoring surface is in place —
-   per-sense `Detail` slot map, `<sense channel="X">` MML,
-   `senseStripAugmenter`, the four single-sense verbs, gestalt
-   `sense` verb, auto-on-entry switch, perception topic
-   vocabulary, hierarchical channel-named topic tree. See
-   [senses.md](./subsystems/senses.md). Still ahead: full
-   `PerceptionChannel` substrate (propagation walks, attenuation,
-   masking, field/contact/network family physics, ESP-as-channel
-   registration, smell trails, ambient producers).
+2. **Senses** — the unified `Modality` substrate (sound = the
+   hearing channel); high content leverage, `analyze`/`measure`
+   are text verbs. **Wave 1 shipped** (2026-06): authoring surface
+   (per-sense `Detail` slot map, `<sense channel="X">` MML,
+   `senseStripAugmenter`, four single-sense verbs, gestalt `sense`
+   verb, auto-on-entry, hierarchical perception topic tree) AND
+   the physics substrate (`Modality` base + seven singletons +
+   `PerceptionApi`; field propagation walks for vision / smell /
+   sound; touch ambient + per-detail temperature via biome chain;
+   ESP via augment-conferred AetherMixin; per-frame modality
+   attribution + reception gating; ambient producers via
+   `Biome._defaultAmbientSoundLevel`). See
+   [senses.md](./subsystems/senses.md). Still ahead (Wave 2/3):
+   smell trails / temporal persistence, active-sense pattern
+   (echolocation), full ESP local-field walk, per-species
+   hearing / tactile / gustatory profiles, RT60 / reverberation,
+   stealth as sensorium-relative perception.
    ([senses-slate.md](./slates/senses-slate.md))
 3. **Social cluster (server halves)** — emotes (`SoulMixin`) +
    comms transports (say/whisper/tell) + the grouping facade.
@@ -202,8 +209,13 @@ Ordered by leverage + dependency:
    ([recognition](./slates/recognition-slate.md) /
    [identification](./slates/identification-slate.md) /
    [social-graph](./slates/social-graph-slate.md))
-6. **Augmentation + npc-dialogue** — both lean on the shipped
-   prompt + slot substrate.
+6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
+   shipped 2026-06 (substrate + AetherImplant; see
+   [augmentation.md](./subsystems/augmentation.md)); Wave 2+ adds
+   the install/remove medical procedure, char-gen loadout, other
+   augment Stuff (translation, prosthetics, sensor packages,
+   motor / cognitive), and failure modes. Npc-dialogue still leans
+   on the shipped prompt + slot substrate.
    ([augmentation](./slates/augmentation-slate.md) /
    [npc-dialogue](./slates/npc-dialogue-slate.md))
 

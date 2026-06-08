@@ -145,7 +145,7 @@ export class SpeciesApi {
    * Consumers today: `requiresAnimate` (kingdom walk),
    * `requires<Sense>` / `requires<ESP>` (sensorium walk),
    * `LocomotionApi.preloadActorAnatomy` (body-plan locomotion gate),
-   * `Avatar.bootstrapBaselineImplant` (BodyPlanSlots cranial slot
+   * `Avatar.installDefaultLoadout` (BodyPlanSlots cranial slot
    * resolution).
    */
   public static async preloadAnatomy(actor: Stuff): Promise<void> {
