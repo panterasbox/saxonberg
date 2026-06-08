@@ -47,4 +47,8 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // `SensorMixin`. Same shape `TopicCatalogue` uses for its leaf
   // descriptors — bootstrap-cloned, sync-resolved thereafter.
   { templatePathPrefix: '/lib/perception/modalities/' },
+  // Augmentation Wave 1 — bootstrap the BaselineCommImplant template
+  // so Avatar.enter can clone it idempotently into every Avatar's
+  // cranial slot.
+  { templatePathPrefix: '/lib/augmentation/' },
 ];

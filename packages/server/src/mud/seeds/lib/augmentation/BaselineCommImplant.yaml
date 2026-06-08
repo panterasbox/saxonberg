@@ -1,0 +1,8 @@
+# BaselineCommImplant — Wave 1 implant template. Hardened
+# (no power state, no failure modes); confers AetherMixin.
+class: /lib/augmentation/BaselineCommImplant
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: "a baseline comm implant"
+  longDescription: "A small, hardened cybernetic device the size of a thumbnail — brass and silicon, sealed against the field. It hums faintly in your hand."
+  targetSlot: cranial

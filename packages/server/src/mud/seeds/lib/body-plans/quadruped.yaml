@@ -11,6 +11,10 @@ data:
     - { name: head,    accepts: WearableMixin }
     - { name: collar,  accepts: WearableMixin }
     - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
+    # Cranial implant slot — parallel to biped. See augmentation
+    # subsystem doc; sessile body plans deliberately omit this slot
+    # (plants don't get implants in v1).
+    - { name: cranial, accepts: SlottableMixin }
   locomotionModes:
     - walk
     - swim

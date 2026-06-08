@@ -37,6 +37,10 @@ import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
+import {
+  InactiveCapabilityError,
+} from '../security/RequiresActive';
+import { MixinApi } from '../../api/mixin';
 
 export interface Aether {
   tell(target: Stuff, text: string): void;
@@ -45,6 +49,28 @@ export interface Aether {
 export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class AetherMixin extends Base {
     static _mixinName = 'AetherMixin';
+
+    /**
+     * Augment-gated marker: AetherMixin is composed natively on
+     * every Avatar (so methods + state exist) but is inert unless
+     * an installed augment confers it. The baseline comm implant
+     * (`/lib/augmentation/BaselineCommImplant`) is the v1 conferrer;
+     * `MixinApi.getActiveMixins` reflects implant presence in real
+     * time.
+     */
+    static _augmentGated = true;
+
+    /**
+     * Modalities AetherMixin contributes to the sensorium when
+     * active. `PerceptionApi.sensorium` walks active mixins and
+     * unions their `_grantsModalities`; combined with the BodyPlan
+     * organ walk, this is how an implant-bearing Avatar gains the
+     * ESP modalities (no native ESP organ in v1).
+     */
+    static _grantsModalities: readonly string[] = [
+      'verbal-esp',
+      'emotive-esp',
+    ];
 
     /**
      * Verbs the Aether grants. Tell currently rides here (was
@@ -74,7 +100,15 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
      * slate's concern.
      */
     tell(target: Stuff, text: string): void {
+      // Manual `@RequiresActive('AetherMixin')` — the substrate's
+      // augment-gated capability check. TS decorator syntax inside
+      // class-factory mixins triggers TS1206, so this guard inlines
+      // the same check the decorator would perform. Drop the inline
+      // when stage-3 decorators land in tsc + tooling.
       const speaker = this as unknown as Stuff;
+      if (!MixinApi.isActive(speaker, 'AetherMixin')) {
+        throw new InactiveCapabilityError('AetherMixin', 'tell');
+      }
       const parsed = Mml.markdownToMml(
         text,
         Mml.perceiverMentionResolver(speaker),

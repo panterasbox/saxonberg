@@ -55,6 +55,7 @@ import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
+import type { Augment } from '../lib/augmentation/Augment';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
@@ -229,6 +230,62 @@ export class MixinApi {
       const name = mixin._mixinName || mixin.name;
       return name === mixinName;
     });
+  }
+
+  /**
+   * Active-mixin substrate (augmentation Wave 1).
+   *
+   * Returns the set of mixin constructors currently "active" on
+   * `stuff`. The substrate splits build-time composition from
+   * runtime activation:
+   *
+   *   - Most mixins are NOT augment-gated (`_augmentGated !== true`).
+   *     Native composition is sufficient — active iff composed.
+   *   - Augment-gated mixins (`_augmentGated === true`) are active
+   *     ONLY when an installed augment confers them via
+   *     `AugmentMixin.confers()`.
+   *
+   * The walk is lazy in v1 (no cache); installing or removing an
+   * augment takes effect on the next call. Future optimization
+   * caches the set on the entity, invalidated on slot
+   * occupy/release.
+   *
+   * The implementation looks at slot occupancy via
+   * `SlotApi.getAllOccupants` for hosts that compose
+   * `SlottedMixin`; non-slotted hosts have no augments and active
+   * = composed for everything.
+   */
+  public static getActiveMixins(stuff: Stuff): readonly MixinClass[] {
+    const composed = this.queryMixins(stuff.constructor as AnyConstructor);
+    let conferredNames: Set<string> | null = null;
+    const active: MixinClass[] = [];
+    for (const mixin of composed) {
+      const gated = (mixin as { _augmentGated?: boolean })._augmentGated;
+      if (!gated) {
+        active.push(mixin);
+        continue;
+      }
+      if (conferredNames === null) {
+        conferredNames = collectAugmentConferralNames(stuff);
+      }
+      const name = mixin._mixinName ?? mixin.name;
+      if (name && conferredNames.has(name)) {
+        active.push(mixin);
+      }
+    }
+    return active;
+  }
+
+  /**
+   * `getActiveMixins` membership predicate. Returns true iff a mixin
+   * named `mixinName` is in the active set on `stuff`. For un-gated
+   * mixins, equivalent to `hasMixin`; for gated ones, reflects
+   * augment-toggled state.
+   */
+  public static isActive(stuff: Stuff, mixinName: string): boolean {
+    return this.getActiveMixins(stuff).some(
+      (m) => (m._mixinName ?? m.name) === mixinName,
+    );
   }
 
   /**
@@ -490,6 +547,10 @@ export class MixinApi {
 
   public static isSoundSource(obj: Stuff): obj is Stuff & SoundSource {
     return this.hasMixin(obj, Mixins.SoundSource);
+  }
+
+  public static isAugment(obj: Stuff): obj is Stuff & Augment {
+    return this.hasMixin(obj, Mixins.Augment);
   }
 
   public static isPerception(obj: Stuff): obj is Stuff & Perception {
@@ -821,5 +882,52 @@ export class MixinApi {
 }
 
 
+
+/**
+ * Walk `stuff`'s slot occupants (when it composes SlottedMixin) and
+ * collect every mixin-name conferred by an installed augment. Used
+ * by `getActiveMixins` to resolve gated mixins' activation state.
+ *
+ * Non-Slotted hosts have no augments — returns an empty set.
+ *
+ * Imported lazily to avoid a startup cycle through `SlotApi`; the
+ * indirection costs nothing once warm.
+ */
+function collectAugmentConferralNames(stuff: Stuff): Set<string> {
+  const out = new Set<string>();
+  // `getAllOccupants` is the SlottedMixin surface — returns a
+  // Map<slotName, ReadonlySet<occupant>>. Non-Slotted hosts have no
+  // augments; return the empty set. Structural-shape lookup avoids
+  // importing SlotApi at module load (would re-enter this module via
+  // its decorator-decoration chain).
+  const slotted = stuff as unknown as {
+    getAllOccupants?: () => ReadonlyMap<string, ReadonlySet<Stuff>>;
+  };
+  const getter = slotted.getAllOccupants;
+  if (typeof getter !== 'function') return out;
+  let occupantsByslot: ReadonlyMap<string, ReadonlySet<Stuff>>;
+  try {
+    occupantsByslot = getter.call(stuff);
+  } catch {
+    return out;
+  }
+  for (const occupantSet of occupantsByslot.values()) {
+    for (const occupant of occupantSet) {
+      if (!MixinApi.hasMixin(occupant, 'AugmentMixin' as MixinName)) continue;
+      const augment = occupant as unknown as {
+        confers?: () => readonly string[];
+      };
+      if (typeof augment.confers !== 'function') continue;
+      let names: readonly string[];
+      try {
+        names = augment.confers();
+      } catch {
+        continue;
+      }
+      for (const name of names) out.add(name);
+    }
+  }
+  return out;
+}
 
 SecurityApi.decorateApiClass(MixinApi);

@@ -52,6 +52,7 @@ export const Mixins = {
   LightSource: 'LightSourceMixin',
   SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
+  Augment: 'AugmentMixin',
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',

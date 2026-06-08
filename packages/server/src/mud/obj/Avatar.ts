@@ -16,6 +16,8 @@ import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
+import { MixinApi } from '../api/mixin';
+import { BaselineCommImplant } from '../lib/augmentation/BaselineCommImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
@@ -251,6 +253,12 @@ export class Avatar extends AvatarBase {
       `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`
     );
 
+    // Bootstrap the baseline comm implant in the cranial slot. Idempotent
+    // — re-entry on an Avatar already carrying the implant is a no-op.
+    // Char-gen will take over installation ceremony when that slate
+    // ships; this is the v1 default-issuance path.
+    await this.bootstrapBaselineImplant();
+
     this.startAutoSave();
 
     // Welcome scene: actor frame at system.connection.established
@@ -310,6 +318,35 @@ export class Avatar extends AvatarBase {
    * the mixin proxy receiver can't reach `#`-private slots.
    */
   private periodicSaveHandle: ScheduleHandle | null = null;
+
+  /**
+   * Bootstrap the baseline comm implant into the cranial slot when
+   * absent. Idempotent — re-entry on an Avatar already carrying an
+   * implant is a no-op.
+   *
+   * v1 stand-in for char-gen's baseline-implant issuance. Required
+   * for the Avatar's ESP modalities to land in `PerceptionApi.sensorium`
+   * (AetherMixin is augment-gated; the implant confers it).
+   */
+  private async bootstrapBaselineImplant(): Promise<void> {
+    if (!MixinApi.isSlotted(this)) return;
+    try {
+      const existing = this.getOccupants('cranial');
+      if (existing.size > 0) {
+        // Already carrying something cranial — assume it's an
+        // augment-conferring implant (v1 ships only the one). Skip.
+        return;
+      }
+    } catch {
+      // No cranial slot on this body plan (e.g. sessile). Skip — no
+      // ESP for those Avatars.
+      return;
+    }
+    const implant = await StuffApi.clone<BaselineCommImplant>(
+      BaselineCommImplant.TEMPLATE_PATH,
+    );
+    this.occupy(implant, 'cranial');
+  }
 
   /**
    * Install the periodic-save timer. Idempotent — calling twice is

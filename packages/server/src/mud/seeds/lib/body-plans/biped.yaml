@@ -17,6 +17,11 @@ data:
     - { name: neck,           accepts: WearableMixin }
     - { name: 'hand:left',    accepts: WieldableMixin }
     - { name: 'hand:right',   accepts: WieldableMixin }
+    # Cranial implant slot — accepts SlottableMixin (the broad
+    # interface every augment composes). The "implant" semantic
+    # lives in the slot's name and the augment's targetSlot field,
+    # not in the validator enum. See docs/subsystems/augmentation.md.
+    - { name: cranial,        accepts: SlottableMixin }
   locomotionModes:
     - walk
     - climb

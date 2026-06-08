@@ -205,15 +205,14 @@ function walkInnateModalities(viewer: Stuff): Modality[] {
  * via the active-mixin set.
  */
 function walkAugmentedModalities(viewer: Stuff): Modality[] {
-  const active = (
-    MixinApi as unknown as {
-      getActiveMixins?: (s: Stuff) => readonly { _grantsModalities?: readonly string[] }[];
-    }
-  ).getActiveMixins;
-  if (typeof active !== 'function') return [];
+  // Defensive: MixinApi.getActiveMixins is available after Phase 6
+  // ships. Pre-Phase-6 viewers (test fixtures that don't go through
+  // the full Phase 6 setup) get an empty grant set.
+  const activeMixins = MixinApi.getActiveMixins(viewer);
   const grants = new Set<string>();
-  for (const mixin of active(viewer)) {
-    const list = mixin._grantsModalities;
+  for (const mixin of activeMixins) {
+    const list = (mixin as { _grantsModalities?: readonly string[] })
+      ._grantsModalities;
     if (!list) continue;
     for (const name of list) grants.add(name);
   }
@@ -223,9 +222,7 @@ function walkAugmentedModalities(viewer: Stuff): Modality[] {
       out.push(PerceptionApi.modalityByName(name));
     } catch {
       // Unknown modality name — augment declares a modality not in
-      // the v1 substrate; silently drop. (A content-side bug
-      // surfaces as missing perception, which is the correct
-      // failure mode.)
+      // the v1 substrate; silently drop.
     }
   }
   return out;
