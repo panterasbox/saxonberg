@@ -24,6 +24,7 @@ import {
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
 import { installV1QuantityTagTables } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 
 class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
 class Lamp extends LightSourceMixin(NamedMixin(Thing)) {}
@@ -65,6 +66,7 @@ function makeModel(fields: ModelData, subcommand: string): CommandModel {
 describe('AnalyzeLightController', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
+    buildAllModalities();
   });
   afterEach(() => {
     StuffApi.clearAll();

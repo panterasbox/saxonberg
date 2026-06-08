@@ -117,7 +117,7 @@ export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
 
   /**
    * Per-species vision capability for the perception subsystem.
-   * `null` falls through to LightApi's default. Flat 3-scalar record;
+   * `null` falls through to VisionModality's default. Flat 3-scalar record;
    * default JSON serialization handles it (no marshaller needed).
    */
   protected visionProfile: VisionProfile | null = null;

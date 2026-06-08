@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MeasureLightController } from '../MeasureLightController';
 import { CartesianZone } from '../../../lib/spatial/CartesianZone';
 import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
@@ -21,8 +21,8 @@ import {
   type ModelData,
 } from '../../../api/command';
 import type { Interactive } from '../../Interactive';
-// Trigger LightApi tag-table registrations.
-import '../../../api/light';
+// Vision modality singleton + perception cache live behind PerceptionApi.
+import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 
 class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
 
@@ -61,6 +61,9 @@ function makeModel(fields: ModelData, subcommand: string): CommandModel {
 }
 
 describe('MeasureLightController', () => {
+  beforeEach(() => {
+    buildAllModalities();
+  });
   afterEach(() => {
     StuffApi.clearAll();
   });

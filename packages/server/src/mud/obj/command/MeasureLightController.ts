@@ -1,10 +1,11 @@
 /**
  * MeasureLightController — handler for `measure light [<location>]`.
  *
- * Reads `LightApi.lightAt(loc).intensity` (a `Quantity<'lux'>`) and
- * emits a single self-frame at `world.perception.vision` with a
- * canonical readout. Photometer hosts the verb on its `inventory`
- * bucket — the player gains `measure light` while carrying one.
+ * Reads `PerceptionApi.signalAt(loc, VisionModality).intensity` (a
+ * `Quantity<'lux'>`) and emits a single self-frame at
+ * `world.perception.measurement.measure-light` with a canonical
+ * readout. Photometer hosts the verb on its `inventory` bucket — the
+ * player gains `measure light` while carrying one.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
@@ -17,7 +18,8 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
-import { LightApi } from '../../api/light';
+import { PerceptionApi } from '../../api/perception';
+import { Light } from '../../lib/perception/Light';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
 
@@ -52,7 +54,8 @@ export class MeasureLightController extends CommandController<MeasureLightModel>
       return;
     }
     const loc = target.stuff as Stuff & Container;
-    const light = LightApi.lightAt(loc);
+    const vision = PerceptionApi.modalityByName('vision');
+    const light = (PerceptionApi.signalAt(loc, vision) as Light | null) ?? Light.ZERO;
     const intensity = light.intensity;
 
     const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml()}\n`;

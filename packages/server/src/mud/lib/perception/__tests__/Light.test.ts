@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Light, LIGHT_SOURCE_CAP } from '../Light';
 import { Quantity } from '../../quantity';
-// `bandFor` moved to api/light.ts (was previously here in lib/) so
-// the api layer doesn't import logic from lib.
-import { bandFor } from '../../../api/light';
+// `bandFor` lives in `Light.ts` next to the `LightBand` vocabulary —
+// vision-modality domain.
+import { bandFor } from '../Light';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 describe('Light value object', () => {

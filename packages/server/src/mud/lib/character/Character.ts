@@ -53,7 +53,7 @@ import { EngagedMixin } from '../activity/Engaged';
 // VisibleMixin is target-shape only — description state, no verbs.
 // Sensor + Perception together = the full perceiver substrate:
 // Sensor handles channel-side message receipt, Perception handles
-// the subjective interpretation seams that LightApi (and future
+// the subjective interpretation seams that VisionModality (and future
 // hearing/etc.) ask the viewer to modulate. PerceiverMixin sits
 // directly above Sensor (it requires Sensor for output routing)
 // and owns the perception verb surface as a separate role from

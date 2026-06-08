@@ -8,7 +8,7 @@
  * Door additionally lives in each adjacent room's
  * `Adornable.getFixtures()` via a `BoundaryAnchor` per side. This
  * lets a closed Door block light propagation between its two rooms
- * via the cross-boundary walk in `LightApi.lightAt`, alongside the
+ * via the cross-boundary walk in `VisionModality.lightAt`, alongside the
  * pre-existing movement gate on `Exit.canTraverse`.
  *
  * Composition: `SealableMixin(Boundary)`. Boundary already supplies

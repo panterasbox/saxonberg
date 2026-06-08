@@ -71,21 +71,22 @@ export interface LightDataShape {
 export const LIGHT_SOURCE_CAP = 3;
 
 /**
- * Bands for the `bandAt` lookup. Crossing-the-band boundaries is the
+ * Bands for the `bandFor` lookup. Crossing-the-band boundaries is the
  * granularity controllers and prose check against — most code never
  * touches the raw illuminance number.
  *
  * Single source of truth for the lux band vocabulary in TypeScript:
  * the `as const` tuple drives the `LightBand` type union, the
- * runtime membership check in `bandFor` (`api/light.ts`), and pairs
- * with the lux tag-table thresholds authored in
- * `mud/config/quantity-tags.yaml`. `bandFor` enforces drift between
- * the YAML and this tuple at runtime.
+ * runtime membership check in `bandFor` (below), and pairs with the
+ * lux tag-table thresholds authored in `mud/config/quantity-tags.yaml`.
+ * `bandFor` enforces drift between the YAML and this tuple at runtime.
  *
- * The lux thresholds and the `bandFor` adapter both live in
- * `api/light.ts`; band shift / compare arithmetic is the generic
- * `Quantity.shiftTag` / `compareTag` machinery applied to the lux
- * unit.
+ * `bandFor`, `applyBandShift`, and `compareBand` live next to the
+ * `LightBand` vocabulary — they're vision-modality domain. The
+ * propagation walk that produces a Light value lives in
+ * `lib/perception/modalities/VisionModality.ts` as the modality's
+ * `signalAt`; outside consumers dispatch via
+ * `PerceptionApi.signalAt(loc, VisionModality)`.
  */
 export const LIGHT_BANDS = [
   'pitch-black',
@@ -100,17 +101,18 @@ export type LightBand = (typeof LIGHT_BANDS)[number];
 
 /**
  * Visibility detail levels — the per-call resolution the perception
- * surface (`Perception.canSee`, `LightApi.canSee`) gates on. v1 uses
- * a flat four-level vocabulary; finer-grained values can layer in
- * later without changing call sites.
+ * surface (`Perception.canSee`, `Light.canSee`) gates on. v1 uses a
+ * flat four-level vocabulary; finer-grained values can layer in later
+ * without changing call sites.
  */
 export type VisibilityDetail = 'shape' | 'figure' | 'detail' | 'fine';
 
 /**
  * Per-species vision profile. Stored on `Species` as authored data;
- * consumed by `LightApi.canSee` / `LightApi.viewerVisionProfile` to
- * shift band thresholds at perception time. v1 returns a single
- * human-shaped default when no profile is set.
+ * consumed by `VisionModality.perceiveFor` and
+ * `VisionModality.viewerVisionProfile` to shift band thresholds at
+ * perception time. v1 returns a single human-shaped default when no
+ * profile is set.
  *
  * - `scotopicMin` / `photopicMax` — the visible-band window for the
  *   species. Anything dimmer than `scotopicMin` reads as
@@ -125,6 +127,80 @@ export interface VisionProfile {
   photopicMax: LightBand;
   bandShift: number;
 }
+
+/**
+ * Concealment qualities exposed by `Light.shadowsAt`. Reserved
+ * surface for Hidden / Stealthing.
+ */
+export type ShadowQuality =
+  | 'none'
+  | 'faint'
+  | 'partial'
+  | 'deep'
+  | 'absolute';
+
+/**
+ * Lux unit + scale the lux tag-table is registered under. Encoded
+ * once so all the `Quantity.*('lux', LUX_SCALE)` callers stay in
+ * sync if the scale name ever changes.
+ */
+const LUX_SCALE = 'default';
+
+/**
+ * Membership set for runtime narrowing — derived from the
+ * type-system source of truth (`LIGHT_BANDS`) so there's no second
+ * copy to keep in sync.
+ */
+const LIGHT_BAND_SET: ReadonlySet<LightBand> = new Set<LightBand>(LIGHT_BANDS);
+
+/**
+ * Map a lux numeric value to a `LightBand`. Consults the live
+ * `Quantity` tag-table registry — the lux thresholds live in
+ * `mud/config/quantity-tags.yaml` and load at boot via
+ * `QuantityApi.loadTagTables`. `bandFor` is a thin typed adapter
+ * over `Quantity.tag()` for the lux unit; reload of the YAML
+ * propagates here transparently.
+ *
+ * Throws if the lux table isn't registered (test setup gap) or if
+ * the registered tags don't match `LightBand` (content-side bug —
+ * the YAML tag list must equal the typed union by construction).
+ */
+export function bandFor(luxValue: number): LightBand {
+  const tag = Quantity.of(luxValue, 'lux').tag();
+  if (!LIGHT_BAND_SET.has(tag as LightBand)) {
+    throw new Error(
+      `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
+        `Either the lux tag table is not registered (call ` +
+        `QuantityApi.loadTagTables / installV1QuantityTagTables) ` +
+        `or the registered entries don't match the LightBand union.`,
+    );
+  }
+  return tag as LightBand;
+}
+
+/**
+ * Band shift arithmetic delegates to the generic `Quantity.shiftTag`
+ * machinery applied to the lux unit.
+ */
+export function applyBandShift(band: LightBand, shift: number): LightBand {
+  return Quantity.shiftTag('lux', band, shift, LUX_SCALE) as LightBand;
+}
+
+/**
+ * Band compare arithmetic delegates to the generic
+ * `Quantity.compareTag` machinery applied to the lux unit.
+ */
+export function compareBand(a: LightBand, b: LightBand): number {
+  return Quantity.compareTag('lux', a, b, LUX_SCALE);
+}
+
+/** Detail level → minimum band required to discern at that level. */
+export const REQUIRED_BAND_FOR_DETAIL: Record<VisibilityDetail, LightBand> = {
+  shape: 'very-dim',
+  figure: 'dim',
+  detail: 'lit',
+  fine: 'bright',
+};
 
 /**
  * Coerce a tag string, a `Quantity<'K'>`, or null into a

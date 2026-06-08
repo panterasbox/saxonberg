@@ -15,7 +15,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Thing } from '../../stuff/Thing';
 import { Character } from '../../character/Character';
-import { LightApi } from '../../../api/light';
+import { VisionModality } from '../../perception/modalities/VisionModality';
+import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -27,6 +28,7 @@ class TestCharacter extends Character {}
 describe('null-environment regressions', () => {
   beforeEach(() => {
     StuffApi.clearAll();
+    buildAllModalities();
   });
 
   afterEach(() => {
@@ -34,13 +36,13 @@ describe('null-environment regressions', () => {
     vi.restoreAllMocks();
   });
 
-  it('LightApi.canSee returns false for a detached target', () => {
+  it('VisionModality.canSee returns false for a detached target', () => {
     const viewer = makeStuff(() => new TestCharacter());
     const detached = makeStuff(() => new Thing());
     expect(detached.getContainer()).toBeNull();
     // Short-circuits on the env-null branch via canSeeOverride; the
     // default override returns the raw value (`false`).
-    expect(LightApi.canSee(viewer as never, detached as never)).toBe(false);
+    expect(VisionModality.canSee(viewer as never, detached as never)).toBe(false);
   });
 
   it('MessageApi.messageContainer warns and returns for a detached source', () => {

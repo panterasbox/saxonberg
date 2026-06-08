@@ -214,7 +214,7 @@ describe('SenseController', () => {
   });
 
   it('dark-room substrate: sightless-by-construction viewer sees only hearing region', () => {
-    // Sightless-by-construction sensorium (no LightApi integration v1).
+    // Sightless-by-construction sensorium.
     const fix = makeFixture(['hearing']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;

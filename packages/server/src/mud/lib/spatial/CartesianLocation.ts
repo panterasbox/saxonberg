@@ -138,7 +138,7 @@ export class CartesianLocation extends CartesianLocationBase {
   }
 
   /**
-   * Effective receiving-surface area in m² used by `LightApi.lightAt`
+   * Effective receiving-surface area in m² used by `VisionModality.lightAt`
    * to convert accumulated lumens to lux: the walk divides the total
    * flux at this room by `getSizeScale()`. Derived from the linear
    * cell extent by squaring it — `cellSize: 3` → 9 m² floor area.

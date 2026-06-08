@@ -1,22 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { LightApi, MAX_HOPS, EXIT_TAU } from '../light';
-import { Light } from '../../lib/perception/Light';
-import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
-import { CartesianZone } from '../../lib/spatial/CartesianZone';
-import { SphericalLocation } from '../../lib/spatial/SphericalLocation';
-import { SphericalZone } from '../../lib/spatial/SphericalZone';
-import { Door } from '../../lib/boundary/Door';
-import { AmbientLitMixin } from '../../lib/perception/AmbientLit';
-import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import {
+  VisionModality,
+  MAX_HOPS,
+  EXIT_TAU,
+} from '../VisionModality';
+import { Light } from '../../Light';
+import { CartesianLocation } from '../../../spatial/CartesianLocation';
+import { CartesianZone } from '../../../spatial/CartesianZone';
+import { SphericalLocation } from '../../../spatial/SphericalLocation';
+import { SphericalZone } from '../../../spatial/SphericalZone';
+import { Door } from '../../../boundary/Door';
+import { AmbientLitMixin } from '../../AmbientLit';
+import { StuffApi } from '../../../../api/stuff';
+import { makeStuff } from '../../../security/__tests__/test-setup';
+import { installV1QuantityTagTables } from '../../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { buildAllModalities } from './test-helpers';
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
 
-describe('LightApi.lightAt — propagation core', () => {
+describe('VisionModality.signalAt — propagation core', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
+    buildAllModalities();
   });
   afterEach(() => {
     StuffApi.clearAll();
@@ -24,44 +30,44 @@ describe('LightApi.lightAt — propagation core', () => {
 
   it('empty room with no ambient reads ZERO', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(LightApi.lightAt(loc)).toBe(Light.ZERO);
-    expect(LightApi.bandAt(loc)).toBe('pitch-black');
+    expect(VisionModality.lightAt(loc)).toBe(Light.ZERO);
+    expect(VisionModality.bandAt(loc)).toBe('pitch-black');
   });
 
   it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
     loc.setAmbientColorTemperature('warm');
 
-    const total = LightApi.lightAt(loc);
+    const total = VisionModality.lightAt(loc);
     expect(total.intensity.rawValue()).toBe(40);
     expect(total.colorTemperature!.rawValue()).toBe(2700);
-    expect(LightApi.bandAt(loc)).toBe('lit');
+    expect(VisionModality.bandAt(loc)).toBe('lit');
   });
 
   it('exits leak ambient light from neighbors', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     b.setAmbientFlux(60);
 
-    const totalA = LightApi.lightAt(a);
+    const totalA = VisionModality.lightAt(a);
     expect(totalA.intensity.rawValue()).toBe(60 * EXIT_TAU);
   });
 
   it('a closed door on an exit blocks light leakage', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(a, 0, 0, 0);
@@ -73,15 +79,15 @@ describe('LightApi.lightAt — propagation core', () => {
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });
 
-    expect(LightApi.lightAt(a)).toBe(Light.ZERO);
+    expect(VisionModality.lightAt(a)).toBe(Light.ZERO);
     door.open();
-    const totalA = LightApi.lightAt(a);
+    const totalA = VisionModality.lightAt(a);
     expect(totalA.intensity.rawValue()).toBe(60);
   });
 
   it('MAX_HOPS truncates propagation past depth 2', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     const c = makeStuff(() => new CartesianLocation());
@@ -93,19 +99,19 @@ describe('LightApi.lightAt — propagation core', () => {
     d.setAmbientFlux(100);
 
     expect(MAX_HOPS).toBe(2);
-    expect(LightApi.lightAt(a)).toBe(Light.ZERO);
+    expect(VisionModality.lightAt(a)).toBe(Light.ZERO);
   });
 
   it('cycle: visited Set prevents infinite recursion', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const a = makeStuff(() => new AmbientCartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     a.setAmbientFlux(10);
 
-    const total = LightApi.lightAt(a);
+    const total = VisionModality.lightAt(a);
     expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);
   });
 
@@ -115,9 +121,8 @@ describe('LightApi.lightAt — propagation core', () => {
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
 
-    // sizeScale = cellSize², so flux 40 / scale 16 (= 4²) → 2.5 lux → 'very-dim'
     zone.setCellSize(4.0);
-    expect(LightApi.bandAt(loc)).toBe('very-dim');
+    expect(VisionModality.bandAt(loc)).toBe('very-dim');
   });
 
   it('SphericalLocation.getSizeScale uses radius', () => {
@@ -127,32 +132,33 @@ describe('LightApi.lightAt — propagation core', () => {
     loc.setRadius(8.0);
     loc.setAmbientFlux(40);
 
-    expect(LightApi.bandAt(loc)).toBe('dim'); // 40/8 = 5
+    expect(VisionModality.bandAt(loc)).toBe('dim'); // 40/8 = 5
     loc.setRadius(2.0);
-    expect(LightApi.bandAt(loc)).toBe('lit'); // 40/2 = 20
+    expect(VisionModality.bandAt(loc)).toBe('lit'); // 40/2 = 20
   });
 
   it('shadowsAt maps each band to a shadow tier', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(LightApi.shadowsAt(loc)).toBe('absolute');
+    expect(VisionModality.shadowsAt(loc)).toBe('absolute');
     loc.setAmbientFlux(2);
-    expect(LightApi.shadowsAt(loc)).toBe('deep');
+    expect(VisionModality.shadowsAt(loc)).toBe('deep');
     loc.setAmbientFlux(10);
-    expect(LightApi.shadowsAt(loc)).toBe('partial');
+    expect(VisionModality.shadowsAt(loc)).toBe('partial');
     loc.setAmbientFlux(40);
-    expect(LightApi.shadowsAt(loc)).toBe('faint');
+    expect(VisionModality.shadowsAt(loc)).toBe('faint');
     loc.setAmbientFlux(100);
-    expect(LightApi.shadowsAt(loc)).toBe('none');
+    expect(VisionModality.shadowsAt(loc)).toBe('none');
   });
 });
 
-describe('LightApi — band / tag / mixing acceptance', () => {
+describe('VisionModality — band / tag / mixing acceptance', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
+    buildAllModalities();
   });
   afterEach(() => {
     StuffApi.clearAll();
@@ -160,7 +166,7 @@ describe('LightApi — band / tag / mixing acceptance', () => {
 
   it('lightAt(loc).intensity.tag() matches bandAt(loc) across bands', () => {
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
@@ -174,8 +180,8 @@ describe('LightApi — band / tag / mixing acceptance', () => {
     ];
     for (const { flux, expected } of samples) {
       loc.setAmbientFlux(flux);
-      expect(LightApi.bandAt(loc)).toBe(expected);
-      expect(LightApi.lightAt(loc).intensity.tag()).toBe(expected);
+      expect(VisionModality.bandAt(loc)).toBe(expected);
+      expect(VisionModality.lightAt(loc).intensity.tag()).toBe(expected);
     }
   });
 
@@ -184,47 +190,44 @@ describe('LightApi — band / tag / mixing acceptance', () => {
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    zone.setCellSize(1); // scale 1
+    zone.setCellSize(1);
     loc.setAmbientFlux(100);
-    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(100);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(100);
 
     loc.setAmbientFlux(200);
-    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(200);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(200);
 
-    zone.setCellSize(2); // scale 4
+    zone.setCellSize(2);
     loc.setAmbientFlux(100);
-    expect(LightApi.lightAt(loc).intensity.rawValue()).toBe(25);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(25);
   });
 
   it('flux-weighted color mixing across two equal-flux sources', async () => {
-    const { LightSourceMixin } = await import('../../lib/perception/LightSource');
-    const { Thing } = await import('../../lib/stuff/Thing');
-    const { ContainmentApi } = await import('../containment');
+    const { LightSourceMixin } = await import('../../LightSource');
+    const { Thing } = await import('../../../stuff/Thing');
+    const { ContainmentApi } = await import('../../../../api/containment');
     class Lamp extends LightSourceMixin(Thing) {}
 
     const zone = makeStuff(() => new CartesianZone());
-    zone.setCellSize(1); // pre-biome calibration: 1m² receiving-surface scale
+    zone.setCellSize(1);
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    // Ambient warm at 2700K, 50 lumens.
     loc.setAmbientFlux(50);
     loc.setAmbientColorTemperature('warm');
 
-    // Lamp emits 50 lumens at cool=5000K.
     const lamp = makeStuff(() => new Lamp());
     lamp.setEmittedFlux(50);
     lamp.setEmittedColorTemperature('cool');
     ContainmentApi.move(lamp, loc);
 
-    const total = LightApi.lightAt(loc);
+    const total = VisionModality.lightAt(loc);
     expect(total.intensity.rawValue()).toBe(100);
-    // Flux-weighted average: (2700*50 + 5000*50) / 100 = 3850 K.
     expect(total.colorTemperature!.rawValue()).toBeCloseTo(3850, 5);
   });
 
   it('color tag round-trip via Quantity.fromTag', async () => {
-    const { Quantity } = await import('../../lib/quantity');
+    const { Quantity } = await import('../../../quantity');
     const tags = ['warm', 'neutral', 'cool', 'daylight', 'blue'];
     for (const tag of tags) {
       const q = Quantity.fromTag(tag, 'K');

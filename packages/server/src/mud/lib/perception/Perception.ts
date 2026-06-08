@@ -9,7 +9,7 @@
  *     `Sensor.onMessage`; channel-level filtering rides
  *     `filterMessage`.
  *   - **Perception** (this file) — the *interpretation* layer. When
- *     a query Api like `LightApi.perceivedBand(viewer, loc)` asks
+ *     a query Api like `VisionModality.perceivedBand(viewer, loc)` asks
  *     "what does this entity perceive?", PerceptionMixin's seam
  *     methods are where curses, species vision profiles, blindfolds,
  *     night vision, magical darkness — anything that modulates
@@ -29,7 +29,7 @@
  * Stuff Shadow dispatch — `@Shadowing`, `callDown` for chaining,
  * security gates per the framework. The proxy pipeline routes
  * `viewer.perceivedBandModifier(raw, loc)` through the shadow stack
- * naturally; LightApi just calls the host method.
+ * naturally; VisionModality just calls the host method.
  *
  * The cross-cutting viewer-aware-query pattern is documented in
  * [docs/subsystems/perception.md](../../../../../../docs/subsystems/perception.md).
@@ -110,7 +110,7 @@ export function PerceptionMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Identity default — return `null` so `LightApi.viewerVisionProfile`
+     * Identity default — return `null` so `VisionModality.viewerVisionProfile`
      * falls back to its constant human-shaped profile. The Organism
      * subsystem populates per-species profiles via a shadow.
      */
