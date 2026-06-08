@@ -18,6 +18,8 @@ import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
 import { MixinApi } from '../api/mixin';
 import { BaselineCommImplant } from '../lib/augmentation/BaselineCommImplant';
+import type { Species } from '../lib/species/Species';
+import type { BodyPlan } from '../lib/species/BodyPlan';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
@@ -329,23 +331,45 @@ export class Avatar extends AvatarBase {
    * (AetherMixin is augment-gated; the implant confers it).
    */
   private async bootstrapBaselineImplant(): Promise<void> {
-    if (!MixinApi.isSlotted(this)) return;
+    // Defensive wrapper — bootstrap MUST NOT crash Avatar.enter
+    // when templates / persistence / species are unavailable (test
+    // fixtures, dev databases that lack the augmentation seeds,
+    // mid-migration states). Any failure logs and skips quietly;
+    // sense / dm verbs surface their own polite refusals downstream.
     try {
-      const existing = this.getOccupants('cranial');
-      if (existing.size > 0) {
-        // Already carrying something cranial — assume it's an
-        // augment-conferring implant (v1 ships only the one). Skip.
+      if (!MixinApi.isSlotted(this)) return;
+      if (!MixinApi.isOrganism(this)) return;
+      // Ensure species + body plan are loaded so the BodyPlanSlots
+      // override sees the cranial slot when we query it. Without
+      // this preload, `getSlotNames()` returns [] until the species
+      // singleton is first touched by another verb, and the bootstrap
+      // throws "unknown slot 'cranial'" on the very first session-start.
+      const speciesPath = (this as unknown as { _speciesPath: string | null })
+        ._speciesPath;
+      if (speciesPath) {
+        const species = await StuffApi.singleton<Species>(speciesPath);
+        const bpPath = species.getBodyPlanPath();
+        if (bpPath) {
+          await StuffApi.singleton<BodyPlan>(bpPath);
+        }
+      }
+      try {
+        const existing = this.getOccupants('cranial');
+        if (existing.size > 0) return;
+      } catch {
+        // No cranial slot on this body plan (sessile etc.).
         return;
       }
-    } catch {
-      // No cranial slot on this body plan (e.g. sessile). Skip — no
-      // ESP for those Avatars.
-      return;
+      const implant = await StuffApi.clone<BaselineCommImplant>(
+        BaselineCommImplant.TEMPLATE_PATH,
+      );
+      this.occupy(implant, 'cranial');
+    } catch (err) {
+      console.warn(
+        `Avatar.bootstrapBaselineImplant skipped for ${this.stuffId}:`,
+        err instanceof Error ? err.message : String(err),
+      );
     }
-    const implant = await StuffApi.clone<BaselineCommImplant>(
-      BaselineCommImplant.TEMPLATE_PATH,
-    );
-    this.occupy(implant, 'cranial');
   }
 
   /**
