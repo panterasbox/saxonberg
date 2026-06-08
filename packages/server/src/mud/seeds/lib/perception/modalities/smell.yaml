@@ -1,0 +1,7 @@
+# SmellModality — the olfactory singleton.
+class: /lib/perception/modalities/SmellModality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: smell
+  family: field
+  modality: smell

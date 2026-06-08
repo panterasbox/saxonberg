@@ -1,15 +1,16 @@
 /**
  * requiresTaste — verb-level precondition. Rejects `taste` when the
- * giver's sensorium has no taste channel. See `requiresHearing`
+ * giver's sensorium has no taste modality. See `requiresHearing`
  * for the broader contract.
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { SpeciesApi } from '../../../api/species';
+import { PerceptionApi } from '../../../api/perception';
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
-  if (SpeciesApi.deriveSensorium(giver).includes('taste')) return undefined;
+  const modality = PerceptionApi.modalityByName('taste');
+  if (PerceptionApi.canPerceive(giver, modality)) return undefined;
   return 'You have no sense of taste.';
 };
 

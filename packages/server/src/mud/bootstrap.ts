@@ -38,4 +38,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // dispatcher awaits validator preloads before the sync validator
   // phase runs. Same pattern is available for Materials / Biomes
   // / etc. as they grow validator coverage.
+  //
+  // Perception modality singletons (vision / smell / sound / touch /
+  // taste / verbal-esp / emotive-esp). Eager-cloned because the
+  // sensorium walk + per-frame reception gating call into them on
+  // hot paths (every `filterMessage`, every single-sense verb
+  // validator); lazy-loading would force async ripple through
+  // `SensorMixin`. Same shape `TopicCatalogue` uses for its leaf
+  // descriptors — bootstrap-cloned, sync-resolved thereafter.
+  { templatePathPrefix: '/lib/perception/modalities/' },
 ];

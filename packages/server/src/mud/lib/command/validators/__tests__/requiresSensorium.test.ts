@@ -2,7 +2,7 @@
  * Tests for the four sense-channel validators
  * (`requiresHearing` / `requiresSmell` / `requiresTouch` /
  * `requiresTaste`). Each gates one of the single-sense verbs on
- * the giver's `deriveSensorium` walk.
+ * the giver's `PerceptionApi.sensorium` walk.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -34,6 +34,7 @@ import { FocusedMixin } from '../../Focused';
 import { CommandGiverMixin } from '../../CommandGiver';
 import { NamedMixin } from '../../../description/Named';
 import { PerceptibleMixin } from '../../../description/Perceptible';
+import { buildAllModalities } from '../../../perception/modalities/__tests__/test-helpers';
 
 const Base = OrganismMixin(
   ContainerMixin(
@@ -97,6 +98,7 @@ function makeContext(giver: Stuff, verb: string): CommandContext {
 describe('requires<channel> validators (senses build)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
+    buildAllModalities();
   });
 
   it('requiresHearing passes when giver has hearing', () => {

@@ -44,6 +44,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import type { CommandGiver } from '../../../lib/command/CommandGiver';
 import type { Focused } from '../../../lib/command/Focused';
+import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 
 const ReceivingGiverBase = OrganismMixin(
   ContainerMixin(
@@ -82,6 +83,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 
 function makeFixture(): Fixture {
   StuffApi.clearAll();
+  buildAllModalities();
   const bodyPlan = withTemplatePath(
     makeStuff(() => new BodyPlan()),
     '/lib/body-plans/test-smell',
