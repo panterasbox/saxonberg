@@ -1,14 +1,67 @@
 /**
  * TouchModality — the tactile singleton. Contact modality.
  *
- * `signalAt(loc)` reads ambient temperature via
- * `BiomeApi.resolveTemperatureFor`, returning a `Touch` value object
- * (K temperature + coarse band). No propagation walk — touch is a
- * contact modality, queried at the actor's scope. Phase 5 fills the
- * body; Phase 1 ships the empty subclass so the modality singleton
- * boots and other phases wire against the typed class.
+ * Touch is a CONTACT modality: no propagation walk. The signal is
+ * the ambient temperature at the actor's scope, derived via the
+ * biome chain (`BiomeApi.resolveTemperatureFor`).
+ *
+ * Two access surfaces:
+ *   - `signalAt(loc)` — the sync substrate contract. v1 reads the
+ *     scope's INLINE `_temperature` field only (no biome chain). If
+ *     the location explicitly declares its temperature, returns a
+ *     `Touch`; otherwise returns null. Verb-side callers that want
+ *     the full chain use `touchAt` async instead.
+ *   - `touchAt(loc, detailKey?)` — async helper that does the full
+ *     biome chain walk (`BiomeApi.resolveTemperatureFor`). The
+ *     `feel` verb's bare form and the per-detail `feel <target>`
+ *     branch both consume this.
  */
 
 import { Modality } from '../Modality';
+import type { Stuff } from '../../stuff/Stuff';
+import type { Container } from '../../spatial/Container';
+import { Touch } from '../Touch';
+import { MixinApi } from '../../../api/mixin';
+import { StuffApi } from '../../../api/stuff';
+import { BiomeApi } from '../../../api/biome';
+import { Quantity } from '../../quantity';
 
-export class TouchModality extends Modality {}
+export class TouchModality extends Modality {
+  public override signalAt(loc: Stuff & Container): Touch | null {
+    if (!MixinApi.isAtmospheric(loc)) return null;
+    const raw = (loc as unknown as { _temperature?: Quantity<'K'> | null })
+      ._temperature;
+    if (!raw) return null;
+    return Touch.of(raw);
+  }
+
+  /**
+   * Async ambient-touch read. Walks the full biome chain via
+   * `BiomeApi.resolveTemperatureFor` so locations without an inline
+   * `_temperature` still surface the universe-default ambient.
+   * Optional `detailKey` triggers the per-detail temperature
+   * override on the scope's `_detailTemperatures` map (parallel to
+   * the existing `measure temperature <detail>` flow).
+   */
+  public static async touchAt(
+    loc: Stuff & Container,
+    detailKey?: string,
+  ): Promise<Touch> {
+    const t = await BiomeApi.resolveTemperatureFor(loc, detailKey);
+    return Touch.of(t);
+  }
+
+  /** Resolve the loaded TouchModality singleton. */
+  public static singleton(): TouchModality {
+    const inst = StuffApi.findByTemplatePath<TouchModality>(
+      '/lib/perception/modalities/touch',
+    );
+    if (!inst) {
+      throw new Error(
+        'TouchModality.singleton: no TouchModality loaded at ' +
+          '/lib/perception/modalities/touch — check bootstrap',
+      );
+    }
+    return inst;
+  }
+}
