@@ -18,7 +18,6 @@ import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
 import { MixinApi } from '../api/mixin';
 import { SpeciesApi } from '../api/species';
-import { PerceptionApi } from '../api/perception';
 import { AetherImplant } from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
@@ -260,15 +259,6 @@ export class Avatar extends AvatarBase {
     // Char-gen will take over installation ceremony when that slate
     // ships; this is the v1 default-issuance path.
     await this.bootstrapAetherImplant();
-
-    // Warm perception modality singletons so the welcome scene's
-    // auto-sense + every subsequent sync sensorium walk
-    // (`senseStripAugmenter`, the cockpit pane, etc.) resolve
-    // modalities by-name. Modalities are no longer bootstrap-
-    // eager-loaded; this preload is the per-session warm-up.
-    // Tolerant of seed-missing — `preloadModalities` catches per-
-    // singleton failures.
-    await PerceptionApi.preloadModalities();
 
     this.startAutoSave();
 

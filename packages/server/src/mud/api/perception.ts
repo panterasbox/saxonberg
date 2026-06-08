@@ -176,10 +176,10 @@ export class PerceptionApi {
   }
 
   /**
-   * Lazy-load every v1 modality singleton. The substrate is no
-   * longer bootstrap-eager-loaded — modalities follow the same
-   * pattern as locomotion modes / species clades: singletons load
-   * on first verb-level demand via their validator's async
+   * Lazy-load every modality singleton. The substrate is not
+   * bootstrap-eager-loaded — modalities follow the same pattern
+   * as locomotion modes / species clades: singletons load on
+   * first verb-level demand via their validator's async
    * `preload` hook. After this call, sync `modalityByName` /
    * `modalityByOrganKey` lookups resolve.
    *
@@ -191,7 +191,7 @@ export class PerceptionApi {
    */
   public static async preloadModalities(): Promise<void> {
     await Promise.all(
-      V1_MODALITY_NAMES.map((name) =>
+      MODALITY_NAMES.map((name) =>
         StuffApi.singleton(`${MODALITY_PREFIX}${name}`).catch(() => null),
       ),
     );
@@ -216,11 +216,11 @@ export class PerceptionApi {
 }
 
 /**
- * v1 modality name list — single source of truth for the
- * `preloadModalities` walk. Stays in step with the seven seed
- * YAMLs under `seeds/lib/perception/modalities/`.
+ * Modality name list — single source of truth for the
+ * `preloadModalities` walk. Stays in step with the seed YAMLs
+ * under `seeds/lib/perception/modalities/`.
  */
-const V1_MODALITY_NAMES: readonly string[] = [
+const MODALITY_NAMES: readonly string[] = [
   'vision',
   'smell',
   'sound',

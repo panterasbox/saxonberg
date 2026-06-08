@@ -39,14 +39,17 @@ export const bootstrapManifest: BootstrapEntry[] = [
   //     `SpeciesApi.preloadAnatomy` (called from the
   //     `requiresAnimate` and `requires<Sense>`/`requires<ESP>`
   //     validators' async `preload` hooks).
-  //   - **Perception modalities** lazy-load via
-  //     `PerceptionApi.modalityByName` — the lookup falls back to
-  //     `StuffApi.singleton(path)` on first access. The sense /
-  //     ESP validators' `preload` ensures the relevant modality
-  //     singletons are warm before the sync validator body runs.
+  //   - **Perception modalities** lazy-load via the sense / ESP
+  //     validators' async `preload` hook
+  //     (`PerceptionApi.preloadForSenseGate`), which warms all
+  //     modality singletons in one shot the first time a sense
+  //     verb runs. No alt-bootstrap on `Avatar.enter` —
+  //     `senseStripAugmenter` runs first inside
+  //     `autoSenseOnArrival`'s `sense` dispatch, which is gated
+  //     by `requires<Sense>` and so warm before render.
   //     `SensorMixin.filterMessage`'s "modality not loaded → let
   //     the frame through" path is the documented graceful
-  //     degradation on cold start.
+  //     degradation for any pre-validator render call.
   //   - **AetherImplant** lazy-loads via
   //     `StuffApi.clone(AetherImplant.TEMPLATE_PATH)` in
   //     `Avatar.enter`'s `bootstrapAetherImplant` (already async).
