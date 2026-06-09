@@ -43,6 +43,20 @@ export class PassportConfig {
       done(null, obj);
     });
 
+    // In test mode the Google OAuth strategy is skipped entirely:
+    // E2E authenticates through the test-auth seam (/auth/test-login),
+    // and requiring real GOOGLE_* credentials would block the server
+    // from booting in CI. serializeUser/deserializeUser above are still
+    // configured, so req.login (and thus the test seam) works. The
+    // /auth/google routes remain mounted but unused; they would only
+    // error if hit, which test mode never does.
+    if (process.env.AUTH_MODE === 'test') {
+      console.warn(
+        'PassportConfig: AUTH_MODE=test — Google OAuth strategy skipped.'
+      );
+      return;
+    }
+
     // Google OAuth2 Strategy
     const clientID = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
