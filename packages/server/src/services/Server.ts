@@ -19,6 +19,7 @@ import { Backend } from '../backend/Backend';
 import { Application } from '../backend/Application';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
+import { TestAuthRoutes } from './auth/TestAuthRoutes';
 import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 
@@ -103,6 +104,21 @@ export class Server {
 
     // Setup authentication routes
     AuthRoutes.setup(this.app);
+
+    // TEST-ONLY auth bypass for E2E. Mounted only in test mode, and
+    // never alongside a production build. Production never sets
+    // AUTH_MODE, so this branch is dead there.
+    if (process.env.AUTH_MODE === 'test') {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'Server: refusing to boot — AUTH_MODE=test with NODE_ENV=production'
+        );
+      }
+      console.warn(
+        'Server: ⚠  AUTH_MODE=test — test-login auth bypass is ENABLED.'
+      );
+      TestAuthRoutes.setup(this.app, this.backend);
+    }
 
     console.info('Server: Middleware configured');
 

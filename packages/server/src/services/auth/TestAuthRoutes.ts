@@ -1,0 +1,72 @@
+/**
+ * TestAuthRoutes — TEST-ONLY authentication bypass.
+ *
+ * Mounts `POST /auth/test-login`, which establishes a real Passport
+ * session for a deterministic synthetic user, skipping Google OAuth.
+ * This is the seam that lets browser E2E tests (Playwright) get past
+ * the login screen without automating a real Google flow.
+ *
+ * SAFETY — this is an auth bypass, so it is defended in depth:
+ *   1. It is mounted ONLY when `AUTH_MODE === 'test'` (see `Server`).
+ *   2. `Backend.handleTestAuthentication` independently refuses unless
+ *      `AUTH_MODE === 'test'`.
+ *   3. `Server` throws on boot if `AUTH_MODE === 'test'` while
+ *      `NODE_ENV === 'production'`.
+ *   4. If `TEST_AUTH_TOKEN` is set, requests must present it in the
+ *      `X-Test-Auth` header.
+ * Production never sets `AUTH_MODE`, so this route does not exist there.
+ *
+ * The endpoint reaches the SAME session state as the real OAuth path
+ * (`session.passport.user = { id }`, set via `req.login`), so
+ * `/auth/status`, `req.isAuthenticated()`, and the WebSocket upgrade's
+ * `session.passport.user.id` check all work with no other changes.
+ */
+
+import type { Express, Request, Response } from 'express';
+import type { Backend } from '../../backend/Backend';
+
+const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
+
+export class TestAuthRoutes {
+  /**
+   * Mount the test-login route. Call only from the `AUTH_MODE === 'test'`
+   * branch in `Server`.
+   *
+   * @param app - Express application
+   * @param backend - Backend, owns the gated `handleTestAuthentication`
+   */
+  public static setup(app: Express, backend: Backend): void {
+    app.post('/auth/test-login', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+
+      const handle = String(
+        (req.body as { handle?: unknown } | undefined)?.handle ?? 'default'
+      );
+
+      void backend.handleTestAuthentication(handle, (err, user) => {
+        if (err || !user) {
+          console.error('TestAuthRoutes: test-login failed:', err);
+          res.status(500).json({ error: 'test-login failed' });
+          return;
+        }
+        // Establish the real Passport session (sets
+        // session.passport.user = { id }), then return status.
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error('TestAuthRoutes: req.login failed:', loginErr);
+            res.status(500).json({ error: 'session establishment failed' });
+            return;
+          }
+          res.json({ isAuthenticated: true, user: { id: user.id } });
+        });
+      });
+    });
+
+    console.warn(
+      'TestAuthRoutes: ⚠  /auth/test-login is MOUNTED (test auth). Never in production.'
+    );
+  }
+}
