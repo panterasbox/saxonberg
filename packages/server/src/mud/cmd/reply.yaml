@@ -1,0 +1,11 @@
+verbs: [reply]
+controller: ReplyController
+description: "Reply to the cohort of your last-inbound DM. Always reply-all for multi-party inbounds."
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+args:
+  - name: message
+    type: string
+    required: true
+    greedy: true

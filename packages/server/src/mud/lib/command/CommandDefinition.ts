@@ -71,6 +71,14 @@ export class CommandDefinition {
   /** Top-level positionals for flat verbs. Empty array for zero-arg verbs and subcommanded verbs. */
   public readonly args: PositionalDefinition[];
   public readonly subcommands: Record<string, SubcommandDefinition>;
+  /**
+   * Opt-in flag permitting top-level `args:` AND `subcommands:` to
+   * coexist. When true, the matcher tries the subcommand map first;
+   * an unknown first token does NOT error — it falls through to
+   * Phase 3a, binding the token + remaining tokens against
+   * `this.args`. Schema-enforced: the flag REQUIRES both fields.
+   */
+  public readonly fallthrough: boolean;
   public readonly verbOptions: Record<string, OptionDefinition>;
   /**
    * Structured-form-only fields. Populated exclusively through
@@ -99,6 +107,7 @@ export class CommandDefinition {
     this.description = view.description || '';
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
+    this.fallthrough = view.fallthrough === true;
     this.verbOptions = normaliseOptions(view.options);
     this.payload = normaliseOptions(view.payload);
     this.validators = view.validators ?? [];
@@ -185,9 +194,18 @@ export class CommandDefinition {
     const hasArgs = this.args.length > 0;
     const hasSubcommands = Object.keys(this.subcommands).length > 0;
 
-    if (hasArgs && hasSubcommands) {
+    if (this.fallthrough) {
+      // Flag REQUIRES both args and subcommands. The schema already
+      // enforces this, but defense-in-depth — direct CommandView
+      // instantiation in tests bypasses the schema.
+      if (!hasArgs || !hasSubcommands) {
+        throw new Error(
+          `Command definition ${this.filePath}: fallthrough: true requires both top-level args: AND subcommands: to be declared`
+        );
+      }
+    } else if (hasArgs && hasSubcommands) {
       throw new Error(
-        `Command definition ${this.filePath} cannot have both args and subcommands`
+        `Command definition ${this.filePath} cannot have both args and subcommands (set fallthrough: true to opt in to subcommand-then-flat dispatch)`
       );
     }
 
@@ -607,6 +625,20 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
       collide(
         `subcommand "${subName}" arg`,
         (sub.args ?? []).map((a) => a.name)
+      );
+    }
+  }
+
+  // Fallthrough verbs: a subcommand name MUST NOT collide with the
+  // first top-level positional's name. (The matcher distinguishes them
+  // by position — known sub-name wins, unknown token falls through to
+  // bind against the positional — but identical names produce confusing
+  // help/error text.)
+  if (def.fallthrough && def.args.length > 0) {
+    const firstArgName = def.args[0]!.name;
+    if (def.subcommands[firstArgName]) {
+      throw new Error(
+        `top-level positional "${firstArgName}" collides with subcommand of the same name in ${def.filePath}`
       );
     }
   }

@@ -1,0 +1,10 @@
+verbs: [emote]
+controller: EmoteController
+description: "Free-form emote — perform any expressive act in your own prose"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: body
+    type: string
+    required: true
+    greedy: true

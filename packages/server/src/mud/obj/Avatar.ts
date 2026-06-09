@@ -34,6 +34,7 @@ import {
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
 import { AetherMixin } from '../lib/message/Aether';
+import { ContactsMixin } from '../lib/social/Contacts';
 import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
 import type {
@@ -63,7 +64,7 @@ export interface AvatarInitContext {
 // per-class by composing AetherMixin themselves when content requires
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(AetherMixin(ShelledCharacter)),
+  HasInteractiveMixin(AetherMixin(ContactsMixin(ShelledCharacter))),
 );
 
 export class Avatar extends AvatarBase {

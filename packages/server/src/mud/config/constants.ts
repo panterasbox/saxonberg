@@ -21,3 +21,18 @@
  */
 export const DEFAULT_STARTING_LOCATION_PATH =
   '/domain/eternal/duncan-hall/lobby';
+
+/**
+ * Hard cap on multi-target `dm` recipient count. Exceeding the cap
+ * refuses the command with a self-frame pointing the player at chat
+ * channels (`Use a chat channel for groups this size — try
+ * `chat make <name>`.`). The cap exists to prevent multi-target DM
+ * from becoming a broadcast back-door; groups larger than this
+ * belong on a real channel where the membership / subscription /
+ * moderation surface applies.
+ *
+ * Authoring note: a mudlib-exposed configuration mechanism for
+ * tuning this knob from inside the game is reserved for the access
+ * substrate build (see requirements doc § Non-goals).
+ */
+export const DM_MAX_RECIPIENTS = 10;

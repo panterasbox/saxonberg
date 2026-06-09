@@ -63,6 +63,23 @@ export interface MessageFrame<T = unknown> {
      * `'verbal-esp'`, `'emotive-esp'`).
      */
     modality?: string;
+    /**
+     * Source amplitude in decibels for acoustic frames. Stamped by
+     * `VocalMixin.{say,whisper,shout}` (60 / 30 / 90 by default) so
+     * the sound-propagation walk in `SoundModality.signalAt` can
+     * compute multi-room reach. Frames without `acousticDb` don't
+     * propagate as sound; the senses substrate decides the reach
+     * curve from the source level.
+     */
+    acousticDb?: number;
+    /**
+     * Channel attribution for chat / multi-party DM frames. Present on
+     * every frame whose audience came from a channel — chat posts,
+     * chat-routed emotes, multi-party DM frames, DM-cohort-routed
+     * emotes. Absent on single-target DM, in-room say/whisper/shout/
+     * emote, and channel-management responses.
+     */
+    channelId?: string;
   };
 }
 

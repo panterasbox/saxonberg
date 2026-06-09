@@ -41,9 +41,21 @@ import {
   InactiveCapabilityError,
 } from '../security/RequiresActive';
 import { MixinApi } from '../../api/mixin';
+import { recordInboundCohort } from '../social/dm-cohort';
 
 export interface Aether {
   tell(target: Stuff, text: string): void;
+  /**
+   * Multi-target send. Each recipient gets a frame stamped with the
+   * full cohort + optional `meta.channelId` (when the cohort is
+   * backed by an ad-hoc channel). The body carries "(also to: ...)"
+   * for the cohort hint.
+   */
+  tellMany(
+    targets: readonly Stuff[],
+    text: string,
+    opts?: { channelId?: string },
+  ): void;
 }
 
 export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -79,7 +91,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
      * slates ship.
      */
     static commandContributions: CommandContributions = {
-      self: ['dm.yaml'],
+      self: ['dm.yaml', 'reply.yaml', 'broadcast.yaml', 'chat.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -129,6 +141,91 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
           text,
         })
         .send();
+      stampInboundCohort(target, [speaker]);
+    }
+
+    tellMany(
+      targets: readonly Stuff[],
+      text: string,
+      opts?: { channelId?: string },
+    ): void {
+      const speaker = this as unknown as Stuff;
+      if (!MixinApi.isActive(speaker, 'AetherMixin')) {
+        throw new InactiveCapabilityError('AetherMixin', 'tellMany');
+      }
+      if (targets.length === 0) return;
+      if (targets.length === 1) {
+        // Degenerate case — single recipient, same as `tell`.
+        this.tell(targets[0]!, text);
+        return;
+      }
+      const parsed = Mml.markdownToMml(
+        text,
+        Mml.perceiverMentionResolver(speaker),
+      );
+
+      const recipientRefs = targets.map((t) => MessageApi.refOf(t));
+      const recipientNames = targets
+        .map((t) => Mml.name(t).toString())
+        .join(', ');
+
+      // Self frame — cohort list spelled out.
+      MessageApi.scene(speaker)
+        .topic('world.speech.dm')
+        .modality('verbal-esp')
+        .meta(opts?.channelId ? { channelId: opts.channelId } : {})
+        .toSelf(
+          Mml.compose`${Mml.name(speaker)} → ${Mml.fromMarkup(recipientNames)}: ${parsed}`,
+        )
+        .payload({
+          speaker: MessageApi.refOf(speaker),
+          recipients: recipientRefs,
+          text,
+        })
+        .send();
+
+      // Per-target frame — "you" + cohort hint for the others.
+      for (const t of targets) {
+        if (!MixinApi.isSensor(t)) continue;
+        const others = targets
+          .filter((other) => other !== t)
+          .map((other) => Mml.name(other).toString())
+          .join(', ');
+        const cohortHint = others
+          ? Mml.fromMarkup(` (also to: ${others})`)
+          : Mml.fromMarkup('');
+        MessageApi.scene(speaker)
+          .topic('world.speech.dm')
+          .modality('verbal-esp')
+          .meta(opts?.channelId ? { channelId: opts.channelId } : {})
+          .toTarget(
+            t,
+            Mml.compose`${Mml.name(speaker)} → you${cohortHint}: ${parsed}`,
+          )
+          .payload({
+            speaker: MessageApi.refOf(speaker),
+            recipients: recipientRefs,
+            text,
+          })
+          .send();
+        // Recipient's inbound cohort = sender + the other recipients.
+        const inbound = [speaker, ...targets.filter((o) => o !== t)];
+        stampInboundCohort(t, inbound);
+      }
     }
   };
+}
+
+/**
+ * Helper — stamp the recipient's last-inbound cohort when the
+ * recipient is an Avatar. Lazy-loaded `Avatar` class to dodge the
+ * `Avatar → AetherMixin → Aether.ts` cycle at module init.
+ */
+function stampInboundCohort(recipient: Stuff, cohort: readonly Stuff[]): void {
+  // Importing `Avatar` eagerly would create a cycle (Avatar composes
+  // AetherMixin). Use a structural sniff instead: an `Avatar` carries
+  // `getPlayerId()`. Anything else (NPCs, login pseudo-stuff) skips.
+  const av = recipient as Stuff & { getPlayerId?: () => string };
+  if (typeof av.getPlayerId !== 'function') return;
+  recordInboundCohort(av as unknown as Parameters<typeof recordInboundCohort>[0], cohort);
 }

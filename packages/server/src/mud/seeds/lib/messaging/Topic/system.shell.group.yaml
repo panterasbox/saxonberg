@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.group
+  family: system.shell
+  label: Group
+  description: Feedback from group management — creating, disbanding, adding / removing / re-roleing members.

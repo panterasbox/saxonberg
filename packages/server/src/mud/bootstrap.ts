@@ -31,6 +31,20 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // pre-clone the per-topic `Topic` templates at boot. Same pattern
   // as species clades / materials / biomes per the note above.
   { templatePath: '/obj/TopicCatalogue' },
+  // SoulCatalogue singleton — the runtime verb→Emote cache. Warmed
+  // at postRegister from the `emotes` collection (populated by
+  // `EmoteSeeder.run` earlier in the boot sequence). Resolvable via
+  // `SoulApi.resolve` after this entry's postRegister fires.
+  { templatePath: '/obj/SoulCatalogue' },
+  // GroupRegistry — provider table for managed / MQL / contacts
+  // group sources. Registers the three v1 provider instances in
+  // postRegister; downstream consumers (chat audience, future
+  // permission gates) reach in via `GroupApi`.
+  { templatePath: '/obj/GroupRegistry' },
+  // ChannelCatalogue — chat substrate singleton. Owns the byName /
+  // byHandle / history maps; warms its `byName` cache from the
+  // `channels` collection (populated by `ChannelSeeder.run`).
+  { templatePath: '/obj/ChannelCatalogue' },
   // Species clades, perception modalities, and augmentation
   // templates are NOT bootstrapped. Same lazy-load pattern as
   // locomotion modes / topic-catalogue leaves:

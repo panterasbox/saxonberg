@@ -51,6 +51,15 @@ export interface ParsedCommand {
   source: string;
   /** Byte offset of `source` in the full pipeline input. */
   start: number;
+  /**
+   * True when the input began with a `:` or `;` sigil followed by a
+   * non-whitespace verb word. The sigil has been stripped by the
+   * parser; the verb itself is the rest of the first word. The router
+   * uses this flag to enable the catalog-emote fallback: a verb miss
+   * with the flag set falls through to `SoulMixin.emoteFree(rest)`
+   * instead of the standard unknown-verb error.
+   */
+  emotePrefixed?: boolean;
 }
 
 /**

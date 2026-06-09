@@ -3,6 +3,16 @@ controller: SayController
 description: "Say something to everyone in your location"
 validators:
   - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: "online"
+    field: target
+    description: "Address an explicit target. Public — everyone in the room hears, the target is marked."
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
 args:
   - name: message
     type: string

@@ -79,6 +79,8 @@ import type { Globbable } from '../lib/stuff/Globbable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Atmospheric } from '../lib/biome/Atmospheric';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
+import type { Contacts } from '../lib/social/Contacts';
+import type { Soul } from '../lib/social/Soul';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -499,6 +501,14 @@ export class MixinApi {
 
   public static isAlias(obj: Stuff): obj is Stuff & Alias {
     return this.hasMixin(obj, Mixins.Alias);
+  }
+
+  public static isContacts(obj: Stuff): obj is Stuff & Contacts {
+    return this.hasMixin(obj, Mixins.Contacts);
+  }
+
+  public static isSoul(obj: Stuff): obj is Stuff & Soul {
+    return this.hasMixin(obj, Mixins.Soul);
   }
 
   public static isWorkspace(obj: Stuff): obj is Stuff & Workspace {

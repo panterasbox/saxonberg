@@ -72,6 +72,7 @@ export class Scene {
   #actor: Stuff;
   #topic: string | null = null;
   #modality: string | null = null;
+  #extraMeta: Partial<MessageFrame['meta']> = {};
   #sharedTags: string[] = [];
   #sharedPayload: unknown = undefined;
   #frames: AudienceFrame[] = [];
@@ -106,6 +107,19 @@ export class Scene {
    */
   modality(name: string): this {
     this.#modality = name;
+    return this;
+  }
+
+  /**
+   * Stamp additional `meta` fields on every composed frame. Used for
+   * cross-cutting non-modality meta like `acousticDb` (sound source
+   * amplitude, drives propagation reach) and `channelId` (channel
+   * attribution for chat / multi-party DM frames). Merges with whatever
+   * the framework otherwise stamps (`timestamp`, `commandId`,
+   * `causingCommandId`, `modality`). Successive calls accumulate.
+   */
+  meta(partial: Partial<MessageFrame['meta']>): this {
+    Object.assign(this.#extraMeta, partial);
     return this;
   }
 
@@ -239,6 +253,7 @@ export class Scene {
         if (commandId !== undefined) meta.commandId = commandId;
         if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
         if (this.#modality !== null) meta.modality = this.#modality;
+        Object.assign(meta, this.#extraMeta);
         const body =
           af.body instanceof Mml ? af.body.toString(recipient) : af.body;
         const frame: MessageFrame = {

@@ -705,6 +705,55 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         this.getAvailableCommands()
       );
       if (matches.length === 0) {
+        // Catalog-emote fallback: an unknown verb may be an authored
+        // catalog emote (wave, smile, bow, …) OR a free-form prefix
+        // (`;hello world`) that didn't match the catalog. Both paths
+        // dispatch via SoulMixin without a controller — the rendering
+        // is the mixin's responsibility; catalog emotes do not have
+        // their own YAML.
+        const speaker = outer.commandGiver as Stuff;
+        if (MixinApi.isSoul(speaker)) {
+          try {
+            const { SoulApi } = await import('../../api/soul');
+            const { EmoteGrammarRunner } = await import(
+              '../../lib/social/EmoteGrammar'
+            );
+            const emote = await SoulApi.resolve(parsed.verb);
+            if (emote) {
+              const rest = parsed.rawTokens
+                .slice(1)
+                .filter((t) => t.kind === 'word')
+                .map((t) => (t as { value: string }).value);
+              const bound = await EmoteGrammarRunner.bind(emote, rest, speaker);
+              const opts: { target?: Stuff; fills?: Record<string, string> } = {
+                fills: bound.fills,
+              };
+              if (bound.target) opts.target = bound.target;
+              speaker.emote(emote, opts);
+              return outer;
+            }
+            if (parsed.emotePrefixed) {
+              // Catalog miss with the prefix flag set — fall back to
+              // free-form. Reconstruct the body from the source slice
+              // so original spacing survives.
+              const body = parsed.source.trim() || parsed.verb;
+              speaker.emoteFree(body);
+              return outer;
+            }
+          } catch (err) {
+            // Catalog dispatch failed — surface as a generic
+            // command-rejected note. Don't crash; the catalog path
+            // is best-effort.
+            outer.note({
+              kind: 'command-rejected',
+              reason: 'unknown-verb',
+              detail: `emote dispatch failed: ${
+                err instanceof Error ? err.message : String(err)
+              }`,
+            });
+            return outer;
+          }
+        }
         outer.note({
           kind: 'command-rejected',
           reason: 'unknown-verb',

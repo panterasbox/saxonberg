@@ -1,0 +1,86 @@
+verbs: [chat]
+controller: ChatController
+description: "Post to a chat channel, or manage channel membership (list / join / leave / mute / unmute / who / make / rename / disband / history / promote)"
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+fallthrough: true
+subcommands:
+  list:
+    description: "List channels visible to you"
+  join:
+    description: "Subscribe (tune in) to a channel"
+    args:
+      - name: name
+        type: string
+        required: true
+  leave:
+    description: "Unsubscribe from a channel"
+    args:
+      - name: name
+        type: string
+        required: true
+  mute:
+    description: "Mute a channel (subscription kept; no frames delivered)"
+    args:
+      - name: name
+        type: string
+        required: true
+  unmute:
+    description: "Unmute a channel"
+    args:
+      - name: name
+        type: string
+        required: true
+  who:
+    description: "Show tuned-in members of a channel"
+    args:
+      - name: name
+        type: string
+        required: true
+  make:
+    description: "Create a new player-created channel (you become the owner)"
+    args:
+      - name: name
+        type: string
+        required: true
+  rename:
+    description: "Rename a player-created channel you own"
+    args:
+      - name: old_name
+        type: string
+        required: true
+      - name: new_name
+        type: string
+        required: true
+  disband:
+    description: "Disband a player-created channel you own"
+    args:
+      - name: name
+        type: string
+        required: true
+  history:
+    description: "Show recent posts in a channel"
+    args:
+      - name: name
+        type: string
+        required: true
+  promote:
+    description: "Promote an ad-hoc DM channel into a persistent player-created channel"
+    args:
+      - name: handle
+        type: string
+        required: true
+      - name: new_name
+        type: string
+        required: true
+args:
+  # Fallthrough: when the first token isn't a reserved subcommand,
+  # bind these as a bare post: `chat gossip hello`.
+  - name: channel
+    type: string
+    required: true
+  - name: message
+    type: string
+    required: true
+    greedy: true

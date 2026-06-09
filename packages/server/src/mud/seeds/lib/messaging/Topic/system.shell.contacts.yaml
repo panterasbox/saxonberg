@@ -1,0 +1,7 @@
+class: /lib/messaging/Topic
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  topic: system.shell.contacts
+  family: system.shell
+  label: Contacts
+  description: Feedback from contacts management — adding, removing, listing, relabeling personal contact lists.

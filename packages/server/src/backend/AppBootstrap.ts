@@ -14,6 +14,8 @@
 
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
+import { EmoteSeeder } from './EmoteSeeder';
+import { ChannelSeeder } from './ChannelSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
@@ -99,6 +101,15 @@ export class AppBootstrap {
     );
 
     await PersistenceManager.get().loadHooks();
+
+    // Per-collection seeders. Insert-only / idempotent — match the
+    // SeederManager pattern but target their own collections from a
+    // single YAML each. Run after PM hooks (they touch the collection
+    // chokepoint indirectly via Document.save) and before the
+    // BootstrapManager runs the catalogue singletons that warm their
+    // caches from these collections.
+    await EmoteSeeder.run();
+    await ChannelSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {
