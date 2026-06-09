@@ -236,30 +236,7 @@ function renderNode(
     return <React.Fragment key={key}>{node.text}</React.Fragment>;
   }
 
-  // Per-viewer "you" substitution. Person-like identity tags
-  // (`<name>` / `<player>` / `<npc>`) AND `<mention>` whose stuff-id
-  // matches the reading player render their label as "you" — so
-  // `<name stuff-id="iffy">Iffy</name>` reads as "Iffy" for everyone
-  // EXCEPT Iffy, who reads "you". Same for `@iffy` mentions in
-  // free-form emotes / say / tell. The substituted node still routes
-  // its click via `commandFor` (clicking "you" still runs the
-  // identity-look the original label would have routed to), so the
-  // affordance survives the relabel.
-  //
-  // Item / location / object identity tags do NOT substitute — those
-  // aren't people. Item tags belonging to the viewer would read as
-  // "you" oddly ("you" instead of "an apple") which is wrong.
-  const matchesViewer =
-    node.kind === 'tag' &&
-    ctx.viewerStuffId !== undefined &&
-    node.attrs['stuff-id'] === ctx.viewerStuffId &&
-    (node.tag === 'name' ||
-      node.tag === 'player' ||
-      node.tag === 'npc' ||
-      node.tag === 'mention');
-  const children = matchesViewer
-    ? ['you']
-    : renderNodes(node.children, ctx);
+  const children = renderNodes(node.children, ctx);
 
   // Inline / presentational tags — no click handlers, just styled.
   switch (node.tag) {
