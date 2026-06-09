@@ -8,7 +8,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "docs": "typedoc",
+    "docs:clean": "rm -rf docs/api"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",
@@ -39,6 +41,7 @@
     "fast-check": "^4.7.0",
     "supertest": "^7.0.0",
     "tsx": "^4.0.0",
+    "typedoc": "^0.28.19",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   }

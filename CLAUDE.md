@@ -502,11 +502,28 @@ Per-package commands live in `packages/server/` and `packages/client/`
 
 ### Documentation
 
+API reference is generated from TSDoc comments by TypeDoc. Scope is
+**server-only** for now (the engine surface content authoring touches);
+client + `@saxonberg/types` are platform-level and not yet wired in.
+
 ```bash
-pnpm docs:all         # generate API documentation
-pnpm docs:client / :server / :types
-pnpm docs:clean
+pnpm docs                # generate server API docs (alias for docs:server)
+pnpm docs:server         # TypeDoc over packages/server -> HTML + JSON
+pnpm docs:clean          # remove generated output
 ```
+
+Config lives in `packages/server/typedoc.json`. It documents
+**module -> exports -> public + protected members**, excluding private,
+`#`-hard-private, and `@internal`-tagged symbols. Two artifacts land in
+`packages/server/docs/api/` (gitignored, regenerated on demand):
+
+- `html/` — the browsable static site (the eventual pre-auth web view).
+- `api-model.json` — the canonical machine-readable model. The in-game
+  `help api` browser (`HelpController`) is scaffolded to consume this.
+
+TypeDoc's `validation` block doubles as the doc-content audit: it warns
+on undocumented exports and broken `{@link}`s. Warnings are not
+build-breaking today.
 
 ## Tech Stack
 

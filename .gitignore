@@ -2,6 +2,11 @@ node_modules/
 dist/
 build/
 .vite/
+
+# Generated API documentation (TypeDoc HTML + JSON model). Regenerated
+# via `pnpm docs`. The JSON model may later be promoted to a committed
+# build input for the in-game help system (see docs phase 3).
+packages/server/docs/api/
 .env
 .env.local
 *.log

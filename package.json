@@ -8,7 +8,10 @@
     "test:watch": "pnpm -r test:watch",
     "dev:server": "pnpm --filter @saxonberg/server dev",
     "dev:client": "pnpm --filter @saxonberg/client dev",
-    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\""
+    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
+    "docs": "pnpm docs:server",
+    "docs:server": "pnpm --filter @saxonberg/server docs",
+    "docs:clean": "pnpm --filter @saxonberg/server docs:clean"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",

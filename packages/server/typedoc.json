@@ -1,0 +1,33 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Saxonberg Server API",
+  "tsconfig": "./tsconfig.json",
+
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "exclude": [
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/preload.js"
+  ],
+
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "excludeReferences": false,
+
+  "out": "docs/api/html",
+  "json": "docs/api/api-model.json",
+  "readme": "none",
+  "hideGenerator": true,
+
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "treatWarningsAsErrors": false,
+  "logLevel": "Info"
+}
