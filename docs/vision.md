@@ -102,7 +102,7 @@ Saxonberg's narrative and world are designed to immerse players in a vibrant, dy
 
 **The Saxonberg Campus: A Living Setting**
 
-The heart of the world is the sprawling Saxonberg virtual university campus. Far from a static backdrop, it's envisioned as a bustling environment filled with diverse locations, each offering potential for discovery, interaction, and narrative hooks aligned with academic themes. Imagine:
+The university campus is the students' hub and home base — but it is a small part of a much larger world. It's where the academic learning happens: a bustling environment of diverse locations, each offering discovery, interaction, and narrative hooks aligned with academic themes. Imagine:
 
 - **The Grand Library:** Stacks filled with lore, hidden study carrels containing forgotten research notes, collaborative projects unfolding in group study rooms, perhaps even mysteries lurking in restricted archives accessible only through specific knowledge or Guild affiliation.
 - **Departmental Halls:** Each academic discipline (Biology, History, Engineering, Arts, etc.) housed in its own distinct building, featuring specialized labs, workshops, lecture halls, and faculty offices. These areas serve as hubs for Guild activities, quests related to specific subjects, and interactions with AI professors or student peers.
@@ -113,9 +113,9 @@ The heart of the world is the sprawling Saxonberg virtual university campus. Far
 
 Narratives emerge organically from this setting, focusing on academic challenges, research breakthroughs, social dynamics, institutional politics, collaborative projects, and the personal journey of intellectual growth.
 
-**The Wider World: Player-Shaped Expansion**
+**The Wider World: Where Learning Is Applied**
 
-Beyond the campus lies a larger world – a surrounding city and diverse wilderness biomes (forests, deserts, mountains, coasts, etc., differentiating between indoor and outdoor spaces). While the initial focus is the campus, the development and narrative direction of these external areas are intended to be significantly influenced by player actions and community desires over time, fostering a sense of collective world-building.
+Beyond the campus lies the larger world – a surrounding city and diverse wilderness biomes (forests, deserts, mountains, coasts, etc., indoor and outdoor). This is where most of the world lives, and where students *apply* what they learn: the campus teaches the craft; the world beyond is where they wield it, on quests with real stakes. The build starts with the campus and expands outward, with the development and narrative direction of these external areas significantly shaped by player actions and community over time.
 
 **Foundations of the World:**
 

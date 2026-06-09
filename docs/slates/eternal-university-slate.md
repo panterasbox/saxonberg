@@ -425,13 +425,19 @@ kiosk-over-commands pattern as char-gen.
 
 ### Prose & the mood-board
 
-The legacy descriptors are **inspiration, not copy** — the old prose is
-merely adequate; we write fresh and better. Borrow the *spirit*: material
-specificity, named evocative roads (an *Eternal Way* / *Tanelorn* /
-*Silver Street* / *Limbo Lane* analog, rewritten), day/night atmospheric
-layering, readable sign/object detail, and the **Guide wristcomp** — a
-carried object that gated newbie-school progression — as strong prior art
-for an onboarding-gating device.
+The legacy descriptors are the **source to *update*, not replace** — we
+**preserve the EC aesthetic and improve the language** (a faithful
+modernization, *not* a from-scratch rewrite — don't lose the feel). The
+roads come **from EC, names kept**: the real **Eternal Way / Tanelorn Road /
+Silver Street / Limbo Lane / Glass Way / Infinity Way / Dimension Drive /
+Old Road / Dark Alley** (per the legacy source + `docs/eternal/MAP.TXT`),
+each with its **original prose polished**, not invented. Keep the *spirit*:
+material specificity, day/night atmospheric layering, readable sign/object
+detail, and the **Guide wristcomp** — a carried object that gated
+newbie-school progression — as strong prior art for an onboarding-gating
+device. (The EC **map is not replicated** — its central kill-zone Heart is
+rejected; the campus is its own layout, borrowing the road names + their
+polished prose.)
 
 ---
 
