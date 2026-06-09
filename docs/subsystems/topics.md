@@ -178,3 +178,20 @@ emerges that needs scoped editing rights.
    the descriptor cache.
 4. Welcome-scene payload composition reads `getSnapshot()` and
    ships it to the client.
+
+## Topics introduced by the social-cluster build
+
+| Topic | Where it lives | Producer |
+|---|---|---|
+| `world.expression` | family root | (engine) |
+| `world.expression.emote` | leaf | catalog + free-form emote frames (`SoulMixin`) |
+| `world.speech.whisper` | leaf | `VocalMixin.whisper` |
+| `world.speech.shout` | leaf | `VocalMixin.shout` |
+| `world.chat.message` | leaf | chat posts (`ChannelCatalogue.postToChannel`) |
+| `system.broadcast` | leaf | `broadcast` verb (`BroadcastController`) |
+| `system.shell.chat` / `system.shell.contacts` / `system.shell.group` | leaves | chat / contacts / group verb feedback |
+
+The emote leaf shares the modality `'emotive-esp'`; chat posts and
+broadcast both ride `'verbal-esp'`. See
+[emotes.md](./emotes.md), [chat.md](./chat.md), and
+[messaging.md](./messaging.md) for the producer side.

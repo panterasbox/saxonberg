@@ -35,7 +35,7 @@ See also:
   the enforcement substrate (caller-identity policies, frames, shadows,
   force-bypass, the audit gap). This slate realizes its reserved
   permission seam.
-- [grouping-slate.md](./grouping-slate.md) — `GroupApi`; **group-role is
+- [grouping subsystem](../subsystems/grouping.md) — `GroupApi`; **group-role is
   a capability source** (control-via-groups). The facade pattern this
   slate mirrors.
 - [chat-slate.md](./chat-slate.md) / [emotes-slate.md](./emotes-slate.md)

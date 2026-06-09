@@ -519,16 +519,52 @@ resonance field, hybrid mesh — diegetically per zone). A character
 can compose Vocal without Aether (mute) or Aether without Vocal
 (post-vocal-loss with an implant); both are independent.
 
-`AetherMixin.tell(target, text)` fires `world.speech.tell` with
+`AetherMixin.tell(target, text)` fires `world.speech.dm` with
 chat-form bodies (`<speaker> → <target>: <body>` self,
 `<speaker> → you: <body>` target). Self is a valid target. Markdown
 parsing runs through `Mml.markdownToMml` with the speaker's perceiver
-mention resolver, same as `VocalMixin.say`.
+mention resolver, same as `VocalMixin.say`. `tell` accepts either a
+single `Stuff` or a `readonly Stuff[]` — multi-target stamps
+`payload.recipients: StuffRef[]` + (when chat-backed) the cohort's
+`meta.channelId`, and the per-target frame includes a
+`"(also to: …)"` cohort hint so each recipient sees who else was
+addressed. Cohort tracking lives on AetherMixin itself as runtime-
+only state: `getLastInboundCohort()` / `getLastOutboundCohort()`
+power the `reply` and `dm .` pronoun verbs.
 
 Avatar composes `AetherMixin` because players have implants per the
 char-gen / augmentation slates' diegetic story. NPCs opt in
 per-class when content requires it. See
 [message-rendering.md § AetherMixin](./message-rendering.md#aethermixin--non-acoustic-transport).
+
+### VocalMixin acoustic family — say / whisper / shout / `--to`
+
+`VocalMixin` extends to three acoustic verbs sharing one composition
+backbone: `say(text, target?)`, `whisper(text, target?)`,
+`shout(text, target?)`. Each stamps `meta.modality = 'hearing'` and
+a per-verb `meta.acousticDb` source amplitude (30 / 60 / 90 dB
+respectively) for the sound-propagation walk's reach computation.
+With `--to <target>` (a flag on `say.yaml` / `shout.yaml`), the
+room still hears, but the target gets a marked target-frame
+("Bobalu says to you, …"); whisper is implicitly directed so its
+`target` is a required positional. Topics: `world.speech.say`,
+`world.speech.whisper`, `world.speech.shout`.
+
+### SoulMixin — expressive (emote) on every Character
+
+`SoulMixin` is parallel to `VocalMixin` for the emote channel: the
+ESP-modality expressive surface (waves, smiles, bows, free-form
+prose). NOT augment-gated — composed natively on every
+`Character`; the diegetic reading is that expression itself is
+innate, with the carrier signal (the Aether) augment-gated
+separately for remote delivery. The mixin owns rendering
+(`renderEmote` / `renderFreeForm` return per-audience Mml triples)
+AND in-room send (`emote` / `emoteFree` compose Scene + send,
+Containable-wins). Channel-routed / DM-handle-routed emotes call
+the render methods directly and compose their own Scene. Topic:
+`world.expression.emote`. Modality stamp: `'emotive-esp'`. See
+[emotes.md](./emotes.md) for the full substrate (Emote Documents,
+EmoteGrammar, SoulCatalogue, dispatch paths).
 
 ## Routing pipeline
 

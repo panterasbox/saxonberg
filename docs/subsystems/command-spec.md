@@ -597,6 +597,49 @@ When to reach for per-subcommand controllers vs. branch on
 The choice is a content-shape question, not a framework question
 — both patterns are first-class.
 
+### `fallthrough: true` — subcommands AND bare positionals
+
+By default a YAML may declare EITHER `args:` OR `subcommands:` —
+the two are mutually exclusive at load time. A small minority of
+verbs (`chat` is the canonical case) want both: reserved
+subcommand words for management (`chat list`, `chat join …`) AND
+a bare positional shape for the hottest action (`chat <channel>
+<msg>` posts). Opt in with the verb-level `fallthrough: true`
+flag, which the schema enforces alongside both fields:
+
+```yaml
+verbs: [chat]
+controller: ChatController
+description: "Post to a channel, or manage channel membership"
+fallthrough: true
+subcommands:
+  list:    { ... }
+  join:    { args: [{ name: name, type: string, required: true }] }
+  # ... 9 more reserved subcommands ...
+args:
+  - name: channel
+    type: string
+    required: true
+  - name: message
+    type: string
+    required: true
+    greedy: true
+```
+
+Matcher behavior: a known subcommand always wins; an unknown
+first token falls through to bind against the top-level `args:`;
+a bind failure surfaces the original `unknown-subcommand` error
+(pointing at the closest subcommand candidate). The
+`model.subcommand` field is absent in the fallthrough path; the
+controller branches on `model.subcommand` being undefined to
+distinguish "bare post" from "subcommand call." See
+[command-routing.md § Phase 3a](./command-routing.md) for the
+matcher detail and [chat.md](./chat.md) for the worked example.
+
+A YAML that declares both fields without the flag is a load-time
+schema error; a YAML that declares the flag without both fields
+is also a schema error.
+
 ## Options (`options:`)
 
 Options are an unordered map keyed by option name. They have

@@ -30,7 +30,7 @@ See also:
   `voice`, `SchedulerApi`, `SustainedEngagement`, abort reasons). A
   melee-lock *is* an engagement; a tactic is a sustained party-level
   engagement that allocates the individual ones. Read this first.
-- [docs/slates/grouping-slate.md](./grouping-slate.md) — the party is a
+- [grouping subsystem](../subsystems/grouping.md) — the party is a
   self-managed group (model B); a tactic is a property of the party.
   Combat/instance participants are an activity-bound group.
 - [docs/slates/locomotion-as-activity-slate.md](./locomotion-as-activity-slate.md)
@@ -214,7 +214,7 @@ philosophy docs, it should be this, not arrows.
 - **`CombatTactic`** as an authored `Idea` singleton, one template per
   preset (parallel to `LocomotionMode`). Carries the policy: role slots,
   interception predicate, reward modifiers. Not a registry.
-- **The party** (a self-managed group, grouping-slate model B) holds the
+- **The party** (a self-managed group, grouping subsystem model B) holds the
   active tactic and the role→member assignment.
 - **A combat round** is a `SustainedEngagement` on the activity
   framework; the tactic is the policy the round consults when allocating

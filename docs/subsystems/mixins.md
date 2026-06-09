@@ -83,6 +83,8 @@ export const Mixins = {
   Mobile: 'MobileMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
+  Soul: 'SoulMixin',         // social-cluster build: emotes on every Character
+  Contacts: 'ContactsMixin', // social-cluster build: per-Avatar named lists
   /* … one entry per registered mixin … */
 } as const;
 

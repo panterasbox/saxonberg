@@ -517,14 +517,30 @@ enum Collections {
   Users = 'users',
   GoogleProfiles = 'google_profiles',
   Domain = 'domain',
+  Emotes = 'emotes',
+  Groups = 'groups',
+  Channels = 'channels',
 }
 ```
 
-`Domain` is the templates collection. Indexes are created on connect:
+`Domain` is the templates collection. The three social-cluster
+collections (`emotes`, `groups`, `channels`) hold `Document`
+subclasses (`Emote`, `Group`, `Channel`) — see the corresponding
+subsystem docs.
+
+Indexes are created on connect:
 
 - `google_profiles.googleId` — unique
 - `google_profiles.email` — non-unique
 - `users.googleProfileId` — non-unique
+- `domain.path` — unique
+- `emotes.verb` — unique
+- `emotes.aliases` — non-unique
+- `groups.owner` — non-unique
+- `groups.memberIds` — non-unique
+- `channels.name` — unique
+- `channels.memberIds` — non-unique (powers "channels I'm in" lookups)
+- `channels.kind` — non-unique
 
 Index creation is best-effort (logs and continues on failure).
 

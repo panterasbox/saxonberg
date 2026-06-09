@@ -29,7 +29,7 @@ See also:
   (properties/slots/contents) is the first big consumer of the
   **layout library** (`<table>`/`<list>`/`<field>`) + the **flatten
   discipline** + the **styling engine**. See the Reconciliation note.
-- [docs/slates/grouping-slate.md](./grouping-slate.md) — multi-focus
+- [grouping subsystem](../subsystems/grouping.md) — multi-focus
   (`focus friends`) resolves a **group** via `GroupApi`; list rows are
   styled names.
 - `packages/server/src/mud/lib/command/Focused.ts` — `FocusedMixin`

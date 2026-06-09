@@ -34,6 +34,7 @@ abstract class Template extends Document {
   data: Record<string, unknown> = {};
 
   static findByPath(path: string): Promise<Template | null>;
+  static findByPaths(paths: readonly string[]): Promise<Template[]>;
   static findDescendants(basePath: string): Promise<Template[]>;
   static loadById(id: string): Promise<Template | null>;
   static ancestorPaths(path: string): string[];
