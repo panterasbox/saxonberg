@@ -14,7 +14,6 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
 import { CelestialApi } from '../../api/celestial';
-import { WorldClockApi } from '../../api/worldclock';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 
 interface AnalyzeSkyModel extends CommandModel {

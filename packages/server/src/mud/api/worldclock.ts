@@ -709,10 +709,9 @@ export class WorldClockApi {
       WorldClockApi.#snapshotBackstop = null;
     }
     WorldClockApi.#testMode = true;
-    WorldClockApi.#nowMs = (() => {
-      let t = 0;
-      return () => t;
-    })();
+    // Frozen test clock at 0; `_advanceForTesting` reads it and
+    // re-installs a frozen provider at the advanced value.
+    WorldClockApi.#nowMs = () => 0;
     WorldClockApi.#anchorGameTimeS = 0;
     WorldClockApi.#anchorRealMs = 0;
     WorldClockApi.#scale = WorldClockApi.DEFAULT_SCALE;
