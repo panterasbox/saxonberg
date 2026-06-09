@@ -134,4 +134,25 @@ describe('SoulMixin.emoteFree', () => {
     expect(alice.received[0]!.body).toBe('You shuffles a deck of cards.');
     expect(bob.received[0]!.body).toMatch(/<name[^>]*>Alice<\/name> shuffles a deck of cards\./);
   });
+
+  it('resolves `@mention` syntax inside the body to <mention> tags', () => {
+    const room = makeStuff(() => new Location());
+    const alice = makeStuff(() => new CharacterStuff());
+    alice.setName('Alice');
+    ContainmentApi.move(alice, room);
+    const iffy = makeStuff(() => new Listener());
+    iffy.setName('Iffy');
+    ContainmentApi.move(iffy, room);
+
+    alice.emoteFree('waves at @iffy');
+
+    // Iffy is in the room as a peer — gets the same body as other
+    // peers. Her cockpit substitutes "you" for the mention; the
+    // server-side body keeps the structural mention tag with her
+    // stuff-id.
+    expect(iffy.received).toHaveLength(1);
+    expect(iffy.received[0]!.body).toMatch(
+      new RegExp(`<mention stuff-id="${iffy.stuffId}">@iffy<\\/mention>`),
+    );
+  });
 });

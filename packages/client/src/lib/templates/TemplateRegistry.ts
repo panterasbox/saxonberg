@@ -44,7 +44,7 @@ const REGISTRATIONS: Registration[] = [
   // `world.speech.tell` topic. Both topics render through the same
   // tellTemplate so the experience is identical pre / post rename.
   { prefix: 'world.speech.tell', template: tellTemplate },
-  { prefix: 'world.emote', template: emoteTemplate },
+  { prefix: 'world.expression', template: emoteTemplate },
 ];
 
 /**

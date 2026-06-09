@@ -107,18 +107,21 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     renderFreeForm(text: string, target?: Stuff): EmoteBodies {
       const actor = this as unknown as Stuff;
-      const safe = text.trim();
+      const parsed = Mml.markdownToMml(
+        text.trim(),
+        Mml.perceiverMentionResolver(actor),
+      );
       const actorName = Mml.name(actor);
-      const selfBody = target
-        ? Mml.compose`You ${safe} (at ${Mml.name(target)}).`
-        : Mml.compose`You ${safe}.`;
-      const peerBody = target
-        ? Mml.compose`${actorName} ${safe} (at ${Mml.name(target)}).`
-        : Mml.compose`${actorName} ${safe}.`;
+      // Single peer body covers BOTH peers and the explicit target —
+      // the target's cockpit substitutes "you" for its own `<name>` /
+      // `<mention>` match (per-viewer rendering rule). The actor's
+      // self body uses the literal "You" prefix because the actor
+      // isn't tagged in the body and so doesn't trigger the
+      // substitution.
+      const selfBody = Mml.compose`You ${parsed}.`;
+      const peerBody = Mml.compose`${actorName} ${parsed}.`;
       const out: EmoteBodies = { self: selfBody, peer: peerBody };
-      if (target) {
-        out.target = Mml.compose`${actorName} ${safe} at you.`;
-      }
+      if (target) out.target = peerBody;
       return out;
     }
 
