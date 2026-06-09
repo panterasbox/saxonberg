@@ -1,20 +1,30 @@
 # CI for @saxonberg.
 #
-# Currently scoped to ONE thing: publishing the generated API reference
-# (TypeDoc, server package) to GitLab Pages. Build / test / deploy
-# stages are intentionally deferred until we stand up a live game
-# instance — the AWS path (container image -> CodeDeploy -> EC2 behind
-# an ALB, config in SSM Parameter Store) is planned but not wired here.
+#   validate      — lint + test + build, on every merge request and on
+#                   the default branch. The guard rail the repo lacked.
+#   documentation — publish the TypeDoc site to GitLab Pages.
 #
-# Pages publishes only from the default branch. The project is public,
-# so the rendered docs are reachable without a GitLab login.
+# Deploy is intentionally NOT a stage: standing up the live instance
+# (Lightsail + Caddy + Atlas) is a one-time interactive task, not
+# something a pipeline should own.
 
 stages:
+  - validate
   - documentation
 
-pages:
-  stage: documentation
+# Run pipelines ONLY for merge requests and default-branch pushes, and
+# never two for the same commit — avoids the duplicate branch+MR
+# pipeline and saves CI minutes.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# Shared Node + pnpm setup. The pnpm store is cached on the lockfile
+# hash, so install is near-instant after the first run.
+.node:
   image: node:22
+  interruptible: true
   cache:
     key:
       files:
@@ -25,6 +35,32 @@ pages:
     - npm install -g pnpm@10
     - pnpm config set store-dir .pnpm-store
     - pnpm install --frozen-lockfile
+
+lint:
+  extends: .node
+  stage: validate
+  script:
+    - pnpm lint
+
+test:
+  extends: .node
+  stage: validate
+  script:
+    - pnpm test
+
+build:
+  extends: .node
+  stage: validate
+  script:
+    # `pnpm build` runs tsc for server + types, but the client builds
+    # with Vite (esbuild), which strips types without checking them —
+    # so typecheck the client explicitly via its tsc `build:types`.
+    - pnpm build
+    - pnpm --filter @saxonberg/client build:types
+
+pages:
+  extends: .node
+  stage: documentation
   script:
     # TypeDoc writes the static site to packages/server/docs/api/html;
     # GitLab Pages serves whatever lands in ./public.
@@ -35,4 +71,4 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
