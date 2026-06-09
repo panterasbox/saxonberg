@@ -45,9 +45,20 @@ export type GroupChangeListener = () => void;
 /**
  * Provider contract. Concrete providers in `lib/social/providers/`.
  *
- * The split: `members` is the canonical read; `roleOf` / `isMember`
- * are optional fast-path predicates (default = derived from
- * `members`); `onChange` is best-effort live notification.
+ * `members` is the canonical read; `roleOf` is the canonical role
+ * projection. `isMember` and `onChange` are optional fast-path /
+ * live-notification seams (defaults derive from `roleOf` and
+ * no-op respectively).
+ *
+ * Role projection is **mandatory**. Every provider projects its
+ * native concept into the coarse `'owner' | 'admin' | 'member'`
+ * vocabulary as best it can — even when the underlying source has
+ * no native role hierarchy (`mql`, `contacts`), the projection is
+ * "everyone in the materialized set is `'member'`". Surfacing
+ * `null` is the "not in the group at all" signal. Sources with
+ * richer hierarchies (a future guild provider with leader / officer
+ * / member) fold their native roles into the coarse vocabulary —
+ * the contract is intentionally lossy.
  *
  * Writable providers add `add` / `remove` / `setRole` / `create` /
  * `destroy` on top — the managed provider has them; mql / contacts
@@ -58,7 +69,13 @@ export interface GroupProvider {
   readonly source: string;
   /** Read members. May resolve asynchronously (e.g., live Avatar lookups). */
   members(id: string): Promise<Stuff[]>;
-  roleOf?(playerId: string, id: string): Promise<GroupRole | null>;
+  /**
+   * Project the source's native role for `playerId` in group `id`
+   * into the coarse `GroupRole` vocabulary. `null` = not in the group.
+   * Sources without a native role concept return `'member'` for any
+   * matched entry.
+   */
+  roleOf(playerId: string, id: string): Promise<GroupRole | null>;
   isMember?(playerId: string, id: string): Promise<boolean>;
   onChange?(id: string, cb: GroupChangeListener): GroupChangeHandle;
 }

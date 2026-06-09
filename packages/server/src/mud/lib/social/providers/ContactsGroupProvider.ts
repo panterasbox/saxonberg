@@ -27,6 +27,7 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../GroupProvider';
+import type { GroupRole } from '../Group';
 import { MixinApi } from '../../../api/mixin';
 import { PlayerApi } from '../../../api/player';
 import { StuffApi } from '../../../api/stuff';
@@ -39,6 +40,22 @@ export class ContactsGroupProvider implements GroupProvider {
 
   /** Listeners keyed by full ref (ownerId:label). */
   #listeners: Map<string, Set<GroupChangeListener>> = new Map();
+
+  /**
+   * Contacts has no native role hierarchy — the list owner isn't a
+   * "member" of their own list (they don't appear in `members()`),
+   * so the projection is simply: in the materialized set → `'member'`;
+   * otherwise → `null`. The owner's standing as the list creator is
+   * a contacts-side concern (enforced at the verb layer + provider
+   * privacy gate), not a coarse-role concern.
+   */
+  async roleOf(playerId: string, id: string): Promise<GroupRole | null> {
+    const members = await this.members(id);
+    const present = members.some(
+      (s) => PlayerApi.isAvatarStuff(s) && s.getPlayerId() === playerId,
+    );
+    return present ? 'member' : null;
+  }
 
   async members(id: string): Promise<Stuff[]> {
     const split = id.indexOf(':');

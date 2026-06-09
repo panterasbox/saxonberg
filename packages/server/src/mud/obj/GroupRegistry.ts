@@ -25,7 +25,6 @@ import { MqlGroupProvider } from '../lib/social/providers/MqlGroupProvider';
 import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProvider';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { GroupRole } from '../lib/social/Group';
-import { PlayerApi } from '../api/player';
 import type { VetoResult } from '../lib/errors';
 
 const GroupRegistryBase = PostRegistrationMixin(Idea);
@@ -70,19 +69,7 @@ export class GroupRegistry extends GroupRegistryBase {
     const { source, id } = parseGroupRef(ref);
     const provider = this.providers.get(source);
     if (!provider) return null;
-    if (provider.roleOf) {
-      return provider.roleOf(playerId, id);
-    }
-    // Default: not a role-bearing provider — return `'member'` if
-    // membership exists, else null. Narrow each Stuff via the
-    // PlayerApi predicate rather than duck-typing the `getPlayerId`
-    // shape: only Avatars carry playerIds, and the predicate is the
-    // canonical identity check.
-    const members = await provider.members(id);
-    const found = members.some(
-      (s) => PlayerApi.isAvatarStuff(s) && s.getPlayerId() === playerId,
-    );
-    return found ? 'member' : null;
+    return provider.roleOf(playerId, id);
   }
 
   public async isMember(

@@ -71,19 +71,33 @@ is small enough to be worth seeing in full:
 export interface GroupProvider {
   readonly source: string;
   members(id: string): Promise<Stuff[]>;
-  roleOf?(playerId: string, id: string): Promise<GroupRole | null>;
+  roleOf(playerId: string, id: string): Promise<GroupRole | null>;
   isMember?(playerId: string, id: string): Promise<boolean>;
   onChange?(id: string, cb: GroupChangeListener): GroupChangeHandle;
 }
 ```
 
-`members` is the canonical read; the optional `roleOf` and `isMember`
-are fast-path predicates. When a provider doesn't override them, the
-registry derives both from `members(id)` — `isMember` reduces to a
-membership check; `roleOf` returns `'member'` when the playerId is
-in the materialized result set, `null` otherwise. That default is
-load-bearing for the MQL provider, which has no native concept of a
-role.
+`members` is the canonical read; `roleOf` is the canonical role
+projection. Both are **mandatory** — every provider projects its
+native concept into the coarse `'owner' | 'admin' | 'member'`
+vocabulary, even when the underlying source has no native role
+hierarchy. The contract is intentionally lossy: sources with no
+role concept (`mql`, `contacts`) project every materialized entry as
+`'member'`; richer hierarchies (a future guild provider with
+leader / officer / member) fold their native roles into the coarse
+vocabulary as best they can. `null` is reserved for "not in the
+group at all." Making `roleOf` non-optional forces each provider
+author to think about the projection at write time rather than
+inheriting an implicit default.
+
+`isMember` and `onChange` remain optional. When a provider doesn't
+override `isMember`, the registry derives it from `roleOf` (member
+iff `roleOf` returns non-`null`). `onChange` is best-effort live
+notification: callers register a listener keyed by ref id, and the
+provider fires it after every membership mutation. The handle's
+`cancel()` removes the listener. Providers without a viable change
+feed (the MQL case) return a no-op handle and document the
+limitation.
 
 Writable providers add `add` / `remove` / `setRole` / `create` /
 `destroy` on top of the read contract. In v1, only the managed
@@ -92,12 +106,6 @@ provider's owning Document (`Group.addMember(...)` then
 `group.save()`), not through dedicated `GroupProvider` methods —
 the contract reserves the slot but v1 routes writes through the
 `group` verbs and the Document directly.
-
-`onChange` is best-effort live notification: callers register a
-listener keyed by ref id, and the provider fires it after every
-membership mutation. The handle's `cancel()` removes the listener.
-Providers without a viable change feed (the MQL case) return a
-no-op handle and document the limitation.
 
 ## `GroupRegistry` and `GroupApi`
 

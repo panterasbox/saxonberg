@@ -22,6 +22,7 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../GroupProvider';
+import type { GroupRole } from '../Group';
 import { MqlApi } from '../../../api/mql';
 import { PlayerApi } from '../../../api/player';
 
@@ -43,8 +44,18 @@ export class MqlGroupProvider implements GroupProvider {
     return result.stuff;
   }
 
-  // No `roleOf` / `isMember` overrides — the registry defaults derive
-  // them from `members(id)`.
+  /**
+   * MQL has no native role concept — every match is just an entry in
+   * the result set. Project everything in `members()` as `'member'`;
+   * anything not in the set surfaces `null`.
+   */
+  async roleOf(playerId: string, id: string): Promise<GroupRole | null> {
+    const members = await this.members(id);
+    const present = members.some(
+      (s) => PlayerApi.isAvatarStuff(s) && s.getPlayerId() === playerId,
+    );
+    return present ? 'member' : null;
+  }
 
   onChange(_id: string, _cb: GroupChangeListener): GroupChangeHandle {
     // Documented v1 limitation: MQL-backed groups don't fire live
