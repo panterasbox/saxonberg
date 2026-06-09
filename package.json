@@ -9,9 +9,9 @@
     "dev:server": "pnpm --filter @saxonberg/server dev",
     "dev:client": "pnpm --filter @saxonberg/client dev",
     "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
-    "docs": "pnpm docs:server",
-    "docs:server": "pnpm --filter @saxonberg/server docs",
-    "docs:clean": "pnpm --filter @saxonberg/server docs:clean"
+    "docs": "pnpm run docs:server",
+    "docs:server": "pnpm --filter @saxonberg/server run docs",
+    "docs:clean": "pnpm --filter @saxonberg/server run docs:clean"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",

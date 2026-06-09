@@ -72,8 +72,10 @@ pages:
     # types first).
     - pnpm --filter @saxonberg/types build
     # TypeDoc writes the static site to packages/server/docs/api/html;
-    # GitLab Pages serves whatever lands in ./public.
-    - pnpm docs
+    # GitLab Pages serves whatever lands in ./public. Use `run` — bare
+    # `pnpm docs` invokes pnpm's built-in `docs` command on newer pnpm
+    # (10.34+), not our script.
+    - pnpm run docs
     - rm -rf public
     - mv packages/server/docs/api/html public
   artifacts:
