@@ -49,8 +49,22 @@ in the official `mcr.microsoft.com/playwright` image, and upload the
 trace + HTML report as artifacts on failure. Kept out of the fast
 `validate` stage. See `docs/deployment.md`.
 
+## Deterministic world
+
+E2E runs against a deterministic world by construction: a fresh Mongo
+(ephemeral in CI) + the fixed seed set + the Avatar seed's pinned
+`container: /domain/eternal/duncan-hall/lobby` means a freshly-created
+test avatar always spawns in the seeded Duncan Hall lobby. The
+round-trip test asserts on that room's stable identity label, not its
+flavor prose. (Follow-up, best done against a live stack so it can be
+verified green: a dedicated, test-owned spawn room + a test-mode
+`container` override, to fully insulate E2E from campus content churn.)
+
 ## Status
 
-Stub. `smoke.spec.ts` + `auth.spec.ts` prove the harness; the command
-round-trip test is `test.fixme` until the cockpit has stable selectors
-and a deterministic seeded world.
+`smoke.spec.ts` (cockpit loads + `look` round-trip) and `auth.spec.ts`
+(login screen for fresh visitors) are live. They parse and are
+discovered by `playwright test --list`, but have **not yet been run
+green** — that needs the full stack (Mongo + server in test mode +
+client) and installed browsers. First green run is the next step when a
+stack is available.

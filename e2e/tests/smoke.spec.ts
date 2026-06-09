@@ -14,12 +14,29 @@ test('an authenticated visitor lands in the cockpit', async ({ page }) => {
   await expect(page.getByText('Login with Google')).toHaveCount(0);
 });
 
-// TODO: enable once the cockpit has stable selectors and the E2E run
-// boots against a deterministic seeded world. This is the high-value
-// path — it exercises a full command round-trip over the WebSocket.
-test.fixme('typing a command echoes into the terminal', async ({ page }) => {
+/**
+ * Full command round-trip: client → command bus → WebSocket → server →
+ * rendered frame. The deterministic world comes from the seed system —
+ * a fresh test avatar spawns in the seeded Duncan Hall lobby (the Avatar
+ * seed pins `container: /domain/eternal/duncan-hall/lobby`), so `look`
+ * presents that room. We assert on the room's stable identity label
+ * rather than its flavor prose, which churns as the campus is built.
+ *
+ * Determinism note: re-run-safe because `look` doesn't move the avatar,
+ * and the e2e user is idempotent. CI gets a fresh Mongo each run anyway.
+ */
+test('a `look` command round-trips and renders the spawn room', async ({
+  page,
+}) => {
   await page.goto('/');
-  await page.getByRole('textbox').fill('look');
-  await page.keyboard.press('Enter');
-  await expect(page.getByText(/.+/)).toBeVisible();
+
+  const input = page.getByRole('textbox');
+  await expect(input).toBeVisible();
+
+  await input.fill('look');
+  await input.press('Enter');
+
+  // The look response renders into the terminal scrollback. Playwright
+  // auto-waits for the WebSocket round-trip to land the text.
+  await expect(page.getByText(/Duncan Hall lobby/i).first()).toBeVisible();
 });
