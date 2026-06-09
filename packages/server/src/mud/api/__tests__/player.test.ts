@@ -329,4 +329,40 @@ describe('PlayerApi', () => {
       expect(PlayerApi.getAvatarCount()).toBe(0);
     });
   });
+
+  describe('isAvatarStuff', () => {
+    // The predicate reads templatePath, NOT instanceof — the
+    // template path is the durable identity of a Stuff (per the MR
+    // review comment that motivated the move).
+
+    function fakeStuffWithPath(path: string | undefined): {
+      getTemplatePath(): string | undefined;
+    } {
+      return { getTemplatePath: () => path };
+    }
+
+    it("returns true for a Stuff whose templatePath starts with Avatar's prefix", () => {
+      const stuff = fakeStuffWithPath('/obj/Avatar/abc123') as Avatar;
+      expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
+    });
+
+    it('returns false for a Stuff with a non-Avatar templatePath', () => {
+      const stuff = fakeStuffWithPath('/obj/npc/Gus') as unknown as Avatar;
+      expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
+    });
+
+    it('returns false when the Stuff has no templatePath', () => {
+      const stuff = fakeStuffWithPath(undefined) as unknown as Avatar;
+      expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
+    });
+
+    it('keeps the inlined prefix in sync with Avatar.TEMPLATE_PATH_PREFIX', () => {
+      // The PlayerApi/Avatar module cycle forces us to inline the
+      // string in player.ts. Guard against drift.
+      const stuff = fakeStuffWithPath(
+        Avatar.TEMPLATE_PATH_PREFIX + 'whatever',
+      ) as Avatar;
+      expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
+    });
+  });
 });

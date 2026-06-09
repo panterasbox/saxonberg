@@ -46,6 +46,14 @@ export interface Vocal {
  * `meta.acousticDb` for the sound-propagation walk's reach computation.
  * Reach is determined elsewhere (the senses substrate); this is just
  * the source level.
+ *
+ * v1 ceiling: these are flat per-verb scalars — every speaker shouts
+ * at the same volume regardless of size, condition, or skill. The
+ * vitals substrate (deferred) is the natural seam to vary them per-
+ * speaker (constitution / oratory / projection / current hp / fatigue);
+ * when vitals lands, `meta.acousticDb` becomes a computed value rather
+ * than a constant lookup. Until then, the same volume curve applies
+ * to everyone.
  */
 const DB = {
   whisper: 30,

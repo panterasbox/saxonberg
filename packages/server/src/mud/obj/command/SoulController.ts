@@ -24,7 +24,6 @@ import { Mml } from '../../api/mml';
 import YAML from 'yaml';
 import { SoulApi } from '../../api/soul';
 import type { EmoteSpec } from '../SoulCatalogue';
-import { CommandApi } from '../../api/command';
 
 interface SoulModel extends CommandModel {
   verb?: string;
@@ -62,20 +61,6 @@ export class SoulController extends CommandController<SoulModel> {
   ): Promise<void> {
     const verb = (model.verb ?? '').toLowerCase().trim();
     if (!verb) return this.fail(context, 'verb required', 'verb-required');
-    if (!isWordToken(verb)) {
-      return this.fail(
-        context,
-        `Verb '${verb}' is not a valid word token.`,
-        'invalid-verb',
-      );
-    }
-    if (isReservedVerb(verb)) {
-      return this.fail(
-        context,
-        `'${verb}' collides with an existing command verb.`,
-        'reserved-name',
-      );
-    }
     const raw = (model.spec ?? '').trim();
     if (!raw) {
       return this.fail(
@@ -263,32 +248,6 @@ export class SoulController extends CommandController<SoulModel> {
       .send();
   }
 }
-
-function isWordToken(s: string): boolean {
-  return /^[a-z][a-z0-9_-]*$/.test(s);
-}
-
-/**
- * Reserved-name check: every command-bus verb (primary + aliases)
- * across every loaded YAML cannot be claimed by a new emote. Falls
- * back to a small static list when the CommandApi cache isn't
- * populated yet (defensive — should never happen in production).
- */
-function isReservedVerb(verb: string): boolean {
-  try {
-    const all = CommandApi.getAllVerbs();
-    return all.has(verb);
-  } catch {
-    return STATIC_RESERVED.has(verb);
-  }
-}
-
-const STATIC_RESERVED = new Set([
-  'say', 'tell', 'dm', 'whisper', 'shout', 'emote', 'soul',
-  'go', 'look', 'get', 'drop', 'put', 'give', 'inventory',
-  'clone', 'reload', 'destruct', 'eval', 'teleport',
-  'help', 'ping', 'who', 'chat', 'contacts', 'group',
-]);
 
 interface CoerceOk { value: EmoteSpec; }
 interface CoerceErr { error: string; }

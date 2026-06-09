@@ -8,6 +8,11 @@
  *
  * Standalone channels need no backing Group (audience = every player
  * minus the future banlist); `backingGroupRef` stays empty.
+ *
+ * Source file is at `mud/config/channels.yaml` (NOT under `mud/seeds/`):
+ * Channel records aren't Stuff templates and don't belong in the
+ * `domain` collection that `SeederManager` walks. Same reasoning as
+ * EmoteSeeder.
  */
 
 import { readFileSync } from 'fs';
@@ -24,7 +29,7 @@ interface ChannelSeedEntry {
 }
 
 interface ChannelSeedOptions {
-  /** Override the seed YAML path; defaults to mud/seeds/social/channels.yaml. */
+  /** Override the seed YAML path; defaults to mud/config/channels.yaml. */
   seedPath?: string;
 }
 
@@ -68,6 +73,6 @@ export class ChannelSeeder {
 
   static #defaultSeedPath(): string {
     const here = dirname(fileURLToPath(import.meta.url));
-    return join(here, '../mud/seeds/social/channels.yaml');
+    return join(here, '../mud/config/channels.yaml');
   }
 }

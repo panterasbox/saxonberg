@@ -12,17 +12,16 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { Mml } from '../../api/mml';
-import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface ShoutModel extends CommandModel {
   message: string;
-  target?: FieldValue;
+  /** From `shout.yaml`'s `--to <target>` option (type: object). */
+  target?: MqlOneResult;
 }
 
 export class ShoutController extends CommandController<ShoutModel> {
@@ -36,13 +35,7 @@ export class ShoutController extends CommandController<ShoutModel> {
       context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });
       return;
     }
-    const target = firstStuff(model.target);
+    const target = model.target?.stuff ?? undefined;
     speaker.shout(model.message, target);
   }
-}
-
-function firstStuff(field: FieldValue | undefined): Stuff | undefined {
-  if (!field) return undefined;
-  const stuffs = MqlApi.extractStuffs(field);
-  return stuffs && stuffs.length > 0 ? (stuffs[0] as Stuff) : undefined;
 }

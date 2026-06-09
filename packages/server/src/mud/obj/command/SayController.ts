@@ -14,17 +14,16 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { Mml } from '../../api/mml';
-import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface SayModel extends CommandModel {
   message: string;
-  target?: FieldValue;
+  /** From `say.yaml`'s `--to <target>` option (type: object). */
+  target?: MqlOneResult;
 }
 
 export class SayController extends CommandController<SayModel> {
@@ -38,14 +37,7 @@ export class SayController extends CommandController<SayModel> {
       context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });
       return;
     }
-    const target = firstStuff(model.target);
+    const target = model.target?.stuff ?? undefined;
     speaker.say(model.message, target);
-    return;
   }
-}
-
-function firstStuff(field: FieldValue | undefined): Stuff | undefined {
-  if (!field) return undefined;
-  const stuffs = MqlApi.extractStuffs(field);
-  return stuffs && stuffs.length > 0 ? (stuffs[0] as Stuff) : undefined;
 }

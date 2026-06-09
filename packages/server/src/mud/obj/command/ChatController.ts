@@ -21,7 +21,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
 import { ChatApi } from '../../api/chat';
-import { Avatar } from '../Avatar';
+import { PlayerApi } from '../../api/player';
 import type { Channel } from '../../lib/social/Channel';
 
 interface ChatModel extends CommandModel {
@@ -166,7 +166,7 @@ export class ChatController extends CommandController<ChatModel> {
     tunedIn: boolean,
   ): Promise<void> {
     const actor = context.commandGiver;
-    if (!(actor instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars subscribe in v1.', 'avatar-required');
     }
     const name = (model.name ?? '').trim();
@@ -187,7 +187,7 @@ export class ChatController extends CommandController<ChatModel> {
     muted: boolean,
   ): Promise<void> {
     const actor = context.commandGiver;
-    if (!(actor instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars mute in v1.', 'avatar-required');
     }
     const name = (model.name ?? '').trim();
@@ -278,7 +278,7 @@ export class ChatController extends CommandController<ChatModel> {
     context: CommandContext,
   ): Promise<void> {
     const actor = context.commandGiver;
-    if (!(actor instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars disband in v1.', 'avatar-required');
     }
     const name = (model.name ?? '').trim();

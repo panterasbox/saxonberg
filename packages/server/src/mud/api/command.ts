@@ -2242,23 +2242,6 @@ export class CommandApi {
   }
 
   /**
-   * Set of every primary verb + alias across every cached
-   * `CommandDefinition`. Reserved-name checks (e.g.
-   * `SoulApi.mint`'s collision guard on a new emote verb) consult
-   * this so authors can't shadow real verbs.
-   *
-   * Requires `preloadAll` to have run (or selective `getCommand`
-   * calls); the set reflects whatever's currently cached.
-   */
-  static getAllVerbs(): Set<string> {
-    const verbs = new Set<string>();
-    for (const cmd of this.#commands.values()) {
-      for (const v of cmd.verbs) verbs.add(v.toLowerCase());
-    }
-    return verbs;
-  }
-
-  /**
    * Project a `CommandDefinition` to a wire-safe schema payload for
    * client-side widget rendering. Used by `system.commands.{added,
    * reset}`.

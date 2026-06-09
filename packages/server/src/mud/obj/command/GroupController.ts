@@ -12,21 +12,26 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import { Group, type GroupRole } from '../../lib/social/Group';
 import { GroupApi } from '../../api/group';
 import { Avatar } from '../Avatar';
+import { PlayerApi } from '../../api/player';
 
 interface GroupModel extends CommandModel {
   name?: string;
-  target?: FieldValue | string;
+  /**
+   * Three shapes by subcommand:
+   *   - `add`: `MqlOneResult` (target Avatar resolved via MQL `scope: online`)
+   *   - `remove` / `role`: `string` (raw playerId entered by the caller)
+   *   - any other subcommand: absent
+   */
+  target?: MqlOneResult | string;
   old_name?: string;
   new_name?: string;
   role_name?: string;
@@ -37,7 +42,7 @@ const ROLES: ReadonlySet<GroupRole> = new Set(['owner', 'admin', 'member']);
 export class GroupController extends CommandController<GroupModel> {
   async execute(model: GroupModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    if (!(giver instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(giver)) {
       return this.fail(context, 'Only Avatars manage groups in v1.', 'avatar-required');
     }
     const sub = model.subcommand ?? 'list';
@@ -144,12 +149,15 @@ export class GroupController extends CommandController<GroupModel> {
     if (g.owner !== avatar.getPlayerId() && g.roleOf(avatar.getPlayerId()) !== 'admin') {
       return this.fail(context, 'Only owners and admins may add.', 'not-permitted');
     }
-    const stuffs = MqlApi.extractStuffs(model.target as FieldValue);
-    if (!stuffs || stuffs.length === 0) {
+    const resolved =
+      model.target && typeof model.target === 'object'
+        ? (model.target as MqlOneResult)
+        : null;
+    const target = resolved?.stuff;
+    if (!target) {
       return this.fail(context, 'No such target.', 'no-target');
     }
-    const target = stuffs[0] as Stuff;
-    if (!(target instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(target)) {
       return this.fail(context, 'Targets must be Avatars in v1.', 'avatar-required');
     }
     const added = g.addMember(target.getPlayerId());

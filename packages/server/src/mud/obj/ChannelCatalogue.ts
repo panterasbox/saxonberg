@@ -37,7 +37,7 @@ import { MixinApi } from '../api/mixin';
 import { MessageApi } from '../api/message';
 import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
-import { Avatar } from './Avatar';
+import type { Avatar } from './Avatar';
 import { GroupApi } from '../api/group';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
@@ -138,8 +138,9 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
   }> {
     const map = await this.ensureNameCache();
     const persistent: Channel[] = [];
-    const playerId =
-      actor instanceof Avatar ? actor.getPlayerId() : '';
+    const playerId = PlayerApi.isAvatarStuff(actor)
+      ? actor.getPlayerId()
+      : '';
     for (const c of map.values()) {
       if (c.kind === 'open-join-standalone') {
         persistent.push(c);
@@ -153,7 +154,7 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
       if (ad.members.has(actor)) adHoc.push(ad);
-      else if (playerId && [...ad.members].some((m) => m instanceof Avatar && (m as Avatar).getPlayerId() === playerId)) {
+      else if (playerId && [...ad.members].some((m) => PlayerApi.isAvatarStuff(m) && m.getPlayerId() === playerId)) {
         adHoc.push(ad);
       }
     }
@@ -177,7 +178,7 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
     if (!channel.backingGroupRef) return [];
     const members = await GroupApi.membersOf(channel.backingGroupRef);
     return members.filter((m) => {
-      if (!(m instanceof Avatar)) return true;
+      if (!PlayerApi.isAvatarStuff(m)) return true;
       const sub = readSubscription(m, channel);
       return sub.tunedIn && !sub.muted;
     });
@@ -322,7 +323,7 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
     const memberIds: string[] = [];
     const memberRoles: ('owner' | 'admin' | 'member')[] = [];
     for (const m of ad.members) {
-      if (!(m instanceof Avatar)) continue;
+      if (!PlayerApi.isAvatarStuff(m)) continue;
       const pid = m.getPlayerId();
       memberIds.push(pid);
       memberRoles.push(m === promoter ? 'owner' : 'member');
@@ -489,7 +490,7 @@ function readSubscription(
 }
 
 function avatarPlayerIdOf(s: Stuff): string {
-  if (s instanceof Avatar) return s.getPlayerId();
+  if (PlayerApi.isAvatarStuff(s)) return s.getPlayerId();
   return s.stuffId;
 }
 

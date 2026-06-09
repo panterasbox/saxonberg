@@ -18,23 +18,29 @@ import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
+import type { MqlOneResult } from '../../api/mql';
 import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
+import { GrammarApi } from '../../api/grammar';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Contacts, ContactEntry } from '../../lib/social/Contacts';
 import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { Template } from '../../lib/stuff/Template';
+import { PlayerApi } from '../../api/player';
 
 type ContactsHost = Stuff & Contacts;
 
 interface ContactsModel extends CommandModel {
-  target?: FieldValue | string;
+  /**
+   * Two shapes by subcommand:
+   *   - `add`: `MqlOneResult` (target Avatar / NPC resolved via MQL)
+   *   - `remove`: `string` (raw playerId or templatePath the caller typed)
+   */
+  target?: MqlOneResult | string;
   label?: string;
   char?: boolean;
   old_label?: string;
@@ -79,15 +85,18 @@ export class ContactsController extends CommandController<ContactsModel> {
   ): Promise<void> {
     const label = (model.label ?? '').trim();
     if (!label) return this.fail(context, 'label required', 'label-required');
-    const stuffs = MqlApi.extractStuffs(model.target as FieldValue);
-    if (!stuffs || stuffs.length === 0) {
+    const resolved =
+      model.target && typeof model.target === 'object'
+        ? (model.target as MqlOneResult)
+        : null;
+    const target = resolved?.stuff;
+    if (!target) {
       return this.fail(context, 'No such target.', 'no-target');
     }
-    const target = stuffs[0] as Stuff;
     const now = Date.now();
 
     // NPC entries store the templatePath, since NPCs are runtime clones.
-    if (!(target instanceof Avatar)) {
+    if (!PlayerApi.isAvatarStuff(target)) {
       const tplPath = target.getTemplatePath();
       if (!tplPath) {
         return this.fail(
@@ -148,11 +157,11 @@ export class ContactsController extends CommandController<ContactsModel> {
 
     const lines: string[] = [];
     if (addedNames.length > 0) {
-      lines.push(`Added ${joinList(addedNames)} to your ${label} list.`);
+      lines.push(`Added ${GrammarApi.joinList(addedNames)} to your ${label} list.`);
     }
     if (dupeNames.length > 0) {
       lines.push(
-        `Already in ${label}: ${joinList(dupeNames)}.`,
+        `Already in ${label}: ${GrammarApi.joinList(dupeNames)}.`,
       );
     }
     if (lines.length === 0) lines.push('No changes.');
@@ -336,13 +345,6 @@ async function bulkTemplateNames(
 function nameOf(tpl: Template): string | undefined {
   const data = tpl.data as { name?: unknown } | undefined;
   return typeof data?.name === 'string' ? data.name : undefined;
-}
-
-function joinList(names: readonly string[]): string {
-  if (names.length === 0) return '';
-  if (names.length === 1) return names[0]!;
-  if (names.length === 2) return `${names[0]} and ${names[1]}`;
-  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 }
 
 // Suppress unused warning for User type — kept for future expansion

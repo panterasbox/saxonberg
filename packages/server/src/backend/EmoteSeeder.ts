@@ -9,6 +9,12 @@
  * Dev workflow when the seed YAML changes:
  *   db.emotes.deleteOne({verb: '<name>'}); restart
  *
+ * Source file is at `mud/config/emotes.yaml` (NOT under `mud/seeds/`):
+ * Emote records aren't Stuff templates and don't belong in the
+ * `domain` collection that `SeederManager` walks. Keeping the file
+ * out of the seeds tree avoids the walker double-inserting it as a
+ * domain template alongside the per-emote inserts done here.
+ *
  * Runs in `main()` after `PersistenceManager.connect` (which creates
  * the indexes) and before `BootstrapManager.run` (which warms the
  * `SoulCatalogue` singleton; the catalogue then reads the just-
@@ -32,7 +38,7 @@ interface EmoteSeedEntry {
 }
 
 interface EmoteSeedOptions {
-  /** Override the seed YAML path; defaults to mud/seeds/social/emotes.yaml. */
+  /** Override the seed YAML path; defaults to mud/config/emotes.yaml. */
   seedPath?: string;
 }
 
@@ -83,6 +89,6 @@ export class EmoteSeeder {
 
   static #defaultSeedPath(): string {
     const here = dirname(fileURLToPath(import.meta.url));
-    return join(here, '../mud/seeds/social/emotes.yaml');
+    return join(here, '../mud/config/emotes.yaml');
   }
 }

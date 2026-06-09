@@ -144,3 +144,25 @@ describe('GrammarApi input-side lexicon', () => {
     expect(m?.[1]).toBe('42');
   });
 });
+
+describe('GrammarApi.joinList', () => {
+  it('returns "" for an empty list', () => {
+    expect(GrammarApi.joinList([])).toBe('');
+  });
+  it('returns the single item as-is', () => {
+    expect(GrammarApi.joinList(['Iffy'])).toBe('Iffy');
+  });
+  it('joins two items with " and " — no comma', () => {
+    expect(GrammarApi.joinList(['Iffy', 'Bobalu'])).toBe('Iffy and Bobalu');
+  });
+  it('uses serial (Oxford) comma for three or more', () => {
+    expect(GrammarApi.joinList(['Iffy', 'Bobalu', 'Jane'])).toBe(
+      'Iffy, Bobalu, and Jane',
+    );
+  });
+  it('handles four items with serial comma', () => {
+    expect(
+      GrammarApi.joinList(['Iffy', 'Bobalu', 'Jane', 'Charlie']),
+    ).toBe('Iffy, Bobalu, Jane, and Charlie');
+  });
+});
