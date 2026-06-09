@@ -31,6 +31,8 @@
 import { nanoid } from 'nanoid';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Quantity } from '../lib/quantity';
+import type { Calendar, CalendarDate } from '../lib/time/Calendar';
+import { DefaultCalendar } from '../lib/time/DefaultCalendar';
 import { ScheduleApi, type ScheduleHandle } from './schedule';
 import { ExecutionContextApi } from './execution-context';
 import { EventApi, type Subscription } from './event';
@@ -329,6 +331,157 @@ export class WorldClockApi {
       count++;
     }
     return count;
+  }
+
+  /* ──────────────────── calendar-aware scheduling (Wave 3) ──────────────────── */
+
+  /**
+   * Fire once at an absolute calendar date. A `CalendarDate` is
+   * composed to a deadline; a string is parsed via the calendar's
+   * `parseDate`. Defaults to `DefaultCalendar` (locale stub for v1).
+   */
+  public static onDate(
+    date: CalendarDate | string,
+    cb: ClockCallback,
+    opts?: ScheduleOpts & { calendar?: Calendar }
+  ): ClockHandle {
+    const calendar = opts?.calendar ?? DefaultCalendar.singleton();
+    const deadline =
+      typeof date === 'string'
+        ? calendar.parseDate(date)
+        : calendar.compose(date);
+    return WorldClockApi.at(deadline, cb, opts);
+  }
+
+  /**
+   * Fire on every calendar date matching a partial pattern
+   * (`weekday` / `monthday` / `month` / `hour` / `minute`). Self-
+   * rescheduling: each fire recomputes the next matching deadline and
+   * re-arms, so irregular calendar cadences stay correct. The returned
+   * handle survives the reschedules; `cancel()` stops the chain.
+   */
+  public static cron(
+    pattern: CronPattern,
+    cb: ClockCallback,
+    opts?: ScheduleOpts & { calendar?: Calendar }
+  ): ClockHandle {
+    const calendar = opts?.calendar ?? DefaultCalendar.singleton();
+    let cancelled = false;
+    let inner: ClockHandle | null = null;
+    let fireCount = 0;
+
+    const wrapper: ClockHandle = {
+      id: nanoid(),
+      get nextFireAt(): Quantity<'s'> | null {
+        return inner ? inner.nextFireAt : null;
+      },
+      get fireCount(): number {
+        return fireCount;
+      },
+      cancel(): void {
+        cancelled = true;
+        if (inner) inner.cancel();
+        inner = null;
+      },
+    };
+
+    const arm = (fromT: number): void => {
+      if (cancelled) return;
+      const nextT = WorldClockApi.#nextCronMatch(pattern, fromT, calendar);
+      if (nextT === null) return;
+      inner = WorldClockApi.at(
+        Quantity.of(nextT, 's'),
+        () => {
+          fireCount++;
+          cb(wrapper);
+          if (!cancelled) arm(nextT);
+        },
+        opts
+      );
+    };
+
+    arm(WorldClockApi.#currentGameSeconds());
+    return wrapper;
+  }
+
+  /**
+   * First game-time strictly after `fromT` whose calendar date
+   * satisfies every constrained field of `pattern`. Steps coarsely:
+   * a failing month/day/hour jumps to the start of the next
+   * month/day/hour rather than scanning every minute. Returns null if
+   * no match is found within a bounded search (two years).
+   */
+  static #nextCronMatch(
+    pattern: CronPattern,
+    fromT: number,
+    calendar: Calendar
+  ): number | null {
+    const weekday = WorldClockApi.#resolveName(
+      pattern.weekday,
+      calendar.weekdayNames
+    );
+    const month = WorldClockApi.#resolveName(
+      pattern.month,
+      calendar.monthNames,
+      1 // month names are 1-based
+    );
+    const secondsPerDay = calendar.hoursPerDay * 3600;
+
+    // Start strictly after `fromT`, aligned to the next whole minute.
+    let t = Math.floor(fromT / 60) * 60 + 60;
+    const limit = 2 * 366 * 24 * 60; // ~two years of minute steps
+    for (let i = 0; i < limit; i++) {
+      const d = calendar.decompose(Quantity.of(t, 's'));
+      const dayStart =
+        t - (d.hour * 3600 + d.minute * 60 + d.second);
+      if (month !== undefined && d.month !== month) {
+        // Jump to the first second of the next month.
+        const daysThisMonth = calendar.daysPerMonth[d.month - 1] ?? 30;
+        const monthStart = dayStart - (d.day - 1) * secondsPerDay;
+        t = monthStart + daysThisMonth * secondsPerDay;
+        continue;
+      }
+      if (pattern.monthday !== undefined && d.day !== pattern.monthday) {
+        t = dayStart + secondsPerDay;
+        continue;
+      }
+      if (weekday !== undefined && d.weekday !== weekday) {
+        t = dayStart + secondsPerDay;
+        continue;
+      }
+      if (pattern.hour !== undefined && d.hour !== pattern.hour) {
+        t = dayStart + (d.hour + 1) * 3600;
+        continue;
+      }
+      if (pattern.minute !== undefined && d.minute !== pattern.minute) {
+        t += 60;
+        continue;
+      }
+      return t;
+    }
+    return null;
+  }
+
+  /**
+   * Resolve a cron field that may be a number or a name. Numbers pass
+   * through; strings are looked up in `names` and offset by `base`
+   * (0 for weekdays, 1 for months). Returns undefined for an absent
+   * field.
+   */
+  static #resolveName(
+    value: number | string | undefined,
+    names: string[],
+    base = 0
+  ): number | undefined {
+    if (value === undefined) return undefined;
+    if (typeof value === 'number') return value;
+    const idx = names.findIndex(
+      (n) => n.toLowerCase() === value.toLowerCase()
+    );
+    if (idx < 0) {
+      throw new Error(`WorldClockApi.cron: unknown name '${value}'`);
+    }
+    return idx + base;
   }
 
   /* ──────────────────── scheduling internals ──────────────────── */
