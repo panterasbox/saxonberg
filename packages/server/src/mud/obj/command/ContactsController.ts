@@ -29,6 +29,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Contacts, ContactEntry } from '../../lib/social/Contacts';
 import { Avatar } from '../Avatar';
 import { User } from '../../lib/identity/User';
+import { Template } from '../../lib/stuff/Template';
 
 type ContactsHost = Stuff & Contacts;
 
@@ -300,9 +301,9 @@ export class ContactsController extends CommandController<ContactsModel> {
 /**
  * Resolve display names for a batch of playerIds via their Avatar Template
  * docs. Useful since the Avatars may not be online; the Template name
- * is the persisted identity. Hits the persistence chokepoint directly
- * because Template is abstract — its static `find` is unusable on the
- * base class.
+ * is the persisted identity. Goes through `Template.findByPaths` (the
+ * Document Api surface for abstract-Template bulk lookup) — never
+ * touches the persistence chokepoint directly.
  */
 async function bulkAvatarNames(
   playerIds: readonly string[],
@@ -310,13 +311,10 @@ async function bulkAvatarNames(
   const out = new Map<string, string>();
   if (playerIds.length === 0) return out;
   const paths = playerIds.map((id) => Avatar.TEMPLATE_PATH_PREFIX + id);
-  const { PersistenceManager } = await import('../../../backend/PersistenceManager');
-  const docs = (await PersistenceManager.get().find('domain', {
-    path: { $in: paths },
-  })) as Array<{ path: string; data?: { name?: string } }>;
-  for (const tpl of docs) {
+  const templates = await Template.findByPaths(paths);
+  for (const tpl of templates) {
     const playerId = tpl.path.slice(Avatar.TEMPLATE_PATH_PREFIX.length);
-    const name = tpl.data?.name ?? playerId;
+    const name = nameOf(tpl) ?? playerId;
     out.set(playerId, name);
   }
   return out;
@@ -327,15 +325,17 @@ async function bulkTemplateNames(
 ): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (paths.length === 0) return out;
-  const { PersistenceManager } = await import('../../../backend/PersistenceManager');
-  const docs = (await PersistenceManager.get().find('domain', {
-    path: { $in: [...paths] },
-  })) as Array<{ path: string; data?: { name?: string } }>;
-  for (const tpl of docs) {
-    const name = tpl.data?.name ?? tpl.path;
+  const templates = await Template.findByPaths(paths);
+  for (const tpl of templates) {
+    const name = nameOf(tpl) ?? tpl.path;
     out.set(tpl.path, name);
   }
   return out;
+}
+
+function nameOf(tpl: Template): string | undefined {
+  const data = tpl.data as { name?: unknown } | undefined;
+  return typeof data?.name === 'string' ? data.name : undefined;
 }
 
 function joinList(names: readonly string[]): string {

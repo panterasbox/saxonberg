@@ -121,6 +121,30 @@ export abstract class Template extends Document {
   }
 
   /**
+   * Find every Template whose path is in `paths`. Returns instances in
+   * the order Mongo provides them (no input-order guarantee). Missing
+   * paths are silently absent from the result — callers can compare
+   * `result.length` to `paths.length`. Same materialization rule as
+   * `findByPath` (each doc lands as its concrete subclass).
+   *
+   * Sits alongside `findByPath` / `findDescendants` because Template is
+   * abstract — the inherited `Document.find` does `new this()` which
+   * doesn't apply to abstract bases. Callers needing bulk-by-path
+   * (contacts roster name lookup, etc.) reach here instead of touching
+   * the persistence chokepoint.
+   */
+  static async findByPaths(
+    paths: readonly string[],
+  ): Promise<Template[]> {
+    if (paths.length === 0) return [];
+    const docs = (await PersistenceManager.get().find(
+      Template.collectionName,
+      { path: { $in: [...paths] } }
+    )) as DomainDoc[];
+    return Promise.all(docs.map((d) => Template._materialize(d)));
+  }
+
+  /**
    * All Templates whose path begins with `basePath + '/'` — i.e. strict
    * descendants (excludes `basePath` itself).
    */
