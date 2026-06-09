@@ -7,7 +7,7 @@
  * Author edits via `chat rename` survive subsequent boots.
  *
  * Standalone channels need no backing Group (audience = every player
- * minus the future banlist); `backingGroupRef` stays empty.
+ * minus the future banlist); the `memberIds` array stays empty.
  *
  * Source file is at `mud/config/channels.yaml` (NOT under `mud/seeds/`):
  * Channel records aren't Stuff templates and don't belong in the
@@ -25,7 +25,6 @@ interface ChannelSeedEntry {
   name: string;
   kind?: ChannelKind;
   owner?: string;
-  backingGroupRef?: string;
 }
 
 interface ChannelSeedOptions {
@@ -60,7 +59,6 @@ export class ChannelSeeder {
       const c = new Channel();
       c.name = entry.name;
       c.kind = entry.kind ?? 'open-join-standalone';
-      c.backingGroupRef = entry.backingGroupRef ?? '';
       c.owner = entry.owner ?? '';
       await c.save();
       inserted++;

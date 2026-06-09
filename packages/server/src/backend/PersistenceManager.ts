@@ -562,13 +562,14 @@ export class PersistenceManager {
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });
       await this.getCollection(Collections.Groups).createIndex({ memberIds: 1 });
 
-      // Channels: name + backingGroupRef + kind (Phase 3).
+      // Channels: name unique + memberIds (for "channels I'm in"
+      // lookups) + kind (Phase 3).
       await this.getCollection(Collections.Channels).createIndex(
         { name: 1 },
         { unique: true }
       );
       await this.getCollection(Collections.Channels).createIndex({
-        backingGroupRef: 1,
+        memberIds: 1,
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
 

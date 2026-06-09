@@ -21,6 +21,7 @@ import { parseGroupRef, type GroupProvider, type GroupRef, type GroupChangeHandl
 import { ManagedGroupProvider } from '../lib/social/providers/ManagedGroupProvider';
 import { MqlGroupProvider } from '../lib/social/providers/MqlGroupProvider';
 import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProvider';
+import { ChannelGroupProvider } from '../lib/social/providers/ChannelGroupProvider';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { GroupRole } from '../lib/social/Group';
 import type { VetoResult } from '../lib/errors';
@@ -35,16 +36,21 @@ export class GroupRegistry extends GroupRegistryBase {
   private managedRef: ManagedGroupProvider | null = null;
   /** Contacts-provider instance — exposed so the contacts controller can fire change notifications. */
   private contactsRef: ContactsGroupProvider | null = null;
+  /** Channel-provider instance — exposed so ChannelCatalogue can fire change notifications. */
+  private channelRef: ChannelGroupProvider | null = null;
 
   public override async postRegister(_context?: unknown): Promise<void> {
     const managed = new ManagedGroupProvider();
     const mql = new MqlGroupProvider();
     const contacts = new ContactsGroupProvider();
+    const channel = new ChannelGroupProvider();
     this.providers.set(managed.source, managed);
     this.providers.set(mql.source, mql);
     this.providers.set(contacts.source, contacts);
+    this.providers.set(channel.source, channel);
     this.managedRef = managed;
     this.contactsRef = contacts;
+    this.channelRef = channel;
   }
 
   public register(provider: GroupProvider): void {
@@ -119,6 +125,14 @@ export class GroupRegistry extends GroupRegistryBase {
       throw new Error('GroupRegistry: not yet initialized');
     }
     return this.contactsRef;
+  }
+
+  /** Internal — channel-provider reference for `ChannelCatalogue.fireMembershipChange`. */
+  public channel(): ChannelGroupProvider {
+    if (!this.channelRef) {
+      throw new Error('GroupRegistry: not yet initialized');
+    }
+    return this.channelRef;
   }
 
   public canDestruct(): VetoResult {

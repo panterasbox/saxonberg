@@ -17,10 +17,17 @@
  * via the `byHandle` entry's `members` set.
  *
  * `postToChannel` is the single audience-fanout chokepoint:
- *   1. Resolve members (managed: GroupApi.membersOf; standalone:
- *      tuned-in subscribers; ad-hoc: byHandle entry's members set).
+ *   1. Resolve members (player-created: `Channel.memberIds`;
+ *      standalone: tuned-in subscribers; ad-hoc: byHandle entry's
+ *      members set).
  *   2. Compose a Scene with `meta.channelId` stamped on every frame.
  *   3. Append the frame to the history ring.
+ *
+ * GroupApi facade integration: the `ChannelGroupProvider` (source
+ * `'channel'`) exposes the same player-created membership through
+ * `GroupApi.membersOf('channel:<_id>')` for cross-cutting consumers
+ * — but the Channel doc IS the source of truth; no backing Group
+ * documents are written.
  *
  * Not persisted itself; seed YAML is `{ class: /obj/ChannelCatalogue,
  * data: {} }`.
@@ -28,9 +35,8 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { Channel, type ChannelKind } from '../lib/social/Channel';
+import { Channel, type ChannelKind, type ChannelRole } from '../lib/social/Channel';
 import { AdHocChannel } from '../lib/social/AdHocChannel';
-import { Group } from '../lib/social/Group';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Property, type PropValue } from '../lib/stuff/Propertied';
 import { MixinApi } from '../api/mixin';
@@ -38,7 +44,6 @@ import { MessageApi } from '../api/message';
 import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import type { Avatar } from './Avatar';
-import { GroupApi } from '../api/group';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 
@@ -146,10 +151,8 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
         persistent.push(c);
         continue;
       }
-      if (c.backingGroupRef) {
-        const members = await GroupApi.membersOf(c.backingGroupRef);
-        if (members.includes(actor)) persistent.push(c);
-      }
+      // player-created: membership is the Channel's own memberIds.
+      if (playerId && c.memberIds.includes(playerId)) persistent.push(c);
     }
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
@@ -175,13 +178,18 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
       }
       return out;
     }
-    if (!channel.backingGroupRef) return [];
-    const members = await GroupApi.membersOf(channel.backingGroupRef);
-    return members.filter((m) => {
-      if (!PlayerApi.isAvatarStuff(m)) return true;
-      const sub = readSubscription(m, channel);
-      return sub.tunedIn && !sub.muted;
-    });
+    // player-created: read members directly from the Channel doc.
+    // The GroupApi facade exposes the same set via `channel:<_id>`
+    // (the ChannelGroupProvider materializes the same playerIds),
+    // but for the local hot path we skip the indirection.
+    const out: Stuff[] = [];
+    for (const playerId of channel.memberIds) {
+      const av = PlayerApi.findAvatarByPlayerId(playerId);
+      if (!av) continue;
+      const sub = readSubscription(av, channel);
+      if (sub.tunedIn && !sub.muted) out.push(av);
+    }
+    return out;
   }
 
   /**
@@ -319,28 +327,23 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
       throw new Error(`A channel named '${newName}' already exists.`);
     }
 
-    // Build the managed Group.
+    // Collect membership from the ad-hoc cohort. Promoter becomes
+    // owner; everyone else lands as `member`.
     const memberIds: string[] = [];
-    const memberRoles: ('owner' | 'admin' | 'member')[] = [];
+    const memberRoles: ChannelRole[] = [];
     for (const m of ad.members) {
       if (!PlayerApi.isAvatarStuff(m)) continue;
       const pid = m.getPlayerId();
       memberIds.push(pid);
       memberRoles.push(m === promoter ? 'owner' : 'member');
     }
-    const g = new Group();
-    g.name = `channel:${newName}`;
-    g.owner = avatarPlayerIdOf(promoter);
-    g.memberIds = memberIds;
-    g.memberRoles = memberRoles;
-    await g.save();
 
-    // Build the Channel.
     const c = new Channel();
     c.name = newName;
     c.kind = 'player-created';
-    c.backingGroupRef = `managed:${g._id}`;
     c.owner = avatarPlayerIdOf(promoter);
+    c.memberIds = memberIds;
+    c.memberRoles = memberRoles;
     await c.save();
 
     // Update cache.
@@ -363,7 +366,9 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   /**
-   * Create a new player-created channel + backing managed Group.
+   * Create a new player-created channel. Membership starts as `[owner]`
+   * with role `owner`. No backing Group document is written — membership
+   * IS the channel's own state; see `Channel.ts` for the rationale.
    */
   public async createPlayerChannel(
     owner: Stuff,
@@ -376,18 +381,12 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
     if (existing) {
       throw new Error(`A channel named '${name}' already exists.`);
     }
-    const g = new Group();
-    g.name = `channel:${name}`;
-    g.owner = avatarPlayerIdOf(owner);
-    g.memberIds = [avatarPlayerIdOf(owner)];
-    g.memberRoles = ['owner'];
-    await g.save();
-
     const c = new Channel();
     c.name = name;
     c.kind = 'player-created';
-    c.backingGroupRef = `managed:${g._id}`;
     c.owner = avatarPlayerIdOf(owner);
+    c.memberIds = [avatarPlayerIdOf(owner)];
+    c.memberRoles = ['owner'];
     await c.save();
 
     const map = await this.ensureNameCache();
@@ -398,12 +397,6 @@ export class ChannelCatalogue extends ChannelCatalogueBase {
   public async disbandPlayerChannel(name: string): Promise<boolean> {
     const c = await this.resolveByName(name);
     if (!c) return false;
-    // Drop the backing Group.
-    if (c.backingGroupRef && c.backingGroupRef.startsWith('managed:')) {
-      const groupId = c.backingGroupRef.slice('managed:'.length);
-      const g = await Group.findById(groupId);
-      if (g) await g.delete();
-    }
     await c.delete();
     const map = await this.ensureNameCache();
     map.delete(name.toLowerCase());
