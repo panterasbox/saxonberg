@@ -30,8 +30,7 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
-import type { Adornment } from '../../boundary/Adornment';
-import type { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import type { Boundary } from '../../boundary/Boundary';
 import type { Conduit } from '../../boundary/Conduit';
 import type { SoundConduit } from '../../boundary/SoundConduit';
@@ -89,12 +88,6 @@ function findSoundConduit(boundary: Boundary): SoundConduit | null {
   return null;
 }
 
-function asBoundaryAnchor(fx: Stuff & Adornment): BoundaryAnchor | null {
-  if ((fx as unknown as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor) {
-    return fx as unknown as BoundaryAnchor;
-  }
-  return null;
-}
 
 function inlineAtmosphere(loc: Stuff & Container): string | null {
   if (!MixinApi.isAtmospheric(loc)) return null;
@@ -173,8 +166,8 @@ function walkAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      const anchor = asBoundaryAnchor(fx);
-      if (!anchor) continue;
+      if (!isBoundaryAnchor(fx)) continue;
+      const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;
       const otherHost = anchor.getOtherHost();

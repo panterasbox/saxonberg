@@ -34,6 +34,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 import { coerceColorTemperature } from './Light';
 
@@ -257,19 +258,13 @@ function fireOnLightSourceChanged(
   oldColorTemp: Quantity<'K'> | null,
   newColorTemp: Quantity<'K'> | null
 ): void {
-  const containerFn = (source as { getContainer?: () => unknown }).getContainer;
-  if (typeof containerFn !== 'function') return;
-  const env = containerFn.call(source) as object | null;
+  if (!MixinApi.isContainable(source)) return;
+  const env = source.getContainer() as Partial<LightSourceObserver> | null;
   if (!env) return;
-  const hook = (env as { onLightSourceChanged?: unknown }).onLightSourceChanged;
+  // Optional witness: any environment may opt into the observer
+  // contract by defining the hook; no mixin gates it, so a
+  // structural presence check is the only available seam.
+  const hook = env.onLightSourceChanged;
   if (typeof hook !== 'function') return;
-  (
-    hook as (
-      s: Stuff,
-      of: Quantity<'lumen'>,
-      nf: Quantity<'lumen'>,
-      oct: Quantity<'K'> | null,
-      nct: Quantity<'K'> | null
-    ) => void
-  ).call(env, source, oldFlux, newFlux, oldColorTemp, newColorTemp);
+  hook.call(env, source, oldFlux, newFlux, oldColorTemp, newColorTemp);
 }

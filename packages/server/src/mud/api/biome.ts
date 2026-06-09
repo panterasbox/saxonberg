@@ -597,18 +597,11 @@ async function runChainWalk<V>(
 
   // Step 5 — spatial zone default. Outer Location's zone via
   // Zone.lookupField with the `atmosphere.<field>` suffix.
-  const zone =
-    (outermost as Stuff & { getZone?: () => unknown }).getZone?.() ?? null;
-  if (
-    zone !== null &&
-    typeof (zone as { lookupField?: unknown }).lookupField === 'function'
-  ) {
-    const zoned = await (
-      zone as { lookupField: <T>(name: string) => Promise<T | null> }
-    ).lookupField<V>(`atmosphere.${fieldBare}`);
+  const zone = outermost.getZone();
+  if (zone !== null) {
+    const zoned = await zone.lookupField<V>(`atmosphere.${fieldBare}`);
     if (zoned !== null && zoned !== undefined) {
-      const zonePath =
-        (zone as Stuff & { getTemplatePath?: () => string | null }).getTemplatePath?.() ?? null;
+      const zonePath = zone.getTemplatePath();
       return {
         value: zoned,
         source: 'zone',

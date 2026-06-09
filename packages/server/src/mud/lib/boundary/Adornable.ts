@@ -47,7 +47,7 @@ import { StuffApi } from '../../api/stuff';
 import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
-import type { BoundaryAnchor } from './BoundaryAnchor';
+import { isBoundaryAnchor } from './BoundaryAnchor';
 
 /** Public shape added by AdornableMixin. */
 export interface Adornable {
@@ -135,9 +135,8 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       const seen = new Set<string>();
       const out: Boundary[] = [];
       for (const f of this.fixtureSlots.values()) {
-        if (!isBoundaryAnchorMarker(f)) continue;
-        const anchor = f as unknown as BoundaryAnchor;
-        const boundary = anchor.getBoundary();
+        if (!isBoundaryAnchor(f)) continue;
+        const boundary = f.getBoundary();
         if (!boundary) continue;
         const id = (boundary as unknown as Stuff).stuffId;
         if (seen.has(id)) continue;
@@ -259,13 +258,6 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
 }
 
 const EMPTY_OCC_SET: ReadonlySet<Stuff & Slottable> = new Set();
-
-/**
- * Cheap structural check for "this fixture is a BoundaryAnchor".
- */
-function isBoundaryAnchorMarker(f: object): boolean {
-  return (f as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor === true;
-}
 
 function isLightSourceMarker(f: object): boolean {
   return hasMixinNamed(f, 'LightSourceMixin');

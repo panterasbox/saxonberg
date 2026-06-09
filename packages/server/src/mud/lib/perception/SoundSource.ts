@@ -19,6 +19,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 
 export interface SoundSource {
@@ -147,19 +148,13 @@ function fireOnSoundSourceChanged(
   oldCharacter: string,
   newCharacter: string,
 ): void {
-  const containerFn = (source as { getContainer?: () => unknown }).getContainer;
-  if (typeof containerFn !== 'function') return;
-  const env = containerFn.call(source) as object | null;
+  if (!MixinApi.isContainable(source)) return;
+  const env = source.getContainer() as Partial<SoundSourceObserver> | null;
   if (!env) return;
-  const hook = (env as { onSoundSourceChanged?: unknown }).onSoundSourceChanged;
+  // Optional witness: any environment may opt into the observer
+  // contract by defining the hook; no mixin gates it, so a
+  // structural presence check is the only available seam.
+  const hook = env.onSoundSourceChanged;
   if (typeof hook !== 'function') return;
-  (
-    hook as (
-      s: Stuff,
-      oa: Quantity<'dB'>,
-      na: Quantity<'dB'>,
-      oc: string,
-      nc: string,
-    ) => void
-  ).call(env, source, oldAmp, newAmp, oldCharacter, newCharacter);
+  hook.call(env, source, oldAmp, newAmp, oldCharacter, newCharacter);
 }

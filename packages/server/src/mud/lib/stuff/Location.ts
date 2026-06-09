@@ -39,6 +39,18 @@ export class Location extends LocationBase {
   // `SphericalLocation`) override per their topology.
 
   /**
+   * Effective light-receiving floor area in m², used by
+   * `VisionModality.lightAt` to convert accumulated lumens to lux.
+   * The base is topology-agnostic and returns 1.0 (m²); concrete
+   * Location subclasses (`CartesianLocation`, `SphericalLocation`)
+   * override per their cell geometry. Larger rooms read dimmer for
+   * the same total flux.
+   */
+  public getSizeScale(): number {
+    return 1.0;
+  }
+
+  /**
    * Detach from the owning Zone on destruct. Clears `locations`
    * membership and any coordinate-keyed indexes the zone maintains
    * (CartesianZone grid, SphericalZone focus index).

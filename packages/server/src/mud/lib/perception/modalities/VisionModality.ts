@@ -16,9 +16,9 @@
 import { Modality, MAX_HOPS, EXIT_TAU } from '../Modality';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
+import { Location } from '../../stuff/Location';
 import type { Sensor } from '../../message/Sensor';
 import type { Perception } from '../Perception';
-import type { Adornment } from '../../boundary/Adornment';
 import { Light, type LightSourceRef } from '../Light';
 import type {
   LightBand,
@@ -33,7 +33,7 @@ import { PerceptionApi } from '../../../api/perception';
 import type { LightConduit, BoundarySide } from '../../boundary/Conduit';
 import type { Conduit } from '../../boundary/Conduit';
 import type { Boundary } from '../../boundary/Boundary';
-import type { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import {
   bandFor,
   applyBandShift,
@@ -322,8 +322,8 @@ function walkFluxAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      const anchor = asBoundaryAnchor(fx);
-      if (!anchor) continue;
+      if (!isBoundaryAnchor(fx)) continue;
+      const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;
       const otherHost = anchor.getOtherHost();
@@ -384,21 +384,9 @@ function mergeAttenuated(
   }
 }
 
-/** Read `getSizeScale()` if exposed; default to 1.0 (m²). */
+/** Locations carry a topology-derived size scale; other containers default to 1.0 (m²). */
 function readSizeScale(loc: Stuff & Container): number {
-  const fn = (loc as unknown as { getSizeScale?: () => number }).getSizeScale;
-  if (typeof fn === 'function') return fn.call(loc);
-  return 1.0;
-}
-
-/**
- * Narrow a fixture to a BoundaryAnchor without importing the class.
- */
-function asBoundaryAnchor(fx: Stuff & Adornment): BoundaryAnchor | null {
-  if ((fx as unknown as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor) {
-    return fx as unknown as BoundaryAnchor;
-  }
-  return null;
+  return loc instanceof Location ? loc.getSizeScale() : 1.0;
 }
 
 function findLightConduit(boundary: Boundary): LightConduit | null {

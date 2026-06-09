@@ -146,7 +146,7 @@ export class CartesianLocation extends CartesianLocationBase {
    * covers transient test state where the room hasn't been added to
    * a zone yet.
    */
-  public getSizeScale(): number {
+  public override getSizeScale(): number {
     const c = this.getZone()?.getCellSize() ?? 1.0;
     return c * c;
   }

@@ -29,6 +29,7 @@ import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { Avatar } from '../Avatar';
 import type { HasInteractive } from '../../lib/connection/HasInteractive';
 import type {
   StyleOverlay,
@@ -294,14 +295,11 @@ export class StyleController extends CommandController<StyleModel> {
    */
   private commit(host: StyleHost, next: StyleOverlay): void {
     host.setClientState(STYLE_KEY, next);
-    // Persistence — Avatars own their own save path; HasInteractive
-    // hosts that don't extend Persistable (none today) skip silently.
-    if (
-      typeof (host as { save?: unknown }).save === 'function'
-    ) {
-      const savePromise = (
-        host as unknown as { save: () => Promise<void> }
-      ).save();
+    // Persistence — Avatars own their own save path; other
+    // HasInteractive hosts have no persist-back surface today and
+    // skip silently. Avatar.save() is the only v1 consumer.
+    if (host instanceof Avatar) {
+      const savePromise = host.save();
       savePromise.catch((err: unknown) => {
         const detail = err instanceof Error ? err.message : String(err);
         console.warn(

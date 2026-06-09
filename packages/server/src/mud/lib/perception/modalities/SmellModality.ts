@@ -24,8 +24,7 @@ import { MAX_HOPS, EXIT_TAU } from '../Modality';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
-import type { Adornment } from '../../boundary/Adornment';
-import type { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import type { Boundary } from '../../boundary/Boundary';
 import type { Conduit } from '../../boundary/Conduit';
 import type { SmellConduit } from '../../boundary/SmellConduit';
@@ -86,12 +85,6 @@ function findSmellConduit(boundary: Boundary): SmellConduit | null {
   return null;
 }
 
-function asBoundaryAnchor(fx: Stuff & Adornment): BoundaryAnchor | null {
-  if ((fx as unknown as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor) {
-    return fx as unknown as BoundaryAnchor;
-  }
-  return null;
-}
 
 /**
  * Read the scope's inline `_atmosphere` field if it composes
@@ -151,8 +144,8 @@ function walkAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      const anchor = asBoundaryAnchor(fx);
-      if (!anchor) continue;
+      if (!isBoundaryAnchor(fx)) continue;
+      const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;
       const otherHost = anchor.getOtherHost();

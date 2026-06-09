@@ -61,7 +61,7 @@ export class SphericalLocation extends SphericalLocationBase {
    * `4πr²` or a cross-section) is deferred until content needs the
    * fidelity; a single scalar keeps the propagation walk simple.
    */
-  public getSizeScale(): number {
+  public override getSizeScale(): number {
     return this.getRadius();
   }
 

@@ -36,10 +36,10 @@ const BoundaryAnchorBase = AdornmentMixin(Thing);
 
 export class BoundaryAnchor extends BoundaryAnchorBase {
   /**
-   * Structural marker so `Adornable.getFixtureBoundaries()` can dedupe
-   * by class without importing this file (avoiding a tangled load
-   * order for the spatial folder). Read by a single helper in
-   * `Adornable.ts`.
+   * Structural marker so fixtures can be recognized as anchors
+   * without an `instanceof` (avoiding a tangled load order for the
+   * spatial/perception folders). Read only through the
+   * `isBoundaryAnchor` guard exported below.
    */
   public readonly _isBoundaryAnchor = true;
 
@@ -111,4 +111,17 @@ export class BoundaryAnchor extends BoundaryAnchorBase {
       this.boundary = null;
     }
   }
+}
+
+/**
+ * Canonical narrowing guard for "this fixture is a BoundaryAnchor".
+ * Reads the `_isBoundaryAnchor` structural marker rather than using
+ * `instanceof`, so callers in load-order-sensitive folders (perception
+ * modalities, `Adornable`) can narrow with only a *type* import of this
+ * class — the marker keeps the check from forcing a runtime dependency
+ * on the boundary class graph. The single source of truth for the four
+ * call sites that previously open-coded the marker read.
+ */
+export function isBoundaryAnchor(fx: object): fx is BoundaryAnchor {
+  return (fx as { _isBoundaryAnchor?: boolean })._isBoundaryAnchor === true;
 }

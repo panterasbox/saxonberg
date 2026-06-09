@@ -31,6 +31,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 
 /** Public shape added by SmellSourceMixin. */
@@ -201,19 +202,13 @@ function fireOnSmellSourceChanged(
   oldIdentity: string,
   newIdentity: string,
 ): void {
-  const containerFn = (source as { getContainer?: () => unknown }).getContainer;
-  if (typeof containerFn !== 'function') return;
-  const env = containerFn.call(source) as object | null;
+  if (!MixinApi.isContainable(source)) return;
+  const env = source.getContainer() as Partial<SmellSourceObserver> | null;
   if (!env) return;
-  const hook = (env as { onSmellSourceChanged?: unknown }).onSmellSourceChanged;
+  // Optional witness: any environment may opt into the observer
+  // contract by defining the hook; no mixin gates it, so a
+  // structural presence check is the only available seam.
+  const hook = env.onSmellSourceChanged;
   if (typeof hook !== 'function') return;
-  (
-    hook as (
-      s: Stuff,
-      oc: Quantity<'ppm'>,
-      nc: Quantity<'ppm'>,
-      oi: string,
-      ni: string,
-    ) => void
-  ).call(env, source, oldConc, newConc, oldIdentity, newIdentity);
+  hook.call(env, source, oldConc, newConc, oldIdentity, newIdentity);
 }
