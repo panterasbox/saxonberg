@@ -29,6 +29,11 @@ behavior. Read the relevant doc before editing in its area.
   conventions, exemplars, antipatterns
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
+- [docs/deployment.md](./docs/deployment.md) — deployment & infra:
+  single Lightsail box + Caddy/Let's Encrypt + Mongo Atlas, GitLab CI
+  (validate + Pages; deploy at standup), config via SSM Parameter Store
+  (deploy-time materialization, local stays `.env`), cost model, the
+  AWS cleanup record, and the one-time standup runbook
 - [docs/workflow.md](./docs/workflow.md) — feature-cycle process:
   slate → requirements → plan → build → MR iteration → pre-merge
   sweep → merge. Defines the artifact taxonomy
