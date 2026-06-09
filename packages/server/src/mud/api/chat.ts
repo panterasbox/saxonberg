@@ -104,6 +104,16 @@ export class ChatApi {
     return ChatApi.#requireCatalogue();
   }
 
+  /**
+   * Set of Group `_id`s that back chat channels. Consumed by
+   * `GroupController.executeList` to filter channel-backing Groups
+   * out of the user-facing `group list` view. Groups themselves know
+   * nothing about chat; ownership of this bookkeeping lives here.
+   */
+  static async getBackingGroupIds(): Promise<ReadonlySet<string>> {
+    return (await ChatApi.#requireCatalogue()).getBackingGroupIds();
+  }
+
   static async #requireCatalogue(): Promise<ChannelCatalogue> {
     if (ChatApi.#catalogueRef) return ChatApi.#catalogueRef;
     const cat = StuffApi.findByTemplatePath<ChannelCatalogue>(CATALOGUE_PATH);

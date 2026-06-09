@@ -20,6 +20,7 @@ import { Mml } from '../../api/mml';
 import { DescribeApi } from '../../api/describe';
 import { Group, type GroupRole } from '../../lib/social/Group';
 import { GroupApi } from '../../api/group';
+import { ChatApi } from '../../api/chat';
 import { Avatar } from '../Avatar';
 import { PlayerApi } from '../../api/player';
 
@@ -249,7 +250,12 @@ export class GroupController extends CommandController<GroupModel> {
     avatar: Avatar,
     context: CommandContext,
   ): Promise<void> {
-    const groups = await Group.find({ memberIds: avatar.getPlayerId() });
+    const all = await Group.find({ memberIds: avatar.getPlayerId() });
+    // Hide channel-backing Groups — they're an implementation detail
+    // of chat, not "your groups." Chat owns this bookkeeping (Group
+    // itself knows nothing about chat).
+    const backing = await ChatApi.getBackingGroupIds();
+    const groups = all.filter((g) => !g._id || !backing.has(g._id));
     if (groups.length === 0) {
       this.send(context, Mml.fromMarkup(`\nYou belong to no groups.\n`));
       return;

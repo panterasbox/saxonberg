@@ -116,26 +116,31 @@ behavior. Read the relevant doc before editing in its area.
     suite, ESP modality (`emotive-esp`) + universal-target
     delivery, ~35-emote starter roster from `mud/config/emotes.yaml`.
   - [grouping.md](./docs/subsystems/grouping.md) — `GroupApi`
-    facade over four `GroupProvider` implementations: managed
+    facade over three `GroupProvider` implementations: managed
     (writable `Group` Document), MQL (read-only query-driven),
-    contacts (model-B per-Avatar), channel (chat audience).
-    `GroupRef` typed strings (`source:id`); `GroupRegistry`
-    Stuff singleton in `obj/`; `Group` Document parallel-arrays
-    membership; coarse role vocabulary; the `group` verb suite
-    rides on `ContactsMixin.commandContributions.self`.
+    contacts (model-B per-Avatar). `GroupRef` typed strings
+    (`source:id`); `GroupRegistry` Stuff singleton in `obj/`;
+    `Group` Document parallel-arrays membership; coarse role
+    vocabulary; the `group` verb suite rides on
+    `ContactsMixin.commandContributions.self`. Chat is the first
+    multi-shape **consumer** of the substrate, not a provider —
+    see [chat.md](./docs/subsystems/chat.md).
   - [chat.md](./docs/subsystems/chat.md) — `Channel` Document
-    with membership DIRECTLY on the document (`memberIds` +
-    `memberRoles`); the chat substrate is its OWN
-    `GroupProvider` (`source: 'channel'`) rather than a managed-
-    Group consumer; three kinds (player-created, open-join
-    standalone, ad-hoc); `ChannelCatalogue` singleton holding
-    byName + byHandle + history rings + PropertiedMixin-backed
-    subscription state; `chat.yaml` with the Phase 1
-    `fallthrough: true` flag — subcommands (`list / join /
-    leave / mute / unmute / who / make / rename / disband /
-    history / promote`) plus bare-post fallback; `world.chat.message`
-    topic; `ChannelSeeder` for Help / Global / Chat from
-    `mud/config/channels.yaml`.
+    with a `groupRef: GroupRef` pointing at the channel's
+    membership source; chat is a **consumer** of `GroupApi`
+    (player-created channels mint a backing managed Group at
+    create time, channel.groupRef stamps `'managed:<groupId>'`,
+    audience reads route through `GroupApi.membersOf(groupRef)`).
+    Three kinds (player-created, open-join standalone, ad-hoc);
+    `ChannelCatalogue` singleton owns the backing-Group bookkeeping
+    (`getBackingGroupIds()` for `group list` filtering — the Group
+    model knows nothing about chat); byName + byHandle + history
+    rings + PropertiedMixin-backed subscription state; `chat.yaml`
+    with the Phase 1 `fallthrough: true` flag — subcommands
+    (`list / join / leave / mute / unmute / who / make / rename /
+    disband / history / promote`) plus bare-post fallback;
+    `world.chat.message` topic; `ChannelSeeder` for Help / Global /
+    Chat from `mud/config/channels.yaml`.
   - [contacts.md](./docs/subsystems/contacts.md) — `ContactsMixin`
     on Avatar (via Character), per-Avatar named lists of other
     characters as `ContactEntry` flat-set with durable

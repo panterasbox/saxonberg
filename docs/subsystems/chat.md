@@ -59,19 +59,15 @@ shapes are distinct classes:
 // lib/social/Channel.ts
 export class Channel extends Document {
   static collectionName = 'channels';
-  static persistentFields = [
-    'name', 'kind', 'owner', 'memberIds', 'memberRoles',
-  ];
+  static persistentFields = ['name', 'kind', 'owner', 'groupRef'];
 
   name: string = '';
   kind: ChannelKind = 'player-created';
   owner: string = '';
-  memberIds: string[] = [];
-  memberRoles: ChannelRole[] = [];
+  groupRef: GroupRef = '';
 }
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
-export type ChannelRole = 'owner' | 'admin' | 'member';
 ```
 
 ```ts
@@ -93,63 +89,41 @@ distinction visible at the type level means a function signature can
 declare "I take a persistent channel" or "I take an ad-hoc handle"
 without a runtime flag check.
 
-## Membership lives on the Channel
+## Chat consumes the group substrate
 
-This is the load-bearing architectural decision that lands with the
-v1 chat substrate. Player-created channels store their roster
-**directly on the Channel document** — two index-aligned arrays
-(`memberIds: string[]` and `memberRoles: ChannelRole[]`) — and no
-sibling `Group` document is written. The Channel IS the source of
-truth for its own membership.
+This is the load-bearing architectural decision in the v1 chat
+substrate. Player-created channels do not store membership inline;
+instead, the Channel document carries a `groupRef: GroupRef`
+pointing at the channel's membership source, and audience reads
+route through `GroupApi.membersOf(groupRef)`. Chat is a **consumer**
+of the [grouping](./grouping.md) facade, not a provider — the same
+indirection that lets a future channel be backed by an MQL query
+("everyone in this guild"), a contacts list ("my friends"), or any
+other `GroupProvider` source without the chat layer caring.
 
-Earlier drafts followed the grouping facade's model literally:
-every player-created channel minted a paired `Group` document whose
-members were the channel's audience, and the channel referenced
-the group through a `backingGroupRef` field. That shape worked but
-produced two problems. First, every `chat make raid-night` left a
-phantom `channel:raid-night` row visible in `group list` — a
-group with no separate identity, present only because chat reused
-the storage. Second, the two documents could drift: nothing
-structural prevented a Group from being mutated out of sync with
-its Channel.
+For the v1 wave, `chat make <name>` mints a fresh **managed Group**
+at create time, stamps the channel's `groupRef` with
+`'managed:<groupId>'`, and saves both documents. `chat disband`
+cascade-deletes the backing Group. Standalones leave `groupRef`
+empty — they have no membership concept at all; audience is
+computed from per-player subscriptions, not a group.
 
-The v1 design drops the backing group. Membership is stored on the
-Channel; the round-trip is doc-direct (`memberIds` / `memberRoles`
-read on resolve, written on mutation). Standalones have no roster
-at all — the field stays empty and `audienceFor` reads
-subscriptions instead. Ad-hocs hold live `Stuff` refs in a Set on
-the AdHocChannel struct.
+The chat substrate **owns** the backing Groups it mints. The Group
+model knows nothing about chat — that's the right ownership
+direction, and the user-facing `group list` view filters out
+chat-backed Groups by consulting `ChatApi.getBackingGroupIds()`
+(maintained by the catalogue alongside its name cache). A player
+who runs `chat make raid-night` does not see a phantom
+`raid-night` row in `group list`; the substrate is invisible
+unless they ask through the chat verbs.
 
-Cross-cutting consumers that legitimately want chat membership
-through the grouping facade — the standard "who's in this group"
-read used elsewhere in the social cluster — go through the
-`ChannelGroupProvider`:
-
-```ts
-// lib/social/providers/ChannelGroupProvider.ts
-export class ChannelGroupProvider implements GroupProvider {
-  readonly source = 'channel';
-
-  async members(id: string): Promise<Stuff[]> {
-    const channel = await Channel.findById(id);
-    if (!channel) return [];
-    const out: Stuff[] = [];
-    for (const playerId of channel.memberIds) {
-      const av = PlayerApi.findAvatarByPlayerId(playerId);
-      if (av) out.push(av);
-    }
-    return out;
-  }
-  // ...onChange / fireChange ride the standard GroupProvider listener seam
-}
-```
-
-`GroupApi.membersOf('channel:<_id>')` materializes the same player
-list — but the read is a thin projection over the Channel document,
-not a write. The provider exists so the facade can ANSWER "who's in
-this chat channel?" uniformly with every other group source. There
-is no `channel:<name>` entity that you can edit through `group add`
-/ `group remove`; mutations route through the chat verbs only.
+The earlier round-3 design (membership stored inline on Channel +
+chat as its own `GroupProvider`) inverted this — it made chat a
+*provider*, which forced cross-cutting consumers to ask the chat
+substrate for membership instead of asking the grouping substrate.
+That foreclosed the "channel backed by an MQL group / a contacts
+list / a guild roster" composition entirely. v1 ships the correct
+direction.
 
 ## Membership ≠ subscription
 
@@ -161,7 +135,7 @@ The two states have different storage and different consumers:
 
 | Concern         | Where it lives                                  | Who reads it             |
 |-----------------|-------------------------------------------------|--------------------------|
-| Membership      | `Channel.memberIds` (player-created); n/a (standalone); `AdHocChannel.members` (ad-hoc) | `audienceFor`, `visibleChannels`, the post path |
+| Membership      | Backing Group via `Channel.groupRef` (player-created); n/a (standalone); `AdHocChannel.members` (ad-hoc) | `audienceFor` / `visibleChannels` via `GroupApi`, the post path |
 | Subscription    | `PropertiedMixin` on Avatar, key `chat.subscription.<channelId>` | `audienceFor`, `chat join` / `leave` / `mute` / `unmute` |
 
 The shape of the subscription record is small:
@@ -251,9 +225,10 @@ audience-fanout chokepoint for persistent channels. The shape:
 
 1. Resolve audience via `audienceFor(channel)` — for `open-join-
    standalone`, walk every online avatar and keep
-   `(tunedIn && !muted)`; for `player-created`, walk `channel.memberIds`,
-   materialize each via `PlayerApi.findAvatarByPlayerId`, then apply
-   the same tunedIn/!muted filter.
+   `(tunedIn && !muted)`; for `player-created`, read membership via
+   `GroupApi.membersOf(channel.groupRef)` (a `'managed:<groupId>'`
+   ref today, but any `GroupProvider` source tomorrow) and apply the
+   same tunedIn/!muted filter.
 2. Compose the speaker's self frame through `MessageApi.scene` so it
    picks up the standard `commandId` / `causingCommandId` attribution
    and the per-channel `meta.channelId` stamp.
@@ -433,8 +408,8 @@ Chat ships its v1 core under this subsystem doc. The
 in the design space that v1 deliberately defers:
 
 - **Channel role overlay** (`post / invite / manage / moderate /
-  admin`) — v1 carries a coarse `owner / admin / member` field on
-  `Channel.memberRoles` but no role-gated actions wire to it yet.
+  admin`) — v1 carries a coarse `owner / admin / member` role on
+  the backing Group, but no role-gated actions wire to it yet.
 - **The channel config block** (`editPolicy`, `retention`,
   `postPermission`, default notification level) — sensible
   hardcoded defaults in v1; per-channel tuning waits.
@@ -468,9 +443,8 @@ into this doc as they ship.
   `MessageApi.sendMessage` delivery chokepoint, modality stamping,
   and `SensorMixin.filterMessage` (the reception gate that drops
   chat frames for implant-less recipients).
-- [grouping.md](./grouping.md) — the `GroupApi` facade and the
-  `ChannelGroupProvider` that exposes chat membership to cross-
-  cutting consumers without granting them mutation access.
+- [grouping.md](./grouping.md) — the `GroupApi` facade that chat
+  consumes for channel-membership reads via `Channel.groupRef`.
 - [topics.md](./topics.md) — the `TopicCatalogue` source of truth
   for player-facing topic descriptors; `world.chat.message` is
   authored under `seeds/lib/messaging/Topic/`.

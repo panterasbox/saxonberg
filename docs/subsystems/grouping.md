@@ -7,7 +7,7 @@ to compute an audience, gate a permission, or address a cohort
 should be able to ask one question — *who's in this group?* — without
 caring which source is on the other end of the wire.
 
-The four v1 sources are:
+The three v1 sources are:
 
 - **Managed groups** — player-created, persistent `Group` Documents
   with explicit member rosters and roles.
@@ -15,15 +15,21 @@ The four v1 sources are:
   the membership IS whatever the query resolves to right now.
 - **Per-Avatar contacts** — a named list stored on the owning
   Avatar via `ContactsMixin`.
-- **Chat channels** — the audience of a `Channel` Document, whose
-  membership the chat substrate already maintains on the channel
-  itself.
 
 These are not the same shape under the hood (one is a Document, one
-is a query string, one is mixin state on Avatar, one is another
-Document). The grouping substrate is what lets `GroupApi.membersOf`
-return a `Promise<Stuff[]>` from any of them without the caller
-branching.
+is a query string, one is mixin state on Avatar). The grouping
+substrate is what lets `GroupApi.membersOf` return a
+`Promise<Stuff[]>` from any of them without the caller branching.
+
+Chat is the first non-trivial **consumer** of the substrate: a
+player-created `Channel` carries a `groupRef` pointing at its
+membership source (a managed Group today; potentially an MQL group
+or contacts list tomorrow), and the chat audience walk routes
+through `GroupApi.membersOf(groupRef)`. See [chat.md](./chat.md).
+The reason for the indirection — chat consumes the facade rather
+than providing its own — is composition: a channel backed by "every
+member of guild X" or "all my friends" works without the chat
+substrate caring how membership is sourced.
 
 Consumers in v1 are chat's audience computation and the group-DM-
 to-channel promotion path. Future consumers — directed-broadcast
@@ -42,14 +48,13 @@ export type GroupRef = string;
 export function parseGroupRef(ref: GroupRef): { source: string; id: string };
 ```
 
-The four v1 shapes:
+The three v1 shapes:
 
 | Source     | Ref                                       | Id portion                       |
 |------------|-------------------------------------------|----------------------------------|
 | `managed`  | `managed:<groupDocumentId>`               | Mongo `_id` of a `Group` doc     |
 | `mql`      | `mql:<query>`                             | the MQL query string             |
 | `contacts` | `contacts:<ownerPlayerId>:<label>`        | `ownerPlayerId` then label       |
-| `channel`  | `channel:<channelId>`                     | Mongo `_id` of a `Channel` doc   |
 
 The MQL case is the reason `parseGroupRef` splits on the first colon
 only: a query like `mql:species:khazadicus and online` legitimately
@@ -98,7 +103,7 @@ no-op handle and document the limitation.
 
 The registry is a singleton Idea at `/obj/GroupRegistry`, composed
 with `PostRegistrationMixin`. Its `postRegister` instantiates the
-four v1 providers and indexes them by source. It follows the
+three v1 providers and indexes them by source. It follows the
 **catalogue / registry naming convention**: registries hold *code*
 (in this case, provider implementations); catalogues hold *data*.
 
@@ -110,7 +115,6 @@ class GroupRegistry extends PostRegistrationMixin(Idea) {
     const managed = new ManagedGroupProvider();
     const mql = new MqlGroupProvider();
     const contacts = new ContactsGroupProvider();
-    const channel = new ChannelGroupProvider();
     this.providers.set(managed.source, managed);
     // …
   }
@@ -200,25 +204,6 @@ Placing the check on the provider means any cross-cutting consumer
 (audience computation in chat, future targeting verbs) gets the
 same privacy guarantee for free.
 
-### Channel (`source: 'channel'`)
-
-Read-only. The id is the `_id` of a `Channel` Document. `members(id)`
-materializes each `Channel.memberIds` entry to the live Avatar via
-`PlayerApi.findAvatarByPlayerId`, online filter — same shape as the
-managed provider.
-
-The reason chat is its own provider rather than a managed-Group
-consumer is documented in `Channel.ts`: an earlier draft created a
-sibling `Group` Document per channel so chat could share the managed
-provider's read path, but that produced phantom `channel:<name>`
-rows in `group list` for what is conceptually the channel's own
-state, and bought nothing this provider doesn't. Membership belongs
-on the channel; the `ChannelGroupProvider` makes that authoritative
-state visible to consumers who want it through `GroupApi`. The
-chat substrate calls `ChannelCatalogue.fireMembershipChange(id)`
-after promotions and future invite / kick mutations, which routes
-through `ChannelGroupProvider.fireChange`.
-
 ## The `Group` Document
 
 The managed provider's persistent shape:
@@ -283,12 +268,19 @@ being uses to organize who-they-know. NPCs that compose
 
 The verb surface is **for managed groups only**. There is no
 `group make mql:...`, no contacts-creating subcommand, no
-channel-creating subcommand. The other three providers are consumed
+channel-creating subcommand. The other sources are consumed
 through their own paths: MQL queries are typed at call sites,
 contacts are managed through `contacts add` / `contacts remove`,
 channels through `chat make` / `chat promote`. `group list` lists
 the caller's managed Groups; the other sources are introspected
 through their owning subsystem's verbs.
+
+`chat make` mints a backing managed Group for each player-created
+channel — the chat substrate is the **owner** of those Groups,
+and the user-facing `group list` view filters them out by
+consulting `ChatApi.getBackingGroupIds()`. The Group model itself
+knows nothing about chat; ownership of "which groups did chat
+spawn?" lives on the consumer side, not on the substrate.
 
 ## Future directions
 
@@ -322,8 +314,8 @@ viewer-dependent semantics on top.
 
 ## Related
 
-- [chat.md](./chat.md) — the `ChannelGroupProvider`'s upstream
-  source; chat is grouping's first multi-shape consumer.
+- [chat.md](./chat.md) — grouping's first multi-shape consumer;
+  channel membership routes through `GroupApi.membersOf(groupRef)`.
 - [contacts.md](./contacts.md) — `ContactsMixin`'s storage shape and
   CRUD verbs; the substrate the contacts provider views over.
 - [messaging.md](./messaging.md) — `MessageApi.scene(...)` and the
