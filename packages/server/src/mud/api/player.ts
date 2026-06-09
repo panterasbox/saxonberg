@@ -27,6 +27,16 @@ export class PlayerApi {
   static #avatarsByPlayerId: Map<string, Avatar> = new Map();
 
   /**
+   * Per-playerId in-flight avatar clones. Multiplexing means a user
+   * can open several connections at once (and a dev React StrictMode
+   * remount opens two in the same tick) — the Avatar must be cloned
+   * exactly once and shared. An entry exists only while a clone is in
+   * progress; concurrent connects await it instead of starting a
+   * duplicate clone.
+   */
+  static #inFlightClones: Map<string, Promise<Avatar>> = new Map();
+
+  /**
    * Type-guard: is this Stuff an Avatar?
    *
    * Identity is read off the template path prefix
@@ -131,12 +141,24 @@ export class PlayerApi {
     const { Avatar: AvatarClass } = await import('../obj/Avatar');
     const avatars: Avatar[] = [];
     for (const playerId of user.playerIds) {
+      // Reuse if already in-world (multiplexing).
       let avatar = this.findAvatarByPlayerId(playerId);
       if (!avatar) {
-        avatar = await StuffApi.clone<Avatar>(
-          AvatarClass.getTemplatePath(playerId),
-          { user, playerId }
-        );
+        // Concurrent connections for the same user (multiplexing, or a
+        // dev StrictMode double-mount) can reach here before the first
+        // clone has registered. Coordinate on a per-playerId in-flight
+        // promise so the second connect awaits the first clone instead
+        // of starting a duplicate — a duplicate hits StuffApi's "clone
+        // already in flight" guard and tears down both connections.
+        let pending = this.#inFlightClones.get(playerId);
+        if (!pending) {
+          pending = StuffApi.clone<Avatar>(
+            AvatarClass.getTemplatePath(playerId),
+            { user, playerId }
+          ).finally(() => this.#inFlightClones.delete(playerId));
+          this.#inFlightClones.set(playerId, pending);
+        }
+        avatar = await pending;
       }
       avatars.push(avatar);
     }
