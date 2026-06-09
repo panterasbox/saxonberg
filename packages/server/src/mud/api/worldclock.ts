@@ -39,6 +39,8 @@ import { ExecutionContextApi } from './execution-context';
 import { EventApi, type Subscription } from './event';
 import { Events } from '../lib/events';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -232,7 +234,14 @@ export class WorldClockApi {
    * Owns its own `WorldClockState` round-trip — the persistence home
    * is a sibling under the `time` subsystem, so this Api reaches it
    * directly rather than through an injected seam.
+   *
+   * `SystemRoot`-gated: only the empty-stack process-boundary caller
+   * (the `AppBootstrap.run` sequence) has a `null` caller. Every game,
+   * eval, scheduled-callback, and network context runs under a frame
+   * (non-null caller) and is denied — nothing in-world can re-anchor
+   * the clock or restart its backstop.
    */
+  @CallSecurity(SecurityPolicies.SystemRoot)
   public static async boot(): Promise<void> {
     const state = await WorldClockState.loadOrSeed();
     WorldClockApi.restore({
@@ -253,7 +262,12 @@ export class WorldClockApi {
    * elapsed-game-time anchor so the next boot resumes continuously
    * (own-thing model). Called from `AppBootstrap.shutdown` on a
    * graceful stop. Throws are the caller's to absorb.
+   *
+   * `SystemRoot`-gated for the same reason as `boot()`: only the
+   * empty-stack shutdown-handler caller is `null`. No in-world caller
+   * can freeze world-time for everyone or force a state write.
    */
+  @CallSecurity(SecurityPolicies.SystemRoot)
   public static async shutdown(): Promise<void> {
     WorldClockApi.pause();
     await WorldClockApi.#persist();

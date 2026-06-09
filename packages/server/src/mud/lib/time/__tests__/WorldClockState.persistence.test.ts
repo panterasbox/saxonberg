@@ -11,6 +11,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockState } from '../WorldClockState';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { SecurityError } from '../../security/errors';
 
 interface PMStubs {
   saves: Array<{ collection: string; doc: Record<string, unknown> }>;
@@ -130,5 +132,22 @@ describe('WorldClockState persistence (AC3)', () => {
     expect(pm.saves[0]!.collection).toBe('world_state');
     expect(pm.saves[0]!.doc.elapsedGameTimeS).toBe(7200);
     expect(pm.saves[0]!.doc.scale).toBe(6);
+  });
+
+  it('boot() / shutdown() are SystemRoot-gated — denied under any caller frame', () => {
+    // The allow path (empty stack → null caller) is exercised by the
+    // test above. Here: any in-world / scheduled / network context runs
+    // under a frame with a non-null target, so it must be rejected — no
+    // one in-game can re-anchor the clock or freeze world-time.
+    const caller = { id: 'in-world-actor' };
+    expect(() =>
+      ExecutionContextApi.runRoot(caller, 'attack', () =>
+        WorldClockApi.shutdown()
+      )
+    ).toThrow(SecurityError);
+    expect(() =>
+      ExecutionContextApi.runRoot(caller, 'attack', () => WorldClockApi.boot())
+    ).toThrow(SecurityError);
+    expect(pm.saves).toHaveLength(0);
   });
 });
