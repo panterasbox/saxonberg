@@ -10,12 +10,11 @@
  * This is separate from StuffApi because it's domain-specific functionality.
  */
 
-import type { Avatar } from '../obj/Avatar';
+import { Avatar } from '../obj/Avatar';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { AVATAR_TEMPLATE_PATH_PREFIX } from '../lib/identity/avatar-paths';
 
 /**
  * Static API for Player/Avatar management.
@@ -48,7 +47,7 @@ export class PlayerApi {
     return (
       path !== undefined &&
       path !== null &&
-      path.startsWith(AVATAR_TEMPLATE_PATH_PREFIX)
+      path.startsWith(Avatar.TEMPLATE_PATH_PREFIX)
     );
   }
 

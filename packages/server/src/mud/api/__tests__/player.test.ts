@@ -356,11 +356,7 @@ describe('PlayerApi', () => {
       expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
     });
 
-    it('recognizes the same prefix that Avatar.TEMPLATE_PATH_PREFIX exposes', () => {
-      // Single source of truth lives in lib/identity/avatar-paths.ts;
-      // Avatar.TEMPLATE_PATH_PREFIX re-exposes it. This guard catches
-      // anyone editing the static on Avatar without going through
-      // the shared module.
+    it('reads the prefix from Avatar.TEMPLATE_PATH_PREFIX', () => {
       const stuff = fakeStuffWithPath(
         Avatar.TEMPLATE_PATH_PREFIX + 'whatever',
       ) as Avatar;

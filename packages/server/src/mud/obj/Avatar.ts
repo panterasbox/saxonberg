@@ -37,11 +37,6 @@ import { AetherMixin } from '../lib/message/Aether';
 import { ContactsMixin } from '../lib/social/Contacts';
 import { Events } from '../lib/events';
 import type { User } from '../lib/identity/User';
-import {
-  AVATAR_TEMPLATE_PATH_PREFIX,
-  AVATAR_SEED_PLAYER_ID,
-  AVATAR_SEED_TEMPLATE_PATH,
-} from '../lib/identity/avatar-paths';
 import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
@@ -113,19 +108,27 @@ export class Avatar extends AvatarBase {
   ];
 
   /**
-   * Template path prefix for avatars. Re-exposes the constant from
-   * `lib/identity/avatar-paths.ts` (the single source of truth — see
-   * that module's comment for the cycle-avoidance reason). External
-   * callers can read `Avatar.TEMPLATE_PATH_PREFIX` or import the
-   * standalone constant directly; either lands at the same string.
+   * Template path prefix for avatars in the domain collection.
+   * Avatar templates live at `/obj/Avatar/<playerId>` — instances
+   * of a class share the same `/obj/<ClassName>` namespace as
+   * singleton templates of that class (`/obj/EventRegistry`),
+   * with a per-instance suffix.
    */
-  static readonly TEMPLATE_PATH_PREFIX = AVATAR_TEMPLATE_PATH_PREFIX;
+  static readonly TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
 
-  /** Reserved playerId for the seed avatar. See `avatar-paths.ts`. */
-  static readonly SEED_PLAYER_ID = AVATAR_SEED_PLAYER_ID;
+  /**
+   * Reserved playerId for the seed avatar at
+   * `/obj/Avatar/seed` — the orphan template every new user's
+   * avatar is forked from. 4 chars; nanoids are 21, so it can't
+   * collide with a real playerId.
+   */
+  static readonly SEED_PLAYER_ID = 'seed';
 
-  /** Convenience: the seed avatar's full template path. */
-  static readonly SEED_TEMPLATE_PATH = AVATAR_SEED_TEMPLATE_PATH;
+  /**
+   * Convenience: the seed avatar's template path.
+   */
+  static readonly SEED_TEMPLATE_PATH =
+    Avatar.TEMPLATE_PATH_PREFIX + Avatar.SEED_PLAYER_ID;
 
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
