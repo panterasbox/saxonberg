@@ -1,0 +1,38 @@
+# CI for @saxonberg.
+#
+# Currently scoped to ONE thing: publishing the generated API reference
+# (TypeDoc, server package) to GitLab Pages. Build / test / deploy
+# stages are intentionally deferred until we stand up a live game
+# instance — the AWS path (container image -> CodeDeploy -> EC2 behind
+# an ALB, config in SSM Parameter Store) is planned but not wired here.
+#
+# Pages publishes only from the default branch. The project is public,
+# so the rendered docs are reachable without a GitLab login.
+
+stages:
+  - documentation
+
+pages:
+  stage: documentation
+  image: node:22
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  before_script:
+    - npm install -g pnpm@10
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+  script:
+    # TypeDoc writes the static site to packages/server/docs/api/html;
+    # GitLab Pages serves whatever lands in ./public.
+    - pnpm docs
+    - rm -rf public
+    - mv packages/server/docs/api/html public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
