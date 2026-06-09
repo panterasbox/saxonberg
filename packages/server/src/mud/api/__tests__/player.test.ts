@@ -305,6 +305,34 @@ describe('PlayerApi', () => {
       expect(cloneSpy).not.toHaveBeenCalled();
       expect(avatars).toEqual([]);
     });
+
+    it('clones once for two concurrent connects and shares the avatar', async () => {
+      // Regression: two simultaneous connections for the same user
+      // (multiplexing, or a dev StrictMode double-mount) must coordinate
+      // on one clone. A bare check-then-clone races — the second connect
+      // checks before the first clone registers and starts a duplicate,
+      // which hits StuffApi's clone-in-flight guard and drops both
+      // connections.
+      PlayerApi.clearAll();
+      const user = makeUser('user1', ['player1']);
+      const cloneSpy = vi
+        .spyOn(StuffApi, 'clone')
+        .mockImplementation(async () => {
+          // Slow enough that the second connect overlaps the first.
+          await new Promise((resolve) => setTimeout(resolve, 25));
+          return mockAvatar1;
+        });
+
+      const [a, b] = await Promise.all([
+        PlayerApi.loadAvatarsForUser(user),
+        PlayerApi.loadAvatarsForUser(user),
+      ]);
+
+      expect(cloneSpy).toHaveBeenCalledTimes(1);
+      expect(a[0]).toBe(mockAvatar1);
+      expect(b[0]).toBe(mockAvatar1);
+      expect(a[0]).toBe(b[0]);
+    });
   });
 
   describe('clearAll', () => {
