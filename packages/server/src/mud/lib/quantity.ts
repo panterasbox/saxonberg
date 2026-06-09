@@ -57,7 +57,9 @@ export type Unit =
   // Ratio (humidity, etc.) — bare percent string
   | '%'
   // Acceleration (gravity)
-  | 'm/s²';
+  | 'm/s²'
+  // Angle (celestial: axial tilt, solar altitude / azimuth)
+  | 'degrees';
 
 /**
  * Per-unit arithmetic. v1 ships only `add` and `scale`. dB's
@@ -124,6 +126,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   W: ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
   'm/s²': ARITHMETIC_OPS,
+  degrees: ARITHMETIC_OPS,
 };
 
 /**

@@ -70,6 +70,8 @@ import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { ModuleApi } from './module';
 import { SecurityApi } from './security';
+import { WorldClockApi, type ClockHandle } from './worldclock';
+import { Quantity } from '../lib/quantity';
 
 /* ─────────────────────────── Shape types ─────────────────────────── */
 
@@ -225,14 +227,10 @@ export class SchedulerApi {
 
   /** engagementId → live engagement instance. */
   static #engagementsById: Map<string, Engagement> = new Map();
-  /** engagementId → setTimeout handle for completion. */
-  static #completionTimers: Map<string, ReturnType<typeof setTimeout>> =
-    new Map();
-  /** engagementId → setInterval handles for emissions. */
-  static #emissionTimers: Map<
-    string,
-    Array<ReturnType<typeof setInterval>>
-  > = new Map();
+  /** engagementId → world-clock handle for completion. */
+  static #completionTimers: Map<string, ClockHandle> = new Map();
+  /** engagementId → world-clock handles for emissions. */
+  static #emissionTimers: Map<string, ClockHandle[]> = new Map();
   /** engagementId → host-destruction subscription. */
   static #hostSubscriptions: Map<string, Subscription<unknown>> =
     new Map();
@@ -527,14 +525,26 @@ export class SchedulerApi {
     // SchedulerApi as the synthetic root target so the privileged
     // `EngagedMixin._setEngagement` / `_clearEngagement` calls
     // downstream of the timer pass the `ApiOnly` check.
+    // Emission / completion cadence rides game-time via `WorldClockApi`
+    // (D5): durations / intervals are interpreted as game-milliseconds
+    // and converted to game-seconds at the clock boundary, so pause
+    // defers and higher scale accelerates them. The world clock runs
+    // each fire inside its own `runRoot(WorldClockApi, 'heartbeat')`;
+    // we keep the inner `#runAtRoot(SchedulerApi, …)` wrap so the
+    // synthetic root target is SchedulerApi and the privileged
+    // `_setEngagement` / `_clearEngagement` calls downstream still pass
+    // the `ApiOnly` check.
     if (e.emissions && e.emissions.length > 0) {
-      const handles: Array<ReturnType<typeof setInterval>> = [];
+      const handles: ClockHandle[] = [];
       for (const em of e.emissions) {
-        const h = setInterval(() => {
-          SchedulerApi.#runAtRoot('emission', () => {
-            SchedulerApi.#fireEmission(e, em);
-          });
-        }, em.intervalMs);
+        const h = WorldClockApi.every(
+          Quantity.of(em.intervalMs / 1000, 's'),
+          () => {
+            SchedulerApi.#runAtRoot('emission', () => {
+              SchedulerApi.#fireEmission(e, em);
+            });
+          }
+        );
         handles.push(h);
       }
       SchedulerApi.#emissionTimers.set(e.engagementId, handles);
@@ -543,14 +553,17 @@ export class SchedulerApi {
     // Completion timer for DurativeActivity (above the floor).
     if (isDurativeActivity(e)) {
       const id = e.engagementId;
-      const t = setTimeout(() => {
-        SchedulerApi.#runAtRoot('completion', () => {
-          const live = SchedulerApi.#engagementsById.get(id);
-          if (!live || !isDurativeActivity(live)) return;
-          SchedulerApi.#completeFromTimer(live);
-        });
-      }, e.duration);
-      SchedulerApi.#completionTimers.set(e.engagementId, t);
+      const h = WorldClockApi.after(
+        Quantity.of(e.duration / 1000, 's'),
+        () => {
+          SchedulerApi.#runAtRoot('completion', () => {
+            const live = SchedulerApi.#engagementsById.get(id);
+            if (!live || !isDurativeActivity(live)) return;
+            SchedulerApi.#completeFromTimer(live);
+          });
+        }
+      );
+      SchedulerApi.#completionTimers.set(e.engagementId, h);
     }
   }
 
@@ -748,7 +761,9 @@ export class SchedulerApi {
       // defensively.
       return;
     }
-    const elapsed = Date.now() - e.startedAt;
+    // `startedAt` is stamped in game-milliseconds; elapsed is the
+    // game-time delta (D5).
+    const elapsed = WorldClockApi.getNow().rawValue() * 1000 - e.startedAt;
     try {
       em.event({ engagement: e, actor: e.actor, elapsed });
     } catch (err) {
@@ -765,12 +780,12 @@ export class SchedulerApi {
   static #clearTimersAndSubs(id: string): void {
     const timer = SchedulerApi.#completionTimers.get(id);
     if (timer) {
-      clearTimeout(timer);
+      timer.cancel();
       SchedulerApi.#completionTimers.delete(id);
     }
     const emTimers = SchedulerApi.#emissionTimers.get(id);
     if (emTimers) {
-      for (const h of emTimers) clearInterval(h);
+      for (const h of emTimers) h.cancel();
       SchedulerApi.#emissionTimers.delete(id);
     }
     const sub = SchedulerApi.#hostSubscriptions.get(id);
@@ -844,12 +859,12 @@ export class SchedulerApi {
    */
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
-    for (const id of SchedulerApi.#completionTimers.keys()) {
-      clearTimeout(SchedulerApi.#completionTimers.get(id)!);
+    for (const h of SchedulerApi.#completionTimers.values()) {
+      h.cancel();
     }
     SchedulerApi.#completionTimers.clear();
     for (const handles of SchedulerApi.#emissionTimers.values()) {
-      for (const h of handles) clearInterval(h);
+      for (const h of handles) h.cancel();
     }
     SchedulerApi.#emissionTimers.clear();
     for (const sub of SchedulerApi.#hostSubscriptions.values()) {

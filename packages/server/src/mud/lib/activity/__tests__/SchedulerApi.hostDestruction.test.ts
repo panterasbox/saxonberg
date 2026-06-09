@@ -18,6 +18,7 @@ import type { AbortReason } from '@saxonberg/types';
 import type { Engaged, EngagementSlot } from '../Engaged';
 import { EngagedMixin } from '../Engaged';
 import { SchedulerApi } from '../../../api/scheduler';
+import { WorldClockApi } from '../../../api/worldclock';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import { Stuff } from '../../stuff/Stuff';
@@ -67,7 +68,7 @@ class TestHostedActivity {
   ) {
     this.type = type;
     this.actor = actor as unknown as Stuff & Engaged;
-    this.startedAt = Date.now();
+    this.startedAt = WorldClockApi.getNow().rawValue() * 1000;
     this._host = host;
     this._onAbort = onAbort;
   }
@@ -102,7 +103,7 @@ class TestHostlessActivity {
   ) {
     this.type = type;
     this.actor = actor as unknown as Stuff & Engaged;
-    this.startedAt = Date.now();
+    this.startedAt = WorldClockApi.getNow().rawValue() * 1000;
     this._onAbort = onAbort;
   }
 
@@ -137,6 +138,8 @@ describe('SchedulerApi host-destruction hook', () => {
   let host: TestHost;
 
   beforeEach(async () => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
@@ -149,6 +152,7 @@ describe('SchedulerApi host-destruction hook', () => {
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
     EventApi._clearAllForTesting();
+    WorldClockApi._resetForTesting();
   });
 
   it('fires onAbort("host-destroyed") when host destructs mid-flight', async () => {
