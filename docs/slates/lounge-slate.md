@@ -83,7 +83,7 @@ See also:
   [spatial.md](../subsystems/spatial.md) — you `sit` at the bar (posture);
   drinks rest on the counter (`SurfacedMixin`).
 - [docs/slates/chat-slate.md](./chat-slate.md) /
-  [grouping-slate.md](./grouping-slate.md) — you can talk on login; the
+  [grouping subsystem](../subsystems/grouping.md) — you can talk on login; the
   router seats you **with your group** (the main override people want).
 - [docs/design-philosophy.md](../design-philosophy.md) — liberal diegesis
   (being "seated," the TPA, drinks); learn-by-doing (the in-world order
@@ -196,7 +196,7 @@ The agency concern is handled by **framing and pull, not movement**:
 - **Diegetic cover** — you're *seated by the lounge* (a maître d' shows you
   to a table). Hospitality, not surveillance.
 - **Friends are the real override** — placement respects group/party
-  ([grouping](./grouping-slate.md)); you're seated *with your people*. This
+  ([grouping](../subsystems/grouping.md)); you're seated *with your people*. This
   is the 99% case for "no, not there," and the router handles it.
 - **Re-seat is a request, not a hike** — a cheap "somewhere livelier" /
   "rejoin X" affordance (a pull on the system, which doesn't break

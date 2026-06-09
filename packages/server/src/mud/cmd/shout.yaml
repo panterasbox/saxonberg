@@ -1,0 +1,20 @@
+verbs: [shout]
+controller: ShoutController
+description: "Shout — loud, multi-room acoustic reach"
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: "online"
+    field: target
+    description: "Address an explicit target. The shout still reaches all hearers in range; the target is marked."
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
+args:
+  - name: message
+    type: string
+    required: true
+    greedy: true

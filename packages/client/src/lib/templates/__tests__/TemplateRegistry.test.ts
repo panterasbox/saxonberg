@@ -28,8 +28,8 @@ describe('TemplateRegistry — pickTemplate', () => {
     expect(pickTemplate('world.speech.tell')).toBe(tellTemplate);
   });
 
-  it('world.emote.* picks emoteTemplate', () => {
-    expect(pickTemplate('world.emote.wave')).toBe(emoteTemplate);
+  it('world.expression.emote picks emoteTemplate', () => {
+    expect(pickTemplate('world.expression.emote')).toBe(emoteTemplate);
   });
 
   it('system.* falls through to defaultTemplate (acceptance #5, #6)', () => {

@@ -68,6 +68,10 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'destruct.yaml',
         'eval.yaml',
         'teleport.yaml',
+        // Soul authoring — emote catalog mint / edit / delete / show /
+        // list. Gated identically to the rest of the AuthorMixin suite:
+        // non-authors don't see the verb in their recency stack.
+        'soul.yaml',
       ],
       environment: [],
       inventory: [],

@@ -1,0 +1,290 @@
+# Starter emote roster — seeded into the `emotes` collection by
+# `EmoteSeeder.run()` at boot. Each entry is an `EmoteSeedEntry`
+# (see backend/EmoteSeeder.ts). One Liquid template per emote;
+# slot kinds = `stuff` (MQL-resolved at scope `'online'`) or `free`
+# (raw text). The bare emote with no target is the default register;
+# the target / manner clauses extend it via Liquid conditionals.
+#
+# Author edits via `soul edit` survive subsequent seeder runs —
+# the seeder is insert-only, matching `SeederManager`. To re-seed
+# a single record: `db.emotes.deleteOne({verb: '<name>'}); restart`.
+
+emotes:
+  # ── Greetings ─────────────────────────────────────────────────
+  - verb: wave
+    emoji: "👋"
+    tags: [greeting]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} wave{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: bow
+    emoji: "🙇"
+    tags: [greeting, formal]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} bow{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} before {{ target }}{% endif %}."
+
+  - verb: nod
+    emoji: "🙂"
+    tags: [greeting, acknowledge]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} nod{{ s }}{% if target %} to {{ target }}{% endif %}."
+
+  - verb: salute
+    tags: [greeting, formal]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} salute{{ s }}{% if target %} {{ target }}{% endif %}."
+
+  - verb: greet
+    emoji: "👋"
+    aliases: [hi, hello]
+    tags: [greeting]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} greet{{ s }}{% if target %} {{ target }}{% else %} everyone{% endif %}."
+
+  # ── Joy / approval ─────────────────────────────────────────────
+  - verb: smile
+    emoji: "😊"
+    tags: [joy]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} smile{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: laugh
+    emoji: "😆"
+    aliases: [haha, lol]
+    tags: [joy]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} laugh{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: grin
+    emoji: "😁"
+    tags: [joy]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} grin{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: cheer
+    emoji: "🎉"
+    tags: [joy, approval]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} cheer{{ s }}{% if target %} for {{ target }}{% endif %}!"
+
+  - verb: clap
+    emoji: "👏"
+    tags: [approval]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} clap{{ s }}{% if target %} for {{ target }}{% endif %}."
+
+  - verb: applaud
+    emoji: "👏"
+    tags: [approval, formal]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} applaud{{ s }}{% if target %} {{ target }}{% endif %}."
+
+  # ── Displeasure ───────────────────────────────────────────────
+  - verb: frown
+    emoji: "😠"
+    tags: [displeasure]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} frown{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: scowl
+    emoji: "😠"
+    tags: [displeasure]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} scowl{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: glare
+    tags: [displeasure]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} glare{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: sigh
+    emoji: "😮‍💨"
+    tags: [displeasure, fatigue]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} sigh{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: groan
+    emoji: "😩"
+    tags: [displeasure]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} groan{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: cry
+    emoji: "😢"
+    tags: [sad]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} cr{{ ies }}{% if manner %} {{ manner }}{% endif %}{% if target %} on {{ target }}{% endif %}."
+
+  # ── Surprise / startle ─────────────────────────────────────────
+  - verb: gasp
+    emoji: "😱"
+    tags: [surprise]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} gasp{{ s }}{% if target %} at {{ target }}{% endif %}!"
+
+  - verb: blink
+    tags: [surprise]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} blink{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: stare
+    tags: [surprise, intense]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} stare{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: shrug
+    emoji: "🤷"
+    tags: [neutral]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} shrug{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  # ── Playful ────────────────────────────────────────────────────
+  - verb: wink
+    emoji: "😉"
+    tags: [playful]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} wink{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: poke
+    tags: [playful]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} poke{{ s }}{% if target %} {{ target }}{% else %} the air{% endif %}."
+
+  - verb: hug
+    emoji: "🤗"
+    tags: [affection]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} hug{{ s }}{% if target %} {{ target }}{% else %} themself{% endif %}."
+
+  - verb: kiss
+    emoji: "😘"
+    tags: [affection]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} kiss{{ es }}{% if target %} {{ target }}{% else %} the air{% endif %}."
+
+  - verb: dance
+    emoji: "💃"
+    tags: [playful, joy]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} dance{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} with {{ target }}{% endif %}."
+
+  - verb: spin
+    tags: [playful]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} spin{{ s }}{% if target %} around {{ target }}{% endif %}."
+
+  # ── Abstraction / agreement ───────────────────────────────────
+  - verb: agree
+    emoji: "👍"
+    aliases: [yes, yep, yeah]
+    tags: [affirmative]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} agree{{ s }}{% if target %} with {{ target }}{% endif %}."
+
+  - verb: disagree
+    emoji: "👎"
+    aliases: [no, nope]
+    tags: [negative]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} disagree{{ s }}{% if target %} with {{ target }}{% endif %}."
+
+  - verb: ponder
+    emoji: "🤔"
+    tags: [contemplate]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} ponder{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} {{ target }}{% endif %}."
+
+  - verb: think
+    emoji: "🤔"
+    tags: [contemplate]
+    grammar:
+      slots:
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} think{{ s }} carefully{% if manner %} {{ manner }}{% endif %}."
+
+  - verb: smirk
+    tags: [playful, smug]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} smirk{{ s }}{% if target %} at {{ target }}{% endif %}."
+
+  - verb: yawn
+    emoji: "🥱"
+    tags: [fatigue]
+    grammar:
+      slots:
+        manner: { kind: free, optional: true }
+      template: "{{ actor }} yawn{{ s }}{% if manner %} {{ manner }}{% endif %}."
+
+  - verb: chuckle
+    tags: [joy]
+    grammar:
+      slots:
+        target: { kind: stuff, optional: true }
+      template: "{{ actor }} chuckle{{ s }}{% if target %} at {{ target }}{% endif %}."

@@ -1,41 +1,50 @@
 /**
- * DmController — send a direct message (dm) to another player.
+ * DmController — direct messages, single- or multi-target.
  *
- * Thin shim: validates the framework-resolved target, narrows the
- * speaker to `Aether`-capable, and delegates to `aether.tell(target,
- * text)`. All composition (chat-form bodies, markdown parsing,
- * mention resolution, audience routing, payload) lives on
- * `AetherMixin` — same pattern as `SayController` delegating to
- * `VocalMixin.say`.
+ * Delegates to `AetherMixin.tell` for both shapes — the mixin's
+ * unified surface accepts either a single `Stuff` or a readonly array
+ * and dispatches frames accordingly. Multi-target additionally opens
+ * an ad-hoc Channel so subsequent `chat <handle> ...` posts route to
+ * the same cohort.
  *
- * Target resolution is handled by the command framework via the
- * YAML's `scope: "online"` + `mustBeAgent` validator — no custom
- * lookup in the controller. Self-dm works because self is in the
- * `online` candidate pool and `mustBeAgent` accepts Avatars.
+ * The handle-case (`dm <ad-hoc-handle> ...` to post to a known ad-hoc
+ * channel) is NOT shipped in v1 — users post to ad-hoc channels via
+ * `chat <handle> ...` (ChatController routes the bare-post path
+ * through the ad-hoc registry). Documented limitation per the
+ * requirements doc's acceptance criteria.
  *
- * Renamed from `TellController` — the verb is `dm` now, with `tell`
- * (and `whisper`) kept as aliases for muscle memory.
+ * Cohort state (`getLastInboundCohort` / `getLastOutboundCohort`)
+ * lives on `AetherMixin` and is stamped automatically by `tell` —
+ * no controller-side bookkeeping needed.
  */
 
 import { CommandController } from '../../lib/command/CommandController';
 import type {
   CommandContext,
   CommandModel,
-  FieldValue,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
+import type { MqlManyResult } from '../../api/mql';
 import { Mml } from '../../api/mml';
-import type { Stuff } from '../../lib/stuff/Stuff';
+import { ChatApi } from '../../api/chat';
+
+/**
+ * Hard cap on multi-target `dm` recipient count. Exceeding the cap
+ * refuses the command with a self-frame pointing the player at chat
+ * channels; groups larger than this belong on a real channel where
+ * the membership / subscription / moderation surface applies.
+ */
+const DM_MAX_RECIPIENTS = 10;
 
 interface DmModel extends CommandModel {
-  target: FieldValue;
+  /** From `dm.yaml` (type: objects + cardinality 1..10). */
+  target: MqlManyResult;
   message: string;
 }
 
 export class DmController extends CommandController<DmModel> {
-  execute(model: DmModel, context: CommandContext): void {
+  async execute(model: DmModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver;
     if (!MixinApi.isAether(speaker)) {
       MessageApi.scene(speaker)
@@ -46,13 +55,39 @@ export class DmController extends CommandController<DmModel> {
       return;
     }
 
-    const stuffs = MqlApi.extractStuffs(model.target);
-    if (!stuffs || stuffs.length === 0) {
-      context.note({ kind: 'empty-result', field: 'target', query: '' });
+    const targets = model.target.stuff;
+    if (targets.length === 0) {
+      context.note({ kind: 'empty-result', field: 'target', query: model.target.raw });
       return;
     }
-    const target = stuffs[0] as Stuff;
 
-    speaker.tell(target, model.message);
+    if (targets.length > DM_MAX_RECIPIENTS) {
+      MessageApi.scene(speaker)
+        .topic('world.speech.dm')
+        .toSelf(
+          Mml.fromMarkup(
+            `\nToo many recipients (${targets.length}; max ${DM_MAX_RECIPIENTS}). ` +
+            `Use a chat channel for groups this size — try \`chat make <name>\`.\n`,
+          ),
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'recipient-cap-exceeded',
+        detail: `${targets.length} > ${DM_MAX_RECIPIENTS}`,
+      });
+      return;
+    }
+
+    if (targets.length === 1) {
+      speaker.tell(targets[0]!, model.message);
+      return;
+    }
+
+    // Multi-target: open an ad-hoc Channel so subsequent
+    // `chat <handle>` posts route to the same cohort; stamp the
+    // channelId on every DM frame.
+    const ad = await ChatApi.openAdHoc(speaker, [speaker, ...targets]);
+    speaker.tell(targets, model.message, { channelId: ad.handle });
   }
 }

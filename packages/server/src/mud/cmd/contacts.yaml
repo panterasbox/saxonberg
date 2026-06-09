@@ -1,0 +1,56 @@
+verbs: [contacts]
+controller: ContactsController
+description: "Manage personal named lists of other characters (friends, study-group, ignore — labels are free-form)"
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  add:
+    description: "Add a player or NPC to a labeled list. Default expands to every character of the target's user; --char stores only the matched character."
+    options:
+      char:
+        short: c
+        type: boolean
+        description: "Store only the matched Avatar (no multi-character expansion to siblings)"
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        validators:
+          - /lib/command/validators/mustBeAgent
+        onExcess: prompt
+      - name: label
+        type: string
+        required: true
+  remove:
+    description: "Remove a single entry from a labeled list (matches against entries already in your list)"
+    args:
+      - name: target
+        type: string
+        required: true
+      - name: label
+        type: string
+        required: true
+  show:
+    description: "Show the entries on a labeled list, with current names"
+    args:
+      - name: label
+        type: string
+        required: true
+  list:
+    description: "Show the distinct labels you've used"
+  clear:
+    description: "Remove every entry of a labeled list"
+    args:
+      - name: label
+        type: string
+        required: true
+  rename:
+    description: "Relabel every entry from one label to another"
+    args:
+      - name: old_label
+        type: string
+        required: true
+      - name: new_label
+        type: string
+        required: true

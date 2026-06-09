@@ -1,0 +1,16 @@
+# Standalone chat channels — seeded into the `channels` collection
+# by `ChannelSeeder.run()` at boot. Open-join standalone channels
+# have no backing Group: audience = every player minus the (future)
+# banlist. Subscription state per-player rides Avatar's
+# PropertiedMixin via `chat.subscription.<channelId>`.
+#
+# Author edits via `chat rename / chat disband` survive subsequent
+# seeder runs — the seeder is insert-only.
+
+channels:
+  - name: Help
+    kind: open-join-standalone
+  - name: Global
+    kind: open-join-standalone
+  - name: Chat
+    kind: open-join-standalone

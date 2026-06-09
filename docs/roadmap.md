@@ -196,11 +196,29 @@ Ordered by leverage + dependency:
    hearing / tactile / gustatory profiles, RT60 / reverberation,
    stealth as sensorium-relative perception.
    ([senses-slate.md](./slates/senses-slate.md))
-3. **Social cluster (server halves)** — emotes (`SoulMixin`) +
-   comms transports (say/whisper/tell) + the grouping facade.
+3. **Social cluster (server halves)** — **shipped (2026-06)**:
+   `SoulMixin` emotes with `EmoteGrammar` slot binder + ~35-emote
+   starter roster + `:` / `;` prefix dispatch; comms acoustic
+   cleanup (whisper / shout / `say --to`) with `meta.acousticDb`
+   stamps; `GroupApi` facade over four providers (managed / MQL /
+   contacts / channel); `ContactsMixin` personal lists on Avatar;
+   chat substrate with `Channel` Documents, `ChannelCatalogue`
+   singleton, and the Phase 1 opt-in `fallthrough: true` command
+   framework flag; DM hardening (multi-target via collapsed
+   `tell` surface, reply/reply-all, cohort state on AetherMixin);
+   `broadcast` verb. See [emotes.md](./subsystems/emotes.md),
+   [grouping.md](./subsystems/grouping.md),
+   [chat.md](./subsystems/chat.md),
+   [contacts.md](./subsystems/contacts.md). Still ahead: emote
+   reactions / Layer 3 entitlements; chat Wave 2+ (role overlay,
+   config block, edit/delete, mentions, pinned, directory);
+   broadcast permission gate (waits on access slate); rate
+   limiting; vitals-aware acoustic dB; recognition-family
+   buildup over the contacts substrate.
    ([emotes](./slates/emotes-slate.md) /
    [comms](./slates/comms-slate.md) /
-   [grouping](./slates/grouping-slate.md))
+   [chat](./slates/chat-slate.md) /
+   [social-graph](./slates/social-graph-slate.md))
 4. **Collision** — small; block-validators extend the locomotion
    pipeline; `Pushable` + `PushActivity`.
    ([collision-slate.md](./slates/collision-slate.md))
@@ -339,9 +357,10 @@ pass; built in waves):
   **projection over the grouping facade**; membership ≠ subscription;
   projection + override; the config block; `chat <channel>`; the Mudlog
   separation.
-- [docs/slates/grouping-slate.md](./slates/grouping-slate.md) — the
-  **`GroupApi` facade** over heterogeneous sources (synthesized / managed
-  / ad-hoc); the model-selection criterion; *manage groups, not channels*.
+- [docs/subsystems/grouping.md](./subsystems/grouping.md) — the
+  **`GroupApi` facade** over the four shipped providers (managed,
+  MQL, contacts, channel); replaced the now-retired
+  `grouping-slate.md` at the social-cluster sweep.
 - [docs/slates/reactions-slate.md](./slates/reactions-slate.md) —
   emote-at-a-message + **batched aggregate-delta** broadcast (hundreds-of-
   users scale); toggle-once; tag-grouping; ephemeral runtime + warehouse

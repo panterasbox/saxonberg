@@ -31,6 +31,9 @@ export enum Collections {
   Users = 'users',
   GoogleProfiles = 'google_profiles',
   Domain = 'domain',
+  Emotes = 'emotes',
+  Groups = 'groups',
+  Channels = 'channels',
 }
 
 /**
@@ -547,6 +550,28 @@ export class PersistenceManager {
         { path: 1 },
         { unique: true }
       );
+
+      // Emotes: unique verb + alias index for verb-resolve hot path.
+      await this.getCollection(Collections.Emotes).createIndex(
+        { verb: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
+
+      // Groups: queryable owner / member shape (Phase 2B).
+      await this.getCollection(Collections.Groups).createIndex({ owner: 1 });
+      await this.getCollection(Collections.Groups).createIndex({ memberIds: 1 });
+
+      // Channels: name unique + memberIds (for "channels I'm in"
+      // lookups) + kind (Phase 3).
+      await this.getCollection(Collections.Channels).createIndex(
+        { name: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Channels).createIndex({
+        memberIds: 1,
+      });
+      await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

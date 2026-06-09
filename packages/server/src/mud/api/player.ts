@@ -4,14 +4,17 @@
  * Responsibilities:
  * - Track avatars by playerId for quick lookup
  * - Player-specific queries and statistics
+ * - Identity predicates (`isAvatarStuff`) for the codebase's
+ *   "is this stuff an Avatar?" question
  *
  * This is separate from StuffApi because it's domain-specific functionality.
  */
 
-import type { Avatar } from '../obj/Avatar';
+import { Avatar } from '../obj/Avatar';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
+import type { Stuff } from '../lib/stuff/Stuff';
 
 /**
  * Static API for Player/Avatar management.
@@ -22,6 +25,31 @@ export class PlayerApi {
    * This is a specialized index for quick avatar lookup.
    */
   static #avatarsByPlayerId: Map<string, Avatar> = new Map();
+
+  /**
+   * Type-guard: is this Stuff an Avatar?
+   *
+   * Identity is read off the template path prefix
+   * (`Avatar.TEMPLATE_PATH_PREFIX === '/obj/Avatar/'`) rather than
+   * `instanceof Avatar`: a Stuff's template path is its durable
+   * identity, in contrast to its backing class (which can change
+   * across HMR cycles). The guard narrows to `Avatar` for callers
+   * that go on to use the Avatar-specific surface
+   * (`getPlayerId()`, `getUser()`, etc.).
+   *
+   * Note: callers who genuinely want TS compile-time typechecking
+   * (e.g., "this method requires an Avatar receiver") may still
+   * reach for `instanceof Avatar` — the two have distinct purposes
+   * per the inline-comment guidance in the MR review.
+   */
+  public static isAvatarStuff(stuff: Stuff): stuff is Avatar {
+    const path = stuff.getTemplatePath();
+    return (
+      path !== undefined &&
+      path !== null &&
+      path.startsWith(Avatar.TEMPLATE_PATH_PREFIX)
+    );
+  }
 
   /**
    * Register an avatar by playerId.

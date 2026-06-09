@@ -47,7 +47,11 @@ behavior. Read the relevant doc before editing in its area.
     `restoreFromTemplate` persist-back surface
   - [persistence.md](./docs/subsystems/persistence.md) — the `Document`
     base (plain records, not Stuff) vs Templates→Stuff,
-    PersistenceManager, around-save/delete hooks
+    PersistenceManager, around-save/delete hooks. Collections:
+    `users` / `google_profiles` / `domain` (Templates) plus
+    `emotes` / `groups` / `channels` (social-cluster Documents);
+    `Template.findByPaths` for abstract-Template bulk-by-path
+    lookup that wouldn't fit the inherited `find` generic.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
     choreography, construction sentinel, prepareDestroy
   - [state-model.md](./docs/subsystems/state-model.md) — what gets
@@ -63,10 +67,18 @@ behavior. Read the relevant doc before editing in its area.
     composer, sensor routing, MudlogApi, `MarkupAugmenter` pipeline
     (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
     the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
-    `<detail>` etc. inline), VocalMixin + AetherMixin capability split.
-    Topic strings emit as dotted literals; the `MessageApi.Topics`
-    constant tree was retired in favor of the TopicCatalogue YAML
-    source of truth.
+    `<detail>` etc. inline), VocalMixin + AetherMixin + SoulMixin
+    capability split (acoustic / ESP-transport / expressive).
+    `VocalMixin.say` gains optional `target?` for `--to` rendering;
+    `whisper` / `shout` extend the acoustic family with per-method
+    `meta.acousticDb` stamps. `AetherMixin.tell` collapses to a
+    single `tell(target: Stuff | readonly Stuff[], text, opts?)`
+    surface — multi-target stamps `payload.recipients` and (when
+    chat-backed) `meta.channelId`. Topic strings emit as dotted
+    literals; the `MessageApi.Topics` constant tree was retired in
+    favor of the TopicCatalogue YAML source of truth.
+    `Scene.meta(partial)` chain stamps additional non-modality meta
+    (`acousticDb`, `channelId`).
   - [message-rendering.md](./docs/subsystems/message-rendering.md) —
     end-to-end rendering substrate. Server: MML semantic core
     extensions (`<chan>` / `<msg>` / `<player>` / `<npc>` /
@@ -90,7 +102,53 @@ behavior. Read the relevant doc before editing in its area.
     self-loads from mongo via `Template.findDescendants` at
     `postRegister` — no per-topic Stuff is ever cloned. Authored
     source of truth for the topic vocabulary (`MessageApi.Topics`
-    constant tree retired).
+    constant tree retired). New leaves from the social-cluster
+    build: `world.speech.whisper` / `world.speech.shout` /
+    `world.expression.emote` / `world.chat.message` /
+    `system.broadcast`.
+  - [emotes.md](./docs/subsystems/emotes.md) — `SoulMixin` on every
+    Character (innate expressive surface; NOT augment-gated),
+    `Emote` Document + `EmoteGrammar` typed slots (`stuff` /
+    `free`) with one Liquid template per emote, `SoulCatalogue`
+    singleton + `SoulApi` thin facade, three dispatch paths
+    (bare-verb router catalog, `:` / `;` prefix in `msh.ts` +
+    free-form fallback, `emote` YAML verb), `soul` AuthorMixin
+    suite, ESP modality (`emotive-esp`) + universal-target
+    delivery, ~35-emote starter roster from `mud/config/emotes.yaml`.
+  - [grouping.md](./docs/subsystems/grouping.md) — `GroupApi`
+    facade over three `GroupProvider` implementations: managed
+    (writable `Group` Document), MQL (read-only query-driven),
+    contacts (model-B per-Avatar). `GroupRef` typed strings
+    (`source:id`); `GroupRegistry` Stuff singleton in `obj/`;
+    `Group` Document parallel-arrays membership; coarse role
+    vocabulary; the `group` verb suite rides on
+    `ContactsMixin.commandContributions.self`. Chat is the first
+    multi-shape **consumer** of the substrate, not a provider —
+    see [chat.md](./docs/subsystems/chat.md).
+  - [chat.md](./docs/subsystems/chat.md) — `Channel` Document
+    with a `groupRef: GroupRef` pointing at the channel's
+    membership source; chat is a **consumer** of `GroupApi`
+    (player-created channels mint a backing managed Group at
+    create time, channel.groupRef stamps `'managed:<groupId>'`,
+    audience reads route through `GroupApi.membersOf(groupRef)`).
+    Three kinds (player-created, open-join standalone, ad-hoc);
+    `ChannelCatalogue` singleton owns the backing-Group bookkeeping
+    (`getBackingGroupIds()` for `group list` filtering — the Group
+    model knows nothing about chat); byName + byHandle + history
+    rings + PropertiedMixin-backed subscription state; `chat.yaml`
+    with the Phase 1 `fallthrough: true` flag — subcommands
+    (`list / join / leave / mute / unmute / who / make / rename /
+    disband / history / promote`) plus bare-post fallback;
+    `world.chat.message` topic; `ChannelSeeder` for Help / Global /
+    Chat from `mud/config/channels.yaml`.
+  - [contacts.md](./docs/subsystems/contacts.md) — `ContactsMixin`
+    on Avatar (via Character), per-Avatar named lists of other
+    characters as `ContactEntry` flat-set with durable
+    identifiers only (`avatar` keyed by `playerId`, `npc` keyed
+    by `templatePath`); labels are derived views (no reserved
+    label vocabulary); add-time multi-character expansion is
+    controller-layer sugar (`--char` opts out); owner-only
+    privacy enforced at `ContactsGroupProvider.members`.
   - [shell-environment.md](./docs/subsystems/shell-environment.md) —
     `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
     schema-on-owner generalization), lookup chain, `settings` /
@@ -114,15 +172,28 @@ behavior. Read the relevant doc before editing in its area.
     (`COMMAND_PHASES`, `PhaseEffect`, `collectPhaseEffects`,
     `consumePhaseEffects`; options declare `effects:` to skip /
     replace dispatcher phases), schema delivery via
-    `system.commands.{added,removed,reset}`, frame attribution
+    `system.commands.{added,removed,reset}`, frame attribution.
+    Subcommand-fallthrough matcher behavior (Phase 3a): a verb
+    that opts in via top-level `fallthrough: true` retries unknown
+    first tokens against its top-level `args` block before
+    surfacing the `unknown-subcommand` error — `chat` is the
+    canonical user (chat-subcommand precedence, bare-post
+    fallback). Optional field/option validators short-circuit
+    when the value is absent so `mustBe*` validators don't have
+    to teach themselves to tolerate null.
   - [command-parsing.md](./docs/subsystems/command-parsing.md) —
     `CommandLineApi` tokenizer, `RawToken` classification, `format()`
     round-trip, the `msh` shell, parser pluggability via the
-    `shell.parser` setting
+    `shell.parser` setting. The `msh` parser stamps
+    `parsed.emotePrefixed: true` when a message begins with `:` or
+    `;` followed by a verb-starting char (with the sigil stripped);
+    the router's unknown-verb branch consumes the flag to enable
+    catalog-emote → free-form fallback.
   - [command-spec.md](./docs/subsystems/command-spec.md) — author
     guide for adding a verb: YAML field shape, controller
     conventions, validators, discovery wiring, the controller seed
-    file
+    file. `fallthrough: true` flag + worked example (chat) for
+    the subcommand-then-flat-args grammar.
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline
     (desugar / lex / parse / resolve), AST, scope-walk, predicates,
     pronoun memory, via augmentation, permission tiers, online

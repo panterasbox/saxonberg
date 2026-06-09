@@ -37,6 +37,7 @@ import { SensorMixin } from '../message/Sensor';
 import { PerceiverMixin } from '../description/Perceiver';
 import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
+import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { OrganismMixin } from '../species/Organism';
 import { PosedMixin } from './Posed';
@@ -83,17 +84,19 @@ const CharacterBase = CommandGiverMixin(
       ContainerMixin(
         ContainableMixin(
           VisibleMixin(
-            VocalMixin(
-              PerceptionMixin(
-                PerceiverMixin(
-                  SensorMixin(
-                    GenderedMixin(
-                      PosedMixin(
-                        BodyPlanSlotsMixin(
-                          SlottedMixin(OrganismMixin(NamedMixin(Agent))),
+            SoulMixin(
+              VocalMixin(
+                PerceptionMixin(
+                  PerceiverMixin(
+                    SensorMixin(
+                      GenderedMixin(
+                        PosedMixin(
+                          BodyPlanSlotsMixin(
+                            SlottedMixin(OrganismMixin(NamedMixin(Agent))),
+                          ),
                         ),
                       ),
-                    ),
+                    )
                   )
                 )
               )

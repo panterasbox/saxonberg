@@ -509,6 +509,45 @@ reserved key `subcommand` (the constant `SUBCOMMAND_FIELD` in
 `api/command.ts`). YAMLs with `subcommands:` cannot declare a field
 or option named `subcommand` — caught at load time.
 
+### Phase 3a — opt-in subcommand → flat-args fallthrough
+
+Most subcommanded verbs (`measure`, `alias`, `prompt`, `analyze`,
+`settings`, `style`, `var`) want unknown first tokens to surface
+as `unknown-subcommand`. A small minority — `chat` is the
+canonical example — want unknown first tokens to fall through
+into a bare-form positional bind: `chat <channel> <msg>` is a
+post; `chat list` is a subcommand; both grammars coexist on the
+same verb.
+
+A YAML opts in via the verb-level `fallthrough: true` flag,
+which the schema enforces alongside both `args:` and
+`subcommands:`. The flag relaxes the load-time invariant that
+makes the two fields mutually exclusive. Without the flag,
+unknown-subcommand is still the default.
+
+At match time, when Phase 2 (subcommand resolution) sees a word
+token that isn't a known subcommand and the verb has
+`fallthrough: true`, the matcher does NOT consume the token —
+it falls through to Phase 4 (positional bind) against the
+top-level `args:` array. If the bind fails, the matcher surfaces
+the original `unknown-subcommand` error pointing at the
+candidate token (not the bind error) — the chat case wants
+"this isn't a subcommand AND can't make a bare post" to read
+as "unknown subcommand."
+
+The `model.subcommand` field is absent when fallthrough fires;
+the controller decides which case it's in. Pre-existing
+subcommanded verbs are unaffected: the flag is opt-in, not
+default. See [chat.md](./chat.md) for the worked end-to-end
+example.
+
+Optional fields and options short-circuit their validator
+chains when the value is absent. So a `mustBeAgent` validator
+on an optional `--to` doesn't have to teach itself to tolerate
+null; the framework skips the chain when nothing was provided.
+The skip applies to optional positionals (`required: false`)
+and to options that aren't explicitly `required: true`.
+
 ### Two-tier option scope
 
 Options have lexical scope (where they appear in the input) but the

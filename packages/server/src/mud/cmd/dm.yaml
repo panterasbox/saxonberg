@@ -1,22 +1,19 @@
-verbs: [dm, tell, whisper]
+verbs: [dm, tell]
 controller: DmController
-description: "Send a direct message (dm) to someone"
+description: "Send a direct message (dm) to one or more people. Multi-target DMs create an ad-hoc channel under the hood."
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
 args:
   - name: target
-    type: object
+    type: objects
     required: true
     scope: "online"
-    # `mustBeAgent` filters Login objects (HasInteractive but not
-    # Agent) and any other non-actor command-giver out of the
-    # candidate set; only Avatars and NPCs that extend Agent pass.
+    cardinality: { min: 1, max: 10 }
+    onShortage: error
+    onExcess: error
     validators:
       - /lib/command/validators/mustBeAgent
-    # Typed ambiguity (two players matching the same keyword) →
-    # disambiguation prompt instead of silently picking the top.
-    onExcess: prompt
   - name: message
     type: string
     required: true

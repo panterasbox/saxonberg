@@ -55,7 +55,7 @@ See also:
 - [comms-slate.md](./comms-slate.md) — the **implant transport** chat
   rides, the conversation primitive (DM/group/channel as one shape), and
   directed speech. Chat is the channel-rich end of comms' implant family.
-- [grouping-slate.md](./grouping-slate.md) — **the grouping facade
+- [grouping subsystem](../subsystems/grouping.md) — **the grouping facade
   channels project over** (the `GroupApi` membership/role source;
   guilds/parties/cohorts/managed groups all behind it). The key
   dependency: groups are primary, chat is a projection over them.

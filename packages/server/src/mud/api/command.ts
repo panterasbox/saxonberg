@@ -1030,6 +1030,18 @@ export interface CommandView {
    */
   payload?: Record<string, OptionDefinition>;
   validators?: string[];
+  /**
+   * Opt-in flag permitting top-level `args:` AND `subcommands:` to
+   * coexist. The matcher tries subcommands first; on an unknown first
+   * token, it falls through to Phase 3a — binding the token + remaining
+   * tokens against the top-level `args:`. Required together with both
+   * fields; the YAML validator refuses any other combination.
+   *
+   * Used by `chat <channel> <message>` so the reserved-subcommand check
+   * (mute/who/make/...) takes precedence while bare posts (chat gossip
+   * hi) still bind through the top-level args.
+   */
+  fallthrough?: boolean;
 }
 
 /**
@@ -1049,6 +1061,7 @@ export interface CommandSchemaPayload {
    * payloads.
    */
   payload?: Record<string, OptionDefinition>;
+  fallthrough?: boolean;
 }
 
 // Get path to command YAML directory
@@ -1401,21 +1414,33 @@ export class CommandApi {
     // Phase 2: subcommand (if the verb has them).
     let subcommand: string | undefined;
     let scope: 'verb' | string = 'verb';
+    // Phase 3a fallthrough bookkeeping. When set, Phase 4 binds against
+    // `command.args` instead of erroring; `fallthroughCandidate`
+    // surfaces in the unknown-subcommand error if Phase 4 bind fails.
+    let fallthroughActive = false;
+    let fallthroughCandidate: string | undefined;
     if (command.hasSubcommands() && i < tokens.length && !stopped) {
       const t = tokens[i]!;
       if (t.kind === 'word') {
         const sName = t.value;
         const sDef = command.getSubcommand(sName);
-        if (!sDef) {
+        if (sDef) {
+          subcommand = sName;
+          scope = sName;
+          i++;
+        } else if (command.fallthrough && command.args.length > 0) {
+          // Phase 3a: opt-in fallthrough. Don't consume the token —
+          // leave it for Phase 3 to collect as a positional. Remember
+          // it for the bind-failure → unknown-subcommand error surface.
+          fallthroughActive = true;
+          fallthroughCandidate = sName;
+        } else {
           return {
             error: 'unknown-subcommand',
             subcommand: sName,
             available: command.getSubcommandNames(),
           };
         }
-        subcommand = sName;
-        scope = sName;
-        i++;
       }
     }
 
@@ -1450,6 +1475,21 @@ export class CommandApi {
       const sub = command.getSubcommand(subcommand)!;
       const r = bindPositionals(positionals, sub.args ?? [], parsed, expand);
       if ('error' in r) return r;
+      Object.assign(fields, r.bound);
+      prep = r.prep;
+    } else if (fallthroughActive) {
+      // Phase 3a — verb opted into fallthrough. Bind the un-consumed
+      // candidate + remaining tokens against the top-level args. On
+      // bind failure, surface the ORIGINAL unknown-subcommand error
+      // pointing at the candidate — the slate's required behavior.
+      const r = bindPositionals(positionals, command.args, parsed, expand);
+      if ('error' in r) {
+        return {
+          error: 'unknown-subcommand',
+          subcommand: fallthroughCandidate ?? '',
+          available: command.getSubcommandNames(),
+        };
+      }
       Object.assign(fields, r.bound);
       prep = r.prep;
     } else if (command.hasSubcommands()) {
@@ -2055,9 +2095,13 @@ export class CommandApi {
       }
     }
 
-    // Field validators.
+    // Field validators. Optional positionals that didn't bind
+    // short-circuit (same rule as options below) so authors don't
+    // have to write null-tolerant fallbacks in every validator.
     for (const [fname, def] of Object.entries(fieldDefs)) {
-      const err = runValidators(def._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && def.required === false) continue;
+      const err = runValidators(def._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2069,10 +2113,15 @@ export class CommandApi {
       }
     }
 
-    // Verb-option validators.
+    // Verb-option validators. Options are optional unless the YAML
+    // explicitly says otherwise; an absent option short-circuits its
+    // validator chain so authors don't have to teach every field
+    // validator (e.g. `mustBeAgent`) to tolerate `null`.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
-      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && opt.required !== true) continue;
+      const err = runValidators(opt._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2084,10 +2133,13 @@ export class CommandApi {
       }
     }
     // Payload-field validators — same shape as options (payload is
-    // option-shaped at the matcher level).
+    // option-shaped at the matcher level). Same absent-on-optional
+    // short-circuit.
     for (const [name, opt] of Object.entries(command.payload)) {
       const fname = opt.field ?? name;
-      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && opt.required !== true) continue;
+      const err = runValidators(opt._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2216,6 +2268,7 @@ export class CommandApi {
     if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
     if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;
     if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
+    if (cmd.fallthrough) out.fallthrough = true;
     return out;
   }
 }

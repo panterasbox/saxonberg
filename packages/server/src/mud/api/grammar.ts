@@ -180,6 +180,26 @@ export class GrammarApi {
     }
     return `${singular}s`;
   }
+
+  /**
+   * Render a list of strings in English serial-comma form:
+   *   []                    → ''
+   *   ['a']                 → 'a'
+   *   ['a', 'b']            → 'a and b'
+   *   ['a', 'b', 'c']       → 'a, b, and c'
+   *   ['a', 'b', 'c', 'd']  → 'a, b, c, and d'
+   *
+   * Oxford-comma style — consistent with the rest of the project's
+   * authored prose. For non-list joining (CSV, tags) callers should
+   * use `Array.join` directly; this method exists for natural-prose
+   * sentences ("Added Iffy, Bobalu, and Jane to your friends list.").
+   */
+  static joinList(items: readonly string[]): string {
+    if (items.length === 0) return '';
+    if (items.length === 1) return items[0]!;
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+  }
 }
 
 SecurityApi.decorateApiClass(GrammarApi);
