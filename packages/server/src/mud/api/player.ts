@@ -15,15 +15,7 @@ import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
-
-/**
- * String form of `Avatar.TEMPLATE_PATH_PREFIX`. Inlined here because
- * `PlayerApi` and `Avatar` cycle at module load (`Avatar.ts` imports
- * `PlayerApi`), so `PlayerApi` can't reach `Avatar` as a value. The
- * two must stay in sync; load-time test in
- * `__tests__/player.isAvatarStuff.test.ts` asserts equality.
- */
-const AVATAR_TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
+import { AVATAR_TEMPLATE_PATH_PREFIX } from '../lib/identity/avatar-paths';
 
 /**
  * Static API for Player/Avatar management.

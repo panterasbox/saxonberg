@@ -356,9 +356,11 @@ describe('PlayerApi', () => {
       expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
     });
 
-    it('keeps the inlined prefix in sync with Avatar.TEMPLATE_PATH_PREFIX', () => {
-      // The PlayerApi/Avatar module cycle forces us to inline the
-      // string in player.ts. Guard against drift.
+    it('recognizes the same prefix that Avatar.TEMPLATE_PATH_PREFIX exposes', () => {
+      // Single source of truth lives in lib/identity/avatar-paths.ts;
+      // Avatar.TEMPLATE_PATH_PREFIX re-exposes it. This guard catches
+      // anyone editing the static on Avatar without going through
+      // the shared module.
       const stuff = fakeStuffWithPath(
         Avatar.TEMPLATE_PATH_PREFIX + 'whatever',
       ) as Avatar;
