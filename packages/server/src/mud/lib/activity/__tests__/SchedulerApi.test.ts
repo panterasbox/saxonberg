@@ -31,6 +31,7 @@ import type {
   Engagement,
   ScheduledEmission,
 } from '../../../api/scheduler';
+import { WorldClockApi } from '../../../api/worldclock';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
@@ -99,7 +100,7 @@ class TestDurativeActivity {
   constructor(actor: TestActor, opts: DurativeOpts = {}) {
     this.type = opts.type ?? 'test-durative';
     this.actor = actor as unknown as Stuff & Engaged;
-    this.startedAt = Date.now();
+    this.startedAt = WorldClockApi.getNow().rawValue() * 1000;
     this.slots = new Set(opts.slots ?? ['body']);
     this.cancelable = opts.cancelable ?? true;
     this.duration = opts.duration ?? 1000;
@@ -150,7 +151,7 @@ class TestSustainedEngagement {
   constructor(actor: TestActor, opts: SustainedOpts = {}) {
     this.type = opts.type ?? 'test-sustained';
     this.actor = actor as unknown as Stuff & Engaged;
-    this.startedAt = Date.now();
+    this.startedAt = WorldClockApi.getNow().rawValue() * 1000;
     this.slots = new Set(opts.slots ?? ['voice']);
     this.cancelable = opts.cancelable ?? true;
     this._onStart = opts.onStart ?? noop;
@@ -210,14 +211,15 @@ describe('SchedulerApi.start', () => {
   let actor: TestActor;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
   });
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   describe('happy path', () => {
@@ -369,14 +371,15 @@ describe('SchedulerApi.cancel (family)', () => {
   let actor: TestActor;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
   });
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('cancel(): fires onAbort("cancelled") and clears the slot', () => {
@@ -471,14 +474,15 @@ describe('SchedulerApi lifecycle (completion)', () => {
   let actor: TestActor;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
   });
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('completion timer fires onComplete after duration ms', () => {
@@ -490,9 +494,9 @@ describe('SchedulerApi lifecycle (completion)', () => {
       },
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(999);
+    WorldClockApi._advanceForTesting(999);
     expect(completed).toBe(false);
-    vi.advanceTimersByTime(1);
+    WorldClockApi._advanceForTesting(1);
     expect(completed).toBe(true);
     expect(actor.getEngagementBySlot('body')).toBeUndefined();
   });
@@ -500,7 +504,7 @@ describe('SchedulerApi lifecycle (completion)', () => {
   it('completion ships an activity-update envelope carrying EngagementCompletedNote', () => {
     const e = makeDurative(actor, { duration: 1000 });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(1000);
+    WorldClockApi._advanceForTesting(1000);
     expect(actor.envelopes).toHaveLength(1);
     const env = actor.envelopes[0]!;
     expect(env.type).toBe('activity-update');
@@ -530,7 +534,7 @@ describe('SchedulerApi lifecycle (completion)', () => {
   it('completion clears the actor slot map', () => {
     const e = makeDurative(actor, { duration: 1000 });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(1000);
+    WorldClockApi._advanceForTesting(1000);
     expect(actor.getEngagementBySlot('body')).toBeUndefined();
     expect(SchedulerApi.getEngagementById(e.engagementId)).toBeUndefined();
   });
@@ -541,7 +545,8 @@ describe('SchedulerApi watchdog', () => {
   let consoleErr: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
     consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -550,7 +555,7 @@ describe('SchedulerApi watchdog', () => {
   afterEach(() => {
     consoleErr.mockRestore();
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('throw inside onComplete fires onAbort("thrown") and clears the slot', () => {
@@ -563,7 +568,7 @@ describe('SchedulerApi watchdog', () => {
       onAbort: (r) => abortReasons.push(r),
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(1000);
+    WorldClockApi._advanceForTesting(1000);
     expect(abortReasons).toEqual(['thrown']);
     expect(actor.getEngagementBySlot('body')).toBeUndefined();
     expect(consoleErr).toHaveBeenCalled();
@@ -587,7 +592,7 @@ describe('SchedulerApi watchdog', () => {
       },
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(1000);
+    WorldClockApi._advanceForTesting(1000);
     expect(onAbortCalls).toBe(1);
     expect(actor.getEngagementBySlot('body')).toBeUndefined();
   });
@@ -610,11 +615,11 @@ describe('SchedulerApi watchdog', () => {
       onAbort: (r) => abortReasons.push(r),
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(100);
+    WorldClockApi._advanceForTesting(100);
     expect(ticks).toBe(1);
     expect(abortReasons).toEqual(['thrown']);
     // Subsequent ticks must NOT fire — emission timers cancelled.
-    vi.advanceTimersByTime(500);
+    WorldClockApi._advanceForTesting(500);
     expect(ticks).toBe(1);
   });
 });
@@ -623,14 +628,15 @@ describe('SchedulerApi emissions', () => {
   let actor: TestActor;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
   });
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('fires emission.event on cadence and provides elapsed timing', () => {
@@ -648,9 +654,9 @@ describe('SchedulerApi emissions', () => {
       emissions,
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(100);
+    WorldClockApi._advanceForTesting(100);
     expect(elapsed).toHaveLength(1);
-    vi.advanceTimersByTime(200);
+    WorldClockApi._advanceForTesting(200);
     expect(elapsed).toHaveLength(3);
   });
 
@@ -669,11 +675,11 @@ describe('SchedulerApi emissions', () => {
       emissions,
     });
     SchedulerApi.start(e);
-    vi.advanceTimersByTime(250);
+    WorldClockApi._advanceForTesting(250);
     const before = ticks;
     expect(before).toBeGreaterThan(0);
     SchedulerApi.cancel(e, 'cancelled');
-    vi.advanceTimersByTime(500);
+    WorldClockApi._advanceForTesting(500);
     expect(ticks).toBe(before);
   });
 
@@ -694,9 +700,9 @@ describe('SchedulerApi emissions', () => {
     SchedulerApi.start(e);
     // 500ms duration → completion timer fires at 500. Emissions
     // fire at 200, 400. After 500 the engagement is gone; no more.
-    vi.advanceTimersByTime(500);
+    WorldClockApi._advanceForTesting(500);
     const at500 = ticks;
-    vi.advanceTimersByTime(500);
+    WorldClockApi._advanceForTesting(500);
     expect(ticks).toBe(at500);
   });
 });
@@ -705,14 +711,15 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
   let actor: TestActor;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     actor = makeStuff(() => new TestActor());
   });
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('getActivityClass returns undefined for an unregistered type', () => {
@@ -771,7 +778,7 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
         engagementId = '';
         readonly type = 'hmr-test';
         readonly actor: TestActor;
-        readonly startedAt = Date.now();
+        readonly startedAt = WorldClockApi.getNow().rawValue() * 1000;
         readonly slots: ReadonlySet<EngagementSlot> = new Set(['body']);
         readonly interruptibleBy = new Set<AbortReason>();
         readonly cancelable = true;
@@ -801,7 +808,7 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
       // completion timer fires.
       SchedulerApi.registerActivity('hmr-test', V2 as never);
 
-      vi.advanceTimersByTime(1000);
+      WorldClockApi._advanceForTesting(1000);
       expect(ran).toEqual(['v2']);
     },
   );
@@ -827,7 +834,7 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
         // fall into the 'thrown' branch.
         SchedulerApi._unregisterActivityForTesting('transient');
 
-        vi.advanceTimersByTime(1000);
+        WorldClockApi._advanceForTesting(1000);
 
         // Without a registered class, dispatchOnAbort also can't
         // call onAbort (the engagement-instance closure is reached
@@ -860,7 +867,8 @@ describe('SchedulerApi NPC without Sensor (envelope path no-op)', () => {
   let actor: InstanceType<ReturnType<typeof EngagedMixin<typeof Idea>>>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
     // NPC-shape actor: Engaged but not Sensor.
     class TestNpc extends EngagedMixin(Idea) {
@@ -875,7 +883,7 @@ describe('SchedulerApi NPC without Sensor (envelope path no-op)', () => {
 
   afterEach(() => {
     SchedulerApi._clearAllForTesting();
-    vi.useRealTimers();
+    WorldClockApi._resetForTesting();
   });
 
   it('completes cleanly with no envelope ship attempt', () => {
@@ -883,6 +891,6 @@ describe('SchedulerApi NPC without Sensor (envelope path no-op)', () => {
       duration: 1000,
     });
     expect(() => SchedulerApi.start(e)).not.toThrow();
-    expect(() => vi.advanceTimersByTime(1000)).not.toThrow();
+    expect(() => WorldClockApi._advanceForTesting(1000)).not.toThrow();
   });
 });

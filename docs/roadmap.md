@@ -277,6 +277,19 @@ requirements.
   and
   [docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
   for the design sketches.
+- **Time subsystem (shipped 2026-06)** — see
+  [docs/subsystems/time.md](./subsystems/time.md). `WorldClockApi`
+  own-thing game-time axis (scale/pause/resume, `WorldClockState`
+  persistence, crash backstop, `SystemRoot`-gated lifecycle); the
+  arm-next-deadline heartbeat driving `after`/`at`/`every`/`onDate`/
+  `cron`; `SchedulerApi` moved onto game-time (D5). `CelestialApi`
+  real solar/lunar geometry + `CelestialProfile`/`EARTH_LIKE`
+  (compute only — **no celestial→light wiring**, deferred until the
+  perception branch merges). `DefaultCalendar`. Pedagogical surface
+  (`Sundial`/`Sextant`, `analyze time`/`sky`, `measure shadow`/
+  `altitude`). `docs/slates/world-clock-slate.md` kept for the
+  deferred surface (light wiring, multi-region latitude, locale,
+  weather, NPC schedules, second profiles).
 - [docs/slates/sound-slate.md](./slates/sound-slate.md) — **absorbed into
   [senses-slate](./slates/senses-slate.md)** (now the *hearing* instance of
   the unified `PerceptionChannel` substrate). Retained as a tombstone for

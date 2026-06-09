@@ -17,6 +17,7 @@ import { SeederManager } from './SeederManager';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
+import { WorldClockApi } from '../mud/api/worldclock';
 import { setDocumentMarshallerResolver } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -110,5 +111,28 @@ export class AppBootstrap {
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
 
     await BootstrapManager.run();
+
+    // World clock — restore the persisted game-time anchor (or seed a
+    // zero clock on a fresh DB) and start its backstop. A sequencer
+    // step like the others, with the lifecycle owned by the Api.
+    // (It can't live inside BootstrapManager: that manager clones
+    // Stuff from the manifest, and the clock state is a Document, not
+    // a clonable template.)
+    await WorldClockApi.boot();
+  }
+
+  /**
+   * Graceful-shutdown counterpart to `run()`. Owns the backend-layer
+   * teardown that must run before the process exits — currently the
+   * world-clock snapshot so the next boot resumes continuously.
+   * Invoked from `Server.stop()`; kept here (not in `services/`) so
+   * transport code stays free of engine concerns.
+   */
+  public static async shutdown(): Promise<void> {
+    try {
+      await WorldClockApi.shutdown();
+    } catch (err) {
+      console.error('AppBootstrap: world-clock shutdown failed:', err);
+    }
   }
 }

@@ -20,6 +20,7 @@ import { Application } from '../backend/Application';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
 import { WebSocketService } from './websocket/WebSocketService';
+import { AppBootstrap } from '../backend/AppBootstrap';
 
 /**
  * Server - Main application server.
@@ -171,6 +172,11 @@ export class Server {
     console.info('Server: Shutting down gracefully...');
 
     try {
+      // Backend-layer graceful teardown (persists world-clock state,
+      // etc.) before transport shuts down. Engine concerns live behind
+      // AppBootstrap, not in this transport class.
+      await AppBootstrap.shutdown();
+
       // Close WebSocket connections
       this.backend.closeAllConnections();
       this.webSocketService.close();

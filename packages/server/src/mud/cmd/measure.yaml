@@ -48,6 +48,16 @@ subcommands:
         type: string
         required: false
   altitude:
-    description: "Estimate altitude from the barometric delta against sea level"
+    description: "Estimate altitude from the barometric delta, or read the angular altitude of the sun/moon with a sextant"
     controller: MeasureAltitudeController
-    args: []
+    args:
+      - name: body
+        type: string
+        required: false
+  shadow:
+    description: "Read solar elevation/azimuth from your shadow (needs a sundial)"
+    controller: MeasureShadowController
+    args:
+      - name: detail
+        type: string
+        required: false

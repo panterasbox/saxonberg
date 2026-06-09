@@ -29,3 +29,21 @@ subcommands:
       - name: detail
         type: string
         required: false
+  time:
+    description: "Report game-time, scale, and the current date in your calendar"
+    controller: AnalyzeTimeController
+    args:
+      - name: detail
+        type: string
+        required: false
+  sky:
+    description: "Full celestial state for a location (sun, season, moon, day/night)"
+    controller: AnalyzeSkyController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer

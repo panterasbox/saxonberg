@@ -384,6 +384,21 @@ behavior. Read the relevant doc before editing in its area.
     to Material / Species) — universe + outdoor/indoor tier
     baselines + a couple of leaves + the cafeteria-atrium
     scenario-C showcase. Content teams flesh out from there.
+  - [time.md](./docs/subsystems/time.md) — game-time substrate (three
+    layers under `lib/time/` + `api/worldclock.ts` / `api/celestial.ts`).
+    `WorldClockApi` own-thing axis (anchor `getNow`, scale/pause/resume,
+    `WorldClockState` Document singleton via `find({})`, `boot`/
+    `shutdown` lifecycle owned by the Api + `SystemRoot`-gated, 5-min
+    crash backstop), the single arm-next-deadline heartbeat driving
+    `after`/`at`/`every`/`onDate`/`cron` (schedules never persisted —
+    persist deadlines, re-establish in `postRegister`), `SchedulerApi`
+    riding game-time (D5, durations in game-ms). `CelestialApi` real
+    solar/lunar geometry (folded-in static methods, first-order lunar
+    model) + zone-inherited `CelestialProfile` / `EARTH_LIKE` (360-day
+    year, no light wiring — D6). `DefaultCalendar` (12×30, named months/
+    weekdays, weekday drift). Pedagogical surface: `Sundial` / `Sextant`,
+    `analyze time` / `sky`, `measure shadow` / `altitude <sun|moon>`.
+    World config is module constants, NOT settings (R8).
 
 ## Development Commands
 
