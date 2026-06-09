@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { EARTH_LIKE } from '../CelestialProfile';
 import { Quantity } from '../../quantity';
-import * as Solar from '../solar';
+import { Solar } from '../Solar';
 
 const D = EARTH_LIKE.dayLengthSeconds; // 86_400
 const Y = EARTH_LIKE.yearLengthDays; // 360

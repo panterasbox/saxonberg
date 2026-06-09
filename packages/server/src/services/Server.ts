@@ -20,8 +20,7 @@ import { Application } from '../backend/Application';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
 import { WebSocketService } from './websocket/WebSocketService';
-import { WorldClockApi } from '../mud/api/worldclock';
-import { WorldClockState } from '../mud/lib/time/WorldClockState';
+import { AppBootstrap } from '../backend/AppBootstrap';
 
 /**
  * Server - Main application server.
@@ -173,24 +172,10 @@ export class Server {
     console.info('Server: Shutting down gracefully...');
 
     try {
-      // World-clock shutdown snapshot — pause game-time and persist the
-      // elapsed-game-time anchor so the next boot resumes continuously
-      // (own-thing model). Wrapped so a snapshot failure never blocks a
-      // graceful shutdown.
-      try {
-        WorldClockApi.pause();
-        const snap = WorldClockApi.snapshot();
-        const state = await WorldClockState.loadOrSeed();
-        state.elapsedGameTimeS = snap.elapsedGameTimeS;
-        state.scale = snap.scale;
-        state.lastShutdownRealMs = snap.lastShutdownRealMs;
-        await state.save();
-      } catch (err) {
-        console.error(
-          'Server: world-clock snapshot on shutdown failed:',
-          err
-        );
-      }
+      // Backend-layer graceful teardown (persists world-clock state,
+      // etc.) before transport shuts down. Engine concerns live behind
+      // AppBootstrap, not in this transport class.
+      await AppBootstrap.shutdown();
 
       // Close WebSocket connections
       this.backend.closeAllConnections();

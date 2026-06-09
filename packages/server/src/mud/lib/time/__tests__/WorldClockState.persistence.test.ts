@@ -114,4 +114,21 @@ describe('WorldClockState persistence (AC3)', () => {
     expect(state.elapsedGameTimeS).toBe(42);
     expect(state.scale).toBe(3);
   });
+
+  it('boot() restores the persisted anchor; shutdown() persists the snapshot', async () => {
+    pm.setFindResult([
+      { elapsedGameTimeS: 7200, scale: 6, lastShutdownRealMs: 1 },
+    ]);
+
+    await WorldClockApi.boot();
+    expect(WorldClockApi.getScale()).toBe(6);
+    expect(WorldClockApi.getNow().rawValue()).toBe(7200);
+
+    await WorldClockApi.shutdown();
+    expect(WorldClockApi.isPaused()).toBe(true);
+    expect(pm.saves).toHaveLength(1);
+    expect(pm.saves[0]!.collection).toBe('world_state');
+    expect(pm.saves[0]!.doc.elapsedGameTimeS).toBe(7200);
+    expect(pm.saves[0]!.doc.scale).toBe(6);
+  });
 });

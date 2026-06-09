@@ -1,7 +1,7 @@
 /**
  * CelestialApi — sky queries over the world-time axis.
  *
- * Wraps the pure geometry in `lib/time/solar.ts`, resolves the
+ * Wraps the pure geometry in the `Solar` class, resolves the
  * governing `CelestialProfile` (zone inheritance → `EARTH_LIKE`
  * fallback) and the campus latitude, and returns `Quantity`-packaged
  * angles / times. Astronomical scheduling shortcuts compute a
@@ -27,7 +27,7 @@ import {
   type Season,
   EARTH_LIKE,
 } from '../lib/time/CelestialProfile';
-import * as Solar from '../lib/time/solar';
+import { Solar } from '../lib/time/Solar';
 import { WorldClockApi, type ClockCallback, type ScheduleOpts, type ClockHandle } from './worldclock';
 import { SecurityApi } from './security';
 

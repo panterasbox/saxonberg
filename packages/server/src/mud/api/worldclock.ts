@@ -33,6 +33,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Quantity } from '../lib/quantity';
 import type { Calendar, CalendarDate } from '../lib/time/Calendar';
 import { DefaultCalendar } from '../lib/time/DefaultCalendar';
+import { WorldClockState } from '../lib/time/WorldClockState';
 import { ScheduleApi, type ScheduleHandle } from './schedule';
 import { ExecutionContextApi } from './execution-context';
 import { EventApi, type Subscription } from './event';
@@ -222,19 +223,65 @@ export class WorldClockApi {
   }
 
   /**
+   * Boot the clock: restore the persisted game-time anchor (or seed a
+   * zero clock on a fresh DB), start the crash backstop, and register
+   * any system-scope schedules. Called once from `AppBootstrap.run`
+   * after the bootstrap manifest, so every Stuff that re-establishes a
+   * schedule in `postRegister` has a live clock to register against.
+   *
+   * Owns its own `WorldClockState` round-trip — the persistence home
+   * is a sibling under the `time` subsystem, so this Api reaches it
+   * directly rather than through an injected seam.
+   */
+  public static async boot(): Promise<void> {
+    const state = await WorldClockState.loadOrSeed();
+    WorldClockApi.restore({
+      elapsedGameTimeS: state.elapsedGameTimeS,
+      scale: state.scale,
+      lastShutdownRealMs: state.lastShutdownRealMs,
+    });
+    WorldClockApi.#startSnapshotBackstop();
+    WorldClockApi.#registerSystemSchedules();
+    console.info(
+      `WorldClockApi: restored at ${state.elapsedGameTimeS}s ` +
+        `(scale ${state.scale}x)`
+    );
+  }
+
+  /**
+   * Shut the clock down gracefully: pause game-time and persist the
+   * elapsed-game-time anchor so the next boot resumes continuously
+   * (own-thing model). Called from `AppBootstrap.shutdown` on a
+   * graceful stop. Throws are the caller's to absorb.
+   */
+  public static async shutdown(): Promise<void> {
+    WorldClockApi.pause();
+    await WorldClockApi.#persist();
+  }
+
+  /**
+   * Persist the current snapshot into the `WorldClockState` singleton.
+   * Shared by the shutdown path and the periodic backstop.
+   */
+  static async #persist(): Promise<void> {
+    const snap = WorldClockApi.snapshot();
+    const state = await WorldClockState.loadOrSeed();
+    state.elapsedGameTimeS = snap.elapsedGameTimeS;
+    state.scale = snap.scale;
+    state.lastShutdownRealMs = snap.lastShutdownRealMs;
+    await state.save();
+  }
+
+  /**
    * Start the periodic crash-backstop snapshot. Fire-and-forget like
    * Avatar autosave; an ungraceful exit loses at most one interval.
-   * The `write` callback is injected so this Api stays free of a
-   * `WorldClockState` (lib) import — `AppBootstrap` wires it.
    */
-  public static startSnapshotBackstop(
-    write: (snap: WorldClockSnapshot) => Promise<void>
-  ): void {
+  static #startSnapshotBackstop(): void {
     if (WorldClockApi.#snapshotBackstop) return;
     WorldClockApi.#snapshotBackstop = ScheduleApi.recurring(
       WorldClockApi.SNAPSHOT_INTERVAL_MS,
       () => {
-        void write(WorldClockApi.snapshot()).catch((err) => {
+        void WorldClockApi.#persist().catch((err) => {
           console.error('WorldClockApi: backstop snapshot failed:', err);
         });
       },
@@ -244,12 +291,10 @@ export class WorldClockApi {
 
   /**
    * System-scope recurring schedules (festival / market reset).
-   * Registered from the `AppBootstrap` restore step rather than a
-   * `bootstrap.ts` manifest entry (plan §3.4). Empty in v1 — the
-   * mechanism is what's specified; concrete schedules layer on with
-   * `cron(...)` once content wants them.
+   * Empty in v1 — the mechanism is what's specified; concrete
+   * schedules layer on with `cron(...)` once content wants them.
    */
-  public static registerSystemSchedules(): void {
+  static #registerSystemSchedules(): void {
     // intentionally empty for v1
   }
 
