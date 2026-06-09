@@ -137,11 +137,48 @@ export class CelestialApi {
 
   /** Next full moon. Uses the universe-default lunar profile (no location). */
   public static nextFullMoon(time?: Quantity<'s'>): Quantity<'s'> {
-    const moon = EARTH_LIKE.moons[0];
-    const synodic = moon ? moon.synodicPeriodDays : 30;
     return Quantity.of(
-      Solar.nextFullMoon(EARTH_LIKE, synodic, CelestialApi.#t(time)),
+      Solar.nextFullMoon(EARTH_LIKE, CelestialApi.#synodic(), CelestialApi.#t(time)),
       's'
+    );
+  }
+
+  /** Moon phase in [0, 1): 0 = new, 0.5 = full. */
+  public static moonPhase(time?: Quantity<'s'>): number {
+    return Solar.moonPhase(EARTH_LIKE, CelestialApi.#synodic(), CelestialApi.#t(time));
+  }
+
+  public static async moonAltitude(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<Quantity<'degrees'>> {
+    const profile = await CelestialApi.profileFor(location);
+    const synodic = profile.moons[0]?.synodicPeriodDays ?? CelestialApi.#synodic();
+    return Quantity.of(
+      Solar.moonAltitudeDeg(
+        profile,
+        CelestialApi.CAMPUS_LATITUDE,
+        synodic,
+        CelestialApi.#t(time)
+      ),
+      'degrees'
+    );
+  }
+
+  public static async moonAzimuth(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<Quantity<'degrees'>> {
+    const profile = await CelestialApi.profileFor(location);
+    const synodic = profile.moons[0]?.synodicPeriodDays ?? CelestialApi.#synodic();
+    return Quantity.of(
+      Solar.moonAzimuthDeg(
+        profile,
+        CelestialApi.CAMPUS_LATITUDE,
+        synodic,
+        CelestialApi.#t(time)
+      ),
+      'degrees'
     );
   }
 
@@ -176,6 +213,11 @@ export class CelestialApi {
 
   static #t(time?: Quantity<'s'>): number {
     return (time ?? WorldClockApi.getNow()).rawValue();
+  }
+
+  /** Universe-default lunar synodic period (days). */
+  static #synodic(): number {
+    return EARTH_LIKE.moons[0]?.synodicPeriodDays ?? 30;
   }
 }
 

@@ -62,17 +62,18 @@ export function hourAngleDeg(profile: CelestialProfile, t: number): number {
 }
 
 /**
- * Solar altitude in degrees:
+ * Altitude in degrees of any body from its declination and hour
+ * angle (shared by the sun and the moon):
  *   sin(alt) = sin(lat)·sin(δ) + cos(lat)·cos(δ)·cos(H)
  */
-export function solarAltitudeDeg(
-  profile: CelestialProfile,
+export function altitudeFor(
   latitudeDegrees: number,
-  t: number
+  decDegrees: number,
+  hourAngleDegrees: number
 ): number {
   const lat = toRad(latitudeDegrees);
-  const dec = toRad(declinationDeg(profile, t));
-  const H = toRad(hourAngleDeg(profile, t));
+  const dec = toRad(decDegrees);
+  const H = toRad(hourAngleDegrees);
   const sinAlt =
     Math.sin(lat) * Math.sin(dec) +
     Math.cos(lat) * Math.cos(dec) * Math.cos(H);
@@ -80,28 +81,55 @@ export function solarAltitudeDeg(
 }
 
 /**
- * Solar azimuth in degrees, measured from north clockwise:
+ * Azimuth in degrees (from north, clockwise) of any body from its
+ * declination and hour angle:
  *   cos(Az) = (sin(δ) − sin(lat)·sin(alt)) / (cos(lat)·cos(alt))
- * with the afternoon (H > 0) reflected to the western half.
+ * with the western half taken when the hour angle is positive.
  */
+export function azimuthFor(
+  latitudeDegrees: number,
+  decDegrees: number,
+  hourAngleDegrees: number
+): number {
+  const lat = toRad(latitudeDegrees);
+  const dec = toRad(decDegrees);
+  const altDeg = altitudeFor(latitudeDegrees, decDegrees, hourAngleDegrees);
+  const alt = toRad(altDeg);
+  const denom = Math.cos(lat) * Math.cos(alt);
+  if (Math.abs(denom) < 1e-12) {
+    // Body at the zenith / pole — azimuth is degenerate; report north.
+    return 0;
+  }
+  const cosAz = (Math.sin(dec) - Math.sin(lat) * Math.sin(alt)) / denom;
+  let az = toDeg(Math.acos(clamp(cosAz, -1, 1)));
+  if (hourAngleDegrees > 0) az = DEG_PER_TURN - az;
+  return az;
+}
+
+/** Solar altitude in degrees. */
+export function solarAltitudeDeg(
+  profile: CelestialProfile,
+  latitudeDegrees: number,
+  t: number
+): number {
+  return altitudeFor(
+    latitudeDegrees,
+    declinationDeg(profile, t),
+    hourAngleDeg(profile, t)
+  );
+}
+
+/** Solar azimuth in degrees, from north clockwise. */
 export function solarAzimuthDeg(
   profile: CelestialProfile,
   latitudeDegrees: number,
   t: number
 ): number {
-  const lat = toRad(latitudeDegrees);
-  const dec = toRad(declinationDeg(profile, t));
-  const altDeg = solarAltitudeDeg(profile, latitudeDegrees, t);
-  const alt = toRad(altDeg);
-  const denom = Math.cos(lat) * Math.cos(alt);
-  if (Math.abs(denom) < 1e-12) {
-    // Sun at the zenith / pole — azimuth is degenerate; report north.
-    return 0;
-  }
-  const cosAz = (Math.sin(dec) - Math.sin(lat) * Math.sin(alt)) / denom;
-  let az = toDeg(Math.acos(clamp(cosAz, -1, 1)));
-  if (hourAngleDeg(profile, t) > 0) az = DEG_PER_TURN - az;
-  return az;
+  return azimuthFor(
+    latitudeDegrees,
+    declinationDeg(profile, t),
+    hourAngleDeg(profile, t)
+  );
 }
 
 /** True when the sun is above the horizon (altitude > 0). */
@@ -214,4 +242,86 @@ export function nextFullMoon(
   let full = cycleStart + synodicSeconds / 2;
   if (full <= t) full += synodicSeconds;
   return full;
+}
+
+/**
+ * Sun's ecliptic longitude in degrees, 0 at the vernal equinox
+ * (dayIndex 0), advancing one turn per orbital year. Continuous in
+ * `t` (unlike the integer `dayOfYear`).
+ */
+export function solarEclipticLongitudeDeg(
+  profile: CelestialProfile,
+  t: number
+): number {
+  const yearSeconds = profile.yearLengthDays * profile.dayLengthSeconds;
+  const frac = ((t % yearSeconds) + yearSeconds) % yearSeconds;
+  return (frac / yearSeconds) * DEG_PER_TURN;
+}
+
+/**
+ * First-order lunar model (the pedagogical seam, honest but
+ * simplified): the moon is treated as a point on the ecliptic whose
+ * longitude leads the sun's by `360° · phase` (new moon shares the
+ * sun's longitude; full moon sits opposite). Declination follows the
+ * ecliptic via the axial tilt; the hour angle lags the sun's by the
+ * same separation, so a full moon rides high at local midnight.
+ * Ignores the 5° lunar inclination and orbital eccentricity — first
+ * order, not an ephemeris.
+ */
+function moonEclipticLongitudeDeg(
+  profile: CelestialProfile,
+  synodicPeriodDays: number,
+  t: number
+): number {
+  const phase = moonPhase(profile, synodicPeriodDays, t);
+  return solarEclipticLongitudeDeg(profile, t) + DEG_PER_TURN * phase;
+}
+
+export function moonDeclinationDeg(
+  profile: CelestialProfile,
+  synodicPeriodDays: number,
+  t: number
+): number {
+  const tilt = profile.axialTiltDegrees.rawValue();
+  const lambda = moonEclipticLongitudeDeg(profile, synodicPeriodDays, t);
+  return tilt * Math.sin(toRad(lambda));
+}
+
+/** Hour angle of the moon: the sun's, lagged by 360° · phase. */
+export function moonHourAngleDeg(
+  profile: CelestialProfile,
+  synodicPeriodDays: number,
+  t: number
+): number {
+  const phase = moonPhase(profile, synodicPeriodDays, t);
+  let H = hourAngleDeg(profile, t) - DEG_PER_TURN * phase;
+  // Normalize into [-180, 180].
+  H = ((((H + 180) % DEG_PER_TURN) + DEG_PER_TURN) % DEG_PER_TURN) - 180;
+  return H;
+}
+
+export function moonAltitudeDeg(
+  profile: CelestialProfile,
+  latitudeDegrees: number,
+  synodicPeriodDays: number,
+  t: number
+): number {
+  return altitudeFor(
+    latitudeDegrees,
+    moonDeclinationDeg(profile, synodicPeriodDays, t),
+    moonHourAngleDeg(profile, synodicPeriodDays, t)
+  );
+}
+
+export function moonAzimuthDeg(
+  profile: CelestialProfile,
+  latitudeDegrees: number,
+  synodicPeriodDays: number,
+  t: number
+): number {
+  return azimuthFor(
+    latitudeDegrees,
+    moonDeclinationDeg(profile, synodicPeriodDays, t),
+    moonHourAngleDeg(profile, synodicPeriodDays, t)
+  );
 }
