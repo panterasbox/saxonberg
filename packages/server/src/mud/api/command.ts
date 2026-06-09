@@ -2095,9 +2095,13 @@ export class CommandApi {
       }
     }
 
-    // Field validators.
+    // Field validators. Optional positionals that didn't bind
+    // short-circuit (same rule as options below) so authors don't
+    // have to write null-tolerant fallbacks in every validator.
     for (const [fname, def] of Object.entries(fieldDefs)) {
-      const err = runValidators(def._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && def.required === false) continue;
+      const err = runValidators(def._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2109,10 +2113,15 @@ export class CommandApi {
       }
     }
 
-    // Verb-option validators.
+    // Verb-option validators. Options are optional unless the YAML
+    // explicitly says otherwise; an absent option short-circuits its
+    // validator chain so authors don't have to teach every field
+    // validator (e.g. `mustBeAgent`) to tolerate `null`.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
-      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && opt.required !== true) continue;
+      const err = runValidators(opt._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2124,10 +2133,13 @@ export class CommandApi {
       }
     }
     // Payload-field validators — same shape as options (payload is
-    // option-shaped at the matcher level).
+    // option-shaped at the matcher level). Same absent-on-optional
+    // short-circuit.
     for (const [name, opt] of Object.entries(command.payload)) {
       const fname = opt.field ?? name;
-      const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+      const v = resolved[fname];
+      if (v === undefined && opt.required !== true) continue;
+      const err = runValidators(opt._resolvedValidators, v, fname, context);
       if (err) {
         context.note({
           kind: 'validator-failed',

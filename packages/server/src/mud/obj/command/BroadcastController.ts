@@ -42,7 +42,11 @@ export class BroadcastController extends CommandController<BroadcastModel> {
       return;
     }
 
-    const queryString = (model.query ?? '').trim() || '* with online';
+    // Default audience: every online avatar. `online` is a recognized
+    // MQL seed (see resolver.ts). `--to` overrides with author-supplied
+    // MQL like `online with species:khazadicus` or any other shape the
+    // grammar accepts.
+    const queryString = (model.query ?? '').trim() || 'online';
     let audience: Stuff[];
     try {
       const result = MqlApi.resolveMany(queryString, {

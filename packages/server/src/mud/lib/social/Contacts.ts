@@ -102,7 +102,13 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['_contacts'];
 
     static commandContributions: CommandContributions = {
-      self: ['contacts.yaml'],
+      // `group` rides alongside `contacts` here: both are personal-
+      // list management verbs an animate Contacts-bearing being uses
+      // to organize who-they-know. ContactsMixin is composed on every
+      // Avatar, so this exposes `group` everywhere `contacts` is
+      // exposed. NPCs that compose ContactsMixin in their own content
+      // gain both verbs uniformly.
+      self: ['contacts.yaml', 'group.yaml'],
       environment: [],
       inventory: [],
       peers: [],
