@@ -249,7 +249,7 @@ export class Backend implements IBackend {
    */
   public async handleAuthenticationSuccess(
     profile: PassportGoogleProfile,
-    done: (error: any, user?: any) => void
+    done: (error: unknown, user?: { id: string }) => void
   ): Promise<void> {
     try {
       // Delegate to Application for user/player creation

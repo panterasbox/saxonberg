@@ -9,7 +9,7 @@
  * - Graceful shutdown
  */
 
-import express, { type Express } from 'express';
+import express, { type Express, type RequestHandler } from 'express';
 import type { Server as HttpServer } from 'http';
 import session from 'express-session';
 import passport from 'passport';
@@ -22,6 +22,8 @@ import { AuthRoutes } from './auth/AuthRoutes';
 import { TestAuthRoutes } from './auth/TestAuthRoutes';
 import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
+import { ConnectionApi } from '../mud/api/connection';
+import { StuffApi } from '../mud/api/stuff';
 
 /**
  * Server - Main application server.
@@ -33,6 +35,8 @@ export class Server {
   private application: Application;
   private webSocketService: WebSocketService;
   private port: number;
+  // Set in setupMiddleware(), consumed in start() for the WS upgrade.
+  private sessionMiddleware!: RequestHandler;
 
   /**
    * Constructor.
@@ -122,8 +126,8 @@ export class Server {
 
     console.info('Server: Middleware configured');
 
-    // Store session middleware for WebSocket upgrade
-    (this.app as any).sessionMiddleware = sessionMiddleware;
+    // Store session middleware for the WebSocket upgrade (see start()).
+    this.sessionMiddleware = sessionMiddleware;
   }
 
   /**
@@ -142,9 +146,6 @@ export class Server {
 
     // Server stats (for development)
     this.app.get('/stats', (req, res) => {
-      const { ConnectionApi } = require('../mud/api/connection');
-      const { StuffApi } = require('../mud/api/stuff');
-
       res.json({
         connections: ConnectionApi.getConnectionCount(),
         objects: StuffApi.getObjectCount(),
@@ -171,8 +172,7 @@ export class Server {
       });
 
       // Initialize WebSocket server
-      const sessionMiddleware = (this.app as any).sessionMiddleware;
-      this.webSocketService.initialize(this.httpServer, sessionMiddleware);
+      this.webSocketService.initialize(this.httpServer, this.sessionMiddleware);
 
       console.info('Server: All services started successfully');
     } catch (error) {

@@ -100,7 +100,7 @@ describe('@CallSecurity on static methods', () => {
       static recorded = '';
       static helper(): void {
         StuffApi.recorded = ExecutionContextApi.getCurrentTarget()?.constructor
-          ? (ExecutionContextApi.getCurrentTarget() as Function).name
+          ? (ExecutionContextApi.getCurrentTarget() as { name: string }).name
           : 'none';
       }
     }

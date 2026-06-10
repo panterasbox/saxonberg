@@ -246,7 +246,8 @@ describe('PerceptibleMixin', () => {
 
   describe('Persistent field registration', () => {
     it('should register keywords as persistent field', () => {
-      const persistentFields = (TestObject as any).persistentFields;
+      const persistentFields = (TestObject as { persistentFields?: string[] })
+        .persistentFields;
 
       expect(persistentFields).toContain('keywords');
     });

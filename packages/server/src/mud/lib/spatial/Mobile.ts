@@ -354,6 +354,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           { cause: { traversalGuard: guard } }
         );
       }
+      // `mover` is the domain name this actor goes by throughout the
+      // traversal (it's what the messaging templates bind as `{{ mover }}`),
+      // and aliasing to a local lets `MixinApi.isSlotted(mover)` narrow it
+      // below — control-flow narrowing on `this` inside a mixin is unreliable.
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const mover = this;
       const source = exit.getSource();
       // Lazy-resolve the destination via the singleton cache. For Exits

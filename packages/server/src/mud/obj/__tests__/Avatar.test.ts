@@ -338,7 +338,7 @@ describe('Avatar', () => {
 
   describe('onMessage (SensorMixin override)', () => {
     let avatar: Avatar;
-    let mockApp: any;
+    let mockApp: { sendMessageToInteractive: ReturnType<typeof vi.fn> };
     let interactive1: Interactive;
     let interactive2: Interactive;
 
@@ -352,7 +352,10 @@ describe('Avatar', () => {
       };
 
       // Spy on Avatar.getApplicationInstance to return our mock app
-      vi.spyOn(Avatar as any, 'getApplicationInstance').mockReturnValue(mockApp);
+      vi.spyOn(
+        Avatar as unknown as { getApplicationInstance: () => unknown },
+        'getApplicationInstance'
+      ).mockReturnValue(mockApp);
 
       interactive1 = makeStuff(() => new Interactive('socket-1', 'session-1', makeUser('user-1')));
       interactive2 = makeStuff(() => new Interactive('socket-2', 'session-2', makeUser('user-1')));

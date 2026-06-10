@@ -11,7 +11,7 @@ import { WebSocketServer } from 'ws';
 import type { Server as HttpServer } from 'http';
 import type { IncomingMessage } from 'http';
 import type { Socket } from 'net';
-import type { RequestHandler } from 'express';
+import type { RequestHandler, Request, Response } from 'express';
 import type { Backend } from '../../backend/Backend';
 
 /**
@@ -49,10 +49,16 @@ export class WebSocketService {
 
     // Handle WebSocket upgrade with session middleware
     httpServer.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
-      // Run session middleware to populate req.session
-      sessionMiddleware(request as any, {} as any, () => {
-        this.handleUpgrade(request, socket, head);
-      });
+      // Run session middleware to populate req.session. The upgrade
+      // request isn't a full Express Request/Response, but the session
+      // middleware only touches the bits it needs.
+      sessionMiddleware(
+        request as unknown as Request,
+        {} as unknown as Response,
+        () => {
+          this.handleUpgrade(request, socket, head);
+        }
+      );
     });
 
     console.info('WebSocketService: WebSocket server initialized');
@@ -73,11 +79,15 @@ export class WebSocketService {
     socket: Socket,
     head: Buffer
   ): void {
-    // Get session from request
-    const session = (request as any).session;
+    // Get session from request (populated by the session middleware above).
+    const session = (
+      request as unknown as {
+        session?: { id: string; passport?: { user?: { id?: string } } };
+      }
+    ).session;
     const userId = session?.passport?.user?.id;
 
-    if (!userId) {
+    if (!userId || !session) {
       console.warn('WebSocketService: WebSocket upgrade rejected - no userId in session');
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();

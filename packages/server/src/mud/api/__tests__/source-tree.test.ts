@@ -35,12 +35,12 @@ const SANDBOX_ROOT = findPackagesRoot(HERE);
 
 function findPackagesRoot(start: string): string {
   let dir = start;
-  while (true) {
-    if (path.basename(dir) === 'packages') return dir;
+  while (path.basename(dir) !== 'packages') {
     const parent = path.dirname(dir);
     if (parent === dir) throw new Error('test setup: no packages ancestor');
     dir = parent;
   }
+  return dir;
 }
 
 describe('SourceTreeApi.getSandboxRoot', () => {

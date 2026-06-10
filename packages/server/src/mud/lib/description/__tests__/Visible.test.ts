@@ -64,7 +64,8 @@ describe('VisibleMixin', () => {
 
   describe('persistent fields', () => {
     it('should declare shortDescription and longDescription as persistent fields', () => {
-      const fields = (TestVisible as any).persistentFields;
+      const fields = (TestVisible as { persistentFields?: string[] })
+        .persistentFields;
       expect(fields).toContain('shortDescription');
       expect(fields).toContain('longDescription');
     });

@@ -34,13 +34,13 @@ export class PassportConfig {
    */
   public configure(): void {
     // Serialize user: store { id: userId } in session
-    passport.serializeUser((user: any, done) => {
-      done(null, { id: user.id });
+    passport.serializeUser((user, done) => {
+      done(null, { id: (user as { id: string }).id });
     });
 
     // Deserialize user: retrieve { id: userId } from session
-    passport.deserializeUser((obj: any, done) => {
-      done(null, obj);
+    passport.deserializeUser((obj, done) => {
+      done(null, obj as Express.User);
     });
 
     // In test mode the Google OAuth strategy is skipped entirely:
@@ -79,7 +79,7 @@ export class PassportConfig {
           accessToken: string,
           refreshToken: string,
           profile: PassportGoogleProfile,
-          done: (error: any, user?: any) => void
+          done: (error: unknown, user?: { id: string }) => void
         ) => {
           // Delegate to Backend for user/player creation
           await this.backend.handleAuthenticationSuccess(profile, done);

@@ -257,7 +257,10 @@ export class PersistenceManager {
    * @param document - Document to save
    * @returns MongoDB _id (as string)
    */
-  public async save(collectionName: string, document: any): Promise<string> {
+  public async save(
+    collectionName: string,
+    document: Record<string, unknown>
+  ): Promise<string> {
     return this.dispatchSave(collectionName, document);
   }
 
@@ -268,7 +271,10 @@ export class PersistenceManager {
    * @param id - MongoDB _id (string or ObjectId)
    * @returns Document or null if not found
    */
-  public async findById(collectionName: string, id: string): Promise<any | null> {
+  public async findById(
+    collectionName: string,
+    id: string
+  ): Promise<Record<string, unknown> | null> {
     const collection = this.getCollection(collectionName);
 
     try {
@@ -300,7 +306,7 @@ export class PersistenceManager {
   public async find(
     collectionName: string,
     query: Record<string, unknown>
-  ): Promise<any[]> {
+  ): Promise<Record<string, unknown>[]> {
     const collection = this.getCollection(collectionName);
 
     try {

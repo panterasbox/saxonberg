@@ -32,6 +32,16 @@ import {
 import type { EventRegistry } from '../obj/EventRegistry';
 
 /**
+ * A class reference used in emit/subscribe allowlists. Entries are
+ * compared by identity against the call-stack originator, never called
+ * or constructed. Matching on the `prototype` property (which every
+ * class object carries) accepts any class — including the Api
+ * singletons whose `private constructor` would be rejected by an
+ * `abstract new (...)` construct-signature type.
+ */
+type OriginatorRef = { readonly prototype: unknown };
+
+/**
  * Listener invocation context. The triggering frame is the proxy /
  * decorator frame that wrapped whichever method called `emit` —
  * useful for attribution without inheriting the originator's
@@ -95,7 +105,7 @@ const HISTORY_LIMIT = 100;
  * `checkAccess` proxy mediation) don't break the check.
  */
 export function emittableBy(
-  ...allowed: Function[]
+  ...allowed: OriginatorRef[]
 ): PropAccessCheck<PropValue> {
   return (_prop, op) => {
     const stack = ExecutionContextApi.getCallStack();
@@ -140,8 +150,8 @@ function findClassFrame(
  * leave it open.
  */
 export function eventPolicy(opts: {
-  emit: Function[];
-  subscribe?: Function[] | null;
+  emit: OriginatorRef[];
+  subscribe?: OriginatorRef[] | null;
 }): PropAccessCheck<PropValue> {
   const emitGate = emittableBy(...opts.emit);
   return (prop, op, special) => {
@@ -158,7 +168,7 @@ export function eventPolicy(opts: {
 
 function originatorMatches(
   originator: unknown,
-  allowed: Function[]
+  allowed: OriginatorRef[]
 ): boolean {
   if (originator == null) return false;
   // Static-decorator frames: target IS the class.
