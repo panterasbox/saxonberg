@@ -16,12 +16,17 @@ questions: what questions does my game plant? Am I making the player
 *want* the answers? And am I rewarding the curiosity I provoke, or
 letting it fizzle?
 
-> **From the book.** Schell's framing is that the player's mind is
-> always running questions, and good design *plants and stokes* them —
-> a well-made game keeps the player wondering, and every answered
-> question should open a new one. Curiosity is intrinsic motivation in
-> its rawest form; a game that stops provoking questions stops being
-> played.[^aogd-cu]
+> **From the book.** Schell ties curiosity to the player's *true*
+> motivation — "not just the goals your game has set forth but the
+> reason the player wants to achieve those goals." The lens asks three
+> questions: "What questions does my game put into the player's mind?
+> What am I doing to make them care about these questions? What can I do
+> to make them invent even more questions?" His own example is small but
+> exact: a timed maze poses "Can I find my way through this maze in 30
+> seconds?", and adding a reward animation layers a *second* question —
+> "I wonder what the next animation will be?" — so curiosity compounds.
+> The craft is to keep planting questions that make the player want the
+> next one.[^aogd-cu]
 
 ## Why our design prompts it
 
@@ -80,7 +85,12 @@ holy grail.
    *world* question requires or rewards engaging the *subject*
    (vision's "a knowledge gap becomes an obstacle" is exactly this). This
    is the curiosity / [Motivation](./motivation.md) / pedagogy nexus and
-   the cleanest path to intrinsic learning motivation.
+   the cleanest path to intrinsic learning motivation. It is also a
+   direct application of Schell's own counsel to design for the *reason*
+   a player wants a goal, not just the goal: if the reason the player
+   pushes on a locked door is to learn what's behind it, the subject has
+   to *be* the answer — Schell's "make them invent even more questions,"
+   turned into a teaching mechanism.
 3. **Treat the "finish" technique as a reusable lure.** Strange surface
    over familiar function is how text plants a question cheaply; make it
    an explicit authoring tool, not a one-off campus trick.
@@ -90,7 +100,10 @@ holy grail.
 
 ---
 
-[^aogd-cu]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Curiosity**, from Schell's treatment of
-    the player's mind and motivation. Cited by lens; chapter pointer
-    approximate; page numbers omitted (edition-dependent).
+[^aogd-cu]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #6, the Lens of Curiosity**
+    (p. 41), from the early chapter on defining play and games, where
+    the lens lands in Schell's discussion of "the player's true
+    motivations." The three questions and the maze/animation example are
+    quoted/paraphrased from that page. (3rd-edition print pagination;
+    lens number stable across editions.)

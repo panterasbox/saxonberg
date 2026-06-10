@@ -21,15 +21,23 @@ The questions: what do we want the player to do? Are we *telling* them
 to, or making them *want* to? Which lever is doing the work — and is it
 invisible, or can the player feel the hand on their back?
 
-> **From the book.** Schell's reframe is that the designer doesn't
-> really want to *limit* the player — they want the player to *want*
-> what the game needs — and that the *feeling* of freedom matters far
-> more than literal, unlimited freedom: a player who is gently guided
-> but feels free is having a better time than one with real options who
-> feels nagged. Of his six levers, he singles out **characters** as the
-> most potent, because players empathize with them and will act to help
-> or please them. That's precisely why a character-led design is both
-> the strongest form of indirect control and the most dangerous.[^aogd-ic]
+> **From the book.** Schell frames the whole problem around the
+> *feeling* of freedom: "The feeling of freedom is so important in a
+> game that it merits a new lens" (the Lens of Freedom), and he is
+> careful to separate *having* freedom of action from *feeling* free.
+> Indirect control reconciles the designer's "vision of what they would
+> like the players to do" with the player's free will. He catalogs six
+> methods — constraints, goals, interface, visual design, characters,
+> music/sound — and is candid that the aim is to "coerce players toward
+> ideal behavior without impinging on their feeling of freedom." Of the
+> six, **characters** are the one he dwells on: make the player
+> "actually care about the characters … willingly wanting to obey them,
+> protect them, help them," and "you suddenly have an excellent tool to
+> control what the player will and will not try to do." He uses the word
+> *manipulate*, and his example is *Ico* — the urge to protect the
+> princess drives the player with no instruction given. Tellingly, the
+> lens card's final question is a conscience check: "Is my design
+> inducing desires I'd rather the player *not* have?"[^aogd-ic]
 
 ## Why our design prompts it
 
@@ -148,8 +156,14 @@ boundary's job.
   behavior engineering — the risk `standard-model.md` already owns.
   Making someone *want* to study is the dream; making them *compulsively*
   study because the NPC they're attached to withholds approval is the
-  nightmare, and they are the same mechanism aimed differently. This
-  lens and Responsibility/Transformation share a blade.
+  nightmare, and they are the same mechanism aimed differently. Schell
+  builds the worry into the lens himself — its final question is "Is my
+  design inducing desires I'd rather the player *not* have?" — and he is
+  frank that characters let you "manipulate" the player through their
+  empathy (his *Ico* example: you protect the princess because failing
+  her *feels* bad). He means it as craft; aimed at a real study habit,
+  that conscience-check question stops being rhetorical. This lens and
+  Responsibility/Transformation share a blade.
 - **NPC-led dialogue is a quality cliff, not a slope.** The whole
   characters-as-control strategy rests on NPCs that lead *well*. An NPC
   that leads badly — flat hooks, dead-end misses — is worse than one
@@ -188,9 +202,14 @@ boundary's job.
 
 ---
 
-[^aogd-ic]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Indirect Control** and the **Lens of
-    Freedom**, from the chapter on indirect control. The six methods
-    (constraints, goals, interface, visual design, characters, music)
-    are Schell's. Cited by lens and chapter; page numbers omitted
-    (edition-dependent).
+[^aogd-ic]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #81, the Lens of Indirect
+    Control** (p. 353) and **Lens #79, the Lens of Freedom** (p. 343),
+    from the indirect-control chapter (opening section "The Feeling of
+    Freedom," p. 343). The six methods — constraints, goals, interface,
+    visual design, characters, music/sound — are Schell's. The *Ico*
+    example and the companion **Lens #80, the Lens of Help** (p. 352)
+    come from "Indirect Control Method #5: Characters" (pp. 351–352); the
+    "inducing desires I'd rather the player not have" question is the
+    final bullet of Lens #81's card. (3rd-edition print pagination; lens
+    numbers stable across editions.)
