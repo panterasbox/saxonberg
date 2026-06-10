@@ -1,0 +1,41 @@
+# systemd unit for the DEV (mutable) instance — the server runs from a
+# live, writable git checkout via tsx, so in-game write/reload and the
+# future GitApi operate on the same tree. Install on the box at
+# /etc/systemd/system/saxonberg.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now saxonberg
+#
+# "DEV" means mutable source, NOT local dev-mode: it still runs behind
+# Caddy TLS with NODE_ENV=production (secure cookies, prod client build,
+# real Google auth). See docs/deployment.md § Two instances.
+
+[Unit]
+Description=Saxonberg game server (dev / mutable instance)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=saxonberg
+Group=saxonberg
+WorkingDirectory=/srv/saxonberg
+# Secrets materialized from SSM Parameter Store off-box, then scp'd here
+# (chmod 600, owned by saxonberg). The app never talks to AWS.
+EnvironmentFile=/srv/saxonberg/.env
+Environment=NODE_ENV=production
+Environment=PORT=2010
+Environment=CLIENT_DIST=/srv/saxonberg/packages/client/dist
+Environment=SAXONBERG_ROOT=/srv/saxonberg
+ExecStart=/srv/saxonberg/deploy/dev/run-server.sh
+Restart=on-failure
+RestartSec=5
+# The server traps SIGTERM for graceful shutdown (Server.setupShutdownHandlers).
+KillSignal=SIGTERM
+TimeoutStopSec=30
+# Light hardening for the co-hosted box. NOT ProtectHome — the app user's
+# home holds the pnpm store and git config (the eventual GitApi runs git
+# as this user).
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

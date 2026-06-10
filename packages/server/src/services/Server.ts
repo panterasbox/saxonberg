@@ -11,6 +11,8 @@
 
 import express, { type Express, type RequestHandler } from 'express';
 import type { Server as HttpServer } from 'http';
+import fs from 'node:fs';
+import path from 'node:path';
 import session from 'express-session';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
@@ -134,14 +136,11 @@ export class Server {
    * Setup basic routes.
    */
   private setupRoutes(): void {
-    // Health check
-    this.app.get('/', (req, res) => {
-      res.json({
-        message: 'Saxonberg 2.0 Server',
-        status: 'running',
-        version: '0.1.0',
-        timestamp: new Date().toISOString(),
-      });
+    // Liveness probe — always available, independent of whether the
+    // client bundle is being served. Used by the container health check
+    // and the reverse proxy.
+    this.app.get('/healthz', (req, res) => {
+      res.json({ status: 'ok', uptime: process.uptime() });
     });
 
     // Server stats (for development)
@@ -152,6 +151,31 @@ export class Server {
         uptime: process.uptime(),
       });
     });
+
+    // In production the server serves the built client from its own
+    // origin — set CLIENT_DIST to the client's `dist/`. When it's unset
+    // (dev, tests, e2e) the client is served separately by Vite and `/`
+    // returns a plain status payload (the e2e harness gates on it).
+    const clientDist = process.env.CLIENT_DIST;
+    if (clientDist && fs.existsSync(clientDist)) {
+      this.app.use(express.static(clientDist));
+      // SPA fallback: any unmatched GET returns index.html so client-
+      // side routing survives deep links and reloads. Auth + API routes
+      // are registered earlier and match first.
+      this.app.get('*', (_req, res) => {
+        res.sendFile(path.join(clientDist, 'index.html'));
+      });
+      console.info(`Server: serving client bundle from ${clientDist}`);
+    } else {
+      this.app.get('/', (req, res) => {
+        res.json({
+          message: 'Saxonberg 2.0 Server',
+          status: 'running',
+          version: '0.1.0',
+          timestamp: new Date().toISOString(),
+        });
+      });
+    }
 
     console.info('Server: Routes configured');
   }

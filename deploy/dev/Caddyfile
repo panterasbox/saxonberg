@@ -1,0 +1,11 @@
+# DEV instance. Caddy runs natively on the box (apt package, its own
+# systemd unit). It auto-issues + renews a Let's Encrypt cert and
+# reverse-proxies to the server on localhost (transparent WebSocket
+# upgrade, so wss:// rides through). Install at /etc/caddy/Caddyfile.
+#
+# Hostname is a placeholder — confirm/change. Whatever it is, the dev
+# SSM tree's GOOGLE_CALLBACK_URL must match it.
+dev.saxonberg.panterasbox.net {
+	encode zstd gzip
+	reverse_proxy localhost:2010
+}

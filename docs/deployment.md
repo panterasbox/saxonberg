@@ -15,10 +15,18 @@ operational burden, not for scale.
 - **CI** runs lint + tests + build on every merge request and on the
   default branch (the `validate` stage in `.gitlab-ci.yml`). CI is the
   authoritative place validation happens.
-- **The live game instance** is planned but not yet stood up: a single
-  small **Lightsail** box running the server in Docker behind **Caddy**
-  (auto-HTTPS via Let's Encrypt), with **MongoDB Atlas** for data and
-  **SSM Parameter Store** for secrets. Target cost **~$11/mo**.
+- **The live game runs as (eventually) two small Lightsail boxes**, both
+  behind **Caddy** (auto-HTTPS via Let's Encrypt), with **MongoDB Atlas**
+  for data and **SSM Parameter Store** for secrets:
+  - **dev** — a *mutable* box: the server runs **natively from a writable
+    git checkout** via `tsx`, so authors can `write`/`reload` code live
+    (and the future `GitApi` operates on that tree). Updated in place by
+    `git pull` + rebuild + restart.
+  - **prod** — an *immutable* box: the server runs from a **Docker image
+    built from a stable git tag**. No live editing; deploy = pull a new
+    image + restart; rollback = a prior image tag.
+  - The dev box is the immediate target; prod follows when there's a
+    stable release to cut.
 - **No ALB, no CodeDeploy, no enterprise networking.** Those were the
   cost and complexity traps in the previous project (`panterasbot`).
 
@@ -39,30 +47,51 @@ instance. Most of that was scaffolding around a long-dead deployment.
 
 This deployment deletes all of it. See [Cost](#cost).
 
-## Architecture (planned)
+## Two instances: dev (mutable) vs prod (immutable)
+
+The two boxes run the **same code** two different ways, because they
+have opposite jobs. This split is load-bearing — it's why the engine
+expects a writable source tree (see the CMS slate's `GitApi`).
+
+| | **dev** (mutable) | **prod** (immutable) |
+|---|---|---|
+| Source on box | a **writable git checkout** (`/srv/saxonberg`) | baked into a **Docker image** |
+| Runtime | `tsx` from source, under **systemd**, as a dedicated user | `tsx` from source, inside a **container** |
+| Code updates | `git pull` + rebuild + restart, *or* in-game `reload` (warm, world preserved) | pull a new image + restart |
+| Built from | the default branch (latest) | a stable **git tag** |
+| Rollback | `git checkout <sha>` | a prior **image tag** |
+| Live authoring | **yes** — `write`/`reload`/`GitApi` operate on the tree | no — read-only release |
+| Files | `deploy/dev/` | `deploy/prod/` |
+
+"dev" means *mutable source*, not local dev-mode: both boxes run behind
+Caddy TLS with `NODE_ENV=production` (secure cookies, the production
+client build, real Google auth). Both keep the runtime AWS-free — config
+is materialized from SSM in CI and shipped in (see *Configuration*).
 
 ```
                  Let's Encrypt (auto cert)
                           │
   player browser ── https/wss ──▶ Caddy :443  (on the box)
-                                    │  reverse-proxy
-                                    ▼
-                            saxonberg server :2010  (Docker)
+                                    │  reverse-proxy → localhost:2010 (dev)
+                                    ▼                  app:2010      (prod)
+                            saxonberg server :2010
+                              dev:  tsx ← writable git checkout (systemd)
+                              prod: tsx ← source baked in a Docker image
                                     │
                                     ▼
                           MongoDB Atlas (M0, free)
-  secrets ◀── SSM Parameter Store (SecureString)
+  secrets ◀── SSM Parameter Store (SecureString), materialized in CI
 ```
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Compute | **Lightsail 2 GB instance** (~$10/mo flat) | Bundles a static IP + 3 TB transfer; no separate IPv4 / EBS / transfer metering. The cost-effective form of a single-box design. |
-| TLS | **Caddy + Let's Encrypt** | Auto-issue + auto-renew on the box; reverse-proxies `wss` → `:2010`. No ALB, no ACM. LE is universally trusted. |
+| Compute | **Lightsail 2 GB instance(s)** (~$10/mo flat each) | Bundles a static IP + 3 TB transfer; no separate IPv4 / EBS / transfer metering. One box per instance (dev first; prod later). |
+| TLS | **Caddy + Let's Encrypt** | Auto-issue + auto-renew; reverse-proxies `wss` → `:2010`. dev: Caddy native (apt) → `localhost:2010`. prod: Caddy container → `app:2010`. No ALB, no ACM. |
 | Database | **MongoDB Atlas M0** (free) | Not self-hosted, not DocumentDB. The server tests are DB-free, but the running app needs `MONGODB_URI`. |
-| Secrets | **SSM Parameter Store** `SecureString` (free) | The five strings: `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `SESSION_SECRET`. No Secrets Manager — nothing needs rotation. |
-| Client + docs | Served by the Node app | Docs additionally on GitLab Pages. |
-| DNS | Route 53 | `saxonberg.panterasbox.net` → the Lightsail static IP. `GOOGLE_CALLBACK_URL` points at the HTTPS host. |
-| Image registry | GitLab Container Registry | Built into the project; the box pulls with a deploy token. No ECR / AWS auth for images. |
+| Secrets | **SSM Parameter Store** `SecureString` (free) | Flat keys: `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `SESSION_SECRET`, … No Secrets Manager — nothing needs rotation. |
+| Client + docs | **Served by the Node app** (`CLIENT_DIST` → built bundle); docs additionally on GitLab Pages. | Single origin, so Caddy is a dumb TLS proxy and the client resolves its endpoints from `window.location`. |
+| DNS | Route 53 | `dev.saxonberg.panterasbox.net` (dev) / `saxonberg.panterasbox.net` (prod) → each box's static IP. Each env's `GOOGLE_CALLBACK_URL` matches its host. |
+| Image registry | GitLab Container Registry | **prod only** — the prod box pulls the tagged release image with a deploy token. dev needs no registry (runs from the checkout). |
 
 ### The jumphost
 
@@ -71,11 +100,13 @@ SSH relay by a handful of trusted shell users. It was the old app
 server, borrowed as a jumphost. Because EC2 meters compute + EBS +
 IPv4 separately, it costs ~$25/mo — an expensive way to run a relay.
 
-Plan: fold the jumphost onto the Lightsail box (the trusted users make
-co-hosting acceptable) and retire the `t2.small`. The game server runs
-as its **own dedicated OS user** with `chmod 700` on its working dir and
-secrets pulled into its process env at runtime (never a world-readable
-`.env`), so a shell user can't trivially read the game's credentials.
+Plan: fold the jumphost onto the **dev** Lightsail box (the always-on
+mutable one; trusted users make co-hosting acceptable) and retire the
+`t2.small`. The game server runs as its **own dedicated OS user** with
+`chmod 700` on its working dir; secrets live in a `chmod 600`
+`.env` owned by that user and loaded via systemd `EnvironmentFile`
+(not world-readable), so a co-hosted shell user can't read the game's
+credentials.
 
 > Caution: the `t2.small`'s public IP is auto-assigned, not an EIP —
 > stopping it changes the IP and breaks `shell.*`. Snapshot its EBS
@@ -139,70 +170,123 @@ The `pages` job runs `pnpm docs` (TypeDoc → static site) and publishes
 it to GitLab Pages from the default branch. The project is public, so
 the docs are reachable without a GitLab login.
 
-### Build + deploy (added at standup)
+### Build + deploy (now wired)
 
-Deferred until the live instance exists, because the deploy job SSHes
-to the box. The whole of CD for a single Docker box is *build → push →
-ssh-and-restart* — no CodeDeploy, no appspec, no S3 bundle:
+`.gitlab-ci.yml` has three CD jobs, all `when: manual` (saxonberg is a
+**stateful** server — the world lives in memory; a restart drops live
+connections, so you merge freely and *click* deploy):
 
-```yaml
-build-image:            # on default branch: build + push to GitLab registry
-  stage: build
-  image: docker:latest
-  services: [docker:dind]
-  script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
-    - docker push --all-tags "$CI_REGISTRY_IMAGE"
+- **`deploy-dev`** (default branch) — refreshes the **dev** box in place.
+  Renders the dev env from SSM, `scp`s it to `/srv/saxonberg/.env`, then
+  `ssh`es and runs `deploy/dev/update.sh` (`git pull` → `pnpm install`
+  → build types + client → `systemctl restart saxonberg`). No image.
+- **`build-image`** (git **tags** only) — `docker build` + push the
+  release image to the GitLab Container Registry, tagged `:<tag>` and
+  `:latest`. This is how you cut a **prod** release.
+- **`deploy-prod`** (git tags, needs `build-image`) — renders the prod
+  env from SSM, `scp`s `deploy/prod/{docker-compose.yml,Caddyfile}` +
+  `.env` to the prod box, then `docker compose pull && up -d`.
 
-deploy:                 # manual click → pull + restart on the box
-  stage: deploy
-  needs: [build-image]
-  script:
-    - ssh deploy@saxonberg.panterasbox.net
-        "cd /srv/saxonberg && docker compose pull && docker compose up -d && docker image prune -f"
-  environment: { name: production, url: https://saxonberg.panterasbox.net }
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      when: manual
-```
+So: **push to master → click `deploy-dev`** for the mutable box;
+**tag a release → click `build-image` then `deploy-prod`** for the
+immutable box. GitLab's `environment` blocks (`dev` / `production`)
+give tracked environments, deploy buttons, live URLs, and one-click
+re-deploy of a prior pipeline for rollback.
 
-`when: manual` is deliberate: saxonberg is a **stateful** server (the
-world lives in memory; a deploy drops live WebSocket connections), so
-you merge freely and *click* deploy when you want the server to take
-the update. GitLab's `environment` block gives a tracked production
-environment, the deploy button, the live URL, and one-click re-deploy
-of a previous pipeline for rollback.
+Both deploys keep AWS off the box: `deploy/materialize-env.sh` runs in
+CI (which holds the creds) and ships the env file in.
 
-Dockerfile deltas from the old project: `yarn` → `pnpm` workspaces
-(multi-stage build), drop the private-registry/`NPM_TOKEN` dance
-(`@saxonberg/types` is a workspace package, no private deps), port
-`2050` → `2010`.
+Required masked CI/CD variables (Settings → CI/CD → Variables).
+`DEPLOY_HOST` / `DEPLOY_USER` / `SSH_PRIVATE_KEY` are **environment-
+scoped** — set distinct values for the `dev` and `production`
+environments:
 
-## Standup runbook (one-time, interactive)
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — IAM user scoped to
+  `ssm:GetParametersByPath` on `/saxonberg/*` + `kms:Decrypt`.
+- `AWS_DEFAULT_REGION` — e.g. `us-west-2`.
+- `SSH_PRIVATE_KEY` — the deploy user's key.
+- `DEPLOY_HOST` — the box's hostname.
+- `DEPLOY_USER` — `saxonberg` (dev; the service owner) / a deploy user (prod).
 
-Done by hand when a live instance is wanted; not pipeline-driven.
+### Runtime shape (both instances)
+
+Two facts both boxes depend on:
+
+- **The server runs from TypeScript source via `tsx`**, not a compiled
+  `dist`. The call-security loader hook (`preload.js` →
+  `services/loader/loader-hook.js`) stamps every `mud/` module at load
+  time, and the codebase uses extensionless relative imports that only
+  `tsx`/Vitest resolve (plain Node ESM rejects them). The designed
+  production entry — per the loader-hook header — is `tsx
+  src/preload.js`, the server package's `start` script. There is no
+  separate compiled-output run path; `pnpm build` (tsc) is a typecheck
+  gate, not the runtime. (Running from source is also what makes the dev
+  box's in-game `reload` work — tsx re-imports the edited `.ts`.)
+- **The Node server serves the client** from its own origin: the build
+  produces the client bundle (`vite build`) and `CLIENT_DIST` points at
+  it; `Server.setupRoutes` mounts `express.static` + an SPA fallback
+  when `CLIENT_DIST` is set (unset in local dev/e2e, where Vite serves
+  the client separately). Single origin means the client resolves its
+  server/WS endpoints from `window.location` (see
+  `packages/client/src/config.ts`) — no build-time URL baked in — and
+  Caddy stays a dumb TLS reverse proxy.
+
+Dockerfile (prod) deltas from the old project: `yarn` → `pnpm` workspaces,
+drop the private-registry/`NPM_TOKEN` dance (`@saxonberg/types` is a
+workspace package, no private deps), port `2050` → `2010`, and run the
+server via `tsx` rather than a built artifact.
+
+## Standup runbook — dev box (one-time, interactive)
+
+The native, mutable instance. Done by hand; afterwards `deploy-dev`
+keeps it current.
 
 1. **Provision** the Lightsail 2 GB instance (a static IP comes with it).
-2. **Install** Docker + Caddy. Write a `Caddyfile` mapping
-   `saxonberg.panterasbox.net` → `localhost:2010` (Caddy auto-fetches
-   the LE cert; ports 80/443 must be open).
-3. **Atlas**: create a free M0 cluster, get the SRV `MONGODB_URI`.
-4. **Param Store**: put the five `SecureString` values; give the box's
-   IAM role `ssm:GetParameter` on that path; have the container fetch
-   them into its env at start.
-5. **DNS**: `saxonberg.panterasbox.net` A → the Lightsail static IP;
-   set `GOOGLE_CALLBACK_URL` to the HTTPS host and register it in the
-   Google OAuth console.
-6. **Deploy user**: create `deploy` on the box with the CI public key in
-   `authorized_keys`; drop a `docker-compose.yml` (app + Caddy) under
-   `/srv/saxonberg`.
-7. **Jumphost migration**: recreate the trusted shell accounts + their
-   `authorized_keys` on the new box; snapshot the old `t2.small` EBS;
+2. **System packages**: install **Node 22** (nodesource apt, pinned),
+   enable `corepack` (gives `pnpm`), and install **Caddy** (apt — ships
+   its own systemd unit reading `/etc/caddy/Caddyfile`). No Docker on
+   this box.
+3. **App user + checkout**: create the `saxonberg` user; as it,
+   `git clone` the repo to `/srv/saxonberg` (a deploy key/token with
+   read access), then `pnpm install --frozen-lockfile`,
+   `pnpm --filter @saxonberg/types build`,
+   `pnpm --filter @saxonberg/client build`.
+4. **Atlas**: create a free M0 cluster, get the SRV `MONGODB_URI`.
+5. **Param Store**: put the `SecureString` values under
+   `/saxonberg/default/*` + `/saxonberg/dev/*` (the dev
+   `GOOGLE_CALLBACK_URL` points at the dev host). Give the **CI** IAM
+   user `ssm:GetParametersByPath` + `kms:Decrypt`; the box needs no AWS
+   access.
+6. **DNS + Caddy**: `dev.saxonberg.panterasbox.net` A → the static IP;
+   copy `deploy/dev/Caddyfile` to `/etc/caddy/Caddyfile` (edit the
+   hostname); register the dev `GOOGLE_CALLBACK_URL` in the Google OAuth
+   console.
+7. **systemd**: copy `deploy/dev/saxonberg.service` to
+   `/etc/systemd/system/`, add a sudoers line letting `saxonberg` run
+   `systemctl restart saxonberg` without a password (so `update.sh`
+   works), `daemon-reload`, then materialize `.env` (step 8) and
+   `enable --now saxonberg`.
+8. **First config + boot**: run `deploy/materialize-env.sh dev out.env`
+   from a machine with AWS creds, `scp out.env
+   saxonberg@<box>:/srv/saxonberg/.env` (chmod 600), start the service.
+9. **Jumphost migration**: recreate the trusted shell accounts + their
+   `authorized_keys` on this box; snapshot the old `t2.small` EBS;
    repoint `shell.panterasbox.net`; verify SSH + game both work; then
    **terminate the `t2.small` last**.
-8. **Enable the `build-image` + `deploy` CI jobs** (see above) and do
-   the first deploy.
+10. **Set the `deploy-dev` CI/CD variables** (AWS creds; `SSH_PRIVATE_KEY`
+    / `DEPLOY_HOST` / `DEPLOY_USER=saxonberg` scoped to the `dev`
+    environment), then click the manual `deploy-dev` job to confirm the
+    update loop works end-to-end.
+
+## Standup runbook — prod box (later)
+
+The immutable instance, when there's a stable release to cut. Like the
+old single-box Docker plan: provision a Lightsail box, install Docker +
+Compose, create a `deploy` user with `/srv/saxonberg`, populate
+`/saxonberg/production/*` in Param Store, point
+`saxonberg.panterasbox.net` at it, set the `production`-scoped CI vars.
+Then **tag a release** (`git tag vX.Y.Z && git push --tags`) → click
+`build-image` → click `deploy-prod`.
 
 ## Configuration & secrets
 
@@ -239,22 +323,46 @@ and on the box.
 
 ### Where SSM is read — deploy-time materialization (not runtime)
 
-**The app never talks to AWS.** SSM is read by the **deploy pipeline**,
-not the server. The `deploy` job (which already holds AWS creds via
-OIDC) reads Parameter Store, renders an env file, and ships it to the
-box; the box and the app just read env vars:
+**The app never talks to AWS.** SSM is read by the **deploy job**, not
+the server — which is why this holds on Lightsail (no IAM instance role,
+so a runtime fetch would need a standing AWS key on the box). The job
+(which holds AWS creds) runs `deploy/materialize-env.sh <env>`, which
+renders an env file, and ships it to the box; the box and the app just
+read env vars. The box loads that file two ways: **dev** via systemd
+`EnvironmentFile=/srv/saxonberg/.env`; **prod** via compose
+`env_file: .env`.
 
 ```
-deploy:
-  script:
-    - aws ssm get-parameters-by-path --path /saxonberg/prod --with-decryption ... > prod.env
-    - scp prod.env deploy@box:/srv/saxonberg/.env
-    - ssh deploy@box "cd /srv/saxonberg && docker compose pull && docker compose up -d"
+# deploy/materialize-env.sh <env> — default tree first, env overlay
+# second (env wins, last write):
+for tree in /saxonberg/default /saxonberg/<env>; do
+  aws ssm get-parameters-by-path --path "$tree" --recursive --with-decryption ... >> out.env
+done
+# then: scp out.env <user>@<box>:/srv/saxonberg/.env
 ```
+
+#### Param Store tree convention
+
+Two layers, keyed off the deploy target (this mirrors the old
+`panterasbot` layout):
+
+```
+/saxonberg/default/<KEY>        ← shared base, both instances
+/saxonberg/dev/<KEY>            ← dev-instance overlay
+/saxonberg/production/<KEY>     ← prod-instance overlay
+```
+
+Keys are flat env-var names (`MONGODB_URI`, `SESSION_SECRET`, the
+`GOOGLE_*` set, `MONGODB_DATABASE`, `CLIENT_URL`). The script reads
+`default/` then the env tree, appending both; the later (env) value
+wins. Each instance's overlay carries the values that differ — most
+importantly `GOOGLE_CALLBACK_URL` and `MONGODB_DATABASE`. The
+environment is chosen by the **CI job** (`deploy-dev` → `dev`,
+`deploy-prod` → `production`), not by the box — one deploy target maps
+to one tree, so the box can't self-select the wrong environment.
 
 The box's `docker-compose.yml` loads `prod.env` (`env_file:`) as the
-base; a small hand-maintained override layer (compose `environment:` or
-a second env file) wins for specific keys.
+base; the compose `environment:` block pins `NODE_ENV` and `PORT`.
 
 **Why deploy-time, not a runtime fetch:** Lightsail instances don't get
 IAM instance roles like EC2, so an app-side SSM fetch would require a
