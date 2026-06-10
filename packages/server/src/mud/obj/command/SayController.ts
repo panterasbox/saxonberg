@@ -26,7 +26,7 @@ interface SayModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class SayController extends CommandController<SayModel> {
+export default class SayController extends CommandController<SayModel> {
   execute(model: SayModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {

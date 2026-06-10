@@ -14,13 +14,13 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
-import { GravityMeter } from '../instrument/GravityMeter';
+import GravityMeter from '../instrument/GravityMeter';
 
 interface MeasureGravityModel extends CommandModel {
   detail?: string;
 }
 
-export class MeasureGravityController extends CommandController<MeasureGravityModel> {
+export default class MeasureGravityController extends CommandController<MeasureGravityModel> {
   async execute(
     model: MeasureGravityModel,
     ctx: CommandContext,

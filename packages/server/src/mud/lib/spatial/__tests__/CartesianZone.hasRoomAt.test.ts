@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { CartesianLocation } from '../CartesianLocation';
-import { CartesianZone } from '../CartesianZone';
+import CartesianLocation from '../CartesianLocation';
+import CartesianZone from '../CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

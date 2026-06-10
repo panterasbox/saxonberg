@@ -4,10 +4,10 @@
  * through `BiomeApi.resolveHumidityFor`.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Hygrometer extends Thing {
+export default class Hygrometer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

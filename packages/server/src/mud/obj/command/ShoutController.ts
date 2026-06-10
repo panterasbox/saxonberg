@@ -24,7 +24,7 @@ interface ShoutModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class ShoutController extends CommandController<ShoutModel> {
+export default class ShoutController extends CommandController<ShoutModel> {
   execute(model: ShoutModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {

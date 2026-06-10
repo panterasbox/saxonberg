@@ -32,7 +32,7 @@ interface GiveModel extends CommandModel {
   recipient: MqlOneResult;
 }
 
-export class GiveController extends CommandController<GiveModel> {
+export default class GiveController extends CommandController<GiveModel> {
   execute(model: GiveModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const item = model.item.stuff;

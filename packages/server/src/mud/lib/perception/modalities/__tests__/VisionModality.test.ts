@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import { MAX_HOPS, EXIT_TAU } from '../../Modality';
 import { Light } from '../../Light';
-import { CartesianLocation } from '../../../spatial/CartesianLocation';
-import { CartesianZone } from '../../../spatial/CartesianZone';
-import { SphericalLocation } from '../../../spatial/SphericalLocation';
-import { SphericalZone } from '../../../spatial/SphericalZone';
-import { Door } from '../../../boundary/Door';
+import CartesianLocation from '../../../spatial/CartesianLocation';
+import CartesianZone from '../../../spatial/CartesianZone';
+import SphericalLocation from '../../../spatial/SphericalLocation';
+import SphericalZone from '../../../spatial/SphericalZone';
+import Door from '../../../boundary/Door';
 import { AmbientLitMixin } from '../../AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../security/__tests__/test-setup';
@@ -201,7 +201,7 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
 
   it('flux-weighted color mixing across two equal-flux sources', async () => {
     const { LightSourceMixin } = await import('../../LightSource');
-    const { Thing } = await import('../../../stuff/Thing');
+    const { default: Thing } = await import('../../../stuff/Thing');
     const { ContainmentApi } = await import('../../../../api/containment');
     class Lamp extends LightSourceMixin(Thing) {}
 

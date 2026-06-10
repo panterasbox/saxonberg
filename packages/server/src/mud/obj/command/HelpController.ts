@@ -26,7 +26,7 @@ interface HelpModel extends CommandModel {
   query?: string;
 }
 
-export class HelpController extends CommandController<HelpModel> {
+export default class HelpController extends CommandController<HelpModel> {
   execute(model: HelpModel, context: CommandContext): void {
     switch (model.subcommand) {
       case 'verb':

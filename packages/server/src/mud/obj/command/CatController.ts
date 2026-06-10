@@ -34,7 +34,7 @@ interface CatModel extends CommandModel {
   source?: boolean;
 }
 
-export class CatController extends CommandController<CatModel> {
+export default class CatController extends CommandController<CatModel> {
   async execute(model: CatModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

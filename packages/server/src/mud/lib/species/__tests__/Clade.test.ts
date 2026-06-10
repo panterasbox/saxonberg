@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Clade } from '../Clade';
+import Clade from '../Clade';
 import { Zone } from '../../zone/Zone';
 import { SpatialZone } from '../../zone/SpatialZone';
 import { MixinApi } from '../../../api/mixin';

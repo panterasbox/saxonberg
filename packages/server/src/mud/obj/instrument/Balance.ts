@@ -6,10 +6,10 @@
  * is a future axis (deferred until content motivates it).
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Balance extends Thing {
+export default class Balance extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['weigh.yaml'],

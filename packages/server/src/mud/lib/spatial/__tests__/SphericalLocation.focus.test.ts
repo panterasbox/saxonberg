@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { SphericalLocation } from '../SphericalLocation';
-import { SphericalZone } from '../SphericalZone';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import SphericalLocation from '../SphericalLocation';
+import SphericalZone from '../SphericalZone';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

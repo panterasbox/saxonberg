@@ -22,9 +22,9 @@ import {
   type Visible,
 } from '../Visible';
 import { DetailedMixin } from '../Detailed';
-import { Thing } from '../../stuff/Thing';
-import { Species } from '../../species/Species';
-import { BodyPlan } from '../../species/BodyPlan';
+import Thing from '../../stuff/Thing';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
 import type { SenseChannel } from '../Perceiver';
 import { Mml } from '../../../api/mml';

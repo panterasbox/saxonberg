@@ -34,7 +34,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 
-export class Biome extends Idea {
+export default class Biome extends Idea {
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
   protected name: string = '';
 

@@ -42,7 +42,7 @@ import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
 import { PerceptionApi } from '../../api/perception';
 import { SENSE_CHANNELS, type SenseChannel } from '../../lib/description/Perceiver';
-import type { Exit } from '../../lib/boundary/Exit';
+import type Exit from '../../lib/boundary/Exit';
 
 /**
  * The `senseStripAugmenter`'s `filter` is `SenseChannel`-typed —
@@ -71,7 +71,7 @@ interface SenseModel extends CommandModel {
 
 const SCENE_TOPIC = 'world.perception.sense.sense';
 
-export class SenseController extends CommandController<SenseModel> {
+export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {

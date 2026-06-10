@@ -26,6 +26,6 @@
 
 import { Zone } from '../zone/Zone';
 
-export class HomeZone extends Zone {
+export default class HomeZone extends Zone {
   // No fields, no methods v1. Future home-tier state lands here.
 }

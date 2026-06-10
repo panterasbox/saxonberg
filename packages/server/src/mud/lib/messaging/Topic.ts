@@ -22,7 +22,7 @@
 
 import { Idea } from '../stuff/Idea';
 
-export class Topic extends Idea {
+export default class Topic extends Idea {
   /**
    * Per-instance template path prefix. Topic instances live at
    * `/lib/messaging/Topic/<dotted-path>` — flat path strings; the

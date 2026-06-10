@@ -35,7 +35,7 @@ interface RmModel extends CommandModel {
   recursive?: boolean;
 }
 
-export class RmController extends CommandController<RmModel> {
+export default class RmController extends CommandController<RmModel> {
   async execute(model: RmModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

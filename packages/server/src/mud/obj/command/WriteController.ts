@@ -95,7 +95,7 @@ interface SchemaBearingClass {
 const DEFAULT_CONTENT_CLASS = '/lib/stuff/Idea';
 const DEFAULT_CONTENT_HYDRATOR = '/lib/persistence/PersistentHydrator';
 
-export class WriteController extends CommandController<WriteModel> {
+export default class WriteController extends CommandController<WriteModel> {
   async execute(model: WriteModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

@@ -37,7 +37,7 @@
  * memory as long as the host rooms do.
  */
 
-import { Thing } from '../stuff/Thing';
+import Thing from '../stuff/Thing';
 import type { Stuff } from '../stuff/Stuff';
 import type { Conduit, BoundarySide } from './Conduit';
 import type { BoundaryAnchor } from './BoundaryAnchor';

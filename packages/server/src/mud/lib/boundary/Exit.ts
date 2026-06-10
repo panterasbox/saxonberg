@@ -42,7 +42,7 @@ import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
-import type { Door } from './Door';
+import type Door from './Door';
 import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';
 import { LocomotionApi } from '../../api/locomotion';
@@ -114,7 +114,7 @@ export interface ExitOptions {
   media?: string[];
 }
 
-export class Exit extends Idea {
+export default class Exit extends Idea {
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }

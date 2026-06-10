@@ -38,7 +38,7 @@ interface CdModel extends CommandModel {
   mirror?: boolean;
 }
 
-export class CdController extends CommandController<CdModel> {
+export default class CdController extends CommandController<CdModel> {
   async execute(model: CdModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

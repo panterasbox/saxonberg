@@ -12,7 +12,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 
-export class InventoryController extends CommandController {
+export default class InventoryController extends CommandController {
   execute(_model: CommandModel, context: CommandContext): void {
     const actor = context.commandGiver;
     if (!MixinApi.isContainer(actor)) {

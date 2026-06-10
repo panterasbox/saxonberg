@@ -7,10 +7,10 @@
  * `Wieldable` once the embodiment slate ships.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Photometer extends Thing {
+export default class Photometer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

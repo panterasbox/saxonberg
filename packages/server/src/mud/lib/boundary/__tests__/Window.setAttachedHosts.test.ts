@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Window } from '../Window';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { Thing } from '../../stuff/Thing';
+import Window from '../Window';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import Thing from '../../stuff/Thing';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { BoundaryApi } from '../../../api/boundary';
 import {
   makeStuffAtPath,

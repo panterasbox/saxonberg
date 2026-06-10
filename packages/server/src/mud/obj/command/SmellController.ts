@@ -37,7 +37,7 @@ const ACUITY_THRESHOLDS: Record<OlfactoryProfile['acuity'], number> = {
 
 const DEFAULT_ACUITY: OlfactoryProfile['acuity'] = 'normal';
 
-export class SmellController extends SingleSenseControllerBase {
+export default class SmellController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'smell';
   protected readonly sceneTopic = 'world.perception.sense.smell';
 

@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FindController } from '../FindController';
+import FindController from '../FindController';
 import { Idea } from '../../../lib/stuff/Idea';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { FocusedMixin } from '../../../lib/command/Focused';
@@ -29,14 +29,14 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { AuthorMixin } from '../../../lib/shell/Author';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import type { MqlManyResult } from '../../../api/mql';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../lib/stuff/Stuff';
-import type { Interactive } from '../../Interactive';
-import type { Location } from '../../../lib/stuff/Location';
+import type Interactive from '../../Interactive';
+import type Location from '../../../lib/stuff/Location';
 import {
   CommandApi,
   type CommandContext,

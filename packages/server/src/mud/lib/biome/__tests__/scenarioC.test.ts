@@ -13,8 +13,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Location } from '../../stuff/Location';
-import { Biome } from '../Biome';
+import Location from '../../stuff/Location';
+import Biome from '../Biome';
 import { SkyExposedBiome } from '../SkyExposedBiome';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';

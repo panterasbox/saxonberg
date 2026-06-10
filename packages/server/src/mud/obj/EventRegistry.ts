@@ -31,7 +31,7 @@ import type { VetoResult } from '../lib/errors';
 
 const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
 
-export class EventRegistry extends EventRegistryBase {
+export default class EventRegistry extends EventRegistryBase {
   /**
    * Iterate the well-known events and call `initProp` for each with
    * the per-event policy. Runs once after registration; safe against

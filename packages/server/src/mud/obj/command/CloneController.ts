@@ -57,7 +57,7 @@ interface CloneModel extends CommandModel {
   here?: boolean;
 }
 
-export class CloneController extends CommandController<CloneModel> {
+export default class CloneController extends CommandController<CloneModel> {
   async execute(model: CloneModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 

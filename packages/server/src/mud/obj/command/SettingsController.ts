@@ -32,7 +32,7 @@ interface SettingsModel extends CommandModel {
   value?: string;
 }
 
-export class SettingsController extends CommandController<SettingsModel> {
+export default class SettingsController extends CommandController<SettingsModel> {
   execute(model: SettingsModel, context: CommandContext): void {
     // requiresEnvironment validator guarantees env capability; narrow to prove it.
     const giver = context.commandGiver;

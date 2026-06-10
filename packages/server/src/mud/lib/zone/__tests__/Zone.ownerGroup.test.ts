@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import type { Zone } from '../Zone';
-import { FolderZone } from '../FolderZone';
+import FolderZone from '../FolderZone';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 /**

@@ -21,10 +21,8 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type {
-  Material,
-  CompositionEntry,
-} from '../lib/material/Material';
+import type Material from '../lib/material/Material';
+import type { CompositionEntry,  } from '../lib/material/Material';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';

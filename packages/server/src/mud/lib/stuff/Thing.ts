@@ -39,7 +39,7 @@ const ThingBase = VisibleMixin(
   PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))),
 );
 
-export class Thing extends ThingBase {
+export default class Thing extends ThingBase {
   static persistentFields: string[] = [];
 
   constructor() {

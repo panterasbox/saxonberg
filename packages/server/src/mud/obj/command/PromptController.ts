@@ -42,7 +42,7 @@ interface PromptModel extends CommandModel {
   subcommand: string;
 }
 
-export class PromptController extends CommandController<PromptModel> {
+export default class PromptController extends CommandController<PromptModel> {
   execute(model: PromptModel, ctx: CommandContext): void {
     // Subcommand is guaranteed to be `cancel` here: the assembler
     // rejects unknown subcommands before reaching the controller,

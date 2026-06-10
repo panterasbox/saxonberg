@@ -33,7 +33,7 @@ interface ChatModel extends CommandModel {
   handle?: string;
 }
 
-export class ChatController extends CommandController<ChatModel> {
+export default class ChatController extends CommandController<ChatModel> {
   async execute(model: ChatModel, context: CommandContext): Promise<void> {
     const sub = model.subcommand;
     if (sub === undefined) {

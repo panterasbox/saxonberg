@@ -7,7 +7,7 @@
 import { LocomotionControllerBase } from './LocomotionControllerBase';
 import type { CommandContext } from '../../api/command';
 
-export class WalkController extends LocomotionControllerBase {
+export default class WalkController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
     return 'walk';
   }

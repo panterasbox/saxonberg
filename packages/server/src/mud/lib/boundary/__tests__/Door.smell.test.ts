@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Door } from '../Door';
+import Door from '../Door';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { SmellConduit } from '../SmellConduit';
 

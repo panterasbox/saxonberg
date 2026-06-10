@@ -29,7 +29,7 @@ import type { VetoResult } from '../lib/errors';
 
 const GroupRegistryBase = PostRegistrationMixin(Idea);
 
-export class GroupRegistry extends GroupRegistryBase {
+export default class GroupRegistry extends GroupRegistryBase {
   /** Provider source → provider instance. */
   private providers: Map<string, GroupProvider> = new Map();
 

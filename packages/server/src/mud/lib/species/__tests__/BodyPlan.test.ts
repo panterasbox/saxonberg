@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BodyPlan } from '../BodyPlan';
+import BodyPlan from '../BodyPlan';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';

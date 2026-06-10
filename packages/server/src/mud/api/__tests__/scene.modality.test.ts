@@ -8,8 +8,8 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { Idea } from '../../lib/stuff/Idea';
-import { Species } from '../../lib/species/Species';
-import { BodyPlan } from '../../lib/species/BodyPlan';
+import Species from '../../lib/species/Species';
+import BodyPlan from '../../lib/species/BodyPlan';
 import {
   makeStuff,
   stampTemplatePathForTest,

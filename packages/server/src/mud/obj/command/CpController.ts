@@ -30,7 +30,7 @@ interface CpModel extends CommandModel {
   source?: boolean;
 }
 
-export class CpController extends CommandController<CpModel> {
+export default class CpController extends CommandController<CpModel> {
   async execute(model: CpModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

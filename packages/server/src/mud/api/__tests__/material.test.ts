@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
 import { StuffApi } from '../stuff';
-import { Material } from '../../lib/material/Material';
-import { Thing } from '../../lib/stuff/Thing';
+import Material from '../../lib/material/Material';
+import Thing from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../mixin';
 import { Quantity } from '../../lib/quantity';

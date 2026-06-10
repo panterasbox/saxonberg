@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FlyableMixin, FLIGHT_CAPABILITY_PROP } from '../Flyable';
 import { Idea } from '../../stuff/Idea';
-import { Thing } from '../../stuff/Thing';
+import Thing from '../../stuff/Thing';
 import { PropertiedMixin, Property } from '../../stuff/Propertied';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';

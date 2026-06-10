@@ -17,7 +17,7 @@ import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../Sensor';
 import { VocalMixin } from '../Vocal';
 import { NamedMixin } from '../../description/Named';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';

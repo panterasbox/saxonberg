@@ -24,9 +24,9 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import { StuffApi } from '../../api/stuff';
-import type { BodyPlan } from './BodyPlan';
-import type { Clade } from './Clade';
-import type { Material } from '../material/Material';
+import type BodyPlan from './BodyPlan';
+import type Clade from './Clade';
+import type Material from '../material/Material';
 import type { VisionProfile } from '../perception/Light';
 
 /**
@@ -53,7 +53,7 @@ export interface OlfactoryProfile {
 
 const OLFACTORY_ACUITY_VALUES = ['keen', 'normal', 'dull', 'none'] as const;
 
-export class Species extends SingletonMixin(PropertiedMixin(Idea)) {
+export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
 

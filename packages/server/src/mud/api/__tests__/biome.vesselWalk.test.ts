@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import { Vessel } from '../../lib/stuff/Vessel';
 import { Idea } from '../../lib/stuff/Idea';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import { Biome } from '../../lib/biome/Biome';
+import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
 import { StuffApi } from '../stuff';

@@ -5,10 +5,10 @@
  * position.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Sundial extends Thing {
+export default class Sundial extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

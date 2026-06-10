@@ -28,7 +28,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { User } from '../lib/identity/User';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 
-export class Interactive extends Idea {
+export default class Interactive extends Idea {
   protected socketId: string;
   protected sessionId: string;
   protected user: User;

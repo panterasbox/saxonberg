@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Thing } from '../Thing';
+import Thing from '../Thing';
 import { StuffApi } from '../../../api/stuff';
-import { Location } from '../Location';
+import Location from '../Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

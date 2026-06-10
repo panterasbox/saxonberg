@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MeasureLightController } from '../MeasureLightController';
-import { CartesianZone } from '../../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import MeasureLightController from '../MeasureLightController';
+import CartesianZone from '../../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { AmbientLitMixin } from '../../../lib/perception/AmbientLit';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -20,7 +20,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 // Vision modality singleton + perception cache live behind PerceptionApi.
 import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 

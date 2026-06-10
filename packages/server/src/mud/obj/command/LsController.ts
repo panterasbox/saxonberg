@@ -33,7 +33,7 @@ interface LsModel extends CommandModel {
 
 const GLOB_RE = /[*?]/;
 
-export class LsController extends CommandController<LsModel> {
+export default class LsController extends CommandController<LsModel> {
   async execute(model: LsModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

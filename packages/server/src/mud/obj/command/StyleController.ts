@@ -29,7 +29,7 @@ import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { Avatar } from '../Avatar';
+import Avatar from '../Avatar';
 import type { HasInteractive } from '../../lib/connection/HasInteractive';
 import type {
   StyleOverlay,
@@ -56,7 +56,7 @@ interface StyleModel extends CommandModel {
   c?: string;
 }
 
-export class StyleController extends CommandController<StyleModel> {
+export default class StyleController extends CommandController<StyleModel> {
   execute(model: StyleModel, context: CommandContext): void {
     const giver = context.commandGiver;
     if (!MixinApi.isHasInteractive(giver)) {

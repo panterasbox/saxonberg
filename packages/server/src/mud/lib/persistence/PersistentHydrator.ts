@@ -48,7 +48,7 @@ type Indexable = Record<string, unknown>;
  * No special-case `#resolveHydrator` path; HMR comes for free via
  * the standard clone integration.
  */
-export class PersistentHydrator extends Idea implements Hydrator {
+export default class PersistentHydrator extends Idea implements Hydrator {
   /**
    * Canonical template path for templates that want generic mixin-field
    * copy. Use this constant at call sites (e.g.,

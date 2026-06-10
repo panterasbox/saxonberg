@@ -28,7 +28,7 @@ interface WearModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class WearController extends CommandController<WearModel> {
+export default class WearController extends CommandController<WearModel> {
   execute(model: WearModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

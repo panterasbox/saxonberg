@@ -16,7 +16,7 @@ import type {
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import type { Avatar } from '../Avatar';
+import type Avatar from '../Avatar';
 
 interface PlayerModel extends CommandModel {
   name?: string;
@@ -24,7 +24,7 @@ interface PlayerModel extends CommandModel {
   pronouns?: string;
 }
 
-export class PlayerController extends CommandController<PlayerModel> {
+export default class PlayerController extends CommandController<PlayerModel> {
   execute(model: PlayerModel, context: CommandContext): void {
     // requiresAvatar validator guarantees this cast.
     const avatar = context.commandGiver as Avatar;

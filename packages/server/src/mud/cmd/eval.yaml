@@ -1,6 +1,8 @@
 verbs: [eval]
 controller: EvalController
 description: "Run a code snippet against the avatar (or --on target)"
+validators:
+  - /lib/command/validators/requiresDeveloper
 args:
   - name: expr
     type: string

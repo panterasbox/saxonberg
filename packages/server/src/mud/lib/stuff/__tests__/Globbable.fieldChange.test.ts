@@ -8,7 +8,7 @@ import { Idea } from '../Idea';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import { EventRegistry } from '../../../obj/EventRegistry';
+import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../Stuff';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { makeStuff } from '../../security/__tests__/test-setup';

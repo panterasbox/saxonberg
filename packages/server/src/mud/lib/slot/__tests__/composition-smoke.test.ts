@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { Floor } from '../../../obj/Floor';
-import { Thing } from '../../stuff/Thing';
+import Floor from '../../../obj/Floor';
+import Thing from '../../stuff/Thing';
 import { VisibleMixin } from '../../description/Visible';
 import { SlottableMixin } from '../Slottable';
 import { SlottedMixin } from '../Slotted';

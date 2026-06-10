@@ -34,7 +34,7 @@ interface CancelModel extends CommandModel {
   type?: string;
 }
 
-export class CancelController extends CommandController<CancelModel> {
+export default class CancelController extends CommandController<CancelModel> {
   execute(model: CancelModel, ctx: CommandContext): void {
     const giver = ctx.commandGiver;
 

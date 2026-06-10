@@ -38,7 +38,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { BiomeApi } from '../../api/biome';
-import type { Biome } from './Biome';
+import type Biome from './Biome';
 
 export interface Atmospheric {
   // ---------- biome reference ----------

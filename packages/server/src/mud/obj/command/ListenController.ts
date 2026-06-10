@@ -26,7 +26,7 @@ import { StuffApi } from '../../api/stuff';
  */
 const DEFAULT_HEARING_THRESHOLD_DB = 10;
 
-export class ListenController extends SingleSenseControllerBase {
+export default class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';
   protected readonly sceneTopic = 'world.perception.sense.listen';
 

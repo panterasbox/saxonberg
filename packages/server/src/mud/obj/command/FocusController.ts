@@ -40,7 +40,7 @@ interface FocusModel extends CommandModel {
   fragment?: MqlManyResult;
 }
 
-export class FocusController extends CommandController<FocusModel> {
+export default class FocusController extends CommandController<FocusModel> {
   execute(model: FocusModel, context: CommandContext): void {
     // `focus.yaml` is a self-bucket contribution from FocusedMixin,
     // so the verb only lands on a Focused giver's recency stack —

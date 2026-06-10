@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AnalyzeChemistryController } from '../AnalyzeChemistryController';
+import AnalyzeChemistryController from '../AnalyzeChemistryController';
 import { TangibleMixin } from '../../../lib/material/Tangible';
-import { Material } from '../../../lib/material/Material';
-import { Thing } from '../../../lib/stuff/Thing';
-import { CartesianZone } from '../../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import Material from '../../../lib/material/Material';
+import Thing from '../../../lib/stuff/Thing';
+import CartesianZone from '../../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -27,7 +27,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 import '../../../api/material';
 
 class TangibleThing extends TangibleMixin(NamedMixin(Thing)) {}

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import { PersistentHydrator } from '../PersistentHydrator';
+import PersistentHydrator from '../PersistentHydrator';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

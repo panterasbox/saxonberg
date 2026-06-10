@@ -14,13 +14,13 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
-import { Hygrometer } from '../instrument/Hygrometer';
+import Hygrometer from '../instrument/Hygrometer';
 
 interface MeasureHumidityModel extends CommandModel {
   detail?: string;
 }
 
-export class MeasureHumidityController extends CommandController<MeasureHumidityModel> {
+export default class MeasureHumidityController extends CommandController<MeasureHumidityModel> {
   async execute(
     model: MeasureHumidityModel,
     ctx: CommandContext,

@@ -53,7 +53,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
-import type { Exit } from '../lib/boundary/Exit';
+import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
 import { DescribeApi } from './describe';
 import { SecurityApi } from './security';

@@ -23,7 +23,7 @@ interface WieldModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class WieldController extends CommandController<WieldModel> {
+export default class WieldController extends CommandController<WieldModel> {
   execute(model: WieldModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

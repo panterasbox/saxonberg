@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { EventApi } from '../../../api/event';
-import { EventRegistry } from '../../../obj/EventRegistry';
+import EventRegistry from '../../../obj/EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { Stuff } from '../../stuff/Stuff';

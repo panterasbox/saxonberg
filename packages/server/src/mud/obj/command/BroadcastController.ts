@@ -7,9 +7,10 @@
  * `<chan id="broadcast" label="Broadcast">` region so the cockpit
  * renders distinctly.
  *
- * Gated by `AccessApi.can(actor, 'broadcast', null)` — the resource
- * is global (`null`), so the check routes through the `'core'`
- * fallback. Only `'core'` members can broadcast in this build.
+ * Gated by `requiresCoreAccess` (verb-level validator at YAML) —
+ * the resource is global (`null`), so the check routes through the
+ * `'core'` fallback. Only `'core'` members can broadcast in this
+ * build.
  *
  * No history ring (broadcasts ride scrollback like any other frame),
  * no rate-limiting (own substrate, deferred).
@@ -26,14 +27,13 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { PlayerApi } from '../../api/player';
-import { AccessApi } from '../../api/access';
 
 interface BroadcastModel extends CommandModel {
   message: string;
   query?: string;
 }
 
-export class BroadcastController extends CommandController<BroadcastModel> {
+export default class BroadcastController extends CommandController<BroadcastModel> {
   async execute(model: BroadcastModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver;
     const body = (model.message ?? '').trim();
@@ -41,18 +41,10 @@ export class BroadcastController extends CommandController<BroadcastModel> {
       context.note({ kind: 'controller-rejected', reason: 'message-required', detail: 'broadcast body required' });
       return;
     }
-    if (!(await AccessApi.can(speaker, 'broadcast', null))) {
-      MessageApi.scene(speaker)
-        .topic('system.broadcast')
-        .toSelf(Mml.fromMarkup(`\nyou don't have permission to broadcast\n`))
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'access-denied',
-        detail: "you don't have permission to broadcast",
-      });
-      return;
-    }
+    // Access gate is now declarative — see broadcast.yaml's
+    // `validators: requiresCoreAccess`. The dispatcher rejects the
+    // command before this controller runs when the giver isn't
+    // permitted.
 
     // Default audience: every online avatar. `online` is a recognized
     // MQL seed (see resolver.ts). `--to` overrides with author-supplied

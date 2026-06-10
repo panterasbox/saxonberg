@@ -18,7 +18,7 @@ import { Mml } from '../../api/mml';
 import { Postures } from '../../lib/slot/Postured';
 import { SlotApi } from '../../api/slot';
 
-export class DismountController extends CommandController<CommandModel> {
+export default class DismountController extends CommandController<CommandModel> {
   execute(_model: CommandModel, context: CommandContext): void {
     void _model;
     const giver = context.commandGiver;

@@ -23,7 +23,7 @@ import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ShadowApi } from '../shadow';
 import { Events, type ReloadEvent } from '../../lib/events';
-import { EventRegistry } from '../../obj/EventRegistry';
+import EventRegistry from '../../obj/EventRegistry';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   PersistenceManager,

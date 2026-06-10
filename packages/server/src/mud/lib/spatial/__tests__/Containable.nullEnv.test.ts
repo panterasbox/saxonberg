@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Thing } from '../../stuff/Thing';
+import Thing from '../../stuff/Thing';
 import { Character } from '../../character/Character';
 import { VisionModality } from '../../perception/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';

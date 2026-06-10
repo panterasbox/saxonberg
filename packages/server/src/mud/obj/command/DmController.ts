@@ -43,7 +43,7 @@ interface DmModel extends CommandModel {
   message: string;
 }
 
-export class DmController extends CommandController<DmModel> {
+export default class DmController extends CommandController<DmModel> {
   async execute(model: DmModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver;
     if (!MixinApi.isAether(speaker)) {

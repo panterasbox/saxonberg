@@ -1,13 +1,13 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { Window } from '../Window';
+import Window from '../Window';
 import { Boundary } from '../Boundary';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { CartesianZone } from '../../spatial/CartesianZone';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianZone from '../../spatial/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { ProxyApi } from '../../../api/proxy';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { LightConduit, LineOfSight } from '../Conduit';
 

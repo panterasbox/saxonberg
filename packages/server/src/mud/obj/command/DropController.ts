@@ -45,7 +45,7 @@ interface DropPayload {
   applied: number;
 }
 
-export class DropController extends CommandController<DropModel> {
+export default class DropController extends CommandController<DropModel> {
   async execute(
     model: DropModel,
     context: CommandContext

@@ -41,7 +41,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import { StuffApi } from '../../api/stuff';
-import type { Material } from './Material';
+import type Material from './Material';
 
 /**
  * Radioactive decay modes. Lower-division pedagogy ships the four

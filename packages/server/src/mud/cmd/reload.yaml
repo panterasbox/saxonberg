@@ -1,6 +1,8 @@
 verbs: [reload]
 controller: ReloadController
 description: "Hot-reload a template or runtime instance"
+validators:
+  - /lib/command/validators/requiresDeveloper
 args:
   - name: target
     type: string

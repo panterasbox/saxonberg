@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import {
   CommandGiverMixin,
   type CommandGiver,

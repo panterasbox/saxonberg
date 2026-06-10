@@ -49,7 +49,7 @@ import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
 import { parseGroupRef } from '../lib/social/GroupProvider';
-import type { Avatar } from './Avatar';
+import type Avatar from './Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 
@@ -67,7 +67,7 @@ const DEFAULT_SUBSCRIPTION: ChannelSubscription = {
 
 const ChannelCatalogueBase = PostRegistrationMixin(Idea);
 
-export class ChannelCatalogue extends ChannelCatalogueBase {
+export default class ChannelCatalogue extends ChannelCatalogueBase {
   private byName: Map<string, Channel> | null = null;
   private byHandle: Map<string, AdHocChannel> = new Map();
   private history: Map<string, MessageFrame[]> = new Map();

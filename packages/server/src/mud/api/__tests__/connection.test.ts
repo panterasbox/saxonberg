@@ -8,8 +8,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConnectionApi } from '../connection';
-import { Interactive } from '../../obj/Interactive';
-import { Avatar } from '../../obj/Avatar';
+import Interactive from '../../obj/Interactive';
+import Avatar from '../../obj/Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../stuff';
 import { PlayerApi } from '../player';

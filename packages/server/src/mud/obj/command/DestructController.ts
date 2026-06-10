@@ -29,7 +29,7 @@ interface DestructModel extends CommandModel {
   force?: boolean;
 }
 
-export class DestructController extends CommandController<DestructModel> {
+export default class DestructController extends CommandController<DestructModel> {
   async execute(model: DestructModel, context: CommandContext): Promise<void> {
     const target = model.target;
     if (!target || target.stuff === null) {

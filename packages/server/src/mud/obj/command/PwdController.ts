@@ -18,7 +18,7 @@ interface PwdModel extends CommandModel {
   all?: boolean;
 }
 
-export class PwdController extends CommandController<PwdModel> {
+export default class PwdController extends CommandController<PwdModel> {
   execute(model: PwdModel, context: CommandContext): void {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

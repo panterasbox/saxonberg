@@ -27,7 +27,7 @@ import { DescribeApi } from '../../api/describe';
 import { GrammarApi } from '../../api/grammar';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Contacts, ContactEntry } from '../../lib/social/Contacts';
-import { Avatar } from '../Avatar';
+import Avatar from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { Template } from '../../lib/stuff/Template';
 import { PlayerApi } from '../../api/player';
@@ -47,7 +47,7 @@ interface ContactsModel extends CommandModel {
   new_label?: string;
 }
 
-export class ContactsController extends CommandController<ContactsModel> {
+export default class ContactsController extends CommandController<ContactsModel> {
   async execute(model: ContactsModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isContacts(giver)) {

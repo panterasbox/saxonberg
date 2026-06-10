@@ -11,7 +11,8 @@ import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
 import type { AdHocChannel } from '../lib/social/AdHocChannel';
-import type { ChannelCatalogue, ChannelSubscription } from '../obj/ChannelCatalogue';
+import type ChannelCatalogue from '../obj/ChannelCatalogue';
+import type { ChannelSubscription } from '../obj/ChannelCatalogue';
 import type { MessageFrame } from '@saxonberg/types';
 
 const CATALOGUE_PATH = '/obj/ChannelCatalogue';

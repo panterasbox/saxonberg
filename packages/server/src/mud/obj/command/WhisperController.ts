@@ -23,7 +23,7 @@ interface WhisperModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class WhisperController extends CommandController<WhisperModel> {
+export default class WhisperController extends CommandController<WhisperModel> {
   execute(model: WhisperModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {

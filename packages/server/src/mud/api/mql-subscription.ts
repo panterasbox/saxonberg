@@ -47,7 +47,7 @@ import type {
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type { CommandGiver } from '../lib/command/CommandGiver';
-import type { Interactive } from '../obj/Interactive';
+import type Interactive from '../obj/Interactive';
 import type { Subscription } from './event';
 import { SecurityApi } from './security';
 import { DescribeApi } from './describe';

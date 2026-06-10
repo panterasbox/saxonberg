@@ -54,7 +54,7 @@ export interface SensoryPort {
   position: string;
 }
 
-export class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
+export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'biped'`, `'quadruped'`). */
   protected name: string = '';
 

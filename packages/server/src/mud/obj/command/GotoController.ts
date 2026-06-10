@@ -33,7 +33,7 @@ interface GotoModel extends CommandModel {
   look?: boolean;
 }
 
-export class GotoController extends CommandController<GotoModel> {
+export default class GotoController extends CommandController<GotoModel> {
   async execute(model: GotoModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target;

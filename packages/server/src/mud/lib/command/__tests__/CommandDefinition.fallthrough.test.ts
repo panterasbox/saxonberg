@@ -15,7 +15,7 @@ import { CommandApi } from '../../../api/command';
 import { CommandLineApi } from '../../../api/command-line';
 import { CommandDefinition } from '../CommandDefinition';
 import type { Stuff } from '../../stuff/Stuff';
-import type { Location } from '../../stuff/Location';
+import type Location from '../../stuff/Location';
 import type { CommandGiver } from '../CommandGiver';
 
 const ctx = {

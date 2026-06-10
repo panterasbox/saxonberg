@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TopicCatalogue } from '../TopicCatalogue';
-import { Topic } from '../../lib/messaging/Topic';
+import TopicCatalogue from '../TopicCatalogue';
+import Topic from '../../lib/messaging/Topic';
 import { StuffApi } from '../../api/stuff';
 import { ShadowApi } from '../../api/shadow';
 import { Template } from '../../lib/stuff/Template';

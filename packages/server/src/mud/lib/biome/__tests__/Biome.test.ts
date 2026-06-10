@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Biome } from '../Biome';
+import Biome from '../Biome';
 import { Idea } from '../../stuff/Idea';
 import { Zone } from '../../zone/Zone';
 import { Quantity } from '../../quantity';

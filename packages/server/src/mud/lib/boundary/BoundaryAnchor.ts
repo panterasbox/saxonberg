@@ -25,7 +25,7 @@
  * is hydrate-only — seed code rebuilds the boundary triple at boot.
  */
 
-import { Thing } from '../stuff/Thing';
+import Thing from '../stuff/Thing';
 import { AdornmentMixin } from './Adornment';
 import type { Boundary } from './Boundary';
 import type { BoundarySide } from './Conduit';

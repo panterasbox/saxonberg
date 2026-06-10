@@ -42,7 +42,7 @@ function describeSource(trace: AtmosphericTrace<unknown>): string {
   }
 }
 
-export class AnalyzeAtmosphereController extends CommandController<AnalyzeAtmosphereModel> {
+export default class AnalyzeAtmosphereController extends CommandController<AnalyzeAtmosphereModel> {
   async execute(
     model: AnalyzeAtmosphereModel,
     ctx: CommandContext,

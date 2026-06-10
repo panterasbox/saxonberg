@@ -4,10 +4,10 @@
  * scope through `BiomeApi.resolvePressureFor`.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Barometer extends Thing {
+export default class Barometer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

@@ -20,11 +20,11 @@ import { StuffApi } from '../api/stuff';
 import { ConnectionApi } from '../api/connection';
 import { PlayerApi } from '../api/player';
 import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import type { Interactive } from './Interactive';
+import type Interactive from './Interactive';
 
 const LoginBase = HasInteractiveMixin(Idea);
 
-export class Login extends LoginBase {
+export default class Login extends LoginBase {
   private readonly interactive: Interactive;
 
   constructor(interactive: Interactive) {

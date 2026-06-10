@@ -27,7 +27,7 @@ interface StandModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class StandController extends CommandController<StandModel> {
+export default class StandController extends CommandController<StandModel> {
   execute(model: StandModel, context: CommandContext): void {
     const giver = context.commandGiver;
     if (!MixinApi.isPosed(giver)) {

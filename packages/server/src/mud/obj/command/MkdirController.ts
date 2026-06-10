@@ -30,7 +30,7 @@ interface MkdirModel extends CommandModel {
   source?: boolean;
 }
 
-export class MkdirController extends CommandController<MkdirModel> {
+export default class MkdirController extends CommandController<MkdirModel> {
   async execute(model: MkdirModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

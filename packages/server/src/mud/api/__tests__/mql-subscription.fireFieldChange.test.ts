@@ -9,7 +9,7 @@ import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { EventRegistry } from '../../obj/EventRegistry';
+import EventRegistry from '../../obj/EventRegistry';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 
 async function bootRegistry(): Promise<void> {

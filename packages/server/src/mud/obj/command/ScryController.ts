@@ -28,7 +28,7 @@ interface ScryModel extends CommandModel {
   with?: MqlOneResult;
 }
 
-export class ScryController extends CommandController<ScryModel> {
+export default class ScryController extends CommandController<ScryModel> {
   execute(model: ScryModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target;

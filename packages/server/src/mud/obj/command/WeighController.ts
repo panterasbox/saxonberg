@@ -22,7 +22,7 @@ interface WeighModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class WeighController extends CommandController<WeighModel> {
+export default class WeighController extends CommandController<WeighModel> {
   execute(model: WeighModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target;

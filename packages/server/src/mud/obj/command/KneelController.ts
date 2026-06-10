@@ -19,7 +19,7 @@ interface KneelModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class KneelController extends CommandController<KneelModel> {
+export default class KneelController extends CommandController<KneelModel> {
   execute(model: KneelModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

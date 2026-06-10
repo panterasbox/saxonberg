@@ -31,7 +31,7 @@ interface GrepModel extends CommandModel {
   recursive?: boolean;
 }
 
-export class GrepController extends CommandController<GrepModel> {
+export default class GrepController extends CommandController<GrepModel> {
   async execute(model: GrepModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

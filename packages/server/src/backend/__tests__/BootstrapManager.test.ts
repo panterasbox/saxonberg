@@ -13,7 +13,7 @@ import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
 import { LeafTemplate } from '../../mud/lib/stuff/LeafTemplate';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
-import type { EventRegistry } from '../../mud/obj/EventRegistry';
+import type EventRegistry from '../../mud/obj/EventRegistry';
 
 function stubClone(): { calls: string[] } {
   const calls: string[] = [];

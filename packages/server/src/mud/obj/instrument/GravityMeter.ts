@@ -4,10 +4,10 @@
  * immediate scope through `BiomeApi.resolveGravityFor`.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class GravityMeter extends Thing {
+export default class GravityMeter extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

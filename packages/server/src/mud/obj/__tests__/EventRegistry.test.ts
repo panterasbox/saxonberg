@@ -13,7 +13,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BootstrapManager } from '../../../backend/BootstrapManager';
-import { EventRegistry } from '../EventRegistry';
+import EventRegistry from '../EventRegistry';
 import { StuffApi } from '../../api/stuff';
 import { ShadowApi } from '../../api/shadow';
 import { EventApi } from '../../api/event';

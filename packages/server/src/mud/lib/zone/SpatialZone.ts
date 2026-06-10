@@ -13,8 +13,8 @@
  * folder-of-templates contract without inheriting location-aware behavior.
  */
 import { Zone } from './Zone';
-import type { Location } from '../stuff/Location';
-import type { Exit } from '../boundary/Exit';
+import type Location from '../stuff/Location';
+import type Exit from '../boundary/Exit';
 import type { VetoResult } from '../errors';
 
 /**

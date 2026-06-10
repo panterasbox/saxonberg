@@ -14,7 +14,8 @@
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import type { Emote } from '../lib/social/Emote';
-import type { SoulCatalogue, EmoteSpec } from '../obj/SoulCatalogue';
+import type SoulCatalogue from '../obj/SoulCatalogue';
+import type { EmoteSpec } from '../obj/SoulCatalogue';
 
 const CATALOGUE_PATH = '/obj/SoulCatalogue';
 

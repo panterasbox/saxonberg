@@ -28,7 +28,7 @@ interface AnalyzeLightModel extends CommandModel {
   location?: MqlOneResult;
 }
 
-export class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
+export default class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
   execute(model: AnalyzeLightModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.location;

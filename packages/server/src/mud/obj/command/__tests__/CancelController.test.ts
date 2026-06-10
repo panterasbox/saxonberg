@@ -12,7 +12,7 @@ import {
   vi,
 } from 'vitest';
 import type { AbortReason } from '@saxonberg/types';
-import { CancelController } from '../CancelController';
+import CancelController from '../CancelController';
 import type {
   Engaged,
   EngagementSlot,
@@ -23,7 +23,7 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
+import Location from '../../../lib/stuff/Location';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SchedulerApi } from '../../../api/scheduler';
 import { StuffApi } from '../../../api/stuff';

@@ -11,14 +11,14 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { StyleController } from '../StyleController';
+import StyleController from '../StyleController';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
+import Location from '../../../lib/stuff/Location';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import {
   CommandApi,

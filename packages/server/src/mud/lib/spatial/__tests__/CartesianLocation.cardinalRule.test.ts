@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CartesianLocation } from '../CartesianLocation';
-import { Exit } from '../../boundary/Exit';
+import CartesianLocation from '../CartesianLocation';
+import Exit from '../../boundary/Exit';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import {

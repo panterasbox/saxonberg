@@ -19,7 +19,7 @@ interface AnalyzeTimeModel extends CommandModel {
 
 const TOPIC = 'world.perception.measurement.analyze-time';
 
-export class AnalyzeTimeController extends CommandController<AnalyzeTimeModel> {
+export default class AnalyzeTimeController extends CommandController<AnalyzeTimeModel> {
   execute(_model: AnalyzeTimeModel, ctx: CommandContext): void {
     const giver = ctx.commandGiver;
     const now = WorldClockApi.getNow();

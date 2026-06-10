@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import { Vessel } from '../../lib/stuff/Vessel';
-import { Biome } from '../../lib/biome/Biome';
+import Biome from '../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../lib/biome/SkyExposedBiome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';

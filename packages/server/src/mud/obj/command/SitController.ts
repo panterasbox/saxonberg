@@ -25,7 +25,7 @@ interface SitModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class SitController extends CommandController<SitModel> {
+export default class SitController extends CommandController<SitModel> {
   execute(model: SitModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

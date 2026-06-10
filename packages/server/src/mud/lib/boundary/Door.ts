@@ -56,7 +56,7 @@
 
 import { Boundary } from './Boundary';
 import { SealableMixin } from '../spatial/Sealable';
-import type { Exit } from './Exit';
+import type Exit from './Exit';
 import type {
   Conduit,
   LightConduit,
@@ -69,7 +69,7 @@ import type { SoundConduit } from './SoundConduit';
 
 const DoorBase = SealableMixin(Boundary);
 
-export class Door extends DoorBase {
+export default class Door extends DoorBase {
   /**
    * Runtime back-reference: every Exit whose `door` currently points
    * at this Door. Maintained by `Exit`'s `door` setter — adding the

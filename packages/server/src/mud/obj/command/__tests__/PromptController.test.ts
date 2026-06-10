@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PromptController } from '../PromptController';
+import PromptController from '../PromptController';
 import { PromptApi } from '../../../api/prompt';
 import { CommandApi, type CommandContext, type ModelData } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
@@ -19,12 +19,12 @@ import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
-import { Interactive } from '../../../obj/Interactive';
+import Location from '../../../lib/stuff/Location';
+import Interactive from '../../../obj/Interactive';
 import { StuffApi } from '../../../api/stuff';
 import { EventApi } from '../../../api/event';
 import { ShadowApi } from '../../../api/shadow';
-import { EventRegistry } from '../../../obj/EventRegistry';
+import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { ConnectionApi } from '../../../api/connection';

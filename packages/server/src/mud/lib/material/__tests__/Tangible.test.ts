@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Material } from '../Material';
-import { Thing } from '../../stuff/Thing';
-import { Location } from '../../stuff/Location';
+import Material from '../Material';
+import Thing from '../../stuff/Thing';
+import Location from '../../stuff/Location';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
 import { Idea } from '../../stuff/Idea';

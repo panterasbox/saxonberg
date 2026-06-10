@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { Vessel } from '../../stuff/Vessel';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';

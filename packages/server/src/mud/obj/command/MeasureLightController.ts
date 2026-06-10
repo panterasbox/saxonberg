@@ -27,7 +27,7 @@ interface MeasureLightModel extends CommandModel {
   location?: MqlOneResult;
 }
 
-export class MeasureLightController extends CommandController<MeasureLightModel> {
+export default class MeasureLightController extends CommandController<MeasureLightModel> {
   execute(model: MeasureLightModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.location;

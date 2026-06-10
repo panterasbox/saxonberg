@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ExitableVessel } from '../ExitableVessel';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { CartesianZone } from '../../spatial/CartesianZone';
-import { Door } from '../Door';
+import ExitableVessel from '../ExitableVessel';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianZone from '../../spatial/CartesianZone';
+import Door from '../Door';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';

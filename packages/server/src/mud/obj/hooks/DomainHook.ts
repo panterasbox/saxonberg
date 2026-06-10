@@ -15,7 +15,7 @@ import { TemplateApi } from '../../api/template';
 
 const DomainHookBase = AroundSaveHookMixin(AroundDeleteHookMixin(Idea));
 
-export class DomainHook extends DomainHookBase {
+export default class DomainHook extends DomainHookBase {
   override async aroundSave(
     _collection: string,
     doc: Record<string, unknown>,

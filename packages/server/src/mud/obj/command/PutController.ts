@@ -38,7 +38,7 @@ interface PutModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class PutController extends CommandController<PutModel> {
+export default class PutController extends CommandController<PutModel> {
   execute(model: PutModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const item = model.item.stuff;

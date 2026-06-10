@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { FolderZone } from '../FolderZone';
+import FolderZone from '../FolderZone';
 import { Zone } from '../Zone';
 import { SpatialZone } from '../SpatialZone';
 import { ZoneApi } from '../../../api/zone';

@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Marshaller } from '../Marshaller';
 import { Idea } from '../../stuff/Idea';
 import { Document, setDocumentMarshallerResolver } from '../Document';
-import { PersistentHydrator } from '../PersistentHydrator';
+import PersistentHydrator from '../PersistentHydrator';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';

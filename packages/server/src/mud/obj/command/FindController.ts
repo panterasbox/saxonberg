@@ -56,7 +56,7 @@ interface FindModel extends CommandModel {
   query?: MqlManyResult;
 }
 
-export class FindController extends CommandController<FindModel> {
+export default class FindController extends CommandController<FindModel> {
   execute(model: FindModel, context: CommandContext): void {
     const wrapper = model.query;
     const raw = wrapper?.raw?.trim() ?? '';

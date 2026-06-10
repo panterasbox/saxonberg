@@ -61,7 +61,7 @@ interface DirectionalOverrides {
  * exposes them via the lightweight wrappers below — the host Window
  * provides the method implementations the wrappers delegate to.
  */
-export class Window extends WindowBase {
+export default class Window extends WindowBase {
   static persistentFields = [
     'baseTransmissivity',
     'aToBOverride',

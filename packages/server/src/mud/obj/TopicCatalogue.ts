@@ -34,13 +34,13 @@
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
-import { Topic } from '../lib/messaging/Topic';
+import Topic from '../lib/messaging/Topic';
 import type { TopicDescriptor } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 
 const TopicCatalogueBase = PostRegistrationMixin(Idea);
 
-export class TopicCatalogue extends TopicCatalogueBase {
+export default class TopicCatalogue extends TopicCatalogueBase {
   /**
    * Transient runtime cache. `null` means "not built yet"; built
    * lazily on first access by scanning every Topic instance under

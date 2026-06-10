@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlayerApi } from '../player';
 import { StuffApi } from '../stuff';
-import { Avatar } from '../../obj/Avatar';
+import Avatar from '../../obj/Avatar';
 import { User } from '../../lib/identity/User';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 

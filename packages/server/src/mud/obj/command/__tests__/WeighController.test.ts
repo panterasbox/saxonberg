@@ -1,10 +1,10 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { WeighController } from '../WeighController';
+import WeighController from '../WeighController';
 import { TangibleMixin } from '../../../lib/material/Tangible';
 import { Quantity } from '../../../lib/quantity';
-import { Thing } from '../../../lib/stuff/Thing';
-import { CartesianZone } from '../../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import Thing from '../../../lib/stuff/Thing';
+import CartesianZone from '../../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -22,7 +22,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 import '../../../api/material';
 
 class TangibleThing extends TangibleMixin(NamedMixin(Thing)) {}

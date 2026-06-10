@@ -18,7 +18,6 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { HotReloadApi } from '../../api/hot-reload';
-import { AccessApi } from '../../api/access';
 import { SourceTreeApi } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
 import type { MqlOneResult } from '../../api/mql';
@@ -28,20 +27,15 @@ interface ReloadModel extends CommandModel {
   mql?: MqlOneResult;
 }
 
-export class ReloadController extends CommandController<ReloadModel> {
+export default class ReloadController extends CommandController<ReloadModel> {
   async execute(model: ReloadModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // Developer axis — reload operates on TS modules; only the
-    // `'developers'` group has the capability. No slice check —
-    // module reloads aren't scoped to a content area.
-    if (!(await AccessApi.isDeveloper(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to reload",
-        'access-denied',
-      );
-    }
+    // Developer axis check is now declarative — see reload.yaml's
+    // `validators: requiresDeveloper`. The dispatcher rejects the
+    // command before this controller runs when the giver isn't a
+    // developer. No slice check applies — module reloads aren't
+    // scoped to a content area.
 
     let path: string | null = null;
 

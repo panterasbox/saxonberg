@@ -26,7 +26,7 @@ interface AnalyzeChemistryModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class AnalyzeChemistryController extends CommandController<AnalyzeChemistryModel> {
+export default class AnalyzeChemistryController extends CommandController<AnalyzeChemistryModel> {
   execute(
     model: AnalyzeChemistryModel,
     context: CommandContext

@@ -7,15 +7,15 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Login } from '../Login';
-import { Interactive } from '../Interactive';
+import Login from '../Login';
+import Interactive from '../Interactive';
 import { StuffApi } from '../../api/stuff';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import type { User } from '../../lib/identity/User';
-import type { Avatar } from '../Avatar';
+import type Avatar from '../Avatar';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function fakeUser(id: string): User {

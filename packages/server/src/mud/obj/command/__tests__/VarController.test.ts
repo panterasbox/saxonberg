@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { VarController } from '../VarController';
+import VarController from '../VarController';
 import { Idea } from '../../../lib/stuff/Idea';
 import {
   EnvironmentMixin,
@@ -17,10 +17,10 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
-import type { Interactive } from '../../Interactive';
-import type { Location } from '../../../lib/stuff/Location';
+import type Interactive from '../../Interactive';
+import type Location from '../../../lib/stuff/Location';
 import {
   CommandApi,
   type CommandContext,

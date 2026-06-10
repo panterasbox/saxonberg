@@ -18,7 +18,7 @@ import type {
   GroupChangeListener,
 } from '../lib/social/GroupProvider';
 import type { GroupRole } from '../lib/social/Group';
-import type { GroupRegistry } from '../obj/GroupRegistry';
+import type GroupRegistry from '../obj/GroupRegistry';
 
 const REGISTRY_PATH = '/obj/GroupRegistry';
 

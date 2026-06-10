@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { EvalScript } from '../EvalScript';
+import EvalScript from '../EvalScript';
 import { StuffApi } from '../../../api/stuff';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';

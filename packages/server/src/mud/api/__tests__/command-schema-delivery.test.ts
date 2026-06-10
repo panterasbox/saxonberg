@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import {
   CommandGiverMixin,
   type CommandGiver,
@@ -22,7 +22,7 @@ import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
 import { MessageApi } from '../message';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type { Interactive } from '../../obj/Interactive';
+import type Interactive from '../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 
 const TestGiverBase = CommandGiverMixin(

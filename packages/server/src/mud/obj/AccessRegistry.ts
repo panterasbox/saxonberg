@@ -32,13 +32,13 @@ import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
 import { TemplateApi } from '../api/template';
 import { Template } from '../lib/stuff/Template';
-import { PersistentHydrator } from '../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../lib/persistence/PersistentHydrator';
 import { Group, type GroupRole } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
-import { FolderZone } from '../lib/zone/FolderZone';
-import { Avatar } from './Avatar';
+import FolderZone from '../lib/zone/FolderZone';
+import Avatar from './Avatar';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
@@ -50,7 +50,7 @@ const FOLDER_ZONE_CLASS = '/lib/zone/FolderZone';
 
 const LOUNGE_FOLDER_PATHS = ['/lib/lounge', '/domain/lounge'] as const;
 
-export class AccessRegistry extends AccessRegistryBase {
+export default class AccessRegistry extends AccessRegistryBase {
   /** Cached GroupRef for `'core'`. Resolved lazily; survives the
    *  api/access.ts reload because it lives on the Stuff. */
   private cachedCoreRef: GroupRef | null = null;

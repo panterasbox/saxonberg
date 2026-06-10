@@ -10,7 +10,7 @@ import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Location } from '../../lib/stuff/Location';
+import type Location from '../../lib/stuff/Location';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 
 const ctx = {

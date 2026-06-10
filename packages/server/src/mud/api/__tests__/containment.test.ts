@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainmentApi } from '../containment';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SurfacedMixin } from '../../lib/spatial/Surfaced';

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AnalyzeAtmosphereController } from '../AnalyzeAtmosphereController';
-import { Location } from '../../../lib/stuff/Location';
-import { Biome } from '../../../lib/biome/Biome';
+import AnalyzeAtmosphereController from '../AnalyzeAtmosphereController';
+import Location from '../../../lib/stuff/Location';
+import Biome from '../../../lib/biome/Biome';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../../lib/quantity';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
@@ -28,7 +28,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 
 class TestLocation extends Location {}
 

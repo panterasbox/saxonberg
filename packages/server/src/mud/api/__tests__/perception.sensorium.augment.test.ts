@@ -11,13 +11,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { StuffApi } from '../stuff';
-import { Species } from '../../lib/species/Species';
-import { BodyPlan } from '../../lib/species/BodyPlan';
+import Species from '../../lib/species/Species';
+import BodyPlan from '../../lib/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { AetherMixin } from '../../lib/message/Aether';
 import { SlottedMixin } from '../../lib/slot/Slotted';
-import { Thing } from '../../lib/stuff/Thing';
-import { AetherImplant } from '../../lib/augmentation/AetherImplant';
+import Thing from '../../lib/stuff/Thing';
+import AetherImplant from '../../lib/augmentation/AetherImplant';
 import {
   makeStuff,
   stampTemplatePathForTest,

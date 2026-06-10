@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SexedMixin } from '../Sexed';
 import { OrganismMixin } from '../../species/Organism';
-import { Species } from '../../species/Species';
-import { Thing } from '../../stuff/Thing';
+import Species from '../../species/Species';
+import Thing from '../../stuff/Thing';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

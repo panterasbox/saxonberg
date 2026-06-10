@@ -107,7 +107,7 @@ export interface BiologicalSource {
   tissueType: string;
 }
 
-export class Material extends SingletonMixin(PropertiedMixin(Idea)) {
+export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
   protected name: string = '';
 

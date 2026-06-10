@@ -14,8 +14,9 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Organism } from '../lib/species/Organism';
-import type { Clade, CladeRank } from '../lib/species/Clade';
-import type { Species } from '../lib/species/Species';
+import type Clade from '../lib/species/Clade';
+import type { CladeRank } from '../lib/species/Clade';
+import type Species from '../lib/species/Species';
 import { MixinApi } from './mixin';
 import { Template } from '../lib/stuff/Template';
 import { StuffApi } from './stuff';

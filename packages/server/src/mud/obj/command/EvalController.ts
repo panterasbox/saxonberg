@@ -33,9 +33,8 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import type { MqlManyResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
-import { AccessApi } from '../../api/access';
-import { Avatar } from '../Avatar';
-import { EvalScript } from '../../lib/script/EvalScript';
+import Avatar from '../Avatar';
+import EvalScript from '../../lib/script/EvalScript';
 
 interface EvalModel extends CommandModel {
   expr?: string;
@@ -43,19 +42,14 @@ interface EvalModel extends CommandModel {
   all?: boolean;
 }
 
-export class EvalController extends CommandController<EvalModel> {
+export default class EvalController extends CommandController<EvalModel> {
   async execute(model: EvalModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // Developer axis — eval runs arbitrary TS; scoping by resource
-    // is meaningless. Gated by `'developers'` membership only.
-    if (!(await AccessApi.isDeveloper(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to eval",
-        'access-denied',
-      );
-    }
+    // Developer axis check is now declarative — see eval.yaml's
+    // `validators: requiresDeveloper`. The dispatcher rejects the
+    // command before this controller runs when the giver isn't a
+    // developer.
 
     // Singleton resolution. Keyed by the player's persistent
     // identity (Avatar.getPlayerId) so different players don't

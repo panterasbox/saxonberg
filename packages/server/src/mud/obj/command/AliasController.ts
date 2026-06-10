@@ -33,7 +33,7 @@ interface AliasModel extends CommandModel {
   session?: boolean;
 }
 
-export class AliasController extends CommandController<AliasModel> {
+export default class AliasController extends CommandController<AliasModel> {
   execute(model: AliasModel, context: CommandContext): void {
     // requiresAlias validator guarantees alias capability; narrow to prove it.
     const giver = context.commandGiver;

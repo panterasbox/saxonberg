@@ -10,8 +10,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Avatar } from '../Avatar';
-import { Interactive } from '../Interactive';
+import Avatar from '../Avatar';
+import Interactive from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
 import { MixinApi } from '../../api/mixin';
@@ -783,7 +783,7 @@ describe('Avatar', () => {
     it('welcome-scene payload carries topicCatalogue from the singleton', async () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
-      const { TopicCatalogue } = await import('../TopicCatalogue');
+      const { default: TopicCatalogue } = await import('../TopicCatalogue');
       const TemplateMod = await import('../../lib/stuff/Template');
 
       // Stub the mongo read with one authored topic descriptor.

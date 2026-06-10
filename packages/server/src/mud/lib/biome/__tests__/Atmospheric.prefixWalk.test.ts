@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Location } from '../../stuff/Location';
-import { Biome } from '../Biome';
+import Location from '../../stuff/Location';
+import Biome from '../Biome';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';

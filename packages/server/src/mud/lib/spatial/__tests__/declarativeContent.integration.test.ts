@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CartesianLocation } from '../CartesianLocation';
-import { CartesianZone } from '../CartesianZone';
-import { Window } from '../../boundary/Window';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import CartesianLocation from '../CartesianLocation';
+import CartesianZone from '../CartesianZone';
+import Window from '../../boundary/Window';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 

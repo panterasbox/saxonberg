@@ -34,7 +34,7 @@ interface CloseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class CloseController extends CommandController<CloseModel> {
+export default class CloseController extends CommandController<CloseModel> {
   execute(model: CloseModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;

@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EventApi, emittableBy } from '../event';
 import { Events } from '../../lib/events';
-import { EventRegistry } from '../../obj/EventRegistry';
+import EventRegistry from '../../obj/EventRegistry';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';

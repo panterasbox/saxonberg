@@ -21,7 +21,7 @@ interface EmoteModel extends CommandModel {
   body: string;
 }
 
-export class EmoteController extends CommandController<EmoteModel> {
+export default class EmoteController extends CommandController<EmoteModel> {
   execute(model: EmoteModel, context: CommandContext): void {
     const speaker = context.commandGiver;
     if (!MixinApi.isSoul(speaker)) {

@@ -18,13 +18,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PersistenceManager, Collections } from '../PersistenceManager';
-import { Avatar } from '../../mud/obj/Avatar';
+import Avatar from '../../mud/obj/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import { User } from '../../mud/lib/identity/User';
 import { StuffApi } from '../../mud/api/stuff';
 import type { IBackend } from '../IBackend';
-import type { Interactive } from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/obj/Interactive';
 import type { Container } from '../../mud/lib/spatial/Container';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type {

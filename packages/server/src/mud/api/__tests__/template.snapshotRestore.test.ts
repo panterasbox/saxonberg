@@ -10,7 +10,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
-import { PersistentHydrator } from '../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import {

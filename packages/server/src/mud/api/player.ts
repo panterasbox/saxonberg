@@ -10,7 +10,7 @@
  * This is separate from StuffApi because it's domain-specific functionality.
  */
 
-import { Avatar } from '../obj/Avatar';
+import Avatar from '../obj/Avatar';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
@@ -138,7 +138,7 @@ export class PlayerApi {
     // deliberately does not statically depend on — see
     // [architecture.md § Backend → mudlib import discipline] row 4.
     // Lazy-load to honor that discipline.
-    const { Avatar: AvatarClass } = await import('../obj/Avatar');
+    const { default: AvatarClass } = await import('../obj/Avatar');
     const avatars: Avatar[] = [];
     for (const playerId of user.playerIds) {
       // Reuse if already in-world (multiplexing).

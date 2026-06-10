@@ -13,7 +13,7 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { CelestialApi } from '../../api/celestial';
-import { Sundial } from '../instrument/Sundial';
+import Sundial from '../instrument/Sundial';
 
 interface MeasureShadowModel extends CommandModel {
   detail?: string;
@@ -21,7 +21,7 @@ interface MeasureShadowModel extends CommandModel {
 
 const TOPIC = 'world.perception.measurement.measure-shadow';
 
-export class MeasureShadowController extends CommandController<MeasureShadowModel> {
+export default class MeasureShadowController extends CommandController<MeasureShadowModel> {
   async execute(_model: MeasureShadowModel, ctx: CommandContext): Promise<void> {
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)

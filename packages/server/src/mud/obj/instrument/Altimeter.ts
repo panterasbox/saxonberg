@@ -10,10 +10,10 @@
  * — there's no medium to define a barometric altitude against.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Altimeter extends Thing {
+export default class Altimeter extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

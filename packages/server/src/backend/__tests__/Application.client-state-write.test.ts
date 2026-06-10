@@ -9,9 +9,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import { Avatar } from '../../mud/obj/Avatar';
+import Avatar from '../../mud/obj/Avatar';
 import type { IBackend } from '../IBackend';
-import type { Interactive } from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/obj/Interactive';
 
 interface FakeBackend extends IBackend {
   sent: Array<{ socketId: string; message: unknown }>;

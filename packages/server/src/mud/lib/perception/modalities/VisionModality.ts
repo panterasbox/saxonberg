@@ -16,7 +16,7 @@
 import { Modality, MAX_HOPS, EXIT_TAU } from '../Modality';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import type { Sensor } from '../../message/Sensor';
 import type { Perception } from '../Perception';
 import { Light, type LightSourceRef } from '../Light';

@@ -19,7 +19,7 @@ interface LieModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class LieController extends CommandController<LieModel> {
+export default class LieController extends CommandController<LieModel> {
   execute(model: LieModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

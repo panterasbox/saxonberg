@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CloneController } from '../CloneController';
+import CloneController from '../CloneController';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
+import Location from '../../../lib/stuff/Location';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';

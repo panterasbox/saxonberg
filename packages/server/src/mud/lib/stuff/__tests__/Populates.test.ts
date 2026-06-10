@@ -5,7 +5,7 @@ import { SingletonMixin } from '../Singleton';
 import { PopulatesMixin } from '../Populates';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';

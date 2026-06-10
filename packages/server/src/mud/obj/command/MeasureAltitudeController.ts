@@ -20,8 +20,8 @@ import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
 import { Quantity } from '../../lib/quantity';
 import { CelestialApi } from '../../api/celestial';
-import { Altimeter } from '../instrument/Altimeter';
-import { Sextant } from '../instrument/Sextant';
+import Altimeter from '../instrument/Altimeter';
+import Sextant from '../instrument/Sextant';
 
 interface MeasureAltitudeModel extends CommandModel {
   // When 'sun' / 'moon', routes to the angular (sextant) branch
@@ -29,7 +29,7 @@ interface MeasureAltitudeModel extends CommandModel {
   body?: string;
 }
 
-export class MeasureAltitudeController extends CommandController<MeasureAltitudeModel> {
+export default class MeasureAltitudeController extends CommandController<MeasureAltitudeModel> {
   async execute(
     model: MeasureAltitudeModel,
     ctx: CommandContext,

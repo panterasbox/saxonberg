@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AnalyzeTimeController } from '../AnalyzeTimeController';
-import { Location } from '../../../lib/stuff/Location';
+import AnalyzeTimeController from '../AnalyzeTimeController';
+import Location from '../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -19,7 +19,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 
 class TestLocation extends Location {}
 

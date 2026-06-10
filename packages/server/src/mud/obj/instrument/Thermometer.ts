@@ -9,10 +9,10 @@
  * verb itself reads through `BiomeApi.resolveTemperatureFor`.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class Thermometer extends Thing {
+export default class Thermometer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

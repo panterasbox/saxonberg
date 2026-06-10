@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GoController } from '../GoController';
-import { CartesianZone } from '../../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
-import { SphericalZone } from '../../../lib/spatial/SphericalZone';
-import { SphericalLocation } from '../../../lib/spatial/SphericalLocation';
-import { ExitableVessel } from '../../../lib/boundary/ExitableVessel';
-import { Exit } from '../../../lib/boundary/Exit';
-import { Door } from '../../../lib/boundary/Door';
+import GoController from '../GoController';
+import CartesianZone from '../../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
+import SphericalZone from '../../../lib/spatial/SphericalZone';
+import SphericalLocation from '../../../lib/spatial/SphericalLocation';
+import ExitableVessel from '../../../lib/boundary/ExitableVessel';
+import Exit from '../../../lib/boundary/Exit';
+import Door from '../../../lib/boundary/Door';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
@@ -15,8 +15,8 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
-import type { Interactive } from '../../Interactive';
-import type { Location } from '../../../lib/stuff/Location';
+import type Interactive from '../../Interactive';
+import type Location from '../../../lib/stuff/Location';
 import {
   CommandApi,
   type CommandContext,

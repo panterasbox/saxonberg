@@ -20,10 +20,10 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
-import type { Door } from './Door';
+import type Door from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
-import { Exit } from './Exit';
-import { CartesianZone } from '../spatial/CartesianZone';
+import Exit from './Exit';
+import CartesianZone from '../spatial/CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -310,7 +310,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // subclasses (Clade) never stamp here, so no narrowing needed.
       const zone = (this as unknown as Stuff).getZone();
       return zone?.deriveExit(
-        this as unknown as import('../stuff/Location').Location,
+        this as unknown as import('../stuff/Location').default,
         direction
       );
     }
@@ -346,7 +346,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         for (const dir of NavigationApi.cardinalDirections()) {
           if (seen.has(dir)) continue;
           const exit = zone.deriveExit(
-            this as unknown as import('../stuff/Location').Location,
+            this as unknown as import('../stuff/Location').default,
             dir
           );
           if (exit && !exit.isHidden()) result.push(exit);

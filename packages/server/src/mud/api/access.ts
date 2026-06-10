@@ -23,7 +23,7 @@
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { AccessRegistry } from '../obj/AccessRegistry';
+import type AccessRegistry from '../obj/AccessRegistry';
 
 /**
  * Avatar-shaped sniff: only Avatar instances carry a non-empty

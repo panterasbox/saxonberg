@@ -15,13 +15,13 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
-import { GasAnalyzer } from '../instrument/GasAnalyzer';
+import GasAnalyzer from '../instrument/GasAnalyzer';
 
 interface MeasureAtmosphereModel extends CommandModel {
   detail?: string;
 }
 
-export class MeasureAtmosphereController extends CommandController<MeasureAtmosphereModel> {
+export default class MeasureAtmosphereController extends CommandController<MeasureAtmosphereModel> {
   async execute(
     model: MeasureAtmosphereModel,
     ctx: CommandContext,

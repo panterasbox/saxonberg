@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { SphericalLocation } from '../SphericalLocation';
-import { SphericalZone } from '../SphericalZone';
+import SphericalLocation from '../SphericalLocation';
+import SphericalZone from '../SphericalZone';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

@@ -17,9 +17,9 @@
  */
 
 import { SpatialZone } from '../zone/SpatialZone';
-import { Exit } from '../boundary/Exit';
+import Exit from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
-import type { Location } from '../stuff/Location';
+import type Location from '../stuff/Location';
 import type { Container } from './Container';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -31,7 +31,7 @@ function gridKey(x: number, y: number, z: number): string {
   return `${x},${y},${z}`;
 }
 
-export class CartesianZone extends SingletonMixin(SpatialZone) {
+export default class CartesianZone extends SingletonMixin(SpatialZone) {
   /**
    * Linear cell extent, in **meters**. A cube-cell zone with
    * `cellSize: 3` carries `3m × 3m × 3m` cells — 9 m² floor area,

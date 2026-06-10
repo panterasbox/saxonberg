@@ -20,7 +20,7 @@ import type {
   CommandModel,
 } from '../../api/command';
 
-export class PingController extends CommandController {
+export default class PingController extends CommandController {
   execute(_model: CommandModel, _context: CommandContext): void {
     // Diagnostic-only: outcome rides on the dispatch-response
     // envelope and the input echo.

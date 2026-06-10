@@ -11,7 +11,7 @@
  */
 
 import { ConnectionManager } from '../../backend/ConnectionManager';
-import type { Interactive } from '../obj/Interactive';
+import type Interactive from '../obj/Interactive';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { SecurityApi } from './security';

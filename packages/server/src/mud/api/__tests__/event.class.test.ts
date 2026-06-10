@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
-import { EventRegistry } from '../../obj/EventRegistry';
+import EventRegistry from '../../obj/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 import { GenericEvent } from '../../lib/events/GenericEvent';

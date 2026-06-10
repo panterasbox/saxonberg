@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FeelController } from '../FeelController';
+import FeelController from '../FeelController';
 import type { MqlOneResult } from '../../../api/mql';
 import {
   CommandApi,
@@ -30,8 +30,8 @@ import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { OrganismMixin } from '../../../lib/species/Organism';
-import { Species } from '../../../lib/species/Species';
-import { BodyPlan } from '../../../lib/species/BodyPlan';
+import Species from '../../../lib/species/Species';
+import BodyPlan from '../../../lib/species/BodyPlan';
 import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

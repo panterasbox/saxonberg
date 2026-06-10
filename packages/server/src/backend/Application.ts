@@ -26,14 +26,14 @@ import type {
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
-import type { Interactive } from '../mud/obj/Interactive';
-import { Login } from '../mud/obj/Login';
+import type Interactive from '../mud/obj/Interactive';
+import Login from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
 import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
-import { Avatar } from '../mud/obj/Avatar';
+import Avatar from '../mud/obj/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { nanoid } from 'nanoid';
 import { CallSecurity } from '../mud/lib/security/decorators';

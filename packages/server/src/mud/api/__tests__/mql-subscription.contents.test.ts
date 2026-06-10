@@ -23,12 +23,12 @@ import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { ContainmentApi } from '../containment';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { EventRegistry } from '../../obj/EventRegistry';
-import { Interactive } from '../../obj/Interactive';
-import { Avatar } from '../../obj/Avatar';
+import EventRegistry from '../../obj/EventRegistry';
+import Interactive from '../../obj/Interactive';
+import Avatar from '../../obj/Avatar';
 import { ConnectionApi } from '../connection';
-import { Thing } from '../../lib/stuff/Thing';
-import { Location } from '../../lib/stuff/Location';
+import Thing from '../../lib/stuff/Thing';
+import Location from '../../lib/stuff/Location';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {

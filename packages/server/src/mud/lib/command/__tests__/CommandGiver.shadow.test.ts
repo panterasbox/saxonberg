@@ -18,7 +18,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { Shadowing } from '../../security/decorators';
 import { makeStuff } from '../../security/__tests__/test-setup';

@@ -33,10 +33,10 @@ import { Vessel } from '../stuff/Vessel';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { DoorBearingMixin } from './DoorBearing';
-import { Exit } from './Exit';
+import Exit from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Door } from './Door';
+import type Door from './Door';
 import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
 import { DescribeApi } from '../../api/describe';
@@ -45,7 +45,7 @@ import { MixinApi } from '../../api/mixin';
 
 const ExitableVesselBase = DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)));
 
-export class ExitableVessel extends ExitableVesselBase {
+export default class ExitableVessel extends ExitableVesselBase {
   /**
    * Cached synthesized `'out'` exit. Keyed implicitly by the current
    * environment; invalidated via `outCacheEnvId` when it changes.

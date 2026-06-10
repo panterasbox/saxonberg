@@ -52,7 +52,7 @@ interface TeleportModel extends CommandModel {
   force?: boolean;
 }
 
-export class TeleportController extends CommandController<TeleportModel> {
+export default class TeleportController extends CommandController<TeleportModel> {
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const target = model.target;
     if (!target || target.stuff === null) {

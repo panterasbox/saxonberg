@@ -36,7 +36,7 @@ interface OpenModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class OpenController extends CommandController<OpenModel> {
+export default class OpenController extends CommandController<OpenModel> {
   execute(model: OpenModel, context: CommandContext): void {
     const { commandGiver } = context;
     const target = model.target;

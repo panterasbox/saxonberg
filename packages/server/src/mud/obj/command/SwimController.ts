@@ -8,7 +8,7 @@ import type { CommandContext } from '../../api/command';
 import type { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
 
-export class SwimController extends LocomotionControllerBase {
+export default class SwimController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
     return 'swim';
   }

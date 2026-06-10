@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Boundary } from '../Boundary';
 import { BoundaryAnchor } from '../BoundaryAnchor';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { CartesianZone } from '../../spatial/CartesianZone';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianZone from '../../spatial/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';

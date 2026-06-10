@@ -3,13 +3,13 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Material } from '../Material';
-import { Thing } from '../../stuff/Thing';
+import Material from '../Material';
+import Thing from '../../stuff/Thing';
 import { Quantity } from '../../quantity';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import { EventRegistry } from '../../../obj/EventRegistry';
+import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { MixinApi } from '../../../api/mixin';

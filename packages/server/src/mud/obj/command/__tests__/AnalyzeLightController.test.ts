@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AnalyzeLightController } from '../AnalyzeLightController';
-import { CartesianZone } from '../../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../../lib/spatial/CartesianLocation';
+import AnalyzeLightController from '../AnalyzeLightController';
+import CartesianZone from '../../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../../lib/spatial/CartesianLocation';
 import { AmbientLitMixin } from '../../../lib/perception/AmbientLit';
 import { LightSourceMixin } from '../../../lib/perception/LightSource';
-import { Thing } from '../../../lib/stuff/Thing';
+import Thing from '../../../lib/stuff/Thing';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -22,7 +22,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 import { installV1QuantityTagTables } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../lib/perception/modalities/__tests__/test-helpers';
 

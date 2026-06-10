@@ -22,7 +22,6 @@ import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import YAML from 'yaml';
-import { AccessApi } from '../../api/access';
 import { SoulApi } from '../../api/soul';
 import type { EmoteSpec } from '../SoulCatalogue';
 
@@ -33,22 +32,16 @@ interface SoulModel extends CommandModel {
   value?: string;
 }
 
-export class SoulController extends CommandController<SoulModel> {
+export default class SoulController extends CommandController<SoulModel> {
   async execute(model: SoulModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isAuthor(giver)) {
       return this.fail(context, 'Not author-tier.', 'not-author');
     }
-    // Emote catalog is global content (no zone); runtime gate
-    // routes through the `'core'` fallback. One gate covers all
-    // subcommands (`make`/`edit`/`delete`/`show`/`list`).
-    if (!(await AccessApi.can(giver, 'soul', null))) {
-      return this.fail(
-        context,
-        "you don't have permission to author emotes",
-        'access-denied',
-      );
-    }
+    // Access gate is now declarative — see soul.yaml's
+    // `validators: requiresCoreAccess`. The dispatcher rejects the
+    // command before this controller runs when the giver isn't in
+    // the `'core'` group.
     const sub = model.subcommand ?? 'list';
     switch (sub) {
       case 'make':

@@ -14,9 +14,9 @@ import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { EventRegistry } from '../../obj/EventRegistry';
-import { Interactive } from '../../obj/Interactive';
-import { Avatar } from '../../obj/Avatar';
+import EventRegistry from '../../obj/EventRegistry';
+import Interactive from '../../obj/Interactive';
+import Avatar from '../../obj/Avatar';
 import { ConnectionApi } from '../connection';
 import { Mml } from '../mml';
 

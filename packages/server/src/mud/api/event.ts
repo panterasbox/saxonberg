@@ -29,7 +29,7 @@ import {
   type PropAccessCheck,
   type PropValue,
 } from '../lib/stuff/Propertied';
-import type { EventRegistry } from '../obj/EventRegistry';
+import type EventRegistry from '../obj/EventRegistry';
 
 /**
  * A class reference used in emit/subscribe allowlists. Entries are

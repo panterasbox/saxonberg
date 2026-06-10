@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpeciesApi } from '../species';
 import { StuffApi } from '../stuff';
-import { Species } from '../../lib/species/Species';
-import { Clade } from '../../lib/species/Clade';
+import Species from '../../lib/species/Species';
+import Clade from '../../lib/species/Clade';
 import { OrganismMixin } from '../../lib/species/Organism';
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   makeStuff,

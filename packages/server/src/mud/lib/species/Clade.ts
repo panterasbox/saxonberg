@@ -26,7 +26,7 @@
 import { Zone } from '../zone/Zone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
-import type { Species } from './Species';
+import type Species from './Species';
 import type { VetoResult } from '../errors';
 
 /** Taxonomic ranks the v1 build recognizes. */
@@ -39,7 +39,7 @@ export type CladeRank =
   | 'genus'
   | 'species';
 
-export class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
+export default class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
   /**
    * Taxonomic rank. v1 only seeds `'kingdom'`; sub-rank Clades land
    * with the family/order trees.

@@ -3,8 +3,8 @@ import { ZoneApi } from '../zone';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
-import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
-import { Thing } from '../../lib/stuff/Thing';
+import CartesianLocation from '../../lib/spatial/CartesianLocation';
+import Thing from '../../lib/stuff/Thing';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../lib/stuff/Stuff';
 

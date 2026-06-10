@@ -33,7 +33,7 @@ import { AliasMixin } from '../../lib/shell/Alias';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { Idea } from '../../lib/stuff/Idea';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class TestActor extends HasInteractiveMixin(

@@ -30,7 +30,7 @@ const LocationBase = AtmosphericMixin(
   TangibleMixin(AdornableMixin(ContainerMixin(Stuff))),
 );
 
-export class Location extends LocationBase {
+export default class Location extends LocationBase {
   static persistentFields: string[] = [];
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed

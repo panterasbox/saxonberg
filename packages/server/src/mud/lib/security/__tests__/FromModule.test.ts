@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import { ModuleApi } from '../../../api/module';
 import { StuffApi } from '../../../api/stuff';
-import { Thing } from '../../stuff/Thing';
+import Thing from '../../stuff/Thing';
 import { ContainmentApi } from '../../../api/containment';
 
 describe('FromModule (real, plugin-stamped)', () => {
@@ -21,7 +21,9 @@ describe('FromModule (real, plugin-stamped)', () => {
   });
 
   it('stamps Stuff classes under mud/lib/stuff/**', () => {
-    expect(ModuleApi.lookup(Thing)).toBe('mud/lib/stuff/Thing#Thing');
+    // Thing now follows the template-backing-class default-export
+    // convention — bare-path module id.
+    expect(ModuleApi.lookup(Thing)).toBe('mud/lib/stuff/Thing');
   });
 
   it('matches a stamped class against its module-id glob', () => {
@@ -43,9 +45,9 @@ describe('FromModule (real, plugin-stamped)', () => {
     // With includeSubclasses, the matcher walks up to Thing, which
     // IS stamped, and matches.
     const sub = Object.create(StuffSub.prototype);
-    const direct = SecurityPolicies.FromModule('mud/lib/stuff/Thing#Thing');
+    const direct = SecurityPolicies.FromModule('mud/lib/stuff/Thing');
     const recursive = SecurityPolicies.FromModule(
-      'mud/lib/stuff/Thing#Thing',
+      'mud/lib/stuff/Thing',
       { includeSubclasses: true }
     );
     expect(direct.allows(sub, null, 'm')).toBe(false);

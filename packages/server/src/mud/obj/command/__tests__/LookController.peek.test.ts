@@ -27,8 +27,8 @@ import { NamedMixin } from "../../../lib/description/Named";
 import { PerceptibleMixin } from "../../../lib/description/Perceptible";
 import { StuffApi } from "../../../api/stuff";
 import { makeStuff } from "../../../lib/security/__tests__/test-setup";
-import type { Location } from "../../../lib/stuff/Location";
-import type { Interactive } from "../../Interactive";
+import type Location from "../../../lib/stuff/Location";
+import type Interactive from "../../Interactive";
 
 class TestLocation extends ContainerMixin(
   DetailedMixin(NamedMixin(PerceptibleMixin(Idea)))

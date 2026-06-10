@@ -29,7 +29,7 @@ interface MvModel extends CommandModel {
   source?: boolean;
 }
 
-export class MvController extends CommandController<MvModel> {
+export default class MvController extends CommandController<MvModel> {
   async execute(model: MvModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isWorkspace(giver)) {

@@ -20,7 +20,7 @@ import type { Focused } from '../lib/command/Focused';
 import { ArrayApi } from './array';
 import { ShellApi } from './shell';
 import { PromptApi } from './prompt';
-import type { Interactive } from '../obj/Interactive';
+import type Interactive from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath, pathToFileURL } from 'url';

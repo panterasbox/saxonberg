@@ -127,7 +127,7 @@ describe('Mml vocabulary helpers', () => {
     const exit = {
       stuffId: 'exit-abc',
       getDirection: () => 'north',
-    } as unknown as import('../../lib/boundary/Exit').Exit;
+    } as unknown as import('../../lib/boundary/Exit').default;
     expect(Mml.exit(exit).toString()).toBe(
       '<exit dir="north" stuff-id="exit-abc">north</exit>'
     );
@@ -137,7 +137,7 @@ describe('Mml vocabulary helpers', () => {
     const exit = {
       stuffId: 'exit-xyz',
       getDirection: () => '<bogus>',
-    } as unknown as import('../../lib/boundary/Exit').Exit;
+    } as unknown as import('../../lib/boundary/Exit').default;
     expect(Mml.exit(exit).toString()).toBe(
       '<exit dir="&lt;bogus&gt;" stuff-id="exit-xyz">&lt;bogus&gt;</exit>'
     );

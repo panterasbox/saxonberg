@@ -21,7 +21,7 @@ import { LocomotionControllerBase } from './LocomotionControllerBase';
 import type { CommandContext } from '../../api/command';
 import { LocomotionApi } from '../../api/locomotion';
 
-export class GoController extends LocomotionControllerBase {
+export default class GoController extends LocomotionControllerBase {
   protected modeName(context: CommandContext): string {
     return LocomotionApi.defaultModeFor(context.commandGiver);
   }

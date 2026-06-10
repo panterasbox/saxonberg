@@ -25,11 +25,11 @@
  * be singleton-shaped.
  */
 
-import { Location } from './Location';
+import Location from './Location';
 import { SingletonMixin } from './Singleton';
 import type { VetoResult } from '../errors';
 
-export class VoidLocation extends SingletonMixin(Location) {
+export default class VoidLocation extends SingletonMixin(Location) {
   public canDestruct(): VetoResult {
     return {
       ok: false,

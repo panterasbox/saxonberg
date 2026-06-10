@@ -9,7 +9,7 @@
  * in the Material substrate.
  */
 
-import { Biome } from './Biome';
+import Biome from './Biome';
 import { SkyExposedMixin } from './SkyExposed';
 
 export class SkyExposedBiome extends SkyExposedMixin(Biome) {}

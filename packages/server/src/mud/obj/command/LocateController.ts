@@ -19,7 +19,7 @@ interface LocateModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class LocateController extends CommandController<LocateModel> {
+export default class LocateController extends CommandController<LocateModel> {
   execute(model: LocateModel, context: CommandContext): void {
     const target = model.target;
     if (!target || target.stuff === null) {

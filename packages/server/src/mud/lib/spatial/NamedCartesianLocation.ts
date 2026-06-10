@@ -11,7 +11,7 @@
  * `class: /lib/spatial/NamedCartesianLocation`.
  */
 
-import { CartesianLocation } from './CartesianLocation';
+import CartesianLocation from './CartesianLocation';
 import { NamedMixin } from '../description/Named';
 
-export class NamedCartesianLocation extends NamedMixin(CartesianLocation) {}
+export default class NamedCartesianLocation extends NamedMixin(CartesianLocation) {}

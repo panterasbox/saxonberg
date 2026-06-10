@@ -29,7 +29,7 @@ interface MountModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class MountController extends CommandController<MountModel> {
+export default class MountController extends CommandController<MountModel> {
   execute(model: MountModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

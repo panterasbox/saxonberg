@@ -21,7 +21,7 @@ import { DescribeApi } from '../../api/describe';
 import { Group, type GroupRole } from '../../lib/social/Group';
 import { GroupApi } from '../../api/group';
 import { ChatApi } from '../../api/chat';
-import { Avatar } from '../Avatar';
+import Avatar from '../Avatar';
 import { PlayerApi } from '../../api/player';
 
 interface GroupModel extends CommandModel {
@@ -40,7 +40,7 @@ interface GroupModel extends CommandModel {
 
 const ROLES: ReadonlySet<GroupRole> = new Set(['owner', 'admin', 'member']);
 
-export class GroupController extends CommandController<GroupModel> {
+export default class GroupController extends CommandController<GroupModel> {
   async execute(model: GroupModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!PlayerApi.isAvatarStuff(giver)) {

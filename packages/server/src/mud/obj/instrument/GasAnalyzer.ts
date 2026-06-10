@@ -5,10 +5,10 @@
  * through `BiomeApi.resolveAtmosphereFor`.
  */
 
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import type { CommandContributions } from '../../api/command';
 
-export class GasAnalyzer extends Thing {
+export default class GasAnalyzer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: ['measure.yaml'],

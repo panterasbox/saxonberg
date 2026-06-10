@@ -4,6 +4,7 @@ description: "Send a message to every online player (or an MQL-refined subset)"
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
+  - /lib/command/validators/requiresCoreAccess
 options:
   to:
     short: t

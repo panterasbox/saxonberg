@@ -16,7 +16,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessApi } from '../access';
-import { AccessRegistry } from '../../obj/AccessRegistry';
+import AccessRegistry from '../../obj/AccessRegistry';
 import { StuffApi } from '../stuff';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { SecurityError } from '../../lib/security/errors';

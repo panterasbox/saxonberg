@@ -18,13 +18,13 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
-import { Thermometer } from '../instrument/Thermometer';
+import Thermometer from '../instrument/Thermometer';
 
 interface MeasureTemperatureModel extends CommandModel {
   detail?: string;
 }
 
-export class MeasureTemperatureController extends CommandController<MeasureTemperatureModel> {
+export default class MeasureTemperatureController extends CommandController<MeasureTemperatureModel> {
   async execute(
     model: MeasureTemperatureModel,
     ctx: CommandContext,

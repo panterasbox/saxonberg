@@ -77,7 +77,7 @@ function buildSandboxContext(receiver: Stuff): Context {
   return createContext(sandbox);
 }
 
-export class EvalScript extends Idea {
+export default class EvalScript extends Idea {
   /**
    * The current code body. Set via `setCode`; read indirectly via
    * `run`. Public so the Hydrator (if `--save` lands later) can

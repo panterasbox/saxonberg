@@ -26,7 +26,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { Interactive } from '../../obj/Interactive';
+import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 
 /**

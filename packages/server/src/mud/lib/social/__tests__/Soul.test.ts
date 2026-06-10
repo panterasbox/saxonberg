@@ -19,7 +19,7 @@ import { VocalMixin } from '../../message/Vocal';
 import { SoulMixin } from '../Soul';
 import { NamedMixin } from '../../description/Named';
 import { CommandGiverMixin } from '../../command/CommandGiver';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';

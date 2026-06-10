@@ -1,6 +1,8 @@
 verbs: [soul]
 controller: SoulController
 description: "Author the emote catalog (mint / edit / delete / show / list emotes). Author-gated by composition — non-authors don't see the verb in their recency stack."
+validators:
+  - /lib/command/validators/requiresCoreAccess
 subcommands:
   make:
     description: "Mint a new emote: verb, then greedy YAML/JSON grammar body"

@@ -35,13 +35,13 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { DescribeApi } from '../../api/describe';
 import { Mml } from '../../api/mml';
-import type { Exit } from '../../lib/boundary/Exit';
+import type Exit from '../../lib/boundary/Exit';
 
 interface LookModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class LookController extends CommandController<LookModel> {
+export default class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): void {
     const target = model.target;
     // `look.yaml` declares `default: "$focus"` and the scope fallback

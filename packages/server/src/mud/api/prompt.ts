@@ -26,7 +26,7 @@ import type {
   PromptRefreshNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Interactive } from '../obj/Interactive';
+import type Interactive from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Mml } from './mml';
 import { MessageApi } from './message';

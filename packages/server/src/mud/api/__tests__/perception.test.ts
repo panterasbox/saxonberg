@@ -13,10 +13,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { StuffApi } from '../stuff';
-import { Species } from '../../lib/species/Species';
-import { BodyPlan } from '../../lib/species/BodyPlan';
+import Species from '../../lib/species/Species';
+import BodyPlan from '../../lib/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
-import { Thing } from '../../lib/stuff/Thing';
+import Thing from '../../lib/stuff/Thing';
 import {
   makeStuff,
   stampTemplatePathForTest,

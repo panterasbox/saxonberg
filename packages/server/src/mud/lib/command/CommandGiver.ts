@@ -61,7 +61,7 @@ import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import type { Sensor } from '../message/Sensor';
-import type { Interactive } from '../../obj/Interactive';
+import type Interactive from '../../obj/Interactive';
 import type { LogLevel, Note } from '@saxonberg/types';
 
 /**

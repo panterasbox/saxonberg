@@ -22,7 +22,7 @@ interface RemoveModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class RemoveController extends CommandController<RemoveModel> {
+export default class RemoveController extends CommandController<RemoveModel> {
   execute(model: RemoveModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

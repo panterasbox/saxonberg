@@ -22,7 +22,7 @@
  * Default-floor seed at `seeds/obj/surface/default-floor.yaml`.
  */
 
-import { Thing } from '../lib/stuff/Thing';
+import Thing from '../lib/stuff/Thing';
 import { VisibleMixin } from '../lib/description/Visible';
 import { DetailedMixin } from '../lib/description/Detailed';
 import { AdornmentMixin } from '../lib/boundary/Adornment';
@@ -33,4 +33,4 @@ const FloorBase = PosturedMixin(
   SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing))))
 );
 
-export class Floor extends FloorBase {}
+export default class Floor extends FloorBase {}

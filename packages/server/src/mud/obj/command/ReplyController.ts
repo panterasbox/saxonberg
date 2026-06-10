@@ -26,7 +26,7 @@ interface ReplyModel extends CommandModel {
   one?: boolean;
 }
 
-export class ReplyController extends CommandController<ReplyModel> {
+export default class ReplyController extends CommandController<ReplyModel> {
   async execute(model: ReplyModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver;
     if (!MixinApi.isAether(speaker)) {

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { Door } from '../Door';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import Door from '../Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
-import { PersistentHydrator } from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import {
   makeStuffAtPath,
   makeStuff,

@@ -16,6 +16,6 @@
  * definition (`class TwoMix extends FooMixin(BarMixin(Material)) {}`).
  */
 import { RadioactiveMixin } from './Radioactive';
-import { Material } from './Material';
+import Material from './Material';
 
 export class RadioactiveMaterial extends RadioactiveMixin(Material) {}

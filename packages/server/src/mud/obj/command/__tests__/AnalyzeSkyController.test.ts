@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AnalyzeSkyController } from '../AnalyzeSkyController';
-import { Location } from '../../../lib/stuff/Location';
+import AnalyzeSkyController from '../AnalyzeSkyController';
+import Location from '../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -20,7 +20,7 @@ import {
   type ModelData,
 } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 
 class TestLocation extends Location {}
 

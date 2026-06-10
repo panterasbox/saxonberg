@@ -34,7 +34,7 @@ function phaseName(phase: number): string {
   return 'waning crescent';
 }
 
-export class AnalyzeSkyController extends CommandController<AnalyzeSkyModel> {
+export default class AnalyzeSkyController extends CommandController<AnalyzeSkyModel> {
   async execute(model: AnalyzeSkyModel, ctx: CommandContext): Promise<void> {
     const giver = ctx.commandGiver;
     const target = model.location;

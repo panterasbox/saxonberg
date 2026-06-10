@@ -28,7 +28,7 @@ import { MixinApi } from './mixin';
 import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Marshaller } from '../lib/persistence/Marshaller';
-import { PersistentHydrator } from '../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../lib/persistence/PersistentHydrator';
 
 /**
  * Thrown when a domain-collection write would violate the folder/leaf

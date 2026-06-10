@@ -23,7 +23,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import { Stuff } from '../../stuff/Stuff';
 import { EventApi } from '../../../api/event';
-import { EventRegistry } from '../../../obj/EventRegistry';
+import EventRegistry from '../../../obj/EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { makeStuff } from '../../security/__tests__/test-setup';

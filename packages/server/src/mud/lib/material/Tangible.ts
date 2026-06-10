@@ -43,7 +43,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import { StuffApi } from '../../api/stuff';
-import type { Material } from './Material';
+import type Material from './Material';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { EventApi } from '../../api/event';

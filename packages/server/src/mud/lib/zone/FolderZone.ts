@@ -28,6 +28,6 @@
 
 import { Zone } from './Zone';
 
-export class FolderZone extends Zone {
+export default class FolderZone extends Zone {
   // No fields, no methods v1.
 }

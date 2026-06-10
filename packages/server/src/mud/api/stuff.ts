@@ -282,7 +282,12 @@ export class StuffApi {
           `Failed to import class ${template.class}: ${error instanceof Error ? error.message : String(error)}`
         );
       }
-      ClassConstructor = module[className] as StuffConstructor<T> | undefined;
+      // Prefer the named export matching the file basename, falling
+      // back to `module.default` for files that follow the
+      // template-backing-class default-export convention (every
+      // concrete Stuff subclass that backs a Template).
+      ClassConstructor =
+        (module[className] ?? module.default) as StuffConstructor<T> | undefined;
       if (!ClassConstructor) {
         throw new Error(
           `Class ${className} not found in module ${modulePath} (available exports: ${Object.keys(module).join(', ')})`
@@ -610,7 +615,7 @@ export class StuffApi {
    * Direct calls from outside `DestructController`'s module throw
    * `SecurityError` from the decorator gate before this body runs.
    */
-  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/DestructController#DestructController'))
+  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/DestructController'))
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
   }
@@ -976,7 +981,12 @@ export class StuffApi {
           `${error instanceof Error ? error.message : String(error)}`
       );
     }
-    const ClassConstructor = module[className];
+    // Prefer the named export matching the file basename, falling
+    // back to `module.default` for files that follow the
+    // template-backing-class default-export convention (every
+    // concrete Stuff subclass that backs a Template). Both forms
+    // resolve to the same class object at runtime.
+    const ClassConstructor = module[className] ?? module.default;
     if (!ClassConstructor) {
       throw new Error(
         `StuffApi.loadClassByPath: class ${className} not found in module ` +

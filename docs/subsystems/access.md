@@ -145,6 +145,34 @@ pattern: every public Registry method carries
 `@CallSecurity(FromModule('mud/api/access#AccessApi'))`, so
 external code's only reachable surface is the Api facade.
 
+## Where the gate lives — validator vs controller body
+
+The dispatcher's validator phase is the right home for an access check
+when the decision is sync-decidable from the giver alone (no need for
+the resolved model). Two declarative validators cover the simpler
+cases:
+
+- **`requiresCoreAccess`** — `can(giver, ctx.verb, null)`. Action
+  string is the verb name; resource is null, so the walk falls to
+  `'core'`. Used by `soul` and `broadcast`.
+- **`requiresDeveloper`** — `isDeveloper(giver)`. Used by `eval`
+  and `reload`.
+
+Both follow the sync-validator-with-async-preload pattern documented
+on `CommandValidator`: the async preload calls `AccessApi.can` /
+`isDeveloper` once and stashes the decision in a per-context
+`WeakMap`; the sync validator body reads from it.
+
+The model-dependent cases — `destruct` / `teleport` / `goto` (force
+flag + target stuff + Zone-target detection), `clone` (source
+template), and the workspace verbs (tree-mode branching, dual-
+endpoint cp/mv, source-path resolution) — stay in the controller
+body. CommandValidator's `preload(context)` signature doesn't expose
+the resolved model, and splitting the branching across many narrow
+validators trades one controller check for several preload+sync
+pairs. When the matrix simplifies (an inert force flag, a single
+tree mode, etc.) we revisit.
+
 ## Verb-controller gates (matrix)
 
 | Controller | Check |
@@ -152,11 +180,11 @@ external code's only reachable surface is the Api facade.
 | `DestructController` | Zone target: `canMutateZone(giver, target)`. Else non-force: `can(giver, 'destruct', target)`; force: `can(giver, 'force-destruct', target)`. |
 | `TeleportController` | non-force: `can(giver, 'teleport', target)`; force: `can(giver, 'force-teleport', target)`. |
 | `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. |
-| `SoulController` | `can(giver, 'soul', null)` — one gate covers all subcommands. |
-| `BroadcastController` | `can(giver, 'broadcast', null)` — null falls to `'core'`. |
-| `EvalController` | `isDeveloper(giver)` — no slice (eval is TS execution). |
+| `SoulController` | `requiresCoreAccess` (validator) — `can(giver, 'soul', null)` via the verb-name action. |
+| `BroadcastController` | `requiresCoreAccess` (validator) — `can(giver, 'broadcast', null)`. |
+| `EvalController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice (eval is TS execution). |
 | `CloneController` | `can(giver, 'clone', sourceResource)` — slice walk on source path. |
-| `ReloadController` | `isDeveloper(giver)` — no slice. |
+| `ReloadController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
 | `WriteController` source/mirror | `isDeveloper(giver)` AND `can(giver, 'write', resolveSourceFolderZone(path))`. |
 | `MkdirController` content | `can(giver, 'mkdir', parent)` flat — sub-zone creation is a member-level op. |

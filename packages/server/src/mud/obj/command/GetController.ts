@@ -33,7 +33,7 @@ interface GetPayload {
   applied: number;
 }
 
-export class GetController extends CommandController<GetModel> {
+export default class GetController extends CommandController<GetModel> {
   async execute(
     model: GetModel,
     context: CommandContext

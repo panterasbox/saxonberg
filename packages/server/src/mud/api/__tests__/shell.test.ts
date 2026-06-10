@@ -31,7 +31,7 @@ import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
-import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../lib/spatial/CartesianLocation';
 
 class TestGiverBase extends EnvironmentMixin(
   FocusedMixin(

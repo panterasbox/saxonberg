@@ -12,7 +12,7 @@
  * This is a Manager (privileged) - has state and business logic.
  */
 
-import { Interactive } from '../mud/obj/Interactive';
+import Interactive from '../mud/obj/Interactive';
 import { StuffApi } from '../mud/api/stuff';
 import type { User } from '../mud/lib/identity/User';
 

@@ -11,8 +11,8 @@ import {
 } from '../../lib/locomotion/Swimmable';
 import { FlyableMixin } from '../../lib/locomotion/Flyable';
 import { Idea } from '../../lib/stuff/Idea';
-import { Thing } from '../../lib/stuff/Thing';
-import { Location } from '../../lib/stuff/Location';
+import Thing from '../../lib/stuff/Thing';
+import Location from '../../lib/stuff/Location';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SlottableMixin } from '../../lib/slot/Slottable';
@@ -21,7 +21,7 @@ import { MountableMixin } from '../../lib/slot/Mountable';
 import { DrivableMixin } from '../../lib/slot/Drivable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { ContainmentApi } from '../containment';
-import { Exit } from '../../lib/boundary/Exit';
+import Exit from '../../lib/boundary/Exit';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -61,8 +61,8 @@ class TestCart extends MobileCart {}
 // An Organism + Mobile + Containable actor (NPC-shaped) for the
 // body-plan default chain.
 import { OrganismMixin } from '../../lib/species/Organism';
-import { Species } from '../../lib/species/Species';
-import { BodyPlan } from '../../lib/species/BodyPlan';
+import Species from '../../lib/species/Species';
+import BodyPlan from '../../lib/species/BodyPlan';
 import { StuffApi } from '../stuff';
 const OrganismMover = OrganismMixin(MobileMixin(ContainableMixin(Idea)));
 class TestOrganismMover extends OrganismMover {}

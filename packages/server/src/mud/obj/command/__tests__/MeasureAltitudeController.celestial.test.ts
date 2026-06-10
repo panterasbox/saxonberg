@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MeasureAltitudeController } from '../MeasureAltitudeController';
-import { Sextant } from '../../instrument/Sextant';
-import { Location } from '../../../lib/stuff/Location';
+import MeasureAltitudeController from '../MeasureAltitudeController';
+import Sextant from '../../instrument/Sextant';
+import Location from '../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -27,7 +27,7 @@ import {
   type CommandModel,
   type ModelData,
 } from '../../../api/command';
-import type { Interactive } from '../../Interactive';
+import type Interactive from '../../Interactive';
 
 class TestLocation extends Location {}
 

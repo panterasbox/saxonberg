@@ -14,7 +14,7 @@
  * the resolver hasn't been touched. Pure type code — no runtime exit.
  */
 
-import type { Exit } from '../../lib/boundary/Exit';
+import type Exit from '../../lib/boundary/Exit';
 
 declare module './types' {
   interface MqlMatchVia {

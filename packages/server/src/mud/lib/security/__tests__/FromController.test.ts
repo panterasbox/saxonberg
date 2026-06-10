@@ -13,9 +13,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
-import { DestructController } from '../../../obj/command/DestructController';
-import { TeleportController } from '../../../obj/command/TeleportController';
-import { GotoController } from '../../../obj/command/GotoController';
+import DestructController from '../../../obj/command/DestructController';
+import TeleportController from '../../../obj/command/TeleportController';
+import GotoController from '../../../obj/command/GotoController';
 import { StuffApi } from '../../../api/stuff';
 
 describe('FromController', () => {

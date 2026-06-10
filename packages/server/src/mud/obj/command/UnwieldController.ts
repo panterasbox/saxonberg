@@ -22,7 +22,7 @@ interface UnwieldModel extends CommandModel {
   target: MqlOneResult;
 }
 
-export class UnwieldController extends CommandController<UnwieldModel> {
+export default class UnwieldController extends CommandController<UnwieldModel> {
   execute(model: UnwieldModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const target = model.target.stuff;

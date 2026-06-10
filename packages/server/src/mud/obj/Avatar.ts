@@ -18,7 +18,7 @@ import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
 import { MixinApi } from '../api/mixin';
 import { SpeciesApi } from '../api/species';
-import { AetherImplant } from '../lib/augmentation/AetherImplant';
+import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
 import { Mml } from '../api/mml';
@@ -44,8 +44,8 @@ import type {
 } from '@saxonberg/types';
 import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
-import type { Interactive } from './Interactive';
-import type { TopicCatalogue } from './TopicCatalogue';
+import type Interactive from './Interactive';
+import type TopicCatalogue from './TopicCatalogue';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -67,7 +67,7 @@ const AvatarBase = PostRegistrationMixin(
   HasInteractiveMixin(AetherMixin(ContactsMixin(ShelledCharacter))),
 );
 
-export class Avatar extends AvatarBase {
+export default class Avatar extends AvatarBase {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
    */

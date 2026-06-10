@@ -14,7 +14,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Stuff } from '../../stuff/Stuff';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { CommandGiverMixin } from '../CommandGiver';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';

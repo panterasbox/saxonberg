@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Door } from '../Door';
+import Door from '../Door';
 import { Boundary } from '../Boundary';
-import { CartesianLocation } from '../../spatial/CartesianLocation';
-import { CartesianZone } from '../../spatial/CartesianZone';
+import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianZone from '../../spatial/CartesianZone';
 import { VisionModality } from '../../perception/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import { Light } from '../../perception/Light';
 import { LightSourceMixin } from '../../perception/LightSource';
-import { Thing } from '../../stuff/Thing';
+import Thing from '../../stuff/Thing';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';

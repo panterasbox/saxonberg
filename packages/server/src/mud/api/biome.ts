@@ -33,7 +33,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Atmospheric } from '../lib/biome/Atmospheric';
-import { Biome } from '../lib/biome/Biome';
+import Biome from '../lib/biome/Biome';
 import { Quantity } from '../lib/quantity';
 import type { Unit } from '../lib/quantity';
 import { StuffApi } from './stuff';

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GiveController } from '../GiveController';
+import GiveController from '../GiveController';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
@@ -14,7 +14,7 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { Agent } from '../../../lib/stuff/Agent';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
+import Location from '../../../lib/stuff/Location';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

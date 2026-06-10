@@ -11,7 +11,7 @@
 
 import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
-import { Avatar } from '../../mud/obj/Avatar';
+import Avatar from '../../mud/obj/Avatar';
 import { renderPromptRefresh } from '../../mud/api/prompt';
 import type { InboundClientMessage, InboundHandler } from './index';
 

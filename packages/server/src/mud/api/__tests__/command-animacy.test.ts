@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import requiresAnimate from '../../lib/command/validators/requiresAnimate';
 import { CommandApi, type CommandContext } from '../command';
 import { StuffApi } from '../stuff';
-import { Species } from '../../lib/species/Species';
-import { Clade } from '../../lib/species/Clade';
+import Species from '../../lib/species/Species';
+import Clade from '../../lib/species/Clade';
 import { Character } from '../../lib/character/Character';
 import { Idea } from '../../lib/stuff/Idea';
-import { Location } from '../../lib/stuff/Location';
+import Location from '../../lib/stuff/Location';
 import {
   makeStuff,
   stampTemplatePathForTest,

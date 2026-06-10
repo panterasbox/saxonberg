@@ -27,7 +27,7 @@ interface FeelModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export class FeelController extends SingleSenseControllerBase {
+export default class FeelController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'touch';
   protected readonly sceneTopic = 'world.perception.sense.feel';
 

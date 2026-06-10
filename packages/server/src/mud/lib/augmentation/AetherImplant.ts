@@ -19,14 +19,14 @@
  * universal default that lets Avatars send dms to one another.
  */
 
-import { Thing } from '../stuff/Thing';
+import Thing from '../stuff/Thing';
 import { SlottableMixin } from '../slot/Slottable';
 import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
 
 const AetherImplantBase = AugmentMixin(SlottableMixin(TangibleMixin(Thing)));
 
-export class AetherImplant extends AetherImplantBase {
+export default class AetherImplant extends AetherImplantBase {
   static readonly TEMPLATE_PATH = '/lib/augmentation/AetherImplant';
 
   override confers(): readonly string[] {

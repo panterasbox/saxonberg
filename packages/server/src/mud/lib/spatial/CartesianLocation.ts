@@ -18,7 +18,7 @@
  * known inverse.
  */
 
-import { Location } from '../stuff/Location';
+import Location from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
@@ -30,8 +30,8 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
-import type { CartesianZone } from './CartesianZone';
-import type { Exit } from '../boundary/Exit';
+import type CartesianZone from './CartesianZone';
+import type Exit from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 
 // CartesianLocation is singleton-shaped: every cartesian room is
@@ -52,7 +52,7 @@ const CartesianLocationBase = SingletonMixin(
   )
 );
 
-export class CartesianLocation extends CartesianLocationBase {
+export default class CartesianLocation extends CartesianLocationBase {
   static persistentFields = ['coords'];
 
   /**

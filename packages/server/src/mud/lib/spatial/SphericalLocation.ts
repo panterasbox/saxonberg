@@ -9,14 +9,14 @@
  * `CartesianZone`-style derivation returns nothing here.
  */
 
-import { Location } from '../stuff/Location';
+import Location from '../stuff/Location';
 import { SphericalCoordinatesMixin } from './SphericalCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { SingletonMixin } from '../stuff/Singleton';
 import { Quantity } from '../quantity';
-import type { SphericalZone } from './SphericalZone';
+import type SphericalZone from './SphericalZone';
 import type { Stuff } from '../stuff/Stuff';
 
 // SphericalLocation is singleton-shaped — same rationale as
@@ -29,7 +29,7 @@ const SphericalLocationBase = SingletonMixin(
   )
 );
 
-export class SphericalLocation extends SphericalLocationBase {
+export default class SphericalLocation extends SphericalLocationBase {
   /**
    * Mutual-exit verification — same as CartesianLocation. The verifier
    * skips non-cardinal directions, so spherical exits authored with

@@ -33,7 +33,7 @@ export interface EmoteSpec {
   tags?: string[];
 }
 
-export class SoulCatalogue extends SoulCatalogueBase {
+export default class SoulCatalogue extends SoulCatalogueBase {
   /**
    * Verb → Emote lookup table. `null` means "not warmed yet". Includes
    * alias entries — each alias maps to the same Emote record as its

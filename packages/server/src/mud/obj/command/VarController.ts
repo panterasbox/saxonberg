@@ -30,7 +30,7 @@ interface VarModel extends CommandModel {
   value?: string;
 }
 
-export class VarController extends CommandController<VarModel> {
+export default class VarController extends CommandController<VarModel> {
   execute(model: VarModel, context: CommandContext): void {
     // requiresEnvironment validator guarantees env capability; narrow to prove it.
     const giver = context.commandGiver;

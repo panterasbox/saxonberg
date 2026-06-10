@@ -10,8 +10,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Interactive } from '../Interactive';
-import { Avatar } from '../Avatar';
+import Interactive from '../Interactive';
+import Avatar from '../Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';

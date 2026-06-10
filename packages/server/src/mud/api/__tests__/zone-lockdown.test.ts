@@ -20,16 +20,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
-import { CartesianZone } from '../../lib/spatial/CartesianZone';
-import { CartesianLocation } from '../../lib/spatial/CartesianLocation';
-import { Thing } from '../../lib/stuff/Thing';
+import CartesianZone from '../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../lib/spatial/CartesianLocation';
+import Thing from '../../lib/stuff/Thing';
 import { StuffApi } from '../stuff';
 import { ContainmentApi, ContainmentError } from '../containment';
 import { ShadowApi } from '../shadow';
 import { ProxyApi } from '../proxy';
 import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import { ExitableVessel } from '../../lib/boundary/ExitableVessel';
+import ExitableVessel from '../../lib/boundary/ExitableVessel';
 
 class Plain extends Idea {}
 

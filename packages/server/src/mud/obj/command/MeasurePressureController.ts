@@ -14,13 +14,13 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { BiomeApi } from '../../api/biome';
 import { Mml } from '../../api/mml';
-import { Barometer } from '../instrument/Barometer';
+import Barometer from '../instrument/Barometer';
 
 interface MeasurePressureModel extends CommandModel {
   detail?: string;
 }
 
-export class MeasurePressureController extends CommandController<MeasurePressureModel> {
+export default class MeasurePressureController extends CommandController<MeasurePressureModel> {
   async execute(
     model: MeasurePressureModel,
     ctx: CommandContext,

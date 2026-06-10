@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SphericalZone } from '../SphericalZone';
-import { SphericalLocation } from '../SphericalLocation';
-import { Exit } from '../../boundary/Exit';
+import SphericalZone from '../SphericalZone';
+import SphericalLocation from '../SphericalLocation';
+import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

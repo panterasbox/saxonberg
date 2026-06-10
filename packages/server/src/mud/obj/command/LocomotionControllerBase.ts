@@ -25,8 +25,9 @@ import type {
   } from '../../api/command';
 import type { LocomotionGateFailedNote } from '@saxonberg/types';
 import type { MqlOneResult } from '../../api/mql';
-import type { Exit, TraversalGuard } from '../../lib/boundary/Exit';
-import { ExitableVessel } from '../../lib/boundary/ExitableVessel';
+import type Exit from '../../lib/boundary/Exit';
+import type { TraversalGuard } from '../../lib/boundary/Exit';
+import ExitableVessel from '../../lib/boundary/ExitableVessel';
 import { LocomotionApi } from '../../api/locomotion';
 import type { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
 import { MessageApi } from '../../api/message';

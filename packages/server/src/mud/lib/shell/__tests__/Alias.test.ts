@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import { Location } from '../../stuff/Location';
+import Location from '../../stuff/Location';
 import { AliasMixin, type DefaultAliasEntry } from '../Alias';
 import { CommandGiverMixin } from '../../command/CommandGiver';
 import { ContainableMixin } from '../../spatial/Containable';

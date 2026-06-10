@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { DropController } from '../DropController';
+import DropController from '../DropController';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
@@ -16,7 +16,7 @@ import { NamedMixin } from '../../../lib/description/Named';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { GlobbableMixin } from '../../../lib/stuff/Globbable';
 import { Idea } from '../../../lib/stuff/Idea';
-import { Location } from '../../../lib/stuff/Location';
+import Location from '../../../lib/stuff/Location';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

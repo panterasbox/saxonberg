@@ -11,10 +11,10 @@ import requiresSmell from '../requiresSmell';
 import requiresTouch from '../requiresTouch';
 import requiresTaste from '../requiresTaste';
 import { Idea } from '../../../stuff/Idea';
-import { Thing } from '../../../stuff/Thing';
+import Thing from '../../../stuff/Thing';
 import { OrganismMixin } from '../../../species/Organism';
-import { Species } from '../../../species/Species';
-import { BodyPlan } from '../../../species/BodyPlan';
+import Species from '../../../species/Species';
+import BodyPlan from '../../../species/BodyPlan';
 import type { SenseChannel } from '../../../description/Perceiver';
 import {
   CommandApi,

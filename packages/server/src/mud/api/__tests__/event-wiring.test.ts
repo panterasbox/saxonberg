@@ -15,9 +15,9 @@ import { ConnectionApi } from '../connection';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { HotReloadApi } from '../hot-reload';
-import { EventRegistry } from '../../obj/EventRegistry';
+import EventRegistry from '../../obj/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { Interactive } from '../../obj/Interactive';
+import Interactive from '../../obj/Interactive';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import { Idea } from "../../lib/stuff/Idea";
 
