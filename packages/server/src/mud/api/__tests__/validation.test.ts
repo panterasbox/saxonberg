@@ -72,7 +72,7 @@ describe('CommandApi.preloadAll', () => {
     expect(result.loaded).toBeGreaterThan(0);
 
     // get.yaml's `targets` arg should now have resolved validators.
-    const get = CommandApi.getCommand('get.yaml');
+    const get = CommandApi.getCommand('inventory/get.yaml');
     const arg = get?.args[0];
     expect(arg?._resolvedValidators).toBeDefined();
     expect(arg?._resolvedValidators?.length).toBe(3);

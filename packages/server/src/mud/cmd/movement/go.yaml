@@ -1,0 +1,11 @@
+verbs: [go]
+controller: movement/GoController
+description: "Move to a named exit or into a named vessel"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    validators:
+      - /lib/command/validators/canReach

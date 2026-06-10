@@ -1,0 +1,33 @@
+verbs: [write]
+controller: shell/WriteController
+description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
+args:
+  - name: path
+    type: string
+    required: true
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <path>"
+  content:
+    short: c
+    type: boolean
+    description: "Write to the content tree (mutually exclusive with -s)"
+  source:
+    short: s
+    type: boolean
+    description: "Write to the source tree (mutually exclusive with -c)"
+  class:
+    type: string
+    description: "Backing class path for content writes (default /lib/stuff/Idea)"
+  hydrator:
+    type: string
+    description: "Hydrator class path for content writes (default /lib/persistence/PersistentHydrator); pass empty string to omit"
+payload:
+  data:
+    type: struct
+    description: "Per-field data map for content-tree writes — IS the template's `data` (passed straight to `saveTemplate`), not a sub-key. Required when writing to the content tree; ignored for source. Validated against the resolved class's static `dataSchema` (when present) by the controller."
+  body:
+    type: string
+    description: "File-content bytes for source-tree writes. Required when writing to the source tree; ignored for content. Structured-form-only — clients populate via the payload channel, not bindable from the text shell."

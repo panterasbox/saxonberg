@@ -1,0 +1,14 @@
+verbs: [taste]
+controller: perception/TasteController
+description: "Taste your surroundings or a specific thing"
+validators:
+  - /lib/command/validators/requiresTaste
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at]
+    default: "$focus"
+    onExcess: prompt

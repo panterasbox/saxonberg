@@ -1,0 +1,17 @@
+verbs: [whisper]
+controller: social/WhisperController
+description: "Whisper to someone — short-reach acoustic; overhearers see a redacted form"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "online"
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
+  - name: message
+    type: string
+    required: true
+    greedy: true

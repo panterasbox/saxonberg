@@ -1,0 +1,16 @@
+verbs: [sit]
+controller: posture/SitController
+description: "Sit on something. With no argument, sit on the ground."
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresPosed
+  - /lib/command/validators/requiresSlottable
+args:
+  - name: target
+    type: object
+    required: true
+    default: "ground"
+    scope: ["$focus", "reachable"]
+    validators:
+      - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBePostured

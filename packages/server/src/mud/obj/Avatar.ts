@@ -72,7 +72,7 @@ export default class Avatar extends AvatarBase {
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
   static commandContributions: CommandContributions = {
-    self: ['ping.yaml', 'help.yaml', 'player.yaml', 'analyze.yaml'],
+    self: ['system/ping.yaml', 'system/help.yaml', 'author/player.yaml', 'perception/analyze.yaml'],
     environment: [],
     inventory: [],
     peers: [],

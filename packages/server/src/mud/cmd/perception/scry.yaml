@@ -1,0 +1,13 @@
+verbs: [scry]
+controller: perception/ScryController
+description: "Perceive a remote object as if you were there"
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["online", "/obj/**"]
+options:
+  with:
+    type: object
+    scope: [reachable]
+    description: "MQL expression for an instrument that grants the scry"

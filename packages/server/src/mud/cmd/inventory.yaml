@@ -1,5 +1,0 @@
-verbs: [inventory, inv, i]
-controller: InventoryController
-description: "List items you are carrying"
-validators:
-  - /lib/command/validators/requiresAnimate

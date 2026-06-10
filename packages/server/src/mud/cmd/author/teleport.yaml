@@ -1,0 +1,26 @@
+verbs: [teleport]
+controller: author/TeleportController
+description: "Relocate <target> to <destination> (defaults to your focus)"
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+  - name: destination
+    type: object
+    required: false
+    scope: ["reachable"]
+    prepositions: [to]
+    # Default to the player's drilled focus. Resolution rule applied
+    # in the controller: if the resolved focus is a Container, the
+    # target lands inside it (room, chest, vessel interior, avatar
+    # inventory). If it's only Containable (a non-container item),
+    # the target lands in that item's environment ("next to" the
+    # focused thing). The override case ("put it next to bob, not
+    # in him") uses an explicit `to <where>` preposition.
+    default: "$focus"
+options:
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canTeleport / containment vetoes (admin only; v1 stub always denies)"

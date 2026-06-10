@@ -38,10 +38,10 @@ describe('PerceiverMixin', () => {
     const selfContributions = (Looker as unknown as {
       commandContributions: { self: string[] };
     }).commandContributions.self;
-    expect(selfContributions).toContain('look.yaml');
-    expect(selfContributions).toContain('scry.yaml');
-    expect(selfContributions).toContain('locate.yaml');
-    expect(selfContributions).toContain('find.yaml');
+    expect(selfContributions).toContain('perception/look.yaml');
+    expect(selfContributions).toContain('perception/scry.yaml');
+    expect(selfContributions).toContain('perception/locate.yaml');
+    expect(selfContributions).toContain('shell/find.yaml');
   });
 
   describe('composition validation', () => {

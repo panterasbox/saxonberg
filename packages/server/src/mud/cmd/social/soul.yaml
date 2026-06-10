@@ -1,0 +1,43 @@
+verbs: [soul]
+controller: social/SoulController
+description: "Author the emote catalog (mint / edit / delete / show / list emotes). Author-gated by composition — non-authors don't see the verb in their recency stack."
+validators:
+  - /lib/command/validators/requiresCoreAccess
+subcommands:
+  make:
+    description: "Mint a new emote: verb, then greedy YAML/JSON grammar body"
+    args:
+      - name: verb
+        type: string
+        required: true
+      - name: spec
+        type: string
+        required: true
+        greedy: true
+  edit:
+    description: "Edit one field of an existing emote (template / grammar / aliases / tags / emoji / echo)"
+    args:
+      - name: verb
+        type: string
+        required: true
+      - name: field
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+  delete:
+    description: "Drop an emote from the catalog (clears Mongo + cache)"
+    args:
+      - name: verb
+        type: string
+        required: true
+  show:
+    description: "Inspect one emote record"
+    args:
+      - name: verb
+        type: string
+        required: true
+  list:
+    description: "List every catalog emote"

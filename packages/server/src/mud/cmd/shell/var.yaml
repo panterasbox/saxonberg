@@ -1,0 +1,26 @@
+verbs: [var]
+controller: shell/VarController
+description: "Manage your ad-hoc session variables"
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands:
+  list:
+    description: "List session variables"
+
+  set:
+    description: "Set a session variable"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+
+  unset:
+    description: "Clear a session variable"
+    args:
+      - name: name
+        type: string
+        required: true

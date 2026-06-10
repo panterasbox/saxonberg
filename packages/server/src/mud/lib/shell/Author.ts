@@ -63,15 +63,15 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static commandContributions: CommandContributions = {
       self: [
-        'clone.yaml',
-        'reload.yaml',
-        'destruct.yaml',
-        'eval.yaml',
-        'teleport.yaml',
+        'author/clone.yaml',
+        'author/reload.yaml',
+        'author/destruct.yaml',
+        'author/eval.yaml',
+        'author/teleport.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.
-        'soul.yaml',
+        'social/soul.yaml',
       ],
       environment: [],
       inventory: [],

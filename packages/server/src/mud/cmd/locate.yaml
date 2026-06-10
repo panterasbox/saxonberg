@@ -1,8 +1,0 @@
-verbs: [locate]
-controller: LocateController
-description: "Report the location chain of an object"
-args:
-  - name: target
-    type: object
-    required: true
-    scope: ["online", "/obj/**"]

@@ -1,0 +1,18 @@
+verbs: [broadcast]
+controller: social/BroadcastController
+description: "Send a message to every online player (or an MQL-refined subset)"
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+  - /lib/command/validators/requiresCoreAccess
+options:
+  to:
+    short: t
+    type: string
+    field: query
+    description: "MQL query refining the audience; default `* with online`"
+args:
+  - name: message
+    type: string
+    required: true
+    greedy: true

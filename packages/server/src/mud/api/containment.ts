@@ -133,8 +133,8 @@ export class ContainmentApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/TeleportController'),
-      SecurityPolicies.FromModule('mud/obj/command/GotoController'),
+      SecurityPolicies.FromModule('mud/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('mud/obj/command/author/GotoController'),
     ),
   )
   public static forceMove(

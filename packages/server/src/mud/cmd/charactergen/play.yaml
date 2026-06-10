@@ -1,5 +1,5 @@
 verbs: [play]
-controller: PlayController
+controller: charactergen/PlayController
 description: "Enter the world as one of your characters (from the character-select roster)."
 args:
   - name: playerId

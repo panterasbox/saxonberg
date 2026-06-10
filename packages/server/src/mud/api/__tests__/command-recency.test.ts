@@ -32,7 +32,7 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
-    self: ['ping.yaml'],
+    self: ['system/ping.yaml'],
     environment: [],
     inventory: [],
     peers: [],
@@ -53,7 +53,7 @@ class InvProvider extends InvProviderBase {
   static commandContributions = {
     self: [],
     environment: [],
-    inventory: ['ping.yaml'],
+    inventory: ['system/ping.yaml'],
     peers: [],
   };
 }
@@ -62,7 +62,7 @@ const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
     self: [],
-    environment: ['ping.yaml'],
+    environment: ['system/ping.yaml'],
     inventory: [],
     peers: [],
   };
@@ -86,12 +86,12 @@ describe('CommandGiverMixin recency stack', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Domain &&
-          query.path === '/obj/command/PingController'
+          query.path === '/obj/command/system/PingController'
         ) {
           return [
             {
-              path: '/obj/command/PingController',
-              class: '/obj/command/PingController',
+              path: '/obj/command/system/PingController',
+              class: '/obj/command/system/PingController',
               data: {},
             },
           ];

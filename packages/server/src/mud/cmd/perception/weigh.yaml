@@ -1,0 +1,10 @@
+verbs: [weigh]
+controller: perception/WeighController
+description: "Weigh a tangible object on a balance"
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    validators:
+      - /lib/command/validators/mustBeTangible

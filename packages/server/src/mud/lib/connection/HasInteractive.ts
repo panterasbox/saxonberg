@@ -202,7 +202,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * the wiring local.
      */
     static commandContributions: CommandContributions = {
-      self: ['style.yaml'],
+      self: ['shell/style.yaml'],
       environment: [],
       inventory: [],
       peers: [],

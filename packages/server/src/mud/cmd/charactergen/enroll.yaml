@@ -1,5 +1,5 @@
 verbs: [enroll]
-controller: EnrollController
+controller: charactergen/EnrollController
 description: "Create a new character. Field-named subcommands: enroll <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `enroll` shows the current step."
 args:
   - name: rest

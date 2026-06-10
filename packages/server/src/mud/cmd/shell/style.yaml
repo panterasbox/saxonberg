@@ -1,0 +1,54 @@
+verbs: [style]
+controller: shell/StyleController
+description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
+validators:
+  - /lib/command/validators/requiresHasInteractive
+subcommands:
+  show:
+    description: "Print the current style overlay"
+
+  theme:
+    description: "Set the cockpit theme (default | high-contrast)"
+    args:
+      - name: name
+        type: string
+        required: true
+
+  channel:
+    description: "Per-channel color / clear (e.g. `style channel gossip color blue`, `style channel gossip clear`)"
+    args:
+      - name: channelKey
+        type: string
+        required: true
+      - name: action
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: false
+
+  mention:
+    description: "Toggle own-name highlight (`style mention self on|off`)"
+    args:
+      - name: target
+        type: string
+        required: true
+      - name: state
+        type: string
+        required: true
+
+  plain:
+    description: "Plain-mode toggle: `style plain on|off` (global) or `style plain channel <k> on|off`"
+    args:
+      - name: a
+        type: string
+        required: true
+      - name: b
+        type: string
+        required: false
+      - name: c
+        type: string
+        required: false
+
+  reset:
+    description: "Clear the overlay to {} (theme falls back to default)"

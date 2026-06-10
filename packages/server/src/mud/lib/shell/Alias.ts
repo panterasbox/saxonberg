@@ -210,7 +210,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
      * just like `settings.yaml` / `var.yaml` on EnvironmentMixin.
      */
     static commandContributions: CommandContributions = {
-      self: ['alias.yaml'],
+      self: ['shell/alias.yaml'],
       environment: [],
       inventory: [],
       peers: [],

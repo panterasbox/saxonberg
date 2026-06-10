@@ -1,0 +1,16 @@
+verbs: [mkdir]
+controller: shell/MkdirController
+description: "Create a folder template (default) or code directory"
+args:
+  - name: path
+    type: string
+    required: true
+options:
+  content:
+    short: c
+    type: boolean
+    description: "Force the operation to the content tree (overrides workspace.tree)"
+  source:
+    short: s
+    type: boolean
+    description: "Force the operation to the source tree (overrides workspace.tree)"

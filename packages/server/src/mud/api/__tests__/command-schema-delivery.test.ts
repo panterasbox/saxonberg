@@ -31,7 +31,7 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
-    self: ['ping.yaml'],
+    self: ['system/ping.yaml'],
     environment: [],
     inventory: [],
     peers: [],
@@ -47,7 +47,7 @@ class InvProvider extends InvProviderBase {
   static commandContributions = {
     self: [],
     environment: [],
-    inventory: ['ping.yaml'],
+    inventory: ['system/ping.yaml'],
     peers: [],
   };
 }
@@ -56,7 +56,7 @@ const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
     self: [],
-    environment: ['ping.yaml'],
+    environment: ['system/ping.yaml'],
     inventory: [],
     peers: [],
   };
@@ -175,7 +175,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     }>;
     const ping = payload.find((p) => p.verbs.includes('ping'));
     expect(ping).toBeDefined();
-    expect(ping?.controller).toBe('PingController');
+    expect(ping?.controller).toBe('system/PingController');
   });
 
   it('the giver host with no Sensor mixin would skip emits silently', () => {

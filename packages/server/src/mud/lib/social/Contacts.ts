@@ -108,7 +108,7 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Avatar, so this exposes `group` everywhere `contacts` is
       // exposed. NPCs that compose ContactsMixin in their own content
       // gain both verbs uniformly.
-      self: ['contacts.yaml', 'group.yaml'],
+      self: ['social/contacts.yaml', 'social/group.yaml'],
       environment: [],
       inventory: [],
       peers: [],

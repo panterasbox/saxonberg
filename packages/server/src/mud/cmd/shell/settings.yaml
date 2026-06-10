@@ -1,0 +1,40 @@
+verbs: [settings]
+controller: shell/SettingsController
+description: "Manage your declared settings"
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands:
+  list:
+    description: "List declared settings, grouped by source mixin"
+
+  get:
+    description: "Show a setting's current value"
+    args:
+      - name: key
+        type: string
+        required: true
+
+  set:
+    description: "Set a setting's value"
+    args:
+      - name: key
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+
+  unset:
+    description: "Clear an override; the schema default applies"
+    args:
+      - name: key
+        type: string
+        required: true
+
+  describe:
+    description: "Show a setting's schema entry"
+    args:
+      - name: key
+        type: string
+        required: true

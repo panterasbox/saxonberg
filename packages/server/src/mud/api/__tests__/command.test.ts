@@ -24,16 +24,16 @@ describe('CommandApi', () => {
 
   describe('getCommand()', () => {
     it('loads a CommandDefinition from a YAML file', () => {
-      const command = CommandApi.getCommand('ping.yaml');
+      const command = CommandApi.getCommand('system/ping.yaml');
 
       expect(command).not.toBeNull();
       expect(command?.verbs).toContain('ping');
-      expect(command?.controller).toBe('PingController');
+      expect(command?.controller).toBe('system/PingController');
     });
 
     it('returns the same instance on repeat calls (cached)', () => {
-      const a = CommandApi.getCommand('ping.yaml');
-      const b = CommandApi.getCommand('ping.yaml');
+      const a = CommandApi.getCommand('system/ping.yaml');
+      const b = CommandApi.getCommand('system/ping.yaml');
       expect(a).toBe(b);
     });
 
@@ -42,7 +42,7 @@ describe('CommandApi', () => {
     });
 
     it('parses verb aliases as a list', () => {
-      const command = CommandApi.getCommand('look.yaml');
+      const command = CommandApi.getCommand('perception/look.yaml');
       expect(command?.verbs).toContain('look');
       expect(command?.verbs).toContain('l');
     });
@@ -50,7 +50,7 @@ describe('CommandApi', () => {
 
   describe('CommandDefinition.hasVerb()', () => {
     it('matches case-insensitively across every alias', () => {
-      const cmd = CommandApi.getCommand('look.yaml')!;
+      const cmd = CommandApi.getCommand('perception/look.yaml')!;
       expect(cmd.hasVerb('look')).toBe(true);
       expect(cmd.hasVerb('LOOK')).toBe(true);
       expect(cmd.hasVerb('Look')).toBe(true);
@@ -59,37 +59,37 @@ describe('CommandApi', () => {
     });
 
     it('returns false for an unrelated verb', () => {
-      const cmd = CommandApi.getCommand('look.yaml')!;
+      const cmd = CommandApi.getCommand('perception/look.yaml')!;
       expect(cmd.hasVerb('ping')).toBe(false);
     });
   });
 
   describe('clearCache()', () => {
     it('drops cached instances so the next request reparses', () => {
-      const before = CommandApi.getCommand('ping.yaml');
+      const before = CommandApi.getCommand('system/ping.yaml');
       CommandApi.clearCache();
-      const after = CommandApi.getCommand('ping.yaml');
+      const after = CommandApi.getCommand('system/ping.yaml');
       expect(before).not.toBe(after);
-      expect(after?.controller).toBe('PingController');
+      expect(after?.controller).toBe('system/PingController');
     });
   });
 
   describe('YAML structure round-trip', () => {
     it('parses ping.yaml as a zero-arg flat verb', () => {
-      const cmd = CommandApi.getCommand('ping.yaml');
+      const cmd = CommandApi.getCommand('system/ping.yaml');
       expect(cmd?.verbs).toContain('ping');
-      expect(cmd?.controller).toBe('PingController');
+      expect(cmd?.controller).toBe('system/PingController');
       expect(cmd?.description).toBeDefined();
       expect(cmd?.args).toEqual([]);
     });
 
     it('parses look.yaml top-level args', () => {
-      const cmd = CommandApi.getCommand('look.yaml');
+      const cmd = CommandApi.getCommand('perception/look.yaml');
       expect(cmd?.args.length).toBeGreaterThan(0);
     });
 
     it('parses player.yaml with subcommands', () => {
-      const cmd = CommandApi.getCommand('player.yaml');
+      const cmd = CommandApi.getCommand('author/player.yaml');
       expect(cmd?.subcommands).toBeDefined();
       const subs = Object.keys(cmd?.subcommands ?? {});
       expect(subs).toContain('name');
