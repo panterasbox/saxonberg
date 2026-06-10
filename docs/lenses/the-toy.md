@@ -19,13 +19,17 @@ they even know what they're supposed to do?** A good toy *invites* its
 own handling. If the answer to either is no, the goals are doing all the
 work, and goals are a thin thing to stand on.
 
-> **From the book.** Schell's design heuristic is **make the toy
-> first**: if you aren't sure what game to build, build something simply
-> fun to handle and then discover the game inside it — great games are
-> built on great toys (his recurring example is Will Wright, who starts
-> from playthings rather than goals). The corollary is humbling: if your
-> thing isn't fun *before* the goals go on, the goals are propping up
-> something hollow.[^aogd-toy]
+> **From the book.** Schell's heuristic is **build the toy first**:
+> "make sure your toy is fun to play with before you design a game around
+> it." His litmus is a one-word shift — "stop thinking about whether your
+> game is fun to play, and start thinking about whether it is fun to play
+> *with*." A ball is a toy; baseball is the game built on it. His
+> examples are *Lemmings* and *Grand Theft Auto*, both of which began as
+> toys: designer David Jones says GTA "was designed as a medium … a
+> living, breathing city that was fun to play," and only then was the
+> game (borrowed from Pac-Man) built on top. The humbling corollary: if
+> your thing isn't fun *before* the goals go on, the goals are propping
+> up something hollow.[^aogd-toy]
 
 ## Why our design prompts it
 
@@ -118,14 +122,19 @@ curiosity.
    make the world a thing worth poking when no player is around. That
    reframes the NPC-autonomy work as toy-critical, which raises its
    priority.
-5. **A passed Toy is the best Responsibility insurance there is.** The
-   more genuinely fun the game is with no goals and no rewards, the less
-   it needs manipulative extrinsic hooks to hold players — see
-   [Motivation](./motivation.md) and Responsibility.
+5. **A passed Toy is the best ethical insurance there is.** The more
+   genuinely fun the game is with no goals and no rewards, the less it
+   needs manipulative extrinsic hooks to hold players — see
+   [Motivation](./motivation.md) and
+   [Transformation](./transformation.md).
 
 ---
 
-[^aogd-toy]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of the Toy** and the **Lens of Curiosity**.
-    The "make the toy first" heuristic and the Will Wright example are
-    Schell's. Cited by lens; page numbers omitted (edition-dependent).
+[^aogd-toy]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #17, the Lens of the Toy**
+    (p. 113), from "Prototyping Tip #9: Build the Toy First" (the
+    prototyping chapter). The "fun to play with" framing and the
+    *Lemmings* / *Grand Theft Auto* examples (via designer David Jones)
+    are Schell's. (Related: the Lens of Curiosity — see
+    [curiosity](./curiosity.md).) 3rd-edition print pagination; lens
+    number stable across editions.

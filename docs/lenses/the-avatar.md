@@ -16,12 +16,15 @@ questions: how does the avatar let the player project themselves? Is it
 an ideal they aspire to, a blank they fill in, or a character they
 wear — and does that match the experience I want?
 
-> **From the book.** Schell's insight is that avatars are most powerful
-> when they're either a compelling *ideal* (a hero the player wants to
-> be) or an *abstracted blank* the player can pour themselves into — and
-> that a face we can read as "ours" pulls us across the threshold into
-> the world. The avatar isn't a puppet; it's the player's
-> projected self.[^aogd-av]
+> **From the book.** Schell's avatar is "a player's gateway into the
+> world of the game," and his two questions are pointed: "Is my avatar an
+> *ideal form* likely to resonate with my players?" and "Does my avatar
+> have *iconic qualities* that let a player project themselves into the
+> character?" — the compelling ideal and the abstracted blank, the two
+> ways a face becomes "ours." His blunt premise: "people don't play games
+> to be themselves — they play games to be the people they wish they
+> could be." The avatar isn't a puppet; it's the player's projected,
+> idealized self.[^aogd-av]
 
 ## Why our design prompts it
 
@@ -56,8 +59,10 @@ avatar grain.
 ## Tensions & risks
 
 - **"Become, don't begin-as" runs against the idealized avatar.** Schell
-  notes avatars are often idealized and heroic; this one is a humble
-  freshman who *grows*. That's a deliberate, pedagogically-aligned
+  is blunt that "people don't play games to be themselves — they play
+  games to be the people they wish they could be," and asks whether the
+  avatar is "an ideal form"; this one is a humble freshman who *grows*.
+  That's a deliberate, pedagogically-aligned
   inversion (the learning frame *is* growth-of-self) — but idealization
   is part of what drives avatar attachment, so the design trades some
   early projective pull for a growth arc. The bet is that becoming beats
@@ -94,7 +99,10 @@ avatar grain.
 
 ---
 
-[^aogd-av]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of the Avatar**, from the chapter "Worlds
-    Contain Characters." Cited by lens and chapter; page numbers omitted
-    (edition-dependent).
+[^aogd-av]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #85, the Lens of the Avatar**
+    (p. 376), from Schell's chapter on characters (section "The Blank
+    Slate," just before "Creating Compelling Game Characters"). "People
+    don't play games to be themselves — they play games to be the people
+    they wish they could be" is Schell's. 3rd-edition print pagination;
+    lens number stable across editions.

@@ -1,8 +1,9 @@
-# Lens: Community & Friendship
+# Lens: Community
 
-> Part of the [design lenses](./README.md) set. Combines Schell's Lens
-> of Community, Lens of Friendship, and Lens of Griefing. Lenses named
-> from *A Book of Lenses*; questions paraphrased, analysis our own.
+> Part of the [design lenses](./README.md) set. Lens named from Jesse
+> Schell's *A Book of Lenses* (his neighboring Lens of Friendship and the
+> dark-twin Lens of Griefing are referenced as related). Questions
+> paraphrased, analysis our own.
 >
 > **Layers interrogated: both** — text-as-social-fabric is platform; the
 > campus's social life is game.
@@ -16,13 +17,16 @@ form relationships, support friendships forming, and create a community
 with its own life? Its dark twin, the Lens of Griefing, asks the
 opposite: how can players hurt each other here, and what stops them?
 
-> **From the book.** Schell's point is that the strongest, most durable
-> reason people return to a game is often *each other* — communities can
-> outlast the game itself — and that fostering them takes deliberate
-> design: shared goals, places to gather, ways to express and to help.
-> He pairs it with a hard warning about griefing: any system that lets
-> players affect each other lets some players *hurt* others, and a
-> community is only as healthy as its defenses against that.[^aogd-co]
+> **From the book.** Schell's point is that the most durable reason
+> people return is often *each other* — communities can outlast the game
+> itself — and fostering them is deliberate design. His Lens of Community
+> asks, tellingly, "What conflict is at the heart of my community? How
+> does architecture shape my community? … Why do players need each
+> other?" — conflict and interdependence are *generative* here, not just
+> hazards. He pairs it with a hard-nosed **Lens of Griefing**: any system
+> that lets players affect each other lets some *hurt* others, and "the
+> griefer's greatest joy is to find a loophole" — so the lens asks "how
+> can I make my game *boring* to grief?"[^aogd-co]
 
 ## Why our design prompts it
 
@@ -87,12 +91,14 @@ community isn't ambiance here, it's load-bearing.
   but friendships are forged in shared adventure — co-op challenges with
   something on the line — which is largely deferred gameplay. The social
   *substrate* is ahead of the social *gameplay*.
-- **Griefing + minors is a first-class hazard, mostly unaddressed.** A
-  student community that includes children needs real moderation and
-  safety design. The auditable command bus is the foundation, but
-  moderation itself (reporting, blocking at scale, abuse response) is a
-  gap — and the [Responsibility](./responsibility-transformation.md)
-  stakes here are high.
+- **Griefing + minors is a first-class hazard, mostly unaddressed.** The
+  same channels that carry connection carry abuse, and a student
+  community includes children. The auditable command bus is the
+  foundation, but moderation itself — reporting, blocking at scale, abuse
+  response — is a gap, and the [Transformation](./transformation.md)
+  duty-of-care stakes here are high. (Schell's Lens of Griefing — make
+  the game "boring to grief," pair filters with player reporting — is
+  the playbook for when this gets built.)
 
 ## Implications
 
@@ -114,14 +120,20 @@ community isn't ambiance here, it's load-bearing.
    reasons to use it.
 5. **Make griefing/moderation a real design track, now, because of
    minors.** The auditable bus is the foundation; reporting, blocking,
-   and abuse response are not yet designed. Route this to
-   [Responsibility](./responsibility-transformation.md) and treat it as
-   a prerequisite for a student community, not a later addition.
+   and abuse response are not yet designed. Schell's Lens of Griefing is
+   the playbook (make it "boring to grief," filter + player reporting);
+   route the duty-of-care stakes to
+   [Transformation](./transformation.md), and treat moderation as a
+   prerequisite for a student community, not a later addition.
 
 ---
 
-[^aogd-co]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Community**, the **Lens of Friendship**,
-    and the **Lens of Griefing**, from Schell's chapters on players
-    playing with other players and on community. Cited by lens and
-    chapter; page numbers omitted (edition-dependent).
+[^aogd-co]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #98, the Lens of Community**
+    (≈ p. 455), from the "Communities" chapter. "What conflict is at the
+    heart of my community? … Why do players need each other?" is Schell's.
+    The closely related **Lens #96, the Lens of Friendship** and the
+    dark-twin **Lens #99, the Lens of Griefing** (≈ p. 456 — "make my
+    game boring to grief") are referenced here as neighbors; both sit in
+    the "Communities" chapter. 3rd-edition print pagination; lens numbers
+    stable across editions.

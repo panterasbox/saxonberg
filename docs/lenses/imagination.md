@@ -16,11 +16,16 @@ imagine, which is its own kind of poverty. The questions: what does my
 game ask the player to imagine? What do I give them to spark it? And am
 I leaving them room, or doing all the imagining for them?
 
-> **From the book.** Schell's point is that the imagination is a
-> *collaborator*, not a gap to be filled — the mind eagerly completes a
-> sketch, and a few well-chosen details evoke far more than exhaustive
-> description ever could. Give the imagination good raw material and a
-> little room, and it does work no art budget can match.[^aogd-im]
+> **From the book.** Schell frames it as a *balance* — "the balance
+> between detail and imagination" — and his rule of thumb is to "use a
+> little detail to get a lot of imagination." A few well-chosen details
+> recruit the mind to do the rest (chess lets you "control all the
+> members of a royal army," a fantasy "tied to reality by a thin
+> thread"); the lens's pointed pair of questions is "what details
+> *inspire* imagination?" versus "what details *stifle* it?" Because, he
+> says, "the imagination of the player is where the gameplaying
+> experience takes place," giving it good raw material and room does work
+> no art budget can match.[^aogd-im]
 
 ## Why our design prompts it
 
@@ -103,7 +108,10 @@ foundation the whole text-first decision rests on.
 
 ---
 
-[^aogd-im]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Imagination**, from Schell's treatment
-    of the player's mind. Cited by lens; chapter pointer approximate;
-    page numbers omitted (edition-dependent).
+[^aogd-im]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #51, the Lens of Imagination**
+    (p. 244), which appears as "Balance Type #12: Detail vs. Imagination"
+    in the game-balance chapter ("Game Mechanics Must Be in Balance").
+    "Use a little detail to get a lot of imagination" and the chess
+    "royal army" example are Schell's. 3rd-edition print pagination; lens
+    number stable across editions.

@@ -16,14 +16,19 @@ The lens is ruthless about one thing: you must be able to say the
 essence in a sentence, and point at any feature and say how it serves
 that sentence — or admit that it doesn't.
 
-> **From the book.** Schell's deeper point is that a designer's real
-> medium is the *experience*, not the game — "the game is not the
-> experience," only the artifact that evokes one in the player's mind.
-> Because you can never build an experience directly, just the thing
-> that triggers it, the discipline is to name the essential experience
-> *first* and then chase it by any means available, even ones that
-> don't look like the obvious feature. That's why this is the lens you
-> reach for before mechanics, story, or world.[^aogd-ee]
+> **From the book.** Schell's discipline is to "stop thinking about your
+> game and start thinking about the experience of the player." The lens
+> is three questions: "What experience do I want the player to have?
+> What is essential to that experience? How can my game capture that
+> essence?" His snowball-fight example is the whole point in miniature:
+> to deliver "it was so cold," you don't need real snow — you can use art
+> (little puffs of breath), sound (a whistling wind), *or a rule*
+> (snowballs pack better bare-handed, but cold hands force gloves on).
+> "That might not have really happened, but that game rule helps deliver
+> an experience of coldness." The game is only the means; the essence
+> comes first, and you chase it by whatever captures it — even routes
+> that don't look like the obvious feature. That's why this is the lens
+> you reach for before mechanics, story, or world.[^aogd-ee]
 
 ## Why our design prompts it
 
@@ -172,7 +177,7 @@ recognized," and does the skin serve "learning as adventure"?
   is also the design brief for a Skinner box, and it's sharper when the
   effort being shaped is a student's real study habit.
   `standard-model.md` already owns this (behavior engineering;
-  surveillance). The **Responsibility / Transformation** lens is a
+  surveillance). The [Transformation](./transformation.md) lens is a
   required companion to this one, not an optional extra.
 
 ## Implications
@@ -194,15 +199,16 @@ recognized," and does the skin serve "learning as adventure"?
 4. **Keep the onboarding arc as the nesting exemplar.** It's the
    cleanest proof that the two essences stack rather than fight, and a
    reusable check for any new player-facing sequence.
-5. **Pair this lens permanently with Responsibility/Transformation.**
-   Because both essences are recognition-of-effort, "is this good for
-   the player" is a property of the essence itself, not a late ethics
-   review.
+5. **Pair this lens permanently with [Transformation](./transformation.md).**
+   Because both essences are recognition-of-effort, "is this good for the
+   player" is a property of the essence itself, not a late ethics review.
 
 ---
 
-[^aogd-ee]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Essential Experience**, from the chapter
-    "The Designer Creates an Experience." The formulation "the game is
-    not the experience" is Schell's. Cited by lens and chapter; page
-    numbers vary across the book's editions and are omitted.
+[^aogd-ee]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #2, the Lens of Essential
+    Experience** (p. 23), from Chapter 2, "The Designer Creates an
+    Experience" (section "Essential Experience," pp. 21–23). The three
+    questions and the snowball-fight "it was so cold" example — including
+    delivering the essence through a *rule* — are Schell's. 3rd-edition
+    print pagination; lens number stable across editions.

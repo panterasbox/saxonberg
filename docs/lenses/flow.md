@@ -20,11 +20,17 @@ distractions to cut? And does difficulty track the player's growing
 ability?
 
 > **From the book.** Schell's practical handle on flow is the
-> challenge/skill balance drawn as a channel between boredom and
-> anxiety, and his design move is to *widen* that channel — varied
-> difficulty, choices of challenge, frequent rest — so a range of
-> players, and a single player over time, all stay inside it rather than
-> falling out one side.[^aogd-fl]
+> challenge/skill balance drawn as a *channel* between boredom and
+> anxiety: keep the player in "a steady stream of not-too-easy,
+> not-too-hard challenges, taking into account the fact that the player's
+> skills may be gradually improving." His design move is to *widen* that
+> channel — varied difficulty, choices of challenge, and an oscillation
+> of tension and rest ("too much tension, and we wear out … too much
+> relaxation, and we grow bored") — so a range of players, and a single
+> player over time, stay inside it. He also cautions that flow is "a very
+> hard thing to test for": it's quiet and easy to miss, and a game that
+> holds flow the first few times can later go boring or
+> frustrating.[^aogd-fl]
 
 ## Why our design prompts it
 
@@ -103,8 +109,10 @@ Against Csikszentmihalyi's four conditions:
 
 ---
 
-[^aogd-fl]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Flow**, drawing on Mihaly
-    Csikszentmihalyi's *Flow*, from Schell's treatment of the player's
-    mind. Cited by lens; chapter pointer approximate; page numbers
-    omitted (edition-dependent).
+[^aogd-fl]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #21, the Lens of Flow** (p. 148),
+    drawing on Mihaly Csikszentmihalyi's *Flow*, from Schell's chapter on
+    the player's mind (section "Focus"). The "not-too-easy, not-too-hard …
+    skills may be gradually improving" wording and the "very hard thing
+    to test for" caution are Schell's. 3rd-edition print pagination; lens
+    number stable across editions.

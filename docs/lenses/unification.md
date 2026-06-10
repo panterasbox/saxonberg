@@ -20,14 +20,20 @@ The questions: what is my theme? Is every element reinforcing it? What
 in here serves no theme — and is it dead weight, or is it quietly a
 second game?
 
-> **From the book.** Schell pushes past mere consistency to
-> **resonance**: the most powerful themes aren't clever, they're ones
-> that connect to something the player already holds deep and true, so
-> the whole experience hums on a frequency they feel rather than notice.
-> A unified theme makes a game *coherent*; a resonant one makes it
-> *move* people. Worth asking of each layer here whether its theme is
-> merely consistent or actually resonant — "learning as adventure" and
-> "an honest world" are both candidates for the latter.[^aogd-un]
+> **From the book.** The Lens of Unification asks just two things —
+> "What is my theme? Am I using every means possible to reinforce that
+> theme?" — and Schell then pushes past mere consistency to
+> **resonance**. Resonant themes "elevate your work from craft to art";
+> they aren't clever, they connect to something the player already holds
+> deep and true, and "you can never tell which themes are resonant just
+> through logic — you have to feel the resonance, deep inside yourself."
+> (His own *Toontown* example landed on "work vs. play" — "work wants to
+> destroy play, but play must survive" — because it maps to a conflict
+> players already live.) A unified theme makes a game *coherent*; a
+> resonant one makes it *move* people. Worth asking of each layer whether
+> its theme is merely consistent or actually resonant — "learning as
+> adventure" and "an honest world" are both candidates for the
+> latter.[^aogd-un]
 
 ## Why our design prompts it
 
@@ -138,7 +144,12 @@ pink over a perfectly ordinary registrar says the same thing.
 
 ---
 
-[^aogd-un]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Unification** and the **Lens of
-    Resonance**, from the chapter "The Elements Support a Theme." Cited
-    by lens and chapter; page numbers omitted (edition-dependent).
+[^aogd-un]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #11, the Lens of Unification**
+    (p. 67), from Chapter 6, "The Elements Support a Theme" (section
+    "Unifying Themes"). Its companion, the closely related **Lens #12,
+    the Lens of Resonance** (p. 70), is where Schell pushes past
+    consistency to "elevat[ing] your work from craft to art" ("feel the
+    resonance, deep inside yourself"; the *Toontown* "work vs. play"
+    example). 3rd-edition print pagination; lens numbers stable across
+    editions.
