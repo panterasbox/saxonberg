@@ -47,7 +47,7 @@ import {
   type ExecuteCommandOpts,
 } from '../../api/command';
 import { MessageApi } from '../../api/message';
-import { renderPromptRefresh, PromptCancelledError } from '../../api/prompt';
+import { PromptApi, PromptCancelledError } from '../../api/prompt';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
@@ -613,7 +613,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // so the client's base-prompt area updates after every command —
       // the MUD-style refresh model. See
       // `docs/subsystems/prompt.md` (Wave 7) for the full design.
-      const notes = [...claimingCtx.getNotes(), renderPromptRefresh(giverAsStuff)];
+      const notes = [
+        ...claimingCtx.getNotes(),
+        PromptApi.renderPromptRefresh(giverAsStuff),
+      ];
       const envelopeTemplate: EnvelopeTemplate = {
         type: 'dispatch-response',
         dispatchId: outer.commandId,

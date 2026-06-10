@@ -44,11 +44,15 @@ export type {
   MqlQuantity,
 };
 
-// `PronounMemory` is the one mql/ class the non-api layer consumes
-// — `FocusedMixin` holds an instance per giver. Internal mql/
-// modules import their own siblings directly; everything else flows
-// through this facade so the `MqlApi` boundary stays the seam.
+// Symbols the non-api layer consumes flow through this facade so the
+// `MqlApi` boundary stays the seam: `PronounMemory` (a `FocusedMixin`
+// holds an instance per giver), the `GenderedSlot` type (referenced by
+// the command layer), and `MqlPermissionError` (thrown across the
+// subscription substrate). Internal `mql/` modules import their own
+// siblings directly; nothing else reaches into `mql/`.
 export { PronounMemory } from './mql/pronoun-memory';
+export type { GenderedSlot } from './mql/pronoun-memory';
+export { MqlPermissionError } from './mql/permissions';
 
 /**
  * MqlApi — static utility class for object resolution.

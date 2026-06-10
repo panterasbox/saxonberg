@@ -10,7 +10,7 @@ import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import {
-  projectFields,
+  MqlSubscriptionApi,
   REF_FIELDS,
 } from '../../../api/mql-subscription';
 
@@ -400,22 +400,22 @@ describe('PerceptibleMixin', () => {
     it('Stuff.subscribableFields.primaryKeyword projects undefined for non-Perceptible host (substrate omits)', () => {
       // Built-in Idea has no PerceptibleMixin — projecting REF_FIELDS
       // against it must omit `primaryKeyword` (descriptor returns
-      // undefined, projectFields skips).
+      // undefined, MqlSubscriptionApi.projectFields skips).
       const plain = makeStuff(() => new Idea());
-      const rec = projectFields(
+      const rec = MqlSubscriptionApi.projectFields(
         plain,
         REF_FIELDS,
-        plain as unknown as Parameters<typeof projectFields>[2],
+        plain as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
       );
       expect(rec.primaryKeyword).toBeUndefined();
       expect('primaryKeyword' in rec).toBe(false);
     });
 
     it('Perceptible host with empty pool projects no primaryKeyword field', () => {
-      const rec = projectFields(
+      const rec = MqlSubscriptionApi.projectFields(
         obj,
         REF_FIELDS,
-        obj as unknown as Parameters<typeof projectFields>[2],
+        obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
       );
       // No keywords → getPrimaryKeyword() returns undefined → omitted.
       expect(rec.primaryKeyword).toBeUndefined();
@@ -426,10 +426,10 @@ describe('PerceptibleMixin', () => {
       const v = makeStuff(() => new VisibleTestObject());
       v.setShortDescription('a brass thermometer');
       v.setPrimaryKeyword('thermometer');
-      const rec = projectFields(
+      const rec = MqlSubscriptionApi.projectFields(
         v,
         REF_FIELDS,
-        v as unknown as Parameters<typeof projectFields>[2],
+        v as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
       );
       expect(rec.primaryKeyword).toBe('thermometer');
     });

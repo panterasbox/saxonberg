@@ -196,15 +196,15 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     // no `contents` key. Use `projectFields` directly against an Idea
     // instance (Avatar / Location both compose ContainerMixin).
     await bootRegistry();
-    const { projectFields, DETAIL_FIELDS } = await import(
+    const { MqlSubscriptionApi, DETAIL_FIELDS } = await import(
       '../mql-subscription'
     );
     const { Idea } = await import('../../lib/stuff/Idea');
     const plain = await StuffApi.create(() => new Idea());
-    const rec = projectFields(
+    const rec = MqlSubscriptionApi.projectFields(
       plain,
       DETAIL_FIELDS,
-      plain as unknown as Parameters<typeof projectFields>[2],
+      plain as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
     );
     expect(rec.contents).toBeUndefined();
     expect('contents' in rec).toBe(false);

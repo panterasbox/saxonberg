@@ -1,12 +1,12 @@
 /**
  * Projection-level tests — `collectSubscribableFields` walk and
- * `projectFields` flat record build.
+ * `MqlSubscriptionApi.projectFields` flat record build.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
+  MqlSubscriptionApi,
   collectSubscribableFields,
-  projectFields,
   REF_FIELDS,
   DETAIL_FIELDS,
 } from '../mql-subscription';
@@ -68,7 +68,7 @@ describe('MQL subscription — collectSubscribableFields', () => {
   });
 });
 
-describe('MQL subscription — projectFields (flat)', () => {
+describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -81,8 +81,8 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setQuantity(3);
       return t;
     });
-    const viewer = obj as unknown as Parameters<typeof projectFields>[2];
-    const rec = projectFields(obj, REF_FIELDS, viewer);
+    const viewer = obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2];
+    const rec = MqlSubscriptionApi.projectFields(obj, REF_FIELDS, viewer);
     expect(rec.displayName).toBe('coin');
     expect(rec.quantity).toBe(3);
   });
@@ -93,10 +93,10 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setName('Alice');
       return t;
     });
-    const rec = projectFields(
+    const rec = MqlSubscriptionApi.projectFields(
       obj,
       REF_FIELDS,
-      obj as unknown as Parameters<typeof projectFields>[2],
+      obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
     );
     expect(rec.displayName).toBe('Alice');
     expect(rec.quantity).toBeUndefined();
@@ -116,10 +116,10 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setMass(Quantity.of(2, 'kg'));
       return t;
     });
-    const rec = projectFields(
+    const rec = MqlSubscriptionApi.projectFields(
       obj,
       DETAIL_FIELDS,
-      obj as unknown as Parameters<typeof projectFields>[2],
+      obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
     );
     expect(rec.displayName).toBe('sword');
     expect(rec.shortDescription).toBe('a heavy iron blade');
@@ -141,10 +141,10 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setDetail(['handle', 'doorknob'], 'a brass handle');
       return t;
     });
-    const rec = projectFields(
+    const rec = MqlSubscriptionApi.projectFields(
       obj,
       DETAIL_FIELDS,
-      obj as unknown as Parameters<typeof projectFields>[2],
+      obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
     );
     expect(rec.details).toEqual([
       {
@@ -162,10 +162,10 @@ describe('MQL subscription — projectFields (flat)', () => {
       t.setDetail(['lock'], 'a small lock', 'handle');
       return t;
     });
-    const rec = projectFields(
+    const rec = MqlSubscriptionApi.projectFields(
       obj,
       DETAIL_FIELDS,
-      obj as unknown as Parameters<typeof projectFields>[2],
+      obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
     );
     const entries = rec.details as Array<{ ids: string[]; hasChildren: boolean }>;
     const handle = entries.find((e) => e.ids.includes('handle'));

@@ -213,6 +213,19 @@ export class PerceptionApi {
       PerceptionApi.preloadModalities(),
     ]);
   }
+
+  /**
+   * Drop the modality cache so the next access rebuilds with the
+   * current singleton set. Test seam for suites that mutate the
+   * modality registry; gated by `assertTestOnly` so production code
+   * never reaches it.
+   *
+   * @internal
+   */
+  public static _resetModalityCacheForTest(): void {
+    SecurityApi.assertTestOnly('_resetModalityCacheForTest');
+    invalidateModalityCache();
+  }
 }
 
 /**
@@ -292,14 +305,6 @@ function dedupe(modalities: readonly Modality[]): readonly Modality[] {
     out.push(m);
   }
   return out;
-}
-
-/**
- * @internal Drop the modality cache. Used by tests that mutate the
- * modality registry and by the HMR invalidator below.
- */
-export function _resetModalityCache(): void {
-  invalidateModalityCache();
 }
 
 SecurityApi.decorateApiClass(PerceptionApi);

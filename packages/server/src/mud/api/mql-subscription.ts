@@ -53,7 +53,7 @@ import { SecurityApi } from './security';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { MqlApi } from './mql';
-import { MqlPermissionError } from './mql/permissions';
+import { MqlPermissionError } from './mql';
 import { EventApi } from './event';
 import { MessageApi } from './message';
 import { ShellApi } from './shell';
@@ -193,6 +193,7 @@ export const DETAIL_FIELDS: FieldSet = [
  * thin default for live result sets). An explicit array passes
  * through unchanged.
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
 export function resolveFieldSet(
   spec: FieldSet | FieldAlias | undefined,
 ): FieldSet {
@@ -221,6 +222,7 @@ export function resolveFieldSet(
  * subclass override naturally beats the parent). Identical descriptor
  * names across unrelated mixins are a content / design bug.
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
 export function collectSubscribableFields(
   stuff: Stuff,
 ): ReadonlyMap<string, SubscribableFieldDescriptor> {
@@ -235,35 +237,6 @@ export function collectSubscribableFields(
   const out = new Map<string, SubscribableFieldDescriptor>();
   for (const d of mixinDescriptors) {
     out.set(d.name, d);
-  }
-  return out;
-}
-
-/* ─────────────────────── Flat projection ─────────────────────── */
-
-/**
- * Project the named field-set into a flat record. Iterates
- * `fieldNames` in order, looks up each name in
- * `collectSubscribableFields(stuff)`, invokes `read(stuff, viewer)`,
- * and omits fields whose descriptor is missing OR whose `read`
- * returns `undefined`.
- *
- * The returned object is plain — callers cast to `StuffRefRecord`
- * or `StuffDetailRecord` at the wire boundary.
- */
-export function projectFields(
-  stuff: Stuff,
-  fieldNames: FieldSet,
-  viewer: Stuff & Sensor,
-): Record<string, unknown> {
-  const descriptors = collectSubscribableFields(stuff);
-  const out: Record<string, unknown> = { stuffId: stuff.stuffId };
-  for (const name of fieldNames) {
-    const d = descriptors.get(name);
-    if (!d || !d.read) continue;
-    const value = d.read(stuff, viewer);
-    if (value === undefined) continue;
-    out[name] = value;
   }
   return out;
 }
@@ -285,6 +258,7 @@ export function projectFields(
  * The returned record always carries `{ stuffId, detailKey }`;
  * other fields appear when contributing mixins are composed.
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
 export function projectFocus(
   stuff: Stuff,
   detailKey: string,
@@ -826,6 +800,33 @@ export class MqlSubscriptionApi {
     this.#registry.delete(interactive);
   }
 
+  /**
+   * Project the named field-set into a flat record. Iterates
+   * `fieldNames` in order, looks up each name in the stuff's
+   * subscribable-field descriptors, invokes `read(stuff, viewer)`,
+   * and omits fields whose descriptor is missing OR whose `read`
+   * returns `undefined`.
+   *
+   * The returned object is plain — callers cast to `StuffRefRecord`
+   * or `StuffDetailRecord` at the wire boundary.
+   */
+  public static projectFields(
+    stuff: Stuff,
+    fieldNames: FieldSet,
+    viewer: Stuff & Sensor,
+  ): Record<string, unknown> {
+    const descriptors = collectSubscribableFields(stuff);
+    const out: Record<string, unknown> = { stuffId: stuff.stuffId };
+    for (const name of fieldNames) {
+      const d = descriptors.get(name);
+      if (!d || !d.read) continue;
+      const value = d.read(stuff, viewer);
+      if (value === undefined) continue;
+      out[name] = value;
+    }
+    return out;
+  }
+
   /* ───────────── internal helpers ─────────────── */
 
   /**
@@ -841,7 +842,11 @@ export class MqlSubscriptionApi {
     if (detailKey !== undefined) {
       return projectFocus(stuff, detailKey, viewer) as RecordValue;
     }
-    const rec = projectFields(stuff, fields, viewer) as RecordValue;
+    const rec = MqlSubscriptionApi.projectFields(
+      stuff,
+      fields,
+      viewer,
+    ) as RecordValue;
     return rec;
   }
 

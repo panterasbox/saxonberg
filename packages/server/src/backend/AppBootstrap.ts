@@ -27,7 +27,10 @@ import type { Marshaller } from '../mud/lib/persistence/Marshaller';
 // so MQL queries against admin-tier seeds reflect connected
 // interactives. Pulled in here (off the eager command/MqlApi chain)
 // to avoid the `ConnectionApi → ConnectionManager → Interactive →
-// Idea` load-time cycle.
+// Idea` load-time cycle. This is the one sanctioned reach into the
+// mql/ pipeline from outside the facade: routing it through api/mql.ts
+// would drag in the resolver chain and reintroduce that very cycle.
+// eslint-disable-next-line no-restricted-imports -- documented cycle-avoidance; side-effecting provider registration that must bypass the facade's eager load chain
 import '../mud/api/mql/online-wire';
 
 export interface AppBootstrapConfig {

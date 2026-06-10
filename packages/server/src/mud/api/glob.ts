@@ -41,10 +41,7 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { AnyConstructor } from './mixin';
 import type { MqlQuantity } from './mql';
-import {
-  ContainmentApi,
-  _registerMergeOnArrivalHook,
-} from './containment';
+import { ContainmentApi } from './containment';
 import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
@@ -453,7 +450,7 @@ SecurityApi.decorateApiClass(GlobbableApi);
 // container that ends up holding a mergeable sibling of the
 // arriving Stuff. Non-globbable arrivals are skipped here; a sole
 // mergeable sibling absorbs the arrival via `GlobbableApi.merge`.
-_registerMergeOnArrivalHook((moved, to) => {
+ContainmentApi._registerMergeOnArrivalHook((moved, to) => {
   if (!MixinApi.isGlobbable(moved)) return;
   if (!MixinApi.isContainer(to)) return;
   for (const sibling of to.getContents()) {

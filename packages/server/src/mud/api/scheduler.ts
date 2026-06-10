@@ -144,9 +144,7 @@ export interface DurativeActivity extends Engagement {
 export type SustainedEngagement = Engagement;
 
 /** Discriminator: does `e` carry a numeric `duration`? */
-export function isDurativeActivity(
-  e: Engagement,
-): e is DurativeActivity {
+function isDurativeActivity(e: Engagement): e is DurativeActivity {
   return typeof (e as DurativeActivity).duration === 'number';
 }
 

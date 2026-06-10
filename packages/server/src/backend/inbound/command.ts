@@ -12,7 +12,7 @@
 import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { Avatar } from '../../mud/obj/Avatar';
-import { renderPromptRefresh } from '../../mud/api/prompt';
+import { PromptApi } from '../../mud/api/prompt';
 import type { InboundClientMessage, InboundHandler } from './index';
 
 export const handleCommand: InboundHandler = async (ctx, message) => {
@@ -30,7 +30,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   if (!commandText) {
     // Empty line → bare prompt-refresh envelope. No parser, no
     // controller, no side effects.
-    const refresh = renderPromptRefresh(holder);
+    const refresh = PromptApi.renderPromptRefresh(holder);
     const template: EnvelopeTemplate = {
       type: 'dispatch-response',
       dispatchId: nanoid(),

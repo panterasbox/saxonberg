@@ -685,7 +685,7 @@ export class MixinApi {
    * arrays declared at each level. Mirrors the shape of
    * {@link getAllPersistentFields}. Order is parent-first → child-
    * last; later entries on the same name win in the caller's
-   * downstream merge (`MqlSubscriptionApi.collectSubscribableFields`).
+   * downstream merge (`collectSubscribableFields` in mql-subscription.ts).
    *
    * `SubscribableFieldDescriptor` is defined in `mql-subscription.ts`;
    * we use a structural local type here to avoid a runtime import

@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderPromptRefresh, buildPromptContext } from '../prompt';
+import { PromptApi, buildPromptContext } from '../prompt';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Idea } from '../../lib/stuff/Idea';
@@ -87,7 +87,7 @@ describe('renderPromptRefresh', () => {
 
   it('renders default `{{ focus }}>` template against giver focus', () => {
     const giver = makeStuff(() => new TestGiver());
-    const note = renderPromptRefresh(giver);
+    const note = PromptApi.renderPromptRefresh(giver);
     expect(note).toEqual({ kind: 'prompt-refresh', rendered: 'here>' });
   });
 
@@ -95,13 +95,13 @@ describe('renderPromptRefresh', () => {
     const giver = makeStuff(() => new TestGiver());
     giver.setSetting('prompt.format', '{{ focus }} ready>', giver);
     giver.setFocus('thermometer');
-    const note = renderPromptRefresh(giver);
+    const note = PromptApi.renderPromptRefresh(giver);
     expect(note.rendered).toBe('thermometer ready>');
   });
 
   it('non-Environment giver falls through to default template', () => {
     const obj = makeStuff(() => new Plain());
-    const note = renderPromptRefresh(obj);
+    const note = PromptApi.renderPromptRefresh(obj);
     // No EnvironmentMixin → bare default → focus is empty → result `>`.
     expect(note.rendered).toBe('>');
   });
@@ -111,7 +111,7 @@ describe('renderPromptRefresh', () => {
     // Liquid is forgiving — but unknown variables just render empty.
     // Verify a malformed template still produces *something* usable.
     giver.setSetting('prompt.format', '{{ unclosed', giver);
-    const note = renderPromptRefresh(giver);
+    const note = PromptApi.renderPromptRefresh(giver);
     expect(typeof note.rendered).toBe('string');
     expect(note.rendered.length).toBeGreaterThan(0);
   });

@@ -390,10 +390,11 @@ export class SecurityApi {
    *
    * Every `_*ForTest` / `_*ForTesting` method on every Api class
    * starts with a call to `SecurityApi.assertTestOnly(op)`. The check
-   * walks `Error.stack` and looks for a `.test.{ts,js}` frame anywhere
-   * in the call chain. Production code that accidentally (or
-   * deliberately) reaches a test seam fails loudly at the call site
-   * instead of quietly bypassing framework invariants.
+   * walks `Error.stack` and looks for a `.test.{ts,js}` spec frame or a
+   * `__tests__/` fixture frame anywhere in the call chain. Production
+   * code that accidentally (or deliberately) reaches a test seam fails
+   * loudly at the call site instead of quietly bypassing framework
+   * invariants.
    *
    * Cached per-URL: first call from any source file does the stack
    * walk + cache; subsequent calls from the same site are a Map
@@ -410,9 +411,9 @@ export class SecurityApi {
 
   /**
    * Throw `SecurityError` unless some frame on the current call stack
-   * is in a `.test.ts` / `.test.js` file. Call from the top of every
-   * `_*ForTest` / `_*ForTesting` method to guarantee production code
-   * can't reach the seam.
+   * is test code — a `.test.{ts,js}` spec or a `__tests__/` fixture.
+   * Call from the top of every `_*ForTest` / `_*ForTesting` method to
+   * guarantee production code can't reach the seam.
    *
    * `op` is the seam name; included in the error message so the
    * offender sees exactly which seam was misused.
@@ -424,7 +425,14 @@ export class SecurityApi {
     const matched = ModuleApi.findFrameMatching((url) => {
       const cached = SecurityApi.#testCallerCache.get(url);
       if (cached !== undefined) return cached;
-      const isTest = /\.test\.(ts|js)(\?|$|:)/.test(url);
+      // Test code is either a `.test.{ts,js}` spec or a shared fixture
+      // under a `__tests__/` directory (e.g. `__tests__/test-helpers.ts`).
+      // The latter matters because a fixture calling a `*ForTest` seam
+      // adds frames that can push the originating `.test.ts` past the
+      // captured stack window — and a fixture under `__tests__/` is
+      // itself test code, never reachable from production.
+      const isTest =
+        /\.test\.(ts|js)(\?|$|:)/.test(url) || /\/__tests__\//.test(url);
       SecurityApi.#testCallerCache.set(url, isTest);
       return isTest;
     });

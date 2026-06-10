@@ -39,7 +39,6 @@ import type { CommandContributions } from '../../api/command';
 import { DEFAULT_STARTING_LOCATION_PATH } from '../../config/constants';
 import {
   MqlSubscriptionApi,
-  projectFields,
   REF_FIELDS,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
@@ -221,7 +220,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             if (child.stuffId === viewer.stuffId) continue;
             if (MixinApi.isAdornment(child)) continue;
             if (!MixinApi.isVisible(child)) continue;
-            out.push(projectFields(child, REF_FIELDS, viewer));
+            out.push(MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer));
           }
           return out;
         },
