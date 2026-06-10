@@ -5,7 +5,13 @@
 #
 # Hostname is a placeholder — confirm/change. Whatever it is, the dev
 # SSM tree's GOOGLE_CALLBACK_URL must match it.
-dev.saxonberg.panterasbox.net {
+#
+# Additional names that point here (CNAME → this box) get their own
+# auto-issued Let's Encrypt cert by listing them in the same site block.
+# mud.panterasbox.com is a CNAME alias for the dev box. Note: Google
+# OAuth still redirects to GOOGLE_CALLBACK_URL (the .net host), so login
+# initiated on an alias lands back on the canonical host.
+dev.saxonberg.panterasbox.net, mud.panterasbox.com {
 	encode zstd gzip
 	reverse_proxy localhost:2010
 }
