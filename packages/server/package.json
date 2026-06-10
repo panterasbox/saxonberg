@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/preload.js",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "tsx src/preload.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "docs": "typedoc",

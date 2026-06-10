@@ -1,0 +1,35 @@
+# Dependencies and build outputs are produced inside the image; never
+# copy host copies in (stale, and they break pnpm's symlinked store).
+node_modules
+**/node_modules
+dist
+**/dist
+*.tsbuildinfo
+
+# VCS, docs, CI, and local cruft the runtime doesn't need.
+.git
+.gitignore
+docs
+public
+deploy
+.gitlab-ci.yml
+README.md
+CLAUDE.md
+
+# Generated API docs, reports, caches, local env.
+packages/server/docs/api
+e2e/playwright-report
+e2e/test-results
+e2e/.auth
+.pnpm-store
+.eslintcache
+coverage
+*.log
+# Match .env at the context root AND in every package (Docker patterns
+# without a glob only match the root, so the bare `.env` misses
+# packages/server/.env — which would bake dev credentials into the image).
+.env
+.env.*
+**/.env
+**/.env.*
+.DS_Store

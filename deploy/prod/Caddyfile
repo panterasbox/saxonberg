@@ -1,0 +1,9 @@
+# PROD instance. Caddy runs as a container in this dir's
+# docker-compose.yml; `app` is the compose service name. Auto-HTTPS via
+# Let's Encrypt, transparent WebSocket upgrade.
+#
+# The prod SSM tree's GOOGLE_CALLBACK_URL must match this hostname.
+saxonberg.panterasbox.net {
+	encode zstd gzip
+	reverse_proxy app:2010
+}

@@ -10,6 +10,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useStore, type PromptEntry } from './store/index';
+import { SERVER_URL, WS_URL } from './config';
 import { websocketClient } from './services/websocket';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { Terminal } from './components/Terminal';
@@ -269,7 +270,7 @@ function App() {
     // Connect to WebSocket when authenticated
     if (auth.isAuthenticated && !connection.isConnected) {
       console.info('App: Authenticated - connecting to WebSocket...');
-      websocketClient.connect('ws://localhost:2010');
+      websocketClient.connect(WS_URL);
     }
   }, [auth.isAuthenticated, connection.isConnected]);
 
@@ -312,7 +313,7 @@ function App() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('http://localhost:2010/auth/status', {
+      const response = await fetch(`${SERVER_URL}/auth/status`, {
         credentials: 'include',
       });
 
@@ -535,7 +536,7 @@ function App() {
             <br />
             <br />
             <a
-              href="http://localhost:2010/auth/google"
+              href={`${SERVER_URL}/auth/google`}
               style={{ color: '#007acc', textDecoration: 'none' }}
             >
               Login with Google

@@ -11,6 +11,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useStore } from '../store/index';
+import { SERVER_URL } from '../config';
 
 const Container = styled.div`
   padding: 20px;
@@ -100,12 +101,12 @@ export const ConnectionStatus: React.FC = () => {
 
   const handleLogin = () => {
     // Redirect to OAuth endpoint
-    window.location.href = 'http://localhost:2010/auth/google';
+    window.location.href = `${SERVER_URL}/auth/google`;
   };
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:2010/auth/logout', {
+      const response = await fetch(`${SERVER_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
