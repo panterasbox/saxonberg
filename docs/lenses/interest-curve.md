@@ -1,8 +1,9 @@
 # Lens: The Interest Curve
 
-> Part of the [design lenses](./README.md) set. Combines Schell's Lens
-> of the Interest Curve and Lens of the Hook. Lenses named from *A Book
-> of Lenses*; questions paraphrased, analysis our own.
+> Part of the [design lenses](./README.md) set. Built on Schell's Lens
+> of the Interest Curve (the "hook" is one of its questions, not a
+> separate lens). Lens named from *A Book of Lenses*; questions
+> paraphrased, analysis our own.
 >
 > **Layer interrogated: the game** (the authored first-session arc).
 
@@ -15,12 +16,16 @@ downs to a peak near the end. The questions: what's my hook? Does
 interest rise overall, or sag in the middle? Where are the peaks and
 valleys, and are they where I want them?
 
-> **From the book.** Schell's claim is that almost any well-shaped
-> experience — a game, a story, a theme-park ride — traces the same
-> curve, and that you can *draw* it and critique it like any other
-> artifact. The hook matters disproportionately: you have to earn
-> interest before you've earned trust, so the opening spike buys you the
-> patience for everything after.[^aogd-icv]
+> **From the book.** Schell's claim is that "the most pleasurable
+> patterns of … captivation are remarkably similar for everyone" — almost
+> any well-shaped experience traces the same curve, one you can literally
+> *draw* and critique. The lens asks the shape directly: "Does it have a
+> hook? Does it have gradually rising interest, punctuated by periods of
+> rest? Is there a grand finale, more interesting than everything else?"
+> He adds that the curve is *fractal* — the same shape recurs across the
+> whole game, each level, and each challenge — and recommends having
+> playtesters draw their own curve to check your intuition against what
+> players actually felt.[^aogd-icv]
 
 ## Why our design prompts it
 
@@ -96,8 +101,12 @@ beat instead.
 
 ---
 
-[^aogd-icv]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of the Interest Curve** and the **Lens of
-    the Hook**, from the chapter "Experiences Can Be Judged by Their
-    Interest Curves." Cited by lens and chapter; page numbers omitted
-    (edition-dependent).
+[^aogd-icv]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #69, the Lens of the Interest
+    Curve** (p. 305), from the chapter "Experiences Can Be Judged by
+    Their Interest Curves." The "hook" is one of *this* lens's own
+    questions, not a separate "Lens of the Hook" (an earlier version of
+    this note invented one); the neighboring lens in the chapter is
+    **#70, the Lens of Inherent Interest**. The fractal-curve idea is
+    Schell's. 3rd-edition print pagination; lens numbers stable across
+    editions.

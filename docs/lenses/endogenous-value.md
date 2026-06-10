@@ -19,13 +19,18 @@ game makes valuable line up with the things the game is actually about.
 Endogenous value pointed at the wrong target produces players who grind
 for a number while the real goal rots.
 
-> **From the book.** Schell's practical insight is that endogenous
-> value is never free-floating: game objects become valuable through
-> their *relationship to the player's goals*, and how much players value
-> in-game things is a usable thermometer for how engaged they are. Gold
-> matters because of what the game lets you do with it; sever that link
-> and the value evaporates. That goal-relationship is exactly the
-> "anchor" this entry worries about keeping intact.[^aogd-ev]
+> **From the book.** Schell (crediting Greg Costikyan, who borrowed the
+> word from biology) defines endogenous value as worth "caused by factors
+> inside the … system": "things that have value inside the game have
+> value only inside the game" — Monopoly money means nothing outside
+> Monopoly. His sharp move is to treat it as a gauge: it's "an excellent
+> measure of how compelling a game really is," "a direct reflection of
+> how much players care about succeeding." The lens asks "What is
+> valuable to the players in my game? How can I make it more valuable to
+> them? What is the relationship between value in the game and the
+> players' motivations?" That last question — value's relationship to
+> motivation — is exactly the "anchor" this entry worries about keeping
+> intact.[^aogd-ev]
 
 ## Why our design prompts it
 
@@ -124,17 +129,20 @@ endogenous value at its purest and most durable.
    the proof that "value because I made it" is the most durable
    endogenous value the game has. More authorship surfaces = more value
    that needs no anchor and never Goodharts.
-5. **Hand the detachment question to Motivation and Responsibility.**
+5. **Hand the detachment question to [Motivation](./motivation.md) and
+   [Transformation](./transformation.md).**
    Endogenous value that detaches into pure extrinsic reward is the
    shared boundary with both of those lenses; this lens locates the
    seam, they judge it.
 
 ---
 
-[^aogd-ev]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the concept of **endogenous value**, from Schell's
-    game-balance material ("Game Mechanics Must Be in Balance"). This is
-    a concept Schell discusses rather than (as far as I can confirm) a
-    separately named lens; "Lens: Endogenous Value" is our own framing.
-    Cited by concept and chapter; page numbers omitted
-    (edition-dependent).
+[^aogd-ev]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #7, the Lens of Endogenous Value**
+    (p. 43), from the game-definitions chapter (section "No, Seriously,
+    What Is a Game?"). Schell credits Greg Costikyan for "endogenous"; the
+    Monopoly-money and roulette examples are his. (It *is* a separately
+    named lens — an earlier version of this note mistook it for an
+    unnamed concept in the game-balance chapter; corrected against the
+    3rd edition.) 3rd-edition print pagination; lens number stable across
+    editions.

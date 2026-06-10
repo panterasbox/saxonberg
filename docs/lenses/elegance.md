@@ -16,13 +16,18 @@ many purposes does each serve? Could a few elements be merged into one
 that does all their jobs — or is a single element strained across too
 many?
 
-> **From the book.** Schell frames elegance as a balance to chase
-> deliberately: the most elegant games are built from a *small* number
-> of elements that each serve a *large* number of purposes, so the game
-> feels rich without feeling complicated. He points at the classics —
-> few rules, vast depth — and the trap is the inverse: piling on
-> elements to add features until the design sags under its own part
-> count.[^aogd-el]
+> **From the book.** Schell makes the test literal: list your elements,
+> then "count up" the purposes of each "to give the element an 'elegance
+> rating.'" Elements with one or two purposes are candidates to combine
+> or remove; elements with several should be pushed to take on even more.
+> The classics are "masterpieces of elegance" — few elements, many
+> purposes each. But he guards the other flank in the very next breath:
+> "there is such a thing as honing a thing down too far." The lens would
+> straighten the leaning tower of Pisa — "it might be elegant, but it
+> would be boring; it would have no character." Monopoly's hat and
+> battleship serve no mechanical purpose and are beloved anyway. Elegance
+> is a force to *balance against character*, not to maximize
+> blindly.[^aogd-el]
 
 ## Why our design prompts it
 
@@ -82,6 +87,18 @@ The platform scores well on purposes-per-element, in several places:
   so is not simple. This is a good trade — but it means "elegant" is
   true at the surface and false underneath, and the trade is only worth
   it while the surface simplicity is real.
+- **Schell's counter-warning: don't hone away the character.** The lens
+  has a blind spot Schell names himself — "there is such a thing as
+  honing a thing down too far." A text world lives on authored detail
+  that serves *no mechanical purpose*: a flavor line, an odd NPC habit,
+  the leaning-tower tilt. By a naive purposes-per-element count those
+  read as dead weight to cut. They are the opposite — the charm that
+  makes the world worth being in, which the project's own "props real or
+  cut" and "worldbuilding is dwelling" instincts already prize. The
+  merge-or-cut rule belongs to *mechanism*; pointed at the texture that
+  gives a place its feel, elegance becomes the enemy of character —
+  exactly the over-correction Schell flags with the straightened tower
+  of Pisa.
 
 ## Implications
 
@@ -105,7 +122,11 @@ The platform scores well on purposes-per-element, in several places:
 
 ---
 
-[^aogd-el]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Elegance**, from Schell's treatment of
-    game balance. Cited by lens; chapter pointer approximate; page
-    numbers omitted (edition-dependent).
+[^aogd-el]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #49, the Lens of Elegance**
+    (p. 241), from the game-balance chapter (section "Elegance"). The
+    "elegance rating" (count purposes per element) and the
+    leaning-tower-of-Pisa / Monopoly-tokens counter-warning are Schell's;
+    that counter-warning leads directly into his **Lens #50, the Lens of
+    Character** (p. 243), about a game's charm rather than its NPCs.
+    3rd-edition print pagination; lens number stable across editions.

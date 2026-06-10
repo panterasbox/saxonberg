@@ -1,8 +1,8 @@
 # Lens: Feedback
 
-> Part of the [design lenses](./README.md) set. Lens/concept named from
-> Jesse Schell's *A Book of Lenses*; questions paraphrased, analysis our
-> own.
+> Part of the [design lenses](./README.md) set. Lens named from Jesse
+> Schell's *A Book of Lenses* (his neighboring Lens of Juiciness is
+> referenced as related); questions paraphrased, analysis our own.
 >
 > **Layer interrogated: the platform** (the response substrate).
 
@@ -17,11 +17,14 @@ questions: after every action, does the player know what happened? Is
 the feedback timely, legible, and proportionate? And does it ever feel
 *good*, not just informative?
 
-> **From the book.** Schell ties feedback tightly to judgment and
-> control: feedback tells players how they're doing and what the world
-> is doing back, and a game starved of it feels dead no matter how good
-> its rules. He also champions "juiciness" — lavish, responsive feedback
-> that makes even trivial actions feel alive — as a cheap, huge win for
+> **From the book.** Schell makes feedback carry many jobs at once: "the
+> feedback a player gets from the game is many things — judgment, reward,
+> instruction, encouragement, and challenge." His homeliest example is
+> the Swiffer, whose dirt-on-the-cloth proves the floor is actually
+> cleaner: "less feedback = dirtier floor," because without it the task
+> "feel[s] somewhat futile" and you do it less. He also champions
+> **juiciness** (a lens of its own) — lavish, responsive feedback that
+> makes even trivial actions feel alive — as a cheap, outsized win for
 > how a game *feels*.[^aogd-fb]
 
 ## Why our design prompts it
@@ -104,9 +107,11 @@ and, where it matters, *satisfying*.
 
 ---
 
-[^aogd-fb]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — Schell's treatment of feedback and "juiciness," from
-    his material on interface and on judging the player's experience. I
-    can't confirm "Feedback" is a single separately-named lens in the
-    book; this entry cites the concept as Schell develops it. Page
-    numbers omitted (edition-dependent).
+[^aogd-fb]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #63, the Lens of Feedback**
+    (p. 277), from the interface chapter ("Players Play Games Through an
+    Interface," section "The Loop of Interaction"). Feedback *is* a
+    separately named lens — an earlier version of this note doubted that;
+    the Swiffer "less feedback = dirtier floor" example is Schell's.
+    (Related: the neighboring **Lens #64, the Lens of Juiciness**.)
+    3rd-edition print pagination; lens number stable across editions.

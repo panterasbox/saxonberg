@@ -1,6 +1,7 @@
 /**
- * EventApi — global pub/sub bus for engine-level events with no
- * specific target to shadow.
+ * EventApi — thin facade over `EventRegistry` (event-property
+ * declarations) and `EventSubscriptions` (runtime listener registry +
+ * history).
  *
  * Two-layer reactivity sits alongside this bus: the **Witness pattern**
  * (object-local hooks on Mobile / Container / Containable / Exitable /
@@ -8,15 +9,21 @@
  * handles "X happened, no specific receiver yet" — login, server-wide
  * lifecycle, audit streams.
  *
- * Storage gate: events are properties on the `EventRegistry` Idea. The
- * registry's per-property `checkAccess` decides who may emit (Set) and
- * who may subscribe (Get). Subscribers themselves live in a side-table
- * inside this class, NOT in registry props — they're runtime
- * registrations, not declarations.
+ * Storage / gate:
+ *   - `EventRegistry` (existing) — event-property declarations and the
+ *     per-property `checkAccess` policies; `setProp` is the emit gate.
+ *   - `EventSubscriptions` (this refactor) — the runtime listener
+ *     side-table and the bounded ring-buffer history. Methods carry
+ *     `@CallSecurity(FromModule('mud/api/event#EventApi'))` so the
+ *     subscription state has one calling surface — this one.
  *
  * Dispatch is non-blocking and isolated: `emit` enqueues a microtask,
  * each listener runs in a fresh `EventDispatch` frame, and a thrown
  * listener doesn't break siblings or the emitter.
+ *
+ * The narrow-entry pattern: `EventApi` is the only legitimate path to
+ * either Stuff's state. State has one home, one calling surface, and
+ * one structurally-enforced path between them.
  */
 
 import { ExecutionContextApi, FrameKind } from './execution-context';
@@ -30,6 +37,11 @@ import {
   type PropValue,
 } from '../lib/stuff/Propertied';
 import type EventRegistry from '../obj/EventRegistry';
+import type EventSubscriptions from '../obj/EventSubscriptions';
+import type {
+  SubscriptionRecord,
+  HistoryRecord,
+} from '../obj/EventSubscriptions';
 
 /**
  * A class reference used in emit/subscribe allowlists. Entries are
@@ -81,14 +93,6 @@ interface InternalSubscription<T> extends Subscription<T> {
   __lastPayload: T | null;
 }
 
-interface HistoryEntry<T> {
-  payload: T;
-  timestamp: number;
-  triggeringContext: ListenerContext['triggeringContext'];
-}
-
-const HISTORY_LIMIT = 100;
-
 function findClassFrame(
   stack: ReadonlyArray<{ target: unknown }>,
   cls: unknown
@@ -121,19 +125,7 @@ function originatorMatches(
 
 /**
  * Structural shape for an event that rides the EventApi bus. Any
- * object with a `kind` discriminator and a `payload` qualifies —
- * we do not require a particular base class. Concrete event
- * classes declare `kind` and `payload` directly; the type-system
- * contract is structural.
- *
- * Used in three roles:
- *   - the value passed to `EventApi.fire(event)`,
- *   - the type bound for `EventClassCtor`,
- *   - the value delivered to a class-based `EventApi.on` listener.
- *
- * Class-based listeners receive a plain `{ kind, payload }` object —
- * we do not reconstruct the class instance, because listeners
- * pattern-match on payload fields rather than prototype identity.
+ * object with a `kind` discriminator and a `payload` qualifies.
  */
 export interface BusEvent<P = unknown> {
   readonly kind: string;
@@ -141,11 +133,7 @@ export interface BusEvent<P = unknown> {
 }
 
 /**
- * Constructor shape for the class-based `EventApi.fire` / `on`
- * overloads. Any class with a static `KIND` string and instances
- * that satisfy `BusEvent<P>` qualifies — the dispatcher routes by
- * the `KIND` string, so HMR-replaced classes still resolve through
- * the same key.
+ * Constructor shape for class-based `EventApi.fire` / `on` overloads.
  */
 export interface EventClassCtor<E extends BusEvent<unknown>> {
   readonly KIND: string;
@@ -158,16 +146,20 @@ type PayloadOf<E> = E extends BusEvent<infer P> ? P : never;
 /* ─────────────────────────── EventApi ─────────────────────────── */
 
 export class EventApi {
-  static #subs = new Map<string, Set<InternalSubscription<unknown>>>();
-  static #history = new Map<string, HistoryEntry<unknown>[]>();
   static #registryRef: EventRegistry | null = null;
+  static #subsRef: EventSubscriptions | null = null;
+  static #subsClass: (new () => EventSubscriptions) | null = null;
+
+  /** @internal — called from `obj/EventSubscriptions.ts` module body. */
+  public static _registerSubsClass(cls: new () => EventSubscriptions): void {
+    EventApi.#subsClass = cls;
+  }
 
   /**
    * Resolve the singleton EventRegistry via the `byTemplatePath`
    * index. Cached after the first lookup. Returns `null` if the
    * registry hasn't been bootstrapped yet — `emit` skips silently
-   * in that case so very-early-boot emit sites (e.g.,
-   * `StuffApi.create` for the EventRegistry itself) don't crash.
+   * in that case so very-early-boot emit sites don't crash.
    */
   static #registry(): EventRegistry | null {
     if (this.#registryRef) return this.#registryRef;
@@ -177,6 +169,31 @@ export class EventApi {
     if (!reg) return null;
     this.#registryRef = reg;
     return reg;
+  }
+
+  /**
+   * Resolve the singleton EventSubscriptions, lazy-creating a transient
+   * in-memory instance if `BootstrapManager.run()` hasn't seeded one
+   * yet. Returns `null` when neither the bootstrap nor the class
+   * registration has happened (early-boot emits short-circuit on
+   * this).
+   */
+  static #subs(): EventSubscriptions | null {
+    if (this.#subsRef) return this.#subsRef;
+    const existing = StuffApi.findByTemplatePath<EventSubscriptions>(
+      '/obj/EventSubscriptions'
+    );
+    if (existing) {
+      this.#subsRef = existing;
+      return existing;
+    }
+    if (!EventApi.#subsClass) return null;
+    const sub = StuffApi.createSync<EventSubscriptions>(
+      () => new EventApi.#subsClass!(),
+    );
+    sub.setTemplatePath('/obj/EventSubscriptions');
+    this.#subsRef = sub;
+    return sub;
   }
 
   /**
@@ -254,20 +271,7 @@ export class EventApi {
    * Emit `payload` for `name`. Permission gate fires synchronously
    * (a denied caller throws `SecurityError` immediately). Listeners
    * fire on the next microtask in a fresh `EventDispatch` frame
-   * each.
-   *
-   * Custom events are first-class: any string `name` works.
-   * Well-known events (the `Events.*` table) are frontloaded into
-   * the registry by `EventRegistry.postRegister` with their
-   * specific policies. Anything else is auto-registered on first
-   * touch with the default `emittableBy()` policy (open-public
-   * emit, but still requires the EventApi-mediated path — direct
-   * `reg.setProp` from non-EventApi code stays denied).
-   *
-   * Pre-bootstrap emits are silently dropped (no registry to gate
-   * them, no subscribers to deliver to). This keeps engine startup
-   * paths that emit `StuffCreated` on the very EventRegistry being
-   * created from triggering self-recursion errors.
+   * each. Pre-bootstrap emits are silently dropped.
    */
   public static emit<T = unknown>(name: string, payload: T): void {
     const reg = this.#registry();
@@ -278,25 +282,21 @@ export class EventApi {
       throw new SecurityError(`EventApi.emit('${name}'): not allowed`);
     }
 
-    // Stash history. Bounded ring buffer per event for diagnostics.
-    const triggeringContext = this.#snapshotTriggeringContext();
-    let hist = this.#history.get(name);
-    if (!hist) {
-      hist = [];
-      this.#history.set(name, hist);
-    }
-    hist.push({ payload, timestamp: Date.now(), triggeringContext });
-    if (hist.length > HISTORY_LIMIT) hist.splice(0, hist.length - HISTORY_LIMIT);
+    const subs = this.#subs();
+    if (!subs) return;
 
-    // Fan-out: snapshot subscribers so listeners that mutate the set
-    // (e.g. an `until`-driven unsubscribe) don't hit "modified during
-    // iteration" surprises.
-    const subs = this.#subs.get(name);
-    if (!subs || subs.size === 0) return;
-    const snapshot = [...subs] as InternalSubscription<T>[];
+    const triggeringContext = this.#snapshotTriggeringContext();
+    subs.recordHistory(name, {
+      payload,
+      timestamp: Date.now(),
+      triggeringContext,
+    });
+
+    const snapshot = subs.snapshotSubscribers(name);
+    if (snapshot === null) return;
 
     queueMicrotask(() => {
-      for (const sub of snapshot) {
+      for (const sub of snapshot as InternalSubscription<T>[]) {
         sub.__lastPayload = payload;
         if (sub.__filter && !sub.__filter(payload)) continue;
         const ctx: ListenerContext = { triggeringContext };
@@ -325,11 +325,6 @@ export class EventApi {
 
   /**
    * Class-based fire — sugar over `emit(event.kind, event.payload)`.
-   * Accepts anything structurally satisfying `BusEvent<P>` (any
-   * object with `kind: string` + `payload`). Goes through the same
-   * per-event policy gate; listeners on either the string-keyed
-   * `on(name, ...)` form or the class-based `on(EventClass, ...)`
-   * form receive the same dispatch.
    */
   public static fire<E extends BusEvent<unknown>>(event: E): void {
     this.emit(event.kind, event.payload);
@@ -337,14 +332,7 @@ export class EventApi {
 
   /**
    * Register a listener for `name`. Returns a `Subscription` whose
-   * `unsubscribe()` removes it from the side-table. Throws
-   * `SecurityError` when the caller is denied subscribe access.
-   *
-   * The class-based overload (`on(EventClass, listener)`) is sugar
-   * for the string-keyed form: it routes via `EventClass.KIND` and
-   * delivers a `{ kind, payload }` event-like object to the listener
-   * instead of the raw payload. No class-instance reconstruction —
-   * listeners pattern-match on payload fields.
+   * `unsubscribe()` removes it from the side-table.
    */
   public static on<E extends BusEvent<unknown>>(
     EventClass: EventClassCtor<E>,
@@ -402,6 +390,12 @@ export class EventApi {
         'EventApi.on: EventRegistry not bootstrapped. Did BootstrapManager.run() complete?'
       );
     }
+    const subs = this.#subs();
+    if (!subs) {
+      throw new Error(
+        'EventApi.on: EventSubscriptions not bootstrapped. Did BootstrapManager.run() complete?'
+      );
+    }
     this.#ensureRegistered(reg, name);
     const propOpts = reg.checkProp(Property.of<PropValue>(name));
     if (!propOpts) {
@@ -422,22 +416,31 @@ export class EventApi {
       __until: opts?.until,
       __lastPayload: lastPayload,
       unsubscribe: () => {
-        const set = this.#subs.get(name);
-        if (set) {
-          set.delete(sub as InternalSubscription<unknown>);
-          if (set.size === 0) this.#subs.delete(name);
-        }
+        EventApi._removeSubscriptionForListener(
+          name,
+          sub as InternalSubscription<unknown>,
+        );
       },
     };
 
-    let set = this.#subs.get(name);
-    if (!set) {
-      set = new Set();
-      this.#subs.set(name, set);
-    }
-    set.add(sub as InternalSubscription<unknown>);
-
+    subs.addSubscription(name, sub as unknown as SubscriptionRecord);
     return sub;
+  }
+
+  /**
+   * Internal seam called by every `Subscription.unsubscribe()` closure
+   * so the Registry call is mediated by this Api class — keeping
+   * `@CallSecurity(FromModule(EventApi))` satisfied even when the
+   * caller of `unsubscribe()` is whatever code held the handle.
+   * @internal
+   */
+  public static _removeSubscriptionForListener(
+    name: string,
+    sub: InternalSubscription<unknown>,
+  ): void {
+    const subs = this.#subs();
+    if (!subs) return;
+    subs.removeSubscription(name, sub as unknown as SubscriptionRecord);
   }
 
   /**
@@ -457,28 +460,36 @@ export class EventApi {
   public static history<T = unknown>(
     name: string,
     limit?: number
-  ): ReadonlyArray<HistoryEntry<T>> {
-    const hist = (this.#history.get(name) ?? []) as HistoryEntry<T>[];
-    if (typeof limit === 'number') {
-      return hist.slice(Math.max(0, hist.length - limit));
-    }
-    return [...hist];
+  ): ReadonlyArray<{
+    payload: T;
+    timestamp: number;
+    triggeringContext: ListenerContext['triggeringContext'];
+  }> {
+    const subs = this.#subs();
+    if (!subs) return [];
+    return subs.getHistory(name, limit) as unknown as ReadonlyArray<{
+      payload: T;
+      timestamp: number;
+      triggeringContext: ListenerContext['triggeringContext'];
+    }>;
   }
 
+  /* ─── test seams ─── */
+
   /**
-   * Test seam — wipe subscribers and history. Reset the cached
-   * registry pointer so a fresh `findByTemplatePath` lookup runs on
-   * the next emit. @internal
+   * Test seam — wipe subscribers and history. Reset cached
+   * pointers so a fresh lookup runs on the next emit. @internal
    */
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
-    this.#subs.clear();
-    this.#history.clear();
+    const subs = this.#subs();
+    if (subs) subs._clearAll();
     this.#registryRef = null;
+    this.#subsRef = null;
   }
 
   /**
-   * Test seam — install a registry without going through the
+   * Test seam — install an EventRegistry without going through the
    * bootstrap manifest. @internal
    */
   public static _setRegistryForTesting(reg: EventRegistry | null): void {
@@ -486,23 +497,32 @@ export class EventApi {
     this.#registryRef = reg;
   }
 
-  /* ─────────────────────────── Internals ─────────────────────────── */
+  /**
+   * Test seam — install an EventSubscriptions without bootstrap. @internal
+   */
+  public static _setSubsRegistryForTesting(
+    subs: EventSubscriptions | null,
+  ): void {
+    SecurityApi.assertTestOnly('_setSubsRegistryForTesting');
+    this.#subsRef = subs;
+  }
+
+  /**
+   * HMR seam: drop cached Registry pointers so the next call
+   * re-resolves. Called when `api/event.ts` is reloaded. Registry
+   * state itself is unaffected.
+   * @internal
+   */
+  public static _resetRegistryRefForReload(): void {
+    this.#registryRef = null;
+    this.#subsRef = null;
+  }
+
+  /* ─── internals ─── */
 
   /**
    * Ensure `name` is declared on the registry with at least the
-   * default open-public policy. Idempotent — `initProp` returns
-   * false when the prop already has a config (well-known events
-   * frontloaded by `EventRegistry.postRegister` skip here, custom
-   * events get their first-touch declaration).
-   *
-   * This closes the "raw setProp auto-init bypass" path: if a
-   * caller tries `reg.setProp('forged.event', ...)` directly,
-   * setProp's auto-init runs `initProp(prop)` with no options, which
-   * falls back to `defaultPropAccess`. EventRegistry overrides that
-   * to deny everything, so the bypass fails. Going through
-   * EventApi, this helper installs `emittableBy()` first — the
-   * defense passes for EventApi-mediated calls and rejects bypass
-   * attempts.
+   * default open-public policy. Idempotent.
    */
   static #ensureRegistered(reg: EventRegistry, name: string): void {
     reg.initProp(Property.of<PropValue>(name), {
@@ -528,10 +548,8 @@ export class EventApi {
   }
 
   static #logListenerError(eventName: string, err: unknown): void {
-    // MudlogApi requires a recipient and isn't appropriate for
-    // anonymous listener errors. Use console.error: the design says
-    // listener errors are isolated, the logging path is secondary.
-    const message = err instanceof Error ? err.stack ?? err.message : String(err);
+    const message =
+      err instanceof Error ? err.stack ?? err.message : String(err);
     console.error(
       `EventApi: listener error on '${eventName}':\n${message}`
     );
@@ -541,5 +559,6 @@ export class EventApi {
 // Re-export the types module for convenience.
 export { Events } from '../lib/events';
 export type { EventName, EventPayloads } from '../lib/events';
+export type { HistoryRecord } from '../obj/EventSubscriptions';
 
 SecurityApi.decorateApiClass(EventApi);

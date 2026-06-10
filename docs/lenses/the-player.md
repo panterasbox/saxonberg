@@ -15,12 +15,14 @@ part designers skip — who is being served *badly*? Real empathy means
 modeling players unlike you, including the ones your medium quietly
 excludes.
 
-> **From the book.** Schell's counsel is to keep a vivid, almost
-> uncomfortable picture of your real players in mind — to think about
-> them as people with lives and tastes, not as an abstract "user," and
-> to keep asking what they'll truly enjoy rather than what you'd enjoy
-> in their place. The designer's empathy is a working tool, used
-> constantly, not a one-time persona exercise.[^aogd-pl]
+> **From the book.** "Stop thinking about your game, and start thinking
+> about your player," Schell says: ask "what do they like? What don't
+> they like? Why? What do they expect to see in a game?" and only *then*
+> "if I were in their place, what would I want to see?" The designer
+> "should always be … an advocate for the player" — empathy as a working
+> tool used constantly, not a one-time persona exercise. And the sharper
+> move beyond imagining them: "even more useful is watching them play
+> your game."[^aogd-pl]
 
 ## Why our design prompts it
 
@@ -74,7 +76,7 @@ unusual honesty, the players the text medium serves *worse*.
   this lens says to serve. Accessibility can't be optional decoration if
   the empathy is real.
 - **Minors are players.** Designing for children changes consent,
-  safety, and tone wholesale (the [Responsibility](./responsibility-transformation.md)
+  safety, and tone wholesale (the [Transformation](./transformation.md)
   overlap). "Student" quietly includes "child," and that has to be
   faced, not averaged away.
 
@@ -96,12 +98,14 @@ unusual honesty, the players the text medium serves *worse*.
    handle without the external sensor.
 4. **Name "child" inside "student."** Where the audience includes
    minors, make it explicit and route the consequences to
-   [Responsibility](./responsibility-transformation.md) rather than
+   [Transformation](./transformation.md) rather than
    letting an averaged "student" hide them.
 
 ---
 
-[^aogd-pl]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of the Player**, from the chapter "The Game
-    Is Made for a Player." Cited by lens and chapter; page numbers
-    omitted (edition-dependent).
+[^aogd-pl]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #19, the Lens of the Player**
+    (p. 131), from the chapter "The Game Is Made for a Player."
+    "An advocate for the player" and "even more useful is watching them
+    play your game" are Schell's. 3rd-edition print pagination; lens
+    number stable across editions.

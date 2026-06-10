@@ -20,14 +20,18 @@ intrinsic motivation that was already there. The questions: what need
 does this meet? Is the player doing this for itself, or for a carrot?
 And if for a carrot, what happens when the carrot stops?
 
-> **From the book.** Schell hangs much of motivation on **Maslow's
-> hierarchy of needs**: a game that meets higher needs — esteem,
-> belonging, self-actualization — holds players far more deeply than one
-> trading only in lower-level rewards, and he notes most games never
-> climb past the bottom rungs. (The Self-Determination Theory framing
-> below is a complementary lens from outside the book; the two agree
-> that the durable motivators are the higher-order needs, not the
-> carrots.)[^aogd-mo]
+> **From the book.** Schell maps motivation onto **Maslow's hierarchy**
+> — the **Lens of Needs** asks "on which levels of Maslow's hierarchy is
+> my game operating?" — and, crucial for this entry, he folds **Self-
+> Determination Theory straight in**: that same lens asks whether the
+> game "fill[s] the needs of competence, autonomy, and relatedness," and
+> he promises "lenses that individually address competence, autonomy,
+> and relatedness" later on. He also splits motivation intrinsic vs.
+> extrinsic (the **Lens of Motivation**), warning that external pressure
+> turns a "wanna" into a "hafta" — his name for the crowding-out this
+> entry calls overjustification — and that you "ignore [motivation's]
+> complexity at your peril." The durable motivators are the higher-order
+> needs, not the carrots.[^aogd-mo]
 
 ## Why our design prompts it
 
@@ -46,10 +50,11 @@ same sentence. The lens is how we tell which one we're holding.
 
 ### The intrinsic core is unusually strong — and already structured
 
-Read against Self-Determination Theory (the standard account of
-intrinsic motivation: people are intrinsically driven by **autonomy**,
-**competence**, and **relatedness**), the design hits all three, almost
-as if it were built to:
+Read against Self-Determination Theory — the standard account of
+intrinsic motivation (people are intrinsically driven by **autonomy**,
+**competence**, and **relatedness**), and the same triad Schell names
+directly in his Lens of Needs — the design hits all three, almost as if
+it were built to:
 
 - **Autonomy** — the no-hard-rails stance, soft diegetic limits,
   meaningful choices, "you author your own space." The player acts; the
@@ -104,7 +109,8 @@ intrinsic game-enjoyment rather than on extrinsic reward alone. The
   remembers you and wants you to succeed" is a powerful intrinsic
   (relatedness) motivator — and the exact mechanism that, aimed wrong,
   becomes manipulative attachment. Shared blade with
-  [Indirect Control](./indirect-control.md) and Responsibility.
+  [Indirect Control](./indirect-control.md) and
+  [Transformation](./transformation.md).
 
 ## Implications
 
@@ -126,16 +132,18 @@ intrinsic game-enjoyment rather than on extrinsic reward alone. The
    competence, belonging) are *needs met*, not *rewards given* — and
    needs-met doesn't crowd out intrinsic motivation the way rewards do.
    Bias new design toward the former.
-5. **This lens and Responsibility share an axis.** Intrinsic-vs-
-   extrinsic *is* the healthy-motivation-vs-manipulation axis once the
-   player is a student or a child. Read the two together.
+5. **This lens and [Transformation](./transformation.md) share an axis.**
+   Intrinsic-vs-extrinsic *is* the healthy-motivation-vs-manipulation
+   axis once the player is a student or a child. Read the two together.
 
 ---
 
-[^aogd-mo]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — Schell's treatment of player motivation via Maslow's
-    hierarchy (the **Lens of Needs**) and the **Lens of Pleasure**.
-    "Motivation" is our umbrella over several of his lenses, not a
-    single named one; the Self-Determination Theory framing is from
-    outside the book. Cited by lens; page numbers omitted
-    (edition-dependent).
+[^aogd-mo]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #23, the Lens of Motivation**
+    (p. 160), from the chapter on the player's motivation (sections
+    "Intrinsic vs. Extrinsic Motivation" and "Wanna vs. Hafta"). The
+    closely related **Lens #22, the Lens of Needs** (p. 156) is where
+    Schell maps Maslow and names the Self-Determination Theory triad
+    (autonomy / competence / relatedness) — *not* an external framing, as
+    an earlier version of this note wrongly claimed. 3rd-edition print
+    pagination; lens numbers stable across editions.

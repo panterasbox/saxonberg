@@ -1,8 +1,9 @@
-# Lens: Transparency & the Physical Interface
+# Lens: Transparency
 
-> Part of the [design lenses](./README.md) set. Combines Schell's Lens
-> of Transparency and Lens of the Physical Interface. Lenses named from
-> *A Book of Lenses*; questions paraphrased, analysis our own.
+> Part of the [design lenses](./README.md) set. Lens named from Jesse
+> Schell's *A Book of Lenses* (his neighboring Lens of the Physical
+> Interface is referenced as related); questions paraphrased, analysis
+> our own.
 >
 > **Layer interrogated: the platform** (the cockpit + command line are
 > platform surface).
@@ -17,12 +18,17 @@ from those to in-world action. The questions: when the player acts, are
 they thinking about the world or about the interface? Where does the
 interface intrude, and can that intrusion be designed away?
 
-> **From the book.** Schell's image is a window: the best interface is
-> glass you look *through* at the world, not a dashboard you look *at*.
-> Every moment the player spends noticing the controls is a moment they
-> aren't inside the experience — so the designer's job is to make the
-> mapping from intention to action so natural the interface stops
-> registering at all.[^aogd-tr]
+> **From the book.** Schell's standard, set by an Edward Tufte epigraph,
+> is blunt: "No matter how beautiful your interface is, it would be
+> better if there were less of it." The ideal interface "becomes
+> invisible to the player, letting the player's imagination be completely
+> immersed in the game world." His tell is in how players *talk*: not "I
+> pressed the red button to make her throw a grappling hook" but "I threw
+> my grappling hook and started climbing the castle wall." Players
+> "project themselves into games and on some level disregard that the
+> interface is there at all, unless it suddenly becomes confusing." The
+> physical interface — the six mappings between player and game — exists
+> to get out of the way.[^aogd-tr]
 
 ## Why our design prompts it
 
@@ -100,8 +106,11 @@ interface disappear — and for whom?" is sharp and unavoidable here.
 
 ---
 
-[^aogd-tr]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of Transparency** and the **Lens of the
-    Physical Interface**, from the chapter on interface ("Players Play
-    Games Through an Interface"). Cited by lens and chapter; page numbers
-    omitted (edition-dependent).
+[^aogd-tr]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #62, the Lens of Transparency**
+    (p. 274), from the interface chapter ("Players Play Games Through an
+    Interface"). The Tufte epigraph and the grappling-hook projection
+    example are from p. 274. (Related: Schell's neighboring **Lens #60,
+    the Lens of the Physical Interface** — the six player↔game mappings —
+    in the same chapter.) 3rd-edition print pagination; lens numbers
+    stable across editions.

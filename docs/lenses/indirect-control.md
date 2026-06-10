@@ -163,7 +163,7 @@ boundary's job.
   empathy (his *Ico* example: you protect the princess because failing
   her *feels* bad). He means it as craft; aimed at a real study habit,
   that conscience-check question stops being rhetorical. This lens and
-  Responsibility/Transformation share a blade.
+  [Transformation](./transformation.md) share a blade.
 - **NPC-led dialogue is a quality cliff, not a slope.** The whole
   characters-as-control strategy rests on NPCs that lead *well*. An NPC
   that leads badly — flat hooks, dead-end misses — is worse than one
@@ -204,12 +204,12 @@ boundary's job.
 
 [^aogd-ic]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #81, the Lens of Indirect
-    Control** (p. 353) and **Lens #79, the Lens of Freedom** (p. 343),
-    from the indirect-control chapter (opening section "The Feeling of
-    Freedom," p. 343). The six methods — constraints, goals, interface,
-    visual design, characters, music/sound — are Schell's. The *Ico*
-    example and the companion **Lens #80, the Lens of Help** (p. 352)
-    come from "Indirect Control Method #5: Characters" (pp. 351–352); the
-    "inducing desires I'd rather the player not have" question is the
-    final bullet of Lens #81's card. (3rd-edition print pagination; lens
-    numbers stable across editions.)
+    Control** (p. 353), from the indirect-control chapter. The six
+    methods — constraints, goals, interface, visual design, characters,
+    music/sound — are Schell's, as are the *Ico* example and the
+    "inducing desires I'd rather the player not have" question (the final
+    bullet of the lens's card). (Related lenses in the same chapter:
+    **#79, the Lens of Freedom**, p. 343, on the *feeling* of freedom;
+    **#80, the Lens of Help**, p. 352, from "Indirect Control Method #5:
+    Characters.") 3rd-edition print pagination; lens numbers stable
+    across editions.

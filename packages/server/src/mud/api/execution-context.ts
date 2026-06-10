@@ -143,6 +143,14 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
   /\/mud\/api\//,                                // every Api class (proxy / shadow / stuff push frames)
   /\/backend\//,                                 // Backend's runRoot at the network → Application boundary
   /\/mud\/lib\/command\/CommandGiver\.(ts|js)$/, // CommandGiverMixin tags the command frame
+  // Singleton Stuff registries that hold Api state and need to plant
+  // synthetic root frames for ApiOnly-gated downstream calls (timer
+  // callbacks, event-listener dispatch). Each lives at `/obj/<X>` and
+  // is the storage backend for a thin Api facade. The Api gates who
+  // can call the Registry via `@CallSecurity`; this allowlist entry is
+  // the orthogonal trust that the Registry's body is engine code, not
+  // content. Keep narrow — add the bare name, not a wildcard.
+  /\/mud\/obj\/(EventSubscriptions|MqlSubscriptionRegistry|SchedulerRegistry|WorldClockRegistry)\.(ts|js)$/,
   /\.test\.(ts|js)$/,                            // tests need the seam — they can't fake production identity
 ];
 

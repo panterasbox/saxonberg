@@ -27,8 +27,9 @@ made yet. If an entry only admires the design, it failed.
 ## On the book and the citations
 
 The lenses are Jesse Schell's, from *The Art of Game Design: A Book of
-Lenses* (CRC Press; 1st ed. 2008, now in its 3rd edition). The book
-collects more than a hundred lenses; we use only the handful our design
+Lenses* (1st ed. 2008; cited here from the **3rd edition**, CRC Press,
+2020). The book collects 110-plus lenses (plus a final, unnumbered
+"#∞ Lens of Your Secret Purpose"); we use only the handful our design
 actually summons.
 
 His lens cards and his prose are his own and aren't reproduced here.
@@ -38,15 +39,17 @@ What the entries do:
   own words.
 - Where the book offers insight *beyond* the bare question — a reframe,
   a principle, a design heuristic — surface it in a short **"From the
-  book"** callout: attributed, mostly paraphrased, with at most a brief
-  quoted phrase. Most people haven't read it, so these callouts are
-  deliberately there to carry its wisdom across.
-- Each callout carries a **footnote** citing the specific lens (and, where
-  it's solid, the chapter) so you can go mine the original passage.
-  Footnotes cite by lens + chapter, not page number — pagination differs
-  across the book's editions. Where our entry title is a *grouping* of
-  several Schell lenses (or a concept rather than a named lens), the
-  footnote says so.
+  book"** callout that quotes Schell's actual words (the lens's own
+  questions, a key phrase, his worked example) and attributes the rest.
+  Most people haven't read it, so these callouts are deliberately there
+  to carry its wisdom across.
+- Each callout carries a **footnote** citing the specific lens by
+  **number and name**, its **3rd-edition page**, and the chapter or
+  section — all checked against the book. (Page numbers are the
+  3rd-edition print pagination, read from the in-book page markers; lens
+  numbers are stable across editions.) Where our entry title is a
+  *grouping* of several Schell lenses (or names a concept rather than a
+  single named lens), the footnote says so.
 - Everything after the callout is our own analysis against our own
   design.
 
@@ -79,9 +82,14 @@ Every entry follows the same five-part shape:
 
 ## The roster
 
-Curated to the lenses our design actually prompts — not the whole
-deck. Grouped by what they interrogate. Status: ✍️ drafted ·
-⏳ planned.
+Curated hard: a lens earns an entry only if our design *actually
+prompts it* **and** we have something concrete to say about it **today** —
+not the whole deck, and not entries that would only catalogue what isn't
+built yet. Lenses that fail that test wait until there's real substance
+to write. (Griefing, Meaningful Choices, and the designer's "Secret
+Purpose" lens were drafted and then cut on exactly this bar — revisit
+them when moderation, progression mechanics, and live-service governance
+are actually designed.) Grouped by what they interrogate.
 
 ### Framing — what is this, really
 
@@ -113,11 +121,14 @@ deck. Grouped by what they interrogate. Status: ✍️ drafted ·
 - ✍️ **[The Toy](./the-toy.md)** — would the world be fun with no goal
   and no lesson? The sharper version of "stands alone." Surfaces text's
   brutal toy-discoverability problem.
-- ✍️ **[Responsibility / Transformation](./responsibility-transformation.md)**
-  — gamifying real life is behavior engineering; sensors imply
+- ✍️ **[Transformation](./transformation.md)** — does the game change
+  the people who play it, and is the change one they'd thank you for?
+  Gamifying real life is behavior engineering; sensors imply
   surveillance (`standard-model.md` owns this). Is the game good *for*
-  the students playing it? The permanent companion to Essential
-  Experience, Motivation, and Indirect Control.
+  the students — especially the minors — playing it? The permanent
+  ethics companion to Essential Experience, Motivation, and Indirect
+  Control. (Folds in the engagement-vs-outcome honesty test from Schell's
+  final lens, "Why am I doing this?")
 
 ### The medium — text and the cockpit
 
@@ -125,9 +136,9 @@ deck. Grouped by what they interrogate. Status: ✍️ drafted ·
   expressive ceiling is the player's mind. Consistency is the
   imagination budget; verbosity is the ceiling; precision vs. evocation
   is resolved by the layered seam.
-- ✍️ **[Transparency / Physical Interface](./transparency.md)** — the
-  cockpit, inspection pane, command bar. Does the interface disappear?
-  A CLI's transparency is *earned* via the learnability gradient.
+- ✍️ **[Transparency](./transparency.md)** — the cockpit, inspection
+  pane, command bar. Does the interface disappear? A CLI's transparency
+  is *earned* via the learnability gradient.
 - ✍️ **[Feedback](./feedback.md)** — every event carries a failsafe
   string; the response envelope; the scene composer. Strong substrate;
   the open problems are legibility-under-load and text's weak juiciness.
@@ -148,10 +159,9 @@ deck. Grouped by what they interrogate. Status: ✍️ drafted ·
 
 - ✍️ **[Indirect Control](./indirect-control.md)** — NPCs, diegetic
   constraints, the cockpit's attention-steering: making the player
-  *want* what the design needs without rails.
-- ✍️ **[Character](./character.md)** — Gus, Dave, Dr. Limen. Voice,
-  routine, props, secrets — but the richest mechanism (LLM brains) is
-  deferred, so v1 memorability must work within canned/tree limits.
+  *want* what the design needs without rails. (Schell's most-dwelt-on
+  indirect-control lever is *characters* — Gus, Dave, Dr. Limen — so the
+  NPC-craft material lives here.)
 - ✍️ **[The World](./the-world.md)** — coherence of the worldbuilding;
   the un-genred campus as the load-bearing aesthetic choice. Watch
   vertical-agnosticism bleeding the game-world's charm.
@@ -159,21 +169,19 @@ deck. Grouped by what they interrogate. Status: ✍️ drafted ·
   brain in a jar; Gus's watch. Every planted question needs a payoff;
   the curiosity→subject bridge is the pedagogical prize.
 
-### Identity & choice
+### Identity
 
 - ✍️ **[The Avatar](./the-avatar.md)** — char-gen as identity, not a
   stat sheet; "depth is earned, not chosen." A "become, don't begin-as"
   avatar that inverts Schell's idealized one.
-- ✍️ **[Meaningful Choices](./meaningful-choices.md)** — the major pick,
-  MQL, the command surface. Reversibility drains meaning by design; the
-  weighty choices are deferred to undesigned gameplay.
 
 ### Social — just built
 
-- ✍️ **[Community / Friendship](./community.md)** — grouping, chat,
-  contacts, the lounge. Peers as a motivation engine; text-first is
-  social-first. Cold-start emptiness and griefing-with-minors are the
-  live risks; the social substrate is ahead of the social gameplay.
+- ✍️ **[Community](./community.md)** — grouping, chat, contacts, the
+  lounge. Peers as a motivation engine; text-first is social-first.
+  Cold-start emptiness is the live risk; the social substrate is ahead
+  of the social gameplay. (Friendship and griefing are its
+  closely-related neighbors.)
 
 ## Sequencing
 
