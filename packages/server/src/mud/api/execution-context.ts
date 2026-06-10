@@ -428,7 +428,9 @@ export class ExecutionContextApi {
    * `SecurityError` on mismatch. Useful as belt-and-braces inside
    * sensitive method bodies that already carry `@CallSecurity`.
    */
-  public static assertCaller(expected: Function): void {
+  public static assertCaller(
+    expected: (abstract new (...args: never[]) => unknown) & { name: string }
+  ): void {
     const caller = ExecutionContextApi.getCaller();
     if (
       caller === null ||

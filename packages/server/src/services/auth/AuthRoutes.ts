@@ -52,7 +52,7 @@ export class AuthRoutes {
       };
 
       if (req.isAuthenticated() && req.user) {
-        const user = req.user as any;
+        const user = req.user as { id: string };
         response.user = {
           id: user.id,
           email: '',

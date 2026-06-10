@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DetailedMixin, type DetailMap } from '../Detailed';
+import { DetailedMixin, type Detail, type DetailMap } from '../Detailed';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -537,7 +537,7 @@ describe('DetailedMixin', () => {
       // Serialize (requires custom serialization for nested Maps).
       // Fixtures populate via the legacy string overload, which
       // routes to the `vision` slot — round-trip through `vision`.
-      const serialize = (details: Map<string, any>): any => {
+      const serialize = (details: DetailMap): unknown => {
         return Array.from(details.entries()).map(([key, detail]) => [
           key,
           {
@@ -547,14 +547,18 @@ describe('DetailedMixin', () => {
         ]);
       };
 
-      const deserialize = (data: any): Map<string, any> => {
+      const deserialize = (data: unknown): DetailMap => {
+        const entries = data as [
+          string,
+          { vision?: string; details?: unknown },
+        ][];
         return new Map(
-          data.map(([key, detail]: [string, any]) => [
+          entries.map(([key, detail]) => [
             key,
             {
               vision: detail.vision,
               details: detail.details ? deserialize(detail.details) : undefined,
-            },
+            } as Detail,
           ])
         );
       };

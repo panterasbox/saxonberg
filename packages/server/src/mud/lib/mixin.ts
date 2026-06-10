@@ -12,6 +12,12 @@
  * A mixin is a function that takes a base class and returns an extended class.
  * Supports both concrete and abstract constructors.
  */
+// `any[]` constructor args are intrinsic to the TS mixin pattern: a
+// mixin extends an arbitrary base and forwards `super(...args)`, which
+// `unknown[]`/`never[]` can't type. This is the canonical exception
+// (see the TypeScript handbook's mixin section), so it's the one place
+// the rule is deliberately suppressed.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstract new (...args: any[]) => T);
 
 /**

@@ -40,10 +40,9 @@ workflow:
 lint:
   extends: .node
   stage: validate
-  # Non-blocking for now: the repo carries a pre-existing lint backlog
-  # (lint was never CI-enforced). The job still runs and reports.
-  # Flip this off once the backlog is cleared.
-  allow_failure: true
+  # Blocking gate: the lint backlog was cleared on the fix-lint-backlog
+  # branch, so lint now fails the pipeline. The ruleset still emits
+  # warnings (e.g. unused vars) that don't fail the build.
   script:
     - pnpm lint
 

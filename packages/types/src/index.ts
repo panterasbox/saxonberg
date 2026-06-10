@@ -1081,7 +1081,7 @@ export interface Persistable {
  * Constructor type for Persistable classes.
  */
 export interface PersistableConstructor<T extends Persistable> {
-  new (...args: any[]): T;
+  new (...args: never[]): T;
   findById(id: string): Promise<T | null>;
   find(query: Record<string, unknown>): Promise<T[]>;
 }

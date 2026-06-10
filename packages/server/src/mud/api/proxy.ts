@@ -141,7 +141,9 @@ export class ProxyApi {
     // allocates a new wrapper, which breaks `obj.foo === obj.foo`
     // and interferes with `removeEventListener`-style patterns that
     // compare callbacks by identity.
-    const wrapperCache = new WeakMap<Function, Function>();
+    // Keyed/valued by the bound method functions, cached by identity.
+    type Fn = (...args: never[]) => unknown;
+    const wrapperCache = new WeakMap<Fn, Fn>();
 
     const handler: ProxyHandler<T> = {
       get(target, prop, receiver) {
@@ -191,7 +193,7 @@ export class ProxyApi {
           return value;
         }
 
-        const cached = wrapperCache.get(value as Function);
+        const cached = wrapperCache.get(value as Fn);
         if (cached) return cached;
 
         const methodName = typeof prop === 'symbol' ? prop.toString() : prop;
@@ -210,7 +212,7 @@ export class ProxyApi {
           );
         };
 
-        wrapperCache.set(value as Function, wrapper);
+        wrapperCache.set(value as Fn, wrapper);
         return wrapper;
       },
     };

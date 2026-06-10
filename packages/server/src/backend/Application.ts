@@ -311,11 +311,12 @@ export class Application {
       return id;
     }
 
-    const id = existing[0]._id;
+    const first = existing[0]!;
+    const id = first._id as string;
     await PersistenceManager.get().save(Collections.GoogleProfiles, {
       ...fields,
       _id: id,
-      createdAt: existing[0].createdAt,
+      createdAt: first.createdAt,
     });
     console.debug(`Application: Updated GoogleProfile ${id}`);
     return id;

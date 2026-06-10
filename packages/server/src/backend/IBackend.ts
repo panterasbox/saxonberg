@@ -39,6 +39,6 @@ export interface IBackend {
    */
   handleAuthenticationSuccess(
     profile: PassportGoogleProfile,
-    done: (error: any, user?: any) => void
+    done: (error: unknown, user?: { id: string }) => void
   ): Promise<void>;
 }

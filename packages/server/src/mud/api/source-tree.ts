@@ -73,12 +73,7 @@ export class SourceTreeApi {
     if (SourceTreeApi.#root !== null) return SourceTreeApi.#root;
     const here = path.dirname(fileURLToPath(import.meta.url));
     let dir = here;
-    while (true) {
-      const base = path.basename(dir);
-      if (base === 'packages') {
-        SourceTreeApi.#root = dir;
-        return dir;
-      }
+    while (path.basename(dir) !== 'packages') {
       const parent = path.dirname(dir);
       if (parent === dir) {
         throw new Error(
@@ -88,6 +83,8 @@ export class SourceTreeApi {
       }
       dir = parent;
     }
+    SourceTreeApi.#root = dir;
+    return dir;
   }
 
   /**

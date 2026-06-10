@@ -296,9 +296,8 @@ export class Document {
     }
     const doc = await PersistenceManager.get().findById(this.collectionName, id);
     if (!doc) return null;
-    const Ctor = this;
-    await preloadFieldMarshallersFor(Ctor as AnyConstructor);
-    const instance = new Ctor() as T;
+    await preloadFieldMarshallersFor(this as AnyConstructor);
+    const instance = new this() as T;
     instance.fromDocument(doc);
     return instance;
   }
@@ -316,10 +315,9 @@ export class Document {
       );
     }
     const docs = await PersistenceManager.get().find(this.collectionName, query);
-    const Ctor = this;
-    await preloadFieldMarshallersFor(Ctor as AnyConstructor);
+    await preloadFieldMarshallersFor(this as AnyConstructor);
     return docs.map((doc) => {
-      const instance = new Ctor() as T;
+      const instance = new this() as T;
       instance.fromDocument(doc);
       return instance;
     });

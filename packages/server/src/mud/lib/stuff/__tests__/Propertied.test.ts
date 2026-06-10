@@ -749,7 +749,9 @@ describe('PropertiedMixin', () => {
       const retrieved = obj.getProp(new Property('complex'));
 
       expect(retrieved).toEqual(complexObj);
-      expect((retrieved as any).level1.level2.level3.value).toBe('deep');
+      expect((retrieved as typeof complexObj).level1.level2.level3.value).toBe(
+        'deep'
+      );
     });
 
     it('should handle arrays of objects', () => {
@@ -774,8 +776,8 @@ describe('PropertiedMixin', () => {
       obj.setProp(new Property('prop1'), prop1);
       obj.setProp(new Property('prop2'), prop2);
 
-      const r1 = obj.getProp(new Property('prop1')) as any;
-      const r2 = obj.getProp(new Property('prop2')) as any;
+      const r1 = obj.getProp(new Property('prop1')) as { ref: object };
+      const r2 = obj.getProp(new Property('prop2')) as { ref: object };
 
       // Should be the same reference
       expect(r1.ref).toBe(r2.ref);
@@ -918,7 +920,10 @@ describe('PropertiedMixin', () => {
 
     it('should handle mask that returns null', () => {
       const owner = makeOwner();
-      const mask: PropValueMask<number> = (prop, value) => null as any;
+      // Deliberately violates the `=> number` contract to exercise the
+      // runtime's null-tolerance; the cast keeps the type-level lie local.
+      const mask: PropValueMask<number> = (prop, value) =>
+        null as unknown as number;
       obj.maskProp(new Property<number>('stat'), mask, owner);
 
       expect(obj.getProp(new Property<number>('stat'))).toBeNull();
@@ -926,7 +931,9 @@ describe('PropertiedMixin', () => {
 
     it('should handle mask that returns undefined', () => {
       const owner = makeOwner();
-      const mask: PropValueMask<number> = (prop, value) => undefined as any;
+      // Same deliberate contract violation, for the undefined case.
+      const mask: PropValueMask<number> = (prop, value) =>
+        undefined as unknown as number;
       obj.maskProp(new Property<number>('stat'), mask, owner);
 
       expect(obj.getProp(new Property<number>('stat'))).toBeUndefined();
@@ -972,13 +979,17 @@ describe('PropertiedMixin', () => {
       const position = { x: 10, y: 20 };
       obj.setProp(new Property('position'), position);
 
-      const mask: PropValueMask<any> = (prop, value) => ({
+      const mask: PropValueMask<{ x: number; y: number }> = (prop, value) => ({
         ...value,
         x: value.x + 5,
         y: value.y + 5
       });
 
-      obj.maskProp(new Property('position'), mask, owner);
+      obj.maskProp(
+        new Property<{ x: number; y: number }>('position'),
+        mask,
+        owner
+      );
 
       const result = obj.getProp(new Property('position'));
       expect(result).toEqual({ x: 15, y: 25 });
