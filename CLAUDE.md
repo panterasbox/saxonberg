@@ -44,451 +44,58 @@ behavior. Read the relevant doc before editing in its area.
 - [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar
   reference for players / authors writing queries (seeds, chain
   operators, filters, pronouns, examples)
-- Subsystem references in `docs/subsystems/`:
-  - [templates.md](./docs/subsystems/templates.md) — clone pipeline,
-    Hydrator, TemplateApi, folder/leaf invariant, declarative
-    `populates:` / `container:` instruction fields and their Phase 2
-    appliers, `TemplateApi.snapshotToTemplate` /
-    `restoreFromTemplate` persist-back surface
-  - [persistence.md](./docs/subsystems/persistence.md) — the `Document`
-    base (plain records, not Stuff) vs Templates→Stuff,
-    PersistenceManager, around-save/delete hooks. Collections:
-    `users` / `google_profiles` / `domain` (Templates) plus
-    `emotes` / `groups` / `channels` (social-cluster Documents);
-    `Template.findByPaths` for abstract-Template bulk-by-path
-    lookup that wouldn't fit the inherited `find` generic.
-  - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy
-    choreography, construction sentinel, prepareDestroy
-  - [state-model.md](./docs/subsystems/state-model.md) — what gets
-    persisted, Avatar self-contained (v1 persist-back through
-    `Avatar.save()` / `Avatar.restore()`), the `Document` track for
-    auth/meta records
-  - [connection.md](./docs/subsystems/connection.md) — login/logout
-    flow, WebSocket upgrade, `Interactive`/`Login`/`Avatar` handoff,
-    `Login.enter` (connection routing) + `Avatar.enter` (session
-    start, including autosave install), multiplexing, disconnect
-    choreography
-  - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene
-    composer, sensor routing, MudlogApi, `MarkupAugmenter` pipeline
-    (`augmentMarkup` + `MixinApi.getAllMarkupAugmenters` walker;
-    the substrate `VisibleMixin.getMarkupLong(viewer)` runs to wrap
-    `<detail>` etc. inline), VocalMixin + AetherMixin + SoulMixin
-    capability split (acoustic / ESP-transport / expressive).
-    `VocalMixin.say` gains optional `target?` for `--to` rendering;
-    `whisper` / `shout` extend the acoustic family with per-method
-    `meta.acousticDb` stamps. `AetherMixin.tell` collapses to a
-    single `tell(target: Stuff | readonly Stuff[], text, opts?)`
-    surface — multi-target stamps `payload.recipients` and (when
-    chat-backed) `meta.channelId`. Topic strings emit as dotted
-    literals; the `MessageApi.Topics` constant tree was retired in
-    favor of the TopicCatalogue YAML source of truth.
-    `Scene.meta(partial)` chain stamps additional non-modality meta
-    (`acousticDb`, `channelId`).
-  - [message-rendering.md](./docs/subsystems/message-rendering.md) —
-    end-to-end rendering substrate. Server: MML semantic core
-    extensions (`<chan>` / `<msg>` / `<player>` / `<npc>` /
-    `<mention>` / `<link>` + emphasis subset), `Mml.flatten` vs
-    `Mml.stripTags`, `Mml.markdownToMml` Discord-dialect parser,
-    `MentionResolver` factories, custom URI schemes (`mudcmd:` /
-    `mudref:` / `mudq:`), `api/mml/` module isolation rule,
-    `AetherMixin` for non-acoustic transport. Client: `parseMml`
-    nested-aware parser, `MmlRenderer` tree → React, per-message-type
-    templates (chat / say / tell / emote / default), stylesheet
-    engine (5 selector kinds, theme + overlay + plain-mode cascade),
-    default + high-contrast themes, `BucketResolver` friend/foe stub,
-    `style` verb on `HasInteractiveMixin.clientState['style.overlay']`,
-    `client-state-update` outbound push wire + strategy-injection
-    pattern.
-  - [topics.md](./docs/subsystems/topics.md) — per-topic authored
-    descriptors as `Topic` template docs under `/lib/messaging/Topic/`,
-    `TopicCatalogue` singleton in `obj/`, three-tier resolution
-    (cache hit → family-inherited → derived default), session-
-    establish wire push of the snapshot. The catalogue
-    self-loads from mongo via `Template.findDescendants` at
-    `postRegister` — no per-topic Stuff is ever cloned. Authored
-    source of truth for the topic vocabulary (`MessageApi.Topics`
-    constant tree retired). New leaves from the social-cluster
-    build: `world.speech.whisper` / `world.speech.shout` /
-    `world.expression.emote` / `world.chat.message` /
-    `system.broadcast`.
-  - [emotes.md](./docs/subsystems/emotes.md) — `SoulMixin` on every
-    Character (innate expressive surface; NOT augment-gated),
-    `Emote` Document + `EmoteGrammar` typed slots (`stuff` /
-    `free`) with one Liquid template per emote, `SoulCatalogue`
-    singleton + `SoulApi` thin facade, three dispatch paths
-    (bare-verb router catalog, `:` / `;` prefix in `msh.ts` +
-    free-form fallback, `emote` YAML verb), `soul` AuthorMixin
-    suite, ESP modality (`emotive-esp`) + universal-target
-    delivery, ~35-emote starter roster from `mud/config/emotes.yaml`.
-  - [grouping.md](./docs/subsystems/grouping.md) — `GroupApi`
-    facade over three `GroupProvider` implementations: managed
-    (writable `Group` Document), MQL (read-only query-driven),
-    contacts (model-B per-Avatar). `GroupRef` typed strings
-    (`source:id`); `GroupRegistry` Stuff singleton in `obj/`;
-    `Group` Document parallel-arrays membership; coarse role
-    vocabulary; the `group` verb suite rides on
-    `ContactsMixin.commandContributions.self`. Chat is the first
-    multi-shape **consumer** of the substrate, not a provider —
-    see [chat.md](./docs/subsystems/chat.md).
-  - [chat.md](./docs/subsystems/chat.md) — `Channel` Document
-    with a `groupRef: GroupRef` pointing at the channel's
-    membership source; chat is a **consumer** of `GroupApi`
-    (player-created channels mint a backing managed Group at
-    create time, channel.groupRef stamps `'managed:<groupId>'`,
-    audience reads route through `GroupApi.membersOf(groupRef)`).
-    Three kinds (player-created, open-join standalone, ad-hoc);
-    `ChannelCatalogue` singleton owns the backing-Group bookkeeping
-    (`getBackingGroupIds()` for `group list` filtering — the Group
-    model knows nothing about chat); byName + byHandle + history
-    rings + PropertiedMixin-backed subscription state; `chat.yaml`
-    with the Phase 1 `fallthrough: true` flag — subcommands
-    (`list / join / leave / mute / unmute / who / make / rename /
-    disband / history / promote`) plus bare-post fallback;
-    `world.chat.message` topic; `ChannelSeeder` for Help / Global /
-    Chat from `mud/config/channels.yaml`.
-  - [contacts.md](./docs/subsystems/contacts.md) — `ContactsMixin`
-    on Avatar (via Character), per-Avatar named lists of other
-    characters as `ContactEntry` flat-set with durable
-    identifiers only (`avatar` keyed by `playerId`, `npc` keyed
-    by `templatePath`); labels are derived views (no reserved
-    label vocabulary); add-time multi-character expansion is
-    controller-layer sugar (`--char` opts out); owner-only
-    privacy enforced at `ContactsGroupProvider.members`.
-  - [shell-environment.md](./docs/subsystems/shell-environment.md) —
-    `EnvironmentMixin` settings keyspace, schema-on-mixin (and the
-    schema-on-owner generalization), lookup chain, `settings` /
-    `var` commands, `resolveSetting` cross-host helper
-  - [shell-alias.md](./docs/subsystems/shell-alias.md) — `AliasMixin`
-    per-character verb aliases, lookup chain (defaults / persistent /
-    session), tombstones, `ShellApi.expandAliases` algorithm with
-    positional substitution + cycle guard, the `alias` player command
-  - [prose.md](./docs/subsystems/prose.md) — `ProseApi` Liquid-based
-    templating for authorable prose, Mml-aware output, default
-    filters (Mml vocabulary, `GrammarApi`)
-  - [call-security.md](./docs/subsystems/call-security.md) — proxy
-    interception, decorators, policies, shadows, FrameKind,
-    `FromController` narrow-entry pattern, async `allows` contract
-  - [access.md](./docs/subsystems/access.md) — `AccessApi` thin
-    facade over the `AccessRegistry` Stuff singleton. Four predicates
-    (`can` flat-union slice walk; `canMutateZone` role-gated on
-    primary `ownerGroup`; `isAuthor` broad content-scope predicate
-    for MQL pre-gates; `isDeveloper` orthogonal TS-escape gate) +
-    `resolveSourceFolderZone` path resolver. `Zone.ownerGroup` /
-    `accessGroups` persistent inheritable fields, the narrow-entry
-    pattern applied to `StuffApi.forceDestruct` /
-    `ContainmentApi.forceMove`, the three bootstrap-seeded groups
-    (`'core'` / `'lounge'` / `'developers'`) with the lounge
-    FolderZones at `/lib/lounge` and `/domain/lounge`, the MQL
-    permission snapshot wire-up (`ctx.permission` precomputed at
-    dispatch).
-  - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,
-    Property<T>, transient vs saved storage, access control patterns,
-    masks (the unshadowable mixin's per-property override mechanism)
-  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML
-    view + controller MVC, the per-giver recency stack, dispatch chain
-    (shape vs bind, `pass: true`), validators, scope try-list,
-    `updates_focus`, phase-effects vocabulary
-    (`COMMAND_PHASES`, `PhaseEffect`, `collectPhaseEffects`,
-    `consumePhaseEffects`; options declare `effects:` to skip /
-    replace dispatcher phases), schema delivery via
-    `system.commands.{added,removed,reset}`, frame attribution.
-    Subcommand-fallthrough matcher behavior (Phase 3a): a verb
-    that opts in via top-level `fallthrough: true` retries unknown
-    first tokens against its top-level `args` block before
-    surfacing the `unknown-subcommand` error — `chat` is the
-    canonical user (chat-subcommand precedence, bare-post
-    fallback). Optional field/option validators short-circuit
-    when the value is absent so `mustBe*` validators don't have
-    to teach themselves to tolerate null.
-  - [command-parsing.md](./docs/subsystems/command-parsing.md) —
-    `CommandLineApi` tokenizer, `RawToken` classification, `format()`
-    round-trip, the `msh` shell, parser pluggability via the
-    `shell.parser` setting. The `msh` parser stamps
-    `parsed.emotePrefixed: true` when a message begins with `:` or
-    `;` followed by a verb-starting char (with the sigil stripped);
-    the router's unknown-verb branch consumes the flag to enable
-    catalog-emote → free-form fallback.
-  - [command-spec.md](./docs/subsystems/command-spec.md) — author
-    guide for adding a verb: YAML field shape, controller
-    conventions, validators, discovery wiring, the controller seed
-    file. `fallthrough: true` flag + worked example (chat) for
-    the subcommand-then-flat-args grammar.
-  - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline
-    (desugar / lex / parse / resolve), AST, scope-walk, predicates,
-    pronoun memory, via augmentation, permission tiers, online
-    provider seam, PathTrie
-  - [mql-subscription.md](./docs/subsystems/mql-subscription.md) —
-    live MQL subscription substrate: per-Interactive registry,
-    `mql-subscribe` / `mql-unsubscribe` / `mql-query` wire shapes,
-    `SubscribableFieldDescriptor` (flat `read` + focused-detail
-    `perDetailRead`), meta-bus dependency index keyed by
-    `(EventClass.KIND, attribute, value)`, `setImmediate`-batched
-    re-resolve scheduler, diff producing `op: replace/update/add/remove`,
-    error envelopes (parse/resolve/permission/closed), class-per-event
-    vocabulary (`FieldChangedEvent`, `PropertyChangedEvent`,
-    `ShadowChangedEvent`, `GenericEvent<P>`) layered onto `EventApi.fire`
-    + class-based `EventApi.on`, `DescribeApi.getDisplayName` reshape
-    (drop `fallback`, add `viewer?`, bake in `'something'`),
-    holder-level `focusDependent` / `locationDependent` dep flags
-    (subscriptions wake on `setFocus` / `setContainer`), `mql-query`
-    one-shot read channel
-  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) —
-    persistent right-column cockpit pane: two client-issued MQL
-    subscriptions (`$focus` + `focusDependent` for the focused-
-    thing body; `here` + `locationDependent` for the breadcrumb
-    root), paint/clear policy with first-delivery auto-paint,
-    unified breadcrumb (root + focus trail + detail-drill segments),
-    cardinality-polymorphic body, door-context exit synthesis,
-    client stuff registry feeding `MmlRenderer.commandFor`'s
-    `look <primaryKeyword>` routing, shared `ui/` cockpit primitives,
-    `find` snapshot-enumeration verb
-  - [prompt.md](./docs/subsystems/prompt.md) — prompt substrate:
-    `PromptApi` (Tier 1 surface `choice` / `confirm` / `text` /
-    `mqlObject` / `mqlMany`), per-Interactive resolver map,
-    async-permitted validator + retry with `prompt-validation-failed`,
-    `PromptCancelledError` (reasons `'cancelled'` / `'host-disconnected'`),
-    body MessageFrame correlated by `promptId`, two-channel inbound
-    (`prompt-response` / `prompt-cancel` bypass the command bus;
-    `prompt cancel` verb rides it), base-prompt rendering substrate
-    (`prompt.format` setting, ProseApi.format Liquid render, every
-    DispatchResponseEnvelope carries a `prompt-refresh` Note,
-    empty-command short-circuit), `CommandApi.applyCardinalityPolicy`
-    (async) + the cardinality / onExcess / onShortage YAML
-    vocabulary — `onExcess: prompt` pushes `PromptApi.mqlObject` /
-    `mqlMany` and awaits inline, degrades to ambiguity error when
-    no Interactive is attached, cancellation propagates as
-    `PromptCancelledError` caught in `CommandGiver._runChain`.
-  - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins,
-    `_mixinName` marker, `Mixins` registry, `MixinApi` predicates,
-    composition order, persistence/command/security integration
-  - [zone.md](./docs/subsystems/zone.md) — Zone-hierarchy roots
-    (`Zone`, `SpatialZone`, `FolderZone`) carved out of
-    `lib/spatial/` into `lib/zone/`. `ZoneApi`'s
-    `resolveZoneForPath` + `isFolderClass` / `isSpatialZoneClass` +
-    `getEnclosingZone` (orchestration helper for the ancestor
-    walk), and the field-inheritance surface
-    (`Zone.lookupField` / `Zone.lookupAncestorField`) — polymorphic
-    step on the class, plumbing on the Api. Cardinal-only-intra-zone
-    exit invariant.
-  - [spatial.md](./docs/subsystems/spatial.md) — locations,
-    concrete spatial zones (Cartesian/Spherical), vessels,
-    coordinates, containment chokepoint, locomotion, direction
-    vocabulary, declarative `coords` / `focus` setters with their
-    zone-registration side effect, `SurfacedMixin` and the
-    auxiliary `restingOn` pointer for on-vs-in placement,
-    `ContainmentApi.placeOn` + the `put` / `give` verbs
-  - [boundary.md](./docs/subsystems/boundary.md) — exits, doors,
-    `Adornable` / `Adornment`, the `Boundary` substrate
-    (`Boundary`, `BoundaryAnchor`, `Conduit` interfaces),
-    `Window`, `ExitableVessel`. Declarative wiring via
-    `ExitableMixin.applyExits` (instruction field; `ExitInstruction`
-    shape) and `Window.attachedHosts` (Pattern A). `addExit` /
-    `addBidirectionalExit` are async (the cardinal-zone check
-    awaits zone resolution). Everything that lives on the seams
-    between containment scopes.
-  - [light.md](./docs/subsystems/light.md) — Light value object,
-    vision modality lives at `VisionModality.signalAt` (the propagation
-    walk relocated from the retired `LightApi`); static helpers
-    `VisionModality.lightAt`, `bandAt`, `perceivedBand`, `canSee`,
-    `shadowsAt`, `viewerVisionProfile`. Outside callers dispatch
-    via `PerceptionApi.signalAt(loc, VisionModality)`. `Light.ts`
-    owns `bandFor` + `LIGHT_BANDS` + `ShadowQuality`. `AmbientLitMixin`,
-    `LightSourceMixin`, the Boundary substrate (`Adornable`,
-    `Adornment`, `Boundary`, `BoundaryAnchor`, `Conduit`
-    interfaces), `Window`, the Door retrofit, per-viewer perception
-  - [augmentation.md](./docs/subsystems/augmentation.md) — augment-
-    confers-mixin substrate (Wave 1): `AugmentMixin.confers()`
-    naming the mixins it activates; `MixinApi.getActiveMixins` /
-    `isActive` walking native composition ∪ augment-conferred;
-    mixin self-declarations (`_augmentGated`, `_grantsModalities`,
-    open shape for `_grantsLanguages` / `_grantsAttributeMasks` /
-    `_grantsVitalFunctions` / `_grantsSlots`); `@RequiresActive`
-    method decorator + `InactiveCapabilityError`; cranial slot on
-    biped/quadruped body plans; `AetherImplant` (Wave 1 implant
-    template); `Avatar.installDefaultLoadout` dispatched from
-    `postRegister` during the clone cascade. Wave 1 ships the
-    framework + the baseline implant; Wave 2+ adds other augments,
-    install/remove procedure, char-gen loadout, failure modes.
-  - [senses.md](./docs/subsystems/senses.md) — multi-sense perception
-    substrate. Authoring half (2026-06 senses build):
-    `SenseChannel` vocabulary (`vision` / `hearing` / `smell` /
-    `touch` / `taste`) + `SENSE_CHANNELS` runtime array declared on
-    `PerceiverMixin`; per-sense `Detail` slot map with legacy + new
-    authoring; `<sense channel="X">` MML wrapper + `<detail sense="X">`
-    attribute; `senseStripAugmenter` on `VisibleMixin`;
-    `Mml.stripBySense` walks the parsed tree to drop out-of-filter
-    regions; `Mml.augment` static (the bare `augmentMarkup` export
-    was retired). Physics half (2026-06 perception build):
-    `Modality` base class + seven singletons (`VisionModality`,
-    `SmellModality`, `SoundModality`, `TouchModality`,
-    `TasteModality`, `VerbalESPModality`, `EmotiveESPModality`);
-    `PerceptionApi` with `modalityByName`, `modalityByOrganKey`,
-    `signalAt`, `perceiveAt`, `sensorium`, `canPerceive`;
-    propagation walks for vision (relocated from LightApi) + smell
-    + sound (linear-amplitude accumulation, logarithmic dB merge);
-    touch contact reads via biome chain;
-    `BodyPlan.sensoryPorts.modality` indexed by `modalityByOrganKey`;
-    sensorium walks BodyPlan organs + active-mixin
-    `_grantsModalities` (AetherMixin contributes ESP modalities
-    when the baseline comm implant is installed); per-frame
-    modality attribution at `Scene.modality(name)` +
-    `SensorMixin.filterMessage` (actor self-frame bypass). The
-    `Species.olfactoryProfile` scalar drives smell thresholds; the
-    four contact-only single-sense verbs (`smell` / `listen` /
-    `feel` / `taste`) bare forms upgrade to true field reads;
-    gestalt `sense` verb keeps room-presentation chrome.
-    Perception topics organized hierarchically — `topic = kind of
-    event` (verb-leafed for verb-generated frames, channel-leafed
-    for ambient): `world.perception.sense.{look,sense,smell,listen,
-    feel,taste,scry}` for direct perception; `world.perception.
-    ambient.{vision,hearing,smell,touch,taste}` for unbidden
-    perceptual input; `world.perception.measurement.{measure-*,
-    analyze-*,weigh}` for instrument readouts;
-    `world.perception.search.{find,locate}` for search results;
-    `world.perception.inventory` for possession listings. Shell
-    queries land at `system.shell.{alias,var,settings,focus,player}`.
-    Channel attribution lives in body MML (orthogonal to topic).
-    `Mobile.autoLookOnArrival` renamed to `autoSenseOnArrival`
-    (forces `sense` not `look`) — the four on-entry call sites
-    (`Avatar.enter`, `Mobile.traverse` / `teleport`, `Goto -l`) all
-    route through it.
-  - [quantities.md](./docs/subsystems/quantities.md) —
-    `Quantity<U>` substrate (Unit catalog, tag-table registry,
-    same-unit math, parse/fromTag/Mml emission),
-    `QuantityMarshaller` for persistence round-trip, the
-    `static fieldMarshallers` and `initProp({ marshaller })`
-    integration patterns. Cross-cutting substrate consumed by
-    Light (lux/lumen/Kelvin), Material (kg/m³, g/mol), and
-    Tangible (kg).
-  - [perception.md](./docs/subsystems/perception.md) — viewer-aware-
-    query pattern (`Stuff & Sensor` always explicit, never inferred
-    from execution context), Shadow seam for per-viewer overrides
-  - [collections.md](./docs/subsystems/collections.md) — canonical
-    surfaces for collection-shaped mixins (Set / keyed Map / ordered
-    list / property bag), mutator/predicate naming axes
-  - [hot-reload.md](./docs/subsystems/hot-reload.md) — `HotReloadApi`
-    state machine, `StuffApi.clone` integration, lifecycle events,
-    controller dispatch (clone-per-execution), `reloadHookManifest`
-  - [race.md](./docs/subsystems/race.md) — Material substrate
-    (`TangibleMixin`, `MaterialApi`), Clade taxonomic scope,
-    `BodyPlan` + `Species` templates, `OrganismMixin`, `SexedMixin`,
-    `SpeciesApi` (kingdom resolution, lifecycle predicates,
-    `isAnimate`), animacy gating at the command layer
-  - [shell-workspace.md](./docs/subsystems/shell-workspace.md) —
-    `WorkspaceMixin` cwd state (content + source trees),
-    `workspace.tree` setting (`content` / `source` / `mirror`),
-    `pickWorkspaceTree` helper, synthetic vars (`$PWD`, `$CPWD`,
-    `$SPWD`, `$HOME`), read/write verb suite (`pwd`/`cd`/`ls`/
-    `cat`/`grep`/`write`/`mkdir`/`rm`/`cp`/`mv`), `SourceTreeApi`
-    sandboxed fs surface
-  - [shell-author.md](./docs/subsystems/shell-author.md) —
-    `AuthorMixin` lifecycle and code-execution verbs (`clone`,
-    `reload`, `destruct`, `eval`, `teleport`), `EvalScript`
-    Stuff-wrapped sandbox, `forceX` parallel-API force-bypass
-    shape, eval singleton lifecycle, future `--save` / `--mixin` /
-    `--extends`
-  - [perceiver.md](./docs/subsystems/perceiver.md) —
-    `PerceiverMixin` (look / scry / locate verbs on the actor),
-    Sensor / Visible / Perceiver responsibility split,
-    `ScryableMixin` capability seam in `lib/perception/`
-  - [slot.md](./docs/subsystems/slot.md) — `Slotted` / `Slottable`
-    substrate, three universe patterns (static / body-plan /
-    dynamic), `accepts` + `fitsSlot`, capacity (incl.
-    `UNBOUNDED_CAPACITY`), `SlotApi` reference, Detail-targeted
-    resolution
-  - [embodiment.md](./docs/subsystems/embodiment.md) —
-    `Wearable` / `Wieldable` body-side affordances, per-body-plan
-    `slotClaims`, multi-slot atomicity via `SlotApi.occupyAll`,
-    wear/remove/wield/unwield verb suite
-  - [posture.md](./docs/subsystems/posture.md) —
-    `Postured` (host) + `Posed` (actor) + the `Postures` constants
-    vocabulary, posture-bearing slot definition, floor adornments
-    + per-Location authoring, sit/lie/stand/kneel verbs,
-    atomicity invariant via `SlotApi.transferOccupancy`
-  - [conveyance.md](./docs/subsystems/conveyance.md) —
-    `Mountable` / `Drivable` / `SeatedDrivableMixin`, the
-    `Mobile.traverse` conveyance ripple (depth-16 cycle guard),
-    mount/dismount verbs, vehicle design space coverage
-  - [locomotion.md](./docs/subsystems/locomotion.md) —
-    `LocomotionMode` singletons (walk / climb / swim / fly / ride /
-    drive / wheeled / sailed / aerial), `Climbable` / `Swimmable` /
-    `Flyable` enablement mixins, `LocomotionApi` (mode resolution,
-    eligibility cascade, engagement lifecycle, passthrough emission
-    walk), per-mode verb controllers, `Exit.media`,
-    `Mobile.engagedMode`, `Drivable.vehicularMode`,
-    `BodyPlan.defaultLocomotionMode` chain
-  - [glob.md](./docs/subsystems/glob.md) — fungible stacks:
-    `GlobbableMixin` (single Stuff carrying integer `quantity`,
-    `globIdentityFields ⊂ persistentFields`), `GlobbableApi`
-    (`split` / `merge` / `canMerge` / `applyQuantity` workhorse;
-    count-aware naming lives on `DescribeApi.formatName`),
-    `ContainmentApi.placeDirect` fresh-placement
-    primitive, merge-on-arrival ripple in `ContainmentApi.move`,
-    MQL quantity surface (`:{N}` / `:{*}`, `MqlResult.quantity`,
-    natural-language `5 X` / `all X` prefix). Notes use the canonical
-    `@saxonberg/types` shapes; `applyQuantity` opts take `{field, query?}`.
-  - [response-envelope.md](./docs/subsystems/response-envelope.md) —
-    `DispatchResponseEnvelope` wire frame alongside `MessageFrame`:
-    16 `Note` kinds, `Status` auto-escalation, `CommandContext`
-    accumulator (`note` / `setStatus` / `getNotes` / `getStatus`),
-    `SensorMixin.onEnvelope` triad parallel to `onMessage`,
-    `Interactive.nextFrameId` per-connection ordering primitive
-    shared by both channels, input-echo MessageFrame at
-    `system.log.command.{info|warn}` with `kind: 'issued'` payload.
-    Controllers emit failure signals via `Scene.send + ctx.note`;
-    `execute()` returns `void`. `CommandResult` / `success` /
-    `summary` / `pass` retired.
-  - [activity.md](./docs/subsystems/activity.md) — engagement
-    framework substrate: `SchedulerApi` (`start` returning a
-    five-outcome `StartResult`, `cancel` family, activity-class
-    registry with HMR-aware lifecycle dispatch), `EngagedMixin` on
-    `Character` (engagement slot map; runtime-only; ApiOnly-gated
-    `_setEngagement`/`_clearEngagement`), the four engagement slots
-    (`body`, `hands`, `attention`, `voice`), the five
-    framework-intrinsic `AbortReason`s (`cancelled`, `replaced`,
-    `preconditions-changed`, `host-destroyed`, `thrown`),
-    `DurativeActivity` vs `SustainedEngagement`, `ScheduledEmission`
-    cadenced side-effects, 100ms duration floor with wire-silent
-    `completed-sync`, host-destruction subscription on
-    `Events.StuffDestructed`, `cancel` / `stop` verb. Wave 1 ships
-    the substrate inert; v1 controllers stay synchronous.
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate:
-    `Biome extends Idea` (leaf templates with explicit
-    `_extendsBiomePath` parent refs); root universe biome at
-    `/lib/biome/universe`. Admin/ownership tree under `/lib/biome/`
-    uses `FolderZone` templates for write-access scoping (biome
-    team, sub-team folders). `AtmosphericMixin` composes onto
-    `Location` AND `Vessel` (not pure containers). Outward-walking
-    chain resolver (`BiomeApi.resolveXFor`): detail → detail-prefix
-    → room → biome leaf → biome ancestry (via `_extendsBiomePath`
-    chain) → spatial zone → universe. Atmosphere medium as a string
-    tag with a 3-entry density const map (air / water / vacuum).
-    `SkyExposedMixin` + `SkyExposedBiome` for outdoor leaves.
-    Derived geometry: `CartesianZone.cellSize` graduated to linear
-    meters (default 3.0); `Location.getVolume` / `getCeilingHeight`
-    are abstract, overridden per topology (cube-cell vs sphere +
-    inscribed cube). Six instruments (Thermometer / Barometer /
-    Hygrometer / GravityMeter / GasAnalyzer / Altimeter) + `measure
-    <field>` subcommand dispatch + `analyze atmosphere` provenance
-    verb. Slim demonstrative roster under `/lib/biome/` (parallel
-    to Material / Species) — universe + outdoor/indoor tier
-    baselines + a couple of leaves + the cafeteria-atrium
-    scenario-C showcase. Content teams flesh out from there.
-  - [time.md](./docs/subsystems/time.md) — game-time substrate (three
-    layers under `lib/time/` + `api/worldclock.ts` / `api/celestial.ts`).
-    `WorldClockApi` own-thing axis (anchor `getNow`, scale/pause/resume,
-    `WorldClockState` Document singleton via `find({})`, `boot`/
-    `shutdown` lifecycle owned by the Api + `SystemRoot`-gated, 5-min
-    crash backstop), the single arm-next-deadline heartbeat driving
-    `after`/`at`/`every`/`onDate`/`cron` (schedules never persisted —
-    persist deadlines, re-establish in `postRegister`), `SchedulerApi`
-    riding game-time (D5, durations in game-ms). `CelestialApi` real
-    solar/lunar geometry (folded-in static methods, first-order lunar
-    model) + zone-inherited `CelestialProfile` / `EARTH_LIKE` (360-day
-    year, no light wiring — D6). `DefaultCalendar` (12×30, named months/
-    weekdays, weekday drift). Pedagogical surface: `Sundial` / `Sextant`,
-    `analyze time` / `sky`, `measure shadow` / `altitude <sun|moon>`.
-    World config is module constants, NOT settings (R8).
+- Subsystem references in `docs/subsystems/`. Each doc is the source
+  of truth for its area — read it before editing.
+  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant
+  - [persistence.md](./docs/subsystems/persistence.md) — `Document` base vs Templates→Stuff, PersistenceManager, around-save/delete hooks, collections
+  - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
+  - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
+  - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
+  - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, MarkupAugmenter, Vocal/Aether/Soul capability split
+  - [message-rendering.md](./docs/subsystems/message-rendering.md) — end-to-end rendering: server MML extensions + client parseMml/MmlRenderer + theme/overlay cascade
+  - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
+  - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin on every Character, Emote Document + EmoteGrammar, SoulCatalogue + SoulApi, three dispatch paths
+  - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls (managed/MQL/contacts), GroupRef typed strings
+  - [chat.md](./docs/subsystems/chat.md) — Channel Document with groupRef, three kinds, ChannelCatalogue, chat.yaml subcommand fallthrough
+  - [contacts.md](./docs/subsystems/contacts.md) — ContactsMixin on Avatar, per-Avatar named lists, durable identifiers only, owner-only privacy
+  - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, schema-on-mixin, lookup chain, `settings`/`var`
+  - [shell-alias.md](./docs/subsystems/shell-alias.md) — AliasMixin per-character verb aliases, lookup chain, ShellApi.expandAliases, `alias` verb
+  - [prose.md](./docs/subsystems/prose.md) — ProseApi Liquid-based templating, Mml-aware output, default filters
+  - [call-security.md](./docs/subsystems/call-security.md) — proxy interception, decorators, policies, shadows, FrameKind, FromController narrow-entry
+  - [access.md](./docs/subsystems/access.md) — AccessApi thin facade over AccessRegistry; four predicates, Zone.ownerGroup/accessGroups, narrow-entry pattern
+  - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, access control, masks
+  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, per-giver recency stack, dispatch chain, validators, phase-effects
+  - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken classes, `format()` round-trip, `msh` shell, parser pluggability
+  - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for adding a verb: YAML shape, controller conventions, validators, discovery wiring
+  - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, AST, scope-walk, predicates, pronoun memory, online provider seam, PathTrie
+  - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscription substrate: per-Interactive registry, wire shapes, dep index, batched re-resolve, diffing
+  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column cockpit pane: two MQL subscriptions, unified breadcrumb, cardinality-polymorphic body
+  - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), per-Interactive resolver map, cardinality policy
+  - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName` marker, Mixins registry, MixinApi predicates, composition order
+  - [zone.md](./docs/subsystems/zone.md) — Zone hierarchy roots (Zone/SpatialZone/FolderZone) in lib/zone/, ZoneApi.resolveZoneForPath, field inheritance
+  - [spatial.md](./docs/subsystems/spatial.md) — locations, concrete spatial zones, vessels, coordinates, containment chokepoint, locomotion
+  - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment, Boundary substrate, Window, ExitableVessel
+  - [light.md](./docs/subsystems/light.md) — Light value object, VisionModality.signalAt, AmbientLitMixin, LightSourceMixin, per-viewer perception
+  - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive
+  - [senses.md](./docs/subsystems/senses.md) — multi-sense perception substrate: SenseChannel vocabulary, Modality singletons, PerceptionApi
+  - [quantities.md](./docs/subsystems/quantities.md) — Quantity<U> substrate (Unit catalog, parse/Mml emission), QuantityMarshaller, fieldMarshallers integration
+  - [perception.md](./docs/subsystems/perception.md) — viewer-aware-query pattern (`Stuff & Sensor` always explicit), Shadow seam for per-viewer overrides
+  - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins (Set/keyed Map/ordered list/property bag), naming axes
+  - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, StuffApi.clone integration, lifecycle events, controller dispatch
+  - [race.md](./docs/subsystems/race.md) — Material substrate, Clade taxonomic scope, BodyPlan + Species templates, OrganismMixin, SexedMixin, animacy gating
+  - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, workspace.tree setting, synthetic vars, read/write verb suite, SourceTreeApi
+  - [shell-author.md](./docs/subsystems/shell-author.md) — AuthorMixin lifecycle and code-execution verbs (clone/reload/destruct/eval/teleport), EvalScript sandbox, forceX shape
+  - [perceiver.md](./docs/subsystems/perceiver.md) — PerceiverMixin (look/scry/locate verbs on the actor), Sensor/Visible/Perceiver split, ScryableMixin
+  - [slot.md](./docs/subsystems/slot.md) — Slotted/Slottable substrate, three universe patterns, accepts + fitsSlot, capacity, SlotApi
+  - [embodiment.md](./docs/subsystems/embodiment.md) — Wearable/Wieldable body-side affordances, per-body-plan slotClaims, multi-slot atomicity
+  - [posture.md](./docs/subsystems/posture.md) — Postured (host) + Posed (actor) + Postures vocabulary, posture-bearing slot, sit/lie/stand/kneel
+  - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable/SeatedDrivableMixin, Mobile.traverse conveyance ripple, mount/dismount, vehicle design space
+  - [locomotion.md](./docs/subsystems/locomotion.md) — LocomotionMode singletons, Climbable/Swimmable/Flyable enablement, LocomotionApi, per-mode verb controllers
+  - [glob.md](./docs/subsystems/glob.md) — fungible stacks: GlobbableMixin (quantity), GlobbableApi (split/merge/applyQuantity), MQL quantity surface
+  - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope wire frame, 16 Note kinds, Status auto-escalation, CommandContext accumulator
+  - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
+  - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
 
 ## Development Commands
 
