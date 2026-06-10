@@ -44,7 +44,7 @@ Sibling docs cover related ground without overlap:
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
 | `CartesianCoordinatesMixin` | mixin | `[x,y,z]` data carrier. |
 | `SphericalCoordinatesMixin` | mixin | `[rho,theta,phi] + radius` data carrier. |
-| `SealableMixin` | mixin | Binary `isOpen` state. Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Stays in `lib/spatial/` because it's generic. |
+| `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Stays in `lib/spatial/` because it's generic. |
 | `SingletonMixin` | mixin | Class-level uniqueness: composing classes refuse a second `clone()` for the same `templatePath`. Composed by `CartesianZone` and `SphericalZone`. |
 | `ZoneApi` | static API | Resolves `templatePath → Zone` via `StuffApi.singleton`. Caching is delegated; ZoneApi just owns the ancestor walk. |
 | `StuffApi.singleton(path)` | static API | Cache-or-clone tool for any class. Pairs with `SingletonMixin` for enforced uniqueness. |
@@ -69,8 +69,8 @@ Stuff (one of seven top-level branches — see architecture.md)
   │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible; `focus` + `setFocus`)
   ├── Thing                         (ContainableMixin(Stuff))
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
-  │     │     ├── Window            (Sealable + LightConduit + LineOfSight; `attachedHosts` Pattern A)
-  │     │     └── Door              (Sealable + Light/Sight/Movement Conduits)  ← retrofit
+  │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
+  │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
   ├── Vessel                        (Adornable + Container + Containable, was Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
@@ -199,7 +199,7 @@ new code that touches a detached input has to land somewhere on it.
 | MQL scope-walk helper | `api/mql/scope-walk.ts:116, 147` | Returns `[]` when the giver has no environment. |
 | MQL predicates | `api/mql/predicates.ts:61, 65` | `inLocation` / `peers` return `false`. |
 | Command scoping | `lib/command/CommandGiver.ts:367` | A detached giver's environment-bucket is empty; recency stack reflects only `self` + `inventory`. |
-| Perception (canSee) | `api/light.ts:164` | `LightApi.canSee` returns `false` for a detached target. The shadow seam still fires for per-viewer overrides. |
+| Perception (canSee) | `lib/perception/modalities/VisionModality.ts:148` | `VisionModality.canSee` returns `false` for a detached target. The shadow seam still fires for per-viewer overrides. |
 | Mudlog routing | `api/message.ts:237, 411` | `MudlogApi.peers` walks no further. `messageContainer` warns once and returns; nothing is delivered. |
 | Boundary (ExitableVessel) | `lib/boundary/ExitableVessel.ts:121, 161, 185` | `getExit` returns `undefined` for a detached vessel. The vessel is still reachable through its interior. |
 | Light source notification | `lib/perception/LightSource.ts:156-168` | A detached LightSource emits no notifications. |
@@ -899,13 +899,13 @@ self-rearranging chambers) can produce many instances per template.
 
 ### Destroy choreography
 
-`StuffApi.destruct(stuff)` runs `stuff.prepareDestroy()` and then
-`stuff.destroy()`. Spatial-side `prepareDestroy` implementations:
+`StuffApi.destruct(stuff)` runs `stuff.onDestruct()` and then
+`stuff.destroy()`. Spatial-side `onDestruct` implementations:
 
-- **`Location.prepareDestroy()`** detaches from the owning Zone
+- **`Location.onDestruct()`** detaches from the owning Zone
   (`zone.removeLocation(this)`), clearing coordinate-keyed
   indexes (CartesianZone grid, SphericalZone focusIndex).
-  Concrete subclasses inherit. `ExitableMixin.prepareDestroy`
+  Concrete subclasses inherit. `ExitableMixin.onDestruct`
   (lib/boundary/) chains here after handling the exit-side
   teardown — see [boundary.md § Doors](./boundary.md#doors) and
   [boundary.md § Exits](./boundary.md#exits).

@@ -194,7 +194,7 @@ content owns the campus-specific narrative.
 
 ```typescript
 const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(AetherMixin(ShelledCharacter)),
+  HasInteractiveMixin(AetherMixin(ContactsMixin(ShelledCharacter))),
 );
 ```
 
@@ -202,7 +202,7 @@ Avatars compose `AetherMixin` because players have implants (per the
 char-gen / augmentation slates' diegetic story). NPCs opt in
 per-class when content requires it.
 
-`AetherMixin.tell(target, text)` fires a scene at `world.speech.tell`
+`AetherMixin.tell(target, text)` fires a scene at `world.speech.dm`
 with **chat-form** bodies:
 
 ```
@@ -231,8 +231,8 @@ permanent.
 ### Verb-controller shim pattern
 
 Controllers stay thin shims that narrow the speaker to the capability
-mixin and delegate. `SayController` for `say`, `TellController` for
-`tell`. Each:
+mixin and delegate. `SayController` for `say`, `DmController` for
+`dm` (alias `tell`). Each:
 
 1. Checks `MixinApi.isVocal(speaker)` / `MixinApi.isAether(speaker)` —
    on miss emits a polite refusal scene + a `mixin-missing` note.
@@ -303,8 +303,8 @@ templates. `pickTemplate(topic)` does longest-prefix dispatch:
 |---|---|---|
 | `world.chat.*` | `chatTemplate` | gutter `<chan>` chip; content column with `<player>`/`<name>` + `:` + `<msg>` and hanging indent |
 | `world.speech.say` | `sayTemplate` | inline: `<name> says, "<speech>"` |
-| `world.speech.tell` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say` |
-| `world.emote.*` | `emoteTemplate` | inline italic, action-shaped |
+| `world.speech.dm` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say`. The client also keeps a legacy `world.speech.tell` registration bound to the same template, but no server frame emits it. |
+| `world.expression.*` | `emoteTemplate` | inline italic, action-shaped |
 | anything else (including `system.*`) | `defaultTemplate` | body MML inline, theme-default treatment |
 
 The `Terminal` component picks the template per frame and renders

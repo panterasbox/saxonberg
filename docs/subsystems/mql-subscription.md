@@ -18,14 +18,15 @@ See:
 - `docs/subsystems/mql.md` — the underlying query language.
 - `docs/subsystems/response-envelope.md` — the wire envelope framing
   this substrate plugs into.
-- `docs/requirements/mql-subscription-substrate-requirements.md` —
-  the closed-scope requirements that drove this implementation.
+- `docs/slates/mql-subscription-slate.md` — the closed-scope slate
+  that drove this implementation.
 
 ## File layout
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi`, descriptor types, projection helpers, `handleQuery` |
+| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi` — a thin facade over `MqlSubscriptionRegistry`; descriptor types, projection helpers, `handleQuery`, the stateless `fireFieldChange` / `projectFields` |
+| `packages/server/src/mud/obj/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`) — owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Every method gates to `FromModule(MqlSubscriptionApi)`. |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
@@ -405,12 +406,16 @@ multiple-field changes, marshaller boundary).
 
 ## Meta-bus dependency index + scheduler
 
-The substrate maintains a 3-level Map keyed by `(EventClass.KIND,
-attribute-name, attribute-value)`:
+`MqlSubscriptionRegistry` maintains a 3-level Map keyed by
+`(EventClass.KIND, attribute-name, attribute-value)`:
 
 ```
-#index: Map<string, Map<string, Map<unknown, Set<SubscriptionState>>>>
+private index: Map<string, Map<string, Map<unknown, Set<SubscriptionState>>>>
 ```
+
+(It's `private`, not `#`-private: the Registry is a Stuff host whose
+instance methods dispatch through the call-security proxy, where
+`#`-private slots are unreachable.)
 
 Field-event dependencies come from `descriptor.dependsOnFields` (or
 its `[descriptor.name]` default). The substrate translates each
@@ -426,16 +431,19 @@ One `EventApi.on(KIND, …)` listener is installed per distinct
 the set, and calls `markDirty(sub)`.
 
 ```ts
-#dirty = new Set<SubscriptionState>();
-#scheduled = false;
+private dirty = new Set<SubscriptionState>();
+private scheduled = false;
 markDirty(sub): void {
-  this.#dirty.add(sub);
-  if (!this.#scheduled) {
-    this.#scheduled = true;
-    setImmediate(() => this.#drainDirty());
+  this.dirty.add(sub);
+  if (!this.scheduled) {
+    this.scheduled = true;
+    setImmediate(() => this.drainDirty());
   }
 }
 ```
+
+`dirty`, `scheduled`, `markDirty`, and `drainDirty` all live on
+`MqlSubscriptionRegistry` (`private`, per the proxy rule above).
 
 `setImmediate` batches: N events for the same target in one tick
 produce ONE re-resolve per affected subscription. The drain runs the
@@ -471,10 +479,12 @@ change lists emit no envelope (silent no-op).
 
 1. Resolves the `Interactive` from the socket id.
 2. Calls `MqlSubscriptionApi.cancelAllForInteractive(interactive)`
-   **before** `ConnectionManager.removeInteractive(socketId)`. Each
-   subscription's dependency-index entries deregister, listener
-   refcounts decrement (and `unsubscribe()` when zero), and the
-   registry slot drops.
+   **before** `ConnectionManager.removeInteractive(socketId)`. The Api
+   delegates to `MqlSubscriptionRegistry.cancelAllForInteractive`,
+   which clears the Interactive's entry in the Registry's
+   per-Interactive `registry: Map<Interactive, …>` slot. Each
+   subscription's dependency-index entries deregister and listener
+   refcounts decrement (and `unsubscribe()` when zero).
 3. Then `ConnectionManager.removeInteractive` runs.
 
 The ordering keeps the Interactive live for any final substrate-side

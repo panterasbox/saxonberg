@@ -285,7 +285,7 @@ content slate that pulls on it.
   it. Stealth-aware planning (cost weighted by `noiseLevel`)
   composes naturally.
 - **Auditory detection.** Mover emits a signal; observer compares
-  against a threshold. Same shape as `LightApi.canSee` — viewer-
+  against a threshold. Same shape as `VisionModality.canSee` — viewer-
   aware, modulated by distance / obstruction / acuity. Mode
   contributes the emission level via `noiseLevel`; observer's
   species hearing profile sets the threshold. The channel

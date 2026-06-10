@@ -105,6 +105,8 @@ the underlying API supplies a last-stitch fallback):
 | `item`, `location`, `object`, `article` | lenient — any Stuff |
 | `direction` | non-empty string |
 | `cap` | any non-null value (coerced to string) |
+| `quantity` | strict — value with a `toMml()` method (`Quantity`); emits `<quantity>` markup, else empty |
+| `quantity_canonical` | strict — value with a `formatMml()` method (`Quantity`); emits canonical `<quantity>` markup, else empty |
 
 `name` is strict because there's no honest fallback for "this thing's
 proper name" — wrapping an `'a sword'`-style fallback in `<name>`

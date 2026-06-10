@@ -47,7 +47,6 @@ packages/server/src/mud/api/
     resolver.ts              ← AST + context → MqlMatch[]
     scope-walk.ts            ← named-scope candidate pools, scoring
     predicates.ts            ← bareword filter registry (living, online, …)
-    permissions.ts           ← tier checks (public/authoring/admin)
     pronoun-memory.ts        ← per-Focused-giver stash for it/him/her/them/$$
     online-provider.ts       ← injection seam for online holders
     online-wire.ts           ← optional ConnectionApi wire-up
@@ -76,6 +75,10 @@ class MqlApi {
 interface MqlContext {
   commandGiver: Stuff & CommandGiver;
   scope: string;                       // an MQL fragment, post-expansion
+  permission?: {                       // AccessApi-derived snapshot,
+    isAuthor: boolean;                 // stamped by the dispatcher
+    coreMemberIds?: ReadonlySet<string>;
+  };
 }
 
 interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; }
@@ -314,10 +317,11 @@ hints (from desugar). In practice both never co-occur — `looksFormal`
 rejects the desugar pass entirely when the input contains `{`, so
 the formal path always sees the hint slot empty.
 
-Each operator/seed declares its permission tier in `permissions.ts`
-or `predicates.ts`; `checkTier` throws `MqlPermissionError` when the
-giver lacks the required tier. The dispatcher's outer try/catch
-converts the throw into a command-level failure.
+Each operator/seed carries a permission tier (predicates declare
+theirs inline in `predicates.ts`); the resolver's
+`gateAuthor(operator, tier, ctx)` throws `MqlPermissionError` when
+`ctx.permission` is present with `isAuthor` false. The dispatcher's
+outer try/catch converts the throw into a command-level failure.
 
 #### Seeds
 
@@ -649,17 +653,24 @@ The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
 CLAUDE.md § Member Privacy.)
 
-## Permission tiers (`mql/permissions.ts`)
+## Permission tiers
 
 Three tiers: `public`, `authoring`, `admin`. Operators tag their
-tier; `checkTier(tier, operator, giver)` throws `MqlPermissionError`
-when the giver doesn't qualify.
+tier; the resolver gates them with `gateAuthor(operator, tier, ctx)`,
+which throws `MqlPermissionError` when `ctx.permission` is present and
+its `isAuthor` is false. (The standalone `mql/permissions.ts` module —
+along with `checkTier(tier, operator, giver)` and the
+`_MqlAdminFlag.granter` stub — was retired by the access build; the
+`MqlPermissionError` type now lives in `mql/types.ts`.)
 
-v1 has a stub: `_MqlAdminFlag.granter` defaults to "no admin"; tests
-that exercise admin-tier seeds (`online`, `world`, `:online`,
-`:admin`) replace the granter for the duration of the test and reset
-after. The real zone-aware authoring check arrives later; the contract
-is in place so the call sites don't churn.
+`ctx.permission` is an `AccessApi`-derived snapshot stamped on the
+`MqlContext` by the command dispatcher before sync resolve runs.
+`isAuthor` gates the pre-resolution operators (path seeds, `:online`,
+`mixin.X` / `class.X` / `template.X` / `prop.X` filters);
+`coreMemberIds` feeds the per-target `:admin(target)` predicate. When
+the snapshot is **absent** the gate permits — server-internal callers
+that build an `MqlContext` directly (without the dispatcher) continue
+to work unchanged.
 
 Tier defaults:
 
@@ -767,9 +778,12 @@ Common extension points and where they live:
 - **Add a synthetic var (`$X`).** Declare `static syntheticVars:
   SyntheticVarEntry[]` on the mixin that owns the underlying state.
   See [shell-environment.md § Variable interpolation](./shell-environment.md#variable-interpolation).
-- **Add a permission tier check.** Replace `_MqlAdminFlag.granter`
-  for real zone-aware logic; the call sites already gate on
-  `checkTier`.
+- **Add a permission tier check.** Tag the operator's tier and route
+  it through `gateAuthor(operator, tier, ctx)` in the resolver; the
+  gate reads the `AccessApi`-derived `ctx.permission.isAuthor` snapshot
+  the dispatcher stamps. (The real zone-aware authoring check already
+  landed — it's the `AccessApi` source of that snapshot, not a
+  `granter` stub.)
 
 ## Limitations / Non-goals
 

@@ -149,7 +149,7 @@ threads through the security gate.
 singleton; the `forceDestruct` escape hatch is the only way to
 take it down.
 
-## The four providers
+## The three providers
 
 ### Managed (`source: 'managed'`)
 

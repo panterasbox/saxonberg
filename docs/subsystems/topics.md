@@ -24,9 +24,11 @@ help system will tap the same catalogue.
 
 ## No code-side constants mirror
 
-`MessageApi`'s internal nested `TOPICS` const stays exactly where it
-is — it's autocomplete-only for server call sites. Three deliberate
-non-things:
+There is no `TOPICS` const in code. The earlier nested `TOPICS` tree
+on `MessageApi` has been retired — topics are dotted-path string
+literals at call sites (e.g. `.topic('world.speech.say')`), with
+`Topic` Ideas + `TopicCatalogue` as the runtime catalogue. Three
+deliberate non-things:
 
 - No `Topics` enum exported from `@saxonberg/types`.
 - No mirror file under `lib/topics/` (and no such subsystem dir —
@@ -141,7 +143,7 @@ Both are singleton Ideas in `obj/` that own a per-X data shape:
 |---|---|---|
 | Content shape | Transient per-event policy closures | Persistent per-topic prose (label, description, family) |
 | Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/lib/messaging/Topic/` |
-| Code-side vocabulary | `Events` enum is the vocabulary | `MessageApi.TOPICS` is autocomplete-only; descriptors are content |
+| Code-side vocabulary | `Events` enum is the vocabulary | no code-side const — topics are string literals at call sites; descriptors are content |
 | Auto-resolve behavior | `EventApi.on/emit` auto-registers unknown events with the default `emittableBy()` policy | `getDescriptor` auto-falls-back via family inheritance or derived default |
 | Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache reads `Topic` template docs from mongo at boot |
 

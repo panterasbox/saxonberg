@@ -157,12 +157,12 @@ Untagged prose is always preserved.
 
 A new entry on `VisibleMixin.markupAugmenters`. Reads the per-call
 `opts.filter` (a `readonly SenseChannel[]`) and the viewer's
-sensorium (from `SpeciesApi.deriveSensorium(viewer)`); strips
+sensorium (from `PerceptionApi.sensorium(viewer)`); strips
 regions whose channel isn't in `filter ∩ sensorium`.
 
 ```ts
 function senseStripAugmenter(text, host, viewer, opts?) {
-  const sensorium = SpeciesApi.deriveSensorium(viewer);
+  const sensorium = PerceptionApi.sensorium(viewer);
   const filter = opts?.filter ?? sensorium;          // gestalt fallback
   const allowed = new Set(filter.filter((ch) => sensorium.includes(ch)));
   return Mml.stripBySense(text, allowed);
@@ -189,7 +189,7 @@ params). Verbs that care about the filter pass it explicitly:
 ```ts
 location.getMarkupLong(viewer, { filter: ['vision'] });             // look
 location.getMarkupLong(viewer, { filter: ['smell'] });              // smell
-location.getMarkupLong(viewer, { filter: SpeciesApi.deriveSensorium(viewer) }); // sense
+location.getMarkupLong(viewer, { filter: PerceptionApi.sensorium(viewer) }); // sense
 location.getMarkupLong(viewer);                                     // subscription — gestalt default
 ```
 
@@ -198,20 +198,20 @@ stuff.getMarkupLong(viewer)` passes no opts and naturally gets the
 viewer's full sensorium — the right "what does this viewer perceive
 right now?" projection for the cockpit.
 
-### `BodyPlan.getModalities()` + `SpeciesApi.deriveSensorium(viewer)`
+### `BodyPlan.getModalities()` + `PerceptionApi.sensorium(viewer)`
 
 `BodyPlan.getModalities(): SenseChannel[]` returns the deduped
 channel list from `sensoryPorts`. A sessile body plan with no ports
 returns `[]`.
 
-`SpeciesApi.deriveSensorium(viewer)` is the canonical viewer →
+`PerceptionApi.sensorium(viewer)` is the canonical viewer →
 sensorium walker. Walks viewer → Organism → Species → BodyPlan →
 `getModalities()`; returns `[]` when any step is null (a
 non-Organism viewer, an Organism without a Species, etc.). Shared
 by the augmenter AND the four `requires*` validators.
 
 `SenseChannel` is declared in `lib/description/Perceiver.ts` (the
-actor-side perception surface). `SpeciesApi.deriveSensorium` lives
+actor-side perception surface). `PerceptionApi.sensorium` lives
 on the API class so consumers thread through the api/ layer rather
 than importing a bare function from lib/.
 
@@ -260,7 +260,8 @@ the *Perception topic vocabulary* section below for the full
 organizing principle.
 
 Verb-level validators in `lib/command/validators/requires*.ts` gate
-the giver-side sensorium check via `deriveSensorium(giver).includes(channel)`.
+the giver-side sensorium check via
+`PerceptionApi.canPerceive(giver, PerceptionApi.modalityByName(channel))`.
 Same pattern as `requiresAnimate`. Polite refusal strings: `"You
 can't hear."` / `"You have no sense of smell."` / `"You can't feel
 anything."` / `"You have no sense of taste."` Failure routes through
@@ -656,7 +657,7 @@ seeds/lib/perception/modalities/   Seven seed YAMLs
   sensing" unification is deferred. Existing comms (`VocalMixin.say`,
   `AetherMixin.tell`) ship unchanged.
 - **Smell trails / temporal persistence.** Slate Wave 3.
-- **Light / vision convergence onto the new substrate.** `LightApi`,
+- **Light / vision convergence onto the new substrate.** `VisionModality`,
   `canSee`, `visionProfile` ship unchanged. `LookController` doesn't
   gain a `requiresVision` validator. The dark-room test fixture
   uses a sightless-by-construction sensorium; real-world
@@ -721,9 +722,10 @@ three MR-iteration rounds before the final shape; key shifts:
   Round 1 followed the existing pattern (bare function export
   from `api/mml.ts`); MR feedback folded it into the `Mml` class
   as a static method to thread through the API class handle.
-- **`SpeciesApi.deriveSensorium` (was bare function on BodyPlan).**
-  Same principle as augment — moved off the lib module onto an
-  API class.
+- **`PerceptionApi.sensorium` (was a bare function on BodyPlan, then
+  briefly `SpeciesApi.deriveSensorium`).** Same principle as augment —
+  moved off the lib module onto an API class; the access/perception
+  build settled it on `PerceptionApi`.
 - **Topic vocabulary evolution.** Three rounds:
   - Round 1: per-verb topics (`world.perception.{look, smell,
     listen, feel, taste, sense}`).

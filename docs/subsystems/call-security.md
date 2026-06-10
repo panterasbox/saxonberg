@@ -58,11 +58,11 @@ calling into it from the runtime — it's an entry point. The framework
 has two root-frame creators:
 
 - **Backend** plants the root frame for inbound network/auth events
-  via `Backend.handleClientMessage`, `handleAuthenticationSuccess`,
-  `handleWebSocketConnect`, and the bootstrap script. Each calls into
-  `Application` through `runRoot(Application, methodName, fn)`, so the
-  root frame's `target` is the Application method and its `caller` is
-  `null`.
+  via `Backend.processUserMessage`, `handleUserConnect`,
+  `handleUserDisconnect`, and the bootstrap script. Each calls into
+  `Application` through `runRoot(Backend, methodName, fn)`, so the
+  root frame's `target` is `Backend` / the named method and its
+  `caller` is `null`.
 - **`ScheduleApi`** plants its own root frames when a scheduled
   callback fires. The original synchronous chain is gone, so the
   callback runs under a fresh Root frame; the originating
@@ -77,7 +77,7 @@ Backend frame never has game-logic work nested under it. Stack shape
 under Backend's runRoot:
 
 ```
-[bottom] Application.handleClientMessage     ← root frame, caller = null
+[bottom] Backend.processUserMessage          ← root frame, caller = null
          …game logic, mixin methods, command dispatch…
          Application.someMethod calls backend.sendMessageToSocket
 [top]    Backend.sendMessageToSocket          ← appears as a leaf
@@ -249,11 +249,16 @@ Two passthrough escape hatches:
   the interceptor pipeline entirely:
   - `then` (would break Promise resolution)
   - `constructor` (mixin introspection must see the raw class)
-  - `stuffId`, `zone`, `templatePath` (instance fields the framework
-    itself reads constantly; mediation would add noise)
+  - `stuffId` (instance field the framework itself reads constantly;
+    mediation would add noise)
   - `host`, `interceptedMethods` (shadow-side framework getters;
     mediation would dispatch them through the shadow chain — wrong)
   - `RAW_TARGET`
+
+  Note: `zone` and `templatePath` are **not** passthrough keys —
+  the ref-shapes lockdown made them hard-private (`#zone` /
+  `#templatePath`). Access goes through `getZone()` /
+  `getTemplatePath()`, not bracket reads off the proxy.
 
 ### Wrapper cache
 
@@ -444,6 +449,9 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
   /\/mud\/api\//,                                // every Api class
   /\/backend\//,                                 // Backend's runRoot
   /\/mud\/lib\/command\/CommandGiver\.(ts|js)$/, // CommandGiver tags Command frames
+  // Singleton Stuff registries that plant root frames for their
+  // ApiOnly-gated downstream calls (timer/event-listener dispatch).
+  /\/mud\/obj\/(EventSubscriptions|MqlSubscriptionRegistry|SchedulerRegistry|WorldClockRegistry)\.(ts|js)$/,
   /\.test\.(ts|js)$/,                            // test seam
 ];
 ```

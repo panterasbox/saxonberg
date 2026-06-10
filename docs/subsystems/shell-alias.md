@@ -320,10 +320,11 @@ as for a name that was never declared).
 
 ## Composition order
 
-`ShelledCharacter` is `AliasMixin(EnvironmentMixin(FocusedMixin(Character)))`.
-AliasMixin sits outermost — it has no method dependency on
-Environment or Focused state, but composing it last places it
-adjacent to the other shell-tier mixins in the prototype chain so
+`ShelledCharacter` is
+`AuthorMixin(WorkspaceMixin(AliasMixin(EnvironmentMixin(FocusedMixin(Character)))))`.
+AliasMixin sits mid-chain — WorkspaceMixin and AuthorMixin wrap it. It
+has no method dependency on Environment or Focused state, but composing
+it adjacent to the other shell-tier mixins in the prototype chain means
 `MixinApi.queryMixins` returns the suite together.
 
 ## Future evolution

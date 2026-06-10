@@ -525,7 +525,7 @@ left for future work:
 ## Cross-References
 
 - [lifecycle.md](./lifecycle.md) — full create → register → hydrate →
-  postRegister → destroy lifecycle, construction sentinel, prepareDestroy
+  postRegister → destroy lifecycle, construction sentinel, onDestruct
   hook
 - [persistence.md](./persistence.md) — `Document`, around-save/delete
   hooks (the mechanism `DomainHook` rides on)

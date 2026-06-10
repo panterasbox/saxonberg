@@ -257,6 +257,30 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // Must be live before any container can destruct — bootstrap
   // guarantees that.
   { templatePath: '/domain/void' },
+  // Singleton catalogues/registries. Each lazy-loads its own
+  // descriptors from a Document collection at postRegister, so only
+  // the singleton itself is pre-cloned at boot — not its leaves.
+  { templatePath: '/obj/TopicCatalogue' },
+  { templatePath: '/obj/SoulCatalogue' },
+  { templatePath: '/obj/GroupRegistry' },
+  { templatePath: '/obj/ChannelCatalogue' },
+  { templatePath: '/obj/AccessRegistry', dependsOn: ['/obj/GroupRegistry'] },
+  {
+    templatePath: '/obj/EventSubscriptions',
+    dependsOn: ['/obj/EventRegistry'],
+  },
+  {
+    templatePath: '/obj/WorldClockRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
+  {
+    templatePath: '/obj/SchedulerRegistry',
+    dependsOn: ['/obj/WorldClockRegistry', '/obj/EventSubscriptions'],
+  },
+  {
+    templatePath: '/obj/MqlSubscriptionRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
 ];
 ```
 

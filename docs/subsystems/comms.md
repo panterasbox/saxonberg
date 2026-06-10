@@ -60,8 +60,8 @@ plus the two Aether pronoun/broadcast verbs that ride alongside.
 | `whisper` | `cmd/whisper.yaml` | `WhisperController` | acoustic | `VocalMixin.whisper` |
 | `shout` | `cmd/shout.yaml` | `ShoutController` | acoustic | `VocalMixin.shout` |
 | `dm` / `tell` | `cmd/dm.yaml` | `DmController` | implant | `AetherMixin.tell` |
-| `reply` | `cmd/reply.yaml` | — | implant | cohort replay of `tell` |
-| `broadcast` | `cmd/broadcast.yaml` | — | implant | `AetherMixin` |
+| `reply` | `cmd/reply.yaml` | `ReplyController` | implant | cohort replay of `tell` |
+| `broadcast` | `cmd/broadcast.yaml` | `BroadcastController` | implant | `AetherMixin` |
 
 The acoustic verbs are contributed via
 `VocalMixin.commandContributions.self`
