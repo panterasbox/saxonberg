@@ -1,8 +1,6 @@
 verbs: [sense]
 controller: SenseController
 description: "Take in your surroundings across every sense you possess"
-validators:
-  - /lib/command/validators/requiresLocation
 args:
   - name: target
     type: object

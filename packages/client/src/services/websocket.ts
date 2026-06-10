@@ -119,6 +119,37 @@ class WebSocketClient {
    */
   private mqlSubscriptions: Map<string, MqlSubscriptionEntry> = new Map();
 
+  constructor() {
+    this.registerBuiltinHandlers();
+  }
+
+  /**
+   * Wire the engine's own topic handlers through the same `onTopic`
+   * registry external callers use — char-gen frames are not special-
+   * cased in the dispatch switch. `system.connection.established`
+   * stays in the switch: it's a one-off connection-lifecycle frame,
+   * not part of this growing per-feature list.
+   *
+   * Char-gen frames carry structured payloads through the Login's
+   * Sensor (no new envelope type). The roster drives the character-
+   * select screen; the per-step state drives the char-gen stage. Both
+   * flip the connection phase via the store. `system.charactergen.
+   * welcome` carries no payload and reaches the catch-all so its prose
+   * lands in the terminal.
+   */
+  private registerBuiltinHandlers(): void {
+    this.onTopic('system.charactergen.roster', (frame) => {
+      useStore
+        .getState()
+        .setCharGenRoster((frame.payload as CharGenRosterPayload).characters);
+    });
+    this.onTopic('system.charactergen.state', (frame) => {
+      useStore
+        .getState()
+        .setCharGenState(frame.payload as CharGenStatePayload);
+    });
+  }
+
   public connect(url: string): void {
     this.url = url;
 
@@ -366,33 +397,13 @@ class WebSocketClient {
         `WebSocketClient: Received frame topic='${messageFrame.topic}'`
       );
 
-      // Built-in routing by topic.
-      switch (messageFrame.topic) {
-        case 'system.connection.established':
-          this.handleConnectionEstablished(
-            messageFrame.payload as ConnectionEstablishedPayload
-          );
-          break;
-        // Char-gen frames carry structured payloads through the Login's
-        // Sensor (no new envelope type). The roster drives the
-        // character-select screen; the per-step state drives the
-        // char-gen stage. Both flip the connection phase via the store.
-        // `system.charactergen.welcome` carries no payload and falls
-        // through to the catch-all so its prose lands in the terminal.
-        case 'system.charactergen.roster':
-          useStore
-            .getState()
-            .setCharGenRoster(
-              (messageFrame.payload as CharGenRosterPayload).characters
-            );
-          break;
-        case 'system.charactergen.state':
-          useStore
-            .getState()
-            .setCharGenState(messageFrame.payload as CharGenStatePayload);
-          break;
-        default:
-          break;
+      // Built-in connection-lifecycle frame. Feature frames (char-gen,
+      // etc.) register through `onTopic` in `registerBuiltinHandlers`
+      // and are dispatched by the per-topic loop below.
+      if (messageFrame.topic === 'system.connection.established') {
+        this.handleConnectionEstablished(
+          messageFrame.payload as ConnectionEstablishedPayload
+        );
       }
 
       const handlers = this.topicHandlers.get(messageFrame.topic);

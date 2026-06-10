@@ -8,8 +8,10 @@
  *   - `ConnectionManager` is a singleton with stubbable methods.
  *   - `PersistenceManager` is a singleton with stubbable CRUD.
  *   - `User.findById` / `User.find` route through PM; stub the PM.
- *   - `Avatar` shows up only via `instanceof`; fake holders set the
- *     prototype so the check passes without standing up a real Avatar.
+ *   - The inbound command handler gates on capability + template-path
+ *     prefix (`isCommandGiver` / `isAvatarStuff`), not `instanceof`;
+ *     fake holders thread `Avatar.prototype` and stub `getTemplatePath`
+ *     so both checks pass without standing up a real Avatar.
  *
  * No new test packages.
  */
@@ -68,11 +70,16 @@ function makeFakeInteractive(
 }
 
 /**
- * Build a holder that satisfies `instanceof Avatar` without standing
- * up the full Avatar machinery. `Object.create(Avatar.prototype)`
- * threads the prototype chain so the `instanceof` check in
- * `handleCommandMessage` passes; we then patch on the two methods
- * Application actually calls.
+ * Build a holder that satisfies the inbound command handler's two
+ * capability checks without standing up the full Avatar machinery:
+ *
+ *   - `MixinApi.isCommandGiver(holder)` — threaded by
+ *     `Object.create(Avatar.prototype)`, whose prototype chain carries
+ *     the real `CommandGiver` mixin marker, so `hasMixin`'s walk finds it.
+ *   - `PlayerApi.isAvatarStuff(holder)` — reads the template-path prefix
+ *     (`/obj/Avatar/`), so we stub `getTemplatePath` to an Avatar path.
+ *
+ * We then patch on the two methods Application actually calls.
  */
 function makeFakeAvatar(opts: {
   container?: (Stuff & Container) | null;
@@ -82,12 +89,14 @@ function makeFakeAvatar(opts: {
   ) => Promise<unknown>;
 }): Avatar {
   const avatar = Object.create(Avatar.prototype) as unknown as {
+    getTemplatePath: () => string;
     getContainer: () => (Stuff & Container) | null;
     executeCommand: (
       text: string,
       ctx: { interactive: Interactive },
     ) => Promise<unknown>;
   };
+  avatar.getTemplatePath = () => `${Avatar.TEMPLATE_PATH_PREFIX}test`;
   avatar.getContainer = () =>
     opts.container === undefined ? ({} as Stuff & Container) : opts.container;
   avatar.executeCommand = opts.executeCommand ?? (async () => undefined);

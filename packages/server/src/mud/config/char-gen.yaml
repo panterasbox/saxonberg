@@ -38,17 +38,10 @@ species:
     label: Dragonborn
     description: Scaled and proud, with the bearing of an elder wyrm.
 
-# Pronouns are free and independent of sex. Closed-choice for v1
-# (free-text deferred — grammar-engine cost).
-pronouns:
-  - value: they
-    label: they/them
-  - value: she
-    label: she/her
-  - value: he
-    label: he/him
-  - value: it
-    label: it/its
+# Pronouns are NOT listed here — the closed-choice pronoun options
+# derive from the `Pronouns` enum in @saxonberg/types (single source of
+# truth), with display labels in EnrollController. Pronouns are free and
+# independent of sex; free-text is deferred (grammar-engine cost).
 
 # Aspirations — what you want to *become*. Each seeds a starter bio +
 # selects a themed starting outfit. (Breadcrumb-seeding is deferred.)

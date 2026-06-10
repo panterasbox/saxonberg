@@ -2,7 +2,6 @@ verbs: [taste]
 controller: TasteController
 description: "Taste your surroundings or a specific thing"
 validators:
-  - /lib/command/validators/requiresLocation
   - /lib/command/validators/requiresTaste
 args:
   - name: target

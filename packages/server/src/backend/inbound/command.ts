@@ -11,8 +11,8 @@
 
 import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
-import Avatar from '../../mud/obj/Avatar';
-import Login from '../../mud/obj/Login';
+import { PlayerApi } from '../../mud/api/player';
+import { MixinApi } from '../../mud/api/mixin';
 import { PromptApi } from '../../mud/api/prompt';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { CommandGiver } from '../../mud/lib/command/CommandGiver';
@@ -20,13 +20,14 @@ import type { InboundClientMessage, InboundHandler } from './index';
 
 export const handleCommand: InboundHandler = async (ctx, message) => {
   const { interactive, backend, application, socketId } = ctx;
-  const holder = interactive.getHolder();
-  const isAvatar = holder instanceof Avatar;
-  const isLogin = holder instanceof Login;
-  // Any CommandGiver holder dispatches through the real pipeline. Avatar
-  // is the in-world giver; Login is the pre-world (char-gen / roster)
-  // giver — both run the genuine command path.
-  if (!isAvatar && !isLogin) {
+  const holder = interactive.getHolder() as Stuff | null;
+  // Identity is by capability + template-path, never instanceof:
+  // anything that's a CommandGiver dispatches through the real pipeline
+  // (Avatar in-world; Login in the pre-world char-gen/roster phase).
+  // The Avatar-only branches below narrow with `PlayerApi.isAvatarStuff`,
+  // which reads the durable `/obj/Avatar/` template-path prefix rather
+  // than the backing class (which can change across HMR cycles).
+  if (!holder || !MixinApi.isCommandGiver(holder)) {
     backend.sendMessageToSocket(socketId, {
       type: 'error',
       payload: { message: 'No active character' },
@@ -39,7 +40,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
     // Empty line: Avatar gets a bare prompt-refresh envelope (MUD-style
     // "press Enter"). For a Login (char-gen/roster) there's nothing to
     // refresh — ignore.
-    if (isAvatar) {
+    if (PlayerApi.isAvatarStuff(holder)) {
       const refresh = PromptApi.renderPromptRefresh(holder);
       const template: EnvelopeTemplate = {
         type: 'dispatch-response',
@@ -53,7 +54,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
 
   // The placeless guard is Avatar-only — a Login is intentionally
   // locationless.
-  if (isAvatar && !holder.getContainer()) {
+  if (PlayerApi.isAvatarStuff(holder) && !holder.getContainer()) {
     backend.sendMessageToSocket(socketId, {
       type: 'error',
       payload: { message: 'Avatar has no location' },
@@ -61,7 +62,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
     return;
   }
 
-  const giver = holder as unknown as Stuff & CommandGiver;
+  const giver = holder as Stuff & CommandGiver;
 
   // executeCommand's outcome rides the dispatch-response envelope
   // (fired through the Sensor pipeline). No return value to read

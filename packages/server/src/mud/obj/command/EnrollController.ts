@@ -40,6 +40,20 @@ import type {
   CharGenStatePayload,
   CharGenStep,
 } from '@saxonberg/types';
+import { Pronouns } from '@saxonberg/types';
+
+// Pronoun options derive from the `Pronouns` enum (the single source of
+// truth for the values); only the display labels live here.
+const PRONOUN_LABELS: Record<string, string> = {
+  [Pronouns.They]: 'they/them',
+  [Pronouns.She]: 'she/her',
+  [Pronouns.He]: 'he/him',
+  [Pronouns.It]: 'it/its',
+};
+const PRONOUN_OPTIONS: CharGenOption[] = Object.values(Pronouns).map((v) => ({
+  value: v,
+  label: PRONOUN_LABELS[v] ?? v,
+}));
 
 interface EnrollModel extends CommandModel {
   /** The raw `<field> <value...>` tail; split inside execute. */
@@ -54,10 +68,6 @@ interface SpeciesRosterEntry {
   label: string;
   description: string;
 }
-interface PronounRosterEntry {
-  value: string;
-  label: string;
-}
 interface AspirationRosterEntry {
   key: string;
   label: string;
@@ -67,7 +77,6 @@ interface AspirationRosterEntry {
 }
 interface CharGenConfig {
   species: SpeciesRosterEntry[];
-  pronouns: PronounRosterEntry[];
   aspirations: AspirationRosterEntry[];
 }
 
@@ -202,12 +211,11 @@ const ENROLL_STEPS: EnrollStep[] = [
     field: 'pronouns',
     applicable: () => true,
     complete: (d) => !!d.pronouns,
-    options: (_d, cfg) =>
-      cfg.pronouns.map((p) => ({ value: p.value, label: p.label })),
-    validate: (v, _d, cfg) =>
-      cfg.pronouns.some((p) => p.value === v.toLowerCase())
+    options: () => PRONOUN_OPTIONS,
+    validate: (v) =>
+      PRONOUN_OPTIONS.some((p) => p.value === v.toLowerCase())
         ? undefined
-        : `Pick one of the offered pronouns.`,
+        : `Pick one of: ${PRONOUN_OPTIONS.map((p) => p.value).join(', ')}.`,
     apply: (v, d) => {
       d.pronouns = v.toLowerCase();
     },
@@ -498,7 +506,6 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const parsed = YAML.parse(readFileSync(path, 'utf-8')) as CharGenConfig;
     EnrollController.#config = {
       species: parsed.species ?? [],
-      pronouns: parsed.pronouns ?? [],
       aspirations: parsed.aspirations ?? [],
     };
     return EnrollController.#config;

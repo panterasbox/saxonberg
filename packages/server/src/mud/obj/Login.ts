@@ -84,7 +84,7 @@ export default class Login extends LoginBase {
    * HasInteractiveMixin; harmless.)
    */
   static commandContributions: CommandContributions = {
-    self: ['enroll.yaml', 'play.yaml'],
+    self: ['charactergen/enroll.yaml', 'charactergen/play.yaml'],
     environment: [],
     inventory: [],
     peers: [],

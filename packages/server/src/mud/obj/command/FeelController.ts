@@ -65,7 +65,7 @@ export default class FeelController extends SingleSenseControllerBase {
   private async feelAmbient(context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const location = context.location;
-    if (!location) return; // requiresLocation validator gates this at runtime
+    if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
     if (!MixinApi.isAtmospheric(location)) {
       super.execute({ target: undefined } as FeelModel, context);
       return;

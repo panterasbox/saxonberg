@@ -425,9 +425,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // An incorporeal giver (e.g. `Login` during char-gen) legitimately
       // has no location; an embodied giver glitched into nowhere still
       // needs to dispatch recovery verbs (`help`, `recall`). So we always
-      // proceed with a possibly-null location. Verbs that genuinely need
-      // a location declare the `requiresLocation` validator, which
-      // rejects with a clean "you're nowhere" before the controller runs.
+      // proceed with a possibly-null location. Verbs that read location
+      // (`look`, the sense verbs) degrade to an empty-result response
+      // when it's null rather than being gated — the resolve set is just
+      // empty, so they answer as they would for any empty query.
       const location = MixinApi.isContainable(giver)
         ? giver.getContainer()
         : null;

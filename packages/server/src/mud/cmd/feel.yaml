@@ -2,7 +2,6 @@ verbs: [feel]
 controller: FeelController
 description: "Feel your surroundings or a specific thing"
 validators:
-  - /lib/command/validators/requiresLocation
   - /lib/command/validators/requiresTouch
 args:
   - name: target
