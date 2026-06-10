@@ -1,13 +1,19 @@
 # Persistence architecture rethink slate (working doc)
 
-> **Status: direction set, audit-grounded.** Split persistence into two
+> **Status: Waves 1-2 shipped, audit-grounded.** Persistence is split into two
 > honest concepts — **`Document`** (persisted JSON: CRUD, no Stuff overhead)
 > and **`Stuff`** (a live world entity, *hydrated from* a Document) — with the
-> shared persistence machinery extracted to a **neutral core**. The upshot:
-> **`Persistable` is deleted, not refactored.** Folding `Persistable` into the
-> `Idea`/Stuff tree (the current design) made the rare case (a live entity)
-> the default and forced the common case (plain documents) to pay proxy +
-> registry + security-gate + lifecycle overhead it never uses.
+> shared persistence machinery extracted to a **neutral core**. As built:
+> **`Persistable` is deleted, not refactored** (no inhabitants remain);
+> `lib/persistence/Document.ts` is the new base; `User` / `GoogleProfile` /
+> `Template` are now `Document`s; and the subsystem doc
+> [persistence.md](../subsystems/persistence.md) has been rewritten to the
+> two-track model. Full suite green.
+>
+> **Remaining: Wave 3 only** — un-Stuffing the marshallers + around-hooks +
+> Hydrator into **path-resolved, lazy, re-resolved code modules** (the
+> npc-behavior "brain" pattern, decision 5 below). Highest-effort piece;
+> scoped separately. Everything above it is done.
 
 Working slate for the **persistence architecture** — a deliberate rethink
 prompted by realizing that *most* of what a platform persists (auth records,

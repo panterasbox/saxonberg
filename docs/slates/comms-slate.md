@@ -118,7 +118,7 @@ One primitive — **vocalize at volume V** — with three presets:
 sound source*, and the sound slate already computes who hears a loud
 source across rooms. The skill/attribute hook = the speaker's output dB
 scales with a **voice-projection attribute** (and clarity degrades with
-distance — sound-slate attenuation). Nice ties: vitals (exhaustion/lung
+distance — acoustic attenuation, see senses.md). Nice ties: vitals (exhaustion/lung
 capacity throttles it) and a future oratory/projection skill.
 
 Reach is the **sound slate**; comprehension (do you understand it) is the
@@ -218,12 +218,52 @@ The expression-policy gate (emotes slate) spans **all** families — it can
 restrict a player to emote-only, or gag their say/shout/chat — and keys
 on the conversation/channel identity comms surfaces.
 
+### Trust-tiered policy (deferred)
+
+Deferred game-design layered on the shipped substrates, not a new
+mechanism. The kernel: **recognition is a security primitive.** How
+familiar a sender is to a receiver — read off the recognition substrate
+([recognition-slate.md](./recognition-slate.md)) plus the receiver's
+social buckets ([contacts.md](../subsystems/contacts.md)) — gates *what
+kinds* of messages that sender may direct at them. A stranger's reach is
+narrow; a friend's is wide. The point is protecting players from
+harassment and griefing without an OOC moderation layer: the wall falls
+out of who-knows-whom, in-fiction.
+
+The trust-tier sketch — **stranger → acquaintance → trusted** — is a
+*concept*, a gradient riding the existing grouping
+([grouping.md](../subsystems/grouping.md)) + contacts + recognition
+state, **not** a standalone gate, an `effectiveTier` reader of bare
+Stuff fields, or a `trustPolicies` registry. A receiver's familiarity
+with a sender narrows or widens the permitted message kinds; recognition
+plus bucket membership is the input, the methods-only inter-Stuff
+contract is the access path. No new registry — exhaust the shipped
+recognition/grouping/contacts surfaces first.
+
+The sharpest concern is **maliciously-authored zone NPCs**: a griefer
+who authors a zone shouldn't be able to have its NPCs spray arbitrary
+messages at players. That trust is expressed through the *shipped*
+[AccessApi](../subsystems/access.md) / Zone `ownerGroup`–`accessGroups`
+model — an NPC's reach derives from how trusted its owning zone is —
+**not** a bespoke `zone.trustLevel` enum. An untrusted zone's NPCs are
+treated as strangers to the player.
+
+Authority/audit overrides all tiers: staff can always see and intervene
+(warnings, mutes, review), per the shipped access model. This is the
+out-of-band moderation floor under the in-fiction gradient.
+
+**Explicitly dropped:** the old "emotes as a constrained safe-mode
+fallback for low-trust senders" idea. Emotes are a full first-class ESP
+channel (emotes-are-magic; [emotes-slate.md](./emotes-slate.md)), not a
+moderation safe-mode — a narrowed sender isn't pushed into emote-only as
+a sanitized substitute for speech.
+
 ---
 
 ## Worked scenarios
 
 - **Room chat (acoustic, undirected):** `say hey all` → everyone in
-  earshot hears (sound-slate reach), comprehension per language slate.
+  earshot hears (acoustic reach, senses.md), comprehension per language slate.
 - **Order a drink (acoustic, directed):** `say --to barkeep one beer
   please` → room hears "Bobalu says to the barkeep, …"; the barkeep's
   responder is triggered (dialogue slate).

@@ -5,17 +5,27 @@ axis, the per-region celestial profiles that derive sky-state and
 day/night/seasons from that axis, and the per-culture calendars
 that decompose it into named year/month/day/etc.
 
-**Status**: requirements gathered, three-layer model proposed,
-several leans documented. The upstream zone-architecture question
-("where exactly does the celestial profile live?") has resolved:
-**the celestial profile lives on the SpatialZone and inherits via
-template-tree ancestry, with FolderZones skipped during the walk**
-(per the zone-architecture slate). Implementation otherwise
-deferred to a focused build session.
+**Status**: **shipped** and graduated to
+[docs/subsystems/time.md](../subsystems/time.md). The three-layer
+model built out across Waves 1-4: the global time axis
+(`WorldClockApi`, `WorldClockState`), the per-region celestial layer
+(`CelestialApi`, `CelestialProfile`), the per-culture calendar
+(`DefaultCalendar`), the diegetic instruments (`Sundial` / `Sextant`),
+and the `analyze` / `measure` verb family. The upstream
+zone-architecture question resolved as designed: **the celestial
+profile lives on the SpatialZone and inherits via template-tree
+ancestry, with FolderZones skipped during the walk**.
+
+**Deferred tail** (not yet built): the celestial → light wiring
+(ambient-illuminance feeding the perception layer) is pending the
+perception merge; a second non-Earth-like celestial profile; weather;
+per-actor locale binding for calendars; and admin verbs for setting /
+fast-forwarding game time. time.md is the source of truth for what
+shipped; this slate is the design record.
 
 See also:
 
-- [docs/slates/zone-architecture-slate.md](./zone-architecture-slate.md)
+- [docs/subsystems/zone.md](../subsystems/zone.md)
   — celestial profile lives on the spatial zone (or wherever that
   slate lands), inherits via template-tree ancestry.
 - [docs/subsystems/biome.md](../subsystems/biome.md) — biomes consume
@@ -119,7 +129,8 @@ Reasoning (the key tradeoff):
   which model. Every player sees every phase if they play long
   enough; the only difference is what phase they log in to.
 
-Not signed off, but the leading proposal.
+Resolved: own-thing model — shipped (see
+[time.md](../subsystems/time.md)).
 
 ### Time as a Quantity
 
@@ -132,6 +143,9 @@ tags ("morning" / "midnight") could layer via a tag table; not
 critical for v1.
 
 ### `WorldClockApi` (sketch)
+
+> As shipped, this split across `WorldClockApi` + `ScheduleApi` /
+> `SchedulerApi` — see [time.md](../subsystems/time.md).
 
 ```ts
 class WorldClockApi {
@@ -476,7 +490,7 @@ interface Calendar {
 
 v1 ships:
 
-- `SaxonbergCalendar` — the default. Earth-shaped, fantasy-named
+- `DefaultCalendar` — the default. Earth-shaped, fantasy-named
   months and weekdays (TBD authoring).
 - (Future) `DwarfClanCalendar`, `FeyCalendar`, `OrcCalendar`,
   etc. — different shapes; coexist on the same time axis.
@@ -565,9 +579,10 @@ warm?" Instruments / verbs opt in to the real math:
 | `analyze sky here` | (verb) | Full celestial state for the location |
 | `analyze time` | (verb) | Game-time, scale, all active calendars |
 
-The `analyze` verb pattern is established by sound-slate and
-biome-slate — one verb, two audiences (casual prose default;
-physics/astronomy-grade when invoked).
+The `analyze` verb pattern is established by
+[senses.md](../subsystems/senses.md) and biome-slate — one verb, two
+audiences (casual prose default; physics/astronomy-grade when
+invoked).
 
 Same engine, different rendering paths. Cheap to implement; high
 pedagogical surface. Connects directly to astronomy / earth-
@@ -587,8 +602,9 @@ sciences / physics curricula.
    visible day-night UI exists; could end up at 8× or 24×.
    Tunable.
 
-3. **Time as its own thing vs derived from real clock.** Lean own
-   thing (see reasoning in Layer 1). Not yet signed off.
+3. **Time as its own thing vs derived from real clock.** *Resolved:
+   own-thing model — shipped* (see reasoning in Layer 1 and
+   [time.md](../subsystems/time.md)).
 
 4. **Latitude / longitude on the campus.** *Resolved (content
    decision)*: campus at **42°N, 0°E** — temperate latitude
@@ -697,7 +713,7 @@ follow.
 
 **Wave 3** — calendar.
 
-- `Calendar` interface + `SaxonbergCalendar` default.
+- `Calendar` interface + `DefaultCalendar` default.
 - `decompose` / `compose` / `formatDate` / `parseDate`.
 - Calendar-aware scheduling on `WorldClockApi`: `onDate`,
   `cron`. Built on the Wave 1 primitives + the calendar's
@@ -763,7 +779,7 @@ follow.
   + per-zone resolution chain.
 - `CelestialApi` surface (`isDayAt`, `sunAltitude`,
   `sunAzimuth`, `currentSeason`, `nextSunrise`).
-- `Calendar` interface + `SaxonbergCalendar` (with month / weekday
+- `Calendar` interface + `DefaultCalendar` (with month / weekday
   names authored).
 - `analyze time` and `analyze sky here` verb shapes.
 - `Sundial` / `Sextant` / `Hourglass` instrument templates.

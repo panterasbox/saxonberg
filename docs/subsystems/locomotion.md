@@ -289,8 +289,8 @@ content slate that pulls on it.
   aware, modulated by distance / obstruction / acuity. Mode
   contributes the emission level via `noiseLevel`; observer's
   species hearing profile sets the threshold. The channel
-  infrastructure belongs to the sound subsystem
-  ([sound-slate.md](../slates/sound-slate.md)); locomotion's
+  infrastructure belongs to the hearing/perception substrate
+  ([senses.md](./senses.md)); locomotion's
   contribution is the `noiseLevel` data and the passthrough
   walk on `LocomotionApi.emissionAt`.
 - **`run` / `sprint` / `tiptoe` as separate modes.** Verb-as-mode

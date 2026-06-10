@@ -441,9 +441,8 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   path-based — `ZoneApi.resolveZoneForPath` walks template ancestry
   to compute each side's zone without loading the destination room
   as a Stuff. Intra-zone non-cardinal exits throw with a diagnostic
-  naming both seed paths and the shared zone. Per
-  zone-architecture-slate § The cardinal-only-intra-zone exit
-  invariant.
+  naming both seed paths and the shared zone. Per the
+  cardinal-only-intra-zone exit invariant (see [zone.md](./zone.md)).
 - **`SphericalLocation`** = `Exitable(SphericalCoords(Visible(Location)))`.
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to
@@ -625,8 +624,8 @@ enclosing zone's `lookupField`, but a barrier subclass overrides it
 to return `null` and root inheritance at itself. Full surface and
 the barrier-subclass pattern documented in
 [zone.md § Field inheritance](./zone.md#field-inheritance-zonelookupfield).
-Per zone-architecture-slate § Inheritance walk for zone-carried
-fields.
+Per the zone field-inheritance walk (see
+[zone.md § Field inheritance](./zone.md#field-inheritance-zonelookupfield)).
 
 ### The setter-with-side-effects pattern
 

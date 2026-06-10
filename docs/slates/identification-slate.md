@@ -16,7 +16,8 @@ See also:
 
 - [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   parallel substrate for actors. Same `PerceptionMemoryRecord`
-  shape; different keying.
+  shape (recognition-slate calls this `RecognitionRecord` — same
+  record; name to be reconciled); different keying.
 - [docs/subsystems/quantities.md](../subsystems/quantities.md) —
   measurement-based identification consumes typed quantities.
 - [docs/slates/verb-provisioning-slate.md](./verb-provisioning-slate.md)
@@ -55,6 +56,11 @@ Two structural differences from actor recognition:
 Otherwise the pattern mirrors recognition: per-viewer state;
 DescribeApi-shaped composition; layered presentation;
 persistence requirements.
+
+> **Naming:** the describe pipeline is being renamed `DescribeApi`
+> → `PerceptionApi.describe` / `Stuff.getPresentation()` per
+> recognition-slate; treat the "DescribeApi v2" references below as
+> that surface.
 
 ---
 

@@ -38,9 +38,9 @@ Tier 1 — highest leverage; likely to surface real holes in current
 slates:
 
 1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/host-slot-activities-slate.md))
-2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [sound-slate.md](./slates/sound-slate.md)** (also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
+2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [subsystems/senses.md](./subsystems/senses.md)** (the *hearing* instance; deep acoustic spec retained in [senses-slate.md](./slates/senses-slate.md); also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
 3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
-4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/social-graph-slate.md), [communication-policy-slate.md](./slates/communication-policy-slate.md), [identification-slate.md](./slates/identification-slate.md))
+4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/social-graph-slate.md), [identification-slate.md](./slates/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/comms-slate.md))
 
 Tier 2 — extends established patterns; can land after Tier 1
 without churn:
@@ -135,8 +135,10 @@ different), #6 (a hidden actor isn't a collision until detected).
 
 ## 3. Sound propagation as a physics channel — GRADUATED
 
-**Status**: graduated to its own slate at
-[docs/slates/sound-slate.md](./slates/sound-slate.md). The conversation also
+**Status**: graduated into the perception substrate
+([docs/subsystems/senses.md](./subsystems/senses.md); the deep acoustic
+spec is retained in [docs/slates/senses-slate.md](./slates/senses-slate.md)).
+The conversation also
 spun out a cross-cutting [docs/subsystems/quantities.md](./subsystems/quantities.md)
 capturing the `Quantity<T>` pattern (real-units-underneath,
 friendly-tags-on-top, instruments-reveal) — sound is the second
@@ -194,10 +196,11 @@ discussion:
   buckets (friends/foes/custom), notification policies,
   attention-management rendering. Strangers go *more*
   ambiguous in crowded rooms so people who matter stand out.
-- [docs/slates/communication-policy-slate.md](./slates/communication-policy-slate.md)
-  — trust-tiered moderation; recognition is a security
-  primitive. Sandboxed-zone NPCs default to emote-only;
-  friends bypass filters; foes are dropped; authority
+- [docs/slates/comms-slate.md § Moderation](./slates/comms-slate.md)
+  — trust-tiered moderation (folded here when communication-policy-slate
+  was retired); recognition is a security primitive. Familiarity (from
+  recognition + contacts) narrows a sender's reach; untrusted-zone NPCs
+  are treated as strangers (zone trust via AccessApi); authority
   overrides for warnings.
 - [docs/slates/identification-slate.md](./slates/identification-slate.md) —
   parallel pattern for *items*: blue potion → potion of

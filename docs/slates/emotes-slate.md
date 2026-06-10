@@ -66,7 +66,7 @@ See also:
   text/emoji/both render preference is a setting, exactly like
   `pedagogicalSeam`.
 - [docs/subsystems/persistence.md](../subsystems/persistence.md) — the
-  **`Persistable` record track** (`users` / `google_profiles` /
+  **`Document` record track** (`users` / `google_profiles` /
   `Template`) and `PersistenceManager` / the `Collections` enum. The
   emote catalog is its own MongoDB collection on this lightweight track
   — deliberately *not* the Template→Stuff clone pipeline (templates.md),
@@ -254,7 +254,7 @@ pipeline (the `domain` collection, folder/leaf invariants, per-instance
 registration) is pure overkill.
 
 **Decision: the catalog is its own MongoDB collection (`emotes`),** on
-the lightweight **`Persistable` track** ([persistence.md](../subsystems/persistence.md))
+the lightweight **`Document` track** ([persistence.md](../subsystems/persistence.md))
 — the same record track as `users` / `google_profiles` / `Template`, not
 the world-object track. `Emote` records are catalogue documents, queried
 by verb/alias, *not* instantiated as live world Stuff.
@@ -271,11 +271,11 @@ considered and dropped):
   with an index on verb/aliases (cached in memory — see *access
   pattern*) is the natural fit.
 
-An `Emote` record, shape-sketch (mirroring the `User extends Persistable`
+An `Emote` record, shape-sketch (mirroring the `User extends Document`
 pattern in persistence.md):
 
 ```ts
-class Emote extends Persistable {
+class Emote extends Document {
   static collectionName = 'emotes';
   static persistentFields = [
     'verb', 'aliases', 'grammar', 'echo', 'emoji', 'requires', 'tags',
@@ -298,27 +298,27 @@ as a sub-document. Whether an emote has *any* `free` slot is derivable
 from the grammar (and worth denormalizing onto the record for fast
 "allowed in strict mode?" filtering).
 
-Records ride the **`Persistable`-Stuff base** (`Emote extends
-Persistable`, `static collectionName = 'emotes'`) — they get
+Records ride the **`Document` base** (`Emote extends
+Document`, `static collectionName = 'emotes'`) — they get
 `find`/`findById`/`save`/`delete` for free and `PersistenceManager`
 stays generic (no catalog-specific bloat in it). The grammar/glyph/gate
 fields are `persistentFields`.
 
 **Access pattern.** Reads dominate (every emote command resolves a
-verb); writes are rare (an author minting an `Emote`). So **`SoulApi`**
-owns a **verb→`Emote` index loaded at bootstrap (`Emote.find({})`) and
-refreshed write-through** on mint/edit — Mongo is the system of record,
-the index is the hot-path cache. `SoulApi` is the load/lookup/mint
-surface: `SoulApi.resolve(verb)` for the dispatcher, `SoulApi.mint(...)`
-/ `SoulApi.all()` for authoring and help. It's a registry, and a
-*justified* one (the standing "no premature registries" rule wants a
+verb); writes are rare (an author minting an `Emote`). So a
+**`SoulCatalogue` singleton Stuff** (`/obj/SoulCatalogue`, sibling to
+`TopicCatalogue`) owns the **verb→`Emote` index loaded at bootstrap
+(`Emote.find({})`) and refreshed write-through** on mint/edit — Mongo is
+the system of record, the catalogue's in-memory cache is the hot path.
+**`SoulApi`** is the thin caller-facing facade over that singleton:
+`SoulApi.resolve(verb)` for the dispatcher, `SoulApi.mint(...)` /
+`SoulApi.all()` for authoring and help, each a 1:1 delegate to the
+catalogue. The Api holds no state of its own; the catalogue Stuff is the
+live state (mirroring `TopicCatalogue` + the topic Api exactly). It's a
+*justified* registry (the standing "no premature registries" rule wants a
 present-day need; the every-command lookup + runtime authoring + the
-several-thousand-record scale supply it), and an Api is the right home
-because the catalog has no single natural Stuff host — the dispatcher
-and authoring verbs both consult it. Ends with
-`SecurityApi.decorateApiClass(SoulApi)` per convention; the index is a
-static cache (`#`-private on the Api is fine — Api methods are static,
-no instance-proxy receiver).
+several-thousand-record scale supply it). `SoulApi` ends with
+`SecurityApi.decorateApiClass(SoulApi)` per convention.
 
 ### The grammar reduction (author less than the essay implies)
 
@@ -545,7 +545,7 @@ a list of records), and a small boot step (`SoulApi.seed()`, after
 (insert-if-missing, never clobbering community-minted entries), then
 `SoulApi.load()` builds the index. Add `emotes` indexes (unique `verb`,
 plus `aliases`) to `PersistenceManager.createIndexes()`. This is the
-**first seeded `Persistable` catalog** (`users`/`google_profiles` are
+**first seeded `Document` catalog** (`users`/`google_profiles` are
 runtime-only) — a small new pattern, deliberately lighter than the
 `domain` template machinery; no hook needed in v1.
 
@@ -874,14 +874,14 @@ so the guarantee holds the moment the control plane can set the level.
 
 ### Persistence / MongoDB
 
-- A new **`emotes` collection** via `Emote extends Persistable`
+- A new **`emotes` collection** via `Emote extends Document`
   (alongside `users` / `google_profiles` / `domain`) — add it to the
   `Collections` enum; CLAUDE.md's "MongoDB Collections" list gains an
   entry at graduation. **No changes to `PersistenceManager`** — `Emote`
-  uses the inherited `Persistable` CRUD. `SoulApi` (new, in `api/`)
-  loads the verb→`Emote` index at bootstrap and refreshes it
-  write-through on mint/edit. No touch to the Template→Stuff clone
-  pipeline.
+  uses the inherited `Document` CRUD. The `SoulCatalogue` singleton
+  (new, in `obj/`) loads the verb→`Emote` index at bootstrap and
+  refreshes it write-through on mint/edit; `SoulApi` (new, in `api/`)
+  thin-wraps it. No touch to the Template→Stuff clone pipeline.
 
 ### Shell / environment
 
@@ -927,13 +927,14 @@ so the guarantee holds the moment the control plane can set the level.
 ## Open questions
 
 1. **Catalog home.** *Resolved.* Its own MongoDB `emotes` collection on
-   the lightweight `Persistable` track — not the Template→Stuff clone
+   the lightweight `Document` track — not the Template→Stuff clone
    pipeline (overkill for behaviorless data), not a flat file (a live
    collection enables runtime emote-minting, the `bogleg` accretion
-   story). `Emote extends Persistable` (`collectionName = 'emotes'`),
-   keeping `PersistenceManager` generic. **`SoulApi`** owns the
-   load/lookup/mint surface + a bootstrap-loaded, write-through
-   verb→`Emote` index. Open only at the detail level for the build:
+   story). `Emote extends Document` (`collectionName = 'emotes'`),
+   keeping `PersistenceManager` generic. A **`SoulCatalogue` singleton
+   Stuff** owns the load/lookup/mint surface + a bootstrap-loaded,
+   write-through verb→`Emote` index; **`SoulApi`** is the thin facade
+   over it. Open only at the detail level for the build:
    exact `SoulApi` method names and the index-refresh hook on mint/edit.
 2. **Mixin placement / new subsystem.** `lib/social/` (new) vs folding
    into `lib/message/`. *Lean: `lib/social/`* (gives reactions a home),
@@ -1009,9 +1010,10 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 **Wave 1 — the trunk (the whole feature in text).**
 
 - `SoulMixin.emote()` on `Character`, parallel to `VocalMixin`.
-- `Emote extends Persistable` (`emotes` collection) + `SoulApi` (the
-  bootstrap-loaded, write-through verb→`Emote` index + `resolve`/`mint`/
-  `all`) + the `EmoteGrammar` record shape.
+- `Emote extends Document` (`emotes` collection) + the `SoulCatalogue`
+  singleton (the bootstrap-loaded, write-through verb→`Emote` index) +
+  `SoulApi` (the thin facade: `resolve`/`mint`/`all`) + the
+  `EmoteGrammar` record shape.
 - **Bootstrap**: `seeds/social/emotes.yaml` + `SoulApi.seed()` (idempotent
   upsert by `verb`) + `SoulApi.load()`; `emotes` indexes in
   `PersistenceManager.createIndexes()`. Seed the ~40-emote starter roster
@@ -1131,10 +1133,10 @@ This slate boils down to:
   (catalog `echo` field + `social.emote.echo` setting + a rare sender
   override); echo reuses the normal grammar (no special view). Routing
   deferred to comms; the record/setting hooks are reserved in v1.
-- `Emote extends Persistable` (`emotes` collection + `Collections` enum
-  entry, no `PersistenceManager` changes) and `SoulApi` (the
-  bootstrap-loaded write-through verb→`Emote` index + `resolve`/`mint`/`all`
-  surface).
+- `Emote extends Document` (`emotes` collection + `Collections` enum
+  entry, no `PersistenceManager` changes), the `SoulCatalogue` singleton
+  (the bootstrap-loaded write-through verb→`Emote` index), and `SoulApi`
+  (the thin facade: `resolve`/`mint`/`all`).
 - The dynamic-verb resolution seam in command routing (+ the
   autocomplete-subset question) and typed-slot binding from input.
 - The free-form `emote` / `:` verb.

@@ -51,7 +51,7 @@ See also:
 - [docs/subsystems/messaging.md](../subsystems/messaging.md) — server-
   side fact-gating = don't *send* the unrevealed fact (the Scene/percept
   projection withholds it).
-- [docs/slates/inspection-pane-slate.md](./inspection-pane-slate.md) —
+- [docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md) —
   the pane shows percepts; spoiler-gated facts simply aren't in the
   projection.
 - the **quest/progress system** (consumed — supplies the "have you earned

@@ -1,13 +1,21 @@
 # Affordance verbs (working slate)
 
+> **Status:** `put` / `give` / `Surfaced` shipped (see
+> [docs/subsystems/spatial.md](../subsystems/spatial.md) for the
+> built surface). Source-scoping (`::`), command-provenance/help,
+> and the watch worked-example are the live remaining design — that
+> half of the slate is why it stays open.
+
 Working slate for two sandbox-foundational verbs that exercise
 target-side mixin affordances: **`put`** and **`give`**. Each
 verb pulls a mixin out of [mixin-slate.md](./mixin-slate.md)'s
 catalog into a real implementation.
 
 The verbs are small. The slate exists because the **mixins**
-have architecture questions worth resolving before the build —
-particularly `Surfaced` (the on-vs-in distinction).
+had architecture questions worth resolving before the build —
+particularly `Surfaced` (the on-vs-in distinction) — and now
+because the affordance-verb family needs a disambiguation +
+discovery layer at scale (source-scoping, command provenance).
 
 See also:
 
@@ -41,194 +49,17 @@ weight lives in the **target-side mixins**.
 
 ---
 
-## Verb 1 — `put`
+## Verbs `put` / `give` + `Surfaced` — SHIPPED
 
-### Shape
-
-```
-put <item> in <container>
-put <item> on <surface>
-```
-
-The actor holds `<item>` (it's in their inventory or wielded
-slot); the target is something they can perceive in scope. The
-verb resolves the preposition to a placement mode:
-
-- `in` → target must compose `Container`.
-- `on` → target must compose `Surfaced` (this slate's new mixin).
-
-`put X Y` (no preposition) — disambiguate by target capability:
-target composes `Container` only → `in`; composes `Surfaced`
-only → `on`; composes both → prompt the player (or pick `on`
-by author-preference setting on the target).
-
-### Actor-side
-
-No new mixin. The actor needs to be holding `<item>` — that's
-already gated by inventory / wielded-slot resolution.
-
-### Target-side — `Container` (shipped)
-
-Existing `ContainerMixin` covers `put X in Y` without changes.
-The verb calls `ContainmentApi.move(item, target)` (the existing
-Api method); permission checks (does the container allow this
-item? capacity?) live on the Api as today.
-
-### Target-side — `Surfaced` (new)
-
-The mixin Saxonberg has been missing. What it owns:
-
-```ts
-interface Surfaced {
-  // Collection surface, mirroring Container conventions
-  // (see docs/subsystems/collections.md).
-  getResting(): readonly (Stuff & Containable)[];
-  addResting(item: Stuff & Containable): void;
-  removeResting(item: Stuff & Containable): void;
-  canRest(item: Stuff & Containable): boolean;
-  // Optional descriptive shape:
-  getSurfaceType(): 'flat' | 'sloped' | ...;
-  // MQL keyword bridge: if the host's Detailed map has a
-  // matching keyword, `put X on <keyword>` resolves to this
-  // surface. Mirrors `SlotSpec.userFacingDetail` (see
-  // docs/subsystems/slot.md § Detail-targeted resolution).
-  getUserFacingDetail(): string | undefined;
-}
-```
-
-No item-side mixin. `Containable` is the gate already — the
-actor's-holding-it invariant means the item composes
-`Containable`, and Locations / Zones / pure value objects (the
-universe of "things you can't put on anything") don't compose
-it either. Per-surface constraints (wax tabletop rejects hot
-items, fragile shelf rejects heavy ones) live on the host's
-`canRest()` and read item properties; the item itself doesn't
-declare a marker.
-
-### The architectural question: `Surfaced` vs. `Container`
-
-Three plausible shapes:
-
-**A. `Surfaced` as a sibling mixin** with its own collection
-(`getResting`). What I sketched above. Cleanest ontology — a
-table is not a container. Most code duplication; surface
-mixins parallel container mixins.
-
-**B. `Container` with a `containmentPreposition` field.** Single
-mixin, single collection. `containmentPreposition: 'in' | 'on'
-| 'under' | 'behind'` carried on the host. Cheapest to build;
-loses the ontological distinction.
-
-**C. `Surfaced` extends `Container` with a preposition override.**
-Composes B's simplicity with a discoverable mixin name. Author
-declares `Surfaced` (which is a `Container` under the hood);
-prose / verb dispatch sees the on-flavor.
-
-Lean **A** for the slate's first cut — sibling mixin, parallel
-surface. Rationale: a tabletop and a chest's interior really are
-different ontological things; gravity, perception (look-at vs.
-look-in), and future physics (stacking, sliding) diverge. Option
-B optimizes for code reuse at the cost of conflating two
-distinct relationships. The build can swap to C if duplication
-gets painful.
-
-### Verb controller sketch
-
-```ts
-class PutController extends CommandController<PutModel> {
-  execute(model, ctx): void {
-    const actor = ctx.commandGiver;
-    const item = model.item;
-    const target = model.target;
-    const preposition = model.preposition;  // 'in' | 'on' | undefined
-
-    // Resolve preposition from target capability if absent.
-    const mode = preposition ?? this.inferMode(target);
-    if (!mode) {
-      ctx.note({ kind: 'controller-rejected', reason: 'no-affordance' });
-      // Scene.send "There's no obvious way to put <item> on/in <target>."
-      return;
-    }
-
-    if (mode === 'in') {
-      if (!MixinApi.isContainer(target)) { /* reject */ return; }
-      ContainmentApi.move(item, target);
-    } else { // 'on'
-      if (!MixinApi.isSurfaced(target)) { /* reject */ return; }
-      target.addResting(item);
-    }
-    // Scene.send completion prose
-  }
-}
-```
-
-The controller calls `target.addResting(item)` directly — the
-mixin's own surface IS the contract. No new Api.
-
----
-
-## Verb 2 — `give`
-
-### Shape
-
-```
-give <item> to <actor>
-give <actor> <item>      (alternate word order)
-```
-
-Inter-actor transfer of a held item.
-
-### Actor-side
-
-No new mixin. Actor holds `<item>`.
-
-### Target-side
-
-The target must be an `Agent` — the base class for active
-runtime presences (Characters today, future NPCs / daemons).
-Agency is the right gate: "can this thing receive an object
-and act on it later?" Animacy is too tight (a sentient
-construct is animate-debatable but plainly an Agent); species
-checks are too biological (a corpse may still compose
-Organism but isn't an Agent in the runtime-active sense).
-
-The item lands in the receiver's **general inventory**
-(`ContainmentApi.move(item, receiver)`) — same destination as
-`get`. Hand slots are not on the path. Dual-wielding a pair of
-swords doesn't lock you out of receiving a spellbook; the book
-goes into your inventory, and you can `wield` it later if you
-free a hand. The prose still reads "Alice hands the book to
-Bob" — the in-prose hand-shape is a narrative convention, not
-a mechanical constraint.
-
-**No new `Receiving` mixin in v1.** The sandbox doesn't have
-NPC consent / refusal mechanics yet. A future `Receiving`
-mixin can wrap policy (refuse-if-X, prompt for confirmation)
-when content earns it.
-
-### Verb controller sketch
-
-```ts
-class GiveController extends CommandController<GiveModel> {
-  execute(model, ctx): void {
-    const giver = ctx.commandGiver;
-    const item = model.item;
-    const receiver = model.target;
-
-    if (!(receiver instanceof Agent)) {
-      ctx.note({ kind: 'controller-rejected', reason: 'non-actor' });
-      // Scene.send "<receiver> can't take that."
-      return;
-    }
-
-    // Inventory-to-inventory transfer. Every Agent composes
-    // Container (per Character / Avatar's mixin chain); capacity
-    // gating lives on the Container side.
-    ContainmentApi.move(item, receiver);
-    // Scene.send: giver toSelf/toPeers prose, receiver toSelf prose
-  }
-}
-```
+This half of the slate is built. The `Surfaced` mixin (sibling to
+`Container`, with its own resting collection), the `restingOn`
+placement model, `canRest`, and the `placeOn` primitive live in
+[docs/subsystems/spatial.md](../subsystems/spatial.md); the verbs
+ship as `lib/spatial/Surfaced.ts` plus the `PutController` /
+`GiveController` pairs. The on-vs-in ontology question resolved to
+the sibling-mixin shape. (`give` lands items in the receiver's
+general inventory via `ContainmentApi.move`; no `Receiving` mixin
+in v1 — NPC consent is still deferred.)
 
 ---
 
@@ -277,27 +108,13 @@ sub-parts are interactive.
 
 ---
 
-## What ships in this slate
+## What shipped in this slate
 
-The minimal sandbox-useful build:
-
-- **New mixin** `Surfaced` (`lib/spatial/Surfaced.ts` or
-  `lib/containment/Surfaced.ts` — placement TBD; lean spatial).
-- **New verbs** `put`, `give` — YAML + controller pairs.
-- **First content** — a few authored Stuffs that exercise the
-  mixins. A table (Surfaced), an apple (gettable + put-on-able),
-  a willing receiver NPC for `give`.
-
-Tests gating acceptance:
-
-- `put X in Y` against a Container → item ends up inside.
-- `put X on Y` against a Surfaced → item ends up resting on.
-- `put X on Y` against a non-Surfaced → rejection prose.
-- `put X Y` (no prep) against a target composing both → prompt
-  or author-preference resolution.
-- `give X to Y` against an Agent → item transfers to receiver's
-  inventory + dual prose.
-- `give X to <non-Agent>` → rejection prose.
+SHIPPED — see [docs/subsystems/spatial.md](../subsystems/spatial.md)
+(`Surfaced`, `restingOn`, `placeOn`) plus the `put` / `give`
+controllers. The acceptance roster (put-in-Container, put-on-Surfaced,
+non-Surfaced rejection, no-prep disambiguation, give-to-Agent,
+give-to-non-Agent rejection) landed with the build.
 
 ---
 
@@ -430,8 +247,9 @@ real point is *Stuff vs Detail*, not *mixin vs command*.)
 
 ### Q1. `Surfaced` vs. `Container` ontology
 
-Sibling, variant, or extension? Lean sibling (Option A). Real
-decision rides on whether downstream code wants to treat all
+**Resolved: sibling; shipped as `lib/spatial/Surfaced.ts`.**
+Sibling, variant, or extension? Shipped as the sibling (Option A).
+Real decision rode on whether downstream code wants to treat all
 "contained things" uniformly or wants to branch on the
 relationship type. If perception code wants `getAllContents() ⊕
 getAllResting()`, the duplication is annoying — but if perception
@@ -469,15 +287,15 @@ path in `applyCardinalityPolicy`.
 
 ## Once shaped into formal requirements
 
-This slate boils down to:
+The first half (`Surfaced` mixin + `put` / `give` controllers +
+content + tests) has shipped — see the SHIPPED section above. What
+remains for requirements is the disambiguation + discovery layer:
 
-- `Surfaced` mixin; `getResting` /
-  `addResting` / `removeResting` / `canRest` /
-  `getUserFacingDetail` surface.
-- `put` / `give` verb controllers + YAML views.
-- A handful of authored content Stuffs exercising the new
-  mixin (a table with stuff on it, an apple, a give-receiver).
-- Tests gating each verb/mixin pair.
+- Source-scoping syntax (`source::verb`) — sigil settled (Q3),
+  parse wiring against the MQL tokenizer.
+- Command provenance / help surface listing available verbs and
+  their source object + mixin (Q4/Q5 cardinality behavior).
+- The watch worked-example as the first forcing content.
 
 The slate sets the design space for the affordance-verb family;
 follow-on slates (`Pourable`, `Switchable`, `Lockable`, etc.)

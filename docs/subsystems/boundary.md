@@ -173,8 +173,8 @@ The applier:
 
 `ExitInstruction` carries the full exit shape: `destination`, optional
 `door`, `bidirectional`, `opposite`, `hidden`, `blocked`, `muffled`,
-`noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per
-declarative-content-slate § exits on ExitableMixin and
+`noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per the
+declarative exit spec (see [templates.md](./templates.md)) and
 `feedback_property_vs_instruction_fields`. No paired getter for the
 spec — the runtime `exits: Map<string, Exit>` collection has its own
 established API (`getExit`, `addExit`, …) which is the only public
@@ -463,8 +463,8 @@ scalar-default rule):
 - `attachedHosts: [string, string] | null` — Pattern A. Two
   templatePaths of the hosts this Window connects. The setter
   resolves both paths via `StuffApi.singleton` and installs the
-  anchors via `BoundaryApi.attachExistingBoundary`. Per
-  declarative-content-slate § attachedHosts.
+  anchors via `BoundaryApi.attachExistingBoundary`. Per the declarative
+  attachedHosts spec (see [templates.md](./templates.md)).
 - `open: boolean` (from Sealable, was `isOpen`) — shutter state.
 
 The structured runtime API `getDirectionalOverrides()` /

@@ -6,12 +6,22 @@ Sister surface to the inspection pane: that slate handles "show me
 the structured state of the world"; this one handles "let me
 control the firehose of prose."
 
-**Status.** Design surface. Builds on the cockpit slate's terminal
-component and the existing per-topic emit discipline on the server.
+**Status — core SHIPPED; deferred tail lives here.** The load-bearing
+core (topic toggles → tabbed terminal, filter drawer, per-topic gutter,
+topic catalogue) was promoted into the **console-foundations build** and
+shipped: `TabStrip`, `FilterDrawer`, `GutterStripe`, and the
+`Topic` / `TopicCatalogue` substrate (see
+[docs/subsystems/topics.md](../subsystems/topics.md)). This slate
+continues for the **deferred tail** below — search, sender filter,
+compact mode, timestamps, brief mode / `prose.verbose`, and per-room
+verbosity memory — which has no other home now that the
+console-foundations requirements/plan docs are retired. Builds on the
+cockpit slate's terminal component and the existing per-topic emit
+discipline on the server.
 
 See also:
 
-- [docs/slates/inspection-pane-slate.md](./inspection-pane-slate.md)
+- [docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md)
   — the persistent inspection surface that obviates the need to
   re-`look` for state queries. The filtering tools here manage
   the *narrative* scroll (events, actions, speech), where the
@@ -31,14 +41,16 @@ See also:
 > **Reconciliation note (added post-comms-design).** This slate filters
 > on **topics** only; later work added two axes it should grow into:
 > (1) **channels** — muting/tuning a *channel* (gossip/guild/DM) is a
-> distinct axis from toggling a *topic*; the channel dimension must
-> coordinate with chat's per-channel subscription/tuning rather than
-> duplicate it. **Open design call: are channel-mute and topic-toggle one
-> unified surface or two?** (2) **reactions** — the reactions slate's
-> per-user controls (train intensity, mute-reactions-on-channel, collapse
-> threshold) are display controls that belong with / coordinate with this
-> surface. Both are additive (the founding principle is unchanged); not
-> yet folded into the sections below.
+> distinct axis from toggling a *topic*. **Resolved:** channels
+> (chat-slate) are a **separate axis that shares the tab strip** — a
+> channel gets its own tab alongside the topic tabs rather than folding
+> into the topic toggle surface; per-channel subscription/tuning stays
+> owned by chat. Not one unified mute surface: two axes, one strip.
+> (2) **reactions** — the reactions slate's per-user controls (train
+> intensity, mute-reactions-on-channel, collapse threshold) are display
+> controls that belong with / coordinate with this surface. Both are
+> additive (the founding principle is unchanged); not yet folded into
+> the sections below.
 
 ---
 
@@ -63,6 +75,14 @@ session view is just a filter on the firehose.
 A toolbox, not a single feature. Each entry is its own UI gesture
 the player can engage with independently.
 
+The **topic-toggle** surface shipped (console-foundations:
+`TabStrip` + `FilterDrawer` + `GutterStripe`, see
+[topics.md](../subsystems/topics.md)). The rest of this section is the
+**deferred tail this slate now carries** — each of these is *not* built
+and survives here as the live remainder: **search** (Ctrl-F), **sender
+filter**, **family mute / compact mode**, **timestamps**, **brief mode
+/ `prose.verbose` verbosity**, and **per-room verbosity memory**.
+
 ### Topic toggles
 
 Per-topic on/off controls. Server topics today (partial list):
@@ -78,10 +98,16 @@ Per-topic on/off controls. Server topics today (partial list):
 UI shape: a collapsible filter panel (gear icon? sidebar drawer?)
 with a tree of topics, each with a checkbox. Default all on.
 Player can uncheck to mute. Per-topic checkbox shows a small count
-badge of frames muted since this session started.
+badge of frames muted since this session started. **Shipped** as the
+`FilterDrawer` over the `TabStrip` in the console-foundations build.
 
-Settings persist via player setting (`console.filters.muted: string[]`
-in the existing settings keyspace) so the muting survives reconnect.
+Mute state persists per-tab so it survives reconnect. **Correction
+(what shipped):** the per-tab `muted` lists route through
+`ClientStateMixin` — server-persisted client-view state keyed per tab
+— **not** a flat `console.filters.muted: string[]` *settings* key as
+this slate originally proposed. Per-tab mute is client-UI state, not a
+player-tunable `settings` knob; see the Settings keyspace correction
+below.
 
 ### Search
 
@@ -206,27 +232,38 @@ according to local filter state.
 
 ## Settings keyspace
 
-All client-controlled filters live under the `console.*` settings
-keyspace (parallel to the existing `prose.*`, `movement.*`, etc.):
+> **Correction (what shipped).** This section originally routed per-tab
+> mute through a flat `console.filters.muted: string[]` *settings* key.
+> That is **not** what shipped: per-tab `muted` lists are **client-UI
+> view state**, persisted server-side through **`ClientStateMixin`**
+> keyed per tab — not a player-tunable `settings` knob. The `settings`
+> keyspace is for player-facing tunables surfaced by the `settings`
+> verb; per-tab mute isn't one. Only the genuinely-player-tunable knobs
+> below (timestamps, compact, prose verbosity) belong in `settings`.
+
+The split that *does* hold is between client-view state and server
+emit policy:
+
+- **Per-tab mute / collapse** → `ClientStateMixin` (client-view state,
+  not a `settings` key). Reversible instantly client-side.
+- **Player-tunable view knobs** → `console.*` settings, surfaced by the
+  `settings` verb:
 
 ```
-console.filters.muted: string[]       # topic paths the player has muted
-console.filters.collapsed: string[]   # topic families collapsed to badges
 console.timestamps: boolean
 console.compact: boolean
 console.verbosity: 'brief' | 'full'   # alias for prose.verbose (or vice versa)
 ```
 
-Server-side controls live in `prose.*`:
+- **Server emit policy** → `prose.*`:
 
 ```
 prose.verbose: 'brief' | 'full'
 ```
 
-The split is intentional: `console.*` is the player's view layer;
-`prose.*` controls what the server actually emits. The client
-filter settings can be muted+unmuted instantly; the server prose
-settings change the wire content per command.
+`prose.*` controls what the server actually emits (wire content per
+command); the `console.*` knobs and `ClientStateMixin` view state are
+the player's display layer.
 
 ---
 
@@ -309,11 +346,15 @@ configuration surface.
    gets full content always; brief mode only affects scroll-prose
    verbosity.
 5. **Topic discovery** — how does the player learn what topics
-   exist to filter on? Auto-populate the drawer from received
-   frames? Static catalogue? Some mix?
-6. **Mute survives reconnect?** — yes via `console.filters.muted`
-   setting. But across DEVICES (multi-device session)? Settings
-   are per-avatar, so yes by default. Worth noting.
+   exist to filter on? **Resolved (console-foundations):** the
+   `TopicCatalogue` ships labels/descriptions/families to the client
+   at session-establish; the `FilterDrawer` populates from that
+   catalogue. See [topics.md](../subsystems/topics.md).
+6. **Mute survives reconnect?** — yes, via per-tab `ClientStateMixin`
+   view state (not a `console.filters.muted` setting; see the Settings
+   keyspace correction). Across DEVICES (multi-device session)?
+   `ClientStateMixin` is per-avatar server-side, so yes by default.
+   Worth noting.
 
 ---
 
@@ -321,8 +362,10 @@ configuration surface.
 
 - **MessageApi topic vocabulary** (existing) — the categorization
   anchor for all topic-based filtering.
-- **EnvironmentMixin settings** — both `console.*` (client view
-  state) and `prose.*` (server emit verbosity) live here.
+- **EnvironmentMixin settings** — the player-tunable `console.*` view
+  knobs and `prose.*` (server emit verbosity) live here.
+- **ClientStateMixin** — per-tab `muted` / `collapsed` view state
+  (what shipped) lives here, *not* in `settings`.
 - **MML semantic tags** (shipping incrementally) — the
   `stuff-id` attribute on `<player>` / `<npc>` / `<item>` is
   what powers per-sender filtering and right-click context
