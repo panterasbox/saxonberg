@@ -105,6 +105,11 @@ test('a new player creates a character and spawns into the world', async ({
     await expect(page.getByTestId('chargen-detail-image')).toBeVisible();
     await page.getByTestId('chargen-option-human').hover();
     await expect(page.getByTestId('chargen-detail-label')).toHaveText(/human/i);
+    // The trait line is derived server-side from real Species fields;
+    // every rostered species carries at least a lifespan, so it shows.
+    await expect(page.getByTestId('chargen-detail-traits')).toContainText(
+      /lifespan|long-lived/i,
+    );
 
     await page.getByTestId('chargen-option-human').click();
 

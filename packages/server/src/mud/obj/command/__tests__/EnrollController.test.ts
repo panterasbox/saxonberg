@@ -51,6 +51,13 @@ describe('EnrollController step model', () => {
     species.setCommonNames(['human']);
     species.setNameBankKeys(['common']);
     species.setDefaultDescription('an ordinary-looking person');
+    // Real trait-bearing fields so the derived trait line is exercised.
+    species.setLifespanMax(120);
+    species.setVisionProfile({
+      scotopicMin: 'pitch-black',
+      photopicMax: 'bright',
+      bandShift: -1,
+    });
     vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) =>
       p === SAPIENS_PATH ? (species as never) : (undefined as never),
     );
@@ -88,6 +95,13 @@ describe('EnrollController step model', () => {
     return ctrl.execute({ rest } as EnrollModelLike, ctx);
   }
   type EnrollModelLike = CommandModel & { rest?: string };
+
+  it('species options carry a trait line derived from real Species fields', async () => {
+    await run(''); // bare enroll → species step
+    const human = frames.at(-1)!.options.find((o) => o.value === 'human');
+    // Lifespan 120 (not long-lived) + dark-adapted vision (bandShift -1).
+    expect(human?.traits).toBe('~120-year lifespan · dark-adapted');
+  });
 
   it('bare enroll shows the species step first', async () => {
     await run('');

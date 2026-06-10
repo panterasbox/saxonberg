@@ -232,6 +232,20 @@ const DetailDesc = styled.p`
   line-height: 1.6;
 `;
 
+/**
+ * One-line trait summary under the description (e.g.
+ * "long-lived (~400 yrs) · dark-adapted"). Server-composed from real
+ * Species fields; rendered only when present. Set slightly apart so it
+ * reads as factual texture, distinct from the prose above.
+ */
+const DetailTraits = styled.div`
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgEmphasis};
+  line-height: 1.5;
+  padding-top: ${tokens.space.xs};
+  border-top: 1px solid ${tokens.color.borderMuted};
+`;
+
 /* --- Name step ---------------------------------------------------- */
 
 const Suggestion = styled.div`
@@ -565,6 +579,11 @@ export function CharGenStage({
                       ) : null}
                       {focused?.description ? (
                         <DetailDesc>{focused.description}</DetailDesc>
+                      ) : null}
+                      {focused?.traits ? (
+                        <DetailTraits data-testid="chargen-detail-traits">
+                          {focused.traits}
+                        </DetailTraits>
                       ) : null}
                     </DetailPane>
                   </IllustratedLayout>

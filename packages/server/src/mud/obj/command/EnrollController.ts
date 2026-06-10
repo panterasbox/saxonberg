@@ -134,6 +134,9 @@ const ENROLL_STEPS: EnrollStep[] = [
         label: s.label,
         description: s.description,
         image: s.image ?? null,
+        // Derived once (async) and cached by path; undefined until the
+        // pre-warm runs or when the species has nothing notable.
+        traits: EnrollController.getSpeciesTraits(s.path),
       })),
     validate: (v, _d, cfg) =>
       cfg.species.some((s) => s.key === v.toLowerCase())
@@ -266,6 +269,50 @@ const ENROLL_STEPS: EnrollStep[] = [
   },
 ];
 
+/**
+ * Compose the species' one-line trait summary from its real seed
+ * fields. Only emits populated, differentiating facts — a uniform or
+ * unset value (diurnal, omnivore, baseline vision, lifespan 0) is
+ * omitted rather than printed, so the line never carries fabricated or
+ * noise "stats". An empty result means "nothing notable to surface".
+ */
+function deriveSpeciesTraits(species: Species): string {
+  const parts: string[] = [];
+
+  const lifespan = species.getLifespanMax();
+  if (lifespan && lifespan > 0) {
+    parts.push(
+      lifespan >= 200
+        ? `long-lived (~${lifespan} yrs)`
+        : `~${lifespan}-year lifespan`,
+    );
+  }
+
+  const vision = species.getVisionProfile();
+  if (vision) {
+    // bandShift < 0 → perception is tuned toward lower light.
+    if (vision.bandShift < 0) parts.push('dark-adapted');
+    else if (vision.bandShift > 0) parts.push('needs bright light');
+  }
+
+  const olfactory = species.getOlfactoryProfile();
+  if (olfactory) {
+    if (olfactory.acuity === 'keen') parts.push('keen-nosed');
+    else if (olfactory.acuity === 'dull') parts.push('weak-nosed');
+    else if (olfactory.acuity === 'none') parts.push('no sense of smell');
+  }
+
+  const circadian = species.getCircadianBand();
+  if (circadian === 'nocturnal') parts.push('nocturnal');
+  else if (circadian === 'crepuscular') parts.push('active at dawn and dusk');
+
+  const diet = species.getDiet();
+  if (diet === 'herbivore') parts.push('herbivore');
+  else if (diet === 'carnivore') parts.push('carnivore');
+
+  return parts.join(' · ');
+}
+
 function validSexSet(system: string): string[] {
   switch (system) {
     case 'xy':
@@ -286,9 +333,43 @@ function cap(s: string): string {
 
 export default class EnrollController extends CommandController<EnrollModel> {
   static #config: CharGenConfig | null = null;
+  /**
+   * Per-species derived trait summaries, keyed by template path. `null`
+   * = not yet derived. Populated once by `ensureSpeciesTraits` (the
+   * derivation needs the async-materialized `Species` singletons, which
+   * the sync `options()` can't await — so we pre-warm and cache).
+   */
+  static #speciesTraits: Map<string, string> | null = null;
 
   /** The active CommandContext for the in-flight execute (commit needs it). */
   private ctx!: CommandContext;
+
+  /**
+   * Resolve each rostered species once and cache its derived trait
+   * line. Idempotent: a no-op after the first run (or after a config
+   * reset). Tolerant of unresolved species — they simply carry no
+   * trait line.
+   */
+  static async ensureSpeciesTraits(cfg: CharGenConfig): Promise<void> {
+    if (EnrollController.#speciesTraits) return;
+    const map = new Map<string, string>();
+    for (const s of cfg.species) {
+      try {
+        const species = await StuffApi.singleton<Species>(s.path);
+        if (!species) continue;
+        const traits = deriveSpeciesTraits(species);
+        if (traits) map.set(s.path, traits);
+      } catch {
+        /* unresolved species → no trait line (graceful) */
+      }
+    }
+    EnrollController.#speciesTraits = map;
+  }
+
+  /** The cached trait line for a species path, if any. */
+  static getSpeciesTraits(path: string): string | undefined {
+    return EnrollController.#speciesTraits?.get(path);
+  }
 
   async execute(model: EnrollModel, context: CommandContext): Promise<void> {
     this.ctx = context;
@@ -299,6 +380,9 @@ export default class EnrollController extends CommandController<EnrollModel> {
       login.setEnrollmentDraft(draft);
     }
     const cfg = EnrollController.loadConfig();
+    // Pre-warm the species trait cache so the sync `options()` builder
+    // can read derived trait lines. Cheap after the first call.
+    await EnrollController.ensureSpeciesTraits(cfg);
 
     // Split the raw tail into `<field> <value...>`.
     const rest = (model.rest ?? '').trim();
@@ -517,9 +601,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
     return EnrollController.#config;
   }
 
-  /** Test seam: drop the cached config. */
+  /** Test seam: drop the cached config + derived trait cache. */
   static resetConfigCache(): void {
     EnrollController.#config = null;
+    EnrollController.#speciesTraits = null;
   }
 }
 

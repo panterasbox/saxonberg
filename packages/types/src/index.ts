@@ -954,6 +954,14 @@ export interface CharGenOption {
    * only consumes it. v1: always `null` until image assets ship.
    */
   image?: string | null;
+  /**
+   * Optional one-line trait summary shown under the description in the
+   * detail pane (e.g. "long-lived (~400 yrs) · dark-adapted"). Derived
+   * server-side from the real `Species` fields — only populated,
+   * differentiating facts appear, so absence is meaningful (no
+   * fabricated stats). Species step only; other steps omit it.
+   */
+  traits?: string;
 }
 
 /** The accumulated picks so far (client-readable draft). */
