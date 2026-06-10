@@ -1,5 +1,13 @@
 # The Standard Model
 
+> **Layer: the platform.** This doc describes the *vertical-agnostic
+> platform* — the particle layer everything is built from, and the
+> imagined periodic table of gamification — not the educational game
+> built on it. Saxonberg's game-level essence ("learning as adventure,"
+> education at its core) lives in [vision.md](./vision.md). The two
+> layers are nested, not in tension — reconciled in
+> [lenses/essential-experience.md](./lenses/essential-experience.md).
+
 The third of the engine's orienting docs, alongside
 [design-philosophy.md](./design-philosophy.md) (how honestly the world
 is *modeled*) and [interaction-philosophy.md](./interaction-philosophy.md)

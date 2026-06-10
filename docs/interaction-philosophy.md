@@ -1,5 +1,13 @@
 # Interaction philosophy
 
+> **Layer: the platform.** This doc describes the *vertical-agnostic
+> platform* — text as the medium, the command line as the unit of
+> interaction — not the educational game built on it. Saxonberg's
+> game-level essence ("learning as adventure," education at its core)
+> lives in [vision.md](./vision.md). The two layers are nested, not in
+> tension — reconciled in
+> [lenses/essential-experience.md](./lenses/essential-experience.md).
+
 Companion to [design-philosophy.md](./design-philosophy.md). That doc
 argues how honestly the engine should *model* the world; this one
 argues the two choices that decide how a player *meets* it:

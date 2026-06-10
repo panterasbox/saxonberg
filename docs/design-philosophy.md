@@ -1,5 +1,12 @@
 # Design philosophy
 
+> **Layer: the platform.** This doc describes the *vertical-agnostic
+> platform* — the abstract gamification engine — not the educational
+> game built on it. Saxonberg's game-level essence ("learning as
+> adventure," education at its core) lives in [vision.md](./vision.md).
+> The two layers are nested, not in tension — reconciled in
+> [lenses/essential-experience.md](./lenses/essential-experience.md).
+
 Top-level guidance doc for the engine's design philosophy. Sits
 alongside [roadmap.md](./roadmap.md) and [mixin-slate.md](./slates/mixin-slate.md)
 as a forward-referenced principle that shapes every slate.

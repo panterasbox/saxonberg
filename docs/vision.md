@@ -1,5 +1,16 @@
 # Project Overview
 
+> **Layer: the game.** This doc describes the essential experience of
+> *Saxonberg* — the educational game built on the platform: "learning
+> as adventure." It is **education at its core**, by design. The
+> **platform** underneath is a vertical-agnostic gamification engine
+> with its own, abstract essence; for that, see
+> [design-philosophy.md](./design-philosophy.md),
+> [interaction-philosophy.md](./interaction-philosophy.md), and
+> [standard-model.md](./standard-model.md). The two layers are nested,
+> not in tension — reconciled in
+> [lenses/essential-experience.md](./lenses/essential-experience.md).
+
 Saxonberg transforms the pursuit of knowledge into an immersive multiplayer role-playing experience, set within a richly simulated **virtual university environment**. More than just a collection of online course pages, Saxonberg recreates the broader **university experience** – the bustling campus, diverse locations, social interactions, and academic challenges – as the core **narrative** framework. It's a web-based game world deeply interwoven with a dynamic adaptive learning platform, crafting a compelling journey where academic achievement and engaging gameplay fuel one another. Inspired by the interactive depth of text-based MUDs, Saxonberg establishes a unique synergy: mastery of learning platform content unlocks character abilities and drives the personal story forward within this academic setting, while in-game exploration and collaboration provide rich context and motivation for learning, ultimately fostering superior educational **outcomes**.
 
 **The Saxonberg Experience:**
