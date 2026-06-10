@@ -23,7 +23,7 @@ import { TouchModality } from '../TouchModality';
 import { TasteModality } from '../TasteModality';
 import { VerbalESPModality } from '../VerbalESPModality';
 import { EmotiveESPModality } from '../EmotiveESPModality';
-import { _resetModalityCache } from '../../../../api/perception';
+import { PerceptionApi } from '../../../../api/perception';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
   for (const prior of StuffApi.findAllByTemplatePath<Stuff>(path)) {
@@ -65,7 +65,7 @@ export function buildModality(name: string): Modality {
   modality.setName(spec.name);
   modality.setFamily(spec.family);
   modality.setModality(spec.modality);
-  _resetModalityCache();
+  PerceptionApi._resetModalityCacheForTest();
   return modality;
 }
 

@@ -662,6 +662,50 @@ export class PromptApi {
     };
     MessageApi.sendEnvelope(holder, template);
   }
+
+  /**
+   * Render the giver's `prompt.format` template into a
+   * `PromptRefreshNote` for inclusion in a
+   * `DispatchResponseEnvelope`. Reads the template via
+   * `giver.getSetting('prompt.format')` when the giver composes
+   * `EnvironmentMixin`; otherwise uses the bare default
+   * (`'{{ focus }}>'`).
+   *
+   * Called from `CommandGiverMixin.executeCommand`'s dispatch-
+   * response composition site so every command response carries an
+   * up-to-date base prompt. Also from
+   * `Application.handleCommandMessage`'s empty-command short-circuit.
+   *
+   * Template render failures (Liquid syntax errors, runtime errors)
+   * fall through to the default — the player still gets a usable
+   * prompt rather than a broken response.
+   */
+  public static renderPromptRefresh(giver: Stuff): PromptRefreshNote {
+    let template = DEFAULT_PROMPT_FORMAT;
+    if (MixinApi.isEnvironment(giver)) {
+      const fromSetting = giver.getSetting<string>('prompt.format');
+      if (typeof fromSetting === 'string' && fromSetting.length > 0) {
+        template = fromSetting;
+      }
+    }
+    let rendered: string;
+    try {
+      rendered = ProseApi.format(
+        template,
+        buildPromptContext(giver),
+      ).toString();
+    } catch {
+      try {
+        rendered = ProseApi.format(
+          DEFAULT_PROMPT_FORMAT,
+          buildPromptContext(giver),
+        ).toString();
+      } catch {
+        rendered = '>';
+      }
+    }
+    return { kind: 'prompt-refresh', rendered };
+  }
 }
 
 SecurityApi.decorateApiClass(PromptApi);
@@ -690,52 +734,16 @@ const DEFAULT_PROMPT_FORMAT = '{{ focus }}>';
  * `FocusedMixin.getFocus()` when present (otherwise the empty
  * string). Future tokens (`posture`, `location.name`, `time`)
  * land additively here.
+ *
+ * Module-local helper for `PromptApi.renderPromptRefresh`; exported
+ * solely so the prompt-format unit test can exercise it in isolation
+ * (no production consumer outside this file).
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); no production consumer outside this file
 export function buildPromptContext(
   giver: Stuff,
 ): Record<string, unknown> {
   return {
     focus: MixinApi.isFocused(giver) ? giver.getFocus() : '',
   };
-}
-
-/**
- * Render the giver's `prompt.format` template into a
- * `PromptRefreshNote` for inclusion in a
- * `DispatchResponseEnvelope`. Reads the template via
- * `giver.getSetting('prompt.format')` when the giver composes
- * `EnvironmentMixin`; otherwise uses the bare default
- * (`'{{ focus }}>'`).
- *
- * Called from `CommandGiverMixin.executeCommand`'s dispatch-
- * response composition site so every command response carries an
- * up-to-date base prompt. Also from `Application.handleCommandMessage`'s
- * empty-command short-circuit.
- *
- * Template render failures (Liquid syntax errors, runtime errors)
- * fall through to the default — the player still gets a usable
- * prompt rather than a broken response.
- */
-export function renderPromptRefresh(giver: Stuff): PromptRefreshNote {
-  let template = DEFAULT_PROMPT_FORMAT;
-  if (MixinApi.isEnvironment(giver)) {
-    const fromSetting = giver.getSetting<string>('prompt.format');
-    if (typeof fromSetting === 'string' && fromSetting.length > 0) {
-      template = fromSetting;
-    }
-  }
-  let rendered: string;
-  try {
-    rendered = ProseApi.format(template, buildPromptContext(giver)).toString();
-  } catch {
-    try {
-      rendered = ProseApi.format(
-        DEFAULT_PROMPT_FORMAT,
-        buildPromptContext(giver),
-      ).toString();
-    } catch {
-      rendered = '>';
-    }
-  }
-  return { kind: 'prompt-refresh', rendered };
 }

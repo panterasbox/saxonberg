@@ -16,11 +16,21 @@ media. The questions: is the world coherent? Does it invite exploration?
 Can it hold all the experiences I want — and does it have the kind of
 identity players carry around in their heads after they log off?
 
-> **From the book.** Schell's emphasis is that great worlds are
-> *transmedia* — they're bigger than any one game, able to live in
-> stories, spaces, objects, and sequels because they have a coherent
-> identity of their own. The world is the thing players fall in love
-> with and return to; individual games are visits to it.[^aogd-wo]
+> **From the book.** Schell treats the world as something that "exists
+> apart": "Your game is a doorway to this magic place that exists only
+> in the imagination of your players." His real subject in this chapter
+> is the *transmedia* world — one bigger than any single game — and he
+> names five traits the successful ones share: a single **creative
+> individual at their core** ("very rare indeed for successful worlds to
+> be created by large teams"); room for **many stories** rather than one
+> plotline; the property that they **"make sense through any of their
+> gateways"** (the "it makes more sense if you read the book" problem is
+> "one kiss of death"); a focus on **discovery**; and **wish
+> fulfillment** — a world is worth the labor of imagining only if it
+> "fulfills some deep and important wish." The lens card itself asks just
+> three questions: how is the world *better than the real world*, can
+> there be *multiple gateways* into it, and is it "centered on a single
+> story, or could many stories happen here?"[^aogd-wo]
 
 ## Why our design prompts it
 
@@ -63,7 +73,23 @@ wants a world with its *own* unmistakable character.
   "characterless." The lens's real test is whether this is a world held
   in the head and missed when away (the Eternal City precedent says a
   refusing-to-commit world *can* be beloved) — and that requires the
-  strangeness to have warmth, not just neutrality.
+  strangeness to have warmth, not just neutrality. Schell's **wish
+  fulfillment** criterion sharpens the worry: he says a world earns the
+  player's effort of imagining only if it "fulfills some deep and
+  important wish." It is easy to say what the un-genred campus *is*
+  (specific-but-uncommitted); we have not yet said what *wish* it
+  fulfills. That unanswered question is the gap between a coherent world
+  and a beloved one.
+- **Schell's "creative individual at the core" collides with our
+  many-hands future.** He is blunt that successful transmedia worlds are
+  "rooted in the imagination and aesthetic styling of a single
+  individual" and that it is "very rare indeed for successful worlds to
+  be created by large teams." Our design points the opposite way: a
+  CMS/modding future where the world is built by many hands. The standard
+  model, authoring intelligence, and leases are the consistency guards —
+  but Schell's claim implies they are not enough on their own; coherence
+  of *vision*, not just of rules, is what survives many gateways, and
+  that has to come from somewhere a committee usually can't supply.
 - **The world's promise outruns its content.** Campus + city +
   wilderness biomes is mostly unbuilt; "supports many stories" is
   aspirational until there are places and stories in it. Build starts
@@ -87,17 +113,26 @@ wants a world with its *own* unmistakable character.
    "Strangeness is a finish, never a function" is stated for the first
    campus; promote it to a standing rule for *all* world content,
    especially UGC, so the identity survives many authors.
-3. **Keep transmedia decoration *over* the text-of-record.**
-   Illustration, video, and maps extend the world but must not become
-   the world ([interaction-philosophy.md](../interaction-philosophy.md));
-   the world is text-first, richly decorated.
+3. **Keep transmedia decoration *over* the text-of-record — and make
+   each gateway stand on its own.** Illustration, video, and maps extend
+   the world but must not become it
+   ([interaction-philosophy.md](../interaction-philosophy.md)); the world
+   is text-first, richly decorated. Schell's "make sense through any of
+   their gateways" rule is the discipline here: the route map, an AI
+   illustration, a lesson video must each be *inviting on its own*, never
+   an "it makes more sense if you played the game" fragment. The
+   text-of-record is the gateway that must always make sense; the rest
+   are additional doorways, not prerequisites.
 4. **Favor authored, held-in-the-head geography over procedural
    sprawl.** A world you can navigate from memory is the one you love;
    breadth of substrate is not breadth of *place*.
 
 ---
 
-[^aogd-wo]: Jesse Schell, *The Art of Game Design: A Book of Lenses*
-    (CRC Press) — the **Lens of the World**, from Schell's chapters on
-    worlds and transmedia worldbuilding. Cited by lens; chapter pointer
-    approximate; page numbers omitted (edition-dependent).
+[^aogd-wo]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
+    3rd ed. (CRC Press, 2020) — **Lens #84, the Lens of the World**
+    (p. 369), in the section "What Successful Transmedia Worlds Have in
+    Common" (the five shared traits, pp. 368–369). The three lens
+    questions and the five-trait list are quoted/paraphrased from those
+    pages. (Page numbers are the 3rd-edition print pagination; the lens
+    number is stable across editions.)

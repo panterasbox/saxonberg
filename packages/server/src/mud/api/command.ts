@@ -45,7 +45,7 @@ import { GroupApi } from './group';
 import { ExecutionContextApi } from './execution-context';
 import { CommandLineApi, type ParsedCommand, type RawToken } from './command-line';
 import type { Mml } from './mml';
-import type { GenderedSlot } from './mql/pronoun-memory';
+import type { GenderedSlot } from './mql';
 import { Pronouns } from '@saxonberg/types';
 
 /**
@@ -718,6 +718,7 @@ export type PhaseEffect =
  * `validateCommandEffects` (below) calls this once per effect at
  * load time.
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers stay inside command.ts
 export function validatePhaseEffect(value: unknown): string | null {
   if (value === null || typeof value !== 'object') {
     return 'effect must be an object';
@@ -763,6 +764,7 @@ export function validatePhaseEffect(value: unknown): string | null {
  * field is truthy. Boolean options are the natural fit; other types
  * coerce per JS truthiness.
  */
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers stay inside command.ts
 export function collectPhaseEffects(
   phase: CommandPhase,
   activeModel: Record<string, unknown>,
@@ -2385,6 +2387,39 @@ export class CommandApi {
     if (cmd.fallthrough) out.fallthrough = true;
     return out;
   }
+
+  /**
+   * Validate `value` against a JSON Schema fragment. Returns a
+   * friendly error string on failure, `null` on success. Compiled
+   * validators are cached by JSON-stringified schema so repeated
+   * calls against the same fragment skip recompilation.
+   *
+   * Used by the matcher's struct path and by `WriteController`, which
+   * reads a class's static `dataSchema` after the (async) class load
+   * and validates with the same machinery.
+   */
+  static validateAgainstJsonSchema(
+    schema: Record<string, unknown>,
+    value: unknown,
+  ): string | null {
+    const key = JSON.stringify(schema);
+    let validate = _compiledStructSchemas.get(key);
+    if (!validate) {
+      try {
+        validate = _structAjv.compile(schema);
+        _compiledStructSchemas.set(key, validate);
+      } catch (e) {
+        return `invalid JSON Schema: ${(e as Error).message}`;
+      }
+    }
+    const ok = validate(value);
+    if (ok) return null;
+    const errs = validate.errors ?? [];
+    const first = errs[0];
+    if (!first) return 'schema validation failed';
+    const path = first.instancePath || '<root>';
+    return `${path}: ${first.message ?? 'invalid'}`;
+  }
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */
@@ -2626,7 +2661,7 @@ function coerceStructuredValue(
       };
     }
     if (schema) {
-      const schemaErr = validateAgainstJsonSchema(schema, raw);
+      const schemaErr = CommandApi.validateAgainstJsonSchema(schema, raw);
       if (schemaErr !== null) {
         return {
           ok: false,
@@ -2658,40 +2693,6 @@ function coerceStructuredValue(
  */
 const _structAjv = new Ajv({ allErrors: false, strict: false });
 const _compiledStructSchemas = new Map<string, ValidateFunction>();
-
-/**
- * Validate `value` against a JSON Schema fragment. Returns a friendly
- * error string on failure, `null` on success. Compiled validators are
- * cached by JSON-stringified schema so repeated calls against the
- * same fragment skip recompilation.
- *
- * Exported because some validation lives outside the matcher's sync
- * struct path — e.g. `WriteController` reads a class's static
- * `dataSchema` after the (async) class load and validates with the
- * same machinery.
- */
-export function validateAgainstJsonSchema(
-  schema: Record<string, unknown>,
-  value: unknown
-): string | null {
-  const key = JSON.stringify(schema);
-  let validate = _compiledStructSchemas.get(key);
-  if (!validate) {
-    try {
-      validate = _structAjv.compile(schema);
-      _compiledStructSchemas.set(key, validate);
-    } catch (e) {
-      return `invalid JSON Schema: ${(e as Error).message}`;
-    }
-  }
-  const ok = validate(value);
-  if (ok) return null;
-  const errs = validate.errors ?? [];
-  const first = errs[0];
-  if (!first) return 'schema validation failed';
-  const path = first.instancePath || '<root>';
-  return `${path}: ${first.message ?? 'invalid'}`;
-}
 
 type WordToken = Extract<RawToken, { kind: 'word' }>;
 

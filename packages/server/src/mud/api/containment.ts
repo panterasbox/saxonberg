@@ -74,20 +74,20 @@ type MergeOnArrivalHook = (
 let _mergeOnArrivalHook: MergeOnArrivalHook | null = null;
 
 /**
- * Install (or replace) the merge-on-arrival hook. Called once by
- * `GlobbableApi` at module load. Public via the `_` prefix because
- * it's framework-internal — same shape as `SecurityApi._registerShadowApi`.
- *
- * @internal
- */
-export function _registerMergeOnArrivalHook(hook: MergeOnArrivalHook): void {
-  _mergeOnArrivalHook = hook;
-}
-
-/**
  * Static API for containment and movement operations.
  */
 export class ContainmentApi {
+  /**
+   * Install (or replace) the merge-on-arrival hook. Called once by
+   * `GlobbableApi` at module load. The `_` prefix marks it
+   * framework-internal — same shape as `SecurityApi._registerShadowApi`.
+   *
+   * @internal
+   */
+  public static _registerMergeOnArrivalHook(hook: MergeOnArrivalHook): void {
+    _mergeOnArrivalHook = hook;
+  }
+
   /**
    * Move an item to `to`, or detach it (when `to === null`).
    *

@@ -3,7 +3,7 @@
  * declarations.
  *
  * Each `Events.*` entry becomes a transient property on this Idea.
- * The property's `checkAccess` (built via `emittableBy(...)` in
+ * The property's `checkAccess` (built via `EventApi.emittableBy(...)` in
  * `event-policies.ts`) gates emit and subscribe through `EventApi`.
  *
  * Not a persisted record. Every event prop is `transient: true` and the
@@ -39,7 +39,7 @@ export default class EventRegistry extends EventRegistryBase {
    *
    * Custom events that no one frontloads here get auto-declared on
    * first `EventApi.emit` / `EventApi.on` with the default
-   * `emittableBy()` policy. Everything is treated the same — the
+   * `EventApi.emittableBy()` policy. Everything is treated the same — the
    * frontloading just lets the well-known set carry tighter
    * per-event allowlists from the start.
    */
@@ -62,7 +62,7 @@ export default class EventRegistry extends EventRegistryBase {
    * and the setProp returns `false`.
    *
    * The legitimate path is `EventApi.emit/on`, which calls
-   * `initProp` with a real `emittableBy()` policy BEFORE setProp
+   * `initProp` with a real `EventApi.emittableBy()` policy BEFORE setProp
    * fires — so the auto-init never runs for EventApi-mediated
    * traffic.
    */

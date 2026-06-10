@@ -5,19 +5,19 @@
  * the access-policy lookup that `EventRegistry.postRegister`
  * frontloads at boot. Custom (unlisted) events are first-class —
  * `EventApi.emit` / `EventApi.on` auto-register on first touch with
- * the default `emittableBy()` policy. The well-known set differs
+ * the default `EventApi.emittableBy()` policy. The well-known set differs
  * only in being declared up-front with tighter per-event allowlists.
  *
  * Adding a new event:
  *   1. Add an entry to `Events` (TS key + dot-notation string).
  *   2. Optionally extend `EventPayloads` with a payload shape.
  *   3. Optionally add a `POLICIES` entry if the default
- *      `emittableBy()` (open-public emit, EventApi-mediated) is too
+ *      `EventApi.emittableBy()` (open-public emit, EventApi-mediated) is too
  *      permissive.
  */
 
 import type { PropAccessCheck, PropValue } from './stuff/Propertied';
-import { emittableBy } from '../api/event';
+import { EventApi } from '../api/event';
 import { StuffApi } from '../api/stuff';
 import { HotReloadApi } from '../api/hot-reload';
 
@@ -109,38 +109,38 @@ export interface EventPayloads {
 
 /**
  * Resolve the default policy for an event name. Falls back to a
- * permissive (no-allowlist) `emittableBy()` for unknown names so a
+ * permissive (no-allowlist) `EventApi.emittableBy()` for unknown names so a
  * custom event registered ad-hoc still gets the EventApi-mediated
  * defense without requiring this map to be edited.
  *
- * Lazily initialised on first call so we don't run `emittableBy(...)`
+ * Lazily initialised on first call so we don't run `EventApi.emittableBy(...)`
  * at module-top: this file participates in a cycle with `api/event`
- * (which exports `emittableBy`) and `api/stuff` (the StuffApi
+ * (which owns `EventApi.emittableBy`) and `api/stuff` (the StuffApi
  * binding the policy references). At module-load time those
  * imports may resolve to partial modules; deferring the table
  * construction to first-call avoids the trap.
  */
 export function defaultPolicyFor(eventName: string): PropAccessCheck<PropValue> {
   const policy = getPolicies()[eventName as EventName];
-  return policy ?? emittableBy();
+  return policy ?? EventApi.emittableBy();
 }
 
 let _policies: Record<EventName, PropAccessCheck<PropValue>> | null = null;
 function getPolicies(): Record<EventName, PropAccessCheck<PropValue>> {
   if (_policies) return _policies;
   _policies = {
-    [Events.StuffCreated]: emittableBy(StuffApi),
-    [Events.StuffDestructed]: emittableBy(StuffApi),
-    [Events.StuffFieldChanged]: emittableBy(),
-    [Events.StuffPropertyChanged]: emittableBy(),
-    [Events.StuffShadowChanged]: emittableBy(),
-    [Events.ConnectionAttached]: emittableBy(),
-    [Events.PlayerLoggedIn]: emittableBy(),
-    [Events.PlayerLoggedOut]: emittableBy(),
-    [Events.ModuleReloaded]: emittableBy(HotReloadApi),
-    [Events.ModuleRolledBack]: emittableBy(HotReloadApi),
-    [Events.ModuleUnloaded]: emittableBy(HotReloadApi),
-    [Events.ModuleReloadFailed]: emittableBy(HotReloadApi),
+    [Events.StuffCreated]: EventApi.emittableBy(StuffApi),
+    [Events.StuffDestructed]: EventApi.emittableBy(StuffApi),
+    [Events.StuffFieldChanged]: EventApi.emittableBy(),
+    [Events.StuffPropertyChanged]: EventApi.emittableBy(),
+    [Events.StuffShadowChanged]: EventApi.emittableBy(),
+    [Events.ConnectionAttached]: EventApi.emittableBy(),
+    [Events.PlayerLoggedIn]: EventApi.emittableBy(),
+    [Events.PlayerLoggedOut]: EventApi.emittableBy(),
+    [Events.ModuleReloaded]: EventApi.emittableBy(HotReloadApi),
+    [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
+    [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),
+    [Events.ModuleReloadFailed]: EventApi.emittableBy(HotReloadApi),
   };
   return _policies;
 }

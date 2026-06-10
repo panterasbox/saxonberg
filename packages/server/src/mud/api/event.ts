@@ -89,51 +89,6 @@ interface HistoryEntry<T> {
 
 const HISTORY_LIMIT = 100;
 
-/**
- * Build an access-check function for an event property. Two checks:
- *
- *   1. Defense — `setProp`/`getProp` on the registry must have come
- *      via EventApi. Even if a caller gets the registry instance and
- *      tries to call `setProp` directly, this rejects the bypass.
- *   2. Allowlist — for `Set` (emit), the originating caller's class
- *      must be in `allowed`. `Get` (subscribe) is open by default
- *      because a subscriber has no privilege to leak; tighten with
- *      `eventPolicy({ emit, subscribe })` if a specific event needs
- *      it.
- *
- * Stack-walks so intervening frames (e.g. PropertiedMixin's own
- * `checkAccess` proxy mediation) don't break the check.
- */
-export function emittableBy(
-  ...allowed: OriginatorRef[]
-): PropAccessCheck<PropValue> {
-  return (_prop, op) => {
-    const stack = ExecutionContextApi.getCallStack();
-
-    // Defense: somewhere on the stack, EventApi (the API class
-    // itself, target on a static-decorator frame) must be present.
-    const eventApiIdx = findClassFrame(stack, EventApi);
-    if (eventApiIdx < 0) return false;
-
-    if (op === PropOperations.Get) {
-      // Subscribe: only the EventApi-mediated path is permitted; the
-      // originator class isn't gated by default.
-      return true;
-    }
-    if (op !== PropOperations.Set) {
-      return false;
-    }
-    if (allowed.length === 0) {
-      // No allowlist supplied: open emit.
-      return true;
-    }
-
-    // The originator is the frame just BELOW the EventApi frame.
-    const originator = stack[eventApiIdx - 1]?.target;
-    return originatorMatches(originator, allowed);
-  };
-}
-
 function findClassFrame(
   stack: ReadonlyArray<{ target: unknown }>,
   cls: unknown
@@ -142,28 +97,6 @@ function findClassFrame(
     if (stack[i]!.target === cls) return i;
   }
   return -1;
-}
-
-/**
- * Companion to `emittableBy` for events that want to gate subscribe
- * (Get) too. Composes both checks; pass `null` for either side to
- * leave it open.
- */
-export function eventPolicy(opts: {
-  emit: OriginatorRef[];
-  subscribe?: OriginatorRef[] | null;
-}): PropAccessCheck<PropValue> {
-  const emitGate = emittableBy(...opts.emit);
-  return (prop, op, special) => {
-    if (op === PropOperations.Get && opts.subscribe && opts.subscribe.length > 0) {
-      const stack = ExecutionContextApi.getCallStack();
-      const eventApiIdx = findClassFrame(stack, EventApi);
-      if (eventApiIdx < 0) return false;
-      const originator = stack[eventApiIdx - 1]?.target;
-      return originatorMatches(originator, opts.subscribe);
-    }
-    return emitGate(prop, op, special);
-  };
 }
 
 function originatorMatches(
@@ -244,6 +177,77 @@ export class EventApi {
     if (!reg) return null;
     this.#registryRef = reg;
     return reg;
+  }
+
+  /**
+   * Build an access-check function for an event property. Two checks:
+   *
+   *   1. Defense — `setProp`/`getProp` on the registry must have come
+   *      via EventApi. Even if a caller gets the registry instance and
+   *      tries to call `setProp` directly, this rejects the bypass.
+   *   2. Allowlist — for `Set` (emit), the originating caller's class
+   *      must be in `allowed`. `Get` (subscribe) is open by default
+   *      because a subscriber has no privilege to leak; tighten with
+   *      `EventApi.eventPolicy({ emit, subscribe })` if a specific
+   *      event needs it.
+   *
+   * Stack-walks so intervening frames (e.g. PropertiedMixin's own
+   * `checkAccess` proxy mediation) don't break the check.
+   */
+  public static emittableBy(
+    ...allowed: OriginatorRef[]
+  ): PropAccessCheck<PropValue> {
+    return (_prop, op) => {
+      const stack = ExecutionContextApi.getCallStack();
+
+      // Defense: somewhere on the stack, EventApi (the API class
+      // itself, target on a static-decorator frame) must be present.
+      const eventApiIdx = findClassFrame(stack, EventApi);
+      if (eventApiIdx < 0) return false;
+
+      if (op === PropOperations.Get) {
+        // Subscribe: only the EventApi-mediated path is permitted; the
+        // originator class isn't gated by default.
+        return true;
+      }
+      if (op !== PropOperations.Set) {
+        return false;
+      }
+      if (allowed.length === 0) {
+        // No allowlist supplied: open emit.
+        return true;
+      }
+
+      // The originator is the frame just BELOW the EventApi frame.
+      const originator = stack[eventApiIdx - 1]?.target;
+      return originatorMatches(originator, allowed);
+    };
+  }
+
+  /**
+   * Companion to `emittableBy` for events that want to gate subscribe
+   * (Get) too. Composes both checks; pass `null` for either side to
+   * leave it open.
+   */
+  public static eventPolicy(opts: {
+    emit: OriginatorRef[];
+    subscribe?: OriginatorRef[] | null;
+  }): PropAccessCheck<PropValue> {
+    const emitGate = EventApi.emittableBy(...opts.emit);
+    return (prop, op, special) => {
+      if (
+        op === PropOperations.Get &&
+        opts.subscribe &&
+        opts.subscribe.length > 0
+      ) {
+        const stack = ExecutionContextApi.getCallStack();
+        const eventApiIdx = findClassFrame(stack, EventApi);
+        if (eventApiIdx < 0) return false;
+        const originator = stack[eventApiIdx - 1]?.target;
+        return originatorMatches(originator, opts.subscribe);
+      }
+      return emitGate(prop, op, special);
+    };
   }
 
   /**
@@ -503,7 +507,7 @@ export class EventApi {
   static #ensureRegistered(reg: EventRegistry, name: string): void {
     reg.initProp(Property.of<PropValue>(name), {
       transient: true,
-      checkAccess: emittableBy(),
+      checkAccess: EventApi.emittableBy(),
     });
   }
 

@@ -56,7 +56,7 @@
 
 import { CommandController } from '../../lib/command/CommandController';
 import {
-  validateAgainstJsonSchema,
+  CommandApi,
   type CommandContext,
   type CommandModel,
 } from '../../api/command';
@@ -205,7 +205,7 @@ export default class WriteController extends CommandController<WriteModel> {
     }
     const schema = (cls as SchemaBearingClass | undefined)?.dataSchema;
     if (!schema) return null;
-    const err = validateAgainstJsonSchema(schema, data);
+    const err = CommandApi.validateAgainstJsonSchema(schema, data);
     return err === null ? null : `data: ${err}`;
   }
 

@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { EventApi, emittableBy } from '../event';
+import { EventApi } from '../event';
 import { Events } from '../../lib/events';
 import EventRegistry from '../../obj/EventRegistry';
 import { StuffApi } from '../stuff';
@@ -202,7 +202,7 @@ describe('EventApi', () => {
     const reg = await makeRegistry();
     reg.initProp(Property.of<PropValue>('debug.event'), {
       transient: true,
-      checkAccess: emittableBy(),
+      checkAccess: EventApi.emittableBy(),
     });
     // Direct setProp still rejected (no EventApi frame).
     const okDirect = reg.setProp(
@@ -247,7 +247,7 @@ describe('EventApi', () => {
     await makeRegistry();
     // Custom events are first-class — no need to add them to the
     // Events table first. The first emit OR subscribe declares
-    // them with the default emittableBy() policy.
+    // them with the default EventApi.emittableBy() policy.
     const seen: string[] = [];
     const sub = EventApi.on<string>('quest.completed', (p) => {
       seen.push(p);
