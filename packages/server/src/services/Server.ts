@@ -65,6 +65,13 @@ export class Server {
    * Setup all middleware.
    */
   private setupMiddleware(): void {
+    // Behind a TLS-terminating reverse proxy (Caddy → http://localhost:2010),
+    // trust the first proxy hop so Express honors X-Forwarded-Proto. Without
+    // this, req.secure is false on the proxied connection and
+    // express-session refuses to issue the `secure` session cookie in
+    // production — logins complete but the session never sticks.
+    this.app.set('trust proxy', 1);
+
     // CORS
     this.app.use(
       cors({
