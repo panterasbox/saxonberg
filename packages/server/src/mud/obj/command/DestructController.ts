@@ -21,6 +21,8 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
 import { DescribeApi } from '../../api/describe';
+import { AccessApi } from '../../api/access';
+import { Zone } from '../../lib/zone/Zone';
 
 interface DestructModel extends CommandModel {
   target?: MqlOneResult;
@@ -28,12 +30,33 @@ interface DestructModel extends CommandModel {
 }
 
 export class DestructController extends CommandController<DestructModel> {
-  execute(model: DestructModel, context: CommandContext): void {
+  async execute(model: DestructModel, context: CommandContext): Promise<void> {
     const target = model.target;
     if (!target || target.stuff === null) {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const stuff = target.stuff;
+    const giver = context.commandGiver;
+
+    // Zone targets route to canMutateZone (role-gated on the
+    // primary ownerGroup); everything else uses the slice walk.
+    // Both force and non-force branches go through the same gate;
+    // force only differs in the action string for the audit trail.
+    const allowed = stuff instanceof Zone
+      ? await AccessApi.canMutateZone(giver, stuff)
+      : await AccessApi.can(
+          giver,
+          model.force ? 'force-destruct' : 'destruct',
+          stuff,
+        );
+    if (!allowed) {
+      return this.fail(
+        context,
+        "you don't have permission to destruct that",
+        'access-denied',
+      );
+    }
+
     const name = DescribeApi.getDisplayName(stuff);
     try {
       const fn = model.force ? StuffApi.forceDestruct : StuffApi.destruct;

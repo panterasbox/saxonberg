@@ -23,6 +23,7 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
+import { AccessApi } from '../../api/access';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -55,6 +56,15 @@ export class GotoController extends CommandController<GotoModel> {
 
     if (!MixinApi.isContainable(giver)) {
       return this.fail(context, 'cannot-move', 'cannot move yourself');
+    }
+
+    const action = model.force ? 'force-goto' : 'goto';
+    if (!(await AccessApi.can(giver, action, dest))) {
+      return this.fail(
+        context,
+        'access-denied',
+        "you don't have permission to go there",
+      );
     }
 
     // 1. Polished path.

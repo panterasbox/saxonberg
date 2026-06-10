@@ -40,6 +40,8 @@ import {
 } from './mql';
 import { MixinApi } from './mixin';
 import { MessageApi } from './message';
+import { AccessApi } from './access';
+import { GroupApi } from './group';
 import { ExecutionContextApi } from './execution-context';
 import { CommandLineApi, type ParsedCommand, type RawToken } from './command-line';
 import type { Mml } from './mml';
@@ -114,6 +116,20 @@ export interface CommandContext {
    * this; everyone else ignores it.
    */
   aliasExpansion?: AliasExpansionInfo;
+
+  /**
+   * Precomputed permission snapshot used by MQL pre-resolution
+   * gates. Populated by the dispatcher per command via
+   * `AccessApi.isAuthor` + (when admin) a `'core'` membership read;
+   * the resolver stamps it onto every `MqlContext` it builds. Absent
+   * for server-internal callers building MqlContexts directly.
+   *
+   * @internal
+   */
+  _mqlPermission?: {
+    isAuthor: boolean;
+    coreMemberIds?: ReadonlySet<string>;
+  };
 
   /**
    * Accumulate a structured note. Auto-escalates status per the
@@ -202,6 +218,10 @@ class CommandContextImpl implements CommandContext {
   public command: CommandDefinition;
   public interactive?: Interactive;
   public aliasExpansion?: AliasExpansionInfo;
+  public _mqlPermission?: {
+    isAuthor: boolean;
+    coreMemberIds?: ReadonlySet<string>;
+  };
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -1822,6 +1842,40 @@ export class CommandApi {
 
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
+
+    // Precompute the MQL permission snapshot once per command. The
+    // resolver consults it synchronously to gate pre-resolution
+    // operators (`:online`, path seeds, `prop:` filters etc.); the
+    // `:admin` predicate's per-target check reads `coreMemberIds`.
+    // Best-effort: if the AccessRegistry isn't reachable (no DB,
+    // test harness without bootstrap) the snapshot stays absent
+    // and the resolver permits — matching the legacy server-internal
+    // -caller default for paths that build their own MqlContext.
+    if (context._mqlPermission === undefined) {
+      try {
+        const isAuthor = await AccessApi.isAuthor(giver);
+        let coreMemberIds: Set<string> | undefined;
+        if (isAuthor) {
+          const reg = await GroupApi.registry();
+          const core = await reg.managed().findByName('core');
+          if (core?._id) {
+            const coreRef = `managed:${core._id}`;
+            const members = await GroupApi.membersOf(coreRef);
+            coreMemberIds = new Set<string>();
+            for (const m of members) {
+              const pid = (m as { getPlayerId?: () => string }).getPlayerId?.();
+              if (pid) coreMemberIds.add(pid);
+            }
+          }
+        }
+        context._mqlPermission = { isAuthor, coreMemberIds };
+      } catch {
+        // AccessRegistry unreachable — leave snapshot absent so the
+        // resolver permits (server-internal-caller compatibility).
+      }
+    }
+    const permission = context._mqlPermission;
+
     // Option-definition map for the active verb / subcommand,
     // collected once and reused. The positional resolve loop
     // consults it for phase-effect gating (e.g. `--peek` skipping
@@ -1866,7 +1920,7 @@ export class CommandApi {
         try {
           r = { stuff: [] };
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
             if (r.stuff.length > 0) break;
           }
         } catch (err) {
@@ -1903,7 +1957,7 @@ export class CommandApi {
         try {
           for (const scope of tries) {
             if (useTop) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope, permission });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1911,7 +1965,7 @@ export class CommandApi {
                 break;
               }
             } else {
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
               if (r.stuff.length > 0) {
                 stuff = r.stuff;
                 via = r.via;
@@ -1983,7 +2037,7 @@ export class CommandApi {
         try {
           r = { stuff: [] };
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
             if (r.stuff.length > 0) break;
           }
         } catch (err) {
@@ -2012,7 +2066,7 @@ export class CommandApi {
         try {
           for (const scope of tries) {
             if (useTop) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope, permission });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -2020,7 +2074,7 @@ export class CommandApi {
                 break;
               }
             } else {
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
               if (r.stuff.length > 0) {
                 stuff = r.stuff;
                 via = r.via;

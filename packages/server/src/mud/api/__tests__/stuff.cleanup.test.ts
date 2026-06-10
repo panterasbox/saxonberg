@@ -226,24 +226,25 @@ describe('StuffApi.destruct — mixin-registry cleanup dispatcher', () => {
   });
 });
 
-describe('StuffApi.forceDestruct — cleanup parity with destruct', () => {
+describe('StuffApi.forceDestruct — narrow-entry rejection', () => {
   // The force-bypass path uses the same `#destructCore` body, so
-  // framework cleanup must fire identically. The AdminOnly stub
-  // currently always denies, so we can't observe the body via the
-  // public `forceDestruct` entry yet. We assert the documented
-  // behavior at the call-policy boundary: until AdminOnly is wired
-  // for real, forceDestruct throws before the body runs, which
-  // is itself an invariant worth pinning.
+  // framework cleanup must fire identically when reached through
+  // the legitimate `DestructController` entry. Direct calls from
+  // any other module (this test file included) are denied by the
+  // `FromController(DestructController)` policy before the body
+  // runs — the invariant the narrow-entry pattern guarantees.
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
     captures.length = 0;
   });
 
-  it('forceDestruct rejects (AdminOnly stub) before any cleanup fires', () => {
+  it('forceDestruct rejects from outside DestructController before any cleanup fires', () => {
     class Tagged extends TagMixinA(Idea) {}
     const target = makeStuff(() => new Tagged());
-    expect(() => StuffApi.forceDestruct(target)).toThrow(/admin/i);
+    expect(() => StuffApi.forceDestruct(target)).toThrow(
+      /FromModule.*DestructController/,
+    );
     expect(captures).toEqual([]);
     expect(target.isDestroyed()).toBe(false);
   });

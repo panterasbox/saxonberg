@@ -103,6 +103,16 @@ backed by one Api orchestration helper:
   [architecture.md § Orchestration lives one layer up from raw
   steps](../architecture.md#orchestration-lives-one-layer-up-from-raw-steps).
 
+**`ownerGroup` / `accessGroups` are the first named substrate fields
+that ride this walk.** Both live on `Zone` as persistent fields
+(`Zone.persistentFields = ['ownerGroup', 'accessGroups']`), validated
+on the setter (`source:id` shape, throws on malformed), and round-tripped
+through `PersistentHydrator`. The access build consumes them via
+`AccessApi.can` — the flat-union walk collects the closest
+`ownerGroup` plus every `accessGroups` entry up to root. `accessGroups`
+entries from parent zones propagate to children (filesystem ACL
+semantics). See [access.md](./access.md) for the consumer side.
+
 **Every Zone subclass participates as an inheritance node** —
 FolderZones, HomeZones, Clades, and spatial zones alike — because
 zone-carried defaults flow through folder ancestry too (e.g., a

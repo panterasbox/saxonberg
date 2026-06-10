@@ -16,8 +16,12 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import { TemplateApi } from '../../api/template';
+import { AccessApi } from '../../api/access';
 import { Template } from '../../lib/stuff/Template';
+import { Zone } from '../../lib/zone/Zone';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface CpModel extends CommandModel {
   src?: string;
@@ -44,6 +48,28 @@ export class CpController extends CommandController<CpModel> {
     if (tree === 'content') {
       const src = SourceTreeApi.joinLogical(cwd, model.src, { home });
       const dst = SourceTreeApi.joinLogical(cwd, model.dst, { home });
+      // Source endpoint is a READ (slice walk only). Dest endpoint
+      // is a WRITE (Zone-target detection routes to canMutateZone).
+      const srcResource = StuffApi.findByTemplatePath<Stuff>(src) ?? null;
+      if (!(await AccessApi.can(giver, 'read', srcResource))) {
+        return this.fail(
+          context,
+          "you don't have permission to read the source",
+          'access-denied',
+        );
+      }
+      const dstResource = StuffApi.findByTemplatePath<Stuff>(dst) ?? null;
+      const dstAllowed =
+        dstResource instanceof Zone
+          ? await AccessApi.canMutateZone(giver, dstResource)
+          : await AccessApi.can(giver, 'write', dstResource);
+      if (!dstAllowed) {
+        return this.fail(
+          context,
+          "you don't have permission to write to the destination",
+          'access-denied',
+        );
+      }
       const tpl = await Template.findByPath(src);
       if (!tpl) return this.fail(context, `no template at ${src}`);
       try {
@@ -58,6 +84,34 @@ export class CpController extends CommandController<CpModel> {
       }
       this.tell(context, `\ncopied ${src} → ${dst}\n`);
       return;
+    }
+
+    // Source-tree cp. Source endpoint = read; dest endpoint = write
+    // (developer + slice walk).
+    const srcLogical = SourceTreeApi.joinLogical(cwd, model.src, { home });
+    const dstLogical = SourceTreeApi.joinLogical(cwd, model.dst, { home });
+    const srcSlice = await AccessApi.resolveSourceFolderZone(srcLogical);
+    if (!(await AccessApi.can(giver, 'read', srcSlice))) {
+      return this.fail(
+        context,
+        "you don't have permission to read that source",
+        'access-denied',
+      );
+    }
+    if (!(await AccessApi.isDeveloper(giver))) {
+      return this.fail(
+        context,
+        "you don't have permission to write source",
+        'access-denied',
+      );
+    }
+    const dstSlice = await AccessApi.resolveSourceFolderZone(dstLogical);
+    if (!(await AccessApi.can(giver, 'write', dstSlice))) {
+      return this.fail(
+        context,
+        "you don't have permission to write to that source slice",
+        'access-denied',
+      );
     }
 
     let absSrc: string, absDst: string;

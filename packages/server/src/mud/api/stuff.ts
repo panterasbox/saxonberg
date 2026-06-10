@@ -34,6 +34,11 @@ import { HotReloadApi } from './hot-reload';
 import { DestructError, type VetoResult } from '../lib/errors';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+// `DestructController` is reached lazily via a string module id to
+// avoid a value-level static-import cycle (api/stuff → controller →
+// StuffApi). `FromControllerByModuleId` consults `ModuleApi.find` at
+// call time, by which point the controller's `_callSecModuleStamp`
+// is established.
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
@@ -595,13 +600,17 @@ export class StuffApi {
    * but ignores the veto result. The `onDestruct` cleanup hook still
    * runs.
    *
-   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
-   * always-deny stub: every call throws `SecurityError: admin
-   * privilege required` from the decorator gate before this body
-   * runs. The seam is in place; the policy will swap to a real
-   * permissions-aware shape when the permission framework lands.
+   * Gated by `SecurityPolicies.FromController(DestructController)` —
+   * the **narrow-entry pattern**. Only `DestructController` can
+   * reach this entry point; the controller does the
+   * `AccessApi.can(giver, 'force-destruct', target)` check before
+   * invoking. Combined, the mutation has exactly one legitimate
+   * entry path AND that path enforces who is authorized.
+   *
+   * Direct calls from outside `DestructController`'s module throw
+   * `SecurityError` from the decorator gate before this body runs.
    */
-  @CallSecurity(SecurityPolicies.AdminOnly)
+  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/DestructController#DestructController'))
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
   }

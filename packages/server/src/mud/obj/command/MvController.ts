@@ -15,8 +15,12 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import { TemplateApi } from '../../api/template';
+import { AccessApi } from '../../api/access';
 import { Template } from '../../lib/stuff/Template';
+import { Zone } from '../../lib/zone/Zone';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 interface MvModel extends CommandModel {
   src?: string;
@@ -43,6 +47,32 @@ export class MvController extends CommandController<MvModel> {
     if (tree === 'content') {
       const src = SourceTreeApi.joinLogical(cwd, model.src, { home });
       const dst = SourceTreeApi.joinLogical(cwd, model.dst, { home });
+      // mv REMOVES source after write — so both endpoints are WRITE
+      // ops in terms of authority. Zone-target detection on both.
+      const srcResource = StuffApi.findByTemplatePath<Stuff>(src) ?? null;
+      const dstResource = StuffApi.findByTemplatePath<Stuff>(dst) ?? null;
+      const srcAllowed =
+        srcResource instanceof Zone
+          ? await AccessApi.canMutateZone(giver, srcResource)
+          : await AccessApi.can(giver, 'rm', srcResource);
+      if (!srcAllowed) {
+        return this.fail(
+          context,
+          "you don't have permission to move from there",
+          'access-denied',
+        );
+      }
+      const dstAllowed =
+        dstResource instanceof Zone
+          ? await AccessApi.canMutateZone(giver, dstResource)
+          : await AccessApi.can(giver, 'write', dstResource);
+      if (!dstAllowed) {
+        return this.fail(
+          context,
+          "you don't have permission to move there",
+          'access-denied',
+        );
+      }
       const tpl = await Template.findByPath(src);
       if (!tpl) return this.fail(context, `no template at ${src}`);
       try {
@@ -58,6 +88,35 @@ export class MvController extends CommandController<MvModel> {
       }
       this.tell(context, `\nmoved ${src} → ${dst}\n`);
       return;
+    }
+
+    // Source-tree mv. Both endpoints are WRITE — `mv` REMOVES source
+    // after write — so src-side slice walk must also be a write check
+    // (developer + slice walk on src and dst).
+    if (!(await AccessApi.isDeveloper(giver))) {
+      return this.fail(
+        context,
+        "you don't have permission to write source",
+        'access-denied',
+      );
+    }
+    const srcLogical = SourceTreeApi.joinLogical(cwd, model.src, { home });
+    const dstLogical = SourceTreeApi.joinLogical(cwd, model.dst, { home });
+    const srcSlice = await AccessApi.resolveSourceFolderZone(srcLogical);
+    if (!(await AccessApi.can(giver, 'rm', srcSlice))) {
+      return this.fail(
+        context,
+        "you don't have permission to move from that source slice",
+        'access-denied',
+      );
+    }
+    const dstSlice = await AccessApi.resolveSourceFolderZone(dstLogical);
+    if (!(await AccessApi.can(giver, 'write', dstSlice))) {
+      return this.fail(
+        context,
+        "you don't have permission to move to that source slice",
+        'access-denied',
+      );
     }
 
     let absSrc: string, absDst: string;

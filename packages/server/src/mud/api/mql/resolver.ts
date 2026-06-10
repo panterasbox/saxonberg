@@ -27,10 +27,9 @@ import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import { desugar } from './desugar';
-import type { MqlQuantity } from './types';
+import { MqlPermissionError, type MqlQuantity } from './types';
 import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
-import { checkTier } from './permissions';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
 import {
   candidatesForFlat,
@@ -84,8 +83,25 @@ export class MqlDesugarError extends MqlResolveError {
 
 /** Public re-export so test code and callers can catch resolver-side
  *  errors without importing each leaf module. */
-export { MqlPermissionError } from './permissions';
+export { MqlPermissionError } from './types';
 export type { MqlParseError };
+
+/**
+ * Inline replacement for the retired `checkTier` helper. Throws
+ * `MqlPermissionError` when the caller's MqlContext carries a
+ * populated permission snapshot whose `isAuthor` is false. Absent
+ * snapshot → permits (server-internal callers building MqlContexts
+ * directly continue to work unchanged).
+ */
+function gateAuthor(operator: string, tier: 'authoring' | 'admin', ctx: MqlContext): void {
+  if (ctx.permission && !ctx.permission.isAuthor) {
+    throw new MqlPermissionError(
+      `You don't have permission to use '${operator}' here.`,
+      operator,
+      tier,
+    );
+  }
+}
 
 /**
  * Resolve a query string against a context, returning the full list
@@ -202,7 +218,7 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'literal':
       return resolveLiteralSeed(node.value, ctx);
     case 'path': {
-      checkTier('authoring', node.pattern, ctx.commandGiver);
+      gateAuthor(node.pattern, 'authoring', ctx);
       // First: live clones whose `templatePath` matches under glob
       // semantics. Existing pre-Phase behavior.
       const clones = StuffApi.findByPathGlob(node.pattern);
@@ -217,7 +233,7 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(StuffApi.findTemplatesByPath(node.pattern));
     }
     case 'stuffId': {
-      checkTier('authoring', `#${node.id}`, ctx.commandGiver);
+      gateAuthor(`#${node.id}`, 'authoring', ctx);
       const found = StuffApi.findById(node.id);
       return found ? matchesFromStuff([found]) : [];
     }
@@ -298,7 +314,7 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(allOnlineCommandGivers());
     }
     if (w === 'world') {
-      checkTier('admin', 'world', ctx.commandGiver);
+      gateAuthor('world', 'admin', ctx);
       return matchesFromStuff(StuffApi.getAllObjects());
     }
     if (w === 'peers') {
@@ -565,7 +581,7 @@ function candidatesForScopePart(
   }
   if (lower === 'world') {
     try {
-      checkTier('admin', 'world', ctx.commandGiver);
+      gateAuthor('world', 'admin', ctx);
     } catch {
       return [];
     }
@@ -582,7 +598,7 @@ function candidatesForScopePart(
   }
   if (part.startsWith('/')) {
     try {
-      checkTier('authoring', part, ctx.commandGiver);
+      gateAuthor(part, 'authoring', ctx);
     } catch {
       return [];
     }
@@ -590,7 +606,7 @@ function candidatesForScopePart(
   }
   if (part.startsWith('#') && part.length > 1) {
     try {
-      checkTier('authoring', part, ctx.commandGiver);
+      gateAuthor(part, 'authoring', ctx);
     } catch {
       return [];
     }
@@ -988,10 +1004,12 @@ function filterByKeywordsOrPredicate(
   if (words.length === 1 && isPredicateName(words[0]!)) {
     const name = words[0]!;
     const predicate = MQL_PREDICATES[name]!;
-    checkTier(predicate.tier, name, ctx.commandGiver);
+    if (predicate.tier !== 'public') {
+      gateAuthor(name, predicate.tier, ctx);
+    }
     const out: MqlMatch[] = [];
     for (const m of input) {
-      if (predicate.check(m.stuff, ctx.commandGiver)) out.push(m);
+      if (predicate.check(m.stuff, ctx.commandGiver, ctx)) out.push(m);
     }
     return out;
   }
@@ -1171,19 +1189,21 @@ function readAtom(
   const op = `${atom.namespace}.${atom.key}`;
   switch (atom.namespace) {
     case 'prop':
-      checkTier('authoring', op, ctx.commandGiver);
+      gateAuthor(op, 'authoring', ctx);
       return readProp(stuff, atom.key);
     case 'mixin':
-      checkTier('authoring', op, ctx.commandGiver);
+      gateAuthor(op, 'authoring', ctx);
       return hasMixinByLowercaseName(stuff, atom.key);
     case 'class':
-      checkTier('authoring', op, ctx.commandGiver);
+      gateAuthor(op, 'authoring', ctx);
       return matchesClass(stuff, atom.key);
     case 'keyword':
-      checkTier('authoring', op, ctx.commandGiver);
+      // Keywords are user-facing identifiers — equivalent to bare
+      // keyword seeds which are public. Gating here was an
+      // incoherent miscategorization that has been dropped.
       return keywordsOf(stuff).includes(atom.key.toLowerCase());
     case 'template':
-      checkTier('authoring', op, ctx.commandGiver);
+      gateAuthor(op, 'authoring', ctx);
       return matchesTemplate(stuff, atom.key);
     default:
       throw new MqlResolveError(

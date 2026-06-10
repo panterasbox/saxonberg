@@ -40,6 +40,7 @@ import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { DescribeApi } from '../../api/describe';
+import { AccessApi } from '../../api/access';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -52,12 +53,21 @@ interface TeleportModel extends CommandModel {
 }
 
 export class TeleportController extends CommandController<TeleportModel> {
-  execute(model: TeleportModel, context: CommandContext): void {
+  async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const target = model.target;
     if (!target || target.stuff === null) {
       return this.fail(context, `no match for ${target?.raw ?? '?'}`);
     }
     const tgt = target.stuff as Stuff & Containable;
+    const giver = context.commandGiver;
+    const action = model.force ? 'force-teleport' : 'teleport';
+    if (!(await AccessApi.can(giver, action, tgt))) {
+      return this.fail(
+        context,
+        "you don't have permission to teleport that",
+        'access-denied',
+      );
+    }
 
     // The yaml defaults destination to `$focus`. If the player has
     // never focused, `$focus` resolves to `"here"` (the current

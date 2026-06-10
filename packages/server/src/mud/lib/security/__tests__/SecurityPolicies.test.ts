@@ -50,23 +50,6 @@ describe('SecurityPolicies', () => {
     });
   });
 
-  describe('AdminOnly (v1 stub — always-deny)', () => {
-    it('denies every caller, including null and stamped callers', () => {
-      // The seam is in place; the policy refuses every call until
-      // the permission framework lands and replaces the stub. This
-      // assertion is intentional — it ensures `forceX` decorators
-      // do not leak admin authority before permissions ship.
-      expect(SecurityPolicies.AdminOnly.allows(null, null, 'm')).toBe(false);
-      expect(SecurityPolicies.AdminOnly.allows(new FooBar(), null, 'm')).toBe(
-        false
-      );
-    });
-
-    it('exposes a stable name for audit / error messages', () => {
-      expect(SecurityPolicies.AdminOnly.name).toBe('AdminOnly');
-    });
-  });
-
   describe('Custom', () => {
     it('runs the predicate', () => {
       const p = SecurityPolicies.Custom((c) => c === 'allowed');

@@ -19,6 +19,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { AccessApi } from '../../api/access';
 import { Template } from '../../lib/stuff/Template';
 
 interface GrepModel extends CommandModel {
@@ -54,6 +55,25 @@ export class GrepController extends CommandController<GrepModel> {
     const tree = giver.pickTree(model);
     const home = giver.getHome();
     const cwd = giver.getCwd(tree);
+
+    // Source/mirror mode: gate the read against the resolved slice.
+    // Content-tree reads stay public. mirror collapses to content
+    // via `pickTree`, so consult `getTreeMode()` to catch it.
+    const treeMode = giver.getTreeMode();
+    if (treeMode === 'source' || treeMode === 'mirror') {
+      const baseLogical = model.path
+        ? SourceTreeApi.joinLogical(cwd, model.path, { home })
+        : cwd;
+      const sliceResource =
+        await AccessApi.resolveSourceFolderZone(baseLogical);
+      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
+        return this.fail(
+          context,
+          "you don't have permission to read that source slice",
+          'access-denied',
+        );
+      }
+    }
 
     const lines: string[] = [];
     if (tree === 'content') {

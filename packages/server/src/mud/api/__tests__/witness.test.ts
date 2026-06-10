@@ -334,13 +334,17 @@ describe('Destruct Witness hooks (StuffApi.destruct / forceDestruct)', () => {
     expect(target.isDestroyed()).toBe(true);
   });
 
-  it('forceDestruct is admin-gated — v1 always-deny stub throws', () => {
-    // The seam exists; the policy is a stub. Update this test when
-    // SecurityPolicies.AdminOnly is replaced by a real policy.
+  it('forceDestruct rejects calls from outside DestructController (narrow-entry pattern)', () => {
+    // `forceDestruct` carries
+    // `@CallSecurity(FromController(DestructController))` — the
+    // narrow-entry pattern reserves this entry point for the verb
+    // controller. Anything else (including a test file) is denied
+    // by the gate before the body runs.
     const target = makeStuff(() => new DestructHookable());
     target.veto = { ok: false, reason: 'pinned' };
-    expect(() => StuffApi.forceDestruct(target)).toThrow(/admin/i);
-    // Stuff was not destroyed — the gate fired before the body ran.
+    expect(() => StuffApi.forceDestruct(target)).toThrow(
+      /FromModule.*DestructController/,
+    );
     expect(target.isDestroyed()).toBe(false);
     expect(target.destructCalled).toBe(0);
   });
@@ -353,19 +357,20 @@ describe('Destruct Witness hooks (StuffApi.destruct / forceDestruct)', () => {
   });
 });
 
-describe('forceMove admin gating (ContainmentApi.forceMove)', () => {
+describe('forceMove narrow-entry gating (ContainmentApi.forceMove)', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
   });
 
-  it('v1 always-deny stub throws on every call', () => {
-    // Update this test when SecurityPolicies.AdminOnly is replaced
-    // by a real policy.
+  it('rejects calls from outside the teleport/goto controllers', () => {
+    // `forceMove` carries
+    // `@CallSecurity(FromController(TeleportController, GotoController))`.
+    // Anything else (including a test file) is denied by the gate
+    // before the body runs.
     const item = makeStuff(() => new HookableThing());
     const dest = makeStuff(() => new HookableBox());
-    expect(() => ContainmentApi.forceMove(item, dest)).toThrow(/admin/i);
-    // Stuff did not move — the gate fired before the body ran.
+    expect(() => ContainmentApi.forceMove(item, dest)).toThrow(/AnyOf/);
     expect(item.getContainer()).toBeNull();
   });
 });

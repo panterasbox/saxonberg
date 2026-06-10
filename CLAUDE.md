@@ -166,7 +166,21 @@ behavior. Read the relevant doc before editing in its area.
     templating for authorable prose, Mml-aware output, default
     filters (Mml vocabulary, `GrammarApi`)
   - [call-security.md](./docs/subsystems/call-security.md) — proxy
-    interception, decorators, policies, shadows, FrameKind
+    interception, decorators, policies, shadows, FrameKind,
+    `FromController` narrow-entry pattern, async `allows` contract
+  - [access.md](./docs/subsystems/access.md) — `AccessApi` thin
+    facade over the `AccessRegistry` Stuff singleton. Four predicates
+    (`can` flat-union slice walk; `canMutateZone` role-gated on
+    primary `ownerGroup`; `isAuthor` broad content-scope predicate
+    for MQL pre-gates; `isDeveloper` orthogonal TS-escape gate) +
+    `resolveSourceFolderZone` path resolver. `Zone.ownerGroup` /
+    `accessGroups` persistent inheritable fields, the narrow-entry
+    pattern applied to `StuffApi.forceDestruct` /
+    `ContainmentApi.forceMove`, the three bootstrap-seeded groups
+    (`'core'` / `'lounge'` / `'developers'`) with the lounge
+    FolderZones at `/lib/lounge` and `/domain/lounge`, the MQL
+    permission snapshot wire-up (`ctx.permission` precomputed at
+    dispatch).
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin,
     Property<T>, transient vs saved storage, access control patterns,
     masks (the unshadowable mixin's per-property override mechanism)
@@ -792,6 +806,9 @@ bypass it. Common cases:
 | `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
 | `(stuff as any).save?.()` to round-trip arbitrary Stuff to its template | `Avatar.save()` is the only v1 consumer (`if (stuff instanceof Avatar) await stuff.save()`). The substrate (`TemplateApi.snapshotToTemplate` / `restoreFromTemplate`) is general but only Avatar exercises it in v1. No general persist-back mixin yet. |
 | Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/CloneController.ts`. |
+| `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — slice walk over `Zone.ownerGroup` / `accessGroups` with `'core'` fallback. See [access.md](./docs/subsystems/access.md). |
+| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.isAuthor(giver)` for MQL pre-gates, `AccessApi.isDeveloper(giver)` for the orthogonal TS-escape axis (eval, reload, source-tree writes). |
+| Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/obj/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('mud/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 

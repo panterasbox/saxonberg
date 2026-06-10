@@ -165,6 +165,18 @@ scalars and arrays of scalars, and makes Mongo queries like
 playerId through `PlayerApi.findAvatarByPlayerId`. The materialization
 is an **online filter** — offline members materialize to nothing.
 
+The provider also exposes a by-name lookup:
+
+```ts
+async findByName(name: string): Promise<Group | null>;
+```
+
+`name` is unique-indexed at the collection level, so the result is a
+single Group or `null`. Used by `AccessRegistry`'s bootstrap seeding
+and developer-cache warm path to find well-known groups (`'core'`,
+`'lounge'`, `'developers'`) without threading their `_id`s — see
+[access.md](./access.md).
+
 The provider holds a `Map<id, Set<listener>>` for change notifications.
 The `fireChange(id)` method is called by `GroupController` after every
 CRUD mutation (`make` / `delete` / `rename` / `add` / `remove` /

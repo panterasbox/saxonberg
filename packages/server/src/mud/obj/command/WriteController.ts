@@ -66,6 +66,9 @@ import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { StuffApi } from '../../api/stuff';
 import { TemplateApi } from '../../api/template';
+import { AccessApi } from '../../api/access';
+import { Zone } from '../../lib/zone/Zone';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MqlOneResult } from '../../api/mql';
 
 interface WriteModel extends CommandModel {
@@ -130,6 +133,8 @@ export class WriteController extends CommandController<WriteModel> {
         return this.fail(context, 'write -c needs payload `data` (struct)');
       }
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
+      const contentErr = await this._gateContentWrite(giver, target);
+      if (contentErr) return this.fail(context, contentErr, 'access-denied');
       const classPath = model.class ?? DEFAULT_CONTENT_CLASS;
       // Empty string explicitly omits the hydrator; undefined uses
       // the default.
@@ -164,6 +169,9 @@ export class WriteController extends CommandController<WriteModel> {
     if (model.body === undefined) {
       return this.fail(context, 'write -s needs payload `body` (string)');
     }
+    const sourceLogical = SourceTreeApi.joinLogical(cwd, model.path, { home });
+    const sourceErr = await this._gateSourceWrite(giver, sourceLogical);
+    if (sourceErr) return this.fail(context, sourceErr, 'access-denied');
     let abs: string;
     try {
       abs = SourceTreeApi.resolvePath(cwd, model.path, { home });
@@ -199,6 +207,52 @@ export class WriteController extends CommandController<WriteModel> {
     if (!schema) return null;
     const err = validateAgainstJsonSchema(schema, data);
     return err === null ? null : `data: ${err}`;
+  }
+
+  /**
+   * Content-tree write gate. If the resolved path corresponds to an
+   * extant Zone Template (live FolderZone or live SpatialZone),
+   * route to `canMutateZone`. Otherwise consult the slice walk on
+   * the target's Stuff (or null when no live instance — the walk
+   * then falls through to the `'core'` fallback).
+   *
+   * Returns null on allow, a human-readable error string on deny.
+   */
+  private async _gateContentWrite(
+    giver: Stuff,
+    target: string,
+  ): Promise<string | null> {
+    const liveAtTarget = StuffApi.findByTemplatePath<Stuff>(target) ?? null;
+    if (liveAtTarget instanceof Zone) {
+      if (!(await AccessApi.canMutateZone(giver, liveAtTarget))) {
+        return "you don't have permission to mutate that zone";
+      }
+      return null;
+    }
+    if (!(await AccessApi.can(giver, 'write', liveAtTarget))) {
+      return "you don't have permission to write there";
+    }
+    return null;
+  }
+
+  /**
+   * Source-tree write gate. Two checks must pass:
+   *   1. `isDeveloper(giver)` — TS escape capability.
+   *   2. `can(giver, 'write', resolveSourceFolderZone(path))` — the
+   *      slice walk constrains which area of source you can write to.
+   */
+  private async _gateSourceWrite(
+    giver: Stuff,
+    sourceLogical: string,
+  ): Promise<string | null> {
+    if (!(await AccessApi.isDeveloper(giver))) {
+      return "you don't have permission to write source";
+    }
+    const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
+    if (!(await AccessApi.can(giver, 'write', resource))) {
+      return "you don't have permission to write to that source slice";
+    }
+    return null;
   }
 
   private tell(context: CommandContext, text: string): void {

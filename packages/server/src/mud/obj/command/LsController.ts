@@ -19,6 +19,7 @@ import { MixinApi } from '../../api/mixin';
 import type { MqlOneResult } from '../../api/mql';
 import { PathPatternApi } from '../../api/path-pattern';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { AccessApi } from '../../api/access';
 import { Template } from '../../lib/stuff/Template';
 
 interface LsModel extends CommandModel {
@@ -78,6 +79,23 @@ export class LsController extends CommandController<LsModel> {
         return this.fail(context, err.message);
       }
       throw err;
+    }
+
+    // Source / mirror mode: slice walk on the resolved zone.
+    // Content-tree reads are public (no gate). `pickTree` returns
+    // 'content' under mirror mode for reads (the read-side collapses
+    // mirror to content), so the gate has to consult `getTreeMode()`
+    // directly to catch the mirror case.
+    const treeMode = giver.getTreeMode();
+    if (treeMode === 'source' || treeMode === 'mirror') {
+      const sliceResource = await AccessApi.resolveSourceFolderZone(basePath);
+      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
+        return this.fail(
+          context,
+          "you don't have permission to read that source slice",
+          'access-denied',
+        );
+      }
     }
 
     const lines: string[] = [];

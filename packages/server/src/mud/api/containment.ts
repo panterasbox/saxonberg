@@ -31,6 +31,9 @@ import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+// `TeleportController` / `GotoController` are reached lazily via
+// string module ids to avoid a value-level static-import cycle
+// (api/containment → controller → ContainmentApi).
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -118,13 +121,22 @@ export class ContainmentApi {
    * but their veto results are ignored. Post-move `on*` hooks fire
    * identically.
    *
-   * Gated by `SecurityPolicies.AdminOnly`. v1 the policy is an
-   * always-deny stub: every call throws `SecurityError: admin
-   * privilege required` from the decorator gate before this body
-   * runs. The seam is in place; the real permissions-aware policy
-   * replaces the stub when the permission framework lands.
+   * Gated by `SecurityPolicies.FromController(TeleportController,
+   * GotoController)` — the **narrow-entry pattern**. Only the
+   * teleport/goto controllers can reach this entry point; each does
+   * the `AccessApi.can(giver, 'force-teleport' | 'force-goto', ...)`
+   * check before invoking. Combined, the mutation has exactly one
+   * legitimate entry path AND that path enforces who is authorized.
+   *
+   * Direct calls from outside those controllers' modules throw
+   * `SecurityError` from the decorator gate before this body runs.
    */
-  @CallSecurity(SecurityPolicies.AdminOnly)
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('mud/obj/command/TeleportController#TeleportController'),
+      SecurityPolicies.FromModule('mud/obj/command/GotoController#GotoController'),
+    ),
+  )
   public static forceMove(
     item: ContainableStuff,
     to: ContainerStuff | null

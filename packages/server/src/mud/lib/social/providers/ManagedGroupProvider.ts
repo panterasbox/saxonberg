@@ -27,6 +27,18 @@ export class ManagedGroupProvider implements GroupProvider {
   /** Listeners keyed by Group id. */
   #listeners: Map<string, Set<GroupChangeListener>> = new Map();
 
+  /**
+   * Look up a Group by its unique name. Returns the first match
+   * (the `name` index is unique at the collection level) or null.
+   * Used by the AccessRegistry's bootstrap seeding and developer-
+   * cache warm path to find well-known groups (`'core'`,
+   * `'lounge'`, `'developers'`).
+   */
+  async findByName(name: string): Promise<Group | null> {
+    const all = await Group.find({ name });
+    return all[0] ?? null;
+  }
+
   async members(id: string): Promise<Stuff[]> {
     const group = await Group.findById(id);
     if (!group) return [];

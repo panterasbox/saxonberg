@@ -7,10 +7,9 @@
  * `<chan id="broadcast" label="Broadcast">` region so the cockpit
  * renders distinctly.
  *
- * v1 ships ungated beyond the existing `requiresVerbalESP` validator
- * — anyone with an implant can broadcast. The permission gate
- * (`AccessApi.can(actor, 'broadcast', null)`) lands when the access
- * substrate ships.
+ * Gated by `AccessApi.can(actor, 'broadcast', null)` — the resource
+ * is global (`null`), so the check routes through the `'core'`
+ * fallback. Only `'core'` members can broadcast in this build.
  *
  * No history ring (broadcasts ride scrollback like any other frame),
  * no rate-limiting (own substrate, deferred).
@@ -27,6 +26,7 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { PlayerApi } from '../../api/player';
+import { AccessApi } from '../../api/access';
 
 interface BroadcastModel extends CommandModel {
   message: string;
@@ -39,6 +39,18 @@ export class BroadcastController extends CommandController<BroadcastModel> {
     const body = (model.message ?? '').trim();
     if (!body) {
       context.note({ kind: 'controller-rejected', reason: 'message-required', detail: 'broadcast body required' });
+      return;
+    }
+    if (!(await AccessApi.can(speaker, 'broadcast', null))) {
+      MessageApi.scene(speaker)
+        .topic('system.broadcast')
+        .toSelf(Mml.fromMarkup(`\nyou don't have permission to broadcast\n`))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'access-denied',
+        detail: "you don't have permission to broadcast",
+      });
       return;
     }
 

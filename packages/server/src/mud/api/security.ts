@@ -354,12 +354,22 @@ export class SecurityApi {
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
-      if (!policy.allows(caller, cls, methodName)) {
+      const allowed = policy.allows(caller, cls, methodName);
+      const deny = (): never => {
         throw new SecurityError(
           `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
           { methodName, policyName: policy.name }
         );
+      };
+      if (allowed instanceof Promise) {
+        return allowed.then((ok) => {
+          if (!ok) deny();
+          return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
+            original.apply(this, args)
+          );
+        });
       }
+      if (!allowed) deny();
       return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
         original.apply(this, args)
       );
@@ -551,7 +561,8 @@ export class SecurityApi {
     // 2. entry policy
     const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
     const caller = ExecutionContextApi.getCurrentTarget();
-    if (!policy.allows(caller, ctx.proxy, ctx.prop)) {
+    const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop);
+    const deny = (): never => {
       throw new SecurityError(
         `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,
         {
@@ -560,53 +571,64 @@ export class SecurityApi {
           policyName: policy.name,
         }
       );
-    }
+    };
 
-    // 2a. GC last-touch instrumentation. Only fires on successful
-    // (non-denied) dispatch — denied calls don't count as "touches."
-    // Write goes through the tamper-proof static seam, not a public
-    // field. Passing the raw target avoids one unwrap. The touch
-    // function is late-bound (see `_registerTouchFn`) to avoid the
-    // security → stuff value-import cycle.
-    SecurityApi.#touchFn?.(ctx.target);
+    const proceed = (): unknown => {
+      // 2a. GC last-touch instrumentation. Only fires on successful
+      // (non-denied) dispatch — denied calls don't count as "touches."
+      // Write goes through the tamper-proof static seam, not a public
+      // field. Passing the raw target avoids one unwrap. The touch
+      // function is late-bound (see `_registerTouchFn`) to avoid the
+      // security → stuff value-import cycle.
+      SecurityApi.#touchFn?.(ctx.target);
 
-    // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
-    // stored the proxy, so lookup must use the same identity. When
-    // shadows fire, the chain is a complete replacement for the raw
-    // call — we don't call next() in this branch.
-    const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop) ?? null;
-    if (shadows && shadows.length > 0) {
-      return shadowApi!._withDispatch(
+      // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
+      // stored the proxy, so lookup must use the same identity. When
+      // shadows fire, the chain is a complete replacement for the raw
+      // call — we don't call next() in this branch.
+      const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop) ?? null;
+      if (shadows && shadows.length > 0) {
+        return shadowApi!._withDispatch(
+          ctx.proxy,
+          ctx.prop,
+          shadows,
+          ctx.args as unknown[],
+          () => {
+            const top = shadows[shadows.length - 1]!;
+            return ExecutionContextApi.run(
+              caller,
+              top,
+              ctx.prop,
+              undefined,
+              () =>
+                shadowApi!._invokeOnShadow(
+                  top,
+                  ctx.prop,
+                  ctx.isGetter ? [] : (ctx.args as unknown[])
+                )
+            );
+          }
+        );
+      }
+
+      // 4. no shadows — push the host's frame and continue the pipeline.
+      return ExecutionContextApi.run(
+        caller,
         ctx.proxy,
         ctx.prop,
-        shadows,
-        ctx.args as unknown[],
-        () => {
-          const top = shadows[shadows.length - 1]!;
-          return ExecutionContextApi.run(
-            caller,
-            top,
-            ctx.prop,
-            undefined,
-            () =>
-              shadowApi!._invokeOnShadow(
-                top,
-                ctx.prop,
-                ctx.isGetter ? [] : (ctx.args as unknown[])
-              )
-          );
-        }
+        undefined,
+        () => next()
       );
-    }
+    };
 
-    // 4. no shadows — push the host's frame and continue the pipeline.
-    return ExecutionContextApi.run(
-      caller,
-      ctx.proxy,
-      ctx.prop,
-      undefined,
-      () => next()
-    );
+    if (allowedOrPromise instanceof Promise) {
+      return allowedOrPromise.then((ok) => {
+        if (!ok) deny();
+        return proceed();
+      });
+    }
+    if (!allowedOrPromise) deny();
+    return proceed();
   };
 
   /**

@@ -20,14 +20,16 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 // `ConnectionManager → Interactive → Idea`.
 import { MixinApi } from '../mixin';
 import { getOnlineHolders } from './online-provider';
-import { _MqlAdminFlag } from './permissions';
-import type { PermissionTier } from './types';
+import type { MqlContext, PermissionTier } from './types';
 
 export interface MqlPredicate {
   /** Permission tier required to invoke this predicate. */
   tier: PermissionTier;
-  /** Decide whether `target` passes the predicate, given `giver`. */
-  check(target: Stuff, giver: Stuff & CommandGiver): boolean;
+  /** Decide whether `target` passes the predicate, given `giver`. The
+   *  `ctx` argument carries the precomputed permission snapshot used
+   *  by per-target gates (e.g., `:admin` consults
+   *  `ctx.permission?.coreMemberIds`). */
+  check(target: Stuff, giver: Stuff & CommandGiver, ctx: MqlContext): boolean;
 }
 
 /**
@@ -79,10 +81,21 @@ function isVisible(target: Stuff, giver: Stuff & CommandGiver): boolean {
   return isHere(target, giver);
 }
 
-function isAdmin(target: Stuff, _giver: Stuff & CommandGiver): boolean {
-  return _MqlAdminFlag.granter(
-    target as unknown as Stuff & CommandGiver
-  );
+function isAdmin(
+  target: Stuff,
+  _giver: Stuff & CommandGiver,
+  ctx: MqlContext,
+): boolean {
+  // Per-target check: is THE TARGET (not the giver) an admin? The
+  // dispatcher precomputes the set of playerIds in `'core'` and
+  // stamps it on `ctx.permission.coreMemberIds`; this method
+  // consults the snapshot synchronously. Absent snapshot → false
+  // (the prior `_MqlAdminFlag.granter` default).
+  const ids = ctx.permission?.coreMemberIds;
+  if (!ids) return false;
+  const playerId = (target as { getPlayerId?: () => string }).getPlayerId?.();
+  if (!playerId) return false;
+  return ids.has(playerId);
 }
 
 /**

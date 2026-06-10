@@ -30,6 +30,23 @@
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
+import type { GroupRef } from '../social/GroupProvider';
+
+/**
+ * Validate a `GroupRef` shape. Inlined here (instead of importing
+ * `parseGroupRef` from `../social/GroupProvider`) to avoid pulling
+ * the `Group` Document into Zone's module graph — that would
+ * lengthen the load cycle through Document at a point where Zone
+ * is reached early by `api/zone.ts`. The shape check is trivial: a
+ * `source:id` string with at least one colon.
+ */
+function validateGroupRef(ref: string): void {
+  if (ref.indexOf(':') < 0) {
+    throw new Error(
+      `Zone.setOwnerGroup: malformed GroupRef '${ref}' — expected 'source:id'`,
+    );
+  }
+}
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
 // delegates to. The api side breaks its end of the would-be cycle by
@@ -45,6 +62,8 @@ import { ZoneApi } from '../../api/zone';
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
+  static persistentFields = ['ownerGroup', 'accessGroups'];
+
   /**
    * Human-readable zone name ("Narnia Castle", "The Caves", "Animalia", …).
    */
@@ -52,6 +71,46 @@ export abstract class Zone extends Idea {
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
+
+  /**
+   * The slice's primary owner — singular, conceptually primary. The
+   * `'owner'` role in this group can transfer ownership, grant or
+   * revoke secondary access, and destruct the slice. Other roles in
+   * this group still get content access via the `can()` flat-union
+   * walk. The field is inheritable through `Zone.lookupField`; the
+   * `AccessApi.can` walk collects the closest stamped `ownerGroup`
+   * plus every `accessGroups` entry up to root.
+   */
+  protected _ownerGroup?: GroupRef;
+  protected _accessGroups?: GroupRef[];
+
+  public getOwnerGroup(): GroupRef | undefined {
+    return this._ownerGroup;
+  }
+
+  public setOwnerGroup(ref: GroupRef | undefined): void {
+    if (ref === undefined) {
+      this._ownerGroup = undefined;
+      return;
+    }
+    validateGroupRef(ref);
+    this._ownerGroup = ref;
+  }
+
+  public getAccessGroups(): readonly GroupRef[] | undefined {
+    return this._accessGroups;
+  }
+
+  public setAccessGroups(refs: readonly GroupRef[] | undefined): void {
+    if (refs === undefined) {
+      this._accessGroups = undefined;
+      return;
+    }
+    for (const ref of refs) {
+      validateGroupRef(ref);
+    }
+    this._accessGroups = [...refs];
+  }
 
   /**
    * Effective value of `fieldName` for this zone. Reads own value

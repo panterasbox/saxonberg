@@ -53,7 +53,7 @@ import { SecurityApi } from './security';
 import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { MqlApi } from './mql';
-import { MqlPermissionError } from './mql/permissions';
+import { MqlPermissionError } from './mql/types';
 import { EventApi } from './event';
 import { MessageApi } from './message';
 import { ShellApi } from './shell';

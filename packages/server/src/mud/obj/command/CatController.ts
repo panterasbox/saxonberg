@@ -20,6 +20,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { AccessApi } from '../../api/access';
 import { Template } from '../../lib/stuff/Template';
 import { ZoneApi } from '../../api/zone';
 import type { MqlOneResult } from '../../api/mql';
@@ -82,6 +83,21 @@ export class CatController extends CommandController<CatModel> {
 
     if (!target) {
       return this.fail(context, 'no target');
+    }
+
+    // Source/mirror mode: slice walk. Content-tree reads stay public.
+    // (`pickTree` collapses mirror → content for reads, so consult
+    // `getTreeMode()` to catch the mirror case.)
+    const treeMode = giver.getTreeMode();
+    if (treeMode === 'source' || treeMode === 'mirror') {
+      const sliceResource = await AccessApi.resolveSourceFolderZone(target);
+      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
+        return this.fail(
+          context,
+          "you don't have permission to read that source slice",
+          'access-denied',
+        );
+      }
     }
 
     if (tree === 'content') {

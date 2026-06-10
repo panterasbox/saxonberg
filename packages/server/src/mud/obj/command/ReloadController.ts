@@ -18,6 +18,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { HotReloadApi } from '../../api/hot-reload';
+import { AccessApi } from '../../api/access';
 import { SourceTreeApi } from '../../api/source-tree';
 import { Template } from '../../lib/stuff/Template';
 import type { MqlOneResult } from '../../api/mql';
@@ -30,6 +31,18 @@ interface ReloadModel extends CommandModel {
 export class ReloadController extends CommandController<ReloadModel> {
   async execute(model: ReloadModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+
+    // Developer axis — reload operates on TS modules; only the
+    // `'developers'` group has the capability. No slice check —
+    // module reloads aren't scoped to a content area.
+    if (!(await AccessApi.isDeveloper(giver))) {
+      return this.fail(
+        context,
+        "you don't have permission to reload",
+        'access-denied',
+      );
+    }
+
     let path: string | null = null;
 
     if (model.mql) {

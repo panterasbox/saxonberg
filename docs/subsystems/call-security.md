@@ -627,13 +627,22 @@ default) and runs it before invoking the body.
 | `SystemRoot` | `caller === null` only — the synthetic root frame planted by `runRoot`. |
 | `SelfOnly` | `caller === target` — only the target can call itself. |
 | `ApiOnly` | Sugar for `FromModule('mud/api/**', { includeSubclasses: true })`. |
-| `AdminOnly` | **v1 stub: always-deny.** Gates the lowest-layer force-bypass entries — `StuffApi.forceDestruct` and `ContainmentApi.forceMove`. Replaced by a real permissions-aware policy when the permission framework lands; no decorated method changes at swap time. |
 | `FromTemplate(glob)` | Caller's CMS template path matches `glob`. Template paths begin with `/`; module IDs don't — `FromTemplate` rejects module-id callers. |
 | `FromModule(glob, opts?)` | Caller's stamped module ID matches `glob`. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. |
-| `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean`. |
+| `FromController(...controllers)` | Sugar over `FromModule` keyed by a controller class's stamped module id. For one controller, lazy `FromModule(moduleIdOf(c))`. For many, `AnyOf(FromModule(idOf(c1)), …)`. The lazy form resolves `ModuleApi.lookup(cls)` at call-time, fail-closed if the class isn't stamped yet — handles the cyclic-import edge case where the controller class isn't stamped at decorator-evaluation time. The **narrow-entry pattern**'s policy half — see [access.md](./access.md). |
+| `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean | Promise<boolean>`. |
 | `AllOf(...)` | Composition: every policy passes. |
 | `AnyOf(...)` | Composition: at least one policy passes. |
 | `Not(p)` | Composition: invert. |
+
+### Async `allows`
+
+`SecurityPolicy.allows` returns `boolean | Promise<boolean>`. The
+security gate detects the return shape and only takes the async
+branch when a Promise comes back; existing sync policies continue
+to run sync through the gate. The widening lets future policies do
+async lookups (group membership, zone inheritance walks, etc.)
+without forcing every existing call site through a microtask.
 
 All identity-keyed policies (`FromTemplate`, `FromModule`, `ApiOnly`)
 **fail closed** when `resolveCallerPath` returns `null` — a class that
@@ -1323,20 +1332,19 @@ See [lifecycle.md § Destruction](./lifecycle.md#destruction) for the
 full destruct → canDestruct → onDestruct → shadow-detach → destroy
 ordering.
 
-## `AdminOnly` and the force-bypass shape
+## The narrow-entry pattern (force-bypass entries)
 
-Force-bypass entry points on lowest-layer Apis (`StuffApi.forceDestruct`
-and `ContainmentApi.forceMove`) carry a parallel-API shape: `forceX`
-lives alongside `X`, sharing a private core that invokes every
-witness identically and branches only on whether to `assertVetoOk`.
+Force-bypass entry points on lowest-layer Apis
+(`StuffApi.forceDestruct` and `ContainmentApi.forceMove`) carry a
+parallel-API shape: `forceX` lives alongside `X`, sharing a private
+core that invokes every witness identically and branches only on
+whether to `assertVetoOk`.
 
 The witness itself is **force-unaware**: `canX(): VetoResult` takes
-no force argument. Every `forceX` is decorated with
-`@CallSecurity(SecurityPolicies.AdminOnly)`. Force still fires the
-witness so any side effects the target attaches (audit hooks,
-observers, telemetry) see every call uniformly — `forceX` only
-skips the assertion, not the invocation. `onX` post-hooks fire
-unchanged.
+no force argument. Force still fires the witness so any side effects
+the target attaches (audit hooks, observers, telemetry) see every
+call uniformly — `forceX` only skips the assertion, not the
+invocation. `onX` post-hooks fire unchanged.
 
 The pattern only fits operations that act on a **target** with state
 to consult. Destruct (target = the Stuff being destroyed) and move
@@ -1348,18 +1356,40 @@ enforcement, frozen blueprints, compile errors) but those live in
 the right places already; they don't shape into the witness pattern,
 so neither `clone` nor `reload` carries a force variant.
 
-`AdminOnly` is the **v1 stub** for this gate: an always-deny policy
-that throws `SecurityError: admin privilege required` from the
-decorator gate before the body runs. The seam is in place; the real
-permissions-aware policy replaces the stub when the permission
-framework lands. No decorated method needs to change at swap time.
+The **narrow-entry pattern** is the access build's framing for who
+authorizes `forceX`:
+
+1. The Api method is decorated with `FromController(...controllers)`
+   (string-form `FromModule('mud/obj/command/X#X')` in the shipped
+   wiring to avoid a value-level static-import cycle). Only the
+   listed verb controllers can reach the entry point at all;
+   everything else throws `SecurityError`.
+2. The verb controller does the access check via
+   `AccessApi.can(giver, 'force-X', target)` (or `canMutateZone`
+   when the target is a Zone Template) BEFORE invoking the
+   `forceX` Api.
+
+Combined, the mutation has exactly one legitimate entry path AND
+that path enforces who is authorized.
+
+Adoption sites today:
+
+- `StuffApi.forceDestruct` →
+  `FromModule('mud/obj/command/DestructController#DestructController')`.
+  `DestructController` does the access check.
+- `ContainmentApi.forceMove` →
+  `AnyOf(FromModule(TeleportController), FromModule(GotoController))`.
+  Each controller does its own access check.
+
+Full pattern + verb-controller gate matrix:
+[access.md](./access.md).
 
 Why parallel methods rather than `{ force: true }` options:
 
 - Auditable. `forceX` calls grep cleanly; flag arguments don't.
 - Greppable. The policy decorator sits on the method, not the
   argument list.
-- Policy-replaceable. Swap `AdminOnly` once; every `forceX` re-gates
+- Policy-replaceable. Swap policies once; every `forceX` re-gates
   uniformly.
 
 Why one force entry per operation, not parallel at every wrapping
@@ -1369,7 +1399,7 @@ surface and gives admins multiple bypass entries that must each be
 audited separately. One enforcement point per operation, composed by
 verb controllers, is the cleaner shape. Verb controllers orchestrate
 "try the polished/high-level path; on veto, fall back to `forceX`
-when `-f` is set and admin allows."
+when `-f` is set and access allows."
 
 ## Hydrator is Not an Exception
 

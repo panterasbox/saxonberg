@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resolve, MqlDesugarError } from '../mql/resolver';
-import { _MqlAdminFlag, MqlPermissionError } from '../mql/permissions';
+import { MqlPermissionError } from '../mql/types';
 import { makeWorld, type MqlWorld } from './fixtures/mql-world';
 import { MqlApi } from '../mql';
 import type { MqlContext } from '../mql/types';
@@ -28,7 +28,7 @@ describe('MQL resolver — direct seeds', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'here', permission: { isAuthor: false } };
   });
 
   it('me resolves to the giver', () => {
@@ -82,7 +82,7 @@ describe('MQL resolver — direct seeds', () => {
 
   describe('admin-tier seeds', () => {
     afterEach(() => {
-      _MqlAdminFlag.granter = () => false;
+      ctx.permission = { isAuthor: false };
     });
 
     it('online resolves without admin (public — who-style listing)', () => {
@@ -98,14 +98,14 @@ describe('MQL resolver — direct seeds', () => {
     });
 
     it('online resolves to all online holders when admin granted', () => {
-      _MqlAdminFlag.granter = () => true;
+      ctx.permission = { isAuthor: true };
       // No interactives are connected in tests, so result is empty
       // — still a successful resolve (no permission throw).
       expect(resolve('online', ctx)).toEqual([]);
     });
 
     it('world resolves all stuff when admin granted', () => {
-      _MqlAdminFlag.granter = () => true;
+      ctx.permission = { isAuthor: true };
       const out = resolve('world', ctx);
       const idSet = new Set(ids(out));
       expect(idSet.has(world.giver.stuffId)).toBe(true);
@@ -158,7 +158,7 @@ describe('MQL resolver — direct seeds', () => {
 
   describe('path seed', () => {
     afterEach(() => {
-      _MqlAdminFlag.granter = () => false;
+      ctx.permission = { isAuthor: false };
     });
 
     it('rejects without authoring tier', () => {
@@ -166,7 +166,7 @@ describe('MQL resolver — direct seeds', () => {
     });
 
     it('returns empty when authoring is granted but nothing matches', () => {
-      _MqlAdminFlag.granter = () => true;
+      ctx.permission = { isAuthor: true };
       expect(resolve('/obj/Nope/*', ctx)).toEqual([]);
     });
   });
@@ -178,7 +178,7 @@ describe('MQL resolver — keyword search', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it('rose finds the rose in the room', () => {
@@ -194,49 +194,49 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('honors a multi-source scope fragment', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory, peers' };
+    ctx = { commandGiver: world.giver, scope: 'inventory, peers', permission: { isAuthor: false } };
     const out = resolve('apple', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
   it('inventory-only scope does not find room contents', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory' };
+    ctx = { commandGiver: world.giver, scope: 'inventory', permission: { isAuthor: false } };
     const out = resolve('rose', ctx);
     expect(ids(out)).not.toContain(world.rose.stuffId);
   });
 
   it('inventory-only scope finds inventory items', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory' };
+    ctx = { commandGiver: world.giver, scope: 'inventory', permission: { isAuthor: false } };
     const out = resolve('apple', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
   it('here scope alone matches keywords on the location itself', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'here', permission: { isAuthor: false } };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
 
   it('here scope alone does NOT match peers (post-split)', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'here', permission: { isAuthor: false } };
     const out = resolve('rose', ctx);
     expect(ids(out)).not.toContain(world.rose.stuffId);
   });
 
   it('falls back to reachable when scope is empty', () => {
-    ctx = { commandGiver: world.giver, scope: '' };
+    ctx = { commandGiver: world.giver, scope: '', permission: { isAuthor: false } };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
   });
 
   it('peers scope finds peer items', () => {
-    ctx = { commandGiver: world.giver, scope: 'peers' };
+    ctx = { commandGiver: world.giver, scope: 'peers', permission: { isAuthor: false } };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
   });
 
   it('reachable scope unions peers, here, and inventory', () => {
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
     expect(ids(resolve('rose', ctx))).toContain(world.rose.stuffId);
     expect(ids(resolve('apple', ctx))).toContain(world.apple.stuffId);
     expect(ids(resolve('square', ctx))).toContain(world.location.stuffId);
@@ -253,7 +253,7 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('peers scope does not include the giver itself', () => {
-    ctx = { commandGiver: world.giver, scope: 'peers' };
+    ctx = { commandGiver: world.giver, scope: 'peers', permission: { isAuthor: false } };
     const out = resolve('bob', ctx);
     expect(ids(out)).not.toContain(world.giver.stuffId);
   });
@@ -265,7 +265,7 @@ describe('MQL resolver — transforms', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'here', permission: { isAuthor: false } };
   });
 
   it(':i lists giver contents (no via — Stuff containment)', () => {
@@ -428,7 +428,7 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: 'here', permission: { isAuthor: false } };
   });
 
   it('here:inscription navigates to the inscription detail', () => {
@@ -576,11 +576,11 @@ describe('MQL resolver — mid-chain seed semantics', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   afterEach(() => {
-    _MqlAdminFlag.granter = () => false;
+    ctx.permission = { isAuthor: false };
   });
 
   // Element-derivable seeds (`peers`, `reachable`, `inventory`)
@@ -650,7 +650,7 @@ describe('MQL resolver — mid-chain seed semantics', () => {
   });
 
   it('intersection: reachable:online (online is fixed-pool) is empty when nobody is online', () => {
-    _MqlAdminFlag.granter = () => true;
+    ctx.permission = { isAuthor: true };
     // No interactives connected → online is empty → intersection is
     // empty.
     expect(resolve('reachable:online', ctx)).toEqual([]);
@@ -701,7 +701,7 @@ describe('MQL resolver — set operations', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it('comma is union', () => {
@@ -731,7 +731,7 @@ describe('MQL resolver — literals', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it("'rose' (literal) matches by exact name", () => {
@@ -756,11 +756,11 @@ describe('MQL resolver — predicates', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   afterEach(() => {
-    _MqlAdminFlag.granter = () => false;
+    ctx.permission = { isAuthor: false };
   });
 
   it(':here filters to the giver location and contents', () => {
@@ -803,12 +803,12 @@ describe('MQL resolver — filter expressions', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
-    _MqlAdminFlag.granter = () => true; // admin so authoring tier passes
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
+    ctx.permission = { isAuthor: true }; // admin so authoring tier passes
   });
 
   afterEach(() => {
-    _MqlAdminFlag.granter = () => false;
+    ctx.permission = { isAuthor: false };
   });
 
   it("filters by name comparison", () => {
@@ -862,7 +862,7 @@ describe('MQL resolver — filter expressions', () => {
   });
 
   it('rejects authoring filters without privilege', () => {
-    _MqlAdminFlag.granter = () => false;
+    ctx.permission = { isAuthor: false };
     expect(() => resolve('flower:[mixin.NamedMixin]', ctx)).toThrow(
       MqlPermissionError
     );
@@ -875,7 +875,7 @@ describe('MQL resolver — bracket ordinals and ranges', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it('[1] picks the first match', () => {
@@ -905,7 +905,7 @@ describe('MQL resolver — desugar integration', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it('strips leading articles', () => {
@@ -931,7 +931,7 @@ describe('MQL resolver — quantity threading', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: 'reachable', permission: { isAuthor: false } };
   });
 
   it('threads a natural-language count onto MqlApi.resolveMany as lenient', () => {

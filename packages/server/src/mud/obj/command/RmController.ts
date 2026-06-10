@@ -20,7 +20,11 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
+import { Zone } from '../../lib/zone/Zone';
+import { AccessApi } from '../../api/access';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MqlOneResult } from '../../api/mql';
 
 interface RmModel extends CommandModel {
@@ -72,6 +76,18 @@ export class RmController extends CommandController<RmModel> {
     if (!target) return this.fail(context, 'no target');
 
     if (tree === 'content') {
+      const liveAtTarget = StuffApi.findByTemplatePath<Stuff>(target) ?? null;
+      const accessOk =
+        liveAtTarget instanceof Zone
+          ? await AccessApi.canMutateZone(giver, liveAtTarget)
+          : await AccessApi.can(giver, 'rm', liveAtTarget);
+      if (!accessOk) {
+        return this.fail(
+          context,
+          "you don't have permission to remove that",
+          'access-denied',
+        );
+      }
       const tpl = await Template.findByPath(target);
       if (!tpl) return this.fail(context, `no template at ${target}`);
       // Recursive: delete descendants first.
@@ -96,6 +112,23 @@ export class RmController extends CommandController<RmModel> {
       }
       this.tell(context, `\nremoved ${target}\n`);
       return;
+    }
+
+    // Source-tree: developer + slice walk both required.
+    if (!(await AccessApi.isDeveloper(giver))) {
+      return this.fail(
+        context,
+        "you don't have permission to remove source",
+        'access-denied',
+      );
+    }
+    const sliceResource = await AccessApi.resolveSourceFolderZone(target);
+    if (!(await AccessApi.can(giver, 'rm', sliceResource))) {
+      return this.fail(
+        context,
+        "you don't have permission to remove from that source slice",
+        'access-denied',
+      );
     }
 
     // `target` is already a display path (`/server/...`) for both

@@ -23,10 +23,20 @@ import { PathPatternApi } from '../../api/path-pattern';
 /**
  * One policy. `allows()` returns `true` to permit the call, `false` to
  * deny it. `name` is used in audit logs and error messages.
+ *
+ * `allows` may return a `boolean` synchronously or a `Promise<boolean>`
+ * for policies that need an async lookup (group membership, zone
+ * inheritance walk, etc.). The security gate detects the shape and
+ * only takes the async branch when a Promise is returned; existing
+ * sync policies continue to run sync through the gate.
  */
 export interface SecurityPolicy {
   readonly name: string;
-  allows(caller: unknown | null, target: unknown | null, method: string): boolean;
+  allows(
+    caller: unknown | null,
+    target: unknown | null,
+    method: string,
+  ): boolean | Promise<boolean>;
 }
 
 /**
@@ -190,30 +200,56 @@ const ApiOnlyPolicy: SecurityPolicy = (() => {
 })();
 
 /**
- * `AdminOnly` — gate for force-bypass entry points
- * (`StuffApi.forceDestruct`, `ContainmentApi.forceMove`).
+ * `FromController(...controllers)` — sugar over `FromModule` keyed by
+ * the controller class's stamped module id. Implements the
+ * **narrow-entry pattern**: a privileged Api method gets restricted
+ * to one (or a few) verb controllers, and the verb controller does
+ * the resource-targeted access check before invoking. Combined, the
+ * mutation has exactly one legitimate entry path AND that path
+ * enforces who is authorized.
  *
- * v1 implementation is **always-deny**. The seam is in place so
- * `forceX` API methods compile, decorate, and invoke with the
- * intended security shape; the actual "is this caller an admin?"
- * answer comes from the permission framework once it lands. Until
- * then every call into a `forceX` method throws
- * `SecurityError: admin privilege required` from the decorator gate
- * before the body runs.
+ * `FromController(C)` resolves `C`'s module id eagerly when possible
+ * and falls back to a lazy lookup if `C` hasn't been stamped yet at
+ * decorator-evaluation time — `ModuleApi.lookup(C)` is consulted at
+ * call time, fail-closed if still unstamped.
  *
- * Replacing this stub with the real policy is a single edit here —
- * no decorated method needs to change.
+ * For multiple controllers, returns an `AnyOf(...)` union.
  *
- * The pattern only fits operations that act on a target with state
- * to consult. Clone and reload don't qualify (no per-target
- * witness — clone "wills something into existence," reload
- * operates on modules / prototypes), so neither has a force entry
- * gated by this policy.
+ * Sample usage:
+ *   `@CallSecurity(FromController(DestructController))`
+ *   `@CallSecurity(FromController(TeleportController, GotoController))`
  */
-const AdminOnlyPolicy: SecurityPolicy = {
-  name: 'AdminOnly',
-  allows: () => false,
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ControllerClass = abstract new (...args: any[]) => unknown;
+
+function FromController(...controllers: ControllerClass[]): SecurityPolicy {
+  if (controllers.length === 0) {
+    throw new Error('FromController: at least one controller required');
+  }
+  if (controllers.length === 1) {
+    return lazyFromModulePolicy(controllers[0]!);
+  }
+  return AnyOf(...controllers.map((c) => lazyFromModulePolicy(c)));
+}
+
+/**
+ * Build a FromModule policy that resolves the controller class's
+ * module id at call time. This handles the cyclic-import edge case
+ * where the controller class isn't stamped yet at decorator-
+ * evaluation time — the module-id lookup deferred until the gate
+ * actually fires gives the rest of module evaluation a chance to
+ * complete.
+ */
+function lazyFromModulePolicy(cls: ControllerClass): SecurityPolicy {
+  return {
+    name: `FromController(${(cls as { name?: string }).name ?? '<class>'})`,
+    allows(caller, target, method) {
+      const id = ModuleApi.lookup(cls as object);
+      if (!id) return false;
+      return FromModule(id).allows(caller, target, method);
+    },
+  };
+}
 
 /**
  * Combinators — compose policies into richer rules.
@@ -224,7 +260,16 @@ function AllOf(...policies: SecurityPolicy[]): SecurityPolicy {
   return {
     name: `AllOf(${policyNames})`,
     allows(caller, target, method) {
-      return policies.every((p) => p.allows(caller, target, method));
+      const results = policies.map((p) => p.allows(caller, target, method));
+      if (results.some((r) => r instanceof Promise)) {
+        return (async () => {
+          for (const r of results) {
+            if (!(await r)) return false;
+          }
+          return true;
+        })();
+      }
+      return (results as boolean[]).every(Boolean);
     },
   };
 }
@@ -234,7 +279,16 @@ function AnyOf(...policies: SecurityPolicy[]): SecurityPolicy {
   return {
     name: `AnyOf(${policyNames})`,
     allows(caller, target, method) {
-      return policies.some((p) => p.allows(caller, target, method));
+      const results = policies.map((p) => p.allows(caller, target, method));
+      if (results.some((r) => r instanceof Promise)) {
+        return (async () => {
+          for (const r of results) {
+            if (await r) return true;
+          }
+          return false;
+        })();
+      }
+      return (results as boolean[]).some(Boolean);
     },
   };
 }
@@ -243,7 +297,9 @@ function Not(policy: SecurityPolicy): SecurityPolicy {
   return {
     name: `Not(${policy.name})`,
     allows(caller, target, method) {
-      return !policy.allows(caller, target, method);
+      const r = policy.allows(caller, target, method);
+      if (r instanceof Promise) return r.then((v) => !v);
+      return !r;
     },
   };
 }
@@ -253,7 +309,11 @@ function Not(policy: SecurityPolicy): SecurityPolicy {
  * current `ExecutionContext` directly via the imported singleton.
  */
 function Custom(
-  pred: (caller: unknown | null, target: unknown | null, method: string) => boolean,
+  pred: (
+    caller: unknown | null,
+    target: unknown | null,
+    method: string,
+  ) => boolean | Promise<boolean>,
   name = 'Custom'
 ): SecurityPolicy {
   return {
@@ -276,14 +336,16 @@ export const SecurityPolicies = {
   SystemRoot: SystemRootPolicy,
   SelfOnly: SelfOnlyPolicy,
   ApiOnly: ApiOnlyPolicy,
-  AdminOnly: AdminOnlyPolicy,
   Custom,
   AllOf,
   AnyOf,
   Not,
   FromTemplate,
   FromModule,
+  FromController,
 } as const;
+
+export { FromController };
 
 // Re-export ExecutionContext so consumers that pull SecurityPolicies in
 // can also reach `ExecutionContextApi.getCallStack()` from the same import.

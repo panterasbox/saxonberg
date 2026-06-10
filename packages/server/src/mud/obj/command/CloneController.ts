@@ -44,6 +44,7 @@ import { SourceTreeApi } from '../../api/source-tree';
 import { ContainmentApi } from '../../api/containment';
 import type { MqlOneResult } from '../../api/mql';
 import { DescribeApi } from '../../api/describe';
+import { AccessApi } from '../../api/access';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { Template } from '../../lib/stuff/Template';
 import type { Container } from '../../lib/spatial/Container';
@@ -86,6 +87,23 @@ export class CloneController extends CommandController<CloneModel> {
       return this.fail(context, 'clone needs a <template>');
     }
     if (!path) return this.fail(context, 'no template path');
+
+    // Access check — slice walk on the SOURCE template. The clone
+    // instantiates an existing class; the slice for the source path
+    // decides authority. We look up the live Stuff (if any) at the
+    // source path; the AccessApi walk handles a null resource by
+    // falling through to the `'core'` fallback. (See open question
+    // #6 in the plan: class-allowlist for non-core authors is a
+    // follow-up build.)
+    const sourceResource: Stuff | null =
+      StuffApi.findByTemplatePath(path) ?? null;
+    if (!(await AccessApi.can(giver, 'clone', sourceResource))) {
+      return this.fail(
+        context,
+        "you don't have permission to clone that",
+        'access-denied',
+      );
+    }
 
     // 2. Clone. Phase 2 hydration may fire `applyContainer` if the
     // template declares `data.container`; the instance may

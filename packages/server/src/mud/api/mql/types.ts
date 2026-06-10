@@ -40,6 +40,44 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 export interface MqlContext {
   commandGiver: Stuff & CommandGiver;
   scope: string;
+  /**
+   * Precomputed permission snapshot stamped by the command dispatcher
+   * before sync resolve runs. The resolver consults it synchronously:
+   *   - `isAuthor` gates pre-resolution operators (`:online`, path
+   *     seeds, `prop:` / `mixin:` / `class:` / `template:` filters).
+   *   - `coreMemberIds` is the per-target check input for the
+   *     `:admin(target)` predicate.
+   *
+   * Absent → permits (server-internal callers building MqlContexts
+   * directly without going through the dispatcher continue to work
+   * unchanged; the legacy `_MqlAdminFlag.granter` default returned
+   * false but those callers bypassed the gate by precondition).
+   */
+  permission?: {
+    isAuthor: boolean;
+    coreMemberIds?: ReadonlySet<string>;
+  };
+}
+
+/**
+ * Thrown by the resolver when an MQL operator/seed is gated against
+ * the giver's privilege level and the giver doesn't have it. Used by
+ * the dispatcher to surface a clean error to the player; carries
+ * the `operator` (the token that tripped the gate) and the `tier` for
+ * audit/telemetry.
+ *
+ * Sibling of the other MQL-specific types — lives here (was at
+ * `api/mql/permissions.ts` before the access build retired it).
+ */
+export class MqlPermissionError extends Error {
+  constructor(
+    message: string,
+    public readonly operator: string,
+    public readonly tier: PermissionTier,
+  ) {
+    super(message);
+    this.name = 'MqlPermissionError';
+  }
 }
 
 /**
