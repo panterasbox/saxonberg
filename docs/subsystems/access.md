@@ -158,10 +158,12 @@ cases:
 - **`requiresDeveloper`** — `isDeveloper(giver)`. Used by `eval`
   and `reload`.
 
-Both follow the sync-validator-with-async-preload pattern documented
-on `CommandValidator`: the async preload calls `AccessApi.can` /
-`isDeveloper` once and stashes the decision in a per-context
-`WeakMap`; the sync validator body reads from it.
+Both follow the typed-preload pattern documented on
+`CommandValidator<T>`: the async preload returns the boolean
+decision (`AccessApi.can(...)` or `AccessApi.isDeveloper(...)`); the
+dispatcher captures it in a per-dispatch `ValidatorPreloads` map and
+passes it back to the sync validator body as its second argument
+(`preloaded`). No module-level state, no manual cleanup.
 
 The model-dependent cases — `destruct` / `teleport` / `goto` (force
 flag + target stuff + Zone-target detection), `clone` (source

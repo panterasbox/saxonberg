@@ -4,26 +4,19 @@
  * TS-escape axis. Used by `eval` and `reload`, whose effect is
  * raw TS execution and module reload (no slice scoping applies).
  *
- * Async preload populates a per-context cache; the sync validator body
- * reads the decision.
+ * The async preload returns the developer-axis boolean directly; the
+ * dispatcher threads it back to the sync body via the `preloaded`
+ * argument.
  */
 
-import type { CommandContext, CommandValidator } from '../../../api/command';
+import type { CommandValidator } from '../../../api/command';
 import { AccessApi } from '../../../api/access';
 
-const decisions = new WeakMap<CommandContext, boolean>();
-
-const validator: CommandValidator = (context) => {
-  const allowed = decisions.get(context);
+const validator: CommandValidator<boolean> = (context, allowed) => {
   if (allowed) return undefined;
   return `you don't have permission to ${context.verb}`;
 };
 
-validator.preload = async (context) => {
-  decisions.set(
-    context,
-    await AccessApi.isDeveloper(context.commandGiver),
-  );
-};
+validator.preload = (context) => AccessApi.isDeveloper(context.commandGiver);
 
 export default validator;

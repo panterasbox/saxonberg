@@ -524,7 +524,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
                 .subcommand === 'string'
                 ? ((resolved.resolved as { subcommand?: string }).subcommand)
                 : undefined;
-            await CommandApi.preloadValidatorDeps(
+            const preloads = await CommandApi.preloadValidatorDeps(
               parseResult.bound.command,
               outer,
               resolved.resolved,
@@ -532,7 +532,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             );
             const validated = CommandApi.runValidators(
               resolved.resolved,
-              outer
+              outer,
+              preloads,
             );
             if (!('result' in validated)) {
               await this._executeOne(
@@ -822,13 +823,17 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           typeof (resolved.resolved as { subcommand?: unknown }).subcommand === 'string'
             ? ((resolved.resolved as { subcommand?: string }).subcommand)
             : undefined;
-        await CommandApi.preloadValidatorDeps(
+        const preloads = await CommandApi.preloadValidatorDeps(
           command,
           attempt,
           resolved.resolved,
           subcommandHint,
         );
-        const validated = CommandApi.runValidators(resolved.resolved, attempt);
+        const validated = CommandApi.runValidators(
+          resolved.resolved,
+          attempt,
+          preloads,
+        );
         if ('result' in validated) return attempt;
         await this._executeOne(command, resolved.resolved, attempt);
         return attempt;

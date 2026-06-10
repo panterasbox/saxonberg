@@ -9,27 +9,22 @@
  * string is `context.verb` — so the same validator covers every
  * verb of this shape.
  *
- * Async work — the actual `AccessApi.can` call — lives in `preload`;
- * the sync body reads the precomputed decision from a per-context
- * cache keyed by validator+context, following the
- * sync-validator-with-async-preload pattern documented on
- * `CommandValidator`.
+ * The decision itself is async (`AccessApi.can` walks the zone tree
+ * and consults `GroupApi`). The `preload` hook returns the boolean
+ * decision; the dispatcher passes it back to the sync body as the
+ * `preloaded` argument. No module-level state and no manual
+ * bookkeeping.
  */
 
-import type { CommandContext, CommandValidator } from '../../../api/command';
+import type { CommandValidator } from '../../../api/command';
 import { AccessApi } from '../../../api/access';
 
-const decisions = new WeakMap<CommandContext, boolean>();
-
-const validator: CommandValidator = (context) => {
-  const allowed = decisions.get(context);
+const validator: CommandValidator<boolean> = (context, allowed) => {
   if (allowed) return undefined;
   return `you don't have permission to ${context.verb}`;
 };
 
-validator.preload = async (context) => {
-  const allowed = await AccessApi.can(context.commandGiver, context.verb, null);
-  decisions.set(context, allowed);
-};
+validator.preload = (context) =>
+  AccessApi.can(context.commandGiver, context.verb, null);
 
 export default validator;

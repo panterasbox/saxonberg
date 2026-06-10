@@ -459,35 +459,44 @@ export type CommandModel = ModelData & {
  * the `preload` escape hatch for sync validators that need
  * singleton-backed reads.
  */
-export type FieldValidator = ((
+export type FieldValidator<T = void> = ((
   value: unknown,
   field: string,
-  context: CommandContext
+  context: CommandContext,
+  preloaded: T,
 ) => string | undefined) & {
   /**
-   * Optional async preload that ensures any singletons this
-   * validator's sync body resolves via `StuffApi.findByTemplatePath`
-   * are live. The dispatcher awaits all validator preloads AFTER
+   * Optional async preload. The dispatcher awaits each preload AFTER
    * MQL resolution but BEFORE the sync validator phase runs (see
-   * `CommandApi.preloadValidatorDeps`), so the sync
-   * `findByTemplatePath` calls inside the validator always hit a
-   * populated cache.
+   * `CommandApi.preloadValidatorDeps`), so the sync body's data is
+   * ready before it runs.
    *
-   * Signature mirrors the sync body — `(value, field, context)` —
-   * so a field validator that wants per-bound-target deps can
-   * inspect the resolved Stuff and preload accordingly (e.g.
-   * a `requiresAnimateTarget` validator could read the bound
-   * Stuff's `_speciesPath` and ensure its clade ancestors).
-   * Validators that only need giver-side deps ignore `value` /
-   * `field` and read `context.commandGiver`.
+   * The preload's resolved value is passed back to the sync body as
+   * its fourth argument (`preloaded`). For validators whose preload
+   * just warms a singleton cache (the original use-case — e.g., a
+   * `requiresAnimateTarget` validator preloading a species clade so
+   * the sync `findByTemplatePath` hits warm), return `void` and the
+   * sync body ignores the extra arg. For validators whose sync
+   * decision is itself async (e.g., the access checks), return the
+   * decision directly and the sync body reads it from `preloaded`.
+   *
+   * Signature mirrors the sync body — `(value, field, context)`.
+   * Field validators that want per-bound-target deps inspect the
+   * resolved Stuff and preload accordingly. Validators that only need
+   * giver-side deps ignore `value` / `field` and read
+   * `context.commandGiver`.
    *
    * ```ts
+   * // Cache-warming preload (legacy shape — returns void):
    * const v: FieldValidator = (value, field, ctx) => { ... };
    * v.preload = async (value, field, ctx) => {
-   *   const target = (value as { stuff?: Stuff } | undefined)?.stuff;
-   *   if (!target) return;
-   *   await StuffApi.singleton(somePathFromTarget(target));
+   *   await StuffApi.singleton(somePathFromTarget(value));
    * };
+   *
+   * // Decision-returning preload:
+   * const v: FieldValidator<boolean> = (_v, _f, _ctx, allowed) =>
+   *   allowed ? undefined : 'denied';
+   * v.preload = async (_v, _f, ctx) => AccessApi.can(ctx.commandGiver, 'x', null);
    * ```
    *
    * Omit on validators that only check mixin presence or call
@@ -496,8 +505,8 @@ export type FieldValidator = ((
   preload?: (
     value: unknown,
     field: string,
-    context: CommandContext
-  ) => Promise<void>;
+    context: CommandContext,
+  ) => Promise<T>;
 };
 
 /**
@@ -511,18 +520,39 @@ export type FieldValidator = ((
  *
  * Sync by design — the validator phase runs inside
  * `CommandApi.runValidators` (sync). Validators whose sync body
- * needs singletons declare an async `preload` hook; the dispatcher
- * walks all validators-for-this-command between MQL resolution and
- * the sync validator phase and awaits each preload, so the sync body
- * always sees a populated cache. Preload signature mirrors the sync
- * body — `(context)` — so verb-level validators that need
- * giver-side deps read `context.commandGiver`.
+ * needs async work declare a `preload` hook; the dispatcher walks
+ * all validators-for-this-command between MQL resolution and the
+ * sync validator phase, awaits each preload, and passes each
+ * resolved value back to the validator's sync body as its second
+ * argument (`preloaded`).
+ *
+ * The `T` type parameter is the preload's return type. For preloads
+ * that only warm a singleton cache (the original use-case), use
+ * `T = void` and ignore the extra arg. For preloads whose result is
+ * the actual decision (e.g., the access checks — `AccessApi.can` is
+ * async; the sync body needs the boolean), declare `T = boolean` and
+ * read the result from `preloaded`.
  */
-export type CommandValidator = ((
-  context: CommandContext
+export type CommandValidator<T = void> = ((
+  context: CommandContext,
+  preloaded: T,
 ) => string | undefined) & {
-  preload?: (context: CommandContext) => Promise<void>;
+  preload?: (context: CommandContext) => Promise<T>;
 };
+
+/**
+ * Resolved preload values keyed by the validator function the
+ * dispatcher invoked. Populated by `preloadValidatorDeps`; consumed
+ * by `runValidators`. Each entry's value matches the corresponding
+ * validator's `T` parameter at runtime; the map's value type is
+ * `unknown` because the map is heterogeneous (each validator may
+ * declare its own `T`).
+ *
+ * The map's lifetime is one command — created at preload time,
+ * dropped after `runValidators` returns. No cross-command state.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ValidatorPreloads = Map<(...args: any[]) => unknown, unknown>;
 
 /**
  * Shared shape between positional args and option-bound fields:
@@ -1631,8 +1661,9 @@ export class CommandApi {
     context: CommandContext,
     resolved: CommandModel,
     subcommand?: string
-  ): Promise<void> {
-    const preloads: Promise<void>[] = [];
+  ): Promise<ValidatorPreloads> {
+    type Pending = { v: (...args: never[]) => unknown; p: Promise<unknown> };
+    const pending: Pending[] = [];
     const collectField = (
       list: FieldValidator[] | undefined,
       fname: string
@@ -1641,14 +1672,22 @@ export class CommandApi {
       const value = resolved[fname];
       for (const v of list) {
         if (typeof v.preload === 'function') {
-          preloads.push(v.preload(value, fname, context));
+          pending.push({
+            v: v as (...args: never[]) => unknown,
+            p: v.preload(value, fname, context) as Promise<unknown>,
+          });
         }
       }
     };
     const collectCmd = (list: CommandValidator[] | undefined): void => {
       if (!list) return;
       for (const v of list) {
-        if (typeof v.preload === 'function') preloads.push(v.preload(context));
+        if (typeof v.preload === 'function') {
+          pending.push({
+            v: v as (...args: never[]) => unknown,
+            p: v.preload(context) as Promise<unknown>,
+          });
+        }
       }
     };
 
@@ -1673,7 +1712,13 @@ export class CommandApi {
       }
     }
 
-    if (preloads.length > 0) await Promise.all(preloads);
+    const out: ValidatorPreloads = new Map();
+    if (pending.length === 0) return out;
+    const values = await Promise.all(pending.map((e) => e.p));
+    for (let i = 0; i < pending.length; i++) {
+      out.set(pending[i]!.v, values[i]);
+    }
+    return out;
   }
 
   /**
@@ -2123,7 +2168,8 @@ export class CommandApi {
    */
   static runValidators(
     resolved: CommandModel,
-    context: CommandContext
+    context: CommandContext,
+    preloads?: ValidatorPreloads,
   ): { ok: true } | { result: 'failed' } {
     const command = context.command;
     const subcommand =
@@ -2137,7 +2183,10 @@ export class CommandApi {
     // that don't tie to a specific arg. First failure short-circuits.
     if (command._resolvedValidators) {
       for (const v of command._resolvedValidators) {
-        const err = v(context);
+        const err = v(
+          context,
+          preloads?.get(v as (...args: never[]) => unknown) as never,
+        );
         if (err) {
           context.note({
             kind: 'validator-failed',
@@ -2155,7 +2204,7 @@ export class CommandApi {
     for (const [fname, def] of Object.entries(fieldDefs)) {
       const v = resolved[fname];
       if (v === undefined && def.required === false) continue;
-      const err = runValidators(def._resolvedValidators, v, fname, context);
+      const err = runValidators(def._resolvedValidators, v, fname, context, preloads);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2175,7 +2224,7 @@ export class CommandApi {
       const fname = opt.field ?? name;
       const v = resolved[fname];
       if (v === undefined && opt.required !== true) continue;
-      const err = runValidators(opt._resolvedValidators, v, fname, context);
+      const err = runValidators(opt._resolvedValidators, v, fname, context, preloads);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2193,7 +2242,7 @@ export class CommandApi {
       const fname = opt.field ?? name;
       const v = resolved[fname];
       if (v === undefined && opt.required !== true) continue;
-      const err = runValidators(opt._resolvedValidators, v, fname, context);
+      const err = runValidators(opt._resolvedValidators, v, fname, context, preloads);
       if (err) {
         context.note({
           kind: 'validator-failed',
@@ -2208,7 +2257,7 @@ export class CommandApi {
       const subOpts = command.getSubcommand(subcommand)?.options ?? {};
       for (const [name, opt] of Object.entries(subOpts)) {
         const fname = opt.field ?? name;
-        const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context);
+        const err = runValidators(opt._resolvedValidators, resolved[fname], fname, context, preloads);
         if (err) {
           context.note({
             kind: 'validator-failed',
@@ -2238,7 +2287,18 @@ export class CommandApi {
   ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
     const resolved = await this.resolveModel(model, context, prep);
     if ('result' in resolved) return resolved;
-    const validated = this.runValidators(resolved.resolved, context);
+    const subcommand =
+      typeof (resolved.resolved as { subcommand?: unknown }).subcommand ===
+      'string'
+        ? ((resolved.resolved as { subcommand?: string }).subcommand)
+        : undefined;
+    const preloads = await this.preloadValidatorDeps(
+      context.command,
+      context,
+      resolved.resolved,
+      subcommand,
+    );
+    const validated = this.runValidators(resolved.resolved, context, preloads);
     if ('result' in validated) return validated;
     return resolved;
   }
@@ -3270,11 +3330,17 @@ function runValidators(
   validators: FieldValidator[] | undefined,
   value: unknown,
   fname: string,
-  context: CommandContext
+  context: CommandContext,
+  preloads?: ValidatorPreloads,
 ): string | undefined {
   if (!validators) return undefined;
   for (const v of validators) {
-    const err = v(value, fname, context);
+    const err = v(
+      value,
+      fname,
+      context,
+      preloads?.get(v as (...args: never[]) => unknown) as never,
+    );
     if (err) return err;
   }
   return undefined;
