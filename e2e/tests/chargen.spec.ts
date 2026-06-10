@@ -97,6 +97,15 @@ test('a new player creates a character and spawns into the world', async ({
     // (sapiens, sex-determination `xy`) reliably exposes the conditional
     // sex step below, so this spec exercises every step.
     await expect(page.getByTestId('chargen-option-human')).toBeVisible();
+
+    // The species step carries the illustration detail pane: the 3:4
+    // portrait slot (a framed placeholder until image assets ship) and
+    // the focused option's label. Hovering a card drives the pane.
+    await expect(page.getByTestId('chargen-detail-pane')).toBeVisible();
+    await expect(page.getByTestId('chargen-detail-image')).toBeVisible();
+    await page.getByTestId('chargen-option-human').hover();
+    await expect(page.getByTestId('chargen-detail-label')).toHaveText(/human/i);
+
     await page.getByTestId('chargen-option-human').click();
 
     // Step — sex. This step is conditional: it only appears for species

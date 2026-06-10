@@ -274,7 +274,7 @@ describe("char-gen frame routing", () => {
     useStore.setState({
       charGenRoster: [],
       charGenState: null,
-      connectionPhase: "connecting",
+      connectionPhase: "unauthenticated",
     });
   });
 

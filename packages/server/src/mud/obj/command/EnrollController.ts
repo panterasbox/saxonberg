@@ -67,6 +67,8 @@ interface SpeciesRosterEntry {
   path: string;
   label: string;
   description: string;
+  /** Optional illustration URL; absent until image assets ship. */
+  image?: string;
 }
 interface AspirationRosterEntry {
   key: string;
@@ -74,6 +76,8 @@ interface AspirationRosterEntry {
   description: string;
   bioSeed: string;
   outfit: string[];
+  /** Optional illustration URL; absent until image assets ship. */
+  image?: string;
 }
 interface CharGenConfig {
   species: SpeciesRosterEntry[];
@@ -129,6 +133,7 @@ const ENROLL_STEPS: EnrollStep[] = [
         value: s.key,
         label: s.label,
         description: s.description,
+        image: s.image ?? null,
       })),
     validate: (v, _d, cfg) =>
       cfg.species.some((s) => s.key === v.toLowerCase())
@@ -229,6 +234,7 @@ const ENROLL_STEPS: EnrollStep[] = [
         value: a.key,
         label: a.label,
         description: a.description,
+        image: a.image ?? null,
       })),
     validate: (v, _d, cfg) =>
       cfg.aspirations.some((a) => a.key === v.toLowerCase())

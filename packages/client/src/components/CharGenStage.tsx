@@ -148,6 +148,90 @@ const OptionDesc = styled.span`
   line-height: 1.5;
 `;
 
+/* --- Illustrated step: cards + detail pane ------------------------ */
+
+/**
+ * Two-column band used on illustrated steps (species, aspiration):
+ * the option grid on the left, an illustration-led detail pane on the
+ * right. Stacks to a single column on narrow viewports.
+ */
+const IllustratedLayout = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: ${tokens.space.xl};
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+`;
+
+const OptionColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+/**
+ * The detail pane — the illustration is the hero. Its width is fixed
+ * so the 3:4 image slot has a stable footprint; the grid flexes
+ * around it.
+ */
+const DetailPane = styled.aside`
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.md};
+  padding: ${tokens.space.lg};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+`;
+
+/**
+ * The 3:4 portrait slot. Holds the option's illustration when one
+ * exists; otherwise a framed placeholder that keeps the exact
+ * footprint so nothing reflows when real art lands. `aspect-ratio`
+ * pins the shape independent of content.
+ */
+const DetailImage = styled.div`
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: ${tokens.radius.sm};
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${tokens.color.surfaceSunken};
+  border: 1px dashed ${tokens.color.borderMuted};
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DetailLabel = styled.div`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${tokens.color.fgEmphasis};
+`;
+
+const DetailDesc = styled.p`
+  margin: 0;
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  line-height: 1.6;
+`;
+
 /* --- Name step ---------------------------------------------------- */
 
 const Suggestion = styled.div`
@@ -271,6 +355,14 @@ const STEP_PROMPT: Record<CharGenStep, { heading: string; sub: string }> = {
   },
 };
 
+/**
+ * Steps whose options carry an illustration — these render the
+ * two-column cards-plus-detail-pane layout. Other steps (sex,
+ * pronouns, name, confirm) keep the single centered column. Extending
+ * this set is the only change needed to illustrate another step.
+ */
+const STEPS_WITH_ILLUSTRATION = new Set<CharGenStep>(['species', 'aspiration']);
+
 const PICK_ORDER: { key: keyof CharGenPicks; label: string }[] = [
   { key: 'species', label: 'species' },
   { key: 'sex', label: 'sex' },
@@ -321,6 +413,10 @@ export function CharGenStage({
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
   const [typedName, setTypedName] = useState('');
+  // Which option the detail pane is showing. Driven by card hover;
+  // falls back to the first option so the pane is never empty. Stored
+  // by value (not index) so it survives option-set changes gracefully.
+  const [focusedValue, setFocusedValue] = useState<string | null>(null);
 
   // No state yet (frame in flight) — show a quiet placeholder rather
   // than an empty screen.
@@ -417,27 +513,64 @@ export function CharGenStage({
             </Suggestion>
           ) : null}
 
-          {/* Closed-choice options for the current step. */}
-          {options.length > 0 ? (
-            <OptionGrid>
-              {options.map((opt: CharGenOption) => (
-                <OptionCard
-                  key={opt.value}
-                  data-testid={`chargen-option-${opt.value}`}
-                  onClick={() => sendOption(step, opt.value)}
-                  onMouseEnter={() =>
-                    onCommandPreview(`enroll ${step} ${opt.value}`)
-                  }
-                  onMouseLeave={() => onCommandPreview(null)}
-                >
-                  <OptionLabel>{opt.label}</OptionLabel>
-                  {opt.description ? (
-                    <OptionDesc>{opt.description}</OptionDesc>
-                  ) : null}
-                </OptionCard>
-              ))}
-            </OptionGrid>
-          ) : null}
+          {/* Closed-choice options for the current step. Illustrated
+              steps render a cards-plus-detail-pane layout; the rest
+              keep the single column. */}
+          {options.length > 0
+            ? (() => {
+                const illustrated = STEPS_WITH_ILLUSTRATION.has(step);
+                const focused =
+                  options.find((o) => o.value === focusedValue) ??
+                  options[0] ??
+                  null;
+                // On illustrated steps the description moves to the
+                // detail pane, so cards stay compact (label only).
+                const grid = (
+                  <OptionGrid>
+                    {options.map((opt: CharGenOption) => (
+                      <OptionCard
+                        key={opt.value}
+                        data-testid={`chargen-option-${opt.value}`}
+                        onClick={() => sendOption(step, opt.value)}
+                        onMouseEnter={() => {
+                          setFocusedValue(opt.value);
+                          onCommandPreview(`enroll ${step} ${opt.value}`);
+                        }}
+                        onMouseLeave={() => onCommandPreview(null)}
+                      >
+                        <OptionLabel>{opt.label}</OptionLabel>
+                        {!illustrated && opt.description ? (
+                          <OptionDesc>{opt.description}</OptionDesc>
+                        ) : null}
+                      </OptionCard>
+                    ))}
+                  </OptionGrid>
+                );
+                if (!illustrated) return grid;
+                return (
+                  <IllustratedLayout>
+                    <OptionColumn>{grid}</OptionColumn>
+                    <DetailPane data-testid="chargen-detail-pane">
+                      <DetailImage data-testid="chargen-detail-image">
+                        {focused?.image ? (
+                          <img src={focused.image} alt={focused.label} />
+                        ) : (
+                          <span>illustration</span>
+                        )}
+                      </DetailImage>
+                      {focused ? (
+                        <DetailLabel data-testid="chargen-detail-label">
+                          {focused.label}
+                        </DetailLabel>
+                      ) : null}
+                      {focused?.description ? (
+                        <DetailDesc>{focused.description}</DetailDesc>
+                      ) : null}
+                    </DetailPane>
+                  </IllustratedLayout>
+                );
+              })()
+            : null}
 
           {/* Confirm step: the begin button. */}
           {isConfirmStep ? (

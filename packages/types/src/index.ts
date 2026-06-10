@@ -946,6 +946,14 @@ export interface CharGenOption {
   label: string;
   /** Optional one-line description (themed flavor). */
   description?: string;
+  /**
+   * Optional illustration for the option, surfaced in the char-gen
+   * detail pane (3:4 portrait). A resolvable image URL, or `null` when
+   * no asset exists yet (the client renders a framed placeholder). The
+   * asset subsystem owns how this URL is produced/resolved; char-gen
+   * only consumes it. v1: always `null` until image assets ship.
+   */
+  image?: string | null;
 }
 
 /** The accumulated picks so far (client-readable draft). */
