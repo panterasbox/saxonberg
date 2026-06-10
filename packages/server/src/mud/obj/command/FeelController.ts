@@ -65,6 +65,7 @@ export default class FeelController extends SingleSenseControllerBase {
   private async feelAmbient(context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     if (!MixinApi.isAtmospheric(location)) {
       super.execute({ target: undefined } as FeelModel, context);
       return;

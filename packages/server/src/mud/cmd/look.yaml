@@ -1,6 +1,8 @@
 verbs: [look, l]
 controller: LookController
 description: "Examine your surroundings or an object"
+validators:
+  - /lib/command/validators/requiresLocation
 args:
   - name: target
     type: object

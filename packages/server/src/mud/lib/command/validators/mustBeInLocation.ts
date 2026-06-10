@@ -32,8 +32,12 @@ const validator: FieldValidator = (value, field, context) => {
   if (stuffs.length === 0) return undefined;
 
   const location = context.location;
+  // No location → nothing is "here", so every bound stuff fails the
+  // membership check below and gets the "you don't see X here" message.
   const locationIds = new Set(
-    ContainmentApi.getContents(location).map((s) => s.stuffId),
+    (location ? ContainmentApi.getContents(location) : []).map(
+      (s) => s.stuffId,
+    ),
   );
 
   for (const stuff of stuffs) {

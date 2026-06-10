@@ -103,7 +103,7 @@ export interface ExecuteCommandOpts {
 export interface CommandContext {
   commandGiver: Stuff & CommandGiver;
   interactive?: Interactive;
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   commandText: string;
   executionId: string;
   commandId: string;
@@ -154,7 +154,7 @@ export interface CommandContext {
  */
 export interface CreateCommandContextArgs {
   commandGiver: Stuff & CommandGiver;
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   commandText: string;
   executionId: string;
   commandId: string;
@@ -210,7 +210,7 @@ const STATUS_RANK: Record<Status, number> = {
 
 class CommandContextImpl implements CommandContext {
   public commandGiver: Stuff & CommandGiver;
-  public location: Stuff & Container;
+  public location: (Stuff & Container) | null;
   public commandText: string;
   public executionId: string;
   public commandId: string;
@@ -302,7 +302,7 @@ export interface ParserContext {
    * disambiguation. Typically a `Location` but may be any
    * `Stuff & Container` (a Vessel interior, etc.).
    */
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   /**
    * Available command definitions on the actor's recency stack —
    * the universe of verbs the parser is allowed to choose from.
@@ -1436,7 +1436,7 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
+    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
@@ -1591,7 +1591,7 @@ export class CommandApi {
       raw?: string;
     },
     command: CommandDefinition,
-    _ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
+    _ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
   ): { model: CommandModel } | { error: string } {
     const allowed = command.getAllFieldNames();
     const fields: ModelData = {};

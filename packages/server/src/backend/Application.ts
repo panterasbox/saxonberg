@@ -339,13 +339,12 @@ export class Application {
     await user.save();
     console.info(`Application: Created new User ${user._id}`);
 
-    const playerId = await this.createDefaultAvatarTemplate(
-      profile.name?.givenName || 'Unnamed',
-      profile.name?.familyName
-    );
-    user.playerIds.push(playerId);
-    await user.save();
-
+    // Char-gen owns character creation now: signup mints ZERO avatars.
+    // A new user starts with an empty roster (`playerIds: []`); on first
+    // login the empty roster routes them into char-gen (the `enroll`
+    // flow), which forks the per-character template at commit. The
+    // Google profile name survives on the User/GoogleProfile only as the
+    // seed for the name suggester. See docs/plans/char-gen-plan.md (A1).
     return user._id!;
   }
 
@@ -389,6 +388,31 @@ export class Application {
     );
     console.info(`Application: Created avatar template at ${path}`);
     return playerId;
+  }
+
+  /**
+   * TEST-ONLY: give a user a ready-to-play default character so in-world
+   * E2E tests don't have to walk char-gen first. Mirrors the retired
+   * signup auto-mint (human, lobby, seed defaults), named from the test
+   * handle. Backs the test-auth seam's `withCharacter` option. Gated on
+   * `AUTH_MODE === 'test'`; idempotent (no-op if the user already owns a
+   * character).
+   */
+  public async provisionTestCharacter(
+    userId: string,
+    name = 'Tester'
+  ): Promise<void> {
+    if (process.env.AUTH_MODE !== 'test') {
+      throw new Error('Application.provisionTestCharacter: test-only');
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(`Application.provisionTestCharacter: no user ${userId}`);
+    }
+    if (user.playerIds.length > 0) return;
+    const playerId = await this.createDefaultAvatarTemplate(name);
+    user.playerIds.push(playerId);
+    await user.save();
   }
 }
 

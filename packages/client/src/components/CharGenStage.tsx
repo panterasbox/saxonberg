@@ -1,0 +1,486 @@
+/**
+ * CharGenStage — the dedicated character-creation layout (phase
+ * `char-gen`).
+ *
+ * NOT a modal and NOT an inline panel: this is its own full-screen
+ * stage. Three bands, top to bottom:
+ *
+ *   1. The stage (flex: 1) — the current step prompt, the closed-choice
+ *      `options` as clickable cards, the name `suggestion` with
+ *      Keep / Re-roll / Type-your-own on the name step, the accumulated
+ *      `picks`, and any validation `error`.
+ *   2. A slim terminal strip — the Login's narration frames
+ *      (`system.charactergen.welcome` et al.) scroll here, secondary.
+ *   3. The command bar — front-and-centre (CLI-as-backbone). Reuses the
+ *      cockpit `CommandBar` so typed input still works and echoes; every
+ *      stage affordance sends the literal `enroll <field> <value>`
+ *      string through the same `sendCommand` path.
+ *
+ * Every affordance is a thin wrapper over `sendCommand`. Clicking the
+ * "Elf" card sends `enroll species elf`; Keep → `enroll name keep`;
+ * Re-roll → `enroll name reroll`; an aspiration card → `enroll
+ * aspiration healer`; the confirm button → `enroll confirm`. The server
+ * owns all option computation and validation; the client only renders
+ * what the `system.charactergen.state` frame carries and forwards the
+ * tokens back.
+ *
+ * Styling matches the cockpit's token-driven aesthetic. Weight and
+ * position carry the hierarchy (the command bar is the visual anchor);
+ * color is reserved (the project is color-conservative).
+ */
+
+import { useState } from 'react';
+import styled from 'styled-components';
+import type {
+  CharGenOption,
+  CharGenPicks,
+  CharGenStep,
+} from '@saxonberg/types';
+import { useStore } from '../store/index';
+import { tokens } from './ui/tokens';
+import { Terminal } from './Terminal';
+import { CommandBar } from './CommandBar';
+import type { Frame } from '../store/index';
+
+/* --- Layout primitives -------------------------------------------- */
+
+const Stage = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  font-family: ${tokens.font.family};
+`;
+
+/** The main stage area — scrolls if the step is tall. */
+const StageBody = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: ${tokens.space.xl};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const StageInner = styled.div`
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.xl};
+`;
+
+const StepHeading = styled.h1`
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: ${tokens.color.fgEmphasis};
+`;
+
+const StepSub = styled.p`
+  margin: 0;
+  font-size: ${tokens.font.body};
+  color: ${tokens.color.fgMuted};
+  line-height: 1.6;
+`;
+
+/* --- Picks summary ------------------------------------------------ */
+
+const Picks = styled.dl`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: ${tokens.space.sm} ${tokens.space.xl};
+  margin: 0;
+  padding: ${tokens.space.md} ${tokens.space.xl};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.md};
+  font-size: ${tokens.font.small};
+`;
+
+const PickKey = styled.dt`
+  color: ${tokens.color.fgMuted};
+  text-transform: lowercase;
+`;
+
+const PickVal = styled.dd`
+  margin: 0;
+  color: ${tokens.color.fg};
+`;
+
+/* --- Option cards ------------------------------------------------- */
+
+const OptionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: ${tokens.space.md};
+`;
+
+const OptionCard = styled.button`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.xs};
+  text-align: left;
+  padding: ${tokens.space.lg};
+  background: ${tokens.color.surfaceAlt};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+  font-family: ${tokens.font.family};
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${tokens.color.accent};
+    background: ${tokens.color.surface};
+  }
+`;
+
+const OptionLabel = styled.span`
+  font-size: ${tokens.font.body};
+  font-weight: 600;
+`;
+
+const OptionDesc = styled.span`
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  line-height: 1.5;
+`;
+
+/* --- Name step ---------------------------------------------------- */
+
+const Suggestion = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.md};
+  padding: ${tokens.space.xl};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+`;
+
+const SuggestedName = styled.div`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${tokens.color.fgEmphasis};
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${tokens.space.md};
+`;
+
+const StageButton = styled.button<{ $primary?: boolean }>`
+  padding: ${tokens.space.sm} ${tokens.space.xl};
+  background: ${(p) =>
+    p.$primary ? tokens.color.primary : tokens.color.actionBg};
+  color: ${(p) => (p.$primary ? 'white' : tokens.color.fg)};
+  border: 1px solid
+    ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+  cursor: pointer;
+
+  &:hover {
+    background: ${(p) =>
+      p.$primary ? tokens.color.primaryHover : tokens.color.actionBgHover};
+  }
+`;
+
+const TypeOwnForm = styled.form`
+  display: flex;
+  align-items: stretch;
+  gap: ${tokens.space.md};
+`;
+
+const TypeOwnInput = styled.input`
+  flex: 1;
+  padding: ${tokens.space.md};
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.primary};
+  }
+`;
+
+/* --- Error -------------------------------------------------------- */
+
+const ErrorBanner = styled.div`
+  padding: ${tokens.space.md} ${tokens.space.xl};
+  border: 1px solid #e06c75;
+  border-radius: ${tokens.radius.sm};
+  color: #e06c75;
+  font-size: ${tokens.font.small};
+`;
+
+/* --- Terminal strip ----------------------------------------------- */
+
+/**
+ * A slim, fixed-height band hosting the Login's narration scrollback.
+ * Secondary to the stage — present so the player still sees the
+ * server's prose, but not the focal element.
+ */
+const TerminalStrip = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 9rem;
+  border-top: 1px solid ${tokens.color.border};
+  min-height: 0;
+`;
+
+/* --- Step copy ---------------------------------------------------- */
+
+const STEP_PROMPT: Record<CharGenStep, { heading: string; sub: string }> = {
+  species: {
+    heading: 'Choose your species',
+    sub: 'Pick the kind of being you are stepping into.',
+  },
+  sex: {
+    heading: 'Choose a sex',
+    sub: 'Independent of the pronouns you will pick next.',
+  },
+  name: {
+    heading: 'Choose a name',
+    sub: 'Keep the suggestion, re-roll for another, or type your own.',
+  },
+  pronouns: {
+    heading: 'Choose your pronouns',
+    sub: 'How others will refer to you.',
+  },
+  aspiration: {
+    heading: 'Choose an aspiration',
+    sub: 'Who you are becoming. This seeds your story and your attire.',
+  },
+  confirm: {
+    heading: 'Confirm your character',
+    sub: 'Review your choices, then step into the world.',
+  },
+  done: {
+    heading: 'Entering the world…',
+    sub: 'Your character is being placed.',
+  },
+};
+
+const PICK_ORDER: { key: keyof CharGenPicks; label: string }[] = [
+  { key: 'species', label: 'species' },
+  { key: 'sex', label: 'sex' },
+  { key: 'name', label: 'name' },
+  { key: 'pronouns', label: 'pronouns' },
+  { key: 'aspiration', label: 'aspiration' },
+];
+
+function renderPickValue(key: keyof CharGenPicks, picks: CharGenPicks): string {
+  if (key === 'species') {
+    return picks.species ? picks.species.commonName : '';
+  }
+  if (key === 'name') {
+    return [picks.name, picks.surname].filter(Boolean).join(' ');
+  }
+  const value = picks[key];
+  return typeof value === 'string' ? value : '';
+}
+
+/* --- Component ---------------------------------------------------- */
+
+interface CharGenStageProps {
+  /** The real command channel — every affordance routes through it. */
+  onSendCommand: (text: string) => void;
+  /** Frames feeding the slim narration strip. */
+  frames: Frame[];
+  /** CommandBar wiring, forwarded from App unchanged. */
+  baseValue: string;
+  onBaseChange: (value: string) => void;
+  onSendPromptResponse: (promptId: string, response: string) => void;
+  onCancelPrompt: (promptId: string) => void;
+  flashing?: boolean;
+  /** Terminal click-routing wiring, forwarded from App unchanged. */
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}
+
+export function CharGenStage({
+  onSendCommand,
+  frames,
+  baseValue,
+  onBaseChange,
+  onSendPromptResponse,
+  onCancelPrompt,
+  flashing,
+  onCommandClick,
+  onCommandPreview,
+}: CharGenStageProps) {
+  const charGenState = useStore((s) => s.charGenState);
+  const [typedName, setTypedName] = useState('');
+
+  // No state yet (frame in flight) — show a quiet placeholder rather
+  // than an empty screen.
+  if (!charGenState) {
+    return (
+      <Stage>
+        <StageBody>
+          <StageInner>
+            <StepSub>Preparing character creation…</StepSub>
+          </StageInner>
+        </StageBody>
+      </Stage>
+    );
+  }
+
+  const { step, picks, suggestion, options, error } = charGenState;
+  const prompt = STEP_PROMPT[step];
+
+  const sendOption = (field: string, value: string) =>
+    onSendCommand(`enroll ${field} ${value}`);
+
+  const handleTypeOwn = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = typedName.trim();
+    if (!trimmed) return;
+    onSendCommand(`enroll name ${trimmed}`);
+    setTypedName('');
+  };
+
+  const isNameStep = step === 'name';
+  const isConfirmStep = step === 'confirm';
+
+  return (
+    <Stage data-testid="chargen-stage">
+      <StageBody>
+        <StageInner>
+          <div>
+            <StepHeading data-testid="chargen-step">{prompt.heading}</StepHeading>
+            <StepSub>{prompt.sub}</StepSub>
+          </div>
+
+          {error ? (
+            <ErrorBanner data-testid="chargen-error">{error}</ErrorBanner>
+          ) : null}
+
+          {/* Accumulated picks so far. */}
+          {PICK_ORDER.some((p) => renderPickValue(p.key, picks)) ? (
+            <Picks>
+              {PICK_ORDER.map((p) => {
+                const value = renderPickValue(p.key, picks);
+                if (!value) return null;
+                return (
+                  <PickRow key={p.key} label={p.label} value={value} />
+                );
+              })}
+            </Picks>
+          ) : null}
+
+          {/* Name step: suggestion with keep / re-roll / type-your-own. */}
+          {isNameStep ? (
+            <Suggestion>
+              {suggestion ? (
+                <SuggestedName data-testid="chargen-suggestion">
+                  {[suggestion.name, suggestion.surname]
+                    .filter(Boolean)
+                    .join(' ')}
+                </SuggestedName>
+              ) : null}
+              <ButtonRow>
+                <StageButton
+                  $primary
+                  data-testid="chargen-suggestion-keep"
+                  onClick={() => onSendCommand('enroll name keep')}
+                >
+                  Keep
+                </StageButton>
+                <StageButton
+                  data-testid="chargen-suggestion-reroll"
+                  onClick={() => onSendCommand('enroll name reroll')}
+                >
+                  Re-roll
+                </StageButton>
+              </ButtonRow>
+              <TypeOwnForm onSubmit={handleTypeOwn}>
+                <TypeOwnInput
+                  value={typedName}
+                  onChange={(e) => setTypedName(e.target.value)}
+                  placeholder="…or type your own name"
+                  aria-label="Type your own name"
+                  data-testid="chargen-name-input"
+                />
+                <StageButton type="submit">Use this name</StageButton>
+              </TypeOwnForm>
+            </Suggestion>
+          ) : null}
+
+          {/* Closed-choice options for the current step. */}
+          {options.length > 0 ? (
+            <OptionGrid>
+              {options.map((opt: CharGenOption) => (
+                <OptionCard
+                  key={opt.value}
+                  data-testid={`chargen-option-${opt.value}`}
+                  onClick={() => sendOption(step, opt.value)}
+                  onMouseEnter={() =>
+                    onCommandPreview(`enroll ${step} ${opt.value}`)
+                  }
+                  onMouseLeave={() => onCommandPreview(null)}
+                >
+                  <OptionLabel>{opt.label}</OptionLabel>
+                  {opt.description ? (
+                    <OptionDesc>{opt.description}</OptionDesc>
+                  ) : null}
+                </OptionCard>
+              ))}
+            </OptionGrid>
+          ) : null}
+
+          {/* Confirm step: the begin button. */}
+          {isConfirmStep ? (
+            <ButtonRow>
+              <StageButton
+                $primary
+                data-testid="chargen-confirm"
+                onClick={() => onSendCommand('enroll confirm')}
+              >
+                Step into the world
+              </StageButton>
+            </ButtonRow>
+          ) : null}
+        </StageInner>
+      </StageBody>
+
+      {/* Slim narration strip — secondary to the stage. */}
+      <TerminalStrip>
+        <Terminal
+          frames={frames}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+        />
+      </TerminalStrip>
+
+      {/* The command bar is the backbone — typed `enroll …` always works. */}
+      <CommandBar
+        baseValue={baseValue}
+        onBaseChange={onBaseChange}
+        onSendCommand={onSendCommand}
+        onSendPromptResponse={onSendPromptResponse}
+        onCancelPrompt={onCancelPrompt}
+        flashing={flashing}
+      />
+    </Stage>
+  );
+}
+
+function PickRow({ label, value }: { label: string; value: string }) {
+  return (
+    <>
+      <PickKey>{label}</PickKey>
+      <PickVal>{value}</PickVal>
+    </>
+  );
+}

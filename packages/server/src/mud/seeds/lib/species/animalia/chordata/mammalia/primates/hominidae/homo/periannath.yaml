@@ -1,0 +1,29 @@
+# Homo periannath — fantasy halfling. Same biped anatomy as sapiens,
+# scaled small; vision and lifespan stay close to human (~150 years).
+# Quick, comfortable, fond of a good meal and a warm hole.
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  binomial: Homo periannath
+  commonNames: ["halfling"]
+  _bodyPlanPath: /lib/body-plans/biped
+  _parentCladePath: /lib/species/animalia
+  _defaultMaterialPath: /lib/material/tissue/flesh
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 150
+  circadianBand: diurnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: normal
+  defaultDescription: >-
+    A small, soft-cheeked figure barely waist-high to a tall folk, with
+    quick bright eyes, nimble bare feet, and the easy, well-fed comfort
+    of someone never far from a warm hearth.
+  nameBankKeys: ["halfling"]

@@ -1,0 +1,10 @@
+class: /lib/equipment/Garment
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a sharp blazer
+  primaryKeyword: blazer
+  longDescription: >
+    A well-cut blazer, a touch too confident for a first-year. The
+    wearer clearly intends to be taken seriously, and soon.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]

@@ -29,6 +29,8 @@
 import { Agent } from '../stuff/Agent';
 import { NamedMixin } from '../description/Named';
 import { GenderedMixin } from './Gendered';
+import { SexedMixin } from './Sexed';
+import { PersonaMixin } from './Persona';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VisibleMixin } from '../description/Visible';
@@ -92,7 +94,13 @@ const CharacterBase = CommandGiverMixin(
                       GenderedMixin(
                         PosedMixin(
                           BodyPlanSlotsMixin(
-                            SlottedMixin(OrganismMixin(NamedMixin(Agent))),
+                            SlottedMixin(
+                              SexedMixin(
+                                PersonaMixin(
+                                  OrganismMixin(NamedMixin(Agent)),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

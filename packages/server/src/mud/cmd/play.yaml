@@ -1,0 +1,8 @@
+verbs: [play]
+controller: PlayController
+description: "Enter the world as one of your characters (from the character-select roster)."
+args:
+  - name: playerId
+    type: string
+    required: true
+    greedy: true

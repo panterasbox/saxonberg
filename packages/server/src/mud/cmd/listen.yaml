@@ -2,6 +2,7 @@ verbs: [listen]
 controller: ListenController
 description: "Listen to your surroundings or a specific source"
 validators:
+  - /lib/command/validators/requiresLocation
   - /lib/command/validators/requiresHearing
 args:
   - name: target

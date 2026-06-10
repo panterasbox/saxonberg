@@ -22,3 +22,8 @@ data:
     scotopicMin: pitch-black
     photopicMax: bright
     bandShift: -1
+  defaultDescription: >-
+    A short, broad-shouldered figure, thick through the chest and
+    deep-rooted in stance, with the weathered, stone-patient look of
+    someone bred to the dark and the deep.
+  nameBankKeys: ["dwarvish"]

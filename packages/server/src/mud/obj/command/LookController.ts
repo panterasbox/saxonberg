@@ -139,6 +139,7 @@ export default class LookController extends CommandController<LookModel> {
   private lookAtLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     // Render whatever the location actually has: name (if Named via
     // `Mml.location`), description body (if Visible), exits (if
     // Exitable), and a listing of visible occupants. A bare

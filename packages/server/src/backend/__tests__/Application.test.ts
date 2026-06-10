@@ -469,23 +469,81 @@ describe('Application', () => {
       ).rejects.toThrow(/db unavailable/);
     });
 
-    it('throws a meaningful error when the avatar seed template is missing', async () => {
+    it('does not fork an avatar template at signup (char-gen owns character creation)', async () => {
       const pm = pmStubs();
       pm.setFindForCollection(Collections.GoogleProfiles, []);
 
       vi.spyOn(User, 'find').mockResolvedValue([]);
-      const userSaves = vi.fn().mockResolvedValue(undefined);
-      vi.spyOn(StuffApi, 'create').mockResolvedValue({
-        _id: 'user-new',
-        googleProfileId: '',
-        playerIds: [],
-        save: userSaves,
-      } as never);
+      // Seed deliberately "missing": signup no longer touches it, so a
+      // missing seed is no longer an error at signup — it surfaces only
+      // at char-gen commit if it ever happens.
       vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
 
       await expect(
         app.findOrCreateUserFromGoogle(fakeProfile()),
-      ).rejects.toThrow(/seed/);
+      ).resolves.toBeDefined();
+      // Zero avatars minted; no per-character template forked.
+      expect(tmplSave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('provisionTestCharacter (test-auth seam)', () => {
+    const ORIG_AUTH_MODE = process.env.AUTH_MODE;
+    afterEach(() => {
+      if (ORIG_AUTH_MODE === undefined) delete process.env.AUTH_MODE;
+      else process.env.AUTH_MODE = ORIG_AUTH_MODE;
+    });
+
+    it('refuses unless AUTH_MODE=test', async () => {
+      delete process.env.AUTH_MODE;
+      await expect(app.provisionTestCharacter('u1')).rejects.toThrow(
+        /test-only/,
+      );
+    });
+
+    it('mints exactly one ready character for a fresh user', async () => {
+      process.env.AUTH_MODE = 'test';
+      const user = {
+        _id: 'u1',
+        playerIds: [] as string[],
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      vi.spyOn(Template, 'findByPath').mockResolvedValue({
+        path: Avatar.SEED_TEMPLATE_PATH,
+        class: '/obj/Avatar',
+        data: {},
+        hydratorClass: '/lib/persistence/PersistentHydrator',
+      } as never);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
+
+      await app.provisionTestCharacter('u1', 'Tester');
+      expect(user.playerIds).toHaveLength(1);
+      expect(user.save).toHaveBeenCalledTimes(1);
+      expect(tmplSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('is idempotent — no-op when the user already has a character', async () => {
+      process.env.AUTH_MODE = 'test';
+      const user = {
+        _id: 'u1',
+        playerIds: ['existing'],
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
+
+      await app.provisionTestCharacter('u1');
+      expect(user.playerIds).toEqual(['existing']);
+      expect(tmplSave).not.toHaveBeenCalled();
+      expect(user.save).not.toHaveBeenCalled();
     });
   });
 });

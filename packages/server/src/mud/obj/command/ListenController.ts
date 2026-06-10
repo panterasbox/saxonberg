@@ -33,6 +33,7 @@ export default class ListenController extends SingleSenseControllerBase {
   protected override senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     const signal = SoundModality.soundAt(location);
 
     if (signal && signal.amplitude.rawValue() >= DEFAULT_HEARING_THRESHOLD_DB) {

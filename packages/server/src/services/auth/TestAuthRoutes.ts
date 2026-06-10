@@ -42,27 +42,35 @@ export class TestAuthRoutes {
         return;
       }
 
-      const handle = String(
-        (req.body as { handle?: unknown } | undefined)?.handle ?? 'default'
-      );
+      const body = req.body as
+        | { handle?: unknown; withCharacter?: unknown }
+        | undefined;
+      const handle = String(body?.handle ?? 'default');
+      // Opt-in: provision a ready-to-play character so in-world E2E
+      // tests skip char-gen. Char-gen specs omit it (0 chars → intake).
+      const withCharacter = body?.withCharacter === true;
 
-      void backend.handleTestAuthentication(handle, (err, user) => {
-        if (err || !user) {
-          console.error('TestAuthRoutes: test-login failed:', err);
-          res.status(500).json({ error: 'test-login failed' });
-          return;
-        }
-        // Establish the real Passport session (sets
-        // session.passport.user = { id }), then return status.
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error('TestAuthRoutes: req.login failed:', loginErr);
-            res.status(500).json({ error: 'session establishment failed' });
+      void backend.handleTestAuthentication(
+        handle,
+        (err, user) => {
+          if (err || !user) {
+            console.error('TestAuthRoutes: test-login failed:', err);
+            res.status(500).json({ error: 'test-login failed' });
             return;
           }
-          res.json({ isAuthenticated: true, user: { id: user.id } });
-        });
-      });
+          // Establish the real Passport session (sets
+          // session.passport.user = { id }), then return status.
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              console.error('TestAuthRoutes: req.login failed:', loginErr);
+              res.status(500).json({ error: 'session establishment failed' });
+              return;
+            }
+            res.json({ isAuthenticated: true, user: { id: user.id } });
+          });
+        },
+        withCharacter
+      );
     });
 
     console.warn(

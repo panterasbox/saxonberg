@@ -15,6 +15,7 @@
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
+import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
@@ -114,6 +115,7 @@ export class AppBootstrap {
     // caches from these collections.
     await EmoteSeeder.run();
     await ChannelSeeder.run();
+    await NameBankSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {

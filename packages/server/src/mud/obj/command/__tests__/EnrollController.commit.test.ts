@@ -1,0 +1,160 @@
+/**
+ * EnrollController commit — the `enroll confirm` pipeline, run UNMOCKED
+ * (the orchestration the step-model test mocks out) with the underlying
+ * Apis spied. Asserts the commit sequence and the data assembled onto
+ * the per-character template: fork (with picks) → register ownership →
+ * clone Avatar → set sex → dress → hand off → destruct Login. The real
+ * clone-cascade + spawn is covered end-to-end by the browser e2e
+ * (e2e/tests/chargen.spec.ts).
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import EnrollController from '../EnrollController';
+import Login from '../../Login';
+import Interactive from '../../Interactive';
+import Avatar from '../../Avatar';
+import Species from '../../../lib/species/Species';
+import { StuffApi } from '../../../api/stuff';
+import { TemplateApi } from '../../../api/template';
+import { Template } from '../../../lib/stuff/Template';
+import { ConnectionApi } from '../../../api/connection';
+import { ContainmentApi } from '../../../api/containment';
+import { SlotApi } from '../../../api/slot';
+import { MessageApi } from '../../../api/message';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import type { CommandContext, CommandModel } from '../../../api/command';
+
+const SAPIENS =
+  '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+const BIPED = '/lib/body-plans/biped';
+
+describe('EnrollController.commit', () => {
+  let login: Login;
+  let ctrl: EnrollController;
+  let ctx: CommandContext;
+  let user: { _id: string; playerIds: string[]; save: ReturnType<typeof vi.fn> };
+  let savedTemplate: { path: string; data: Record<string, unknown> } | null;
+  let avatar: { setSex: ReturnType<typeof vi.fn>; enter: ReturnType<typeof vi.fn> };
+  let transfer: ReturnType<typeof vi.fn>;
+  let destruct: ReturnType<typeof vi.fn>;
+  let dressed: string[];
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    EnrollController.resetConfigCache();
+
+    user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
+    const interactive = makeStuff(
+      () => new Interactive('s', 'sess', user as never),
+    );
+    login = makeStuff(() => new Login(interactive));
+    login.setEnrollmentDraft({
+      speciesKey: 'human',
+      speciesPath: SAPIENS,
+      speciesCommonName: 'human',
+      sex: 'female',
+      name: 'Bobalu',
+      surname: 'Smallberries',
+      pronouns: 'she',
+      aspiration: 'healer',
+    });
+    ctrl = makeStuff(() => new EnrollController());
+
+    const species = makeStuff(() => new Species());
+    species.setSexDeterminationSystem('dioecious');
+    species.setCommonNames(['human']);
+    species.setDefaultDescription('an ordinary-looking person');
+    species.setNameBankKeys(['common']);
+    vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) =>
+      p === SAPIENS ? (species as never) : (undefined as never),
+    );
+    // Species.getBodyPlanPath isn't set on this bare instance; stub it.
+    vi.spyOn(species, 'getBodyPlanPath').mockReturnValue(BIPED);
+
+    // Seed template + persistence
+    vi.spyOn(Template, 'findByPath').mockResolvedValue({
+      path: Avatar.SEED_TEMPLATE_PATH,
+      class: '/obj/Avatar',
+      data: { container: '/domain/eternal/duncan-hall/lobby' },
+      hydratorClass: '/lib/persistence/PersistentHydrator',
+    } as never);
+    savedTemplate = null;
+    vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(
+      async (path: string, _cls, data) => {
+        savedTemplate = { path, data: data as Record<string, unknown> };
+        return path;
+      },
+    );
+
+    // Clone: avatar for the Avatar path, a garment for everything else.
+    avatar = { setSex: vi.fn(), enter: vi.fn().mockResolvedValue(undefined) };
+    dressed = [];
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+      if (path.startsWith('/obj/Avatar/')) return avatar as never;
+      dressed.push(path);
+      return {
+        getSlotClaims: () => ({ [BIPED]: ['torso'] }),
+      } as never;
+    });
+    vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
+    vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);
+    transfer = vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never) as never;
+    destruct = vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never) as never;
+
+    // Scene emit (welcome/narration) → no-op chainable.
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = () => b;
+      b.payload = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+
+    ctx = {
+      commandGiver: login as never,
+      interactive,
+      note: vi.fn(),
+    } as unknown as CommandContext;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  function confirm(): Promise<void> {
+    return ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx);
+  }
+
+  it('forks the per-character template with the picks overlaid', async () => {
+    await confirm();
+    expect(savedTemplate).not.toBeNull();
+    expect(savedTemplate!.path).toMatch(/^\/obj\/Avatar\//);
+    const d = savedTemplate!.data;
+    expect(d.name).toBe('Bobalu');
+    expect(d.surname).toBe('Smallberries');
+    expect(d._speciesPath).toBe(SAPIENS);
+    expect(d.pronouns).toBe('she');
+    expect(d.aspiration).toBe('healer');
+    expect(String(d.bio)).toMatch(/mend/i); // healer bioSeed from char-gen.yaml
+    expect(d.shortDescription).toBe('an ordinary-looking person');
+  });
+
+  it('registers ownership (playerIds + save) as the atomicity boundary', async () => {
+    await confirm();
+    expect(user.playerIds).toHaveLength(1);
+    expect(user.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('clones the avatar, sets sex, dresses, hands off, and destructs Login', async () => {
+    await confirm();
+    expect(avatar.setSex).toHaveBeenCalledWith('female');
+    // Healer outfit garments cloned + worn (tolerant loop).
+    expect(dressed.length).toBeGreaterThan(0);
+    expect(SlotApi.occupyAll).toHaveBeenCalled();
+    expect(transfer).toHaveBeenCalled();
+    expect(avatar.enter).toHaveBeenCalledTimes(1);
+    expect(destruct).toHaveBeenCalledWith(login);
+  });
+});

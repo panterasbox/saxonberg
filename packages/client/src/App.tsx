@@ -18,6 +18,8 @@ import { TabStrip } from './components/TabStrip';
 import { FilterDrawer } from './components/FilterDrawer';
 import { CommandBar } from './components/CommandBar';
 import { InspectionPane } from './components/InspectionPane';
+import { CharacterSelect } from './components/CharacterSelect';
+import { CharGenStage } from './components/CharGenStage';
 import { tokens } from './components/ui';
 import type { ConsoleTab } from '@saxonberg/types';
 
@@ -210,6 +212,7 @@ function formatResponseEcho(
 function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
+  const connectionPhase = useStore((state) => state.connectionPhase);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   // Filter frames by the active tab's muted set. The 'All' default
@@ -525,59 +528,84 @@ function App() {
     };
   }, []);
 
-  // Show login screen if not authenticated
-  if (!auth.isAuthenticated) {
-    return (
-      <LoginContainer>
-        <LoginMessage>
-          <LoginTitle>Saxonberg 2.0</LoginTitle>
-          <LoginText>
-            Please log in with your Google account to enter the world.
-            <br />
-            <br />
-            <a
-              href={`${SERVER_URL}/auth/google`}
-              style={{ color: '#007acc', textDecoration: 'none' }}
-            >
-              Login with Google
-            </a>
-          </LoginText>
-        </LoginMessage>
-      </LoginContainer>
-    );
-  }
+  // Mutually-exclusive top-level screen, switched on the connection
+  // phase. `unauthenticated` → login takeover; `character-select` →
+  // the roster; `char-gen` → the dedicated creation stage;
+  // `in-world` → the cockpit. The phase is driven by auth + the
+  // char-gen wire frames in the store (see store/index.ts).
+  switch (connectionPhase) {
+    case 'unauthenticated':
+      return (
+        <LoginContainer>
+          <LoginMessage>
+            <LoginTitle>Saxonberg 2.0</LoginTitle>
+            <LoginText>
+              Please log in with your Google account to enter the world.
+              <br />
+              <br />
+              <a
+                href={`${SERVER_URL}/auth/google`}
+                style={{ color: '#007acc', textDecoration: 'none' }}
+              >
+                Login with Google
+              </a>
+            </LoginText>
+          </LoginMessage>
+        </LoginContainer>
+      );
 
-  // Show game UI when authenticated and connected
-  return (
-    <AppContainer>
-      <ConnectionStatus />
-      <Cockpit>
-        <LeftColumn>
-          <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
-          <Terminal
-            frames={visibleFrames}
-            onCommandClick={handleCommandClick}
-            onCommandPreview={handleCommandPreview}
-          />
-          {drawerOpen && (
-            <FilterDrawer onClose={() => setDrawerOpen(false)} />
-          )}
-          <CommandBar
-            baseValue={inputValue}
-            onBaseChange={handleInputChange}
-            onSendCommand={sendCommand}
-            onSendPromptResponse={sendPromptResponse}
-            onCancelPrompt={cancelPrompt}
-            flashing={flashing}
-          />
-        </LeftColumn>
-        <InspectionPane
+    case 'character-select':
+      return <CharacterSelect onSendCommand={sendCommand} />;
+
+    case 'char-gen':
+      return (
+        <CharGenStage
           onSendCommand={sendCommand}
+          frames={visibleFrames}
+          baseValue={inputValue}
+          onBaseChange={handleInputChange}
+          onSendPromptResponse={sendPromptResponse}
+          onCancelPrompt={cancelPrompt}
+          flashing={flashing}
+          onCommandClick={handleCommandClick}
           onCommandPreview={handleCommandPreview}
         />
-      </Cockpit>
-    </AppContainer>
-  );
+      );
+
+    case 'in-world':
+    default:
+      // Show game UI when authenticated and the avatar is in-world.
+      return (
+        <AppContainer>
+          <ConnectionStatus />
+          <Cockpit>
+            <LeftColumn>
+              <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+              <Terminal
+                frames={visibleFrames}
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+              />
+              {drawerOpen && (
+                <FilterDrawer onClose={() => setDrawerOpen(false)} />
+              )}
+              <CommandBar
+                baseValue={inputValue}
+                onBaseChange={handleInputChange}
+                onSendCommand={sendCommand}
+                onSendPromptResponse={sendPromptResponse}
+                onCancelPrompt={cancelPrompt}
+                flashing={flashing}
+              />
+            </LeftColumn>
+            <InspectionPane
+              onSendCommand={sendCommand}
+              onCommandPreview={handleCommandPreview}
+            />
+          </Cockpit>
+        </AppContainer>
+      );
+  }
 }
 
 export default App;

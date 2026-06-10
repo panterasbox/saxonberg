@@ -1,0 +1,67 @@
+# Name banks — per-flavor given/surname pools for the char-gen name
+# suggester. Seeded into the `name_banks` collection by NameBankSeeder
+# at boot (the EmoteSeeder precedent). CONTENT, editable in the db.
+# A Species references one or more by key via `nameBankKeys`.
+
+banks:
+  - key: common
+    style: Plain, familiar human names.
+    given:
+      [Alden, Bram, Bella, Cora, Dane, Edda, Finn, Greta, Hal, Iris,
+       Jonas, Kira, Lena, Marek, Nessa, Otto, Pia, Rolf, Sela, Tomas]
+    surname:
+      [Ashby, Brook, Cole, Dunn, Fletcher, Greer, Hale, Mercer, Nash,
+       Reed, Stone, Vance, Webb, Yale]
+
+  - key: dwarvish
+    style: Hard consonants, stone and forge.
+    given:
+      [Bofur, Brunna, Dagna, Durin, Gimna, Grom, Hilda, Karn, Morgrim,
+       Nala, Orsik, Thrain, Throra, Vondal]
+    surname:
+      [Stonebeard, Ironfist, Deepdelver, Coalfoot, Grimaxe, Oremantle,
+       Hammerhand, Flintheart]
+
+  - key: elvish
+    style: Melodic, flowing vowels.
+    given:
+      [Aelar, Aerith, Caelen, Elaria, Faelar, Ilyana, Lúthien, Maelis,
+       Nimwë, Saelra, Thalion, Yllian]
+    surname:
+      [Moonwhisper, Silverleaf, Dawnrunner, Starweaver, Nightbreeze,
+       Willowmere, Brightwater]
+
+  - key: halfling
+    style: Cozy, compound, hearthside.
+    given:
+      [Bilba, Bobalu, Bramble, Dello, Frodi, Lila, Marigold, Milo, Nettie,
+       Pippa, Rosco, Tilly]
+    surname:
+      [Smallberries, Underhill, Goodbarrel, Thornapple, Brandybuck,
+       Tealeaf, Honeyfoot, Greenbottle]
+
+  - key: orcish
+    style: Blunt, guttural, strong.
+    given:
+      [Brakka, Dura, Gorruk, Grisha, Karg, Mogra, Nargol, Ruka, Shagg,
+       Thokk, Ura, Vrenn]
+    surname:
+      [Skullcleaver, Ironmaw, Bonecrush, Grimtusk, Bloodfang, Steeljaw]
+
+  - key: infernal
+    style: Ember and old contracts.
+    given:
+      [Azaril, Belial, Caim, Ember, Isolde, Lucan, Malphas, Nyx, Ronove,
+       Seraphine, Valafar, Zariel]
+    surname:
+      [Ashborne, Cinderfell, Emberhart, Hellweather, Nightbane,
+       Smokegale, Brimhollow]
+
+  - key: draconic
+    style: Proud, sibilant, ancient.
+    given:
+      [Arjhan, Balasar, Daar, Kavish, Mishann, Nala, Pijji, Rhogar,
+       Sora, Thava, Vrenn, Zedaar]
+    surname:
+      [Clethtinthiallor, Daardendrian, Kepeshkmolik, Myastan,
+       Verthisathurgiesh, Yarjerit]

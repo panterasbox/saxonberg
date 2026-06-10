@@ -49,6 +49,7 @@ export default class SmellController extends SingleSenseControllerBase {
   protected override senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     const signal = SmellModality.smellAt(location);
     const threshold = actorAcuityThreshold(actor);
 

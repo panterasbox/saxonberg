@@ -27,6 +27,8 @@
  */
 
 import type {
+  CharGenRosterPayload,
+  CharGenStatePayload,
   ConnectionEstablishedPayload,
   DispatchResponseEnvelope,
   Envelope,
@@ -370,6 +372,24 @@ class WebSocketClient {
           this.handleConnectionEstablished(
             messageFrame.payload as ConnectionEstablishedPayload
           );
+          break;
+        // Char-gen frames carry structured payloads through the Login's
+        // Sensor (no new envelope type). The roster drives the
+        // character-select screen; the per-step state drives the
+        // char-gen stage. Both flip the connection phase via the store.
+        // `system.charactergen.welcome` carries no payload and falls
+        // through to the catch-all so its prose lands in the terminal.
+        case 'system.charactergen.roster':
+          useStore
+            .getState()
+            .setCharGenRoster(
+              (messageFrame.payload as CharGenRosterPayload).characters
+            );
+          break;
+        case 'system.charactergen.state':
+          useStore
+            .getState()
+            .setCharGenState(messageFrame.payload as CharGenStatePayload);
           break;
         default:
           break;

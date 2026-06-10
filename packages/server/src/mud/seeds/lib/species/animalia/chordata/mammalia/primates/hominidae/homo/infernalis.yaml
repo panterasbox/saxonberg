@@ -1,0 +1,29 @@
+# Homo infernalis — fantasy tiefling. Same biped anatomy as sapiens,
+# marked by an old infernal heritage: horns, ember eyes, a vision
+# profile that leans low-light. Modestly long-lived (~120 years).
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  binomial: Homo infernalis
+  commonNames: ["tiefling"]
+  _bodyPlanPath: /lib/body-plans/biped
+  _parentCladePath: /lib/species/animalia
+  _defaultMaterialPath: /lib/material/tissue/flesh
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 120
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: normal
+  defaultDescription: >-
+    A lean figure of unsettling beauty, skin warm-hued and faintly
+    flushed, with a pair of curving horns and slow-burning ember eyes
+    that carry an old, banked infernal heat.
+  nameBankKeys: ["infernal", "common"]

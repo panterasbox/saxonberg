@@ -921,6 +921,69 @@ export interface ConnectionEstablishedPayload {
 }
 
 /**
+ * Char-gen — the pre-world character-creation phase. Both payloads ride
+ * as `MessageFrame.payload` on system-family topics (no new envelope
+ * type): the roster on `system.charactergen.roster`, the per-step state
+ * on `system.charactergen.state`. Delivered to the connected `Login`
+ * (a Sensor) and read by the cockpit's char-gen layout.
+ */
+
+/** The ordered char-gen steps; `'done'` signals commit/enter. */
+export type CharGenStep =
+  | 'species'
+  | 'sex'
+  | 'name'
+  | 'pronouns'
+  | 'aspiration'
+  | 'confirm'
+  | 'done';
+
+/** One closed-choice option for the current char-gen step. */
+export interface CharGenOption {
+  /** The token the client sends as `enroll <field> <value>`. */
+  value: string;
+  /** Human-facing label. */
+  label: string;
+  /** Optional one-line description (themed flavor). */
+  description?: string;
+}
+
+/** The accumulated picks so far (client-readable draft). */
+export interface CharGenPicks {
+  species?: { key: string; commonName: string };
+  sex?: string;
+  name?: string;
+  surname?: string;
+  pronouns?: string;
+  aspiration?: string;
+}
+
+/** `system.charactergen.state` payload — drives the char-gen layout. */
+export interface CharGenStatePayload {
+  step: CharGenStep;
+  picks: CharGenPicks;
+  /** Current name suggestion (name step only). */
+  suggestion?: { name: string; surname?: string };
+  /** Closed-choice options for the current step (content-derived). */
+  options: CharGenOption[];
+  /** Last validation rejection, for inline display. */
+  error?: string;
+}
+
+/** One character in the post-login roster. */
+export interface CharGenRosterEntry {
+  playerId: string;
+  name: string;
+  species: string;
+  description: string;
+}
+
+/** `system.charactergen.roster` payload — the character-select list. */
+export interface CharGenRosterPayload {
+  characters: CharGenRosterEntry[];
+}
+
+/**
  * Inbound client mutation of a `ClientStateMixin` key. The server
  * validates the key against the aggregated schema chain (rejects
  * unknown keys; runs the entry's optional validator), calls

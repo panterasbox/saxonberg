@@ -421,15 +421,16 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // — typically a Location (room) but may be a Vessel (entered
       // wardrobe/ship). Controllers narrow with MixinApi predicates
       // when they need a specific surface.
+      // Location is OPTIONAL context, not a precondition to dispatch.
+      // An incorporeal giver (e.g. `Login` during char-gen) legitimately
+      // has no location; an embodied giver glitched into nowhere still
+      // needs to dispatch recovery verbs (`help`, `recall`). So we always
+      // proceed with a possibly-null location. Verbs that genuinely need
+      // a location declare the `requiresLocation` validator, which
+      // rejects with a clean "you're nowhere" before the controller runs.
       const location = MixinApi.isContainable(giver)
         ? giver.getContainer()
         : null;
-      if (!location) {
-        // No location — no dispatch. This is a programmatic-shape
-        // error (commands fire from inside a Container); nothing
-        // user-actionable to surface.
-        return;
-      }
       const commandId = nanoid();
       const originInteractiveId = opts.interactive?.stuffId;
       const outer = CommandApi.createCommandContext({

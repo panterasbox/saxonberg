@@ -136,6 +136,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
   protected senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     if (!MixinApi.isVisible(location)) {
       // Bare locations with no Visible composition surface no
       // sense-channel prose; render the indistinct fallback.

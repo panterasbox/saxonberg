@@ -27,7 +27,11 @@ export default async function globalSetup(): Promise<void> {
   for (let i = 0; i < 30; i++) {
     try {
       res = await ctx.post('/auth/test-login', {
-        data: { handle: 'e2e-default' },
+        // `withCharacter` provisions a ready-to-play avatar so the
+        // default session lands in-world (the cockpit), not char-gen.
+        // The char-gen spec logs in separately with a fresh handle and
+        // no character, so it gets the 0-avatar → intake path.
+        data: { handle: 'e2e-default', withCharacter: true },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
       if (res.ok()) break;

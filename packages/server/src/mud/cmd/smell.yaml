@@ -2,6 +2,7 @@ verbs: [smell]
 controller: SmellController
 description: "Smell your surroundings or a specific thing"
 validators:
+  - /lib/command/validators/requiresLocation
   - /lib/command/validators/requiresSmell
 args:
   - name: target

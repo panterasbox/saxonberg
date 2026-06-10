@@ -1,0 +1,116 @@
+# Char-gen rosters — the closed-choice content the `enroll` flow
+# presents. Loaded (cached) by EnrollController. CONTENT, not code:
+# add a species / aspiration / pronoun by editing this file, no code
+# change. See docs/plans/char-gen-plan.md (Phase B/C).
+#
+# `species[].path` must point at a real Species template seed under
+# mud/seeds/lib/species/. `aspirations[].outfit` lists garment template
+# paths cloned + worn at commit (missing ones are skipped). `bioSeed`
+# is the starter bio prose seeded onto PersonaMixin.
+
+species:
+  - key: human
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+    label: Human
+    description: Adaptable and ambitious; the striving majority of the campus.
+  - key: elf
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/eldarinus
+    label: Elf
+    description: Keen-eyed and long-lived, with a measured, watchful grace.
+  - key: dwarf
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
+    label: Dwarf
+    description: Stone-sturdy and stout, at home in the dark and the deep.
+  - key: halfling
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/periannath
+    label: Halfling
+    description: Small, quick, and comfortable; fond of a good meal and a warm hole.
+  - key: half-orc
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
+    label: Half-orc
+    description: Broad and powerful, with a keen nose and a quiet steadiness.
+  - key: tiefling
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
+    label: Tiefling
+    description: Horned and ember-eyed, carrying an old, infernal heat.
+  - key: dragonborn
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/draconicus
+    label: Dragonborn
+    description: Scaled and proud, with the bearing of an elder wyrm.
+
+# Pronouns are free and independent of sex. Closed-choice for v1
+# (free-text deferred — grammar-engine cost).
+pronouns:
+  - value: they
+    label: they/them
+  - value: she
+    label: she/her
+  - value: he
+    label: he/him
+  - value: it
+    label: it/its
+
+# Aspirations — what you want to *become*. Each seeds a starter bio +
+# selects a themed starting outfit. (Breadcrumb-seeding is deferred.)
+aspirations:
+  - key: something-better
+    label: Something Better
+    description: A degree, a way up, a life that fits. The striver's road.
+    bioSeed: >-
+      You came here chasing something better than where you started — a
+      degree, a door, a different life. You don't have it all figured out
+      yet. That's rather the point.
+    outfit:
+      - /domain/eternal/clothes/student-shirt
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes
+  - key: healer
+    label: Healer
+    description: To mend bodies and minds. Nursing, counseling, care.
+    bioSeed: >-
+      You came to learn how to mend — bodies, minds, the small broken
+      things people carry. You've always been the one others come to.
+    outfit:
+      - /domain/eternal/clothes/white-coat
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes
+  - key: teacher
+    label: Teacher
+    description: To pass the torch. Certification, classrooms, kids.
+    bioSeed: >-
+      You want to teach — to be the one who finally makes it click for
+      someone. You remember the teacher who did that for you.
+    outfit:
+      - /domain/eternal/clothes/tweed-jacket
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes
+  - key: guardian
+    label: Guardian
+    description: To stand the watch. Service, discipline, protection.
+    bioSeed: >-
+      You came to stand the watch — to be steady when it matters, to put
+      yourself between people and the worst of it.
+    outfit:
+      - /domain/eternal/clothes/field-jacket
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes
+  - key: founder
+    label: Founder
+    description: To build something. Business, finance, ventures.
+    bioSeed: >-
+      You're here to build something of your own — a company, a stake, a
+      name on a door. You think in deals and in years.
+    outfit:
+      - /domain/eternal/clothes/blazer
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes
+  - key: seeker
+    label: Seeker
+    description: To know how it works. Science, computation, the deep questions.
+    bioSeed: >-
+      You came for the questions — how it works, why it works, what's
+      underneath. You'd take the truth over the comfort any day.
+    outfit:
+      - /domain/eternal/clothes/lab-hoodie
+      - /domain/eternal/clothes/student-trousers
+      - /domain/eternal/clothes/canvas-shoes

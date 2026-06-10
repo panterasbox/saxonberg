@@ -142,6 +142,7 @@ export default class SenseController extends CommandController<SenseModel> {
   private senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;
     const location = context.location;
+    if (!location) return; // requiresLocation validator gates this at runtime
     const sensorium = physicalSensorium(actor);
     const hasVisible = MixinApi.isVisible(location);
     const hasExits = MixinApi.isExitable(location);

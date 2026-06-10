@@ -28,6 +28,35 @@ import type BodyPlan from './BodyPlan';
 import type Clade from './Clade';
 import type Material from '../material/Material';
 import type { VisionProfile } from '../perception/Light';
+import { NameBank } from './NameBank';
+
+/** A suggested character name (given + optional surname). */
+export interface SuggestedName {
+  name: string;
+  surname?: string;
+}
+
+function pick<T>(arr: readonly T[]): T | undefined {
+  if (arr.length === 0) return undefined;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Pick a given name, preferring one that shares the real name's first
+ * letter (the phonetic-riff bias). Falls back to any bank name, then to
+ * the real name itself, then a neutral default. Module-level (not a
+ * `#`-private method) because Species instances dispatch through the
+ * call-security proxy, where `this.#x` throws.
+ */
+function pickGiven(pool: readonly string[], realName?: string): string {
+  if (pool.length === 0) return realName?.trim() || 'Newcomer';
+  const initial = realName?.trim()?.[0]?.toLowerCase();
+  if (initial) {
+    const sameInitial = pool.filter((n) => n[0]?.toLowerCase() === initial);
+    if (sameInitial.length > 0) return pick(sameInitial)!;
+  }
+  return pick(pool)!;
+}
 
 /**
  * Per-species smell capability descriptor.
@@ -130,6 +159,21 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected olfactoryProfile: OlfactoryProfile | null = null;
 
+  /**
+   * Themed default appearance prose for a fresh member of this species
+   * — consumed at char-gen commit as the avatar's `shortDescription`
+   * (gives the player a body to `look` at). Authored per seed.
+   */
+  protected defaultDescription: string = '';
+
+  /**
+   * References to one or more `NameBank` Documents by key (e.g.
+   * `['common']`, `['orcish', 'common']`). The name suggester resolves
+   * these and unions the pools. NOT the name data itself — that lives
+   * in the `name_banks` collection. See {@link NameBank}.
+   */
+  protected nameBankKeys: string[] = [];
+
   static persistentFields = [
     'binomial',
     'commonNames',
@@ -145,6 +189,8 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
     'diet',
     'visionProfile',
     'olfactoryProfile',
+    'defaultDescription',
+    'nameBankKeys',
   ];
 
   public getBinomial(): string { return this.binomial; }
@@ -247,6 +293,53 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
       }
     }
     this.olfactoryProfile = value;
+  }
+
+  public getDefaultDescription(): string { return this.defaultDescription; }
+  public setDefaultDescription(value: string): void {
+    this.defaultDescription = value;
+  }
+
+  public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }
+  public setNameBankKeys(value: string[]): void {
+    if (!Array.isArray(value)) {
+      throw new TypeError('Species.setNameBankKeys: must be a string array');
+    }
+    this.nameBankKeys = value;
+  }
+
+  /**
+   * Suggest a fantasy name for a new member of this species. Resolves
+   * the species' `nameBankKeys` → the referenced {@link NameBank}
+   * pools, then phonetically *riffs* on the player's real given name
+   * (when provided) by preferring a bank given-name sharing its first
+   * letter — so the suggestion feels personally theirs while reading as
+   * the species. Surname is drawn from the bank pool. Always returns a
+   * given name when the bank is non-empty, so intake is never blocked.
+   *
+   * `realName` is the player's real (Google) given name; pass undefined
+   * for additional characters (draws straight from the bank).
+   */
+  public async suggestName(realName?: string): Promise<SuggestedName> {
+    const pools = await NameBank.resolve(this.nameBankKeys);
+    const given = pickGiven(pools.given, realName);
+    const surname = pick(pools.surname);
+    const out: SuggestedName = { name: given };
+    if (surname) out.surname = surname;
+    return out;
+  }
+
+  /**
+   * Re-roll a fresh suggestion with no real-name bias (the player asked
+   * for another option, or it's an additional character).
+   */
+  public async rerollName(): Promise<SuggestedName> {
+    const pools = await NameBank.resolve(this.nameBankKeys);
+    const given = pickGiven(pools.given, undefined);
+    const surname = pick(pools.surname);
+    const out: SuggestedName = { name: given };
+    if (surname) out.surname = surname;
+    return out;
   }
 
   /**
