@@ -290,6 +290,14 @@ The vocabulary in use today: `'destruct'` / `'force-destruct'` /
   the leaked subscription doesn't survive.
 - `ManagedGroupProvider.findByName` is the by-name lookup used
   by both bootstrap seeding and the developer-cache warm path.
+- **`'core'` deleted at runtime** is benign: the cached
+  `GroupRef` points at a deleted Group and `GroupApi.isMember`
+  against it returns `false`, so every gated path denies. The
+  invariant "empty `'core'` = every gate denies" holds. After
+  re-mint at next bootstrap, an HMR reload of
+  `obj/AccessRegistry.ts` re-warms the cache; otherwise the
+  stale ref persists until restart. A `GroupRegistry`-side
+  change-notification subscription is a future tighten-up.
 
 ## What's NOT in this build
 

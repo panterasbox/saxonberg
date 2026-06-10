@@ -96,17 +96,13 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (playerId === null) return false;
 
     const permittedGroups: GroupRef[] = [];
-    let zone = this.zoneOf(resource);
+    let zone: Zone | null = this.zoneOf(resource);
     while (zone !== null) {
-      const owner = (
-        zone as unknown as { getOwnerGroup?: () => GroupRef | undefined }
-      ).getOwnerGroup?.();
+      const owner = zone.getOwnerGroup();
       if (owner) permittedGroups.push(owner);
-      const access = (
-        zone as unknown as { getAccessGroups?: () => readonly GroupRef[] | undefined }
-      ).getAccessGroups?.();
+      const access = zone.getAccessGroups();
       if (access) permittedGroups.push(...access);
-      zone = await ZoneApi.getEnclosingZone(zone as Zone);
+      zone = await ZoneApi.getEnclosingZone(zone);
     }
     if (permittedGroups.length === 0) {
       const coreRef = await this.resolveCoreRef();
@@ -132,14 +128,13 @@ export default class AccessRegistry extends AccessRegistryBase {
     zone: Stuff,
   ): Promise<boolean> {
     if (subject === null) return false;
+    if (!(zone instanceof Zone)) return false;
     const playerId = this.playerIdOf(subject);
     if (playerId === null) return false;
-    let z: Zone | null = zone as Zone;
+    let z: Zone | null = zone;
     let primary: GroupRef | undefined;
     while (z !== null && primary === undefined) {
-      primary = (
-        z as unknown as { getOwnerGroup?: () => GroupRef | undefined }
-      ).getOwnerGroup?.();
+      primary = z.getOwnerGroup();
       if (primary === undefined) {
         z = await ZoneApi.getEnclosingZone(z);
       }
@@ -236,10 +231,7 @@ export default class AccessRegistry extends AccessRegistryBase {
   private zoneOf(resource: Stuff | null): Zone | null {
     if (resource === null) return null;
     if (resource instanceof Zone) return resource;
-    const z = (
-      resource as unknown as { getZone?: () => Zone | null }
-    ).getZone?.();
-    return z ?? null;
+    return resource.getZone();
   }
 
   private async resolveCoreRef(): Promise<GroupRef | null> {

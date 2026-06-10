@@ -176,7 +176,26 @@ Ordered by leverage + dependency:
 
 1. **Access / capability `can()`** — foundational; gates
    scoped-authoring and spoiler, and absorbs the
-   communication-policy slate. Pure server.
+   communication-policy slate. Pure server. **Wave 1 shipped
+   (2026-06)**: `AccessApi` thin facade over the singleton
+   `AccessRegistry` Stuff with four predicates
+   (`can` resource-targeted slice walk, `canMutateZone` role-gated,
+   `isAuthor` broad content-scope, `isDeveloper` orthogonal
+   TS-escape axis) + `resolveSourceFolderZone` path resolver;
+   `Zone.ownerGroup` / `accessGroups` persistent inheritable fields;
+   the narrow-entry pattern (`FromController` policy applied to
+   `StuffApi.forceDestruct` + `ContainmentApi.forceMove`); the
+   three bootstrap-seeded groups (`'core'` / `'lounge'` /
+   `'developers'`) with the lounge FolderZones; MQL
+   `ctx.permission` snapshot wire-up; access checks on all 13
+   author-tier and workspace verb controllers; two declarative
+   validators (`requiresCoreAccess`, `requiresDeveloper`). See
+   [access.md](./subsystems/access.md). Wave 2+ deferred:
+   possession / ownership / location capability sources,
+   action-level enforcement for chat / door / channel,
+   deny-wins composition, audit sink wiring (call-security
+   Pillar 5), tier vocabulary, class-allowlist for content
+   writes.
    ([access-slate.md](./slates/access-slate.md))
 2. **Senses** — the unified `Modality` substrate (sound = the
    hearing channel); high content leverage, `analyze`/`measure`
@@ -516,9 +535,14 @@ opportunistically.
   or chip-click response).
 - **MQL sort / named-group operators** (`:sort.X`, `@@group`).
   Add when demand is real.
-- **Real authoring-tier permission check** in MQL — replace the
-  current admin-flag stub with zone-aware logic. Lands with
-  player-authoring work.
+- **Real authoring-tier permission check** in MQL — *shipped*
+  (2026-06): the `_MqlAdminFlag` stub retired, the resolver
+  now consults a dispatcher-stamped `ctx.permission` snapshot
+  populated from `AccessApi.isAuthor`; see
+  [access.md](./subsystems/access.md). Per-result resource
+  targeting (each `prop:`/`mixin:`/`class:`/`template:` filter
+  hiding non-author-readable matches) remains as the next
+  authoring-tier MQL build.
 - **Markup language semantic tags + client renderer** — extend
   MML with `<command>` / `<direction>` / `<item>` / `<exit>` /
   `<npc>` / `<player>` / `<quantity>` and formal tags

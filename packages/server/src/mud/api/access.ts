@@ -45,6 +45,20 @@ export class AccessApi {
   static #registryRef: AccessRegistry | null = null;
 
   /**
+   * Resolve the Registry without forcing a clone. In production the
+   * Registry is cloned by `AppBootstrap`, so this returns it cheaply.
+   * In test harnesses without a live Registry it returns `null` —
+   * the public predicates use the fallback-decision option to choose
+   * permit vs deny per-method.
+   */
+  static #lookupRegistry(): AccessRegistry | null {
+    if (AccessApi.#registryRef) return AccessApi.#registryRef;
+    const reg = StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    if (reg) AccessApi.#registryRef = reg;
+    return reg ?? null;
+  }
+
+  /**
    * Resource-targeted slice walk. Returns true iff `subject` is a
    * member of any group owning the resource's zone-tree slice. NPCs
    * and null subjects fail closed. When the walk finds no owners,
@@ -56,14 +70,9 @@ export class AccessApi {
     resource: Stuff | null,
   ): Promise<boolean> {
     if (subject === null) return false;
-    // Fast peek without triggering Registry-clone: in test harnesses
-    // without a live Registry we permit. Production always has the
-    // Registry cloned by AppBootstrap.
-    const reg = AccessApi.#registryRef
-      ?? StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    const reg = AccessApi.#lookupRegistry();
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
-    AccessApi.#registryRef = reg;
     return reg.can(subject, action, resource);
   }
 
@@ -77,25 +86,23 @@ export class AccessApi {
     zone: Stuff,
   ): Promise<boolean> {
     if (subject === null) return false;
-    const reg = AccessApi.#registryRef
-      ?? StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    const reg = AccessApi.#lookupRegistry();
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
-    AccessApi.#registryRef = reg;
     return reg.canMutateZone(subject, zone);
   }
 
   /**
    * Broad "is the actor a member of any group with content scope?".
-   * Used by MQL pre-gates that can't be resource-targeted.
+   * Used by MQL pre-gates that can't be resource-targeted. Fail-
+   * closed in the no-Registry test path (the absent permission
+   * snapshot already permits the resolver from the dispatcher side).
    */
   public static async isAuthor(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const reg = AccessApi.#registryRef
-      ?? StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    const reg = AccessApi.#lookupRegistry();
     if (!reg) return false;
     if (playerIdOfQuick(subject) === null) return false;
-    AccessApi.#registryRef = reg;
     return reg.isAuthor(subject);
   }
 
@@ -105,11 +112,9 @@ export class AccessApi {
    */
   public static async isDeveloper(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const reg = AccessApi.#registryRef
-      ?? StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    const reg = AccessApi.#lookupRegistry();
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
-    AccessApi.#registryRef = reg;
     return reg.isDeveloper(subject);
   }
 
@@ -122,10 +127,8 @@ export class AccessApi {
   public static async resolveSourceFolderZone(
     sourcePath: string,
   ): Promise<Stuff | null> {
-    const reg = AccessApi.#registryRef
-      ?? StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+    const reg = AccessApi.#lookupRegistry();
     if (!reg) return null;
-    AccessApi.#registryRef = reg;
     return reg.resolveSourceFolderZone(sourcePath);
   }
 
@@ -138,7 +141,6 @@ export class AccessApi {
   public static _resetRegistryRefForReload(): void {
     AccessApi.#registryRef = null;
   }
-
 }
 
 SecurityApi.decorateApiClass(AccessApi);
