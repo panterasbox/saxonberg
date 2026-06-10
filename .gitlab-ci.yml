@@ -89,8 +89,9 @@ pages:
 # them; the DB is a job-scoped `mongo` service container, not a real
 # database. Everything here is ephemeral/throwaway — `mongodb://mongo`
 # and the session secret guard nothing real, so there are no secrets to
-# materialize (Param Store is only for the live instance). Default
-# branch only — it's heavy.
+# materialize (Param Store is only for the live instance). Runs on
+# merge requests and on the default branch — it's heavy, but catching a
+# broken stack on the MR (before merge) is worth the minutes.
 e2e:
   extends: .node
   stage: e2e
@@ -113,4 +114,5 @@ e2e:
       - e2e/test-results/
     expire_in: 1 week
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
