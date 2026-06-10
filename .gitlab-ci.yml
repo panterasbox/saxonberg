@@ -11,6 +11,7 @@
 stages:
   - validate
   - documentation
+  - e2e
 
 # Run pipelines ONLY for merge requests and default-branch pushes, and
 # never two for the same commit — avoids the duplicate branch+MR
@@ -81,5 +82,36 @@ pages:
   artifacts:
     paths:
       - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# Browser end-to-end tests against a full, throwaway stack. Playwright's
+# `webServer` boots the server (AUTH_MODE=test) + client and waits for
+# them; the DB is a job-scoped `mongo` service container, not a real
+# database. Everything here is ephemeral/throwaway — `mongodb://mongo`
+# and the session secret guard nothing real, so there are no secrets to
+# materialize (Param Store is only for the live instance). Default
+# branch only — it's heavy.
+e2e:
+  extends: .node
+  stage: e2e
+  # Browsers preinstalled; tag must match @saxonberg/e2e's @playwright/test.
+  image: mcr.microsoft.com/playwright:v1.60.0-noble
+  services:
+    - name: mongo:7
+      alias: mongo
+  variables:
+    MONGODB_URI: 'mongodb://mongo:27017'
+    MONGODB_DATABASE: 'saxonberg_e2e'
+    SESSION_SECRET: 'ci-e2e-not-a-secret'
+    CLIENT_URL: 'http://localhost:5173'
+  script:
+    - pnpm --filter @saxonberg/e2e test
+  artifacts:
+    when: on_failure
+    paths:
+      - e2e/playwright-report/
+      - e2e/test-results/
+    expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

@@ -18,15 +18,30 @@ const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 export default async function globalSetup(): Promise<void> {
   const ctx = await request.newContext({ baseURL: SERVER_URL });
 
-  const res = await ctx.post('/auth/test-login', {
-    data: { handle: 'e2e-default' },
-    headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
-  });
+  // Retry briefly: Playwright's webServer gates on the server's `/`
+  // health route, but the world bootstrap (seeding) can still be
+  // finishing when global-setup fires, so /auth/test-login may 500/404
+  // for a moment. Poll up to ~30s.
+  let res;
+  let lastErr = '';
+  for (let i = 0; i < 30; i++) {
+    try {
+      res = await ctx.post('/auth/test-login', {
+        data: { handle: 'e2e-default' },
+        headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
+      });
+      if (res.ok()) break;
+      lastErr = `status ${res.status()}`;
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message : String(e);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
 
-  if (!res.ok()) {
+  if (!res || !res.ok()) {
     throw new Error(
-      `e2e global-setup: POST ${SERVER_URL}/auth/test-login returned ` +
-        `${res.status()}. Is the server running with AUTH_MODE=test? ` +
+      `e2e global-setup: POST ${SERVER_URL}/auth/test-login never succeeded ` +
+        `(${lastErr}). Is the server running with AUTH_MODE=test? ` +
         `See e2e/README.md.`
     );
   }

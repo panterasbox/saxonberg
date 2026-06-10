@@ -11,6 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 
 const CLIENT_URL = process.env.E2E_CLIENT_URL ?? 'http://localhost:5173';
+const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 
 export default defineConfig({
   testDir: './tests',
@@ -31,4 +32,24 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Playwright boots the stack and waits for it before running. The
+  // server runs in AUTH_MODE=test so the /auth/test-login seam is
+  // mounted (and Google OAuth is skipped). Locally an already-running
+  // stack is reused; CI always starts fresh. The server's MONGODB_URI /
+  // SESSION_SECRET come from packages/server/.env locally and from CI
+  // job variables in the pipeline.
+  webServer: [
+    {
+      command: 'AUTH_MODE=test pnpm --filter @saxonberg/server dev',
+      url: `${SERVER_URL}/`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: 'pnpm --filter @saxonberg/client dev',
+      url: `${CLIENT_URL}/`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });

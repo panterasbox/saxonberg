@@ -7,20 +7,23 @@ Google OAuth.
 
 ## Prerequisites
 
-1. **MongoDB** reachable (the running app needs it, unlike the unit tests).
-2. **Server** running with the test-auth seam enabled:
-   ```bash
-   AUTH_MODE=test MONGODB_URI=... pnpm dev:server
-   ```
-   (Optionally set `TEST_AUTH_TOKEN` and pass the same value to the
-   tests via the env below.)
-3. **Client** running: `pnpm dev:client`.
-4. **Browsers** installed once: `pnpm --filter @saxonberg/e2e install:browsers`.
+Playwright's `webServer` config boots the stack for you (the server in
+`AUTH_MODE=test` + the client) and waits for it. So you only need:
+
+1. **MongoDB** reachable — the server reads `MONGODB_URI` from
+   `packages/server/.env` (the running app needs a DB, unlike the unit
+   tests).
+2. **Browsers** installed once: `pnpm --filter @saxonberg/e2e install:browsers`.
+
+Locally an already-running stack is **reused** (`reuseExistingServer`),
+so if you have `pnpm dev` up it'll be used as-is — but it must be in
+`AUTH_MODE=test` (otherwise `/auth/test-login` 404s). If nothing's
+running, Playwright starts a fresh test-mode server + client itself.
 
 ## Run
 
 ```bash
-pnpm --filter @saxonberg/e2e test          # headless
+pnpm --filter @saxonberg/e2e test          # boots the stack, runs headless
 pnpm --filter @saxonberg/e2e test:headed   # watch it drive a browser
 pnpm --filter @saxonberg/e2e test:ui       # interactive UI mode
 pnpm --filter @saxonberg/e2e report        # open the last HTML report
@@ -41,13 +44,22 @@ The seam is server-side and gated on `AUTH_MODE=test` (see
 `packages/server/src/services/auth/TestAuthRoutes.ts`); production never
 sets that flag, so the route doesn't exist there.
 
-## CI (planned)
+## CI
 
-A separate `e2e` CI stage will: start a `mongo` service, boot the
-server (with `AUTH_MODE=test`) + client + a seeded world, run Playwright
-in the official `mcr.microsoft.com/playwright` image, and upload the
-trace + HTML report as artifacts on failure. Kept out of the fast
-`validate` stage. See `docs/deployment.md`.
+Wired as the `e2e` stage in `.gitlab-ci.yml` (default branch only — it's
+heavy). It runs in the official `mcr.microsoft.com/playwright` image
+(browsers preinstalled), with a job-scoped `mongo:7` service as the DB.
+`webServer` boots the test-mode server + client; the suite runs; trace +
+HTML report upload as artifacts on failure. Everything is ephemeral —
+`mongodb://mongo:27017` and the session secret guard nothing real, so no
+secrets are involved (Param Store is only for the live instance).
+
+Note: the CI run uses the **dev** client, so React StrictMode opens two
+WebSocket connections — handled gracefully now (the avatar clone is
+shared), but it logs a non-fatal `DestroyedObjectError` during the
+duplicate connection's teardown. Tests stay green. Switching the e2e
+client to a production build (`vite preview`) would avoid the
+double-connect entirely — a follow-up.
 
 ## Deterministic world
 
@@ -62,9 +74,8 @@ verified green: a dedicated, test-owned spawn room + a test-mode
 
 ## Status
 
-`smoke.spec.ts` (cockpit loads + `look` round-trip) and `auth.spec.ts`
-(login screen for fresh visitors) are live. They parse and are
-discovered by `playwright test --list`, but have **not yet been run
-green** — that needs the full stack (Mongo + server in test mode +
-client) and installed browsers. First green run is the next step when a
-stack is available.
+Three specs, **passing** against a live stack: `auth.spec.ts` (login
+screen for fresh visitors) and `smoke.spec.ts` (authenticated visitor
+lands in the cockpit + a `look` command round-trips and renders the
+spawn room). A smoke suite — it proves the harness and the critical
+path, not broad feature coverage; grow from here.
