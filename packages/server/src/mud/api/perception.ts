@@ -9,7 +9,7 @@
  *     (signal + per-viewer narrowing).
  *   - `sensorium(viewer)` — the modalities the viewer can perceive
  *     (innate BodyPlan organs + augment contributions from active
- *     mixins; augment walk lands in Phase 6).
+ *     mixins via `MixinApi.getActiveMixins` + `_grantsModalities`).
  *   - `canPerceive(viewer, modality)` — predicate over `sensorium`.
  *
  * Modality singletons live at `/lib/perception/modalities/<name>` and
@@ -147,10 +147,10 @@ export class PerceptionApi {
    * (innate organs) and resolves each to its modality singleton via
    * `modalityByOrganKey`. Returns the deduped union.
    *
-   * Phase 6 widens the walk to include modalities granted by mixins
-   * the viewer composes (or has activated via augment-conferral) via
-   * `MixinApi.getActiveMixins` + `_grantsModalities`. v1 ships only
-   * the innate walk; the substrate is forward-looking.
+   * Also includes modalities granted by mixins the viewer composes
+   * (or has activated via augment-conferral), via
+   * `MixinApi.getActiveMixins` + `_grantsModalities` — see
+   * `walkAugmentedModalities`.
    *
    * Returns `[]` defensively when:
    *   - the viewer isn't an Organism (test fixtures, debug consoles),
@@ -267,15 +267,14 @@ function walkInnateModalities(viewer: Stuff): Modality[] {
 
 /**
  * Walk the viewer's active mixin set and collect every
- * `_grantsModalities` declaration. Phase 6 ships
- * `MixinApi.getActiveMixins`; Phase 1 returns []. The walk is the
- * same either way — augment-conferred mixins flow in transparently
- * via the active-mixin set.
+ * `_grantsModalities` declaration via `MixinApi.getActiveMixins` —
+ * augment-conferred mixins flow in transparently via the active-mixin
+ * set.
  */
 function walkAugmentedModalities(viewer: Stuff): Modality[] {
-  // Defensive: MixinApi.getActiveMixins is available after Phase 6
-  // ships. Pre-Phase-6 viewers (test fixtures that don't go through
-  // the full Phase 6 setup) get an empty grant set.
+  // Viewers with no active augment-conferring mixins (e.g. test
+  // fixtures, or hosts before any augment is installed) get an
+  // empty grant set.
   const activeMixins = MixinApi.getActiveMixins(viewer);
   const grants = new Set<string>();
   for (const mixin of activeMixins) {

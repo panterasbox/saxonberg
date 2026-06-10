@@ -6,11 +6,11 @@
  * without anchoring a coordinate grid. Sub-folders that DO need a
  * coordinate frame extend `CartesianZone` or `SphericalZone` instead.
  *
- * Per zone-architecture-slate § Folder zones — generic class needed.
+ * Per the zone authoring model (see `docs/subsystems/zone.md`).
  *
  * Like `HomeZone`, the body is intentionally empty — the class
  * exists so the folder/leaf invariant is satisfied for paths beneath
- * it, and so the inheritance walk (`ZoneApi.resolveZoneField`)
+ * it, and so the inheritance walk (`Zone.lookupField`)
  * sees the folder as an ancestry node. Future folder-tier behavior
  * (per-folder defaults, permission gates) lands on this class
  * without churning callers.
@@ -20,7 +20,7 @@
  * `lib/zone/` (the Zone-hierarchy subsystem), not `lib/spatial/`.
  *
  * `ZoneApi.isFolderClass('/lib/zone/FolderZone')` returns true, so
- * `resolveZoneField`'s ancestry walk treats it as an inheritance
+ * `lookupField`'s ancestry walk treats it as an inheritance
  * node. `ZoneApi.isSpatialZoneClass(...)` returns false, so
  * `Stuff.zone` stamping skips it during the spatial-zone resolution
  * walk (see `ZoneApi.resolveZoneForPath`).
