@@ -263,6 +263,72 @@ describe("onAnyTopic catch-all", () => {
   });
 });
 
+describe("char-gen frame routing", () => {
+  // These two topics are wired through the `onTopic` registry in the
+  // client's constructor (`registerBuiltinHandlers`), NOT the legacy
+  // dispatch switch. The frames reach the store only if that
+  // registration ran — so this is the regression guard for the
+  // switch→registry move.
+  beforeEach(() => {
+    resetClient();
+    useStore.setState({
+      charGenRoster: [],
+      charGenState: null,
+      connectionPhase: "connecting",
+    });
+  });
+
+  it("routes a roster frame to the store and flips to character-select", () => {
+    attachMockWs();
+    deliver({
+      id: "f-roster",
+      topic: "system.charactergen.roster",
+      body: "",
+      meta: { timestamp: 0 },
+      payload: {
+        characters: [
+          {
+            playerId: "p1",
+            name: "Bobalu",
+            species: "Human",
+            description: "a striver",
+          },
+        ],
+      },
+    });
+
+    expect(useStore.getState().charGenRoster).toEqual([
+      {
+        playerId: "p1",
+        name: "Bobalu",
+        species: "Human",
+        description: "a striver",
+      },
+    ]);
+    expect(useStore.getState().connectionPhase).toBe("character-select");
+  });
+
+  it("routes a state frame to the store and flips to char-gen", () => {
+    attachMockWs();
+    deliver({
+      id: "f-state",
+      topic: "system.charactergen.state",
+      body: "",
+      meta: { timestamp: 0 },
+      payload: {
+        step: "species",
+        picks: {},
+        options: [{ value: "human", label: "Human" }],
+      },
+    });
+
+    const state = useStore.getState().charGenState;
+    expect(state?.step).toBe("species");
+    expect(state?.options).toEqual([{ value: "human", label: "Human" }]);
+    expect(useStore.getState().connectionPhase).toBe("char-gen");
+  });
+});
+
 describe("subscribeMql", () => {
   const FOCUS_SPEC = {
     query: "$focus",
