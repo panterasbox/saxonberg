@@ -533,8 +533,13 @@ export default class EnrollController extends CommandController<EnrollModel> {
       pronouns: draft.pronouns,
       aspiration: draft.aspiration,
       bio: aspiration?.bioSeed ?? '',
-      shortDescription:
-        species?.getDefaultDescription() || (seed.data as Record<string, unknown>).shortDescription,
+      // The species' generic appearance is the avatar's look — its
+      // `longDescription` (what another player sees on `look`). Species
+      // now speaks the standard Visible interface, so this is a plain
+      // `getLongDescription()` rather than the old bespoke accessor.
+      longDescription:
+        species?.getLongDescription() ||
+        (seed.data as Record<string, unknown>).longDescription,
     };
     if (draft.surname) data.surname = draft.surname;
     await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);

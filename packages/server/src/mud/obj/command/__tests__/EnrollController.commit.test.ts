@@ -63,7 +63,7 @@ describe('EnrollController.commit', () => {
     const species = makeStuff(() => new Species());
     species.setSexDeterminationSystem('dioecious');
     species.setCommonNames(['human']);
-    species.setDefaultDescription('an ordinary-looking person');
+    species.setLongDescription('an ordinary-looking person');
     species.setNameBankKeys(['common']);
     vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) =>
       p === SAPIENS ? (species as never) : (undefined as never),
@@ -138,7 +138,9 @@ describe('EnrollController.commit', () => {
     expect(d.pronouns).toBe('she');
     expect(d.aspiration).toBe('healer');
     expect(String(d.bio)).toMatch(/mend/i); // healer bioSeed from char-gen.yaml
-    expect(d.shortDescription).toBe('an ordinary-looking person');
+    // Species' generic appearance lands on the avatar's longDescription
+    // (its look) now that Species speaks the Visible interface.
+    expect(d.longDescription).toBe('an ordinary-looking person');
   });
 
   it('registers ownership (playerIds + save) as the atomicity boundary', async () => {

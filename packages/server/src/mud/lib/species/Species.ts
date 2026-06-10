@@ -23,6 +23,7 @@
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
+import { VisibleMixin } from '../description/Visible';
 import { StuffApi } from '../../api/stuff';
 import type BodyPlan from './BodyPlan';
 import type Clade from './Clade';
@@ -82,7 +83,9 @@ export interface OlfactoryProfile {
 
 const OLFACTORY_ACUITY_VALUES = ['keen', 'normal', 'dull', 'none'] as const;
 
-export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
+export default class Species extends SingletonMixin(
+  PropertiedMixin(VisibleMixin(Idea)),
+) {
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
 
@@ -160,13 +163,6 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
   protected olfactoryProfile: OlfactoryProfile | null = null;
 
   /**
-   * Themed default appearance prose for a fresh member of this species
-   * — consumed at char-gen commit as the avatar's `shortDescription`
-   * (gives the player a body to `look` at). Authored per seed.
-   */
-  protected defaultDescription: string = '';
-
-  /**
    * References to one or more `NameBank` Documents by key (e.g.
    * `['common']`, `['orcish', 'common']`). The name suggester resolves
    * these and unions the pools. NOT the name data itself — that lives
@@ -189,9 +185,13 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
     'diet',
     'visionProfile',
     'olfactoryProfile',
-    'defaultDescription',
     'nameBankKeys',
   ];
+  // `shortDescription` / `longDescription` (the species' generic
+  // appearance) come from VisibleMixin's own persistentFields. The
+  // bespoke `defaultDescription` field was subsumed into
+  // `longDescription` — Species now speaks the standard Visible
+  // description interface instead of a one-off accessor.
 
   public getBinomial(): string { return this.binomial; }
   public setBinomial(value: string): void { this.binomial = value; }
@@ -293,11 +293,6 @@ export default class Species extends SingletonMixin(PropertiedMixin(Idea)) {
       }
     }
     this.olfactoryProfile = value;
-  }
-
-  public getDefaultDescription(): string { return this.defaultDescription; }
-  public setDefaultDescription(value: string): void {
-    this.defaultDescription = value;
   }
 
   public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }

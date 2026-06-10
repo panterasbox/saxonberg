@@ -50,7 +50,7 @@ describe('EnrollController step model', () => {
     species.setSexDeterminationSystem('dioecious');
     species.setCommonNames(['human']);
     species.setNameBankKeys(['common']);
-    species.setDefaultDescription('an ordinary-looking person');
+    species.setLongDescription('an ordinary-looking person');
     // Real trait-bearing fields so the derived trait line is exercised.
     species.setLifespanMax(120);
     species.setVisionProfile({
