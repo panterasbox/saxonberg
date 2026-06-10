@@ -56,6 +56,48 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/AccessRegistry',
     dependsOn: ['/obj/GroupRegistry'],
   },
+  // EventSubscriptions — runtime listener registry + bounded history
+  // for the EventApi bus. Distinct from `/obj/EventRegistry` (which
+  // holds event-property declarations + per-prop `checkAccess`); this
+  // singleton holds the per-event Set of live subscribers and the
+  // 100-entry ring buffer of recent payloads. Depends on
+  // `EventRegistry` so the EventApi cache resolves both pointers
+  // before any consumer emits.
+  {
+    templatePath: '/obj/EventSubscriptions',
+    dependsOn: ['/obj/EventRegistry'],
+  },
+  // WorldClockRegistry — game-time anchor + scale + pause flag, the
+  // schedule registry, the deadline-armed real-time heartbeat, and
+  // the crash-backstop snapshot timer. `WorldClockApi.boot()` runs
+  // late in `AppBootstrap.run` AFTER this entry has cloned the
+  // Registry, so the Api facade has a live storage backend before
+  // any consumer schedules. Depends on `EventSubscriptions` because
+  // the Registry's host-destruction hook installs an EventApi
+  // listener at schedule time.
+  {
+    templatePath: '/obj/WorldClockRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
+  // SchedulerRegistry — engagement-framework runtime: the by-id
+  // engagement index, completion / emission timers, host-destruction
+  // subscriptions, and the activity-class registry that backs
+  // HMR-aware lifecycle dispatch. Depends on both the world clock
+  // (timer cadence) and EventSubscriptions (host-destruction hook).
+  {
+    templatePath: '/obj/SchedulerRegistry',
+    dependsOn: ['/obj/WorldClockRegistry', '/obj/EventSubscriptions'],
+  },
+  // MqlSubscriptionRegistry — server-side substrate for live MQL
+  // queries. Holds the per-Interactive registry, the meta-bus
+  // dependency index (3-level Map), the listener refcount table,
+  // and the setImmediate-batched dirty queue. Depends on
+  // EventSubscriptions because the Registry installs EventApi
+  // listeners per `(KIND, by)` pair to dispatch dirty marks.
+  {
+    templatePath: '/obj/MqlSubscriptionRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
   // Species clades, perception modalities, and augmentation
   // templates are NOT bootstrapped. Same lazy-load pattern as
   // locomotion modes / topic-catalogue leaves:

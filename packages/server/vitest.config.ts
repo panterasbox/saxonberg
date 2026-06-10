@@ -10,5 +10,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    // Pre-load the four singleton-Stuff registries so their module-load
+    // side effects register their classes with the corresponding Api
+    // facades. Production gets these via BootstrapManager; tests
+    // would otherwise hit "Registry class not registered" on first
+    // touch. See `test-setup-registries.ts` for the rationale.
+    setupFiles: ["./src/test-setup-registries.ts"],
   },
 });
