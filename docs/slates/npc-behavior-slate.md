@@ -78,6 +78,15 @@ See also:
 - [docs/standard-model.md](../standard-model.md) — NPC = `Agent → Character`
   (branch × mixins); an NPC archetype (`Guard`) is a **combo** pre-specced
   with behaviors.
+- [docs/slates/collision-slate.md](./collision-slate.md) — **absorbs that
+  slate's intentional-blocking concern.** "The guard refuses to let you
+  pass" is a **`guards` brain** here (data-configured decision), *not* the
+  collision slate's `BlockerBehavior` composed-mixin. The brain emits its
+  veto through a small **block-substrate seam** in the locomotion cascade —
+  the already-present-but-hollow `'blocked'` gate in
+  `LocomotionControllerBase.composeRejection` (the engine already renders a
+  source-attributed diegetic refusal; the brain just decides *whether* and
+  supplies the *reason*). Defines/consumes that seam when `guards` is built.
 
 ---
 
@@ -389,7 +398,9 @@ modules; cadence + event triggers; engagement-slot contention. The behavior spec
 
 **Wave 3+ — the tail.** The `scripted-behavior` brain (the scripting tier —
 gated on host isolation); the `llm-brain`; state-triggers; richer
-coordination; combat/defend brains (RPG-deferred).
+coordination; the `guards` brain (absorbs collision-slate's intentional
+blocking; defines the block-substrate seam in the locomotion cascade — the
+hollow `'blocked'` gate); combat/defend brains (RPG-deferred).
 
 ---
 

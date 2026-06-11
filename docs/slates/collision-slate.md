@@ -1,5 +1,27 @@
 # Collision slate (working doc)
 
+> **Status: decomposed — not a standalone build (resolved 2026-06-10).**
+> The three concerns disperse rather than ship as a unit:
+> - **Intentional blocking** (the gate guard) is **behavior**, so it lands
+>   as a **`guards` brain** under
+>   [npc-behavior-slate.md](./npc-behavior-slate.md) — *not* the
+>   `BlockerBehavior` composed-mixin this slate sketches. Under the brain
+>   model, behavior is **data configuring a swappable brain**, never a
+>   bespoke per-capability mixin. The brain rides a small **block-substrate
+>   seam** in the locomotion cascade: the already-present-but-hollow
+>   `'blocked'` gate in `LocomotionControllerBase.composeRejection`. Note
+>   the diegetic "why you can't pass" requirement is already ~80% met by the
+>   engine's per-gate, source-attributed rejection prose (doors emit *"The
+>   oak door is closed."*); the genuinely-new part is *agentive* third-party
+>   blocking, which is the brain's job.
+> - **Capacity** and **pushing** are **defer-til-content** — cheap to add
+>   when specific content asks (a field + validator; a verb + activity).
+>
+> This slate stays as the design record for those mechanics. The
+> `BlockerBehavior` sections below are **superseded by the brain framing** —
+> read them as the decision-half spec a `guards` brain implements, not as a
+> mixin to compose. Do **not** promote to requirements as a unit.
+
 Working slate for collisions, blocking, and pushing — the small
 cluster of design questions that sit between locomotion's "can I
 move?" and embodiment's "what's where?". The design philosophy

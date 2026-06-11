@@ -237,8 +237,26 @@ Ordered by leverage + dependency:
    [comms](./slates/comms-slate.md) /
    [chat](./slates/chat-slate.md) /
    [social-graph](./slates/social-graph-slate.md))
-4. **Collision** — small; block-validators extend the locomotion
-   pipeline; `Pushable` + `PushActivity`.
+4. **Collision** — *decomposed; not a standalone near-term pick
+   (resolved 2026-06-10).* The slate bundled three different-priority
+   concerns that disperse rather than ship as a unit:
+   - **Intentional blocking** (the gate guard) is **behavior**, not a
+     mixin — it lands as a **`guards` brain** under
+     [npc-behavior](./slates/npc-behavior-slate.md), riding a small
+     block-substrate seam in the locomotion cascade (the
+     already-present-but-hollow `'blocked'` gate in
+     `LocomotionControllerBase.composeRejection`). The slate's
+     `BlockerBehavior`-as-composed-mixin is the *wrong shape* under the
+     brain model (behavior = data configuring a swappable brain, never a
+     bespoke mixin). The diegetic "why you can't pass" requirement is
+     already ~80% met by the engine's per-gate, source-attributed
+     rejection prose (doors say *"The oak door is closed."*).
+   - **Capacity** (room/vessel occupancy caps) and **pushing**
+     (`Pushable` + `PushActivity`) are **defer-til-content** — a field +
+     validator, and a verb + activity respectively, each cheap to add the
+     day specific content asks.
+   So don't re-surface collision as "what's next": its live half is a
+   brain owned by npc-behavior; the rest waits on content.
    ([collision-slate.md](./slates/collision-slate.md))
 5. **Recognition family** — recognition + identification +
    social-graph; `DescribeApi v2`. Ships best as a unit.
@@ -340,8 +358,12 @@ requirements.
   flavor-agnostic substrate. Surfaced by comms (the ESP transport) and
   char-gen (issued at intake).
 - [docs/slates/collision-slate.md](./slates/collision-slate.md) — capacity
-  (typed-list-of-constraints), intentional blocking
-  (`BlockerBehavior`), pushing (`Pushable` + `PushActivity`).
+  (typed-list-of-constraints), intentional blocking, pushing (`Pushable`
+  + `PushActivity`). **Decomposed (2026-06-10): not a standalone build** —
+  intentional blocking is a **`guards` brain** under
+  [npc-behavior](./slates/npc-behavior-slate.md) (not a `BlockerBehavior`
+  mixin), riding a block-substrate seam in the locomotion cascade;
+  capacity + pushing are defer-til-content. See Track B §4.
 
 ### Social / perception slates
 
