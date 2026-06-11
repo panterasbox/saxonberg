@@ -40,6 +40,7 @@ import type {
   EnvelopeTemplate,
   CharGenRosterEntry,
   CharGenRosterPayload,
+  CharGenStep,
 } from '@saxonberg/types';
 import type Interactive from './Interactive';
 import type Avatar from './Avatar';
@@ -72,6 +73,13 @@ export interface EnrollmentDraft {
   aspiration?: string;
   /** Current name suggestion (shown during the name step). */
   suggestion?: { name: string; surname?: string };
+  /**
+   * Navigation override: when set, char-gen displays this step instead
+   * of the natural first-incomplete one — the player went `back` or
+   * clicked a pick to `edit` it. Cleared once a real choice is applied,
+   * so the flow resumes forward progression.
+   */
+  activeStep?: CharGenStep;
 }
 
 const LoginBase = CommandGiverMixin(SensorMixin(HasInteractiveMixin(Idea)));

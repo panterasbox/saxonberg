@@ -1003,6 +1003,12 @@ export interface CharGenStatePayload {
   options: CharGenOption[];
   /** Last validation rejection, for inline display. */
   error?: string;
+  /**
+   * Whether an earlier step exists to return to — drives the "Back"
+   * affordance. False on the first step. Any already-made pick can also
+   * be revisited directly via `enroll edit <field>`.
+   */
+  canGoBack: boolean;
 }
 
 /** One character in the post-login roster. */

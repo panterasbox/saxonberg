@@ -149,6 +149,9 @@ const ENROLL_STEPS: EnrollStep[] = [
         : `Unknown species '${v}'. Pick one of the offered options.`,
     apply: async (v, d, cfg, ctrl) => {
       const entry = cfg.species.find((s) => s.key === v.toLowerCase())!;
+      // Idempotent: re-submitting the same species (e.g. after navigating
+      // back and confirming unchanged) must NOT wipe the downstream picks.
+      const changed = entry.path !== d.speciesPath;
       d.speciesKey = entry.key;
       d.speciesPath = entry.path;
       // Materialize the Species singleton (not a sync registry lookup —
@@ -158,11 +161,14 @@ const ENROLL_STEPS: EnrollStep[] = [
       d.speciesCommonName =
         species.getCommonNames()[0] ?? entry.label.toLowerCase();
       d.sexSystem = species.getSexDeterminationSystem();
-      // Species changed → a fresh themed suggestion; clear name/sex.
-      d.name = undefined;
-      d.surname = undefined;
-      d.sex = undefined;
-      await ctrl.refreshSuggestion(d);
+      if (changed) {
+        // New species → its sex set / name themes differ; clear and
+        // re-suggest. (Unchanged → keep what the player already chose.)
+        d.name = undefined;
+        d.surname = undefined;
+        d.sex = undefined;
+        await ctrl.refreshSuggestion(d);
+      }
     },
   },
   {
@@ -497,6 +503,14 @@ export default class EnrollController extends CommandController<EnrollModel> {
       return;
     }
 
+    // Navigation: `enroll back` steps the displayed step one back without
+    // applying a choice (sets the `activeStep` override, then re-renders).
+    if (field === 'back') {
+      this.goBack(draft, cfg);
+      this.emitState(login, draft, cfg);
+      return;
+    }
+
     const step = ENROLL_STEPS.find((s) => s.field === field);
     if (!step) {
       this.emitState(
@@ -531,6 +545,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
 
     await step.apply(value, draft, cfg, this);
 
+    // A real choice resumes natural forward progression — drop any
+    // back/edit override so the next first-incomplete step shows.
+    draft.activeStep = undefined;
+
     // `confirm` commits + hands off (its own final frame); otherwise
     // advance the state display.
     if (field !== 'confirm') {
@@ -550,13 +568,39 @@ export default class EnrollController extends CommandController<EnrollModel> {
       : await species.suggestName(draft.realName);
   }
 
-  /** Compute the active step (first applicable + incomplete; else confirm). */
+  /**
+   * Compute the displayed step. An `activeStep` override (set by `back`
+   * / `edit` navigation) wins when it's applicable; otherwise the first
+   * applicable + incomplete step, falling back to `confirm`.
+   */
   private currentStep(draft: EnrollmentDraft, cfg: CharGenConfig): EnrollStep {
+    if (draft.activeStep) {
+      const override = ENROLL_STEPS.find((s) => s.field === draft.activeStep);
+      if (override && override.applicable(draft, cfg)) return override;
+    }
     for (const s of ENROLL_STEPS) {
       if (s.field === 'confirm') continue;
       if (s.applicable(draft, cfg) && !s.complete(draft)) return s;
     }
     return ENROLL_STEPS.find((s) => s.field === 'confirm')!;
+  }
+
+  /** Applicable step fields in flow order (drives back/canGoBack). */
+  private applicableOrder(
+    draft: EnrollmentDraft,
+    cfg: CharGenConfig,
+  ): CharGenStep[] {
+    return ENROLL_STEPS.filter((s) => s.applicable(draft, cfg)).map(
+      (s) => s.field,
+    );
+  }
+
+  /** Move the displayed step one back among the applicable steps. */
+  private goBack(draft: EnrollmentDraft, cfg: CharGenConfig): void {
+    const displayed = this.currentStep(draft, cfg).field;
+    const order = this.applicableOrder(draft, cfg);
+    const idx = order.indexOf(displayed);
+    if (idx > 0) draft.activeStep = order[idx - 1];
   }
 
   /** Emit the `system.charactergen.state` frame for the current step. */
@@ -586,10 +630,12 @@ export default class EnrollController extends CommandController<EnrollModel> {
     if (draft.pronouns) picks.pronouns = draft.pronouns;
     if (draft.aspiration) picks.aspiration = draft.aspiration;
 
+    const order = this.applicableOrder(draft, cfg);
     const payload: CharGenStatePayload = {
       step: step.field,
       picks,
       options: step.options(draft, cfg),
+      canGoBack: order.indexOf(step.field) > 0,
     };
     if (step.field === 'name' && draft.suggestion) {
       payload.suggestion = draft.suggestion;

@@ -29,7 +29,7 @@
  * color is reserved (the project is color-conservative).
  */
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import type {
   CharGenOption,
@@ -118,15 +118,19 @@ const OptionGrid = styled.div`
   gap: ${tokens.space.md};
 `;
 
-const OptionCard = styled.button`
+const OptionCard = styled.button<{ $selected?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.xs};
   text-align: left;
   padding: ${tokens.space.lg};
-  background: ${tokens.color.surfaceAlt};
+  background: ${(p) =>
+    p.$selected ? tokens.color.surface : tokens.color.surfaceAlt};
   color: ${tokens.color.fg};
-  border: 1px solid ${tokens.color.border};
+  border: 1px solid
+    ${(p) => (p.$selected ? tokens.color.primary : tokens.color.border)};
+  box-shadow: ${(p) =>
+    p.$selected ? `inset 0 0 0 1px ${tokens.color.primary}` : 'none'};
   border-radius: ${tokens.radius.md};
   font-family: ${tokens.font.family};
   cursor: pointer;
@@ -146,6 +150,22 @@ const OptionDesc = styled.span`
   font-size: ${tokens.font.small};
   color: ${tokens.color.fgMuted};
   line-height: 1.5;
+`;
+
+/**
+ * Wizard navigation footer: Back on the left, the step's forward action
+ * (Continue / Step into the world) on the right. Pinned outside the
+ * scrolling stage body so it stays visible regardless of dossier height.
+ */
+const NavRow = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: ${tokens.space.md};
+  padding: ${tokens.space.md} ${tokens.space.xl};
+  border-top: 1px solid ${tokens.color.border};
+  background: ${tokens.color.surfaceSunken};
 `;
 
 /* --- Illustrated step: cards + detail pane ------------------------ */
@@ -327,6 +347,11 @@ const StageButton = styled.button<{ $primary?: boolean }>`
     background: ${(p) =>
       p.$primary ? tokens.color.primaryHover : tokens.color.actionBgHover};
   }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 `;
 
 const TypeOwnForm = styled.form`
@@ -436,6 +461,29 @@ function renderPickValue(key: keyof CharGenPicks, picks: CharGenPicks): string {
   return typeof value === 'string' ? value : '';
 }
 
+/**
+ * The already-chosen option value for a closed-choice step (so Back
+ * pre-highlights the current pick). Returns the option `value` token,
+ * not the display label. Non-choice steps return null.
+ */
+function pickValueForStep(
+  step: CharGenStep,
+  picks: CharGenPicks,
+): string | null {
+  switch (step) {
+    case 'species':
+      return picks.species?.key ?? null;
+    case 'sex':
+      return picks.sex ?? null;
+    case 'pronouns':
+      return picks.pronouns ?? null;
+    case 'aspiration':
+      return picks.aspiration ?? null;
+    default:
+      return null;
+  }
+}
+
 /* --- Component ---------------------------------------------------- */
 
 interface CharGenStageProps {
@@ -467,10 +515,27 @@ export function CharGenStage({
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
   const [typedName, setTypedName] = useState('');
-  // Which option the detail pane is showing. Driven by card hover;
-  // falls back to the first option so the pane is never empty. Stored
-  // by value (not index) so it survives option-set changes gracefully.
+  // The detail pane previews this option (driven by card hover); null
+  // falls through to the selected card, then the first option, so the
+  // pane is never empty.
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
+  // The tentatively-selected card for a closed-choice step. A click
+  // selects (does not submit); the Continue button submits it. Reset to
+  // the existing pick whenever the displayed step changes (so revisiting
+  // a step via Back pre-highlights your current choice).
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  const activeStepName = charGenState?.step;
+  useEffect(() => {
+    setSelectedValue(
+      charGenState
+        ? pickValueForStep(charGenState.step, charGenState.picks)
+        : null,
+    );
+    setFocusedValue(null);
+    // Re-run only when the displayed step changes; `picks` is read for the
+    // pre-fill at that moment, not tracked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStepName]);
 
   // No state yet (frame in flight) — show a quiet placeholder rather
   // than an empty screen.
@@ -486,11 +551,8 @@ export function CharGenStage({
     );
   }
 
-  const { step, picks, suggestion, options, error } = charGenState;
+  const { step, picks, suggestion, options, error, canGoBack } = charGenState;
   const prompt = STEP_PROMPT[step];
-
-  const sendOption = (field: string, value: string) =>
-    onSendCommand(`enroll ${field} ${value}`);
 
   const handleTypeOwn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -573,8 +635,12 @@ export function CharGenStage({
           {options.length > 0
             ? (() => {
                 const illustrated = STEPS_WITH_ILLUSTRATION.has(step);
+                // Pane previews the hovered card, else the selected one,
+                // else the first option.
                 const focused =
-                  options.find((o) => o.value === focusedValue) ??
+                  options.find(
+                    (o) => o.value === (focusedValue ?? selectedValue),
+                  ) ??
                   options[0] ??
                   null;
                 // On illustrated steps the description moves to the
@@ -585,12 +651,17 @@ export function CharGenStage({
                       <OptionCard
                         key={opt.value}
                         data-testid={`chargen-option-${opt.value}`}
-                        onClick={() => sendOption(step, opt.value)}
+                        $selected={opt.value === selectedValue}
+                        aria-pressed={opt.value === selectedValue}
+                        onClick={() => setSelectedValue(opt.value)}
                         onMouseEnter={() => {
                           setFocusedValue(opt.value);
                           onCommandPreview(`enroll ${step} ${opt.value}`);
                         }}
-                        onMouseLeave={() => onCommandPreview(null)}
+                        onMouseLeave={() => {
+                          setFocusedValue(null);
+                          onCommandPreview(null);
+                        }}
                       >
                         <OptionLabel>{opt.label}</OptionLabel>
                         {!illustrated && opt.description ? (
@@ -647,21 +718,47 @@ export function CharGenStage({
                 );
               })()
             : null}
-
-          {/* Confirm step: the begin button. */}
-          {isConfirmStep ? (
-            <ButtonRow>
-              <StageButton
-                $primary
-                data-testid="chargen-confirm"
-                onClick={() => onSendCommand('enroll confirm')}
-              >
-                Step into the world
-              </StageButton>
-            </ButtonRow>
-          ) : null}
         </StageInner>
       </StageBody>
+
+      {/* Wizard nav, pinned below the (scrolling) stage so Back / Continue
+          stay reachable no matter how tall the dossier is. The name step's
+          forward lives in its own Keep / type affordances, so it shows
+          Back only. */}
+      <NavRow>
+        {canGoBack ? (
+          <StageButton
+            data-testid="chargen-back"
+            onClick={() => onSendCommand('enroll back')}
+          >
+            ← Back
+          </StageButton>
+        ) : (
+          <span />
+        )}
+        {isConfirmStep ? (
+          <StageButton
+            $primary
+            data-testid="chargen-confirm"
+            onClick={() => onSendCommand('enroll confirm')}
+          >
+            Step into the world
+          </StageButton>
+        ) : !isNameStep && options.length > 0 ? (
+          <StageButton
+            $primary
+            data-testid="chargen-submit"
+            disabled={!selectedValue}
+            onClick={() =>
+              selectedValue && onSendCommand(`enroll ${step} ${selectedValue}`)
+            }
+          >
+            Continue →
+          </StageButton>
+        ) : (
+          <span />
+        )}
+      </NavRow>
 
       {/* Slim narration strip — secondary to the stage. */}
       <TerminalStrip>

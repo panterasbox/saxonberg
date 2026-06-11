@@ -122,6 +122,28 @@ describe('EnrollController step model', () => {
     ).toMatch(/dark-adapted/);
   });
 
+  it('navigates back and re-picks idempotently without wiping downstream', async () => {
+    await run(''); // species step — first step, nothing to go back to
+    expect(frames.at(-1)!.step).toBe('species');
+    expect(frames.at(-1)!.canGoBack).toBe(false);
+
+    await run('species human'); // → sex step, can now go back
+    expect(frames.at(-1)!.step).toBe('sex');
+    expect(frames.at(-1)!.canGoBack).toBe(true);
+
+    await run('sex female'); // → name step; sex recorded
+    expect(login.getEnrollmentDraft()!.sex).toBe('female');
+
+    await run('back'); // name → sex
+    expect(frames.at(-1)!.step).toBe('sex');
+    await run('back'); // sex → species
+    expect(frames.at(-1)!.step).toBe('species');
+
+    // Re-submitting the SAME species must not wipe the chosen sex.
+    await run('species human');
+    expect(login.getEnrollmentDraft()!.sex).toBe('female');
+  });
+
   it('bare enroll shows the species step first', async () => {
     await run('');
     expect(frames.at(-1)!.step).toBe('species');

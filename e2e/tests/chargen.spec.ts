@@ -118,7 +118,10 @@ test('a new player creates a character and spawns into the world', async ({
       'Lifespan',
     );
 
+    // Select-then-submit: clicking a card selects it (no auto-advance);
+    // the Continue button commits and advances.
     await page.getByTestId('chargen-option-human').click();
+    await page.getByTestId('chargen-submit').click();
 
     // Step — sex. This step is conditional: it only appears for species
     // whose Species template declares a sex-determination system other
@@ -129,7 +132,17 @@ test('a new player creates a character and spawns into the world', async ({
     const nameInput = page.getByTestId('chargen-name-input');
     await expect(female.or(nameInput).first()).toBeVisible();
     if (await female.isVisible()) {
+      // Navigation check: Back returns to the species step (with the
+      // pick pre-selected), and Continue brings us forward again.
+      await page.getByTestId('chargen-back').click();
+      await expect(page.getByTestId('chargen-step')).toHaveText(
+        /choose your species/i,
+      );
+      await page.getByTestId('chargen-submit').click();
+      await expect(female).toBeVisible();
+
       await female.click();
+      await page.getByTestId('chargen-submit').click();
     }
 
     // Step — name. Type a deterministic name rather than asserting the
@@ -141,10 +154,12 @@ test('a new player creates a character and spawns into the world', async ({
     // Step — pronouns.
     await expect(page.getByTestId('chargen-option-she')).toBeVisible();
     await page.getByTestId('chargen-option-she').click();
+    await page.getByTestId('chargen-submit').click();
 
     // Step — aspiration.
     await expect(page.getByTestId('chargen-option-healer')).toBeVisible();
     await page.getByTestId('chargen-option-healer').click();
+    await page.getByTestId('chargen-submit').click();
 
     // Step 6 — confirm → the avatar is created and enters the world.
     await expect(page.getByTestId('chargen-confirm')).toBeVisible();
