@@ -5,15 +5,15 @@
 
 import { vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
-import { ContainableMixin } from '../../spatial/Containable';
-import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import { Idea } from '../../stuff/Idea';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
+import { Idea } from '../../../lib/stuff/Idea';
+import PersistentHydrator from '../../../lib/persistence/PersistentHydrator';
 import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 export type Doc = Record<string, unknown> & {
   _id?: string;
@@ -31,32 +31,20 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
     { path: PH, class: PH, data: {} },
     {
       path: LoungeWarren.WARREN_PATH,
-      class: '/lib/multilocation/LoungeWarren',
+      class: '/domain/lounge/LoungeWarren',
       data: {},
     },
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
-      class: '/lib/multilocation/LoungeRoom',
+      class: '/domain/lounge/Lounge',
       hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
-      class: '/lib/multilocation/LoungeShell',
+      class: '/domain/lounge/Bar',
       hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
-    },
-    {
-      path: '/domain/eternal/duncan-hall',
-      class: '/lib/spatial/CartesianZone',
-      hydratorClass: PH,
-      data: { name: 'Duncan Hall', cellSize: 3 },
-    },
-    {
-      path: LoungeWarren.CAMPUS_PATH,
-      class: '/lib/spatial/CartesianLocation',
-      hydratorClass: PH,
-      data: { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'lobby' },
     },
     ...extra,
   ];

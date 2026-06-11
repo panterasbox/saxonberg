@@ -21,6 +21,7 @@ import { MixinApi } from '../api/mixin';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Container } from '../lib/spatial/Container';
 import type { Stuff } from '../lib/stuff/Stuff';
+import { Warren } from '../lib/multilocation/Warren';
 import { SpeciesApi } from '../api/species';
 import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
@@ -95,22 +96,25 @@ export default class Avatar extends AvatarBase {
   static instructionFields = ['startLocation'];
 
   /**
-   * Phase 2 applier for `data.startLocation`. Resolves the reference via
-   * the shared recover-and-warn placement resolver — a **Warren** lands
-   * in its lazy host, a **singleton room** in that room, a non-singleton
-   * target warns and clones a fresh instance — then moves self into the
-   * resolved (real, root) `Container`. The Warren never becomes the
-   * avatar's `container` (a Warren isn't a container); `container` stays
-   * honest.
+   * Phase 2 applier for `data.startLocation`. The avatar's spawn/recall
+   * reference is either a **Warren** (land in its lazily-created host —
+   * the Warren is never the avatar's `container`; `container` stays
+   * honest) or an ordinary **room** (a singleton room is reused, a
+   * non-singleton one is cloned fresh — `StuffApi.resolveOrClone`). The
+   * Warren check is a real `instanceof` against the canonical base class
+   * (unspoofable); the generic clone-vs-singleton decision stays in
+   * `StuffApi`.
    *
    * Compare-and-move idempotency is unnecessary here (spawn fires once at
    * clone time); `Avatar.restore()` re-fires it harmlessly (the move is a
    * no-op when already in place, or a clean re-seat).
    */
   async applyStartLocation(ref: string): Promise<void> {
-    const target = await StuffApi.resolveOrCloneForPlacement<Stuff & Container>(
-      ref,
-    );
+    const cls = await StuffApi.classForRef(ref);
+    const target: Stuff & Container =
+      (cls.prototype as object) instanceof Warren
+        ? await (await StuffApi.singleton<Warren>(ref)).getHost()
+        : await StuffApi.resolveOrClone<Stuff & Container>(ref);
     ContainmentApi.move(this as unknown as Stuff & Containable, target);
   }
 

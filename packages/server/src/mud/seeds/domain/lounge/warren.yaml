@@ -11,5 +11,5 @@
 # and every room it coordinates are runtime-only and reconstitute on the
 # next first-landing after a restart. No hydratorClass — the Warren has
 # no persistent or instruction fields to apply.
-class: /lib/multilocation/LoungeWarren
+class: /domain/lounge/LoungeWarren
 data: {}

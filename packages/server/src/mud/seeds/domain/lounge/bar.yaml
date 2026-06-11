@@ -7,7 +7,7 @@
 # v1 is a bare shell — description only. Deferred: Dave the NPC, drinks,
 # `sit`, the menu (lounge-slate, Wave 2+). SingletonMixin pins it to one
 # instance (the host-fixture wiring resolves it via StuffApi.singleton).
-class: /lib/multilocation/LoungeShell
+class: /domain/lounge/Bar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: Dave's Bar

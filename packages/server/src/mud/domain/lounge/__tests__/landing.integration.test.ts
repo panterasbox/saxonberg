@@ -6,16 +6,16 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
-import LoungeRoom from '../LoungeRoom';
+import Lounge from '../Lounge';
 import Avatar from '../../../obj/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { TemplateApi } from '../../../api/template';
-import type { Stuff } from '../../stuff/Stuff';
-import type { Container } from '../../spatial/Container';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import { ContainableMixin } from '../../spatial/Containable';
-import { Idea } from '../../stuff/Idea';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
+import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { Idea } from '../../../lib/stuff/Idea';
 import {
   installStore,
   loungeDocs,
@@ -105,7 +105,7 @@ describe('lounge landing integration', () => {
       LoungeWarren.WARREN_PATH,
     );
     const host2 = await warren2.getHost();
-    expect(host2).toBeInstanceOf(LoungeRoom);
+    expect(host2).toBeInstanceOf(Lounge);
     expect((host2 as Stuff).isDestroyed()).toBe(false);
   });
 
@@ -132,12 +132,14 @@ describe('lounge landing integration', () => {
     const tpl = await TemplateApi.snapshotToTemplate(player as unknown as Stuff);
     expect(tpl.data.startLocation).toBe(LoungeWarren.WARREN_PATH);
 
-    // New session: resolve the saved startLocation → a LIVE host.
-    const resumed = await StuffApi.resolveOrCloneForPlacement(
+    // New session: the saved startLocation is the Warren, so recall
+    // resolves through getHost() to a LIVE host (the same one, alive).
+    const warren2 = await StuffApi.singleton<LoungeWarren>(
       tpl.data.startLocation as string,
     );
+    const resumed = await warren2.getHost();
     expect((resumed as Stuff).isDestroyed()).toBe(false);
-    expect(resumed).toBe(host); // same live host (still alive)
+    expect(resumed).toBe(host);
   });
 
   it('a lounge instance is a root Location — the Warren is not in its containment chain (AC 9)', async () => {
@@ -158,7 +160,7 @@ describe('lounge landing integration', () => {
     const bar = await StuffApi.singleton<Stuff & Container>(
       LoungeWarren.BAR_PATH,
     );
-    const baselineHostExits = (host as unknown as LoungeRoom).getExits().size;
+    const baselineHostExits = (host as unknown as Lounge).getExits().size;
 
     // Arrivals past N bud a satellite.
     const occs = [];
@@ -179,7 +181,7 @@ describe('lounge landing integration', () => {
     expect(warren.hasMember(bar)).toBe(false); // never a member
     expect(warren.getMembers()).toEqual([host]); // satellites reaped
     // Host exit map is back to the baseline fixtures (no dead hub exits).
-    expect((host as unknown as LoungeRoom).getExits().size).toBe(
+    expect((host as unknown as Lounge).getExits().size).toBe(
       baselineHostExits,
     );
   });

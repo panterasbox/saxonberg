@@ -176,20 +176,16 @@ export class TemplateApi {
       );
     }
 
-    // 3. Target SHOULD compose SingletonMixin — but recover-and-warn
-    //    (not deny). A non-singleton target is resolved at hydrate time
-    //    by `StuffApi.resolveOrCloneForPlacement` (warn + fresh clone)
-    //    rather than throwing, so this save-time check is a non-blocking
-    //    warning, not a hard error.
+    // 3. Target class must compose SingletonMixin.
     const targetCtor = (await StuffApi.loadClassByPath(targetTpl.class)) as new (
       ...args: unknown[]
     ) => unknown;
     if (!MixinApi.hasMixin(targetCtor, Mixins.Singleton)) {
-      console.warn(
-        `TemplateApi.validateSingletonContainerTarget: '${sourcePath}' ` +
-          `declares 'data.container: ${targetPath}' but the target's class ` +
-          `'${targetTpl.class}' does not compose SingletonMixin. Hydration ` +
-          `will warn and clone a fresh instance (recover-and-warn).`,
+      throw new TemplateError(
+        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
+          `but the target's class '${targetTpl.class}' does not compose ` +
+          `SingletonMixin. The container: target must be singleton-shaped ` +
+          `(see declarative-content-slate § container:).`
       );
     }
   }

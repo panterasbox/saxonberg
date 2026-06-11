@@ -9,9 +9,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
 import Avatar from '../../../obj/Avatar';
 import { StuffApi } from '../../../api/stuff';
-import type { Stuff } from '../../stuff/Stuff';
-import type { Container } from '../../spatial/Container';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installStore, loungeDocs } from './lounge-fixtures';
 
 type WarrenInternals = LoungeWarren & {

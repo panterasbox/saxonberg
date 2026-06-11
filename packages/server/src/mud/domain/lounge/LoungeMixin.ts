@@ -1,10 +1,12 @@
 /**
  * LoungeMixin — the lounge room's own, lounge-specific member behavior.
  *
- * Sits on top of `WarrenMemberMixin` (composition constraint, enforced at
- * register time): it is a *consumer* of the Warren back-ref, not a second
- * carrier of it. It supplies the three lounge-room behaviors that are NOT
- * generic Warren mechanism:
+ * Lives with the lounge content (`/domain/lounge/`), not the generic
+ * Warren substrate (`/lib/multilocation/`). Sits on top of
+ * `WarrenMemberMixin` (composition constraint, enforced at register time):
+ * it is a *consumer* of the Warren back-ref, not a second carrier of it.
+ * It supplies the lounge-room behaviors that are NOT generic Warren
+ * mechanism:
  *
  *   1. **Self-register** — a declared `warren` instruction field
  *      (`applyWarren`) joins this room to its Warren on hydrate. The
@@ -17,22 +19,25 @@
  *      `admitArrival`, which re-seats to an eligible satellite (synchronous
  *      when one exists — single sense) or buds a fresh one.
  *
+ * This is also the home for the lounge's *future* room functionality —
+ * v1 ships a basic warren participant; later these rooms gain function
+ * (toppings, matchmaking, the order console, …), which lands here.
+ *
  * What this mixin is NOT: a host marker (host-ness is the Warren's
  * `getHost()` / `isCurrentHost`, never a flag here), a container tier, or
  * the durable-recall hook (that rides `WarrenMember.getWarren()` from
- * `snapshotToTemplate`). It is also the eventual home for deferred lounge
- * flavor (toppings, matchmaking, cues) — almost all of which is later.
+ * `snapshotToTemplate`).
  */
 
-import type { MixinConstructor } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
-import type { Containable } from '../spatial/Containable';
-import type { WarrenMember } from './WarrenMember';
+import type { MixinConstructor } from '../../lib/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
+import type { WarrenMember } from '../../lib/multilocation/WarrenMember';
+import { Warren } from '../../lib/multilocation/Warren';
 import { StuffApi } from '../../api/stuff';
-import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../mixin';
-import type { AnyConstructor } from '../../api/mixin';
+import { MixinApi, type AnyConstructor } from '../../api/mixin';
+import { Mixins } from '../../lib/mixin';
 
 /**
  * Public shape provided by LoungeMixin. The instruction-field applier is
@@ -89,8 +94,10 @@ export function LoungeMixin<
     /**
      * Self-register with the declared Warren. Resolves the singleton
      * (creating it if absent — the stray-clone heal), then joins via the
-     * Warren-owned `addMember`. A non-Warren target or missing template
-     * warns and leaves the room an orphan (QA-catches tradeoff).
+     * Warren-owned `addMember`. The Warren check is a real `instanceof`
+     * against the canonical base class (unspoofable) — a non-Warren
+     * target or missing template warns and leaves the room an orphan
+     * (QA-catches tradeoff).
      */
     async applyWarren(warrenPath: string): Promise<void> {
       let warren: Stuff;
@@ -104,7 +111,7 @@ export function LoungeMixin<
         );
         return;
       }
-      if (!MixinApi.isWarren(warren)) {
+      if (!(warren instanceof Warren)) {
         console.warn(
           `LoungeMixin.applyWarren: '${warrenPath}' is not a Warren; ` +
             `${(this as unknown as Stuff).stuffId} stays an orphan.`,

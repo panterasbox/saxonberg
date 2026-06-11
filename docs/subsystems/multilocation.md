@@ -1,7 +1,9 @@
 # MultiLocation — the Warren elastic-graph substrate + the lounge
 
-Source of truth for `packages/server/src/mud/lib/multilocation/`. Read
-this before editing in the area.
+Source of truth for the generic substrate
+(`packages/server/src/mud/lib/multilocation/`) and the lounge content
+that rides it (`packages/server/src/mud/domain/lounge/`). Read this
+before editing in the area.
 
 A **MultiLocation** is one room *template* with many *live instances*
 that coordinate as a group: the graph **buds** new instances when it
@@ -17,17 +19,31 @@ Promoted from `docs/slates/multilocation-slate.md` +
 
 ## The pieces
 
+**Substrate — `lib/multilocation/` (generic, reusable):**
+
 | File | Role |
 |---|---|
 | `Warren.ts` | Abstract base — the generic mechanism. |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
-| `Lounge.ts` | `LoungeMixin` — lounge-room behavior (consumer of the back-ref). |
-| `LoungeRoom.ts` | The one room template every lounge instance clones from. |
-| `LoungeShell.ts` | Singleton external-neighbor shell (Dave's Bar). |
-| `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. |
 
-Content seeds: `seeds/domain/lounge/{warren,lounge,bar}.yaml` (leaves
-under the `/domain/lounge` FolderZone).
+**Content — `domain/lounge/` (the lounge area; class paths
+`/domain/lounge/*`):**
+
+| File | Role |
+|---|---|
+| `Lounge.ts` | The one room template every lounge instance clones from. |
+| `Bar.ts` | Singleton external-neighbor shell (Dave's Bar). |
+| `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. |
+| `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality. |
+
+Content classes live under `/domain/lounge/` — a managed area's own
+class namespace, mirroring its template namespace (the class-path
+validator admits `/domain/` alongside `/obj/` and `/lib/`). The generic
+Warren substrate stays in `/lib/`.
+
+Content seeds: `seeds/domain/lounge/{warren,lounge,bar}.yaml` (templates
+at `/domain/lounge/{warren,lounge,bar}`, leaves under the
+`/domain/lounge` FolderZone).
 
 ## Core model
 
@@ -37,7 +53,7 @@ under the `/domain/lounge` FolderZone).
   NOT a container and adds NO tier above `Location`. ("Warren as a
   containment tier" is an explicitly deferred, game-wide evolution.)
 - **Host is a runtime role.** Every live lounge room — the current
-  commons *and* every satellite — is a clone of the one `LoungeRoom`
+  commons *and* every satellite — is a clone of the one `Lounge`
   template. The Warren designates exactly one live instance as **host**
   (`getHost()` / `isCurrentHost`), migrating the role on forced host
   destruction. No `Commons` class, no host flag.
@@ -57,10 +73,14 @@ reusable placement kernel), `teardown`, ref discipline, and the
 concurrency guards.
 
 `LoungeWarren` (policy) owns: least-full `admitArrival`, star
-`attachmentFor`, the tunable bud/merge band (`getBudThreshold` /
-`getMergeWatermark` / `getReapGraceMs`, `setThresholds`), the population
-`reconcile` loop, `createMember` (clone the room), and `wireHostFixtures`
-/ `unwireHostFixtures` (Dave's + the placeholder campus exit).
+`attachmentFor` (the satellite direction pool excludes `north` — that's
+Dave's — and excludes vertical; the lounge expands horizontally), the
+tunable bud/merge band (`getBudThreshold` / `getMergeWatermark` /
+`getReapGraceMs`, `setThresholds`), the population `reconcile` loop,
+`createMember` (clone the room), and `wireHostFixtures` /
+`unwireHostFixtures` (the one Dave's Bar fixture, north of the host).
+There is **no** campus/placeholder exit — the way out of the lounge is
+fast-travel (TPA), built later.
 
 The strategy is the **simplest tunable** one (least-full seat, reap-empty,
 bud-when-all-full; never rebalance a live crowd) — an unproven UX bet,
@@ -74,20 +94,21 @@ never imports the lounge.
 landing uses a distinct **`startLocation` instruction field** on
 `Avatar` (only avatars have a spawn/recall location — no mixin). The
 Hydrator's Phase 2 auto-dispatches it to `applyStartLocation(ref)`, which
-calls the shared **recover-and-warn** resolver
-`StuffApi.resolveOrCloneForPlacement(ref)`:
+owns the *domain* semantics:
 
-- **Warren class** → `singleton(ref).getHost()` (the lazy host).
-- **Singleton class** → `singleton(ref)` (reuse the one instance).
-- **Non-singleton class** → **warn + `clone(ref)`** a fresh instance
-  (never `singleton()` a non-singleton — it throws on >1). A
-  self-registering `LoungeRoom` then heals into its Warren; anything else
-  is an orphan + warning ("fails quietly, QA catches it").
+- The ref's class is resolved (`StuffApi.classForRef`). If it
+  **`instanceof Warren`** — a real, unspoofable check against the
+  canonical base class imported directly (no marker static) — land in
+  `singleton(ref).getHost()` (the Warren is never the avatar's
+  `container`; `container` stays honest).
+- Otherwise it's an ordinary room: `StuffApi.resolveOrClone(ref)`, the
+  generic primitive that decides **`singleton()` vs `clone()`** purely by
+  whether the class composes `SingletonMixin`. No Warren/container
+  special-casing lives in `StuffApi`.
 
-A registry fast-path reuses a single already-live `Container` at `ref`
-without a DB round-trip. `applyContainer` adopts the SAME resolver
-(engine-wide recover-and-warn); `TemplateApi.validateSingletonContainerTarget`
-softens its deny → a non-blocking warning.
+`applyContainer` is unchanged (plain `singleton(path)`);
+`validateSingletonContainerTarget` keeps its hard deny. The startLocation
+path is the only place the Warren semantics live.
 
 The avatar seed (`seeds/obj/Avatar/seed.yaml`) declares
 `startLocation: /domain/lounge/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
@@ -97,9 +118,10 @@ evac are separate concerns.
 
 ## Self-registration + ownership (Q2b)
 
-`LoungeRoom` declares its Warren via the `warren` instruction field;
+`Lounge` declares its Warren via the `warren` instruction field;
 `LoungeMixin.applyWarren` self-registers on hydrate (creating the Warren
-singleton if absent — the stray-clone heal). **The Warren owns the
+singleton if absent — the stray-clone heal; the Warren check there is the
+same unspoofable `instanceof Warren`). **The Warren owns the
 relationship**: `addMember`/`removeMember` are the sole writers of the
 Pattern-B pair. The declared path can *initiate* a membership but never
 *re-home* an owned one — the single-warren guard rejects a member already
@@ -115,13 +137,17 @@ room) — so logout in the lounge resumes via `getHost()` into a *live*
 instance, never a dead clone. The hook rides the existing
 `WarrenMember.getWarren()` back-ref; no extra capability mixin.
 
-## Instance identity
+## Instance identity — live-ref hub exits
 
-`LoungeWarren.createMember` clones via `StuffApi.cloneInstance`, which
-re-keys each clone under a unique per-instance path (`<template>#<id>`).
-Many lounge instances share one template path, which is ambiguous for any
-ref that resolves by templatePath (an `Exit` destination); the unique
-re-stamp makes hub/fixture exits resolve to the specific room.
+Many lounge instances are clones of one template, so they **share** a
+template path. That is ambiguous for any ref that resolves by
+templatePath — most importantly an `Exit` destination
+(`findByTemplatePath` throws on multi-instance). The fix is honest
+Pattern B: hub and fixture exits between Warren rooms hold a **live ref**
+(`keepLiveDestination` on `Exit` / `addBidirectionalExit`,
+`Warren.wireHubExit`) rather than a path. No synthetic per-instance paths
+— the instances keep their shared template path, and the exits point at
+the specific live room directly.
 
 ## Concurrency
 
@@ -144,8 +170,10 @@ change, no veto, no redirect flag.
 
 ## Deferred
 
-Flavor (toppings, matchmaking, cues beyond the bud/merge doorway lines),
-Dave's contents (NPC, drinks, `sit`, menu), fast-travel/TPA (the campus
-exit is a placeholder), item-spawn-into-a-Warren (reuses `getHost()` as a
-separate instruction), the procedural-spatial Warren family
-(dungeon/desert), and the Warren-as-containment-tier evolution.
+Lounge-room *function* (the `LoungeMixin` is the home for it — toppings,
+matchmaking, the order console, …), cues beyond the bud/merge doorway
+lines, Dave's contents (NPC, drinks, `sit`, menu), fast-travel/TPA (the
+way out of the lounge — there is no placeholder campus exit),
+item-spawn-into-a-Warren (reuses `getHost()` as a separate instruction),
+the procedural-spatial Warren family (dungeon/desert), and the
+Warren-as-containment-tier evolution.

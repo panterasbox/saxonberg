@@ -81,7 +81,6 @@ import type { Atmospheric } from '../lib/biome/Atmospheric';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
 import type { Soul } from '../lib/social/Soul';
-import type { Warren } from '../lib/multilocation/Warren';
 import type { WarrenMember } from '../lib/multilocation/WarrenMember';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
@@ -643,18 +642,6 @@ export class MixinApi {
 
   public static isWarrenMember(obj: Stuff): obj is Stuff & WarrenMember {
     return this.hasMixin(obj, Mixins.WarrenMember);
-  }
-
-  /**
-   * Is `obj` a `Warren`? Detected by the class-level `_warrenMarker`
-   * static (inherited by subclasses) rather than `hasMixin` — `Warren`
-   * is a base class, not a mixin — and rather than `instanceof`, which
-   * would force a value-import cycle (`Warren` statically imports
-   * `StuffApi`, which imports this Api). Accepts a Stuff instance.
-   */
-  public static isWarren(obj: Stuff): obj is Stuff & Warren {
-    const ctor = obj.constructor as { _warrenMarker?: boolean };
-    return ctor._warrenMarker === true;
   }
 
   /**

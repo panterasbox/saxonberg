@@ -65,13 +65,10 @@ export interface Containable {
    * Declarative-content applier. Phase 2 of the Hydrator's two-
    * phase dispatch reads `data.container` from the source template
    * and calls this method with the resolved templatePath. The
-   * applier resolves the target via
-   * `StuffApi.resolveOrCloneForPlacement` (recover-and-warn: a
-   * singleton target reuses its one instance; a non-singleton target
-   * warns and clones a fresh instance) and moves self into it via
-   * `ContainmentApi.move`. `TemplateApi.validateSingletonContainerTarget`
-   * still flags a non-singleton target at save time, but as a
-   * non-blocking warning rather than a hard deny.
+   * applier resolves the target via `StuffApi.singleton` (the
+   * target MUST be singleton-shaped — validated at template-save
+   * time by `TemplateApi.validateSingletonContainerTarget`) and
+   * moves self into it via `ContainmentApi.move`.
    *
    * Per-call idempotency: compare current container's templatePath
    * to the declared path; no-op when they match. The compare-and-
@@ -322,16 +319,11 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * time by `TemplateApi.validateSingletonContainerTarget`.
      */
     async applyContainer(path: string): Promise<void> {
+      const target = await StuffApi.singleton<Stuff & Container>(path);
       const current = this.getContainer();
       if (current && current.getTemplatePath() === path) {
         return; // already in declared container; no-op.
       }
-      // Recover-and-warn (engine-wide): a singleton target resolves to
-      // its one instance (clone-if-absent); a non-singleton target warns
-      // and clones a fresh instance rather than letting `singleton` throw
-      // on >1. char-gen's singleton-room container resolves unchanged.
-      const target =
-        await StuffApi.resolveOrCloneForPlacement<Stuff & Container>(path);
       ContainmentApi.move(
         this as unknown as Stuff & Containable,
         target,

@@ -1,9 +1,9 @@
 /**
- * LoungeWarren — the concrete, singleton Warren over the one `LoungeRoom`
- * template. Supplies the lounge *policy* on top of the base mechanism:
- * least-full routing, a star hub topology, the tunable bud/merge band, the
- * population reconcile loop, and the host-only fixtures (Dave's Bar + the
- * placeholder campus exit).
+ * LoungeWarren — the concrete, singleton Warren over the one `Lounge`
+ * room template. Supplies the lounge *policy* on top of the base Warren
+ * mechanism: least-full routing, a star hub topology, the tunable
+ * bud/merge band, the population reconcile loop, and the one host-only
+ * fixture (Dave's Bar).
  *
  * Singleton (`SingletonMixin`): there is exactly one lounge Warren,
  * resolved/created lazily by `StuffApi.singleton(LoungeWarren.WARREN_PATH)`.
@@ -13,19 +13,18 @@
  * The strategy is intentionally the *simplest tunable* one — seat arrivals
  * least-full, reap rooms that fall below the merge watermark, bud when all
  * eligible rooms are at the bud threshold; never rebalance a live crowd.
- * The elastic lounge is an unproven UX bet, so the personality lives in a
- * few knobs (`getBudThreshold` / `getMergeWatermark` / `getReapGraceMs`),
- * built to fail safe (flatten-to-one-room is `N` high + `M` 0) and tune
- * cheap (headed for `GameConfig`). See
- * [docs/requirements/multilocation-lounge-requirements.md].
+ * The personality lives in a few knobs (`getBudThreshold` /
+ * `getMergeWatermark` / `getReapGraceMs`), built to fail safe
+ * (flatten-to-one-room is `N` high + `M` 0) and tune cheap (defaults are
+ * code constants headed for `GameConfig`).
  */
 
-import { Warren, type Attachment } from './Warren';
-import { SingletonMixin } from '../stuff/Singleton';
-import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
-import type { Containable } from '../spatial/Containable';
-import type { Exitable } from '../boundary/Exitable';
+import { Warren, type Attachment } from '../../lib/multilocation/Warren';
+import { SingletonMixin } from '../../lib/stuff/Singleton';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
+import type { Exitable } from '../../lib/boundary/Exitable';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
@@ -42,15 +41,10 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   static readonly LOUNGE_TEMPLATE = '/domain/lounge/lounge';
   /** Dave's Bar — the singleton external-neighbor shell. */
   static readonly BAR_PATH = '/domain/lounge/bar';
-  /** Placeholder campus exit destination (Duncan Hall lobby). */
-  static readonly CAMPUS_PATH = '/domain/eternal/duncan-hall/lobby';
 
   /** Direction host→Dave's (cardinal; auto-inverse 'south'). */
   static readonly BAR_DIRECTION = 'north';
   static readonly BAR_OPPOSITE = 'south';
-  /** Labeled cross-zone exit host→campus and its inverse campus→host. */
-  static readonly CAMPUS_DIRECTION = 'out';
-  static readonly CAMPUS_OPPOSITE = 'lounge';
 
   // Generous v1 defaults (steady state keeps rooms in [M, N]). Tests
   // override small via `setThresholds`. Headed to GameConfig.
@@ -58,22 +52,18 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   static readonly DEFAULT_MERGE_WATERMARK = 3;
   static readonly DEFAULT_REAP_GRACE_MS = 60_000;
 
-  // Star-hub direction pool for satellites. Deliberately excludes the
-  // host-fixture directions (`north` → Dave's, `out` → campus) so a
-  // satellite's hub exit never collides with a fixture on the host's
-  // exit map. With small live counts this is ample; a crowded star
-  // would exhaust it — acceptable for v1 (the strategy is swappable).
-  // TS `private` per the proxy-receiver rule.
+  // Star-hub direction pool for satellites. The lounge expands
+  // horizontally, never north (that's Dave's Bar) and never vertically
+  // (no upstairs/downstairs unless the lounge ever gets huge). With small
+  // live counts this is ample; a crowded star would exhaust it —
+  // acceptable for v1 (the strategy is swappable). TS `private` per the
+  // proxy-receiver rule.
   private static readonly STAR_DIRECTIONS = [
     'east',
     'south',
     'west',
-    'northeast',
     'southeast',
     'southwest',
-    'northwest',
-    'up',
-    'down',
   ];
 
   private budThreshold = LoungeWarren.DEFAULT_BUD_THRESHOLD;
@@ -118,13 +108,12 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
 
   /**
    * Bud = clone the one lounge-room template (it self-registers via its
-   * `warren` instruction field). `cloneInstance` re-keys each clone under
-   * a unique per-instance path so the hub/fixture `Exit`s that point at a
-   * specific room resolve unambiguously despite every instance sharing
-   * the template.
+   * `warren` instruction field). Instances share the template path; their
+   * hub exits use live refs (`keepLiveDestination`), so there is no need
+   * to re-key per-instance paths.
    */
   protected async createMember(): Promise<MemberStuff> {
-    return StuffApi.cloneInstance<MemberStuff>(LoungeWarren.LOUNGE_TEMPLATE);
+    return StuffApi.clone<MemberStuff>(LoungeWarren.LOUNGE_TEMPLATE);
   }
 
   /**
@@ -145,7 +134,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
     ContainmentApi.move(actor as unknown as Stuff & Containable, target);
   }
 
-  /** Star topology: reserve the next free cardinal off the host. */
+  /** Star topology: reserve the next free direction off the host. */
   protected attachmentFor(_m: MemberStuff): Attachment {
     const pool = LoungeWarren.STAR_DIRECTIONS;
     const dir = pool[this._starIndex % pool.length]!;
@@ -191,47 +180,34 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   }
 
   /**
-   * Wire the host-only fixtures: a north exit to Dave's Bar and a
-   * placeholder labeled exit out to the campus entry, so the lounge is
-   * never a dead end. Satellites reach both by walking to the host.
+   * Wire the one host-only fixture: a north exit to Dave's Bar. The host
+   * is a non-singleton clone (a shared template path), so the back-exit
+   * (bar→host) holds a live ref. Satellites reach Dave's by walking to
+   * the host.
    */
   protected async wireHostFixtures(host: MemberStuff): Promise<void> {
+    const hostEx = this.requireExitable(host);
     const bar = await StuffApi.singleton<ExitableContainer>(LoungeWarren.BAR_PATH);
-    await (host as ExitableContainer).addBidirectionalExit(
-      bar,
-      LoungeWarren.BAR_DIRECTION,
-      { opposite: LoungeWarren.BAR_OPPOSITE },
-    );
-    const campus = await StuffApi.singleton<ExitableContainer>(
-      LoungeWarren.CAMPUS_PATH,
-    );
-    await (host as ExitableContainer).addBidirectionalExit(
-      campus,
-      LoungeWarren.CAMPUS_DIRECTION,
-      { opposite: LoungeWarren.CAMPUS_OPPOSITE },
-    );
+    await hostEx.addBidirectionalExit(bar, LoungeWarren.BAR_DIRECTION, {
+      opposite: LoungeWarren.BAR_OPPOSITE,
+      keepLiveDestination: true,
+    });
   }
 
   /**
-   * Remove the host-only fixtures' neighbor-side halves (Dave's `south`,
-   * campus `lounge`) left dangling when the old host was destroyed, so
-   * `wireHostFixtures` can re-install them onto the new host cleanly.
-   * Idempotent — no-op when the neighbor isn't loaded or the exit is gone.
+   * Remove the host-only fixture's neighbor-side half (Dave's `south`)
+   * left dangling when the old host was destroyed, so `wireHostFixtures`
+   * can re-install it onto the new host cleanly. Idempotent — no-op when
+   * Dave's isn't loaded or the exit is gone.
    */
   protected async unwireHostFixtures(): Promise<void> {
-    this.removeNeighborExit(LoungeWarren.BAR_PATH, LoungeWarren.BAR_OPPOSITE);
-    this.removeNeighborExit(
-      LoungeWarren.CAMPUS_PATH,
-      LoungeWarren.CAMPUS_OPPOSITE,
+    const bar = StuffApi.findByTemplatePath<ExitableContainer>(
+      LoungeWarren.BAR_PATH,
     );
-  }
-
-  private removeNeighborExit(neighborPath: string, direction: string): void {
-    const neighbor = StuffApi.findByTemplatePath<ExitableContainer>(neighborPath);
-    if (!neighbor) return;
-    const exit = neighbor.getExit(direction);
+    if (!bar) return;
+    const exit = bar.getExit(LoungeWarren.BAR_OPPOSITE);
     if (!exit) return;
-    neighbor.removeExit(direction);
+    bar.removeExit(LoungeWarren.BAR_OPPOSITE);
     StuffApi.destruct(exit as unknown as Stuff);
   }
 

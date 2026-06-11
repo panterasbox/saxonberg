@@ -5,20 +5,20 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
-import LoungeRoom from '../LoungeRoom';
+import Lounge from '../Lounge';
 import Avatar from '../../../obj/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { TemplateApi } from '../../../api/template';
-import { ContainableMixin } from '../../spatial/Containable';
-import { Idea } from '../../stuff/Idea';
-import type { Stuff } from '../../stuff/Stuff';
-import type { Container } from '../../spatial/Container';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { Idea } from '../../../lib/stuff/Idea';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '../../security/__tests__/test-setup';
+} from '../../../lib/security/__tests__/test-setup';
 import {
   installStore,
   loungeDocs,
@@ -55,59 +55,35 @@ describe('startLocation spawn instruction + recover-and-warn', () => {
     expect((avatar as unknown as { getContainer(): unknown }).getContainer()).toBe(
       host,
     );
-    expect(host).toBeInstanceOf(LoungeRoom);
+    expect(host).toBeInstanceOf(Lounge);
     // The container is a root Location, never the Warren.
     expect(
       (avatar as unknown as { getContainer(): unknown }).getContainer(),
     ).not.toBe(warren);
   });
 
-  it('resolveOrCloneForPlacement reuses a singleton room', async () => {
-    installStore(
-      loungeDocs([
-        {
-          path: '/domain/lounge/bar',
-          class: '/lib/multilocation/LoungeShell',
-          hydratorClass: '/lib/persistence/PersistentHydrator',
-          data: { shortDescription: "Dave's" },
-        } as Doc,
-      ]),
-    );
-    const a = await StuffApi.resolveOrCloneForPlacement(LoungeWarren.BAR_PATH);
-    const b = await StuffApi.resolveOrCloneForPlacement(LoungeWarren.BAR_PATH);
-    expect(a).toBe(b); // singleton reuse
-  });
-
-  it('recover-and-warn: a non-singleton target with no live instance warns and clones a fresh instance', async () => {
+  it('resolveOrClone reuses a singleton target', async () => {
     installStore(loungeDocs());
-    const warnings: unknown[] = [];
-    const orig = console.warn;
-    console.warn = (...a) => warnings.push(a);
-    let placed: unknown;
-    try {
-      // LoungeRoom is non-singleton; with 0 live instances the resolver
-      // warns and clones a fresh one rather than calling singleton().
-      placed = await StuffApi.resolveOrCloneForPlacement(
-        LoungeWarren.LOUNGE_TEMPLATE,
-      );
-    } finally {
-      console.warn = orig;
-    }
-    expect(placed).toBeInstanceOf(LoungeRoom);
-    expect(
-      warnings.some((w) =>
-        String((w as unknown[])[0]).includes('recover-and-warn'),
-      ),
-    ).toBe(true);
+    const a = await StuffApi.resolveOrClone(LoungeWarren.BAR_PATH);
+    const b = await StuffApi.resolveOrClone(LoungeWarren.BAR_PATH);
+    expect(a).toBe(b); // Bar composes SingletonMixin → singleton reuse
   });
 
-  it('a stray LoungeRoom clone self-registers with its declared Warren and becomes host on first getHost (AC 14)', async () => {
+  it('resolveOrClone clones a fresh instance for a non-singleton target', async () => {
+    installStore(loungeDocs());
+    // Lounge is non-singleton → a fresh clone each call.
+    const first = await StuffApi.resolveOrClone(LoungeWarren.LOUNGE_TEMPLATE);
+    const second = await StuffApi.resolveOrClone(LoungeWarren.LOUNGE_TEMPLATE);
+    expect(first).toBeInstanceOf(Lounge);
+    expect(second).toBeInstanceOf(Lounge);
+    expect(first).not.toBe(second);
+  });
+
+  it('a stray Lounge clone self-registers with its declared Warren and becomes host on first getHost (AC 14)', async () => {
     installStore(loungeDocs());
     // Clone a lounge room directly (no Warren landing yet). It self-
     // registers via applyWarren, creating the Warren singleton if absent.
-    const stray = await StuffApi.cloneInstance<LoungeRoom>(
-      LoungeWarren.LOUNGE_TEMPLATE,
-    );
+    const stray = await StuffApi.clone<Lounge>(LoungeWarren.LOUNGE_TEMPLATE);
     const warren = await StuffApi.singleton<LoungeWarren>(
       LoungeWarren.WARREN_PATH,
     );
@@ -157,15 +133,16 @@ describe('recall save-delegation in snapshotToTemplate', () => {
         { path: '/obj/Avatar/snap2', class: '/obj/Avatar', data: {} } as Doc,
       ]),
     );
-    // Place the host in the campus (a plain singleton room, not a member).
-    const campus = await StuffApi.singleton<Stuff & Container>(
-      LoungeWarren.CAMPUS_PATH,
+    // Place the host in Dave's Bar — a plain singleton room, NOT a
+    // Warren member — so the snapshot keeps ordinary container behavior.
+    const bar = await StuffApi.singleton<Stuff & Container>(
+      LoungeWarren.BAR_PATH,
     );
     const snap = makeStuffAtPath(() => new SnapHost(), '/obj/Avatar/snap2');
-    ContainmentApi.move(snap as never, campus);
+    ContainmentApi.move(snap as never, bar);
 
     const tpl = await TemplateApi.snapshotToTemplate(snap as unknown as Stuff);
-    expect(tpl.data.container).toBe(LoungeWarren.CAMPUS_PATH);
+    expect(tpl.data.container).toBe(LoungeWarren.BAR_PATH);
     expect('startLocation' in tpl.data).toBe(false);
   });
 });

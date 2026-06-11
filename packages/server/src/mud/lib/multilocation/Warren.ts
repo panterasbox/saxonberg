@@ -56,13 +56,6 @@ type ExitableContainer = Stuff & Container & Exitable;
 
 export abstract class Warren extends Idea {
   /**
-   * Class-level marker. `MixinApi.isWarren` / the placement resolver
-   * detect a Warren by this static rather than an `instanceof` (which
-   * would force a value-import cycle). Inherited by subclasses.
-   */
-  static readonly _warrenMarker = true;
-
-  /**
    * The member set. Truth of membership — a Location is a member iff it
    * is here, regardless of whether it composes `WarrenMemberMixin`.
    * Transient (Pattern B). R2.3 prune-on-read in `getMembers`.
@@ -279,10 +272,10 @@ export abstract class Warren extends Idea {
       const att = this._attachments.get(s);
       if (!att) continue;
       const backDir = att.opposite ?? NavigationApi.invertDirection(att.direction);
-      if (backDir) {
-        const dead = (s as ExitableContainer).getExit(backDir);
+      if (backDir && MixinApi.isExitable(s)) {
+        const dead = s.getExit(backDir);
         if (dead) {
-          (s as ExitableContainer).removeExit(backDir);
+          s.removeExit(backDir);
           StuffApi.destruct(dead as unknown as Stuff);
         }
       }
@@ -351,12 +344,16 @@ export abstract class Warren extends Idea {
   protected async wireHubExit(m: MemberStuff): Promise<void> {
     const host = this._hostMember;
     if (!host || host === m) return;
+    const hostEx = this.requireExitable(host);
+    const memberEx = this.requireExitable(m);
     const att = this.attachmentFor(m);
-    await (host as ExitableContainer).addBidirectionalExit(
-      m as ExitableContainer,
-      att.direction,
-      { opposite: att.opposite },
-    );
+    // Live-ref hub exit (Pattern B): host and member are non-singleton
+    // clones of one template (a shared templatePath), so path resolution
+    // would be ambiguous — hold the live refs directly.
+    await hostEx.addBidirectionalExit(memberEx, att.direction, {
+      opposite: att.opposite,
+      keepLiveDestination: true,
+    });
     this._attachments.set(m, att);
   }
 
@@ -372,10 +369,10 @@ export abstract class Warren extends Idea {
     const att = this._attachments.get(m);
     this._attachments.delete(m);
     const host = this._hostMember;
-    if (!host || !att) return;
-    const exit = (host as ExitableContainer).getExit(att.direction);
+    if (!host || !att || !MixinApi.isExitable(host)) return;
+    const exit = host.getExit(att.direction);
     if (exit) {
-      (host as ExitableContainer).removeExit(att.direction);
+      host.removeExit(att.direction);
       StuffApi.destruct(exit as unknown as Stuff);
     }
   }
@@ -463,9 +460,25 @@ export abstract class Warren extends Idea {
   /** Population-reactive reconcile (bud-high / merge-low). */
   protected abstract reconcile(): Promise<void>;
 
-  /** Wire the host-only fixtures (external neighbors, campus exit). */
+  /** Wire the host-only fixtures (external neighbors). */
   protected abstract wireHostFixtures(host: MemberStuff): Promise<void>;
 
   /** Remove the host-only fixtures from whatever previously held them. */
   protected abstract unwireHostFixtures(): Promise<void>;
+
+  /**
+   * Narrow a room to an Exitable container, failing early when it isn't.
+   * A Warren that wires hub/fixture exits requires its rooms to compose
+   * `ExitableMixin`; a non-Exitable room is a composition error worth
+   * surfacing loudly rather than papering over with a cast.
+   */
+  protected requireExitable(m: MemberStuff): ExitableContainer {
+    if (!MixinApi.isExitable(m)) {
+      throw new Error(
+        `Warren: room ${m.stuffId} must compose ExitableMixin to be wired ` +
+          `into the hub, but it does not.`,
+      );
+    }
+    return m as ExitableContainer;
+  }
 }

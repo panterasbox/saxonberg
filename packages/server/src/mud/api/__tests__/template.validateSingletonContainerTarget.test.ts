@@ -170,7 +170,7 @@ describe('TemplateApi.validateSingletonContainerTarget', () => {
     ).rejects.toThrow(/no template exists/);
   });
 
-  it('warns (recover-and-warn) but does not throw when target class is not Singleton', async () => {
+  it('throws when target class is not Singleton', async () => {
     installInMemoryStore([
       {
         path: '/test/non-singleton-room',
@@ -179,27 +179,13 @@ describe('TemplateApi.validateSingletonContainerTarget', () => {
       },
     ]);
     stubLoadClassByPath();
-    // Softened deny → non-blocking warning: a non-singleton container
-    // target is handled at hydrate time by
-    // `StuffApi.resolveOrCloneForPlacement` (warn + fresh clone), so the
-    // save-time check no longer rejects.
-    const warnings: unknown[] = [];
-    const orig = console.warn;
-    console.warn = (...a: unknown[]) => warnings.push(a);
-    try {
-      await expect(
-        TemplateApi.validateSingletonContainerTarget({
-          path: '/source',
-          class: '/test/ContainableSource',
-          data: { container: '/test/non-singleton-room' },
-        })
-      ).resolves.toBeUndefined();
-    } finally {
-      console.warn = orig;
-    }
-    expect(
-      warnings.some((w) => String((w as unknown[])[0]).includes('SingletonMixin')),
-    ).toBe(true);
+    await expect(
+      TemplateApi.validateSingletonContainerTarget({
+        path: '/source',
+        class: '/test/ContainableSource',
+        data: { container: '/test/non-singleton-room' },
+      })
+    ).rejects.toThrow(/does not compose `?SingletonMixin`?/);
   });
 
   it('passes when target is singleton-shaped', async () => {
