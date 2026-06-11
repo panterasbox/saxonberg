@@ -43,9 +43,10 @@ import type {
   CharGenPicks,
   CharGenStatePayload,
   CharGenField,
+  SpeciesDossier,
 } from '@saxonberg/types';
 import { Pronouns } from '@saxonberg/types';
-import { SpeciesPresenter } from './SpeciesPresenter';
+import { SpeciesApi } from '../../../api/species';
 
 // Pronoun options derive from the `Pronouns` enum (the single source of
 // truth for the values); only the display labels live here.
@@ -136,10 +137,10 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     options: (_d, cfg) =>
       cfg.species.map((s) => {
         // Presentation (dossier + illustration) for this species, warmed
-        // by SpeciesPresenter. `image` is the bucket-relative key off the
-        // Species (Visible.illustration), config roster as fallback; the
-        // client prepends MEDIA_BASE_URL.
-        const card = SpeciesPresenter.cardFor(s.path);
+        // by ensureSpeciesCards (dossier built by SpeciesApi). `image` is
+        // the bucket-relative key off the Species (Visible.illustration),
+        // config roster as fallback; the client prepends MEDIA_BASE_URL.
+        const card = EnrollController.getSpeciesCard(s.path);
         return {
           value: s.key,
           label: s.label,
@@ -299,6 +300,17 @@ function cap(s: string): string {
 
 export default class EnrollController extends CommandController<EnrollModel> {
   static #config: CharGenConfig | null = null;
+  /**
+   * Per-species presentation (dossier + illustration key), keyed by
+   * template path. Pre-warmed once because the sync `options()` can't await
+   * the async Species resolution / dossier build. The dossier itself is
+   * built by `SpeciesApi.buildDossier`; this map is just the controller
+   * holding the results it needs to assemble its own sync payload.
+   */
+  static #speciesCards: Map<
+    string,
+    { dossier?: SpeciesDossier; illustration?: string }
+  > | null = null;
 
   /** The active CommandContext for the in-flight execute (commit needs it). */
   private ctx!: CommandContext;
@@ -314,7 +326,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const cfg = EnrollController.loadConfig();
     // Pre-warm the species presentation cache so the sync `options()`
     // builder can read it. Cheap after the first call.
-    await SpeciesPresenter.ensure(cfg.species.map((s) => s.path));
+    await EnrollController.ensureSpeciesCards(cfg);
 
     // Split the raw tail into `<field> <value...>`.
     const rest = (model.rest ?? '').trim();
@@ -542,8 +554,41 @@ export default class EnrollController extends CommandController<EnrollModel> {
   }
 
   /** Test seam: drop the cached config + derived dossier cache. */
+  /**
+   * Pre-warm the per-species cards (dossier via `SpeciesApi`, illustration
+   * off the Species). Idempotent. Tolerant — an unresolved species just
+   * gets no card.
+   */
+  static async ensureSpeciesCards(cfg: CharGenConfig): Promise<void> {
+    if (EnrollController.#speciesCards) return;
+    const cards = new Map<
+      string,
+      { dossier?: SpeciesDossier; illustration?: string }
+    >();
+    for (const s of cfg.species) {
+      try {
+        const species = await StuffApi.singleton<Species>(s.path);
+        if (!species) continue;
+        cards.set(s.path, {
+          dossier: await SpeciesApi.buildDossier(species, s.path),
+          illustration: species.getIllustration() ?? undefined,
+        });
+      } catch {
+        /* unresolved species → no card (graceful) */
+      }
+    }
+    EnrollController.#speciesCards = cards;
+  }
+
+  /** The cached card (dossier + illustration) for a species path. */
+  static getSpeciesCard(
+    path: string,
+  ): { dossier?: SpeciesDossier; illustration?: string } | undefined {
+    return EnrollController.#speciesCards?.get(path);
+  }
+
   static resetConfigCache(): void {
     EnrollController.#config = null;
-    SpeciesPresenter.reset();
+    EnrollController.#speciesCards = null;
   }
 }
