@@ -35,58 +35,45 @@ Sibling docs cover related ground without overlap:
 
 ## The Cast
 
+The room / coordinate / zone classes (`Location`, `CartesianLocation`,
+`SphericalLocation`, the coordinate mixins, `CartesianZone`,
+`SphericalZone`, `ZoneApi`) live in `lib/location/` — see
+[location.md](./location.md); the `Zone` hierarchy roots are in
+[zone.md](./zone.md). This doc's cast is the containment / movement
+substrate in `lib/spatial/`:
+
 | Type | Kind | Role |
 |---|---|---|
-| `Location` | concrete class | Base for any Stuff that holds Stuff but isn't itself contained. `ContainerMixin(Stuff)`. |
-| `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits unconditional; non-cardinal exits only when crossing zone boundaries. `coords` declarative-content field + `setCoords` setter. |
-| `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. `focus` declarative-content field + `setFocus` setter. |
-| `Zone` / `SpatialZone` / `FolderZone` | (cross-reference) | See [zone.md](./zone.md) — the Zone hierarchy lives in `lib/zone/` now, carved out of `lib/spatial/`. |
-| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. `hasRoomAt(x, y, z, room?)` predicate for setter idempotency. |
-| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. `hasLocationAtFocus(focus, location?)` predicate. |
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)) — vessels can carry their own biome reference + atmospheric overrides. Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
+| `SurfacedMixin` | mixin | Surface placement: the auxiliary `restingOn` pointer + `canRest`. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
-| `CartesianCoordinatesMixin` | mixin | `[x,y,z]` data carrier. |
-| `SphericalCoordinatesMixin` | mixin | `[rho,theta,phi] + radius` data carrier. |
-| `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Stays in `lib/spatial/` because it's generic. |
-| `SingletonMixin` | mixin | Class-level uniqueness: composing classes refuse a second `clone()` for the same `templatePath`. Composed by `CartesianZone` and `SphericalZone`. |
-| `ZoneApi` | static API | Resolves `templatePath → Zone` via `StuffApi.singleton`. Caching is delegated; ZoneApi just owns the ancestor walk. |
-| `StuffApi.singleton(path)` | static API | Cache-or-clone tool for any class. Pairs with `SingletonMixin` for enforced uniqueness. |
+| `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Generic, stays in `lib/spatial/`. |
 | `ContainmentApi` | static API | The single public surface for moving Stuff between containers. |
 | `NavigationApi` | static API | Direction normalization, aliases, grid offsets, inverses. |
 
 ## Class Hierarchy
 
+The room/zone **geometry** tree (`Location` → `CartesianLocation` /
+`SphericalLocation`; the `Zone` / `SpatialZone` / `CartesianZone` /
+`SphericalZone` hierarchy) is in [location.md](./location.md) and
+[zone.md](./zone.md). The branches this doc covers:
+
 ```
 Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
-  │     ├── Zone (abstract scope/folder — lives in lib/zone/; see zone.md)
-  │     │     ├── SpatialZone (abstract topographical intermediate — lib/zone/)
-  │     │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
-  │     │     │     └── SphericalZone     (Singleton + focus index, no derivation)
-  │     │     ├── FolderZone (generic organizational scope — lib/zone/)
-  │     │     ├── HomeZone (per-player namespace — lib/home/)
-  │     │     └── Clade (taxonomic — see race.md)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
-  ├── Location                      (Adornable + Container, was Container only)
-  │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible; `coords` + `setCoords`)
-  │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible; `focus` + `setFocus`)
+  ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
   ├── Thing                         (ContainableMixin(Stuff))
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Adornable + Container + Containable, was Container + Containable)
+  ├── Vessel                        (Adornable + Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
-
-The Zone hierarchy roots (`Zone`, `SpatialZone`, `FolderZone`) live
-in `lib/zone/`, not `lib/spatial/`. Only the concrete spatial-
-coordinate zones (`CartesianZone`, `SphericalZone`) — the ones whose
-identity IS a coordinate frame — stay under `lib/spatial/`. See
-[zone.md](./zone.md) for the hierarchy and the field-inheritance walk.
 
 The fundamental split for spatial relationships:
 
