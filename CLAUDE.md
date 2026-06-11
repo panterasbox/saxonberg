@@ -74,7 +74,8 @@ behavior. Read the relevant doc before editing in its area.
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), per-Interactive resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName` marker, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone hierarchy roots (Zone/SpatialZone/FolderZone) in lib/zone/, ZoneApi.resolveZoneForPath, field inheritance
-  - [spatial.md](./docs/subsystems/spatial.md) — locations, concrete spatial zones, vessels, coordinates, containment chokepoint, locomotion
+  - [spatial.md](./docs/subsystems/spatial.md) — the containment/movement substrate in lib/spatial/ (Container/Containable/Mobile/Surfaced/Sealable): containment chokepoint, surface placement, locomotion, vessels (geometry moved to location.md)
+  - [location.md](./docs/subsystems/location.md) — the lib/location/ subsystem: room/coordinate/zone geometry (Location/CartesianLocation/SphericalLocation, coordinate mixins, CartesianZone/SphericalZone, ZoneApi resolution) + the Warren elastic-graph (MultiLocation) substrate (host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in domain/lounge/ (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.singletonOrClone`, save-delegation recall
   - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment, Boundary substrate, Window, ExitableVessel
   - [light.md](./docs/subsystems/light.md) — Light value object, VisionModality.signalAt, AmbientLitMixin, LightSourceMixin, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive
@@ -97,7 +98,6 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
-  - [multilocation.md](./docs/subsystems/multilocation.md) — Warren elastic-graph substrate in `lib/location/` (one template, many coordinated instances; host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in `domain/lounge/` (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.singletonOrClone`, save-delegation recall
 
 ## Development Commands
 
