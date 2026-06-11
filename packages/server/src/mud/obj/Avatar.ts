@@ -290,7 +290,8 @@ export default class Avatar extends AvatarBase {
     if (!startingLocation) {
       throw new Error(
         `Avatar.enter: ${this.getFullName()} has no container. ` +
-          `Avatar templates must declare 'data.container'; the seed at ` +
+          `Avatar templates must declare a spawn via 'data.startLocation' ` +
+          `(a room or a Warren) or 'data.container'; the seed at ` +
           `'${Avatar.SEED_TEMPLATE_PATH}' sets a default that's copied at signup.`
       );
     }

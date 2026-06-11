@@ -17,10 +17,11 @@ test('an authenticated visitor lands in the cockpit', async ({ page }) => {
 /**
  * Full command round-trip: client → command bus → WebSocket → server →
  * rendered frame. The deterministic world comes from the seed system —
- * a fresh test avatar spawns in the seeded Duncan Hall lobby (the Avatar
- * seed pins `container: /domain/eternal/duncan-hall/lobby`), so `look`
- * presents that room. We assert on the room's stable identity label
- * rather than its flavor prose, which churns as the campus is built.
+ * a fresh test avatar spawns in the lounge (the Avatar seed pins
+ * `startLocation: /domain/lounge/warren`, which resolves to the lounge
+ * Warren's host room), so `look` presents that room. We assert on the
+ * room's stable identity label (its shortDescription) rather than its
+ * flavor prose, which churns.
  *
  * Determinism note: re-run-safe because `look` doesn't move the avatar,
  * and the e2e user is idempotent. CI gets a fresh Mongo each run anyway.
@@ -38,5 +39,5 @@ test('a `look` command round-trips and renders the spawn room', async ({
 
   // The look response renders into the terminal scrollback. Playwright
   // auto-waits for the WebSocket round-trip to land the text.
-  await expect(page.getByText(/Duncan Hall lobby/i).first()).toBeVisible();
+  await expect(page.getByText(/the lounge/i).first()).toBeVisible();
 });
