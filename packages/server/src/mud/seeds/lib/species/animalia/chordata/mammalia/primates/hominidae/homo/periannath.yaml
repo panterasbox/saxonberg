@@ -4,6 +4,7 @@
 class: /lib/species/Species
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  illustration: species/periannath.png
   binomial: Homo periannath
   commonNames: ["halfling"]
   _bodyPlanPath: /lib/body-plans/biped

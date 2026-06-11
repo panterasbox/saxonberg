@@ -142,9 +142,10 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
         value: s.key,
         label: s.label,
         description: s.description,
-        image: s.image ?? null,
-        // Derived once (async) and cached by path; undefined until the
-        // pre-warm runs.
+        // Bucket-relative key off the Species (Visible.illustration), with
+        // the config roster as fallback. Cached by the same pre-warm as
+        // the dossier; null until it runs. Client prepends MEDIA_BASE_URL.
+        image: EnrollController.getSpeciesIllustration(s.path) ?? s.image ?? null,
         dossier: EnrollController.getSpeciesDossier(s.path),
       })),
     validate: (v, _d, cfg) =>
@@ -438,6 +439,11 @@ export default class EnrollController extends CommandController<EnrollModel> {
    * and cache).
    */
   static #speciesDossiers: Map<string, SpeciesDossier> | null = null;
+  /**
+   * Per-species illustration keys (bucket-relative), populated by the same
+   * pre-warm as the dossiers — read off the `Species` (now `Visible`).
+   */
+  static #speciesIllustrations: Map<string, string> | null = null;
 
   /** The active CommandContext for the in-flight execute (commit needs it). */
   private ctx!: CommandContext;
@@ -451,10 +457,13 @@ export default class EnrollController extends CommandController<EnrollModel> {
   static async ensureSpeciesDossiers(cfg: CharGenConfig): Promise<void> {
     if (EnrollController.#speciesDossiers) return;
     const map = new Map<string, SpeciesDossier>();
+    const illus = new Map<string, string>();
     for (const s of cfg.species) {
       try {
         const species = await StuffApi.singleton<Species>(s.path);
         if (!species) continue;
+        const illusKey = species.getIllustration();
+        if (illusKey) illus.set(s.path, illusKey);
         const bpPath = species.getBodyPlanPath();
         const bodyPlan = bpPath
           ? await StuffApi.singleton<BodyPlan>(bpPath)
@@ -469,11 +478,17 @@ export default class EnrollController extends CommandController<EnrollModel> {
       }
     }
     EnrollController.#speciesDossiers = map;
+    EnrollController.#speciesIllustrations = illus;
   }
 
   /** The cached dossier for a species path, if any. */
   static getSpeciesDossier(path: string): SpeciesDossier | undefined {
     return EnrollController.#speciesDossiers?.get(path);
+  }
+
+  /** The cached illustration key (bucket-relative) for a species path. */
+  static getSpeciesIllustration(path: string): string | undefined {
+    return EnrollController.#speciesIllustrations?.get(path);
   }
 
   async execute(model: EnrollModel, context: CommandContext): Promise<void> {

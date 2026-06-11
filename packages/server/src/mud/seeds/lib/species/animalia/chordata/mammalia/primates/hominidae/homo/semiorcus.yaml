@@ -4,6 +4,7 @@
 class: /lib/species/Species
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  illustration: species/semiorcus.png
   binomial: Homo semiorcus
   commonNames: ["half-orc"]
   _bodyPlanPath: /lib/body-plans/biped

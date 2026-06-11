@@ -102,6 +102,32 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
   };
 }
 
+interface SpeciesLike {
+  getLongDescription?(): string;
+  getCommonNames?(): string[];
+  getBodyPlanPath?(): string | null;
+}
+
+/** Assemble a species' character portrait from its model (generic kind). */
+function speciesPrompt(species: unknown): { prompt: string; size: string } {
+  const s = species as SpeciesLike;
+  const long = s.getLongDescription?.() ?? "";
+  const common = s.getCommonNames?.()?.[0] ?? "person";
+  const bodyPlan = (s.getBodyPlanPath?.() ?? "").split("/").pop();
+  const morph =
+    bodyPlan === "biped" ? "a bipedal humanoid figure" : "a figure";
+  // No proper-name label in the visual prompt (keeps gpt-image-1 from
+  // stamping signage); the kind word rides as descriptive text only.
+  const facts = `${morph} of the kind commonly called "${common}". ${long}`;
+  const composition =
+    "Three-quarter full-body figure, three-quarter turn, eye-level, " +
+    "centered, soft watercolor vignette fading to bare cream paper. No text.";
+  return {
+    prompt: `${STYLE}\n\n${composition} ${facts}\n\n${AVOID}`,
+    size: "1024x1536",
+  };
+}
+
 async function generate(name: string, prompt: string, size: string) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY not set");
@@ -130,9 +156,11 @@ async function generate(name: string, prompt: string, size: string) {
 }
 
 export async function main() {
-  const [kind, path] = process.argv.slice(2);
-  if (kind !== "location" || !path) {
-    throw new Error("usage: illustrate-preload.js location <template-path>");
+  const [kind, ...paths] = process.argv.slice(2);
+  if ((kind !== "location" && kind !== "species") || paths.length === 0) {
+    throw new Error(
+      "usage: illustrate-preload.js <location|species> <template-path...>",
+    );
   }
 
   // Own scratch DB — never touch a concurrent dev server's data.
@@ -143,12 +171,20 @@ export async function main() {
   });
 
   try {
-    const loc = await StuffApi.singleton(path);
-    const { prompt, size } = locationPrompt(loc);
-    console.info("\n=== MODEL-DERIVED PROMPT ===\n" + prompt + "\n");
-    const name = path.split("/").filter(Boolean).join("-");
-    const file = await generate(name, prompt, size);
-    console.info(`ok -> ${file}`);
+    for (const path of paths) {
+      const stuff = await StuffApi.singleton(path);
+      const { prompt, size } =
+        kind === "species" ? speciesPrompt(stuff) : locationPrompt(stuff);
+      const name = path.split("/").filter(Boolean).join("-");
+      process.stdout.write(`generating ${name} (${size})... `);
+      try {
+        const file = await generate(name, prompt, size);
+        console.info(`ok -> ${file}`);
+      } catch (e) {
+        console.info("FAILED");
+        console.error("  " + (e as Error).message);
+      }
+    }
   } finally {
     await AppBootstrap.shutdown();
     // Bootstrap opens Mongo + timers; nothing here joins the event loop
