@@ -36,6 +36,7 @@ import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
 import type { Hydrator } from '../stuff/Hydrator';
 import type { Marshaller } from './Marshaller';
+import { TemplatePaths } from '../paths';
 
 type Indexable = Record<string, unknown>;
 
@@ -56,7 +57,7 @@ export default class PersistentHydrator extends Idea implements Hydrator {
    * instead of duplicating the string literal — this is the single source
    * of truth for "the standard hydrator's template path".
    */
-  public static readonly templatePath = '/lib/persistence/PersistentHydrator';
+  public static readonly templatePath = TemplatePaths.persistentHydrator;
 
   public async hydrate(
     backing: Stuff,

@@ -19,8 +19,9 @@ import type {
 } from '../lib/social/GroupProvider';
 import type { GroupRole } from '../lib/social/Group';
 import type GroupRegistry from '../obj/GroupRegistry';
+import { TemplatePaths } from '../lib/paths';
 
-const REGISTRY_PATH = '/obj/GroupRegistry';
+const REGISTRY_PATH = TemplatePaths.groupRegistry;
 
 export class GroupApi {
   static #registryRef: GroupRegistry | null = null;

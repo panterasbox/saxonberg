@@ -21,6 +21,7 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import { TemplatePathPrefixes } from '../paths';
 
 export default class Topic extends Idea {
   /**
@@ -29,7 +30,7 @@ export default class Topic extends Idea {
    * dotted-path structure is meaningful only to the catalogue, not
    * to the template tree.
    */
-  static readonly TEMPLATE_PATH_PREFIX = '/lib/messaging/Topic/';
+  static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.topic;
 
   /** Dotted topic path (e.g. `'world.speech.say'`). Non-empty. */
   public topic: string = '';

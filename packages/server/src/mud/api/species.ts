@@ -25,6 +25,7 @@ import { MixinApi } from './mixin';
 import { Template } from '../lib/stuff/Template';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
+import { TemplatePathPrefixes } from '../lib/paths';
 
 interface CladeShape {
   getRank?(): CladeRank;
@@ -272,12 +273,11 @@ export class SpeciesApi {
 // --- dossier derivation helpers -------------------------------------------
 
 const LINNAEAN_RANKS = ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus'];
-const SPECIES_PATH_PREFIX = '/lib/species/';
 
 /** Map a species template path's clade segments onto Linnaean ranks. */
 function buildClassificationRows(speciesPath: string): DossierSection['rows'] {
-  if (!speciesPath.startsWith(SPECIES_PATH_PREFIX)) return [];
-  const segments = speciesPath.slice(SPECIES_PATH_PREFIX.length).split('/');
+  if (!speciesPath.startsWith(TemplatePathPrefixes.species)) return [];
+  const segments = speciesPath.slice(TemplatePathPrefixes.species.length).split('/');
   // Drop the species epithet (leaf); the rest are ancestor clades.
   const clades = segments.slice(0, -1);
   return clades.map((taxon, i) => ({

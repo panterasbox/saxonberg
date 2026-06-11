@@ -26,6 +26,7 @@
 import { Marshaller } from './Marshaller';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
+import { TemplatePaths } from '../paths';
 
 /**
  * Storage shape. The canonical form is `{ value, unit }` — what
@@ -58,7 +59,7 @@ export class QuantityMarshaller<U extends Unit = Unit> extends Marshaller<
   Quantity<U>,
   QuantityStored<U>
 > {
-  public static readonly templatePath = '/lib/persistence/QuantityMarshaller';
+  public static readonly templatePath = TemplatePaths.quantityMarshaller;
 
   /**
    * Compute the per-unit templatePath. Use at field-marshaller

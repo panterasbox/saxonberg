@@ -14,8 +14,9 @@ import type { AdHocChannel } from '../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../obj/ChannelCatalogue';
 import type { ChannelSubscription } from '../obj/ChannelCatalogue';
 import type { MessageFrame } from '@saxonberg/types';
+import { TemplatePaths } from '../lib/paths';
 
-const CATALOGUE_PATH = '/obj/ChannelCatalogue';
+const CATALOGUE_PATH = TemplatePaths.channelCatalogue;
 
 export class ChatApi {
   static #catalogueRef: ChannelCatalogue | null = null;

@@ -38,6 +38,7 @@ import {
   type FieldChangedPayload,
 } from '../lib/events/FieldChangedEvent';
 import type MqlSubscriptionRegistry from '../obj/MqlSubscriptionRegistry';
+import { TemplatePaths } from '../lib/paths';
 
 void (undefined as unknown as _MqlSubscriptionErrorReason);
 
@@ -162,7 +163,7 @@ export interface QueryRequest {
 
 /* ─────────────────────── MqlSubscriptionApi ─────────────────── */
 
-const REGISTRY_PATH = '/obj/MqlSubscriptionRegistry';
+const REGISTRY_PATH = TemplatePaths.mqlSubscriptionRegistry;
 
 export class MqlSubscriptionApi {
   private constructor() {}

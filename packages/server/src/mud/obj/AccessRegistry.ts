@@ -39,6 +39,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from '../lib/zone/FolderZone';
 import Avatar from './Avatar';
+import { TemplatePaths } from '../lib/paths';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
@@ -46,7 +47,7 @@ const AccessApiCallers = SecurityPolicies.FromModule(
   'mud/api/access#AccessApi',
 );
 
-const FOLDER_ZONE_CLASS = '/lib/zone/FolderZone';
+const FOLDER_ZONE_CLASS = TemplatePaths.folderZone;
 
 const LOUNGE_FOLDER_PATHS = ['/lib/lounge', '/domain/lounge'] as const;
 

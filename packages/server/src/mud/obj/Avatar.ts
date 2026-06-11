@@ -51,6 +51,7 @@ import { Application } from '../../backend/Application';
 import type { CommandContributions } from '../api/command';
 import type Interactive from './Interactive';
 import type TopicCatalogue from './TopicCatalogue';
+import { TemplatePathPrefixes } from '../lib/paths';
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -154,7 +155,7 @@ export default class Avatar extends AvatarBase {
    * singleton templates of that class (`/obj/EventRegistry`),
    * with a per-instance suffix.
    */
-  static readonly TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
+  static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.avatar;
 
   /**
    * Reserved playerId for the seed avatar at

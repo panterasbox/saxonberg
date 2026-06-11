@@ -16,8 +16,9 @@ import { SecurityApi } from './security';
 import type { Emote } from '../lib/social/Emote';
 import type SoulCatalogue from '../obj/SoulCatalogue';
 import type { EmoteSpec } from '../obj/SoulCatalogue';
+import { TemplatePaths } from '../lib/paths';
 
-const CATALOGUE_PATH = '/obj/SoulCatalogue';
+const CATALOGUE_PATH = TemplatePaths.soulCatalogue;
 
 export class SoulApi {
   /** Catalogue reference, cached after the first resolution. */
