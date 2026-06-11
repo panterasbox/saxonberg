@@ -201,7 +201,7 @@ Content-pulls-platform — a crossing guard's pocket forced all of this:
   composed onto `Watch` (and any future sundial / clock / phone). Read by
   `tally` (and the watch's own `getLong`). The cross-family seam for
   time-telling; *see also* the **scope-modality slate**
-  (`docs/slates/scope-modality-slate.md`) — `tally` resolves the timepiece
+  (`docs/slates/tails/scope-modality-slate.md`) — `tally` resolves the timepiece
   over *sight* scope (clear cases / wall clocks readable, shut lids not).
 - **`wind` / `set` commands** — carried by the watch.
 - **The thin `Watch` class** (+ Gus's seed instance).

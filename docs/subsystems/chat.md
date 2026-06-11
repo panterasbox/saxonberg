@@ -404,7 +404,7 @@ only.
 ## Deferred — see the chat slate
 
 Chat ships its v1 core under this subsystem doc. The
-[chat slate](../slates/chat-slate.md) is **retained** for everything
+[chat slate](../slates/tails/chat-slate.md) is **retained** for everything
 in the design space that v1 deliberately defers:
 
 - **Channel role overlay** (`post / invite / manage / moderate /

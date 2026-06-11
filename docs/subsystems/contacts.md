@@ -260,7 +260,7 @@ fallback lookup.
 durable identifiers, plus the verbs to manage them, plus a uniform
 read surface via `GroupApi`. The rest of what the social-graph
 subsystem will eventually do stays in
-[social-graph-slate.md](../slates/social-graph-slate.md) for the
+[social-graph-slate.md](../slates/builds/social-graph-slate.md) for the
 recognition-family build:
 
 - **Per-bucket notification policy** (`onConnect`, `onMessage`,
@@ -295,6 +295,6 @@ gains optional fields; the existing verbs keep working; the
 - [messaging.md](./messaging.md) — audience computation in
   chat / DM; the consumer side of `GroupApi.membersOf` against a
   `contacts:` ref.
-- [social-graph-slate.md](../slates/social-graph-slate.md) — the
+- [social-graph-slate.md](../slates/builds/social-graph-slate.md) — the
   full recognition-family design (notification policy, display
   lensing, recognition state) that contacts is the first slice of.

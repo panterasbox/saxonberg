@@ -5,7 +5,7 @@
 > kept); prose is the **EC original *updated*** — aesthetic preserved,
 > language improved (not a rewrite). EC map is **not** replicated (its
 > central kill-zone Heart is rejected); the campus is its own layout.
-> See [eternal-university-slate](../../slates/eternal-university-slate.md).
+> See [eternal-university-slate](../../slates/builds/eternal-university-slate.md).
 
 ## Districts (v1)
 

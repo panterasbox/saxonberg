@@ -10,7 +10,7 @@ prose form. The substrate ships as part of the social-cluster build
 catalog backed by MongoDB, a `SoulCatalogue` singleton holding the
 runtime verb→Emote cache, and a thin `SoulApi` facade consulted by
 the verb dispatcher. The slate at
-[emotes-slate.md](../slates/emotes-slate.md) stays live as the
+[emotes-slate.md](../slates/tails/emotes-slate.md) stays live as the
 register of design space not yet built.
 
 ## What emotes are vs. what they aren't
@@ -373,7 +373,7 @@ approval, displeasure, surprise, playful, and abstraction registers.
 
 ## What's deferred
 
-Each of the following stays in [emotes-slate.md](../slates/emotes-slate.md)
+Each of the following stays in [emotes-slate.md](../slates/tails/emotes-slate.md)
 for a future build. The data shape ships now where deferring would
 later force a migration; the **behavior** doesn't run in v1.
 

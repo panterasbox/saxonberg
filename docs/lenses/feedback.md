@@ -76,7 +76,7 @@ and, where it matters, *satisfying*.
   alive" is hard when your medium is sentences — text feedback is
   strong on *information*, weak on *visceral satisfaction*. The
   client-rendered reaction bursts
-  ([reactions](../slates/reactions-slate.md)) are the closest the design
+  ([reactions](../slates/tails/reactions-slate.md)) are the closest the design
   gets to juice; most feedback will be informational, and the game may
   under-deliver on *feel* unless that's deliberately invested in.
 - **Failure feedback can break immersion.** A controller-rejected note

@@ -27,13 +27,13 @@ a full vertical; the type axis ships its memory + one thin trigger,
 proving the axes compose. Identification's deep verb/content world — the
 **pedagogical instrument seam** — is a deliberately separate later build.
 
-Seeding slates: [recognition-slate](../slates/recognition-slate.md),
-[identification-slate](../slates/identification-slate.md). Load-bearing
+Seeding slates: [recognition-slate](../slates/builds/recognition-slate.md),
+[identification-slate](../slates/builds/identification-slate.md). Load-bearing
 subsystems: [perception](../subsystems/perception.md) (the *separate*
 sensory axis this consults for its visibility gate, nothing more),
 [embodiment](../subsystems/embodiment.md) (disguise as a Wearable
 shadow), [persistence](../subsystems/persistence.md) +
-[persistence-architecture-slate](../slates/persistence-architecture-slate.md)
+[persistence-architecture-slate](../slates/tails/persistence-architecture-slate.md)
 (the keyed-working-set capability this forces),
 [messaging](../subsystems/messaging.md) (the scene/earshot routing the
 introduction trigger rides).
@@ -157,7 +157,7 @@ memory.
   (spectrometer / pH-meter / hardness-kit), real Material-substrate
   chemistry/biology/physics integration. The genuinely large part;
   identification's own later build.
-  ([identification-slate](../slates/identification-slate.md))
+  ([identification-slate](../slates/builds/identification-slate.md))
 - **Partial identification** — `identificationLevel`, `knownAttributes`,
   "probably a healing potion." Defers with the instrument seam (it has
   little to act on without it).
@@ -167,8 +167,8 @@ memory.
 - **Misidentification** — belief-vs-truth (a blue poison read as
   healing), cursed items, illusion *content*. Later.
 - **Social-graph buckets / crowd verbosity** (collapsing strangers into
-  counts). Post [social-graph-slate](../slates/social-graph-slate.md).
-- **Comms trust-tier moderation.** [comms-slate](../slates/comms-slate.md).
+  counts). Post [social-graph-slate](../slates/builds/social-graph-slate.md).
+- **Comms trust-tier moderation.** [comms-slate](../slates/tails/comms-slate.md).
 - **NPC behavior that consumes the memory** — greetings, gates, gossip,
   a merchant pricing by what it's identified. The substrate lets NPCs
   *hold* memory; reading it to drive behavior is npc-behavior territory.
@@ -346,12 +346,12 @@ own collection).
 
 ## Cross-references
 
-- **Seeding slates:** [recognition-slate](../slates/recognition-slate.md),
-  [identification-slate](../slates/identification-slate.md)
-- **Adjacent slates:** [social-graph](../slates/social-graph-slate.md)
-  (bucket verbosity, later), [comms](../slates/comms-slate.md),
-  [persistence-architecture](../slates/persistence-architecture-slate.md),
-  [verb-provisioning](../slates/verb-provisioning-slate.md) (recognition
+- **Seeding slates:** [recognition-slate](../slates/builds/recognition-slate.md),
+  [identification-slate](../slates/builds/identification-slate.md)
+- **Adjacent slates:** [social-graph](../slates/builds/social-graph-slate.md)
+  (bucket verbosity, later), [comms](../slates/tails/comms-slate.md),
+  [persistence-architecture](../slates/tails/persistence-architecture-slate.md),
+  [verb-provisioning](../slates/builds/verb-provisioning-slate.md) (recognition
   / identify trigger verbs)
 - **Subsystems:** [perception](../subsystems/perception.md) (separate
   sensory axis — the visibility gate only),

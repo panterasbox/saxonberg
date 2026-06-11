@@ -35,7 +35,7 @@ See:
 - `docs/subsystems/prompt.md` — the prompt's focus token; the pane
   header mirrors it visually but reads from the subscription, not
   the prompt push.
-- `docs/slates/client-cockpit-slate.md` — the cockpit layout the
+- `docs/slates/tails/client-cockpit-slate.md` — the cockpit layout the
   pane slots into.
 
 ## File layout
@@ -327,7 +327,7 @@ Internal properties are not perceivable just because they exist.
 
 This is the inspection-pane reconciliation principle (see the
 inspection-pane slate's *Reconciliation note* and the
-[message-rendering-slate](../slates/message-rendering-slate.md)):
+[message-rendering-slate](../slates/tails/message-rendering-slate.md)):
 every fact has a *revelation condition* — which modality /
 instrument / skill reveals it, at what fidelity. The viewer
 perceives only the facts whose condition they satisfy. The pane's
@@ -636,7 +636,7 @@ divs. Three rules govern it:
 1. **Reusable primitives, not bespoke JSX.** Future cockpit
    widgets (inventory, self-state strip, group windows) compose
    from the same surface — and so does the layout-MML library
-   the [message-rendering-slate](../slates/message-rendering-slate.md)
+   the [message-rendering-slate](../slates/tails/message-rendering-slate.md)
    schedules for its Wave 2. When that lands, its `<table>` /
    `<list>` / `<field>` tags map onto these same React
    components, so the subscription-driven rendering path and the
@@ -679,8 +679,8 @@ button. The same attribute drives **two** layers from one source:
 - **Styling** — a future theme stylesheet selects on
   `[data-stuff-id]` against the viewer's social-graph bucket
   (friend / foe / self) to colour the name. The
-  [social-graph slate](../slates/social-graph-slate.md) +
-  [message-rendering slate](../slates/message-rendering-slate.md)
+  [social-graph slate](../slates/builds/social-graph-slate.md) +
+  [message-rendering slate](../slates/tails/message-rendering-slate.md)
   describe the bucket model. The attribute is emitted today;
   bucket selectors land when that subsystem does, without any
   pane changes.

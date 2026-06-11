@@ -66,7 +66,7 @@ characters hardest.
 
 **Characters as the primary lever.** This is the strong suit.
 
-- The [npc-dialogue](../slates/npc-dialogue-slate.md) design has NPCs
+- The [npc-dialogue](../slates/builds/npc-dialogue-slate.md) design has NPCs
   *lead* — the barkeep opens with "Road dust on you. Bad time to
   travel, what with the bandits on the north pass" rather than waiting
   for the player to guess keywords. The player doesn't hunt a topic
@@ -77,7 +77,7 @@ characters hardest.
   *authored leadership*, an NPC who hands you the next thing to care
   about.
 - NPC **autonomy is itself a control signal**
-  ([npc-behavior](../slates/npc-behavior-slate.md)). A guard visibly on
+  ([npc-behavior](../slates/builds/npc-behavior-slate.md)). A guard visibly on
   patrol, an NPC with idle business (Gus's "idle business" is the
   worked example), an NPC who stops patrolling at night — these teach
   the player, without a tutorial line, that NPCs are people with
@@ -85,7 +85,7 @@ characters hardest.
   worth learning. The player learns *to look* by being given things
   worth looking at.
 - NPCs have **their own agendas** that pull players along
-  ([affiliation](../slates/affiliation-slate.md)): guild recruiters
+  ([affiliation](../slates/deferred-rpg/affiliation-slate.md)): guild recruiters
   "court students and graduates." You're not handed a "join a guild"
   quest marker; an NPC wants you, and being wanted is a pull.
 
@@ -103,7 +103,7 @@ compose semantics" — constraint as a creativity scaffold, not a wall.
 attention-and-curiosity engine: it's "obviously unreal," strangeness
 applied as a *finish* over recognizable function, and "you're in for
 anything" is the intended first feeling
-([eternal-university](../slates/eternal-university-slate.md)). The
+([eternal-university](../slates/builds/eternal-university-slate.md)). The
 design isn't telling you to explore; it's making the world *ask a
 question* you want to answer. Dr. Limen — a benign brain in a jar
 plumbed into the campus — is the same trick at character scale: a

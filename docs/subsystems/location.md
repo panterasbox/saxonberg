@@ -277,8 +277,8 @@ is a **`Warren`** — an incorporeal `Idea` (identity + state, no physical
 presence). v1 ships the substrate plus a rudimentary **lounge** (the
 universal login landing) over it.
 
-Promoted from `docs/slates/multilocation-slate.md` +
-`docs/slates/lounge-slate.md` via
+Promoted from `docs/slates/builds/multilocation-slate.md` +
+`docs/slates/builds/lounge-slate.md` via
 `docs/requirements/multilocation-lounge-requirements.md` and
 `docs/plans/multilocation-lounge-plan.md`.
 

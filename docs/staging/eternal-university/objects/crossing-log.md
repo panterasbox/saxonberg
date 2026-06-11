@@ -12,7 +12,7 @@
 > **Depends on:** the **`Timekeeping`** capability + `Watch`
 > (`objects/pocket-watch.md`), the **`WorldClockApi`** (upstream, via the
 > watch), Gus's **npc-behavior** (he perceives crossings), and the
-> **scope-modality slate** (`docs/slates/scope-modality-slate.md` — `tally`
+> **scope-modality slate** (`docs/slates/tails/scope-modality-slate.md` — `tally`
 > reads a timepiece over *sight* scope).
 > **Retire when:** the `CrossingLog` class, the `tally` verb, and Gus's seed
 > are cemented. Then delete.

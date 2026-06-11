@@ -26,7 +26,7 @@
  * `ctx.note(...)` without re-shaping at the controller.
  *
  * Operational reference: `docs/subsystems/glob.md`. The bulk-form
- * extension story lives in `docs/slates/bulkable-slate.md`.
+ * extension story lives in `docs/slates/tails/bulkable-slate.md`.
  */
 
 import type {

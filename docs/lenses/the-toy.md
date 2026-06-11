@@ -49,7 +49,7 @@ toy?" is squarely earned.
 The game has at least three strong toys, none of which needs a goal:
 
 - **Authoring is a toy.** The dorm room
-  ([eternal-university](../slates/eternal-university-slate.md)) is "here,
+  ([eternal-university](../slates/builds/eternal-university-slate.md)) is "here,
   play with making your space" — and it's the onboarding *climax*, not a
   power-user afterthought. Making things is the oldest toy there is, and
   the design hands it to every player in the first session.
@@ -61,9 +61,9 @@ The game has at least three strong toys, none of which needs a goal:
   sandbox engineered to be learnable." Poking at how the world works,
   with no quest attached, is a toy — and a pedagogically loaded one.
 - **The social layer is a toy.** ~35 starter emotes
-  ([emotes](../slates/emotes-slate.md)), the lounge, Dave's bar with
+  ([emotes](../slates/tails/emotes-slate.md)), the lounge, Dave's bar with
   drinks you can order and nurse, NPCs with idle routines you can poke
-  and watch react ([npc-behavior](../slates/npc-behavior-slate.md)).
+  and watch react ([npc-behavior](../slates/builds/npc-behavior-slate.md)).
   Hanging out and messing with people — human or NPC — is fun before any
   objective exists. "Text-first is social-first" is also "the social
   fabric is a toy."

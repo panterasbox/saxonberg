@@ -108,7 +108,7 @@ we lavished his gear and skipped him.
 
 **Identity — name + status, no name-gating.** His presentation composes as
 **name + status** (the `getPresentation()` model — see
-`docs/slates/recognition-slate.md`): `Named` = **"Gus"** + a `StatusMixin`
+`docs/slates/builds/recognition-slate.md`): `Named` = **"Gus"** + a `StatusMixin`
 **status** = *"the crossing guard, watching the empty road"* → **"Gus, the
 crossing guard, watching the empty road."** No known/unknown reveal: his whole
 behavior is talking + emoting, and attribution carries the `Named` name, so
@@ -379,7 +379,7 @@ own wrongness (the vampire vs the sourceless sky) is a vein worth mining.
 ## Behavior spec — realizing Routine + Dialogue
 
 The *Routine* and *Dialogue* above run on the **NPC behavior substrate**
-(`docs/slates/npc-behavior-slate.md`): a `behaviors:` list of
+(`docs/slates/builds/npc-behavior-slate.md`): a `behaviors:` list of
 `{ brain, trigger, config }` **data** on his template, no code. Gus is the
 **floor** — the dumbest brains on the shared substrate, **stateless
 per-interactor** (he declines the per-conversant memory the framework

@@ -46,7 +46,7 @@ Against Csikszentmihalyi's four conditions:
 
 - **Clear goals.** Onboarding gates on **tasks, not lessons** (enroll,
   get housing) — concrete, legible objectives
-  ([onboarding](../slates/onboarding-slate.md)). You always know what
+  ([onboarding](../slates/builds/onboarding-slate.md)). You always know what
   you're doing next.
 - **Direct, immediate feedback.** The response-envelope + failsafe-string
   substrate (see [Feedback](./feedback.md)) answers every action at
@@ -56,7 +56,7 @@ Against Csikszentmihalyi's four conditions:
 - **Challenge matched to skill.** Char-gen is closed-choice and
   forgiving — low initial challenge, no early anxiety — and "depth is
   earned, not chosen" ramps capability through doing
-  ([char-gen](../slates/char-gen-slate.md)). The intake is deliberately
+  ([char-gen](../subsystems/char-gen.md)). The intake is deliberately
   inside the channel from the first minute.
 
 ## Tensions & risks

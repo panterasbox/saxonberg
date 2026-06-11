@@ -31,9 +31,9 @@ valleys, and are they where I want them?
 
 Because the onboarding sequence is, almost literally, an authored
 interest curve — and we have it beat-by-beat. The
-[onboarding](../slates/onboarding-slate.md) /
-[lounge](../slates/lounge-slate.md) /
-[eternal-university](../slates/eternal-university-slate.md) arc is a
+[onboarding](../slates/builds/onboarding-slate.md) /
+[lounge](../slates/builds/lounge-slate.md) /
+[eternal-university](../slates/builds/eternal-university-slate.md) arc is a
 deliberate escalation, which means it can be plotted, critiqued, and
 tuned exactly as this lens intends.
 

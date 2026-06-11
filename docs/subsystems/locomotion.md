@@ -278,7 +278,7 @@ content slate that pulls on it.
   derived from mode + per-exit override (today the substrate
   carries `speed` and `defaultDurationMs` is the natural ETA
   source — see
-  [locomotion-as-activity-slate.md](../slates/locomotion-as-activity-slate.md)
+  [locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md)
   for the time-based duration model). Mode transitions in a
   multi-segment path are zero-distance "transition edges." The
   pathfinder is its own slate when route-planning content earns
@@ -302,7 +302,7 @@ content slate that pulls on it.
   separate modes (each one is one new template, no framework
   churn).
 - **`Crawlable` mixin + `crawl` mode.** Paired with
-  [locomotion-as-activity-slate.md](../slates/locomotion-as-activity-slate.md);
+  [locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md);
   crawl was deferred alongside sneak when locomotion stayed
   synchronous. Size constraints (a fat character may not fit
   through a vent) live on the `Crawlable` host.

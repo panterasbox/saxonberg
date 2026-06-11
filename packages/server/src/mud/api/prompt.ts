@@ -9,7 +9,7 @@
  *
  * See:
  *   - `docs/subsystems/prompt.md`
- *   - `docs/slates/prompt-stack-slate.md`
+ *   - `docs/slates/tails/prompt-stack-slate.md`
  */
 
 import { nanoid } from 'nanoid';

@@ -46,7 +46,7 @@ community isn't ambiance here, it's load-bearing.
   Community is built from the same primitive everything else is.
 - **The lounge manufactures connection by construction.** A universal
   social landing that seats you with your people by flavor tag, with
-  Dave's bar as a gathering spot ([lounge](../slates/lounge-slate.md)) —
+  Dave's bar as a gathering spot ([lounge](../slates/builds/lounge-slate.md)) —
   the design's answer to "give players a place to gather and reasons to
   meet."
 - **A full relationship substrate.** Grouping/parties
@@ -54,12 +54,12 @@ community isn't ambiance here, it's load-bearing.
   ([chat.md](../subsystems/chat.md)), per-Avatar contact lists
   ([contacts.md](../subsystems/contacts.md)), and recognition (the world
   and its people remember you,
-  [recognition](../slates/recognition-slate.md)) — the mechanisms
+  [recognition](../slates/builds/recognition-slate.md)) — the mechanisms
   friendships need to form and persist.
 - **Belonging without division.** Academic Houses unify (prosocial,
   campus-wide), while competitive affiliations are gated "past the gate"
   and framed as "house-cup / team-sports energy" rather than war
-  ([affiliation](../slates/affiliation-slate.md)).
+  ([affiliation](../slates/deferred-rpg/affiliation-slate.md)).
 - **Auditable by construction.** Every action is a visible, attributable
   command on the bus ([interaction-philosophy.md](../interaction-philosophy.md))
   — the substrate-level foundation for moderation and anti-griefing.

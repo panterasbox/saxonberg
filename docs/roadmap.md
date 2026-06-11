@@ -275,7 +275,7 @@ Ordered by leverage + dependency:
 
 The **new-player flow** straddles both tracks: char-gen engine +
 fast-travel terminals are Track B (server-first) — the **char-gen
-engine shipped in Wave 1** (see char-gen-slate above); the onboarding
+engine shipped in Wave 1** (see `docs/subsystems/char-gen.md`); the onboarding
 journey content + the authoring GUI are Track A. Reactions, chat,
 and spoiler each have a server half (Track B) and a client surface
 (Track A) — land the server half first, surface it when the
@@ -433,7 +433,7 @@ pass; built in waves):
 The connected new-player flow (char-gen → lounge → fast-travel →
 onboarding → dorm + authoring), each thin-engine / content-heavy:
 
-- [docs/slates/tails/char-gen-slate.md](./slates/tails/char-gen-slate.md) — light
+- [docs/subsystems/char-gen.md](subsystems/char-gen.md) — light
   closed-choice intake. **Wave 1 SHIPPED** (MR !49): the intake engine
   is live on the real command pipeline — `Login`-as-`CommandGiver`,
   `enroll`/`play` MVC verbs, `EnrollmentDraft` accumulator, `PersonaMixin`,

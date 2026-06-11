@@ -183,7 +183,7 @@ is text, so the medium that is literally made of conversation is the
 natural substrate for a social world. The non-verbal half of social
 presence isn't lost either: gesture and expression fold into text
 through the natural-language emote system (see
-[emotes-slate.md](./slates/emotes-slate.md)), so the social substrate is
+[emotes-slate.md](./slates/tails/emotes-slate.md)), so the social substrate is
 *complete* in text. Everything two participants do to each other
 socially — speak, gesture, react — reduces to strings. The ultimate
 abstraction, pointed at people instead of objects.
@@ -207,7 +207,7 @@ If text is how the world is *rendered*, the command line is how it's
 A web form does not call a private API; it *composes a command string*
 and submits it to the same bus the CLI uses. A side-panel button is a
 saved command. This is **command-bus primacy** (see
-[client-cockpit-slate.md](./slates/client-cockpit-slate.md)), and the
+[client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md)), and the
 mechanism is already built — YAML command specs, a unified parser, the
 controller dispatch chain. What follows is why it earns the discipline.
 
@@ -347,7 +347,7 @@ Text earns its place, but the argument owns its costs.
   [design-philosophy.md](./design-philosophy.md)). Ranged combat *looks*
   like it belongs here but doesn't — it's modeled as abstract engaged
   relationships, not coordinates (see
-  [combat-tactics-slate.md](./slates/combat-tactics-slate.md)).
+  [combat-tactics-slate.md](./slates/deferred-rpg/combat-tactics-slate.md)).
 
 None of these unseat text; they mark where it is *rendered alongside*
 something richer. The substrate stays text; the decoration handles the

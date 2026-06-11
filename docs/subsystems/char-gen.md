@@ -286,7 +286,6 @@ concern. That commit also added per-socket inbound serialization (the
 concurrency fix the single-controller dispatch surface needs) and the
 first-arrival greeting / terminal-clear-on-handoff polish.
 
-Deferred to later waves (see `docs/plans/char-gen-plan.md`): the
-`records` verb (bio editing), breadcrumbs/vitals/language, the lounge
-and onboarding flow, and the name sanitizer (the denylist is a seeded
-stub today).
+Deferred to later waves: the `records` verb (bio editing),
+breadcrumbs/vitals/language, the lounge and onboarding flow, and the
+name sanitizer (the denylist is a seeded stub today).

@@ -6,7 +6,7 @@ calendar, and the pedagogical verb/instrument surface on top. Three
 layers, all under `lib/time/` plus the two Apis `api/worldclock.ts`
 and `api/celestial.ts`.
 
-Graduated from `docs/slates/world-clock-slate.md` (kept for the
+Graduated from `docs/slates/tails/world-clock-slate.md` (kept for the
 forward-looking design surface — multi-region latitude, locale,
 weather, NPC schedules, second celestial profiles, celestial→light
 wiring).
@@ -400,7 +400,7 @@ file.
   `boot`/`shutdown`; static-Api `@CallSecurity`.
 - [bootstrap.md](./bootstrap.md) — `AppBootstrap` boot/shutdown
   sequencing.
-- `docs/slates/world-clock-slate.md` — the open design surface for the
+- `docs/slates/tails/world-clock-slate.md` — the open design surface for the
   deferred waves below.
 
 ## Future work (in the slate)

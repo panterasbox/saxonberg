@@ -15,7 +15,7 @@ installs it. Wave 2+ adds an install/remove procedure, other
 augments, char-gen loadout selection, failure modes / power state,
 and the generalized "contribute capability" surface beyond modalities
 (verbs, motor, vital functions). See
-[augmentation-slate.md](../slates/augmentation-slate.md) for the
+[augmentation-slate.md](../slates/tails/augmentation-slate.md) for the
 full roadmap.
 
 ## The mental model
@@ -255,7 +255,7 @@ lib/mixin.ts                    Mixins.Augment registry constant
 
 ## Cross-references
 
-- [augmentation-slate.md](../slates/augmentation-slate.md) — the
+- [augmentation-slate.md](../slates/tails/augmentation-slate.md) — the
   slate this build's Wave 1 graduates.
 - [senses.md](./senses.md) — the perception substrate that consumes
   `_grantsModalities` via `PerceptionApi.sensorium`.

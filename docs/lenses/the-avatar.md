@@ -40,7 +40,7 @@ avatar grain.
 - **Identity, not a stat sheet.** Char-gen is name, species, pronouns,
   and a backstory/aspiration — "light by design," with depth earned in
   play, not allocated at creation
-  ([char-gen](../slates/char-gen-slate.md)). The avatar is a *person*,
+  ([char-gen](../subsystems/char-gen.md)). The avatar is a *person*,
   not a build.
 - **A projective aspiration.** You pick who you want to *become*
   (Something Better / Healer / Teacher / Guardian / Founder / Seeker) —

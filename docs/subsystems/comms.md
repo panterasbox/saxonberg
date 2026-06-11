@@ -211,7 +211,7 @@ implant transport.
 
 Wave 1 shipped the acoustic say/whisper/shout family, the `say --to`
 directed path, and the `dm`/`tell` implant primitive. The
-[comms slate](../slates/comms-slate.md) retains the rest of the
+[comms slate](../slates/tails/comms-slate.md) retains the rest of the
 design space. Designed but **not yet built**:
 
 - **Dynamic-reach shout** — shout currently stamps a flat 90 dB. The
@@ -257,7 +257,7 @@ design space. Designed but **not yet built**:
 - [message-rendering.md](./message-rendering.md) — end-to-end render
   of the frames comms emits (server MML + client parse + theme
   cascade).
-- [comms slate](../slates/comms-slate.md) — the full two-transport
+- [comms slate](../slates/tails/comms-slate.md) — the full two-transport
   design and the deferred waves this doc's **Deferred** section
   summarizes.
 </content>

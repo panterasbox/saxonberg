@@ -41,7 +41,7 @@ holy grail.
 
 - **The un-genred campus is a curiosity engine.** "Obviously unreal"
   plants the questions *what is this place, who made it, what else is
-  possible here* ([eternal-university](../slates/eternal-university-slate.md)).
+  possible here* ([eternal-university](../slates/builds/eternal-university-slate.md)).
   Strangeness-as-finish is, functionally, a question-planting device.
 - **Mystery characters.** Dr. Limen (a benign brain in a jar plumbed
   into the campus) is a walking question; Gus's watch hides the

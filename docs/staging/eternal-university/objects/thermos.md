@@ -6,8 +6,8 @@
 > - `Thermos` (thin `Thing` subclass) → `mud/obj/`.
 > - Gus's instance → a seed under `mud/seeds/obj/.../thermos.yaml`.
 > **Depends on (banked):** the consume tail = **`Drinkable` + pour/fill/drink
-> mechanics** (`docs/slates/bulkable-slate.md`) + a **declared effect-list**
-> (`docs/slates/vitals-slate.md` — food & potions are one system: a consumable
+> mechanics** (`docs/slates/tails/bulkable-slate.md`) + a **declared effect-list**
+> (`docs/slates/builds/vitals-slate.md` — food & potions are one system: a consumable
 > fires effects; eat/drink is just the delivery verb). Both slated, unbuilt —
 > and *not* needed for Gus, who never opens it. A built thermos is just a
 > `Sealable` + `Drinkable` vessel of coffee carrying an alertness effect-list;
@@ -141,7 +141,7 @@ never on `Drinkable`.
   contents aren't externally measurable — say so), not the gate.
 - Fluid-agnostic — a gas bulk cools the same.
 
-**Substrate home.** The full model now lives in **`docs/slates/thermal-slate.md`**
+**Substrate home.** The full model now lives in **`docs/slates/tails/thermal-slate.md`**
 (the generic `Thermal` capability, `τ = R·C`, lazy cooling + re-stamp, the
 material/medium-conductivity extensions). It reuses biome ambient
 (`resolveTemperatureFor`), the `Quantity<'K'>` thermal scale (quantities),

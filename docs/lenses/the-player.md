@@ -28,8 +28,8 @@ excludes.
 
 Because the audience is specific, double, and partly excluded —
 each of which this lens insists you face. The
-[onboarding](../slates/onboarding-slate.md) and
-[char-gen](../slates/char-gen-slate.md) slates name the players outright;
+[onboarding](../slates/builds/onboarding-slate.md) and
+[char-gen](../subsystems/char-gen.md) slates name the players outright;
 [interaction-philosophy.md](../interaction-philosophy.md) names, with
 unusual honesty, the players the text medium serves *worse*.
 
@@ -38,11 +38,11 @@ unusual honesty, the players the text medium serves *worse*.
 - **The audience is named.** Learners plus an investor-demo audience;
   first-timers arriving with zero prior knowledge; the whole intake is
   built to be "welcoming, forgiving, low-friction"
-  ([char-gen](../slates/char-gen-slate.md)). The design knows who's at
+  ([char-gen](../subsystems/char-gen.md)). The design knows who's at
   the door.
 - **Player-type difference is built in.** The lounge flavor tags
   (competitive / explorer / cozy / roleplay / chaos / builder /
-  lone-wolf — [lounge](../slates/lounge-slate.md)) are essentially
+  lone-wolf — [lounge](../slates/builds/lounge-slate.md)) are essentially
   self-selected player types, used to seat you with compatible people.
   The design assumes players differ and routes on it.
 - **The "player" may be an agent.** Roles are role-shaped, not

@@ -81,7 +81,7 @@ Saxonberg's theme is the university — "learning as adventure"
 campus, Guilds modeled on the subject taxonomy, the dorm, the campus
 services, the major pick. The most interesting unification move is the
 **un-genred campus**: per
-[eternal-university](../slates/eternal-university-slate.md), the one
+[eternal-university](../slates/builds/eternal-university-slate.md), the one
 consistent thing is its *refusal to commit to a genre*, and that
 refusal is "the aesthetic form of two pillars" — obvious fabrication
 (the educational mission made diegetic) and vertical-agnosticism. The

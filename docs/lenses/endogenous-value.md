@@ -68,16 +68,16 @@ Saxonberg has a healthy spread of endogenous value, and notably *two
 different kinds*:
 
 - **Effort-anchored value** — skills, Guild rank, the major, "depth is
-  earned, not chosen" ([char-gen](../slates/char-gen-slate.md)).
+  earned, not chosen" ([char-gen](../subsystems/char-gen.md)).
   Capability is endogenous value you accrue by doing, and (in the
   education vertical) it traces back to real subject mastery. The
   honesty seam matters here: the substrate refuses "0–100 sliders," so a
   "chemistry skill" can be anchored to real chemistry rather than a free
   number. That anchoring is what keeps the value *honest*.
 - **Pure-play value** — the dorm room you authored
-  ([eternal-university](../slates/eternal-university-slate.md)),
+  ([eternal-university](../slates/builds/eternal-university-slate.md)),
   recognition by NPCs who remember you
-  ([recognition](../slates/recognition-slate.md)), emotes, the drinks
+  ([recognition](../slates/builds/recognition-slate.md)), emotes, the drinks
   at Dave's bar. The dorm is the clean exemplar: it's valuable purely
   *because you made it* — the onboarding climax. This value answers to
   nothing real and shouldn't have to; ownership and expression are

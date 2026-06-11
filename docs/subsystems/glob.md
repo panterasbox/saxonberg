@@ -34,7 +34,7 @@ Pieces:
   on desugar's side-channel hint.
 
 This file is the operational reference. The bulk-form extension
-lives in [bulkable-slate.md](../slates/bulkable-slate.md); the
+lives in [bulkable-slate.md](../slates/tails/bulkable-slate.md); the
 structured-notes substrate (`quantity-clamped`,
 `quantity-clamped-rejected`, `empty-result`, `target-declined`) is
 defined in [response-envelope.md](./response-envelope.md).
@@ -481,21 +481,21 @@ Trade-offs and deferred work documented for future maintainers:
   (bulk is *not* trivially splittable — most bulk needs a tool /
   vessel / target to subdivide). Full design and the `Bulkable` vs
   `Bulkable + Subdivisible` factoring fork:
-  [bulkable-slate.md](../slates/bulkable-slate.md).
+  [bulkable-slate.md](../slates/tails/bulkable-slate.md).
 - **`DescribeApi v2`** supersedes `DescribeApi.formatName`. v2
   composes count, perception-filtered visibility, viewer-side
   recognition, and bucket-keyed verbosity in one pipeline.
   Globbable contributes data (`getQuantity`, host's
   `getDisplayName` and optional `getPluralForm`) to the pipeline;
   it doesn't know about viewer state. See
-  [recognition-slate.md](../slates/recognition-slate.md).
+  [recognition-slate.md](../slates/builds/recognition-slate.md).
 
 ## Antipatterns
 
 - **Glob inside a glob.** Globs aren't `Container`; the composition
   validator catches it at registration. If you want a containment-
   bearing glob, you want a different abstraction (probably bulk —
-  see [bulkable-slate](../slates/bulkable-slate.md)).
+  see [bulkable-slate](../slates/tails/bulkable-slate.md)).
 - **Instance-unique state on a stack.** Shadows and adornments
   disqualify a stack from merging. If you find yourself wanting
   per-instance details on a glob (a unique scratch on one coin),
@@ -524,12 +524,12 @@ Trade-offs and deferred work documented for future maintainers:
   natural-language quantity prefix, formal `:{N}` / `:{*}`.
 - [collections.md](./collections.md) — collection-shape canon for
   related mixins (Set / Map / list).
-- [../slates/bulkable-slate.md](../slates/bulkable-slate.md) — the
+- [../slates/tails/bulkable-slate.md](../slates/tails/bulkable-slate.md) — the
   bulk-form sibling (Quantity-valued globs); shares this
   subsystem's substrate.
 - [response-envelope.md](./response-envelope.md) — the
   structured-notes substrate `applyQuantity` emits into; canonical
   shapes for the four glob note kinds.
-- [../slates/recognition-slate.md](../slates/recognition-slate.md) —
+- [../slates/builds/recognition-slate.md](../slates/builds/recognition-slate.md) —
   where `DescribeApi v2` composes count + perception + recognition;
   this subsystem's `formatName` is the v1 stand-in.

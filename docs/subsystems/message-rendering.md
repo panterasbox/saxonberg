@@ -6,7 +6,7 @@ the **client** parses it into a tree, picks a per-message-type
 template, and paints through a reader-owned stylesheet.
 
 The load-bearing rule from
-[message-rendering-slate.md](../slates/message-rendering-slate.md):
+[message-rendering-slate.md](../slates/tails/message-rendering-slate.md):
 
 > **The message string captures everything — always.** A frame's `body`
 > is the complete canonical line (channel chip + sender + content +
@@ -516,14 +516,14 @@ sweep distilled them to:
   cascade-shaped configuration is a different ergonomic.
 - [command-spec.md](./command-spec.md) — pattern for adding a verb
   controller (the `style` verb follows it).
-- [docs/slates/message-rendering-slate.md](../slates/message-rendering-slate.md)
+- [docs/slates/tails/message-rendering-slate.md](../slates/tails/message-rendering-slate.md)
   — seeding slate; Wave 2 (layout library) and Wave 3 (channel
   stylesheets) parked there.
-- [docs/slates/social-graph-slate.md](../slates/social-graph-slate.md)
+- [docs/slates/builds/social-graph-slate.md](../slates/builds/social-graph-slate.md)
   — real `BucketResolver` source (stubbed neutral in v1).
-- [docs/slates/recognition-slate.md](../slates/recognition-slate.md)
+- [docs/slates/builds/recognition-slate.md](../slates/builds/recognition-slate.md)
   — `DescribeApi` v2 names; the renderer is forward-compat.
-- [docs/slates/emotes-slate.md](../slates/emotes-slate.md) — future
+- [docs/slates/tails/emotes-slate.md](../slates/tails/emotes-slate.md) — future
   emote build; honors the SoulMixin + AetherMixin composition gate
   for remote emotes documented above.
 - [docs/antipatterns.md](../antipatterns.md) — `no-new-apis-default`,

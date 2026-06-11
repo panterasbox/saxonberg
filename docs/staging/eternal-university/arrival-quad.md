@@ -6,7 +6,7 @@
 > ANARCHY INTERDIMENSIONAL storefront, the building frontages, `dawnstone`,
 > the `urban` / `eternal-campus-grounds` biomes, the greeter — all written
 > solo, never reviewed, and *past the gate* where we aren't yet. Gone. The
-> concepts worth keeping live in `docs/slates/eternal-university-slate.md`;
+> concepts worth keeping live in `docs/slates/builds/eternal-university-slate.md`;
 > we design the campus for real when we walk up there.
 >
 > **Where we are:** the TPA stop on **University Avenue**, in Terminus,

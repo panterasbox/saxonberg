@@ -18,7 +18,7 @@ See:
 - `docs/subsystems/mql.md` — the underlying query language.
 - `docs/subsystems/response-envelope.md` — the wire envelope framing
   this substrate plugs into.
-- `docs/slates/mql-subscription-slate.md` — the closed-scope slate
+- `docs/slates/tails/mql-subscription-slate.md` — the closed-scope slate
   that drove this implementation.
 
 ## File layout

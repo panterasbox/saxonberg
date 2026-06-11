@@ -1,0 +1,126 @@
+# Slates — the product backlog, divided by build
+
+Slates are the open-ended design surface (see
+[../workflow.md](../workflow.md) for the artifact taxonomy). This index
+exists because a flat folder of ~50 slates couldn't answer the two
+questions that actually matter when picking up work:
+
+1. **Is this new substrate, or a deferred tail of something already
+   shipped?**
+2. **Which slates belong to the same build?**
+
+So the slates are split into three folders, and within `builds/` they're
+grouped into a handful of large, multi-phase builds (the only kind worth
+opening a cycle for).
+
+| Folder | What lives here |
+|---|---|
+| [`builds/`](./builds/) | **New substrate or content** with no shipped subsystem yet. Each is part of a named multi-phase build below. These are what you write a fresh requirements + plan against. |
+| [`tails/`](./tails/) | **Deferred tails of shipped subsystems.** The load-bearing substrate already exists in `docs/subsystems/`; what remains is Wave-N enhancement. Not a build — pulled into a build's branch or a subsystem cycle when a consumer needs it. |
+| [`deferred-rpg/`](./deferred-rpg/) | **Game-design behind the platform line** (RPG rules, progression, combat). Captured, intentionally not near-term — "no" here usually means "not this phase." |
+
+---
+
+## Builds (`builds/`)
+
+Six builds. Each lists its member slates in rough phase order and the
+shipped substrate it leans on.
+
+### 1. Identity & social perception
+*Who you are, who others recognize, how you relate.* The three slates
+explicitly compose.
+- [recognition-slate](./builds/recognition-slate.md) — per-viewer identity memory (recognize-on-sight). **Requirements drafted** (`../requirements/recognition-requirements.md`).
+- [identification-slate](./builds/identification-slate.md) — type-level identification ("what kind of thing is this"); the second, composable axis.
+- [social-graph-slate](./builds/social-graph-slate.md) — relationship buckets/lists. Storage half already shipped as `ContactsMixin` ([../subsystems/contacts.md](../subsystems/contacts.md)); the relationship layer remains.
+
+**Phases:** recognition core → identification substrate → social-graph relationship layer.
+
+### 2. NPCs
+*Where the personality lives.*
+- [npc-behavior-slate](./builds/npc-behavior-slate.md) — brains / routines / automation substrate. Absorbs collision's "guards" decomposition.
+- [npc-dialogue-slate](./builds/npc-dialogue-slate.md) — dialogue trees; deferred LLM free-text front-end.
+
+**Phases:** behavior substrate → dialogue. (`reactions` in `tails/` and the deferred LLM brain ride later.)
+
+### 3. Vitals & survival
+- [vitals-slate](./builds/vitals-slate.md) — anatomy / conditions / pedagogy substrate; the consumer `race.md` deferred for.
+
+**Depends on** [thermal-slate](./tails/thermal-slate.md) (tails/) graduating conductivity to a real material property.
+
+### 4. World places & navigation
+*A long, sequenced content build.*
+- [multilocation-slate](./builds/multilocation-slate.md) — Warren elastic-graph substrate. **Requirements + plan done.**
+- [lounge-slate](./builds/lounge-slate.md) — the spawn lounge content (locked slate); built atop multilocation.
+- [fast-travel-slate](./builds/fast-travel-slate.md) — fast-travel network; architecture set, build minimal.
+- [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
+- [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
+- [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
+
+**Phases:** multilocation + lounge → fast-travel → eternal-university → onboarding → map.
+
+### 5. Authoring & CMS
+*Creator tooling.*
+- [cms-slate](./builds/cms-slate.md) — content-authoring tools; Monaco editor core.
+- [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) — compiled `.d.ts` type surface + LSP for authors.
+- [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
+- [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
+- [verb-provisioning-slate](./builds/verb-provisioning-slate.md) — scaffold for provisioning verbs onto objects.
+
+**Phases:** type surface + diagnostics → CMS editor core → scoped authoring → verb provisioning.
+
+### 6. Game config
+- [game-config-slate](./builds/game-config-slate.md) — singleton `GameConfig` Document + `config` verb + seeded defaults. Sequenced after char-gen merges; small enough to ride another build's branch rather than its own cycle.
+
+---
+
+## Enhancement tails (`tails/`)
+
+Deferred work riding a **shipped** subsystem. Grouped by what each
+extends; none is a fresh build.
+
+| Slate | Extends (shipped) | What's deferred |
+|---|---|---|
+| [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
+| [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
+| [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
+| [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
+| [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
+| [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
+| [message-rendering](./tails/message-rendering-slate.md) | message-rendering.md | GFM table input-sugar |
+| [mql-subscription](./tails/mql-subscription-slate.md) | mql-subscription.md | client topology cache, bandwidth ceilings |
+| [prompt-stack](./tails/prompt-stack-slate.md) | prompt.md | client format-strings, slider affordances |
+| [senses](./tails/senses-slate.md) | senses.md | Wave 2+ (Wave 1 shipped) |
+| [scope-modality](./tails/scope-modality-slate.md) | senses / perception | modality-scoped resolution; build-when-pulled |
+| [host-slot-activities](./tails/host-slot-activities-slate.md) | activity.md | deferred activity wave |
+| [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | activity.md / locomotion.md | deferred activity wave |
+| [hand-slot](./tails/hand-slot-slate.md) | embodiment.md | hand-slot redesign |
+| [bulkable](./tails/bulkable-slate.md) | glob.md | bulk/count sibling of globbable |
+| [client-cockpit](./tails/client-cockpit-slate.md) | cockpit (several tracks shipped) | remaining client-track umbrella |
+| [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
+| [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
+| [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
+| [thermal](./tails/thermal-slate.md) | race.md | conductivity as a material property (vitals dep) |
+
+**Near-absorbed — retirement candidates** (kept this pass rather than
+deleted, since each still carries live design surface; prune on request
+once salvaged into the subsystem doc):
+
+| Slate | Graduated to | Surviving surface only |
+|---|---|---|
+| [emotes](./tails/emotes-slate.md) | emotes.md | Layers 2-4 (emoji / honorary / reactions) + moderation |
+| [mixin](./tails/mixin-slate.md) | mixins / material / light / slot / posture / glob | residual material threads |
+| [world-clock](./tails/world-clock-slate.md) | time.md | celestial-profile → light wiring |
+
+---
+
+## Deferred game-design (`deferred-rpg/`)
+
+Behind the platform-vs-game-design line. Captured, not near-term.
+
+- [capability-magic](./deferred-rpg/capability-magic-slate.md) — RPG capability / magic layer.
+- [combat-tactics](./deferred-rpg/combat-tactics-slate.md) — combat & engagement model.
+- [alignment-religion](./deferred-rpg/alignment-religion-slate.md) — alignment & religion (very preliminary).
+- [affiliation](./deferred-rpg/affiliation-slate.md) — guild / corp social organization (guild = the class system).
+- [spoiler](./deferred-rpg/spoiler-slate.md) — spoilers & secrets; deferred to the assessment system.
+- [breadcrumb](./deferred-rpg/breadcrumb-slate.md) — narrative-trace breadcrumbs; deferred until the advancement system.
+- [collision](./deferred-rpg/collision-slate.md) — **decomposed (resolved 2026-06-10):** intentional blocking → the npc-behavior "guards" brain; capacity + pushing → defer-til-content; diegetic prohibition is already ~80% in-engine. Retained for reference; not a standalone build.

@@ -60,12 +60,12 @@ it were built to:
   meaningful choices, "you author your own space." The player acts; the
   game rarely shoves.
 - **Competence** — "depth is earned, not chosen"
-  ([char-gen](../slates/char-gen-slate.md)); you visibly grow into
+  ([char-gen](../subsystems/char-gen.md)); you visibly grow into
   capability through doing. This is the platform essence ("what you
   become is earned") restated as an intrinsic need met.
 - **Relatedness** — "text-first is social-first"; the lounge seats you
   with your people before anything else; NPCs *remember* you
-  ([recognition](../slates/recognition-slate.md)). "Among others who
+  ([recognition](../slates/builds/recognition-slate.md)). "Among others who
   remember you" is the relatedness need, named in the ratified platform
   essence.
 

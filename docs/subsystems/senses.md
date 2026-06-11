@@ -689,7 +689,7 @@ seeds/lib/perception/modalities/   Seven seed YAMLs
 
 ## Cross-references
 
-- [docs/slates/senses-slate.md](../slates/senses-slate.md) — the
+- [docs/slates/tails/senses-slate.md](../slates/tails/senses-slate.md) — the
   seeding slate. Names the wider design space; this build's surface
   is the cross-wave slice.
 - [docs/subsystems/light.md](./light.md) — the vision substrate,
