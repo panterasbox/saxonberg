@@ -43,29 +43,23 @@ export class PassportConfig {
       done(null, obj as Express.User);
     });
 
-    // In test mode the Google OAuth strategy is skipped entirely:
-    // E2E authenticates through the test-auth seam (/auth/test-login),
-    // and requiring real GOOGLE_* credentials would block the server
-    // from booting in CI. serializeUser/deserializeUser above are still
-    // configured, so req.login (and thus the test seam) works. The
-    // /auth/google routes remain mounted but unused; they would only
-    // error if hit, which test mode never does.
-    if (process.env.AUTH_MODE === 'test') {
-      console.warn(
-        'PassportConfig: AUTH_MODE=test — Google OAuth strategy skipped.'
-      );
-      return;
-    }
-
-    // Google OAuth2 Strategy
+    // Google OAuth2 Strategy. Registered whenever the GOOGLE_* env is
+    // present — independent of AUTH_MODE. CI / e2e run without those
+    // vars, so the strategy is skipped there (the test-auth seam handles
+    // login); the early skip below is what keeps boot from throwing on a
+    // credential-less environment. Local dev with both GOOGLE_* set AND
+    // AUTH_MODE=test gets the real Google flow *and* the test seam — they
+    // coexist, so the dev-login button never disables OAuth.
     const clientID = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const callbackURL = process.env.GOOGLE_CALLBACK_URL;
 
     if (!clientID || !clientSecret || !callbackURL) {
-      throw new Error(
-        'PassportConfig: Missing required environment variables (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL)'
+      console.warn(
+        'PassportConfig: GOOGLE_* not configured — Google OAuth strategy ' +
+          'skipped (login via the test-auth seam if AUTH_MODE=test).'
       );
+      return;
     }
 
     passport.use(

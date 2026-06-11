@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/preload.js",
+    "dev": "AUTH_MODE=test tsx watch src/preload.js",
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",
