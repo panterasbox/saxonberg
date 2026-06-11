@@ -17,14 +17,28 @@ import "dotenv/config";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 import { AppBootstrap } from "../backend/AppBootstrap";
 import { StuffApi } from "../mud/api/stuff";
 import { ContainmentApi } from "../mud/api/containment";
 import { DescribeApi } from "../mud/api/describe";
+import { MediaAsset } from "../mud/lib/media/MediaAsset";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(HERE, "../../../../tools/imagegen/samples");
+
+// Pipeline constants. The harness shells out to the `aws` CLI for the
+// upload so the AWS SDK stays out of the server's dependency tree.
+const BUCKET = "panterasbox-media";
+const STYLE_VERSION = "potter-v1";
+const MODEL = "gpt-image-1";
+const QUALITY = "medium";
+// ILLUSTRATE_SKIP_IMAGE=1 → record-only backfill: derive the prompt and
+// write/update the MediaAsset record without re-spending on generation or
+// re-uploading (the asset is already in S3).
+const SKIP_IMAGE = process.env.ILLUSTRATE_SKIP_IMAGE === "1";
 
 // --- the locked Potter house style (cohesion lock #1, shared verbatim
 // with the static harness — promote to one file when a third caller appears).
@@ -155,6 +169,50 @@ async function generate(name: string, prompt: string, size: string) {
   return file;
 }
 
+interface IllustratedLike {
+  getIllustration?(): string | null;
+}
+
+/** The S3 key this content publishes to: its own declared key, else a default. */
+function targetKey(kind: string, path: string, stuff: unknown): string {
+  const declared = (stuff as IllustratedLike).getIllustration?.();
+  if (declared) return declared;
+  const slug = path.split("/").filter(Boolean).pop() ?? "asset";
+  return `${kind}/${slug}.png`;
+}
+
+function uploadToS3(file: string, key: string): void {
+  execFileSync(
+    "aws",
+    ["s3", "cp", file, `s3://${BUCKET}/${key}`, "--content-type", "image/png"],
+    { stdio: "ignore" },
+  );
+}
+
+/** Upsert the provenance record for an asset, joined by its key. */
+async function recordAsset(opts: {
+  key: string;
+  sourcePath: string;
+  prompt: string;
+  size: string;
+}): Promise<void> {
+  const [w, h] = opts.size.split("x").map((n) => parseInt(n, 10));
+  const existing = await MediaAsset.find<MediaAsset>({ key: opts.key });
+  const rec = existing[0] ?? new MediaAsset();
+  rec.key = opts.key;
+  rec.sourcePath = opts.sourcePath;
+  rec.sourceContentHash = createHash("sha256").update(opts.prompt).digest("hex");
+  rec.prompt = opts.prompt;
+  rec.model = MODEL;
+  rec.size = opts.size;
+  rec.quality = QUALITY;
+  rec.styleVersion = STYLE_VERSION;
+  rec.width = w ?? 0;
+  rec.height = h ?? 0;
+  rec.status = "draft";
+  await rec.save();
+}
+
 export async function main() {
   const [kind, ...paths] = process.argv.slice(2);
   if ((kind !== "location" && kind !== "species") || paths.length === 0) {
@@ -172,16 +230,23 @@ export async function main() {
 
   try {
     for (const path of paths) {
-      const stuff = await StuffApi.singleton(path);
-      const { prompt, size } =
-        kind === "species" ? speciesPrompt(stuff) : locationPrompt(stuff);
-      const name = path.split("/").filter(Boolean).join("-");
-      process.stdout.write(`generating ${name} (${size})... `);
       try {
-        const file = await generate(name, prompt, size);
-        console.info(`ok -> ${file}`);
+        const stuff = await StuffApi.singleton(path);
+        const { prompt, size } =
+          kind === "species" ? speciesPrompt(stuff) : locationPrompt(stuff);
+        const slug = path.split("/").filter(Boolean).join("-");
+        const key = targetKey(kind, path, stuff);
+        process.stdout.write(
+          `${SKIP_IMAGE ? "recording" : "generating"} ${key} (${size})... `,
+        );
+        if (!SKIP_IMAGE) {
+          const file = await generate(slug, prompt, size);
+          uploadToS3(file, key);
+        }
+        await recordAsset({ key, sourcePath: path, prompt, size });
+        console.info(`ok -> s3://${BUCKET}/${key} (+ media_assets)`);
       } catch (e) {
-        console.info("FAILED");
+        console.info(`FAILED ${path}`);
         console.error("  " + (e as Error).message);
       }
     }
