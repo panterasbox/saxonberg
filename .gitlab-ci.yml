@@ -1,9 +1,12 @@
 # CI for @saxonberg.
 #
-#   validate      — lint + test + build, on every merge request and on
-#                   the default branch. The guard rail the repo lacked.
+#   validate      — lint + test + build, on merge requests only, and
+#                   held behind a manual `gate` job (click ▶ when ready,
+#                   typically right before merge). Intermediate pushes to
+#                   the MR burn no minutes; the post-merge master re-run
+#                   is gone entirely.
 #   build         — build + push the prod release image (git tags only).
-#   e2e           — Playwright against a throwaway full stack.
+#   e2e           — Playwright against a throwaway full stack (MR only).
 #   documentation — publish the TypeDoc site to GitLab Pages.
 #   deploy        — manual: deploy-dev (native git pull on the mutable
 #                   box, default branch) and deploy-prod (immutable image
@@ -15,6 +18,7 @@
 # docs/deployment.md § Configuration & secrets.
 
 stages:
+  - gate
   - validate
   - build
   - e2e
@@ -47,8 +51,34 @@ workflow:
     - pnpm config set store-dir .pnpm-store
     - pnpm install --frozen-lockfile
 
+# MR-only existence. validate (lint/test/build) + e2e exist on merge
+# request pipelines only — never on the post-merge master push (that
+# re-run was redundant and the heaviest CI spend). master pipelines now
+# just publish Pages + offer the manual dev deploy; tag pipelines still
+# build + ship the prod release.
+.mr-only:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# Manual pre-merge gate. On a merge request the pipeline starts BLOCKED
+# here; validate/e2e don't run until you click ▶ on this job — typically
+# right before merging. So intermediate pushes to the MR burn no CI
+# minutes, while a full lint/test/build/e2e pass is still forced before
+# merge. allow_failure: false leaves the pipeline blocked until played;
+# turn on Settings → Merge requests → "Pipelines must succeed" to gate
+# the merge button on it too.
+gate:
+  stage: gate
+  image: alpine:3
+  allow_failure: false
+  script:
+    - echo "Gate opened — validate + e2e will now run."
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+
 lint:
-  extends: .node
+  extends: [.node, .mr-only]
   stage: validate
   # Blocking gate: the lint backlog was cleared on the fix-lint-backlog
   # branch, so lint now fails the pipeline. The ruleset still emits
@@ -57,13 +87,13 @@ lint:
     - pnpm lint
 
 test:
-  extends: .node
+  extends: [.node, .mr-only]
   stage: validate
   script:
     - pnpm test
 
 build:
-  extends: .node
+  extends: [.node, .mr-only]
   stage: validate
   script:
     # `pnpm build` runs tsc for server + types, but the client builds
@@ -99,11 +129,11 @@ pages:
 # them; the DB is a job-scoped `mongo` service container, not a real
 # database. Everything here is ephemeral/throwaway — `mongodb://mongo`
 # and the session secret guard nothing real, so there are no secrets to
-# materialize (Param Store is only for the live instance). Runs on
-# merge requests and on the default branch — it's heavy, but catching a
-# broken stack on the MR (before merge) is worth the minutes.
+# materialize (Param Store is only for the live instance). MR-only (via
+# .mr-only) — it's heavy, and catching a broken stack on the MR before
+# merge is the whole point; the post-merge master re-run added little.
 e2e:
-  extends: .node
+  extends: [.node, .mr-only]
   stage: e2e
   # Browsers preinstalled; tag must match @saxonberg/e2e's @playwright/test.
   image: mcr.microsoft.com/playwright:v1.60.0-noble
@@ -123,9 +153,6 @@ e2e:
       - e2e/playwright-report/
       - e2e/test-results/
     expire_in: 1 week
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # Two deploy targets, two models (see docs/deployment.md § Two instances):
 #   dev  — a mutable native git checkout (live write/reload). Updated by
