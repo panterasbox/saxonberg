@@ -22,6 +22,7 @@ describe('MQL subscription — field-set aliases', () => {
       'primaryKeyword',
       'shortDescription',
       'longDescription',
+      'illustration',
       'details',
       'bulkMaterial',
       'mass',

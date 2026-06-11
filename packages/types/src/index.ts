@@ -556,6 +556,12 @@ export interface MaterialSummary {
 export interface StuffDetailRecord extends StuffRefRecord {
   shortDescription?: string;
   longDescription?: string;
+  /**
+   * Bucket-relative media key for this thing's illustration (e.g.
+   * `location/duncan-hall-lobby.png`), omitted when none is set. The
+   * client prepends its configured media base URL to render it.
+   */
+  illustration?: string;
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };

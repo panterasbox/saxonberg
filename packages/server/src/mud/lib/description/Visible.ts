@@ -60,6 +60,14 @@ export interface Visible {
   setShortDescription(value: string): void;
   getLongDescription(): string;
   setLongDescription(value: string): void;
+  /**
+   * Bucket-relative media key for this thing's illustration, or `null`.
+   * The picture is a visual description, so it rides the same Visible
+   * surface as the prose; the client prepends its configured media base
+   * URL. Members fall back to their species' key via Organism's override.
+   */
+  getIllustration(): string | null;
+  setIllustration(value: string | null): void;
   getShort(): string;
   getLong(): string;
   /**
@@ -111,7 +119,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.
      */
-    static persistentFields = ['shortDescription', 'longDescription'];
+    static persistentFields = [
+      'shortDescription',
+      'longDescription',
+      'illustration',
+    ];
 
     /**
      * Markup-augmenter contribution. `senseStripAugmenter` reads the
@@ -160,10 +172,22 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           (stuff as unknown as Visible).getMarkupLong(viewer),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
+      {
+        // The picture is viewer-perceived appearance like the prose, so
+        // it reacts to ShadowChangedEvent too (a future disguise shadow
+        // can override the portrait). `undefined` when unset → projectFields
+        // omits it. The member fallback (own ?? species) lives in Organism's
+        // getIllustration override, reached here via polymorphic dispatch.
+        name: 'illustration',
+        read: (stuff) =>
+          (stuff as unknown as Visible).getIllustration() ?? undefined,
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
     ];
 
     protected shortDescription: string = '';
     protected longDescription: string = '';
+    protected illustration: string | null = null;
 
     getShortDescription(): string {
       return this.shortDescription;
@@ -188,6 +212,23 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         'longDescription',
         this.longDescription,
         value,
+      );
+    }
+
+    getIllustration(): string | null {
+      return this.illustration;
+    }
+
+    setIllustration(value: string | null): void {
+      // Invariant on the setter: a bucket-relative media key. Blank → null;
+      // strip any leading slash so the client joins base + key cleanly.
+      const key =
+        value && value.trim() ? value.trim().replace(/^\/+/, '') : null;
+      this.illustration = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'illustration',
+        this.illustration,
+        key,
       );
     }
 

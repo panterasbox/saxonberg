@@ -78,6 +78,7 @@ export const DETAIL_FIELDS: FieldSet = [
   'primaryKeyword',
   'shortDescription',
   'longDescription',
+  'illustration',
   'details',
   'bulkMaterial',
   'mass',
