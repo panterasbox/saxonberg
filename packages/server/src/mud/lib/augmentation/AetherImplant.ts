@@ -23,11 +23,12 @@ import Thing from '../stuff/Thing';
 import { SlottableMixin } from '../slot/Slottable';
 import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
+import { TemplatePaths } from '../paths';
 
 const AetherImplantBase = AugmentMixin(SlottableMixin(TangibleMixin(Thing)));
 
 export default class AetherImplant extends AetherImplantBase {
-  static readonly TEMPLATE_PATH = '/lib/augmentation/AetherImplant';
+  static readonly TEMPLATE_PATH = TemplatePaths.aetherImplant;
 
   override confers(): readonly string[] {
     return ['AetherMixin'];

@@ -4,6 +4,7 @@
 class: /lib/species/Species
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  illustration: species/infernalis.png
   binomial: Homo infernalis
   commonNames: ["tiefling"]
   _bodyPlanPath: /lib/body-plans/biped

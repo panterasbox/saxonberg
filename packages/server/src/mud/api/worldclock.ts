@@ -27,6 +27,7 @@ import { StuffApi } from './stuff';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type WorldClockRegistry from '../obj/WorldClockRegistry';
+import { TemplatePaths } from '../lib/paths';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -72,7 +73,7 @@ export interface CronPattern {
 
 /* ─────────────────────────── WorldClockApi ─────────────────────────── */
 
-const REGISTRY_PATH = '/obj/WorldClockRegistry';
+const REGISTRY_PATH = TemplatePaths.worldClockRegistry;
 
 export class WorldClockApi {
   private constructor() {}

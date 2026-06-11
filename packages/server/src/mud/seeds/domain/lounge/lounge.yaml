@@ -18,6 +18,7 @@ data:
   warren: /domain/lounge/warren
   shortDescription: the lounge
   primaryKeyword: lounge
+  illustration: location/lounge.png
   longDescription: |
     A low-ceilinged room that has clearly been furnished by whoever passed through and left something behind. Mismatched armchairs and a sagging couch cluster around a rug worn pale down the middle. A coffee machine ticks to itself on a side table; someone has taped a hand-lettered sign above it that just reads BE NICE.
 

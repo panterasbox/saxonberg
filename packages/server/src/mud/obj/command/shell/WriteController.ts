@@ -70,6 +70,7 @@ import { AccessApi } from '../../../api/access';
 import { Zone } from '../../../lib/zone/Zone';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { MqlOneResult } from '../../../api/mql';
+import { TemplatePaths } from '../../../lib/paths';
 
 interface WriteModel extends CommandModel {
   path?: string;
@@ -92,8 +93,8 @@ interface SchemaBearingClass {
   dataSchema?: Record<string, unknown>;
 }
 
-const DEFAULT_CONTENT_CLASS = '/lib/stuff/Idea';
-const DEFAULT_CONTENT_HYDRATOR = '/lib/persistence/PersistentHydrator';
+const DEFAULT_CONTENT_CLASS = TemplatePaths.idea;
+const DEFAULT_CONTENT_HYDRATOR = TemplatePaths.persistentHydrator;
 
 export default class WriteController extends CommandController<WriteModel> {
   async execute(model: WriteModel, context: CommandContext): Promise<void> {

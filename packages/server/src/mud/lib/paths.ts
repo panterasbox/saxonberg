@@ -1,0 +1,53 @@
+/**
+ * Platform template-path index.
+ *
+ * The canonical `/lib/` and `/obj/` template paths the engine's TypeScript
+ * looks up at runtime — singleton registries, catalogues, persistence
+ * infra, class refs, and path-family prefixes. Centralized because a
+ * template path is *data*: the templates live in the (one) database, and a
+ * path is just a string key into it, so the TS-side index of those keys
+ * belongs in one place too — not scattered as a per-file `const` in every
+ * Api and class.
+ *
+ * **Platform only.** Authored content under `/domain/` references its own
+ * paths in its seeds (and, for spawn/evacuation, in app config). That's
+ * content, not platform, and does not belong here.
+ *
+ * Cross-cutting infra; sits at `lib/` root alongside `events.ts` /
+ * `mixin.ts` / `errors.ts` / `quantity.ts`.
+ */
+
+/** Exact platform template paths — direct singleton / class lookups. */
+export const TemplatePaths = {
+  // Singleton registries.
+  accessRegistry: "/obj/AccessRegistry",
+  groupRegistry: "/obj/GroupRegistry",
+  schedulerRegistry: "/obj/SchedulerRegistry",
+  worldClockRegistry: "/obj/WorldClockRegistry",
+  mqlSubscriptionRegistry: "/obj/MqlSubscriptionRegistry",
+
+  // Singleton catalogues.
+  channelCatalogue: "/obj/ChannelCatalogue",
+  soulCatalogue: "/obj/SoulCatalogue",
+
+  // Persistence infra (declared as `static templatePath` on these classes).
+  persistentHydrator: "/lib/persistence/PersistentHydrator",
+  quantityMarshaller: "/lib/persistence/QuantityMarshaller",
+
+  // Class refs / defaults.
+  idea: "/lib/stuff/Idea",
+  folderZone: "/lib/zone/FolderZone",
+  rootBiome: "/lib/biome/universe",
+  aetherImplant: "/lib/augmentation/AetherImplant",
+} as const;
+
+/**
+ * Platform template-path *prefixes* (trailing slash) — for path-family
+ * matching (`startsWith`) or building per-instance child paths.
+ */
+export const TemplatePathPrefixes = {
+  avatar: "/obj/Avatar/",
+  species: "/lib/species/",
+  topic: "/lib/messaging/Topic/",
+  perceptionModalities: "/lib/perception/modalities/",
+} as const;

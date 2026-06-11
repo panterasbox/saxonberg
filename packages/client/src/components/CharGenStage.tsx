@@ -37,6 +37,7 @@ import type {
   CharGenPicks,
 } from '@saxonberg/types';
 import { useStore } from '../store/index';
+import { mediaUrl } from '../config';
 import { tokens } from './ui/tokens';
 import { Terminal } from './Terminal';
 import { CommandBar } from './CommandBar';
@@ -243,6 +244,9 @@ const DetailPane = styled.aside`
 const DetailImage = styled.div`
   width: 100%;
   aspect-ratio: 3 / 4;
+  /* Keep the 3:4 portrait box from being crushed by the scrolling
+     (overflow-y) flex column when the dossier below it is long. */
+  flex-shrink: 0;
   border-radius: ${tokens.radius.sm};
   overflow: hidden;
   display: flex;
@@ -711,7 +715,7 @@ export function CharGenStage({
         <DetailPane data-testid="chargen-detail-pane">
           <DetailImage data-testid="chargen-detail-image">
             {focused?.image ? (
-              <img src={focused.image} alt={focused.label} />
+              <img src={mediaUrl(focused.image)} alt={focused.label} />
             ) : (
               <span>illustration</span>
             )}

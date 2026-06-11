@@ -4,6 +4,7 @@
 class: /lib/species/Species
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  illustration: species/sapiens.png
   binomial: Homo sapiens
   commonNames: ["human", "man", "person"]
   _bodyPlanPath: /lib/body-plans/biped

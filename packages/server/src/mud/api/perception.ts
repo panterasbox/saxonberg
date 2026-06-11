@@ -30,9 +30,10 @@ import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SpeciesApi } from './species';
 import { SecurityApi } from './security';
+import { TemplatePathPrefixes } from '../lib/paths';
 
 /** Template-path prefix shared by every modality singleton. */
-const MODALITY_PREFIX = '/lib/perception/modalities/';
+const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
 
 /**
  * Lazily built `Map<modality-name, Modality>`. Built on first access,

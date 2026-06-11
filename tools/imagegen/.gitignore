@@ -1,0 +1,2 @@
+# Generated image samples live in S3, never in git.
+samples/

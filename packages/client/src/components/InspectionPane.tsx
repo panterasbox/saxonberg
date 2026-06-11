@@ -77,6 +77,7 @@ import { useStore } from "../store/index";
 import { websocketClient } from "../services/websocket";
 import { MmlRenderer } from "./MmlRenderer";
 import { Button, EntityName, List, ListItem, tokens } from "./ui";
+import { mediaUrl } from "../config";
 
 const PaneContainer = styled.aside`
   display: flex;
@@ -127,6 +128,14 @@ const Body = styled.div`
   padding: ${tokens.space.lg};
   white-space: pre-wrap;
   line-height: 1.5;
+`;
+
+const Illustration = styled.img`
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: ${tokens.space.lg};
 `;
 
 const BodyProse = styled.div`
@@ -792,11 +801,22 @@ function renderSingle(
 ): React.ReactElement {
   const detail = record as StuffDetailRecord;
   const long = detail.longDescription ?? "";
+  const illustration = detail.illustration;
   const exits = detail.exits ?? [];
   const contents = detail.contents ?? [];
 
   return (
     <div data-stuff-id={record.stuffId}>
+      {illustration && (
+        <Illustration
+          src={mediaUrl(illustration)}
+          alt={detail.shortDescription ?? detail.displayName ?? ""}
+          // No asset / broken key → hide rather than show a broken-image icon.
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      )}
       {long && (
         <BodyProse>
           <MmlRenderer

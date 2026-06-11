@@ -31,3 +31,21 @@ export const SERVER_URL = resolveServerUrl();
 
 /** WebSocket origin for the game connection. */
 export const WS_URL = resolveWsUrl();
+
+/**
+ * Base URL for content media (illustrations). Content carries only a
+ * bucket-relative key (e.g. `location/duncan-hall-lobby.png`); the client
+ * owns the base, so the bucket/CDN can move without touching content or
+ * the server. Overridable with `VITE_MEDIA_BASE_URL`.
+ */
+const MEDIA_BASE_URL_DEFAULT =
+  'https://panterasbox-media.s3.us-west-2.amazonaws.com/';
+
+export const MEDIA_BASE_URL = (
+  import.meta.env.VITE_MEDIA_BASE_URL || MEDIA_BASE_URL_DEFAULT
+).replace(/\/?$/, '/');
+
+/** Resolve a bucket-relative media key to a full URL. */
+export function mediaUrl(key: string): string {
+  return MEDIA_BASE_URL + key.replace(/^\/+/, '');
+}

@@ -24,6 +24,7 @@ import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type AccessRegistry from '../obj/AccessRegistry';
+import { TemplatePaths } from '../lib/paths';
 
 /**
  * Avatar-shaped sniff: only Avatar instances carry a non-empty
@@ -39,7 +40,7 @@ function playerIdOfQuick(subject: Stuff): string | null {
   return id && id.length > 0 ? id : null;
 }
 
-const REGISTRY_PATH = '/obj/AccessRegistry';
+const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
 export class AccessApi {
   static #registryRef: AccessRegistry | null = null;

@@ -556,6 +556,12 @@ export interface MaterialSummary {
 export interface StuffDetailRecord extends StuffRefRecord {
   shortDescription?: string;
   longDescription?: string;
+  /**
+   * Bucket-relative media key for this thing's illustration (e.g.
+   * `location/duncan-hall-lobby.png`), omitted when none is set. The
+   * client prepends its configured media base URL to render it.
+   */
+  illustration?: string;
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };
@@ -950,10 +956,11 @@ export interface CharGenOption {
   description?: string;
   /**
    * Optional illustration for the option, surfaced in the char-gen
-   * detail pane (3:4 portrait). A resolvable image URL, or `null` when
-   * no asset exists yet (the client renders a framed placeholder). The
-   * asset subsystem owns how this URL is produced/resolved; char-gen
-   * only consumes it. v1: always `null` until image assets ship.
+   * detail pane (3:4 portrait). A bucket-relative media key (e.g.
+   * `species/khazadicus.png`), or `null` when no asset exists (the
+   * client renders a framed placeholder). The client prepends its
+   * configured `MEDIA_BASE_URL` to resolve it — same key contract as
+   * `StuffDetailRecord.illustration`.
    */
   image?: string | null;
   /**

@@ -39,6 +39,7 @@ import type { Unit } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
+import { TemplatePaths } from '../lib/paths';
 
 /**
  * Per-atmosphere density at standard conditions (1 atm, 295 K).
@@ -90,7 +91,7 @@ const CONTAINMENT_DEPTH_CAP = 32;
  * `/lib/biome/` (a `FolderZone`); the root biome itself lives at
  * `/lib/biome/universe`.
  */
-const ROOT_BIOME_PATH = '/lib/biome/universe';
+const ROOT_BIOME_PATH = TemplatePaths.rootBiome;
 
 /**
  * Depth guard for the `_extendsBiomePath` chain walk. Real content

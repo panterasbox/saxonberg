@@ -36,6 +36,7 @@ import type { Engaged, EngagementSlot } from '../lib/activity/Engaged';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import type SchedulerRegistry from '../obj/SchedulerRegistry';
+import { TemplatePaths } from '../lib/paths';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -113,7 +114,7 @@ export type {
 
 /* ─────────────────────────── SchedulerApi ─────────────────────────── */
 
-const REGISTRY_PATH = '/obj/SchedulerRegistry';
+const REGISTRY_PATH = TemplatePaths.schedulerRegistry;
 
 export class SchedulerApi {
   private constructor() {}
