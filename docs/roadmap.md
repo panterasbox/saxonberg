@@ -127,11 +127,11 @@ remains in the near-term Track A queue:
 1. **Client-pull cockpit buildout** — cockpit shell, modes
    (world / study / classroom / tutor), content surface (video +
    transcript), theming polish. Per
-   [client-cockpit-slate.md](./slates/client-cockpit-slate.md);
+   [client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md);
    decomposes into per-track requirements docs at build time.
 2. **Scoped-authoring GUI** (the room editor) — blocked on
    access landing in Track B; will pair with the new-player flow.
-   ([scoped-authoring-slate.md](./slates/scoped-authoring-slate.md))
+   ([scoped-authoring-slate.md](./slates/builds/scoped-authoring-slate.md))
 
 > **Retired from Track A** (so future passes don't re-suggest):
 >
@@ -146,7 +146,7 @@ remains in the near-term Track A queue:
 >   mql-many) directly — no separate `PromptArea` component. Slot
 >   picker, draft state per slot, chip affordances, X-cancel, mode
 >   sigils + tints, echo-snapshot pairing all land there.
->   ([prompt-stack-slate.md](./slates/prompt-stack-slate.md) stays
+>   ([prompt-stack-slate.md](./slates/tails/prompt-stack-slate.md) stays
 >   open for Tier 2/3 kinds and future-wave server polish.)
 > - **Vitals tandem slice.** The original "HP/MV widget over
 >   `me.vitals`" framing reflected the scalar-HP shape Vitals had
@@ -154,7 +154,7 @@ remains in the near-term Track A queue:
 >   substrate (anatomy + conditions + pedagogy) — not a client
 >   first-vertical. It still ships when its turn comes (Track B
 >   substrate-shaped); it's not Track A item 1.
->   ([vitals-slate.md](./slates/vitals-slate.md))
+>   ([vitals-slate.md](./slates/builds/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane
 >   shipped. The pane's `here` + `contents` payload already
@@ -167,7 +167,7 @@ remains in the near-term Track A queue:
 >   console-foundations merge (gutter stripe + filter drawer +
 >   mute-count badges + topics + tabbed terminal +
 >   `ClientStateMixin` substrate).
->   ([console-filtering-slate.md](./slates/console-filtering-slate.md))
+>   ([console-filtering-slate.md](./slates/tails/console-filtering-slate.md))
 
 ### Track B — Server substrate, near-term
 
@@ -195,7 +195,7 @@ Ordered by leverage + dependency:
    deny-wins composition, audit sink wiring (call-security
    Pillar 5), tier vocabulary, class-allowlist for content
    writes.
-   ([access-slate.md](./slates/access-slate.md))
+   ([access-slate.md](./slates/tails/access-slate.md))
 2. **Senses** — the unified `Modality` substrate (sound = the
    hearing channel); high content leverage, `analyze`/`measure`
    are text verbs. **Wave 1 shipped** (2026-06): authoring surface
@@ -213,7 +213,7 @@ Ordered by leverage + dependency:
    (echolocation), full ESP local-field walk, per-species
    hearing / tactile / gustatory profiles, RT60 / reverberation,
    stealth as sensorium-relative perception.
-   ([senses-slate.md](./slates/senses-slate.md))
+   ([senses-slate.md](./slates/tails/senses-slate.md))
 3. **Social cluster (server halves)** — **shipped (2026-06)**:
    `SoulMixin` emotes with `EmoteGrammar` slot binder + ~35-emote
    starter roster + `:` / `;` prefix dispatch; comms acoustic
@@ -233,16 +233,16 @@ Ordered by leverage + dependency:
    broadcast permission gate (waits on access slate); rate
    limiting; vitals-aware acoustic dB; recognition-family
    buildup over the contacts substrate.
-   ([emotes](./slates/emotes-slate.md) /
-   [comms](./slates/comms-slate.md) /
-   [chat](./slates/chat-slate.md) /
-   [social-graph](./slates/social-graph-slate.md))
+   ([emotes](./slates/tails/emotes-slate.md) /
+   [comms](./slates/tails/comms-slate.md) /
+   [chat](./slates/tails/chat-slate.md) /
+   [social-graph](./slates/builds/social-graph-slate.md))
 4. **Collision** — *decomposed; not a standalone near-term pick
    (resolved 2026-06-10).* The slate bundled three different-priority
    concerns that disperse rather than ship as a unit:
    - **Intentional blocking** (the gate guard) is **behavior**, not a
      mixin — it lands as a **`guards` brain** under
-     [npc-behavior](./slates/npc-behavior-slate.md), riding a small
+     [npc-behavior](./slates/builds/npc-behavior-slate.md), riding a small
      block-substrate seam in the locomotion cascade (the
      already-present-but-hollow `'blocked'` gate in
      `LocomotionControllerBase.composeRejection`). The slate's
@@ -257,12 +257,12 @@ Ordered by leverage + dependency:
      day specific content asks.
    So don't re-surface collision as "what's next": its live half is a
    brain owned by npc-behavior; the rest waits on content.
-   ([collision-slate.md](./slates/collision-slate.md))
+   ([collision-slate.md](./slates/deferred-rpg/collision-slate.md))
 5. **Recognition family** — recognition + identification +
    social-graph; `DescribeApi v2`. Ships best as a unit.
-   ([recognition](./slates/recognition-slate.md) /
-   [identification](./slates/identification-slate.md) /
-   [social-graph](./slates/social-graph-slate.md))
+   ([recognition](./slates/builds/recognition-slate.md) /
+   [identification](./slates/builds/identification-slate.md) /
+   [social-graph](./slates/builds/social-graph-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
    [augmentation.md](./subsystems/augmentation.md)); Wave 2+ adds
@@ -270,8 +270,8 @@ Ordered by leverage + dependency:
    augment Stuff (translation, prosthetics, sensor packages,
    motor / cognitive), and failure modes. Npc-dialogue still leans
    on the shipped prompt + slot substrate.
-   ([augmentation](./slates/augmentation-slate.md) /
-   [npc-dialogue](./slates/npc-dialogue-slate.md))
+   ([augmentation](./slates/tails/augmentation-slate.md) /
+   [npc-dialogue](./slates/builds/npc-dialogue-slate.md))
 
 The **new-player flow** straddles both tracks: char-gen engine +
 fast-travel terminals are Track B (server-first) — the **char-gen
@@ -328,9 +328,9 @@ requirements.
   engagement slots, the five framework-intrinsic abort reasons,
   HMR-aware lifecycle dispatch, `cancel` verb. Locomotion-as-
   activity and host-slot activities deferred — see
-  [docs/slates/locomotion-as-activity-slate.md](./slates/locomotion-as-activity-slate.md)
+  [docs/slates/tails/locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md)
   and
-  [docs/slates/host-slot-activities-slate.md](./slates/host-slot-activities-slate.md)
+  [docs/slates/tails/host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md)
   for the design sketches.
 - **Time subsystem (shipped 2026-06)** — see
   [docs/subsystems/time.md](./subsystems/time.md). `WorldClockApi`
@@ -342,60 +342,60 @@ requirements.
   (compute only — **no celestial→light wiring**, deferred until the
   perception branch merges). `DefaultCalendar`. Pedagogical surface
   (`Sundial`/`Sextant`, `analyze time`/`sky`, `measure shadow`/
-  `altitude`). `docs/slates/world-clock-slate.md` kept for the
+  `altitude`). `docs/slates/tails/world-clock-slate.md` kept for the
   deferred surface (light wiring, multi-region latitude, locale,
   weather, NPC schedules, second profiles).
 - **Sound** — **absorbed into
-  [senses-slate](./slates/senses-slate.md)** (now the *hearing* instance of
+  [senses-slate](./slates/tails/senses-slate.md)** (now the *hearing* instance of
   the unified `PerceptionChannel` substrate). The standalone sound-slate
   was retired; its acoustic detail (real dB / Hz / species hearing ranges,
   acoustic instruments) is folded into senses-slate's "Deep acoustic spec"
   section — the live authority.
-- [docs/slates/augmentation-slate.md](./slates/augmentation-slate.md) —
+- [docs/slates/tails/augmentation-slate.md](./slates/tails/augmentation-slate.md) —
   the augmentation umbrella (implant / prosthetic / graft; innate ⊕
   acquired): a **slotted Stuff contributes a capability** (sense channel,
   verb, comm transport); the baseline comm implant; cybernetic flavor,
   flavor-agnostic substrate. Surfaced by comms (the ESP transport) and
   char-gen (issued at intake).
-- [docs/slates/collision-slate.md](./slates/collision-slate.md) — capacity
+- [docs/slates/deferred-rpg/collision-slate.md](./slates/deferred-rpg/collision-slate.md) — capacity
   (typed-list-of-constraints), intentional blocking, pushing (`Pushable`
   + `PushActivity`). **Decomposed (2026-06-10): not a standalone build** —
   intentional blocking is a **`guards` brain** under
-  [npc-behavior](./slates/npc-behavior-slate.md) (not a `BlockerBehavior`
+  [npc-behavior](./slates/builds/npc-behavior-slate.md) (not a `BlockerBehavior`
   mixin), riding a block-substrate seam in the locomotion cascade;
   capacity + pushing are defer-til-content. See Track B §4.
 
 ### Social / perception slates
 
-- [docs/slates/recognition-slate.md](./slates/recognition-slate.md) — per-
+- [docs/slates/builds/recognition-slate.md](./slates/builds/recognition-slate.md) — per-
   viewer perception state; `DescribeApi v2` pipeline; disguise
   as Wearable shadow; salient-feature rendering.
-- [docs/slates/social-graph-slate.md](./slates/social-graph-slate.md) —
+- [docs/slates/builds/social-graph-slate.md](./slates/builds/social-graph-slate.md) —
   per-viewer buckets (friends/foes/custom); notification policies;
   bucket-keyed display verbosity. **One *source* into the grouping
   facade** (below), not the same layer.
-- [docs/slates/identification-slate.md](./slates/identification-slate.md) —
+- [docs/slates/builds/identification-slate.md](./slates/builds/identification-slate.md) —
   parallel pattern for items; experiment-based identification;
   the pedagogical seam at its richest.
 
 The **comms / social / expression cluster** (designed as one connected
 pass; built in waves):
 
-- [docs/slates/senses-slate.md](./slates/senses-slate.md) — the unified
+- [docs/slates/tails/senses-slate.md](./slates/tails/senses-slate.md) — the unified
   **`PerceptionChannel`** substrate: five physical senses + the **ESP
   channel family**, field/contact/network physics, the species/body
   **sensorium** (organ-gates-channel), the gestalt verb, and
   **messaging = sensing**. **Absorbs the retired sound slate** (now the
   *hearing* instance).
-- [docs/slates/emotes-slate.md](./slates/emotes-slate.md) — `SoulMixin`
+- [docs/slates/tails/emotes-slate.md](./slates/tails/emotes-slate.md) — `SoulMixin`
   natural-language emotes (+ free-form `emote`), ESP-perceived, typed-slot
   grammar, emote-only **moderation** (structural), the `Emote`-on-
   `Persistable` catalog + `SoulApi`; emoji / honorary / reactions layers.
-- [docs/slates/comms-slate.md](./slates/comms-slate.md) — the **two-
+- [docs/slates/tails/comms-slate.md](./slates/tails/comms-slate.md) — the **two-
   transport** model (acoustic say/whisper/shout vs **implant ESP**);
   directed `say --to`; the `whisper`(acoustic)/`tell`(implant) split; the
   conversation primitive.
-- [docs/slates/chat-slate.md](./slates/chat-slate.md) — channels as a
+- [docs/slates/tails/chat-slate.md](./slates/tails/chat-slate.md) — channels as a
   **projection over the grouping facade**; membership ≠ subscription;
   projection + override; the config block; `chat <channel>`; the Mudlog
   separation.
@@ -403,19 +403,19 @@ pass; built in waves):
   **`GroupApi` facade** over the four shipped providers (managed,
   MQL, contacts, channel); replaced the now-retired
   `grouping-slate.md` at the social-cluster sweep.
-- [docs/slates/reactions-slate.md](./slates/reactions-slate.md) —
+- [docs/slates/tails/reactions-slate.md](./slates/tails/reactions-slate.md) —
   emote-at-a-message + **batched aggregate-delta** broadcast (hundreds-of-
   users scale); toggle-once; tag-grouping; ephemeral runtime + warehouse
   the stream.
-- [docs/slates/npc-dialogue-slate.md](./slates/npc-dialogue-slate.md) —
+- [docs/slates/builds/npc-dialogue-slate.md](./slates/builds/npc-dialogue-slate.md) —
   conversation-not-interrogation; a **pluggable responder** (branching
   tree via prompt+engagement / scripted free-text / deferred LLM); one
   room-visible speech output.
-- [docs/slates/access-slate.md](./slates/access-slate.md) — the
+- [docs/slates/tails/access-slate.md](./slates/tails/access-slate.md) — the
   **permission framework** filling call-security's reserved seam;
   `can(subject, action, resource)` + diegetic-first capability sources;
   the **do / see / write × circumstances** meta-shape.
-- [docs/slates/spoiler-slate.md](./slates/spoiler-slate.md) — **best-
+- [docs/slates/deferred-rpg/spoiler-slate.md](./slates/deferred-rpg/spoiler-slate.md) — **best-
   effort** server-side fact-gating (extends the percept revelation-
   conditions); imposed + opt-in; assessment integrity flagged as a
   *separate* (assessment-system) problem.
@@ -433,7 +433,7 @@ pass; built in waves):
 The connected new-player flow (char-gen → lounge → fast-travel →
 onboarding → dorm + authoring), each thin-engine / content-heavy:
 
-- [docs/slates/char-gen-slate.md](./slates/char-gen-slate.md) — light
+- [docs/slates/tails/char-gen-slate.md](./slates/tails/char-gen-slate.md) — light
   closed-choice intake. **Wave 1 SHIPPED** (MR !49): the intake engine
   is live on the real command pipeline — `Login`-as-`CommandGiver`,
   `enroll`/`play` MVC verbs, `EnrollmentDraft` accumulator, `PersonaMixin`,
@@ -441,14 +441,14 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   [docs/subsystems/char-gen.md](./subsystems/char-gen.md). Deferred to
   later waves: the `records` verb (bio editing), breadcrumbs/vitals/
   language, the lounge handoff, onboarding, the name sanitizer.
-- [docs/slates/onboarding-slate.md](./slates/onboarding-slate.md) —
+- [docs/slates/builds/onboarding-slate.md](./slates/builds/onboarding-slate.md) —
   learn-by-doing journey (lounge → fast-TP to campus → signs/greeter →
   dorm lobby → room → customization); the scoped-authoring on-ramp.
-- [docs/slates/fast-travel-slate.md](./slates/fast-travel-slate.md) — the
+- [docs/slates/builds/fast-travel-slate.md](./slates/builds/fast-travel-slate.md) — the
   Eternal City Teleport Authority: a directed public-terminal network,
   **scan-to-register** credential (implant/card), on-demand teleport;
   living-infrastructure seam (maintenance/economy deferred).
-- [docs/slates/scoped-authoring-slate.md](./slates/scoped-authoring-slate.md)
+- [docs/slates/builds/scoped-authoring-slate.md](./slates/builds/scoped-authoring-slate.md)
   — democratized, **safe, ownership-scoped** authoring (your dorm);
   GUI-first/thin-command; **(policy, validator) per-field, default-deny**.
 
@@ -477,17 +477,17 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 
 ### Cross-cutting
 
-- [docs/slates/mixin-slate.md](./slates/mixin-slate.md) — broad mixin slate;
+- [docs/slates/tails/mixin-slate.md](./slates/tails/mixin-slate.md) — broad mixin slate;
   most affordance mixins now distributed into the substrate
   slates above.
-- [docs/slates/verb-provisioning-slate.md](./slates/verb-provisioning-slate.md)
+- [docs/slates/builds/verb-provisioning-slate.md](./slates/builds/verb-provisioning-slate.md)
   — verb-acquisition pattern (innate / skill / instrument /
   implant / consumable / ambient). One verb, one controller, N
   provisioning paths each with its own gate and prose flavor.
   Generalizes the instruments-reveal seam from the Quantities
   substrate to skills, cybernetics, transient buffs, and ambient
   effects.
-- [docs/slates/bulkable-slate.md](./slates/bulkable-slate.md) —
+- [docs/slates/tails/bulkable-slate.md](./slates/tails/bulkable-slate.md) —
   bulk-form sibling to globbable. Continuous mass/volume measured
   matter (flour, water, bread). Exploratory; ships when content
   demands. Shares globbable's substrate (placeDirect, MqlQuantity
@@ -504,7 +504,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 
 ### Client
 
-- [docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md)
+- [docs/slates/tails/client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md)
   — affordance-first cockpit on the existing command-bus + MML wire.
   Command-bus primacy (every interaction emits a visible command,
   including the modal); click model (hover preview / click send /
@@ -518,7 +518,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   format; envelope rendering; mobile flagged out-of-scope but
   architecturally accommodated. Decomposes into per-track
   requirements docs at build time. Sister to
-  [mql-subscription-slate](./slates/mql-subscription-slate.md) on
+  [mql-subscription-slate](./slates/tails/mql-subscription-slate.md) on
   the wire side.
 
 - **Message rendering + prompt stack + inspection pane (shipped)** —
@@ -537,7 +537,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   (channel stylesheets); the prompt-stack slate stays open for
   Tier 2/3 kinds.
 
-- [docs/slates/console-filtering-slate.md](./slates/console-filtering-slate.md)
+- [docs/slates/tails/console-filtering-slate.md](./slates/tails/console-filtering-slate.md)
   — sister surface to the inspection pane: client-side toolkit for
   managing the terminal scroll. Topic toggles, search,
   sender-scoped filtering, family mute/collapse, timestamps,
@@ -587,7 +587,7 @@ opportunistically.
   `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
   `MudlogApi` exists but is incomplete.
 - **DescribeApi v2** — implements the design from
-  [recognition-slate.md](./slates/recognition-slate.md). Composition
+  [recognition-slate.md](./slates/builds/recognition-slate.md). Composition
   pipeline; `getDisplayParts`; MML-aware output.
 
 ---
@@ -644,7 +644,7 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
 **Tier 2** — extends established patterns:
 
 - #4 Scent and persistent traces — **smell is now a channel in
-  [senses-slate](./slates/senses-slate.md)** (the `PerceptionChannel`
+  [senses-slate](./slates/tails/senses-slate.md)** (the `PerceptionChannel`
   substrate); the remaining work is the *persistent-trace* half (trails
   that linger), which needs activity emission hooks (deferred in
   activity-slate) and pulls on #9.
@@ -668,7 +668,7 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
   soot. Temporal traces; pulls on #4.
 - #11 Heat as physics channel — the **`PerceptionChannel`
   generalization is now realized in
-  [senses-slate](./slates/senses-slate.md)** (thermoreception is a
+  [senses-slate](./slates/tails/senses-slate.md)** (thermoreception is a
   channel); remaining work is heat's *physics* (propagation / sources /
   Quantity in Kelvin), parallel to light and sound, plugging into the
   established channel shape.
@@ -714,7 +714,7 @@ landing first.
 ## Client UX
 
 Canonical client design surface is the cockpit slate:
-[docs/slates/client-cockpit-slate.md](./slates/client-cockpit-slate.md).
+[docs/slates/tails/client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md).
 It covers the v1 cockpit (layout, click model, modes, panel
 inventory, MML semantic tags, MQL-subscription consumption,
 content surface, prompt line, envelope rendering, character
@@ -727,8 +727,13 @@ slate flags them as separate projects):
 - **Visual map generator** — 3D map rendered from the spatial
   subsystem. Own project, own slate; cockpit reserves the layout
   slot but does not build it.
-- **AI-generated location illustrations** — image-gen integration
-  on `look`, cached per-location-state. Own project.
+- **Content illustrations** — **shipped** as the media subsystem
+  (see [media.md](./subsystems/media.md)): model-driven *offline*
+  generation in one house style, `Visible.illustration` key → MQL
+  projection → client render (inspection pane + char-gen portraits),
+  `MediaAsset` provenance, S3 serving. *Remaining*: on-demand /
+  in-CMS generation with a quota system, external embeds
+  (Twitch / video), and the cohesion post-process pass.
 - **Dedicated content CMS** — content authors use the player
   client + in-game shell until shell strain justifies it. Own
   project when the time comes.

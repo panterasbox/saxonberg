@@ -54,6 +54,7 @@ behavior. Read the relevant doc before editing in its area.
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: roster-vs-char-gen branch, `enroll` as a field-keyed draft state machine, Login-as-CommandGiver+Sensor accumulator, commit/spawn atomicity, server-owns-draft/client-owns-layout, species dossier + NameBank + PersonaMixin, cockpit phases
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, MarkupAugmenter, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — end-to-end rendering: server MML extensions + client parseMml/MmlRenderer + theme/overlay cascade
+  - [media.md](./docs/subsystems/media.md) — non-text renderable content: `Visible.illustration` key field → MQL projection → client `mediaUrl()`/`MEDIA_BASE_URL`; `MediaAsset` provenance Document; model-driven gpt-image-1 generation pipeline (Potter house style, S3); char-gen species portraits; deferred external embeds (Twitch/video)
   - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin on every Character, Emote Document + EmoteGrammar, SoulCatalogue + SoulApi, three dispatch paths
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls (managed/MQL/contacts), GroupRef typed strings

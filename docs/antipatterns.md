@@ -704,6 +704,33 @@ const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
 on a singleton class throw. `singleton()` is the convenient surface
 that respects the contract automatically.
 
+## Hardcoded Platform Template Paths — Use the `TemplatePaths` Index
+
+A platform template path (`/lib/…`, `/obj/…`) is **data** — a string key
+into the one shared `domain` collection. So the TypeScript-side index of
+those keys lives in one place: `lib/paths.ts` (`TemplatePaths` for exact
+paths, `TemplatePathPrefixes` for trailing-slash families), a sibling of
+`events.ts` / `mixin.ts`.
+
+### BAD
+
+```typescript
+const REGISTRY_PATH = '/obj/AccessRegistry';          // duplicated per file
+static readonly templatePath = '/lib/persistence/PersistentHydrator';
+```
+
+### GOOD
+
+```typescript
+import { TemplatePaths } from '../lib/paths';
+const REGISTRY_PATH = TemplatePaths.accessRegistry;
+static readonly templatePath = TemplatePaths.persistentHydrator;
+```
+
+Platform paths only. Authored `/domain/` content references its own paths
+in seeds (and, for spawn/evacuation, app config) — that's content, not
+platform, and stays out of the index.
+
 ## Reaching Into Raw Alias Storage
 
 **ANTIPATTERN**: Mutating `aliases` / `aliasesSession` directly,

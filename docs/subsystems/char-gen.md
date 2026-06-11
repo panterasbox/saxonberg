@@ -204,18 +204,29 @@ scrollback (`store/index.ts` `setConnected`).
 
 `Species` (`lib/species/Species.ts`) is a `Visible` template (it speaks
 the standard `shortDescription`/`longDescription` surface — the old
-`defaultDescription` was subsumed). char-gen reads:
+`defaultDescription` was subsumed — and carries an `illustration` key,
+the kind's portrait). char-gen reads:
 
 - `commonNames` — the roster keys/labels (`'human'`, `'elf'`, …).
 - `sexDeterminationSystem` — non-empty ⇒ the species is sexed ⇒ the
   `sex` field applies and offers male/female.
 - `nameBankKeys` — references to one or more `NameBank` Documents that
   feed the name suggester.
+- `illustration` — the bucket-relative key for the species portrait,
+  surfaced on `CharGenOption.image` (the 3:4 detail-pane slot). The client
+  resolves it via `MEDIA_BASE_URL`; see [media.md](./media.md).
 - `getBodyPlanPath()` / Material path — drive the **species dossier**:
   the scientific binomial, the Linnaean classification ladder (derived
   from the taxonomic template path), and anatomy/composition lines. This
   is the showcase of the depth of the world model, rendered in the
   species detail pane.
+
+**The dossier and the illustration are presentation, not controller
+logic.** The dossier is built by `SpeciesApi.buildDossier(species, path)`
+(`api/species.ts`) — a readout of the species model, not picker code;
+`EnrollController` only pre-warms a per-species card (`{ dossier,
+illustration }`) and surfaces it, staying about draft state (read the
+choices, write the picks).
 
 ### The name suggester + `NameBank`
 
