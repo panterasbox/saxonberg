@@ -97,7 +97,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
-  - [multilocation.md](./docs/subsystems/multilocation.md) — Warren elastic-graph substrate in `lib/multilocation/` (one template, many coordinated instances; host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in `domain/lounge/` (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.resolveOrClone`, save-delegation recall
+  - [multilocation.md](./docs/subsystems/multilocation.md) — Warren elastic-graph substrate in `lib/location/` (one template, many coordinated instances; host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in `domain/lounge/` (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.singletonOrClone`, save-delegation recall
 
 ## Development Commands
 

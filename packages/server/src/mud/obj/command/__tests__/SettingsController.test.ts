@@ -17,7 +17,7 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
-import CartesianLocation from '../../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../../lib/location/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import type Interactive from '../../Interactive';
 import type Location from '../../../lib/stuff/Location';

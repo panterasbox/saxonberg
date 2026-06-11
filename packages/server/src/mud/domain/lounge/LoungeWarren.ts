@@ -19,7 +19,7 @@
  * code constants headed for `GameConfig`).
  */
 
-import { Warren, type Attachment } from '../../lib/multilocation/Warren';
+import { Warren, type Attachment } from '../../lib/location/Warren';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';

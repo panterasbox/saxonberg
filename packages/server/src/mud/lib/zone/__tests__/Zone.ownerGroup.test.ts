@@ -131,7 +131,7 @@ describe('ownerGroup inheritance walk', () => {
       },
       {
         path: '/root/mid/leaf',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);

@@ -12,8 +12,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../../api/locomotion';
 import { ContainmentApi } from '../../api/containment';
-import CartesianZone from '../../lib/spatial/CartesianZone';
-import CartesianLocation from '../../lib/spatial/CartesianLocation';
+import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianLocation from '../../lib/location/CartesianLocation';
 import Exit from '../../lib/boundary/Exit';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';

@@ -214,8 +214,7 @@ Under `Idea`:
 
 Under `Location`:
 
-- **`CartesianLocation`** — a room positioned on a Cartesian grid;
-  **`NamedCartesianLocation`** adds a proper name.
+- **`CartesianLocation`** — a room positioned on a Cartesian grid.
 - **`SphericalLocation`** — a body positioned in a spherical zone.
 - **`VoidLocation`** — the singleton null-space room.
 

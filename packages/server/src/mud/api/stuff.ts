@@ -388,7 +388,7 @@ export class StuffApi {
    * `loadClassByPath`. Throws when no template exists at `ref`.
    *
    * Lets a caller dispatch on a target's *class* (its mixins, its
-   * inheritance) without instantiating it — e.g. {@link resolveOrClone}
+   * inheritance) without instantiating it — e.g. {@link singletonOrClone}
    * deciding clone-vs-singleton, or a spawn applier checking
    * `cls.prototype instanceof Warren`.
    */
@@ -409,7 +409,7 @@ export class StuffApi {
    * fresh instance). Any *domain* semantics on top (a Warren landing in
    * its host, a recall) belong in the caller, not here.
    */
-  public static async resolveOrClone<T extends Stuff>(
+  public static async singletonOrClone<T extends Stuff>(
     path: string,
     context?: unknown
   ): Promise<T> {

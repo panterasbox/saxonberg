@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import GoController from '../GoController';
-import CartesianZone from '../../../lib/spatial/CartesianZone';
-import CartesianLocation from '../../../lib/spatial/CartesianLocation';
-import SphericalZone from '../../../lib/spatial/SphericalZone';
-import SphericalLocation from '../../../lib/spatial/SphericalLocation';
+import CartesianZone from '../../../lib/location/CartesianZone';
+import CartesianLocation from '../../../lib/location/CartesianLocation';
+import SphericalZone from '../../../lib/location/SphericalZone';
+import SphericalLocation from '../../../lib/location/SphericalLocation';
 import ExitableVessel from '../../../lib/boundary/ExitableVessel';
 import Exit from '../../../lib/boundary/Exit';
 import Door from '../../../lib/boundary/Door';

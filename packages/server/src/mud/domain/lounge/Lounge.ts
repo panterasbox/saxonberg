@@ -15,7 +15,7 @@
  */
 
 import Location from '../../lib/stuff/Location';
-import { WarrenMemberMixin } from '../../lib/multilocation/WarrenMember';
+import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { LoungeMixin } from './LoungeMixin';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';

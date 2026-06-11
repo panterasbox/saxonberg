@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Window from '../Window';
-import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianLocation from '../../location/CartesianLocation';
 import Thing from '../../stuff/Thing';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -131,12 +131,12 @@ describe('Window.setAttachedHosts', () => {
     installInMemoryStore([
       {
         path: '/room/a',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         data: {},
       },
       {
         path: '/room/b',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         data: {},
       },
     ]);

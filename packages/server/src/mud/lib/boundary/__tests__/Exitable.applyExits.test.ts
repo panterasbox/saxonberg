@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianLocation from '../../location/CartesianLocation';
 import Door from '../Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -67,7 +67,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -88,7 +88,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -113,7 +113,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -132,7 +132,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -149,7 +149,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);

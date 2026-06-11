@@ -304,7 +304,7 @@ the typed convenience wrapper for writing a template:
 ```typescript
 await TemplateApi.saveTemplate(
   '/narnia/castle/foyer',
-  '/lib/spatial/CartesianLocation',
+  '/lib/location/CartesianLocation',
   { /* persistent fields */ },
   PersistentHydrator.templatePath
 );

@@ -62,18 +62,18 @@ describe('startLocation spawn instruction + recover-and-warn', () => {
     ).not.toBe(warren);
   });
 
-  it('resolveOrClone reuses a singleton target', async () => {
+  it('singletonOrClone reuses a singleton target', async () => {
     installStore(loungeDocs());
-    const a = await StuffApi.resolveOrClone(LoungeWarren.BAR_PATH);
-    const b = await StuffApi.resolveOrClone(LoungeWarren.BAR_PATH);
+    const a = await StuffApi.singletonOrClone(LoungeWarren.BAR_PATH);
+    const b = await StuffApi.singletonOrClone(LoungeWarren.BAR_PATH);
     expect(a).toBe(b); // Bar composes SingletonMixin → singleton reuse
   });
 
-  it('resolveOrClone clones a fresh instance for a non-singleton target', async () => {
+  it('singletonOrClone clones a fresh instance for a non-singleton target', async () => {
     installStore(loungeDocs());
     // Lounge is non-singleton → a fresh clone each call.
-    const first = await StuffApi.resolveOrClone(LoungeWarren.LOUNGE_TEMPLATE);
-    const second = await StuffApi.resolveOrClone(LoungeWarren.LOUNGE_TEMPLATE);
+    const first = await StuffApi.singletonOrClone(LoungeWarren.LOUNGE_TEMPLATE);
+    const second = await StuffApi.singletonOrClone(LoungeWarren.LOUNGE_TEMPLATE);
     expect(first).toBeInstanceOf(Lounge);
     expect(second).toBeInstanceOf(Lounge);
     expect(first).not.toBe(second);

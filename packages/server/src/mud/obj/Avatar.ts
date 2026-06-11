@@ -21,7 +21,7 @@ import { MixinApi } from '../api/mixin';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Container } from '../lib/spatial/Container';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { Warren } from '../lib/multilocation/Warren';
+import { Warren } from '../lib/location/Warren';
 import { SpeciesApi } from '../api/species';
 import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
@@ -100,7 +100,7 @@ export default class Avatar extends AvatarBase {
    * reference is either a **Warren** (land in its lazily-created host —
    * the Warren is never the avatar's `container`; `container` stays
    * honest) or an ordinary **room** (a singleton room is reused, a
-   * non-singleton one is cloned fresh — `StuffApi.resolveOrClone`). The
+   * non-singleton one is cloned fresh — `StuffApi.singletonOrClone`). The
    * Warren check is a real `instanceof` against the canonical base class
    * (unspoofable); the generic clone-vs-singleton decision stays in
    * `StuffApi`.
@@ -114,7 +114,7 @@ export default class Avatar extends AvatarBase {
     const target: Stuff & Container =
       (cls.prototype as object) instanceof Warren
         ? await (await StuffApi.singleton<Warren>(ref)).getHost()
-        : await StuffApi.resolveOrClone<Stuff & Container>(ref);
+        : await StuffApi.singletonOrClone<Stuff & Container>(ref);
     ContainmentApi.move(this as unknown as Stuff & Containable, target);
   }
 

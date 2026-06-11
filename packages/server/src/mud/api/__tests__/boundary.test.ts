@@ -14,8 +14,8 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
-import CartesianLocation from '../../lib/spatial/CartesianLocation';
-import CartesianZone from '../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../lib/location/CartesianLocation';
+import CartesianZone from '../../lib/location/CartesianZone';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('BoundaryApi.create', () => {

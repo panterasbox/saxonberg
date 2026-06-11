@@ -1,7 +1,7 @@
 # MultiLocation — the Warren elastic-graph substrate + the lounge
 
 Source of truth for the generic substrate
-(`packages/server/src/mud/lib/multilocation/`) and the lounge content
+(`packages/server/src/mud/lib/location/`) and the lounge content
 that rides it (`packages/server/src/mud/domain/lounge/`). Read this
 before editing in the area.
 
@@ -19,12 +19,21 @@ Promoted from `docs/slates/multilocation-slate.md` +
 
 ## The pieces
 
-**Substrate — `lib/multilocation/` (generic, reusable):**
+**Substrate — `lib/location/` (generic, reusable):**
 
 | File | Role |
 |---|---|
 | `Warren.ts` | Abstract base — the generic mechanism. |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
+
+`lib/location/` is the home for everything *location* in the engine: the
+Warren substrate above, plus the core room/coordinate/zone classes
+(`CartesianLocation`, `SphericalLocation`, `CartesianCoordinates`,
+`SphericalCoordinates`, `CartesianZone`, `SphericalZone`) that used to sit
+in `lib/spatial/`. Those geometry classes are documented in
+[spatial.md](./spatial.md) and [zone.md](./zone.md); `lib/spatial/` now
+holds only the containment/movement substrate (Container, Containable,
+Mobile, Surfaced, Sealable).
 
 **Content — `domain/lounge/` (the lounge area; class paths
 `/domain/lounge/*`):**
@@ -101,7 +110,7 @@ owns the *domain* semantics:
   canonical base class imported directly (no marker static) — land in
   `singleton(ref).getHost()` (the Warren is never the avatar's
   `container`; `container` stays honest).
-- Otherwise it's an ordinary room: `StuffApi.resolveOrClone(ref)`, the
+- Otherwise it's an ordinary room: `StuffApi.singletonOrClone(ref)`, the
   generic primitive that decides **`singleton()` vs `clone()`** purely by
   whether the class composes `SingletonMixin`. No Warren/container
   special-casing lives in `StuffApi`.

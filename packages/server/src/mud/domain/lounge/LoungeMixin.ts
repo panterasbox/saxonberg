@@ -2,7 +2,7 @@
  * LoungeMixin — the lounge room's own, lounge-specific member behavior.
  *
  * Lives with the lounge content (`/domain/lounge/`), not the generic
- * Warren substrate (`/lib/multilocation/`). Sits on top of
+ * Warren substrate (`/lib/location/`). Sits on top of
  * `WarrenMemberMixin` (composition constraint, enforced at register time):
  * it is a *consumer* of the Warren back-ref, not a second carrier of it.
  * It supplies the lounge-room behaviors that are NOT generic Warren
@@ -33,8 +33,8 @@ import type { MixinConstructor } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
-import type { WarrenMember } from '../../lib/multilocation/WarrenMember';
-import { Warren } from '../../lib/multilocation/Warren';
+import type { WarrenMember } from '../../lib/location/WarrenMember';
+import { Warren } from '../../lib/location/Warren';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
