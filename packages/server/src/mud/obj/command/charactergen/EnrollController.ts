@@ -2,11 +2,14 @@
  * EnrollController — the char-gen verb (`enroll`), the real command
  * handler for character creation.
  *
- * `enroll <field> <value>` drives a uniform step model (ENROLL_STEPS):
- * species → sex → name → pronouns → aspiration → confirm. The handler
- * reads the giver (a `Login`), validates the value, mutates the Login's
- * `EnrollmentDraft`, and re-emits the `system.charactergen.state` frame.
- * `enroll confirm` runs the atomic commit: fork the per-character
+ * Char-gen is a DRAFT STATE MACHINE, not a step flow. Each
+ * `enroll <field> <value>` (species / sex / name / pronouns / aspiration)
+ * validates + sets that field on the Login's `EnrollmentDraft` and
+ * re-emits the FULL state (`system.charactergen.state`) — every field's
+ * options + the current picks + what's missing. There is no server-side
+ * "current step"; layout/flow is entirely the client's (so single-page
+ * vs multi-step is a pure client change). `enroll confirm` gates on
+ * nothing-missing, then runs the atomic commit: fork the per-character
  * template, register ownership, clone + dress the Avatar, hand off.
  *
  * The rosters (species / pronouns / aspirations) are CONTENT
@@ -41,7 +44,7 @@ import type {
   CharGenOption,
   CharGenPicks,
   CharGenStatePayload,
-  CharGenStep,
+  CharGenField,
   DossierSection,
   SpeciesDossier,
 } from '@saxonberg/types';
@@ -108,12 +111,13 @@ function validateNameToken(token: string, label: string): string | undefined {
   return undefined;
 }
 
-// ---- The uniform step model ---------------------------------------
+// ---- Field handlers (a set, not an ordered flow) ------------------
 
-interface EnrollStep {
-  field: Exclude<CharGenStep, 'done'>;
+interface FieldHandler {
+  /** Whether this field currently applies (e.g. sex only for sexed species). */
   applicable(draft: EnrollmentDraft, cfg: CharGenConfig): boolean;
-  complete(draft: EnrollmentDraft): boolean;
+  /** Whether the draft has a value for this field. */
+  isSet(draft: EnrollmentDraft): boolean;
   options(draft: EnrollmentDraft, cfg: CharGenConfig): CharGenOption[];
   validate(
     value: string,
@@ -128,11 +132,10 @@ interface EnrollStep {
   ): Promise<void> | void;
 }
 
-const ENROLL_STEPS: EnrollStep[] = [
-  {
-    field: 'species',
+const FIELDS: Record<CharGenField, FieldHandler> = {
+  species: {
     applicable: () => true,
-    complete: (d) => !!d.speciesPath,
+    isSet: (d) => !!d.speciesPath,
     options: (_d, cfg) =>
       cfg.species.map((s) => ({
         value: s.key,
@@ -149,14 +152,14 @@ const ENROLL_STEPS: EnrollStep[] = [
         : `Unknown species '${v}'. Pick one of the offered options.`,
     apply: async (v, d, cfg, ctrl) => {
       const entry = cfg.species.find((s) => s.key === v.toLowerCase())!;
-      // Idempotent: re-submitting the same species (e.g. after navigating
-      // back and confirming unchanged) must NOT wipe the downstream picks.
+      // Idempotent: re-submitting the same species must NOT wipe the
+      // downstream picks (only a genuine change cascades).
       const changed = entry.path !== d.speciesPath;
       d.speciesKey = entry.key;
       d.speciesPath = entry.path;
       // Materialize the Species singleton (not a sync registry lookup —
-      // the instance may not be cloned yet). Cache what the sync step
-      // model needs (common name, sex system) so it doesn't re-resolve.
+      // the instance may not be cloned yet). Cache the common name + sex
+      // system so the sync option builders don't re-resolve.
       const species = await StuffApi.singleton<Species>(entry.path);
       d.speciesCommonName =
         species.getCommonNames()[0] ?? entry.label.toLowerCase();
@@ -171,12 +174,11 @@ const ENROLL_STEPS: EnrollStep[] = [
       }
     },
   },
-  {
-    field: 'sex',
-    // Reads the cached sex-determination system the species step
+  sex: {
+    // Reads the cached sex-determination system the species pick
     // resolved — reliable + sync (no re-materialization here).
     applicable: (d) => !!d.speciesPath && !!d.sexSystem && d.sexSystem !== 'none',
-    complete: (d) => !!d.sex,
+    isSet: (d) => !!d.sex,
     options: (d) =>
       validSexSet(d.sexSystem ?? '').map((s) => ({ value: s, label: cap(s) })),
     validate: (v, d) => {
@@ -189,13 +191,12 @@ const ENROLL_STEPS: EnrollStep[] = [
       d.sex = v.toLowerCase();
     },
   },
-  {
-    field: 'name',
+  name: {
     applicable: () => true,
-    complete: (d) => !!d.name,
-    // No card options — the name step renders editable given/surname
-    // fields + a reroll button client-side. `reroll` regenerates the
-    // suggestion; any other value is the typed `<given> [surname]`.
+    isSet: (d) => !!d.name,
+    // No card options — the client renders editable given/surname fields
+    // + a reroll button. `reroll` regenerates the suggestion; any other
+    // value is the typed `<given> [surname]`.
     options: () => [],
     validate: (v, _d) => {
       const trimmed = v.trim();
@@ -219,16 +220,15 @@ const ENROLL_STEPS: EnrollStep[] = [
         d.surname = undefined;
         return;
       }
-      if (!trimmed) return; // empty submit — ignored (Continue is gated).
+      if (!trimmed) return; // empty submit — ignored.
       const parts = trimmed.split(/\s+/);
       d.name = parts[0];
       d.surname = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
     },
   },
-  {
-    field: 'pronouns',
+  pronouns: {
     applicable: () => true,
-    complete: (d) => !!d.pronouns,
+    isSet: (d) => !!d.pronouns,
     options: () => PRONOUN_OPTIONS,
     validate: (v) =>
       PRONOUN_OPTIONS.some((p) => p.value === v.toLowerCase())
@@ -238,10 +238,9 @@ const ENROLL_STEPS: EnrollStep[] = [
       d.pronouns = v.toLowerCase();
     },
   },
-  {
-    field: 'aspiration',
+  aspiration: {
     applicable: () => true,
-    complete: (d) => !!d.aspiration,
+    isSet: (d) => !!d.aspiration,
     options: (_d, cfg) =>
       cfg.aspirations.map((a) => ({
         value: a.key,
@@ -257,27 +256,26 @@ const ENROLL_STEPS: EnrollStep[] = [
       d.aspiration = v.toLowerCase();
     },
   },
-  {
-    field: 'confirm',
-    applicable: () => true,
-    complete: () => false,
-    options: () => [{ value: 'confirm', label: 'Begin your story' }],
-    validate: (_v, d, cfg) => {
-      const missing = ENROLL_STEPS.filter(
-        (s) =>
-          s.field !== 'confirm' &&
-          s.applicable(d, cfg) &&
-          !s.complete(d),
-      ).map((s) => s.field);
-      return missing.length
-        ? `Still to choose: ${missing.join(', ')}.`
-        : undefined;
-    },
-    apply: async (_v, d, cfg, ctrl) => {
-      await ctrl.commit(d, cfg);
-    },
-  },
+};
+
+/** Settable fields in canonical order (drives `missing` + iteration). */
+const FIELD_ORDER: CharGenField[] = [
+  'species',
+  'sex',
+  'name',
+  'pronouns',
+  'aspiration',
 ];
+
+/** Required fields still unset for the current draft (sex only if applicable). */
+function computeMissing(
+  draft: EnrollmentDraft,
+  cfg: CharGenConfig,
+): CharGenField[] {
+  return FIELD_ORDER.filter(
+    (f) => FIELDS[f].applicable(draft, cfg) && !FIELDS[f].isSet(draft),
+  );
+}
 
 /**
  * Build the species dossier — the char-gen showcase of how deeply the
@@ -497,43 +495,54 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const value = (sp === -1 ? '' : rest.slice(sp + 1)).trim();
 
     if (!field) {
-      // Bare `enroll` → (re)show current state.
+      // Bare `enroll` → emit the current draft state.
       this.emitState(login, draft, cfg);
       return;
     }
 
-    // Navigation: `enroll back` steps the displayed step one back without
-    // applying a choice (sets the `activeStep` override, then re-renders).
-    if (field === 'back') {
-      this.goBack(draft, cfg);
-      this.emitState(login, draft, cfg);
+    if (field === 'confirm') {
+      const missing = computeMissing(draft, cfg);
+      if (missing.length) {
+        this.emitState(login, draft, cfg, {
+          field: missing[0]!,
+          message: `Still to choose: ${missing.join(', ')}.`,
+        });
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'enroll-incomplete',
+          detail: missing.join(','),
+        });
+        return;
+      }
+      // Atomic commit + hand off; commit fires its own final frames, so
+      // no state frame here.
+      await this.commit(draft, cfg);
       return;
     }
 
-    const step = ENROLL_STEPS.find((s) => s.field === field);
-    if (!step) {
-      this.emitState(
-        login,
-        draft,
-        cfg,
-        `Unknown step '${field}'. Try: ${ENROLL_STEPS.map((s) => s.field).join(', ')}.`,
-      );
+    const handler = (FIELDS as Record<string, FieldHandler | undefined>)[field];
+    if (!handler) {
+      this.emitState(login, draft, cfg);
       context.note({
         kind: 'controller-rejected',
-        reason: 'unknown-enroll-step',
+        reason: 'unknown-enroll-field',
         detail: field,
       });
       return;
     }
 
-    if (!step.applicable(draft, cfg)) {
-      this.emitState(login, draft, cfg, `That step isn't available yet.`);
+    if (!handler.applicable(draft, cfg)) {
+      // Field doesn't apply (e.g. sex on a sexless species) — ignore.
+      this.emitState(login, draft, cfg);
       return;
     }
 
-    const err = await step.validate(value, draft, cfg);
+    const err = await handler.validate(value, draft, cfg);
     if (err) {
-      this.emitState(login, draft, cfg, err);
+      this.emitState(login, draft, cfg, {
+        field: field as CharGenField,
+        message: err,
+      });
       context.note({
         kind: 'controller-rejected',
         reason: 'enroll-validation-failed',
@@ -542,17 +551,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
       return;
     }
 
-    await step.apply(value, draft, cfg, this);
-
-    // A real choice resumes natural forward progression — drop any
-    // back/edit override so the next first-incomplete step shows.
-    draft.activeStep = undefined;
-
-    // `confirm` commits + hands off (its own final frame); otherwise
-    // advance the state display.
-    if (field !== 'confirm') {
-      this.emitState(login, draft, cfg);
-    }
+    // Live-fire: set the field and re-emit the full state. Advancing /
+    // committing is the client's call (a later `enroll confirm`).
+    await handler.apply(value, draft, cfg, this);
+    this.emitState(login, draft, cfg);
   }
 
   /** (Re)generate the species-themed name suggestion onto the draft. */
@@ -567,55 +569,13 @@ export default class EnrollController extends CommandController<EnrollModel> {
       : await species.suggestName(draft.realName);
   }
 
-  /**
-   * Compute the displayed step. An `activeStep` override (set by `back`
-   * / `edit` navigation) wins when it's applicable; otherwise the first
-   * applicable + incomplete step, falling back to `confirm`.
-   */
-  private currentStep(draft: EnrollmentDraft, cfg: CharGenConfig): EnrollStep {
-    if (draft.activeStep) {
-      const override = ENROLL_STEPS.find((s) => s.field === draft.activeStep);
-      if (override && override.applicable(draft, cfg)) return override;
-    }
-    for (const s of ENROLL_STEPS) {
-      if (s.field === 'confirm') continue;
-      if (s.applicable(draft, cfg) && !s.complete(draft)) return s;
-    }
-    return ENROLL_STEPS.find((s) => s.field === 'confirm')!;
-  }
-
-  /** Applicable step fields in flow order (drives back/canGoBack). */
-  private applicableOrder(
-    draft: EnrollmentDraft,
-    cfg: CharGenConfig,
-  ): CharGenStep[] {
-    return ENROLL_STEPS.filter((s) => s.applicable(draft, cfg)).map(
-      (s) => s.field,
-    );
-  }
-
-  /** Move the displayed step one back among the applicable steps. */
-  private goBack(draft: EnrollmentDraft, cfg: CharGenConfig): void {
-    const displayed = this.currentStep(draft, cfg).field;
-    const order = this.applicableOrder(draft, cfg);
-    const idx = order.indexOf(displayed);
-    if (idx > 0) draft.activeStep = order[idx - 1];
-  }
-
-  /** Emit the `system.charactergen.state` frame for the current step. */
+  /** Emit the full char-gen draft state (the whole picture, every time). */
   private emitState(
     login: Login,
     draft: EnrollmentDraft,
     cfg: CharGenConfig,
-    error?: string,
+    error?: { field: CharGenField; message: string },
   ): void {
-    const step = this.currentStep(draft, cfg);
-    // Ensure a suggestion exists when the name step is active.
-    if (step.field === 'name' && !draft.suggestion && draft.speciesPath) {
-      // Fire-and-forget refresh; the frame this turn may lack it, the
-      // next turn carries it. (Synchronous emit; suggestion is best-
-      // effort here — species.apply already seeds it.)
-    }
     const picks: CharGenPicks = {};
     if (draft.speciesPath) {
       picks.species = {
@@ -629,22 +589,25 @@ export default class EnrollController extends CommandController<EnrollModel> {
     if (draft.pronouns) picks.pronouns = draft.pronouns;
     if (draft.aspiration) picks.aspiration = draft.aspiration;
 
-    const order = this.applicableOrder(draft, cfg);
     const payload: CharGenStatePayload = {
-      step: step.field,
       picks,
-      options: step.options(draft, cfg),
-      canGoBack: order.indexOf(step.field) > 0,
+      speciesOptions: FIELDS.species.options(draft, cfg),
+      sexOptions: FIELDS.sex.applicable(draft, cfg)
+        ? FIELDS.sex.options(draft, cfg)
+        : [],
+      pronounOptions: FIELDS.pronouns.options(draft, cfg),
+      aspirationOptions: FIELDS.aspiration.options(draft, cfg),
+      missing: computeMissing(draft, cfg),
     };
-    if (step.field === 'name') {
-      if (draft.suggestion) payload.suggestion = draft.suggestion;
-      if (draft.accountName) payload.accountName = draft.accountName;
-    }
+    if (draft.suggestion) payload.suggestion = draft.suggestion;
+    if (draft.accountName) payload.accountName = draft.accountName;
     if (error) payload.error = error;
 
+    // No prose — the structured payload drives the UI, and the command
+    // echo (`> enroll species dwarf`) already gives terminal feedback.
     MessageApi.scene(login)
       .topic('system.charactergen.state')
-      .toSelf(Mml.compose`${promptFor(step.field)}`)
+      .toSelf(Mml.compose``)
       .payload(payload)
       .send();
   }
@@ -737,7 +700,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
 
     // 6. Hand off to the avatar's session, then destruct Login.
     ConnectionApi.transfer(interactive, avatar);
-    await avatar.enter(interactive);
+    await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(login);
   }
 
@@ -757,24 +720,5 @@ export default class EnrollController extends CommandController<EnrollModel> {
   static resetConfigCache(): void {
     EnrollController.#config = null;
     EnrollController.#speciesDossiers = null;
-  }
-}
-
-function promptFor(step: CharGenStep): string {
-  switch (step) {
-    case 'species':
-      return 'What kind of body will you wear? (`enroll species <name>`)';
-    case 'sex':
-      return 'Choose a sex. (`enroll sex <male|female>`)';
-    case 'name':
-      return 'What shall we call you?';
-    case 'pronouns':
-      return 'Which pronouns? (`enroll pronouns <they|she|he|it>`)';
-    case 'aspiration':
-      return 'What did you come here to become? (`enroll aspiration <name>`)';
-    case 'confirm':
-      return 'Ready. (`enroll confirm` to begin)';
-    default:
-      return '';
   }
 }

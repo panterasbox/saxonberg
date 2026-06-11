@@ -928,15 +928,17 @@ export interface ConnectionEstablishedPayload {
  * (a Sensor) and read by the cockpit's char-gen layout.
  */
 
-/** The ordered char-gen steps; `'done'` signals commit/enter. */
-export type CharGenStep =
+/**
+ * The settable char-gen fields. Each is set by a live `enroll <field>
+ * <value>` command; the client lays them out however it likes (one per
+ * screen, grouped, or all on one page) — the server is layout-agnostic.
+ */
+export type CharGenField =
   | 'species'
   | 'sex'
   | 'name'
   | 'pronouns'
-  | 'aspiration'
-  | 'confirm'
-  | 'done';
+  | 'aspiration';
 
 /** One closed-choice option for the current char-gen step. */
 export interface CharGenOption {
@@ -961,7 +963,7 @@ export interface CharGenOption {
    * server-side from the real `Species` template and its resolved
    * `BodyPlan` / `Material` / clade chain; every row is real data, so
    * a missing section/row means the data genuinely isn't authored.
-   * Species step only; other steps omit it.
+   * Species options only; other fields omit it.
    */
   dossier?: SpeciesDossier;
 }
@@ -993,28 +995,38 @@ export interface CharGenPicks {
   aspiration?: string;
 }
 
-/** `system.charactergen.state` payload — drives the char-gen layout. */
+/**
+ * `system.charactergen.state` payload — the complete live draft state.
+ * The server re-emits the whole thing after every `enroll <field>
+ * <value>`; the client renders whatever layout it wants from it. No
+ * notion of a "current step" — flow/layout is entirely client-side.
+ */
 export interface CharGenStatePayload {
-  step: CharGenStep;
+  /** Current chosen values (the live draft). */
   picks: CharGenPicks;
-  /** Current name suggestion (name step only). */
+  /** Species options (carry the dossier + illustration). */
+  speciesOptions: CharGenOption[];
+  /**
+   * Sex options for the chosen species — EMPTY when the species isn't
+   * sexed, which is also how the client knows the field doesn't apply.
+   */
+  sexOptions: CharGenOption[];
+  pronounOptions: CharGenOption[];
+  aspirationOptions: CharGenOption[];
+  /** Current name suggestion (drives the name fields' pre-fill). */
   suggestion?: { name: string; surname?: string };
   /**
    * The player's real account display name (Google `displayName`; Twitch
-   * later), shown on the name step for reference/inspiration. Absent if
-   * unavailable.
+   * later), shown on the name field for reference. Absent if unavailable.
    */
   accountName?: string;
-  /** Closed-choice options for the current step (content-derived). */
-  options: CharGenOption[];
-  /** Last validation rejection, for inline display. */
-  error?: string;
   /**
-   * Whether an earlier step exists to return to — drives the "Back"
-   * affordance. False on the first step. Any already-made pick can also
-   * be revisited directly via `enroll edit <field>`.
+   * Required fields still unset — gates `enroll confirm` and lets the
+   * client show what's left. A `sex` entry appears only when applicable.
    */
-  canGoBack: boolean;
+  missing: CharGenField[];
+  /** Last validation rejection, scoped to the field it concerns. */
+  error?: { field: CharGenField; message: string };
 }
 
 /** One character in the post-login roster. */

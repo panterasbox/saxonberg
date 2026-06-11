@@ -728,12 +728,10 @@ export const useStore = create<StoreState>((set, get) => ({
   setCharGenState: (charGenState) =>
     set(() => ({
       charGenState,
-      // A `done` step means the commit fired; the in-world flip rides
-      // the subsequent `system.connection.established` for the new
-      // avatar (setConnected). Until then, hold the char-gen stage.
-      ...(charGenState.step === 'done'
-        ? {}
-        : { connectionPhase: 'char-gen' as const }),
+      // A char-gen state frame means we're mid-creation. The in-world
+      // flip rides the `system.connection.established` that `enroll
+      // confirm` fires after commit (setConnected), not a state frame.
+      connectionPhase: 'char-gen' as const,
     })),
 
   setConnection: (connection) =>
@@ -746,7 +744,14 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
-    set({
+    set((state) => ({
+      // Entering the world from char-gen or the roster starts a fresh
+      // terminal — drop the buffer (and its unread/muted bookkeeping) so
+      // the player doesn't carry the `enroll …` command echoes into the
+      // world. A reconnect (already in-world) keeps its scrollback.
+      ...(state.connectionPhase === 'in-world'
+        ? {}
+        : { frames: [], unreadCounts: {}, mutedSinceSessionStart: {} }),
       connection: {
         isConnected: true,
         socketId: payload.socketId,
@@ -780,7 +785,7 @@ export const useStore = create<StoreState>((set, get) => ({
         },
         player: payload.player,
       },
-    });
+    }));
   },
 
   setDisconnected: (error) =>

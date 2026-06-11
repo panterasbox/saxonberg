@@ -1,0 +1,3 @@
+verbs: [clear]
+controller: system/ClearController
+description: "Clear the terminal scrollback"

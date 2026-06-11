@@ -118,51 +118,56 @@ test('a new player creates a character and spawns into the world', async ({
       'Lifespan',
     );
 
-    // Select-then-submit: clicking a card selects it (no auto-advance);
-    // the Continue button commits and advances.
+    // Live-fire: clicking a card sends `enroll species human` immediately.
+    // The pick round-trips through the server, so wait for the card to
+    // register as selected (aria-pressed) before Continue — otherwise the
+    // client's canAdvance gate is still false and Continue is disabled.
     await page.getByTestId('chargen-option-human').click();
-    await page.getByTestId('chargen-submit').click();
+    await expect(page.getByTestId('chargen-option-human')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.getByTestId('chargen-next').click();
 
-    // Step — sex. This step is conditional: it only appears for species
-    // whose Species template declares a sex-determination system other
-    // than `none`. We wait for either the sex option or the next (name)
-    // step to land, then drive sex when it is presented — keeping the
-    // spec robust if a species ever skips the step.
+    // Screen — sex & pronouns share one screen (for sexed species).
     const female = page.getByTestId('chargen-option-female');
-    const givenInput = page.getByTestId('chargen-given-input');
-    await expect(female.or(givenInput).first()).toBeVisible();
+    const she = page.getByTestId('chargen-option-she');
+    await expect(she).toBeVisible();
     if (await female.isVisible()) {
-      // Navigation check: Back returns to the species step (with the
-      // pick pre-selected), and Continue brings us forward again.
+      // Navigation check: Back returns to the species screen (the live
+      // pick is still highlighted), and Continue returns forward.
       await page.getByTestId('chargen-back').click();
       await expect(page.getByTestId('chargen-step')).toHaveText(
         /choose your species/i,
       );
-      await page.getByTestId('chargen-submit').click();
+      await page.getByTestId('chargen-next').click();
       await expect(female).toBeVisible();
 
       await female.click();
-      await page.getByTestId('chargen-submit').click();
+      await expect(female).toHaveAttribute('aria-pressed', 'true');
     }
+    await she.click();
+    await expect(she).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('chargen-next').click();
 
-    // Step — name. Separate given/surname fields, pre-filled with the
-    // themed suggestion; overwrite the given name and Continue.
+    // Screen — name. Separate given/surname fields, pre-filled with the
+    // themed suggestion; overwrite and Continue (which flushes the name).
+    const givenInput = page.getByTestId('chargen-given-input');
     await expect(givenInput).toBeVisible();
     await givenInput.fill('Testaril');
     await page.getByTestId('chargen-surname-input').fill('Ashby');
-    await page.getByTestId('chargen-submit').click();
+    await page.getByTestId('chargen-next').click();
 
-    // Step — pronouns.
-    await expect(page.getByTestId('chargen-option-she')).toBeVisible();
-    await page.getByTestId('chargen-option-she').click();
-    await page.getByTestId('chargen-submit').click();
-
-    // Step — aspiration.
+    // Screen — aspiration.
     await expect(page.getByTestId('chargen-option-healer')).toBeVisible();
     await page.getByTestId('chargen-option-healer').click();
-    await page.getByTestId('chargen-submit').click();
+    await expect(page.getByTestId('chargen-option-healer')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.getByTestId('chargen-next').click();
 
-    // Step 6 — confirm → the avatar is created and enters the world.
+    // Screen — review → Create the avatar and enter the world.
     await expect(page.getByTestId('chargen-confirm')).toBeVisible();
     await page.getByTestId('chargen-confirm').click();
 

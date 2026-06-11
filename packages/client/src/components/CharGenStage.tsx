@@ -29,12 +29,12 @@
  * color is reserved (the project is color-conservative).
  */
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import type {
+  CharGenField,
   CharGenOption,
   CharGenPicks,
-  CharGenStep,
 } from '@saxonberg/types';
 import { useStore } from '../store/index';
 import { tokens } from './ui/tokens';
@@ -153,9 +153,27 @@ const OptionDesc = styled.span`
 `;
 
 /**
- * Wizard navigation footer: Back on the left, the step's forward action
- * (Continue / Step into the world) on the right. Pinned outside the
- * scrolling stage body so it stays visible regardless of dossier height.
+ * A field group within a screen. When a screen holds more than one
+ * field (e.g. sex + pronouns), each gets a small heading; a single-field
+ * screen relies on the screen heading and shows no group heading.
+ */
+const FieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.sm};
+`;
+
+const FieldGroupHeading = styled.div`
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: ${tokens.color.fgMuted};
+`;
+
+/**
+ * Navigation footer: Back on the left, the forward action (Continue /
+ * Step into the world) on the right. Pinned outside the scrolling stage
+ * body so it stays visible regardless of dossier height.
  */
 const NavRow = styled.div`
   flex-shrink: 0;
@@ -420,76 +438,74 @@ const TerminalStrip = styled.div`
   min-height: 0;
 `;
 
-/* --- Step copy ---------------------------------------------------- */
+/* --- Screen layout (client-owned) --------------------------------- */
 
-const STEP_PROMPT: Record<CharGenStep, { heading: string; sub: string }> = {
-  species: {
-    heading: 'Choose your species',
-    sub: 'Pick the kind of being you are stepping into.',
-  },
-  sex: {
-    heading: 'Choose a sex',
-    sub: 'Independent of the pronouns you will pick next.',
-  },
-  name: {
-    heading: 'Choose a name',
-    sub: 'Edit the suggested name, or write your own.',
-  },
-  pronouns: {
-    heading: 'Choose your pronouns',
-    sub: 'How others will refer to you.',
-  },
-  aspiration: {
-    heading: 'Choose an aspiration',
-    sub: 'Who you are becoming. This seeds your story and your attire.',
-  },
-  confirm: {
-    heading: 'Confirm your character',
-    sub: 'Review your choices, then step into the world.',
-  },
-  done: {
-    heading: 'Entering the world…',
-    sub: 'Your character is being placed.',
-  },
-};
-
-/**
- * Steps whose options carry an illustration — these render the
- * two-column cards-plus-detail-pane layout. Other steps (sex,
- * pronouns, name, confirm) keep the single centered column. Extending
- * this set is the only change needed to illustrate another step.
- */
-const STEPS_WITH_ILLUSTRATION = new Set<CharGenStep>(['species', 'aspiration']);
-
-const PICK_ORDER: { key: keyof CharGenPicks; label: string }[] = [
-  { key: 'species', label: 'species' },
-  { key: 'sex', label: 'sex' },
-  { key: 'name', label: 'name' },
-  { key: 'pronouns', label: 'pronouns' },
-  { key: 'aspiration', label: 'aspiration' },
-];
-
-function renderPickValue(key: keyof CharGenPicks, picks: CharGenPicks): string {
-  if (key === 'species') {
-    return picks.species ? picks.species.commonName : '';
-  }
-  if (key === 'name') {
-    return [picks.name, picks.surname].filter(Boolean).join(' ');
-  }
-  const value = picks[key];
-  return typeof value === 'string' ? value : '';
+interface ScreenDef {
+  id: string;
+  heading: string;
+  sub: string;
+  fields: CharGenField[];
 }
 
 /**
- * The already-chosen option value for a closed-choice step (so Back
- * pre-highlights the current pick). Returns the option `value` token,
- * not the display label. Non-choice steps return null.
+ * The char-gen layout lives ENTIRELY here on the client — the server is
+ * a field state machine that doesn't care how fields are grouped. This
+ * default chunks fields across screens (sex + pronouns share one). A
+ * single-page A/B variant is just a one-entry config listing every
+ * field; no server change.
  */
-function pickValueForStep(
-  step: CharGenStep,
+const SCREENS: ScreenDef[] = [
+  {
+    id: 'species',
+    heading: 'Choose your species',
+    sub: 'Pick the kind of being you are stepping into.',
+    fields: ['species'],
+  },
+  {
+    id: 'identity',
+    heading: 'Sex & pronouns',
+    sub: 'Your biological sex, and how others will refer to you.',
+    fields: ['sex', 'pronouns'],
+  },
+  {
+    id: 'name',
+    heading: 'Choose a name',
+    sub: 'Edit the suggested name, or write your own.',
+    fields: ['name'],
+  },
+  {
+    id: 'aspiration',
+    heading: 'Choose an aspiration',
+    sub: 'Who you are becoming — this seeds your story and your attire.',
+    fields: ['aspiration'],
+  },
+];
+
+const REVIEW_SCREEN: ScreenDef = {
+  id: 'review',
+  heading: 'Review your character',
+  sub: 'Check everything over, then step into the world.',
+  fields: [],
+};
+
+/** Fields rendered with the illustrated cards-plus-dossier layout. */
+const ILLUSTRATED_FIELDS = new Set<CharGenField>(['species']);
+
+/** Per-field heading, shown when a screen groups more than one field. */
+const FIELD_HEADING: Record<CharGenField, string> = {
+  species: 'Species',
+  sex: 'Sex',
+  name: 'Name',
+  pronouns: 'Pronouns',
+  aspiration: 'Aspiration',
+};
+
+/** The currently-selected option value for a closed-choice field. */
+function pickValueForField(
+  field: CharGenField,
   picks: CharGenPicks,
 ): string | null {
-  switch (step) {
+  switch (field) {
     case 'species':
       return picks.species?.key ?? null;
     case 'sex':
@@ -501,6 +517,20 @@ function pickValueForStep(
     default:
       return null;
   }
+}
+
+/** The accumulated picks, for the review summary. */
+function reviewRows(picks: CharGenPicks): { label: string; value: string }[] {
+  const rows: { label: string; value: string }[] = [];
+  if (picks.species) {
+    rows.push({ label: 'Species', value: picks.species.commonName });
+  }
+  if (picks.sex) rows.push({ label: 'Sex', value: picks.sex });
+  if (picks.pronouns) rows.push({ label: 'Pronouns', value: picks.pronouns });
+  const fullName = [picks.name, picks.surname].filter(Boolean).join(' ');
+  if (fullName) rows.push({ label: 'Name', value: fullName });
+  if (picks.aspiration) rows.push({ label: 'Aspiration', value: picks.aspiration });
+  return rows;
 }
 
 /* --- Component ---------------------------------------------------- */
@@ -533,20 +563,27 @@ export function CharGenStage({
   onCommandPreview,
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
-  // The detail pane previews this option (driven by card hover); null
-  // falls through to the selected card, then the first option, so the
-  // pane is never empty.
+  // Which screen the client is showing — flow/layout is entirely
+  // client-side; the server is a field state machine that doesn't care.
+  const [screenIndex, setScreenIndex] = useState(0);
+  // The detail pane previews this option on card hover; null falls
+  // through to the chosen card, then the first option.
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
-  // Editable name fields (name step). Initialized from the existing pick
-  // if any, else the suggestion; refilled whenever that source changes
-  // (e.g. reroll regenerates the suggestion and clears the pick).
+  // Editable name fields, pre-filled from the existing pick (else the
+  // suggestion); refilled only when that source changes (e.g. reroll),
+  // not on every keystroke.
   const [givenName, setGivenName] = useState('');
   const [surnameVal, setSurnameVal] = useState('');
+  // The name field flushes from both the input `onBlur` and the Continue
+  // button. Clicking Continue blurs the input first, so both fire in the
+  // same tick with identical content. Dedupe by last-sent value so an
+  // unchanged name is never re-fired (a redundant `enroll name`).
+  const lastSentName = useRef<string | null>(null);
   const nameSource = charGenState?.picks?.name
     ? `pick:${charGenState.picks.name}|${charGenState.picks.surname ?? ''}`
     : `sug:${charGenState?.suggestion?.name ?? ''}|${charGenState?.suggestion?.surname ?? ''}`;
   useEffect(() => {
-    if (charGenState?.step !== 'name') return;
+    if (!charGenState) return;
     if (charGenState.picks.name) {
       setGivenName(charGenState.picks.name);
       setSurnameVal(charGenState.picks.surname ?? '');
@@ -554,27 +591,8 @@ export function CharGenStage({
       setGivenName(charGenState.suggestion.name ?? '');
       setSurnameVal(charGenState.suggestion.surname ?? '');
     }
-    // Re-fill only when the pick/suggestion source changes, not on every
-    // keystroke (those are local edits).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nameSource]);
-  // The tentatively-selected card for a closed-choice step. A click
-  // selects (does not submit); the Continue button submits it. Reset to
-  // the existing pick whenever the displayed step changes (so revisiting
-  // a step via Back pre-highlights your current choice).
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
-  const activeStepName = charGenState?.step;
-  useEffect(() => {
-    setSelectedValue(
-      charGenState
-        ? pickValueForStep(charGenState.step, charGenState.picks)
-        : null,
-    );
-    setFocusedValue(null);
-    // Re-run only when the displayed step changes; `picks` is read for the
-    // pre-fill at that moment, not tracked.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStepName]);
 
   // No state yet (frame in flight) — show a quiet placeholder rather
   // than an empty screen.
@@ -590,237 +608,269 @@ export function CharGenStage({
     );
   }
 
-  const { step, picks, options, error, canGoBack, accountName } = charGenState;
-  const prompt = STEP_PROMPT[step];
+  const {
+    picks,
+    speciesOptions,
+    sexOptions,
+    pronounOptions,
+    aspirationOptions,
+    accountName,
+    missing,
+    error,
+  } = charGenState;
 
-  const isNameStep = step === 'name';
-  const isConfirmStep = step === 'confirm';
+  const optionsFor = (field: CharGenField): CharGenOption[] => {
+    switch (field) {
+      case 'species':
+        return speciesOptions;
+      case 'sex':
+        return sexOptions;
+      case 'pronouns':
+        return pronounOptions;
+      case 'aspiration':
+        return aspirationOptions;
+      default:
+        return [];
+    }
+  };
+
+  // Sex drops off a screen entirely when it doesn't apply (no options).
+  const fieldApplies = (field: CharGenField): boolean =>
+    field === 'sex' ? sexOptions.length > 0 : true;
+
+  const screens = [...SCREENS, REVIEW_SCREEN];
+  const clampedIndex = Math.min(screenIndex, screens.length - 1);
+  const screen = screens[clampedIndex]!;
+  const isReview = clampedIndex >= SCREENS.length;
+  const screenFields = screen.fields.filter(fieldApplies);
 
   const submitName = () => {
     const given = givenName.trim();
     if (!given) return;
     const surname = surnameVal.trim();
-    onSendCommand(`enroll name ${[given, surname].filter(Boolean).join(' ')}`);
+    const cmd = `enroll name ${[given, surname].filter(Boolean).join(' ')}`;
+    if (cmd === lastSentName.current) return;
+    lastSentName.current = cmd;
+    onSendCommand(cmd);
   };
+
+  // Setting a field is a LIVE command (fires + echoes immediately).
+  const setField = (field: CharGenField, value: string) =>
+    onSendCommand(`enroll ${field} ${value}`);
+
+  // Nav: a field is satisfied via the local box (name, which fires on
+  // blur / Next) or the server's `missing` (everything else).
+  const fieldSatisfied = (field: CharGenField): boolean =>
+    field === 'name' ? givenName.trim() !== '' : !missing.includes(field);
+  const canAdvance = screenFields.every(fieldSatisfied);
+
+  const goNext = () => {
+    if (screenFields.includes('name')) submitName();
+    setScreenIndex((i) => Math.min(i + 1, screens.length - 1));
+  };
+  const goBack = () => setScreenIndex((i) => Math.max(0, i - 1));
+
+  const renderCards = (field: CharGenField) => {
+    const opts = optionsFor(field);
+    const selected = pickValueForField(field, picks);
+    const illustrated = ILLUSTRATED_FIELDS.has(field);
+    const grid = (
+      <OptionGrid>
+        {opts.map((opt) => (
+          <OptionCard
+            key={opt.value}
+            data-testid={`chargen-option-${opt.value}`}
+            $selected={opt.value === selected}
+            aria-pressed={opt.value === selected}
+            onClick={() => setField(field, opt.value)}
+            onMouseEnter={() => {
+              if (illustrated) setFocusedValue(opt.value);
+              onCommandPreview(`enroll ${field} ${opt.value}`);
+            }}
+            onMouseLeave={() => {
+              if (illustrated) setFocusedValue(null);
+              onCommandPreview(null);
+            }}
+          >
+            <OptionLabel>{opt.label}</OptionLabel>
+            {!illustrated && opt.description ? (
+              <OptionDesc>{opt.description}</OptionDesc>
+            ) : null}
+          </OptionCard>
+        ))}
+      </OptionGrid>
+    );
+    if (!illustrated) return grid;
+    const focused =
+      opts.find((o) => o.value === (focusedValue ?? selected)) ??
+      opts[0] ??
+      null;
+    return (
+      <IllustratedLayout>
+        <OptionColumn>{grid}</OptionColumn>
+        <DetailPane data-testid="chargen-detail-pane">
+          <DetailImage data-testid="chargen-detail-image">
+            {focused?.image ? (
+              <img src={focused.image} alt={focused.label} />
+            ) : (
+              <span>illustration</span>
+            )}
+          </DetailImage>
+          {focused ? (
+            <DetailLabel data-testid="chargen-detail-label">
+              {focused.label}
+            </DetailLabel>
+          ) : null}
+          {focused?.dossier?.binomial ? (
+            <Binomial data-testid="chargen-detail-binomial">
+              {focused.dossier.binomial}
+            </Binomial>
+          ) : null}
+          {focused?.description ? (
+            <DetailDesc>{focused.description}</DetailDesc>
+          ) : null}
+          {focused?.dossier?.sections.length ? (
+            <DossierBox data-testid="chargen-detail-dossier">
+              {focused.dossier.sections.map((section) => (
+                <div key={section.heading}>
+                  <DossierHeading>{section.heading}</DossierHeading>
+                  <DossierGrid>
+                    {section.rows.map((row) => (
+                      <Fragment key={row.label}>
+                        <DossierLabel>{row.label}</DossierLabel>
+                        <DossierValue>{row.value}</DossierValue>
+                      </Fragment>
+                    ))}
+                  </DossierGrid>
+                </div>
+              ))}
+            </DossierBox>
+          ) : null}
+        </DetailPane>
+      </IllustratedLayout>
+    );
+  };
+
+  const renderNameField = () => (
+    <NameForm
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitName();
+      }}
+    >
+      {accountName ? (
+        <NameAccountRef>
+          Signed in as <strong>{accountName}</strong>
+        </NameAccountRef>
+      ) : null}
+      <NameFieldRow>
+        <NameField>
+          <NameFieldLabel htmlFor="chargen-given">Given name</NameFieldLabel>
+          <NameInput
+            id="chargen-given"
+            data-testid="chargen-given-input"
+            value={givenName}
+            onChange={(e) => setGivenName(e.target.value)}
+            onBlur={submitName}
+            placeholder="Given name"
+            autoComplete="off"
+          />
+        </NameField>
+        <NameField>
+          <NameFieldLabel htmlFor="chargen-surname">
+            Surname <NameOptional>(optional)</NameOptional>
+          </NameFieldLabel>
+          <NameInput
+            id="chargen-surname"
+            data-testid="chargen-surname-input"
+            value={surnameVal}
+            onChange={(e) => setSurnameVal(e.target.value)}
+            onBlur={submitName}
+            placeholder="Surname"
+            autoComplete="off"
+          />
+        </NameField>
+      </NameFieldRow>
+      <StageButton
+        type="button"
+        data-testid="chargen-reroll"
+        onClick={() => onSendCommand('enroll name reroll')}
+      >
+        ⟳ Suggest another
+      </StageButton>
+      {/* Hidden submit so Enter in a field commits the name. */}
+      <button type="submit" hidden aria-hidden="true" />
+    </NameForm>
+  );
+
+  const renderField = (field: CharGenField) =>
+    field === 'name' ? renderNameField() : renderCards(field);
 
   return (
     <Stage data-testid="chargen-stage">
       <StageBody>
         <StageInner>
           <div>
-            <StepHeading data-testid="chargen-step">{prompt.heading}</StepHeading>
-            <StepSub>{prompt.sub}</StepSub>
+            <StepHeading data-testid="chargen-step">{screen.heading}</StepHeading>
+            <StepSub>{screen.sub}</StepSub>
           </div>
 
           {error ? (
-            <ErrorBanner data-testid="chargen-error">{error}</ErrorBanner>
+            <ErrorBanner data-testid="chargen-error">
+              {error.message}
+            </ErrorBanner>
           ) : null}
 
-          {/* Accumulated picks so far. */}
-          {PICK_ORDER.some((p) => renderPickValue(p.key, picks)) ? (
-            <Picks>
-              {PICK_ORDER.map((p) => {
-                const value = renderPickValue(p.key, picks);
-                if (!value) return null;
-                return (
-                  <PickRow key={p.key} label={p.label} value={value} />
-                );
-              })}
+          {isReview ? (
+            <Picks data-testid="chargen-review">
+              {reviewRows(picks).map((r) => (
+                <PickRow key={r.label} label={r.label} value={r.value} />
+              ))}
             </Picks>
-          ) : null}
-
-          {/* Name step: editable given/surname fields pre-filled with the
-              themed suggestion, plus a reroll that rewrites both boxes.
-              Submitting rides the wizard's Continue button below. */}
-          {isNameStep ? (
-            <NameForm
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitName();
-              }}
-            >
-              {accountName ? (
-                <NameAccountRef>
-                  Signed in as <strong>{accountName}</strong>
-                </NameAccountRef>
-              ) : null}
-              <NameFieldRow>
-                <NameField>
-                  <NameFieldLabel htmlFor="chargen-given">
-                    Given name
-                  </NameFieldLabel>
-                  <NameInput
-                    id="chargen-given"
-                    data-testid="chargen-given-input"
-                    value={givenName}
-                    onChange={(e) => setGivenName(e.target.value)}
-                    placeholder="Given name"
-                    autoComplete="off"
-                  />
-                </NameField>
-                <NameField>
-                  <NameFieldLabel htmlFor="chargen-surname">
-                    Surname <NameOptional>(optional)</NameOptional>
-                  </NameFieldLabel>
-                  <NameInput
-                    id="chargen-surname"
-                    data-testid="chargen-surname-input"
-                    value={surnameVal}
-                    onChange={(e) => setSurnameVal(e.target.value)}
-                    placeholder="Surname"
-                    autoComplete="off"
-                  />
-                </NameField>
-              </NameFieldRow>
-              <StageButton
-                type="button"
-                data-testid="chargen-reroll"
-                onClick={() => onSendCommand('enroll name reroll')}
-              >
-                ⟳ Suggest another
-              </StageButton>
-              {/* Hidden submit so Enter in a field triggers Continue. */}
-              <button type="submit" hidden aria-hidden="true" />
-            </NameForm>
-          ) : null}
-
-          {/* Closed-choice options for the current step. Illustrated
-              steps render a cards-plus-detail-pane layout; the rest
-              keep the single column. */}
-          {options.length > 0
-            ? (() => {
-                const illustrated = STEPS_WITH_ILLUSTRATION.has(step);
-                // Pane previews the hovered card, else the selected one,
-                // else the first option.
-                const focused =
-                  options.find(
-                    (o) => o.value === (focusedValue ?? selectedValue),
-                  ) ??
-                  options[0] ??
-                  null;
-                // On illustrated steps the description moves to the
-                // detail pane, so cards stay compact (label only).
-                const grid = (
-                  <OptionGrid>
-                    {options.map((opt: CharGenOption) => (
-                      <OptionCard
-                        key={opt.value}
-                        data-testid={`chargen-option-${opt.value}`}
-                        $selected={opt.value === selectedValue}
-                        aria-pressed={opt.value === selectedValue}
-                        onClick={() => setSelectedValue(opt.value)}
-                        onMouseEnter={() => {
-                          setFocusedValue(opt.value);
-                          onCommandPreview(`enroll ${step} ${opt.value}`);
-                        }}
-                        onMouseLeave={() => {
-                          setFocusedValue(null);
-                          onCommandPreview(null);
-                        }}
-                      >
-                        <OptionLabel>{opt.label}</OptionLabel>
-                        {!illustrated && opt.description ? (
-                          <OptionDesc>{opt.description}</OptionDesc>
-                        ) : null}
-                      </OptionCard>
-                    ))}
-                  </OptionGrid>
-                );
-                if (!illustrated) return grid;
-                return (
-                  <IllustratedLayout>
-                    <OptionColumn>{grid}</OptionColumn>
-                    <DetailPane data-testid="chargen-detail-pane">
-                      <DetailImage data-testid="chargen-detail-image">
-                        {focused?.image ? (
-                          <img src={focused.image} alt={focused.label} />
-                        ) : (
-                          <span>illustration</span>
-                        )}
-                      </DetailImage>
-                      {focused ? (
-                        <DetailLabel data-testid="chargen-detail-label">
-                          {focused.label}
-                        </DetailLabel>
-                      ) : null}
-                      {focused?.dossier?.binomial ? (
-                        <Binomial data-testid="chargen-detail-binomial">
-                          {focused.dossier.binomial}
-                        </Binomial>
-                      ) : null}
-                      {focused?.description ? (
-                        <DetailDesc>{focused.description}</DetailDesc>
-                      ) : null}
-                      {focused?.dossier?.sections.length ? (
-                        <DossierBox data-testid="chargen-detail-dossier">
-                          {focused.dossier.sections.map((section) => (
-                            <div key={section.heading}>
-                              <DossierHeading>{section.heading}</DossierHeading>
-                              <DossierGrid>
-                                {section.rows.map((row) => (
-                                  <Fragment key={row.label}>
-                                    <DossierLabel>{row.label}</DossierLabel>
-                                    <DossierValue>{row.value}</DossierValue>
-                                  </Fragment>
-                                ))}
-                              </DossierGrid>
-                            </div>
-                          ))}
-                        </DossierBox>
-                      ) : null}
-                    </DetailPane>
-                  </IllustratedLayout>
-                );
-              })()
-            : null}
+          ) : (
+            screenFields.map((field) => (
+              <FieldGroup key={field}>
+                {screenFields.length > 1 ? (
+                  <FieldGroupHeading>{FIELD_HEADING[field]}</FieldGroupHeading>
+                ) : null}
+                {renderField(field)}
+              </FieldGroup>
+            ))
+          )}
         </StageInner>
       </StageBody>
 
-      {/* Wizard nav, pinned below the (scrolling) stage so Back / Continue
-          stay reachable no matter how tall the dossier is. The name step's
-          forward lives in its own Keep / type affordances, so it shows
-          Back only. */}
+      {/* Client-side screen nav, pinned below the scrolling stage so it
+          stays reachable regardless of dossier height. Back/Next just
+          change which screen shows; the field commands already fired. */}
       <NavRow>
-        {canGoBack ? (
-          <StageButton
-            data-testid="chargen-back"
-            onClick={() => onSendCommand('enroll back')}
-          >
+        {clampedIndex > 0 ? (
+          <StageButton data-testid="chargen-back" onClick={goBack}>
             ← Back
           </StageButton>
         ) : (
           <span />
         )}
-        {isConfirmStep ? (
+        {isReview ? (
           <StageButton
             $primary
             data-testid="chargen-confirm"
+            disabled={missing.length > 0}
             onClick={() => onSendCommand('enroll confirm')}
+            onMouseEnter={() => onCommandPreview('enroll confirm')}
+            onMouseLeave={() => onCommandPreview(null)}
           >
             Step into the world
           </StageButton>
-        ) : isNameStep ? (
-          <StageButton
-            $primary
-            data-testid="chargen-submit"
-            disabled={!givenName.trim()}
-            onClick={submitName}
-          >
-            Continue →
-          </StageButton>
-        ) : options.length > 0 ? (
-          <StageButton
-            $primary
-            data-testid="chargen-submit"
-            disabled={!selectedValue}
-            onClick={() =>
-              selectedValue && onSendCommand(`enroll ${step} ${selectedValue}`)
-            }
-          >
-            Continue →
-          </StageButton>
         ) : (
-          <span />
+          <StageButton
+            $primary
+            data-testid="chargen-next"
+            disabled={!canAdvance}
+            onClick={goNext}
+          >
+            Continue →
+          </StageButton>
         )}
       </NavRow>
 

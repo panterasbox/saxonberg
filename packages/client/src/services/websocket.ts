@@ -148,6 +148,11 @@ class WebSocketClient {
         .getState()
         .setCharGenState(frame.payload as CharGenStatePayload);
     });
+    // The `clear` verb's signal frame — empty body (so it never renders
+    // a scrollback line), handled purely by emptying the buffer.
+    this.onTopic('system.terminal.clear', () => {
+      useStore.getState().clearFrames();
+    });
   }
 
   public connect(url: string): void {

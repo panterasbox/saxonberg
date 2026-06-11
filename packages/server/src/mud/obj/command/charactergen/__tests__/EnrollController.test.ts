@@ -98,8 +98,8 @@ describe('EnrollController step model', () => {
   type EnrollModelLike = CommandModel & { rest?: string };
 
   it('species options carry a structured dossier derived from the model', async () => {
-    await run(''); // bare enroll → species step
-    const human = frames.at(-1)!.options.find((o) => o.value === 'human');
+    await run(''); // bare enroll → full draft state
+    const human = frames.at(-1)!.speciesOptions.find((o) => o.value === 'human');
     const dossier = human?.dossier;
     expect(dossier?.binomial).toBe('Homo sapiens');
     // Classification ladder derived from the taxonomic template path.
@@ -122,58 +122,51 @@ describe('EnrollController step model', () => {
     ).toMatch(/dark-adapted/);
   });
 
-  it('navigates back and re-picks idempotently without wiping downstream', async () => {
-    await run(''); // species step — first step, nothing to go back to
-    expect(frames.at(-1)!.step).toBe('species');
-    expect(frames.at(-1)!.canGoBack).toBe(false);
-
-    await run('species human'); // → sex step, can now go back
-    expect(frames.at(-1)!.step).toBe('sex');
-    expect(frames.at(-1)!.canGoBack).toBe(true);
-
-    await run('sex female'); // → name step; sex recorded
-    expect(login.getEnrollmentDraft()!.sex).toBe('female');
-
-    await run('back'); // name → sex
-    expect(frames.at(-1)!.step).toBe('sex');
-    await run('back'); // sex → species
-    expect(frames.at(-1)!.step).toBe('species');
-
-    // Re-submitting the SAME species must not wipe the chosen sex.
-    await run('species human');
-    expect(login.getEnrollmentDraft()!.sex).toBe('female');
-  });
-
-  it('bare enroll shows the species step first', async () => {
+  it('bare enroll emits species options with everything still missing', async () => {
     await run('');
-    expect(frames.at(-1)!.step).toBe('species');
-    expect(frames.at(-1)!.options.map((o) => o.value)).toContain('human');
+    const frame = frames.at(-1)!;
+    expect(frame.speciesOptions.map((o) => o.value)).toContain('human');
+    // No species yet → sex isn't applicable (empty option set).
+    expect(frame.sexOptions).toEqual([]);
+    expect(frame.missing).toContain('species');
   });
 
-  it('picking a species advances to the sex step and records the pick', async () => {
+  it('setting a field records it and surfaces the dependent options', async () => {
     await run('species human');
     const draft = login.getEnrollmentDraft()!;
     expect(draft.speciesKey).toBe('human');
     expect(draft.speciesPath).toBe(SAPIENS_PATH);
-    expect(frames.at(-1)!.step).toBe('sex');
+    const frame = frames.at(-1)!;
+    // Species is set → no longer missing; sex now applies (xy-ish mock).
+    expect(frame.missing).not.toContain('species');
+    expect(frame.sexOptions.length).toBeGreaterThan(0);
+    expect(frame.picks.species?.key).toBe('human');
   });
 
-  it('rejects an unknown species with an error and no pick', async () => {
+  it('re-picking the same species does NOT wipe downstream fields', async () => {
+    await run('species human');
+    await run('sex female');
+    expect(login.getEnrollmentDraft()!.sex).toBe('female');
+    // Live-fire re-set of the unchanged species must be idempotent.
+    await run('species human');
+    expect(login.getEnrollmentDraft()!.sex).toBe('female');
+  });
+
+  it('rejects an unknown species with a field-scoped error and no pick', async () => {
     await run('species wombat');
     expect(login.getEnrollmentDraft()!.speciesKey).toBeUndefined();
-    expect(frames.at(-1)!.error).toMatch(/unknown species/i);
+    expect(frames.at(-1)!.error?.field).toBe('species');
+    expect(frames.at(-1)!.error?.message).toMatch(/unknown species/i);
     expect(ctx.note).toHaveBeenCalled();
   });
 
-  it('drives a full happy path to confirm, then commits', async () => {
+  it('a full draft reports nothing missing, and confirm commits', async () => {
     const commit = vi
       .spyOn(EnrollController.prototype, 'commit')
       .mockResolvedValue(undefined);
 
     await run('species human');
     await run('sex female');
-    // The name boxes are pre-filled with the themed suggestion; the
-    // client submits whatever's in them (here, the suggestion verbatim).
     const sug = login.getEnrollmentDraft()!.suggestion!;
     await run(`name ${[sug.name, sug.surname].filter(Boolean).join(' ')}`);
     await run('pronouns she');
@@ -184,20 +177,20 @@ describe('EnrollController step model', () => {
     expect(draft.name?.[0]?.toLowerCase()).toBe('b'); // 'Bobby' → B-name
     expect(draft.pronouns).toBe('she');
     expect(draft.aspiration).toBe('healer');
-    expect(frames.at(-1)!.step).toBe('confirm');
+    expect(frames.at(-1)!.missing).toEqual([]);
 
     await run('confirm');
     expect(commit).toHaveBeenCalledTimes(1);
   });
 
-  it('confirm with missing picks errors instead of committing', async () => {
+  it('confirm with missing fields errors instead of committing', async () => {
     const commit = vi
       .spyOn(EnrollController.prototype, 'commit')
       .mockResolvedValue(undefined);
     await run('species human');
     await run('confirm');
     expect(commit).not.toHaveBeenCalled();
-    expect(frames.at(-1)!.error).toMatch(/still to choose/i);
+    expect(frames.at(-1)!.error?.message).toMatch(/still to choose/i);
   });
 
   it('name reroll produces a fresh themed suggestion', async () => {
@@ -215,6 +208,7 @@ describe('EnrollController step model', () => {
     await run('species human');
     await run('name B0bby'); // digit
     expect(login.getEnrollmentDraft()!.name).toBeUndefined();
-    expect(frames.at(-1)!.error).toMatch(/letters/i);
+    expect(frames.at(-1)!.error?.field).toBe('name');
+    expect(frames.at(-1)!.error?.message).toMatch(/letters/i);
   });
 });

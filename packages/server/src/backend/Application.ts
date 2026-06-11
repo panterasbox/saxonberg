@@ -230,7 +230,10 @@ export class Application {
    * means adding a handler file there and registering it in
    * `inbound/index.ts`. Do not grow this method.
    */
-  public processUserMessage(socketId: string, message: InboundClientMessage): void {
+  public async processUserMessage(
+    socketId: string,
+    message: InboundClientMessage,
+  ): Promise<void> {
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (!interactive) {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
@@ -251,17 +254,20 @@ export class Application {
       return;
     }
 
-    const result = handler(
-      { socketId, interactive, backend: this.backend, application: this },
-      message,
-    );
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        console.error(
-          `Application: inbound '${message.type}' error for socket ${socketId}:`,
-          error,
-        );
-      });
+    // Await the handler so the caller's per-socket serialization chain
+    // (and the enclosing `runRoot` frame) span the command's full async
+    // dispatch, not just the synchronous prefix. Rejections are logged,
+    // not rethrown — one bad command must not wedge the socket's chain.
+    try {
+      await handler(
+        { socketId, interactive, backend: this.backend, application: this },
+        message,
+      );
+    } catch (error) {
+      console.error(
+        `Application: inbound '${message.type}' error for socket ${socketId}:`,
+        error,
+      );
     }
   }
 

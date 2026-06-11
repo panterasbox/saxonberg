@@ -206,7 +206,7 @@ describe('Backend', () => {
     });
 
     it('wires "close" handler so the socket is unregistered on close', () => {
-      vi.spyOn(app, 'handleUserDisconnect').mockImplementation(() => {});
+      vi.spyOn(app, 'handleUserDisconnect').mockResolvedValue(undefined);
       const ws = makeFakeSocket();
       connectAndCaptureId(ws);
       expect(backend.getConnectionCount()).toBe(1);
@@ -231,14 +231,17 @@ describe('Backend', () => {
       socketId = connectAndCaptureId(ws);
     });
 
-    it('parses valid JSON and delegates to Application.processUserMessage', () => {
+    it('parses valid JSON and delegates to Application.processUserMessage', async () => {
       const spy = vi
         .spyOn(app, 'processUserMessage')
-        .mockImplementation(() => {});
+        .mockResolvedValue(undefined);
       ws.fire(
         'message',
         Buffer.from(JSON.stringify({ type: 'echo', payload: 'hi' })),
       );
+      // Delegation rides the per-socket serialization chain, so it lands
+      // one microtask after the synchronous `message` callback returns.
+      await new Promise((r) => setTimeout(r, 0));
       expect(spy).toHaveBeenCalledWith(socketId, {
         type: 'echo',
         payload: 'hi',
@@ -248,7 +251,7 @@ describe('Backend', () => {
     it('sends a parse-error response back to the socket for invalid JSON', () => {
       const procSpy = vi
         .spyOn(app, 'processUserMessage')
-        .mockImplementation(() => {});
+        .mockResolvedValue(undefined);
       ws.fire('message', Buffer.from('not json'));
       expect(procSpy).not.toHaveBeenCalled();
       expect(ws.sends).toHaveLength(1);
@@ -262,7 +265,7 @@ describe('Backend', () => {
     it('handleWebSocketClose notifies Application and removes the socket', () => {
       const disc = vi
         .spyOn(app, 'handleUserDisconnect')
-        .mockImplementation(() => {});
+        .mockResolvedValue(undefined);
       const ws = makeFakeSocket();
       const socketId = connectAndCaptureId(ws);
       ws.fire('close');
