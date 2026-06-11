@@ -34,11 +34,16 @@ import Avatar from '../../Avatar';
 import type Login from '../../Login';
 import type { EnrollmentDraft } from '../../Login';
 import type Species from '../../../lib/species/Species';
+import type { VisionProfile } from '../../../lib/perception/Light';
+import type BodyPlan from '../../../lib/species/BodyPlan';
+import type Material from '../../../lib/material/Material';
 import type {
   CharGenOption,
   CharGenPicks,
   CharGenStatePayload,
   CharGenStep,
+  DossierSection,
+  SpeciesDossier,
 } from '@saxonberg/types';
 import { Pronouns } from '@saxonberg/types';
 
@@ -135,8 +140,8 @@ const ENROLL_STEPS: EnrollStep[] = [
         description: s.description,
         image: s.image ?? null,
         // Derived once (async) and cached by path; undefined until the
-        // pre-warm runs or when the species has nothing notable.
-        traits: EnrollController.getSpeciesTraits(s.path),
+        // pre-warm runs.
+        dossier: EnrollController.getSpeciesDossier(s.path),
       })),
     validate: (v, _d, cfg) =>
       cfg.species.some((s) => s.key === v.toLowerCase())
@@ -270,47 +275,135 @@ const ENROLL_STEPS: EnrollStep[] = [
 ];
 
 /**
- * Compose the species' one-line trait summary from its real seed
- * fields. Only emits populated, differentiating facts — a uniform or
- * unset value (diurnal, omnivore, baseline vision, lifespan 0) is
- * omitted rather than printed, so the line never carries fabricated or
- * noise "stats". An empty result means "nothing notable to surface".
+ * Build the species dossier — the char-gen showcase of how deeply the
+ * species is modeled. Every section/row is real data pulled from the
+ * `Species` template and its resolved `BodyPlan` / `Material` / clade
+ * chain; nothing is fabricated, and a section is omitted entirely when
+ * its data isn't authored (e.g. no resolvable BodyPlan → no Anatomy).
  */
-function deriveSpeciesTraits(species: Species): string {
-  const parts: string[] = [];
+function buildSpeciesDossier(
+  species: Species,
+  bodyPlan: BodyPlan | null,
+  material: Material | null,
+  speciesPath: string,
+): SpeciesDossier {
+  const sections: DossierSection[] = [];
 
+  // Classification — the Linnaean ladder. The species template path IS
+  // the taxonomy (/lib/species/animalia/chordata/.../homo/<epithet>),
+  // so the ancestor-clade segments map onto the standard major ranks.
+  const classRows = buildClassificationRows(speciesPath);
+  if (classRows.length) {
+    sections.push({ heading: 'Classification', rows: classRows });
+  }
+
+  // Biology.
+  const bio: DossierSection['rows'] = [];
   const lifespan = species.getLifespanMax();
-  if (lifespan && lifespan > 0) {
-    parts.push(
-      lifespan >= 200
-        ? `long-lived (~${lifespan} yrs)`
-        : `~${lifespan}-year lifespan`,
-    );
-  }
-
-  const vision = species.getVisionProfile();
-  if (vision) {
-    // bandShift < 0 → perception is tuned toward lower light.
-    if (vision.bandShift < 0) parts.push('dark-adapted');
-    else if (vision.bandShift > 0) parts.push('needs bright light');
-  }
-
-  const olfactory = species.getOlfactoryProfile();
-  if (olfactory) {
-    if (olfactory.acuity === 'keen') parts.push('keen-nosed');
-    else if (olfactory.acuity === 'dull') parts.push('weak-nosed');
-    else if (olfactory.acuity === 'none') parts.push('no sense of smell');
-  }
-
+  if (lifespan > 0) bio.push({ label: 'Lifespan', value: `~${lifespan} years` });
   const circadian = species.getCircadianBand();
-  if (circadian === 'nocturnal') parts.push('nocturnal');
-  else if (circadian === 'crepuscular') parts.push('active at dawn and dusk');
-
+  if (circadian) bio.push({ label: 'Active', value: circadian });
   const diet = species.getDiet();
-  if (diet === 'herbivore') parts.push('herbivore');
-  else if (diet === 'carnivore') parts.push('carnivore');
+  if (diet) bio.push({ label: 'Diet', value: diet });
+  const vision = species.getVisionProfile();
+  if (vision) bio.push({ label: 'Vision', value: describeVision(vision) });
+  const olfactory = species.getOlfactoryProfile();
+  if (olfactory) bio.push({ label: 'Smell', value: `${olfactory.acuity} acuity` });
+  const sex = species.getSexDeterminationSystem();
+  const repro = species.getReproductiveMode();
+  const sexParts = [sex ? sex.toUpperCase() : null, repro].filter(Boolean);
+  if (sexParts.length) bio.push({ label: 'Sex', value: sexParts.join(' · ') });
+  if (bio.length) sections.push({ heading: 'Biology', rows: bio });
 
-  return parts.join(' · ');
+  // Anatomy — from the resolved BodyPlan.
+  if (bodyPlan) {
+    const anat: DossierSection['rows'] = [
+      { label: 'Body plan', value: cap(bodyPlan.getName()) },
+    ];
+    const ports = bodyPlan.getSensoryPorts();
+    if (ports.length) {
+      anat.push({
+        label: 'Senses',
+        value: ports
+          .map((p) => `${p.count} ${organNoun(p.modality, p.count)} (${p.position})`)
+          .join(' · '),
+      });
+    }
+    const moves = bodyPlan.getLocomotionModes();
+    if (moves.length) anat.push({ label: 'Locomotion', value: moves.join(' · ') });
+    const slots = bodyPlan.getSlots();
+    if (slots.length) {
+      anat.push({ label: 'Articulation', value: `${slots.length} equip slots` });
+    }
+    sections.push({ heading: 'Anatomy', rows: anat });
+  }
+
+  // Composition — from the default Material.
+  if (material) {
+    const comp: DossierSection['rows'] = [
+      { label: 'Tissue', value: material.getName() },
+    ];
+    try {
+      const density = Math.round(material.getDensity().rawValue());
+      comp.push({ label: 'Density', value: `${density} kg/m³` });
+    } catch {
+      /* density unset — skip */
+    }
+    comp.push({ label: 'Edible', value: material.getEdibility() ? 'yes' : 'no' });
+    sections.push({ heading: 'Composition', rows: comp });
+  }
+
+  return { binomial: species.getBinomial(), sections };
+}
+
+/** Standard Linnaean major ranks, in path-segment order. */
+const LINNAEAN_RANKS = [
+  'Kingdom',
+  'Phylum',
+  'Class',
+  'Order',
+  'Family',
+  'Genus',
+];
+const SPECIES_PATH_PREFIX = '/lib/species/';
+
+/** Map a species template path's clade segments onto Linnaean ranks. */
+function buildClassificationRows(
+  speciesPath: string,
+): DossierSection['rows'] {
+  if (!speciesPath.startsWith(SPECIES_PATH_PREFIX)) return [];
+  const segments = speciesPath.slice(SPECIES_PATH_PREFIX.length).split('/');
+  // Drop the species epithet (leaf); the rest are ancestor clades.
+  const clades = segments.slice(0, -1);
+  return clades.map((taxon, i) => ({
+    label: LINNAEAN_RANKS[i] ?? 'Clade',
+    value: cap(taxon),
+  }));
+}
+
+/** Human phrasing of a VisionProfile's adaptation + perceivable range. */
+function describeVision(v: VisionProfile): string {
+  const adapt =
+    v.bandShift < 0
+      ? 'dark-adapted'
+      : v.bandShift > 0
+        ? 'light-loving'
+        : 'baseline';
+  return `${adapt} (${v.scotopicMin}–${v.photopicMax})`;
+}
+
+const ORGAN_NOUNS: Record<string, [string, string]> = {
+  vision: ['eye', 'eyes'],
+  hearing: ['ear', 'ears'],
+  smell: ['nose', 'noses'],
+  taste: ['palate', 'palates'],
+  touch: ['receptor', 'receptors'],
+};
+
+function organNoun(modality: string, count: number): string {
+  const pair = ORGAN_NOUNS[modality];
+  if (!pair) return modality;
+  return count === 1 ? pair[0] : pair[1];
 }
 
 function validSexSet(system: string): string[] {
@@ -334,41 +427,49 @@ function cap(s: string): string {
 export default class EnrollController extends CommandController<EnrollModel> {
   static #config: CharGenConfig | null = null;
   /**
-   * Per-species derived trait summaries, keyed by template path. `null`
-   * = not yet derived. Populated once by `ensureSpeciesTraits` (the
-   * derivation needs the async-materialized `Species` singletons, which
-   * the sync `options()` can't await — so we pre-warm and cache).
+   * Per-species dossiers, keyed by template path. `null` = not yet
+   * derived. Populated once by `ensureSpeciesDossiers` (the derivation
+   * needs the async-materialized `Species` / `BodyPlan` / `Material`
+   * singletons, which the sync `options()` can't await — so we pre-warm
+   * and cache).
    */
-  static #speciesTraits: Map<string, string> | null = null;
+  static #speciesDossiers: Map<string, SpeciesDossier> | null = null;
 
   /** The active CommandContext for the in-flight execute (commit needs it). */
   private ctx!: CommandContext;
 
   /**
-   * Resolve each rostered species once and cache its derived trait
-   * line. Idempotent: a no-op after the first run (or after a config
-   * reset). Tolerant of unresolved species — they simply carry no
-   * trait line.
+   * Resolve each rostered species (and its BodyPlan + Material) once and
+   * cache its dossier. Idempotent: a no-op after the first run (or after
+   * a config reset). Tolerant of unresolved refs — a missing BodyPlan /
+   * Material just drops that dossier section.
    */
-  static async ensureSpeciesTraits(cfg: CharGenConfig): Promise<void> {
-    if (EnrollController.#speciesTraits) return;
-    const map = new Map<string, string>();
+  static async ensureSpeciesDossiers(cfg: CharGenConfig): Promise<void> {
+    if (EnrollController.#speciesDossiers) return;
+    const map = new Map<string, SpeciesDossier>();
     for (const s of cfg.species) {
       try {
         const species = await StuffApi.singleton<Species>(s.path);
         if (!species) continue;
-        const traits = deriveSpeciesTraits(species);
-        if (traits) map.set(s.path, traits);
+        const bpPath = species.getBodyPlanPath();
+        const bodyPlan = bpPath
+          ? await StuffApi.singleton<BodyPlan>(bpPath)
+          : null;
+        const matPath = species.getDefaultMaterialPath();
+        const material = matPath
+          ? await StuffApi.singleton<Material>(matPath)
+          : null;
+        map.set(s.path, buildSpeciesDossier(species, bodyPlan, material, s.path));
       } catch {
-        /* unresolved species → no trait line (graceful) */
+        /* unresolved species → no dossier (graceful) */
       }
     }
-    EnrollController.#speciesTraits = map;
+    EnrollController.#speciesDossiers = map;
   }
 
-  /** The cached trait line for a species path, if any. */
-  static getSpeciesTraits(path: string): string | undefined {
-    return EnrollController.#speciesTraits?.get(path);
+  /** The cached dossier for a species path, if any. */
+  static getSpeciesDossier(path: string): SpeciesDossier | undefined {
+    return EnrollController.#speciesDossiers?.get(path);
   }
 
   async execute(model: EnrollModel, context: CommandContext): Promise<void> {
@@ -380,9 +481,9 @@ export default class EnrollController extends CommandController<EnrollModel> {
       login.setEnrollmentDraft(draft);
     }
     const cfg = EnrollController.loadConfig();
-    // Pre-warm the species trait cache so the sync `options()` builder
-    // can read derived trait lines. Cheap after the first call.
-    await EnrollController.ensureSpeciesTraits(cfg);
+    // Pre-warm the species dossier cache so the sync `options()` builder
+    // can read it. Cheap after the first call.
+    await EnrollController.ensureSpeciesDossiers(cfg);
 
     // Split the raw tail into `<field> <value...>`.
     const rest = (model.rest ?? '').trim();
@@ -606,10 +707,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
     return EnrollController.#config;
   }
 
-  /** Test seam: drop the cached config + derived trait cache. */
+  /** Test seam: drop the cached config + derived dossier cache. */
   static resetConfigCache(): void {
     EnrollController.#config = null;
-    EnrollController.#speciesTraits = null;
+    EnrollController.#speciesDossiers = null;
   }
 }
 

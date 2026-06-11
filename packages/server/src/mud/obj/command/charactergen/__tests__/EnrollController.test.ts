@@ -47,11 +47,12 @@ describe('EnrollController step model', () => {
     // A fake human species so the species lookup + sex applicability +
     // suggester resolve without a bootstrapped world / DB.
     const species = makeStuff(() => new Species());
+    species.setBinomial('Homo sapiens');
     species.setSexDeterminationSystem('dioecious');
     species.setCommonNames(['human']);
     species.setNameBankKeys(['common']);
     species.setLongDescription('an ordinary-looking person');
-    // Real trait-bearing fields so the derived trait line is exercised.
+    // Real fields so the derived dossier is exercised.
     species.setLifespanMax(120);
     species.setVisionProfile({
       scotopicMin: 'pitch-black',
@@ -96,11 +97,29 @@ describe('EnrollController step model', () => {
   }
   type EnrollModelLike = CommandModel & { rest?: string };
 
-  it('species options carry a trait line derived from real Species fields', async () => {
+  it('species options carry a structured dossier derived from the model', async () => {
     await run(''); // bare enroll → species step
     const human = frames.at(-1)!.options.find((o) => o.value === 'human');
-    // Lifespan 120 (not long-lived) + dark-adapted vision (bandShift -1).
-    expect(human?.traits).toBe('~120-year lifespan · dark-adapted');
+    const dossier = human?.dossier;
+    expect(dossier?.binomial).toBe('Homo sapiens');
+    // Classification ladder derived from the taxonomic template path.
+    const classification = dossier?.sections.find(
+      (s) => s.heading === 'Classification',
+    );
+    expect(classification?.rows).toContainEqual({
+      label: 'Kingdom',
+      value: 'Animalia',
+    });
+    expect(classification?.rows).toContainEqual({ label: 'Genus', value: 'Homo' });
+    // Biology from real Species fields (lifespan + dark-adapted vision).
+    const biology = dossier?.sections.find((s) => s.heading === 'Biology');
+    expect(biology?.rows).toContainEqual({
+      label: 'Lifespan',
+      value: '~120 years',
+    });
+    expect(
+      biology?.rows.find((r) => r.label === 'Vision')?.value,
+    ).toMatch(/dark-adapted/);
   });
 
   it('bare enroll shows the species step first', async () => {

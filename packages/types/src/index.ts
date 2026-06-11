@@ -955,13 +955,32 @@ export interface CharGenOption {
    */
   image?: string | null;
   /**
-   * Optional one-line trait summary shown under the description in the
-   * detail pane (e.g. "long-lived (~400 yrs) · dark-adapted"). Derived
-   * server-side from the real `Species` fields — only populated,
-   * differentiating facts appear, so absence is meaningful (no
-   * fabricated stats). Species step only; other steps omit it.
+   * Optional structured dossier shown in the detail pane — the
+   * showcase of how deeply the species is modeled (scientific name,
+   * full taxonomic classification, biology, anatomy, material). Derived
+   * server-side from the real `Species` template and its resolved
+   * `BodyPlan` / `Material` / clade chain; every row is real data, so
+   * a missing section/row means the data genuinely isn't authored.
+   * Species step only; other steps omit it.
    */
-  traits?: string;
+  dossier?: SpeciesDossier;
+}
+
+/** One labeled section of a {@link SpeciesDossier} (e.g. "Classification"). */
+export interface DossierSection {
+  heading: string;
+  rows: { label: string; value: string }[];
+}
+
+/**
+ * The species dossier surfaced in char-gen. `binomial` is the Latin
+ * scientific name; `sections` are pre-formatted, content-driven groups
+ * (Classification, Biology, Anatomy, Composition) so the client renders
+ * them generically without knowing the field taxonomy.
+ */
+export interface SpeciesDossier {
+  binomial: string;
+  sections: DossierSection[];
 }
 
 /** The accumulated picks so far (client-readable draft). */

@@ -29,7 +29,7 @@
  * color is reserved (the project is color-conservative).
  */
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import styled from 'styled-components';
 import type {
   CharGenOption,
@@ -176,7 +176,7 @@ const OptionColumn = styled.div`
  * around it.
  */
 const DetailPane = styled.aside`
-  width: 240px;
+  width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -185,9 +185,14 @@ const DetailPane = styled.aside`
   background: ${tokens.color.surfaceAlt};
   border: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.md};
+  /* The dossier can be long; keep it within the stage and scroll it in
+     place so the option cards stay put. */
+  max-height: calc(100vh - 13rem);
+  overflow-y: auto;
 
   @media (max-width: 640px) {
     width: 100%;
+    max-height: none;
   }
 `;
 
@@ -233,17 +238,52 @@ const DetailDesc = styled.p`
 `;
 
 /**
- * One-line trait summary under the description (e.g.
- * "long-lived (~400 yrs) · dark-adapted"). Server-composed from real
- * Species fields; rendered only when present. Set slightly apart so it
- * reads as factual texture, distinct from the prose above.
+ * The scientific (Latin) binomial, shown italic under the common label.
  */
-const DetailTraits = styled.div`
+const Binomial = styled.div`
   font-size: ${tokens.font.small};
-  color: ${tokens.color.fgEmphasis};
-  line-height: 1.5;
-  padding-top: ${tokens.space.xs};
+  font-style: italic;
+  color: ${tokens.color.fgMuted};
+  margin-top: -2px;
+`;
+
+/**
+ * The structured species dossier — the showcase of how deeply the
+ * species is modeled. Each server-composed section (Classification,
+ * Biology, Anatomy, Composition) renders as a labeled key/value grid.
+ * Every row is real data; the client is purely presentational.
+ */
+const DossierBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.md};
+  padding-top: ${tokens.space.sm};
   border-top: 1px solid ${tokens.color.borderMuted};
+`;
+
+const DossierHeading = styled.div`
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: ${tokens.color.fgMuted};
+  margin-bottom: ${tokens.space.xs};
+`;
+
+const DossierGrid = styled.dl`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px ${tokens.space.md};
+  margin: 0;
+  font-size: ${tokens.font.small};
+`;
+
+const DossierLabel = styled.dt`
+  color: ${tokens.color.fgMuted};
+`;
+
+const DossierValue = styled.dd`
+  margin: 0;
+  color: ${tokens.color.fg};
 `;
 
 /* --- Name step ---------------------------------------------------- */
@@ -577,13 +617,30 @@ export function CharGenStage({
                           {focused.label}
                         </DetailLabel>
                       ) : null}
+                      {focused?.dossier?.binomial ? (
+                        <Binomial data-testid="chargen-detail-binomial">
+                          {focused.dossier.binomial}
+                        </Binomial>
+                      ) : null}
                       {focused?.description ? (
                         <DetailDesc>{focused.description}</DetailDesc>
                       ) : null}
-                      {focused?.traits ? (
-                        <DetailTraits data-testid="chargen-detail-traits">
-                          {focused.traits}
-                        </DetailTraits>
+                      {focused?.dossier?.sections.length ? (
+                        <DossierBox data-testid="chargen-detail-dossier">
+                          {focused.dossier.sections.map((section) => (
+                            <div key={section.heading}>
+                              <DossierHeading>{section.heading}</DossierHeading>
+                              <DossierGrid>
+                                {section.rows.map((row) => (
+                                  <Fragment key={row.label}>
+                                    <DossierLabel>{row.label}</DossierLabel>
+                                    <DossierValue>{row.value}</DossierValue>
+                                  </Fragment>
+                                ))}
+                              </DossierGrid>
+                            </div>
+                          ))}
+                        </DossierBox>
                       ) : null}
                     </DetailPane>
                   </IllustratedLayout>

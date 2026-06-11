@@ -235,6 +235,11 @@ export default class Species extends SingletonMixin(
     );
   }
 
+  /** Material template path (no resolution) — mirrors `getBodyPlanPath`. */
+  public getDefaultMaterialPath(): string | null {
+    return this._defaultMaterialPath;
+  }
+
   public setDefaultMaterial(value: Material | null): void {
     this._defaultMaterialPath = value?.getTemplatePath() ?? null;
   }
