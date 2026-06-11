@@ -1,0 +1,18 @@
+# Dave's Bar — the singleton external-neighbor shell one exit north of
+# the lounge host. NOT a Warren member: never cloned, budded, drained,
+# or reaped. The Warren wires the back-exit (south, to the host) when it
+# designates or migrates the host; the south exit is therefore NOT
+# declared here.
+#
+# v1 is a bare shell — description only. Deferred: Dave the NPC, drinks,
+# `sit`, the menu (lounge-slate, Wave 2+). SingletonMixin pins it to one
+# instance (the host-fixture wiring resolves it via StuffApi.singleton).
+class: /lib/multilocation/LoungeShell
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: Dave's Bar
+  primaryKeyword: bar
+  longDescription: |
+    A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey.
+
+    The lounge is back through the doorway to the south.

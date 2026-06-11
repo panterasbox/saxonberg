@@ -56,6 +56,7 @@ behavior. Read the relevant doc before editing in its area.
   - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin on every Character, Emote Document + EmoteGrammar, SoulCatalogue + SoulApi, three dispatch paths
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls (managed/MQL/contacts), GroupRef typed strings
+  - [comms.md](./docs/subsystems/comms.md) — two-transport speech substrate: acoustic VocalMixin (say/whisper/shout + `--to`, acousticDb) vs implant AetherMixin (dm/tell), verb surface, ties to messaging/chat
   - [chat.md](./docs/subsystems/chat.md) — Channel Document with groupRef, three kinds, ChannelCatalogue, chat.yaml subcommand fallthrough
   - [contacts.md](./docs/subsystems/contacts.md) — ContactsMixin on Avatar, per-Avatar named lists, durable identifiers only, owner-only privacy
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, schema-on-mixin, lookup chain, `settings`/`var`
@@ -96,6 +97,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
+  - [multilocation.md](./docs/subsystems/multilocation.md) — Warren elastic-graph substrate (one template, many coordinated instances; host-as-runtime-role + migration; bud/merge) + the rudimentary lounge (LoungeWarren/LoungeRoom/LoungeShell), the `startLocation` spawn instruction, recover-and-warn placement, save-delegation recall
 
 ## Development Commands
 

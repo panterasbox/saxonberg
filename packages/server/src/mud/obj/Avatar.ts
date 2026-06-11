@@ -16,7 +16,11 @@ import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
+import { ContainmentApi } from '../api/containment';
 import { MixinApi } from '../api/mixin';
+import type { Containable } from '../lib/spatial/Containable';
+import type { Container } from '../lib/spatial/Container';
+import type { Stuff } from '../lib/stuff/Stuff';
 import { SpeciesApi } from '../api/species';
 import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
@@ -77,6 +81,38 @@ export default class Avatar extends AvatarBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Instruction field — the avatar's *durable spawn/recall reference*.
+   * Sibling to the `container` instruction (from `ContainableMixin`) but
+   * distinct: it holds a singleton room **or a Warren**, and resolves at
+   * hydration via `applyStartLocation`. Only avatars have a
+   * spawn/recall location, so it lives directly here (no mixin). The
+   * Hydrator's Phase 2 auto-dispatches any declared instruction field, so
+   * the declaration alone wires it. See
+   * [docs/requirements/multilocation-lounge-requirements.md].
+   */
+  static instructionFields = ['startLocation'];
+
+  /**
+   * Phase 2 applier for `data.startLocation`. Resolves the reference via
+   * the shared recover-and-warn placement resolver — a **Warren** lands
+   * in its lazy host, a **singleton room** in that room, a non-singleton
+   * target warns and clones a fresh instance — then moves self into the
+   * resolved (real, root) `Container`. The Warren never becomes the
+   * avatar's `container` (a Warren isn't a container); `container` stays
+   * honest.
+   *
+   * Compare-and-move idempotency is unnecessary here (spawn fires once at
+   * clone time); `Avatar.restore()` re-fires it harmlessly (the move is a
+   * no-op when already in place, or a clean re-seat).
+   */
+  async applyStartLocation(ref: string): Promise<void> {
+    const target = await StuffApi.resolveOrCloneForPlacement<Stuff & Container>(
+      ref,
+    );
+    ContainmentApi.move(this as unknown as Stuff & Containable, target);
+  }
 
   /**
    * Schema entries declared by Avatar. Picked up by the schema walk

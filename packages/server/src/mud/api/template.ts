@@ -176,16 +176,20 @@ export class TemplateApi {
       );
     }
 
-    // 3. Target class must compose SingletonMixin.
+    // 3. Target SHOULD compose SingletonMixin — but recover-and-warn
+    //    (not deny). A non-singleton target is resolved at hydrate time
+    //    by `StuffApi.resolveOrCloneForPlacement` (warn + fresh clone)
+    //    rather than throwing, so this save-time check is a non-blocking
+    //    warning, not a hard error.
     const targetCtor = (await StuffApi.loadClassByPath(targetTpl.class)) as new (
       ...args: unknown[]
     ) => unknown;
     if (!MixinApi.hasMixin(targetCtor, Mixins.Singleton)) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
-          `but the target's class '${targetTpl.class}' does not compose ` +
-          `SingletonMixin. The container: target must be singleton-shaped ` +
-          `(see declarative-content-slate § container:).`
+      console.warn(
+        `TemplateApi.validateSingletonContainerTarget: '${sourcePath}' ` +
+          `declares 'data.container: ${targetPath}' but the target's class ` +
+          `'${targetTpl.class}' does not compose SingletonMixin. Hydration ` +
+          `will warn and clone a fresh instance (recover-and-warn).`,
       );
     }
   }
@@ -277,10 +281,23 @@ export class TemplateApi {
       if (!(field in stuff)) continue;
       snapshot[field] = self[field];
     }
+    // Durable-location capture (synchronous, before the first await).
+    // Save-delegation: when the live container is a Warren member (a
+    // lounge room), the avatar's *durable* spawn/recall reference is the
+    // **Warren**, not the transient room clone — so we persist
+    // `data.startLocation: <Warren>` and drop `data.container`. The
+    // consult rides the existing `WarrenMember.getWarren()` back-ref; no
+    // extra capability mixin. Otherwise the host keeps the ordinary
+    // `data.container` behavior (byte-identical for non-Warren-member
+    // containers). Both keys are reconciled so a session in the lounge
+    // followed by one in an ordinary room never leaves a stale key.
     const hostIsContainable = MixinApi.isContainable(stuff);
-    const containerPath = hostIsContainable
-      ? stuff.getContainer()?.getTemplatePath() ?? null
-      : null;
+    const env = hostIsContainable ? stuff.getContainer() : null;
+    const warrenPath =
+      env && MixinApi.isWarrenMember(env)
+        ? env.getWarren()?.getTemplatePath() ?? null
+        : null;
+    const containerPath = env?.getTemplatePath() ?? null;
 
     const tpl = await Template.findByPath(path);
     if (!tpl) {
@@ -307,10 +324,16 @@ export class TemplateApi {
       }
     }
     if (hostIsContainable) {
-      if (containerPath !== null) {
+      if (warrenPath !== null) {
+        // In a Warren-managed room → persist the durable Warren ref.
+        data.startLocation = warrenPath;
+        delete data.container;
+      } else if (containerPath !== null) {
         data.container = containerPath;
+        delete data.startLocation;
       } else {
         delete data.container;
+        delete data.startLocation;
       }
     }
 

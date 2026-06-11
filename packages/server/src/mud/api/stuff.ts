@@ -17,7 +17,8 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
-import { MixinApi } from './mixin';
+import type { Container } from '../lib/spatial/Container';
+import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from './path-pattern';
 import { ProxyApi } from './proxy';
@@ -83,6 +84,18 @@ export class StuffApi {
    * and remove it in a finally block, regardless of success / failure.
    */
   static #inFlightClonePaths: Set<string> = new Set();
+
+  /**
+   * In-flight `singleton()` resolutions, keyed by path. Coalesces
+   * concurrent first-resolution of the same singleton path onto a single
+   * shared clone promise — without this, two concurrent
+   * `singleton(path)` calls would both fall through to `clone(path)` and
+   * the second would trip the `#inFlightClonePaths` cycle guard (which
+   * throws, conflating "concurrent" with "circular"). Cleared when the
+   * clone settles. The classic lazy-singleton race (e.g. two
+   * simultaneous logins both lazily creating the lounge Warren).
+   */
+  static #pendingSingletons: Map<string, Promise<Stuff>> = new Map();
 
   /**
    * Atomically add or remove `obj` across every index. Called from
@@ -368,6 +381,107 @@ export class StuffApi {
   }
 
   /**
+   * Clone a runtime instance and re-key it under a **unique** per-
+   * instance templatePath (`<path>#<stuffId>`).
+   *
+   * Use for non-singleton templates that spawn many concurrent clones
+   * which must be addressable individually — most notably Warren members
+   * (many lounge-room instances share one template). The shared template
+   * path is ambiguous for any ref that resolves by templatePath (an
+   * `Exit` destination, a Pattern-C/Pattern-A field): `findByTemplatePath`
+   * throws on multi-instance collision. Re-stamping a unique path makes
+   * those refs resolve to the specific live instance.
+   *
+   * The synthetic path is runtime-only — it is never written back to the
+   * domain collection (these instances don't persist), and `singleton` /
+   * `findByTemplatePath` on the ORIGINAL `path` no longer see the
+   * re-keyed instance (intended: instances aren't singletons).
+   *
+   * Self-registration that fires during the underlying `clone()` (e.g.
+   * `LoungeMixin.applyWarren`) observes the original `path` — it runs
+   * before the re-stamp, which is correct (membership doesn't key on the
+   * instance path).
+   */
+  public static async cloneInstance<T extends Stuff>(
+    path: string,
+    context?: unknown
+  ): Promise<T> {
+    const obj = await this.clone<T>(path, context);
+    obj.setTemplatePath(`${path}#${obj.stuffId}`);
+    return obj;
+  }
+
+  /**
+   * Resolve the backing class constructor for a template path. Loads the
+   * template doc, reads its `class`, and resolves it via
+   * `loadClassByPath`. Throws when no template exists at `ref`.
+   *
+   * The companion to `resolveOrCloneForPlacement` (and reusable on its
+   * own): lets a caller dispatch on a target's *class* (its mixins /
+   * markers) without instantiating it.
+   */
+  public static async classForRef(ref: string): Promise<AnyConstructor> {
+    const { Template } = await import('../lib/stuff/Template');
+    const template = await Template.findByPath(ref);
+    if (!template) {
+      throw new Error(`StuffApi.classForRef('${ref}'): no template at path`);
+    }
+    return (await this.loadClassByPath(template.class)) as AnyConstructor;
+  }
+
+  /**
+   * Recover-and-warn placement resolver — the shared body behind both
+   * the avatar `startLocation` spawn instruction and the `container`
+   * instruction. Resolves `ref`'s **class** (singleton-ness is a class
+   * property, not an instance count) and dispatches:
+   *
+   *   - **Warren class** → `singleton(ref).getHost()` — the lazy host
+   *     (`startLocation` names a Warren, never a container).
+   *   - **Singleton class** → `singleton(ref)` — reuse the one instance,
+   *     clone-if-absent. (char-gen's singleton-room container resolves
+   *     here, unchanged.)
+   *   - **Non-singleton class** → **warn + `clone(ref)`** a fresh
+   *     instance. We never `singleton()` a non-singleton (it would throw
+   *     on >1). A self-registering room then heals into its Warren; a
+   *     non-self-registering clone is an orphan + warning (the accepted
+   *     "fails quietly, QA catches it" tradeoff).
+   *
+   * Returns the `Container` to place into. Throws only when `ref` has no
+   * template at all (nothing to clone) — a seed misconfiguration.
+   */
+  public static async resolveOrCloneForPlacement<
+    T extends Stuff & Container = Stuff & Container,
+  >(ref: string): Promise<T> {
+    // Fast path: a single live Container instance is already registered
+    // at `ref` → reuse it without resolving the class from the template
+    // doc (no DB round-trip). Covers the common already-cloned singleton
+    // room (and matches the prior `singleton()`-based short-circuit).
+    // Skipped for a Warren ref — a Warren is an Idea, not a Container, so
+    // it fails the `isContainer` guard and falls through to `getHost()`.
+    const live = this.findAllByTemplatePath(ref).filter(
+      (o) => !o.isDestroyed(),
+    );
+    if (live.length === 1 && MixinApi.isContainer(live[0]!)) {
+      return live[0] as T;
+    }
+    const cls = await this.classForRef(ref);
+    if ((cls as { _warrenMarker?: boolean })._warrenMarker === true) {
+      const warren = await this.singleton<
+        Stuff & { getHost(): Promise<Stuff & Container> }
+      >(ref);
+      return (await warren.getHost()) as T;
+    }
+    if (MixinApi.hasMixin(cls, Mixins.Singleton)) {
+      return this.singleton<T>(ref);
+    }
+    console.warn(
+      `StuffApi.resolveOrCloneForPlacement('${ref}'): non-singleton ` +
+        `placement target; cloning a fresh instance (recover-and-warn).`,
+    );
+    return this.clone<T>(ref);
+  }
+
+  /**
    * Cache-or-clone for templatePath-keyed singletons.
    *
    * Returns the unique live instance for `path` if one exists in the
@@ -401,7 +515,16 @@ export class StuffApi {
       }
       return bucket[0] as T;
     }
-    return this.clone<T>(path, context);
+    // Coalesce concurrent first-resolution onto one shared clone (see
+    // #pendingSingletons) so the second caller doesn't trip the cycle
+    // guard in clone().
+    const pending = this.#pendingSingletons.get(path);
+    if (pending) return pending as Promise<T>;
+    const p = this.clone<T>(path, context).finally(() => {
+      this.#pendingSingletons.delete(path);
+    });
+    this.#pendingSingletons.set(path, p as Promise<Stuff>);
+    return p;
   }
 
   /**
