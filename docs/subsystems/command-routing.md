@@ -119,7 +119,7 @@ The MVC mapping inside that pipeline:
 | **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/obj/command/*Controller.ts` |
 
 Controllers are templated `Idea` Stuff. Each controller file has a
-matching seed YAML at `mud/seeds/obj/command/<Name>.yaml` so
+matching seed YAML at `mud/seeds/obj/command/<category>/<Name>.yaml` so
 `SeederManager` writes a Template doc into `domain` at boot. Dispatch
 clones a fresh instance per execution via `StuffApi.clone` (which
 consults `HotReloadApi` automatically — see
@@ -288,7 +288,7 @@ class Throne extends Stuff /* ... */ {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: [],
-    environment: ['sit.yaml'],   // grants `sit` to anyone in the room
+    environment: ['posture/sit.yaml'], // grants `sit` to anyone in the room
     peers: [],
   };
 }
@@ -982,17 +982,18 @@ may be absent (a verb with neither — e.g. `ping` — is fine).
 
 ## Adding a new command
 
-1. **Define the YAML** in `mud/cmd/<verb>.yaml`. Pick `args:` *or*
-   `subcommands:` (never both). Lowercase filename. The schema check
-   surfaces typos / missing fields at boot.
+1. **Define the YAML** in `mud/cmd/<category>/<verb>.yaml` (one of the
+   ten command categories — see [command-spec.md](./command-spec.md)).
+   Pick `args:` *or* `subcommands:` (never both). Lowercase filename.
+   The schema check surfaces typos / missing fields at boot.
 2. **Implement the controller** in
-   `mud/obj/command/<Name>Controller.ts` extending
-   `CommandController<TModel>`. The class name matches the YAML's
-   `controller` field. Define a model interface that declares the
-   typed fields the matcher will hand you.
-3. **Add the seed** at `mud/seeds/obj/command/<Name>.yaml` with the
-   correct class path. `SeederManager` writes the Template doc into
-   `domain` at boot; `StuffApi.clone` picks it up on dispatch.
+   `mud/obj/command/<category>/<Name>Controller.ts` extending
+   `CommandController<TModel>`. The YAML's `controller` field carries
+   the category prefix (`<category>/<Name>Controller`). Define a model
+   interface that declares the typed fields the matcher will hand you.
+3. **Add the seed** at `mud/seeds/obj/command/<category>/<Name>.yaml`
+   with the correct class path. `SeederManager` writes the Template doc
+   into `domain` at boot; `StuffApi.clone` picks it up on dispatch.
 4. **Wire discovery.** Decide which class or mixin should expose the
    verb in its `commandContributions`. A spatial command goes on a
    spatial mixin; a description command on `VisibleMixin`; a
@@ -1013,8 +1014,8 @@ caches by filename for the process lifetime. The intentional escape
 hatch for dev edits:
 
 ```ts
-CommandApi.invalidate('look.yaml');     // drop one entry
-CommandApi.invalidate('player.yaml');
+CommandApi.invalidate('perception/look.yaml'); // drop one entry
+CommandApi.invalidate('author/player.yaml');
 // next CommandApi.getCommand(...) re-reads the YAML from disk
 ```
 

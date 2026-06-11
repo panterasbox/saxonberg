@@ -30,7 +30,7 @@ See:
 |---|---|
 | `packages/server/src/mud/api/prompt.ts` | `PromptApi`, `PromptCancelledError`, `PromptValidator<T>`, `buildPromptContext`, `renderPromptRefresh` |
 | `packages/types/src/index.ts` | Wire types (8 new Note kinds + 2 inbound messages) |
-| `packages/server/src/mud/cmd/prompt.yaml` + `obj/command/PromptController.ts` | `prompt cancel` command |
+| `packages/server/src/mud/cmd/system/prompt.yaml` + `obj/command/system/PromptController.ts` | `prompt cancel` command |
 | `packages/server/src/mud/lib/shell/Environment.ts` | `prompt.format` setting registration |
 | `packages/server/src/mud/lib/command/CommandGiver.ts` | Refresh-Note injection at dispatch-response composition |
 | `packages/server/src/backend/Application.ts` | Inbound dispatch routes + empty-command short-circuit + disconnect cleanup |

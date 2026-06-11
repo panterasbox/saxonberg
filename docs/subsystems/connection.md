@@ -517,32 +517,43 @@ ws 'message' → Backend.handleWebSocketMessage(socketId, data)
             echo    ping    command
               │       │       │
               ▼       ▼       ▼
-            echo    pong   handleCommandMessage
+            echo    pong   handleCommand
                               │
                               ▼
-                  avatar.executeCommand(text, ctx)
+                  giver.executeCommand(text, ctx)
 ```
 
 `Backend.handleWebSocketMessage` parses JSON and dispatches under
-another root frame. Bad JSON sends back an `error` frame.
+another root frame. Bad JSON sends back an `error` frame. A client's
+messages are **serialized per socket** — `Backend` chains each message
+behind the prior one (`inboundChainBySocketId`) so an actor's commands
+process in arrival order, never interleaved. (Without this, two rapid
+commands that clone the same controller template would trip
+`StuffApi.clone`'s in-flight cycle guard — see
+[char-gen.md](./char-gen.md).) `Application.processUserMessage` is
+`async` and awaits its handler so the chain spans the full dispatch.
 
 `Application.processUserMessage` looks up the Interactive by
 socketId, then switches on `message.type`:
 
 - `echo` — round-trip the payload (debug).
 - `ping` — reply `pong` with timestamp.
-- `command` — `handleCommandMessage`.
+- `command` — `handleCommand` (`backend/inbound/command.ts`).
 
-`handleCommandMessage` (`Application.ts § handleCommandMessage`)
-requires `interactive.getHolder() instanceof Avatar` — anything else gets a
-`No active character` error. **Login does not yet accept commands**;
-when it does, that will be a separate dispatch path with its own
-`CommandContext` (no `location`). Builds the `CommandContext` with
-avatar/interactive/location/text/executionId and calls
-`avatar.executeCommand(text, context)`. The result is discarded —
-prose is fired via `Scene` inside the controller; success/failure
-reaches the client via auto-emitted `MudlogApi` command-outcome
-entries (see [command-routing.md](./command-routing.md)).
+`handleCommand` requires `interactive.getHolder()` to be a
+`CommandGiver` — checked by capability via `MixinApi.isCommandGiver`,
+never `instanceof` — and anything else gets a `No active character`
+error. **Both `Avatar` (in-world) and `Login` (pre-world char-gen /
+roster) are `CommandGiver`s**, so the same path serves both; the
+char-gen `enroll`/`play` verbs ride this exact pipeline (see
+[char-gen.md](./char-gen.md)). The placeless guard (holder has no
+container) is **Avatar-only** — a `Login` is intentionally locationless
+and still dispatches. The handler builds the `CommandContext` and calls
+`giver.executeCommand(text, ...)` (`giver` being whichever
+`CommandGiver` holds the connection). The result is discarded — prose
+is fired via `Scene` inside the controller; success/failure reaches the
+client via the dispatch-response envelope (see
+[command-routing.md](./command-routing.md)).
 
 ## Outbound Messages (Game → Client)
 

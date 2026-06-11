@@ -10,11 +10,23 @@ A command lives in five places:
 
 | Artifact | Where | Sets |
 |---|---|---|
-| **YAML view** | `mud/cmd/<verb>.yaml` | verbs, args, options, scope, validators |
-| **Controller** | `mud/obj/command/<Name>Controller.ts` | execution body |
-| **Controller seed** | `mud/seeds/obj/command/<Name>.yaml` | template doc for `StuffApi.clone` |
+| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | verbs, args, options, scope, validators |
+| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | execution body |
+| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>.yaml` | template doc for `StuffApi.clone` |
 | **Discovery** | `static commandContributions` on a class or mixin | which givers see this verb on their recency stack |
 | **Validators (optional)** | `mud/lib/command/validators/<name>.ts` | per-field validators referenced by path |
+
+Commands are grouped into **category subdirs** mirroring the subsystem
+taxonomy. The ten categories: `perception`, `social`, `movement`,
+`posture`, `inventory`, `boundary`, `shell`, `author`, `system`,
+`charactergen`. The category prefix is **load-bearing and uniform** — it
+appears in the YAML `controller:` field (`perception/LookController`),
+the seed `class:` path (`/obj/command/perception/LookController`), and
+every `commandContributions` entry (`'perception/look.yaml'`). The
+preloader walks `cmd/` recursively, so a verb collides only within its
+own namespace (a future `play piano` and char-gen's `play` coexist). If
+a new verb doesn't fit an existing category, propose a new one rather
+than dropping it at the `cmd/` root.
 
 The schema for the YAML lives at `mud/cmd/command.schema.json` and is
 enforced at boot.
@@ -47,7 +59,7 @@ load-time error. `options` is optional at every level.
 
 ```yaml
 verbs: [look, l]              # primary verb first; rest are aliases
-controller: LookController    # template name; resolves to /obj/command/<Name>
+controller: perception/LookController  # category/Name; resolves to /obj/command/perception/LookController
 description: "Examine your surroundings or an object"
 args:                         # OR `subcommands:` — never both
   - name: target
@@ -774,15 +786,17 @@ needs richer-than-string structure.
 ## Controllers
 
 A controller is a templated `Idea` (Stuff). One file per controller
-under `mud/obj/command/<Name>Controller.ts`, with a matching seed at
-`mud/seeds/obj/command/<Name>.yaml` that produces a Template doc at
-`/obj/command/<Name>` in the `domain` collection. The YAML view's
-`controller:` field is that **template name** — the dispatcher does
+under `mud/obj/command/<category>/<Name>Controller.ts`, with a matching
+seed at `mud/seeds/obj/command/<category>/<Name>.yaml` that produces a
+Template doc at `/obj/command/<category>/<Name>` in the `domain`
+collection. The YAML view's `controller:` field is that **template
+name**, including the category prefix — the dispatcher does
 `StuffApi.clone('/obj/command/' + command.controller)` for each
 execution. By convention the template name matches the TS class name
-(`LookController`'s seed creates `/obj/command/LookController`), but
-the binding is template-driven, not class-driven. Hot-reload works
-because `StuffApi.clone` consults `HotReloadApi`.
+(`perception/LookController`'s seed creates
+`/obj/command/perception/LookController`), but the binding is
+template-driven, not class-driven. Hot-reload works because
+`StuffApi.clone` consults `HotReloadApi`.
 
 ### Skeleton
 
@@ -967,7 +981,7 @@ class Throne extends Stuff /* ... */ {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: [],
-    environment: ['sit.yaml'],   // grants `sit` to anyone in the room
+    environment: ['posture/sit.yaml'], // grants `sit` to anyone in the room
     peers: [],
   };
 }
@@ -989,21 +1003,21 @@ admin verb on `Avatar`'s static `commandContributions`. Don't pile
 verbs onto `Avatar` "because every avatar has them" — declare on the
 feature mixin and ensure every avatar composes it.
 
-`focus.yaml` is the canonical "this verb is meaningful only when the
-giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
+`perception/focus.yaml` is the canonical "this verb is meaningful only
+when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
 
 ## Controller seed file
 
 For every controller class, drop a one-liner seed at
-`mud/seeds/obj/command/<Name>.yaml` with the correct class path.
-`SeederManager` writes the Template doc into `domain` at boot;
+`mud/seeds/obj/command/<category>/<Name>.yaml` with the correct class
+path. `SeederManager` writes the Template doc into `domain` at boot;
 `StuffApi.clone` picks it up on dispatch.
 
 ```yaml
-# mud/seeds/obj/command/FocusController.yaml
-class: /obj/command/FocusController
+# mud/seeds/obj/command/perception/FocusController.yaml
+class: /obj/command/perception/FocusController
 data: {}
 ```
 

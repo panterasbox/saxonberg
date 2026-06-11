@@ -1375,7 +1375,7 @@ that path enforces who is authorized.
 Adoption sites today:
 
 - `StuffApi.forceDestruct` →
-  `FromModule('mud/obj/command/DestructController#DestructController')`.
+  `FromModule('mud/obj/command/author/DestructController#DestructController')`.
   `DestructController` does the access check.
 - `ContainmentApi.forceMove` →
   `AnyOf(FromModule(TeleportController), FromModule(GotoController))`.

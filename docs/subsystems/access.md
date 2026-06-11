@@ -127,7 +127,7 @@ entry path AND that path enforces who is authorized.
 Two adoption sites this build flips:
 
 - `StuffApi.forceDestruct` → gated by
-  `FromModule('mud/obj/command/DestructController#DestructController')`
+  `FromModule('mud/obj/command/author/DestructController#DestructController')`
   (the string form of `FromController(DestructController)` —
   string-keyed to avoid a value-level static-import cycle).
   `DestructController` runs `AccessApi.can(giver,

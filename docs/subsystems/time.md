@@ -368,7 +368,7 @@ path. Instruments are `Thing`s carrying the verb via
 | `CelestialProfile` / `EARTH_LIKE` / `SunDef` / `MoonDef` / `Season` | domain | `lib/time/CelestialProfile.ts` |
 | `Sundial` / `Sextant` | Stuff | `obj/instrument/` |
 | `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `obj/command/` |
-| `analyze` / `measure` subcommands | Command YAML | `cmd/analyze.yaml`, `cmd/measure.yaml` |
+| `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |
 
 `'degrees'` was added to the `Unit` union + `unitOps` in

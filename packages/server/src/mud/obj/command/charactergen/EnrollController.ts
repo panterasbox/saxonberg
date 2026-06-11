@@ -30,6 +30,7 @@ import { Mml } from '../../../api/mml';
 import { StuffApi } from '../../../api/stuff';
 import { ConnectionApi } from '../../../api/connection';
 import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 import { SlotApi } from '../../../api/slot';
 import { TemplateApi } from '../../../api/template';
 import { Template } from '../../../lib/stuff/Template';
@@ -674,23 +675,20 @@ export default class EnrollController extends CommandController<EnrollModel> {
     }
 
     // 5. Dress in the aspiration's themed outfit (tolerant of missing
-    //    garments / slot mismatches — content may lag).
+    //    garments / slot mismatches — content may lag). Narrow the
+    //    freshly-cloned garment with the mixin predicates rather than
+    //    casting: a garment that isn't Containable/Wearable is skipped.
+    //    The avatar is always a Container + Slotted (it's an `Avatar`).
     if (aspiration && species) {
       const bodyPlanPath = species.getBodyPlanPath();
       for (const garmentPath of aspiration.outfit) {
         try {
           const garment = await StuffApi.clone(garmentPath);
-          ContainmentApi.move(
-            garment as never,
-            avatar as never,
-          );
-          const claims = bodyPlanPath
-            ? (garment as unknown as {
-                getSlotClaims(): Record<string, readonly string[]>;
-              }).getSlotClaims()[bodyPlanPath]
-            : undefined;
-          if (claims && claims.length) {
-            SlotApi.occupyAll(avatar as never, garment as never, claims);
+          if (!MixinApi.isContainable(garment)) continue;
+          ContainmentApi.move(garment, avatar);
+          if (bodyPlanPath && MixinApi.isWearable(garment)) {
+            const slots = garment.getSlotClaim(bodyPlanPath);
+            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
           }
         } catch {
           /* skip this garment */

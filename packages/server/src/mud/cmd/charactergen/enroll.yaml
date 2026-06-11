@@ -1,6 +1,6 @@
 verbs: [enroll]
 controller: charactergen/EnrollController
-description: "Create a new character. Field-named subcommands: enroll <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `enroll` shows the current step."
+description: "Create a new character. Field-named subcommands: enroll <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `enroll` re-emits the current draft state."
 args:
   - name: rest
     type: string

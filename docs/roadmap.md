@@ -257,7 +257,8 @@ Ordered by leverage + dependency:
    [npc-dialogue](./slates/npc-dialogue-slate.md))
 
 The **new-player flow** straddles both tracks: char-gen engine +
-fast-travel terminals are Track B (server-first); the onboarding
+fast-travel terminals are Track B (server-first) — the **char-gen
+engine shipped in Wave 1** (see char-gen-slate above); the onboarding
 journey content + the authoring GUI are Track A. Reactions, chat,
 and spoiler each have a server half (Track B) and a client surface
 (Track A) — land the server half first, surface it when the
@@ -409,8 +410,13 @@ The connected new-player flow (char-gen → lounge → fast-travel →
 onboarding → dorm + authoring), each thin-engine / content-heavy:
 
 - [docs/slates/char-gen-slate.md](./slates/char-gen-slate.md) — light
-  closed-choice intake via campus services; thin engine (avatar-enter
-  gate + prompts + default-by-species); hands off to onboarding.
+  closed-choice intake. **Wave 1 SHIPPED** (MR !49): the intake engine
+  is live on the real command pipeline — `Login`-as-`CommandGiver`,
+  `enroll`/`play` MVC verbs, `EnrollmentDraft` accumulator, `PersonaMixin`,
+  `NameBank` suggester, 7-species roster, the cockpit char-gen phase. See
+  [docs/subsystems/char-gen.md](./subsystems/char-gen.md). Deferred to
+  later waves: the `records` verb (bio editing), breadcrumbs/vitals/
+  language, the lounge handoff, onboarding, the name sanitizer.
 - [docs/slates/onboarding-slate.md](./slates/onboarding-slate.md) —
   learn-by-doing journey (lounge → fast-TP to campus → signs/greeter →
   dorm lobby → room → customization); the scoped-authoring on-ramp.

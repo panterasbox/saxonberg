@@ -509,11 +509,12 @@ for the full rule.
 - **Api files**: lowercase with `.ts`. `stuff.ts`, `player.ts`,
   `mixin.ts`, `containment.ts`, `message.ts`, …
 
-- **Command YAML views**: `lookatself.yaml`, `say.yaml`, `tell.yaml`,
-  in `mud/cmd/`. Loaded lazily by `CommandApi`.
+- **Command YAML views**: `perception/look.yaml`, `social/say.yaml`,
+  in `mud/cmd/<category>/` (grouped into category subdirs). Loaded
+  recursively by `CommandApi`.
 
-- **Command controllers**: in `mud/obj/command/`, e.g.
-  `LookController.ts`, `GoController.ts`.
+- **Command controllers**: in `mud/obj/command/<category>/`, e.g.
+  `perception/LookController.ts`, `movement/GoController.ts`.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 

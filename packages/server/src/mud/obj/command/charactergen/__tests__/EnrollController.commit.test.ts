@@ -14,6 +14,9 @@ import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../Avatar';
 import Species from '../../../../lib/species/Species';
+import { WearableMixin } from '../../../../lib/slot/Wearable';
+import { ContainableMixin } from '../../../../lib/spatial/Containable';
+import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
 import { Template } from '../../../../lib/stuff/Template';
@@ -27,6 +30,10 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 const SAPIENS =
   '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
 const BIPED = '/lib/body-plans/biped';
+
+// A real Wearable+Containable garment so the dressing block's mixin
+// predicates (`isContainable`/`isWearable`) narrow it rather than skip.
+class TestGarment extends WearableMixin(ContainableMixin(Idea)) {}
 
 describe('EnrollController.commit', () => {
   let login: Login;
@@ -86,15 +93,16 @@ describe('EnrollController.commit', () => {
       },
     );
 
-    // Clone: avatar for the Avatar path, a garment for everything else.
+    // Clone: avatar for the Avatar path, a real Wearable garment for
+    // everything else (claims a torso slot on the biped body plan).
     avatar = { setSex: vi.fn(), enter: vi.fn().mockResolvedValue(undefined) };
     dressed = [];
+    const garment = makeStuff(() => new TestGarment());
+    garment.setSlotClaim(BIPED, ['torso']);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
       if (path.startsWith('/obj/Avatar/')) return avatar as never;
       dressed.push(path);
-      return {
-        getSlotClaims: () => ({ [BIPED]: ['torso'] }),
-      } as never;
+      return garment as never;
     });
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
     vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);

@@ -549,8 +549,8 @@ why this shape was chosen.
 | `Engagement` / `DurativeActivity` / `SustainedEngagement` / `ScheduledEmission` / `StartResult` | `api/scheduler.ts` | Engagement interface family                     |
 | `EngagedMixin` + `Engaged` + `EngagementSlot` + `ENGAGEMENT_SLOTS` | `lib/activity/Engaged.ts`    | Actor-side slot map + privileged mutators       |
 | `AbortReasonRegistry` augmentation   | `lib/activity/Engaged.ts`        | Framework-intrinsic abort reasons               |
-| `CancelController`                   | `obj/command/CancelController.ts`| `cancel` / `cancel <type>` verb logic           |
-| `cancel.yaml`                        | `mud/cmd/cancel.yaml`            | Verb view                                       |
+| `CancelController`                   | `obj/command/system/CancelController.ts`| `cancel` / `cancel <type>` verb logic           |
+| `cancel.yaml`                        | `mud/cmd/system/cancel.yaml`            | Verb view                                       |
 
 ## Cross-references
 
