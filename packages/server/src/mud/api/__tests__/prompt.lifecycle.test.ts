@@ -1,8 +1,9 @@
 /**
  * Wave 2: PromptApi push → respond → resolve lifecycle for each
  * Tier 1 kind. Tests drive the substrate via the public
- * `handleResponse` entry point (Wave 3 wires Application; here we
- * call directly).
+ * `handleResponse` entry point (the inbound handler
+ * `backend/inbound/prompt.ts` wires it in production; here we call
+ * directly).
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

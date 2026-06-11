@@ -175,6 +175,99 @@ Adding a new Zone subclass to satisfy a folder need is the right move
 when no existing class fits. `FolderZone` is the generic answer when
 the folder doesn't carry domain-specific behavior.
 
+## Authoring guidelines
+
+The cardinal-only-intra-zone invariant and the zone-derivation rule
+together do most of the structural work for content authors. The
+cardinal rule forces a zone break at every meaningful boundary
+(building entries, portals); the derivation rule means folder
+organization carries no zone implications as long as folders stay
+non-spatial. What's left to author judgment is **how to organize
+within and across zones**.
+
+### Default pattern for `/domain/<team>/`
+
+A team owns its subtree under `/domain/<team>/` and organizes freely
+inside it. The recommended shape is geographic at the top, with
+`FolderZone` for organization and `CartesianZone` (or `SphericalZone`)
+where a coordinate grid is needed:
+
+```
+/domain/narnia/                  FolderZone (organizational)
+  forest/                        CartesianZone — the woods, one grid
+    western-clearing               Location (leaf, at coords)
+    wolf-pack                       NPC (leaf, in the woods zone)
+    silver-knife                    Item (leaf, in the woods zone)
+  castle/                        FolderZone (castle has substructure)
+    exterior                       CartesianZone (small grid)
+    great-hall                     CartesianZone (interior grid)
+    dungeon                        CartesianZone (interior grid)
+  shared/                        FolderZone — reused across regions
+    items/excalibur                Item leaf
+    npcs/tumnus                     NPC who wanders (leaf)
+```
+
+The spatial zones connect via cross-zone exits at their boundaries
+(e.g. `castle/exterior` → `castle/great-hall` through an `enter` exit
+on the front door).
+
+### Principles
+
+1. **Top-level under a team's domain is geographic.** Reflects how
+   authors think ("I'm working on the forest") and inherits
+   geographic-flavor defaults cleanly (a forest biome set at
+   `/domain/narnia/forest/`).
+2. **Within a region, categorical or flat is the author's call.**
+   Either `.../forest/western-clearing` flat, or
+   `.../forest/clearings/western-clearing` sub-categorized. Depth is a
+   taste choice.
+3. **Shared content lives in a sibling `shared/` (or `items/`,
+   `npcs/`) folder.** Things reused across regions go there; don't
+   force them into one region's tree just because they appear there
+   first.
+4. **Internal nodes are Zones; leaves are content.** This is the
+   folder/leaf invariant. `SpatialZone` subclass if the node anchors a
+   coordinate grid; `FolderZone` if purely organizational.
+5. **The cardinal rule decides "is this its own zone."** If you'd need
+   a non-cardinal exit to reach a place from its neighbor, that place
+   is its own zone. Don't fight this.
+6. **Granularity heuristic (not a rule):** roughly 50–200 rooms per
+   `CartesianZone` (CircleMUD area precedent). Tune at content build;
+   don't ship a 5000-room zone.
+
+### Anti-patterns to avoid
+
+- **Everything categorical at the top** (`/domain/narnia/rooms/`,
+  `.../items/`, `.../npcs/`). Breaks inheritance — geographic defaults
+  can't reach rooms scattered across a categorical tree.
+- **One zone for an entire team's domain.** Too coarse; the cardinal
+  rule forces splits the moment there's any indoor/outdoor
+  distinction.
+- **Deeply nested per-sub-sub-region trees.** Authoring overhead
+  doesn't pay off below ~2–3 levels of organizational depth.
+- **Mixing geographic and categorical dirs at the same level**
+  (`forest/`, `items/`, `dungeon/` all siblings). A sibling `shared/`
+  is fine — it's clearly a meta-category — but mixing semantically
+  same-level dirs is confusing.
+- **Putting a `SpatialZone` where you wanted a `FolderZone`.** It
+  promotes the whole subtree into one grid, potentially merging things
+  you didn't mean to merge. When unsure, start with `FolderZone` and
+  promote to a spatial zone only when you actually want a coordinate
+  frame.
+
+### `/idea/...` vs `/domain/...` are organized differently
+
+These guidelines target `/domain/<team>/` content trees. Core
+taxonomies under `/idea/` (`/idea/material/`, `/idea/species/`,
+`/idea/biome/`) are organized **taxonomically** — root → kingdom →
+species, or biome-category hierarchy — not geographically. Their
+structure is determined by their own domain, not by these geographic
+recommendations.
+
+> **Backlog:** resource-boundary semantics — runtime caps (mob counts,
+> item limits, reset cadence) scoped at the zone level — are
+> aspirational today and deserve their own slate. Not covered here.
+
 ## History
 
 The Zone subsystem was carved out of `lib/spatial/` as part of the
@@ -184,10 +277,10 @@ field-inheritance walk was drafted as `ZoneApi.resolveZoneField` in
 the requirements/plan docs but moved to instance methods on `Zone`
 during implementation review — the override-on-subclass extension
 point (for barrier zones that root inheritance at themselves)
-needed instance dispatch. The build's source slates
-([zone-architecture-slate.md](../slates/zone-architecture-slate.md)
-and [declarative-content-slate.md](../slates/declarative-content-slate.md))
-remain as design references; the spawn-shape side
+needed instance dispatch. The build's source slates (the
+zone-architecture and declarative-content slates, since retired — their
+authoring guidance folded into the "Authoring guidelines" section below
+and into [templates.md](./templates.md)); the spawn-shape side
 (`PopulatesMixin` + `container:` instruction field, with live-ref
 consultation in `Avatar.enter` for the across-restart spawn case)
 shipped in a follow-up build — see

@@ -19,8 +19,8 @@ state) and **future server-side waves** (shadow-aware projection,
 selector seam for cardinality narrowing, derived synthetic
 fields).
 
-**Supersedes** the prior `state-sync-slate.md` (kept untracked as
-the historical record of the rejected fixed-delta-taxonomy
+**Supersedes** the prior `state-sync-slate.md` (since retired; this
+slate is the historical record of the rejected fixed-delta-taxonomy
 model). Why the pivot: fixed-delta models grow a wire-schema
 entry per consumer widget, which compounds quadratically as the
 client matures. The MQL-subscription model has linear growth —
@@ -39,7 +39,7 @@ See also:
   pattern.
 - [docs/slates/client-cockpit-slate.md](./client-cockpit-slate.md)
   — every right-sidebar widget is a subscription consumer.
-- [docs/slates/inspection-pane-slate.md](./inspection-pane-slate.md)
+- [docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md)
   — focus-pane body is a subscription on the focused thing's
   detail.
 - [docs/slates/prompt-stack-slate.md](./prompt-stack-slate.md)

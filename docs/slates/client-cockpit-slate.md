@@ -8,12 +8,16 @@ about what this app actually is: a CLI-in-a-browser whose primary
 audience is investors getting demoed the engine.
 
 **Status.** Design surface staked out. Implementation broken into
-independent tracks that can be built in parallel. The client today
-is a four-component shell (App, Terminal, CommandBar, ConnectionStatus)
-that renders raw MML as literal text and ignores the response
-envelope channel the server already emits, plus has no
-subscription substrate to drive sidebar widgets yet. This slate
-is the spec for what to build instead.
+independent tracks that can be built in parallel — several have since
+shipped. The client today is no longer a bare four-component shell:
+the MQL-subscription substrate, the inspection pane, the PromptApi
+client surface, and the console-foundations tabbed/gutter terminal
+(tab strip, filter drawer, per-topic gutter — see
+[subsystems/topics.md](../subsystems/topics.md)) are all built and
+consuming the response-envelope channel. The inspection-pane and
+prompt-stack sections of this slate are accordingly absorbed /
+superseded (each self-marked below); the rest of this slate remains
+the spec for the tracks still to build.
 
 **Audience.** The reference app's primary demo audience is potential
 investors. The secondary audience is a generic education vertical

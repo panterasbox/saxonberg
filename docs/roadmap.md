@@ -71,9 +71,11 @@ The substrate is in place. Major shipped surfaces:
   per-player namespace at `/home/<playerId>`.
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `PopulatesMixin`, escape hatch via
-  `PostRegistrationMixin`. Working slate at
-  [docs/slates/declarative-content-slate.md](./slates/declarative-content-slate.md)
-  (which consolidated the original spawn-shape slate).
+  `PostRegistrationMixin`. Shipped — see
+  [subsystems/templates.md](./subsystems/templates.md),
+  [spatial.md](./subsystems/spatial.md), and
+  [boundary.md](./subsystems/boundary.md) (deferred notes preserved in
+  templates.md).
 - **Client/server wire substrate** — the cockpit's foundation,
   shipped:
   [response-envelope.md](./subsystems/response-envelope.md)
@@ -87,8 +89,7 @@ The substrate is in place. Major shipped surfaces:
   [inspection-pane.md](./subsystems/inspection-pane.md) (the
   focus pane — `$focus` subscription, detail-drill, exits/door
   projection, hover/click routing). These graduated from slates
-  to subsystems; the build manifest is
-  [docs/plans/client-foundation-readiness.md](./plans/client-foundation-readiness.md).
+  to subsystems.
 
 See [docs/architecture.md](./architecture.md) for layout and
 [docs/subsystems/](./subsystems/) for individual references.
@@ -111,10 +112,8 @@ dependency gates the work:
   the shipped wire — **no client blocker**. Verbs like `analyze` /
   `say` / `wear` exercise it without any cockpit work.
 
-The taxonomy (server-first / tandem / client-pull) and per-chunk
-acceptance criteria live in
-[docs/plans/client-foundation-readiness.md](./plans/client-foundation-readiness.md);
-this section is the prioritized near-term face of it. The full
+The taxonomy (server-first / tandem / client-pull) and the
+prioritized near-term work live in this section. The full
 slate catalogue (the menu these are drawn from) follows under
 **Active design slates**.
 
@@ -328,11 +327,12 @@ requirements.
   `altitude`). `docs/slates/world-clock-slate.md` kept for the
   deferred surface (light wiring, multi-region latitude, locale,
   weather, NPC schedules, second profiles).
-- [docs/slates/sound-slate.md](./slates/sound-slate.md) — **absorbed into
+- **Sound** — **absorbed into
   [senses-slate](./slates/senses-slate.md)** (now the *hearing* instance of
-  the unified `PerceptionChannel` substrate). Retained as a tombstone for
-  the acoustic detail (real dB / Hz / species hearing ranges, acoustic
-  instruments); senses-slate is the live authority.
+  the unified `PerceptionChannel` substrate). The standalone sound-slate
+  was retired; its acoustic detail (real dB / Hz / species hearing ranges,
+  acoustic instruments) is folded into senses-slate's "Deep acoustic spec"
+  section — the live authority.
 - [docs/slates/augmentation-slate.md](./slates/augmentation-slate.md) —
   the augmentation umbrella (implant / prosthetic / graft; innate ⊕
   acquired): a **slotted Stuff contributes a capability** (sense channel,
@@ -398,11 +398,13 @@ pass; built in waves):
   conditions); imposed + opt-in; assessment integrity flagged as a
   *separate* (assessment-system) problem.
 
-> **Overlap to reconcile:** `communication-policy-slate` (trust-tiered
-> moderation / `MessageGate` / emote-only forms) is now largely covered
-> by **access-slate** (the gate) + **emotes-slate** (emote-only mode) +
-> **comms**. Candidate for absorption/retirement at a sweep — flagged,
-> not yet retired.
+> **Resolved:** `communication-policy-slate` (trust-tiered moderation)
+> was **retired** at the docs sweep. Its stale internals (`MessageGate`,
+> `effectiveTier`, emote-as-safe-fallback) contradicted shipped
+> emotes/comms + the methods-only / no-registry / emotes-are-magic
+> principles; its live kernel (recognition-as-security-primitive,
+> trust tiers, NPC-zone trust via AccessApi) was folded into
+> **comms-slate § Moderation**. The gate proper lives in **access-slate**.
 
 ### New-player & world slates
 

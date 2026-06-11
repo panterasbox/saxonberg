@@ -75,7 +75,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -93,7 +93,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -109,7 +109,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -126,7 +126,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/eternal/university',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -157,7 +157,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/outer/middle/inner',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);
@@ -212,7 +212,7 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
       },
       {
         path: '/zone/sub',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
     ]);

@@ -14,8 +14,8 @@ deliberately doesn't go through any of this.
 **Persistence** = backing → CMS template `data`, at destroy/shutdown.
 **Reset** = re-hydrate an existing backing back to template defaults.
 
-(Persistence and reset are not implemented yet — see "Not yet implemented"
-below.)
+(*Reset* is not implemented yet; *persist* ships for Avatar — see
+§ Persist Direction — v1.)
 
 These are one mechanism with two directions. Both use
 `MixinApi.getAllPersistentFields(backing.constructor)` as the single

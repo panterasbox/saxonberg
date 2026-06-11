@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import Door from '../Door';
 import Exit from '../Exit';
-import CartesianZone from '../../spatial/CartesianZone';
-import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianZone from '../../location/CartesianZone';
+import CartesianLocation from '../../location/CartesianLocation';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

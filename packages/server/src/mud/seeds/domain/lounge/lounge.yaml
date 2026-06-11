@@ -1,0 +1,24 @@
+# The lounge room — the ONE template every live lounge instance is a
+# clone of. "Host" and "satellite" are runtime roles the LoungeWarren
+# assigns; there is no separate class or template for either. The
+# universal login landing: new avatars spawn into the host instance.
+#
+# `warren:` is a construction seed (an instruction field) consumed once
+# on hydrate by `LoungeMixin.applyWarren` — the room self-registers with
+# its Warren, which OWNS the membership. There are deliberately NO
+# `exits:` here: the host-only fixture (north to Dave's Bar) and the
+# satellite hub exits are wired imperatively by the Warren onto the host,
+# not baked into every clone.
+#
+# A plain, zone-less Location (a social pocket, not a grid cell) — no
+# coordinates, no SingletonMixin (repeated clones are the whole point).
+class: /domain/lounge/Lounge
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  warren: /domain/lounge/warren
+  shortDescription: the lounge
+  primaryKeyword: lounge
+  longDescription: |
+    A low-ceilinged room that has clearly been furnished by whoever passed through and left something behind. Mismatched armchairs and a sagging couch cluster around a rug worn pale down the middle. A coffee machine ticks to itself on a side table; someone has taped a hand-lettered sign above it that just reads BE NICE.
+
+    A doorway north opens onto the warm light of Dave's Bar.

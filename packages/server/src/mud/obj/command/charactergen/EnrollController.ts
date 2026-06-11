@@ -661,7 +661,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     await user.save();
 
     // 3. Clone the runtime Avatar (postRegister stamps + installs the
-    //    baseline implant + places at the lobby).
+    //    baseline implant + places at the seed's spawn — the lounge).
     const avatar = await StuffApi.clone<Avatar>(path, { user, playerId });
 
     // 4. Sex is species-constrained, so set it on the live avatar after

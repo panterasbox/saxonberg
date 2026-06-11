@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianLocation from '../CartesianLocation';
-import CartesianZone from '../CartesianZone';
+import CartesianLocation from '../../location/CartesianLocation';
+import CartesianZone from '../../location/CartesianZone';
 import Window from '../../boundary/Window';
 import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
@@ -81,14 +81,14 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // The zone.
       {
         path: '/test/declarative/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         hydratorClass: PersistentHydrator.templatePath,
         data: { name: 'test zone', cellSize: 25 },
       },
       // Room A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -101,7 +101,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // bidirectional `addBidirectionalExit`).
       {
         path: '/test/declarative/zone/roomB',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },
@@ -198,13 +198,13 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       },
       {
         path: '/back/zone',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/back/zone/a',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -216,7 +216,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // and no-op.
       {
         path: '/back/zone/b',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },

@@ -25,7 +25,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../lib/description/Perceptible';
-import CartesianLocation from '../../../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { ContainmentApi } from '../../../../api/containment';
 import type { MqlManyResult } from '../../../../api/mql';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';

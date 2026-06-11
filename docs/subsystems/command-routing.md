@@ -51,7 +51,7 @@ The shape lives in:
 [client] CommandBar onSend(text)
    │  websocketClient.send({ type: 'command', payload: { text } })
    ▼
-[server] Backend → Application.processUserMessage → handleCommandMessage
+[server] Backend → Application.processUserMessage → backend/inbound/command.ts handleCommand
    │  resolves Interactive → Avatar → Location
    ▼
 avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
@@ -395,12 +395,17 @@ The same hooks drive both the recency stack and the schema delivery
 
 The client sends `{ type: 'command', payload: { text } }` via
 WebSocket. `Backend` plants a Root frame via
-`runRoot(Backend, 'processUserMessage', ...)`; the dispatch lands in
-`Application.handleCommandMessage`, which:
+`runRoot(Backend, 'processUserMessage', ...)`. `processUserMessage`
+resolves the `Interactive` and dispatches on `message.type` through
+the `inboundHandlers` table (`backend/inbound/index.ts`); the
+command channel lands in `handleCommand` (`backend/inbound/command.ts`),
+which:
 
 1. Looks up the `Interactive` for this socket; rejects with `error`
    payload if there's no active character.
-2. Trims the inbound text and refuses empty input silently.
+2. Trims the inbound text. An empty command line short-circuits to a
+   `prompt-refresh` envelope (no parser, no controller) rather than
+   running input — see `backend/inbound/command.ts:29-41`.
 3. Resolves `interactive.holder` to an `Avatar`, reads its current
    environment as `Location`, and calls
    `avatar.executeCommand(text, { interactive })`.
@@ -411,13 +416,16 @@ pushed a frame, the body tags it `FrameKind.Command`, mints
 plants `commandContext` + `causingCommandId` on the live frame's
 metadata so downstream Scene / Mudlog calls auto-attribute.
 
-A structured ingress path also exists: `{ type: 'command', payload:
-{ verb, subcommand?, fields, raw? } }` skips the parser and goes
-straight to `CommandApi.assembleFromStructured` — used for widget
-input where the client has already chosen the verb. Same
-resolve / preload / validate / controller stack downstream. The
-`raw` string is an opaque audit hint; the server logs it but does
-not parse or trust it.
+A structured ingress path also exists at the Api layer:
+`CommandApi.assembleFromStructured` (`api/command.ts:1586`) takes
+`{ verb, subcommand?, fields, raw? }`, skips the parser, and feeds
+the same resolve / preload / validate / controller stack downstream
+— intended for widget input where the client has already chosen the
+verb. The `raw` string is an opaque audit hint; the server logs it
+but does not parse or trust it. **Substrate exists, not yet wired to
+an inbound message type** — `backend/inbound/command.ts` handles only
+the free-text `{ text }` shape today; no inbound handler reaches
+`assembleFromStructured`.
 
 ## Stage 2 — Parsing
 
@@ -833,14 +841,17 @@ repeat loads. Built-ins live under `mud/lib/command/validators/`:
 hook — its preload ensures the giver's species clade and every
 ancestor clade are live before the sync `isAnimate` body runs).
 
-`mustBeVisible` was retired: the gate rejected non-`Visible`
-hosts uniformly, which made `look` against the void (a
-non-`Visible` Location used as the bootstrap-starting room) fail
-at the validator layer. Inspection verbs now do the
-Visible/non-Visible discrimination inside the controller (see
+`mustBeVisible` was removed from the look/inspection verbs: the
+gate rejected non-`Visible` hosts uniformly, which made `look`
+against the void (a non-`Visible` Location used as the bootstrap-
+starting room) fail at the validator layer. Inspection verbs now do
+the Visible/non-Visible discrimination inside the controller (see
 `LookController.lookAtTarget` for the polite-refusal path), where
 the controller can tell "tried to look at a thing" from "tried
-to look at the room I'm in" and degrade appropriately.
+to look at the room I'm in" and degrade appropriately. The
+validator itself is still live and used by the containment/posture
+verbs (`get`, `put`, `give`, `sit`, `stand`, `kneel`, `lie`,
+`mount`).
 
 Validators are resolved at boot by `CommandApi.preloadAll()` —
 called from `index.ts` after seeders/hooks run, before traffic
@@ -1033,7 +1044,7 @@ future task.
 Every frame composed during a command's synchronous execution carries
 the originating `commandId`. The chain:
 
-1. `Application.handleCommandMessage` calls
+1. `handleCommand` (`backend/inbound/command.ts`) calls
    `avatar.executeCommand(text, { interactive })`.
 2. The proxy intercepts and pushes a `CallFrame` with `target:
    avatar`, `method: 'executeCommand'`.

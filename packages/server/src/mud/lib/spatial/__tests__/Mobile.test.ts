@@ -145,8 +145,8 @@ import { buildMode } from '../../locomotion/__tests__/test-helpers';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { MountableMixin } from '../../slot/Mountable';
-import CartesianZone from '../CartesianZone';
-import CartesianLocation from '../CartesianLocation';
+import CartesianZone from '../../location/CartesianZone';
+import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../../boundary/Exit';
 import { ContainmentApi } from '../../../api/containment';
 

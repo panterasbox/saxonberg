@@ -10,8 +10,9 @@ This is the substrate. Three sibling slates build on it:
 
 - [docs/slates/social-graph-slate.md](./social-graph-slate.md) —
   buckets, notifications, attention-management rendering.
-- [docs/slates/communication-policy-slate.md](./communication-policy-slate.md)
-  — trust-tiered moderation built on recognition + buckets.
+- [docs/slates/comms-slate.md](./comms-slate.md) — the
+  trust-tiered moderation concern now lives in the comms slate's
+  moderation section, built on recognition + buckets.
 - [docs/slates/identification-slate.md](./identification-slate.md) —
   the parallel pattern for items.
 
@@ -190,7 +191,7 @@ interface RecognitionRecord {
   firstSeen: Timestamp;
   lastSeen: Timestamp;
   bucket?: string;          // social-graph integration
-  trustTier?: number;       // communication-policy integration
+  trustTier?: number;       // comms-slate moderation integration
   notes?: string;           // optional richer context
 }
 
@@ -231,7 +232,8 @@ considerations:
 - LRU in-memory caching with write-through to disk.
 - Optional pruning policy for years-old untouched records.
 
-The current `Persistable` + `PersistenceManager` framework is
+The current Document/Stuff split persists recognition records on
+the `Document` track (CRUD via `PersistenceManager`), which is
 whole-document; recognition needs finer access patterns. This
 is flagged for the persistence-layer follow-on.
 
@@ -426,7 +428,8 @@ on recognition record for locality.
 ### Persistence framework
 
 Long-term recognition state at scale stresses the current
-`Persistable` shape. Flagged for persistence-layer follow-on.
+whole-document `Document`-track shape. Flagged for
+persistence-layer follow-on.
 
 ### MQL
 
@@ -512,7 +515,7 @@ works with existing grammar; confirm in requirements.
 ## What this slate does NOT cover
 
 - **Buckets / friends / foes** — social-graph slate.
-- **Trust-tiered moderation** — communication-policy slate.
+- **Trust-tiered moderation** — comms slate (moderation section).
 - **Item identification** — identification slate (parallel
   pattern).
 - **NPC behavior** that consumes recognition state (gates,

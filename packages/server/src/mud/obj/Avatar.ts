@@ -16,7 +16,12 @@ import { ConnectionApi } from '../api/connection';
 import { EventApi } from '../api/event';
 import { TemplateApi } from '../api/template';
 import { StuffApi } from '../api/stuff';
+import { ContainmentApi } from '../api/containment';
 import { MixinApi } from '../api/mixin';
+import type { Containable } from '../lib/spatial/Containable';
+import type { Container } from '../lib/spatial/Container';
+import type { Stuff } from '../lib/stuff/Stuff';
+import { Warren } from '../lib/location/Warren';
 import { SpeciesApi } from '../api/species';
 import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
@@ -77,6 +82,41 @@ export default class Avatar extends AvatarBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Instruction field — the avatar's *durable spawn/recall reference*.
+   * Sibling to the `container` instruction (from `ContainableMixin`) but
+   * distinct: it holds a singleton room **or a Warren**, and resolves at
+   * hydration via `applyStartLocation`. Only avatars have a
+   * spawn/recall location, so it lives directly here (no mixin). The
+   * Hydrator's Phase 2 auto-dispatches any declared instruction field, so
+   * the declaration alone wires it. See
+   * [docs/requirements/multilocation-lounge-requirements.md].
+   */
+  static instructionFields = ['startLocation'];
+
+  /**
+   * Phase 2 applier for `data.startLocation`. The avatar's spawn/recall
+   * reference is either a **Warren** (land in its lazily-created host —
+   * the Warren is never the avatar's `container`; `container` stays
+   * honest) or an ordinary **room** (a singleton room is reused, a
+   * non-singleton one is cloned fresh — `StuffApi.singletonOrClone`). The
+   * Warren check is a real `instanceof` against the canonical base class
+   * (unspoofable); the generic clone-vs-singleton decision stays in
+   * `StuffApi`.
+   *
+   * Compare-and-move idempotency is unnecessary here (spawn fires once at
+   * clone time); `Avatar.restore()` re-fires it harmlessly (the move is a
+   * no-op when already in place, or a clean re-seat).
+   */
+  async applyStartLocation(ref: string): Promise<void> {
+    const cls = await StuffApi.classForRef(ref);
+    const target: Stuff & Container =
+      (cls.prototype as object) instanceof Warren
+        ? await (await StuffApi.singleton<Warren>(ref)).getHost()
+        : await StuffApi.singletonOrClone<Stuff & Container>(ref);
+    ContainmentApi.move(this as unknown as Stuff & Containable, target);
+  }
 
   /**
    * Schema entries declared by Avatar. Picked up by the schema walk
@@ -253,7 +293,8 @@ export default class Avatar extends AvatarBase {
     if (!startingLocation) {
       throw new Error(
         `Avatar.enter: ${this.getFullName()} has no container. ` +
-          `Avatar templates must declare 'data.container'; the seed at ` +
+          `Avatar templates must declare a spawn via 'data.startLocation' ` +
+          `(a room or a Warren) or 'data.container'; the seed at ` +
           `'${Avatar.SEED_TEMPLATE_PATH}' sets a default that's copied at signup.`
       );
     }

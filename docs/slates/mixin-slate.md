@@ -61,17 +61,26 @@ The physics half of perception. The agent-side `Sensor` *(have)* /
 
 The bulk of the standard model — each unlocks a verb / controller.
 
-- `Wieldable` — held in a hand slot (weapons, tools)
+- `Wieldable` *(have)* — held in a hand slot (weapons, tools).
+  Shipped, slot taxonomy resolved — see
+  [embodiment.md](../subsystems/embodiment.md) +
+  [slot.md](../subsystems/slot.md).
 - `Equippable` — generic equipment-slot binding
-- `Wearable` — worn in a body slot (head, torso, feet, finger…)
-- `Sittable` / `Lieable` / `Standable-on` — furniture postures
+- `Wearable` *(have)* — worn in a body slot (head, torso, feet,
+  finger…). Shipped, slot taxonomy resolved — see
+  [embodiment.md](../subsystems/embodiment.md) +
+  [slot.md](../subsystems/slot.md). (The hand-slot refinement is now
+  its own separate slate.)
+- `Sittable` / `Lieable` / `Standable-on` — *superseded* by the
+  shipped Postured / Posed posture substrate — see
+  [posture.md](../subsystems/posture.md).
 - `Readable` — has text content; `read X`
 - `Writable` — can be inscribed
 - `Switchable` / `Toggleable` — on/off (lamp button, radio)
 - `Pourable` — moves liquid into a target
 - `Mixable` — combines with other Mixable contents
-- `Stackable` / `Globbable` — fungible, quantity-syntax (on roadmap
-  as the cardinality-MQL rider)
+- `Stackable` / `Globbable` *(have)* — fungible, quantity-syntax.
+  Shipped — see [glob.md](../subsystems/glob.md).
 - `Combinable` — recipe input (composes into Crafted)
 - `Lightable` — accepts a flame; transitions to `Burning` /
   `Lit-source`
@@ -79,8 +88,9 @@ The bulk of the standard model — each unlocks a verb / controller.
 - `Keyed` — is a key; matches one or more locks
 - `Capacity-bound` — extends `Container` *(have)* with volume /
   weight limits
-- `Surfaced` — distinguishes "on" from "in" (`put X on table` vs
-  `put X in chest`)
+- `Surfaced` *(have)* — distinguishes "on" from "in" (`put X on
+  table` vs `put X in chest`). Shipped (`lib/spatial/Surfaced.ts`) —
+  see [spatial.md](../subsystems/spatial.md).
 - `Searchable` — `search` reveals concealed contents
 - `Concealing` — hides contents from `look`
 - `Hideable` — can serve as a hiding spot for an avatar
@@ -115,9 +125,11 @@ and the retrofitted `Door` are the v1 Boundary users. See
 
 Compose with existing `Vessel` *(have)* / `ExitableVessel` *(have)*.
 
-- `Mountable` — composes with `Vessel` for a ridable creature /
-  vehicle
-- `Drivable` — accepts a driver who steers it
+- `Mountable` *(have)* — composes with `Vessel` for a ridable
+  creature / vehicle. Shipped — see
+  [conveyance.md](../subsystems/conveyance.md).
+- `Drivable` *(have)* — accepts a driver who steers it. Shipped — see
+  [conveyance.md](../subsystems/conveyance.md).
 - `Steerable` — can be aimed by a driver
 - `Navigable` — long-distance / route-planning capable
 
@@ -138,7 +150,11 @@ combat.
 
 ## Open design threads
 
-### Material
+### Material — shipped as a substrate
+
+Shipped — `Material` landed as a full substrate (not the tiny
+property-table envisioned here); see [race.md](../subsystems/race.md).
+The original design sketch follows for the record.
 
 Property on `Thing`, not a mixin — `material: 'wood' | 'metal' |
 …`. The behavioral consequences ("wood burns, metal conducts, glass
@@ -174,7 +190,12 @@ depth-bounded recursive walk, fully lazy. |
 | Boundary substrate (`Adornable`, `Adornment`, `Boundary`, `BoundaryAnchor`, conduits) | mixins + classes | *(have)* — windows / doors block channels. |
 | `Combustible` / `Lightable` / `Burning` | mixins | deferred — fire mechanics not in v1. |
 
-### Climbable & locomotion modes
+### Climbable & locomotion modes — shipped
+
+Shipped: `Climbable` / `Swimmable` / `Flyable` landed with **Path 2
+(locomotion-mode pluralism)** chosen — see
+[locomotion.md](../subsystems/locomotion.md). The design discussion
+below is kept for the record.
 
 Not punted — but it's the test case for a small design pass first.
 
@@ -383,12 +404,18 @@ real. Ordered by what unblocks the most authoring at once.
 - `Poisoned`, `Diseased`, `Sleeping` / `Resting` — these all need
   a tick / scheduling story; consider together
 
-**Design pass before building**
+**Design pass before building** — *the three below have all since
+shipped:*
 
 - `Climbable` + locomotion-mode pluralism (the `Climbable` /
-  `Swimmable` / `Crawlable` / `Flyable` axis)
+  `Swimmable` / `Crawlable` / `Flyable` axis) — *shipped, Path 2
+  chosen* — see [locomotion.md](../subsystems/locomotion.md).
 - Equipment slot taxonomy (head, torso, feet, hands, finger,
-  wrist, neck, …) — needs a design pass before `Wearable` lands
+  wrist, neck, …) — *shipped, taxonomy resolved* — see
+  [slot.md](../subsystems/slot.md) +
+  [embodiment.md](../subsystems/embodiment.md); the hand-slot
+  refinement is now its own separate slate.
 - Vehicles — `Mountable`, `Drivable`, `Steerable`, `Navigable`;
   the bicycle is a forcing function but the design covers
-  multi-passenger vessels too
+  multi-passenger vessels too — *`Mountable` / `Drivable` shipped* —
+  see [conveyance.md](../subsystems/conveyance.md).

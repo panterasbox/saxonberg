@@ -124,13 +124,16 @@ sets are disjoint.
 
 ## The Scheduler
 
-`SchedulerApi` (`api/scheduler.ts`) owns the active set of
-engagements and every timer backing them — one `setTimeout` per
-`DurativeActivity` completion, one `setInterval` per
-`ScheduledEmission`, plus per-engagement host-destruction
-subscriptions via `EventApi.on(Events.StuffDestructed, ...)`. On
-abort or completion the scheduler cancels every timer it owns for
-that engagement in one place — no per-author bookkeeping.
+`SchedulerApi` (`api/scheduler.ts`) is a thin facade; the
+`SchedulerRegistry` singleton (`obj/SchedulerRegistry.ts`) owns the
+active set of engagements and every timer backing them. The timers are
+**game-time** schedules, not raw Node timers: one `WorldClockApi.after`
+`ClockHandle` per `DurativeActivity` completion, one
+`WorldClockApi.every` `ClockHandle` per `ScheduledEmission` — so
+pausing the world clock pauses in-flight activities. Per-engagement
+host-destruction subscriptions ride `EventApi.on(Events.StuffDestructed,
+...)`. On abort or completion the Registry cancels every clock handle
+it owns for that engagement in one place — no per-author bookkeeping.
 
 ### Surface
 
@@ -231,12 +234,17 @@ dedicated reload verb ships.
 `SchedulerApi.reloadActivity` torn down mid-flight), the dispatch
 helpers log and degrade gracefully:
 
-- `#dispatchOnComplete` misses → force `onAbort('thrown')`.
-- `#dispatchOnAbort` misses → log; timers already cancelled by the
+- `dispatchOnComplete` misses → force `onAbort('thrown')`.
+- `dispatchOnAbort` misses → log; timers already cancelled by the
   outer abort path, so the engagement is correctly torn down even
   though activity-specific cleanup didn't run.
-- `#dispatchGetHost` misses → return `null` (engagement opts out of
+- `dispatchGetHost` misses → return `null` (engagement opts out of
   the eager subscription).
+
+(These dispatch helpers — and the `activityRegistry` they read — are
+`private` members on `SchedulerRegistry`, not Api `#`-private fields:
+the Registry is a Stuff host whose instance methods dispatch through
+the call-security proxy.)
 
 ### Sub-100ms completion-sync
 
@@ -496,8 +504,9 @@ why this shape was chosen.
    Future `shutdown-lifecycle` subsystem will own the `restart`
    `AbortReason` augmentation; firing semantics are deferred. v1's
    short-running server makes this a non-issue.
-3. **Lifecycle dispatch routes through `#activityRegistry`, not
-   instance prototype.** Activities are plain TS classes (not
+3. **Lifecycle dispatch routes through `SchedulerRegistry`'s
+   `activityRegistry`, not instance prototype.** Activities are plain
+   TS classes (not
    Stuff-templated), so they don't pick up HMR like controllers do.
    The registry is the smallest indirection that makes activity
    edits hot-reload-friendly: each activity file registers itself
@@ -545,7 +554,8 @@ why this shape was chosen.
 
 | Element                              | Lives in                         | Role                                            |
 |--------------------------------------|----------------------------------|-------------------------------------------------|
-| `SchedulerApi`                       | `api/scheduler.ts`               | Active set, timers, registry, lifecycle dispatch |
+| `SchedulerApi`                       | `api/scheduler.ts`               | Thin facade over `SchedulerRegistry`            |
+| `SchedulerRegistry`                  | `obj/SchedulerRegistry.ts`       | Active set, clock-handle timers, activity-class registry, lifecycle dispatch |
 | `Engagement` / `DurativeActivity` / `SustainedEngagement` / `ScheduledEmission` / `StartResult` | `api/scheduler.ts` | Engagement interface family                     |
 | `EngagedMixin` + `Engaged` + `EngagementSlot` + `ENGAGEMENT_SLOTS` | `lib/activity/Engaged.ts`    | Actor-side slot map + privileged mutators       |
 | `AbortReasonRegistry` augmentation   | `lib/activity/Engaged.ts`        | Framework-intrinsic abort reasons               |

@@ -173,8 +173,8 @@ The applier:
 
 `ExitInstruction` carries the full exit shape: `destination`, optional
 `door`, `bidirectional`, `opposite`, `hidden`, `blocked`, `muffled`,
-`noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per
-declarative-content-slate § exits on ExitableMixin and
+`noFollow`, `oneWay`, `messageIn`, `messageOut`, `media`. Per the
+declarative exit spec (see [templates.md](./templates.md)) and
 `feedback_property_vs_instruction_fields`. No paired getter for the
 spec — the runtime `exits: Map<string, Exit>` collection has its own
 established API (`getExit`, `addExit`, …) which is the only public
@@ -215,7 +215,7 @@ field is the runtime back-reference, populated by:
 - `ExitableVessel`'s synthesized exit factories when
   `vessel.door` is non-null
 
-…and unwired by `removeExit`, `Exit.prepareDestroy`,
+…and unwired by `removeExit`, `Exit.onDestruct`,
 `vessel.setDoor` cache invalidation, and `Door.detach()`.
 
 ### Conduit registry
@@ -252,7 +252,7 @@ broken/removed door somewhere. Reinstall reverses:
 `addBidirectionalExit(other, dir, { door })` (which also
 installs the new anchor pair).
 
-`Door.prepareDestroy` is inherited from Boundary — it calls
+`Door.onDestruct` is inherited from Boundary — it calls
 `detach()` (now also clearing attachedTo) and then destructs the
 captured anchors.
 
@@ -355,7 +355,7 @@ Adornable-of-Adornable pattern — no Boundary-substrate change.
 not-portable invariant. Composed by `BoundaryAnchor`; future
 fixture types (sconces, decorations) compose it too.
 
-`AdornableMixin.prepareDestroy()` walks `fixtures` and destructs
+`AdornableMixin.onDestruct()` walks `fixtures` and destructs
 each via `StuffApi.destruct`. A `BoundaryAnchor` being destructed
 clears its slot in the boundary; if the host on the other side
 is still alive, that side's anchor stays put and the boundary
@@ -426,7 +426,7 @@ BoundaryApi.create({ factory, hostA, hostB });
 // Convenience: StuffApi.create(factory) + attachExistingBoundary.
 
 BoundaryApi.destruct(boundary);
-// StuffApi.destruct(boundary) → boundary.prepareDestroy()
+// StuffApi.destruct(boundary) → boundary.onDestruct()
 // detaches anchors from hosts and destructs them → boundary destroys.
 ```
 
@@ -463,8 +463,8 @@ scalar-default rule):
 - `attachedHosts: [string, string] | null` — Pattern A. Two
   templatePaths of the hosts this Window connects. The setter
   resolves both paths via `StuffApi.singleton` and installs the
-  anchors via `BoundaryApi.attachExistingBoundary`. Per
-  declarative-content-slate § attachedHosts.
+  anchors via `BoundaryApi.attachExistingBoundary`. Per the declarative
+  attachedHosts spec (see [templates.md](./templates.md)).
 - `open: boolean` (from Sealable, was `isOpen`) — shutter state.
 
 The structured runtime API `getDirectionalOverrides()` /
@@ -486,7 +486,7 @@ data:
 ```
 
 `setAttachedHosts([pathA, pathB])` is a setter with side effects (per
-[spatial.md § The setter-with-side-effects pattern](./spatial.md#the-setter-with-side-effects-pattern)):
+[location.md § The setter-with-side-effects pattern](./location.md#the-setter-with-side-effects-pattern)):
 stores the pair, resolves both hosts lazily, calls
 `BoundaryApi.attachExistingBoundary`. Idempotent on re-set with the
 same pair (in either order — boundaries are undirected). Throws on

@@ -4,12 +4,11 @@
  * Pattern mirrors `MqlSubscriptionApi` in `api/mql-subscription.ts`:
  * per-Interactive registry of pending prompts, outbound envelopes via
  * `MessageApi.sendEnvelope`, inbound entry points called by the
- * application dispatcher (Wave 3 in the plan; tests drive them
- * directly).
+ * backend inbound handler table (`backend/inbound/prompt.ts`); tests
+ * drive them directly too.
  *
  * See:
- *   - `docs/requirements/prompt-substrate-requirements.md`
- *   - `docs/plans/prompt-substrate-plan.md`
+ *   - `docs/subsystems/prompt.md`
  *   - `docs/slates/prompt-stack-slate.md`
  */
 
@@ -172,11 +171,11 @@ interface ResolverRecord {
  *   - `mqlObject(iact, label, matches, opts?)` → `Promise<Stuff | null>`
  *   - `mqlMany(iact, label, matches, opts?)` → `Promise<Stuff[]>`
  *
- * Inbound entry points: `handleResponse` (called by
- * `Application.processUserMessage` on `prompt-response` wire
- * messages — Wave 3 wires this), `handleCancel` (on `prompt-cancel`).
- * Both are public so tests can drive the substrate directly without
- * routing through the application dispatcher.
+ * Inbound entry points: `handleResponse` (called by the inbound
+ * handler `backend/inbound/prompt.ts` on `prompt-response` wire
+ * messages), `handleCancel` (on `prompt-cancel`). Both are public so
+ * tests can drive the substrate directly without routing through the
+ * inbound handler table.
  *
  * Server-side cancellation: `cancel(promptId, reason?)` cancels one
  * pending prompt; `cancelAll(interactive, reason)` cancels every
@@ -333,7 +332,7 @@ export class PromptApi {
    * (if any), and either resolves the await or emits
    * `prompt-validation-failed` and keeps the prompt alive.
    *
-   * Wave 3 wires `Application.processUserMessage` to call this on
+   * The inbound handler (`backend/inbound/prompt.ts`) calls this on
    * inbound `prompt-response`. Public so tests can drive it.
    */
   public static handleResponse(

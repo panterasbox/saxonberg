@@ -19,5 +19,10 @@
  * starting location is purely server-side content; no client
  * changes are needed to evolve it.
  */
+// NOTE: this is the *evacuation* fallback consumed by
+// `Container.cleanupOnDestruct` — it must resolve to a live Container, so
+// it stays the lobby. The *spawn* pointer for fresh avatars is a separate
+// concern: `seeds/obj/Avatar/seed.yaml`'s `data.startLocation`
+// (`/domain/lounge/warren`), resolved by `Avatar.applyStartLocation`.
 export const DEFAULT_STARTING_LOCATION_PATH =
   '/domain/eternal/duncan-hall/lobby';

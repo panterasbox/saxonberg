@@ -20,7 +20,7 @@ import { SpatialZone } from '../zone/SpatialZone';
 import Exit from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
 import type Location from '../stuff/Location';
-import type { Container } from './Container';
+import type { Container } from '../spatial/Container';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';

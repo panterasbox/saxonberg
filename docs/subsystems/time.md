@@ -16,9 +16,9 @@ wiring).
 ## Layer 1 — Time axis (`WorldClockApi`, `api/worldclock.ts`)
 
 The single global authority for "what time is it in the world." A
-static Api with module-private state, decorated with
-`SecurityApi.decorateApiClass`. Everything that needs game-time goes
-through `getNow()`.
+thin static Api facade over the `WorldClockRegistry` singleton (which
+holds the clock state), decorated with `SecurityApi.decorateApiClass`.
+Everything that needs game-time goes through `getNow()`.
 
 ### Own-thing model (D1)
 
@@ -32,7 +32,8 @@ model (which would "catch up" elapsed real time on restart).
 ### Anchor math
 
 `getNow()` is computed from an in-memory anchor `(anchorGameTimeS,
-anchorRealMs)` and a `scale`:
+anchorRealMs)` and a `scale` — all held on the `WorldClockRegistry`
+singleton; `WorldClockApi.getNow()` delegates to it:
 
 ```
 now_s = anchorGameTimeS + ((realNowMs − anchorRealMs) / 1000) × scale
@@ -44,9 +45,12 @@ no time discontinuity. While paused, `getNow()` returns the frozen
 `anchorGameTimeS`; `resume()` re-anchors real time without advancing
 game time, so no time is gained or lost across a pause.
 
-Every real-clock read goes through an injectable `#nowMs()` (defaults
-to `Date.now`) so tests control time deterministically — see *Test
-seams* below.
+Every real-clock read goes through an injectable `nowMs()` on the
+Registry (defaults to `Date.now`) so tests control time
+deterministically — see *Test seams* below. It's `private nowMs`, not
+`#nowMs`: the Registry is a Stuff host whose instance methods dispatch
+through the call-security proxy, where `#`-private slots are
+unreachable.
 
 Default scale is **12×** (2 real hours = 1 game day), a module
 constant `DEFAULT_SCALE`; the live value is clock state, persisted in
@@ -361,6 +365,7 @@ path. Instruments are `Thing`s carrying the verb via
 | Artifact | Category | Path |
 |---|---|---|
 | `WorldClockApi` (+ `ClockHandle` / `ScheduleOpts` / `CronPattern` / `WorldClockSnapshot`) | Api | `api/worldclock.ts` |
+| `WorldClockRegistry` | Stuff (singleton `Idea`) | `obj/WorldClockRegistry.ts` |
 | `CelestialApi` (+ folded geometry) | Api | `api/celestial.ts` |
 | `WorldClockState` | Document | `lib/time/WorldClockState.ts` |
 | `Calendar` / `CalendarDate` | domain | `lib/time/Calendar.ts` |
@@ -370,6 +375,12 @@ path. Instruments are `Thing`s carrying the verb via
 | `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `obj/command/` |
 | `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |
+
+The `WorldClockApi` ↔ `WorldClockRegistry` split exists for HMR
+survival: the Api is a thin facade holding only a cached `#registryRef`,
+while the anchor, scale, schedules, and `heartbeat: ScheduleHandle`
+live on the singleton Registry so they survive a reload of the Api
+file.
 
 `'degrees'` was added to the `Unit` union + `unitOps` in
 `lib/quantity.ts`.

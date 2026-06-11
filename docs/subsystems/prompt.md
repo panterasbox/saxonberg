@@ -33,7 +33,9 @@ See:
 | `packages/server/src/mud/cmd/system/prompt.yaml` + `obj/command/system/PromptController.ts` | `prompt cancel` command |
 | `packages/server/src/mud/lib/shell/Environment.ts` | `prompt.format` setting registration |
 | `packages/server/src/mud/lib/command/CommandGiver.ts` | Refresh-Note injection at dispatch-response composition |
-| `packages/server/src/backend/Application.ts` | Inbound dispatch routes + empty-command short-circuit + disconnect cleanup |
+| `packages/server/src/backend/inbound/prompt.ts` | Inbound prompt routes (`handlePromptResponse` / `handlePromptCancel`), dispatched via `inboundHandlers` in `backend/inbound/index.ts` |
+| `packages/server/src/backend/inbound/command.ts` | Empty-command short-circuit + `renderPromptRefresh` call (`:29-41`) |
+| `packages/server/src/backend/Application.ts` | Disconnect cleanup (`handleUserDisconnect` runs `PromptApi.cancelAll`) |
 
 ## Surface
 
@@ -288,9 +290,10 @@ receipt.
 ### Empty-command short-circuit
 
 An Enter-only command (`{ text: '' }`) bypasses the parser and
-controller dispatch entirely. `Application.handleCommandMessage`
-ships a refresh-only dispatch-response carrying just the
-`prompt-refresh` Note. MUD-style "press Enter for a fresh prompt."
+controller dispatch entirely. `handleCommand`
+(`backend/inbound/command.ts:29-41`) ships a refresh-only
+dispatch-response carrying just the `prompt-refresh` Note.
+MUD-style "press Enter for a fresh prompt."
 
 The short-circuit runs even when the avatar has no container — a
 placeless avatar still sees their current prompt.

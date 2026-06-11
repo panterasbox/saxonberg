@@ -254,13 +254,17 @@ a dedicated reload verb ships.
   reads `this.someNewField` that wasn't set by the old
   constructor, it gets `undefined`. Typical edits (changing
   behavior, not shape) are unaffected.
-- **`SchedulerApi` internal edits still need a reboot.** Ghost
-  timers from old-class registrations fire into the new code with
-  stale state. Same for `EngagedMixin` storage shape.
+- **`SchedulerRegistry` internal edits still need a reboot.** The
+  active engagements and their timers live on the `SchedulerRegistry`
+  singleton; in-flight engagement state doesn't survive a reload of
+  that Registry. The timers are `WorldClockApi` `ClockHandle`s
+  (game-time schedules), not raw Node timers — ghost handles from
+  old-class registrations fire into the new code with stale state.
+  Same for `EngagedMixin` storage shape.
 - **Registry miss recovers gracefully.** If a class is
   unregistered between `start()` and a lifecycle fire (file
   deleted, type renamed),
-  `#dispatchOnComplete` forces `onAbort('thrown')` so timers and
+  `dispatchOnComplete` forces `onAbort('thrown')` so timers and
   slot state get cleared, and the engagement degrades cleanly.
 
 **Future: drain-and-reload wizard verb.** Composes

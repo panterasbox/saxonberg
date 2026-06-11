@@ -29,7 +29,7 @@ import { NamedMixin } from '../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { AuthorMixin } from '../../../../lib/shell/Author';
-import CartesianLocation from '../../../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { ContainmentApi } from '../../../../api/containment';
 import { MqlSubscriptionApi } from '../../../../api/mql-subscription';
 import type { MqlManyResult } from '../../../../api/mql';

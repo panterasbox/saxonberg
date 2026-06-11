@@ -15,7 +15,7 @@ who's asking:
 
 | Query | Viewer-dependent because |
 |---|---|
-| `LightApi.canSee(viewer, target)` | night-vision, blindfold, invisibility, light state |
+| `VisionModality.canSee(viewer, target)` | night-vision, blindfold, invisibility, light state |
 | `DescribeApi.getDisplayName(viewer, target)` | hooded stranger reads as "a tall figure" to most, "Bob" to those who recognize him |
 | `SensorApi.canHear(viewer, source)` (future) | deaf, distance, walls, magical silence |
 | `understandsSpeech(viewer, speaker, msg)` (future) | does the listener speak the language? |
@@ -57,8 +57,8 @@ outputs. No reads from execution context, no globals, no
 callstack-aware tricks.
 
 ```ts
-LightApi.perceivedBand(viewer: Stuff & Sensor, loc: Stuff & Container): LightBand
-LightApi.canSee(viewer: Stuff & Sensor, target: Stuff, detail?: VisibilityDetail): boolean
+VisionModality.perceivedBand(viewer: Stuff & Sensor, loc: Stuff & Container): LightBand
+VisionModality.canSee(viewer: Stuff & Sensor, target: Stuff, detail?: VisibilityDetail): boolean
 DescribeApi.getDisplayName(viewer: Stuff & Sensor, target: Stuff, fallback?: string): string
 SensorApi.canHear(viewer: Stuff & Sensor, source: Stuff): boolean
 ```
@@ -83,10 +83,10 @@ The `Shadow` framework (see [call-security.md](./call-security.md))
 is already per-instance. A shadow on a specific viewer can intercept
 any query Api method called for that viewer:
 
-- `BlindfoldShadow` on Bob → `LightApi.canSee(Bob, …)` returns
+- `BlindfoldShadow` on Bob → `VisionModality.canSee(Bob, …)` returns
   false.
 - `NightVisionShadow` on a cat-NPC → band shifts up.
-- `DarknessShadow` on a cursed avatar → `LightApi.lightAt` from
+- `DarknessShadow` on a cursed avatar → `VisionModality.lightAt` from
   this viewer's perspective is capped at zero.
 - `RecognitionShadow` on Bob → `getDisplayName(Bob,
   hooded-stranger)` returns "Phil" because Bob has met Phil before.
@@ -133,7 +133,7 @@ defaults. Shadows that intercept them follow the standard pattern:
 `@Shadowing`, `callDown` for chaining, `@Unshadowable` /
 `@ShadowSecurity` policies. The proxy pipeline routes
 `viewer.perceivedBandModifier(...)` through the shadow stack
-naturally — `LightApi` just calls the host method.
+naturally — `VisionModality` just calls the host method.
 
 ```ts
 // A blindfold curse — overrides perceivedBandModifier:
@@ -179,9 +179,9 @@ pipeline.
    `look at Bob`.
 3. The look pipeline runs **with viewer = orc**, not Alice.
 4. Inside look:
-   - `LightApi.perceivedBand(orc, Bob.getContainer())` — the
+   - `VisionModality.perceivedBand(orc, Bob.getContainer())` — the
      orc's perception of band.
-   - `LightApi.canSee(orc, Bob, 'figure')` — orc's gate.
+   - `VisionModality.canSee(orc, Bob, 'figure')` — orc's gate.
    - `DescribeApi.getDisplayName(orc, Bob)` — orc's renderer.
 5. Whatever the orc reports back (say it tells Alice what it saw)
    flows through the Scene composer with orc as the source. Alice
@@ -193,11 +193,11 @@ error messages, stamina deduction, billing-style accounting.
 
 ## Where the pattern is currently used
 
-- (existing) `LightApi.canSee`, `LightApi.perceivedBand`,
-  `LightApi.viewerVisionProfile` — Light & Boundary subsystem.
+- (existing) `VisionModality.canSee`, `VisionModality.perceivedBand`,
+  `VisionModality.viewerVisionProfile` — Light & Boundary subsystem.
   Viewer-side overrides via Shadow seam methods
   (`perceivedBandModifier`, `canSeeOverride`, `getVisionProfile`)
-  declared only on Shadows; `LightApi` walks
+  declared only on Shadows; `VisionModality` walks
   `ShadowApi.getShadows(viewer, methodName)` to invoke them. See
   [light.md § Per-Viewer Perception](./light.md#per-viewer-perception).
 - (planned) `DescribeApi.getDisplayName(viewer, target)` — v2 form

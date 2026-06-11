@@ -1,9 +1,23 @@
 # Social graph slate (working doc)
 
-Working slate for the social-graph layer — friends, foes,
-custom buckets, notification rules, and bucket-keyed display
-verbosity. Built on top of recognition; consumed by
-communication policy.
+Working slate for the social-graph layer — notification rules and
+bucket-keyed display verbosity over named lists of other characters.
+Built on top of recognition; consumed by comms.
+
+**Status — storage half SHIPPED.** The bucket *storage* + *membership
+verbs* this slate originally proposed (`SocialBucket` shape,
+`SocialGraphApi`, the `bucket` verb family) shipped as `ContactsMixin`
+— per-Avatar named lists of durable identifiers, the `contacts` verb
+suite, and a uniform `GroupApi` read surface. See
+[docs/subsystems/contacts.md](../subsystems/contacts.md). This slate
+**no longer owns that layer**; it continues for what's NOT built: the
+per-bucket **notification policy**, the per-viewer **display
+verbosity / density-aware aggregation** (the "200-player tavern
+renders manageably" thesis), and **recognition-state coupling**.
+Where sections below describe bucket storage or `bucket *` verbs as
+new work, read them as describing the now-shipped `ContactsMixin`
+substrate (labels are the buckets); the live design is the policy +
+lensing layer those sections wrap.
 
 The framing insight: in a busy social space, recognition isn't
 just "who do I know" — it's **attention management**. Strangers
@@ -13,10 +27,14 @@ matters.
 
 See also:
 
+- [docs/subsystems/contacts.md](../subsystems/contacts.md) — the
+  **shipped** bucket storage + membership-verb layer (`ContactsMixin`,
+  `contacts` verb suite, `ContactsGroupProvider`). This slate's
+  Wave-1/Wave-2 work landed here.
 - [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   substrate this slate builds on. Bucket data lives on
   recognition records.
-- [docs/slates/communication-policy-slate.md](./communication-policy-slate.md)
+- [docs/slates/comms-slate.md](./comms-slate.md)
   — consumes bucket assignments for trust-tiered messaging.
 - [docs/vision.md](../vision.md) — the social/educational
   positioning that motivates this layer.
@@ -27,11 +45,14 @@ See also:
 
 ## Principle
 
-Three things this slate provides:
+Three things, of which only the **first is built**:
 
-1. **Buckets** — categorize known actors. System-defined
-   (`friends`, `foes`) plus user-defined arbitrary names
-   (`classmates`, `study-group`, `lab-partners`).
+1. **Buckets** — categorize known actors. **SHIPPED as
+   `ContactsMixin` (see contacts.md)**: per-Avatar named lists of
+   durable identifiers, arbitrary labels (`friends`, `study-group`,
+   `lab-partners`, …), managed via the `contacts` verb suite. This
+   slate no longer owns that layer. The two remaining are the live
+   design:
 2. **Notification policies** — per-bucket rules for what
    triggers a player-facing notification (connect, enter room,
    message, activity).
@@ -46,6 +67,20 @@ spend on.
 ---
 
 ## Bucket shape
+
+> **SHIPPED — see contacts.md.** The bucket storage + membership
+> verbs landed as `ContactsMixin`: a single `_contacts: ContactEntry[]`
+> persistent field of durable-identifier entries, with `addContact` /
+> `removeContact` / `contactsByLabel` / `contactLabels` /
+> `clearContactLabel` / `renameContactLabel` / `allContacts` as the
+> method surface, and a `ContactsGroupProvider` exposing each label as
+> a `contacts:<ownerPlayerId>:<label>` group ref. Labels ARE the
+> buckets; there is no reserved label vocabulary in the shipped layer.
+> The `SocialBucket` / `viewer.socialGraph` shapes below are the
+> original sketch, retained as the conceptual model the
+> notification-policy + display-policy sections (which are NOT built)
+> hang off of. Read the `notification` / `display` fields as the
+> *remaining* design, keyed by contact label.
 
 ```ts
 interface SocialBucket {
@@ -83,7 +118,7 @@ Always present, can't be deleted:
 | `strangers` | Unrecognized actors | Aggregate counts in dense rendering |
 
 `foes` doubles as the moderation block-list — see
-[communication-policy-slate.md](./communication-policy-slate.md).
+[comms-slate.md](./comms-slate.md).
 
 ### User-defined buckets
 
@@ -97,13 +132,15 @@ faculty          — instructors / staff
 guildmates       — fictional-affiliation peers
 ```
 
-Players manage via verbs:
-
-- `bucket create classmates`
-- `bucket add Bob to classmates`
-- `bucket remove Bob from classmates`
-- `bucket delete classmates`
-- `bucket policy classmates onMessage=full`
+Players manage these via the **shipped `contacts` verb suite** (see
+contacts.md) — `contacts add`, `contacts remove`, `contacts show`,
+`contacts list`, `contacts clear`, `contacts rename`. The original
+`bucket create` / `bucket add` / `bucket policy` family the slate
+proposed is what that suite *became*; the only piece not yet built is
+the `policy` subcommand (`onMessage=full`-style notification tuning),
+which is this slate's live notification-policy work below. Labels are
+created implicitly by the first `contacts add` to them — there is no
+`bucket create` / `bucket delete`.
 
 ---
 
@@ -272,12 +309,12 @@ Recognition slate references social-graph but doesn't depend on
 it; bucket assignments are nullable; missing bucket falls
 through to `everyone-else` default.
 
-### Communication policy slate
+### Comms slate
 
-The bucket assignment is a primary input to communication-
+The bucket assignment is a primary input to comms
 policy. A `foes` bucket member's messages drop; a `friends`
 bucket member's bypass profanity filters. See
-[communication-policy-slate.md](./communication-policy-slate.md).
+[comms-slate.md](./comms-slate.md).
 
 ### Messaging subsystem (api/mml.ts)
 
@@ -336,19 +373,26 @@ fits the existing pattern.
 
 ## Build order
 
-**Wave 1** — substrate.
+**Wave 1 — substrate. SHIPPED as `ContactsMixin` (contacts.md).**
 
-- `SocialBucket` shape + `viewer.socialGraph` field.
-- System-defined buckets created on player creation.
-- `SocialGraphApi` (assign, remove, list, get-policy).
+- ~~`SocialBucket` shape + `viewer.socialGraph` field~~ → shipped as
+  `ContactsMixin._contacts` on `Character`.
+- ~~System-defined buckets created on player creation~~ → labels are
+  generic strings created on first `contacts add`; no reserved set.
+- ~~`SocialGraphApi` (assign, remove, list, get-policy)~~ → the
+  `Contacts` method surface + `ContactsGroupProvider` read path.
 
-**Wave 2** — bucket verbs + management.
+**Wave 2 — bucket verbs + management. SHIPPED as the `contacts`
+verb suite (contacts.md).**
 
-- `bucket` verb family (create, add, remove, list, policy).
-- Verbs require `recognized` state for the target (you can't
-  bucket a stranger).
+- ~~`bucket` verb family (create, add, remove, list, policy)~~ →
+  `contacts add/remove/show/list/clear/rename`. The `policy`
+  subcommand is the one piece deferred to Wave 3 below.
+- Recognition gating (you can't bucket a stranger) is deferred to the
+  recognition-family build; v1 `contacts add` is online-resolution only.
 
-**Wave 3** — notification + display policy integration.
+**Wave 3** — notification + display policy integration. *(The live
+remainder of this slate.)*
 
 - DescribeApi v2 step 4: bucket-aware rendering.
 - Density-aware aggregation in the MML composer.
@@ -366,7 +410,7 @@ fits the existing pattern.
 ## What this slate does NOT cover
 
 - **Recognition mechanics** — recognition-slate.
-- **Trust-tiered moderation** — communication-policy slate.
+- **Trust-tiered moderation** — comms slate.
 - **Cross-account social graphs** — beyond per-character.
 - **Group-formation gameplay** (forming a study group with
   shared state) — game-layer; this slate provides the

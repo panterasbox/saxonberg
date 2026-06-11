@@ -11,7 +11,7 @@ without overlap:
   data, why there is no `Player` class, the persistent-vs-runtime
   field split.
 - [lifecycle.md](./lifecycle.md) — the generic Stuff create/destroy
-  choreography (`postRegister`, `prepareDestroy`).
+  choreography (`postRegister`, `onDestruct`).
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,
   MML rendering. This doc points at the boundary; the inside lives
   there.
@@ -538,7 +538,7 @@ socketId, then switches on `message.type`:
 
 - `echo` — round-trip the payload (debug).
 - `ping` — reply `pong` with timestamp.
-- `command` — `handleCommand` (`backend/inbound/command.ts`).
+- `command` — routed to `handleCommand` (`backend/inbound/command.ts`).
 
 `handleCommand` requires `interactive.getHolder()` to be a
 `CommandGiver` — checked by capability via `MixinApi.isCommandGiver`,
@@ -607,7 +607,7 @@ ws 'close' → Backend.handleWebSocketClose(socketId)
                        │
                        ├─ StuffApi.destruct(interactive)
                        │     │
-                       │     ├─ interactive.prepareDestroy()
+                       │     ├─ interactive.onDestruct()
                        │     │     └─ ConnectionApi.detach(this)
                        │     │            ├─ avatar.removeInteractive(this)
                        │     │            ├─ interactive.holder = null
@@ -788,7 +788,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   [lifecycle.md § Open Design — Idle Eviction](./lifecycle.md#open-design--idle-eviction).
 - **Persist-back of Avatar runtime state.** Avatar mutations are
   in-memory only; the avatar template is read on first clone and
-  never written back. See the comment on `Avatar.prepareDestroy`.
+  never written back. See the comment on `Avatar.onDestruct`.
   Tracked under the
   unified-model "persist direction" in
   [state-model.md § Not Yet Implemented](./state-model.md#not-yet-implemented).
@@ -809,7 +809,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 - [state-model.md](./state-model.md) — `User`/`Avatar` data model,
   no `Player` class, what's persistent vs runtime
 - [lifecycle.md](./lifecycle.md) — generic Stuff create/destroy,
-  `postRegister`, `prepareDestroy`, idle eviction (open design)
+  `postRegister`, `onDestruct`, idle eviction (open design)
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,
   audiences, MML rendering (the "inside" of outbound delivery)
 - [command-routing.md](./command-routing.md) — command pipeline reached via

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
 import Thing from '../../stuff/Thing';
-import CartesianLocation from '../../spatial/CartesianLocation';
-import CartesianZone from '../../spatial/CartesianZone';
+import CartesianLocation from '../../location/CartesianLocation';
+import CartesianZone from '../../location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { VisionModality } from '../modalities/VisionModality';
 import { buildAllModalities } from '../modalities/__tests__/test-helpers';

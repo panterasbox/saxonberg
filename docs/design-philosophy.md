@@ -34,10 +34,10 @@ See also:
 - [docs/subsystems/quantities.md](./subsystems/quantities.md) — the
   cross-cutting `Quantity<T>` pattern that operationalizes
   Principle 2 ("model honestly").
-- [docs/slates/sound-slate.md](./slates/sound-slate.md),
+- [docs/subsystems/senses.md](./subsystems/senses.md),
   [docs/subsystems/locomotion.md](./subsystems/locomotion.md) —
-  the sound slate and the shipped locomotion subsystem are
-  applications of this philosophy. The embodiment subsystem
+  the shipped hearing/perception substrate and the locomotion
+  subsystem are applications of this philosophy. The embodiment subsystem
   (also shipped) is another instance — see
   [slot.md](./subsystems/slot.md) /
   [conveyance.md](./subsystems/conveyance.md). The activity
@@ -581,8 +581,7 @@ to go around") is **explicitly deferred**. The bag-of-stuff
 default plus block-validators handles the same content cases
 without committing to sub-room geometry.
 
-Full design in [collision-slate.md](./slates/collision-slate.md) (when
-drafted).
+Full design in [collision-slate.md](./slates/collision-slate.md).
 
 ---
 

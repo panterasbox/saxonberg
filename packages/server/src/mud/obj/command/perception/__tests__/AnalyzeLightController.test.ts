@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeLightController from '../AnalyzeLightController';
-import CartesianZone from '../../../../lib/spatial/CartesianZone';
-import CartesianLocation from '../../../../lib/spatial/CartesianLocation';
+import CartesianZone from '../../../../lib/location/CartesianZone';
+import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import Thing from '../../../../lib/stuff/Thing';

@@ -180,8 +180,8 @@ sequence, in order:
    onto `user.playerIds` and `user.save()`. Nothing before this entered
    the roster, so a crash mid-char-gen leaves no trace.
 3. **Clone the runtime Avatar** from the template (`postRegister` stamps
-   identity, installs the baseline implant, and self-places at the
-   lobby).
+   identity, installs the baseline implant, and self-places at the spawn
+   the seed pins — `startLocation: /domain/lounge/warren`, the lounge).
 4. **Set sex** on the live avatar (species-constrained, so applied after
    the species is in place to avoid hydration-order coupling).
 5. **Dress in the aspiration's themed outfit** — best-effort: each

@@ -15,6 +15,7 @@ import Interactive from '../../../Interactive';
 import Avatar from '../../../Avatar';
 import Species from '../../../../lib/species/Species';
 import { WearableMixin } from '../../../../lib/slot/Wearable';
+import { SlottableMixin } from '../../../../lib/slot/Slottable';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
@@ -33,7 +34,7 @@ const BIPED = '/lib/body-plans/biped';
 
 // A real Wearable+Containable garment so the dressing block's mixin
 // predicates (`isContainable`/`isWearable`) narrow it rather than skip.
-class TestGarment extends WearableMixin(ContainableMixin(Idea)) {}
+class TestGarment extends WearableMixin(SlottableMixin(ContainableMixin(Idea))) {}
 
 describe('EnrollController.commit', () => {
   let login: Login;
@@ -82,7 +83,7 @@ describe('EnrollController.commit', () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue({
       path: Avatar.SEED_TEMPLATE_PATH,
       class: '/obj/Avatar',
-      data: { container: '/domain/eternal/duncan-hall/lobby' },
+      data: { startLocation: '/domain/lounge/warren' },
       hydratorClass: '/lib/persistence/PersistentHydrator',
     } as never);
     savedTemplate = null;

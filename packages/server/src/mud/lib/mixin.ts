@@ -89,6 +89,8 @@ export const Mixins = {
   SkyExposed: 'SkyExposedMixin',
   Soul: 'SoulMixin',
   Contacts: 'ContactsMixin',
+  WarrenMember: 'WarrenMemberMixin',
+  Lounge: 'LoungeMixin',
 } as const;
 
 /**

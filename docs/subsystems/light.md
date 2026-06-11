@@ -33,8 +33,8 @@ The subsystem ships:
   for emitter-side contributions.
 - `Boundary`, `BoundaryAnchor`, and the `Conduit` interfaces — the
   generic abstraction for "anything that connects two `Adornable`
-  containers and gates channels (light, sight, movement, future
-  sound) between them."
+  containers and gates channels (light, sight, movement, sound,
+  smell) between them."
 - Concrete `Boundary` users: `Window` (new) and the retrofitted
   `Door` (now also a Boundary).
 - `Adornable` / `Adornment` mixins, the host-side machinery for
@@ -63,17 +63,17 @@ Sibling docs cover related ground without overlap:
 | `Light` | value object | Immutable `intensity` (`Quantity<'lux'>`) + `colorTemperature` (`Quantity<'K'> \| null`) + `sources`. `Light.ZERO`, `add`, `attenuate`, `withColorTemperature`, `Light.of`, `Light.from`. Not Stuff. |
 | `LightBand` | string union | `'pitch-black'` / `'very-dim'` / `'dim'` / `'lit'` / `'bright'` / `'blinding'`. The granularity controllers and prose check against. |
 | `AmbientLitMixin` | mixin | Inherent ambient light a Container exposes. Persistent: `ambientIntensity` (lumens), `ambientColorTemperature` (Kelvin). Runtime API surfaces `Quantity` values via `getAmbientFlux` / `getAmbientColorTemperature`. |
-| `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity` (lumens), `emittedColorTemperature` (Kelvin). Runtime: `getEmittedFlux` / `getEmittedColorTemperature`. Fires `onLightSourceChanged` Witness hook (contract in `api/light.ts`) on the immediate environment when emission changes. |
-| `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `api/light.ts` so consumer Containers (the receiver side) don't have to reach into `lib/perception/` to implement it. |
+| `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity` (lumens), `emittedColorTemperature` (Kelvin). Runtime: `getEmittedFlux` / `getEmittedColorTemperature`. Fires `onLightSourceChanged` Witness hook (contract in `lib/perception/LightSource.ts`) on the immediate environment when emission changes. |
+| `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `lib/perception/LightSource.ts` next to `LightSourceMixin`, so consumer Containers (the receiver side) implement it from the same module. |
 | `VisionModality` | `Modality` singleton | `signalAt(loc)` (the walk), `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`, `singleton()`. Outside callers route through `PerceptionApi.signalAt(loc, VisionModality)`. |
 | `bandFor(lux)` | helper in `Light.ts` | Map a lux numeric to a `LightBand` via the registered tag-table. Sits next to `LIGHT_BANDS`. |
 | `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
 | `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
-| `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, reserved `SoundConduit`. Boundary subclasses implement (a subset of) these. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.isOpen`. |
-| `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all three conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, all gated on `isOpen()`. Closed Door now blocks light, not just movement. |
+| `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`. Boundary subclasses implement (a subset of) these. |
+| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight` + `SmellConduit` + `SoundConduit`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.open` (predicate `isOpen()`). |
+| `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`, all gated on `isOpen()`. Closed Door now blocks light, not just movement. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Class Hierarchy
@@ -83,8 +83,8 @@ Stuff
   ├── Idea
   ├── Thing                          (Visible + Perceptible + Tangible + Containable)
   │     ├── Boundary                 (just `extends Thing`)
-  │     │     ├── Window             (Sealable + LightConduit + LineOfSight)
-  │     │     └── Door (retrofit)    (Sealable + LightConduit + LineOfSight + MovementConduit)
+  │     │     ├── Window             (Sealable + LightConduit + LineOfSight + SoundConduit + SmellConduit)
+  │     │     └── Door (retrofit)    (Sealable + LightConduit + LineOfSight + MovementConduit + SoundConduit + SmellConduit)
   │     └── BoundaryAnchor           (Adornment)
   ├── Location                       (Adornable + Container, was Container only)
   └── Vessel                         (Adornable + Container + Containable, was Container + Containable)
@@ -158,7 +158,7 @@ against the `LIGHT_BANDS` `as const` tuple in
 `lib/perception/Light.ts`, which is the single in-code source for
 the band vocabulary).
 
-Band shift / compare arithmetic in `LightApi` (used by
+Band shift / compare arithmetic in `VisionModality` (used by
 `perceivedBand`'s species-vision adjustment, `canSee`'s required-
 band threshold) delegates to the generic
 `Quantity.shiftTag('lux', band, n)` / `Quantity.compareTag('lux',
@@ -232,12 +232,18 @@ Sample math:
 - A modern bulb in a standard room: 800 / 25 = 32 lux → `lit`.
 - Direct sunlight on a plaza: 8000 / 100 = 80 lux → `bright`.
 
-## Propagation: `LightApi.lightAt`
+## Propagation: `VisionModality.signalAt`
 
-The single recursive walk. Internally accumulates **flux** (lumens)
-plus per-source attribution; the public `lightAt` divides by the
-receiving Container's `getSizeScale()` (m²) and wraps as a Light
-with `Quantity<'lux'>` intensity.
+The single recursive walk. `VisionModality.signalAt(loc)` is the
+substrate entry point — the `Modality.signalAt` override that
+`PerceptionApi.signalAt(loc, VisionModality)` dispatches to.
+Internally it accumulates **flux** (lumens) plus per-source
+attribution via `walkFluxAt`, then divides by the receiving
+Container's `getSizeScale()` (m²) and wraps the result as a Light
+with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
+is a thin convenience read — it resolves the vision singleton through
+`PerceptionApi` and calls `signalAt` — so callers with a `loc` in hand
+get a `Light` without threading the modality argument.
 
 ```
 walkFluxAt(loc, depth, visited) -> { flux, sources }:
@@ -277,12 +283,16 @@ walkFluxAt(loc, depth, visited) -> { flux, sources }:
 
   return acc
 
-lightAt(loc):
+signalAt(loc):                                          // the Modality override
   acc = walkFluxAt(loc, 0, new Set<stuffId>())
+  if acc empty: return Light.ZERO
   lux = acc.flux / loc.getSizeScale()                   // lumens / m²
   colorTemperature = fluxWeightedAverage(acc.sources)   // Quantity<'K'> | null
   return Light.from({ intensity: Quantity.of(lux, 'lux'),
                       colorTemperature, sources })
+
+lightAt(loc):                                           // static convenience read
+  return vision().signalAt(loc)                         // singleton via PerceptionApi
 
 bandAt(loc):
   return bandFor(lightAt(loc).intensity.rawValue())
@@ -357,9 +367,9 @@ storage is always primitive scalars.
   fire `onLightSourceChanged(source, oldFlux, newFlux,
   oldColorTemperature, newColorTemperature)` on the immediate
   environment when the stored value actually changes. The hook
-  contract is `LightSourceObserver` in `api/light.ts` (api-side so
-  consumer Containers don't have to import from `lib/perception/`
-  to write the receiver). v1 fans out to the IMMEDIATE environment
+  contract is `LightSourceObserver` in `lib/perception/LightSource.ts`
+  (alongside `LightSourceMixin`, so consumer Containers implement the
+  receiver from the same module). v1 fans out to the IMMEDIATE environment
   only — no walk-up to outer Containers. A future caching layer
   may widen this radius.
 
@@ -371,7 +381,7 @@ v1 — that's content-authoring layered on top of this physics surface.
 ## Boundary Substrate
 
 A `Boundary` connects two `Adornable` containers and gates channels
-(light, sight, movement, future sound) between them. The runtime
+(light, sight, movement, sound, smell) between them. The runtime
 triple is **boundary + anchorA + anchorB** — the Boundary itself
 plus a `BoundaryAnchor` Thing in each host's `getFixtures()`.
 
@@ -401,7 +411,7 @@ BoundaryApi.create({ factory, hostA, hostB });
 // Convenience: StuffApi.create(factory) + attachExistingBoundary in one call.
 
 BoundaryApi.destruct(boundary);
-// StuffApi.destruct(boundary) → boundary.prepareDestroy() walks anchors,
+// StuffApi.destruct(boundary) → boundary.onDestruct() walks anchors,
 // removes from hosts, destructs anchors → boundary destroys.
 ```
 
@@ -428,11 +438,17 @@ interface LineOfSight     { conduitKind: 'sight';
 interface MovementConduit { conduitKind: 'movement';
   canPassThrough(from: BoundarySide, to: BoundarySide, mode: string): boolean;
 }
-interface SoundConduit    { conduitKind: 'sound'; }   // reserved for v2
+interface SoundConduit    { conduitKind: 'sound';
+  transmissivity(from: BoundarySide, to: BoundarySide): number;
+}
+interface SmellConduit    { conduitKind: 'smell';
+  transmissivity(from: BoundarySide, to: BoundarySide): number;
+}
 ```
 
 Conduits MUST NOT cache — the boundary's own state (e.g. Sealable
-`isOpen`) participates in transmissivity and changes at runtime.
+`open` / `isOpen()`) participates in transmissivity and changes at
+runtime.
 
 ### Naming: `BoundaryAnchor` vs `DoorBearing`
 
@@ -449,6 +465,8 @@ overlap; do not unify them.
 ## `Window`
 
 The first concrete Boundary user. Composition: `SealableMixin(Boundary)`.
+It implements four conduits — `LightConduit`, `LineOfSight`,
+`SmellConduit`, `SoundConduit` — all gated on its shutter state.
 
 State (all persisted as scalars):
 
@@ -456,11 +474,11 @@ State (all persisted as scalars):
 - `aToBOverride: number | null` — one-way override for A→B.
 - `bToAOverride: number | null` — one-way override for B→A.
 - `colorTint: ColorTag | null` — stained glass.
-- `isOpen: boolean` (from `Sealable`) — shutter state.
+- `open: boolean` (from `Sealable`, predicate `isOpen()`) — shutter state.
 
 `transmissivity(from, to)`:
 
-- Returns 0 if `!isOpen` (shutters closed).
+- Returns 0 if `!isOpen()` (shutters closed).
 - Same-side reads (e.g., A→A — not used by the walk but sound
   semantically): `baseTransmissivity`.
 - Otherwise: the relevant directional override if non-null, else
@@ -488,12 +506,19 @@ to `SealableMixin(Boundary)`. Boundary just `extends Thing`, and
 Thing's default composition already bakes in Visible + Perceptible
 + Tangible + Containable.
 
-Conduit registry: a Door advertises three conduits — `LightConduit`,
-`LineOfSight`, `MovementConduit` — all gated on `isOpen()`.
+Conduit registry: a Door advertises five conduits — `LightConduit`,
+`LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit` —
+all gated on `isOpen()`.
 
 ```ts
 public override getConduits(): readonly Conduit[] {
-  return [lightConduitFor(this), lineOfSightFor(this), movementConduitFor(this)];
+  return [
+    lightConduitFor(this),
+    lineOfSightFor(this),
+    movementConduitFor(this),
+    smellConduitFor(this),
+    soundConduitFor(this),
+  ];
 }
 
 public transmissivity(_from, _to): number {
@@ -525,7 +550,7 @@ existing `getExitDoors()` path keeps `via.exit` attribution.
 
 `Door.detach()` was extended to clear BOTH the existing
 `attachedTo` Exit references AND the Boundary anchor pair (via
-`super.detach()`). `Door.prepareDestroy` chains through Boundary's
+`super.detach()`). `Door.onDestruct` chains through Boundary's
 which destructs the anchors.
 
 ### `ExitableVessel` migration
@@ -553,10 +578,10 @@ pattern: viewer is `Stuff & Sensor`, always passed explicitly,
 never inferred from execution context.
 
 ```ts
-LightApi.perceivedBand(viewer, loc): LightBand
-LightApi.canSee(viewer, target, detail?): boolean
-LightApi.viewerVisionProfile(viewer): VisionProfile
-LightApi.shadowsAt(loc): ShadowQuality
+VisionModality.perceivedBand(viewer, loc): LightBand
+VisionModality.canSee(viewer, target, detail?): boolean
+VisionModality.viewerVisionProfile(viewer): VisionProfile
+VisionModality.shadowsAt(loc): ShadowQuality
 ```
 
 `perceivedBand` pipeline:
@@ -629,11 +654,11 @@ Per the [persistence.md](./persistence.md) scalar-default rule:
 - `LightSourceMixin` persists `emittedIntensity` +
   `emittedColorTemperature` with the same shape.
 - `Window` persists `baseTransmissivity` + `aToBOverride` +
-  `bToAOverride` + `colorTint` + (from Sealable) `isOpen`. The
+  `bToAOverride` + `colorTint` + (from Sealable) `open`. The
   pre-flatten `directionalOverrides: { aToB?, bToA? }` object is
   reconstructed at the runtime API layer only.
 - `Door` persists nothing new beyond what `Sealable` already had
-  (`isOpen`).
+  (`open`).
 - `Boundary` itself adds nothing persistent — runtime anchors are
   rebuilt at load time by seed code calling
   `BoundaryApi.attachExistingBoundary`.
@@ -672,7 +697,9 @@ broader Quantity persistence story.
 ## Cross-References
 
 - [quantities.md](./quantities.md) — `Quantity<U>` substrate;
-  the lux / lumen / Kelvin tag tables registered in `api/light.ts`.
+  the lux / lumen / Kelvin tag tables authored in
+  `mud/config/quantity-tags.yaml` and loaded via
+  `QuantityApi.loadTagTables`.
 - [perception.md](./perception.md) — viewer-aware-query pattern.
 - [spatial.md](./spatial.md) — Door, Exit, Sealable, Vessel,
   Adornable composition on Location/Vessel.

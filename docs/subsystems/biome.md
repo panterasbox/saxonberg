@@ -465,7 +465,7 @@ cross-cutting setting alongside sound's.
   exactly; Material/Species are the precedents for the leaf-Idea
   + explicit-ref-inheritance pattern Biome now follows; the
   cross-link for a future per-species breathing gate.
-- [docs/subsystems/light.md](./light.md) — `LightApi`'s chain-walk
+- [docs/subsystems/light.md](./light.md) — `VisionModality`'s chain-walk
   shape; the receiving-surface area divisor is now derived from
   `cellSize²`.
 - [docs/ref-shapes.md](../ref-shapes.md) — Pattern A for the

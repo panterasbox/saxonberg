@@ -304,7 +304,7 @@ the typed convenience wrapper for writing a template:
 ```typescript
 await TemplateApi.saveTemplate(
   '/narnia/castle/foyer',
-  '/lib/spatial/CartesianLocation',
+  '/lib/location/CartesianLocation',
   { /* persistent fields */ },
   PersistentHydrator.templatePath
 );
@@ -481,10 +481,51 @@ per-instance Stuff (avatars, items, NPCs) that should multiply.
 - `createSync` on a `PostRegistrationMixin` class → throws before
   registration
 
+## Deferred / known limitations
+
+The declarative-content substrate (the `container:` field, `applyPopulates`,
+the structural field shapes) is shipped, but a few constraints are known and
+left for future work:
+
+- **Reset / respawn shares substrate with `populates:` (own slate).** A
+  future "reset this game item — destroy the current one, respawn fresh"
+  feature needs three things `applyPopulates` doesn't yet provide: (a) a
+  runtime ref from the Container back to the children it spawned, so it can
+  destroy-and-respawn later — the ref must evaporate on a child's `onDestruct`
+  so an already-gone child doesn't haunt the list; (b) an ownership
+  distinction between "I spawned this and own it for reset purposes" and "a
+  player put this here, leave it alone on reset"; (c) a declarative reset
+  cadence on the entry (a richer entry form like `{ path, resetCadence }`).
+  `applyPopulates` v1 is fire-and-forget; it extends to track the ref and
+  respect the policy when reset lands as its own slate. Flagged so the
+  populates entry shape doesn't get locked into something that fights reset
+  later.
+
+- **`container:` can't target a multi-room facade (Lounge case).** A
+  `container:` value must resolve to a singleton-shaped Container (a canonical
+  Stuff). That can't express "land in the Lounge" when the Lounge is
+  conceptually singular but implemented as a dynamic multi-room assembly that
+  grows and shrinks with occupancy — there's no single canonical Stuff to
+  point at. A known Phase-2 limitation; the eventual fix (a facade Stuff that
+  IS a Container and routes internally, a master/slave room, or Pattern-C
+  resolve-at-clone-time) isn't pre-baked. Cross this bridge when the Lounge
+  ships.
+
+- **`container:` vs `populates:` conflict detection (linter / boot
+  validation).** The same Containable-belongs-in-Container relationship can be
+  declared from either side — `container:` on the occupant or `populates:` on
+  the host. Consistent declarations coexist (first to fire moves the
+  singleton, the second no-ops via the existing-container check). But
+  contradictory declarations (X says "I belong in A", yet A's `populates:`
+  omits X while B's includes X) aren't caught today — they need linter-level
+  or boot-time validation that walks the template collection and flags the
+  conflict. Not required for runtime correctness (refs still resolve lazily);
+  a dev/CI affordance if conflicting declarations become an operational pain.
+
 ## Cross-References
 
 - [lifecycle.md](./lifecycle.md) — full create → register → hydrate →
-  postRegister → destroy lifecycle, construction sentinel, prepareDestroy
+  postRegister → destroy lifecycle, construction sentinel, onDestruct
   hook
 - [persistence.md](./persistence.md) — `Document`, around-save/delete
   hooks (the mechanism `DomainHook` rides on)

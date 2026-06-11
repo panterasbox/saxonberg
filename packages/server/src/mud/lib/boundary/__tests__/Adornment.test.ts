@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import Thing from '../../stuff/Thing';
 import { AdornmentMixin } from '../Adornment';
-import CartesianLocation from '../../spatial/CartesianLocation';
+import CartesianLocation from '../../location/CartesianLocation';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';

@@ -89,10 +89,11 @@ See also:
   shipped exemplar (`LightApi`, `canSee`, `visionProfile`, bands). The
   substrate aligns to its shape; vision converges gradually, not in a
   big-bang refactor.
-- [docs/slates/sound-slate.md](./sound-slate.md) — **retired as a
-  standalone slate**; its acoustic detail is the *hearing* instance
-  (`SoundApi`, `hearingProfile`, dB/Hz/RT60, masking, Conduit
-  transmissivity). Retained there until absorbed into the hearing build.
+- The sound slate has been **retired as a standalone slate**; its
+  acoustic detail is the *hearing* instance (`SoundApi`,
+  `hearingProfile`, dB/Hz/RT60, masking, Conduit transmissivity) and
+  is now retained in this slate's **Deep acoustic spec** section below,
+  the depth source for the committed hearing-polish wave.
 - [docs/subsystems/biome.md](../subsystems/biome.md) — the **atmosphere
   medium** (air/water/vacuum) smell diffuses through; ambient temperature;
   the instrument pattern (GasAnalyzer, Thermometer, Barometer…).
@@ -109,7 +110,7 @@ See also:
   `PerceptionChannel`s; the baseline implant provides the ESP channels.
 - [docs/subsystems/perception.md](../subsystems/perception.md) — the
   viewer-aware-query pattern; per-viewer Shadow overrides.
-- [docs/slates/inspection-pane-slate.md](./inspection-pane-slate.md) /
+- [docs/subsystems/inspection-pane.md](../subsystems/inspection-pane.md) /
   [message-rendering-slate.md](./message-rendering-slate.md) — the
   percept feeds the pane; the pedagogical seam (prose vs instrument)
   is the rendering.
@@ -177,8 +178,8 @@ working vision).
 The acoustic instance: dB SPL / Hz / RT60, propagation mirroring light,
 `hearingProfile`, masking, Conduit channel-keyed transmissivity,
 SoundLevelMeter. Substrate-level decisions live here; the deep acoustic
-spec (worked examples, every seam) is retained in the retired
-[sound-slate](./sound-slate.md) until absorbed into the hearing build.
+spec (worked examples, every seam) is retained in the **Deep acoustic
+spec** section below.
 
 ### Smell (olfaction) — new
 
@@ -682,8 +683,8 @@ pedagogical-seam sectioned/measured gestalt mode.
 
 - **The inspection-pane / percept rendering** — consumed; the pane slate
   + percept model own how facts display.
-- **The deep acoustic spec** — retained in the retired sound-slate as the
-  hearing instance's detail until absorbed.
+- **The deep acoustic spec** — now folded into the **Deep acoustic
+  spec** section above as the hearing instance's depth source.
 - **Magic/extra-sensory channels** — a `PerceptionChannel` could later
   host scry/detect/aura (the "magic lens"); deferred to the magic
   subsystem, but the substrate accommodates it.
@@ -691,6 +692,239 @@ pedagogical-seam sectioned/measured gestalt mode.
   — access + verb-provisioning own it; this consumes it.
 - **Consumables/diet mechanics** — vitals owns eat/drink; taste reads
   from it.
+
+---
+
+## Deep acoustic spec (retained from the retired sound-slate)
+
+The sound slate's core shipped into [senses.md](../subsystems/senses.md)
+(the `Sound` value object, dB log-addition, `SoundConduit`, the bare
+`listen` verb, the basic conduit-existence walk). What follows is the
+**still-deferred acoustic depth** — the committed-but-unbuilt
+hearing-polish wave (`SoundLevelMeter` + `measure sound`, the async
+biome-chain `resolveAmbientSoundLevelFor` walker, RT60/reverberation,
+partial-transmissivity muffled-door subclasses, per-species
+`hearingProfile`). This is the mine-for-depth reference; do not start
+new design here.
+
+### Channel-keyed Conduit transmissivity (material-derived)
+
+Conduit transmissivity is channel-keyed (`transmissivity:
+Record<ChannelKind, number>`, e.g. `light`/`sound`, growing over time).
+Canonical worked values (authors override per content):
+
+| Conduit | Light | Sound |
+|---|---|---|
+| Open doorway | 1.0 | 0.95 |
+| Closed wooden door | 0.0 | 0.4 |
+| Closed steel door | 0.0 | 0.1 |
+| Open glass window | 0.95 | 0.95 |
+| Closed glass window | 0.95 | 0.3 |
+| Curtained doorway | 0.6 | 0.7 |
+| Blanket-over-window | 0.05 | 0.6 |
+| Locked steel hatch | 0.0 | 0.05 |
+
+**Material-derived transmissivity (Pedagogical Seam #3).** Authors
+needn't hand-tune every Conduit — sound transmission can be derived from
+acoustic impedance: `transmissivity ≈ f(thickness, density,
+acousticImpedance)`. The Material substrate (race.md) already carries
+density; adding `acousticImpedance` to materials and deriving Conduit
+values from `(material, thickness)` is physics-honest and authorially
+efficient. v1: an explicit helper
+`MaterialApi.derivedTransmissivity(mat, thicknessM, channel)`; v2:
+implicit derivation with override. An acoustic-engineering / materials
+student can verify the model against a textbook.
+
+**Walls are silent in v1.** Sound only propagates through Conduits; two
+rooms separated by a bare wall (no Conduit) are sonically isolated.
+Authors place a "thin wall" Adornment with low-transmissivity Conduit
+for cross-wall leak. This is a known fidelity loss (real walls leak at
+low levels); the full fix needs geometric adjacency from the spatial
+subsystem — revisit if content cases pile up.
+
+### SoundApi propagation and detection
+
+The deferred surface mirrors `LightApi` almost line-for-line:
+
+```ts
+class SoundApi {
+  static soundAt(loc: Stuff & Container): Sound;          // aggregate
+  static loudestSourceAt(loc): SoundSource | null;
+  static perceivedSound(viewer: Stuff & Sensor): Sound;
+  static canHear(viewer: Stuff & Sensor, source: SoundSource): boolean;
+  static loudnessThreshold(viewer: Stuff & Sensor): Quantity<dB>;
+  static directionOf(viewer: Stuff & Sensor, source): Direction | null;
+  static reverbTimeAt(loc: Stuff & Container): Quantity<seconds>;  // RT60
+}
+```
+
+**Aggregate at a location.** Recursive walk through containment +
+Conduits, attenuating each source by `∏(conduit transmissivities)` and
+summing **logarithmically** across sources, depth-bounded like
+`LightApi.lightAt`. Per-source attenuation is `attenuated =
+source_amplitude × ∏(transmissivities)`; multiplying by 0.5
+transmissivity is ~6 dB. The walk runs in linear-amplitude space
+internally and reports dB at the boundary (physically correct for
+incoherent sources).
+
+**Per-viewer detection** runs three gates:
+
+```ts
+function canHear(viewer, source) {
+  const ambient = SoundApi.soundAt(viewer.location);
+  const c = sourceLoudnessAt(source, viewer.location);
+  // 1. Frequency: outside the species range, not perceived
+  if (!speciesHearsBand(viewer, c.dominantBand)) return false;
+  // 2. Threshold: quieter than the viewer's threshold
+  if (c.amplitude.value < loudnessThreshold(viewer).value) return false;
+  // 3. Masking: buried under louder ambient
+  if (ambient.amplitude.value - c.amplitude.value > MASKING_THRESHOLD)
+    return false;
+  return true;
+}
+```
+
+The masking gate is real acoustics — a 30 dB whisper in a 60 dB forge
+room isn't perceived; it falls out of the additive model.
+
+**Localization (direction).** The walk records which Conduit each source
+last crossed to reach the listener; MML renders the direction ("You hear
+footsteps to the east"; "a steady humming from the north"). Multiple
+near-equal paths render ambiguous ("from somewhere northeast"). Sound
+localizes where v1 light does not — an accepted API divergence, since
+sound direction matters more to gameplay.
+
+### Pedagogical seams (the curriculum touchpoints)
+
+Acoustics shows up across physics, biology, and engineering, so the
+seams are unusually rich. Each falls out of physics-honest math.
+
+- **Seam 1 — decibels as a logarithmic scale.** Real dB SPL underneath;
+  log addition (`combined = 10·log₁₀(10^(a/10) + 10^(b/10))`, so
+  60+60 = 63 dB, 60+30 ≈ 60.04 dB). Exposed by `analyze sound`.
+
+- **Seam 2 — frequency ranges per species** (`Species.hearingProfile`,
+  parallel to `visionProfile`). Real Hz ranges from biology references;
+  frequencies outside a species' range are simply not perceived (a dog
+  hears a whistle a human in the room doesn't):
+
+  | Species | Hearing range |
+  |---|---|
+  | Homo sapiens | 20–20,000 Hz |
+  | Homo khazadicus | 16–16,000 Hz (low-shifted; matches scotopic vision) |
+  | Canis familiaris | 67–45,000 Hz |
+  | Felis catus | 55–79,000 Hz |
+  | Chiroptera | 1,000–110,000 Hz |
+  | Loxodonta | 16–12,000 Hz (perceives infrasound) |
+  | Lithobates catesbeianus | 100–2,000 Hz |
+  | Mus musculus | 1,000–90,000 Hz |
+  | Constructa metallica (tutor-bot) | 20–22,000 Hz |
+  | Spathiphyllum wallisii | none (no Sensor) |
+
+  v1 shape: low/high cutoff in Hz + a sensitivity scalar; structured for
+  full Fletcher-Munson curves later.
+
+- **Seam 3 — acoustic impedance from materials** (see Channel-keyed
+  Conduit transmissivity above). Material acoustic properties drive
+  Conduit transmissivity; physics-literate students predict, others use
+  friendly defaults.
+
+- **Seam 4 — reverberation per location** (`location.reverbTime:
+  Quantity<seconds>`, RT60). Authors pick an archetype, the value comes
+  pre-set; MML adds echo characterization for high-reverb spaces ("your
+  footsteps echo for several seconds"):
+
+  | Space archetype | RT60 |
+  |---|---|
+  | Anechoic chamber | <0.1 s |
+  | Bedroom (carpeted) | 0.4 s |
+  | Living room | 0.6 s |
+  | Lecture hall | 1.2 s |
+  | Cathedral | 6–10 s |
+  | Large cave | 5–15 s |
+
+- **Seam 5 — the Doppler effect (v2).** When v2 brings frequency content
+  + activity-driven motion vectors, `f_observed = f_source · (c +
+  v_observer) / (c + v_source)` falls out of correct math. Deferred —
+  needs frequency content + motion vectors not in v1.
+
+- **Seam 7 — hearing damage / noise dose (later wave).** Real NIHL
+  dose-response (OSHA: 85 dB / 8 h, 90 dB / 4 h, …);
+  `actor.cumulativeNoiseDose: Quantity<dB·hours>` accumulates with
+  high-amplitude exposure, over-threshold accumulation temporarily (or
+  permanently for severe doses) narrows the species hearing range. Gives
+  ear-protection items a concrete purpose. Ties to occupational safety /
+  audiology / public-health curricula. Design slot reserved.
+
+(Seam 6 — scientific instruments as in-world Stuff — is the `analyze`
+pattern + instrument roster below.)
+
+### The `analyze` pattern
+
+A verb family that renders the engine's internal numbers in pedagogical
+form — same code path, instrument-style rendering instead of casual
+prose. Sample:
+
+```
+> analyze sound here
+
+Sources audible at your location:
+  fountain (10ft west)
+    Source:        30 dB SPL @ 100–800 Hz (water-trickling)
+    At your pos:   28 dB (1 dB attenuation through open door)
+  refrigerator-compressor (in next room)
+    Source:        38 dB SPL @ 80–200 Hz (compressor-hum)
+    Path:          through wooden door (transmissivity 0.4)
+    At your pos:   30 dB
+
+Aggregate:         32.1 dB SPL (logarithmic sum)
+Dominant band:     80–800 Hz
+Reverberation:     0.6s (living room)
+Your threshold:    0 dB (Homo sapiens, age 22)
+Detected:          both sources audible
+```
+
+Casual players get prose ("you hear water trickling and a faint hum");
+students get the physics; developers get a debug surface — one engine,
+three render paths. Instrument roster (in-world Stuff that, when used,
+exposes the engine's numbers): `SoundLevelMeter` (`measure sound here` →
+aggregate dB SPL), `SpectrumAnalyzer` (`measure spectrum here` →
+dominant band + per-band contribution), `Stethoscope`
+(`listen-with stethoscope to X` → sub-threshold body sounds), `TuningFork`
+(`strike tuning-fork` → precise frequency for resonance), `Sonar`
+(`ping sonar` → emit, time the reflection, report distance).
+
+### Worked scenarios (the propagation/detection mechanics)
+
+- **Sneaker past a sleeping guard.** `sneak` mode →
+  `mode.noiseLevel: silent` → amplitude 0, no `SoundEvent` emitted. The
+  guard NPC's Sensor receives no notification; wake-on-sound never
+  fires. Falls straight out of the locomotion `noiseLevel` scalar.
+
+- **Runner past a fountain room.** Fountain ambient-emits 30 dB
+  (100–800 Hz, water-trickling). Runner enters room A at `loud` (~75 dB)
+  → listeners hear aggregate ~75 dB, fountain masked. Runner traverses
+  east → paired Motion+Sound events ("footsteps moving east" to A,
+  "arriving from west" to B). In A footsteps fade and the fountain is
+  audible again; in B the listener hears approaching footsteps + B's
+  ambient; in room C across a glass wall the fountain is attenuated
+  ×0.3 → ~21 dB at the conduit, below most thresholds.
+
+- **Romeo and Juliet through a closed window.** Juliet yells at 80 dB; a
+  `Window` boundary with `transmissivity[sound] = 0.4` cuts it to ~32 dB
+  in Romeo's chamber; his 0 dB threshold → he hears it. MML: *"You hear
+  Juliet calling, faintly…"* — "faintly" comes from the attenuation.
+
+- **Masking.** A forge emits 60 dB clanging in room A; a 25 dB whisper
+  there is masked (25 vs 60 dB ambient) and not perceived; the same
+  whisper in forge-free room B is heard. The additive log model handles
+  it naturally.
+
+- **Biology student plays a dog.** Dog (`hearingProfile: 67–45,000 Hz`).
+  A hidden device emits a 25,000 Hz / 50 dB ultrasonic pulse. Humans
+  (`20–20,000 Hz`) don't perceive it; the dog does. MML for the dog:
+  *"You hear a high-pitched pulsing whine humans likely cannot detect."*
+  The student literally has a different perception — the curriculum win.
 
 ---
 

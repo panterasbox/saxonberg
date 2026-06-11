@@ -303,7 +303,7 @@ Count-aware naming lives on `DescribeApi`, not `GlobbableApi` —
 presentation belongs with the description Api:
 
 ```ts
-DescribeApi.formatName(stuff: Stuff, fallback?: string): string
+DescribeApi.formatName(obj: Stuff, viewer?: Sensor): string
 ```
 
 Returns `count + " " + plural` when `stuff` is globbable with
@@ -386,7 +386,9 @@ Then in the template:
 ```yaml
 # /obj/item/Coin/seed.yaml
 path:  /obj/item/Coin
-class: /lib/glob/Coin
+class: /lib/glob/Coin   # illustrative — Coin is a test fixture; the
+                        # shipped substrate is the GlobbableMixin in
+                        # lib/stuff/Globbable.ts (no lib/glob/ dir)
 data:
   keywords: [coin, gold]
   quantity: 1      # default; clone-time override is common

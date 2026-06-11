@@ -692,7 +692,7 @@ semantic markup.
 
 ### Multi-focus rows: groups, eventually
 
-Per the [grouping slate](../slates/grouping-slate.md), the multi-
+Per [grouping.md](./grouping.md), the multi-
 cardinality `$focus` result is in principle a **group** — `focus
 friends` resolves a group via `GroupApi`; the pane renders its
 members. v1 has neither `GroupApi` nor friend/foe bucketing, so
@@ -781,7 +781,10 @@ Per the closed-scope requirements:
   vitals`, etc.).
 - **`find --focus` flag.**
 - **Shift-click alternative on multi-row.** Plain click sends
-  `look <that>` (drill-in).
+  `look <that>` (drill-in). The leaned-for alternative gesture is
+  shift-click → `find <that>`, peeking a member without collapsing
+  the multi-focus; parked until players actually want to inspect a
+  group member without leaving the group.
 - **`<peek>` MML tag for scrollback clicks.** All clickable
   affordances in the terminal scroll route as plain
   `look <X>` (focus-shifting). No "peek by default for

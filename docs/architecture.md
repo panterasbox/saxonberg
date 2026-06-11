@@ -424,8 +424,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `SurfacedMixin` | "things rest on this" host-side marker; lazy `getResting()` walk; `userFacingDetail` MQL bridge; `canRest()` per-host gate. Requires Containable. |
 | `lib/spatial/` | `MobileMixin` | `travel()` between locations (requires Containable) |
 | `lib/spatial/` | `ExitableMixin` | exit map host; `addExit`, `getObviousExits`, etc. |
-| `lib/spatial/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
-| `lib/spatial/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
+| `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
+| `lib/location/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
+| `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the MultiLocation elastic-graph coordinator); Pattern-B live ref, Warren-owned. See [location.md](./subsystems/location.md). |
+| `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/domain/lounge/`, not the generic substrate. |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |

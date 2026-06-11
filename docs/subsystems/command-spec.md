@@ -426,10 +426,13 @@ checks in controllers (see the
 [command-routing § Stage 4](./command-routing.md#stage-4--resolution--validation)
 note on framework-vs-controller responsibilities).
 
-`mustBeVisible` was retired — see
+`mustBeVisible` was removed from the look/inspection verbs — see
 [command-routing.md § Stage 4 — Resolution + validation](./command-routing.md#stage-4--resolution--validation)
 for why (the gate broke `look` against non-`Visible` locations
-like the void; the discrimination moved into the controller).
+like the void; the discrimination moved into the controller). The
+validator itself is still live and used by the containment/posture
+verbs (`get`, `put`, `give`, `sit`, `stand`, `kneel`, `lie`,
+`mount`).
 
 For object-acting verbs, the convention is to layer:
 

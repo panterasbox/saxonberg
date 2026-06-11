@@ -516,8 +516,6 @@ numerically). See [biome.md](./biome.md) for the breakpoints.
 - **Instrument calibration / accuracy** — Photometers and Balances
   always report exact values. Per-instrument tolerance is a future
   axis.
-- **Logarithmic dB math** — declared in the `Unit` type, no math op
-  registered yet. Sound channel work registers it.
 
 ## Cross-references
 

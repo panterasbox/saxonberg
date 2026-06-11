@@ -341,7 +341,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `lifespanMin`, `lifespanMax`
 - `circadianBand`
 - `diet` (DietApi-deferred)
-- `visionProfile` — flat 3-scalar record consumed by `LightApi`
+- `visionProfile` — flat 3-scalar record consumed by `VisionModality`
 
 The v1 acceptance roster (`/lib/species/...`). The char-gen Wave 1 build
 expanded the `homo` genus to seven playable humanoid species:
@@ -537,7 +537,7 @@ replacement of singletons.
   chain resolver. Material's prefix-walk shape is the direct prior
   art that `AtmosphericMixin`'s detail walk mirrors.
 - [perception.md](./perception.md) — viewer-aware queries; species
-  visionProfile feeds `LightApi`.
+  visionProfile feeds `VisionModality`.
 - [mixins.md](./mixins.md) — composition mechanics for the new
   mixins.
 - [quantities.md](./quantities.md) — `Quantity<U>` substrate;

@@ -97,7 +97,7 @@ control, both, or neither.
 
 ```typescript
 interface Propertied {
-  props: Readonly<Record<string, PropValue>>;
+  getProps(): Readonly<Record<string, PropValue>>;
 
   initProp<T>(prop: Property<T>, options?: Partial<PropOptions<T>>): boolean;
   configureProp<T>(prop: Property<T>, options: Partial<PropOptions<T>>): boolean;
@@ -207,10 +207,15 @@ class GuardedAvatar extends PropertiedMixin(Stuff) {
 
 ## Storage and Persistence
 
-`savedProps: Record<string, PropValue>` is declared in
+`savedProps: Record<string, PropValue>` and its companion
+`savedPropMarshallers: Record<string, string>` (per-prop name →
+marshaller templatePath) are declared in
 `PropertiedMixin.persistentFields`, so any class composing
 `PropertiedMixin` automatically round-trips its saved props through
-the persistent hydrator. No subclass changes required.
+the persistent hydrator. No subclass changes required. Pass
+`marshaller:` to `initProp` for props holding rich values
+(quantities, etc.); the binding persists in `savedPropMarshallers` so
+`getProp` re-applies it on reload.
 
 ```typescript
 class Avatar extends PropertiedMixin(SomeBase) {
@@ -227,7 +232,7 @@ after load is the responsibility of the class — typically in a
 post-hydrate hook or `postRegister` — because access functions are
 closures and aren't representable in MongoDB.
 
-The `props` getter exposes a read-only view combining both storages
+`getProps()` returns a read-only view combining both storages
 with transient taking precedence. Useful for enumerating, snapshotting,
 or rendering — never for write-back.
 

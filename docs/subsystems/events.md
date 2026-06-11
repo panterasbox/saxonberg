@@ -156,7 +156,7 @@ HasInteractive (any Stuff that can hold a connection):
 ```
 
 **Stuff lifecycle**: `PostRegistration.postRegister(context)` and
-`prepareDestroy()` cover construction and teardown. Use those for
+`onDestruct()` cover construction and teardown. Use those for
 new-instance / about-to-be-destroyed reactions; they predate the
 Witness pattern but fit the same shape.
 
@@ -340,26 +340,60 @@ instance, caching the reference on the API class. The same pattern
 generalizes to every future Registry singleton — no per-class
 boilerplate.
 
+### EventSubscriptions — the runtime subscriber store
+
+There are **two event singletons, two responsibilities.**
+`EventRegistry` (above) holds the event-property *declarations* — the
+well-known events and their `checkAccess` gates. `EventSubscriptions`
+(an Idea at `/obj/EventSubscriptions`, `mud/obj/EventSubscriptions.ts`)
+holds the runtime *subscriptions* — who's listening — plus the bounded
+recent-payload history ring buffer.
+
+```ts
+class EventSubscriptions extends Idea {
+  private subs: Map<string, Set<SubscriptionRecord>>;
+  private history: Map<string, HistoryRecord[]>;  // HISTORY_LIMIT = 100
+}
+```
+
+Both state slots are `private`, not `#`-private: the singleton is a
+Stuff host whose instance methods dispatch through the call-security
+proxy, where `#`-private slots are unreachable. Every public method
+carries `@CallSecurity(FromModule('mud/api/event#EventApi'))`, so
+`EventApi` is the singleton's only legitimate caller; the Api itself is
+a thin facade. Moving this state off the Api class lets subscribers and
+history survive an HMR reload of the Api file (a reload of *this* file
+still resets the table — listeners re-register after such a reload).
+
 ### Dispatch mechanism
 
 ```ts
 EventApi.emit<T>(name: string, payload: T): void {
   const ok = EventRegistry.instance.setProp(new Property<T>(name), payload);
   if (!ok) throw new SecurityError(`Not allowed to emit ${name}`);
-  EventApi.#queueDispatch(name, payload);
+  // Snapshot the current subscribers off EventSubscriptions, then
+  // queueMicrotask the fan-out so listeners fire on a clean frame.
+  const subs = EventSubscriptions.instance.snapshot(name);
+  if (subs.length === 0) return;
+  queueMicrotask(() => { /* fresh-frame dispatch per listener */ });
 }
 
 EventApi.on<T>(name: string, listener: Listener<T>, opts?: SubOpts): Subscription {
   const propOpts = EventRegistry.instance.checkProp(new Property<T>(name));
   if (!propOpts) throw new SecurityError(`Not allowed to subscribe to ${name}`);
   const lastPayload = EventRegistry.instance.getProp(new Property<T>(name));
-  return EventApi.#register(name, listener, opts, lastPayload);
+  // Build the InternalSubscription record and hand it to the runtime
+  // subscriber singleton.
+  EventSubscriptions.instance.addSubscription(name, record);
+  return subscription;
 }
 ```
 
-Subscribers live in a side-table inside EventApi — `Map<eventName,
-Subscription[]>` — keyed by event name. NOT in the EventRegistry's
-props (subscribers aren't declarations; they're runtime registrations).
+Subscribers live on the `EventSubscriptions` singleton Idea
+(`/obj/EventSubscriptions`) — `Map<eventName, Set<SubscriptionRecord>>`
+keyed by event name. NOT in the EventRegistry's props (subscribers
+aren't declarations; they're runtime registrations) — see the two-
+singletons note above.
 
 ### Last-payload cache
 
@@ -428,8 +462,9 @@ to be, that's a future concern.
 
 ### History / introspection
 
-A bounded ring buffer per event symbol (default ~100 entries),
-accessible via `EventApi.history(eventName, limit?)`. Stores
+A bounded ring buffer per event symbol (`HISTORY_LIMIT = 100`
+entries), resident on the `EventSubscriptions` singleton and accessed
+via `EventApi.history(eventName, limit?)`, which delegates. Stores
 `{ payload, timestamp, triggeringContext }`. For admin debugging.
 
 Note: this is *event* history (recent fired payloads), distinct from
@@ -595,8 +630,8 @@ These are flagged for the future but not blocking event-system work:
 - **New `PropOperation.Emit`.** Rejected because PropertiedMixin should
   stay universal; events shouldn't add a dimension to a mixin used
   everywhere else in the codebase.
-- **Storing subscribers in EventRegistry props.** Subscribers live in a
-  side structure inside EventApi, not in props.
+- **Storing subscribers in EventRegistry props.** Subscribers live on
+  the `EventSubscriptions` singleton, not in props.
 - **Hot-reload re-running bootstrap.** Different concerns; hot-reload
   handles its own re-init story when it lands.
 - **Dual-emit for movement** (firing both Witness hooks AND a global

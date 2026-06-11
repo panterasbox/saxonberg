@@ -285,12 +285,12 @@ content slate that pulls on it.
   it. Stealth-aware planning (cost weighted by `noiseLevel`)
   composes naturally.
 - **Auditory detection.** Mover emits a signal; observer compares
-  against a threshold. Same shape as `LightApi.canSee` — viewer-
+  against a threshold. Same shape as `VisionModality.canSee` — viewer-
   aware, modulated by distance / obstruction / acuity. Mode
   contributes the emission level via `noiseLevel`; observer's
   species hearing profile sets the threshold. The channel
-  infrastructure belongs to the sound subsystem
-  ([sound-slate.md](../slates/sound-slate.md)); locomotion's
+  infrastructure belongs to the hearing/perception substrate
+  ([senses.md](./senses.md)); locomotion's
   contribution is the `noiseLevel` data and the passthrough
   walk on `LocomotionApi.emissionAt`.
 - **`run` / `sprint` / `tiptoe` as separate modes.** Verb-as-mode

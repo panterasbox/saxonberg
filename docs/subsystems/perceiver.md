@@ -1,8 +1,9 @@
 # PerceiverMixin
 
-Owns the verbs of perception: `look`, `scry`, `locate`. Composed
-on `Character`, so every Avatar and NPC inherits the perception
-verb surface.
+Owns the verbs of perception: `look`, `scry`, `locate`, `find`, and
+the five sense verbs (`smell`, `listen`, `feel`, `taste`, `sense`).
+Composed on `Character`, so every Avatar and NPC inherits the
+perception verb surface.
 
 The split is by responsibility. Three mixins co-compose on
 Character:
@@ -14,8 +15,9 @@ Character:
   Owns descriptions and keywords. Contributes **no verbs** — pure
   target shape.
 - **`Perceiver`** (`lib/description/Perceiver.ts`) — issues
-  perception verbs. Contributes `look` / `scry` / `locate` on the
-  **actor-side** bucket (`self`).
+  perception verbs. Contributes `look` / `scry` / `locate` / `find`
+  plus the five sense verbs (`smell` / `listen` / `feel` / `taste` /
+  `sense`) on the **actor-side** bucket (`self`).
 
 The split fixes a semantic conflation: `Visible` used to contribute
 `look` to both `self` and the target-side buckets
@@ -43,8 +45,9 @@ Sensor surface without a second narrow.
 Composition slot on Character (innermost to outermost):
 
 ```
-Named → Organism → Gendered → Sensor → Perceiver → Perception →
-Vocal → Visible → Containable → Container → Mobile → CommandGiver
+Named → Organism → Slotted → BodyPlanSlots → Posed → Gendered →
+Sensor → Perceiver → Perception → Vocal → Soul → Visible →
+Containable → Container → Engaged → Mobile → CommandGiver
 ```
 
 `Perceiver` sits adjacent to `Sensor` so the chain reads
@@ -52,13 +55,23 @@ Vocal → Visible → Containable → Container → Mobile → CommandGiver
 
 ## Verbs
 
-| Verb | Bucket | Lives where |
-|---|---|---|
-| `look` | `self` | PerceiverMixin |
-| `scry` | `self` | PerceiverMixin |
-| `locate` | `self` | PerceiverMixin |
+| Verb | Bucket | Lives where | Gated by |
+|---|---|---|---|
+| `look` | `self` | PerceiverMixin | — |
+| `scry` | `self` | PerceiverMixin | — |
+| `locate` | `self` | PerceiverMixin | — |
+| `find` | `self` | PerceiverMixin | — |
+| `smell` | `self` | PerceiverMixin | `requiresSmell` |
+| `listen` | `self` | PerceiverMixin | `requiresHearing` |
+| `feel` | `self` | PerceiverMixin | `requiresTouch` |
+| `taste` | `self` | PerceiverMixin | `requiresTaste` |
+| `sense` | `self` | PerceiverMixin | — (gestalt) |
 
-All three are actor-side only. The verb lands on the giver's stack
+All nine are actor-side only. The five sense verbs are each gated by
+a `requires*` sensorium validator (see
+[senses.md](./senses.md)); `sense` is the gestalt form, filtered to
+the viewer's full sensorium rather than one channel. The verb lands
+on the giver's stack
 because they're a Perceiver, not because there happens to be a
 visible / scryable / locatable thing in scope. Target resolution
 runs at execution time through the verb's scope rules, narrowing

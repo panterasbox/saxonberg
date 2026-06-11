@@ -369,12 +369,14 @@ export type MarkupAugmenter = (
   text: string,
   host: Stuff,
   viewer: Stuff,
+  opts?: AugmentOpts,
 ) => string;
 
-export function augmentMarkup(
+static Mml.augment(
   text: string,
   host: Stuff,
   viewer: Stuff,
+  opts?: AugmentOpts,
 ): string;
 ```
 
@@ -387,7 +389,7 @@ class DetailedMixin {
 }
 ```
 
-`augmentMarkup(text, host, viewer)` walks the host's prototype
+`Mml.augment(text, host, viewer)` walks the host's prototype
 chain via `MixinApi.getAllMarkupAugmenters` (parent-first → child-
 last), folding every contributed augmenter through the text in
 order. Pure, sync, viewer-aware (augmenters that don't need the
@@ -395,10 +397,12 @@ viewer just ignore it).
 
 **Current customer:** `VisibleMixin.getMarkupLong(viewer)` — the
 host-level method that produces the affordance-annotated long
-description shipped on every `'detail'` projection. Today's only
-contribution is `wrapDetailKeysAugmenter` from `DetailedMixin`,
+description shipped on every `'detail'` projection. Two live
+contributions today: `wrapDetailKeysAugmenter` from `DetailedMixin`,
 which wraps canonical detail aliases in `<detail key="...">`
-MML. Future contributors (exit-direction auto-link on
+MML, and `senseStripAugmenter` on `VisibleMixin` (from the senses
+build), which strips regions the viewer's sensorium can't perceive.
+Future contributors (exit-direction auto-link on
 `ExitableMixin`, language masking on a future `LanguageMixin`,
 spoiler hide) plug in via the same `static markupAugmenters`
 slot with no changes to `Visible` or its consumers.
@@ -986,7 +990,7 @@ fall through to `toContents`.
 - [templates.md](./templates.md) — template clone pipeline that creates
   the Stuff that compose `SensorMixin`, `VocalMixin`, `MobileMixin`
 - [lifecycle.md](./lifecycle.md) — Stuff create/destroy choreography;
-  Avatar's `prepareDestroy` clears its `interactives` set
+  Avatar's `onDestruct` clears its `interactives` set
 - [persistence.md](./persistence.md) — `Document` / around-hook
   machinery; unrelated to messaging but shares `PersistenceManager`
 - [state-model.md](./state-model.md) — Avatar self-contained design;

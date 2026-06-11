@@ -178,11 +178,12 @@ test('a new player creates a character and spawns into the world', async ({
     await expect(input).toBeVisible();
 
     // Prove the avatar actually spawned: a `look` round-trips and renders
-    // the seeded spawn room. We assert on the room's stable identity
-    // label, not its flavor prose.
+    // the seeded spawn room — the lounge (the Avatar seed pins
+    // `startLocation: /domain/lounge/warren`). We assert on the room's
+    // stable identity label, not its flavor prose.
     await input.fill('look');
     await input.press('Enter');
-    await expect(page.getByText(/Duncan Hall lobby/i).first()).toBeVisible();
+    await expect(page.getByText(/the lounge/i).first()).toBeVisible();
   } finally {
     await context?.close();
   }
