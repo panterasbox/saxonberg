@@ -1,0 +1,25 @@
+verbs: [player, me]
+controller: author/PlayerController
+description: "Manage your player character settings"
+validators:
+  - /lib/command/validators/requiresAvatar
+subcommands:
+  name:
+    description: "Set your character name"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: surname
+        type: string
+        required: false
+
+  pronouns:
+    description: "Set your pronouns"
+    args:
+      - name: pronouns
+        type: string
+        required: true
+
+  show:
+    description: "Show your current player settings"

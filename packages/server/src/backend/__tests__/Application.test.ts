@@ -8,8 +8,10 @@
  *   - `ConnectionManager` is a singleton with stubbable methods.
  *   - `PersistenceManager` is a singleton with stubbable CRUD.
  *   - `User.findById` / `User.find` route through PM; stub the PM.
- *   - `Avatar` shows up only via `instanceof`; fake holders set the
- *     prototype so the check passes without standing up a real Avatar.
+ *   - The inbound command handler gates on capability + template-path
+ *     prefix (`isCommandGiver` / `isAvatarStuff`), not `instanceof`;
+ *     fake holders thread `Avatar.prototype` and stub `getTemplatePath`
+ *     so both checks pass without standing up a real Avatar.
  *
  * No new test packages.
  */
@@ -68,11 +70,16 @@ function makeFakeInteractive(
 }
 
 /**
- * Build a holder that satisfies `instanceof Avatar` without standing
- * up the full Avatar machinery. `Object.create(Avatar.prototype)`
- * threads the prototype chain so the `instanceof` check in
- * `handleCommandMessage` passes; we then patch on the two methods
- * Application actually calls.
+ * Build a holder that satisfies the inbound command handler's two
+ * capability checks without standing up the full Avatar machinery:
+ *
+ *   - `MixinApi.isCommandGiver(holder)` — threaded by
+ *     `Object.create(Avatar.prototype)`, whose prototype chain carries
+ *     the real `CommandGiver` mixin marker, so `hasMixin`'s walk finds it.
+ *   - `PlayerApi.isAvatarStuff(holder)` — reads the template-path prefix
+ *     (`/obj/Avatar/`), so we stub `getTemplatePath` to an Avatar path.
+ *
+ * We then patch on the two methods Application actually calls.
  */
 function makeFakeAvatar(opts: {
   container?: (Stuff & Container) | null;
@@ -82,12 +89,14 @@ function makeFakeAvatar(opts: {
   ) => Promise<unknown>;
 }): Avatar {
   const avatar = Object.create(Avatar.prototype) as unknown as {
+    getTemplatePath: () => string;
     getContainer: () => (Stuff & Container) | null;
     executeCommand: (
       text: string,
       ctx: { interactive: Interactive },
     ) => Promise<unknown>;
   };
+  avatar.getTemplatePath = () => `${Avatar.TEMPLATE_PATH_PREFIX}test`;
   avatar.getContainer = () =>
     opts.container === undefined ? ({} as Stuff & Container) : opts.container;
   avatar.executeCommand = opts.executeCommand ?? (async () => undefined);
@@ -469,23 +478,81 @@ describe('Application', () => {
       ).rejects.toThrow(/db unavailable/);
     });
 
-    it('throws a meaningful error when the avatar seed template is missing', async () => {
+    it('does not fork an avatar template at signup (char-gen owns character creation)', async () => {
       const pm = pmStubs();
       pm.setFindForCollection(Collections.GoogleProfiles, []);
 
       vi.spyOn(User, 'find').mockResolvedValue([]);
-      const userSaves = vi.fn().mockResolvedValue(undefined);
-      vi.spyOn(StuffApi, 'create').mockResolvedValue({
-        _id: 'user-new',
-        googleProfileId: '',
-        playerIds: [],
-        save: userSaves,
-      } as never);
+      // Seed deliberately "missing": signup no longer touches it, so a
+      // missing seed is no longer an error at signup — it surfaces only
+      // at char-gen commit if it ever happens.
       vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
 
       await expect(
         app.findOrCreateUserFromGoogle(fakeProfile()),
-      ).rejects.toThrow(/seed/);
+      ).resolves.toBeDefined();
+      // Zero avatars minted; no per-character template forked.
+      expect(tmplSave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('provisionTestCharacter (test-auth seam)', () => {
+    const ORIG_AUTH_MODE = process.env.AUTH_MODE;
+    afterEach(() => {
+      if (ORIG_AUTH_MODE === undefined) delete process.env.AUTH_MODE;
+      else process.env.AUTH_MODE = ORIG_AUTH_MODE;
+    });
+
+    it('refuses unless AUTH_MODE=test', async () => {
+      delete process.env.AUTH_MODE;
+      await expect(app.provisionTestCharacter('u1')).rejects.toThrow(
+        /test-only/,
+      );
+    });
+
+    it('mints exactly one ready character for a fresh user', async () => {
+      process.env.AUTH_MODE = 'test';
+      const user = {
+        _id: 'u1',
+        playerIds: [] as string[],
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      vi.spyOn(Template, 'findByPath').mockResolvedValue({
+        path: Avatar.SEED_TEMPLATE_PATH,
+        class: '/obj/Avatar',
+        data: {},
+        hydratorClass: '/lib/persistence/PersistentHydrator',
+      } as never);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
+
+      await app.provisionTestCharacter('u1', 'Tester');
+      expect(user.playerIds).toHaveLength(1);
+      expect(user.save).toHaveBeenCalledTimes(1);
+      expect(tmplSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('is idempotent — no-op when the user already has a character', async () => {
+      process.env.AUTH_MODE = 'test';
+      const user = {
+        _id: 'u1',
+        playerIds: ['existing'],
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
+
+      await app.provisionTestCharacter('u1');
+      expect(user.playerIds).toEqual(['existing']);
+      expect(tmplSave).not.toHaveBeenCalled();
+      expect(user.save).not.toHaveBeenCalled();
     });
   });
 });

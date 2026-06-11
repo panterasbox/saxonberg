@@ -169,7 +169,10 @@ These are leaf templates; Material isn't a folder class.
 ### `PropertiedMixin` and damage resistance
 
 `Material`, `Species`, `BodyPlan`, and `Clade` all compose
-`PropertiedMixin` (`SingletonMixin(PropertiedMixin(Idea))`). Most
+`PropertiedMixin` (`SingletonMixin(PropertiedMixin(Idea))`); `Species`
+additionally composes `VisibleMixin`, so it speaks the standard
+`shortDescription`/`longDescription` surface (the old
+`defaultDescription` was subsumed into `longDescription`). Most
 fields stay first-class — they're part of the engine's vocabulary,
 all instances have them, the schema is stable. But where the keys
 are *content-defined* and the engine just stores/queries by name,
@@ -324,6 +327,12 @@ sessile plan is the stand-in for organisms with no agency anatomy
 `Species` is a singleton `Idea`. Carries:
 
 - `binomial`, `commonNames`
+- `shortDescription`, `longDescription` (from `VisibleMixin`) — the
+  species' generic appearance, themed per species; subsumed the former
+  `defaultDescription`
+- `nameBankKeys` — references to `NameBank` Documents (in the
+  `name_banks` collection) that feed the char-gen name suggester
+  (`suggestName`/`rerollName`). See [char-gen.md](./char-gen.md).
 - `_bodyPlanPath`, `_parentCladePath`, `_defaultMaterialPath` —
   cross-references to BodyPlan, Clade, Material
 - `lifecycleStates` — the species' valid set
@@ -334,12 +343,18 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `VisionModality`
 
-The v1 acceptance roster (`/lib/species/...`):
+The v1 acceptance roster (`/lib/species/...`). The char-gen Wave 1 build
+expanded the `homo` genus to seven playable humanoid species:
 
 | Path | Body plan | Kingdom | Notes |
 |---|---|---|---|
 | `animalia/.../homo/sapiens` | biped | Animalia | Human reference. |
 | `animalia/.../homo/khazadicus` | biped | Animalia | Dwarf — scotopic-shifted vision, 400-yr lifespan. |
+| `animalia/.../homo/draconicus` | biped | Animalia | Dragonborn (char-gen). |
+| `animalia/.../homo/eldarinus` | biped | Animalia | Elf (char-gen). |
+| `animalia/.../homo/infernalis` | biped | Animalia | Tiefling (char-gen). |
+| `animalia/.../homo/periannath` | biped | Animalia | Halfling (char-gen). |
+| `animalia/.../homo/semiorcus` | biped | Animalia | Half-orc (char-gen). |
 | `animalia/.../lithobates/catesbeianus` | quadruped | Animalia | American bullfrog — non-mammal entry. |
 | `plantae/.../spathiphyllum/wallisii` | sessile | Plantae | Peace lily; monoecious. |
 | `constructa/metallica/tutor-bot/mk-iv` | biped | Constructa | Robot — `lifecycleStates: powered/unpowered/destroyed`, `sexDeterminationSystem: 'none'`. |

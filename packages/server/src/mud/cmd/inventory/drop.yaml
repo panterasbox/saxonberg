@@ -1,0 +1,14 @@
+verbs: [drop]
+controller: inventory/DropController
+description: "Drop objects from your inventory"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: targets
+    type: objects
+    required: true
+    greedy: true
+    scope: "inventory"
+    validators:
+      - /lib/command/validators/mustBeContainable
+      - /lib/command/validators/mustBeInInventory

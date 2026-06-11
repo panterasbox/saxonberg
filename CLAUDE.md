@@ -51,6 +51,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
+  - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: roster-vs-char-gen branch, `enroll` as a field-keyed draft state machine, Login-as-CommandGiver+Sensor accumulator, commit/spawn atomicity, server-owns-draft/client-owns-layout, species dossier + NameBank + PersonaMixin, cockpit phases
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, MarkupAugmenter, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — end-to-end rendering: server MML extensions + client parseMml/MmlRenderer + theme/overlay cascade
   - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
@@ -230,8 +231,8 @@ existing `Api` class — do not create free-floating helper modules.
 | Stuff class | `lib/<subsystem>/` or `obj/` | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. |
 | Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
 | Api | `api/` | lowercase `feature.ts` | Static utility class `FeatureApi`, ends with `SecurityApi.decorateApiClass(FeatureApi)`. The natural home for cross-cutting static helpers. |
-| Controller | `obj/command/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/`). |
-| Command YAML | `mud/cmd/` | lowercase `verb.yaml` | The view side of a command. |
+| Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/<category>/`). |
+| Command YAML | `mud/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command. |
 | Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
 
 "Pure helper functions that don't need security" is NOT a reason to
@@ -257,10 +258,12 @@ pattern as inventing one from scratch.
   `Thing.ts`, `Location.ts`).
 - **Api files**: lowercase with `.ts` (`stuff.ts`, `player.ts`,
   `mixin.ts`, `containment.ts`, `message.ts`).
-- **Command YAML views**: in `mud/cmd/`, lowercase
-  (`look.yaml`, `say.yaml`, `tell.yaml`).
-- **Command controllers**: in `mud/obj/command/`, e.g.
-  `LookController.ts`, `GoController.ts`.
+- **Command YAML views**: in `mud/cmd/<category>/`, lowercase
+  (`perception/look.yaml`, `social/say.yaml`). Categories: perception,
+  social, movement, posture, inventory, boundary, shell, author,
+  system, charactergen.
+- **Command controllers**: in `mud/obj/command/<category>/`, e.g.
+  `perception/LookController.ts`, `movement/GoController.ts`.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 
@@ -414,7 +417,7 @@ bypass it. Common cases:
 | `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |
 | `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
 | `(stuff as any).save?.()` to round-trip arbitrary Stuff to its template | `Avatar.save()` is the only v1 consumer (`if (stuff instanceof Avatar) await stuff.save()`). The substrate (`TemplateApi.snapshotToTemplate` / `restoreFromTemplate`) is general but only Avatar exercises it in v1. No general persist-back mixin yet. |
-| Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/CloneController.ts`. |
+| Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/author/CloneController.ts`. |
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — slice walk over `Zone.ownerGroup` / `accessGroups` with `'core'` fallback. See [access.md](./docs/subsystems/access.md). |
 | Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.isAuthor(giver)` for MQL pre-gates, `AccessApi.isDeveloper(giver)` for the orthogonal TS-escape axis (eval, reload, source-tree writes). |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/obj/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('mud/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |

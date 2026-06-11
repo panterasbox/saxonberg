@@ -1,0 +1,20 @@
+verbs: [dm, tell]
+controller: social/DmController
+description: "Send a direct message (dm) to one or more people. Multi-target DMs create an ad-hoc channel under the hood."
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+args:
+  - name: target
+    type: objects
+    required: true
+    scope: "online"
+    cardinality: { min: 1, max: 10 }
+    onShortage: error
+    onExcess: error
+    validators:
+      - /lib/command/validators/mustBeAgent
+  - name: message
+    type: string
+    required: true
+    greedy: true

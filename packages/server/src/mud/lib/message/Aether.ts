@@ -116,7 +116,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
      * slates ship.
      */
     static commandContributions: CommandContributions = {
-      self: ['dm.yaml', 'reply.yaml', 'broadcast.yaml', 'chat.yaml'],
+      self: ['social/dm.yaml', 'social/reply.yaml', 'social/broadcast.yaml', 'social/chat.yaml'],
       environment: [],
       inventory: [],
       peers: [],

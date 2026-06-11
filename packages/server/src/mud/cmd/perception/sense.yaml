@@ -1,0 +1,12 @@
+verbs: [sense]
+controller: perception/SenseController
+description: "Take in your surroundings across every sense you possess"
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at]
+    default: "$focus"
+    onExcess: prompt

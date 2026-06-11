@@ -77,7 +77,7 @@ export default class Avatar extends AvatarBase {
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
   static commandContributions: CommandContributions = {
-    self: ['ping.yaml', 'help.yaml', 'player.yaml', 'analyze.yaml'],
+    self: ['system/ping.yaml', 'system/help.yaml', 'system/clear.yaml', 'author/player.yaml', 'perception/analyze.yaml'],
     environment: [],
     inventory: [],
     peers: [],
@@ -285,7 +285,10 @@ export default class Avatar extends AvatarBase {
    * emit) would double-fire if a caller did re-invoke; treat the
    * method as session-start-only.
    */
-  public async enter(interactive: Interactive): Promise<void> {
+  public async enter(
+    interactive: Interactive,
+    opts: { firstArrival?: boolean } = {}
+  ): Promise<void> {
     const startingLocation = this.getContainer();
     if (!startingLocation) {
       throw new Error(
@@ -325,9 +328,14 @@ export default class Avatar extends AvatarBase {
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       clientState: this.snapshotClientState(),
     };
+    // First arrival (just created in char-gen) gets a fresh greeting;
+    // a returning player gets the welcome-back register.
+    const greeting = opts.firstArrival
+      ? Mml.compose`Welcome, ${this.getFullName()}.`
+      : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
       .topic('system.connection.established')
-      .toSelf(Mml.compose`Welcome back, ${this.getFullName()}!`)
+      .toSelf(greeting)
       .payload(payload)
       .send();
 

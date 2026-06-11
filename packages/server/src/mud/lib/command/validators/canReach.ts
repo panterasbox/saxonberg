@@ -49,11 +49,15 @@ const validator: FieldValidator = (value, field, context) => {
   const inventoryIds = MixinApi.isContainer(giver)
     ? new Set(ContainmentApi.getContents(giver).map((s) => s.stuffId))
     : new Set<string>();
+  // A locationless giver can still reach things it carries (inventory);
+  // it just has no room contents or exits to reach through.
   const locationIds = new Set(
-    ContainmentApi.getContents(location).map((s) => s.stuffId),
+    (location ? ContainmentApi.getContents(location) : []).map(
+      (s) => s.stuffId,
+    ),
   );
   const exitDoorIds = new Set<string>();
-  if (MixinApi.isExitable(location)) {
+  if (location && MixinApi.isExitable(location)) {
     for (const exit of location.getObviousExits()) {
       const door = exit.getDoor();
       if (door) exitDoorIds.add(door.stuffId);
@@ -65,7 +69,7 @@ const validator: FieldValidator = (value, field, context) => {
   for (const stuff of stuffs) {
     const id = (stuff as Stuff).stuffId;
     if (id === giver.stuffId) continue; // the actor themselves
-    if (id === location.stuffId && via?.exit) continue; // door-via-direction
+    if (location && id === location.stuffId && via?.exit) continue; // door-via-direction
     if (inventoryIds.has(id)) continue;
     if (locationIds.has(id)) continue;
     if (exitDoorIds.has(id)) continue;

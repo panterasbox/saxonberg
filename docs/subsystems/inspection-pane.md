@@ -50,9 +50,9 @@ See:
 | `packages/server/src/mud/lib/description/Visible.ts` | `getMarkupLong(viewer)` — runs the long description through every contributing mixin's `markupAugmenters` |
 | `packages/server/src/mud/lib/description/Detailed.ts` | `wrapDetailKeysAugmenter` contributed via `DetailedMixin.markupAugmenters` — wraps canonical detail keys in `<detail>` MML inline |
 | `packages/server/src/mud/lib/boundary/Exitable.ts` | `exits` descriptor on `ExitableMixin.subscribableFields` — ships direction + door affordance for the pane's exit block |
-| `packages/server/src/mud/cmd/find.yaml` | `find` verb YAML view (snapshot enumeration, no `updates_focus`) |
-| `packages/server/src/mud/obj/command/FindController.ts` | `find` controller — renders one MML row per match, admin viewers see template-path suffix |
-| `packages/server/src/mud/cmd/look.yaml` | `--peek` option declares `effects: [{phase: 'focus-update', action: 'skip'}]` |
+| `packages/server/src/mud/cmd/perception/find.yaml` | `find` verb YAML view (snapshot enumeration, no `updates_focus`) |
+| `packages/server/src/mud/obj/command/perception/FindController.ts` | `find` controller — renders one MML row per match, admin viewers see template-path suffix |
+| `packages/server/src/mud/cmd/perception/look.yaml` | `--peek` option declares `effects: [{phase: 'focus-update', action: 'skip'}]` |
 | `packages/server/src/mud/api/command.ts` | Phase / effects vocabulary (`COMMAND_PHASES`, `PhaseEffect`, `validatePhaseEffect`, `collectPhaseEffects`, `consumePhaseEffects`); dispatcher consults it at the focus-update site |
 | `packages/server/src/mud/api/mml.ts` | `MarkupAugmenter` type + `augmentMarkup` helper — substrate for `getMarkupLong` and future inline-affordance pipelines |
 | `packages/server/src/mud/api/mixin.ts` | `MixinApi.getAllMarkupAugmenters` — prototype-chain walker the augmenter pipeline consumes |

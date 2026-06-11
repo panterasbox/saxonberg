@@ -16,7 +16,7 @@ import type { CommandContributions } from '../../api/command';
 export default class Altimeter extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['measure.yaml'],
+    inventory: ['perception/measure.yaml'],
     environment: [],
     peers: [],
   };

@@ -1,0 +1,21 @@
+verbs: [put, place]
+controller: inventory/PutController
+description: "Place an item from your inventory in or on a target"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: item
+    type: object
+    required: true
+    scope: "inventory"
+    validators:
+      - /lib/command/validators/mustBeInInventory
+      - /lib/command/validators/mustBeContainable
+  - name: target
+    type: object
+    required: true
+    scope: "peers"
+    prepositions: [in, on]
+    validators:
+      - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBePutTarget

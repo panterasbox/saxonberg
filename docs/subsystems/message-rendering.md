@@ -414,7 +414,7 @@ shape is **bounded** — the engine recognizes a fixed set of keys; no
 
 ### The `style` verb
 
-`StyleController` (`mud/obj/command/StyleController.ts`) is the
+`StyleController` (`mud/obj/command/shell/StyleController.ts`) is the
 player's surface for editing the overlay. Subcommands:
 
 | Usage | Effect |

@@ -230,7 +230,10 @@ export class Application {
    * means adding a handler file there and registering it in
    * `inbound/index.ts`. Do not grow this method.
    */
-  public processUserMessage(socketId: string, message: InboundClientMessage): void {
+  public async processUserMessage(
+    socketId: string,
+    message: InboundClientMessage,
+  ): Promise<void> {
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (!interactive) {
       console.warn(`Application: No Interactive found for socket ${socketId}`);
@@ -251,17 +254,20 @@ export class Application {
       return;
     }
 
-    const result = handler(
-      { socketId, interactive, backend: this.backend, application: this },
-      message,
-    );
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        console.error(
-          `Application: inbound '${message.type}' error for socket ${socketId}:`,
-          error,
-        );
-      });
+    // Await the handler so the caller's per-socket serialization chain
+    // (and the enclosing `runRoot` frame) span the command's full async
+    // dispatch, not just the synchronous prefix. Rejections are logged,
+    // not rethrown — one bad command must not wedge the socket's chain.
+    try {
+      await handler(
+        { socketId, interactive, backend: this.backend, application: this },
+        message,
+      );
+    } catch (error) {
+      console.error(
+        `Application: inbound '${message.type}' error for socket ${socketId}:`,
+        error,
+      );
     }
   }
 
@@ -339,13 +345,12 @@ export class Application {
     await user.save();
     console.info(`Application: Created new User ${user._id}`);
 
-    const playerId = await this.createDefaultAvatarTemplate(
-      profile.name?.givenName || 'Unnamed',
-      profile.name?.familyName
-    );
-    user.playerIds.push(playerId);
-    await user.save();
-
+    // Char-gen owns character creation now: signup mints ZERO avatars.
+    // A new user starts with an empty roster (`playerIds: []`); on first
+    // login the empty roster routes them into char-gen (the `enroll`
+    // flow), which forks the per-character template at commit. The
+    // Google profile name survives on the User/GoogleProfile only as the
+    // seed for the name suggester. See docs/plans/char-gen-plan.md (A1).
     return user._id!;
   }
 
@@ -389,6 +394,31 @@ export class Application {
     );
     console.info(`Application: Created avatar template at ${path}`);
     return playerId;
+  }
+
+  /**
+   * TEST-ONLY: give a user a ready-to-play default character so in-world
+   * E2E tests don't have to walk char-gen first. Mirrors the retired
+   * signup auto-mint (human, lobby, seed defaults), named from the test
+   * handle. Backs the test-auth seam's `withCharacter` option. Gated on
+   * `AUTH_MODE === 'test'`; idempotent (no-op if the user already owns a
+   * character).
+   */
+  public async provisionTestCharacter(
+    userId: string,
+    name = 'Tester'
+  ): Promise<void> {
+    if (process.env.AUTH_MODE !== 'test') {
+      throw new Error('Application.provisionTestCharacter: test-only');
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(`Application.provisionTestCharacter: no user ${userId}`);
+    }
+    if (user.playerIds.length > 0) return;
+    const playerId = await this.createDefaultAvatarTemplate(name);
+    user.playerIds.push(playerId);
+    await user.save();
   }
 }
 

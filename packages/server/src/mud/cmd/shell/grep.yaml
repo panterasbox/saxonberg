@@ -1,0 +1,27 @@
+verbs: [grep]
+controller: shell/GrepController
+description: "Search for <pattern> in the content (default) or source tree"
+args:
+  - name: pattern
+    type: string
+    required: true
+  - name: path
+    type: string
+    required: false
+options:
+  content:
+    short: c
+    type: boolean
+    description: "Force the operation to the content tree (overrides workspace.tree)"
+  source:
+    short: s
+    type: boolean
+    description: "Force the operation to the source tree (overrides workspace.tree)"
+  ignore:
+    short: i
+    type: boolean
+    description: "Case-insensitive match"
+  recursive:
+    short: r
+    type: boolean
+    description: "Recurse into subdirectories"

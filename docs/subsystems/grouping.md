@@ -259,7 +259,7 @@ internally — the facade returns the coarse role.
 ## The `group` verb suite
 
 `GroupController` is the player-facing surface for the managed
-provider. The YAML lives at `mud/cmd/group.yaml`; the controller
+provider. The YAML lives at `mud/cmd/social/group.yaml`; the controller
 dispatches on the subcommand:
 
 ```
@@ -280,7 +280,7 @@ owner-or-admin (`add`, `remove`) by reading the Group's role of the
 acting Avatar's playerId.
 
 The suite is **exposed via composition on `ContactsMixin`**, which
-declares `commandContributions.self = ['contacts.yaml', 'group.yaml']`.
+declares `commandContributions.self = ['social/contacts.yaml', 'social/group.yaml']`.
 ContactsMixin composes on every Avatar; the `group` verbs ride along
 because both are personal-list management verbs an animate
 being uses to organize who-they-know. NPCs that compose

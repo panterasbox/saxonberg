@@ -17,6 +17,8 @@
 import { create } from 'zustand';
 import type {
   AuthState,
+  CharGenRosterEntry,
+  CharGenStatePayload,
   ConnectionEstablishedPayload,
   ConnectionState,
   ConsoleTab,
@@ -26,6 +28,27 @@ import type {
   StuffRefRecord,
   TopicDescriptor,
 } from '@saxonberg/types';
+
+/**
+ * The mutually-exclusive top-level UI phase. Derived from the auth /
+ * connection state and the char-gen wire frames:
+ *
+ *   - `unauthenticated` — no Google session yet; the login takeover.
+ *   - `character-select` — a `system.charactergen.roster` frame
+ *     arrived; the player picks an existing character or creates one.
+ *   - `char-gen` — a `system.charactergen.state` frame arrived; the
+ *     dedicated character-creation stage owns the screen.
+ *   - `in-world` — a `system.connection.established` frame for an
+ *     Avatar arrived; the cockpit takes over.
+ *
+ * App.tsx switches the whole render on this single field. The phases
+ * are exclusive — exactly one screen renders at a time.
+ */
+export type ConnectionPhase =
+  | 'unauthenticated'
+  | 'character-select'
+  | 'char-gen'
+  | 'in-world';
 
 /**
  * Client mirror of one entry on the per-Interactive prompt stack.
@@ -172,6 +195,39 @@ interface StoreState {
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
   setDisconnected: (error?: string) => void;
+
+  // Connection-phase slice — the mutually-exclusive top-level screen.
+  /**
+   * Which top-level screen renders. Initialised from the auth state
+   * (`unauthenticated` until a Google session is confirmed). The
+   * char-gen frames and `setConnected` drive the transitions:
+   *
+   *   - a `system.charactergen.roster` frame → `character-select`
+   *   - a `system.charactergen.state` frame  → `char-gen`
+   *   - `setConnected` (avatar entered world)  → `in-world`
+   *   - disconnect drops back as appropriate.
+   */
+  connectionPhase: ConnectionPhase;
+  /** Set the top-level phase directly (idempotent no-op on no change). */
+  setConnectionPhase: (phase: ConnectionPhase) => void;
+
+  // Char-gen slices — the pre-world character-creation surfaces.
+  /**
+   * The character-select roster, populated from the most recent
+   * `system.charactergen.roster` frame. Empty until the frame
+   * arrives. Setting it flips the phase to `character-select`.
+   */
+  charGenRoster: CharGenRosterEntry[];
+  /** Store the roster and flip to `character-select`. */
+  setCharGenRoster: (roster: CharGenRosterEntry[]) => void;
+  /**
+   * The current char-gen step state, from the most recent
+   * `system.charactergen.state` frame. `null` until char-gen begins.
+   * Setting a non-`done` state flips the phase to `char-gen`.
+   */
+  charGenState: CharGenStatePayload | null;
+  /** Store the char-gen state and flip to `char-gen` (unless done). */
+  setCharGenState: (state: CharGenStatePayload) => void;
 
   // Client state — server-persisted UI bag.
   /**
@@ -619,19 +675,64 @@ export const useStore = create<StoreState>((set, get) => ({
   auth: initialAuthState,
 
   setAuth: (auth) =>
-    set((state) => ({
-      auth: { ...state.auth, ...auth },
-    })),
+    set((state) => {
+      const nextAuth = { ...state.auth, ...auth };
+      // Crossing the unauthenticated boundary: once a Google session
+      // is confirmed, leave the login takeover. The specific
+      // post-login screen (character-select / char-gen / in-world) is
+      // chosen by the first server frame after the WebSocket connects;
+      // until then we sit in `character-select` with an empty roster
+      // (a quiet "connecting" state), never bouncing back to the
+      // login screen. If auth is cleared, return to `unauthenticated`.
+      let connectionPhase = state.connectionPhase;
+      if (nextAuth.isAuthenticated && state.connectionPhase === 'unauthenticated') {
+        connectionPhase = 'character-select';
+      } else if (!nextAuth.isAuthenticated) {
+        connectionPhase = 'unauthenticated';
+      }
+      return { auth: nextAuth, connectionPhase };
+    }),
 
   clearAuth: () =>
     set({
       auth: initialAuthState,
+      connectionPhase: 'unauthenticated',
     }),
 
   // Connection state
   connection: initialConnectionState,
   selfInteractiveId: null,
   selfAvatarId: null,
+
+  // Connection-phase slice. Initial phase mirrors the initial auth
+  // state (unauthenticated until /auth/status confirms a session);
+  // setAuth/setConnected/the char-gen frames advance it from there.
+  connectionPhase: 'unauthenticated',
+
+  setConnectionPhase: (phase) =>
+    set((state) =>
+      state.connectionPhase === phase ? {} : { connectionPhase: phase }
+    ),
+
+  // Char-gen slices (initial cleared state).
+  charGenRoster: [],
+
+  setCharGenRoster: (roster) =>
+    set(() => ({
+      charGenRoster: roster,
+      connectionPhase: 'character-select',
+    })),
+
+  charGenState: null,
+
+  setCharGenState: (charGenState) =>
+    set(() => ({
+      charGenState,
+      // A char-gen state frame means we're mid-creation. The in-world
+      // flip rides the `system.connection.established` that `enroll
+      // confirm` fires after commit (setConnected), not a state frame.
+      connectionPhase: 'char-gen' as const,
+    })),
 
   setConnection: (connection) =>
     set((state) => ({
@@ -643,13 +744,26 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
-    set({
+    set((state) => ({
+      // Entering the world from char-gen or the roster starts a fresh
+      // terminal — drop the buffer (and its unread/muted bookkeeping) so
+      // the player doesn't carry the `enroll …` command echoes into the
+      // world. A reconnect (already in-world) keeps its scrollback.
+      ...(state.connectionPhase === 'in-world'
+        ? {}
+        : { frames: [], unreadCounts: {}, mutedSinceSessionStart: {} }),
       connection: {
         isConnected: true,
         socketId: payload.socketId,
         sessionId: payload.sessionId,
         error: null,
       },
+      // An established frame always carries an Avatar (avatarStuffId),
+      // so it is unconditionally the in-world flip — regardless of
+      // prior phase (char-gen commit, roster select, or a fresh
+      // login that already had a character).
+      connectionPhase: 'in-world',
+      charGenState: null,
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
@@ -671,11 +785,11 @@ export const useStore = create<StoreState>((set, get) => ({
         },
         player: payload.player,
       },
-    });
+    }));
   },
 
   setDisconnected: (error) =>
-    set({
+    set((state) => ({
       connection: {
         isConnected: false,
         socketId: null,
@@ -684,7 +798,18 @@ export const useStore = create<StoreState>((set, get) => ({
       },
       selfInteractiveId: null,
       selfAvatarId: null,
-    }),
+      // Drop char-gen surfaces on disconnect; the next connection
+      // re-issues the roster / char-gen frames. Keep the phase
+      // authenticated (so the reconnect spinner shows) unless the
+      // session itself was never authenticated.
+      charGenRoster: [],
+      charGenState: null,
+      connectionPhase: state.auth.isAuthenticated
+        ? state.connectionPhase === 'in-world'
+          ? 'in-world'
+          : state.connectionPhase
+        : 'unauthenticated',
+    })),
 
   // Inspection-pane slice (initial cleared state)
   paneFocusName: null,

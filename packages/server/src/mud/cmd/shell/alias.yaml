@@ -1,0 +1,44 @@
+verbs: [alias]
+controller: shell/AliasController
+description: "Manage your command aliases"
+validators:
+  - /lib/command/validators/requiresAlias
+subcommands:
+  list:
+    description: "List effective aliases (defaults + persistent + session) with source markers"
+
+  get:
+    description: "Show one alias's body and source"
+    args:
+      - name: name
+        type: string
+        required: true
+
+  set:
+    description: "Set an alias body (persistent by default; --session for transient)"
+    options:
+      session:
+        type: boolean
+        description: "Write to the session store instead of persistent"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: body
+        type: string
+        required: true
+        greedy: true
+
+  unset:
+    description: "Drop an override (or tombstone a default)"
+    args:
+      - name: name
+        type: string
+        required: true
+
+  describe:
+    description: "Show the full entry — body, source, description if any"
+    args:
+      - name: name
+        type: string
+        required: true

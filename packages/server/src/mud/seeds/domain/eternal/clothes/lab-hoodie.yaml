@@ -1,0 +1,11 @@
+class: /lib/equipment/Garment
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a faded lab hoodie
+  primaryKeyword: hoodie
+  longDescription: >
+    A soft, faded hoodie with a half-scrubbed equation inked on one
+    cuff. It has the look of someone who codes through the night and
+    forgets to eat.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]

@@ -275,10 +275,10 @@ paths run inline in the router.
 
 ## The `soul` authoring suite
 
-`SoulController` (`obj/command/SoulController.ts`) implements the
+`SoulController` (`obj/command/social/SoulController.ts`) implements the
 wizard-tier author surface: `soul make / edit / delete / show /
 list`. The verb is gated by composition — `AuthorMixin` contributes
-`soul.yaml` to its `commandContributions.self`, paralleling the
+`social/soul.yaml` to its `commandContributions.self`, paralleling the
 existing `clone` / `reload` / `eval` / `teleport` AuthorMixin
 verbs. When the access slate lands the gate moves mechanically to
 `AccessApi.can(actor, 'soul.author', null)`.

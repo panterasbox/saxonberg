@@ -24,7 +24,7 @@ import type Interactive from '../obj/Interactive';
 import type { Sensor } from '../lib/message/Sensor';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { dirname, isAbsolute, join, resolve as resolvePath } from 'path';
+import { dirname, isAbsolute, join, resolve as resolvePath, sep } from 'path';
 import { readdirSync } from 'fs';
 import { nanoid } from 'nanoid';
 import Ajv, { type ValidateFunction } from 'ajv';
@@ -103,7 +103,7 @@ export interface ExecuteCommandOpts {
 export interface CommandContext {
   commandGiver: Stuff & CommandGiver;
   interactive?: Interactive;
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   commandText: string;
   executionId: string;
   commandId: string;
@@ -154,7 +154,7 @@ export interface CommandContext {
  */
 export interface CreateCommandContextArgs {
   commandGiver: Stuff & CommandGiver;
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   commandText: string;
   executionId: string;
   commandId: string;
@@ -210,7 +210,7 @@ const STATUS_RANK: Record<Status, number> = {
 
 class CommandContextImpl implements CommandContext {
   public commandGiver: Stuff & CommandGiver;
-  public location: Stuff & Container;
+  public location: (Stuff & Container) | null;
   public commandText: string;
   public executionId: string;
   public commandId: string;
@@ -302,7 +302,7 @@ export interface ParserContext {
    * disambiguation. Typically a `Location` but may be any
    * `Stuff & Container` (a Vessel interior, etc.).
    */
-  location: Stuff & Container;
+  location: (Stuff & Container) | null;
   /**
    * Available command definitions on the actor's recency stack —
    * the universe of verbs the parser is allowed to choose from.
@@ -1196,12 +1196,21 @@ export class CommandApi {
   static async preloadAll(): Promise<{ loaded: number; failed: string[] }> {
     let entries: string[];
     try {
-      entries = readdirSync(CMD_DIR);
+      // Recursive walk so verbs can be grouped into subdirs
+      // (e.g. `cmd/charactergen/enroll.yaml`). Relative paths come
+      // back subdir-qualified; `getCommand` resolves them via `join`,
+      // and the same qualified string is the cache key + the value
+      // `commandContributions` reference.
+      entries = readdirSync(CMD_DIR, { recursive: true }) as string[];
     } catch (err) {
       console.error(`CommandApi: cannot read cmd dir at ${CMD_DIR}:`, err);
       return { loaded: 0, failed: [] };
     }
-    const yamls = entries.filter((f) => f.endsWith('.yaml'));
+    const yamls = entries
+      // Normalize to forward slashes so cache keys match the
+      // subdir-qualified references authored in YAML / contributions.
+      .map((f) => f.split(sep).join('/'))
+      .filter((f) => f.endsWith('.yaml'));
     const failed: string[] = [];
     let loaded = 0;
     for (const file of yamls) {
@@ -1436,7 +1445,7 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
+    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
   ): AssembleResult {
     const tokens = parsed.rawTokens;
     if (tokens.length === 0 || tokens[0]?.kind !== 'word') {
@@ -1591,7 +1600,7 @@ export class CommandApi {
       raw?: string;
     },
     command: CommandDefinition,
-    _ctx: { commandGiver: Stuff & CommandGiver; location: Stuff & Container }
+    _ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
   ): { model: CommandModel } | { error: string } {
     const allowed = command.getAllFieldNames();
     const fields: ModelData = {};

@@ -921,6 +921,128 @@ export interface ConnectionEstablishedPayload {
 }
 
 /**
+ * Char-gen — the pre-world character-creation phase. Both payloads ride
+ * as `MessageFrame.payload` on system-family topics (no new envelope
+ * type): the roster on `system.charactergen.roster`, the per-step state
+ * on `system.charactergen.state`. Delivered to the connected `Login`
+ * (a Sensor) and read by the cockpit's char-gen layout.
+ */
+
+/**
+ * The settable char-gen fields. Each is set by a live `enroll <field>
+ * <value>` command; the client lays them out however it likes (one per
+ * screen, grouped, or all on one page) — the server is layout-agnostic.
+ */
+export type CharGenField =
+  | 'species'
+  | 'sex'
+  | 'name'
+  | 'pronouns'
+  | 'aspiration';
+
+/** One closed-choice option for the current char-gen step. */
+export interface CharGenOption {
+  /** The token the client sends as `enroll <field> <value>`. */
+  value: string;
+  /** Human-facing label. */
+  label: string;
+  /** Optional one-line description (themed flavor). */
+  description?: string;
+  /**
+   * Optional illustration for the option, surfaced in the char-gen
+   * detail pane (3:4 portrait). A resolvable image URL, or `null` when
+   * no asset exists yet (the client renders a framed placeholder). The
+   * asset subsystem owns how this URL is produced/resolved; char-gen
+   * only consumes it. v1: always `null` until image assets ship.
+   */
+  image?: string | null;
+  /**
+   * Optional structured dossier shown in the detail pane — the
+   * showcase of how deeply the species is modeled (scientific name,
+   * full taxonomic classification, biology, anatomy, material). Derived
+   * server-side from the real `Species` template and its resolved
+   * `BodyPlan` / `Material` / clade chain; every row is real data, so
+   * a missing section/row means the data genuinely isn't authored.
+   * Species options only; other fields omit it.
+   */
+  dossier?: SpeciesDossier;
+}
+
+/** One labeled section of a {@link SpeciesDossier} (e.g. "Classification"). */
+export interface DossierSection {
+  heading: string;
+  rows: { label: string; value: string }[];
+}
+
+/**
+ * The species dossier surfaced in char-gen. `binomial` is the Latin
+ * scientific name; `sections` are pre-formatted, content-driven groups
+ * (Classification, Biology, Anatomy, Composition) so the client renders
+ * them generically without knowing the field taxonomy.
+ */
+export interface SpeciesDossier {
+  binomial: string;
+  sections: DossierSection[];
+}
+
+/** The accumulated picks so far (client-readable draft). */
+export interface CharGenPicks {
+  species?: { key: string; commonName: string };
+  sex?: string;
+  name?: string;
+  surname?: string;
+  pronouns?: string;
+  aspiration?: string;
+}
+
+/**
+ * `system.charactergen.state` payload — the complete live draft state.
+ * The server re-emits the whole thing after every `enroll <field>
+ * <value>`; the client renders whatever layout it wants from it. No
+ * notion of a "current step" — flow/layout is entirely client-side.
+ */
+export interface CharGenStatePayload {
+  /** Current chosen values (the live draft). */
+  picks: CharGenPicks;
+  /** Species options (carry the dossier + illustration). */
+  speciesOptions: CharGenOption[];
+  /**
+   * Sex options for the chosen species — EMPTY when the species isn't
+   * sexed, which is also how the client knows the field doesn't apply.
+   */
+  sexOptions: CharGenOption[];
+  pronounOptions: CharGenOption[];
+  aspirationOptions: CharGenOption[];
+  /** Current name suggestion (drives the name fields' pre-fill). */
+  suggestion?: { name: string; surname?: string };
+  /**
+   * The player's real account display name (Google `displayName`; Twitch
+   * later), shown on the name field for reference. Absent if unavailable.
+   */
+  accountName?: string;
+  /**
+   * Required fields still unset — gates `enroll confirm` and lets the
+   * client show what's left. A `sex` entry appears only when applicable.
+   */
+  missing: CharGenField[];
+  /** Last validation rejection, scoped to the field it concerns. */
+  error?: { field: CharGenField; message: string };
+}
+
+/** One character in the post-login roster. */
+export interface CharGenRosterEntry {
+  playerId: string;
+  name: string;
+  species: string;
+  description: string;
+}
+
+/** `system.charactergen.roster` payload — the character-select list. */
+export interface CharGenRosterPayload {
+  characters: CharGenRosterEntry[];
+}
+
+/**
  * Inbound client mutation of a `ClientStateMixin` key. The server
  * validates the key against the aggregated schema chain (rejects
  * unknown keys; runs the entry's optional validator), calls

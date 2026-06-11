@@ -11,8 +11,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import PutController from '../obj/command/PutController';
-import GiveController from '../obj/command/GiveController';
+import PutController from '../obj/command/inventory/PutController';
+import GiveController from '../obj/command/inventory/GiveController';
 import { ContainerMixin } from '../lib/spatial/Container';
 import { ContainableMixin } from '../lib/spatial/Containable';
 import { SurfacedMixin } from '../lib/spatial/Surfaced';

@@ -11,14 +11,23 @@
 
 import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
-import Avatar from '../../mud/obj/Avatar';
+import { PlayerApi } from '../../mud/api/player';
+import { MixinApi } from '../../mud/api/mixin';
 import { PromptApi } from '../../mud/api/prompt';
+import type { Stuff } from '../../mud/lib/stuff/Stuff';
+import type { CommandGiver } from '../../mud/lib/command/CommandGiver';
 import type { InboundClientMessage, InboundHandler } from './index';
 
 export const handleCommand: InboundHandler = async (ctx, message) => {
   const { interactive, backend, application, socketId } = ctx;
-  const holder = interactive.getHolder();
-  if (!(holder instanceof Avatar)) {
+  const holder = interactive.getHolder() as Stuff | null;
+  // Identity is by capability + template-path, never instanceof:
+  // anything that's a CommandGiver dispatches through the real pipeline
+  // (Avatar in-world; Login in the pre-world char-gen/roster phase).
+  // The Avatar-only branches below narrow with `PlayerApi.isAvatarStuff`,
+  // which reads the durable `/obj/Avatar/` template-path prefix rather
+  // than the backing class (which can change across HMR cycles).
+  if (!holder || !MixinApi.isCommandGiver(holder)) {
     backend.sendMessageToSocket(socketId, {
       type: 'error',
       payload: { message: 'No active character' },
@@ -28,25 +37,32 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
 
   const commandText = (message.payload as { text: string }).text?.trim();
   if (!commandText) {
-    // Empty line → bare prompt-refresh envelope. No parser, no
-    // controller, no side effects.
-    const refresh = PromptApi.renderPromptRefresh(holder);
-    const template: EnvelopeTemplate = {
-      type: 'dispatch-response',
-      dispatchId: nanoid(),
-      outcome: { status: 'ok', notes: [refresh] },
-    };
-    application.sendEnvelopeToInteractive(interactive, template);
+    // Empty line: Avatar gets a bare prompt-refresh envelope (MUD-style
+    // "press Enter"). For a Login (char-gen/roster) there's nothing to
+    // refresh — ignore.
+    if (PlayerApi.isAvatarStuff(holder)) {
+      const refresh = PromptApi.renderPromptRefresh(holder);
+      const template: EnvelopeTemplate = {
+        type: 'dispatch-response',
+        dispatchId: nanoid(),
+        outcome: { status: 'ok', notes: [refresh] },
+      };
+      application.sendEnvelopeToInteractive(interactive, template);
+    }
     return;
   }
 
-  if (!holder.getContainer()) {
+  // The placeless guard is Avatar-only — a Login is intentionally
+  // locationless.
+  if (PlayerApi.isAvatarStuff(holder) && !holder.getContainer()) {
     backend.sendMessageToSocket(socketId, {
       type: 'error',
       payload: { message: 'Avatar has no location' },
     });
     return;
   }
+
+  const giver = holder as Stuff & CommandGiver;
 
   // executeCommand's outcome rides the dispatch-response envelope
   // (fired through the Sensor pipeline). No return value to read
@@ -55,7 +71,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   // to see "something went wrong" rather than have the dispatcher
   // log silently.
   try {
-    await holder.executeCommand(commandText, { interactive });
+    await giver.executeCommand(commandText, { interactive });
   } catch (error) {
     console.error(`Command error for socket ${socketId}:`, error);
     backend.sendMessageToSocket(socketId, {

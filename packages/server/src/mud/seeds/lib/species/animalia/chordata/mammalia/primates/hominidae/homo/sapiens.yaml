@@ -20,3 +20,7 @@ data:
     scotopicMin: pitch-black
     photopicMax: blinding
     bandShift: 0
+  longDescription: >-
+    A person of ordinary build, neither tall nor short, with the alert,
+    restless look of someone still deciding what to make of themselves.
+  nameBankKeys: ["common"]

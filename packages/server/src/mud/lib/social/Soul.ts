@@ -83,7 +83,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     static commandContributions: CommandContributions = {
-      self: ['emote.yaml'],
+      self: ['social/emote.yaml'],
       environment: [],
       inventory: [],
       peers: [],

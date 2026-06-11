@@ -1,0 +1,11 @@
+verbs: [fly]
+controller: movement/FlyController
+description: "Fly through a named exit (must be Flyable-enabled)."
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    validators:
+      - /lib/command/validators/canReach

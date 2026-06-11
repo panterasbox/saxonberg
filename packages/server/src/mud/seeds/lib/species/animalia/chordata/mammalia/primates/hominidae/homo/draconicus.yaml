@@ -1,0 +1,29 @@
+# Homo draconicus — fantasy dragonborn. Same biped anatomy as sapiens,
+# clad in scales with a keen draconic nose; vision stays close to human.
+# Proud, short-lived (~80 years), with the bearing of an elder wyrm.
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  binomial: Homo draconicus
+  commonNames: ["dragonborn"]
+  _bodyPlanPath: /lib/body-plans/biped
+  _parentCladePath: /lib/species/animalia
+  _defaultMaterialPath: /lib/material/tissue/flesh
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: diurnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: keen
+  longDescription: >-
+    A tall, powerfully built figure sheathed in fine overlapping scales,
+    blunt-muzzled and ridge-browed, bearing themselves with the slow,
+    proud composure of an elder wyrm taking the measure of lesser things.
+  nameBankKeys: ["draconic"]

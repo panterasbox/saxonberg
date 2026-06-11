@@ -676,7 +676,7 @@ export class StuffApi {
    * Direct calls from outside `DestructController`'s module throw
    * `SecurityError` from the decorator gate before this body runs.
    */
-  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/DestructController'))
+  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/author/DestructController'))
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
   }

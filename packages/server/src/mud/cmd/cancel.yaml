@@ -1,7 +1,0 @@
-verbs: [cancel]
-controller: CancelController
-description: "Cancel an in-flight activity. With no argument, cancels every activity. With a type ('reading', 'walking', ...), cancels matching activities."
-args:
-  - name: type
-    type: string
-    required: false

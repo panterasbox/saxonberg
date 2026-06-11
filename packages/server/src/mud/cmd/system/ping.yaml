@@ -1,0 +1,3 @@
+verbs: [ping]
+controller: system/PingController
+description: "Test command - responds with pong"

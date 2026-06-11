@@ -19,6 +19,7 @@ import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
 import type { Envelope, PassportGoogleProfile } from '@saxonberg/types';
 import { Application } from './Application';
+import type { InboundClientMessage } from './inbound/index';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 
 /**
@@ -48,6 +49,20 @@ export class Backend implements IBackend {
    * Map of socket IDs to WebSocket connections.
    */
   private socketsBySocketId: Map<string, WebSocket> = new Map();
+
+  /**
+   * Per-socket inbound serialization chain. `ws` fires the `message`
+   * callback synchronously per frame and never awaits the async
+   * handler, so two rapid messages from one client would otherwise
+   * process concurrently. We instead chain each socket's messages so
+   * they apply in arrival order. This is the player-facing invariant
+   * (a single actor's commands run in sequence, not interleaved) and
+   * it also prevents same-template clone collisions — char-gen routes
+   * every `enroll` field through the one `EnrollController` template,
+   * and two concurrent clones of one path trip `StuffApi.clone`'s
+   * in-flight cycle guard. Entry removed on socket close.
+   */
+  private inboundChainBySocketId: Map<string, Promise<void>> = new Map();
 
   /**
    * Reference to Application singleton.
@@ -183,17 +198,9 @@ export class Backend implements IBackend {
    * @param data - Raw message data
    */
   private handleWebSocketMessage(socketId: string, data: Buffer): void {
+    let message: InboundClientMessage;
     try {
-      const message = JSON.parse(data.toString());
-
-      // Delegate to Application for processing. Root frame on the
-      // boundary so the message-driven call stack is rooted at Backend.
-      if (this.application) {
-        const app = this.application;
-        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () =>
-          app.processUserMessage(socketId, message)
-        );
-      }
+      message = JSON.parse(data.toString()) as InboundClientMessage;
     } catch (error) {
       console.error(`Backend: Error parsing WebSocket message:`, error);
 
@@ -204,7 +211,30 @@ export class Backend implements IBackend {
           message: 'Invalid message format',
         },
       });
+      return;
     }
+
+    if (!this.application) return;
+    const app = this.application;
+
+    // Chain this message behind the socket's prior one so they process
+    // in arrival order (see `inboundChainBySocketId`). `runRoot` plants
+    // a fresh root frame regardless of the calling continuation, so the
+    // message-driven call stack is still rooted at Backend.
+    const prior = this.inboundChainBySocketId.get(socketId) ?? Promise.resolve();
+    const next = prior
+      .then(() =>
+        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () =>
+          app.processUserMessage(socketId, message)
+        )
+      )
+      .catch((error) => {
+        console.error(
+          `Backend: inbound processing error for socket ${socketId}:`,
+          error
+        );
+      });
+    this.inboundChainBySocketId.set(socketId, next);
   }
 
   /**
@@ -217,6 +247,7 @@ export class Backend implements IBackend {
 
     // Remove from registry
     this.socketsBySocketId.delete(socketId);
+    this.inboundChainBySocketId.delete(socketId);
 
     // Notify Application of disconnection. Root frame on the boundary.
     if (this.application) {
@@ -294,7 +325,8 @@ export class Backend implements IBackend {
    */
   public async handleTestAuthentication(
     handle: string,
-    done: (error: unknown, user?: { id: string }) => void
+    done: (error: unknown, user?: { id: string }) => void,
+    withCharacter = false
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('Backend: test authentication is disabled'));
@@ -309,7 +341,13 @@ export class Backend implements IBackend {
       const userId = await ExecutionContextApi.runRoot(
         Backend,
         'handleTestAuthentication',
-        () => app.findOrCreateUserFromGoogle(profile)
+        async () => {
+          const id = await app.findOrCreateUserFromGoogle(profile);
+          // Optionally provision a ready character so in-world E2E tests
+          // skip char-gen. char-gen specs omit this (0 chars → intake).
+          if (withCharacter) await app.provisionTestCharacter(id, handle);
+          return id;
+        }
       );
       done(null, { id: userId });
     } catch (error) {

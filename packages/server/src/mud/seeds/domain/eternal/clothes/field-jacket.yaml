@@ -1,0 +1,11 @@
+class: /lib/equipment/Garment
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a rugged field jacket
+  primaryKeyword: jacket
+  longDescription: >
+    A heavy, many-pocketed field jacket built for weather and work. It
+    has the quiet competence of something meant to stand between you and
+    trouble.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]

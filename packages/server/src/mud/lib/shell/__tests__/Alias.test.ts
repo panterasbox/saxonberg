@@ -425,7 +425,7 @@ const PipelineHostBase = AliasMixin(
 
 class PipelineHost extends PipelineHostBase {
   static override commandContributions = {
-    self: ['ping.yaml'],
+    self: ['system/ping.yaml'],
     environment: [],
     inventory: [],
     peers: [],
@@ -447,12 +447,12 @@ describe('AliasMixin — pipeline integration', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Domain &&
-          query.path === '/obj/command/PingController'
+          query.path === '/obj/command/system/PingController'
         ) {
           return [
             {
-              path: '/obj/command/PingController',
-              class: '/obj/command/PingController',
+              path: '/obj/command/system/PingController',
+              class: '/obj/command/system/PingController',
               data: {},
             },
           ];
@@ -522,7 +522,7 @@ describe('AliasMixin — pipeline integration', () => {
     );
     class Npc extends NpcBase {
       static override commandContributions = {
-        self: ['ping.yaml'],
+        self: ['system/ping.yaml'],
         environment: [],
         inventory: [],
         peers: [],

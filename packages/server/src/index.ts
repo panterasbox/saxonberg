@@ -40,11 +40,12 @@ export async function main() {
     console.info('Saxonberg 2.0 Server - Starting...');
     console.info('='.repeat(60));
 
-    // In AUTH_MODE=test the Google OAuth strategy is skipped entirely
-    // (see PassportConfig.configure) — auth runs through the
-    // /auth/test-login seam, which only needs a session. Requiring real
-    // GOOGLE_* credentials here would block the server from booting in
-    // CI/e2e, where they're intentionally absent.
+    // In AUTH_MODE=test the GOOGLE_* credentials are OPTIONAL: auth can
+    // run through the /auth/test-login seam, which only needs a session,
+    // so CI/e2e (where GOOGLE_* are intentionally absent) still boots.
+    // PassportConfig registers the Google strategy whenever the GOOGLE_*
+    // env IS present — so local dev gets both the seam and a working
+    // Google button. Non-test mode requires the real credentials.
     const requiredEnvVars =
       process.env.AUTH_MODE === 'test'
         ? ['MONGODB_URI', 'SESSION_SECRET']

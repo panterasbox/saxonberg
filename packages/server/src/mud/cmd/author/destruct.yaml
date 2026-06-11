@@ -1,0 +1,13 @@
+verbs: [destruct]
+controller: author/DestructController
+description: "Destruct a runtime instance or template"
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable"]
+options:
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canDestruct veto (admin only; v1 stub always denies)"

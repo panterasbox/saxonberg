@@ -1,0 +1,19 @@
+verbs: [clone]
+controller: author/CloneController
+description: "Clone a fresh instance from a template"
+args:
+  - name: template
+    type: string
+    required: false
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <template>"
+  into:
+    type: object
+    scope: [reachable]
+    description: "Container to land the clone in (overrides default)"
+  here:
+    type: boolean
+    description: "Land the clone in your current environment (sugar for --into here)"

@@ -40,7 +40,7 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
-    self: ['ping.yaml'],
+    self: ['system/ping.yaml'],
     environment: [],
     inventory: [],
     peers: [],
@@ -73,12 +73,12 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Domain &&
-          query.path === '/obj/command/PingController'
+          query.path === '/obj/command/system/PingController'
         ) {
           return [
             {
-              path: '/obj/command/PingController',
-              class: '/obj/command/PingController',
+              path: '/obj/command/system/PingController',
+              class: '/obj/command/system/PingController',
               data: {},
             },
           ];

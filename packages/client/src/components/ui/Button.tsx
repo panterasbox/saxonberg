@@ -82,6 +82,7 @@ interface ButtonProps {
   variant: Variant;
   onClick: () => void;
   "aria-label"?: string;
+  "data-testid"?: string;
   children: React.ReactNode;
   /**
    * The command this button will send when clicked. When provided

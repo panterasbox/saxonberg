@@ -1,8 +1,0 @@
-verbs: [pwd]
-controller: PwdController
-description: "Print the avatar's current working directory"
-options:
-  all:
-    short: a
-    type: boolean
-    description: "Print both template and code cwds"

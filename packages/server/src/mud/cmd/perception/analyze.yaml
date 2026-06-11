@@ -1,0 +1,49 @@
+verbs: [analyze]
+description: "Analyze a physical channel in detail"
+subcommands:
+  light:
+    description: "Analyze light at a location with source breakdown"
+    controller: perception/AnalyzeLightController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer
+  chemistry:
+    description: "Analyze the chemistry of a target"
+    controller: perception/AnalyzeChemistryController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeTangible
+  atmosphere:
+    description: "Dump the resolved atmospheric state at your immediate scope with full provenance"
+    controller: perception/AnalyzeAtmosphereController
+    args:
+      - name: detail
+        type: string
+        required: false
+  time:
+    description: "Report game-time, scale, and the current date in your calendar"
+    controller: perception/AnalyzeTimeController
+    args:
+      - name: detail
+        type: string
+        required: false
+  sky:
+    description: "Full celestial state for a location (sun, season, moon, day/night)"
+    controller: perception/AnalyzeSkyController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer

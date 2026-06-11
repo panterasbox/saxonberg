@@ -27,6 +27,7 @@ export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstra
 export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
+  Persona: 'PersonaMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
   Surfaced: 'SurfacedMixin',

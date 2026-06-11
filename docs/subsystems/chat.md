@@ -275,7 +275,7 @@ view by opting into the new **subcommand fallthrough** flag — a
 small command-framework extension shipped alongside chat:
 
 ```yaml
-# mud/cmd/chat.yaml
+# mud/cmd/social/chat.yaml
 verbs: [chat]
 controller: ChatController
 validators:

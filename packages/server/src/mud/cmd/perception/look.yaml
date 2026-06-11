@@ -1,0 +1,28 @@
+verbs: [look, l]
+controller: perception/LookController
+description: "Examine your surroundings or an object"
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at]
+    default: "$focus"
+    # Typed ambiguity → disambiguation prompt. The click-affordance
+    # path is fine without this: MmlRenderer.commandFor emits
+    # `look <primaryKeyword>` which is canonical and resolves to a
+    # single match. Typed queries like `look brass` (in a room with
+    # multiple brass things) now ask which one instead of silently
+    # picking the top match. Cancellation aborts the dispatch.
+    onExcess: prompt
+options:
+  peek:
+    type: boolean
+    description: "Render prose without changing focus"
+    # When --peek is present, skip the dispatcher's focus-update
+    # phase: prose renders, pronoun memory still updates, but the
+    # focus chain is not advanced. See the phase taxonomy in
+    # api/command.ts for the full vocabulary.
+    effects:
+      - { phase: focus-update, action: skip }

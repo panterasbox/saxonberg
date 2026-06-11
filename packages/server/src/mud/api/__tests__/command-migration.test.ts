@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readdirSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { CommandApi } from '../command';
 
@@ -19,7 +19,9 @@ describe('Command-YAML migration parity', () => {
   beforeEach(() => CommandApi.clearCache());
 
   it('every YAML file loads without throwing', () => {
-    const files = readdirSync(CMD_DIR).filter((f) => f.endsWith('.yaml'));
+    const files = (readdirSync(CMD_DIR, { recursive: true }) as string[])
+      .map((f) => f.split(sep).join('/'))
+      .filter((f) => f.endsWith('.yaml'));
     expect(files.length).toBeGreaterThanOrEqual(14);
 
     for (const file of files) {
@@ -45,46 +47,48 @@ describe('Command-YAML migration parity', () => {
   });
 
   it('say.yaml has the literal-quote alias verb', () => {
-    const cmd = CommandApi.getCommand('say.yaml');
+    const cmd = CommandApi.getCommand('social/say.yaml');
     expect(cmd?.verbs).toContain("'");
   });
 
   it('var/settings set use a greedy value field', () => {
-    const v = CommandApi.getCommand('var.yaml');
+    const v = CommandApi.getCommand('shell/var.yaml');
     const vSet = v?.getSubcommand('set')?.args ?? [];
     expect(vSet.find((a) => a.name === 'value')?.greedy).toBe(true);
 
-    const s = CommandApi.getCommand('settings.yaml');
+    const s = CommandApi.getCommand('shell/settings.yaml');
     const sSet = s?.getSubcommand('set')?.args ?? [];
     expect(sSet.find((a) => a.name === 'value')?.greedy).toBe(true);
   });
 
   it("renders man-page-style usage strings", () => {
-    const say = CommandApi.getCommand('say.yaml');
+    const say = CommandApi.getCommand('social/say.yaml');
     expect(say?.getUsage()).toContain('say');
     expect(say?.getUsage()).toContain('<message...>');
 
-    const player = CommandApi.getCommand('player.yaml');
+    const player = CommandApi.getCommand('author/player.yaml');
     expect(player?.getUsage()).toMatch(/player/);
     expect(player?.getUsage()).toContain('<');
   });
 
   it('all 14 expected verbs are present', () => {
+    // Subdir-qualified (post command-spec reorg): each verb's view lives
+    // under its category namespace.
     const verbs = [
-      'close',
-      'drop',
-      'get',
-      'go',
-      'help',
-      'inventory',
-      'look',
-      'open',
-      'ping',
-      'player',
-      'say',
-      'settings',
-      'dm',
-      'var',
+      'boundary/close',
+      'inventory/drop',
+      'inventory/get',
+      'movement/go',
+      'system/help',
+      'inventory/inventory',
+      'perception/look',
+      'boundary/open',
+      'system/ping',
+      'author/player',
+      'social/say',
+      'shell/settings',
+      'social/dm',
+      'shell/var',
     ];
     for (const v of verbs) {
       expect(CommandApi.getCommand(`${v}.yaml`), v).not.toBeNull();
