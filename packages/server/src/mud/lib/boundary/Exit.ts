@@ -95,6 +95,16 @@ export interface ExitOptions {
   source: Stuff & Container;
   destination?: Stuff & Container;
   destinationPath?: string;
+  /**
+   * Keep `destination` as a within-session **live ref** (Pattern B) even
+   * when it carries a templatePath, instead of degrading to path
+   * resolution (Pattern C). Required for exits between non-singleton
+   * runtime clones that SHARE a template path (e.g. Warren members):
+   * path resolution would be ambiguous (`findByTemplatePath` throws on
+   * multi-instance). Default false (the historical path-preferring
+   * behavior).
+   */
+  keepLiveDestination?: boolean;
   door?: Door | null;
   hidden?: boolean;
   blocked?: boolean;
@@ -341,18 +351,27 @@ export default class Exit extends Idea {
     // has the template-resolved live ref).
     this._destinationPath = opts.destinationPath ?? null;
     if (opts.destination) {
-      // Constructor mirror of the setter logic: prefer the path
-      // form when the live ref has a templatePath, else keep the
-      // live ref directly. Either way, no path-resolution cache
-      // between calls.
-      const path = opts.destination.getTemplatePath();
-      if (path) {
-        // Only stamp from the live ref if the caller didn't pass an
-        // explicit destinationPath (which takes precedence).
-        if (!this._destinationPath) this._destinationPath = path;
-        this._destination = null;
-      } else {
+      if (opts.keepLiveDestination) {
+        // Pattern B: hold the live ref directly regardless of any
+        // templatePath. For exits between non-singleton runtime clones
+        // that share a template path (Warren members), path resolution
+        // would be ambiguous, so we keep the ref.
         this._destination = opts.destination;
+        this._destinationPath = opts.destinationPath ?? null;
+      } else {
+        // Constructor mirror of the setter logic: prefer the path
+        // form when the live ref has a templatePath, else keep the
+        // live ref directly. Either way, no path-resolution cache
+        // between calls.
+        const path = opts.destination.getTemplatePath();
+        if (path) {
+          // Only stamp from the live ref if the caller didn't pass an
+          // explicit destinationPath (which takes precedence).
+          if (!this._destinationPath) this._destinationPath = path;
+          this._destination = null;
+        } else {
+          this._destination = opts.destination;
+        }
       }
     } else {
       this._destination = null;

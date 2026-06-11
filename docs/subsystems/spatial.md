@@ -1,17 +1,22 @@
 # Spatial Subsystem
 
-How the world is shaped: rooms, zones, exits, doors, portable
-containers, and the locomotion that ties them together. This is the
-densest subsystem in `lib/` — the one most likely to surprise a new
-contributor — so this doc covers the whole layer in one place rather
-than scattering it across class JSDoc.
+How Stuff relates spatially: the **containment** chokepoint, **surface**
+placement, and the **locomotion** that moves actors between rooms — the
+substrate now in `lib/spatial/` (Container, Containable, Mobile,
+Surfaced, Sealable). The room/coordinate/zone **geometry** that used to
+live here has moved to `lib/location/` — see the sibling doc below.
 
 Sibling docs cover related ground without overlap:
 
+- [location.md](./location.md) — the room/coordinate/zone **geometry**
+  (`Location`, `CartesianLocation`, `SphericalLocation`, the coordinate
+  mixins, `CartesianZone`, `SphericalZone`, `ZoneApi` resolution) plus
+  the Warren elastic-graph (MultiLocation) substrate. All in
+  `lib/location/`.
 - [zone.md](./zone.md) — the Zone-hierarchy roots (`Zone`,
-  `SpatialZone`, `FolderZone`) and `ZoneApi`. The hierarchy lives in
-  `lib/zone/`; only the spatial-coordinate concrete zones
-  (`CartesianZone`, `SphericalZone`) stay under `lib/spatial/`.
+  `SpatialZone`, `FolderZone`) and the field-inheritance walk. The
+  hierarchy lives in `lib/zone/`; the concrete coordinate zones
+  (`CartesianZone`, `SphericalZone`) live in `lib/location/`.
 - [templates.md](./templates.md) — clone pipeline,
   `ZoneApi.resolveZoneForPath`, the folder/leaf invariant on `domain`.
 - [state-model.md](./state-model.md) — the universal `zone` field
@@ -30,58 +35,45 @@ Sibling docs cover related ground without overlap:
 
 ## The Cast
 
+The room / coordinate / zone classes (`Location`, `CartesianLocation`,
+`SphericalLocation`, the coordinate mixins, `CartesianZone`,
+`SphericalZone`, `ZoneApi`) live in `lib/location/` — see
+[location.md](./location.md); the `Zone` hierarchy roots are in
+[zone.md](./zone.md). This doc's cast is the containment / movement
+substrate in `lib/spatial/`:
+
 | Type | Kind | Role |
 |---|---|---|
-| `Location` | concrete class | Base for any Stuff that holds Stuff but isn't itself contained. `ContainerMixin(Stuff)`. |
-| `CartesianLocation` | concrete class | Room living at integer `[x,y,z]` in a `CartesianZone` grid. Cardinal exits unconditional; non-cardinal exits only when crossing zone boundaries. `coords` declarative-content field + `setCoords` setter. |
-| `SphericalLocation` | concrete class | Sphere positioned by focus inside a `SphericalZone`. Semantic exits only. `focus` declarative-content field + `setFocus` setter. |
-| `Zone` / `SpatialZone` / `FolderZone` | (cross-reference) | See [zone.md](./zone.md) — the Zone hierarchy lives in `lib/zone/` now, carved out of `lib/spatial/`. |
-| `CartesianZone` | concrete class | `SingletonMixin(SpatialZone)`. Same-size-cell grid. Derives cardinal exits from adjacency. `hasRoomAt(x, y, z, room?)` predicate for setter idempotency. |
-| `SphericalZone` | concrete class | `SingletonMixin(SpatialZone)`. Spheres-with-radius space. No implicit adjacency — every exit is authored. `hasLocationAtFocus(focus, location?)` predicate. |
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)) — vessels can carry their own biome reference + atmospheric overrides. Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
+| `SurfacedMixin` | mixin | Surface placement: the auxiliary `restingOn` pointer + `canRest`. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
-| `CartesianCoordinatesMixin` | mixin | `[x,y,z]` data carrier. |
-| `SphericalCoordinatesMixin` | mixin | `[rho,theta,phi] + radius` data carrier. |
-| `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Stays in `lib/spatial/` because it's generic. |
-| `SingletonMixin` | mixin | Class-level uniqueness: composing classes refuse a second `clone()` for the same `templatePath`. Composed by `CartesianZone` and `SphericalZone`. |
-| `ZoneApi` | static API | Resolves `templatePath → Zone` via `StuffApi.singleton`. Caching is delegated; ZoneApi just owns the ancestor walk. |
-| `StuffApi.singleton(path)` | static API | Cache-or-clone tool for any class. Pairs with `SingletonMixin` for enforced uniqueness. |
+| `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Generic, stays in `lib/spatial/`. |
 | `ContainmentApi` | static API | The single public surface for moving Stuff between containers. |
 | `NavigationApi` | static API | Direction normalization, aliases, grid offsets, inverses. |
 
 ## Class Hierarchy
 
+The room/zone **geometry** tree (`Location` → `CartesianLocation` /
+`SphericalLocation`; the `Zone` / `SpatialZone` / `CartesianZone` /
+`SphericalZone` hierarchy) is in [location.md](./location.md) and
+[zone.md](./zone.md). The branches this doc covers:
+
 ```
 Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
-  │     ├── Zone (abstract scope/folder — lives in lib/zone/; see zone.md)
-  │     │     ├── SpatialZone (abstract topographical intermediate — lib/zone/)
-  │     │     │     ├── CartesianZone     (Singleton + grid + derived adjacency)
-  │     │     │     └── SphericalZone     (Singleton + focus index, no derivation)
-  │     │     ├── FolderZone (generic organizational scope — lib/zone/)
-  │     │     ├── HomeZone (per-player namespace — lib/home/)
-  │     │     └── Clade (taxonomic — see race.md)
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
-  ├── Location                      (Adornable + Container, was Container only)
-  │     ├── CartesianLocation       (PostRegistration + Exitable + CartesianCoords + Visible; `coords` + `setCoords`)
-  │     └── SphericalLocation       (PostRegistration + Exitable + SphericalCoords + Visible; `focus` + `setFocus`)
+  ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
   ├── Thing                         (ContainableMixin(Stuff))
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Adornable + Container + Containable, was Container + Containable)
+  ├── Vessel                        (Adornable + Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
-
-The Zone hierarchy roots (`Zone`, `SpatialZone`, `FolderZone`) live
-in `lib/zone/`, not `lib/spatial/`. Only the concrete spatial-
-coordinate zones (`CartesianZone`, `SphericalZone`) — the ones whose
-identity IS a coordinate frame — stay under `lib/spatial/`. See
-[zone.md](./zone.md) for the hierarchy and the field-inheritance walk.
 
 The fundamental split for spatial relationships:
 
@@ -415,250 +407,15 @@ hand slot — see [embodiment.md § Hand slots are for activities,
 not storage](./embodiment.md). The recipient is gated by the
 `mustBeAgent` validator (target `instanceof Agent`).
 
-## Locations
+## Locations, Coordinates, Zones
 
-`lib/stuff/Location.ts` is the abstract base. Pure structural role:
-"any Stuff that can hold other Stuff but doesn't itself live inside
-something." Composition layers
-`AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff))))`
-— so every concrete Location picks up biome-aware atmospheric state
-([biome.md](./biome.md)) plus a Material reference for the room
-itself. Two derived-geometry methods (`getVolume(): Quantity<'m³'> |
-null` and `getCeilingHeight(): Quantity<'m'> | null`) live on
-`AtmosphericMixin` with null-returning defaults; concrete Location
-subclasses override per their topology (and Vessel can too, when a
-particular vessel has a meaningful interior volume).
-
-Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
-
-- **`CartesianLocation`** = `Exitable(CartesianCoords(Visible(Location)))`.
-  Overrides `addExit` (async — awaits zone resolution) per the
-  **cardinal-only-intra-zone exit invariant**: cardinal directions
-  (`north`/`south`/`east`/`west`/diagonals/`up`/`down`) are accepted
-  unconditionally; non-cardinal labels (`portal`, `office`) are
-  accepted only when the destination's templatePath resolves to a
-  *different* zone than the source's. The check is eager and
-  path-based — `ZoneApi.resolveZoneForPath` walks template ancestry
-  to compute each side's zone without loading the destination room
-  as a Stuff. Intra-zone non-cardinal exits throw with a diagnostic
-  naming both seed paths and the shared zone. Per the
-  cardinal-only-intra-zone exit invariant (see [zone.md](./zone.md)).
-- **`SphericalLocation`** = `Exitable(SphericalCoords(Visible(Location)))`.
-  No restrictions on `addExit` direction labels — spherical zones
-  have no implicit adjacency, so semantic labels are the only way to
-  author exits.
-
-Both compose `VisibleMixin` so a `look` on the room returns its
-description; `NamedMixin` is opt-in for rooms that take proper names
-("Town Square").
-
-Both override `getZone()` with a narrowed return type:
-`CartesianLocation.getZone(): CartesianZone | null` and
-`SphericalLocation.getZone(): SphericalZone | null`. The cast-by-
-invariant lives at the boundary method (each `Zone.addLocation`
-rejects mismatched coordinate types), so call sites within the
-concrete location see the narrowed type for free —
-`CartesianLocation.getSizeScale()` reads `getZone()?.getCellSize()`
-without any local cast. See
-[antipatterns.md § "instanceof, virtual methods, and cast-by-invariant"](../antipatterns.md)
-for the underlying pattern.
-
-## Coordinates
-
-Two coordinate mixins, both pure data carriers. Grid registration and
-neighbor lookups live on the `Zone`, not on the coordinate mixin.
-
-**`CartesianCoordinatesMixin`** (`CartesianCoordinates.ts:24-50`):
-`coordinates: [x, y, z]` plus `getX/Y/Z` and `setX/Y/Z` accessors.
-Persistent (auto via `persistentFields = ['coordinates']`).
-
-**`SphericalCoordinatesMixin`** (`SphericalCoordinates.ts:28-64`):
-`coordinates: [rho, theta, phi]` (focus) plus `radius`. Persistent.
-Default radius is `1.0`.
-
-The setters round-trip through tuple-replacement (`setX(x)` returns a
-new triple) so any reactive system watching `coordinates` sees a
-single coherent change rather than three partial states.
-
-## Zones
-
-`Zone` (`Zone.ts:27-81`) is an abstract `Idea`. Every zone owns:
-
-- `name: string` — human-readable ("Narnia Castle").
-- `rooms: Set<Location>` — membership. Maintained by `addRoom` /
-  `removeRoom`, with a back-reference stamped onto `room.zone`.
-- Abstract `deriveExit(from, direction): Exit | undefined` — the
-  zone-class-specific synthesis strategy.
-
-### `CartesianZone`
-
-`CartesianZone.ts`. Same-size grid cells with **derived** cardinal
-exits.
-
-- `addRoom(room, x, y, z)` (`:64-75`) — stamps `room.coordinates` from
-  the supplied indices, indexes the room by `"x,y,z"` key, invalidates
-  the derived-exit cache. The room must compose
-  `CartesianCoordinatesMixin` or `addRoom` throws.
-- `getNeighbor(from, direction)` (`:97-104`) — looks up the room at
-  `from + offset(direction)`, where `offset` comes from
-  `NavigationApi.directionOffset`.
-- `deriveExit(from, direction)` (`:113-135`) — checks cardinality,
-  membership, then synthesizes a one-way `Exit` from `from` to the
-  neighbor cell. Cached per source per direction. Both endpoints must
-  compose `ContainerMixin` (otherwise the Exit constructor's typing is
-  unsatisfiable).
-
-`cellSize` is **load-bearing** as of the biome substrate
-([biome.md](./biome.md)). Default `3.0` linear meters (a typical
-room). It drives:
-
-- `CartesianLocation.getVolume()` → `cellSize³` (27 m³ at default).
-- `CartesianLocation.getCeilingHeight()` → `cellSize` (3 m default).
-- `CartesianLocation.getSizeScale()` → `cellSize²` (9 m² —
-  receiving-surface area for the light substrate, derived by
-  squaring the linear cellSize rather than authored separately).
-
-A 5 m × 5 m room is `cellSize: 5`. Tests pinning specific LightBand
-values may need to set `cellSize: 1` for the prior 1 m² calibration.
-
-**Derived exits are never persisted.** They're a function of the grid
-plus `NavigationApi`'s offset table; rebuilding them on boot is
-trivial.
-
-### `HomeZone`
-
-`HomeZone.ts` (`lib/home/HomeZone.ts`). A bare `Zone` subclass with
-no body (v1) — exists to anchor the per-player namespace at
-`/home/`.
-
-The `/home/` Zone template is created at boot from `seeds/home.yaml`.
-The folder/leaf invariant requires a Zone-shaped template at every
-internal node of the content tree, so anything stored under
-`/home/<playerId>/...` needs `/home/` itself to be a real Zone
-template — `HomeZone` is the class behind it.
-
-Per-player sub-folders (`/home/<playerId>/`) are NOT seeded upfront.
-They're created lazily the first time a feature needs them — e.g.
-`EvalController` stamps its singleton at `/home/<playerId>/_eval`
-without first materialising a `/home/<playerId>` Zone (paths in
-`templatePath`-stamped Stuff don't go through the persistence
-chokepoint).
-
-The empty body is deliberate: future home-tier behaviour
-(per-player permissions, quotas, customisation hooks) layers onto
-this class without churning callers.
-
-### `SphericalZone`
-
-`SphericalZone.ts`. Spheres positioned by focus, **no implicit
-adjacency**.
-
-- `addRoom(room)` (`:42-48`) inherits the base placement and indexes
-  by rounded focus tuple in a debug `focusIndex`. The index is for
-  authoring tooling only — exit lookup never consults it.
-- `deriveExit(_from, _direction)` (`:65-67`) **always returns
-  `undefined`** by design. Angles between spheres are arbitrary; every
-  exit must be authored by hand as a semantic label (`'office'`,
-  `'plaza'`, `'portal'`).
-
-### Zone resolution: `ZoneApi`
-
-`api/zone.ts`. Single entry point for `templatePath → Zone`. Caching
-is delegated to `StuffApi.singleton()` (Zones compose
-`SingletonMixin`); ZoneApi just owns the ancestor walk.
-
-**`ZoneApi.isFolderClass(classPath)`** answers "does this class count
-as a zone folder?" — structural: `prototype instanceof Zone`. Any
-Zone subclass — spatial (`CartesianZone`, `SphericalZone`) or
-non-spatial (`Clade`, future taxonomic / permission scopes) — passes.
-`TemplateApi` consults this for the folder/leaf invariant — see
-[templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant).
-
-**`ZoneApi.isSpatialZoneClass(classPath)`** is the strict subset:
-`prototype instanceof SpatialZone`. Only spatial Zones stamp
-`Stuff.zone`; non-spatial Zones (Clade) are folders but never become
-a `Stuff.zone` reference. Adding a new Zone subclass means
-`extends Zone` (or `extends SpatialZone` if it's a topographical
-flavor) — no central allow-list to edit. Both checks dynamic-import
-the class once and cache the result.
-
-`ZoneApi.resolveZoneForPath(templatePath)` walks ancestor paths
-nearest-first, consulting `isSpatialZoneClass` to skip non-spatial
-Zone ancestors (Clades) during the walk. Returns the singleton
-SpatialZone at the first spatial-zone ancestor via
-`StuffApi.singleton(ancestor)`. The second resolution for the same
-zone path is an O(1) cache hit; first resolution clones. Returns
-`null` when:
-
-- The template at `templatePath` is itself a spatial Zone (a zone
-  isn't inside itself).
-- No ancestor resolves to a spatial Zone template.
-
-The clone pipeline calls `resolveZoneForPath` once at clone time and
-stamps the result onto `Stuff.zone` before hydrate, so anything
-reading `this.zone` during `postRegister` sees the right value
-(see [templates.md](./templates.md#clone-pipeline)).
-
-#### Field inheritance via `Zone.lookupField`
-
-For zone-carried defaults that should inherit through the template
-tree, `zone.lookupField<T>(fieldName)` walks ancestry nearest-first
-and returns the first non-null value defined on any ancestor Zone.
-**Unlike `resolveZoneForPath`, the inheritance walk treats every Zone
-subclass as an inheritance node** — FolderZone, HomeZone, Clade, and
-spatial zones alike. A `celestialProfile` field set on a universe-root
-FolderZone is inherited by every spatial zone beneath it. Returns
-`null` when nothing in the ancestry defines the field; callers compose
-a settings-style default on top:
-
-```ts
-const profile =
-  (await zone.lookupField<CelestialProfile>('celestialProfile'))
-  ?? resolveSetting(host, 'world.zone.celestialProfile.default');
-```
-
-The walk lives **on the Zone class** (not on `ZoneApi`) so subclasses
-can override its behavior. `lookupField` orchestrates; the
-override seam is `lookupAncestorField` — default delegates to the
-enclosing zone's `lookupField`, but a barrier subclass overrides it
-to return `null` and root inheritance at itself. Full surface and
-the barrier-subclass pattern documented in
-[zone.md § Field inheritance](./zone.md#field-inheritance-zonelookupfield).
-Per the zone field-inheritance walk (see
-[zone.md § Field inheritance](./zone.md#field-inheritance-zonelookupfield)).
-
-### The setter-with-side-effects pattern
-
-`CartesianLocation.setCoords({x, y, z})`, `SphericalLocation.setFocus({rho, theta, phi, radius})`,
-and `Window.setAttachedHosts([pathA, pathB])` share a single
-declarative-content shape: a public setter that **stores the value
-AND performs cross-object side effects** atomically. The shape is:
-
-1. Validate the input (TypeError on shape mismatch).
-2. Resolve the dependency context (`getZone()` for coords/focus; both
-   hosts via `StuffApi.singleton` for attachedHosts).
-3. Check idempotency (zone already has this room at these coords?
-   anchors already wired to these hosts?). If so, accept and no-op
-   the side effect — only the storage assignment runs.
-4. Check conflict (already at different coords / attached to
-   different hosts?). If so, throw with a diagnostic naming both
-   states.
-5. Apply the side effect (`zone.addLocation(this, x, y, z)`,
-   `BoundaryApi.attachExistingBoundary(...)`).
-6. Store the value.
-
-Idempotency makes re-hydrate / HMR-after-destruct / cycle-loop-self-call
-safe. Conflict-throw catches drift between the YAML and the runtime
-state. The setters are `async` because steps 2 and 5 may call
-`await StuffApi.singleton(...)` to lazy-clone dependencies.
-
-`coords` and `coordinates` are distinct fields by design: `coords`
-(this build) is the YAML-shape declarative input `{x, y, z}` and
-the setter's input shape; `coordinates` (on `CartesianCoordinatesMixin`)
-is the runtime tuple `[x, y, z]` consumed by the zone grid. The setter
-bridges them: `setCoords` calls `zone.addLocation(this, x, y, z)`,
-which internally calls `setCoordinates([x, y, z])`. Unifying them is
-out of scope here.
+Moved out of `lib/spatial/` and into `lib/location/`. Rooms
+(`Location` / `CartesianLocation` / `SphericalLocation`), the coordinate
+mixins (`CartesianCoordinatesMixin` / `SphericalCoordinatesMixin`), and
+the concrete spatial zones (`CartesianZone`, `SphericalZone`) — together
+with `ZoneApi` resolution and the setter-with-side-effects pattern — are
+documented in [location.md](./location.md). The base Zone hierarchy
+(`Zone` / `SpatialZone` / `FolderZone`) is in [zone.md](./zone.md).
 
 ## Exits, Doors, Adornable, ExitableVessel
 

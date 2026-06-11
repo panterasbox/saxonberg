@@ -3,7 +3,7 @@ import { ZoneApi } from '../zone';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
-import CartesianLocation from '../../lib/spatial/CartesianLocation';
+import CartesianLocation from '../../lib/location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../lib/stuff/Stuff';
@@ -61,12 +61,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Castle' },
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         data: {},
       },
     ]);
@@ -83,12 +83,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/SphericalZone',
+        class: '/lib/location/SphericalZone',
         data: {},
       },
     ]);
@@ -102,7 +102,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/orphan/leaf',
-        class: '/lib/spatial/CartesianLocation',
+        class: '/lib/location/CartesianLocation',
         data: {},
       },
     ]);
@@ -113,7 +113,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Narnia' },
       },
     ]);
@@ -124,7 +124,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -137,7 +137,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -150,7 +150,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -181,7 +181,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/spatial/CartesianZone',
+        class: '/lib/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);

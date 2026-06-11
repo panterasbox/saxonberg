@@ -17,7 +17,7 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
-import { MixinApi } from './mixin';
+import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from './path-pattern';
 import { ProxyApi } from './proxy';
@@ -85,6 +85,18 @@ export class StuffApi {
   static #inFlightClonePaths: Set<string> = new Set();
 
   /**
+   * In-flight `singleton()` resolutions, keyed by path. Coalesces
+   * concurrent first-resolution of the same singleton path onto a single
+   * shared clone promise — without this, two concurrent
+   * `singleton(path)` calls would both fall through to `clone(path)` and
+   * the second would trip the `#inFlightClonePaths` cycle guard (which
+   * throws, conflating "concurrent" with "circular"). Cleared when the
+   * clone settles. The classic lazy-singleton race (e.g. two
+   * simultaneous logins both lazily creating the lounge Warren).
+   */
+  static #pendingSingletons: Map<string, Promise<Stuff>> = new Map();
+
+  /**
    * Atomically add or remove `obj` across every index. Called from
    * `register` / `unregister`. Reads `obj.stuffId` and the
    * `templatePath` field stamped by `clone()` (`undefined` when the
@@ -144,8 +156,11 @@ export class StuffApi {
       throw new Error(`Class path cannot contain ..: ${classPath}`);
     }
 
-    // Must be in allowed directories
-    const allowedPrefixes = ['/obj/', '/lib/'];
+    // Must be in allowed directories. `/lib/` = engine substrate,
+    // `/obj/` = engine objects, `/domain/` = content classes for a
+    // managed area (mirrors the area's template namespace, e.g.
+    // `/domain/lounge/Lounge`).
+    const allowedPrefixes = ['/obj/', '/lib/', '/domain/'];
     const hasAllowedPrefix = allowedPrefixes.some((prefix) =>
       classPath.startsWith(prefix)
     );
@@ -368,6 +383,43 @@ export class StuffApi {
   }
 
   /**
+   * Resolve the backing class constructor for a template path. Loads the
+   * template doc, reads its `class`, and resolves it via
+   * `loadClassByPath`. Throws when no template exists at `ref`.
+   *
+   * Lets a caller dispatch on a target's *class* (its mixins, its
+   * inheritance) without instantiating it — e.g. {@link singletonOrClone}
+   * deciding clone-vs-singleton, or a spawn applier checking
+   * `cls.prototype instanceof Warren`.
+   */
+  public static async classForRef(ref: string): Promise<AnyConstructor> {
+    const { Template } = await import('../lib/stuff/Template');
+    const template = await Template.findByPath(ref);
+    if (!template) {
+      throw new Error(`StuffApi.classForRef('${ref}'): no template at path`);
+    }
+    return (await this.loadClassByPath(template.class)) as AnyConstructor;
+  }
+
+  /**
+   * Instantiate a template by the only question that matters at the
+   * generic layer: should it be a shared singleton or a fresh instance?
+   * If the class composes `SingletonMixin` → `singleton(path)` (reuse
+   * the one instance, clone-if-absent); otherwise → `clone(path)` (a
+   * fresh instance). Any *domain* semantics on top (a Warren landing in
+   * its host, a recall) belong in the caller, not here.
+   */
+  public static async singletonOrClone<T extends Stuff>(
+    path: string,
+    context?: unknown
+  ): Promise<T> {
+    const cls = await this.classForRef(path);
+    return MixinApi.hasMixin(cls, Mixins.Singleton)
+      ? this.singleton<T>(path, context)
+      : this.clone<T>(path, context);
+  }
+
+  /**
    * Cache-or-clone for templatePath-keyed singletons.
    *
    * Returns the unique live instance for `path` if one exists in the
@@ -401,7 +453,16 @@ export class StuffApi {
       }
       return bucket[0] as T;
     }
-    return this.clone<T>(path, context);
+    // Coalesce concurrent first-resolution onto one shared clone (see
+    // #pendingSingletons) so the second caller doesn't trip the cycle
+    // guard in clone().
+    const pending = this.#pendingSingletons.get(path);
+    if (pending) return pending as Promise<T>;
+    const p = this.clone<T>(path, context).finally(() => {
+      this.#pendingSingletons.delete(path);
+    });
+    this.#pendingSingletons.set(path, p as Promise<Stuff>);
+    return p;
   }
 
   /**

@@ -5,7 +5,7 @@ import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
-import CartesianZone from '../../lib/spatial/CartesianZone';
+import CartesianZone from '../../lib/location/CartesianZone';
 import {
   makeStuff,
   makeStuffAtPath,

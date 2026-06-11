@@ -56,6 +56,7 @@ behavior. Read the relevant doc before editing in its area.
   - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin on every Character, Emote Document + EmoteGrammar, SoulCatalogue + SoulApi, three dispatch paths
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls (managed/MQL/contacts), GroupRef typed strings
+  - [comms.md](./docs/subsystems/comms.md) — two-transport speech substrate: acoustic VocalMixin (say/whisper/shout + `--to`, acousticDb) vs implant AetherMixin (dm/tell), verb surface, ties to messaging/chat
   - [chat.md](./docs/subsystems/chat.md) — Channel Document with groupRef, three kinds, ChannelCatalogue, chat.yaml subcommand fallthrough
   - [contacts.md](./docs/subsystems/contacts.md) — ContactsMixin on Avatar, per-Avatar named lists, durable identifiers only, owner-only privacy
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, schema-on-mixin, lookup chain, `settings`/`var`
@@ -73,7 +74,8 @@ behavior. Read the relevant doc before editing in its area.
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), per-Interactive resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName` marker, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone hierarchy roots (Zone/SpatialZone/FolderZone) in lib/zone/, ZoneApi.resolveZoneForPath, field inheritance
-  - [spatial.md](./docs/subsystems/spatial.md) — locations, concrete spatial zones, vessels, coordinates, containment chokepoint, locomotion
+  - [spatial.md](./docs/subsystems/spatial.md) — the containment/movement substrate in lib/spatial/ (Container/Containable/Mobile/Surfaced/Sealable): containment chokepoint, surface placement, locomotion, vessels (geometry moved to location.md)
+  - [location.md](./docs/subsystems/location.md) — the lib/location/ subsystem: room/coordinate/zone geometry (Location/CartesianLocation/SphericalLocation, coordinate mixins, CartesianZone/SphericalZone, ZoneApi resolution) + the Warren elastic-graph (MultiLocation) substrate (host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in domain/lounge/ (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.singletonOrClone`, save-delegation recall
   - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment, Boundary substrate, Window, ExitableVessel
   - [light.md](./docs/subsystems/light.md) — Light value object, VisionModality.signalAt, AmbientLitMixin, LightSourceMixin, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive

@@ -13,8 +13,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianLocation from '../../lib/spatial/CartesianLocation';
-import CartesianZone from '../../lib/spatial/CartesianZone';
+import CartesianLocation from '../../lib/location/CartesianLocation';
+import CartesianZone from '../../lib/location/CartesianZone';
 import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';

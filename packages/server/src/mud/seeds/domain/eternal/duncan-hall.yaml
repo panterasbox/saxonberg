@@ -5,7 +5,7 @@
 #
 # Cell size in meters per CartesianZone convention (3.0 default —
 # see CartesianZone.cellSize doc).
-class: /lib/spatial/CartesianZone
+class: /lib/location/CartesianZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Duncan Hall

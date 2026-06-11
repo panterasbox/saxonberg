@@ -20,8 +20,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
-import CartesianZone from '../../lib/spatial/CartesianZone';
-import CartesianLocation from '../../lib/spatial/CartesianLocation';
+import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianLocation from '../../lib/location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { StuffApi } from '../stuff';
 import { ContainmentApi, ContainmentError } from '../containment';

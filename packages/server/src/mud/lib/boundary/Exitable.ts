@@ -23,7 +23,7 @@ import type { VetoResult } from '../errors';
 import type Door from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
-import CartesianZone from '../spatial/CartesianZone';
+import CartesianZone from '../location/CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -128,6 +128,13 @@ export interface Exitable {
 export interface BidirectionalExitOptions {
   opposite?: string;
   door?: Door;
+  /**
+   * Hold BOTH sides' destinations as within-session live refs (Pattern
+   * B) rather than templatePath resolution. Required when the two
+   * endpoints are non-singleton runtime clones sharing a template path
+   * (Warren hub exits). See `Exit`'s `keepLiveDestination`.
+   */
+  keepLiveDestination?: boolean;
   hidden?: boolean;
   blocked?: boolean;
   muffled?: boolean;
@@ -392,6 +399,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         direction,
         source: this as unknown as Stuff & Container,
         destination: other,
+        keepLiveDestination: opts.keepLiveDestination,
         door: opts.door ?? null,
         hidden: opts.hidden,
         blocked: opts.blocked,
@@ -404,6 +412,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         direction: opposite,
         source: other,
         destination: this as unknown as Stuff & Container,
+        keepLiveDestination: opts.keepLiveDestination,
         door: opts.door ?? null,
         hidden: opts.hidden,
         blocked: opts.blocked,

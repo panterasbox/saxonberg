@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Exit from '../Exit';
 import Door from '../Door';
-import CartesianLocation from '../../spatial/CartesianLocation';
-import CartesianZone from '../../spatial/CartesianZone';
+import CartesianLocation from '../../location/CartesianLocation';
+import CartesianZone from '../../location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { SensorMixin } from '../../message/Sensor';

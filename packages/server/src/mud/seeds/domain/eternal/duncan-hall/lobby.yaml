@@ -17,7 +17,7 @@
 # lobby on hydrate so the inspection pane's contents list has
 # something to render — demonstrating the contents projection
 # end-to-end against real content.
-class: /lib/spatial/CartesianLocation
+class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: Duncan Hall lobby

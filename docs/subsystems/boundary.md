@@ -486,7 +486,7 @@ data:
 ```
 
 `setAttachedHosts([pathA, pathB])` is a setter with side effects (per
-[spatial.md § The setter-with-side-effects pattern](./spatial.md#the-setter-with-side-effects-pattern)):
+[location.md § The setter-with-side-effects pattern](./location.md#the-setter-with-side-effects-pattern)):
 stores the pair, resolves both hosts lazily, calls
 `BoundaryApi.attachExistingBoundary`. Idempotent on re-set with the
 same pair (in either order — boundaries are undirected). Throws on
