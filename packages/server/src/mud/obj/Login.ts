@@ -53,6 +53,9 @@ import type Avatar from './Avatar';
 export interface EnrollmentDraft {
   /** The player's real (Google) given name — seeds the name suggester. */
   realName?: string;
+  /** The player's account display name (Google `displayName`) — shown on
+   * the name step for reference. */
+  accountName?: string;
   /** Chosen species roster key (e.g. `'elf'`). */
   speciesKey?: string;
   /** Resolved species template path. */
@@ -143,8 +146,11 @@ export default class Login extends LoginBase {
    * bare `enroll` verb through the real command pipeline.
    */
   public async enterCharGen(): Promise<void> {
-    const realName = await this.resolveRealName();
-    this.enrollmentDraft = realName ? { realName } : {};
+    const { realName, accountName } = await this.resolveNames();
+    this.enrollmentDraft = {
+      ...(realName ? { realName } : {}),
+      ...(accountName ? { accountName } : {}),
+    };
     MessageApi.scene(this)
       .topic('system.charactergen.welcome')
       .toSelf(
@@ -193,15 +199,26 @@ export default class Login extends LoginBase {
       .send();
   }
 
-  /** Best-effort lookup of the player's real given name (suggester seed). */
-  private async resolveRealName(): Promise<string | undefined> {
+  /**
+   * Best-effort lookup of the player's real names from their account
+   * profile: the given name seeds the suggester, the display name is
+   * shown on the name step for reference.
+   */
+  private async resolveNames(): Promise<{
+    realName?: string;
+    accountName?: string;
+  }> {
     try {
       const user = this.interactive.getUser();
       const profile = await GoogleProfile.findById(user.googleProfileId);
       const given = profile?.givenName;
-      return given && given.length > 0 ? given : undefined;
+      const display = profile?.displayName;
+      return {
+        realName: given && given.length > 0 ? given : undefined,
+        accountName: display && display.length > 0 ? display : undefined,
+      };
     } catch {
-      return undefined;
+      return {};
     }
   }
 

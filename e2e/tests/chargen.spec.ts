@@ -129,8 +129,8 @@ test('a new player creates a character and spawns into the world', async ({
     // step to land, then drive sex when it is presented — keeping the
     // spec robust if a species ever skips the step.
     const female = page.getByTestId('chargen-option-female');
-    const nameInput = page.getByTestId('chargen-name-input');
-    await expect(female.or(nameInput).first()).toBeVisible();
+    const givenInput = page.getByTestId('chargen-given-input');
+    await expect(female.or(givenInput).first()).toBeVisible();
     if (await female.isVisible()) {
       // Navigation check: Back returns to the species step (with the
       // pick pre-selected), and Continue brings us forward again.
@@ -145,11 +145,12 @@ test('a new player creates a character and spawns into the world', async ({
       await page.getByTestId('chargen-submit').click();
     }
 
-    // Step — name. Type a deterministic name rather than asserting the
-    // random suggestion. Submitting the form sends `enroll name <name>`.
-    await expect(nameInput).toBeVisible();
-    await nameInput.fill('Testaril');
-    await nameInput.press('Enter');
+    // Step — name. Separate given/surname fields, pre-filled with the
+    // themed suggestion; overwrite the given name and Continue.
+    await expect(givenInput).toBeVisible();
+    await givenInput.fill('Testaril');
+    await page.getByTestId('chargen-surname-input').fill('Ashby');
+    await page.getByTestId('chargen-submit').click();
 
     // Step — pronouns.
     await expect(page.getByTestId('chargen-option-she')).toBeVisible();

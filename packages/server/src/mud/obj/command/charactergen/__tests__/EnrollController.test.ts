@@ -172,7 +172,10 @@ describe('EnrollController step model', () => {
 
     await run('species human');
     await run('sex female');
-    await run('name keep'); // accept the species-themed suggestion
+    // The name boxes are pre-filled with the themed suggestion; the
+    // client submits whatever's in them (here, the suggestion verbatim).
+    const sug = login.getEnrollmentDraft()!.suggestion!;
+    await run(`name ${[sug.name, sug.surname].filter(Boolean).join(' ')}`);
     await run('pronouns she');
     await run('aspiration healer');
 

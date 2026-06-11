@@ -999,6 +999,12 @@ export interface CharGenStatePayload {
   picks: CharGenPicks;
   /** Current name suggestion (name step only). */
   suggestion?: { name: string; surname?: string };
+  /**
+   * The player's real account display name (Google `displayName`; Twitch
+   * later), shown on the name step for reference/inspiration. Absent if
+   * unavailable.
+   */
+  accountName?: string;
   /** Closed-choice options for the current step (content-derived). */
   options: CharGenOption[];
   /** Last validation rejection, for inline display. */

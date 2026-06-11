@@ -308,27 +308,68 @@ const DossierValue = styled.dd`
 
 /* --- Name step ---------------------------------------------------- */
 
-const Suggestion = styled.div`
+const NameForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${tokens.space.md};
+  gap: ${tokens.space.lg};
   padding: ${tokens.space.xl};
   background: ${tokens.color.surfaceAlt};
   border: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.md};
+  align-items: flex-start;
 `;
 
-const SuggestedName = styled.div`
-  font-size: 18px;
-  font-weight: 600;
-  color: ${tokens.color.fgEmphasis};
+const NameAccountRef = styled.div`
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+
+  strong {
+    color: ${tokens.color.fg};
+    font-weight: 600;
+  }
 `;
 
-const ButtonRow = styled.div`
+const NameFieldRow = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${tokens.space.md};
+  gap: ${tokens.space.lg};
+  width: 100%;
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+  }
+`;
+
+const NameField = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.xs};
+`;
+
+const NameFieldLabel = styled.label`
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+`;
+
+const NameOptional = styled.span`
+  color: ${tokens.color.fgMuted};
+  opacity: 0.7;
+`;
+
+const NameInput = styled.input`
+  padding: ${tokens.space.md};
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.primary};
+  }
 `;
 
 const StageButton = styled.button<{ $primary?: boolean }>`
@@ -351,28 +392,6 @@ const StageButton = styled.button<{ $primary?: boolean }>`
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-  }
-`;
-
-const TypeOwnForm = styled.form`
-  display: flex;
-  align-items: stretch;
-  gap: ${tokens.space.md};
-`;
-
-const TypeOwnInput = styled.input`
-  flex: 1;
-  padding: ${tokens.space.md};
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.sm};
-  font-family: ${tokens.font.family};
-  font-size: ${tokens.font.body};
-
-  &:focus {
-    outline: none;
-    border-color: ${tokens.color.primary};
   }
 `;
 
@@ -414,7 +433,7 @@ const STEP_PROMPT: Record<CharGenStep, { heading: string; sub: string }> = {
   },
   name: {
     heading: 'Choose a name',
-    sub: 'Keep the suggestion, re-roll for another, or type your own.',
+    sub: 'Edit the suggested name, or write your own.',
   },
   pronouns: {
     heading: 'Choose your pronouns',
@@ -514,11 +533,31 @@ export function CharGenStage({
   onCommandPreview,
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
-  const [typedName, setTypedName] = useState('');
   // The detail pane previews this option (driven by card hover); null
   // falls through to the selected card, then the first option, so the
   // pane is never empty.
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
+  // Editable name fields (name step). Initialized from the existing pick
+  // if any, else the suggestion; refilled whenever that source changes
+  // (e.g. reroll regenerates the suggestion and clears the pick).
+  const [givenName, setGivenName] = useState('');
+  const [surnameVal, setSurnameVal] = useState('');
+  const nameSource = charGenState?.picks?.name
+    ? `pick:${charGenState.picks.name}|${charGenState.picks.surname ?? ''}`
+    : `sug:${charGenState?.suggestion?.name ?? ''}|${charGenState?.suggestion?.surname ?? ''}`;
+  useEffect(() => {
+    if (charGenState?.step !== 'name') return;
+    if (charGenState.picks.name) {
+      setGivenName(charGenState.picks.name);
+      setSurnameVal(charGenState.picks.surname ?? '');
+    } else if (charGenState.suggestion) {
+      setGivenName(charGenState.suggestion.name ?? '');
+      setSurnameVal(charGenState.suggestion.surname ?? '');
+    }
+    // Re-fill only when the pick/suggestion source changes, not on every
+    // keystroke (those are local edits).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nameSource]);
   // The tentatively-selected card for a closed-choice step. A click
   // selects (does not submit); the Continue button submits it. Reset to
   // the existing pick whenever the displayed step changes (so revisiting
@@ -551,19 +590,18 @@ export function CharGenStage({
     );
   }
 
-  const { step, picks, suggestion, options, error, canGoBack } = charGenState;
+  const { step, picks, options, error, canGoBack, accountName } = charGenState;
   const prompt = STEP_PROMPT[step];
-
-  const handleTypeOwn = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = typedName.trim();
-    if (!trimmed) return;
-    onSendCommand(`enroll name ${trimmed}`);
-    setTypedName('');
-  };
 
   const isNameStep = step === 'name';
   const isConfirmStep = step === 'confirm';
+
+  const submitName = () => {
+    const given = givenName.trim();
+    if (!given) return;
+    const surname = surnameVal.trim();
+    onSendCommand(`enroll name ${[given, surname].filter(Boolean).join(' ')}`);
+  };
 
   return (
     <Stage data-testid="chargen-stage">
@@ -591,42 +629,59 @@ export function CharGenStage({
             </Picks>
           ) : null}
 
-          {/* Name step: suggestion with keep / re-roll / type-your-own. */}
+          {/* Name step: editable given/surname fields pre-filled with the
+              themed suggestion, plus a reroll that rewrites both boxes.
+              Submitting rides the wizard's Continue button below. */}
           {isNameStep ? (
-            <Suggestion>
-              {suggestion ? (
-                <SuggestedName data-testid="chargen-suggestion">
-                  {[suggestion.name, suggestion.surname]
-                    .filter(Boolean)
-                    .join(' ')}
-                </SuggestedName>
+            <NameForm
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitName();
+              }}
+            >
+              {accountName ? (
+                <NameAccountRef>
+                  Signed in as <strong>{accountName}</strong>
+                </NameAccountRef>
               ) : null}
-              <ButtonRow>
-                <StageButton
-                  $primary
-                  data-testid="chargen-suggestion-keep"
-                  onClick={() => onSendCommand('enroll name keep')}
-                >
-                  Keep
-                </StageButton>
-                <StageButton
-                  data-testid="chargen-suggestion-reroll"
-                  onClick={() => onSendCommand('enroll name reroll')}
-                >
-                  Re-roll
-                </StageButton>
-              </ButtonRow>
-              <TypeOwnForm onSubmit={handleTypeOwn}>
-                <TypeOwnInput
-                  value={typedName}
-                  onChange={(e) => setTypedName(e.target.value)}
-                  placeholder="…or type your own name"
-                  aria-label="Type your own name"
-                  data-testid="chargen-name-input"
-                />
-                <StageButton type="submit">Use this name</StageButton>
-              </TypeOwnForm>
-            </Suggestion>
+              <NameFieldRow>
+                <NameField>
+                  <NameFieldLabel htmlFor="chargen-given">
+                    Given name
+                  </NameFieldLabel>
+                  <NameInput
+                    id="chargen-given"
+                    data-testid="chargen-given-input"
+                    value={givenName}
+                    onChange={(e) => setGivenName(e.target.value)}
+                    placeholder="Given name"
+                    autoComplete="off"
+                  />
+                </NameField>
+                <NameField>
+                  <NameFieldLabel htmlFor="chargen-surname">
+                    Surname <NameOptional>(optional)</NameOptional>
+                  </NameFieldLabel>
+                  <NameInput
+                    id="chargen-surname"
+                    data-testid="chargen-surname-input"
+                    value={surnameVal}
+                    onChange={(e) => setSurnameVal(e.target.value)}
+                    placeholder="Surname"
+                    autoComplete="off"
+                  />
+                </NameField>
+              </NameFieldRow>
+              <StageButton
+                type="button"
+                data-testid="chargen-reroll"
+                onClick={() => onSendCommand('enroll name reroll')}
+              >
+                ⟳ Suggest another
+              </StageButton>
+              {/* Hidden submit so Enter in a field triggers Continue. */}
+              <button type="submit" hidden aria-hidden="true" />
+            </NameForm>
           ) : null}
 
           {/* Closed-choice options for the current step. Illustrated
@@ -744,7 +799,16 @@ export function CharGenStage({
           >
             Step into the world
           </StageButton>
-        ) : !isNameStep && options.length > 0 ? (
+        ) : isNameStep ? (
+          <StageButton
+            $primary
+            data-testid="chargen-submit"
+            disabled={!givenName.trim()}
+            onClick={submitName}
+          >
+            Continue →
+          </StageButton>
+        ) : options.length > 0 ? (
           <StageButton
             $primary
             data-testid="chargen-submit"

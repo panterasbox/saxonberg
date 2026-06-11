@@ -193,15 +193,14 @@ const ENROLL_STEPS: EnrollStep[] = [
     field: 'name',
     applicable: () => true,
     complete: (d) => !!d.name,
-    options: () => [
-      { value: 'keep', label: 'Keep this name' },
-      { value: 'reroll', label: 'Suggest another' },
-      { value: '<your name>', label: 'Type your own' },
-    ],
+    // No card options — the name step renders editable given/surname
+    // fields + a reroll button client-side. `reroll` regenerates the
+    // suggestion; any other value is the typed `<given> [surname]`.
+    options: () => [],
     validate: (v, _d) => {
-      const cmd = v.trim().toLowerCase();
-      if (cmd === '' || cmd === 'keep' || cmd === 'reroll') return undefined;
-      const parts = v.trim().split(/\s+/);
+      const trimmed = v.trim();
+      if (trimmed === '' || trimmed.toLowerCase() === 'reroll') return undefined;
+      const parts = trimmed.split(/\s+/);
       const givenErr = validateNameToken(parts[0]!, 'Given name');
       if (givenErr) return givenErr;
       if (parts.length > 1) {
@@ -211,17 +210,17 @@ const ENROLL_STEPS: EnrollStep[] = [
       return undefined;
     },
     apply: async (v, d, _cfg, ctrl) => {
-      const cmd = v.trim().toLowerCase();
-      if (cmd === 'reroll') {
+      const trimmed = v.trim();
+      if (trimmed.toLowerCase() === 'reroll') {
+        // Regenerate the themed suggestion and drop the prior pick, so the
+        // client refills the boxes from the fresh suggestion.
         await ctrl.refreshSuggestion(d, true);
+        d.name = undefined;
+        d.surname = undefined;
         return;
       }
-      if (cmd === '' || cmd === 'keep') {
-        d.name = d.suggestion?.name;
-        d.surname = d.suggestion?.surname;
-        return;
-      }
-      const parts = v.trim().split(/\s+/);
+      if (!trimmed) return; // empty submit — ignored (Continue is gated).
+      const parts = trimmed.split(/\s+/);
       d.name = parts[0];
       d.surname = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
     },
@@ -637,8 +636,9 @@ export default class EnrollController extends CommandController<EnrollModel> {
       options: step.options(draft, cfg),
       canGoBack: order.indexOf(step.field) > 0,
     };
-    if (step.field === 'name' && draft.suggestion) {
-      payload.suggestion = draft.suggestion;
+    if (step.field === 'name') {
+      if (draft.suggestion) payload.suggestion = draft.suggestion;
+      if (draft.accountName) payload.accountName = draft.accountName;
     }
     if (error) payload.error = error;
 
@@ -767,7 +767,7 @@ function promptFor(step: CharGenStep): string {
     case 'sex':
       return 'Choose a sex. (`enroll sex <male|female>`)';
     case 'name':
-      return 'What shall we call you? (`enroll name keep` / `reroll` / type your own)';
+      return 'What shall we call you?';
     case 'pronouns':
       return 'Which pronouns? (`enroll pronouns <they|she|he|it>`)';
     case 'aspiration':
