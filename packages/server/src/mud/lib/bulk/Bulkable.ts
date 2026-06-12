@@ -33,8 +33,10 @@
  * or player-typed `cup` / `mL` measures convert to `L` at the
  * boundary. Capacity is interim-authored here (`interiorCapacity` /
  * `surfaceCapacity`); it folds into collision's volume-kind capacity
- * check later. An unbounded source (the coffee urn) sets
- * `unboundedSource` so `available()` returns `∞`.
+ * check later. An **inexhaustible** source (the coffee urn) is a
+ * separate, narrow capability — `UnboundedSourceMixin`
+ * (`UnboundedSource.ts`) — composed only on source fixtures; the base
+ * substrate knows nothing about it.
  *
  * Operational reference: `docs/subsystems/bulk.md`. Discrete sibling:
  * `docs/subsystems/glob.md`.
@@ -157,29 +159,29 @@ export class BulkSlot {
     return this.host.getClosure();
   }
 
-  /** Whether the slot is an unbounded source (the coffee urn). */
-  isUnboundedSource(): boolean {
-    return this.host.isBulkUnboundedSource(this.affordance);
-  }
-
   /**
-   * Empty ⇔ no material assigned, or a non-positive amount. An
-   * unbounded source (the urn) with a material set is never empty —
-   * it never runs dry, so its stored amount is ignored.
+   * Empty ⇔ no material, or a non-positive amount. Delegated to the
+   * host so a capability mixin can override the policy (an
+   * inexhaustible source is never empty — see `UnboundedSource.ts`).
    */
   isEmpty(): boolean {
-    if (this.getMaterialPath() === null) return true;
-    if (this.isUnboundedSource()) return false;
-    return this.getAmount().rawValue() <= 0;
+    return this.host.isBulkEmpty(this.affordance);
   }
 
   /**
-   * Litres available to draw FROM this slot. `∞` for an unbounded
-   * source; otherwise the current amount.
+   * Litres available to draw FROM this slot. Host policy (the base is
+   * the current amount; an inexhaustible source returns `∞`).
    */
   available(): number {
-    if (this.isUnboundedSource()) return Infinity;
-    return this.getAmount().rawValue();
+    return this.host.getBulkAvailable(this.affordance);
+  }
+
+  /**
+   * Debit `litres` from this slot. Host policy (the base subtracts and
+   * clears the material at zero; an inexhaustible source is a no-op).
+   */
+  debit(litres: number): void {
+    this.host.debitBulk(this.affordance, litres);
   }
 
   /**
@@ -223,7 +225,15 @@ export interface Bulkable {
   getBulkAmount(affordance: BulkAffordance): Quantity<'L'>;
   setBulkAmount(affordance: BulkAffordance, amount: Quantity<'L'>): void;
   getBulkCapacity(affordance: BulkAffordance): Quantity<'L'> | null;
-  isBulkUnboundedSource(affordance: BulkAffordance): boolean;
+
+  // Generic slot-policy seams (the BulkSlot handle delegates here).
+  // Overridable by capability mixins — `UnboundedSourceMixin` makes a
+  // holder inexhaustible without the base substrate knowing the
+  // concept. NOT unbounded-specific: these are the plain available /
+  // empty / debit operations every slot has.
+  getBulkAvailable(affordance: BulkAffordance): number;
+  isBulkEmpty(affordance: BulkAffordance): boolean;
+  debitBulk(affordance: BulkAffordance, litres: number): void;
 
   getClosure(): ClosureLevel;
   setClosure(level: ClosureLevel): void;
@@ -300,8 +310,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     // ---- vessel-inherent state ----
     /** Liquid-retention scale; default `liquidTight`. */
     public closure: ClosureLevel = 'liquidTight';
-    /** Source-end dial — `available()` returns ∞ when set (the urn). */
-    public unboundedSource: boolean = false;
 
     static persistentFields = [
       'interiorBulk',
@@ -313,7 +321,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       'surfaceAmount',
       'surfaceCapacity',
       'closure',
-      'unboundedSource',
     ];
 
     static fieldMarshallers = {
@@ -471,8 +478,23 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         : this._surfaceCapacity;
     }
 
-    public isBulkUnboundedSource(_affordance: BulkAffordance): boolean {
-      return this.unboundedSource;
+    // ---- slot-policy seams (overridable by capability mixins) ----
+    public getBulkAvailable(affordance: BulkAffordance): number {
+      return this.getBulkAmount(affordance).rawValue();
+    }
+
+    public isBulkEmpty(affordance: BulkAffordance): boolean {
+      if (this.getBulkMaterialPath(affordance) === null) return true;
+      return this.getBulkAmount(affordance).rawValue() <= 0;
+    }
+
+    public debitBulk(affordance: BulkAffordance, litres: number): void {
+      const next = this.getBulkAmount(affordance).subtract(
+        Quantity.of(litres, BULK_VOLUME_UNIT),
+      );
+      const remaining = Math.max(0, next.rawValue());
+      this.setBulkAmount(affordance, Quantity.of(remaining, BULK_VOLUME_UNIT));
+      if (remaining <= 0) this.setBulkMaterial(affordance, null);
     }
   };
 }

@@ -207,7 +207,7 @@ export class BulkableApi {
         // every location has a floor): discard the matter with a note
         // rather than silently retaining it in an open vessel.
         const discarded = BulkableApi.computeApplied(from, null, amount, notes);
-        if (discarded > 0) BulkableApi.debit(from, discarded);
+        if (discarded > 0) from.debit(discarded);
         return {
           applied: discarded,
           status: 'drained',
@@ -232,7 +232,7 @@ export class BulkableApi {
     }
 
     // 5. Apply.
-    BulkableApi.debit(from, applied);
+    from.debit(applied);
     if (to !== null) {
       if (to.isEmpty()) to.setMaterial(material);
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
@@ -286,19 +286,6 @@ export class BulkableApi {
       applied: fittable,
     });
     return fittable;
-  }
-
-  /**
-   * Debit `litres` from the source slot. An unbounded source (the
-   * urn) never depletes. A bounded slot that hits zero clears its
-   * material so the slot reads empty.
-   */
-  private static debit(from: BulkSlot, litres: number): void {
-    if (from.isUnboundedSource()) return;
-    const next = from.getAmount().subtract(Quantity.of(litres, 'L'));
-    const remaining = Math.max(0, next.rawValue());
-    from.setAmount(Quantity.of(remaining, 'L'));
-    if (remaining <= 0) from.setMaterial(null);
   }
 
   /**

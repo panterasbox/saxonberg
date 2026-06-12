@@ -1,8 +1,10 @@
-# Coffee urn — the demo's unbounded liquid source. `unboundedSource`
-# makes its interior `available()` return ∞ so refills never run dry,
-# demonstrating the source end of the holder dial (regenerating wells
-# are deferred; ∞ is the simpler demonstration). Holds coffee.
-class: /obj/Receptacle
+# Coffee urn — the demo's inexhaustible liquid source. It's an
+# `UnboundedReceptacle` (composes `UnboundedSourceMixin`), so its
+# interior `available()` is ∞ and it never depletes — refills never run
+# dry, demonstrating the source end of the holder dial. Regenerating
+# (scheduled-refill) wells are deferred; ∞ is the simpler demonstration.
+# Holds coffee.
+class: /obj/UnboundedReceptacle
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a coffee urn
@@ -10,4 +12,3 @@ data:
   keywords: [urn, coffee]
   interiorBulk: true
   interiorMaterial: /lib/material/bulk/coffee
-  unboundedSource: true

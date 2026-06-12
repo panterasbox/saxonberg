@@ -12,9 +12,12 @@ import {
   compareClosure,
   requiredClosureFor,
   type ClosureLevel,
+  type Bulkable,
 } from '../Bulkable';
+import { UnboundedSourceMixin } from '../UnboundedSource';
 import { NamedMixin } from '../../description/Named';
 import { ContainableMixin } from '../../spatial/Containable';
+import type { Containable } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import Floor from '../../../obj/Floor';
@@ -53,6 +56,12 @@ class TestVessel extends BulkableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestVessel';
 }
 
+class TestSource extends UnboundedSourceMixin(
+  BulkableMixin(ContainableMixin(NamedMixin(Idea))),
+) {
+  static _mixinName = 'TestSource';
+}
+
 class LooseItem extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'LooseItem';
 }
@@ -77,13 +86,12 @@ function makeVessel(opts: {
   capacityL?: number;
   closure?: ClosureLevel;
   unbounded?: boolean;
-}): TestVessel & Stuff {
+}): Stuff & Bulkable & Containable {
   return makeStuff(() => {
-    const v = new TestVessel();
+    const v = opts.unbounded ? new TestSource() : new TestVessel();
     v.setName('vessel');
     v.interiorBulk = true;
     if (opts.closure) v.setClosure(opts.closure);
-    if (opts.unbounded) v.unboundedSource = true;
     if (opts.capacityL !== undefined) {
       v.setInteriorCapacity(Quantity.of(opts.capacityL, 'L'));
     }
@@ -92,7 +100,7 @@ function makeVessel(opts: {
       v.setBulkAmount('interior', Quantity.of(opts.amountL, 'L'));
     }
     return v;
-  }) as unknown as TestVessel & Stuff;
+  }) as unknown as Stuff & Bulkable & Containable;
 }
 
 describe('Bulkable — closure scale', () => {

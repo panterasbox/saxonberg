@@ -18,6 +18,7 @@ import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
+import { UnboundedSourceMixin } from '../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Thing from '../../../../lib/stuff/Thing';
 import Floor from '../../../../obj/Floor';
@@ -54,6 +55,10 @@ class Receptacle extends BulkableMixin(Thing) {
   static _mixinName = 'Receptacle';
 }
 
+class UnboundedReceptacle extends UnboundedSourceMixin(BulkableMixin(Thing)) {
+  static _mixinName = 'UnboundedReceptacle';
+}
+
 function material(path: string, name: string): Material {
   return makeStuffAtPath(() => {
     const m = new Material();
@@ -75,11 +80,10 @@ function vessel(
   },
 ): Stuff {
   return makeStuff(() => {
-    const v = new Receptacle();
+    const v = opts.unbounded ? new UnboundedReceptacle() : new Receptacle();
     v.setShortDescription(label);
     v.interiorBulk = true;
     if (opts.closure) v.setClosure(opts.closure);
-    if (opts.unbounded) v.unboundedSource = true;
     if (opts.capacityL !== undefined)
       v.setInteriorCapacity(Quantity.of(opts.capacityL, 'L'));
     if (opts.material) v.setBulkMaterial('interior', opts.material);
