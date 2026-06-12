@@ -31,3 +31,88 @@ data:
     - { modality: vision, count: 2, position: frontal }
     - { modality: hearing, count: 2, position: lateral }
     - { modality: smell, count: 1, position: forward }
+  # Typed anatomy (Vitals substrate). Coarse v1 roster: limbs / head /
+  # torso + heart / lungs. Tissue masses (kg) are the strength substrate;
+  # enablesSlots gates wear/wield; governsVital is the organ→vital
+  # coupling. Stable body.* keys are the trauma-site anchor.
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 8 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 12 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 20 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 4 }
+    - key: body.arm.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1.5 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 3 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.arm.left.hand
+      parent: body.arm.left
+      severable: true
+      enablesSlots: ['hand:left', 'finger:left']
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 0.4 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.3 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 0.3 }
+    - key: body.arm.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1.5 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 3 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.arm.right.hand
+      parent: body.arm.right
+      severable: true
+      enablesSlots: ['hand:right', 'finger:right']
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 0.4 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.3 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 0.3 }
+    - key: body.leg.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 4 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 8 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 3 }
+    - key: body.leg.left.foot
+      parent: body.leg.left
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 0.8 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.5 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 0.5 }
+    - key: body.leg.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 4 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 8 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 3 }
+    - key: body.leg.right.foot
+      parent: body.leg.right
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 0.8 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.5 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 0.5 }
+    - key: body.torso.heart
+      parent: body.torso
+      governsVital: heartRate
+      tissues:
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.3 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governsVital: respiratoryRate
+      tissues:
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }

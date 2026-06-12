@@ -232,6 +232,18 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
       if (!spec) return false;
+      // Part 0 — anatomy gate (coarse, Vitals substrate). A missing body
+      // part disables the slots it enables. No-op unless the host
+      // composes VitalsMixin AND the gating part is actually gone, so
+      // intact bodies behave exactly as before. Structural cast avoids a
+      // lib/slot → lib/vitals import.
+      const host = this as unknown as Stuff;
+      if (MixinApi.hasMixin(host, Mixins.Vitals)) {
+        const anatomical = host as unknown as {
+          isSlotDisabledByAnatomy(slot: string): boolean;
+        };
+        if (anatomical.isSlotDisabledByAnatomy(slot)) return false;
+      }
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

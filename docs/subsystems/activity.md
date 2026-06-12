@@ -124,6 +124,15 @@ sets are disjoint.
 
 ## The Scheduler
 
+> **Non-engagement cadence consumers exist.** Not every cadenced
+> side-effect is an engagement. Condition progression (Vitals) occupies
+> **no** engagement slot — it borrows the ticking machinery via
+> **`ScheduleApi.recurring`** directly, NOT the engagement-bound
+> `ScheduledEmission` (whose callback takes `{ engagement, actor,
+> elapsed }`). When a recurring side-effect isn't something an actor is
+> *doing*, target `ScheduleApi.recurring`. (Vitals ships the progression
+> *shapes*; no live ticks yet — see [vitals.md](./vitals.md).)
+
 `SchedulerApi` (`api/scheduler.ts`) is a thin facade; the
 `SchedulerRegistry` singleton (`obj/SchedulerRegistry.ts`) owns the
 active set of engagements and every timer backing them. The timers are

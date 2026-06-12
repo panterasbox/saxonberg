@@ -1,0 +1,25 @@
+# Bone — rigid mineralized skeletal tissue. Hard and load-bearing;
+# resists blunt and slashing far better than soft tissue (prior art for
+# the deferred mechanism-of-injury / Material.resistance response).
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: bone
+  density: 1900
+  hardness: 0.85
+  flammability: 0.05
+  opacity: 1
+  thermalConductivity: 0.3
+  electricalConductivity: 0.1
+  magneticSusceptibility: 0.0
+  edibility: false
+  nutrients: ["calcium"]
+  toxicity: []
+  savedProps:
+    "resistance.slash": 0.6
+    "resistance.blunt": 0.4
+    "resistance.pierce": 0.5
+  tags: ["tissue", "animal", "bone", "mineral", "skeletal"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

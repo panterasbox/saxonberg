@@ -12,6 +12,14 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 299, survivableMax: 316 }
+    heartRate: { baseline: 60, survivableMin: 28, survivableMax: 210 }
+    respiratoryRate: { baseline: 14, survivableMin: 5, survivableMax: 38 }
+    bloodPressureSystolic: { baseline: 125, survivableMin: 70, survivableMax: 205 }
+    bloodPressureDiastolic: { baseline: 82, survivableMin: 40, survivableMax: 135 }
+    spo2: { baseline: 98, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 5.5, survivableMin: 3.6, survivableMax: 5.5 }
   lifecycleStates: ["alive", "dead", "undead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

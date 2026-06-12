@@ -22,12 +22,25 @@ Three things are *deferred* — the design context lives here for the
 follow-on builds:
 
 - Death/resurrection flow (state-machine present, transition flow
-  not).
+  not). **The Vitals subsystem now owns the transition driver** (a
+  fatal vital crossing its floor → `alive → dead`); race ships the
+  state machine + `isAnimate` gating, Vitals drives it. The driver
+  itself is deferred there too, but the seams (cause-of-death stamp,
+  derived consciousness) ship. See [vitals.md](./vitals.md).
 - Diet (`DietApi`, `Edible`, `Portable`) — the data is authored,
   but no consumer reads it yet.
 - Tissue authoring (named Details with their own descriptions and
-  materials), genetics, per-individual feature mixins, polymorph,
-  sleep/circadian, aging, character-creation UI.
+  materials) — **partly earned by Vitals**: `BodyPlan.bodyParts`
+  carries typed `BodyPart` descriptors with per-part tissue
+  composition (muscle / bone / flesh masses), the model layer for
+  anatomy and the deferred strength substrate. See
+  [vitals.md § Anatomy](./vitals.md). Genetics, per-individual feature
+  mixins, polymorph, sleep/circadian, aging, character-creation UI
+  remain deferred.
+
+`OrganismMixin` (and Vitals / Reserved / anatomy) now compose at the
+**`Creature`** layer — the body class between `Agent` and `Character`
+(see [docs/architecture.md](../architecture.md)).
 
 ---
 
@@ -266,6 +279,13 @@ deferred until a sub-clade lands and earns the inheritance machinery.
 
 `BodyPlan` is a singleton `Idea` declaring the physical anatomy:
 
+- `bodyParts: BodyPart[]` — typed anatomical part descriptors (the
+  model layer), declared once on the shared flyweight. Each part:
+  `{ key, parent, tissues, enablesSlots?, governsVital?, severable?,
+  innervatedBy?, suppliedBy? }`, with stable dotted `body.*` keys.
+  Added by the Vitals build — the anatomy *site* + tissue/strength
+  substrate. Instances carry only deltas; the resolver lives on
+  `VitalsMixin`. See [vitals.md § Anatomy](./vitals.md).
 - `slots: SlotSpec[]` — the unified slot universe. Each spec carries
   the canonical slot name (`hand:left`, `back:1`), the mixin an
   occupant must compose (`'WearableMixin'`, `'WieldableMixin'`,

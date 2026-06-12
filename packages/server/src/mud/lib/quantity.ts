@@ -56,6 +56,8 @@ export type Unit =
   | 'Pa' | 'N' | 'J' | 'W'
   // Ratio (humidity, etc.) — bare percent string
   | '%'
+  // Vitals (rate / pressure / volume)
+  | 'bpm' | 'mmHg' | 'L'
   // Acceleration (gravity)
   | 'm/s²'
   // Angle (celestial: axial tilt, solar altitude / azimuth)
@@ -125,6 +127,9 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   J: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
+  bpm: ARITHMETIC_OPS,
+  mmHg: ARITHMETIC_OPS,
+  L: ARITHMETIC_OPS,
   'm/s²': ARITHMETIC_OPS,
   degrees: ARITHMETIC_OPS,
 };
@@ -198,6 +203,14 @@ function registerConverter(
 // `g ↔ kg` for mass authoring (`mass: "12000 g"` → 12 kg).
 registerConverter('g', 'kg', (n) => n / 1000);
 registerConverter('kg', 'g', (n) => n * 1000);
+
+// Vitals: `mmHg ↔ Pa` (blood pressure) and `L ↔ m³` (blood volume).
+// `bpm` is its own rate axis with no converter (pulse vs respiration is
+// a tag-scale distinction, not a unit conversion).
+registerConverter('mmHg', 'Pa', (n) => n * 133.322368);
+registerConverter('Pa', 'mmHg', (n) => n / 133.322368);
+registerConverter('L', 'm³', (n) => n / 1000);
+registerConverter('m³', 'L', (n) => n * 1000);
 
 /**
  * Thrown by same-unit math when a cast bypasses the compile-time

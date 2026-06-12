@@ -38,7 +38,7 @@ Sibling docs:
 | Type | Kind | Role |
 |---|---|---|
 | `Quantity<U>` | value class | `value: number` + `unit: U`. Immutable. Same-unit math; cross-unit conversion via registered converters. |
-| `Unit` | string-literal union | The full v1 unit catalog. New units extend the union. |
+| `Unit` | string-literal union | The full v1 unit catalog. New units extend the union. The Vitals build added `bpm` (rate; pulse + respiration via separate tag scales, no converter — its own axis), `mmHg` (pressure, `mmHg ↔ Pa` converter), and `L` (volume, `L ↔ m³` converter). Adding a unit = extend the union + `unitOps` + (optional) a `quantity-tags.yaml` block + extend the schema's `patternProperties` regex + a per-unit `QuantityMarshaller` seed. |
 | `ScaleName` | string alias | Names a tag-vocabulary scale within a unit (e.g. `'default'`, `'color'`, `'thermal'`). Pure rendering choice — units are units regardless of scale. |
 | `TagTableEntry` | `{ tag, threshold }` | A single row in a unit's tag table. |
 | `QuantityUnitMismatchError` | error | Thrown by same-unit math when a runtime cast bypassed the compile-time guard. |

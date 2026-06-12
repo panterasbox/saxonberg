@@ -83,6 +83,37 @@ export interface OlfactoryProfile {
 
 const OLFACTORY_ACUITY_VALUES = ['keen', 'normal', 'dull', 'none'] as const;
 
+/**
+ * One vital sign's healthy baseline + survivable band, per species
+ * (Vitals substrate). Values are plain numbers in the sign's
+ * canonical unit (K / bpm / mmHg / % / L). Leaving the band is what
+ * eventually flips the lifecycle state (a future driver consumes it).
+ * Shaped to admit a later age-curve without reshaping.
+ */
+export interface VitalBand {
+  baseline: number;
+  survivableMin: number;
+  survivableMax: number;
+  // reserved: ageCurve?: AgeCurveSpec — declared-but-empty seam.
+}
+
+/**
+ * Per-species vital baselines + survivable bands. Keyed by the
+ * `VitalSign` field names as literal keys deliberately — so `Species`
+ * needs no import from `lib/vitals` (`VitalsMixin` maps its `VitalSign`
+ * union onto these keys internally). Flat nested record → default
+ * JSON serialization, no marshaller (same as `visionProfile`).
+ */
+export interface VitalProfile {
+  coreTemperature: VitalBand; // K
+  heartRate: VitalBand; // bpm
+  respiratoryRate: VitalBand; // bpm
+  bloodPressureSystolic: VitalBand; // mmHg
+  bloodPressureDiastolic: VitalBand; // mmHg
+  spo2: VitalBand; // %
+  bloodVolume: VitalBand; // L
+}
+
 export default class Species extends SingletonMixin(
   PropertiedMixin(VisibleMixin(Idea)),
 ) {
@@ -163,6 +194,14 @@ export default class Species extends SingletonMixin(
   protected olfactoryProfile: OlfactoryProfile | null = null;
 
   /**
+   * Per-species vital baselines + survivable bands (Vitals substrate).
+   * `null` falls back to the engine universe-default biological
+   * profile. Flat nested record; default JSON serialization handles it
+   * (no marshaller, like `visionProfile`).
+   */
+  protected vitalProfile: VitalProfile | null = null;
+
+  /**
    * References to one or more `NameBank` Documents by key (e.g.
    * `['common']`, `['orcish', 'common']`). The name suggester resolves
    * these and unions the pools. NOT the name data itself — that lives
@@ -185,6 +224,7 @@ export default class Species extends SingletonMixin(
     'diet',
     'visionProfile',
     'olfactoryProfile',
+    'vitalProfile',
     'nameBankKeys',
   ];
   // `shortDescription` / `longDescription` (the species' generic
@@ -298,6 +338,34 @@ export default class Species extends SingletonMixin(
       }
     }
     this.olfactoryProfile = value;
+  }
+
+  public getVitalProfile(): VitalProfile | null {
+    return this.vitalProfile;
+  }
+  public setVitalProfile(value: VitalProfile | null): void {
+    if (value !== null) {
+      if (typeof value !== 'object') {
+        throw new TypeError(
+          'Species.setVitalProfile: must be null or a profile object',
+        );
+      }
+      for (const [sign, band] of Object.entries(value)) {
+        if (
+          !band ||
+          typeof band !== 'object' ||
+          typeof (band as VitalBand).baseline !== 'number' ||
+          typeof (band as VitalBand).survivableMin !== 'number' ||
+          typeof (band as VitalBand).survivableMax !== 'number'
+        ) {
+          throw new TypeError(
+            `Species.setVitalProfile: band '${sign}' must have numeric ` +
+              `baseline / survivableMin / survivableMax`,
+          );
+        }
+      }
+    }
+    this.vitalProfile = value;
   }
 
   public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }

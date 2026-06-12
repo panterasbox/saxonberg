@@ -26,6 +26,15 @@ the seam is in place, real permission-aware enforcement lands when
 the permission framework does. See
 [call-security.md](./call-security.md#admin-only-and-the-force-bypass-shape).
 
+> **Death is not destruction.** A dying organism does NOT run this
+> sequence. Death is a `lifecycleState` transition (`alive → dead`) that
+> leaves the body in the world — a corpse is the *same* `Stuff` with
+> `lifecycleState: 'dead'`, full readable vitals, and animacy gone (so
+> `requiresAnimate` verbs stop dispatching). `StuffApi.destruct` is
+> removal-from-the-world; death is not. The Vitals subsystem owns the
+> death seams (the transition driver is deferred); see
+> [vitals.md § Death & consciousness seams](./vitals.md).
+
 This doc covers the lifecycle mechanics. The clone-side hydration
 detail (templates, `Hydrator`, `hydratorClass`) lives in
 [templates.md](./templates.md). The decorator and security mechanism

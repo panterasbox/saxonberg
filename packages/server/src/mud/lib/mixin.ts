@@ -64,6 +64,8 @@ export const Mixins = {
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
   Sexed: 'SexedMixin',
+  Vitals: 'VitalsMixin',
+  Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',

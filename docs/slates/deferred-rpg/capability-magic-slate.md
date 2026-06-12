@@ -8,6 +8,12 @@
 > exactly one negative obligation (below), and the rest is parked
 > design space. When RPG work begins, this slate is the starting
 > point.
+>
+> **Update (2026-06):** the shipping Vitals *substrate* build now
+> generalizes reserves into one `Reserve` axis (`lib/reserve/`) — so
+> the magic-side reserve (mana) already has its mechanism built ahead
+> of RPG. What's parked is the magic *content* riding it, not the
+> reserve substrate. See Part II's reserve note + the obligation.
 
 Two halves, deliberately **symmetric**:
 
@@ -75,6 +81,17 @@ real. The derived treatment:
   intactness + condition + endurance + a stored baseline. The pattern
   mirrors Vitals exactly: a **stored baseline** (build / species /
   later genetics) **× derived condition factors** = effective current.
+  Concretely, the strength baseline *is* **per-part muscle mass** — the
+  tissue composition the Vitals substrate build ships on `BodyPart`
+  (`/lib/material/tissue/muscle`). Strength reads as real force
+  (`N` / `kg`), instrument-measurable (a **dynamometer** reads grip the
+  way a thermometer reads fever), and a *task* selects which parts'
+  muscle it draws on — so grip ≠ deadlift, and a fractured limb loses
+  *local* force for free off the anatomy trauma model. Dexterity's
+  substrate is likewise measurable beneath the skill layer — reaction
+  time (`ms`), joint range-of-motion (`degrees`) — which is the
+  capacity-vs-skill split made physical: **substrate sets the ceiling,
+  skill realizes performance within it.**
 - **It's dynamic.** A fracture (via the part→slot/capability
   coupling), fatigue, blood loss, or disease lowers effective
   capability *continuously* — unlike a fixed D&D STR. A familiar
@@ -156,7 +173,7 @@ authored INT stat was not.
 | **Capacity (baseline)** | body build + condition (derived) | **affinity** (measurable coupling to the field) |
 | **Skill (applied)** | learned technique | learned spellcraft |
 | **Knowledge** | techniques, materials | spells, lore |
-| **Reserve (fatigue)** | **endurance** (Vitals) | **mana** (here) |
+| **Reserve (fatigue)** | **endurance** — a `Reserve` instance | **mana** — magic-side `Reserve` instance(s) |
 | **Advancement** | bounded conditioning + deep skill | (mostly-fixed) affinity + deep skill |
 
 - **Affinity** is a *measurable* property — coupling strength to the
@@ -165,9 +182,22 @@ authored INT stat was not.
   possibly marginally trainable (symmetric to conditioning). Read by
   an instrument the way vitals are read by a thermometer.
 - **Mana** is the magical reserve, depleting and recovering on a
-  lawful curve. It is **endurance's mirror** and lives *here, not in
-  Vitals* — separate because it isn't biology, symmetric because it
-  plays the same role.
+  lawful curve — **endurance's mirror**. Both ride **one generalized
+  `Reserve` substrate** (`lib/reserve/`, shipped by the Vitals build): a
+  depletable-replenishing capacity axis whose instances differ only in
+  what drains them, what replenishes them, and their theme.
+  Endurance/satiation/hydration are the *biological* instances; mana is
+  *magic-side*. The split is instance-level, not substrate-level — mana
+  isn't biology, but it isn't a second mechanism either.
+- **Magic reserves are plural and authored, not one universal pool.**
+  Rather than a single MP scalar, a tradition/guild/school *defines its
+  own reserve* — a capacitor guild's "charge" (recharged at a source), a
+  necromancer's "essence" (replenished by death), a cleric's "favor"
+  (granted, not earned). Each is content on the shared axis;
+  **"mana" is a content word, never an engine primitive** (the engine
+  has reserves). This is the affliction-vs-trauma authored-content move
+  applied to reserves — the substrate ships the axis + the authored
+  seam; the thematic pools are content.
 
 ### Instruments (the seam, symmetric to vitals / sound / light)
 
@@ -245,8 +275,13 @@ Everything here is deferred, but one negative obligation binds the
 
 - **Keep capability derivable — never add a stored CON-style scalar**
   to Vitals that duplicates the substrate.
-- **endurance is the physical reserve (in Vitals); mana is the magic
-  reserve (here, not Vitals).** The symmetry is *why* mana is separate.
+- **All reserves ride one generalized `Reserve` substrate** (shipped by
+  the Vitals build), differing by instance, not mechanism:
+  endurance/satiation/hydration are biological, mana/charge/essence are
+  magic-side and *authored*. The shipping obligation: build the reserve
+  axis *generally* (not hardcoded to biology) so magic reserves drop in
+  as instances — never fork a second reserve mechanism for magic, and
+  never add a stored CON-style scalar that duplicates the substrate.
 - **Don't add fake elements to chemistry.** The magical-property layer
   is additive and lands when magic does; real Materials stay the
   single source of truth for what matter is.
@@ -277,6 +312,12 @@ Everything here is deferred, but one negative obligation binds the
 8. **Genetics as baseline source** — ties to race.md's deferred
    genetics; the physical build-baseline and innate affinity both
    eventually source there.
+9. **Reserve topology — one pool or plural authored?** A single
+   universal mana scalar, or per-tradition authored reserves
+   (charge / essence / favor) on the shared `Reserve` axis? *Lean:
+   plural + authored — the capacitor-guild "charge" precedent; one MP
+   pool flattens flavor and re-introduces a stored scalar by the back
+   door.*
 
 ---
 
