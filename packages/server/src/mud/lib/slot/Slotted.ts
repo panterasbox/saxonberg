@@ -50,6 +50,16 @@ export const UNBOUNDED_CAPACITY: number = Number.MAX_SAFE_INTEGER;
  *   surface at use time).
  * - `userFacingDetail` — keyword on the host's DetailedMixin map that
  *   targets this slot via MQL (`mount back`, `sit seat`).
+ * - `bodyPart` — the anatomical part (a `body.*` key, Vitals) this slot
+ *   *attaches at*. Losing the part disables the slot (coarse, in
+ *   `canOccupy`). OPTIONAL: non-anatomical affordances (a cranial
+ *   implant bay, a saddle surface, a future magic aura) omit it — the
+ *   slot is its own axis that *references* anatomy where it has a home,
+ *   not a thing anatomy owns. See docs/subsystems/vitals.md.
+ * - `covers` — anatomical parts an occupant of this slot *covers*
+ *   (`body.*` keys). The coverage relation — for armor mitigation,
+ *   hit-location, "the wound is hidden under the coat". One slot may
+ *   cover many parts. Declared seam; no consumer this build.
  */
 export interface SlotSpec {
   name: string;
@@ -57,6 +67,8 @@ export interface SlotSpec {
   capacity?: number;
   postures?: string[];
   userFacingDetail?: string;
+  bodyPart?: string;
+  covers?: string[];
 }
 
 /**
@@ -232,6 +244,15 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
       if (!spec) return false;
+      // Part 0 — anatomy gate (coarse, Vitals substrate). A slot whose
+      // `bodyPart` is gone is disabled. No-op unless the host composes
+      // VitalsMixin AND the gating part is actually missing, so intact
+      // bodies behave exactly as before. `isVitals` narrows the host so
+      // the call is type-checked (no duck-typing cast).
+      const host = this as unknown as Stuff;
+      if (MixinApi.isVitals(host) && host.isSlotDisabledByAnatomy(slot)) {
+        return false;
+      }
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

@@ -170,6 +170,38 @@ ppm:
     - { tag: pungent,       threshold: 100 }
     - { tag: overpowering,  threshold: 500 }
 
+# Vitals — heart/respiratory rate (beats or breaths per minute). Two
+# scales: pulse (default) and respiration read with different clinical
+# vocabularies at the same bpm numerics. Coarse v1 bands; the
+# survivable ranges live per-species in Species.vitalProfile.
+bpm:
+  pulse:
+    - { tag: bradycardic, threshold: 0 }
+    - { tag: normal,      threshold: 60 }
+    - { tag: tachycardic, threshold: 100 }
+  respiration:
+    - { tag: bradypneic,  threshold: 0 }
+    - { tag: normal,      threshold: 12 }
+    - { tag: tachypneic,  threshold: 20 }
+
+# Vitals — blood pressure (mmHg). Single scale; systolic prose,
+# diastolic re-uses it. Clinical band logic lives in vitalProfile.
+mmHg:
+  default:
+    - { tag: hypotensive,  threshold: 0 }
+    - { tag: normal,       threshold: 90 }
+    - { tag: elevated,     threshold: 120 }
+    - { tag: hypertensive, threshold: 140 }
+
+# Vitals — blood volume (litres). Minimal absolute-litre vocabulary so
+# the unit round-trips; per-species survivable floors live in
+# vitalProfile, not here.
+L:
+  default:
+    - { tag: empty,  threshold: 0 }
+    - { tag: low,    threshold: 3 }
+    - { tag: normal, threshold: 5 }
+
 # Tagless units (declared in the Unit type but with no tag table):
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.

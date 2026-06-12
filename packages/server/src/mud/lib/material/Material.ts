@@ -52,7 +52,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
-import { PropertiedMixin, Property } from '../stuff/Propertied';
+import { PropertiedMixin } from '../stuff/Propertied';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
@@ -131,23 +131,32 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
     this._density = value;
   }
 
-  /** Mohs-scale-ish hardness (0–10). */
-  protected hardness: number = 0;
+  /**
+   * Thermal conductivity (`W/(m·K)`) — a real, tabulated material
+   * property, Quantity-typed (strict on unit) like `density`. Consumed
+   * by the Thermal capability (heat flow / algor-mortis time-of-death);
+   * no live consumer yet — seeded ahead per the reality-shaped
+   * discipline. (The old 0–1 `hardness` / `flammability` / `opacity` /
+   * `electricalConductivity` / `magneticSusceptibility` fields were
+   * removed: fake normalized scales with zero consumers. Re-add as real
+   * Quantities when a consumer — fire, electricity — actually lands.)
+   */
+  private _thermalConductivity: Quantity<'W/(m·K)'> = Quantity.of(
+    0,
+    'W/(m·K)',
+  );
 
-  /** 0–1, how easily this material ignites. */
-  protected flammability: number = 0;
-
-  /** 0–1, how much this material blocks light passing through. */
-  protected opacity: number = 0;
-
-  /** W/(m·K). Heat conduction rate. */
-  protected thermalConductivity: number = 0;
-
-  /** S/m. Electrical conduction rate. */
-  protected electricalConductivity: number = 0;
-
-  /** 0–1. How strongly this material responds to magnetism. */
-  protected magneticSusceptibility: number = 0;
+  protected get thermalConductivity(): Quantity<'W/(m·K)'> {
+    return this._thermalConductivity;
+  }
+  protected set thermalConductivity(value: Quantity<'W/(m·K)'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'W/(m·K)') {
+      throw new TypeError(
+        `Material.thermalConductivity must be a Quantity<'W/(m·K)'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._thermalConductivity = value;
+  }
 
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
@@ -230,12 +239,7 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   static persistentFields = [
     'name',
     'density',
-    'hardness',
-    'flammability',
-    'opacity',
     'thermalConductivity',
-    'electricalConductivity',
-    'magneticSusceptibility',
     'edibility',
     'nutrients',
     'toxicity',
@@ -255,6 +259,7 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   static fieldMarshallers = {
     density: QuantityMarshaller.pathFor('kg/m³'),
+    thermalConductivity: QuantityMarshaller.pathFor('W/(m·K)'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -280,32 +285,11 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
     this.density = value;
   }
 
-  public getHardness(): number { return this.hardness; }
-  public setHardness(value: number): void { this.hardness = value; }
-
-  public getFlammability(): number { return this.flammability; }
-  public setFlammability(value: number): void { this.flammability = value; }
-
-  public getOpacity(): number { return this.opacity; }
-  public setOpacity(value: number): void { this.opacity = value; }
-
-  public getThermalConductivity(): number { return this.thermalConductivity; }
-  public setThermalConductivity(value: number): void {
+  public getThermalConductivity(): Quantity<'W/(m·K)'> {
+    return this._thermalConductivity;
+  }
+  public setThermalConductivity(value: Quantity<'W/(m·K)'>): void {
     this.thermalConductivity = value;
-  }
-
-  public getElectricalConductivity(): number {
-    return this.electricalConductivity;
-  }
-  public setElectricalConductivity(value: number): void {
-    this.electricalConductivity = value;
-  }
-
-  public getMagneticSusceptibility(): number {
-    return this.magneticSusceptibility;
-  }
-  public setMagneticSusceptibility(value: number): void {
-    this.magneticSusceptibility = value;
   }
 
   public getEdibility(): boolean { return this.edibility; }
@@ -317,24 +301,9 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
   public getToxicity(): readonly string[] { return this.toxicity; }
   public setToxicity(value: string[]): void { this.toxicity = value; }
 
-  /**
-   * Read damage resistance for `damageType` (`'slash'`, `'blunt'`,
-   * `'pierce'`, `'fire'`, …). Threads through `PropertiedMixin` —
-   * stored under `Property.of<number>('resistance.<damageType>')`. The
-   * property layer gives masking for free: an enchanted shield can
-   * `maskProp` a `resistance.fire` boost on its wearer's material
-   * surface without touching the base value.
-   *
-   * Returns `0` when no resistance is set for the type. Damage-type
-   * vocabulary is content-defined; the engine doesn't enumerate it.
-   */
-  public getDamageResistance(damageType: string): number {
-    return this.getProp(Property.of<number>(`resistance.${damageType}`)) ?? 0;
-  }
-
-  public setDamageResistance(damageType: string, value: number): void {
-    this.setProp(Property.of<number>(`resistance.${damageType}`), value);
-  }
+  // Damage-resistance accessors removed — the combat / mechanism-of-
+  // injury material-response seam (`resistance.<type>` props) is deferred
+  // until that system lands and can define the model honestly.
 
   public getTags(): readonly string[] { return this.tags; }
   public setTags(value: string[]): void { this.tags = value; }

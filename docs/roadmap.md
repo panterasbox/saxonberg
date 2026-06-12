@@ -150,10 +150,16 @@ remains in the near-term Track A queue:
 >   open for Tier 2/3 kinds and future-wave server polish.)
 > - **Vitals tandem slice.** The original "HP/MV widget over
 >   `me.vitals`" framing reflected the scalar-HP shape Vitals had
->   before the slate was rewritten. Vitals is now a full server
->   substrate (anatomy + conditions + pedagogy) — not a client
->   first-vertical. It still ships when its turn comes (Track B
->   substrate-shaped); it's not Track A item 1.
+>   before the slate was rewritten. Vitals is a full server substrate,
+>   not a client first-vertical. The **substrate (models) has now
+>   shipped** — the `Creature` body/agency split, vital signs,
+>   `vitalProfile`, typed anatomy + tissue, the two-kind condition type
+>   system, the generalized `Reserve` substrate, and the death/
+>   consciousness seams ([vitals.md](./subsystems/vitals.md),
+>   [reserve.md](./subsystems/reserve.md)). What's deferred to the named
+>   next build is the *applications*: the assess / measure-on-patient /
+>   treatment verbs + instruments, live condition progression, and the
+>   death-transition driver.
 >   ([vitals-slate.md](./slates/builds/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane

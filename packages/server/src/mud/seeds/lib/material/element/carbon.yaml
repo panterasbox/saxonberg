@@ -9,19 +9,10 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: carbon
   density: 2200
-  hardness: 1.5
-  flammability: 0.7
-  opacity: 1
-  thermalConductivity: 200
-  electricalConductivity: 7.0e4
-  magneticSusceptibility: 0.0
+  thermalConductivity: 130
   edibility: false
   nutrients: []
   toxicity: []
-  savedProps:
-    "resistance.slash": 0.1
-    "resistance.blunt": 0.1
-    "resistance.pierce": 0.1
   tags: ["element", "non-metal", "organic-base"]
   composition: []
   symbol: C

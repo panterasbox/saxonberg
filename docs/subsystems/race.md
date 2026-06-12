@@ -22,20 +22,38 @@ Three things are *deferred* — the design context lives here for the
 follow-on builds:
 
 - Death/resurrection flow (state-machine present, transition flow
-  not).
+  not). **The Vitals subsystem now owns the transition driver** (a
+  fatal vital crossing its floor → `alive → dead`); race ships the
+  state machine + `isAnimate` gating, Vitals drives it. The driver
+  itself is deferred there too, but the seams (cause-of-death stamp,
+  derived consciousness) ship. See [vitals.md](./vitals.md).
 - Diet (`DietApi`, `Edible`, `Portable`) — the data is authored,
   but no consumer reads it yet.
 - Tissue authoring (named Details with their own descriptions and
-  materials), genetics, per-individual feature mixins, polymorph,
-  sleep/circadian, aging, character-creation UI.
+  materials) — **partly earned by Vitals**: `BodyPlan.bodyParts`
+  carries typed `BodyPart` descriptors with per-part tissue
+  composition (muscle / bone / flesh masses), the model layer for
+  anatomy and the deferred strength substrate. See
+  [vitals.md § Anatomy](./vitals.md). Genetics, per-individual feature
+  mixins, polymorph, sleep/circadian, aging, character-creation UI
+  remain deferred.
+
+`OrganismMixin` (and Vitals / Reserved / anatomy) now compose at the
+**`Creature`** layer — the body class between `Agent` and `Character`
+(see [docs/architecture.md](../architecture.md)).
 
 ---
 
 ## Material substrate
 
 `Material` is a singleton-by-templatePath `Idea` carrying physical
-properties (density, hardness, opacity, conductivity, …) plus three
-orthogonal layers of classification:
+properties — `density` (`Quantity<'kg/m³'>`) and `thermalConductivity`
+(`Quantity<'W/(m·K)'>`), the two real measured quantities — plus three
+orthogonal layers of classification. (The old fake 0–1 `hardness` /
+`flammability` / `opacity` / electrical / magnetic fields and the
+`resistance.<type>` damage seam were removed: normalized scales with
+zero consumers; they return as real Quantities when a consumer — fire,
+electricity, combat — actually lands.)
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
@@ -176,12 +194,16 @@ additionally composes `VisibleMixin`, so it speaks the standard
 fields stay first-class — they're part of the engine's vocabulary,
 all instances have them, the schema is stable. But where the keys
 are *content-defined* and the engine just stores/queries by name,
-the property bag is the right home. Damage resistance is the v1
-example:
+the property bag is the right home. The deferred combat /
+mechanism-of-injury system's per-material damage resistance is the
+motivating example — keys like `resistance.slash` are content-defined
+(the engine doesn't enumerate damage types), stored and queried by name:
 
 ```ts
-material.setDamageResistance('slash', 0.7);   // → setProp('resistance.slash')
-material.getDamageResistance('slash');        // → getProp('resistance.slash')
+// Illustrative — the convenience accessors were removed until combat
+// lands; the PropertiedMixin pattern below is what's permanent.
+material.setProp(Property.of<number>('resistance.slash'), 0.7);
+material.getProp(Property.of<number>('resistance.slash'));
 
 // Equipment / buff / curse can mask the effective value:
 shield.maskProp(
@@ -190,11 +212,8 @@ shield.maskProp(
 );
 ```
 
-Stored as `Property.of<number>('resistance.<damageType>')`. Damage
-type vocabulary (`'slash'`, `'blunt'`, `'pierce'`, `'fire'`,
-`'cold'`, …) is content-defined; the engine doesn't enumerate it.
 Free as a side effect: `maskProp` lets equipment / buffs / curses
-modify the effective resistance without touching the base, with
+modify the effective value without touching the base, with
 ownership-keyed unmask for clean removal.
 
 The hydration story: PropertiedMixin reads `savedProps` from the
@@ -217,11 +236,14 @@ an explicit `initProp` call from the host.
 - `findByElement(symbol)` — every registered Material whose
   composition contains the element. Combines the above.
 
-Future surfaces (`weightOf`, `flammabilityOf`, `canConduct`) land
-as their consumers do. `damageResistance` is on `Material` directly
-(see above) — when combat lands, it'll likely promote to
-`MaterialApi.damageResistance(stuff, type, detailKey?)` threading
-through `materialOf` for per-Stuff dispatch.
+Future surfaces land as their consumers do. Thermal heat-flow reads
+`thermalConductivity` when the Thermal capability arrives; per-material
+**damage resistance** returns when combat lands (likely
+`MaterialApi.damageResistance(stuff, type, detailKey?)` over the
+`resistance.<type>` prop convention above). Fire/electricity surfaces
+(`flammabilityOf`, `canConduct`) wait for those channels — and re-add
+the underlying material properties as real Quantities at that point,
+not as the fake 0–1 scalars that were removed.
 
 ---
 
@@ -266,6 +288,15 @@ deferred until a sub-clade lands and earns the inheritance machinery.
 
 `BodyPlan` is a singleton `Idea` declaring the physical anatomy:
 
+- `bodyParts: BodyPart[]` — typed anatomical part descriptors (the
+  model layer), declared once on the shared flyweight. Each part:
+  `{ key, parent, tissues, governsVital?, severable?,
+  innervatedBy?, suppliedBy? }`, with stable dotted `body.*` keys. The
+  slot↔part relations live on the slot side (`SlotSpec.bodyPart` /
+  `covers`), not on the part — see [vitals.md](./vitals.md).
+  Added by the Vitals build — the anatomy *site* + tissue/strength
+  substrate. Instances carry only deltas; the resolver lives on
+  `VitalsMixin`. See [vitals.md § Anatomy](./vitals.md).
 - `slots: SlotSpec[]` — the unified slot universe. Each spec carries
   the canonical slot name (`hand:left`, `back:1`), the mixin an
   occupant must compose (`'WearableMixin'`, `'WieldableMixin'`,

@@ -7,14 +7,18 @@ class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: quadruped
+  # Slots reference anatomy via `bodyPart` / `covers` where they have a
+  # home. `back:1` (the saddle/rider surface) deliberately has neither —
+  # it's a non-anatomical surface affordance, the case that keeps slots a
+  # distinct axis rather than something anatomy owns.
   slots:
-    - { name: head,    accepts: WearableMixin }
+    - { name: head,    accepts: WearableMixin, covers: [body.head] }
     - { name: collar,  accepts: WearableMixin }
     - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
     # Cranial implant slot — parallel to biped. See augmentation
     # subsystem doc; sessile body plans deliberately omit this slot
     # (plants don't get implants in v1).
-    - { name: cranial, accepts: SlottableMixin }
+    - { name: cranial, accepts: SlottableMixin, bodyPart: body.head }
   locomotionModes:
     - walk
     - swim
@@ -23,3 +27,56 @@ data:
     - { modality: vision, count: 2, position: frontal }
     - { modality: hearing, count: 2, position: lateral }
     - { modality: smell, count: 1, position: forward }
+  # Typed anatomy (Vitals substrate). Four legs, no prehensile hands, so
+  # no enablesSlots couplings in v1. Heart / lungs govern their vitals.
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 6 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 10 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 12 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 0.8 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 2 }
+    - key: body.leg.frontLeft
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 2 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.leg.frontRight
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 2 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.leg.rearLeft
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1.2 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 2.5 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.leg.rearRight
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /lib/material/tissue/bone, mass: 1.2 }
+        - { tissuePath: /lib/material/tissue/muscle, mass: 2.5 }
+        - { tissuePath: /lib/material/tissue/flesh, mass: 1 }
+    - key: body.torso.heart
+      parent: body.torso
+      governsVital: heartRate
+      tissues:
+        - { tissuePath: /lib/material/tissue/muscle, mass: 0.1 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governsVital: respiratoryRate
+      tissues:
+        - { tissuePath: /lib/material/tissue/flesh, mass: 0.5 }

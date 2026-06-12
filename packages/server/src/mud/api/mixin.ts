@@ -60,6 +60,8 @@ import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
+import type { Vitals } from '../lib/vitals/Vitals';
+import type { Reserved } from '../lib/reserve';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
@@ -578,6 +580,14 @@ export class MixinApi {
 
   public static isSexed(obj: Stuff): obj is Stuff & Sexed {
     return this.hasMixin(obj, Mixins.Sexed);
+  }
+
+  public static isVitals(obj: Stuff): obj is Stuff & Vitals {
+    return this.hasMixin(obj, Mixins.Vitals);
+  }
+
+  public static isReserved(obj: Stuff): obj is Stuff & Reserved {
+    return this.hasMixin(obj, Mixins.Reserved);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {

@@ -54,6 +54,51 @@ export interface SensoryPort {
   position: string;
 }
 
+/**
+ * Named tissue + its mass (kg) within a body part. The per-part
+ * substrate a future physical-attribute reading (strength = force over
+ * muscle mass) aggregates. v1 authors muscle / bone / flesh.
+ */
+export interface TissueComposition {
+  /** Material templatePath, e.g. `/lib/material/tissue/muscle`. */
+  tissuePath: string;
+  /** Mass in kg (plain number; no Quantity to keep the descriptor flat). */
+  mass: number;
+}
+
+/**
+ * Typed anatomical part descriptor — the model layer, declared ONCE on
+ * the shared BodyPlan flyweight (not per-instance). Instances carry only
+ * deltas (`VitalsMixin.bodyPartDeltas`); the anatomy resolver merges
+ * instance-delta → BodyPlan-structure (the `getMaterial` / `getSpecies`
+ * resolution shape).
+ *
+ * Stable dotted `body.*` keys are the identity anchor everything
+ * downstream points at: trauma `site`, the slot/vital couplings, and
+ * (deferred-with-seam) the innervation / vascular graph and
+ * part-as-Stuff promotion.
+ */
+export interface BodyPart {
+  /** Canonical dotted path, e.g. `'body.arm.left.hand'`. */
+  key: string;
+  /** Tree edge to the parent part, or `null` for the root. */
+  parent: string | null;
+  /** Named tissues + masses — NOT a single default material. */
+  tissues: TissueComposition[];
+  /**
+   * Organ → vital coupling. A `VitalSign` key (see `lib/vitals/Vitals.ts`);
+   * typed `string` here deliberately to keep `BodyPlan` free of any
+   * import from `lib/vitals`.
+   */
+  governsVital?: string;
+  /** Can detach — future part-promotion seam. */
+  severable?: boolean;
+  // Deferred-with-seam (declared, no reader this build): the
+  // innervation / vascular graph, orthogonal to the containment tree.
+  innervatedBy?: string[];
+  suppliedBy?: string[];
+}
+
 export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Display name (e.g. `'biped'`, `'quadruped'`). */
   protected name: string = '';
@@ -98,12 +143,20 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected sensoryPorts: SensoryPort[] = [];
 
+  /**
+   * Typed anatomical structure — the body's parts as a tree, shared
+   * across every organism of this body plan. Parallel to `slots`.
+   * Instances carry only deltas; see {@link BodyPart}.
+   */
+  public bodyParts: BodyPart[] = [];
+
   static persistentFields = [
     'name',
     'slots',
     'locomotionModes',
     'defaultLocomotionMode',
     'sensoryPorts',
+    'bodyParts',
   ];
 
   public getName(): string { return this.name; }
@@ -129,6 +182,10 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
         );
       }
     }
+    // Referential integrity: any anatomical reference (bodyPart / covers)
+    // must name a real part. Checked against whichever set is already
+    // populated, so it fires regardless of hydration order.
+    this.validateSlotPartRefs(value, this.bodyParts);
     this.slots = value;
   }
 
@@ -154,6 +211,84 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getSensoryPorts(): readonly SensoryPort[] { return this.sensoryPorts; }
   public setSensoryPorts(value: SensoryPort[]): void {
     this.sensoryPorts = value;
+  }
+
+  public getBodyParts(): readonly BodyPart[] { return this.bodyParts; }
+  public setBodyParts(value: BodyPart[]): void {
+    const keys = new Set<string>();
+    for (const part of value) {
+      if (!part.key || typeof part.key !== 'string') {
+        throw new Error(
+          `BodyPlan.setBodyParts: part missing 'key' (${JSON.stringify(part)})`,
+        );
+      }
+      if (keys.has(part.key)) {
+        throw new Error(`BodyPlan.setBodyParts: duplicate key '${part.key}'`);
+      }
+      keys.add(part.key);
+      if (!Array.isArray(part.tissues)) {
+        throw new Error(
+          `BodyPlan.setBodyParts: part '${part.key}' missing 'tissues' array`,
+        );
+      }
+    }
+    // Parent edges must reference a known key (or null/undefined for a root).
+    for (const part of value) {
+      if (
+        part.parent !== null &&
+        part.parent !== undefined &&
+        !keys.has(part.parent)
+      ) {
+        throw new Error(
+          `BodyPlan.setBodyParts: part '${part.key}' parent ` +
+            `'${part.parent}' is not a known part`,
+        );
+      }
+    }
+    // Re-validate the slot→part references against the new part set (the
+    // other half of the order-independent integrity check in setSlots).
+    this.validateSlotPartRefs(this.slots, value);
+    this.bodyParts = value;
+  }
+
+  /**
+   * The slot↔part relations are typed references on the slot side
+   * (`SlotSpec.bodyPart` / `covers`). This enforces referential
+   * integrity: every reference must name a real `BodyPart`. Lenient when
+   * either set is empty (nothing to check yet — covers the hydration
+   * window where slots load before bodyParts).
+   */
+  private validateSlotPartRefs(
+    slots: readonly SlotSpec[],
+    parts: readonly BodyPart[],
+  ): void {
+    if (slots.length === 0 || parts.length === 0) return;
+    const keys = new Set(parts.map((p) => p.key));
+    for (const spec of slots) {
+      if (spec.bodyPart !== undefined && !keys.has(spec.bodyPart)) {
+        throw new Error(
+          `BodyPlan: slot '${spec.name}' bodyPart '${spec.bodyPart}' ` +
+            `is not a known part`,
+        );
+      }
+      for (const covered of spec.covers ?? []) {
+        if (!keys.has(covered)) {
+          throw new Error(
+            `BodyPlan: slot '${spec.name}' covers unknown part '${covered}'`,
+          );
+        }
+      }
+    }
+  }
+
+  /** Slots located at (attached to / enabled by) the given part key. */
+  public getSlotsAt(partKey: string): readonly SlotSpec[] {
+    return this.slots.filter((s) => s.bodyPart === partKey);
+  }
+
+  /** Slots whose occupant covers the given part key (coverage relation). */
+  public getSlotsCovering(partKey: string): readonly SlotSpec[] {
+    return this.slots.filter((s) => (s.covers ?? []).includes(partKey));
   }
 
   /**

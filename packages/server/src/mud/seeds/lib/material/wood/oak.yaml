@@ -12,19 +12,10 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: oak
   density: 750
-  hardness: 3
-  flammability: 0.4
-  opacity: 1
   thermalConductivity: 0.17
-  electricalConductivity: 1.0e-13
-  magneticSusceptibility: 0.0
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []
-  savedProps:
-    "resistance.slash": 0.5
-    "resistance.blunt": 0.4
-    "resistance.pierce": 0.45
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
   chemistry: null

@@ -1,5 +1,16 @@
 # Vitals slate (working doc)
 
+> **Status (2026-06):** the **substrate / Wave 1 has shipped** — the
+> `Creature` body/agency split, vital signs + `vitalProfile`, typed
+> anatomy + tissue, the two-kind condition *type system*, the
+> generalized `Reserve` substrate, and the death/consciousness *seams*.
+> See [vitals.md](../../subsystems/vitals.md) and
+> [reserve.md](../../subsystems/reserve.md). What remains here is the
+> design surface for the **application** waves (live condition
+> progression, the death-transition driver, assessment / instruments /
+> treatment, consumables, forensics) and the open questions — this slate
+> stays until those are absorbed.
+
 Working slate for the **Vitals** subsystem — the basic-biology layer
 that gives a living agent a lifecycle: it can be healthy, hurt, sick,
 exhausted, unconscious, and dead. No RPG, no combat, no character

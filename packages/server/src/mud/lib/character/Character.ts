@@ -1,39 +1,39 @@
 /**
  * Character - Abstract base class for all sentient beings (PCs and NPCs)
  *
- * This abstract class provides a common structure for player characters (PCs)
- * and non-player characters (NPCs), enforcing consistent interface while allowing
- * different implementations for progression logic.
+ * The **agency** layer on top of `Creature` (the body layer). A
+ * Character is a Creature that can act: execute commands, perceive,
+ * speak, move, engage, and carry a narrative/social identity. The
+ * body itself — identity, species/lifecycle, sex, anatomy slots,
+ * posture, description, containment, vitals, reserves — lives on
+ * `Creature` (`lib/creature/Creature.ts`).
  *
- * Composition: CommandGiver + Mobile + Engaged + Container + Containable + Visible + Vocal + Sensor + Gendered + Named + Agent
+ * Composition (agency, inner→outer on `Creature`):
+ *   Persona + Gendered + Sensor + Perceiver + Perception + Vocal +
+ *   Soul + Engaged + Mobile + CommandGiver
  *
  * Commands are inherited from mixins and subclasses:
- * - ContainerMixin provides: inventory, get, drop
+ * - ContainerMixin (on Creature) provides: inventory, get, drop
  * - PerceiverMixin provides: look / scry / locate
  * - Avatar provides: ping, help, player (diagnostic commands)
  *
  * Key Design Points:
  * - NO stat fields in Character itself (xp, level are PC-specific, deferred)
- * - honorific/name/surname/suffix/alternateNames/fullName come from NamedMixin
- * - pronouns come from GenderedMixin
- * - shortDescription/longDescription come from VisibleMixin
- * - inventory management from ContainerMixin
+ * - honorific/name/surname/suffix/alternateNames/fullName come from NamedMixin (Creature)
+ * - pronouns come from GenderedMixin (social presentation — Character-tier)
+ * - shortDescription/longDescription come from VisibleMixin (Creature)
+ * - inventory management from ContainerMixin (Creature)
  * - Message capabilities from Sensor/Vocal mixins
  * - Movement capability from MobileMixin (traverse(), teleport())
- * - Container placement from ContainableMixin (setContainer/getContainer)
+ * - Container placement from ContainableMixin (Creature)
  * - Command execution from CommandGiverMixin (executeCommand, getAvailableCommands)
  *
  * Runtime-only class (no MongoDB collection).
  */
 
-import { Agent } from '../stuff/Agent';
-import { NamedMixin } from '../description/Named';
+import { Creature } from '../creature/Creature';
 import { GenderedMixin } from './Gendered';
-import { SexedMixin } from './Sexed';
 import { PersonaMixin } from './Persona';
-import { ContainableMixin } from '../spatial/Containable';
-import { ContainerMixin } from '../spatial/Container';
-import { VisibleMixin } from '../description/Visible';
 import { MobileMixin } from '../spatial/Mobile';
 import { SensorMixin } from '../message/Sensor';
 import { PerceiverMixin } from '../description/Perceiver';
@@ -41,73 +41,33 @@ import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
-import { OrganismMixin } from '../species/Organism';
-import { PosedMixin } from './Posed';
 import { EngagedMixin } from '../activity/Engaged';
-import { SlottedMixin } from '../slot/Slotted';
-import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 
-// Compose mixins:
-//   CommandGiver + Mobile + Container + Containable + Visible +
-//   Vocal + Perception + Perceiver + Sensor + Gendered + Organism +
-//   Named + Agent
-// Order matters: ContainableMixin before MobileMixin (MobileMixin uses setContainer/getContainer)
-// Verbs come from mixins:
-//   - ContainerMixin → inventory / get / drop
-//   - PerceiverMixin → look / scry / locate (actor-side, on `self`)
-// VisibleMixin is target-shape only — description state, no verbs.
-// Sensor + Perception together = the full perceiver substrate:
-// Sensor handles channel-side message receipt, Perception handles
-// the subjective interpretation seams that VisionModality (and future
-// hearing/etc.) ask the viewer to modulate. PerceiverMixin sits
-// directly above Sensor (it requires Sensor for output routing)
-// and owns the perception verb surface as a separate role from
-// Sensor's "I receive scene output."
-// OrganismMixin sits between NamedMixin and GenderedMixin in the
-// composition chain — the slot puts a species/age/lifecycle surface
-// alongside basic identity, before the gender / sensory / perception
-// layers stack on top. See race.md for the rationale.
-//
-// EngagedMixin sits immediately below MobileMixin so the body-slot
-// engagement (Wave 2's source of truth for `Mobile.getEngagedMode`)
-// can be read without forward references. Engagement is orthogonal
-// to mobility — a stationary forge-bound creature is Engaged but not
-// Mobile — but co-composing on Character gets both surfaces on every
-// PC and NPC in one shot.
-// BodyPlanSlotsMixin sits above SlottedMixin (overrides its defaults
-// to derive slots from species → bodyPlan) and below OrganismMixin
-// (which provides the species reference BodyPlanSlots reads).
-// Required for wear/wield AND for the augmentation Wave 1 cranial
-// slot the AetherImplant occupies. Per docs/subsystems/slot.md
-// the standard organism-body-plan slot pattern.
+// Compose the agency mixins on top of the Creature body layer.
+// Order matters:
+// - PerceiverMixin sits directly above SensorMixin (it requires
+//   Sensor for output routing) and owns the perception verb surface
+//   as a separate role from Sensor's "I receive scene output."
+//   Sensor + Perception together = the full perceiver substrate.
+// - EngagedMixin sits immediately below MobileMixin so the body-slot
+//   engagement (source of truth for `Mobile.getEngagedMode`) can be
+//   read without forward references. Engagement is orthogonal to
+//   mobility — a stationary forge-bound creature is Engaged but not
+//   Mobile — but co-composing on Character gets both surfaces on
+//   every PC and NPC in one shot.
+// - ContainableMixin (on Creature) is inner of MobileMixin (which
+//   uses setContainer/getContainer) — preserved inner→outer across
+//   the body/agency boundary.
+// - PersonaMixin + GenderedMixin (narrative + social identity) sit
+//   innermost on the agency stack, above the Creature body.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
     EngagedMixin(
-      ContainerMixin(
-        ContainableMixin(
-          VisibleMixin(
-            SoulMixin(
-              VocalMixin(
-                PerceptionMixin(
-                  PerceiverMixin(
-                    SensorMixin(
-                      GenderedMixin(
-                        PosedMixin(
-                          BodyPlanSlotsMixin(
-                            SlottedMixin(
-                              SexedMixin(
-                                PersonaMixin(
-                                  OrganismMixin(NamedMixin(Agent)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  )
-                )
-              )
+      SoulMixin(
+        VocalMixin(
+          PerceptionMixin(
+            PerceiverMixin(
+              SensorMixin(GenderedMixin(PersonaMixin(Creature)))
             )
           )
         )
@@ -121,6 +81,7 @@ const CharacterBase = CommandGiverMixin(
  *
  * Type checking should use TypeScript's type system:
  * - `avatar instanceof Avatar` - check if player character
+ * - `avatar instanceof Creature` - check if it has a body
  * - `npc instanceof NPC` - check if NPC (when we implement NPCs)
  */
 export abstract class Character extends CharacterBase {

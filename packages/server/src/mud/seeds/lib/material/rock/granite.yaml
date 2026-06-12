@@ -12,19 +12,10 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: granite
   density: 2750
-  hardness: 7
-  flammability: 0
-  opacity: 1
-  thermalConductivity: 2.8
-  electricalConductivity: 1.0e-6
-  magneticSusceptibility: 0.001
+  thermalConductivity: 2.9
   edibility: false
   nutrients: []
   toxicity: []
-  savedProps:
-    "resistance.slash": 0.8
-    "resistance.blunt": 0.7
-    "resistance.pierce": 0.6
   tags: ["rock", "igneous", "mixture", "crystalline", "felsic"]
   composition: []
   chemistry: null

@@ -16,19 +16,10 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: uranium
   density: 19050
-  hardness: 6
-  flammability: 0
-  opacity: 1
   thermalConductivity: 27
-  electricalConductivity: 3.6e6
-  magneticSusceptibility: 0.4e-5
   edibility: false
   nutrients: []
   toxicity: ["radiation", "heavy-metal"]
-  savedProps:
-    "resistance.slash": 0.85
-    "resistance.blunt": 0.5
-    "resistance.pierce": 0.65
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
   composition: []
   symbol: U
