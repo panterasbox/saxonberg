@@ -85,8 +85,6 @@ export interface BodyPart {
   parent: string | null;
   /** Named tissues + masses — NOT a single default material. */
   tissues: TissueComposition[];
-  /** Slots this part gates — losing the part disables them (coarse v1). */
-  enablesSlots?: string[];
   /**
    * Organ → vital coupling. A `VitalSign` key (see `lib/vitals/Vitals.ts`);
    * typed `string` here deliberately to keep `BodyPlan` free of any
@@ -184,6 +182,10 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
         );
       }
     }
+    // Referential integrity: any anatomical reference (bodyPart / covers)
+    // must name a real part. Checked against whichever set is already
+    // populated, so it fires regardless of hydration order.
+    this.validateSlotPartRefs(value, this.bodyParts);
     this.slots = value;
   }
 
@@ -243,7 +245,50 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
         );
       }
     }
+    // Re-validate the slot→part references against the new part set (the
+    // other half of the order-independent integrity check in setSlots).
+    this.validateSlotPartRefs(this.slots, value);
     this.bodyParts = value;
+  }
+
+  /**
+   * The slot↔part relations are typed references on the slot side
+   * (`SlotSpec.bodyPart` / `covers`). This enforces referential
+   * integrity: every reference must name a real `BodyPart`. Lenient when
+   * either set is empty (nothing to check yet — covers the hydration
+   * window where slots load before bodyParts).
+   */
+  private validateSlotPartRefs(
+    slots: readonly SlotSpec[],
+    parts: readonly BodyPart[],
+  ): void {
+    if (slots.length === 0 || parts.length === 0) return;
+    const keys = new Set(parts.map((p) => p.key));
+    for (const spec of slots) {
+      if (spec.bodyPart !== undefined && !keys.has(spec.bodyPart)) {
+        throw new Error(
+          `BodyPlan: slot '${spec.name}' bodyPart '${spec.bodyPart}' ` +
+            `is not a known part`,
+        );
+      }
+      for (const covered of spec.covers ?? []) {
+        if (!keys.has(covered)) {
+          throw new Error(
+            `BodyPlan: slot '${spec.name}' covers unknown part '${covered}'`,
+          );
+        }
+      }
+    }
+  }
+
+  /** Slots located at (attached to / enabled by) the given part key. */
+  public getSlotsAt(partKey: string): readonly SlotSpec[] {
+    return this.slots.filter((s) => s.bodyPart === partKey);
+  }
+
+  /** Slots whose occupant covers the given part key (coverage relation). */
+  public getSlotsCovering(partKey: string): readonly SlotSpec[] {
+    return this.slots.filter((s) => (s.covers ?? []).includes(partKey));
   }
 
   /**

@@ -6,10 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import type {
-  Trauma,
-  AfflictionRecord,
-} from '../../condition/ActiveCondition';
+import type { Trauma, AfflictionRecord } from '../Condition';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';

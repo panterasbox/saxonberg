@@ -6,22 +6,29 @@ class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: biped
+  # Slots reference anatomy where they have a home (the slot↔part
+  # relations live on the slot side): `bodyPart` = the part the slot
+  # attaches at (lose it → slot disabled); `covers` = parts an occupant
+  # protects (coverage relation, for armor / hit-location — no consumer
+  # yet). Multi-part wear slots (legs/feet/hands) have no single
+  # `bodyPart`; the cranial bay and neck attach at a part but cover
+  # nothing. See docs/subsystems/vitals.md.
   slots:
-    - { name: head,           accepts: WearableMixin }
-    - { name: torso,          accepts: WearableMixin }
-    - { name: legs,           accepts: WearableMixin }
-    - { name: feet,           accepts: WearableMixin }
-    - { name: hands,          accepts: WearableMixin }
-    - { name: 'finger:left',  accepts: WearableMixin }
-    - { name: 'finger:right', accepts: WearableMixin }
+    - { name: head,           accepts: WearableMixin, covers: [body.head] }
+    - { name: torso,          accepts: WearableMixin, covers: [body.torso] }
+    - { name: legs,           accepts: WearableMixin, covers: [body.leg.left, body.leg.right] }
+    - { name: feet,           accepts: WearableMixin, covers: [body.leg.left.foot, body.leg.right.foot] }
+    - { name: hands,          accepts: WearableMixin, covers: [body.arm.left.hand, body.arm.right.hand] }
+    - { name: 'finger:left',  accepts: WearableMixin, bodyPart: body.arm.left.hand }
+    - { name: 'finger:right', accepts: WearableMixin, bodyPart: body.arm.right.hand }
     - { name: neck,           accepts: WearableMixin }
-    - { name: 'hand:left',    accepts: WieldableMixin }
-    - { name: 'hand:right',   accepts: WieldableMixin }
+    - { name: 'hand:left',    accepts: WieldableMixin, bodyPart: body.arm.left.hand }
+    - { name: 'hand:right',   accepts: WieldableMixin, bodyPart: body.arm.right.hand }
     # Cranial implant slot — accepts SlottableMixin (the broad
     # interface every augment composes). The "implant" semantic
     # lives in the slot's name and the augment's targetSlot field,
     # not in the validator enum. See docs/subsystems/augmentation.md.
-    - { name: cranial,        accepts: SlottableMixin }
+    - { name: cranial,        accepts: SlottableMixin, bodyPart: body.head }
   locomotionModes:
     - walk
     - climb
@@ -58,7 +65,6 @@ data:
     - key: body.arm.left.hand
       parent: body.arm.left
       severable: true
-      enablesSlots: ['hand:left', 'finger:left']
       tissues:
         - { tissuePath: /lib/material/tissue/bone, mass: 0.4 }
         - { tissuePath: /lib/material/tissue/muscle, mass: 0.3 }
@@ -73,7 +79,6 @@ data:
     - key: body.arm.right.hand
       parent: body.arm.right
       severable: true
-      enablesSlots: ['hand:right', 'finger:right']
       tissues:
         - { tissuePath: /lib/material/tissue/bone, mass: 0.4 }
         - { tissuePath: /lib/material/tissue/muscle, mass: 0.3 }

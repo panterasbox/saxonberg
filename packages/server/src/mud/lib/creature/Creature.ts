@@ -46,7 +46,7 @@ import { VisibleMixin } from '../description/Visible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
-import { ReservedMixin } from '../reserve/Reserved';
+import { ReservedMixin } from '../reserve';
 
 // Body stack (inner → outer):
 //   Container + Containable + Visible + Vitals + Reserved + Posed +

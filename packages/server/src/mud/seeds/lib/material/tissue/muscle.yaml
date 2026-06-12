@@ -1,25 +1,18 @@
 # Muscle — contractile animal tissue. The per-part substrate a future
-# strength reading (force over muscle mass) aggregates. Soft, denser
-# than fat, edible.
+# strength reading (force over muscle mass) aggregates. Lean seed —
+# only the values that matter for the vitals/injury role; the rest of
+# Material's physics fields default. (`density` is Material's one
+# Quantity field — Quantity<'kg/m³'>, authored bare + marshalled.)
 class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: muscle
   density: 1060
   hardness: 0.4
-  flammability: 0.2
-  opacity: 1
-  thermalConductivity: 0.5
-  electricalConductivity: 0.6
-  magneticSusceptibility: 0.0
   edibility: true
   nutrients: ["protein", "water"]
-  toxicity: []
   savedProps:
     "resistance.slash": 0.05
     "resistance.blunt": 0.15
     "resistance.pierce": 0.05
   tags: ["tissue", "animal", "muscle", "organic", "living", "edible"]
-  composition: []
-  chemistry: null
-  biologicalSource: null

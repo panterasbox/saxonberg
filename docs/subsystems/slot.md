@@ -12,7 +12,7 @@ boundary fixture system (post-retrofit `Adornable`).
 |---|---|---|
 | `Slotted` | `lib/slot/Slotted.ts` | Host mixin — exposes slots that things can occupy |
 | `Slottable` | `lib/slot/Slottable.ts` | Marker mixin — anything that can sit in a slot. Carries `fitsSlot(host, slot)` with a default `() => true`; Wearable/Wieldable override |
-| `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail) |
+| `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail, `bodyPart`, `covers`). `bodyPart`/`covers` are optional `body.*` references to anatomy (Vitals) — a slot is its own axis that *references* anatomy where it has a home; see [vitals.md](./vitals.md) |
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
 | `BodyPlanSlotsMixin` | `lib/slot/BodyPlanSlots.ts` | Sibling provider — Pattern B, derives universe from species → bodyPlan |
 | `SlotApi` | `api/slot.ts` | Cross-cutting helpers (multi-slot transactional ops, inverse lookups, slot resolution, conveyance ripple walker) |

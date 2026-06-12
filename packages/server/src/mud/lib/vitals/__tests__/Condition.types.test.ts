@@ -5,13 +5,12 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
-import {
+import Condition, {
   TRAUMA_BEHAVIOR,
   NOOP_BEHAVIOR,
   type TraumaType,
   type Trauma,
-} from '../ActiveCondition';
-import Condition from '../Condition';
+} from '../Condition';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

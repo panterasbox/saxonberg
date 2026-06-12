@@ -7,14 +7,18 @@ class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: quadruped
+  # Slots reference anatomy via `bodyPart` / `covers` where they have a
+  # home. `back:1` (the saddle/rider surface) deliberately has neither —
+  # it's a non-anatomical surface affordance, the case that keeps slots a
+  # distinct axis rather than something anatomy owns.
   slots:
-    - { name: head,    accepts: WearableMixin }
+    - { name: head,    accepts: WearableMixin, covers: [body.head] }
     - { name: collar,  accepts: WearableMixin }
     - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
     # Cranial implant slot — parallel to biped. See augmentation
     # subsystem doc; sessile body plans deliberately omit this slot
     # (plants don't get implants in v1).
-    - { name: cranial, accepts: SlottableMixin }
+    - { name: cranial, accepts: SlottableMixin, bodyPart: body.head }
   locomotionModes:
     - walk
     - swim

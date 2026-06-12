@@ -281,8 +281,10 @@ deferred until a sub-clade lands and earns the inheritance machinery.
 
 - `bodyParts: BodyPart[]` — typed anatomical part descriptors (the
   model layer), declared once on the shared flyweight. Each part:
-  `{ key, parent, tissues, enablesSlots?, governsVital?, severable?,
-  innervatedBy?, suppliedBy? }`, with stable dotted `body.*` keys.
+  `{ key, parent, tissues, governsVital?, severable?,
+  innervatedBy?, suppliedBy? }`, with stable dotted `body.*` keys. The
+  slot↔part relations live on the slot side (`SlotSpec.bodyPart` /
+  `covers`), not on the part — see [vitals.md](./vitals.md).
   Added by the Vitals build — the anatomy *site* + tissue/strength
   substrate. Instances carry only deltas; the resolver lives on
   `VitalsMixin`. See [vitals.md § Anatomy](./vitals.md).

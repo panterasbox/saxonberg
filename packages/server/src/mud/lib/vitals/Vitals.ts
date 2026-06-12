@@ -37,8 +37,7 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
-import type { Reserved } from '../reserve/Reserved';
-import type { ActiveCondition } from '../condition/ActiveCondition';
+import type { ActiveCondition } from './Condition';
 
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
@@ -325,12 +324,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (v < band.survivableMin || v > band.survivableMax) severity += 1;
       }
 
-      // Phase 4 — a floored biological reserve (exhaustion / starvation /
-      // dehydration) degrades the body. Read the host's reserve surface
-      // if it composes ReservedMixin.
-      const reserved = this as unknown as Partial<Reserved>;
-      if (typeof reserved.getReserves === 'function') {
-        for (const r of reserved.getReserves().values()) {
+      // A floored biological reserve (exhaustion / starvation /
+      // dehydration) degrades the body. `isReserved` narrows the host so
+      // the reserve surface is type-checked (no duck-typing cast).
+      if (MixinApi.isReserved(self)) {
+        for (const r of self.getReserves().values()) {
           if (r.theme === 'biological' && r.current.rawValue() <= 0) {
             severity += 1;
           }
@@ -422,9 +420,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public isSlotDisabledByAnatomy(slot: string): boolean {
-      return this.getParts().some(
-        (p) => p.missing && (p.enablesSlots ?? []).includes(slot),
-      );
+      // The slot→part relation lives on the slot (`SlotSpec.bodyPart`):
+      // resolve the slot's anatomical part, then check whether it's gone.
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getSlots()
+        .find((s) => s.name === slot);
+      if (!spec?.bodyPart) return false;
+      return this.getPart(spec.bodyPart)?.missing ?? false;
     }
 
     // ---------- conditions (both kinds, one collection) ----------

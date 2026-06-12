@@ -8,10 +8,15 @@ same axis — they differ only in **what drains them, what replenishes
 them, and their theme**. So the engine ships the *axis* and content
 names the instances.
 
-Source: `lib/reserve/Reserve.ts` (value shape + decomposed persistence +
-the biological-key constant) and `lib/reserve/Reserved.ts` (the
-`ReservedMixin`). It is a substrate module + a mixin — **no Api, no
-registry** (the `lib/quantity.ts` precedent).
+Source: `lib/reserve.ts` — a **top-level cross-cutting substrate** (the
+value shape + decomposed persistence + the biological-key constant + the
+`ReservedMixin`), sitting at `lib/` root next to `lib/quantity.ts`
+because a reserve is a neutral capacity primitive that consumers (body,
+later magic) name and drive, not biology and not a game system. It is a
+substrate module + a mixin — **no Api, no registry** (the
+`lib/quantity.ts` precedent). Parking note: it lives here until the RPG
+layer reveals a better organizing principle (game systems over a common
+physics substrate).
 
 This build ships the substrate + the biological instances + the
 authored-thematic seam. The reserve *producers* (consumption refilling

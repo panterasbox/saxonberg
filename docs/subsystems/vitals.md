@@ -9,8 +9,8 @@ driver, condition content, instruments, treatment verbs). Bodies that
 yet.
 
 Source: `lib/vitals/Vitals.ts` (the `VitalsMixin`),
-`lib/condition/` (the condition type system),
-`lib/reserve/` (the reserve substrate — see [reserve.md](./reserve.md)),
+`lib/vitals/Condition.ts` (the condition type system),
+`lib/reserve.ts` (the reserve substrate — see [reserve.md](./reserve.md)),
 plus `Species.vitalProfile` and `BodyPlan.bodyParts`.
 
 ## The load-bearing decision: no stored health scalar
@@ -130,8 +130,8 @@ capability-magic-slate) — so it is modeled in full.
 
 - **`BodyPlan.bodyParts: BodyPart[]`** — typed part descriptors declared
   ONCE on the shared `biped`/`quadruped` body-plan flyweight, parallel to
-  `slots`. Each `BodyPart` carries `{ key, parent, tissues, enablesSlots?,
-  governsVital?, severable?, innervatedBy?, suppliedBy? }`. v1 roster:
+  `slots`. Each `BodyPart` carries `{ key, parent, tissues, governsVital?,
+  severable?, innervatedBy?, suppliedBy? }`. v1 roster:
   head / torso / limbs (+hands/feet) + heart / lungs.
 - **Tissue composition** — each part carries named tissues with masses
   (`{ tissuePath, mass }`), not a single material. Tissues are authored
@@ -143,10 +143,18 @@ capability-magic-slate) — so it is modeled in full.
   lives on the shared `BodyPlan`. `getParts()` walks
   instance-delta → BodyPlan-structure (the `getMaterial` / `getSpecies`
   resolution shape) and returns `ResolvedBodyPart` (structure + `missing`).
-- **Couplings as data** — `enablesSlots` gates wear/wield (a missing hand
-  disables its `hand:left` slot via a coarse consult in
-  `SlottedMixin.canOccupy`, no-op unless a part is actually gone);
-  `governsVital` is the organ→vital coupling (heart → `heartRate`).
+- **Slot↔part relations live on the slot, not the part.** Anatomy is its
+  own axis; slots *reference* it. `SlotSpec.bodyPart` (a `body.*` key) is
+  the attach/enable edge — a missing part disables the slot via a coarse
+  consult in `SlottedMixin.canOccupy` (`MixinApi.isVitals` narrows the
+  host; no-op unless the part is gone). `SlotSpec.covers` is the coverage
+  edge (one slot → many parts, for future armor / hit-location — declared
+  seam). `BodyPlan` validates both references (referential integrity) and
+  exposes the reverse query `getSlotsAt` / `getSlotsCovering`. Parts stay
+  pure anatomy — no slot knowledge. The organ→vital coupling stays on the
+  part (`governsVital`, heart → `heartRate`). Non-anatomical affordances
+  (a saddle surface, a cranial implant bay) carry neither edge — slots
+  remain a distinct axis, not something anatomy owns.
 - **Stable `body.*` keys** are the identity anchor everything downstream
   points at — trauma `site`, the couplings, and the deferred graph /
   part-promotion. Locked now.
@@ -161,14 +169,14 @@ A condition is a discrete affliction on the body. Both kinds present
 behind one `ActiveCondition` collection (`getConditions` / `afflict` /
 `relieve`); they differ only in where *behavior* lives.
 
-- **Kind A — afflictions** (`lib/condition/Condition.ts`): identity-
-  bearing authored content as `Condition extends Idea` templates, resolved
+- **Kind A — afflictions** (`Condition` in `lib/vitals/Condition.ts`):
+  identity-bearing authored content as `Condition extends Idea` templates, resolved
   by `findByTemplatePath` like Materials/Species. The instance record is
   `{ kind: 'affliction', templatePath, stage, elapsed }`; behavior lives
   on the Idea. **Zero content ships** (no influenza, no venom) — the class
   + `ConditionTemplate` field shape only.
-- **Kind B — trauma** (`lib/condition/ActiveCondition.ts`): a parameterized
-  value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
+- **Kind B — trauma** (the `Trauma` value in `lib/vitals/Condition.ts`):
+  a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
   avulsion | burn`) and the `TRAUMA_BEHAVIOR` strategy table
   (`onset`/`tick`/`resolve`/`describe`). The table ships its **no-op
@@ -206,7 +214,7 @@ ships only the **seams**:
 ## Reserves
 
 Endurance / satiation / hydration are biological instances of the
-generalized **`Reserve`** substrate (`lib/reserve/`) — see
+generalized **`Reserve`** substrate (`lib/reserve.ts`) — see
 [reserve.md](./reserve.md). A floored biological reserve feeds the
 derived `getConditionBand` (a derived reading, like consciousness reads
 vitals). The reserve *producers* (consumption, exertion wiring) are

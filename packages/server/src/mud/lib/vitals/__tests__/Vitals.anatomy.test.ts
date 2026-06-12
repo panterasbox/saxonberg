@@ -24,7 +24,9 @@ class SlottableThing extends SlottableThingBase {}
 function anatomicalCreature(): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-biped');
-  plan.setSlots([{ name: 'grip', accepts: 'SlottableMixin' }]);
+  plan.setSlots([
+    { name: 'grip', accepts: 'SlottableMixin', bodyPart: 'body.arm.left.hand' },
+  ]);
   plan.setBodyParts([
     {
       key: 'body.torso',
@@ -41,7 +43,6 @@ function anatomicalCreature(): Creature {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
       severable: true,
-      enablesSlots: ['grip'],
       tissues: [{ tissuePath: '/lib/material/tissue/bone', mass: 0.4 }],
     },
     {
