@@ -155,4 +155,22 @@ describe('Login', () => {
       expect(enter).not.toHaveBeenCalled();
     });
   });
+
+  describe('guest identity', () => {
+    it('reserves the guest word "Guest"', () => {
+      expect(Login.GUEST_RESERVED_WORD).toBe('Guest');
+    });
+
+    it('names a guest with the reserved word + an optional namebank surname', async () => {
+      const { name, surname } = await Login.generateGuestName();
+      expect(name).toBe(Login.GUEST_RESERVED_WORD);
+      // No parallel hardcoded name list: the surname comes from the real
+      // `common` NameBank, or is absent when the bank is unseeded (here,
+      // no DB) — never a fabricated fallback.
+      if (surname !== undefined) {
+        expect(surname.length).toBeGreaterThan(0);
+        expect(surname.toLowerCase()).not.toBe('guest');
+      }
+    });
+  });
 });

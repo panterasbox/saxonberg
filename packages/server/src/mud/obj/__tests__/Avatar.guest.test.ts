@@ -33,16 +33,8 @@ describe("Avatar — guest identity", () => {
     expect(makeAvatar().getIsGuest()).toBe(false);
   });
 
-  it('reserves the guest word "Guest"', () => {
-    expect(Avatar.GUEST_RESERVED_WORD).toBe("Guest");
-  });
-
-  it("generates a reserved-word name with a distinct distinguisher", async () => {
-    const { name, surname } = await Avatar.generateGuestName();
-    expect(name).toBe(Avatar.GUEST_RESERVED_WORD);
-    expect(surname.length).toBeGreaterThan(0);
-    expect(surname.toLowerCase()).not.toBe("guest");
-  });
+  // The guest reserved word + name generation now live on `Login` (the
+  // guest-mint site); see Login.test.ts.
 
   it("a guest avatar does not persist (save is a no-op)", async () => {
     const a = makeAvatar();

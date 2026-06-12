@@ -23,17 +23,25 @@
  * home for the in-progress `EnrollmentDraft`.
  */
 
+import { nanoid } from "nanoid";
 import { Idea } from "../lib/stuff/Idea";
 import { StuffApi } from "../api/stuff";
 import { ConnectionApi } from "../api/connection";
 import { PlayerApi } from "../api/player";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
+import { ContainmentApi } from "../api/containment";
+import { MixinApi } from "../api/mixin";
+import { SlotApi } from "../api/slot";
+import { TemplateApi } from "../api/template";
+import { Template } from "../lib/stuff/Template";
+import { NameBank } from "../lib/species/NameBank";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { SensorMixin } from "../lib/message/Sensor";
 import { CommandGiverMixin } from "../lib/command/CommandGiver";
 import { Application } from "../../backend/Application";
 import { GoogleProfile } from "../lib/identity/GoogleProfile";
+import Avatar from "./Avatar";
 import type { CommandContributions } from "../api/command";
 import type {
   MessageFrame,
@@ -42,7 +50,15 @@ import type {
   CharGenRosterPayload,
 } from "@saxonberg/types";
 import type Interactive from "./Interactive";
-import type Avatar from "./Avatar";
+import type Species from "../lib/species/Species";
+import type { User } from "../lib/identity/User";
+
+/** Random element of an array (undefined when empty). */
+function pickRandom<T>(arr: readonly T[]): T | undefined {
+  return arr.length > 0
+    ? arr[Math.floor(Math.random() * arr.length)]
+    : undefined;
+}
 
 /**
  * In-progress char-gen picks. Held on the transient Login (GC'd at
@@ -92,6 +108,17 @@ export default class Login extends LoginBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Reserved first word of every guest name (e.g. "Guest Mallow"). Two
+   * jobs: it makes guest-ness legible in plain text wherever the Named
+   * name appears (speech/emote attribution, look, logs — a UI badge
+   * can't reach those), and it is withheld from real character naming
+   * (the char-gen `enroll` denylist imports it) so a real player can't
+   * impersonate a guest. Lives here on the guest-mint site. Exact-word
+   * only; fuzzy/homoglyph near-misses are out of scope.
+   */
+  static readonly GUEST_RESERVED_WORD = "Guest";
 
   private readonly interactive: Interactive;
   private enrollmentDraft: EnrollmentDraft | null = null;
@@ -151,18 +178,136 @@ export default class Login extends LoginBase {
    */
   public async enterAsGuest(): Promise<void> {
     const { interactive } = this;
-    // Build the randomized guest avatar (species / non-intersex sex /
-    // aspiration randomized, they/them, reserved-word name). Lives on
-    // EnrollController next to the char-gen build knowledge it mirrors.
-    const { default: EnrollController } =
-      await import("./command/charactergen/EnrollController");
-    const avatar = await EnrollController.mintRandomGuestAvatar(
-      interactive.getUser(),
-    );
+    const avatar = await Login.mintRandomGuestAvatar(interactive.getUser());
     ConnectionApi.transfer(interactive, avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(this);
+  }
+
+  /**
+   * Generate a recognizable guest name: the reserved word plus a
+   * surname drawn from the real `common` `NameBank` ("Guest Mallow").
+   * No parallel name list — when the bank is unseeded (a content gap,
+   * or no DB in a unit test) the guest is simply "Guest", with no
+   * fabricated surname. Pure read; safe to call before mint.
+   */
+  static async generateGuestName(): Promise<{
+    name: string;
+    surname?: string;
+  }> {
+    let surnames: string[] = [];
+    try {
+      surnames = (await NameBank.resolve(["common"])).surname;
+    } catch {
+      /* NameBank unavailable (e.g. no DB) — degrade to a bare "Guest" */
+    }
+    const surname = pickRandom(surnames);
+    return surname
+      ? { name: Login.GUEST_RESERVED_WORD, surname }
+      : { name: Login.GUEST_RESERVED_WORD };
+  }
+
+  /**
+   * Mint a randomized guest avatar — the no-char-gen fast path. Mirrors
+   * `EnrollController.commit`'s avatar build, but: every pick is random
+   * (species, a non-intersex sex, an aspiration → bio + themed outfit),
+   * pronouns are always they/them, and the name is the reserved-word
+   * guest name. The roster + sex-set knowledge is read from
+   * `EnrollController` (`loadConfig` / `validSexSet`) so the two paths
+   * stay in agreement; the build itself lives here, at the guest-mint
+   * site.
+   *
+   * The template is **transient** — guests persist nothing, so it's
+   * deleted immediately after the clone (the live avatar is independent
+   * of it, and its guarded `save()` never writes back). The unique
+   * per-guest template path also means no two guests clone the same
+   * path, so there's no seed-clone concurrency hazard.
+   */
+  private static async mintRandomGuestAvatar(user: User): Promise<Avatar> {
+    // Read the char-gen rosters + sex-set rule from EnrollController via a
+    // lazy import (it dynamic-imports nothing back, so no static cycle).
+    const { default: EnrollController, validSexSet } = await import(
+      "./command/charactergen/EnrollController"
+    );
+    const cfg = EnrollController.loadConfig();
+    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    if (!seed) {
+      throw new Error("Login.mintRandomGuestAvatar: no Avatar seed template.");
+    }
+
+    const speciesEntry = pickRandom(cfg.species);
+    const aspiration = pickRandom(cfg.aspirations);
+    const species = speciesEntry
+      ? await StuffApi.singleton<Species>(speciesEntry.path)
+      : null;
+
+    // Random biological sex, NEVER intersex. A sexless species → unset.
+    let sex: string | undefined;
+    if (species) {
+      const choices = validSexSet(species.getSexDeterminationSystem()).filter(
+        (s) => s !== "intersex",
+      );
+      sex = pickRandom(choices);
+    }
+
+    const guestName = await Login.generateGuestName();
+
+    // Transient template at a unique guest path. Pronouns are NOT
+    // overridden — the seed's `they` carries through (always they/them).
+    const path = `${Avatar.TEMPLATE_PATH_PREFIX}guest-${nanoid()}`;
+    const data: Record<string, unknown> = {
+      ...seed.data,
+      name: guestName.name,
+      _speciesPath: speciesEntry?.path,
+      aspiration: aspiration?.key,
+      bio: aspiration?.bioSeed ?? "",
+      longDescription:
+        species?.getLongDescription() ||
+        (seed.data as Record<string, unknown>).longDescription,
+    };
+    if (guestName.surname) data.surname = guestName.surname;
+    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
+
+    // No playerId → not registered with PlayerApi; `isGuest` marks it.
+    const avatar = await StuffApi.clone<Avatar>(path, { user, isGuest: true });
+
+    // Delete the transient template — guests persist nothing.
+    try {
+      const tpl = await Template.findByPath(path);
+      if (tpl) await tpl.delete();
+    } catch {
+      /* best-effort cleanup; the avatar never writes back anyway */
+    }
+
+    // Sex is species-constrained, so set it post-clone (as `commit` does).
+    if (sex) {
+      try {
+        avatar.setSex(sex);
+      } catch {
+        /* species rejected the value — leave unset */
+      }
+    }
+
+    // Dress in the aspiration's themed outfit (tolerant of content gaps).
+    if (aspiration && species) {
+      const bodyPlanPath = species.getBodyPlanPath();
+      for (const garmentPath of aspiration.outfit) {
+        try {
+          const garment = await StuffApi.clone(garmentPath);
+          if (!MixinApi.isContainable(garment)) continue;
+          ContainmentApi.move(garment, avatar);
+          if (bodyPlanPath && MixinApi.isWearable(garment)) {
+            const slots = garment.getSlotClaim(bodyPlanPath);
+            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
+          }
+        } catch {
+          /* skip this garment */
+        }
+      }
+    }
+
+    return avatar;
   }
 
   /**

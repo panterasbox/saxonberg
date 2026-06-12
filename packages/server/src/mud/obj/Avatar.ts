@@ -23,7 +23,6 @@ import type { Container } from "../lib/spatial/Container";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { Warren } from "../lib/location/Warren";
 import { SpeciesApi } from "../api/species";
-import { NameBank } from "../lib/species/NameBank";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import { MessageApi } from "../api/message";
 import { DescribeApi } from "../api/describe";
@@ -184,50 +183,6 @@ export default class Avatar extends AvatarBase {
 
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
-  }
-
-  /**
-   * Reserved first word of every guest name (e.g. "Guest Mallow"). Two
-   * jobs: it makes guest-ness legible in plain text wherever the Named
-   * name appears (speech/emote attribution, look, logs — a UI badge
-   * can't reach those), and it is withheld from real character naming
-   * (the char-gen `enroll` denylist imports it) so a real player can't
-   * impersonate a guest. Exact-word only; fuzzy/homoglyph near-misses
-   * are out of scope.
-   */
-  static readonly GUEST_RESERVED_WORD = "Guest";
-
-  /** Surnames used as guest distinguishers when the NameBank is empty. */
-  static readonly #GUEST_FALLBACK_SURNAMES = [
-    "Mallow",
-    "Thorne",
-    "Quince",
-    "Ashby",
-    "Pellow",
-    "Wren",
-    "Marsh",
-    "Crane",
-  ];
-
-  /**
-   * Generate a recognizable guest name: the reserved word plus a
-   * NameBank-drawn distinguisher ("Guest Mallow"). Draws the surname
-   * from the `common` name bank, falling back to a small built-in list
-   * when the bank is unseeded. Pure read; safe to call before mint.
-   */
-  static async generateGuestName(): Promise<{
-    name: string;
-    surname: string;
-  }> {
-    let pool = Avatar.#GUEST_FALLBACK_SURNAMES as readonly string[];
-    try {
-      const { surname } = await NameBank.resolve(["common"]);
-      if (surname.length > 0) pool = surname;
-    } catch {
-      /* NameBank unavailable — use the fallback list */
-    }
-    const pick = pool[Math.floor(Math.random() * pool.length)]!;
-    return { name: Avatar.GUEST_RESERVED_WORD, surname: pick };
   }
 
   /**

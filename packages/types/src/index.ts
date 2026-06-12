@@ -742,6 +742,19 @@ export enum Pronouns {
 }
 
 /**
+ * Human-readable display label for each pronoun value (the enum holds
+ * the canonical short value; the full "subject/object" form shown in UI
+ * can't be derived from it, so it's colocated here with the enum it
+ * labels). Keyed by `Pronouns` value.
+ */
+export const PRONOUN_LABELS: Record<Pronouns, string> = {
+  [Pronouns.They]: 'they/them',
+  [Pronouns.She]: 'she/her',
+  [Pronouns.He]: 'he/him',
+  [Pronouns.It]: 'it/its',
+};
+
+/**
  * User account (persistent).
  * Represents an authenticated user account linked to OAuth provider.
  */

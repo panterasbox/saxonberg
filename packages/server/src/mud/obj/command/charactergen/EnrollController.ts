@@ -35,10 +35,9 @@ import { SlotApi } from "../../../api/slot";
 import { TemplateApi } from "../../../api/template";
 import { Template } from "../../../lib/stuff/Template";
 import Avatar from "../../Avatar";
-import type Login from "../../Login";
+import Login from "../../Login";
 import type { EnrollmentDraft } from "../../Login";
 import type Species from "../../../lib/species/Species";
-import type { User } from "../../../lib/identity/User";
 import type {
   CharGenOption,
   CharGenPicks,
@@ -46,17 +45,11 @@ import type {
   CharGenField,
   SpeciesDossier,
 } from "@saxonberg/types";
-import { Pronouns } from "@saxonberg/types";
+import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
 import { SpeciesApi } from "../../../api/species";
 
 // Pronoun options derive from the `Pronouns` enum (the single source of
-// truth for the values); only the display labels live here.
-const PRONOUN_LABELS: Record<string, string> = {
-  [Pronouns.They]: "they/them",
-  [Pronouns.She]: "she/her",
-  [Pronouns.He]: "he/him",
-  [Pronouns.It]: "it/its",
-};
+// truth for the values); the display labels are colocated with the enum.
 const PRONOUN_OPTIONS: CharGenOption[] = Object.values(Pronouns).map((v) => ({
   value: v,
   label: PRONOUN_LABELS[v] ?? v,
@@ -98,14 +91,15 @@ const NAME_RE = /^\p{L}+(?:[-'\p{L}]*\p{L})?$/u;
 
 /**
  * Reserved against a real character. The denylist plus the guest
- * reserved word — referenced from `Avatar` so the impersonation guard
- * stays in lock-step with the guest name generator (no drift). Exact
- * word only; fuzzy/homoglyph near-misses are out of scope.
+ * reserved word — referenced from `Login` (the guest-mint site) so the
+ * impersonation guard stays in lock-step with the guest name generator
+ * (no drift). Exact word only; fuzzy/homoglyph near-misses are out of
+ * scope.
  */
 function isReservedName(lower: string): boolean {
   return (
     NAME_DENYLIST.includes(lower) ||
-    lower === Avatar.GUEST_RESERVED_WORD.toLowerCase()
+    lower === Login.GUEST_RESERVED_WORD.toLowerCase()
   );
 }
 
@@ -296,7 +290,12 @@ function computeMissing(
   );
 }
 
-function validSexSet(system: string): string[] {
+/**
+ * The biological-sex options a sex-determination system admits. Shared
+ * with `Login`'s guest minter (which filters out `intersex`), so the
+ * char-gen and guest paths agree on what each species can be.
+ */
+export function validSexSet(system: string): string[] {
   switch (system) {
     case "xy":
     case "zw":
@@ -308,12 +307,6 @@ function validSexSet(system: string): string[] {
     default:
       return [];
   }
-}
-
-function pickRandom<T>(arr: readonly T[]): T | undefined {
-  return arr.length > 0
-    ? arr[Math.floor(Math.random() * arr.length)]
-    : undefined;
 }
 
 function cap(s: string): string {
@@ -561,99 +554,6 @@ export default class EnrollController extends CommandController<EnrollModel> {
     ConnectionApi.transfer(interactive, avatar);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(login);
-  }
-
-  /**
-   * Mint a randomized guest avatar — the no-char-gen fast path. Mirrors
-   * `commit`'s avatar build, but: every pick is random (species, a
-   * non-intersex sex, an aspiration → bio + themed outfit), pronouns are
-   * always they/them, and the name is the reserved-word guest name. The
-   * template is **transient** — guests persist nothing, so it's deleted
-   * immediately after the clone (the live avatar is independent of it,
-   * and its guarded `save()` never writes back). The unique per-guest
-   * template path also means no two guests clone the same path, so
-   * there's no seed-clone concurrency hazard. The caller (`Login`) does
-   * the connection handoff.
-   */
-  static async mintRandomGuestAvatar(user: User): Promise<Avatar> {
-    const cfg = EnrollController.loadConfig();
-    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
-    if (!seed) {
-      throw new Error("EnrollController.mintRandomGuestAvatar: no seed.");
-    }
-
-    const speciesEntry = pickRandom(cfg.species);
-    const aspiration = pickRandom(cfg.aspirations);
-    const species = speciesEntry
-      ? await StuffApi.singleton<Species>(speciesEntry.path)
-      : null;
-
-    // Random biological sex, NEVER intersex. A sexless species → unset.
-    let sex: string | undefined;
-    if (species) {
-      const choices = validSexSet(species.getSexDeterminationSystem()).filter(
-        (s) => s !== "intersex",
-      );
-      sex = pickRandom(choices);
-    }
-
-    const guestName = await Avatar.generateGuestName();
-
-    // Transient template at a unique guest path. Pronouns are NOT
-    // overridden — the seed's `they` carries through (always they/them).
-    const path = `${Avatar.TEMPLATE_PATH_PREFIX}guest-${nanoid()}`;
-    const data: Record<string, unknown> = {
-      ...seed.data,
-      name: guestName.name,
-      surname: guestName.surname,
-      _speciesPath: speciesEntry?.path,
-      aspiration: aspiration?.key,
-      bio: aspiration?.bioSeed ?? "",
-      longDescription:
-        species?.getLongDescription() ||
-        (seed.data as Record<string, unknown>).longDescription,
-    };
-    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
-
-    // No playerId → not registered with PlayerApi; `isGuest` marks it.
-    const avatar = await StuffApi.clone<Avatar>(path, { user, isGuest: true });
-
-    // Delete the transient template — guests persist nothing.
-    try {
-      const tpl = await Template.findByPath(path);
-      if (tpl) await tpl.delete();
-    } catch {
-      /* best-effort cleanup; the avatar never writes back anyway */
-    }
-
-    // Sex is species-constrained, so set it post-clone (as `commit` does).
-    if (sex) {
-      try {
-        avatar.setSex(sex);
-      } catch {
-        /* species rejected the value — leave unset */
-      }
-    }
-
-    // Dress in the aspiration's themed outfit (tolerant of content gaps).
-    if (aspiration && species) {
-      const bodyPlanPath = species.getBodyPlanPath();
-      for (const garmentPath of aspiration.outfit) {
-        try {
-          const garment = await StuffApi.clone(garmentPath);
-          if (!MixinApi.isContainable(garment)) continue;
-          ContainmentApi.move(garment, avatar);
-          if (bodyPlanPath && MixinApi.isWearable(garment)) {
-            const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
-          }
-        } catch {
-          /* skip this garment */
-        }
-      }
-    }
-
-    return avatar;
   }
 
   static loadConfig(): CharGenConfig {
