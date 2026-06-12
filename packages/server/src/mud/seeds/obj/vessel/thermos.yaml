@@ -1,0 +1,12 @@
+# Thermos — the demo's portable holder. Starts empty; `liquidTight`
+# closure (the default) retains liquid. Capacity 0.5 L. NOT Gus's
+# won't-open thermos (that's a deliberate prop, banked by intent) — a
+# plain substrate fixture.
+class: /obj/Receptacle
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel thermos
+  longDescription: A dented steel thermos with a screw-top cap.
+  keywords: [thermos, flask]
+  interiorBulk: true
+  interiorCapacity: 0.5

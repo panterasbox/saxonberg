@@ -53,6 +53,7 @@
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
+import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
@@ -107,9 +108,27 @@ export interface BiologicalSource {
   tissueType: string;
 }
 
-export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
+export default class Material extends SingletonMixin(
+  PerceptibleMixin(PropertiedMixin(Idea)),
+) {
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
   protected name: string = '';
+
+  /**
+   * Free-prose appearance phrase for the substance as it reads in a
+   * holder — e.g. `'dark, steaming coffee'`, `'clear water'`. The bulk
+   * substrate composes this into a holder's description (`look thermos`)
+   * and a surface puddle's line (`a puddle of water`). Plain property
+   * field; storage IS the value.
+   *
+   * `Material` composes {@link PerceptibleMixin} for its keyword pool
+   * (so `drink coffee` resolves a holder by its bulk material) but NOT
+   * `Visible` / `Named` — substance identity stays out of the
+   * perception-target machinery (no Sensor, scene, or light behavior),
+   * so material keywords never leak into room scope. Keywords are
+   * purely authored; `appearance` is the rendered phrase.
+   */
+  protected appearance: string = '';
 
   /**
    * Density as a `Quantity<'kg/m³'>`. The QuantityMarshaller for
@@ -238,6 +257,7 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
 
   static persistentFields = [
     'name',
+    'appearance',
     'density',
     'thermalConductivity',
     'edibility',
@@ -265,6 +285,11 @@ export default class Material extends SingletonMixin(PropertiedMixin(Idea)) {
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
+
+  /** Read the substance's appearance phrase (may be empty). */
+  public getAppearance(): string { return this.appearance; }
+  /** Set the substance's appearance phrase. */
+  public setAppearance(value: string): void { this.appearance = value; }
 
   /**
    * Read density. Strict-shape on `Quantity<'kg/m³'>`; the

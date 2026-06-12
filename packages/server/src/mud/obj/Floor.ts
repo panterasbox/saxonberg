@@ -1,6 +1,6 @@
 /**
- * Floor — composition: Postured + Slotted + Adornment + Detailed +
- * Visible + Thing.
+ * Floor — composition: Bulkable + Postured + Slotted + Adornment +
+ * Detailed + Visible + Thing.
  *
  * Extends `Thing` so the floor carries Tangible (material) and
  * Containable. Material is the load-bearing reason: future
@@ -20,6 +20,14 @@
  * Locations include a floor adornment is per-template authoring.
  *
  * Default-floor seed at `seeds/obj/surface/default-floor.yaml`.
+ *
+ * Surface-bulk: the floor composes `BulkableMixin` so a spilled,
+ * over-poured, or drained-through liquid pools as the floor's
+ * **surface** bulk slot (a puddle). This is independent of `Surfaced`
+ * — the floor stays an `Adornment` fixture (excluded from the room's
+ * enumerated contents), NOT a discrete-resting surface; discrete
+ * containment is untouched. A puddle is the floor's attribute, not a
+ * Stuff. The slot is authored on per its seed (`surfaceBulk: true`).
  */
 
 import Thing from '../lib/stuff/Thing';
@@ -28,9 +36,12 @@ import { DetailedMixin } from '../lib/description/Detailed';
 import { AdornmentMixin } from '../lib/boundary/Adornment';
 import { SlottedMixin } from '../lib/slot/Slotted';
 import { PosturedMixin } from '../lib/slot/Postured';
+import { BulkableMixin } from '../lib/bulk/Bulkable';
 
-const FloorBase = PosturedMixin(
-  SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing))))
+const FloorBase = BulkableMixin(
+  PosturedMixin(
+    SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing)))),
+  )
 );
 
 export default class Floor extends FloorBase {}

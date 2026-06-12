@@ -1,0 +1,18 @@
+# Water — a flat bulk Material (appearance + keywords only). The
+# presumed solvent for the demo's other liquids; modelled only as deep
+# as the bulk substrate reads (appearance + keywords). Real formula /
+# molar mass are a capacity, not a mandate — left unset until a consumer
+# (chemistry, electrolysis) actually needs them.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: water
+  appearance: clear water
+  keywords: [water]
+  density: 1000
+  edibility: true
+  nutrients: [water]
+  toxicity: []
+  tags: [liquid, beverage, drinkable]
+  composition: []
+  biologicalSource: null

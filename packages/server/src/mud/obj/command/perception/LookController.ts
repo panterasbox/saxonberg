@@ -34,6 +34,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { DescribeApi } from '../../../api/describe';
+import { BulkableApi } from '../../../api/bulk';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
 
@@ -208,6 +209,12 @@ export default class LookController extends CommandController<LookModel> {
     let body = Mml.compose`${Mml.location(location)}`;
     if (hasVisible) {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
+    }
+    // Surface-bulk: a puddle pooling on the floor surfaces in the room
+    // view (the floor is an Adornment, excluded from the contents list).
+    const puddle = BulkableApi.floorPuddleSummary(location);
+    if (puddle) {
+      body = Mml.compose`${body}\n${puddle}`;
     }
     if (hasExits) {
       const exitsLine = this.formatExits(location.getObviousExits());

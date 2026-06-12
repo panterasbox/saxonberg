@@ -94,7 +94,7 @@ extends; none is a fresh build.
 | [host-slot-activities](./tails/host-slot-activities-slate.md) | activity.md | deferred activity wave |
 | [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | activity.md / locomotion.md | deferred activity wave |
 | [hand-slot](./tails/hand-slot-slate.md) | embodiment.md | hand-slot redesign |
-| [bulkable](./tails/bulkable-slate.md) | glob.md | bulk/count sibling of globbable |
+| [bulkable](./tails/bulkable-slate.md) | bulk.md | thermos slice shipped; deferred: mixing/solutions, gas (`sealed`), `Container`+`Bulkable`, amount-aware appearance |
 | [client-cockpit](./tails/client-cockpit-slate.md) | cockpit (several tracks shipped) | remaining client-track umbrella |
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
 | [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |

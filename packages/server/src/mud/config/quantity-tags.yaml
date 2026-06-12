@@ -206,4 +206,9 @@ L:
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.
 #   - g, m, m³, km, cm, mm, s, ms, N, J, W — ditto.
+#   - mL, cup — bulk liquid-volume units. The bulk substrate stores
+#     amounts canonically as `L` (which carries the vitals scale above);
+#     `mL` / `cup` are round-tripped via converters and render through
+#     `Material.appearance`, not a fill-level tag table. Amount-aware
+#     appearance is deferred per the bulkable slate.
 # `Quantity.tag()` falls back to canonical format for these.

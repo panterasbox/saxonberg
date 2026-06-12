@@ -47,6 +47,8 @@ import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
+import type Material from '../material/Material';
+import type { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
 //   Container + Containable + Visible + Vitals + Reserved + Posed +
@@ -82,5 +84,24 @@ export class Creature extends CreatureBase {
     // satiation / hydration) at full. Idempotent — hydration overwrites
     // from stored values afterward.
     this.installBiologicalReserves();
+  }
+
+  /**
+   * Ingestion seam — a living body consumes `amount` of `material`.
+   *
+   * v1 is a deliberate **no-op**: the socket exists so `drink` / `sip`
+   * (and a future `eat`) have somewhere to hand the consumed
+   * `{ material, amount }`, but nothing is plugged in. A future
+   * `Metabolic` / `Digestive` capability overrides this to apply
+   * nutrition, hydration, or intoxication. Per-entity method by
+   * design — not a global subscription or content-registered hook
+   * (substrate has no content hooks). The first real consequence
+   * lands with Dave's bar.
+   */
+  ingest(material: Material, amount: Quantity<'L'>): void {
+    // No-op terminal. Subclasses / capability mixins override and may
+    // `super.ingest(material, amount)` without ceremony.
+    void material;
+    void amount;
   }
 }

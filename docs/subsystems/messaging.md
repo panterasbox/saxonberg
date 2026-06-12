@@ -400,8 +400,11 @@ host-level method that produces the affordance-annotated long
 description shipped on every `'detail'` projection. Two live
 contributions today: `wrapDetailKeysAugmenter` from `DetailedMixin`,
 which wraps canonical detail aliases in `<detail key="...">`
-MML, and `senseStripAugmenter` on `VisibleMixin` (from the senses
-build), which strips regions the viewer's sensorium can't perceive.
+MML, `senseStripAugmenter` on `VisibleMixin` (from the senses
+build), which strips regions the viewer's sensorium can't perceive,
+and `bulkContentsAugmenter` on `BulkableMixin` (Bulk build), which
+appends a holder's contained `Material.appearance` (`look thermos` →
+"It holds dark, steaming coffee.").
 Future contributors (exit-direction auto-link on
 `ExitableMixin`, language masking on a future `LanguageMixin`,
 spoiler hide) plug in via the same `static markupAugmenters`

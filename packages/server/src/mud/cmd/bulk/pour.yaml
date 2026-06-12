@@ -1,0 +1,19 @@
+verbs: [pour]
+controller: bulk/PourController
+description: "Pour liquid from one holder into another"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: source
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    prepositions: [into, in]
+    validators:
+      - /lib/command/validators/mustBeVisible

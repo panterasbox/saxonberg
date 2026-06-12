@@ -69,8 +69,19 @@ export type TokenKind =
  * vs `:I` (deep) and `:e` (one level up) vs `:E` (root). At seed
  * position they're treated as a single-letter keyword search by the
  * parser — the case doesn't matter there.
+ *
+ * `'b'` is the bulk transform (`thermos:b` → the holder's interior
+ * bulk). Only lowercase is allocated; `:B` is reserved — a bare `B`
+ * lowercases to a `'b'` keyword filter (which yields empty), the
+ * intended "unallocated" behavior.
  */
-const TRANSFORM_LETTERS: ReadonlySet<string> = new Set(['i', 'I', 'e', 'E']);
+const TRANSFORM_LETTERS: ReadonlySet<string> = new Set([
+  'i',
+  'I',
+  'e',
+  'E',
+  'b',
+]);
 
 export interface Token {
   kind: TokenKind;

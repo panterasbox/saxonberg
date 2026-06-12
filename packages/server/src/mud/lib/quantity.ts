@@ -42,6 +42,9 @@ export type Unit =
   | 'm' | 'km' | 'cm' | 'mm'
   // Volume
   | 'm³'
+  // Liquid volume (bulk substrate — `cup`/`mL` join the vitals `L`
+  // below; tagless like `m³`, round-tripped via converters to `L`)
+  | 'mL' | 'cup'
   // Time
   | 's' | 'ms'
   // Temperature
@@ -136,6 +139,8 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   L: ARITHMETIC_OPS,
   'm/s²': ARITHMETIC_OPS,
   degrees: ARITHMETIC_OPS,
+  mL: ARITHMETIC_OPS,
+  cup: ARITHMETIC_OPS,
 };
 
 /**
@@ -215,6 +220,16 @@ registerConverter('mmHg', 'Pa', (n) => n * 133.322368);
 registerConverter('Pa', 'mmHg', (n) => n / 133.322368);
 registerConverter('L', 'm³', (n) => n / 1000);
 registerConverter('m³', 'L', (n) => n * 1000);
+
+// Bulk liquid volume: `mL` and `cup` round-trip against the canonical
+// bulk-slot unit `L`. One US-customary cup is 236.5882365 mL. The bulk
+// substrate stores every liquid amount as `Quantity<'L'>`; authored or
+// player-typed `cup` / `mL` measures convert to `L` at the boundary
+// (`Quantity.parse` / `Quantity.to`).
+registerConverter('mL', 'L', (n) => n / 1000);
+registerConverter('L', 'mL', (n) => n * 1000);
+registerConverter('cup', 'L', (n) => n * 0.2365882365);
+registerConverter('L', 'cup', (n) => n / 0.2365882365);
 
 /**
  * Thrown by same-unit math when a cast bypasses the compile-time
