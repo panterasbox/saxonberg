@@ -127,6 +127,17 @@ describe('MQL — bulk scope resolution', () => {
     expect(r.stuff).toHaveLength(0);
   });
 
+  it(':B is unallocated — falls to a keyword filter and yields empty', () => {
+    const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
+    const thermos = makeThermos(coffee, 0.3);
+    ContainmentApi.move(thermos as never, world.giver as never);
+    // `:B` is not a transform (only lowercase `b`); the bareword `B`
+    // lowercases to a `'b'` keyword filter, which the thermos doesn't
+    // match → empty.
+    const r = MqlApi.resolveMany('thermos:B', ctx);
+    expect(r.stuff).toHaveLength(0);
+  });
+
   it('an empty holder contributes no material-keyword candidate', () => {
     const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
     const thermos = makeThermos(coffee, 0); // empty

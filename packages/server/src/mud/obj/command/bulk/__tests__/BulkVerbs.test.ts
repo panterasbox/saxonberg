@@ -29,6 +29,7 @@ import { Quantity } from '../../../../lib/quantity';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
+import { BulkableApi } from '../../../../api/bulk';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -353,5 +354,56 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
     expect(amountL(mug)).toBeCloseTo(0);
     expect(surfaceAmountL(floor)).toBeCloseTo(before);
+  });
+});
+
+describe('Bulk verbs — look composes Material.appearance', () => {
+  let actor: Stuff;
+  let loc: Stuff;
+  let floor: Stuff;
+  let water: Material;
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    floor = floorIn(loc);
+    actor = makeStuff(() => new TestActor()) as unknown as Stuff;
+    (actor as unknown as { setName(n: string): void }).setName('bob');
+    ContainmentApi.move(actor as never, loc as never);
+    water = material('/lib/material/bulk/water', 'water');
+  });
+
+  const markupLong = (s: Stuff): string =>
+    (s as unknown as { getMarkupLong(v: Stuff): string }).getMarkupLong(actor);
+
+  it('look <holder> appends the interior contents via appearance', () => {
+    const mug = vessel('a ceramic mug', { material: water, amountL: 0.2, capacityL: 0.35 });
+    expect(markupLong(mug)).toContain('It holds some water.');
+  });
+
+  it('an empty holder adds nothing to its description', () => {
+    const mug = vessel('a ceramic mug', { capacityL: 0.35 });
+    expect(markupLong(mug)).not.toContain('It holds');
+  });
+
+  it('a floor puddle surfaces on the floor description and in the room view', () => {
+    const src = vessel('a tap', { material: water, unbounded: true });
+    ContainmentApi.move(src as never, loc as never);
+    const mug = vessel('a ceramic mug', { capacityL: 0.35 });
+    ContainmentApi.move(mug as never, actor as never);
+    // Fill the mug then spill it onto the floor.
+    makeStuff(() => new PourController()).execute(
+      model({ source: one(src, 'water'), target: one(mug, 'mug') }),
+      ctxFor(actor, loc, 'pour'),
+    );
+    makeStuff(() => new SpillController()).execute(
+      model({ target: one(mug, 'mug') }),
+      ctxFor(actor, loc, 'spill'),
+    );
+    expect(markupLong(floor)).toContain('A puddle of some water pools here.');
+    expect(BulkableApi.floorPuddleSummary(loc)).toBe(
+      'A puddle of some water pools on the floor.',
+    );
   });
 });

@@ -33,8 +33,8 @@ Pieces:
   a `QuantityNode`; natural-language `5 coins` / `all coins` rides
   on desugar's side-channel hint.
 
-This file is the operational reference. The bulk-form extension
-lives in [bulkable-slate.md](../slates/tails/bulkable-slate.md); the
+This file is the operational reference. The continuous-matter sibling
+shipped as its own substrate — see [bulk.md](./bulk.md); the
 structured-notes substrate (`quantity-clamped`,
 `quantity-clamped-rejected`, `empty-result`, `target-declined`) is
 defined in [response-envelope.md](./response-envelope.md).
@@ -469,19 +469,15 @@ Trade-offs and deferred work documented for future maintainers:
 
 ## Future extensions
 
-- **Bulk form** — `Quantity<U>`-valued matter (flour, water, sand,
-  bread) plugs into the same substrate: `placeDirect` is
-  unit-agnostic, the `MqlQuantity` discriminated union already
-  reserves a `value.kind: 'measure'` slot, the `:{N}` body grammar
-  extends to `:{N unit}`, and the distribution algorithm
-  substitutes Quantity arithmetic for integer arithmetic. Bulk
-  diverges on: `quantity` type (`Quantity<U>` not `number`),
-  arithmetic (unit propagation), a `static destructThreshold`
-  (floating-point residue handling), and the divisibility default
-  (bulk is *not* trivially splittable — most bulk needs a tool /
-  vessel / target to subdivide). Full design and the `Bulkable` vs
-  `Bulkable + Subdivisible` factoring fork:
-  [bulkable-slate.md](../slates/tails/bulkable-slate.md).
+- **Bulk form** — continuous matter (water, coffee) **shipped** as a
+  separate substrate, NOT as a Quantity-valued glob. The earlier
+  fluid-as-Stuff sketch (a `Quantity<U>` count split via `placeDirect`,
+  merged on arrival — the structural mirror of Globbable) was retired:
+  bulk is **not a Stuff** at all. It is a `{ material, amount }`
+  attribute of its holder, moved by `BulkableApi.transfer`. Glob and
+  bulk share only the `MqlQuantity` discriminated union (glob uses
+  `count` / `all`; bulk uses the `measure` variant) and the reused
+  response-note kinds. See [bulk.md](./bulk.md).
 - **`DescribeApi v2`** supersedes `DescribeApi.formatName`. v2
   composes count, perception-filtered visibility, viewer-side
   recognition, and bucket-keyed verbosity in one pipeline.
@@ -495,7 +491,7 @@ Trade-offs and deferred work documented for future maintainers:
 - **Glob inside a glob.** Globs aren't `Container`; the composition
   validator catches it at registration. If you want a containment-
   bearing glob, you want a different abstraction (probably bulk —
-  see [bulkable-slate](../slates/tails/bulkable-slate.md)).
+  see [bulk.md](./bulk.md)).
 - **Instance-unique state on a stack.** Shadows and adornments
   disqualify a stack from merging. If you find yourself wanting
   per-instance details on a glob (a unique scratch on one coin),
@@ -524,9 +520,9 @@ Trade-offs and deferred work documented for future maintainers:
   natural-language quantity prefix, formal `:{N}` / `:{*}`.
 - [collections.md](./collections.md) — collection-shape canon for
   related mixins (Set / Map / list).
-- [../slates/tails/bulkable-slate.md](../slates/tails/bulkable-slate.md) — the
-  bulk-form sibling (Quantity-valued globs); shares this
-  subsystem's substrate.
+- [bulk.md](./bulk.md) — the continuous-matter sibling
+  (holds-as-attribute, not a Stuff); shares the `MqlQuantity` union and
+  the structured-notes kinds.
 - [response-envelope.md](./response-envelope.md) — the
   structured-notes substrate `applyQuantity` emits into; canonical
   shapes for the four glob note kinds.

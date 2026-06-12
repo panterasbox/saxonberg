@@ -48,6 +48,8 @@ import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
 
 /**
@@ -289,6 +291,16 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       ],
     };
 
+    /**
+     * Compose the contained matter into the holder's long description
+     * (`look thermos` → "… It holds dark, steaming coffee."). Rides the
+     * same `getMarkupLong` augmenter pipeline `DetailedMixin` uses, so
+     * a non-empty bulk slot's `Material.appearance` surfaces wherever a
+     * host's description is rendered. The surface affordance renders as
+     * a puddle (`look floor`).
+     */
+    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter];
+
     // ---- affordance presence flags (authored per host) ----
     /** Whether this host offers an interior bulk slot. */
     public interiorBulk: boolean = false;
@@ -497,4 +509,39 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (remaining <= 0) this.setBulkMaterial(affordance, null);
     }
   };
+}
+
+/**
+ * `MarkupAugmenter` for the bulk-contents description pass. Appends a
+ * sentence per non-empty bulk slot, drawn from the contained
+ * `Material.appearance`: an interior slot reads "It holds <appearance>."
+ * and a surface slot reads "A puddle of <appearance> pools here." A
+ * holder with empty (or no) slots is unchanged. Module-level (not an
+ * inline arrow) so it's identifiable by name in stack traces, mirroring
+ * `DetailedMixin`'s `wrapDetailKeysAugmenter`.
+ */
+function bulkContentsAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!MixinApi.isBulkable(host)) return text;
+  const lines: string[] = [];
+  for (const [affordance, present] of [
+    ['interior', host.hasInteriorBulk()],
+    ['surface', host.hasSurfaceBulk()],
+  ] as [BulkAffordance, boolean][]) {
+    if (!present) continue;
+    const slot = host.getBulk(affordance);
+    if (slot.isEmpty()) continue;
+    const appearance = slot.getMaterial()?.getAppearance();
+    if (!appearance) continue;
+    lines.push(
+      affordance === 'surface'
+        ? `A puddle of ${appearance} pools here.`
+        : `It holds ${appearance}.`,
+    );
+  }
+  if (lines.length === 0) return text;
+  return `${text}\n\n${lines.join(' ')}`;
 }

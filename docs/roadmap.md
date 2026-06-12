@@ -493,12 +493,14 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   Generalizes the instruments-reveal seam from the Quantities
   substrate to skills, cybernetics, transient buffs, and ambient
   effects.
-- [docs/slates/tails/bulkable-slate.md](./slates/tails/bulkable-slate.md) —
-  bulk-form sibling to globbable. Continuous mass/volume measured
-  matter (flour, water, bread). Exploratory; ships when content
-  demands. Shares globbable's substrate (placeDirect, MqlQuantity
-  union, distribution algorithm). Central design fork: divisibility
-  decomposition (single mixin vs Bulkable + Subdivisible).
+- **Bulk substrate (shipped — thermos slice)** — continuous matter
+  (liquid) as a holder attribute, NOT a Stuff: `BulkableMixin`
+  interior/surface slots, the `transfer` primitive, the closure scale,
+  the full MQL surface (`:b`, material keyword, `:{N unit}`), and
+  fill/pour/spill/drink/sip. See
+  [bulk.md](./subsystems/bulk.md). Deferred tails (mixing, gas/`sealed`,
+  `Container`+`Bulkable`, amount-aware appearance) remain in
+  [bulkable-slate.md](./slates/tails/bulkable-slate.md).
 - **Wire substrate (shipped)** — response-envelope +
   mql-subscription graduated to subsystems; see **Foundation**
   above ([response-envelope.md](./subsystems/response-envelope.md),

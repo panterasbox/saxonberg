@@ -91,6 +91,15 @@ Plus `biologicalSource: { speciesPath, tissueType } | null` for
 organic materials linking back to a Species template (bidirectional
 with `Species._defaultMaterialPath`).
 
+**Substance identity (Bulk build).** `Material` also composes
+`PerceptibleMixin` (a keyword pool) and carries an `appearance` prose
+phrase. The keywords let a bulk holder be addressed by what it holds
+(`drink coffee`), and `appearance` is the rendered phrase a holder
+speaks / shows. `Material` deliberately does **not** compose
+`Visible` / `Named` — substance identity stays out of the
+perception-target machinery, so material keywords never leak into room
+scope. See [bulk.md](./bulk.md).
+
 ### Capability mixins
 
 Most classification is metadata — flat strings or refs. Some
@@ -187,7 +196,9 @@ These are leaf templates; Material isn't a folder class.
 ### `PropertiedMixin` and damage resistance
 
 `Material`, `Species`, `BodyPlan`, and `Clade` all compose
-`PropertiedMixin` (`SingletonMixin(PropertiedMixin(Idea))`); `Species`
+`PropertiedMixin` (`SingletonMixin(PropertiedMixin(Idea))`); `Material`
+additionally composes `PerceptibleMixin` (Bulk build — keyword pool +
+`appearance`, see above), and `Species`
 additionally composes `VisibleMixin`, so it speaks the standard
 `shortDescription`/`longDescription` surface (the old
 `defaultDescription` was subsumed into `longDescription`). Most

@@ -27,11 +27,7 @@ import type {
   TargetDeclinedNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type {
-  Bulkable,
-  BulkSlot,
-  BulkAffordance,
-} from '../lib/bulk/Bulkable';
+import type { BulkSlot, BulkAffordance } from '../lib/bulk/Bulkable';
 import { compareClosure, requiredClosureFor } from '../lib/bulk/Bulkable';
 import type Material from '../lib/material/Material';
 import type { MqlQuantity } from './mql';
@@ -71,7 +67,7 @@ export type TransferAmount =
  *     strict shortfall).
  *   - `'partial'` — some but not all of a measure moved (lenient clamp).
  *   - `'drained'` — an `open` destination didn't retain the liquid; it
- *     drained through to `drainedTo` (the floor's surface puddle).
+ *     drained through to the floor's surface puddle.
  * Absent on a clean full transfer.
  */
 export type TransferStatus = 'partial' | 'declined' | 'drained';
@@ -81,13 +77,6 @@ export interface TransferResult {
   applied: number;
   status?: TransferStatus;
   notes: BulkNote[];
-  /**
-   * Set when a drain-through cascade re-targeted an `open`
-   * destination's pour to a surface puddle — the holder the matter
-   * actually landed in. The controller narrates "drains through to a
-   * puddle on the floor."
-   */
-  drainedTo?: Stuff & Bulkable;
 }
 
 const BULK_FIELD = 'bulk';
@@ -188,7 +177,7 @@ export class BulkableApi {
       if (toPath !== null && toPath !== from.getMaterialPath()) {
         notes.push({
           kind: 'target-declined',
-          target: MessageApi.refOf(to.getHolder() as unknown as Stuff),
+          target: MessageApi.refOf(to.getHolder()),
           reason: 'material-mismatch',
         });
         return { applied: 0, status: 'declined', notes };
@@ -219,7 +208,6 @@ export class BulkableApi {
         applied: inner.applied,
         status: 'drained',
         notes: inner.notes,
-        drainedTo: floor.getHolder(),
       };
     }
 
@@ -238,14 +226,11 @@ export class BulkableApi {
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
     }
 
-    const requested =
-      amount.kind === 'all' ? from.available() : amount.litres;
     const clampedShort =
       amount.kind === 'measure' && applied < amount.litres;
     const status: TransferStatus | undefined = clampedShort
       ? 'partial'
       : undefined;
-    void requested;
     return { applied, status, notes };
   }
 
@@ -296,6 +281,26 @@ export class BulkableApi {
    * fixtures and pick the bulkable surface holder. Returns `null` when
    * the location has no floor (the defensive no-floor case).
    */
+  /**
+   * A one-line room-view summary of any puddle pooling on `location`'s
+   * floor — e.g. "A puddle of clear water pools on the floor." Returns
+   * `null` when the location has no floor or the floor's surface slot
+   * is empty. Consumed by `LookController` so a spill surfaces in the
+   * bare `look` (the floor's own `look floor` description carries the
+   * puddle too, via the Bulkable markup augmenter).
+   */
+  static floorPuddleSummary(location: Stuff): string | null {
+    if (!MixinApi.isAdornable(location)) return null;
+    for (const fixture of location.getFixtures()) {
+      if (!MixinApi.isBulkable(fixture) || !fixture.hasSurfaceBulk()) continue;
+      const slot = fixture.getBulk('surface');
+      if (slot.isEmpty()) continue;
+      const appearance = slot.getMaterial()?.getAppearance();
+      if (appearance) return `A puddle of ${appearance} pools on the floor.`;
+    }
+    return null;
+  }
+
   static floorSurfaceNear(near: Stuff): BulkSlot | null {
     // Walk up the containment chain — a held vessel's immediate
     // container is the actor, not the room — until an Adornable host
