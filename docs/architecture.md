@@ -461,6 +461,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/perception/` | `SoundSourceMixin` | "this Stuff emits sound"; `getEmittedAmplitude()` (dB `Quantity`) + `getSoundCharacter()` (string). Composed by noisy Thing templates and fixture-side Adornments. |
 | `lib/augmentation/` | `AugmentMixin` | "this Stuff is an installable augment"; declares `confers(): readonly string[]` listing mixin names activated when installed. Wave 1 vocabulary surfaces `_augmentGated` / `_grantsModalities` on the mixins themselves. See [augmentation.md](./subsystems/augmentation.md). |
 | `lib/message/` | `AetherMixin` | "this Stuff can transmit and receive over the Aether (non-acoustic comm network)". Augment-gated (`_augmentGated = true`); inert until `AetherImplant` confers it. Grants the `dm` verb (`tell`/`whisper` aliases) and contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`. |
+| `lib/vitals/` | `VitalsMixin` | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md). |
+| `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content). Composed by `Creature`. See [reserve.md](./subsystems/reserve.md). |
 
 ### Mixin Composition Constraints
 

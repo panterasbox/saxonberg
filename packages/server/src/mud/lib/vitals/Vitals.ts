@@ -17,7 +17,7 @@
  * - NOT a stored hitpoint scalar. The readouts compute every call and
  *   are never persisted/cached (the `getSpecies` HMR discipline).
  * - NOT a condition-content catalog. Afflictions are authored Idea
- *   templates (Phase 5); trauma behavior is a static table.
+ *   templates; trauma behavior is a static table.
  * - NOT the death driver. This build ships only the death *seams*
  *   (the cause-of-death field, the derived consciousness); nothing
  *   watches a vital and flips `lifecycleState`.
@@ -71,7 +71,7 @@ export type Consciousness = 'conscious' | 'unconscious' | 'dead';
 /**
  * Per-part instance delta — only what differs from the shared BodyPlan
  * structure. Kept minimal: trauma/condition state lives in the
- * condition collection (Phase 5), not here.
+ * condition collection, not here.
  */
 export interface BodyPartDelta {
   /** Severed / absent → disables the part's coupled slots. */
@@ -146,17 +146,17 @@ function assertVitalQuantity(value: unknown, sign: VitalSign): void {
 }
 
 export interface Vitals {
-  // ---------- vital signs (Phase 2) ----------
+  // ---------- vital signs ----------
   getVitalSign(sign: VitalSign): Quantity<Unit>;
   setVitalSign(sign: VitalSign, value: Quantity<Unit>): void;
   /** The survivable band for a sign, from species profile or default. */
   getVitalBand(sign: VitalSign): VitalBand;
 
-  // ---------- derived readouts (Phase 2; computed every call) ----------
+  // ---------- derived readouts (computed every call) ----------
   getConditionBand(): ConditionBand;
   getConsciousness(): Consciousness;
 
-  // ---------- death seam (declared Phase 2; postmortem in Phase 6) ----------
+  // ---------- death seam (cause-of-death field + postmortem seam) ----------
   getCauseOfDeath(): string | null;
   setCauseOfDeath(value: string | null): void;
   /**
@@ -167,14 +167,14 @@ export interface Vitals {
    */
   getPostmortemProgressions(): readonly string[];
 
-  // ---------- anatomy (Phase 3) — resolves instance-delta → BodyPlan ----------
+  // ---------- anatomy — resolves instance-delta → BodyPlan ----------
   getParts(): ResolvedBodyPart[];
   getPart(key: string): ResolvedBodyPart | null;
   getInjuredParts(): ResolvedBodyPart[];
   /** Coarse part→slot coupling: a missing part disables its slots. */
   isSlotDisabledByAnatomy(slot: string): boolean;
 
-  // ---------- conditions (Phase 5) — both kinds, one collection ----------
+  // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
   hasCondition(pred: (c: ActiveCondition) => boolean): boolean;
   /** Add a condition (a Trauma value or an AfflictionRecord). */
@@ -292,7 +292,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The accessible band over blood-volume fraction + vitals-out-of-
-     * band. Phase 4 (reserves) and Phase 5 (trauma) fold additional
+     * band. Reserves and trauma fold additional
      * load in at the marked seam. A corpse (`lifecycleState: 'dead'`)
      * reads `dead`; otherwise the band reflects the *substrate* — it
      * can read `critical` from a floored vital with NO lifecycle
@@ -334,7 +334,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
       }
-      // Phase 5 — active trauma adds load (coarse: each non-trivial wound).
+      // Active trauma adds load (coarse: each non-trivial wound).
       for (const c of this.conditions) {
         if (c.kind === 'trauma' && c.severity >= 0.5) severity += 1;
       }
@@ -346,7 +346,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Consciousness below death — derived from blood volume + SpO₂.
      * Gates animate verbs like death but is recoverable. A corpse reads
-     * `dead`. Phase 5 folds head-trauma in at the marked seam.
+     * `dead`. Head trauma is folded in below.
      */
     public getConsciousness(): Consciousness {
       const self = this as unknown as Stuff;
@@ -361,7 +361,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const spo2Band = this.getVitalBand('spo2');
       const spo2 = this._spo2.rawValue();
 
-      // Phase 5 — significant head trauma forces unconscious.
+      // Significant head trauma forces unconscious.
       const headTrauma = this.conditions.some(
         (c) =>
           c.kind === 'trauma' &&
