@@ -400,6 +400,10 @@ export function CommandBar({
   const basePrompt = useStore((s) => s.basePrompt);
   const setActiveSlot = useStore((s) => s.setActiveSlot);
   const setDraft = useStore((s) => s.setDraft);
+  // Input is disabled while the bus is down (reconnecting / dropped):
+  // commands can't be sent and are never queued, so a stale command
+  // can't fire into a freshly-resumed world.
+  const offline = useStore((s) => s.connection.link !== 'connected');
 
   const activeEntry: PromptEntry | undefined =
     activeSlot === BASE_SLOT
@@ -467,6 +471,7 @@ export function CommandBar({
   /* --- Submit handlers -------------------------------------------- */
 
   const submitBase = () => {
+    if (offline) return; // bus down — no send, no queue
     onSendCommand(baseValue);
     const trimmed = baseValue.trim();
     if (trimmed) {
@@ -480,6 +485,7 @@ export function CommandBar({
   };
 
   const submitActive = () => {
+    if (offline) return; // bus down — no send, no queue
     if (!activeEntry) {
       submitBase();
       return;
@@ -752,8 +758,11 @@ export function CommandBar({
             }
           }}
           onKeyDown={handleKeyDown}
+          disabled={offline}
           placeholder={
-            promptMode
+            offline
+              ? 'Disconnected — reconnecting…'
+              : promptMode
               ? activeEntry && activeEntry.kind === 'text'
                 ? activeEntry.placeholder ?? 'Type your answer...'
                 : activeEntry && activeEntry.kind === 'confirm'
@@ -765,7 +774,11 @@ export function CommandBar({
           $flashing={flashing}
           $promptMode={promptMode}
         />
-        <SendButton $promptMode={promptMode} onClick={submitActive}>
+        <SendButton
+          $promptMode={promptMode}
+          onClick={submitActive}
+          disabled={offline}
+        >
           {submitButtonLabel(activeEntry)}
         </SendButton>
       </InputRow>

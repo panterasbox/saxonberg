@@ -32,6 +32,10 @@ export const tokens = {
     sectionLabel: "#569cd6",
     actionBg: "#3c3c3c",
     actionBgHover: "#4a4a4a",
+    // Connection-health signals — narrow, high-meaning state only
+    // (reconnecting / dropped). Not for general decoration.
+    warning: "#cca700",
+    danger: "#f48771",
   },
   space: {
     xs: "0.15rem",

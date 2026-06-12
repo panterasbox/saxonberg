@@ -18,11 +18,13 @@
  * color-conservative).
  */
 
-import styled from 'styled-components';
-import type { CharGenRosterEntry } from '@saxonberg/types';
-import { useStore } from '../store/index';
-import { tokens } from './ui/tokens';
-import { Button } from './ui/Button';
+import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import type { CharGenRosterEntry } from "@saxonberg/types";
+import { useStore } from "../store/index";
+import { signOut } from "../services/auth";
+import { tokens } from "./ui/tokens";
+import { Button } from "./ui/Button";
 
 const Screen = styled.div`
   display: flex;
@@ -118,6 +120,22 @@ const Waiting = styled.p`
   font-style: italic;
 `;
 
+/** Subtle escape — never trap the player on a screen with no exit. */
+const SignOutLink = styled.button`
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
 interface CharacterSelectProps {
   /** The real command channel — every affordance routes through it. */
   onSendCommand: (text: string) => void;
@@ -156,37 +174,63 @@ function CharacterRow({
 export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
   const roster = useStore((s) => s.charGenRoster);
 
+  // Dev-only auto-enter: the dev "Skip to world" button sets
+  // `autoEnterPending`; when the roster arrives, auto-play the first
+  // character so dev login lands straight in-world instead of stopping
+  // at the picker. Real players never set the flag, so the roster
+  // behaves normally for them. Latch it locally so the "entering" state
+  // holds for the whole window even after the store flag is cleared.
+  const autoPlayedRef = useRef(false);
+  const [autoEntering] = useState(() => useStore.getState().autoEnterPending);
+  useEffect(() => {
+    if (autoPlayedRef.current || !autoEntering || roster.length === 0) return;
+    autoPlayedRef.current = true;
+    useStore.getState().setAutoEnterPending(false);
+    onSendCommand(`play ${roster[0]!.playerId}`);
+  }, [roster, onSendCommand, autoEntering]);
+
+  // The "Choose your character" picker renders ONLY when there's a real
+  // roster to pick from and we're not auto-entering. Every transient
+  // state — connecting / holding / dev auto-enter — gets a quiet line,
+  // never the picker.
+  if (autoEntering || roster.length === 0) {
+    return (
+      <Screen data-testid="roster-screen">
+        <Inner>
+          <Waiting>
+            {autoEntering ? "Entering the world…" : "Connecting…"}
+          </Waiting>
+        </Inner>
+      </Screen>
+    );
+  }
+
   return (
     <Screen data-testid="roster-screen">
       <Inner>
         <Heading>Choose your character</Heading>
-        {roster.length > 0 ? (
-          <>
-            <Subhead>
-              Pick a character to enter the world, or create a new one.
-            </Subhead>
-            <RosterList>
-              {roster.map((entry) => (
-                <CharacterRow
-                  key={entry.playerId}
-                  entry={entry}
-                  onSendCommand={onSendCommand}
-                />
-              ))}
-            </RosterList>
-          </>
-        ) : (
-          <Waiting>Connecting…</Waiting>
-        )}
+        <Subhead>
+          Pick a character to enter the world, or create a new one.
+        </Subhead>
+        <RosterList>
+          {roster.map((entry) => (
+            <CharacterRow
+              key={entry.playerId}
+              entry={entry}
+              onSendCommand={onSendCommand}
+            />
+          ))}
+        </RosterList>
         <Actions>
           <Button
             variant="action"
             data-testid="roster-create"
-            onClick={() => onSendCommand('enroll')}
+            onClick={() => onSendCommand("enroll")}
             aria-label="Create a new character"
           >
             Create new character
           </Button>
+          <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
         </Actions>
       </Inner>
     </Screen>

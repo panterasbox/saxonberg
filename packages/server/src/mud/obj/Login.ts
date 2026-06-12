@@ -45,6 +45,25 @@ import type Interactive from './Interactive';
 import type Avatar from './Avatar';
 
 /**
+ * Serialize guest avatar clones. Every guest clones the one shared seed
+ * template path, and `StuffApi.clone` throws if the same path is already
+ * in flight (its circular-dependency guard). Real characters never hit
+ * this — each clones a unique per-player path — so the chain only ever
+ * holds guest mints, which are rare and sub-second. A failed mint
+ * doesn't poison the chain (the `.then(ok, err)` swallows rejection for
+ * the *next* waiter; the original promise still rejects to its caller).
+ */
+let guestMintChain: Promise<unknown> = Promise.resolve();
+function serializeGuestMint<T>(fn: () => Promise<T>): Promise<T> {
+  const result = guestMintChain.then(fn, fn);
+  guestMintChain = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
+/**
  * In-progress char-gen picks. Held on the transient Login (GC'd at
  * commit → no draft persistence, no completion flag). Mutated by
  * `EnrollController`; read by its commit.
@@ -119,6 +138,15 @@ export default class Login extends LoginBase {
     const { interactive } = this;
     ConnectionApi.transfer(interactive, this);
 
+    // Anonymous session → mint a throwaway guest avatar and drop straight
+    // into the lounge (no roster, no char-gen). This is the ONE place the
+    // "anonymous session → guest character" policy lives; the auth axis
+    // (user.anonymous) and the character axis (avatar.isGuest) meet here.
+    if (interactive.getUser().anonymous) {
+      await this.enterAsGuest();
+      return;
+    }
+
     const avatars = await PlayerApi.loadAvatarsForUser(interactive.getUser());
 
     if (avatars.length === 0) {
@@ -130,6 +158,33 @@ export default class Login extends LoginBase {
     // Returning user → character-select roster. Login stays alive; the
     // `play <playerId>` verb performs the handoff + destruct.
     this.presentRoster(avatars);
+  }
+
+  /**
+   * Mint a throwaway guest avatar from the seed and hand off to it. The
+   * guest gets a generated reserved-word name ("Guest Mallow"), spawns
+   * in the lounge (the seed's `startLocation`), persists nothing, and is
+   * reaped when its connection drops (`Avatar.onLinkdead`). Mirrors
+   * `playCharacter`'s handoff shape, minus all the per-character
+   * template / roster / ownership machinery.
+   */
+  public async enterAsGuest(): Promise<void> {
+    const { interactive } = this;
+    const { default: AvatarClass } = await import('./Avatar');
+    const guestName = await AvatarClass.generateGuestName();
+    // Clone the one shared seed template. Serialized so concurrent guest
+    // connects don't collide on StuffApi.clone's in-flight-path guard.
+    const avatar = await serializeGuestMint(() =>
+      StuffApi.clone<Avatar>(AvatarClass.SEED_TEMPLATE_PATH, {
+        user: interactive.getUser(),
+        isGuest: true,
+        guestName,
+      }),
+    );
+    ConnectionApi.transfer(interactive, avatar);
+    console.info(`Login: Guest connected - ${avatar.getFullName()}`);
+    await avatar.enter(interactive, { firstArrival: true });
+    StuffApi.destruct(this);
   }
 
   /**

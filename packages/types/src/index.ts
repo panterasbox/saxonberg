@@ -909,6 +909,13 @@ export interface ConnectionEstablishedPayload {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    /** Resolved portrait URL (setting → account photo → placeholder).
+     *  Always present — the server resolves to at least a placeholder. */
+    portraitUrl: string;
+    /** True iff this is an anonymous guest avatar (throwaway, never
+     *  persisted). Drives guest UI treatment; absent/false for real
+     *  characters. */
+    isGuest?: boolean;
   };
   /**
    * Authored topic descriptors. The client caches this snapshot for
@@ -1155,6 +1162,8 @@ export interface AuthStatusResponse {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    portraitUrl: string;
+    isGuest?: boolean;
   };
 }
 
@@ -1180,13 +1189,21 @@ export interface AuthState {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    portraitUrl: string;
+    isGuest?: boolean;
   } | null;
 }
 
 /**
  * Client-side connection state.
+ *
+ * `link` is the authoritative three-state of the bus connection;
+ * `isConnected` is derived (`link === 'connected'`) and kept for
+ * existing callers. `reconnecting` = auto-retrying with backoff;
+ * `dropped` = gave up (manual reconnect / routing applies).
  */
 export interface ConnectionState {
+  link: "connected" | "reconnecting" | "dropped";
   isConnected: boolean;
   socketId: string | null;
   sessionId: string | null;

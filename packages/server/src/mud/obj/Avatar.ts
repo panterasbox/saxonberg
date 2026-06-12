@@ -23,6 +23,7 @@ import type { Container } from '../lib/spatial/Container';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Warren } from '../lib/location/Warren';
 import { SpeciesApi } from '../api/species';
+import { NameBank } from '../lib/species/NameBank';
 import AetherImplant from '../lib/augmentation/AetherImplant';
 import { MessageApi } from '../api/message';
 import { DescribeApi } from '../api/describe';
@@ -63,6 +64,19 @@ import { TemplatePathPrefixes } from '../lib/paths';
 export interface AvatarInitContext {
   user?: User;
   playerId?: string;
+  /**
+   * Mark this avatar as an anonymous guest (throwaway, never persisted,
+   * destroyed on disconnect). Set by `Login` when minting a guest from
+   * the seed. A guest has no `playerId` and is not registered with
+   * `PlayerApi`.
+   */
+  isGuest?: boolean;
+  /**
+   * Guest display name — `{ name: GUEST_RESERVED_WORD, surname: <distinguisher> }`.
+   * Applied in `postRegister` so guest-ness is legible in plain text
+   * (speech/emote attribution, look) and not impersonable.
+   */
+  guestName?: { name: string; surname: string };
 }
 
 // AetherMixin composes onto Avatar — players have implants (per the
@@ -176,6 +190,50 @@ export default class Avatar extends AvatarBase {
   }
 
   /**
+   * Reserved first word of every guest name (e.g. "Guest Mallow"). Two
+   * jobs: it makes guest-ness legible in plain text wherever the Named
+   * name appears (speech/emote attribution, look, logs — a UI badge
+   * can't reach those), and it is withheld from real character naming
+   * (the char-gen `enroll` denylist imports it) so a real player can't
+   * impersonate a guest. Exact-word only; fuzzy/homoglyph near-misses
+   * are out of scope.
+   */
+  static readonly GUEST_RESERVED_WORD = 'Guest';
+
+  /** Surnames used as guest distinguishers when the NameBank is empty. */
+  static readonly #GUEST_FALLBACK_SURNAMES = [
+    'Mallow',
+    'Thorne',
+    'Quince',
+    'Ashby',
+    'Pellow',
+    'Wren',
+    'Marsh',
+    'Crane',
+  ];
+
+  /**
+   * Generate a recognizable guest name: the reserved word plus a
+   * NameBank-drawn distinguisher ("Guest Mallow"). Draws the surname
+   * from the `common` name bank, falling back to a small built-in list
+   * when the bank is unseeded. Pure read; safe to call before mint.
+   */
+  static async generateGuestName(): Promise<{
+    name: string;
+    surname: string;
+  }> {
+    let pool = Avatar.#GUEST_FALLBACK_SURNAMES as readonly string[];
+    try {
+      const { surname } = await NameBank.resolve(['common']);
+      if (surname.length > 0) pool = surname;
+    } catch {
+      /* NameBank unavailable — use the fallback list */
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)]!;
+    return { name: Avatar.GUEST_RESERVED_WORD, surname: pick };
+  }
+
+  /**
    * Runtime-only pointer to the owning User. Stamped by `postRegister`
    * from the clone context; NOT persisted. Ownership lives on
    * `User.playerIds`. Host-internal storage; external callers use
@@ -194,6 +252,17 @@ export default class Avatar extends AvatarBase {
   protected playerId: string = '';
   public getPlayerId(): string { return this.playerId; }
   public setPlayerId(value: string): void { this.playerId = value; }
+
+  /**
+   * Anonymous-guest marker. Runtime-only (NOT persisted — guests never
+   * save). Stamped in `postRegister` from the clone context. This is the
+   * **character axis** (is this body a throwaway persona?), distinct from
+   * the session's auth state (`User.anonymous`). Every guest *behavior*
+   * — don't-flush, destroy-on-disconnect, reserved name, client badge —
+   * keys off this, never the session.
+   */
+  protected isGuest: boolean = false;
+  public getIsGuest(): boolean { return this.isGuest; }
 
   /**
    * Multiplexing storage (`interactives: Set<Interactive>`),
@@ -218,7 +287,17 @@ export default class Avatar extends AvatarBase {
   public override async postRegister(context?: AvatarInitContext): Promise<void> {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
+    if (context?.isGuest) this.isGuest = true;
+    // A guest's reserved-word name ("Guest <distinguisher>"). Applied
+    // here so it's present before enter/rendering — guest-ness is
+    // legible in every attributed line.
+    if (context?.guestName) {
+      this.setName(context.guestName.name);
+      this.setSurname(context.guestName.surname);
+    }
 
+    // Guests have no playerId and are not registered — they're
+    // throwaway and looked up by nothing.
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
@@ -238,6 +317,10 @@ export default class Avatar extends AvatarBase {
    * snapshot-before-await ordering invariant the substrate honors.
    */
   public async save(): Promise<void> {
+    // Guests persist nothing — no per-character template to write back.
+    // This is the single guard that makes "zero guest persistence" hold
+    // across every save path (autosave timer, onDestruct, client-state).
+    if (this.isGuest) return;
     const tpl = await TemplateApi.snapshotToTemplate(this);
     await tpl.save();
   }
@@ -311,6 +394,7 @@ export default class Avatar extends AvatarBase {
     // register, so reach for fullName.
     const catalogue =
       StuffApi.findByTemplatePath<TopicCatalogue>('/obj/TopicCatalogue');
+    const portraitUrl = await this.getPortraitUrl();
     const payload: ConnectionEstablishedPayload = {
       userId: interactive.getUserId() ?? '',
       socketId: interactive.getSocketId(),
@@ -325,6 +409,8 @@ export default class Avatar extends AvatarBase {
         nameSuffix: this.getNameSuffix(),
         alternateNames: this.getAlternateNames(),
         pronouns: this.getPronouns(),
+        portraitUrl,
+        isGuest: this.getIsGuest(),
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       clientState: this.snapshotClientState(),
@@ -421,6 +507,7 @@ export default class Avatar extends AvatarBase {
    * not restart the timer in v1.
    */
   public startAutoSave(): void {
+    if (this.isGuest) return; // Guests never persist — no autosave timer.
     if (this.periodicSaveHandle !== null) return;
     const intervalMs =
       resolveSetting<number>(this, 'world.autosave.interval') ??
@@ -522,6 +609,14 @@ export default class Avatar extends AvatarBase {
    * for observers that care about player presence.
    */
   public onLinkdead(): void {
+    // A guest body has nothing to resume — reap it the moment its last
+    // connection drops (no reconnect window, unlike a real avatar which
+    // persists linkdead for reconnection). The client routes a dropped
+    // guest to the start screen.
+    if (this.isGuest) {
+      StuffApi.destruct(this);
+      return;
+    }
     EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
   }
 

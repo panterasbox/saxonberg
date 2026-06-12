@@ -95,6 +95,19 @@ interface CharGenConfig {
 const NAME_DENYLIST = ['admin', 'system', 'moderator', 'null', 'root'];
 const NAME_RE = /^\p{L}+(?:[-'\p{L}]*\p{L})?$/u;
 
+/**
+ * Reserved against a real character. The denylist plus the guest
+ * reserved word — referenced from `Avatar` so the impersonation guard
+ * stays in lock-step with the guest name generator (no drift). Exact
+ * word only; fuzzy/homoglyph near-misses are out of scope.
+ */
+function isReservedName(lower: string): boolean {
+  return (
+    NAME_DENYLIST.includes(lower) ||
+    lower === Avatar.GUEST_RESERVED_WORD.toLowerCase()
+  );
+}
+
 function validateNameToken(token: string, label: string): string | undefined {
   const t = token.trim();
   if (t.length < 2 || t.length > 24) {
@@ -103,7 +116,7 @@ function validateNameToken(token: string, label: string): string | undefined {
   if (!NAME_RE.test(t)) {
     return `${label} may use letters with a single internal hyphen or apostrophe only.`;
   }
-  if (NAME_DENYLIST.includes(t.toLowerCase())) {
+  if (isReservedName(t.toLowerCase())) {
     return `'${t}' isn't allowed as a ${label.toLowerCase()}.`;
   }
   return undefined;

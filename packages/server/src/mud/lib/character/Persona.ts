@@ -24,6 +24,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
 /** Public shape provided by PersonaMixin. */
 export interface Persona {
@@ -37,6 +38,28 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
     static persistentFields = ['bio', 'aspiration'];
+
+    /**
+     * Per-character portrait override. Schema-on-owner: the portrait is
+     * part of claimed identity, so its declaration lives on Persona.
+     * Unset (`''`) by default — the effective portrait resolves on read
+     * (`HasInteractive.getPortraitUrl`): this setting → the account's
+     * Google photo → a client-generated placeholder. The default is
+     * NEVER the account photo (that would freeze it stale); leaving it
+     * unset keeps "default" legible and always reflects the current
+     * account photo until the player explicitly overrides via `settings`.
+     */
+    static settings: SettingsSchemaEntry[] = [
+      {
+        key: 'identity.portrait',
+        type: SettingTypes.String,
+        default: '',
+        description:
+          'Your character portrait image URL. Leave unset to use your ' +
+          'account photo; set a URL here to override it for this ' +
+          'character.',
+      },
+    ];
 
     /** Claimed narrative prose. Seeded at char-gen; editable later. */
     public bio: string = '';

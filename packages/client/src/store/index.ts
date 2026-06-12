@@ -14,7 +14,7 @@
  *   competing-rendering-authority splits.
  */
 
-import { create } from 'zustand';
+import { create } from "zustand";
 import type {
   AuthState,
   CharGenRosterEntry,
@@ -27,13 +27,16 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
-} from '@saxonberg/types';
+} from "@saxonberg/types";
 
 /**
  * The mutually-exclusive top-level UI phase. Derived from the auth /
  * connection state and the char-gen wire frames:
  *
  *   - `unauthenticated` — no Google session yet; the login takeover.
+ *   - `connecting` — authenticated, WebSocket connecting; a neutral
+ *     splash while we wait for the first server frame to choose the
+ *     real destination. Never shows the roster/character-select screen.
  *   - `character-select` — a `system.charactergen.roster` frame
  *     arrived; the player picks an existing character or creates one.
  *   - `char-gen` — a `system.charactergen.state` frame arrived; the
@@ -45,10 +48,11 @@ import type {
  * are exclusive — exactly one screen renders at a time.
  */
 export type ConnectionPhase =
-  | 'unauthenticated'
-  | 'character-select'
-  | 'char-gen'
-  | 'in-world';
+  | "unauthenticated"
+  | "connecting"
+  | "character-select"
+  | "char-gen"
+  | "in-world";
 
 /**
  * Client mirror of one entry on the per-Interactive prompt stack.
@@ -68,7 +72,7 @@ export type ConnectionPhase =
  */
 export type PromptEntry =
   | {
-      kind: 'choice';
+      kind: "choice";
       promptId: string;
       label: string;
       choices: PromptChoice[];
@@ -77,15 +81,15 @@ export type PromptEntry =
       validationError?: string;
     }
   | {
-      kind: 'confirm';
+      kind: "confirm";
       promptId: string;
       label: string;
-      defaultAnswer: 'yes' | 'no';
+      defaultAnswer: "yes" | "no";
       foreground: boolean;
       validationError?: string;
     }
   | {
-      kind: 'text';
+      kind: "text";
       promptId: string;
       label: string;
       placeholder?: string;
@@ -93,7 +97,7 @@ export type PromptEntry =
       validationError?: string;
     }
   | {
-      kind: 'mql-object';
+      kind: "mql-object";
       promptId: string;
       label: string;
       matches: MqlMatchSummary[];
@@ -101,7 +105,7 @@ export type PromptEntry =
       validationError?: string;
     }
   | {
-      kind: 'mql-many';
+      kind: "mql-many";
       promptId: string;
       label: string;
       matches: MqlMatchSummary[];
@@ -116,7 +120,7 @@ export type PromptEntry =
  * CommandBar's slot picker. Distinguishes from `promptId`s, which
  * are nanoids and therefore never collide.
  */
-export const BASE_SLOT = 'base' as const;
+export const BASE_SLOT = "base" as const;
 
 /**
  * One pending echo-pairing snapshot. The CommandBar pushes one of
@@ -194,7 +198,7 @@ interface StoreState {
   selfAvatarId: string | null;
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
-  setDisconnected: (error?: string) => void;
+  setDisconnected: (error?: string, link?: "reconnecting" | "dropped") => void;
 
   // Connection-phase slice — the mutually-exclusive top-level screen.
   /**
@@ -210,6 +214,15 @@ interface StoreState {
   connectionPhase: ConnectionPhase;
   /** Set the top-level phase directly (idempotent no-op on no change). */
   setConnectionPhase: (phase: ConnectionPhase) => void;
+
+  /**
+   * Dev-only one-shot: set by the dev "Skip to world" button so that,
+   * when the roster arrives, `CharacterSelect` auto-plays the first
+   * character instead of stopping at the picker. Cleared once consumed.
+   * Real players never set it, so the roster behaves normally for them.
+   */
+  autoEnterPending: boolean;
+  setAutoEnterPending: (pending: boolean) => void;
 
   // Char-gen slices — the pre-world character-creation surfaces.
   /**
@@ -406,7 +419,7 @@ interface StoreState {
    * canonical-kind subscription consumer (see InspectionPane.tsx).
    */
   setPaneResult: (
-    result: (StuffRefRecord | StuffDetailRecord)[] | null
+    result: (StuffRefRecord | StuffDetailRecord)[] | null,
   ) => void;
   /**
    * Replace the live header name (display name from the first
@@ -447,7 +460,7 @@ interface StoreState {
       stuffId: string;
       displayName: string;
       primaryKeyword?: string;
-    } | null
+    } | null,
   ) => void;
   /**
    * Push a trail segment from a focus change. Dedupes against the
@@ -478,7 +491,7 @@ interface StoreState {
   paneDoorContext: { stuffId: string; direction: string } | null;
   /** Replace the door-context annotation. Null clears it. */
   setPaneDoorContext: (
-    ctx: { stuffId: string; direction: string } | null
+    ctx: { stuffId: string; direction: string } | null,
   ) => void;
   /**
    * Typed keyword/fragment from the player's most recent
@@ -554,10 +567,7 @@ interface StoreState {
    * the renderer surfaces the message and waits for a fresh
    * response on the same id.
    */
-  setPromptValidationError: (
-    promptId: string,
-    message: string | null
-  ) => void;
+  setPromptValidationError: (promptId: string, message: string | null) => void;
   /**
    * Switch the active slot. Pass `BASE_SLOT` to return to command
    * mode. Pass a `promptId` to bind input to that prompt. Unknown
@@ -615,16 +625,16 @@ const PANE_BREADCRUMB_CAP = 6;
  */
 function resolveTopicDescriptor(
   cache: Map<string, TopicDescriptor>,
-  topic: string
+  topic: string,
 ): TopicDescriptor {
   const authored = cache.get(topic);
   if (authored) return authored;
-  const segments = topic.split('.');
+  const segments = topic.split(".");
   for (let i = segments.length - 1; i >= 1; i--) {
-    const ancestorPath = segments.slice(0, i).join('.');
+    const ancestorPath = segments.slice(0, i).join(".");
     const ancestor = cache.get(ancestorPath);
     if (ancestor) {
-      const leaf = segments[segments.length - 1] ?? '';
+      const leaf = segments[segments.length - 1] ?? "";
       return {
         topic,
         family: ancestorPath,
@@ -634,12 +644,12 @@ function resolveTopicDescriptor(
     }
   }
   const leaf = segments[segments.length - 1] ?? topic;
-  const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';
+  const family = segments.length > 1 ? segments.slice(0, -1).join(".") : "";
   return {
     topic,
     family,
     label: titleCase(leaf),
-    description: '(no description)',
+    description: "(no description)",
   };
 }
 
@@ -661,6 +671,10 @@ const initialAuthState: AuthState = {
  * Initial connection state.
  */
 const initialConnectionState: ConnectionState = {
+  // 'connected' is the silent default — the indicator only speaks up
+  // once an established connection actually drops. `isConnected` is the
+  // literal socket boolean (false until the WS opens).
+  link: "connected",
   isConnected: false,
   socketId: null,
   sessionId: null,
@@ -679,16 +693,20 @@ export const useStore = create<StoreState>((set, get) => ({
       const nextAuth = { ...state.auth, ...auth };
       // Crossing the unauthenticated boundary: once a Google session
       // is confirmed, leave the login takeover. The specific
-      // post-login screen (character-select / char-gen / in-world) is
-      // chosen by the first server frame after the WebSocket connects;
-      // until then we sit in `character-select` with an empty roster
-      // (a quiet "connecting" state), never bouncing back to the
-      // login screen. If auth is cleared, return to `unauthenticated`.
+      // post-login destination (character-select / char-gen / in-world)
+      // is chosen by the first server frame after the WebSocket
+      // connects; until then we sit in the neutral `connecting` phase (a
+      // quiet splash), never the character-select/roster screen and never
+      // bouncing back to login. If auth is cleared, return to
+      // `unauthenticated`.
       let connectionPhase = state.connectionPhase;
-      if (nextAuth.isAuthenticated && state.connectionPhase === 'unauthenticated') {
-        connectionPhase = 'character-select';
+      if (
+        nextAuth.isAuthenticated &&
+        state.connectionPhase === "unauthenticated"
+      ) {
+        connectionPhase = "connecting";
       } else if (!nextAuth.isAuthenticated) {
-        connectionPhase = 'unauthenticated';
+        connectionPhase = "unauthenticated";
       }
       return { auth: nextAuth, connectionPhase };
     }),
@@ -696,7 +714,7 @@ export const useStore = create<StoreState>((set, get) => ({
   clearAuth: () =>
     set({
       auth: initialAuthState,
-      connectionPhase: 'unauthenticated',
+      connectionPhase: "unauthenticated",
     }),
 
   // Connection state
@@ -707,12 +725,15 @@ export const useStore = create<StoreState>((set, get) => ({
   // Connection-phase slice. Initial phase mirrors the initial auth
   // state (unauthenticated until /auth/status confirms a session);
   // setAuth/setConnected/the char-gen frames advance it from there.
-  connectionPhase: 'unauthenticated',
+  connectionPhase: "unauthenticated",
 
   setConnectionPhase: (phase) =>
     set((state) =>
-      state.connectionPhase === phase ? {} : { connectionPhase: phase }
+      state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
+
+  autoEnterPending: false,
+  setAutoEnterPending: (pending) => set({ autoEnterPending: pending }),
 
   // Char-gen slices (initial cleared state).
   charGenRoster: [],
@@ -720,7 +741,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setCharGenRoster: (roster) =>
     set(() => ({
       charGenRoster: roster,
-      connectionPhase: 'character-select',
+      connectionPhase: "character-select",
     })),
 
   charGenState: null,
@@ -731,7 +752,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // A char-gen state frame means we're mid-creation. The in-world
       // flip rides the `system.connection.established` that `enroll
       // confirm` fires after commit (setConnected), not a state frame.
-      connectionPhase: 'char-gen' as const,
+      connectionPhase: "char-gen" as const,
     })),
 
   setConnection: (connection) =>
@@ -749,10 +770,11 @@ export const useStore = create<StoreState>((set, get) => ({
       // terminal — drop the buffer (and its unread/muted bookkeeping) so
       // the player doesn't carry the `enroll …` command echoes into the
       // world. A reconnect (already in-world) keeps its scrollback.
-      ...(state.connectionPhase === 'in-world'
+      ...(state.connectionPhase === "in-world"
         ? {}
         : { frames: [], unreadCounts: {}, mutedSinceSessionStart: {} }),
       connection: {
+        link: "connected",
         isConnected: true,
         socketId: payload.socketId,
         sessionId: payload.sessionId,
@@ -762,7 +784,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // so it is unconditionally the in-world flip — regardless of
       // prior phase (char-gen commit, roster select, or a fresh
       // login that already had a character).
-      connectionPhase: 'in-world',
+      connectionPhase: "in-world",
       charGenState: null,
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
@@ -772,7 +794,7 @@ export const useStore = create<StoreState>((set, get) => ({
         isAuthenticated: true,
         user: {
           id: payload.userId,
-          email: '',
+          email: "",
           displayName: [
             payload.player.honorific,
             payload.player.name,
@@ -780,7 +802,7 @@ export const useStore = create<StoreState>((set, get) => ({
             payload.player.nameSuffix,
           ]
             .filter(Boolean)
-            .join(' ')
+            .join(" ")
             .trim(),
         },
         player: payload.player,
@@ -788,32 +810,46 @@ export const useStore = create<StoreState>((set, get) => ({
     }));
   },
 
-  setDisconnected: (error) =>
-    set((state) => ({
-      connection: {
-        isConnected: false,
-        socketId: null,
-        sessionId: null,
-        error: error || null,
-      },
-      selfInteractiveId: null,
-      selfAvatarId: null,
-      // Drop char-gen surfaces on disconnect; the next connection
-      // re-issues the roster / char-gen frames. Keep the phase
-      // authenticated (so the reconnect spinner shows) unless the
-      // session itself was never authenticated.
-      charGenRoster: [],
-      charGenState: null,
-      connectionPhase: state.auth.isAuthenticated
-        ? state.connectionPhase === 'in-world'
-          ? 'in-world'
-          : state.connectionPhase
-        : 'unauthenticated',
-    })),
+  setDisconnected: (error, link = "reconnecting") =>
+    set((state) => {
+      // A dropped guest can't resume — the server reaped the avatar on
+      // disconnect — so route them to the start screen (their throwaway
+      // session is over). Real users stay in-world on a drop; the
+      // Reconnect banner handles give-up, and the avatar persists
+      // server-side for a seamless resume.
+      const droppedGuest =
+        link === "dropped" && state.auth.player?.isGuest === true;
+      const toStartScreen = !state.auth.isAuthenticated || droppedGuest;
+      return {
+        connection: {
+          link,
+          isConnected: false,
+          socketId: null,
+          sessionId: null,
+          error: error || null,
+        },
+        selfInteractiveId: null,
+        selfAvatarId: null,
+        // Drop char-gen surfaces on disconnect; the next connection
+        // re-issues the roster / char-gen frames.
+        charGenRoster: [],
+        charGenState: null,
+        connectionPhase: toStartScreen
+          ? "unauthenticated"
+          : state.connectionPhase === "in-world"
+            ? "in-world"
+            : state.connectionPhase,
+        // Clear identity for a dropped guest so the start screen shows
+        // the logged-out state, not a stale guest.
+        ...(droppedGuest
+          ? { auth: { isAuthenticated: false, user: null, player: null } }
+          : {}),
+      };
+    }),
 
   // Inspection-pane slice (initial cleared state)
   paneFocusName: null,
-  paneFocusFragment: '',
+  paneFocusFragment: "",
   paneBodyPainted: false,
   paneLastResult: null,
   paneBreadcrumbRoot: null,
@@ -824,7 +860,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setPendingTrailLabel: (label) =>
     set((state) =>
-      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label }
+      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label },
     ),
 
   setPanePainted: (painted) =>
@@ -880,7 +916,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   pushPaneBreadcrumbTrail: (entry) =>
     set((state) => {
-      const head = state.paneBreadcrumbTrail[state.paneBreadcrumbTrail.length - 1];
+      const head =
+        state.paneBreadcrumbTrail[state.paneBreadcrumbTrail.length - 1];
       if (head && head.command === entry.command) return {};
       const next = [...state.paneBreadcrumbTrail, entry];
       if (next.length > PANE_BREADCRUMB_CAP) next.shift();
@@ -928,9 +965,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Prompt-stack slice (initial cleared state)
   prompts: [],
-  promptDrafts: { [BASE_SLOT]: '' },
+  promptDrafts: { [BASE_SLOT]: "" },
   activeSlot: BASE_SLOT,
-  basePrompt: '>',
+  basePrompt: ">",
   echoSnapshotQueue: [],
 
   pushPrompt: (entry) =>
@@ -939,12 +976,13 @@ export const useStore = create<StoreState>((set, get) => ({
       // bug or replay), replace the existing entry so the renderer
       // doesn't double-display it.
       const filtered = state.prompts.filter(
-        (p) => p.promptId !== entry.promptId
+        (p) => p.promptId !== entry.promptId,
       );
       const prompts = [...filtered, entry];
-      const drafts = state.promptDrafts[entry.promptId] !== undefined
-        ? state.promptDrafts
-        : { ...state.promptDrafts, [entry.promptId]: '' };
+      const drafts =
+        state.promptDrafts[entry.promptId] !== undefined
+          ? state.promptDrafts
+          : { ...state.promptDrafts, [entry.promptId]: "" };
       // foreground: true → take the active slot; false → leave
       // whatever the player was on. Per the slate's auto-switch
       // default.
@@ -958,9 +996,7 @@ export const useStore = create<StoreState>((set, get) => ({
       if (prompts.length === state.prompts.length) {
         // Nothing to dismiss. Fall back to BASE if active was the
         // missing id anyway (paranoia for stale UI state).
-        return state.activeSlot === promptId
-          ? { activeSlot: BASE_SLOT }
-          : {};
+        return state.activeSlot === promptId ? { activeSlot: BASE_SLOT } : {};
       }
       // Drop the draft for the dismissed slot. The base slot's
       // draft is never the target here (BASE_SLOT never matches a
@@ -1031,7 +1067,7 @@ export const useStore = create<StoreState>((set, get) => ({
   clearPrompts: () =>
     set(() => ({
       prompts: [],
-      promptDrafts: { [BASE_SLOT]: '' },
+      promptDrafts: { [BASE_SLOT]: "" },
       activeSlot: BASE_SLOT,
       echoSnapshotQueue: [],
     })),
@@ -1053,9 +1089,9 @@ export const useStore = create<StoreState>((set, get) => ({
   appendFrame: (frame) =>
     set((state) => {
       const tabs =
-        (state.clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [];
+        (state.clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
       const active =
-        (state.clientState['console.activeTab'] as string | undefined) ?? 'All';
+        (state.clientState["console.activeTab"] as string | undefined) ?? "All";
       let unreadCounts = state.unreadCounts;
       let mutedSinceSessionStart = state.mutedSinceSessionStart;
       let unreadChanged = false;
@@ -1152,7 +1188,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // on each metadata upsert.
       const registry = state.stuffRegistry;
       for (const incoming of records) {
-        if (!incoming || typeof incoming.stuffId !== 'string') {
+        if (!incoming || typeof incoming.stuffId !== "string") {
           continue;
         }
         const existing = registry.get(incoming.stuffId);
