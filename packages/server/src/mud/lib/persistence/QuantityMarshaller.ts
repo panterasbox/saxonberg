@@ -43,13 +43,15 @@ export type QuantityStored<U extends Unit = Unit> =
 /**
  * Encode a `Unit` into a templatePath-safe segment. Composite units
  * (`'g/mol'`, `'kg/m³'`, `'mol/L'`) become `'g-per-mol'`,
- * `'kg-per-m3'`, `'mol-per-L'`. The bare ratio unit `'%'` encodes to
- * `'pct'` so filesystem segments stay portable. Plain units pass
- * through unchanged.
+ * `'kg-per-m3'`, `'mol-per-L'`; `'W/(m·K)'` becomes `'W-per-m-K'`. The
+ * bare ratio unit `'%'` encodes to `'pct'` so filesystem segments stay
+ * portable. Plain units pass through unchanged.
  */
 function encodeUnit(unit: Unit): string {
   return unit
     .replace(/\//g, '-per-')
+    .replace(/[()]/g, '')
+    .replace(/·/g, '-')
     .replace(/³/g, '3')
     .replace(/²/g, '2')
     .replace(/%/g, 'pct');

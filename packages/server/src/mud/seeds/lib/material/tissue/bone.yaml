@@ -1,18 +1,14 @@
-# Bone — rigid mineralized skeletal tissue. Hard and load-bearing;
-# resists blunt and slashing far better than soft tissue (prior art for
-# the deferred mechanism-of-injury / Material.resistance response). Lean
-# seed — the rest of Material's physics fields default. (`density` is
-# Material's one Quantity field — Quantity<'kg/m³'>.)
+# Bone — rigid mineralized skeletal tissue, hard and load-bearing.
+# `density` (kg/m³) and `thermalConductivity` (W/(m·K)) are Material's
+# real Quantity fields, authored bare + marshalled. (The combat
+# material-response — `resistance.<type>` — is deferred until the
+# mechanism-of-injury system lands and can model it honestly.)
 class: /lib/material/Material
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: bone
   density: 1900
-  hardness: 0.85
+  thermalConductivity: 0.32
   edibility: false
   nutrients: ["calcium"]
-  savedProps:
-    "resistance.slash": 0.6
-    "resistance.blunt": 0.4
-    "resistance.pierce": 0.5
   tags: ["tissue", "animal", "bone", "mineral", "skeletal"]

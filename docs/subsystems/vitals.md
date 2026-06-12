@@ -235,9 +235,11 @@ substrate: `afflict()` is the door an insult comes through; a future
 `inflict(target, …)` builds a `Trauma` (mechanism + `site` + energy →
 outcome) and calls it. `TraumaType` is closed-but-extensible (grow it
 additively: `puncture` / `abrasion` / `electrical-injury` / `blast`), and
-the per-part tissue Materials (with their `resistance.*` props) are where
-a `Material.resistance` response reads from. **"Damage type" is explicitly
-not the model** — mechanism-of-injury meets body material; see the
+the per-part tissue Materials are where a future `Material` damage-
+response will read from — the `resistance.<type>` prop convention is
+deferred with combat (see race.md), to be modeled honestly when the
+mechanism-of-injury system lands. **"Damage type" is explicitly not the
+model** — mechanism-of-injury meets body material; see the
 channels-not-nouns decomposition in
 [capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
 for the magic-side mirror.

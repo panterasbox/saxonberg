@@ -47,8 +47,13 @@ follow-on builds:
 ## Material substrate
 
 `Material` is a singleton-by-templatePath `Idea` carrying physical
-properties (density, hardness, opacity, conductivity, …) plus three
-orthogonal layers of classification:
+properties — `density` (`Quantity<'kg/m³'>`) and `thermalConductivity`
+(`Quantity<'W/(m·K)'>`), the two real measured quantities — plus three
+orthogonal layers of classification. (The old fake 0–1 `hardness` /
+`flammability` / `opacity` / electrical / magnetic fields and the
+`resistance.<type>` damage seam were removed: normalized scales with
+zero consumers; they return as real Quantities when a consumer — fire,
+electricity, combat — actually lands.)
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
@@ -189,12 +194,16 @@ additionally composes `VisibleMixin`, so it speaks the standard
 fields stay first-class — they're part of the engine's vocabulary,
 all instances have them, the schema is stable. But where the keys
 are *content-defined* and the engine just stores/queries by name,
-the property bag is the right home. Damage resistance is the v1
-example:
+the property bag is the right home. The deferred combat /
+mechanism-of-injury system's per-material damage resistance is the
+motivating example — keys like `resistance.slash` are content-defined
+(the engine doesn't enumerate damage types), stored and queried by name:
 
 ```ts
-material.setDamageResistance('slash', 0.7);   // → setProp('resistance.slash')
-material.getDamageResistance('slash');        // → getProp('resistance.slash')
+// Illustrative — the convenience accessors were removed until combat
+// lands; the PropertiedMixin pattern below is what's permanent.
+material.setProp(Property.of<number>('resistance.slash'), 0.7);
+material.getProp(Property.of<number>('resistance.slash'));
 
 // Equipment / buff / curse can mask the effective value:
 shield.maskProp(
@@ -203,11 +212,8 @@ shield.maskProp(
 );
 ```
 
-Stored as `Property.of<number>('resistance.<damageType>')`. Damage
-type vocabulary (`'slash'`, `'blunt'`, `'pierce'`, `'fire'`,
-`'cold'`, …) is content-defined; the engine doesn't enumerate it.
 Free as a side effect: `maskProp` lets equipment / buffs / curses
-modify the effective resistance without touching the base, with
+modify the effective value without touching the base, with
 ownership-keyed unmask for clean removal.
 
 The hydration story: PropertiedMixin reads `savedProps` from the
@@ -230,11 +236,14 @@ an explicit `initProp` call from the host.
 - `findByElement(symbol)` — every registered Material whose
   composition contains the element. Combines the above.
 
-Future surfaces (`weightOf`, `flammabilityOf`, `canConduct`) land
-as their consumers do. `damageResistance` is on `Material` directly
-(see above) — when combat lands, it'll likely promote to
-`MaterialApi.damageResistance(stuff, type, detailKey?)` threading
-through `materialOf` for per-Stuff dispatch.
+Future surfaces land as their consumers do. Thermal heat-flow reads
+`thermalConductivity` when the Thermal capability arrives; per-material
+**damage resistance** returns when combat lands (likely
+`MaterialApi.damageResistance(stuff, type, detailKey?)` over the
+`resistance.<type>` prop convention above). Fire/electricity surfaces
+(`flammabilityOf`, `canConduct`) wait for those channels — and re-add
+the underlying material properties as real Quantities at that point,
+not as the fake 0–1 scalars that were removed.
 
 ---
 

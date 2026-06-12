@@ -54,6 +54,9 @@ export type Unit =
   | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
   // Pressure / force / energy / power
   | 'Pa' | 'N' | 'J' | 'W'
+  // Thermal conductivity (W per metre-kelvin) — real material property,
+  // tabulated; consumed by the Thermal capability (heat flow / algor mortis)
+  | 'W/(m·K)'
   // Ratio (humidity, etc.) — bare percent string
   | '%'
   // Vitals (rate / pressure / volume)
@@ -126,6 +129,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
+  'W/(m·K)': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
   bpm: ARITHMETIC_OPS,
   mmHg: ARITHMETIC_OPS,
