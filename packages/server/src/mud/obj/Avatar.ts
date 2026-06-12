@@ -10,49 +10,46 @@
  * connection drops.
  */
 
-import { ShelledCharacter } from '../lib/shell/ShelledCharacter';
-import { PlayerApi } from '../api/player';
-import { ConnectionApi } from '../api/connection';
-import { EventApi } from '../api/event';
-import { TemplateApi } from '../api/template';
-import { StuffApi } from '../api/stuff';
-import { ContainmentApi } from '../api/containment';
-import { MixinApi } from '../api/mixin';
-import type { Containable } from '../lib/spatial/Containable';
-import type { Container } from '../lib/spatial/Container';
-import type { Stuff } from '../lib/stuff/Stuff';
-import { Warren } from '../lib/location/Warren';
-import { SpeciesApi } from '../api/species';
-import { NameBank } from '../lib/species/NameBank';
-import AetherImplant from '../lib/augmentation/AetherImplant';
-import { MessageApi } from '../api/message';
-import { DescribeApi } from '../api/describe';
-import { Mml } from '../api/mml';
-import {
-  ScheduleApi,
-  type ScheduleHandle,
-} from '../api/schedule';
+import { ShelledCharacter } from "../lib/shell/ShelledCharacter";
+import { PlayerApi } from "../api/player";
+import { ConnectionApi } from "../api/connection";
+import { EventApi } from "../api/event";
+import { TemplateApi } from "../api/template";
+import { StuffApi } from "../api/stuff";
+import { ContainmentApi } from "../api/containment";
+import { MixinApi } from "../api/mixin";
+import type { Containable } from "../lib/spatial/Containable";
+import type { Container } from "../lib/spatial/Container";
+import type { Stuff } from "../lib/stuff/Stuff";
+import { Warren } from "../lib/location/Warren";
+import { SpeciesApi } from "../api/species";
+import { NameBank } from "../lib/species/NameBank";
+import AetherImplant from "../lib/augmentation/AetherImplant";
+import { MessageApi } from "../api/message";
+import { DescribeApi } from "../api/describe";
+import { Mml } from "../api/mml";
+import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
 import {
   SettingTypes,
   resolveSetting,
   type SettingsSchemaEntry,
-} from '../lib/shell/Environment';
-import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { AetherMixin } from '../lib/message/Aether';
-import { ContactsMixin } from '../lib/social/Contacts';
-import { Events } from '../lib/events';
-import type { User } from '../lib/identity/User';
+} from "../lib/shell/Environment";
+import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
+import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
+import { AetherMixin } from "../lib/message/Aether";
+import { ContactsMixin } from "../lib/social/Contacts";
+import { Events } from "../lib/events";
+import type { User } from "../lib/identity/User";
 import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
   MessageFrame,
-} from '@saxonberg/types';
-import { Application } from '../../backend/Application';
-import type { CommandContributions } from '../api/command';
-import type Interactive from './Interactive';
-import type TopicCatalogue from './TopicCatalogue';
-import { TemplatePathPrefixes } from '../lib/paths';
+} from "@saxonberg/types";
+import { Application } from "../../backend/Application";
+import type { CommandContributions } from "../api/command";
+import type Interactive from "./Interactive";
+import type TopicCatalogue from "./TopicCatalogue";
+import { TemplatePathPrefixes } from "../lib/paths";
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -71,12 +68,6 @@ export interface AvatarInitContext {
    * `PlayerApi`.
    */
   isGuest?: boolean;
-  /**
-   * Guest display name — `{ name: GUEST_RESERVED_WORD, surname: <distinguisher> }`.
-   * Applied in `postRegister` so guest-ness is legible in plain text
-   * (speech/emote attribution, look) and not impersonable.
-   */
-  guestName?: { name: string; surname: string };
 }
 
 // AetherMixin composes onto Avatar — players have implants (per the
@@ -92,7 +83,13 @@ export default class Avatar extends AvatarBase {
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
   static commandContributions: CommandContributions = {
-    self: ['system/ping.yaml', 'system/help.yaml', 'system/clear.yaml', 'author/player.yaml', 'perception/analyze.yaml'],
+    self: [
+      "system/ping.yaml",
+      "system/help.yaml",
+      "system/clear.yaml",
+      "author/player.yaml",
+      "perception/analyze.yaml",
+    ],
     environment: [],
     inventory: [],
     peers: [],
@@ -108,7 +105,7 @@ export default class Avatar extends AvatarBase {
    * the declaration alone wires it. See
    * [docs/requirements/multilocation-lounge-requirements.md].
    */
-  static instructionFields = ['startLocation'];
+  static instructionFields = ["startLocation"];
 
   /**
    * Phase 2 applier for `data.startLocation`. The avatar's spawn/recall
@@ -151,14 +148,14 @@ export default class Avatar extends AvatarBase {
    */
   static settings: SettingsSchemaEntry[] = [
     {
-      key: 'world.autosave.interval',
+      key: "world.autosave.interval",
       type: SettingTypes.Number,
       default: 5 * 60 * 1000, // 5 minutes in milliseconds
       description:
-        'Cadence (milliseconds) for the Avatar persist-back ' +
-        'periodic backstop. Resolved once at login time; mid-session ' +
-        'changes do not restart the running timer (effect lands at ' +
-        'next login).',
+        "Cadence (milliseconds) for the Avatar persist-back " +
+        "periodic backstop. Resolved once at login time; mid-session " +
+        "changes do not restart the running timer (effect lands at " +
+        "next login).",
     },
   ];
 
@@ -177,7 +174,7 @@ export default class Avatar extends AvatarBase {
    * avatar is forked from. 4 chars; nanoids are 21, so it can't
    * collide with a real playerId.
    */
-  static readonly SEED_PLAYER_ID = 'seed';
+  static readonly SEED_PLAYER_ID = "seed";
 
   /**
    * Convenience: the seed avatar's template path.
@@ -198,18 +195,18 @@ export default class Avatar extends AvatarBase {
    * impersonate a guest. Exact-word only; fuzzy/homoglyph near-misses
    * are out of scope.
    */
-  static readonly GUEST_RESERVED_WORD = 'Guest';
+  static readonly GUEST_RESERVED_WORD = "Guest";
 
   /** Surnames used as guest distinguishers when the NameBank is empty. */
   static readonly #GUEST_FALLBACK_SURNAMES = [
-    'Mallow',
-    'Thorne',
-    'Quince',
-    'Ashby',
-    'Pellow',
-    'Wren',
-    'Marsh',
-    'Crane',
+    "Mallow",
+    "Thorne",
+    "Quince",
+    "Ashby",
+    "Pellow",
+    "Wren",
+    "Marsh",
+    "Crane",
   ];
 
   /**
@@ -224,7 +221,7 @@ export default class Avatar extends AvatarBase {
   }> {
     let pool = Avatar.#GUEST_FALLBACK_SURNAMES as readonly string[];
     try {
-      const { surname } = await NameBank.resolve(['common']);
+      const { surname } = await NameBank.resolve(["common"]);
       if (surname.length > 0) pool = surname;
     } catch {
       /* NameBank unavailable — use the fallback list */
@@ -240,8 +237,12 @@ export default class Avatar extends AvatarBase {
    * `getUser()` / `setUser()`.
    */
   protected user?: User;
-  public getUser(): User | undefined { return this.user; }
-  public setUser(value: User | undefined): void { this.user = value; }
+  public getUser(): User | undefined {
+    return this.user;
+  }
+  public setUser(value: User | undefined): void {
+    this.user = value;
+  }
 
   /**
    * Character slot id (key under `/obj/Avatar/<playerId>` and in `User.playerIds`).
@@ -249,9 +250,13 @@ export default class Avatar extends AvatarBase {
    * mirrored into the doc. Stamped by `postRegister` from the clone
    * context, or seeded by the test/direct-construction data blob.
    */
-  protected playerId: string = '';
-  public getPlayerId(): string { return this.playerId; }
-  public setPlayerId(value: string): void { this.playerId = value; }
+  protected playerId: string = "";
+  public getPlayerId(): string {
+    return this.playerId;
+  }
+  public setPlayerId(value: string): void {
+    this.playerId = value;
+  }
 
   /**
    * Anonymous-guest marker. Runtime-only (NOT persisted — guests never
@@ -262,7 +267,9 @@ export default class Avatar extends AvatarBase {
    * keys off this, never the session.
    */
   protected isGuest: boolean = false;
-  public getIsGuest(): boolean { return this.isGuest; }
+  public getIsGuest(): boolean {
+    return this.isGuest;
+  }
 
   /**
    * Multiplexing storage (`interactives: Set<Interactive>`),
@@ -284,20 +291,16 @@ export default class Avatar extends AvatarBase {
    * ships, the loadout install moves there with the rest of
    * character creation.
    */
-  public override async postRegister(context?: AvatarInitContext): Promise<void> {
+  public override async postRegister(
+    context?: AvatarInitContext,
+  ): Promise<void> {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
     if (context?.isGuest) this.isGuest = true;
-    // A guest's reserved-word name ("Guest <distinguisher>"). Applied
-    // here so it's present before enter/rendering — guest-ness is
-    // legible in every attributed line.
-    if (context?.guestName) {
-      this.setName(context.guestName.name);
-      this.setSurname(context.guestName.surname);
-    }
 
     // Guests have no playerId and are not registered — they're
-    // throwaway and looked up by nothing.
+    // throwaway and looked up by nothing. (A guest's reserved-word name
+    // comes from its transient template data, set by the Hydrator.)
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }
@@ -371,7 +374,7 @@ export default class Avatar extends AvatarBase {
    */
   public async enter(
     interactive: Interactive,
-    opts: { firstArrival?: boolean } = {}
+    opts: { firstArrival?: boolean } = {},
   ): Promise<void> {
     const startingLocation = this.getContainer();
     if (!startingLocation) {
@@ -379,11 +382,11 @@ export default class Avatar extends AvatarBase {
         `Avatar.enter: ${this.getFullName()} has no container. ` +
           `Avatar templates must declare a spawn via 'data.startLocation' ` +
           `(a room or a Warren) or 'data.container'; the seed at ` +
-          `'${Avatar.SEED_TEMPLATE_PATH}' sets a default that's copied at signup.`
+          `'${Avatar.SEED_TEMPLATE_PATH}' sets a default that's copied at signup.`,
       );
     }
     console.info(
-      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`
+      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`,
     );
 
     this.startAutoSave();
@@ -392,11 +395,12 @@ export default class Avatar extends AvatarBase {
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
-    const catalogue =
-      StuffApi.findByTemplatePath<TopicCatalogue>('/obj/TopicCatalogue');
+    const catalogue = StuffApi.findByTemplatePath<TopicCatalogue>(
+      "/obj/TopicCatalogue",
+    );
     const portraitUrl = await this.getPortraitUrl();
     const payload: ConnectionEstablishedPayload = {
-      userId: interactive.getUserId() ?? '',
+      userId: interactive.getUserId() ?? "",
       socketId: interactive.getSocketId(),
       sessionId: interactive.getSessionId(),
       interactiveStuffId: interactive.stuffId,
@@ -421,7 +425,7 @@ export default class Avatar extends AvatarBase {
       ? Mml.compose`Welcome, ${this.getFullName()}.`
       : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
-      .topic('system.connection.established')
+      .topic("system.connection.established")
       .toSelf(greeting)
       .payload(payload)
       .send();
@@ -438,7 +442,7 @@ export default class Avatar extends AvatarBase {
     // which avatar — just that this player is now playable.
     EventApi.emit(Events.PlayerLoggedIn, {
       playerId: this.getPlayerId(),
-      userId: interactive.getUserId() ?? '',
+      userId: interactive.getUserId() ?? "",
     });
   }
 
@@ -482,7 +486,7 @@ export default class Avatar extends AvatarBase {
       // throws "unknown slot 'cranial'" on the very first clone.
       await SpeciesApi.preloadAnatomy(this);
       try {
-        const existing = this.getOccupants('cranial');
+        const existing = this.getOccupants("cranial");
         if (existing.size > 0) return;
       } catch {
         // No cranial slot on this body plan (sessile etc.).
@@ -491,7 +495,7 @@ export default class Avatar extends AvatarBase {
       const implant = await StuffApi.clone<AetherImplant>(
         AetherImplant.TEMPLATE_PATH,
       );
-      this.occupy(implant, 'cranial');
+      this.occupy(implant, "cranial");
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,
@@ -510,8 +514,7 @@ export default class Avatar extends AvatarBase {
     if (this.isGuest) return; // Guests never persist — no autosave timer.
     if (this.periodicSaveHandle !== null) return;
     const intervalMs =
-      resolveSetting<number>(this, 'world.autosave.interval') ??
-      5 * 60 * 1000;
+      resolveSetting<number>(this, "world.autosave.interval") ?? 5 * 60 * 1000;
     this.periodicSaveHandle = ScheduleApi.recurring(
       intervalMs,
       () => {
@@ -519,11 +522,11 @@ export default class Avatar extends AvatarBase {
         void this.save().catch((err) => {
           console.error(
             `Avatar.autoSave: save failed for playerId=${this.playerId}:`,
-            err
+            err,
           );
         });
       },
-      { propagateAttribution: false, mode: 'fixed-delay' }
+      { propagateAttribution: false, mode: "fixed-delay" },
     );
   }
 
@@ -591,7 +594,7 @@ export default class Avatar extends AvatarBase {
     void this.save().catch((err) => {
       console.error(
         `Avatar.onDestruct: final save failed for playerId=${this.playerId}:`,
-        err
+        err,
       );
     });
 

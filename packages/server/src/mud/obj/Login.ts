@@ -23,45 +23,26 @@
  * home for the in-progress `EnrollmentDraft`.
  */
 
-import { Idea } from '../lib/stuff/Idea';
-import { StuffApi } from '../api/stuff';
-import { ConnectionApi } from '../api/connection';
-import { PlayerApi } from '../api/player';
-import { MessageApi } from '../api/message';
-import { Mml } from '../api/mml';
-import { HasInteractiveMixin } from '../lib/connection/HasInteractive';
-import { SensorMixin } from '../lib/message/Sensor';
-import { CommandGiverMixin } from '../lib/command/CommandGiver';
-import { Application } from '../../backend/Application';
-import { GoogleProfile } from '../lib/identity/GoogleProfile';
-import type { CommandContributions } from '../api/command';
+import { Idea } from "../lib/stuff/Idea";
+import { StuffApi } from "../api/stuff";
+import { ConnectionApi } from "../api/connection";
+import { PlayerApi } from "../api/player";
+import { MessageApi } from "../api/message";
+import { Mml } from "../api/mml";
+import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
+import { SensorMixin } from "../lib/message/Sensor";
+import { CommandGiverMixin } from "../lib/command/CommandGiver";
+import { Application } from "../../backend/Application";
+import { GoogleProfile } from "../lib/identity/GoogleProfile";
+import type { CommandContributions } from "../api/command";
 import type {
   MessageFrame,
   EnvelopeTemplate,
   CharGenRosterEntry,
   CharGenRosterPayload,
-} from '@saxonberg/types';
-import type Interactive from './Interactive';
-import type Avatar from './Avatar';
-
-/**
- * Serialize guest avatar clones. Every guest clones the one shared seed
- * template path, and `StuffApi.clone` throws if the same path is already
- * in flight (its circular-dependency guard). Real characters never hit
- * this — each clones a unique per-player path — so the chain only ever
- * holds guest mints, which are rare and sub-second. A failed mint
- * doesn't poison the chain (the `.then(ok, err)` swallows rejection for
- * the *next* waiter; the original promise still rejects to its caller).
- */
-let guestMintChain: Promise<unknown> = Promise.resolve();
-function serializeGuestMint<T>(fn: () => Promise<T>): Promise<T> {
-  const result = guestMintChain.then(fn, fn);
-  guestMintChain = result.then(
-    () => undefined,
-    () => undefined,
-  );
-  return result;
-}
+} from "@saxonberg/types";
+import type Interactive from "./Interactive";
+import type Avatar from "./Avatar";
 
 /**
  * In-progress char-gen picks. Held on the transient Login (GC'd at
@@ -106,7 +87,7 @@ export default class Login extends LoginBase {
    * HasInteractiveMixin; harmless.)
    */
   static commandContributions: CommandContributions = {
-    self: ['charactergen/enroll.yaml', 'charactergen/play.yaml'],
+    self: ["charactergen/enroll.yaml", "charactergen/play.yaml"],
     environment: [],
     inventory: [],
     peers: [],
@@ -170,16 +151,13 @@ export default class Login extends LoginBase {
    */
   public async enterAsGuest(): Promise<void> {
     const { interactive } = this;
-    const { default: AvatarClass } = await import('./Avatar');
-    const guestName = await AvatarClass.generateGuestName();
-    // Clone the one shared seed template. Serialized so concurrent guest
-    // connects don't collide on StuffApi.clone's in-flight-path guard.
-    const avatar = await serializeGuestMint(() =>
-      StuffApi.clone<Avatar>(AvatarClass.SEED_TEMPLATE_PATH, {
-        user: interactive.getUser(),
-        isGuest: true,
-        guestName,
-      }),
+    // Build the randomized guest avatar (species / non-intersex sex /
+    // aspiration randomized, they/them, reserved-word name). Lives on
+    // EnrollController next to the char-gen build knowledge it mirrors.
+    const { default: EnrollController } =
+      await import("./command/charactergen/EnrollController");
+    const avatar = await EnrollController.mintRandomGuestAvatar(
+      interactive.getUser(),
     );
     ConnectionApi.transfer(interactive, avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
@@ -199,14 +177,14 @@ export default class Login extends LoginBase {
       ...(accountName ? { accountName } : {}),
     };
     MessageApi.scene(this)
-      .topic('system.charactergen.welcome')
+      .topic("system.charactergen.welcome")
       .toSelf(
         Mml.compose`Welcome to enrollment. Let's get you a body and a name.`,
       )
       .send();
     // Dispatch the bare verb to emit the first char-gen-state frame via
     // EnrollController — same pipeline the player will use.
-    await this.executeCommand('enroll', { interactive: this.interactive });
+    await this.executeCommand("enroll", { interactive: this.interactive });
   }
 
   /**
@@ -235,12 +213,12 @@ export default class Login extends LoginBase {
     const characters: CharGenRosterEntry[] = avatars.map((a) => ({
       playerId: a.getPlayerId(),
       name: a.getFullName(),
-      species: a.getSpecies()?.getCommonNames()[0] ?? 'unknown',
-      description: a.getShortDescription?.() ?? '',
+      species: a.getSpecies()?.getCommonNames()[0] ?? "unknown",
+      description: a.getShortDescription?.() ?? "",
     }));
     const payload: CharGenRosterPayload = { characters };
     MessageApi.scene(this)
-      .topic('system.charactergen.roster')
+      .topic("system.charactergen.roster")
       .toSelf(Mml.compose`Choose a character, or create a new one.`)
       .payload(payload)
       .send();
