@@ -78,6 +78,7 @@ import type { Drivable } from '../lib/slot/Drivable';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
+import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Atmospheric } from '../lib/biome/Atmospheric';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
@@ -636,6 +637,10 @@ export class MixinApi {
 
   public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
     return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  public static isBulkable(obj: Stuff): obj is Stuff & Bulkable {
+    return this.hasMixin(obj, Mixins.Bulkable);
   }
 
   public static isEngaged(obj: Stuff): obj is Stuff & Engaged {

@@ -69,6 +69,7 @@ import type {
   TransformNode,
   ValueNode,
 } from './types';
+import { QuantityApi } from '../quantity';
 
 export class MqlParseError extends Error {
   constructor(
@@ -314,7 +315,7 @@ class Parser {
         this.advance();
         return {
           kind: 'transform',
-          transform: t.value as 'i' | 'I' | 'e' | 'E',
+          transform: t.value as 'i' | 'I' | 'e' | 'E' | 'b',
         };
       case 'literal':
         this.advance();
@@ -348,12 +349,15 @@ class Parser {
   }
 
   /**
-   * Parse `:{N}` (strict count) or `:{*}` (strict all). The
-   * resolver doesn't filter on QuantityNode; it threads the value
-   * onto the final result wrapper marked `mode: 'strict'`. Body
-   * grammar is intentionally minimal in v1 — `{N}` and `{*}` only.
-   * `{1..3}` ranges, `{half}`, `{N unit}` (bulk) all have real
-   * estate reserved.
+   * Parse `:{N}` (strict count), `:{*}` (strict all), or the bulk
+   * measure `:{N unit}` (`water:{2 cups}`). The resolver doesn't
+   * filter on QuantityNode; it threads the value onto the final result
+   * wrapper marked `mode: 'strict'`. `{1..3}` ranges and `{half}` have
+   * real estate reserved.
+   *
+   * A bareword following the integer is a unit token — `QuantityApi`
+   * resolves it to a canonical {@link Unit} and the body becomes a
+   * `'measure'` value. An unrecognized unit word is a parse error.
    */
   private parseQuantity(): QuantityNode {
     const open = this.expect('lbrace', "'{'");
@@ -368,7 +372,20 @@ class Parser {
           t.start
         );
       }
-      value = { kind: 'count', n };
+      const after = this.peek();
+      if (after.kind === 'bareword') {
+        const unit = QuantityApi.resolveUnitToken(after.value);
+        if (unit === null) {
+          throw new MqlParseError(
+            `unknown unit '${after.value}' in quantity body`,
+            after.start
+          );
+        }
+        this.advance();
+        value = { kind: 'measure', value: n, unit };
+      } else {
+        value = { kind: 'count', n };
+      }
     } else if (t.kind === 'star') {
       this.advance();
       value = { kind: 'all' };

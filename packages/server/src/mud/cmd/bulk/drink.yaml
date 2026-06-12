@@ -1,0 +1,12 @@
+verbs: [drink]
+controller: bulk/DrinkController
+description: "Drink the entire contents of a holder"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible

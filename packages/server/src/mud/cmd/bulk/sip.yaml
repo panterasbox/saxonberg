@@ -1,0 +1,12 @@
+verbs: [sip]
+controller: bulk/SipController
+description: "Take a small sip from a holder"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible

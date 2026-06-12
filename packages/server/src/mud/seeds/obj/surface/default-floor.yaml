@@ -9,6 +9,10 @@ class: /obj/Floor
 data:
   shortDescription: a featureless plain floor
   longDescription: A featureless plain floor.
+  # Surface-bulk: an uncapped puddle slot. Spills, over-pours, and
+  # open-vessel drain-through pool here as the floor's surface bulk
+  # (no `surfaceCapacity` ⇒ unbounded sink). Starts empty.
+  surfaceBulk: true
   staticSlots:
     - name: 'ground:1'
       accepts: SlottableMixin

@@ -42,6 +42,7 @@
  */
 
 import { GrammarApi } from '../grammar';
+import { QuantityApi } from '../quantity';
 import type { MqlQuantityHint } from './types';
 
 /**
@@ -137,7 +138,27 @@ export function desugar(input: string): DesugarResult {
   const headLower = tokens[i]!.toLowerCase();
   let quantityHint: MqlQuantityHint | undefined;
   let quantityClaimed = false;
-  if (isPositiveIntegerToken(tokens[i]!) && i + 1 < tokens.length) {
+  // Bulk measure first: `2 cups water` → consume `<int> <unit>`, leave
+  // the rest as the keyword query (`water`). The unit-token check must
+  // precede the bare-count branch so `2` is read as a measure quantity,
+  // not a discrete count of `cups`. Requires at least one keyword token
+  // after the unit (the material to address).
+  if (
+    isPositiveIntegerToken(tokens[i]!) &&
+    i + 2 < tokens.length &&
+    QuantityApi.isUnitToken(tokens[i + 1]!)
+  ) {
+    const n = Number.parseInt(tokens[i]!, 10);
+    const unit = QuantityApi.resolveUnitToken(tokens[i + 1]!)!;
+    if (n > 0) {
+      quantityHint = {
+        value: { kind: 'measure', value: n, unit },
+        mode: 'lenient',
+      };
+      quantityClaimed = true;
+      i += 2;
+    }
+  } else if (isPositiveIntegerToken(tokens[i]!) && i + 1 < tokens.length) {
     const n = Number.parseInt(tokens[i]!, 10);
     if (n > 0) {
       quantityHint = {

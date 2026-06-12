@@ -1,0 +1,19 @@
+verbs: [fill]
+controller: bulk/FillController
+description: "Fill a vessel to capacity from a liquid source"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+  - name: source
+    type: object
+    required: true
+    scope: "reachable"
+    prepositions: [from]
+    validators:
+      - /lib/command/validators/mustBeVisible

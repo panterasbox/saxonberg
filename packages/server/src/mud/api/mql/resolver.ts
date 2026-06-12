@@ -863,10 +863,23 @@ function candidatesForElementDerivable(
  */
 function applyTransform(
   input: MqlMatch[],
-  transform: 'i' | 'I' | 'e' | 'E'
+  transform: 'i' | 'I' | 'e' | 'E' | 'b'
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
   for (const m of input) {
+    if (transform === 'b') {
+      // Bulk transform — capability-gated like `:i`. Keep the holder
+      // Stuff on the target field and stamp `via.bulk` so the
+      // controller branches on the interior slot; drop non-holders.
+      if (MixinApi.isBulkable(m.stuff) && m.stuff.hasInteriorBulk()) {
+        out.push({
+          stuff: m.stuff,
+          score: m.score,
+          via: { ...m.via, bulk: { affordance: 'interior' } },
+        });
+      }
+      continue;
+    }
     const path = m.via?.detailPath;
     const insideDetailTree = path && path.length > 0;
     if (transform === 'i') {

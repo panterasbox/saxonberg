@@ -36,6 +36,9 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'ppm',
   'dB',
   'Hz',
+  'L',
+  'mL',
+  'cup',
 ];
 
 /**

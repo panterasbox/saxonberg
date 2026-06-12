@@ -20,6 +20,7 @@ import { ContainmentApi } from '../containment';
 import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
 import type { Detail } from '../../lib/description/Detailed';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
 
 /**
@@ -170,6 +171,34 @@ function pushDirect(out: ScopeCandidate[], stuff: Stuff): void {
   const name = DescribeApi.getDisplayName(stuff);
   const keywords = MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
   out.push({ stuff, name, keywords });
+  pushBulkMaterials(out, stuff);
+}
+
+/**
+ * For a bulk holder, emit one extra candidate per non-empty slot whose
+ * name + keywords are the contained Material's — so `drink coffee`
+ * resolves the holder by what it holds. The match lands the HOLDER on
+ * the target field (the Material singleton is never itself a candidate,
+ * so material keywords never leak into room scope) with `via.bulk`
+ * marking the affordance. Empty slots contribute nothing.
+ */
+function pushBulkMaterials(out: ScopeCandidate[], host: Stuff): void {
+  if (!MixinApi.isBulkable(host)) return;
+  const affordances: BulkAffordance[] = [];
+  if (host.hasInteriorBulk()) affordances.push('interior');
+  if (host.hasSurfaceBulk()) affordances.push('surface');
+  for (const affordance of affordances) {
+    const slot = host.getBulk(affordance);
+    if (slot.isEmpty()) continue;
+    const material = slot.getMaterial();
+    if (material === null) continue;
+    out.push({
+      stuff: host,
+      name: material.getName(),
+      keywords: material.getKeywords(),
+      via: { bulk: { affordance } },
+    });
+  }
 }
 
 function pushDetails(out: ScopeCandidate[], host: Stuff): void {

@@ -1,0 +1,18 @@
+# Coffee — a flat bulk Material (appearance + keywords only). Per the
+# bulkable slate's demand-driven-fidelity rule, coffee is NOT decomposed
+# into water + solubles (the water is presumed); it carries no
+# composition / chemistry depth. Warmth is description only — thermal is
+# a deferred capability, so there is no temperature here.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: coffee
+  appearance: dark, steaming coffee
+  keywords: [coffee, brew, java]
+  density: 1000
+  edibility: true
+  nutrients: [caffeine, water]
+  toxicity: []
+  tags: [liquid, beverage, drinkable]
+  composition: []
+  biologicalSource: null

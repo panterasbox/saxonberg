@@ -23,6 +23,7 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
+import type { Unit } from '../../lib/quantity';
 
 /**
  * Resolution context for an MQL query.
@@ -111,11 +112,26 @@ export interface MqlMatch {
 }
 
 /**
+ * The value an MQL quantity carries — what the quantity *is*:
+ *
+ *   - `'count'` — a discrete integer count (`5 coins`, `coin:{5}`).
+ *     Consumed by `GlobbableApi.applyQuantity`.
+ *   - `'all'` — the sentinel "the whole lot" (`all coins`, `coin:{*}`).
+ *   - `'measure'` — a continuous bulk measure (`2 cups`,
+ *     `water:{2 cups}`). Carries a serializable `{ value, unit }`
+ *     (the `Quantity.toJSON` shape, NOT a live `Quantity` — the AST /
+ *     wire layers stay plain-data). Consumed by `BulkableApi.transfer`
+ *     via the bulk verbs; glob's count/all path ignores it.
+ */
+export type MqlQuantityValue =
+  | { kind: 'count'; n: number }
+  | { kind: 'all' }
+  | { kind: 'measure'; value: number; unit: Unit };
+
+/**
  * A resolved quantity hint riding on an MQL result.
  *
- * `value.kind` is what the quantity *is*: a discrete count (v1) or
- * sentinel `'all'` (v1) — the bulk-form `'measure'` shape is reserved
- * but not implemented.
+ * `value.kind` is what the quantity *is* — see {@link MqlQuantityValue}.
  *
  * `mode` is **transport-only**: it carries the syntax-form signal
  * (formal `:{N}` → strict; natural-language `2 X` → lenient) from
@@ -128,7 +144,7 @@ export interface MqlMatch {
  * which is a loud, explicit signal; v1 has no such verbs.
  */
 export type MqlQuantity = {
-  value: { kind: 'count'; n: number } | { kind: 'all' };
+  value: MqlQuantityValue;
   mode: 'strict' | 'lenient';
 };
 
@@ -343,13 +359,18 @@ export interface LastResultNode {
  *   - `:E` root environment — walk to the topmost containing Stuff
  *     (no via) or pop the entire detail path (via set).
  *
+ *   - `:b` bulk — keep the holder Stuff on the target field and stamp
+ *     `via.bulk = { affordance: 'interior' }` when it's a Bulkable
+ *     interior holder; drop it otherwise (capability-gated, like `:i`).
+ *
  * Lower-case forms are single-step; upper-case forms are the deep /
  * root counterparts. Case is preserved through the lexer's
- * `transformLetter` token.
+ * `transformLetter` token. `:B` is unallocated (a bare `B` lowercases
+ * to a `'b'` keyword filter).
  */
 export interface TransformNode {
   kind: 'transform';
-  transform: 'i' | 'I' | 'e' | 'E';
+  transform: 'i' | 'I' | 'e' | 'E' | 'b';
 }
 
 /** `#5` at chain position — equivalent to `:[5]`. */
@@ -377,17 +398,18 @@ export interface GroupNode {
 }
 
 /**
- * Formal quantity syntax — `:{N}` or `:{*}`. Mid-chain only; rejected
- * as a chain head (no current set to address). The resolver does NOT
- * modify the candidate set when it sees a `QuantityNode` — it just
- * threads the quantity forward onto the final `MqlMany` / `MqlOne`
- * wrapper, marked `mode: 'strict'`. See {@link MqlQuantity},
+ * Formal quantity syntax — `:{N}`, `:{*}`, or the bulk measure
+ * `:{N unit}` (`water:{2 cups}`). Mid-chain only; rejected as a chain
+ * head (no current set to address). The resolver does NOT modify the
+ * candidate set when it sees a `QuantityNode` — it just threads the
+ * quantity forward onto the final `MqlMany` / `MqlOne` wrapper, marked
+ * `mode: 'strict'`. See {@link MqlQuantityValue}, {@link MqlQuantity},
  * `docs/mql-grammar.md § Formal quantity` (user-facing surface), and
  * `docs/subsystems/glob.md § MQL touchpoints` (runtime hookup).
  */
 export interface QuantityNode {
   kind: 'quantity';
-  value: { kind: 'count'; n: number } | { kind: 'all' };
+  value: MqlQuantityValue;
 }
 
 // Filter expression AST (inside `[…]`).
