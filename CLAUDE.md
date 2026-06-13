@@ -104,6 +104,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
+  - [app-settings.md](./docs/subsystems/app-settings.md) — application-managed config: AppSettings singleton Document (`app_settings`, open `values` bag), the `lib/config/keys.ts` key registry, AppApi runtime surface (sync cached reads, no boot method), backend seed/warm in AppBootstrap, the developer-gated `config` verb; the `defaultStartLocation` + `evacuationFallback` knobs that retired `config/constants.ts`
 
 ## Development Commands
 
@@ -479,6 +480,8 @@ multiplexing, disconnect): see
 - `users` — auth records (`Document`)
 - `google_profiles` — OAuth profile data (`Document`)
 - `domain` — object templates for the CMS (Avatar, rooms, NPCs, …)
+- `app_settings` — application-managed config singleton (`Document`)
+- `world_state` — world-clock state singleton (`Document`)
 
 ## Session Notes for Claude
 

@@ -15,7 +15,7 @@
  * on the substrate behavior end-to-end.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
@@ -28,7 +28,12 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../../../config/constants';
+import { AppApi } from '../../../api/app';
+
+// The evac target is the `evacuationFallback` app setting (default
+// `/domain/void`). `AppApi.setting` reads a boot-warmed cache that this
+// PM-less unit test doesn't have, so we mock it to the configured path.
+const EVAC_PATH = '/domain/void';
 
 // Container that's also Containable — backpack-in-room shape.
 // Convention: Container is the most-derived (outer) mixin so its
@@ -83,6 +88,11 @@ describe('Container.cleanupOnDestruct — S1 evacuation to outer', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
+    vi.spyOn(AppApi, 'setting').mockReturnValue(EVAC_PATH);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('evacuates contents to the outer container on Container destruct', () => {
@@ -130,12 +140,9 @@ describe('Container.cleanupOnDestruct — S1 evacuation to outer', () => {
   it('top-of-containment destruct moves HasInteractive contents to the void', () => {
     // The void singleton needs to exist for the escape route to
     // resolve; in production it's bootstrap-pinned. Here we stamp a
-    // stand-in Room at DEFAULT_STARTING_LOCATION_PATH and verify the
+    // stand-in Room at the evacuationFallback path and verify the
     // avatar lands in it instead of cascade-destructing.
-    const voidRoom = makeStuffAtPath(
-      () => new Room(),
-      DEFAULT_STARTING_LOCATION_PATH
-    );
+    const voidRoom = makeStuffAtPath(() => new Room(), EVAC_PATH);
     const room = makeStuff(() => new Room());
     const avatar = makeStuff(() => new Avatar());
     ContainmentApi.move(avatar, room);
@@ -148,10 +155,7 @@ describe('Container.cleanupOnDestruct — S1 evacuation to outer', () => {
   });
 
   it('null-outer cascade with mixed contents: HI escapes, non-HI destructs', () => {
-    const voidRoom = makeStuffAtPath(
-      () => new Room(),
-      DEFAULT_STARTING_LOCATION_PATH
-    );
+    const voidRoom = makeStuffAtPath(() => new Room(), EVAC_PATH);
     const room = makeStuff(() => new Room());
     const avatar = makeStuff(() => new Avatar());
     const apple = makeStuff(() => new Item());

@@ -26,6 +26,8 @@
 import { nanoid } from "nanoid";
 import { Idea } from "../lib/stuff/Idea";
 import { StuffApi } from "../api/stuff";
+import { AppApi } from "../api/app";
+import { AppSettingKeys } from "../lib/config/keys";
 import { ConnectionApi } from "../api/connection";
 import { PlayerApi } from "../api/player";
 import { MessageApi } from "../api/message";
@@ -258,6 +260,9 @@ export default class Login extends LoginBase {
     const path = `${Avatar.TEMPLATE_PATH_PREFIX}guest-${nanoid()}`;
     const data: Record<string, unknown> = {
       ...seed.data,
+      // Guests spawn at the same app-config default as enrolled avatars
+      // (the seed YAML no longer carries a startLocation literal).
+      startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
       name: guestName.name,
       _speciesPath: speciesEntry?.path,
       aspiration: aspiration?.key,

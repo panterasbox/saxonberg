@@ -21,6 +21,7 @@ import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { AppSettings } from '../mud/lib/config/AppSettings';
 import { setDocumentMarshallerResolver } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -127,6 +128,16 @@ export class AppBootstrap {
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
 
     await BootstrapManager.run();
+
+    // App settings — seed the `app_settings` bag from the code registry on
+    // a fresh DB and warm the synchronous read cache before any consumer
+    // (the evac path in Container.cleanupOnDestruct cannot await). A
+    // Document-track sibling of the clock's warm step below; not a
+    // domain-template seed, so it lives here, not in SeederManager /
+    // BootstrapManager. Awaits the Document directly — no boot method on
+    // AppApi (its surface is runtime operations only). Runs after the
+    // manifest pins `/domain/void` (the seeded evacuationFallback target).
+    await AppSettings.loadOrSeed();
 
     // World clock — restore the persisted game-time anchor (or seed a
     // zero clock on a fresh DB) and start its backstop. A sequencer

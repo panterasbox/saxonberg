@@ -2,17 +2,16 @@
  * VoidLocation — the bootstrap-pinned fallback location.
  *
  * Concrete `Location` subclass used by the `/domain/void` seed
- * exclusively. Two roles:
+ * exclusively. Its role is the **`HasInteractive` evacuation fallback**:
+ * when a `ContainerMixin` host destructs with no outer, any
+ * `HasInteractive` containables escape to this singleton so live sessions
+ * never end up with a `null` environment (see
+ * `ContainerMixin.cleanupOnDestruct`). It is the default target of the
+ * `evacuationFallback` app setting — the designed "nowhere safe left"
+ * container, distinct from the new-player spawn (`defaultStartLocation`,
+ * the lounge).
  *
- *   1. **Starting location.** New avatars resolve into the void on
- *      first session-start (`DEFAULT_STARTING_LOCATION_PATH`); content
- *      will move them out of it as real spawn destinations land.
- *   2. **HasInteractive fallback.** When a `ContainerMixin` host
- *      destructs with no outer, any `HasInteractive` containables
- *      escape to this singleton so live sessions never end up with a
- *      `null` environment (see `ContainerMixin.cleanupOnDestruct`).
- *
- * Both roles rely on the singleton being live at all times —
+ * The role relies on the singleton being live at all times —
  * `Container.cleanupOnDestruct` resolves it via sync
  * `findByTemplatePath`. `BootstrapManager` pins it at startup; this
  * subclass refuses destruct so a stray verb can't break the

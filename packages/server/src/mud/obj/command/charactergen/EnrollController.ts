@@ -28,6 +28,8 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../../lib/config/keys";
 import { ConnectionApi } from "../../../api/connection";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
@@ -493,6 +495,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,
+      // Initial spawn/recall home — sourced from app config (no longer a
+      // seed-YAML literal), so an operator can move the new-player spawn
+      // in-game without a deploy.
+      startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
       name: draft.name,
       _speciesPath: draft.speciesPath,
       pronouns: draft.pronouns,

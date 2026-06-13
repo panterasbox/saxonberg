@@ -1,7 +1,11 @@
 /**
- * Phase E — char-gen landing repoint. The avatar seed spawns via the
- * lounge Warren (`startLocation`), while the evacuation fallback constant
- * stays the lobby (a real Container). The two are separate concerns.
+ * Char-gen landing repoint, post app-settings. The new-player spawn is no
+ * longer a seed-YAML literal or a code constant: it's the
+ * `defaultStartLocation` app setting (default the lounge Warren), stamped
+ * into each avatar at mint time. The `evacuationFallback` app setting
+ * (default `/domain/void`) is the separate, container-typed evac target.
+ * The two remain distinct concerns — the ★ regression guard below ensures
+ * evac never points at the non-Container Warren.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -9,7 +13,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import LoungeWarren from '../LoungeWarren';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../../../config/constants';
+import { AppSettingKeys, AppSettingDefaults } from '../../../lib/config/keys';
 
 function readSeed(): { data: Record<string, unknown> } {
   const path = fileURLToPath(
@@ -19,19 +23,28 @@ function readSeed(): { data: Record<string, unknown> } {
 }
 
 describe('avatar seed landing repoint', () => {
-  it('spawns via the lounge Warren and drops the old container default (AC 7)', () => {
+  it('no longer carries a spawn literal in the seed (injected at mint)', () => {
     const seed = readSeed();
-    expect(seed.data.startLocation).toBe(LoungeWarren.WARREN_PATH);
+    expect('startLocation' in seed.data).toBe(false);
     expect('container' in seed.data).toBe(false);
   });
 
-  it('leaves the evacuation fallback constant as the lobby (the ★ regression guard)', () => {
-    // The constant is the container-typed evac fallback, NOT the spawn
-    // pointer. Repointing it to the (non-Container) Warren would destruct
-    // stranded players in Container.cleanupOnDestruct.
-    expect(DEFAULT_STARTING_LOCATION_PATH).toBe(
-      '/domain/eternal/duncan-hall/lobby',
+  it('seeds the lounge Warren as the default spawn', () => {
+    expect(AppSettingDefaults[AppSettingKeys.defaultStartLocation]).toBe(
+      LoungeWarren.WARREN_PATH,
     );
-    expect(DEFAULT_STARTING_LOCATION_PATH).not.toBe(LoungeWarren.WARREN_PATH);
+  });
+
+  it('keeps the evacuation fallback the void, NOT the Warren (the ★ regression guard)', () => {
+    // The evac fallback must resolve to a live Container — the void is the
+    // bootstrap-pinned, destruct-refusing one. Repointing it at the
+    // (non-Container) Warren would destruct stranded players in
+    // Container.cleanupOnDestruct.
+    expect(AppSettingDefaults[AppSettingKeys.evacuationFallback]).toBe(
+      '/domain/void',
+    );
+    expect(AppSettingDefaults[AppSettingKeys.evacuationFallback]).not.toBe(
+      LoungeWarren.WARREN_PATH,
+    );
   });
 });
