@@ -30,6 +30,7 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { LoungePaths } from './paths';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
@@ -41,9 +42,6 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   static readonly LOUNGE_TEMPLATE = '/domain/lounge/lounge';
   /** Dave's Bar — the singleton external-neighbor shell. */
   static readonly BAR_PATH = '/domain/lounge/bar';
-
-  /** The lounge's TPA node — a singleton fixture seated into the host. */
-  static readonly LOUNGE_TERMINAL_PATH = '/domain/lounge/terminal';
 
   /** Direction host→Dave's (cardinal; auto-inverse 'south'). */
   static readonly BAR_DIRECTION = 'north';
@@ -204,7 +202,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
     // that doesn't load them) still gets a working lounge, just no terminal.
     try {
       const terminal = await StuffApi.singleton<Stuff & Containable>(
-        LoungeWarren.LOUNGE_TERMINAL_PATH,
+        LoungePaths.terminal,
       );
       ContainmentApi.move(terminal, host);
     } catch (err) {

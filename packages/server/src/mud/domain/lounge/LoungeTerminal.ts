@@ -19,7 +19,6 @@ import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 
 export default class LoungeTerminal extends TpaTerminal {
-  static readonly TEMPLATE_PATH = "/domain/lounge/terminal";
 
   override async getArrivalRoom(): Promise<Stuff & Container> {
     const warren = await StuffApi.singleton<LoungeWarren>(

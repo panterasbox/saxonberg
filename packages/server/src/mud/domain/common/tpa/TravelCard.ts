@@ -15,5 +15,4 @@ import Thing from "../../../lib/stuff/Thing";
 import { TravelCredentialMixin } from "../../../lib/fasttravel/TravelCredential";
 
 export default class TravelCard extends TravelCredentialMixin(Thing) {
-  static readonly TEMPLATE_PATH = "/domain/common/tpa/travel-card";
 }

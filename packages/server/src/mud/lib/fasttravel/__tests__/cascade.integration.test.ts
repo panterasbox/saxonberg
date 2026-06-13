@@ -8,6 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import LoungeWarren from "../../../domain/lounge/LoungeWarren";
+import { LoungePaths } from "../../../domain/lounge/paths";
 import Avatar from "../../../obj/Avatar";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -29,7 +30,7 @@ const UA_ROOM = "/domain/eternal/university-avenue/plaza";
 
 const fastTravelDocs: Doc[] = [
   {
-    path: LoungeWarren.LOUNGE_TERMINAL_PATH,
+    path: LoungePaths.terminal,
     class: "/domain/lounge/LoungeTerminal",
     hydratorClass: PH,
     data: {
@@ -48,7 +49,7 @@ const fastTravelDocs: Doc[] = [
       shortDescription: "a Teleport Authority terminal",
       keywords: ["university-avenue", "campus"],
       directionality: "both",
-      routes: [{ to: LoungeWarren.LOUNGE_TERMINAL_PATH }],
+      routes: [{ to: LoungePaths.terminal }],
     },
   },
   {
