@@ -24,6 +24,6 @@ export default class LoungeTerminal extends TpaTerminal {
     const warren = await StuffApi.singleton<LoungeWarren>(
       LoungeWarren.WARREN_PATH,
     );
-    return (await warren.getHost()) as unknown as Stuff & Container;
+    return warren.getHost();
   }
 }

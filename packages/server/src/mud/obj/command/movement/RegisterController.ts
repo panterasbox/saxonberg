@@ -13,20 +13,19 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
-import { findActiveCredential } from "../../../lib/fasttravel/TravelCredential";
-import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
+import { ContainmentApi } from "../../../api/containment";
+import type { TravelCredential } from "../../../lib/fasttravel/TravelCredential";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
 export default class RegisterController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
-    const room = context.location;
-    const node =
-      room && MixinApi.isContainer(room)
-        ? (room.getContents().find((s) => MixinApi.isFastTravel(s)) as
-            | (Stuff & FastTravel)
-            | undefined)
-        : undefined;
+    const giver = context.commandGiver;
+    // `register` is contributed by the terminal in your environment
+    // (FastTravelMixin.commandContributions), so the afforded node is the
+    // command source — no need to scan room contents by hand.
+    const node = MixinApi.isFastTravel(context.commandSource)
+      ? context.commandSource
+      : undefined;
     if (!node) {
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
@@ -37,7 +36,12 @@ export default class RegisterController extends CommandController<CommandModel> 
         "not-arrival",
       );
     }
-    const cred = findActiveCredential(giver);
+    const cred = ContainmentApi.findReachable(
+      giver,
+      context.location,
+      (s: Stuff): s is Stuff & TravelCredential =>
+        MixinApi.isTravelCredential(s),
+    );
     if (!cred) {
       return this.fail(
         context,
@@ -45,7 +49,7 @@ export default class RegisterController extends CommandController<CommandModel> 
         "no-credential",
       );
     }
-    const ref = (node as unknown as Stuff).getTemplatePath();
+    const ref = node.getTemplatePath();
     if (!ref) {
       return this.fail(
         context,
@@ -53,7 +57,7 @@ export default class RegisterController extends CommandController<CommandModel> 
         "no-identity",
       );
     }
-    const name = (node as unknown as Stuff).getPresentation();
+    const name = node.getPresentation();
     if (cred.isRegistered(ref)) {
       this.tell(context, `\nYou've already registered the ${name}.\n`);
       return;

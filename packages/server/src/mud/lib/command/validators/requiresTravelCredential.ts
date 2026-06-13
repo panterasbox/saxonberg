@@ -8,12 +8,19 @@
 
 import type { CommandValidator } from "../../../api/command";
 import { SpeciesApi } from "../../../api/species";
-import { findActiveCredential } from "../../fasttravel/TravelCredential";
+import { ContainmentApi } from "../../../api/containment";
+import { MixinApi } from "../../../api/mixin";
+import type { TravelCredential } from "../../fasttravel/TravelCredential";
 import type { Stuff } from "../../stuff/Stuff";
 
 const validator: CommandValidator = (context) => {
-  const giver = context.commandGiver as unknown as Stuff;
-  if (findActiveCredential(giver)) return undefined;
+  const cred = ContainmentApi.findReachable(
+    context.commandGiver,
+    context.location,
+    (s: Stuff): s is Stuff & TravelCredential =>
+      MixinApi.isTravelCredential(s),
+  );
+  if (cred) return undefined;
   return "you have no Teleport Authority credential";
 };
 

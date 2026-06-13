@@ -97,6 +97,7 @@ export const Mixins = {
   Lounge: 'LoungeMixin',
   FastTravel: 'FastTravelMixin',
   TravelCredential: 'TravelCredentialMixin',
+  Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',
 } as const;
 

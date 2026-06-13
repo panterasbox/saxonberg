@@ -1,19 +1,16 @@
 /**
- * mustBeAtFastTravelNode — verb-level precondition: there is a fast-travel
- * node (a TPA terminal) in the actor's environment. Used by `register`.
- * Local, no global index — scans only the actor's current room contents.
+ * mustBeAtFastTravelNode — verb-level precondition: the actor is at a
+ * fast-travel node (a TPA terminal). Used by `register`. Since `register`
+ * is contributed by the terminal itself (FastTravelMixin.commandContributions
+ * on the `environment` bucket), the afforded node is `context.commandSource`
+ * — no need to scan room contents by hand.
  */
 
 import type { CommandValidator } from "../../../api/command";
 import { MixinApi } from "../../../api/mixin";
 
 const validator: CommandValidator = (context) => {
-  const room = context.location;
-  if (room && MixinApi.isContainer(room)) {
-    for (const s of room.getContents()) {
-      if (MixinApi.isFastTravel(s)) return undefined;
-    }
-  }
+  if (MixinApi.isFastTravel(context.commandSource)) return undefined;
   return "there is no terminal here";
 };
 

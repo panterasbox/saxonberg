@@ -30,7 +30,6 @@ import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
-import { LoungePaths } from './paths';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
@@ -193,24 +192,11 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
       opposite: LoungeWarren.BAR_OPPOSITE,
       keepLiveDestination: true,
     });
-
-    // Seat the lounge's TPA node into the host (the singleton fixture is
-    // created on first wiring — first landing — which stands the network up
-    // via its postRegister cascade; re-seated here on host migration). Use
-    // the path string, not a class import, to avoid a LoungeTerminal cycle.
-    // Fail-soft: a deployment without the fast-travel seeds (or a unit test
-    // that doesn't load them) still gets a working lounge, just no terminal.
-    try {
-      const terminal = await StuffApi.singleton<Stuff & Containable>(
-        LoungePaths.terminal,
-      );
-      ContainmentApi.move(terminal, host);
-    } catch (err) {
-      console.warn(
-        'LoungeWarren: lounge TPA terminal not seated:',
-        err instanceof Error ? err.message : String(err),
-      );
-    }
+    // The lounge's TPA terminal seats ITSELF into the host: it declares
+    // `seatIn: <this warren>` and registers with the base Warren on
+    // `postRegister`, which re-seats it on host migration. See FixtureMixin
+    // / Warren.registerFixture. (Dave's Bar stays here — it's an exit, not a
+    // contained fixture.)
   }
 
   /**

@@ -25,12 +25,9 @@ import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
-import { findActiveCredential } from "../../../lib/fasttravel/TravelCredential";
+import type { TravelCredential } from "../../../lib/fasttravel/TravelCredential";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Container } from "../../../lib/spatial/Container";
-import type { Containable } from "../../../lib/spatial/Containable";
-import type { Mobile } from "../../../lib/spatial/Mobile";
-import type { Sensor } from "../../../lib/message/Sensor";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { VetoResult } from "../../../lib/errors";
 
@@ -42,7 +39,7 @@ interface TeleportModel extends CommandModel {
 
 export default class TeleportController extends CommandController<TeleportModel> {
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver: Stuff = context.commandGiver;
     if (model.target || (await this.canSelfTeleport(giver))) {
       return this.selfPoweredTeleport(model, context);
     }
@@ -61,8 +58,8 @@ export default class TeleportController extends CommandController<TeleportModel>
     model: TeleportModel,
     context: CommandContext,
   ): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
-    const subject = (model.target?.stuff as Stuff | null) ?? giver;
+    const giver: Stuff = context.commandGiver;
+    const subject: Stuff = model.target?.stuff ?? giver;
     if (!MixinApi.isContainable(subject)) {
       return this.fail(context, "that can't be teleported", "not-containable");
     }
@@ -79,9 +76,7 @@ export default class TeleportController extends CommandController<TeleportModel>
       }
     }
 
-    const focused =
-      (model.destination?.stuff as Stuff | null | undefined) ??
-      context.location;
+    const focused = model.destination?.stuff ?? context.location;
     if (!focused)
       return this.fail(context, "teleport where?", "no-destination");
 
@@ -105,7 +100,7 @@ export default class TeleportController extends CommandController<TeleportModel>
 
     if (MixinApi.isMobile(subject)) {
       try {
-        (subject as Stuff & Mobile).teleport(dest);
+        subject.teleport(dest);
         if (subject !== giver) {
           this.tell(context, `\nteleported ${subjectName} to ${destName}\n`);
         }
@@ -118,7 +113,7 @@ export default class TeleportController extends CommandController<TeleportModel>
 
     try {
       const op = model.force ? ContainmentApi.forceMove : ContainmentApi.move;
-      op(subject as Stuff & Containable, dest);
+      op(subject, dest);
     } catch (err) {
       return this.fail(context, (err as Error).message, "move-failed");
     }
@@ -131,19 +126,24 @@ export default class TeleportController extends CommandController<TeleportModel>
     model: TeleportModel,
     context: CommandContext,
   ): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
-    const room = context.location;
-    const node =
-      room && MixinApi.isContainer(room)
-        ? (room.getContents().find((s) => MixinApi.isFastTravel(s)) as
-            | (Stuff & FastTravel)
-            | undefined)
-        : undefined;
+    const giver: Stuff = context.commandGiver;
+    // `teleport` is a general verb (not terminal-afforded), so the TPA fork
+    // finds the node the actor can reach rather than reading commandSource.
+    const node = ContainmentApi.findReachable(
+      giver,
+      context.location,
+      (s: Stuff): s is Stuff & FastTravel => MixinApi.isFastTravel(s),
+    );
     if (!node) {
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
 
-    const cred = findActiveCredential(giver);
+    const cred = ContainmentApi.findReachable(
+      giver,
+      context.location,
+      (s: Stuff): s is Stuff & TravelCredential =>
+        MixinApi.isTravelCredential(s),
+    );
     if (!cred) {
       return this.fail(
         context,
@@ -184,10 +184,9 @@ export default class TeleportController extends CommandController<TeleportModel>
 
     const ref = node.getSelectedDestination();
     if (!ref) {
-      this.tell(
-        context,
-        await node.renderDepartures(giver as unknown as Stuff & Sensor),
-      );
+      if (MixinApi.isSensor(giver)) {
+        this.tell(context, await node.renderDepartures(giver));
+      }
       return;
     }
 
@@ -205,7 +204,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (!MixinApi.isMobile(giver) || !MixinApi.isContainable(giver)) {
       return this.fail(context, "you can't travel", "immobile");
     }
-    (giver as Stuff & Mobile).teleport(arrivalRoom);
+    giver.teleport(arrivalRoom);
   }
 
   /* ── helpers ────────────────────────────────────────────────────── */

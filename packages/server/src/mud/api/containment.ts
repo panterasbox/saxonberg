@@ -26,8 +26,10 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Surfaced } from '../lib/spatial/Surfaced';
 import type { VetoResult } from '../lib/errors';
+import type { Warren } from '../lib/location/Warren';
 import { CommandApi } from './command';
 import { MixinApi } from './mixin';
+import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -385,6 +387,82 @@ export class ContainmentApi {
    */
   public static getContents(container: ContainerStuff): ContainableStuff[] {
     return container.getContents();
+  }
+
+  /**
+   * Find the first reachable Stuff matching `predicate`, searched in
+   * "on your person, then the room" order: installed augmentations
+   * (slot occupants), then carried inventory, then the surrounding
+   * location's contents. Returns null when nothing matches.
+   *
+   * The reach surface mirrors the `canReach` validator's criteria
+   * (inventory + location contents), extended with slot occupants so
+   * an installed implant counts as on-person. No global index — scans
+   * only the actor and the given location.
+   *
+   * Generalizes the old check-inventory-and-augs scans: fast travel
+   * uses it to find a credential (card or implant) or the node you're
+   * standing at, but it is deliberately predicate-agnostic.
+   */
+  public static findReachable<T>(
+    actor: Stuff,
+    location: ContainerStuff | null,
+    predicate: (s: Stuff) => s is Stuff & T,
+  ): (Stuff & T) | null {
+    // 1. Installed augmentations — slot occupants ("on your person").
+    if (MixinApi.isSlotted(actor)) {
+      for (const occupants of actor.getAllOccupants().values()) {
+        for (const occ of occupants) {
+          if (predicate(occ)) return occ;
+        }
+      }
+    }
+    // 2. Carried inventory.
+    if (MixinApi.isContainer(actor)) {
+      for (const item of actor.getContents()) {
+        if (predicate(item)) return item;
+      }
+    }
+    // 3. Surrounding location contents.
+    if (location) {
+      for (const item of location.getContents()) {
+        if (predicate(item)) return item;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Resolve a spawn/landing reference into the live Container to place
+   * something in. The reference is EITHER a Warren — land in its lazily
+   * created (and migration-tracked) host via `getHost()` — or an ordinary
+   * location: a singleton room is reused, a non-singleton is cloned fresh
+   * (`StuffApi.singletonOrClone`).
+   *
+   * Returns the resolved container plus the Warren when the ref named one,
+   * so a caller that must follow host migration — a self-seating fixture —
+   * can register with it; `warren` is null for a plain location.
+   *
+   * This is the warren-aware landing resolution shared by avatar spawn
+   * (game entry, `Avatar.applyStartLocation`) and self-seating fixtures
+   * (`FixtureMixin.seatSelf`). `StuffApi.singletonOrClone` stays the
+   * generic, domain-free primitive; this is its Warren-aware sibling. The
+   * `Warren` value is loaded dynamically so the static import graph stays
+   * acyclic (`Warren` imports `ContainmentApi`).
+   */
+  public static async resolveLanding(
+    ref: string
+  ): Promise<{ container: Stuff & Container; warren: Warren | null }> {
+    const { Warren } = await import('../lib/location/Warren');
+    const cls = await StuffApi.classForRef(ref);
+    if ((cls.prototype as object) instanceof Warren) {
+      const warren = await StuffApi.singleton<Warren>(ref);
+      return { container: await warren.getHost(), warren };
+    }
+    return {
+      container: await StuffApi.singletonOrClone<Stuff & Container>(ref),
+      warren: null,
+    };
   }
 }
 

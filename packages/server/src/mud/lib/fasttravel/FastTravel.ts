@@ -22,13 +22,14 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
-import type { Containable } from "../spatial/Containable";
 import type { Sensor } from "../message/Sensor";
 import type { CommandContributions } from "../../api/command";
 import type { CronPattern, ClockHandle } from "../../api/worldclock";
 import { WorldClockApi } from "../../api/worldclock";
 import { StuffApi } from "../../api/stuff";
-import { findActiveCredential } from "./TravelCredential";
+import { ContainmentApi } from "../../api/containment";
+import { MixinApi } from "../../api/mixin";
+import type { TravelCredential } from "./TravelCredential";
 
 export type Directionality = "arrival" | "departure" | "both";
 export type AdvanceMode = "manual" | "scheduled" | "cycle";
@@ -238,10 +239,12 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     /* ── arrival room (live read; lounge node overrides) ────────── */
 
     async getArrivalRoom(): Promise<Stuff & Container> {
-      const room = (this as unknown as Containable).getContainer();
+      const self = this as unknown as Stuff;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (!room) {
-        const id = (this as unknown as Stuff).stuffId;
-        throw new Error(`fast-travel node ${id} has no container to arrive in`);
+        throw new Error(
+          `fast-travel node ${self.stuffId} has no container to arrive in`,
+        );
       }
       return room;
     }
@@ -249,7 +252,15 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     /* ── the local departures board (live, viewer-aware) ────────── */
 
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
-      const cred = findActiveCredential(viewer);
+      const here = MixinApi.isContainable(viewer)
+        ? viewer.getContainer()
+        : null;
+      const cred = ContainmentApi.findReachable(
+        viewer,
+        here,
+        (s: Stuff): s is Stuff & TravelCredential =>
+          MixinApi.isTravelCredential(s),
+      );
       const selected = this.selectedDestinationRef;
       const lines: string[] = [
         `Departures — ${(this as unknown as Stuff).getPresentation()}:`,
@@ -331,8 +342,5 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
 
 /** True if the live node carries `kw` among its keywords (Perceptible). */
 function hasKeyword(node: Stuff, kw: string): boolean {
-  const p = node as unknown as { getKeywords?: () => string[] };
-  return typeof p.getKeywords === "function"
-    ? p.getKeywords().includes(kw)
-    : false;
+  return MixinApi.isPerceptible(node) && node.getKeywords().includes(kw);
 }

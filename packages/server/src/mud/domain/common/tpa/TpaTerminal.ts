@@ -20,11 +20,14 @@
 import Thing from "../../../lib/stuff/Thing";
 import { DetailedMixin } from "../../../lib/description/Detailed";
 import { FastTravelMixin } from "../../../lib/fasttravel/FastTravel";
+import { FixtureMixin } from "../../../lib/stuff/Fixture";
 import { PostRegistrationMixin } from "../../../lib/stuff/PostRegistration";
 import { SingletonMixin } from "../../../lib/stuff/Singleton";
 
 const TpaTerminalBase = SingletonMixin(
-  PostRegistrationMixin(DetailedMixin(FastTravelMixin(Thing))),
+  PostRegistrationMixin(
+    FixtureMixin(DetailedMixin(FastTravelMixin(Thing))),
+  ),
 );
 
 const DEFAULT_FLAVOR =
@@ -44,9 +47,12 @@ const REGISTER_HINT =
 
 export default class TpaTerminal extends TpaTerminalBase {
   public override async postRegister(_context?: unknown): Promise<void> {
-    // Cascade the rest of the network live off this node, then arm any
-    // scheduled/cycle departures. Runs after singleton cache-registration,
-    // so reentrant route lookups hit the in-flight instance.
+    // Seat self into the declared target (a Warren host or a static
+    // location) via `seatIn`, then cascade the rest of the network live off
+    // this node and arm any scheduled/cycle departures. Runs after singleton
+    // cache-registration, so reentrant route lookups (and the warren's
+    // re-seat) hit the in-flight instance.
+    await this.seatSelf();
     await this.armNetwork();
     this.armTimetable();
   }

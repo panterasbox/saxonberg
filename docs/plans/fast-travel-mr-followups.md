@@ -8,14 +8,45 @@ finalize.
 ## State (as of this writing)
 
 - Merged `origin/master` in; resolved conflicts; migrated off the retired
-  `DescribeApi` → `Stuff.getPresentation()`. Full suite was **green (357 files,
-  3949 tests)**; `tsc --noEmit` clean.
-- **3 of 6 review comments done, committed, pushed** (⑧ implant carries the
+  `DescribeApi` → `Stuff.getPresentation()`.
+- **ALL 6 review comments done.** First three earlier (⑧ implant carries the
   credential / no card; ② University Avenue is a generic `CartesianLocation`;
-  ①/④ per-domain `paths.ts`, class `TEMPLATE_PATH` consts removed).
-- **3 remaining** — specs below.
+  ①/④ per-domain `paths.ts`, class `TEMPLATE_PATH` consts removed). The
+  remaining three completed this round (③ ⑤+⑥ ⑦ — see "Done this round" below).
+- Full suite **green (358 files, 3956 tests, 2 todo)**; `tsc --noEmit` clean;
+  `eslint` clean on touched files.
 
-## Remaining review items
+## Done this round (③ ⑤+⑥ ⑦)
+
+- **⑤+⑥ — reachable lookups.** New `ContainmentApi.findReachable(actor,
+  location, predicate)` (augs → inventory → location order); replaced
+  `findActiveCredential` (deleted) and the TPA fork's node/credential scans.
+  `register` now reads `context.commandSource` (the afforded terminal) in both
+  `RegisterController` and `mustBeAtFastTravelNode`. New unit test
+  `api/__tests__/containment.findReachable.test.ts` (6 cases).
+- **③ — self-seating fixture (inverted spawner).** New `FixtureMixin`
+  (`lib/stuff/Fixture.ts`): `seatIn: <path>` + `seatSelf()`, delegating the
+  warren-vs-location decision to the new `ContainmentApi.resolveLanding(ref)`
+  → `{container, warren}` (shared with `Avatar.applyStartLocation`, which is
+  now game-entry-only and just consumes the resolver). Base `Warren` gained a
+  fixture-path registry + `registerFixture` + `reseatFixtures` wired into
+  `designateHost`/`migrateHost`/`teardown`. `TpaTerminal` composes the mixin
+  and `seatSelf()`s in `postRegister`; both terminal seeds use `seatIn`
+  (lounge → the warren, UA → the plaza location). The lounge terminal is now
+  an **eager bootstrap-manifest entry** (`bootstrap.ts`) — the cascade root —
+  realizing the docstring's long-stated "eager boot root" intent; the bespoke
+  terminal-seating was removed from `LoungeWarren.wireHostFixtures`. Cascade
+  test updated to boot the network via the terminal singleton + a new
+  re-seat-on-migration case.
+- **⑦ — cast / duck-typing sweep.** `hasKeyword` → `MixinApi.isPerceptible`;
+  `getArrivalRoom` Containable cast → `isContainable` narrowing; dropped
+  redundant casts in `TeleportController` (giver widened via annotation, not
+  cast; `subject`/`giver` narrowed by `isMobile`/`isContainable`/`isSensor`;
+  `model.*.stuff` already `Stuff|null`) and `LoungeTerminal.getHost`. Left the
+  `this as unknown as Stuff` mixin-`this` idiom and the `callTeleportHook`
+  optional-witness duck-type (matches `ContainmentApi`'s `callHook` pattern).
+
+## Original specs (for reference — all now implemented)
 
 ### ③ — Self-seating fixture pattern (the inverted spawner). DESIGN LOCKED.
 

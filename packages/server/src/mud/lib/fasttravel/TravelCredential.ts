@@ -23,7 +23,6 @@
 
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
-import { MixinApi } from "../../api/mixin";
 
 /** The born-with node every fresh credential is registered for. */
 export const UNIVERSITY_AVENUE_NODE =
@@ -94,31 +93,4 @@ export function TravelCredentialMixin<TBase extends MixinConstructor<Stuff>>(
       return new Set(this._registered);
     }
   };
-}
-
-/**
- * Find the actor's active travel credential — implant-first (a credential in
- * the cranial slot), then a carried card (a credential in inventory). Returns
- * null when the actor controls none. No global index: scans only the actor.
- */
-export function findActiveCredential(
-  actor: Stuff,
-): (Stuff & TravelCredential) | null {
-  // Implant: cranial slot occupant.
-  if (MixinApi.isSlotted(actor)) {
-    try {
-      for (const occ of actor.getOccupants("cranial")) {
-        if (MixinApi.isTravelCredential(occ)) return occ;
-      }
-    } catch {
-      // No cranial slot on this body plan — fall through to inventory.
-    }
-  }
-  // Card: inventory item.
-  if (MixinApi.isContainer(actor)) {
-    for (const item of actor.getContents()) {
-      if (MixinApi.isTravelCredential(item)) return item;
-    }
-  }
-  return null;
 }

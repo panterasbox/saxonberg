@@ -98,6 +98,14 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/MqlSubscriptionRegistry',
     dependsOn: ['/obj/EventSubscriptions'],
   },
+  // Lounge TPA terminal — the eager root of the Teleport Authority
+  // network. Its `postRegister` self-seats into the lounge Warren's host
+  // (standing the lounge host up) and cascades the rest of the network
+  // (University Avenue node + room) live off this one seed via
+  // `armNetwork()`. The terminal is a `FixtureMixin` that re-seats on host
+  // migration, so the warren no longer hand-seats it. Without this entry
+  // nothing instantiates the cascade root and the network never stands up.
+  { templatePath: '/domain/lounge/terminal' },
   // Species clades, perception modalities, and augmentation
   // templates are NOT bootstrapped. Same lazy-load pattern as
   // locomotion modes / topic-catalogue leaves:
