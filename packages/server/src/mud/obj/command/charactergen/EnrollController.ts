@@ -18,44 +18,38 @@
  * No new Api: this is a controller calling the security-threaded Apis.
  */
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { nanoid } from 'nanoid';
-import YAML from 'yaml';
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
-import { StuffApi } from '../../../api/stuff';
-import { ConnectionApi } from '../../../api/connection';
-import { ContainmentApi } from '../../../api/containment';
-import { MixinApi } from '../../../api/mixin';
-import { SlotApi } from '../../../api/slot';
-import { TemplateApi } from '../../../api/template';
-import { Template } from '../../../lib/stuff/Template';
-import Avatar from '../../Avatar';
-import type Login from '../../Login';
-import type { EnrollmentDraft } from '../../Login';
-import type Species from '../../../lib/species/Species';
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { nanoid } from "nanoid";
+import YAML from "yaml";
+import { CommandController } from "../../../lib/command/CommandController";
+import type { CommandContext, CommandModel } from "../../../api/command";
+import { MessageApi } from "../../../api/message";
+import { Mml } from "../../../api/mml";
+import { StuffApi } from "../../../api/stuff";
+import { ConnectionApi } from "../../../api/connection";
+import { ContainmentApi } from "../../../api/containment";
+import { MixinApi } from "../../../api/mixin";
+import { SlotApi } from "../../../api/slot";
+import { TemplateApi } from "../../../api/template";
+import { Template } from "../../../lib/stuff/Template";
+import Avatar from "../../Avatar";
+import Login from "../../Login";
+import type { EnrollmentDraft } from "../../Login";
+import type Species from "../../../lib/species/Species";
 import type {
   CharGenOption,
   CharGenPicks,
   CharGenStatePayload,
   CharGenField,
   SpeciesDossier,
-} from '@saxonberg/types';
-import { Pronouns } from '@saxonberg/types';
-import { SpeciesApi } from '../../../api/species';
+} from "@saxonberg/types";
+import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
+import { SpeciesApi } from "../../../api/species";
 
 // Pronoun options derive from the `Pronouns` enum (the single source of
-// truth for the values); only the display labels live here.
-const PRONOUN_LABELS: Record<string, string> = {
-  [Pronouns.They]: 'they/them',
-  [Pronouns.She]: 'she/her',
-  [Pronouns.He]: 'he/him',
-  [Pronouns.It]: 'it/its',
-};
+// truth for the values); the display labels are colocated with the enum.
 const PRONOUN_OPTIONS: CharGenOption[] = Object.values(Pronouns).map((v) => ({
   value: v,
   label: PRONOUN_LABELS[v] ?? v,
@@ -92,8 +86,22 @@ interface CharGenConfig {
 
 // ---- Name validation (inline; real moderation deferred) -----------
 
-const NAME_DENYLIST = ['admin', 'system', 'moderator', 'null', 'root'];
+const NAME_DENYLIST = ["admin", "system", "moderator", "null", "root"];
 const NAME_RE = /^\p{L}+(?:[-'\p{L}]*\p{L})?$/u;
+
+/**
+ * Reserved against a real character. The denylist plus the guest
+ * reserved word — referenced from `Login` (the guest-mint site) so the
+ * impersonation guard stays in lock-step with the guest name generator
+ * (no drift). Exact word only; fuzzy/homoglyph near-misses are out of
+ * scope.
+ */
+function isReservedName(lower: string): boolean {
+  return (
+    NAME_DENYLIST.includes(lower) ||
+    lower === Login.GUEST_RESERVED_WORD.toLowerCase()
+  );
+}
 
 function validateNameToken(token: string, label: string): string | undefined {
   const t = token.trim();
@@ -103,7 +111,7 @@ function validateNameToken(token: string, label: string): string | undefined {
   if (!NAME_RE.test(t)) {
     return `${label} may use letters with a single internal hyphen or apostrophe only.`;
   }
-  if (NAME_DENYLIST.includes(t.toLowerCase())) {
+  if (isReservedName(t.toLowerCase())) {
     return `'${t}' isn't allowed as a ${label.toLowerCase()}.`;
   }
   return undefined;
@@ -180,15 +188,16 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
   sex: {
     // Reads the cached sex-determination system the species pick
     // resolved — reliable + sync (no re-materialization here).
-    applicable: (d) => !!d.speciesPath && !!d.sexSystem && d.sexSystem !== 'none',
+    applicable: (d) =>
+      !!d.speciesPath && !!d.sexSystem && d.sexSystem !== "none",
     isSet: (d) => !!d.sex,
     options: (d) =>
-      validSexSet(d.sexSystem ?? '').map((s) => ({ value: s, label: cap(s) })),
+      validSexSet(d.sexSystem ?? "").map((s) => ({ value: s, label: cap(s) })),
     validate: (v, d) => {
-      const set = validSexSet(d.sexSystem ?? '');
+      const set = validSexSet(d.sexSystem ?? "");
       return set.includes(v.toLowerCase())
         ? undefined
-        : `Pick one of: ${set.join(', ')}.`;
+        : `Pick one of: ${set.join(", ")}.`;
     },
     apply: (v, d) => {
       d.sex = v.toLowerCase();
@@ -203,19 +212,20 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     options: () => [],
     validate: (v, _d) => {
       const trimmed = v.trim();
-      if (trimmed === '' || trimmed.toLowerCase() === 'reroll') return undefined;
+      if (trimmed === "" || trimmed.toLowerCase() === "reroll")
+        return undefined;
       const parts = trimmed.split(/\s+/);
-      const givenErr = validateNameToken(parts[0]!, 'Given name');
+      const givenErr = validateNameToken(parts[0]!, "Given name");
       if (givenErr) return givenErr;
       if (parts.length > 1) {
-        const surErr = validateNameToken(parts.slice(1).join(' '), 'Surname');
+        const surErr = validateNameToken(parts.slice(1).join(" "), "Surname");
         if (surErr) return surErr;
       }
       return undefined;
     },
     apply: async (v, d, _cfg, ctrl) => {
       const trimmed = v.trim();
-      if (trimmed.toLowerCase() === 'reroll') {
+      if (trimmed.toLowerCase() === "reroll") {
         // Regenerate the themed suggestion and drop the prior pick, so the
         // client refills the boxes from the fresh suggestion.
         await ctrl.refreshSuggestion(d, true);
@@ -226,7 +236,7 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
       if (!trimmed) return; // empty submit — ignored.
       const parts = trimmed.split(/\s+/);
       d.name = parts[0];
-      d.surname = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
+      d.surname = parts.length > 1 ? parts.slice(1).join(" ") : undefined;
     },
   },
   pronouns: {
@@ -236,7 +246,7 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     validate: (v) =>
       PRONOUN_OPTIONS.some((p) => p.value === v.toLowerCase())
         ? undefined
-        : `Pick one of: ${PRONOUN_OPTIONS.map((p) => p.value).join(', ')}.`,
+        : `Pick one of: ${PRONOUN_OPTIONS.map((p) => p.value).join(", ")}.`,
     apply: (v, d) => {
       d.pronouns = v.toLowerCase();
     },
@@ -263,11 +273,11 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
 
 /** Settable fields in canonical order (drives `missing` + iteration). */
 const FIELD_ORDER: CharGenField[] = [
-  'species',
-  'sex',
-  'name',
-  'pronouns',
-  'aspiration',
+  "species",
+  "sex",
+  "name",
+  "pronouns",
+  "aspiration",
 ];
 
 /** Required fields still unset for the current draft (sex only if applicable). */
@@ -280,15 +290,20 @@ function computeMissing(
   );
 }
 
-function validSexSet(system: string): string[] {
+/**
+ * The biological-sex options a sex-determination system admits. Shared
+ * with `Login`'s guest minter (which filters out `intersex`), so the
+ * char-gen and guest paths agree on what each species can be.
+ */
+export function validSexSet(system: string): string[] {
   switch (system) {
-    case 'xy':
-    case 'zw':
-      return ['male', 'female', 'intersex'];
-    case 'dioecious':
-    case 'environmental':
-    case 'haplodiploid':
-      return ['male', 'female'];
+    case "xy":
+    case "zw":
+      return ["male", "female", "intersex"];
+    case "dioecious":
+    case "environmental":
+    case "haplodiploid":
+      return ["male", "female"];
     default:
       return [];
   }
@@ -329,10 +344,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
     await EnrollController.ensureSpeciesCards(cfg);
 
     // Split the raw tail into `<field> <value...>`.
-    const rest = (model.rest ?? '').trim();
-    const sp = rest.indexOf(' ');
+    const rest = (model.rest ?? "").trim();
+    const sp = rest.indexOf(" ");
     const field = (sp === -1 ? rest : rest.slice(0, sp)).trim().toLowerCase();
-    const value = (sp === -1 ? '' : rest.slice(sp + 1)).trim();
+    const value = (sp === -1 ? "" : rest.slice(sp + 1)).trim();
 
     if (!field) {
       // Bare `enroll` → emit the current draft state.
@@ -340,17 +355,17 @@ export default class EnrollController extends CommandController<EnrollModel> {
       return;
     }
 
-    if (field === 'confirm') {
+    if (field === "confirm") {
       const missing = computeMissing(draft, cfg);
       if (missing.length) {
         this.emitState(login, draft, cfg, {
           field: missing[0]!,
-          message: `Still to choose: ${missing.join(', ')}.`,
+          message: `Still to choose: ${missing.join(", ")}.`,
         });
         context.note({
-          kind: 'controller-rejected',
-          reason: 'enroll-incomplete',
-          detail: missing.join(','),
+          kind: "controller-rejected",
+          reason: "enroll-incomplete",
+          detail: missing.join(","),
         });
         return;
       }
@@ -364,8 +379,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
     if (!handler) {
       this.emitState(login, draft, cfg);
       context.note({
-        kind: 'controller-rejected',
-        reason: 'unknown-enroll-field',
+        kind: "controller-rejected",
+        reason: "unknown-enroll-field",
         detail: field,
       });
       return;
@@ -384,8 +399,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
         message: err,
       });
       context.note({
-        kind: 'controller-rejected',
-        reason: 'enroll-validation-failed',
+        kind: "controller-rejected",
+        reason: "enroll-validation-failed",
         detail: err,
       });
       return;
@@ -419,8 +434,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const picks: CharGenPicks = {};
     if (draft.speciesPath) {
       picks.species = {
-        key: draft.speciesKey ?? '',
-        commonName: draft.speciesCommonName ?? '',
+        key: draft.speciesKey ?? "",
+        commonName: draft.speciesCommonName ?? "",
       };
     }
     if (draft.sex) picks.sex = draft.sex;
@@ -446,7 +461,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     // No prose — the structured payload drives the UI, and the command
     // echo (`> enroll species dwarf`) already gives terminal feedback.
     MessageApi.scene(login)
-      .topic('system.charactergen.state')
+      .topic("system.charactergen.state")
       .toSelf(Mml.compose``)
       .payload(payload)
       .send();
@@ -482,7 +497,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
       _speciesPath: draft.speciesPath,
       pronouns: draft.pronouns,
       aspiration: draft.aspiration,
-      bio: aspiration?.bioSeed ?? '',
+      bio: aspiration?.bioSeed ?? "",
       // The species' generic appearance is the avatar's look — its
       // `longDescription` (what another player sees on `look`). Species
       // now speaks the standard Visible interface, so this is a plain
@@ -544,8 +559,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
   static loadConfig(): CharGenConfig {
     if (EnrollController.#config) return EnrollController.#config;
     const here = dirname(fileURLToPath(import.meta.url));
-    const path = join(here, '../../../config/char-gen.yaml');
-    const parsed = YAML.parse(readFileSync(path, 'utf-8')) as CharGenConfig;
+    const path = join(here, "../../../config/char-gen.yaml");
+    const parsed = YAML.parse(readFileSync(path, "utf-8")) as CharGenConfig;
     EnrollController.#config = {
       species: parsed.species ?? [],
       aspirations: parsed.aspirations ?? [],

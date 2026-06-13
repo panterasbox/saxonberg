@@ -164,7 +164,19 @@ export class Application {
     try {
       console.info(`Application: User connecting - userId=${userId}, socketId=${socketId}`);
 
-      const user = await User.findById(userId);
+      // Anonymous (guest) principal: `anon:<nanoid>`, no persisted
+      // account. Build an ephemeral, never-saved User the rest of the
+      // connect path consumes unchanged; `Login.enter` reads
+      // `user.anonymous` to mint a throwaway guest avatar. (Auth axis —
+      // distinct from the avatar's `isGuest`.)
+      let user: User | null;
+      if (userId.startsWith(User.ANONYMOUS_PREFIX)) {
+        user = new User();
+        user._id = userId;
+        user.anonymous = true;
+      } else {
+        user = await User.findById(userId);
+      }
       if (!user) {
         throw new Error(`Application: User ${userId} not found`);
       }

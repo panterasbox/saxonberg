@@ -28,6 +28,8 @@
 import type { MixinConstructor } from '../mixin';
 import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
+import { resolveSetting } from '../shell/Environment';
+import { GoogleProfile } from '../identity/GoogleProfile';
 
 /**
  * Strategy-injected `client-state-update` push function. The
@@ -142,6 +144,17 @@ export interface HasInteractive {
    * and persisted; this is the push half only.
    */
   pushClientStateUpdate(key: string, value: unknown): void;
+
+  /**
+   * Resolve the display portrait URL for this connected identity.
+   * Chain: the `identity.portrait` setting (empty on a Login, value-
+   * or-unset on an Avatar) → the connected account's Google photo →
+   * empty (the client renders a generated placeholder). Lives here, on
+   * the connection layer, so the portrait is available from the moment
+   * of connection — on a `Login` (start screen / character-select) as
+   * well as an in-world `Avatar`.
+   */
+  getPortraitUrl(): Promise<string>;
 }
 
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -311,6 +324,41 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       for (const interactive of this.interactives) {
         _pushImpl(interactive, key, value);
       }
+    }
+
+    /**
+     * Empty `portraitUrl` sentinel — "no image; client renders a
+     * generated placeholder" (initials/icon from the name). We don't
+     * mint a fake asset URL server-side; the empty string is the
+     * honest "default" the client interprets.
+     */
+    static DEFAULT_PORTRAIT = '';
+
+    public async getPortraitUrl(): Promise<string> {
+      // 1. The per-character setting (Persona-declared). `resolveSetting`
+      //    returns '' (the schema default) when unset on an Avatar, and
+      //    `undefined` on a Login that has no such setting — both fall
+      //    through. No per-layer override needed.
+      const set = resolveSetting<string>(
+        this as unknown as Parameters<typeof resolveSetting>[0],
+        'identity.portrait',
+      );
+      if (set) return set;
+
+      // 2. The connected account's Google photo. Any interactive will
+      //    do — they all belong to the same user.
+      for (const interactive of this.interactives) {
+        const googleProfileId = interactive.getUser().googleProfileId;
+        if (!googleProfileId) continue;
+        const profile = await GoogleProfile.findById<GoogleProfile>(
+          googleProfileId,
+        );
+        if (profile?.photoUrl) return profile.photoUrl;
+        break;
+      }
+
+      // 3. No image — client generates a placeholder.
+      return HasInteractiveMixin.DEFAULT_PORTRAIT;
     }
 
     public snapshotClientState(): Record<string, unknown> {

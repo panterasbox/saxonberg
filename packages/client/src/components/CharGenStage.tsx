@@ -29,19 +29,20 @@
  * color is reserved (the project is color-conservative).
  */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import { Fragment, useEffect, useRef, useState } from "react";
+import styled from "styled-components";
 import type {
   CharGenField,
   CharGenOption,
   CharGenPicks,
-} from '@saxonberg/types';
-import { useStore } from '../store/index';
-import { mediaUrl } from '../config';
-import { tokens } from './ui/tokens';
-import { Terminal } from './Terminal';
-import { CommandBar } from './CommandBar';
-import type { Frame } from '../store/index';
+} from "@saxonberg/types";
+import { useStore } from "../store/index";
+import { signOut } from "../services/auth";
+import { mediaUrl } from "../config";
+import { tokens } from "./ui/tokens";
+import { Terminal } from "./Terminal";
+import { CommandBar } from "./CommandBar";
+import type { Frame } from "../store/index";
 
 /* --- Layout primitives -------------------------------------------- */
 
@@ -85,6 +86,29 @@ const StepSub = styled.p`
   font-size: ${tokens.font.body};
   color: ${tokens.color.fgMuted};
   line-height: 1.6;
+`;
+
+/** Pinned top bar — carries the sign-out escape so a player mid-intake
+ *  is never trapped (char-gen has no other way back to the start screen). */
+const StageTopBar = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  flex: none;
+`;
+
+const SignOutLink = styled.button`
+  background: none;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
 `;
 
 /* --- Picks summary ------------------------------------------------ */
@@ -131,7 +155,7 @@ const OptionCard = styled.button<{ $selected?: boolean }>`
   border: 1px solid
     ${(p) => (p.$selected ? tokens.color.primary : tokens.color.border)};
   box-shadow: ${(p) =>
-    p.$selected ? `inset 0 0 0 1px ${tokens.color.primary}` : 'none'};
+    p.$selected ? `inset 0 0 0 1px ${tokens.color.primary}` : "none"};
   border-radius: ${tokens.radius.md};
   font-family: ${tokens.font.family};
   cursor: pointer;
@@ -398,7 +422,7 @@ const StageButton = styled.button<{ $primary?: boolean }>`
   padding: ${tokens.space.sm} ${tokens.space.xl};
   background: ${(p) =>
     p.$primary ? tokens.color.primary : tokens.color.actionBg};
-  color: ${(p) => (p.$primary ? 'white' : tokens.color.fg)};
+  color: ${(p) => (p.$primary ? "white" : tokens.color.fg)};
   border: 1px solid
     ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
   border-radius: ${tokens.radius.sm};
@@ -460,48 +484,48 @@ interface ScreenDef {
  */
 const SCREENS: ScreenDef[] = [
   {
-    id: 'species',
-    heading: 'Choose your species',
-    sub: 'Pick the kind of being you are stepping into.',
-    fields: ['species'],
+    id: "species",
+    heading: "Choose your species",
+    sub: "Pick the kind of being you are stepping into.",
+    fields: ["species"],
   },
   {
-    id: 'identity',
-    heading: 'Sex & pronouns',
-    sub: 'Your biological sex, and how others will refer to you.',
-    fields: ['sex', 'pronouns'],
+    id: "identity",
+    heading: "Sex & pronouns",
+    sub: "Your biological sex, and how others will refer to you.",
+    fields: ["sex", "pronouns"],
   },
   {
-    id: 'name',
-    heading: 'Choose a name',
-    sub: 'Edit the suggested name, or write your own.',
-    fields: ['name'],
+    id: "name",
+    heading: "Choose a name",
+    sub: "Edit the suggested name, or write your own.",
+    fields: ["name"],
   },
   {
-    id: 'aspiration',
-    heading: 'Choose an aspiration',
-    sub: 'Who you are becoming — this seeds your story and your attire.',
-    fields: ['aspiration'],
+    id: "aspiration",
+    heading: "Choose an aspiration",
+    sub: "Who you are becoming — this seeds your story and your attire.",
+    fields: ["aspiration"],
   },
 ];
 
 const REVIEW_SCREEN: ScreenDef = {
-  id: 'review',
-  heading: 'Review your character',
-  sub: 'Check everything over, then step into the world.',
+  id: "review",
+  heading: "Review your character",
+  sub: "Check everything over, then step into the world.",
   fields: [],
 };
 
 /** Fields rendered with the illustrated cards-plus-dossier layout. */
-const ILLUSTRATED_FIELDS = new Set<CharGenField>(['species']);
+const ILLUSTRATED_FIELDS = new Set<CharGenField>(["species"]);
 
 /** Per-field heading, shown when a screen groups more than one field. */
 const FIELD_HEADING: Record<CharGenField, string> = {
-  species: 'Species',
-  sex: 'Sex',
-  name: 'Name',
-  pronouns: 'Pronouns',
-  aspiration: 'Aspiration',
+  species: "Species",
+  sex: "Sex",
+  name: "Name",
+  pronouns: "Pronouns",
+  aspiration: "Aspiration",
 };
 
 /** The currently-selected option value for a closed-choice field. */
@@ -510,13 +534,13 @@ function pickValueForField(
   picks: CharGenPicks,
 ): string | null {
   switch (field) {
-    case 'species':
+    case "species":
       return picks.species?.key ?? null;
-    case 'sex':
+    case "sex":
       return picks.sex ?? null;
-    case 'pronouns':
+    case "pronouns":
       return picks.pronouns ?? null;
-    case 'aspiration':
+    case "aspiration":
       return picks.aspiration ?? null;
     default:
       return null;
@@ -527,13 +551,14 @@ function pickValueForField(
 function reviewRows(picks: CharGenPicks): { label: string; value: string }[] {
   const rows: { label: string; value: string }[] = [];
   if (picks.species) {
-    rows.push({ label: 'Species', value: picks.species.commonName });
+    rows.push({ label: "Species", value: picks.species.commonName });
   }
-  if (picks.sex) rows.push({ label: 'Sex', value: picks.sex });
-  if (picks.pronouns) rows.push({ label: 'Pronouns', value: picks.pronouns });
-  const fullName = [picks.name, picks.surname].filter(Boolean).join(' ');
-  if (fullName) rows.push({ label: 'Name', value: fullName });
-  if (picks.aspiration) rows.push({ label: 'Aspiration', value: picks.aspiration });
+  if (picks.sex) rows.push({ label: "Sex", value: picks.sex });
+  if (picks.pronouns) rows.push({ label: "Pronouns", value: picks.pronouns });
+  const fullName = [picks.name, picks.surname].filter(Boolean).join(" ");
+  if (fullName) rows.push({ label: "Name", value: fullName });
+  if (picks.aspiration)
+    rows.push({ label: "Aspiration", value: picks.aspiration });
   return rows;
 }
 
@@ -576,24 +601,24 @@ export function CharGenStage({
   // Editable name fields, pre-filled from the existing pick (else the
   // suggestion); refilled only when that source changes (e.g. reroll),
   // not on every keystroke.
-  const [givenName, setGivenName] = useState('');
-  const [surnameVal, setSurnameVal] = useState('');
+  const [givenName, setGivenName] = useState("");
+  const [surnameVal, setSurnameVal] = useState("");
   // The name field flushes from both the input `onBlur` and the Continue
   // button. Clicking Continue blurs the input first, so both fire in the
   // same tick with identical content. Dedupe by last-sent value so an
   // unchanged name is never re-fired (a redundant `enroll name`).
   const lastSentName = useRef<string | null>(null);
   const nameSource = charGenState?.picks?.name
-    ? `pick:${charGenState.picks.name}|${charGenState.picks.surname ?? ''}`
-    : `sug:${charGenState?.suggestion?.name ?? ''}|${charGenState?.suggestion?.surname ?? ''}`;
+    ? `pick:${charGenState.picks.name}|${charGenState.picks.surname ?? ""}`
+    : `sug:${charGenState?.suggestion?.name ?? ""}|${charGenState?.suggestion?.surname ?? ""}`;
   useEffect(() => {
     if (!charGenState) return;
     if (charGenState.picks.name) {
       setGivenName(charGenState.picks.name);
-      setSurnameVal(charGenState.picks.surname ?? '');
+      setSurnameVal(charGenState.picks.surname ?? "");
     } else if (charGenState.suggestion) {
-      setGivenName(charGenState.suggestion.name ?? '');
-      setSurnameVal(charGenState.suggestion.surname ?? '');
+      setGivenName(charGenState.suggestion.name ?? "");
+      setSurnameVal(charGenState.suggestion.surname ?? "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nameSource]);
@@ -603,6 +628,9 @@ export function CharGenStage({
   if (!charGenState) {
     return (
       <Stage>
+        <StageTopBar>
+          <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
+        </StageTopBar>
         <StageBody>
           <StageInner>
             <StepSub>Preparing character creation…</StepSub>
@@ -625,13 +653,13 @@ export function CharGenStage({
 
   const optionsFor = (field: CharGenField): CharGenOption[] => {
     switch (field) {
-      case 'species':
+      case "species":
         return speciesOptions;
-      case 'sex':
+      case "sex":
         return sexOptions;
-      case 'pronouns':
+      case "pronouns":
         return pronounOptions;
-      case 'aspiration':
+      case "aspiration":
         return aspirationOptions;
       default:
         return [];
@@ -640,7 +668,7 @@ export function CharGenStage({
 
   // Sex drops off a screen entirely when it doesn't apply (no options).
   const fieldApplies = (field: CharGenField): boolean =>
-    field === 'sex' ? sexOptions.length > 0 : true;
+    field === "sex" ? sexOptions.length > 0 : true;
 
   const screens = [...SCREENS, REVIEW_SCREEN];
   const clampedIndex = Math.min(screenIndex, screens.length - 1);
@@ -652,7 +680,7 @@ export function CharGenStage({
     const given = givenName.trim();
     if (!given) return;
     const surname = surnameVal.trim();
-    const cmd = `enroll name ${[given, surname].filter(Boolean).join(' ')}`;
+    const cmd = `enroll name ${[given, surname].filter(Boolean).join(" ")}`;
     if (cmd === lastSentName.current) return;
     lastSentName.current = cmd;
     onSendCommand(cmd);
@@ -665,11 +693,11 @@ export function CharGenStage({
   // Nav: a field is satisfied via the local box (name, which fires on
   // blur / Next) or the server's `missing` (everything else).
   const fieldSatisfied = (field: CharGenField): boolean =>
-    field === 'name' ? givenName.trim() !== '' : !missing.includes(field);
+    field === "name" ? givenName.trim() !== "" : !missing.includes(field);
   const canAdvance = screenFields.every(fieldSatisfied);
 
   const goNext = () => {
-    if (screenFields.includes('name')) submitName();
+    if (screenFields.includes("name")) submitName();
     setScreenIndex((i) => Math.min(i + 1, screens.length - 1));
   };
   const goBack = () => setScreenIndex((i) => Math.max(0, i - 1));
@@ -798,7 +826,7 @@ export function CharGenStage({
       <StageButton
         type="button"
         data-testid="chargen-reroll"
-        onClick={() => onSendCommand('enroll name reroll')}
+        onClick={() => onSendCommand("enroll name reroll")}
       >
         ⟳ Suggest another
       </StageButton>
@@ -808,14 +836,19 @@ export function CharGenStage({
   );
 
   const renderField = (field: CharGenField) =>
-    field === 'name' ? renderNameField() : renderCards(field);
+    field === "name" ? renderNameField() : renderCards(field);
 
   return (
     <Stage data-testid="chargen-stage">
+      <StageTopBar>
+        <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
+      </StageTopBar>
       <StageBody>
         <StageInner>
           <div>
-            <StepHeading data-testid="chargen-step">{screen.heading}</StepHeading>
+            <StepHeading data-testid="chargen-step">
+              {screen.heading}
+            </StepHeading>
             <StepSub>{screen.sub}</StepSub>
           </div>
 
@@ -860,8 +893,8 @@ export function CharGenStage({
             $primary
             data-testid="chargen-confirm"
             disabled={missing.length > 0}
-            onClick={() => onSendCommand('enroll confirm')}
-            onMouseEnter={() => onCommandPreview('enroll confirm')}
+            onClick={() => onSendCommand("enroll confirm")}
+            onMouseEnter={() => onCommandPreview("enroll confirm")}
             onMouseLeave={() => onCommandPreview(null)}
           >
             Step into the world

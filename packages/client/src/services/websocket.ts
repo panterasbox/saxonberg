@@ -39,12 +39,8 @@ import type {
   PromptEnvelope,
   StuffDetailRecord,
   StuffRefRecord,
-} from '@saxonberg/types';
-import {
-  useStore,
-  type PromptEntry,
-  type StuffMetadata,
-} from '../store/index';
+} from "@saxonberg/types";
+import { useStore, type PromptEntry, type StuffMetadata } from "../store/index";
 
 interface OutboundClientMessage {
   type: string;
@@ -62,8 +58,8 @@ type EnvelopeHandler = (envelope: Envelope) => void;
  */
 export interface MqlSubscribeSpec {
   query: string;
-  cardinality: 'one' | 'many';
-  fields?: string[] | 'ref' | 'detail';
+  cardinality: "one" | "many";
+  fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
@@ -87,8 +83,8 @@ interface MqlSubscriptionEntry {
 function makeSubscriptionId(): string {
   // crypto.randomUUID is available in modern browsers + jsdom (vitest).
   if (
-    typeof crypto !== 'undefined' &&
-    typeof crypto.randomUUID === 'function'
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
   ) {
     return crypto.randomUUID();
   }
@@ -98,10 +94,18 @@ function makeSubscriptionId(): string {
 
 class WebSocketClient {
   private ws: WebSocket | null = null;
-  private url: string = '';
+  private url: string = "";
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
-  private reconnectDelay: number = 2000;
+  // Set by `disconnect()` so the next `onclose` skips auto-reconnect
+  // (logout / leave-world drive the phase themselves).
+  private intentionalDisconnect: boolean = false;
+  // Exponential backoff over ~60s: delays 1·2·4·8·16·30·30s. The server
+  // does NOT reap a real avatar on linkdead, so a generous window lets a
+  // user ride straight through a server restart (standup deploy) without
+  // touching anything; the manual Reconnect affordance is the backstop.
+  private maxReconnectAttempts: number = 7;
+  private reconnectBaseDelay: number = 1000;
+  private reconnectMaxDelay: number = 30000;
   private topicHandlers: Map<string, FrameHandler[]> = new Map();
   /**
    * Catch-all frame handlers. Fired AFTER per-topic dispatch so
@@ -110,7 +114,8 @@ class WebSocketClient {
    * uses this single subscription to consume every inbound frame.
    */
   private anyTopicHandlers: Set<FrameHandler> = new Set();
-  private envelopeHandlers: Map<Envelope['type'], EnvelopeHandler[]> = new Map();
+  private envelopeHandlers: Map<Envelope["type"], EnvelopeHandler[]> =
+    new Map();
 
   /**
    * Active MQL subscriptions, keyed by subscriptionId. Re-issued on
@@ -138,19 +143,17 @@ class WebSocketClient {
    * lands in the terminal.
    */
   private registerBuiltinHandlers(): void {
-    this.onTopic('system.charactergen.roster', (frame) => {
+    this.onTopic("system.charactergen.roster", (frame) => {
       useStore
         .getState()
         .setCharGenRoster((frame.payload as CharGenRosterPayload).characters);
     });
-    this.onTopic('system.charactergen.state', (frame) => {
-      useStore
-        .getState()
-        .setCharGenState(frame.payload as CharGenStatePayload);
+    this.onTopic("system.charactergen.state", (frame) => {
+      useStore.getState().setCharGenState(frame.payload as CharGenStatePayload);
     });
     // The `clear` verb's signal frame — empty body (so it never renders
     // a scrollback line), handled purely by emptying the buffer.
-    this.onTopic('system.terminal.clear', () => {
+    this.onTopic("system.terminal.clear", () => {
       useStore.getState().clearFrames();
     });
   }
@@ -159,7 +162,7 @@ class WebSocketClient {
     this.url = url;
 
     if (this.ws) {
-      console.warn('WebSocketClient: Already connected');
+      console.warn("WebSocketClient: Already connected");
       return;
     }
 
@@ -169,7 +172,7 @@ class WebSocketClient {
       this.ws = new WebSocket(url);
 
       this.ws.onopen = () => {
-        console.info('WebSocketClient: Connected');
+        console.info("WebSocketClient: Connected");
         this.reconnectAttempts = 0;
       };
 
@@ -178,10 +181,22 @@ class WebSocketClient {
       };
 
       this.ws.onclose = () => {
-        console.info('WebSocketClient: Connection closed');
+        console.info("WebSocketClient: Connection closed");
         this.ws = null;
 
-        useStore.getState().setDisconnected();
+        // Intentional teardown (logout / leave-world): the caller has
+        // already driven the phase. Don't auto-reconnect, don't flip to
+        // 'reconnecting'.
+        if (this.intentionalDisconnect) {
+          this.intentionalDisconnect = false;
+          useStore.getState().clearPrompts();
+          useStore.getState().clearFrames();
+          return;
+        }
+
+        // Retrying — `reconnecting` keeps the cockpit up and input
+        // gated while the backoff loop runs.
+        useStore.getState().setDisconnected(undefined, "reconnecting");
         // Pending prompts targeted THIS connection's Interactive.
         // The server's host-disconnected cancelAll already rejected
         // every await on its side; dropping the client mirror keeps
@@ -199,16 +214,55 @@ class WebSocketClient {
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocketClient: Error:', error);
-        useStore.getState().setDisconnected('WebSocket error');
+        console.error("WebSocketClient: Error:", error);
+        useStore.getState().setDisconnected("WebSocket error", "reconnecting");
       };
     } catch (error) {
-      console.error('WebSocketClient: Failed to connect:', error);
-      useStore.getState().setDisconnected('Failed to connect');
+      console.error("WebSocketClient: Failed to connect:", error);
+      useStore.getState().setDisconnected("Failed to connect", "reconnecting");
     }
   }
 
+  /**
+   * Manual reconnect — resets the backoff counter and reconnects from
+   * scratch. Wired to the "Reconnect" affordance (after a drop) and to
+   * "Switch character" (which bounces through Login → roster).
+   *
+   * The old socket is torn down **cleanly** first: its handlers are
+   * detached (so its in-flight frames can't leak into the new session,
+   * and its `onclose` can't null out the new socket) and it's closed (so
+   * the server drops the old Interactive instead of leaving a zombie
+   * connection multiplexed onto the same avatar). Scrollback + prompts
+   * are cleared so the next session starts fresh.
+   */
+  public reconnectNow(): void {
+    this.reconnectAttempts = 0;
+    const old = this.ws;
+    this.ws = null;
+    if (old) {
+      old.onmessage = null;
+      old.onclose = null;
+      old.onerror = null;
+      old.onopen = null;
+      try {
+        old.close();
+      } catch {
+        /* already closing/closed */
+      }
+    }
+    useStore.getState().clearFrames();
+    useStore.getState().clearPrompts();
+    useStore.getState().setDisconnected(undefined, "reconnecting");
+    this.connect(this.url);
+  }
+
+  /**
+   * Intentional teardown — close the socket and do NOT auto-reconnect.
+   * Used by logout / leave-world, where the caller drives the phase
+   * back to the start screen or roster itself.
+   */
   public disconnect(): void {
+    this.intentionalDisconnect = true;
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -217,20 +271,20 @@ class WebSocketClient {
 
   public send(message: OutboundClientMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.error('WebSocketClient: Cannot send - not connected');
+      console.error("WebSocketClient: Cannot send - not connected");
       return;
     }
 
     try {
       this.ws.send(JSON.stringify(message));
     } catch (error) {
-      console.error('WebSocketClient: Error sending message:', error);
+      console.error("WebSocketClient: Error sending message:", error);
     }
   }
 
   public sendPing(): void {
     this.send({
-      type: 'ping',
+      type: "ping",
       payload: { timestamp: Date.now() },
     });
   }
@@ -248,7 +302,7 @@ class WebSocketClient {
    */
   public sendPromptResponse(promptId: string, response: string): void {
     this.send({
-      type: 'prompt-response',
+      type: "prompt-response",
       payload: { promptId, response },
     });
   }
@@ -262,7 +316,7 @@ class WebSocketClient {
    */
   public sendPromptCancel(promptId: string): void {
     this.send({
-      type: 'prompt-cancel',
+      type: "prompt-cancel",
       payload: { promptId },
     });
   }
@@ -276,7 +330,7 @@ class WebSocketClient {
    */
   public sendClientStateWrite(key: string, value: unknown): void {
     this.send({
-      type: 'client-state-write',
+      type: "client-state-write",
       payload: { key, value },
     });
   }
@@ -320,14 +374,14 @@ class WebSocketClient {
    * `type` (`dispatch-response` | `activity-update` | `prompt`),
    * not `topic`.
    */
-  public onEnvelope(type: Envelope['type'], handler: EnvelopeHandler): void {
+  public onEnvelope(type: Envelope["type"], handler: EnvelopeHandler): void {
     if (!this.envelopeHandlers.has(type)) {
       this.envelopeHandlers.set(type, []);
     }
     this.envelopeHandlers.get(type)!.push(handler);
   }
 
-  public offEnvelope(type: Envelope['type'], handler: EnvelopeHandler): void {
+  public offEnvelope(type: Envelope["type"], handler: EnvelopeHandler): void {
     const handlers = this.envelopeHandlers.get(type);
     if (!handlers) return;
     const index = handlers.indexOf(handler);
@@ -342,13 +396,13 @@ class WebSocketClient {
       // the Sensor pipeline (no frameId, no topic) — substrate
       // plumbing, not narrative. Dispatched directly to the store.
       if (
-        typeof frame === 'object' &&
+        typeof frame === "object" &&
         frame !== null &&
-        (frame as { type?: unknown }).type === 'client-state-update' &&
+        (frame as { type?: unknown }).type === "client-state-update" &&
         (frame as { frameId?: unknown }).frameId === undefined
       ) {
         const update = frame as {
-          type: 'client-state-update';
+          type: "client-state-update";
           payload: { key: string; value: unknown };
         };
         useStore
@@ -361,14 +415,14 @@ class WebSocketClient {
       // carry `topic`. Two channels, two shapes — discriminate
       // structurally.
       if (
-        typeof frame === 'object' &&
+        typeof frame === "object" &&
         frame !== null &&
-        typeof (frame as { type?: unknown }).type === 'string' &&
-        typeof (frame as { frameId?: unknown }).frameId === 'number'
+        typeof (frame as { type?: unknown }).type === "string" &&
+        typeof (frame as { frameId?: unknown }).frameId === "number"
       ) {
         const envelope = frame as Envelope;
         console.debug(
-          `WebSocketClient: Received envelope type='${envelope.type}' frameId=${envelope.frameId}`
+          `WebSocketClient: Received envelope type='${envelope.type}' frameId=${envelope.frameId}`,
         );
 
         // Side-effect: feed the session-wide stuff registry from every
@@ -391,7 +445,7 @@ class WebSocketClient {
           for (const handler of handlers) handler(envelope);
         } else {
           console.debug(
-            `WebSocketClient: No handler for envelope type='${envelope.type}'`
+            `WebSocketClient: No handler for envelope type='${envelope.type}'`,
           );
         }
         return;
@@ -399,15 +453,15 @@ class WebSocketClient {
 
       const messageFrame = frame as MessageFrame;
       console.debug(
-        `WebSocketClient: Received frame topic='${messageFrame.topic}'`
+        `WebSocketClient: Received frame topic='${messageFrame.topic}'`,
       );
 
       // Built-in connection-lifecycle frame. Feature frames (char-gen,
       // etc.) register through `onTopic` in `registerBuiltinHandlers`
       // and are dispatched by the per-topic loop below.
-      if (messageFrame.topic === 'system.connection.established') {
+      if (messageFrame.topic === "system.connection.established") {
         this.handleConnectionEstablished(
-          messageFrame.payload as ConnectionEstablishedPayload
+          messageFrame.payload as ConnectionEstablishedPayload,
         );
       }
 
@@ -424,14 +478,14 @@ class WebSocketClient {
         handler(messageFrame);
       }
     } catch (error) {
-      console.error('WebSocketClient: Error handling message:', error);
+      console.error("WebSocketClient: Error handling message:", error);
     }
   }
 
   private handleConnectionEstablished(
-    payload: ConnectionEstablishedPayload
+    payload: ConnectionEstablishedPayload,
   ): void {
-    console.info('WebSocketClient: Connection established:', payload);
+    console.info("WebSocketClient: Connection established:", payload);
     useStore.getState().setConnected(payload);
 
     // Re-issue every active MQL subscription on every
@@ -441,7 +495,7 @@ class WebSocketClient {
     // result on the new connection.
     for (const sub of this.mqlSubscriptions.values()) {
       this.send({
-        type: 'mql-subscribe',
+        type: "mql-subscribe",
         payload: {
           subscriptionId: sub.subscriptionId,
           ...sub.spec,
@@ -465,7 +519,7 @@ class WebSocketClient {
     this.mqlSubscriptions.set(subscriptionId, { subscriptionId, spec });
     if (this.isConnected()) {
       this.send({
-        type: 'mql-subscribe',
+        type: "mql-subscribe",
         payload: { subscriptionId, ...spec },
       });
     }
@@ -482,7 +536,7 @@ class WebSocketClient {
     const had = this.mqlSubscriptions.delete(subscriptionId);
     if (had && this.isConnected()) {
       this.send({
-        type: 'mql-unsubscribe',
+        type: "mql-unsubscribe",
         payload: { subscriptionId },
       });
     }
@@ -501,14 +555,14 @@ class WebSocketClient {
    * websocket layer never talks to them directly.
    */
   private applyPromptSideEffects(envelope: Envelope): void {
-    if (envelope.type === 'prompt') {
+    if (envelope.type === "prompt") {
       this.handlePromptEnvelope(envelope as PromptEnvelope);
       return;
     }
-    if (envelope.type === 'dispatch-response') {
+    if (envelope.type === "dispatch-response") {
       const env = envelope as DispatchResponseEnvelope;
       for (const note of env.outcome.notes) {
-        if (note.kind === 'prompt-refresh') {
+        if (note.kind === "prompt-refresh") {
           useStore.getState().setBasePrompt(note.rendered);
         }
       }
@@ -535,11 +589,11 @@ class WebSocketClient {
         store.pushPrompt(entry);
         continue;
       }
-      if (note.kind === 'prompt-validation-failed') {
+      if (note.kind === "prompt-validation-failed") {
         store.setPromptValidationError(promptId, note.message);
         continue;
       }
-      if (note.kind === 'prompt-dismissed') {
+      if (note.kind === "prompt-dismissed") {
         store.dismissPrompt(promptId);
         continue;
       }
@@ -555,12 +609,12 @@ class WebSocketClient {
    */
   private promptEntryFromNote(
     promptId: string,
-    note: Note
+    note: Note,
   ): PromptEntry | null {
     switch (note.kind) {
-      case 'prompt-choice':
+      case "prompt-choice":
         return {
-          kind: 'choice',
+          kind: "choice",
           promptId,
           label: note.label,
           choices: note.choices,
@@ -569,17 +623,17 @@ class WebSocketClient {
             ? { defaultChoice: note.defaultChoice }
             : {}),
         };
-      case 'prompt-confirm':
+      case "prompt-confirm":
         return {
-          kind: 'confirm',
+          kind: "confirm",
           promptId,
           label: note.label,
           defaultAnswer: note.defaultAnswer,
           foreground: note.foreground,
         };
-      case 'prompt-text':
+      case "prompt-text":
         return {
-          kind: 'text',
+          kind: "text",
           promptId,
           label: note.label,
           foreground: note.foreground,
@@ -587,17 +641,17 @@ class WebSocketClient {
             ? { placeholder: note.placeholder }
             : {}),
         };
-      case 'prompt-mql-object':
+      case "prompt-mql-object":
         return {
-          kind: 'mql-object',
+          kind: "mql-object",
           promptId,
           label: note.label,
           matches: note.matches,
           foreground: note.foreground,
         };
-      case 'prompt-mql-many':
+      case "prompt-mql-many":
         return {
-          kind: 'mql-many',
+          kind: "mql-many",
           promptId,
           label: note.label,
           matches: note.matches,
@@ -623,20 +677,19 @@ class WebSocketClient {
    */
   private feedStuffRegistry(envelope: Envelope): void {
     if (
-      envelope.type !== 'mql-subscription-result' &&
-      envelope.type !== 'mql-subscription-delta'
+      envelope.type !== "mql-subscription-result" &&
+      envelope.type !== "mql-subscription-delta"
     ) {
       return;
     }
     const collected: StuffMetadata[] = [];
-    if (envelope.type === 'mql-subscription-result') {
+    if (envelope.type === "mql-subscription-result") {
       this.collectRefRecords(
         (envelope as MqlSubscriptionResultEnvelope).result,
-        collected
+        collected,
       );
     } else {
-      for (const change of (envelope as MqlSubscriptionDeltaEnvelope)
-        .changes) {
+      for (const change of (envelope as MqlSubscriptionDeltaEnvelope).changes) {
         if (change.fields) {
           this.collectRefRecords([change.fields], collected);
         }
@@ -661,17 +714,17 @@ class WebSocketClient {
       | Partial<StuffRefRecord | StuffDetailRecord>
       | Record<string, unknown>
     >,
-    out: StuffMetadata[]
+    out: StuffMetadata[],
   ): void {
     for (const rec of records) {
-      if (!rec || typeof rec !== 'object') continue;
+      if (!rec || typeof rec !== "object") continue;
       const r = rec as Partial<StuffDetailRecord>;
-      if (typeof r.stuffId === 'string') {
+      if (typeof r.stuffId === "string") {
         const meta: StuffMetadata = { stuffId: r.stuffId };
-        if (typeof r.displayName === 'string') {
+        if (typeof r.displayName === "string") {
           meta.displayName = r.displayName;
         }
-        if (typeof r.primaryKeyword === 'string') {
+        if (typeof r.primaryKeyword === "string") {
           meta.primaryKeyword = r.primaryKeyword;
         }
         out.push(meta);
@@ -686,19 +739,26 @@ class WebSocketClient {
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('WebSocketClient: Max reconnection attempts reached');
-      useStore
-        .getState()
-        .setDisconnected('Max reconnection attempts reached');
+      console.error("WebSocketClient: Max reconnection attempts reached");
+      // Give up → `dropped`. For an authed non-guest this surfaces the
+      // Reconnect banner (context preserved); a dropped guest is routed
+      // to the start screen by the store (avatar reaped, nothing to
+      // resume).
+      useStore.getState().setDisconnected("Connection lost", "dropped");
       return;
     }
+    // Exponential backoff, capped: 1·2·4·8·16·30·30s.
+    const delay = Math.min(
+      this.reconnectMaxDelay,
+      this.reconnectBaseDelay * 2 ** this.reconnectAttempts,
+    );
     this.reconnectAttempts++;
     console.warn(
-      `WebSocketClient: Reconnecting in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+      `WebSocketClient: Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
     );
     setTimeout(() => {
       this.connect(this.url);
-    }, this.reconnectDelay);
+    }, delay);
   }
 
   public isConnected(): boolean {

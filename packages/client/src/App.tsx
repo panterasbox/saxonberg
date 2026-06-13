@@ -7,27 +7,47 @@
  * - Terminal UI for game interaction
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
-import { useStore, type PromptEntry } from './store/index';
-import { SERVER_URL, WS_URL } from './config';
-import { websocketClient } from './services/websocket';
-import { ConnectionStatus } from './components/ConnectionStatus';
-import { Terminal } from './components/Terminal';
-import { TabStrip } from './components/TabStrip';
-import { FilterDrawer } from './components/FilterDrawer';
-import { CommandBar } from './components/CommandBar';
-import { InspectionPane } from './components/InspectionPane';
-import { CharacterSelect } from './components/CharacterSelect';
-import { CharGenStage } from './components/CharGenStage';
-import { tokens } from './components/ui';
-import type { ConsoleTab } from '@saxonberg/types';
+import React, { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import { useStore, type PromptEntry } from "./store/index";
+import { SERVER_URL, WS_URL } from "./config";
+import { websocketClient } from "./services/websocket";
+import { Frame } from "./components/frame/Frame";
+import { ReconnectBanner } from "./components/frame/ReconnectBanner";
+import { StartScreen } from "./components/StartScreen";
+import { Terminal } from "./components/Terminal";
+import { TabStrip } from "./components/TabStrip";
+import { FilterDrawer } from "./components/FilterDrawer";
+import { CommandBar } from "./components/CommandBar";
+import { InspectionPane } from "./components/InspectionPane";
+import { CharacterSelect } from "./components/CharacterSelect";
+import { CharGenStage } from "./components/CharGenStage";
+import { tokens } from "./components/ui";
+import type { ConsoleTab } from "@saxonberg/types";
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
   background: ${tokens.color.surfaceSunken};
+`;
+
+/**
+ * Neutral connecting splash — the `connecting` phase (authenticated, WS
+ * handshaking) before the first server frame picks the real destination.
+ * Deliberately NOT the character-select/roster screen: a player with no
+ * characters should never glimpse a roster on the way to char-gen.
+ */
+const Splash = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fgMuted};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  font-style: italic;
 `;
 
 /**
@@ -60,9 +80,9 @@ const LeftColumn = styled.div`
  */
 function parseLeadingVerb(text: string): { verb: string; rest: string } {
   const trimmed = text.trim();
-  if (!trimmed) return { verb: '', rest: '' };
-  const spaceAt = trimmed.indexOf(' ');
-  if (spaceAt < 0) return { verb: trimmed.toLowerCase(), rest: '' };
+  if (!trimmed) return { verb: "", rest: "" };
+  const spaceAt = trimmed.indexOf(" ");
+  if (spaceAt < 0) return { verb: trimmed.toLowerCase(), rest: "" };
   return {
     verb: trimmed.slice(0, spaceAt).toLowerCase(),
     rest: trimmed.slice(spaceAt + 1).trim(),
@@ -76,8 +96,8 @@ function parseLeadingVerb(text: string): { verb: string; rest: string } {
 function stripFlags(rest: string): string {
   return rest
     .split(/\s+/)
-    .filter((tok) => tok.length > 0 && !tok.startsWith('--'))
-    .join(' ');
+    .filter((tok) => tok.length > 0 && !tok.startsWith("--"))
+    .join(" ");
 }
 
 /**
@@ -98,153 +118,21 @@ function stripFlags(rest: string): string {
 function applyOutgoingCommandToPane(text: string): void {
   const { verb, rest } = parseLeadingVerb(text);
   const store = useStore.getState();
-  if (verb === 'look') {
-    const isPeek = / --peek(\s|$)/.test(' ' + text + ' ');
+  if (verb === "look") {
+    const isPeek = / --peek(\s|$)/.test(" " + text + " ");
     if (isPeek) return; // peek is a pane no-op
     store.setPanePainted(true);
     const target = stripFlags(rest);
     if (target) store.setPendingTrailLabel(target);
     return;
   }
-  if (verb === 'focus') {
+  if (verb === "focus") {
     store.setPanePainted(false);
     const target = stripFlags(rest);
     if (target) store.setPendingTrailLabel(target);
     return;
   }
   // Other verbs: leave pane state alone.
-}
-
-const LoginContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: #1e1e1e;
-  color: #d4d4d4;
-  font-family: 'Courier New', monospace;
-`;
-
-const LoginMessage = styled.div`
-  padding: 2rem;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  border-radius: 8px;
-  text-align: center;
-  max-width: 500px;
-`;
-
-const LoginTitle = styled.h1`
-  margin: 0 0 1rem 0;
-  font-size: 24px;
-  color: #007acc;
-`;
-
-const LoginText = styled.p`
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-`;
-
-const DevLoginBox = styled.div`
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px dashed #444;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: stretch;
-  text-align: left;
-`;
-
-const DevLoginLabel = styled.div`
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #888;
-`;
-
-const DevLoginRow = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const DevLoginInput = styled.input`
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  background: #1e1e1e;
-  color: #ddd;
-  border: 1px solid #444;
-  border-radius: 4px;
-  font-size: 13px;
-`;
-
-const DevLoginButton = styled.button`
-  padding: 6px 12px;
-  background: #2d2d2d;
-  color: #ddd;
-  border: 1px solid #555;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  &:hover {
-    background: #383838;
-    border-color: #007acc;
-  }
-`;
-
-/**
- * Dev-only login affordance. Talks straight to the test-auth seam
- * (`/auth/test-login`, mounted when the server runs `AUTH_MODE=test` —
- * the local dev default) so a human can log in with one click, no
- * OAuth round-trip. The same seam backs e2e / devtools automation, so
- * manual and automated login share one mechanism. Gated by
- * `import.meta.env.DEV`, so it's stripped from production builds
- * entirely — production only ever shows the Google button.
- *
- * "New character" leaves the user with zero avatars → char-gen.
- * "Skip to world" provisions a ready avatar → straight to the cockpit.
- */
-function DevLogin() {
-  const [handle, setHandle] = useState('dev');
-  const [busy, setBusy] = useState(false);
-  const login = async (withCharacter: boolean) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await fetch(`${SERVER_URL}/auth/test-login`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle: handle.trim() || 'dev', withCharacter }),
-      });
-      window.location.reload();
-    } catch {
-      setBusy(false);
-    }
-  };
-  return (
-    <DevLoginBox>
-      <DevLoginLabel>dev login — no OAuth (local only)</DevLoginLabel>
-      <DevLoginInput
-        value={handle}
-        onChange={(e) => setHandle(e.target.value)}
-        placeholder="handle (each one is its own user)"
-        aria-label="dev login handle"
-      />
-      <DevLoginRow>
-        <DevLoginButton disabled={busy} onClick={() => login(false)}>
-          New character →
-        </DevLoginButton>
-        <DevLoginButton disabled={busy} onClick={() => login(true)}>
-          Skip to world
-        </DevLoginButton>
-      </DevLoginRow>
-    </DevLoginBox>
-  );
 }
 
 /**
@@ -255,33 +143,30 @@ function DevLogin() {
  * `null` when the prompt isn't in the store (already dismissed by
  * the time we render), since the line wouldn't have context.
  */
-function formatResponseEcho(
-  promptId: string,
-  response: string
-): string | null {
+function formatResponseEcho(promptId: string, response: string): string | null {
   const entry = useStore
     .getState()
     .prompts.find((p) => p.promptId === promptId);
   if (!entry) return null;
   let resolved: string;
   switch (entry.kind) {
-    case 'text':
+    case "text":
       resolved = response;
       break;
-    case 'confirm':
-      resolved = response === 'yes' ? 'Yes' : 'No';
+    case "confirm":
+      resolved = response === "yes" ? "Yes" : "No";
       break;
-    case 'choice': {
+    case "choice": {
       const hit = entry.choices.find((c) => c.response === response);
       resolved = hit ? hit.label : response;
       break;
     }
-    case 'mql-object': {
+    case "mql-object": {
       const hit = entry.matches.find((m) => m.stuffId === response);
       resolved = hit ? hit.displayName : response;
       break;
     }
-    case 'mql-many': {
+    case "mql-many": {
       try {
         const ids: unknown = JSON.parse(response);
         if (!Array.isArray(ids)) {
@@ -292,7 +177,7 @@ function formatResponseEcho(
           const hit = entry.matches.find((m) => m.stuffId === id);
           return hit ? hit.displayName : String(id);
         });
-        resolved = names.join(', ');
+        resolved = names.join(", ");
       } catch {
         resolved = response;
       }
@@ -318,9 +203,8 @@ function App() {
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
-    (clientState['console.activeTab'] as string | undefined) ?? 'All';
-  const tabs =
-    (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [];
+    (clientState["console.activeTab"] as string | undefined) ?? "All";
+  const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   const activeTab = tabs.find((t) => t.name === activeTabName);
   const mutedSet = new Set(activeTab?.muted ?? []);
   const visibleFrames = frames.filter((f) => !mutedSet.has(f.topic));
@@ -332,10 +216,10 @@ function App() {
   // on mouse-leave even if the user moved between adjacent
   // clickables. The restore is deferred by one tick so a leave →
   // enter sequence can cancel the pending restore.
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [flashing, setFlashing] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const userTypedRef = useRef('');
+  const userTypedRef = useRef("");
   const previewActiveRef = useRef(false);
   const restoreTimerRef = useRef<number | null>(null);
   const flashTimerRef = useRef<number | null>(null);
@@ -355,24 +239,24 @@ function App() {
 
     // Check for auth callback
     const params = new URLSearchParams(window.location.search);
-    const authResult = params.get('auth');
+    const authResult = params.get("auth");
 
-    if (authResult === 'success') {
+    if (authResult === "success") {
       // Remove query param from URL
-      window.history.replaceState({}, '', window.location.pathname);
+      window.history.replaceState({}, "", window.location.pathname);
 
       // Check auth status and connect
       checkAuthStatus();
-    } else if (authResult === 'failure') {
-      console.error('Authentication failed');
-      window.history.replaceState({}, '', window.location.pathname);
+    } else if (authResult === "failure") {
+      console.error("Authentication failed");
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
   useEffect(() => {
     // Connect to WebSocket when authenticated
     if (auth.isAuthenticated && !connection.isConnected) {
-      console.info('App: Authenticated - connecting to WebSocket...');
+      console.info("App: Authenticated - connecting to WebSocket...");
       websocketClient.connect(WS_URL);
     }
   }, [auth.isAuthenticated, connection.isConnected]);
@@ -390,11 +274,11 @@ function App() {
     // pressed Enter, regardless of where focus has moved since. The
     // sigil is kept on the Frame alongside the body; the Terminal
     // concatenates at render time.
-    const handle = (frame: import('@saxonberg/types').MessageFrame) => {
+    const handle = (frame: import("@saxonberg/types").MessageFrame) => {
       if (!frame.body) return;
       const isEcho =
-        frame.topic === 'system.log.command.info' ||
-        frame.topic === 'system.log.command.warn';
+        frame.topic === "system.log.command.info" ||
+        frame.topic === "system.log.command.warn";
       let sigil: string | undefined;
       if (isEcho) {
         const snap = useStore.getState().shiftEchoSnapshot();
@@ -417,7 +301,7 @@ function App() {
   const checkAuthStatus = async () => {
     try {
       const response = await fetch(`${SERVER_URL}/auth/status`, {
-        credentials: 'include',
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -430,13 +314,13 @@ function App() {
         });
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.error("Error checking auth status:", error);
     }
   };
 
   const sendCommand = (text: string) => {
     if (!websocketClient.isConnected()) {
-      console.warn('Cannot send command: not connected');
+      console.warn("Cannot send command: not connected");
       return;
     }
 
@@ -458,13 +342,13 @@ function App() {
     // the inbound echoes.
     if (text.trim().length > 0) {
       useStore.getState().pushEchoSnapshot({
-        slot: 'base',
+        slot: "base",
         sigil: useStore.getState().basePrompt,
       });
     }
 
     websocketClient.send({
-      type: 'command',
+      type: "command",
       payload: { text },
     });
   };
@@ -479,14 +363,14 @@ function App() {
    */
   const sendPromptResponse = (promptId: string, response: string) => {
     if (!websocketClient.isConnected()) {
-      console.warn('Cannot send prompt response: not connected');
+      console.warn("Cannot send prompt response: not connected");
       return;
     }
     const echo = formatResponseEcho(promptId, response);
     if (echo) {
       useStore.getState().appendFrame({
         id: `prompt-echo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        topic: 'system.log.command.info',
+        topic: "system.log.command.info",
         body: echo,
         timestamp: Date.now(),
       });
@@ -503,7 +387,7 @@ function App() {
    */
   const cancelPrompt = (promptId: string) => {
     if (!websocketClient.isConnected()) {
-      console.warn('Cannot cancel prompt: not connected');
+      console.warn("Cannot cancel prompt: not connected");
       return;
     }
     websocketClient.sendPromptCancel(promptId);
@@ -562,7 +446,7 @@ function App() {
       restoreTimerRef.current = null;
     }
     previewActiveRef.current = false;
-    userTypedRef.current = '';
+    userTypedRef.current = "";
 
     setInputValue(command);
     sendCommand(command);
@@ -572,7 +456,7 @@ function App() {
     }
     flashTimerRef.current = window.setTimeout(() => {
       setFlashing(false);
-      setInputValue('');
+      setInputValue("");
       flashTimerRef.current = null;
     }, 150);
   };
@@ -598,24 +482,24 @@ function App() {
       __store?: typeof useStore;
     };
     w.__injectMessage = (text: string) => {
-      console.info('__injectMessage:', text);
+      console.info("__injectMessage:", text);
       useStore.getState().appendFrame({
         id: `inject-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        topic: 'world.narration.action',
+        topic: "world.narration.action",
         body: text,
         timestamp: Date.now(),
       });
     };
     w.__pushPrompt = (entry: PromptEntry) => {
-      console.info('__pushPrompt:', entry);
+      console.info("__pushPrompt:", entry);
       useStore.getState().pushPrompt(entry);
     };
     w.__popPrompt = (promptId: string) => {
-      console.info('__popPrompt:', promptId);
+      console.info("__popPrompt:", promptId);
       useStore.getState().dismissPrompt(promptId);
     };
     w.__validateFail = (promptId: string, message: string | null) => {
-      console.info('__validateFail:', promptId, message);
+      console.info("__validateFail:", promptId, message);
       useStore.getState().setPromptValidationError(promptId, message);
     };
     w.__store = useStore;
@@ -634,31 +518,16 @@ function App() {
   // `in-world` → the cockpit. The phase is driven by auth + the
   // char-gen wire frames in the store (see store/index.ts).
   switch (connectionPhase) {
-    case 'unauthenticated':
-      return (
-        <LoginContainer>
-          <LoginMessage>
-            <LoginTitle>Saxonberg 2.0</LoginTitle>
-            <LoginText>
-              Please log in with your Google account to enter the world.
-              <br />
-              <br />
-              <a
-                href={`${SERVER_URL}/auth/google`}
-                style={{ color: '#007acc', textDecoration: 'none' }}
-              >
-                Login with Google
-              </a>
-            </LoginText>
-            {import.meta.env.DEV && <DevLogin />}
-          </LoginMessage>
-        </LoginContainer>
-      );
+    case "unauthenticated":
+      return <StartScreen />;
 
-    case 'character-select':
+    case "connecting":
+      return <Splash>Connecting…</Splash>;
+
+    case "character-select":
       return <CharacterSelect onSendCommand={sendCommand} />;
 
-    case 'char-gen':
+    case "char-gen":
       return (
         <CharGenStage
           onSendCommand={sendCommand}
@@ -673,12 +542,13 @@ function App() {
         />
       );
 
-    case 'in-world':
+    case "in-world":
     default:
       // Show game UI when authenticated and the avatar is in-world.
       return (
         <AppContainer>
-          <ConnectionStatus />
+          <Frame />
+          <ReconnectBanner />
           <Cockpit>
             <LeftColumn>
               <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />

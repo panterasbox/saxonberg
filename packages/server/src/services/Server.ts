@@ -22,6 +22,7 @@ import { Application } from '../backend/Application';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
 import { TestAuthRoutes } from './auth/TestAuthRoutes';
+import { GuestAuthRoutes } from './auth/GuestAuthRoutes';
 import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
@@ -117,6 +118,9 @@ export class Server {
 
     // Setup authentication routes
     AuthRoutes.setup(this.app);
+
+    // Anonymous "play as guest" — a production path (always mounted).
+    GuestAuthRoutes.setup(this.app);
 
     // TEST-ONLY auth bypass for E2E. Mounted only in test mode, and
     // never alongside a production build. Production never sets

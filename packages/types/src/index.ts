@@ -742,6 +742,19 @@ export enum Pronouns {
 }
 
 /**
+ * Human-readable display label for each pronoun value (the enum holds
+ * the canonical short value; the full "subject/object" form shown in UI
+ * can't be derived from it, so it's colocated here with the enum it
+ * labels). Keyed by `Pronouns` value.
+ */
+export const PRONOUN_LABELS: Record<Pronouns, string> = {
+  [Pronouns.They]: 'they/them',
+  [Pronouns.She]: 'she/her',
+  [Pronouns.He]: 'he/him',
+  [Pronouns.It]: 'it/its',
+};
+
+/**
  * User account (persistent).
  * Represents an authenticated user account linked to OAuth provider.
  */
@@ -909,6 +922,13 @@ export interface ConnectionEstablishedPayload {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    /** Resolved portrait URL (setting → account photo → placeholder).
+     *  Always present — the server resolves to at least a placeholder. */
+    portraitUrl: string;
+    /** True iff this is an anonymous guest avatar (throwaway, never
+     *  persisted). Drives guest UI treatment; absent/false for real
+     *  characters. */
+    isGuest?: boolean;
   };
   /**
    * Authored topic descriptors. The client caches this snapshot for
@@ -1155,6 +1175,8 @@ export interface AuthStatusResponse {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    portraitUrl: string;
+    isGuest?: boolean;
   };
 }
 
@@ -1180,13 +1202,21 @@ export interface AuthState {
     nameSuffix?: string;
     alternateNames?: AlternateName[];
     pronouns: Pronouns;
+    portraitUrl: string;
+    isGuest?: boolean;
   } | null;
 }
 
 /**
  * Client-side connection state.
+ *
+ * `link` is the authoritative three-state of the bus connection;
+ * `isConnected` is derived (`link === 'connected'`) and kept for
+ * existing callers. `reconnecting` = auto-retrying with backoff;
+ * `dropped` = gave up (manual reconnect / routing applies).
  */
 export interface ConnectionState {
+  link: "connected" | "reconnecting" | "dropped";
   isConnected: boolean;
   socketId: string | null;
   sessionId: string | null;

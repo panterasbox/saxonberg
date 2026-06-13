@@ -29,6 +29,12 @@ export const handleClientStateWrite: InboundHandler = async (ctx, message) => {
   if (!payload || typeof payload.key !== 'string') return;
   try {
     holder.setClientState(payload.key, payload.value);
+    // Don't-flush seam: a guest's client-state lives in session memory
+    // only and dies with the avatar on disconnect. Keyed on the avatar
+    // attribute, not the session. (`Avatar.save()` is also guarded, so
+    // this is belt-and-suspenders — but it keeps the intent legible at
+    // the seam.)
+    if (holder.getIsGuest()) return;
     await holder.save();
   } catch (error) {
     console.warn(
