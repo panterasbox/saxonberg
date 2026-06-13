@@ -15,10 +15,11 @@ import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import { COLLAPSE_CONDITION_PATH } from "../Metabolic";
+import { TemplatePaths } from "../../paths";
 import requiresConscious from "../../command/validators/requiresConscious";
 import type { CommandContext } from "../../../api/command";
 
+const COLLAPSE_CONDITION_PATH = TemplatePaths.metabolismCollapse;
 const SCALE = 12;
 let real = 0;
 

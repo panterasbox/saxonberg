@@ -14,7 +14,7 @@ import { SensorMixin } from "../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../lib/command/CommandGiver";
 import Condition from "../../../../lib/vitals/Condition";
 import Material from "../../../../lib/material/Material";
-import type { ToxinBehavior } from "../../../../lib/metabolism/Toxin";
+import type { ToxinBehavior } from "../../../../lib/metabolism/Metabolic";
 import Location from "../../../../lib/stuff/Location";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import { Quantity } from "../../../../lib/quantity";

@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Condition from "../../vitals/Condition";
-import type { ToxinBehavior } from "../Toxin";
+import type { ToxinBehavior } from "../Metabolic";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
 import { StuffApi } from "../../../api/stuff";

@@ -100,6 +100,7 @@ export const Mixins = {
   Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',
   Metabolic: 'MetabolicMixin',
+  NutritionLabel: 'NutritionLabelMixin',
 } as const;
 
 /**

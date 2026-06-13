@@ -56,7 +56,7 @@ import { PropertiedMixin } from '../stuff/Propertied';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
-import type { ToxinTag } from '../metabolism/Toxin';
+import type { ToxinTag } from '../metabolism/Metabolic';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the

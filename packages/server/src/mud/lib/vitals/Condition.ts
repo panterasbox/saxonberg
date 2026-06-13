@@ -24,7 +24,7 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { Vitals } from './Vitals';
-import type { ToxinBehavior } from '../metabolism/Toxin';
+import type { ToxinBehavior } from '../metabolism/Metabolic';
 
 // ---------- the active-condition vocabulary ----------
 

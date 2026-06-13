@@ -31,7 +31,6 @@
  */
 
 import type { MixinConstructor } from "../mixin";
-import { Mixins } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Reserve, Reserved } from "../reserve";
@@ -42,20 +41,80 @@ import type { Posed } from "../character/Posed";
 import type { Tangible } from "../material/Tangible";
 import type { AfflictionRecord } from "../vitals/Condition";
 import type Condition from "../vitals/Condition";
-import type { ToxinBehavior } from "./Toxin";
-import { widmarkR } from "./Toxin";
 import type Material from "../material/Material";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
-import { TemplatePaths } from "../paths";
+import { TemplatePaths, TemplatePathPrefixes } from "../paths";
+
+/* ─────────────────────────── toxin model (types) ─────────────────────────── */
+//
+// The toxin-burden system's shapes live here on the owning mixin module
+// (not a standalone file): `Toxin` is not an instantiable class, just the
+// type vocabulary + the Widmark helper. Which toxins exist and how they
+// behave is authored CONTENT — a toxin's per-body rate params live on its
+// `Condition` seed's `toxinBehavior` block; a food declares only the
+// per-consumable dose `amount`.
+
+/** A per-consumable toxin dose authored on `Material.toxicity`. */
+export interface ToxinTag {
+  /** Toxin type — also the key of its `Condition` (e.g. `'alcohol'`). */
+  type: string;
+  /** Dose per serving (mg for solids / derived for liquids). */
+  amount: number;
+}
+
+/** One severity rung of a toxin's banded condition. */
+export interface ToxinBand {
+  /** Burden (or BAC, for alcohol) at/above which this rung applies. */
+  threshold: number;
+  /** Severity index for the rung (ascending). */
+  severity: number;
+}
 
 /**
- * Toxin conditions are keyed by the toxin type (v1: condition key ===
- * toxin tag). The reconcile resolves a toxin's rate params + severity
- * bands off the `Condition` seed at this prefix + the type.
+ * Per-body rate params for a toxin — authored on its `Condition` seed
+ * (`Condition.toxinBehavior`), NOT in a code table and NOT on the food.
  */
-const TOXIN_CONDITION_PREFIX = "/lib/metabolism/conditions/";
+export interface ToxinBehavior {
+  /** Joins to the food's `ToxinTag.type` (v1 keys condition === type). */
+  toxinType: string;
+  /** Pool → burden drain rate (dose-units per game-minute). */
+  absorptionRate: number;
+  /** Burden clearance rate (burden-units per game-minute; zero-order). */
+  clearanceRate: number;
+  /** `dose × potency / bodyMass` accumulation multiplier. */
+  potency: number;
+  /** Severity ladder the condition reads live off the burden / BAC. */
+  bands: ToxinBand[];
+  /**
+   * Store-raw exception (alcohol): accumulate the absorbed dose into the
+   * burden as-is (ethanol grams), with no `potency` / `bodyMass` factor —
+   * the body normalization happens at the `getBAC()` read (Widmark).
+   * Implies the condition's severity bands are read against the derived
+   * **BAC** (`g/dL`), not the raw burden. Default `false`.
+   */
+  storeRaw?: boolean;
+}
+
+/**
+ * Widmark `r` factor by biological sex (volume-of-distribution ratio).
+ * Read by `getBAC()` off `SexedMixin.getSex()`; a neutral default
+ * backstops unset / other values.
+ */
+const WIDMARK_R_BY_SEX: Record<string, number> = {
+  male: 0.68,
+  female: 0.55,
+};
+
+/** Neutral Widmark factor when sex is unset or unrecognized. */
+const WIDMARK_R_DEFAULT = 0.6;
+
+/** Resolve the Widmark `r` for a (possibly null) sex string. */
+function widmarkR(sex: string | null): number {
+  if (sex && sex in WIDMARK_R_BY_SEX) return WIDMARK_R_BY_SEX[sex]!;
+  return WIDMARK_R_DEFAULT;
+}
 
 /**
  * The inner-mixin surface a Metabolic body composes over. The
@@ -166,17 +225,14 @@ export const METABOLIC_DEFAULTS = {
 } as const;
 
 /**
- * The acute, reversible incapacitation condition spawned when endurance
- * floors. Exported so `requiresConscious` can read it off the body's
- * condition collection (collapse gates volitional/exertion verbs).
+ * Floor-effect string → the authored `Condition` Idea templatePath
+ * (sourced from the central `TemplatePaths` index — paths are data, not
+ * per-file literals).
  */
-export const COLLAPSE_CONDITION_PATH = "/lib/metabolism/conditions/collapse";
-
-/** Floor-effect string → the authored `Condition` Idea templatePath. */
 const CONDITION_PATHS: Record<string, string> = {
-  starvation: "/lib/metabolism/conditions/starvation",
-  dehydration: "/lib/metabolism/conditions/dehydration",
-  collapse: COLLAPSE_CONDITION_PATH,
+  starvation: TemplatePaths.metabolismStarvation,
+  dehydration: TemplatePaths.metabolismDehydration,
+  collapse: TemplatePaths.metabolismCollapse,
 };
 
 /** Lethal accrual per floor-effect (game-seconds); absent = non-lethal. */
@@ -360,12 +416,10 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // Linkdead freeze: the body lingers in-world but its clock is
-      // paused — re-stamp so the away-gap never accumulates.
+      // paused — re-stamp so the away-gap never accumulates. Narrow via
+      // the predicate so `isLinkdead` is a typed call, not a duck-type.
       const self = this as unknown as Stuff;
-      if (
-        MixinApi.hasMixin(self, Mixins.HasInteractive) &&
-        (self as unknown as { isLinkdead(): boolean }).isLinkdead()
-      ) {
+      if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
         this.metabolicClockStamp = nowS;
         return;
       }
@@ -512,7 +566,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Resolve a toxin's authored rate params off its `Condition` seed. */
     protected resolveToxinBehavior(type: string): ToxinBehavior | null {
       const cond = StuffApi.findByTemplatePath<Condition>(
-        TOXIN_CONDITION_PREFIX + type,
+        TemplatePathPrefixes.metabolismCondition + type,
       );
       return cond?.getToxinBehavior() ?? null;
     }
@@ -649,7 +703,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const type of Object.keys(this.toxinBurdens)) {
         const behavior = this.resolveToxinBehavior(type);
         if (!behavior || behavior.bands.length === 0) continue;
-        const path = TOXIN_CONDITION_PREFIX + type;
+        const path = TemplatePathPrefixes.metabolismCondition + type;
         const level = behavior.storeRaw
           ? this.getBAC().rawValue()
           : (this.toxinBurdens[type] ?? 0);
@@ -692,8 +746,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // never touched here.
       for (const cond of [...self.getConditions()]) {
         if (cond.kind !== "affliction") continue;
-        if (!cond.templatePath.startsWith(TOXIN_CONDITION_PREFIX)) continue;
-        const type = cond.templatePath.slice(TOXIN_CONDITION_PREFIX.length);
+        if (!cond.templatePath.startsWith(TemplatePathPrefixes.metabolismCondition)) continue;
+        const type = cond.templatePath.slice(TemplatePathPrefixes.metabolismCondition.length);
         if (type in this.toxinBurdens) continue;
         if (this.resolveToxinBehavior(type)) self.relieve(cond);
       }

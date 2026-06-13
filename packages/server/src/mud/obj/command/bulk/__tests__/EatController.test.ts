@@ -27,7 +27,8 @@ import {
   makeStuffAtPath,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
-import { METABOLIC_DEFAULTS, COLLAPSE_CONDITION_PATH } from "../../../../lib/metabolism/Metabolic";
+import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
+import { TemplatePaths } from "../../../../lib/paths";
 import mustBeEdible from "../../../../lib/command/validators/mustBeEdible";
 import requiresConscious from "../../../../lib/command/validators/requiresConscious";
 
@@ -143,7 +144,7 @@ describe("EatController", () => {
   it("requiresConscious blocks a collapsed eater", () => {
     eater.afflict({
       kind: "affliction",
-      templatePath: COLLAPSE_CONDITION_PATH,
+      templatePath: TemplatePaths.metabolismCollapse,
       stage: 0,
       elapsed: 0,
     });

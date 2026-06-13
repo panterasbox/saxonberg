@@ -1,75 +1,29 @@
 /**
  * Material — the Wave-2 nutrition shape: `toxicity` reshaped to
  * `{type, amount}[]` (the per-consumable dose; default-Hydrator
- * round-trip like `composition`), `nutrientAmounts` (the inspectable
- * profile), and `examine <food>` surfacing that profile (data + display,
- * viewer-blind) for an edible while omitting it for a non-edible.
+ * round-trip like `composition`) and `nutrientAmounts` (the inspectable
+ * profile). The label RENDER lives on `NutritionLabelMixin` (an opt-in
+ * consumable affordance that rides the long-description augmenter seam),
+ * NOT on `look` — so it shows only on things that carry a label and
+ * only for an edible Material, viewer-blind.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import LookController from "../../../obj/command/perception/LookController";
 import Material from "../Material";
 import Thing from "../../stuff/Thing";
-import Location from "../../stuff/Location";
-import { Idea } from "../../stuff/Idea";
-import { SensorMixin } from "../../message/Sensor";
-import { CommandGiverMixin } from "../../command/CommandGiver";
-import { NamedMixin } from "../../description/Named";
-import { ContainableMixin } from "../../spatial/Containable";
+import { NutritionLabelMixin } from "../../metabolism/NutritionLabel";
 import { Stuff } from "../../stuff/Stuff";
+import { MixinApi } from "../../../api/mixin";
+import { Mixins } from "../../mixin";
 import { StuffApi } from "../../../api/stuff";
-import { ContainmentApi } from "../../../api/containment";
-import { CommandApi, type CommandContext } from "../../../api/command";
-import { CommandDefinition } from "../../../lib/command/CommandDefinition";
-import type { MqlOneResult } from "../../../api/mql";
 import {
   makeStuff,
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
-class CaptureActor extends SensorMixin(
-  CommandGiverMixin(NamedMixin(ContainableMixin(Idea))),
-) {
-  static _mixinName = "CaptureActor";
-  public received: unknown[] = [];
-  protected override handleMessage(msg: unknown): void {
-    this.received.push(msg);
-  }
-}
-
-function foodMaterial(
-  path: string,
-  name: string,
-  edible: boolean,
-  nutrientAmounts: Record<string, number>,
-  toxicity: { type: string; amount: number }[],
-): Material {
-  return makeStuffAtPath(() => {
-    const m = new Material();
-    m.setName(name);
-    m.setKeywords([name]);
-    m.setAppearance(`a ${name}`);
-    m.setEdibility(edible);
-    m.setNutrientAmounts(nutrientAmounts);
-    m.setToxicity(toxicity);
-    return m;
-  }, path) as unknown as Material;
-}
-
-function thingOf(label: string, mat: Material): Stuff {
-  return makeStuff(() => {
-    const t = new Thing();
-    t.setShortDescription(label);
-    t.setLongDescription(`It is ${label}.`);
-    t.setKeywords([label.replace(/^an? /, "")]);
-    t.setMaterial(mat);
-    return t;
-  }) as unknown as Stuff;
-}
-
-function one(stuff: Stuff): MqlOneResult {
-  return { stuff, raw: "x" } as MqlOneResult;
+class LabelledThing extends NutritionLabelMixin(Thing) {
+  static _mixinName = "LabelledThing";
 }
 
 describe("Material — nutrition shape", () => {
@@ -98,65 +52,92 @@ describe("Material — nutrition shape", () => {
   });
 });
 
-describe("Material — examine surfacing", () => {
-  let actor: CaptureActor;
-  let loc: Stuff;
+describe("NutritionLabelMixin — the inspectable label", () => {
+  let viewer: Stuff;
+
+  function material(
+    path: string,
+    name: string,
+    edible: boolean,
+    nutrientAmounts: Record<string, number>,
+    toxicity: { type: string; amount: number }[],
+  ): Material {
+    return makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName(name);
+      m.setKeywords([name]);
+      m.setAppearance(`a ${name}`);
+      m.setEdibility(edible);
+      m.setNutrientAmounts(nutrientAmounts);
+      m.setToxicity(toxicity);
+      return m;
+    }, path) as unknown as Material;
+  }
+
+  function labelled(label: string, mat: Material): LabelledThing {
+    return makeStuff(() => {
+      const t = new LabelledThing();
+      t.setShortDescription(label);
+      t.setLongDescription(`It is ${label}.`);
+      t.setMaterial(mat);
+      return t;
+    });
+  }
 
   beforeEach(() => {
     installV1QuantityMarshallers();
-    loc = makeStuff(() => new Location()) as unknown as Stuff;
-    actor = makeStuff(() => new CaptureActor());
-    (actor as unknown as { setName(n: string): void }).setName("bob");
-    ContainmentApi.move(actor as never, loc as never);
+    viewer = makeStuff(() => new Thing()) as unknown as Stuff;
   });
   afterEach(() => StuffApi.clearAll());
 
-  function lookAt(item: Stuff): string {
-    const ctx: CommandContext = CommandApi.createCommandContext({
-      commandGiver: actor as never,
-      location: loc as never,
-      commandText: "look",
-      executionId: "t",
-      commandId: "t",
-      verb: "look",
-      command: CommandDefinition.fromYaml(
-        "verbs: [look]\ncontroller: NoopController\ndescription: stub\n",
-        "<test>",
-      ),
-    });
-    actor.received = [];
-    makeStuff(() => new LookController()).execute(
-      { target: one(item) } as never,
-      ctx,
-    );
-    return JSON.stringify(actor.received);
-  }
+  it("composes the mixin / passes the predicate", () => {
+    const t = labelled("a ration", material("/m/r", "ration", true, {}, []));
+    expect(MixinApi.hasMixin(t, Mixins.NutritionLabel)).toBe(true);
+  });
 
-  it("includes the profile for an edible", () => {
-    const apple = foodMaterial(
+  it("appends the profile to the long description for an edible", () => {
+    const apple = material(
       "/lib/material/food/apple",
       "apple",
       true,
       { carb: 20, sugar: 12 },
       [{ type: "cyanide", amount: 1 }],
     );
-    const out = lookAt(thingOf("an apple", apple));
+    const out = labelled("an apple", apple).getMarkupLong(viewer);
     expect(out).toContain("Nutrition:");
     expect(out).toContain("carb 20mg");
     expect(out).toContain("Contains:");
     expect(out).toContain("cyanide 1mg");
   });
 
-  it("omits the profile for a non-edible", () => {
-    const granite = foodMaterial(
+  it("omits the profile for a non-edible material", () => {
+    const granite = material(
       "/lib/material/element/granite",
       "granite",
       false,
       {},
       [],
     );
-    const out = lookAt(thingOf("a rock", granite));
+    const out = labelled("a chunk", granite).getMarkupLong(viewer);
     expect(out).not.toContain("Nutrition:");
     expect(out).not.toContain("Contains:");
+  });
+
+  it("a plain (un-labelled) Thing shows no profile even when edible", () => {
+    const apple = material(
+      "/lib/material/food/apple2",
+      "apple",
+      true,
+      { carb: 20 },
+      [],
+    );
+    const plain = makeStuff(() => {
+      const t = new Thing();
+      t.setShortDescription("an apple");
+      t.setLongDescription("It is an apple.");
+      t.setMaterial(apple);
+      return t;
+    });
+    expect(plain.getMarkupLong(viewer)).not.toContain("Nutrition:");
   });
 });

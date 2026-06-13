@@ -20,14 +20,16 @@
 
 import type { CommandValidator } from "../../../api/command";
 import { MixinApi } from "../../../api/mixin";
-import { COLLAPSE_CONDITION_PATH } from "../../metabolism/Metabolic";
+import { TemplatePaths } from "../../paths";
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
   if (!MixinApi.isVitals(giver)) return undefined;
 
   const collapsed = giver.hasCondition(
-    (c) => c.kind === "affliction" && c.templatePath === COLLAPSE_CONDITION_PATH,
+    (c) =>
+      c.kind === "affliction" &&
+      c.templatePath === TemplatePaths.metabolismCollapse,
   );
   if (giver.getConsciousness() === "conscious" && !collapsed) return undefined;
 
