@@ -151,19 +151,18 @@ export abstract class Stuff {
    * effects can override the rendered identity via a method shadow.
    */
   getPresentation(): string {
-    const self: Stuff = this;
     let base = DEFAULT_PRESENTATION;
-    if (MixinApi.isNamed(self)) {
-      const name = self.getName();
+    if (MixinApi.isNamed(this)) {
+      const name = this.getName();
       if (name) base = name;
     }
-    if (base === DEFAULT_PRESENTATION && MixinApi.isVisible(self)) {
-      const short = self.getShortDescription();
+    if (base === DEFAULT_PRESENTATION && MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
       if (short) base = short;
     }
-    if (MixinApi.isGlobbable(self)) {
-      const n = self.getQuantity();
-      if (n !== 1) return `${n} ${GrammarApi.pluralize(self, base)}`;
+    if (MixinApi.isGlobbable(this)) {
+      const n = this.getQuantity();
+      if (n !== 1) return `${n} ${GrammarApi.pluralize(this, base)}`;
     }
     return base;
   }

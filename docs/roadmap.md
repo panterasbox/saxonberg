@@ -594,9 +594,12 @@ opportunistically.
 - **Utility APIs** — `StringApi`, `TimeApi`, `ObjectApi`,
   `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
   `MudlogApi` exists but is incomplete.
-- **DescribeApi v2** — implements the design from
-  [recognition-slate.md](./slates/builds/recognition-slate.md). Composition
-  pipeline; `getDisplayParts`; MML-aware output.
+- **Recognition / viewer-aware presentation** — implements the design
+  from [recognition-slate.md](./slates/builds/recognition-slate.md).
+  Wave 0 (the viewer-blind `Stuff.getPresentation()` baseline +
+  retirement of the static `DescribeApi`) **shipped**; what remains is
+  the viewer-aware composition pipeline: per-viewer recognition /
+  identification memory, `getDisplayParts`, MML-aware decoration.
 
 ---
 
