@@ -23,9 +23,17 @@ import Thing from '../stuff/Thing';
 import { SlottableMixin } from '../slot/Slottable';
 import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
+import { TravelCredentialMixin } from '../fasttravel/TravelCredential';
 import { TemplatePaths } from '../paths';
 
-const AetherImplantBase = AugmentMixin(SlottableMixin(TangibleMixin(Thing)));
+// The baseline implant also carries the Teleport Authority travel credential
+// (the registered-node set, born with University Avenue) — so every avatar
+// "leaves with their implant" and can ride the TPA without carrying a card.
+// One device, many functions; this is where slot scarcity pushes us (see the
+// augmentation slate's slot-model open question).
+const AetherImplantBase = AugmentMixin(
+  TravelCredentialMixin(SlottableMixin(TangibleMixin(Thing))),
+);
 
 export default class AetherImplant extends AetherImplantBase {
   static readonly TEMPLATE_PATH = TemplatePaths.aetherImplant;

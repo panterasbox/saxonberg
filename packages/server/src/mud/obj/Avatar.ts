@@ -24,7 +24,6 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import { Warren } from "../lib/location/Warren";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
-import TravelCard from "../domain/common/tpa/TravelCard";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
@@ -433,7 +432,6 @@ export default class Avatar extends AvatarBase {
    * sense / dm verbs surface their own polite refusals downstream.
    */
   private async installDefaultLoadout(): Promise<void> {
-    await this.installDefaultTravelCard();
     try {
       if (!MixinApi.isSlotted(this)) return;
       // Ensure species + body plan are loaded so the BodyPlanSlots
@@ -449,6 +447,9 @@ export default class Avatar extends AvatarBase {
         // No cranial slot on this body plan (sessile etc.).
         return;
       }
+      // The baseline implant also carries the Teleport Authority travel
+      // credential, so installing it gives the avatar their default
+      // credential — they "leave with their implant", no card needed.
       const implant = await StuffApi.clone<AetherImplant>(
         AetherImplant.TEMPLATE_PATH,
       );
@@ -456,31 +457,6 @@ export default class Avatar extends AvatarBase {
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,
-        err instanceof Error ? err.message : String(err),
-      );
-    }
-  }
-
-  /**
-   * Issue the v1 default fast-travel credential — a TravelCard — into
-   * inventory at clone time. Independent of the cranial slot (the card is
-   * held, not installed; the cranial slot holds the AetherImplant). The card
-   * is born with the University Avenue node registered, so a fresh avatar can
-   * `teleport` out of the lounge before registering anything. Idempotent:
-   * skipped if the avatar already carries any travel credential.
-   */
-  private async installDefaultTravelCard(): Promise<void> {
-    try {
-      if (!MixinApi.isContainer(this)) return;
-      const hasCredential = this.getContents().some((it) =>
-        MixinApi.isTravelCredential(it),
-      );
-      if (hasCredential) return;
-      const card = await StuffApi.clone<TravelCard>(TravelCard.TEMPLATE_PATH);
-      ContainmentApi.move(card, this as unknown as Stuff & Container);
-    } catch (err) {
-      console.warn(
-        `Avatar.installDefaultTravelCard skipped for ${this.stuffId}:`,
         err instanceof Error ? err.message : String(err),
       );
     }
