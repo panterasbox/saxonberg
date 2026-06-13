@@ -68,7 +68,10 @@ export default class RegisterController extends CommandController<CommandModel> 
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic("system.shell.author")
+      // A diegetic player action (operating a Teleport Authority terminal),
+      // not author tooling — same in-world narration channel as the other
+      // movement commands (mount/dismount, sit/stand).
+      .topic("world.narration.action")
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

@@ -211,7 +211,11 @@ export default class TeleportController extends CommandController<TeleportModel>
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic("system.shell.author")
+      // `teleport`'s player-facing fork (the TPA ride + departures board) is a
+      // diegetic in-world action, not author tooling — same narration channel
+      // as the other movement commands. The privileged self-powered fork rides
+      // the same helper; its operator output is fine on this channel too.
+      .topic("world.narration.action")
       .toSelf(Mml.fromMarkup(text))
       .send();
   }
