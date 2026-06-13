@@ -1,0 +1,9 @@
+# University Avenue — the Eternal University campus-entry arrival room. The
+# lounge's TPA route lands here; a fresh credential is born registered for the
+# terminal seeded into it. The EU build expands the campus from here.
+class: /domain/eternal/UniversityAvenue
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: University Avenue
+  longDescription: |
+    A broad transit plaza at the edge of Eternal University. Plane trees line a swept stone concourse; banners snap overhead, and the campus rises in pale terraces beyond a low wall. A Teleport Authority terminal stands at the kerb where the avenue meets the gates.

@@ -1,0 +1,13 @@
+# The University Avenue TPA terminal — the EU campus node. Both-directional;
+# routes back to the lounge node. Seeded into the University Avenue room.
+# Authored from the generic TpaTerminal class (terminals live in their area's
+# domain, not /domain/common/tpa/).
+class: /domain/common/tpa/TpaTerminal
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  container: /domain/eternal/university-avenue
+  shortDescription: a Teleport Authority terminal
+  keywords: [university-avenue, campus, university, avenue]
+  directionality: both
+  routes:
+    - to: /domain/lounge/terminal

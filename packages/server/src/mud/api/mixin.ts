@@ -56,6 +56,8 @@ import type { LightSource } from '../lib/perception/LightSource';
 import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Augment } from '../lib/augmentation/Augment';
+import type { FastTravel } from '../lib/fasttravel/FastTravel';
+import type { TravelCredential } from '../lib/fasttravel/TravelCredential';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
@@ -469,6 +471,16 @@ export class MixinApi {
 
   public static isExitable(obj: Stuff): obj is Stuff & Exitable {
     return this.hasMixin(obj, Mixins.Exitable);
+  }
+
+  public static isFastTravel(obj: Stuff): obj is Stuff & FastTravel {
+    return this.hasMixin(obj, Mixins.FastTravel);
+  }
+
+  public static isTravelCredential(
+    obj: Stuff,
+  ): obj is Stuff & TravelCredential {
+    return this.hasMixin(obj, Mixins.TravelCredential);
   }
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {

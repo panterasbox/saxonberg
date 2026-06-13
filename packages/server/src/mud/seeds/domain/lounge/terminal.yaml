@@ -1,0 +1,12 @@
+# The lounge's TPA node — the network's boot/first-landing root, seated into
+# the elastic lounge host by LoungeWarren. Both-directional, comped; routes to
+# University Avenue (the campus entry). No `container` — the Warren seats it,
+# and its arrival room is the Warren host (LoungeTerminal.getArrivalRoom).
+class: /domain/lounge/LoungeTerminal
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a Teleport Authority terminal
+  keywords: [lounge]
+  directionality: both
+  routes:
+    - to: /domain/eternal/university-avenue-terminal

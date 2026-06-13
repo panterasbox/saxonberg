@@ -42,6 +42,9 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   /** Dave's Bar — the singleton external-neighbor shell. */
   static readonly BAR_PATH = '/domain/lounge/bar';
 
+  /** The lounge's TPA node — a singleton fixture seated into the host. */
+  static readonly LOUNGE_TERMINAL_PATH = '/domain/lounge/terminal';
+
   /** Direction host→Dave's (cardinal; auto-inverse 'south'). */
   static readonly BAR_DIRECTION = 'north';
   static readonly BAR_OPPOSITE = 'south';
@@ -192,6 +195,24 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
       opposite: LoungeWarren.BAR_OPPOSITE,
       keepLiveDestination: true,
     });
+
+    // Seat the lounge's TPA node into the host (the singleton fixture is
+    // created on first wiring — first landing — which stands the network up
+    // via its postRegister cascade; re-seated here on host migration). Use
+    // the path string, not a class import, to avoid a LoungeTerminal cycle.
+    // Fail-soft: a deployment without the fast-travel seeds (or a unit test
+    // that doesn't load them) still gets a working lounge, just no terminal.
+    try {
+      const terminal = await StuffApi.singleton<Stuff & Containable>(
+        LoungeWarren.LOUNGE_TERMINAL_PATH,
+      );
+      ContainmentApi.move(terminal, host);
+    } catch (err) {
+      console.warn(
+        'LoungeWarren: lounge TPA terminal not seated:',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
   }
 
   /**
