@@ -76,7 +76,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     (payload kind: 'issued'; see messaging.md)
    │
    ├─ if ParseResult.parsed: _runChain
-   │     CommandApi.matchVerbContextual(verb, available)  → CommandDefinition[]
+   │     this.getAffordances().filter(a => a.command.hasVerb(verb))  → Affordance[]
    │     for each match (newest first):
    │       ctx = CommandApi.createCommandContext({ ... })  ← fresh per attempt
    │       CommandApi.assemble(parsed, command)            → ModelData | error
@@ -519,10 +519,12 @@ single-quote-as-literal convention, and `format()` round-trip, see
 
 ## Stage 3 — Matching
 
-`CommandApi.matchVerbContextual(verb, available)` filters the giver's
-recency-stack output to the matches whose verb (case-insensitive)
-matches the parsed verb. The dispatcher walks each match in order
-(newest first) calling `CommandApi.assemble`:
+`_runChain` filters the giver's affordances (`getAffordances()`) to
+those whose command verb (case-insensitive) matches the parsed verb —
+keeping each match paired with its affording `source` for
+`CommandContext.commandSource` (see § Affordance attribution). The
+dispatcher walks each match in order (newest first) calling
+`CommandApi.assemble`:
 
 ```ts
 type AssembleResult =

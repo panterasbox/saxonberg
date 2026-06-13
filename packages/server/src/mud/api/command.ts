@@ -1431,25 +1431,6 @@ export class CommandApi {
   }
 
   /**
-   * Filter a command list down to those whose verb matches `verb`
-   * (case-insensitive), preserving order. A standalone helper over bare
-   * `CommandDefinition[]`.
-   *
-   * NOTE: live dispatch no longer calls this — `_runChain` filters over
-   * affordances (`getAffordances()`) so each match keeps its affording
-   * source for `CommandContext.commandSource` (see
-   * `command-routing.md` § Affordance attribution). This remains as a
-   * verb-filter utility; same-verb collisions are still resolved at the
-   * assemble stage (shape vs bind) or via dynamic contributions.
-   */
-  static matchVerbContextual(
-    verb: string,
-    available: CommandDefinition[]
-  ): CommandDefinition[] {
-    return available.filter((cmd) => cmd.hasVerb(verb));
-  }
-
-  /**
    * Bind a `ParsedCommand` to a `CommandDefinition`.
    *
    * Two-tier option scope: tokens before the subcommand are bound
