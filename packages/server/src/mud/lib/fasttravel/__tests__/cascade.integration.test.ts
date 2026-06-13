@@ -25,7 +25,7 @@ import PersistentHydrator from "../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const UA_TERMINAL = "/domain/eternal/university-avenue-terminal";
-const UA_ROOM = "/domain/eternal/university-avenue";
+const UA_ROOM = "/domain/eternal/university-avenue/plaza";
 
 const fastTravelDocs: Doc[] = [
   {
@@ -53,7 +53,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: UA_ROOM,
-    class: "/domain/eternal/UniversityAvenue",
+    class: "/lib/stuff/VoidLocation",
     hydratorClass: PH,
     data: { shortDescription: "University Avenue" },
   },
