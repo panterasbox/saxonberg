@@ -29,7 +29,8 @@ Sibling docs cover related ground without overlap:
 - [light.md](./light.md) — the Light & Boundary subsystem that
   layers on top of this one. `Door` is now a `Boundary` (closed
   doors block light, not just movement); `Adornable` composed onto
-  `Location` and `Vessel` is what hosts `BoundaryAnchor` fixtures.
+  `Location` and `ExitableVessel` is what hosts `BoundaryAnchor`
+  fixtures.
 - [properties.md](./properties.md), [mixins.md](./mixins.md) — the
   general mechanics that let mixins carry persistent fields.
 
@@ -44,7 +45,7 @@ substrate in `lib/spatial/`:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Vessel` | top-level branch | A *container-object* — a Thing that holds things, at any scale (bag → cart → ship). Container + Containable + `Tangible` + `Atmospheric` ([biome.md](./biome.md)); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `SurfacedMixin` | mixin | Surface placement: the auxiliary `restingOn` pointer + `canRest`. |
@@ -70,8 +71,8 @@ Stuff (one of seven top-level branches — see architecture.md)
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Adornable + Container + Containable)
-  │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
+  ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
+  │     └── ExitableVessel          (DoorBearing + Exitable + Visible + Adornable)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -423,9 +424,10 @@ vessel-door's `(vessel, env)` Boundary anchor pair on `setDoor` /
 `onMoved`) — lives in [boundary.md](./boundary.md). Spatial keeps
 the containers; boundary holds what connects them.
 
-Locations and Vessels compose `AdornableMixin` so their
+Locations and `ExitableVessel`s compose `AdornableMixin` so their
 `getFixtures()` collection can host `BoundaryAnchor`s; that is
-the only Boundary detail that lives in this doc.
+the only Boundary detail that lives in this doc. (A bare `Vessel`
+is **not** Adornable — fixtures are an `ExitableVessel` concern.)
 ## Locomotion: `MobileMixin`
 
 `lib/spatial/Mobile.ts`. The mover's side of movement. Composed by
@@ -665,7 +667,7 @@ self-rearranging chambers) can produce many instances per template.
 - **`Zone`:** refuse to destruct while non-empty — caller drains
   rooms first. `CartesianZone` additionally clears
   `derivedCache`.
-- **`AdornableMixin`** (composed on Location and Vessel) walks
+- **`AdornableMixin`** (composed on Location and ExitableVessel) walks
   `getFixtures()` and destructs each. See
   [boundary.md § Adornable / Adornment](./boundary.md#adornable--adornment).
 
@@ -678,8 +680,8 @@ The spatial subsystem is mostly auto-persistent through
 - `SphericalCoordinatesMixin`: `coordinates`, `radius`.
 - `SealableMixin`: `isOpen`.
 - `Zone` subclasses: `name` (and `cellSize` on Cartesian).
-- `Vessel`: empty list — Vessel itself adds nothing persistent beyond
-  what its mixins contribute.
+- `Vessel`: `transmissionFactor` (the encumbrance attenuation; default
+  1.0) — plus whatever its mixins contribute.
 
 Two intentional non-persistents:
 
