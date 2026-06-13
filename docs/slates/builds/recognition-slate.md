@@ -25,12 +25,12 @@ See also:
 - [docs/subsystems/perception.md](../../subsystems/perception.md) —
   viewer-aware-query pattern. Recognition is the hardest
   per-viewer state to date.
-- [docs/slates/verb-provisioning-slate.md](../builds/verb-provisioning-slate.md)
-  — the broader verb-acquisition pattern. Recognition's trigger
-  verbs are one column of that slate's taxonomy applied to the
-  recognize / look surface (skill paths like "face memory,"
-  instrument paths like "scrying mirror," implant paths like
-  "facial-recognition HUD").
+- [command-routing.md § Affordance attribution](../../subsystems/command-routing.md)
+  — recognition's trigger verbs can be afforded by different source
+  objects (a "face memory" skill, a "scrying mirror" instrument, a
+  "facial-recognition HUD" implant). Each is just a source of a
+  different class landing through `pushCommandSource`; the source
+  object — not a category enum — decides how the read renders.
 - [docs/adjoining-systems.md](../../adjoining-systems.md) — this
   slate graduates entry #5.
 

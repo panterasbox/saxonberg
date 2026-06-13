@@ -1,0 +1,135 @@
+/**
+ * Affordance-attribution accessor tests.
+ *
+ * `getAffordances()` is the source-preserving sibling of
+ * `getAvailableCommands()`: the same newest-first recency walk, but each
+ * command paired with its resolved affording `source` (the giver itself
+ * for innate `'self'` entries, the granting item otherwise) and its
+ * `bucket`. `getAvailableCommands()` is its flattened projection.
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Idea } from '../../stuff/Idea';
+import {
+  CommandGiverMixin,
+  type CommandGiver,
+} from '../CommandGiver';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainerMixin } from '../../spatial/Container';
+import { SensorMixin } from '../../message/Sensor';
+import { ContainmentApi } from '../../../api/containment';
+import { CommandApi } from '../../../api/command';
+import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  PersistenceManager,
+  Collections,
+} from '../../../../backend/PersistenceManager';
+
+const TestGiverBase = CommandGiverMixin(
+  SensorMixin(ContainerMixin(ContainableMixin(Idea)))
+);
+
+class TestGiver extends TestGiverBase {
+  static override commandContributions = {
+    self: ['system/ping.yaml'],
+    environment: [],
+    inventory: [],
+    peers: [],
+  };
+  protected override handleMessage(_frame: unknown): void {
+    // discard
+  }
+}
+
+const InvProviderBase = ContainableMixin(Idea);
+class InvProvider extends InvProviderBase {
+  static commandContributions = {
+    self: [],
+    environment: [],
+    inventory: ['system/ping.yaml'],
+    peers: [],
+  };
+}
+
+type Giver = TestGiver & CommandGiver;
+
+function moveInto(item: unknown, giver: Giver): void {
+  ContainmentApi.move(
+    item as Parameters<typeof ContainmentApi.move>[0],
+    giver as unknown as Parameters<typeof ContainmentApi.move>[1]
+  );
+}
+
+describe('CommandGiverMixin.getAffordances', () => {
+  beforeEach(() => {
+    CommandApi.clearCache();
+    const find = vi.fn(
+      async (collection: string, query: Record<string, unknown>) => {
+        if (
+          collection === Collections.Domain &&
+          query.path === '/obj/command/system/PingController'
+        ) {
+          return [
+            {
+              path: '/obj/command/system/PingController',
+              class: '/obj/command/system/PingController',
+              data: {},
+            },
+          ];
+        }
+        return [];
+      }
+    );
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+      save: vi.fn(),
+      find,
+      findById: vi.fn(),
+    } as unknown as PersistenceManager);
+  });
+
+  it('returns records pairing each command with a source and bucket', () => {
+    const giver = makeStuff(() => new TestGiver()) as Giver;
+    const affs = giver.getAffordances();
+    expect(affs.length).toBeGreaterThan(0);
+    for (const a of affs) {
+      expect(a.command.getPrimaryVerb()).toBeTruthy();
+      expect(a.source).toBeTruthy();
+      expect(['self', 'inventory', 'environment', 'peers']).toContain(a.bucket);
+    }
+  });
+
+  it('resolves the self sentinel to the giver instance (never the string)', () => {
+    const giver = makeStuff(() => new TestGiver()) as Giver;
+    const affs = giver.getAffordances();
+    // A freshly-seeded giver has only its own self contributions.
+    expect(affs.every((a) => a.bucket === 'self')).toBe(true);
+    for (const a of affs) {
+      expect(a.source).toBe(giver);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(a.source as any).not.toBe('self');
+    }
+  });
+
+  it('attributes an inventory-afforded command to the granting item', () => {
+    const giver = makeStuff(() => new TestGiver()) as Giver;
+    giver.getAffordances(); // seed self
+    const item = makeStuff(() => new InvProvider());
+    moveInto(item, giver);
+
+    const affs = giver.getAffordances();
+    const invAff = affs.find((a) => a.bucket === 'inventory');
+    expect(invAff).toBeDefined();
+    expect(invAff!.source).toBe(item);
+    expect(invAff!.command.hasVerb('ping')).toBe(true);
+  });
+
+  it('getAvailableCommands is exactly the affordance projection', () => {
+    const giver = makeStuff(() => new TestGiver()) as Giver;
+    const item = makeStuff(() => new InvProvider());
+    moveInto(item, giver);
+
+    expect(giver.getAvailableCommands()).toEqual(
+      giver.getAffordances().map((a) => a.command)
+    );
+  });
+});

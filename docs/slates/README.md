@@ -79,9 +79,13 @@ continues with the content + navigation layers on top:
 - [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) — compiled `.d.ts` type surface + LSP for authors.
 - [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
-- [verb-provisioning-slate](./builds/verb-provisioning-slate.md) — scaffold for provisioning verbs onto objects.
 
-**Phases:** type surface + diagnostics → CMS editor core → scoped authoring → verb provisioning.
+**Phases:** type surface + diagnostics → CMS editor core → scoped authoring.
+
+> The former verb-provisioning slate is retired — its one durable idea
+> (a verb may be afforded by many source objects; the source is the
+> discriminator) now lives in
+> [command-routing.md § Affordance attribution](../subsystems/command-routing.md).
 
 ### 6. Game config
 - [game-config-slate](./builds/game-config-slate.md) — singleton `GameConfig` Document + `config` verb + seeded defaults. Sequenced after char-gen merges; small enough to ride another build's branch rather than its own cycle.

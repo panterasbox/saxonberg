@@ -110,6 +110,16 @@ export interface CommandContext {
   verb: string;
   command: CommandDefinition;
   /**
+   * The Stuff that afforded the executing command — the giver itself
+   * for an innate (`'self'`) verb, or the granting item/peer otherwise.
+   * Populated by the dispatcher from the claiming match's affordance
+   * record (resolved `'self'` → giver). Falls back to the giver on the
+   * bound / programmatic dispatch paths where no contextual match step
+   * runs. Always a concrete Stuff. The source object's type is the
+   * discriminator — there is no provisioning-category tag.
+   */
+  commandSource: Stuff;
+  /**
    * Populated by `ShellApi.expandAliases` when the command's verb was
    * resolved through one or more alias hops. Absent when the verb was
    * typed directly. Controllers that branch on alias-vs-direct read
@@ -160,6 +170,15 @@ export interface CreateCommandContextArgs {
   commandId: string;
   verb: string;
   command: CommandDefinition;
+  /**
+   * The Stuff that afforded the command. Optional here: when omitted,
+   * the context defaults it to `commandGiver` (the innate/giver case).
+   * Production dispatch always supplies it — the claiming match's
+   * resolved affordance source, or the giver fallback on the bound /
+   * programmatic paths. On the context itself it is always a concrete
+   * Stuff (never undefined).
+   */
+  commandSource?: Stuff;
   interactive?: Interactive;
 }
 
@@ -216,6 +235,7 @@ class CommandContextImpl implements CommandContext {
   public commandId: string;
   public verb: string;
   public command: CommandDefinition;
+  public commandSource: Stuff;
   public interactive?: Interactive;
   public aliasExpansion?: AliasExpansionInfo;
   public _mqlPermission?: {
@@ -235,6 +255,9 @@ class CommandContextImpl implements CommandContext {
     this.commandId = args.commandId;
     this.verb = args.verb;
     this.command = args.command;
+    // Default unattributed construction to the giver — the innate case.
+    // Production dispatch always passes commandSource explicitly.
+    this.commandSource = args.commandSource ?? args.commandGiver;
     if (args.interactive !== undefined) this.interactive = args.interactive;
   }
 

@@ -486,13 +486,16 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 - [docs/slates/tails/mixin-slate.md](./slates/tails/mixin-slate.md) — broad mixin slate;
   most affordance mixins now distributed into the substrate
   slates above.
-- [docs/slates/builds/verb-provisioning-slate.md](./slates/builds/verb-provisioning-slate.md)
-  — verb-acquisition pattern (innate / skill / instrument /
-  implant / consumable / ambient). One verb, one controller, N
-  provisioning paths each with its own gate and prose flavor.
-  Generalizes the instruments-reveal seam from the Quantities
-  substrate to skills, cybernetics, transient buffs, and ambient
-  effects.
+- **Affordance attribution (resolved — folded into a subsystem note)**
+  — the former verb-provisioning slate is retired. A verb may be
+  afforded by many source objects (innate `'self'`, wielded
+  instrument, future skill / implant); the recency stack already
+  records the source, so the source object — not a category enum — is
+  the discriminator. The remaining work is small and rides on the next
+  affordance source (skills / cybernetics): a source-preserving
+  introspection accessor + threading the matched source onto
+  `CommandContext`. See
+  [command-routing.md § Affordance attribution](./subsystems/command-routing.md).
 - **Bulk substrate (shipped — thermos slice)** — continuous matter
   (liquid) as a holder attribute, NOT a Stuff: `BulkableMixin`
   interior/surface slots, the `transfer` primitive, the closure scale,
