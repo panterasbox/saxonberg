@@ -697,8 +697,13 @@ landing first.
 - **Idle eviction for Stuff lifecycle** — registry is forever-
   growing. TTL / LRU / proxy-access-hooks design pass needed.
   Subsystems/lifecycle.md § Open Design.
-- **Guest accounts** — random-surname generator that bypasses
-  Google OAuth. Lower the barrier to first-time exploration.
+- **Guest accounts** — **shipped** as the anonymous-guest path of the
+  client shell (see [client-shell.md](./subsystems/client-shell.md)):
+  a `/auth/guest` ephemeral principal, a randomized throwaway avatar
+  minted on Enter with a reserved-word NameBank name, destroyed on
+  disconnect, persisting nothing. Lowered the barrier to first-time
+  exploration. *Remaining*: abuse controls (rate-limit / per-IP /
+  captcha) hang off the single `mayMintGuest` gate when needed.
 - **GraphQL admin API** — `type-graphql` schema, resolvers
   over running game state for inspection / dashboards.
 - **Production hardening (Phase 10)** — test coverage to >80%,

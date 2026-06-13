@@ -6,7 +6,7 @@
 > anonymous-guest path, the portrait, and the connection-loss state
 > machine. Its server-side touchpoints (the guest principal, the portrait
 > resolver, the don't-flush seam) are noted where they cross the wire.
-> Seeded by [client-shell-slate.md](../slates/client-shell-slate.md);
+> Seeded by [client-shell-slate.md](../slates/tails/client-shell-slate.md);
 > built per `docs/requirements/client-shell-frame-requirements.md`.
 
 ## The frame (in-world top bar)
@@ -63,23 +63,35 @@ ephemeral**. Two orthogonal axes, deliberately not conflated:
   post-sign-in if abused.
 - **Guest-ness (character axis)** — `Avatar.isGuest`. `Login.enter` is
   the **one** place the policy "anonymous session → mint a guest avatar"
-  lives: it clones the seed template (sapiens, spawns in the lounge),
-  stamps `isGuest`, and applies a generated reserved-word name. Every
-  guest *behavior* keys off the avatar's `isGuest`, never the session.
+  lives; the build itself is `Login.mintRandomGuestAvatar` (private),
+  which reads the char-gen rosters + sex-set rule from `EnrollController`
+  (`loadConfig` / `validSexSet`) so the guest and char-gen paths agree.
+  Every pick is **randomized** — a random species, a random
+  **non-intersex** sex, a random aspiration (→ bio + themed outfit) —
+  pronouns are always **they/them**, the name is the reserved-word guest
+  name, and the avatar spawns in the lounge (the seed's `startLocation`).
+  Every guest *behavior* keys off the avatar's `isGuest`, never the
+  session.
 
 Guest lifecycle:
 
-- **Minted on Enter** (not page-load), from `Avatar.SEED_TEMPLATE_PATH`.
-  Seed clones are **serialized** (`Login.serializeGuestMint`) because all
-  guests share one seed path and `StuffApi.clone` rejects concurrent
-  same-path clones.
+- **Minted on Enter** (not page-load). The build forks a **unique
+  per-guest transient template** (`/obj/Avatar/guest-<nanoid>`) from the
+  seed, overlaying the random picks, clones it, then **deletes the
+  template** immediately — guests persist nothing, and the live avatar is
+  independent of it. The unique path also means no two guests ever clone
+  the same path, so there's no seed-clone concurrency hazard (no
+  serialization needed).
 - **Recognizable, non-impersonable.** The name is the reserved word
-  (`Avatar.GUEST_RESERVED_WORD = 'Guest'`) + a NameBank-drawn
-  distinguisher ("Guest Mallow") — so guest-ness rides every attributed
-  line (speech/emote/look), where a UI badge can't reach. The reserved
-  word is on the char-gen `enroll` name denylist
-  (`EnrollController.isReservedName`) so a real player can't impersonate
-  a guest. Exact-word only; fuzzy/homoglyph is out of scope.
+  (`Login.GUEST_RESERVED_WORD = 'Guest'`) + a NameBank-drawn
+  distinguisher ("Guest Mallow") drawn only from the real `common`
+  `NameBank` (an unseeded bank degrades to a bare "Guest", never a
+  fabricated surname) — so guest-ness rides every attributed line
+  (speech/emote/look), where a UI badge can't reach. The reserved word is
+  on the char-gen `enroll` name denylist
+  (`EnrollController.isReservedName`, which imports it from `Login`) so a
+  real player can't impersonate a guest. Exact-word only; fuzzy/homoglyph
+  is out of scope.
 - **Persists nothing.** `Avatar.save()` short-circuits for guests (the
   single guard covering autosave, onDestruct, and the client-state
   don't-flush seam in `backend/inbound/clientState.ts`); autosave never
@@ -147,3 +159,15 @@ so it has nothing to resume.
 - Search, mode switcher, the public read-only surface, the declarative
   mode/manifest model, author mode / CMS — all later cycles (see the
   client-shell slate).
+
+## History
+
+- **Guest build homed on `Login`** (MR !54 review): the randomized
+  guest-avatar build started life as `EnrollController.mintRandomGuestAvatar`
+  (next to the char-gen `commit` it mirrors) but moved onto `Login` — the
+  guest-mint site — reading the rosters + `validSexSet` back from
+  `EnrollController` via a lazy import. In the same pass the
+  `GUEST_RESERVED_WORD` + guest-name generation moved from `Avatar` to
+  `Login`, the hardcoded guest-surname fallback list was deleted (real
+  `common` NameBank only), and `PRONOUN_LABELS` was colocated with the
+  `Pronouns` enum in `@saxonberg/types`.

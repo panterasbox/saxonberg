@@ -44,8 +44,12 @@ explicitly compose.
 
 ### 3. Vitals & survival
 - [vitals-slate](./builds/vitals-slate.md) — anatomy / conditions / pedagogy substrate; the consumer `race.md` deferred for.
+- [encumbrance-slate](./builds/encumbrance-slate.md) — borne-weight gauge (derived `current` vs physiology-derived `capacity`); the interaction library (packs / carts / augments / bags of holding) is the build, not the gauge. Reads the shipped reserve/mass/embodiment substrate.
+- [metabolism-slate](./builds/metabolism-slate.md) — the body's energy economy: basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel), the `ingest` seam, and the floor-effects → vitals-conditions cascade (`starvation`/`dehydration`/`collapse`). Closes the recovery loop deferred out of encumbrance. Heat seam resolves in the thermal pass.
 
 **Depends on** [thermal-slate](./tails/thermal-slate.md) (tails/) graduating conductivity to a real material property.
+
+**Phases:** vitals substrate (built) → encumbrance → metabolism (thermal designed before build).
 
 ### 4. World places & navigation
 *A long, sequenced content build.*
@@ -100,6 +104,7 @@ extends; none is a fresh build.
 | [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
 | [thermal](./tails/thermal-slate.md) | race.md | conductivity as a material property (vitals dep) |
+| [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
 
 **Near-absorbed — retirement candidates** (kept this pass rather than
 deleted, since each still carries live design surface; prune on request

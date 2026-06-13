@@ -4,7 +4,7 @@
 > screen + anonymous guest + connection-loss + portrait), built per
 > `docs/requirements/client-shell-frame-requirements.md` /
 > `docs/plans/client-shell-frame-plan.md`; the engine reference is
-> [client-shell.md](../subsystems/client-shell.md). Resolved & built:
+> [client-shell.md](../../subsystems/client-shell.md). Resolved & built:
 > the `ConnectionStatus` block is gone; `ConnectionIndicator` +
 > `AccountMenu` (dropdown, distinct exits — Q4) compose the in-world
 > frame; the start screen carries the shared primitives (Q6 → shared
@@ -76,7 +76,7 @@ See also:
 - [mql-subscription-slate.md](./mql-subscription-slate.md) +
   [inspection-pane-slate.md](./inspection-pane-slate.md) — the
   live-state substrate the game body's regions consume.
-- [docs/deployment.md](../deployment.md) — `mud.panterasbox.com`, the
+- [docs/deployment.md](../../deployment.md) — `mud.panterasbox.com`, the
   single-box deploy this is meant to make presentable; metrics surface
   reads the same health concerns.
 
@@ -639,6 +639,6 @@ To stay a good citizen of the docs (extend, don't duplicate):
   — the pre-world flow the start screen hands off to.
 - **Help system / api-model** (TypeDoc `api-model.json`, `HelpController`
   scaffold) — the first search corpus.
-- **[docs/deployment.md](../deployment.md)** — `mud.panterasbox.com`,
+- **[docs/deployment.md](../../deployment.md)** — `mud.panterasbox.com`,
   the deploy this makes presentable and the health the metrics view
   reports.
