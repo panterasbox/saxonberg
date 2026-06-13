@@ -1150,10 +1150,11 @@ const MUD_ROOT = resolvePath(__dirname, '..');
  * CommandApi - Static command definition cache
  *
  * Production dispatch never queries the cache directly; it walks each
- * giver's recency stack (`CommandGiverMixin.getAvailableCommands()`)
- * and filters via `CommandApi.matchVerbContextual`. The filename-keyed
- * map below is just a "load once, reuse" sharing layer between the
- * recency-push helpers and the YAML preload pass.
+ * giver's recency stack (`CommandGiverMixin.getAffordances()`) and
+ * filters by verb, keeping each match paired with its affording
+ * source. The filename-keyed map below is just a "load once, reuse"
+ * sharing layer between the recency-push helpers and the YAML preload
+ * pass.
  */
 export class CommandApi {
   /** Cached command definitions by filename (load-once sharing) */
@@ -1430,14 +1431,16 @@ export class CommandApi {
   }
 
   /**
-   * Filter the available command list down to those whose verb
-   * matches `verb` (case-insensitive). The input list comes from the
-   * giver's recency stack, top-of-stack first; the output preserves
-   * order so the assemble-stage chain-of-responsibility tries the
-   * newest match first. The execute-stage `pass: true` deferral is
-   * gone; same-verb collisions are resolved at the assemble stage
-   * (shape vs bind), or via dynamic contributions on the recency
-   * stack — see `command-routing.md`.
+   * Filter a command list down to those whose verb matches `verb`
+   * (case-insensitive), preserving order. A standalone helper over bare
+   * `CommandDefinition[]`.
+   *
+   * NOTE: live dispatch no longer calls this — `_runChain` filters over
+   * affordances (`getAffordances()`) so each match keeps its affording
+   * source for `CommandContext.commandSource` (see
+   * `command-routing.md` § Affordance attribution). This remains as a
+   * verb-filter utility; same-verb collisions are still resolved at the
+   * assemble stage (shape vs bind) or via dynamic contributions.
    */
   static matchVerbContextual(
     verb: string,

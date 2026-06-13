@@ -29,12 +29,12 @@ export default class AffordancesController extends CommandController {
     const giver = context.commandGiver;
     const affordances = giver.getAffordances();
 
-    const lines: string[] = ['', "You can run these commands:", ''];
+    const lines: string[] = ['', 'You can run these commands:', ''];
     for (const a of affordances) {
       const verb = a.command.getPrimaryVerb();
       const innate = a.source === giver;
       const label = innate
-        ? "(innate)"
+        ? '(innate)'
         : `(${DescribeApi.getDisplayName(a.source)})`;
       lines.push(`  ${verb.padEnd(15)} ${label}`);
     }
