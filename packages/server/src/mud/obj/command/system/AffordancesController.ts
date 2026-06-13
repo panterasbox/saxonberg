@@ -22,7 +22,6 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 
 export default class AffordancesController extends CommandController {
   execute(_model: CommandModel, context: CommandContext): void {
@@ -35,14 +34,12 @@ export default class AffordancesController extends CommandController {
       const innate = a.source === giver;
       const label = innate
         ? '(innate)'
-        : `(${DescribeApi.getDisplayName(a.source)})`;
+        : `(${a.source.getPresentation()})`;
       lines.push(`  ${verb.padEnd(15)} ${label}`);
     }
     lines.push('');
     lines.push(
-      `This command was afforded by ${DescribeApi.getDisplayName(
-        context.commandSource
-      )}.`
+      `This command was afforded by ${context.commandSource.getPresentation()}.`
     );
     lines.push('');
 

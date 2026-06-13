@@ -24,7 +24,6 @@ import { CommandApi, type CommandModel } from '../../../../api/command';
 import type { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { DescribeApi } from '../../../../api/describe';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 
@@ -137,6 +136,6 @@ describe('AffordancesController', () => {
 
     const text = (selfBody as Mml).toString();
     expect(text).toContain('This command was afforded by');
-    expect(text).toContain(DescribeApi.getDisplayName(giver));
+    expect(text).toContain(giver.getPresentation());
   });
 });
