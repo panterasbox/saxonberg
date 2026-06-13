@@ -1,26 +1,34 @@
-verbs: [teleport]
+# teleport — dual-mode, one verb, two forks chosen by privilege.
+#
+#  - Self-powered (privileged): teleport yourself anywhere, destination
+#    targeted via MQL; `--target <obj>` moves something else instead
+#    (subsumes the old object-relocation teleport and `goto`).
+#  - TPA ride (unprivileged): the same verb rides the Teleport Authority
+#    from the node you're standing at; the raw destination token is a
+#    route keyword, and a bare `teleport` reads the departures board.
+#
+# Only `requiresAnimate` is verb-level — the TPA-specific gating (a
+# credential, being at a node) lives inside the TPA fork so it never
+# blocks the privileged self-powered path.
+verbs: [teleport, tp]
 controller: author/TeleportController
-description: "Relocate <target> to <destination> (defaults to your focus)"
+description: "Teleport yourself (or --target something) — self-powered if able, else via the Teleport Authority."
+validators:
+  - /lib/command/validators/requiresAnimate
 args:
-  - name: target
-    type: object
-    required: true
-    scope: ["reachable"]
+  # Where to go. Self-powered fork resolves it as an MQL target; the TPA
+  # fork reinterprets the raw token as a local route keyword.
   - name: destination
     type: object
     required: false
-    scope: ["reachable"]
-    prepositions: [to]
-    # Default to the player's drilled focus. Resolution rule applied
-    # in the controller: if the resolved focus is a Container, the
-    # target lands inside it (room, chest, vessel interior, avatar
-    # inventory). If it's only Containable (a non-container item),
-    # the target lands in that item's environment ("next to" the
-    # focused thing). The override case ("put it next to bob, not
-    # in him") uses an explicit `to <where>` preposition.
-    default: "$focus"
+    scope: ["online", "/obj/**", "reachable"]
 options:
+  target:
+    short: t
+    type: object
+    scope: ["reachable", "online", "/obj/**"]
+    description: "Move this object/being instead of yourself (privileged; access-gated)."
   force:
     short: f
     type: boolean
-    description: "Bypass canTeleport / containment vetoes (admin only; v1 stub always denies)"
+    description: "Bypass canTeleport / containment vetoes (admin only; v1 stub always denies)."

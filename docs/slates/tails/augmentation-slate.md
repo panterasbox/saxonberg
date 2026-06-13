@@ -214,6 +214,18 @@ issued part is what's load-bearing now, the loadout is designed-for.
 5. **Slot model** — how many augment slots, by which body regions, with
    what capacity; the interplay with vitals anatomy (an augment occupies
    an anatomy location → does losing the location lose the augment?).
+   **First concrete pressure (fast-travel build, 2026-06-12):** the
+   travel implant collided with the capacity-1 `cranial` slot already
+   holding the baseline `AetherImplant`, so the travel credential shipped
+   as a *card* default instead. As players accrue augs, cranial-only-
+   capacity-1 won't hold. The *mechanism* answers already exist — (a)
+   **more regional slots** (ocular / cochlear / limb / torso / dermal per
+   the list above) and (b) **capacity-expander augs** that `_grantsSlots`
+   (the `CyberArm` seam in augmentation.md). The open *design* question is
+   whether slot scarcity is a **deliberate loadout economy** (choosing
+   your augs is a real tradeoff — the on-theme RPG version) or just a
+   **ceiling you grow past** — and that fork is **game design** (deferred),
+   downstream of the augmentation build wave.
 6. **Prosthetic ↔ vitals boundary** — vitals owns the loss/wound;
    augmentation owns the replacement. Pin the seam.
 7. **Effective-capability resolution** — exactly how augment

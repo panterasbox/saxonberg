@@ -1,0 +1,14 @@
+# The arrival plaza where the Teleport Authority sets campus travellers down.
+# A plain CartesianLocation (generic describable room) — the University Avenue
+# TPA terminal is seeded into it.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: University Avenue
+  primaryKeyword: plaza
+  longDescription: |
+    A broad transit plaza at the edge of Eternal University. Plane trees line a swept stone concourse; banners snap overhead, and the campus rises in pale terraces beyond a low wall. A Teleport Authority terminal stands at the kerb where the avenue meets the gates.
+  coords:
+    x: 0
+    y: 0
+    z: 0

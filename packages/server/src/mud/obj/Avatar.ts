@@ -19,9 +19,7 @@ import { StuffApi } from "../api/stuff";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
-import type { Container } from "../lib/spatial/Container";
 import type { Stuff } from "../lib/stuff/Stuff";
-import { Warren } from "../lib/location/Warren";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import { MessageApi } from "../api/message";
@@ -121,12 +119,12 @@ export default class Avatar extends AvatarBase {
    * no-op when already in place, or a clean re-seat).
    */
   async applyStartLocation(ref: string): Promise<void> {
-    const cls = await StuffApi.classForRef(ref);
-    const target: Stuff & Container =
-      (cls.prototype as object) instanceof Warren
-        ? await (await StuffApi.singleton<Warren>(ref)).getHost()
-        : await StuffApi.singletonOrClone<Stuff & Container>(ref);
-    ContainmentApi.move(this as unknown as Stuff & Containable, target);
+    // The warren-vs-location landing decision is shared with self-seating
+    // fixtures; it lives in `ContainmentApi.resolveLanding`. An avatar is a
+    // transient occupant, so it ignores the returned Warren (no fixture
+    // registration — host migration drains occupants separately).
+    const { container } = await ContainmentApi.resolveLanding(ref);
+    ContainmentApi.move(this as unknown as Stuff & Containable, container);
   }
 
   /**
@@ -447,6 +445,9 @@ export default class Avatar extends AvatarBase {
         // No cranial slot on this body plan (sessile etc.).
         return;
       }
+      // The baseline implant also carries the Teleport Authority travel
+      // credential, so installing it gives the avatar their default
+      // credential — they "leave with their implant", no card needed.
       const implant = await StuffApi.clone<AetherImplant>(
         AetherImplant.TEMPLATE_PATH,
       );

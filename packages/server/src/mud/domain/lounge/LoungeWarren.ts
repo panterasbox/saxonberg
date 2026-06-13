@@ -192,6 +192,11 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
       opposite: LoungeWarren.BAR_OPPOSITE,
       keepLiveDestination: true,
     });
+    // The lounge's TPA terminal seats ITSELF into the host: it declares
+    // `seatIn: <this warren>` and registers with the base Warren on
+    // `postRegister`, which re-seats it on host migration. See FixtureMixin
+    // / Warren.registerFixture. (Dave's Bar stays here — it's an exit, not a
+    // contained fixture.)
   }
 
   /**

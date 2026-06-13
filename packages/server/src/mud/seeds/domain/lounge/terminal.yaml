@@ -1,0 +1,15 @@
+# The lounge's TPA node — the network's eager boot root (in bootstrap.ts).
+# Both-directional, comped; routes to University Avenue (the campus entry).
+# `seatIn` names the lounge Warren: the terminal seats ITSELF into the elastic
+# host on postRegister and registers to re-seat on host migration
+# (FixtureMixin). Its arrival room is the Warren host
+# (LoungeTerminal.getArrivalRoom).
+class: /domain/lounge/LoungeTerminal
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  seatIn: /domain/lounge/warren
+  shortDescription: a Teleport Authority terminal
+  keywords: [lounge]
+  directionality: both
+  routes:
+    - to: /domain/eternal/university-avenue-terminal

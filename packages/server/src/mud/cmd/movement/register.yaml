@@ -1,0 +1,11 @@
+# register — record the Teleport Authority terminal here onto your travel
+# credential, so you can `teleport` to it later. Contributed to the command
+# set only when you're at a node (FastTravelMixin.commandContributions).
+# Arrival-capable nodes only — the controller refuses a departures-only node.
+verbs: [register]
+controller: movement/RegisterController
+description: "Register the Teleport Authority terminal here onto your travel credential."
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresTravelCredential
+  - /lib/command/validators/mustBeAtFastTravelNode

@@ -38,6 +38,7 @@
 import { Idea } from '../stuff/Idea';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
+import type { Containable } from '../spatial/Containable';
 import type { Exitable } from '../boundary/Exitable';
 import type { WarrenMember } from './WarrenMember';
 import { StuffApi } from '../../api/stuff';
@@ -70,6 +71,16 @@ export abstract class Warren extends Idea {
 
   /** The current host member, or null when the graph is empty / lost. */
   private _hostMember: MemberStuff | null = null;
+
+  /**
+   * Self-seating fixtures (by template path) that follow this warren's
+   * host. Populated by `registerFixture` when a `FixtureMixin` seats into
+   * the host (`seatIn` → this Warren); re-resolved on host (re)designation
+   * so a fixture that cascade-died with the old host is revived into the
+   * new one. Paths, not live refs — a host-seated fixture is destructed
+   * with its host, so a live ref would dangle; the path revives it.
+   */
+  private _fixturePaths: Set<string> = new Set();
 
   /** Coalescing flag for `notifyPopulationChange` → `reconcile`. */
   private _reconcilePending = false;
@@ -249,11 +260,59 @@ export abstract class Warren extends Idea {
 
   /**
    * Make `m` the host and wire its host-only fixtures. No exit changes
-   * to other members (a fresh host has no satellites yet).
+   * to other members (a fresh host has no satellites yet). Re-seats any
+   * registered self-seating fixtures last — a no-op on the first-ever
+   * designation (none registered yet), but it revives fixtures that died
+   * with a previously lost host when the graph stands up fresh.
    */
   protected async designateHost(m: MemberStuff): Promise<void> {
     this._hostMember = m;
     await this.wireHostFixtures(m);
+    await this.reseatFixtures();
+  }
+
+  /**
+   * Register a self-seating fixture so it re-seats when the host migrates
+   * or the graph stands back up. Called by `FixtureMixin.seatSelf` when
+   * its `seatIn` target is this Warren. Stores the fixture's template path
+   * — the durable handle that survives the fixture's death-with-host; a
+   * path-less fixture can't be revived and is logged.
+   */
+  public registerFixture(fixture: Stuff & Containable): void {
+    const path = fixture.getTemplatePath();
+    if (!path) {
+      console.warn(
+        `Warren.registerFixture: ${fixture.stuffId} has no template path; ` +
+          `it won't re-seat on host migration.`,
+      );
+      return;
+    }
+    this._fixturePaths.add(path);
+  }
+
+  /**
+   * Re-seat each registered fixture into the current host. A fixture seated
+   * in a host usually cascade-dies when that host is force-destroyed:
+   * re-resolving its singleton clones a fresh one whose `postRegister`
+   * self-seats into the now-current host (and re-registers here,
+   * idempotently). When a fixture instead survived (evacuated elsewhere
+   * rather than cascade-destructed), the explicit move relocates it. Either
+   * way it lands in the current host. Safe to call with an empty registry.
+   */
+  private async reseatFixtures(): Promise<void> {
+    const host = this._hostMember;
+    if (!host) return;
+    for (const path of [...this._fixturePaths]) {
+      try {
+        const fixture = await StuffApi.singleton<Stuff & Containable>(path);
+        ContainmentApi.move(fixture, host);
+      } catch (err) {
+        console.warn(
+          `Warren.reseatFixtures: ${path} failed to re-seat:`,
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    }
   }
 
   /**
@@ -290,6 +349,10 @@ export abstract class Warren extends Idea {
     // 3. Swap host-only fixtures (Dave's, campus, …) onto the new host.
     await this.unwireHostFixtures();
     await this.wireHostFixtures(newHost);
+    // 4. Re-seat self-seating fixtures: each was seated in the dead host
+    // and cascade-died with it; reviving its singleton self-seats it into
+    // `newHost` (now the current host).
+    await this.reseatFixtures();
   }
 
   // ──────────────────────── spawn / reap ──────────────────────────
@@ -430,6 +493,10 @@ export abstract class Warren extends Idea {
     this._members.clear();
     this._attachments.clear();
     this._hostMember = null;
+    // Fixture paths are durable identity, not graph state, but a torn-down
+    // graph reconstitutes from its boot root (which re-registers), so drop
+    // them too rather than re-seat into a stale host on the next stand-up.
+    this._fixturePaths.clear();
   }
 
   /**
