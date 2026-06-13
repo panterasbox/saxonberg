@@ -1,7 +1,7 @@
 /**
  * ConfigController — the developer surface for application settings.
  *
- * `config`                  → list every setting (registry keys + ad-hoc).
+ * `config`                  → list every setting (known + ad-hoc).
  * `config <key>`            → show one.
  * `config <key> <value>`    → set one (persist + refresh cache).
  *
@@ -9,10 +9,10 @@
  *   - the `requiresDeveloper` validator (in `config.yaml`) gates the verb;
  *     no access check belongs here.
  *
- * The namespace is open: a set to an unregistered key still succeeds and
- * round-trips — it just earns a soft prose note. That note is prose ONLY
- * (status stays `ok`); it is NOT a `controller-rejected` note, because the
- * write succeeded.
+ * The namespace is open: a set to a key outside the `AppSettingKeys`
+ * vocabulary still succeeds and round-trips — it just earns a soft prose
+ * note. That note is prose ONLY (status stays `ok`); it is NOT a
+ * `controller-rejected` note, because the write succeeded.
  */
 
 import { CommandController } from "../../../lib/command/CommandController";

@@ -85,7 +85,7 @@ describe("ConfigController", () => {
     return ctrl.execute(model as never, ctx);
   }
 
-  it("lists every registry key with its current value", async () => {
+  it("lists every known key with its current value", async () => {
     await run({});
     const text = output.join("\n");
     expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /domain/lounge/warren`);

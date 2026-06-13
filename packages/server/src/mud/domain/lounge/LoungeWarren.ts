@@ -16,7 +16,7 @@
  * The personality lives in a few knobs (`getBudThreshold` /
  * `getMergeWatermark` / `getReapGraceMs`), built to fail safe
  * (flatten-to-one-room is `N` high + `M` 0) and tune cheap (defaults are
- * code constants headed for `GameConfig`).
+ * code constants headed for app settings (`AppApi`)).
  */
 
 import { Warren, type Attachment } from '../../lib/location/Warren';
@@ -47,7 +47,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   static readonly BAR_OPPOSITE = 'south';
 
   // Generous v1 defaults (steady state keeps rooms in [M, N]). Tests
-  // override small via `setThresholds`. Headed to GameConfig.
+  // override small via `setThresholds`. Headed to app settings (AppApi).
   static readonly DEFAULT_BUD_THRESHOLD = 10;
   static readonly DEFAULT_MERGE_WATERMARK = 3;
   static readonly DEFAULT_REAP_GRACE_MS = 60_000;
@@ -91,7 +91,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
    * Runtime tuning seam (the band is the lounge's personality). v1 ships
    * code-constant defaults; this is the hook tests use to drive small
    * thresholds and the migration target when the knobs move to
-   * `GameConfig`.
+   * app settings (`AppApi`).
    */
   public setThresholds(opts: {
     budThreshold?: number;

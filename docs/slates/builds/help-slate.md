@@ -207,8 +207,8 @@ HTML.
    a public docs view (lean, consistent) vs. keep TypeDoc HTML for the
    standalone site.
 4. **Where mechanic numbers project from** — constants in code vs the
-   forthcoming `GameConfig` doc vs content. The projector reads wherever
-   the number authoritatively lives (cross-ref the GameConfig
+   app-settings store (`AppApi`) vs content. The projector reads wherever
+   the number authoritatively lives (cross-ref the app-settings
    direction).
 5. **Index build trigger** — boot + HMR reproject on artifact change;
    confirm freshness contract.

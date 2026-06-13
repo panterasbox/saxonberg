@@ -104,7 +104,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
-  - [app-settings.md](./docs/subsystems/app-settings.md) — application-managed config: AppSettings singleton Document (`app_settings`, open `values` bag), the `lib/config/keys.ts` key registry, AppApi runtime surface (sync cached reads, no boot method), backend seed/warm in AppBootstrap, the developer-gated `config` verb; the `defaultStartLocation` + `evacuationFallback` knobs that retired `config/constants.ts`
+  - [app-settings.md](./docs/subsystems/app-settings.md) — application-managed config: AppSettings singleton Document (`app_settings`, open `values` bag) + the `AppSettingKeys` key vocabulary, values seeded from `mud/config/app-settings.yaml` by a backend `AppSettingsSeeder` (no code defaults), AppApi runtime surface (sync cached reads, no boot method), `AppSettings.warm` at boot, the developer-gated `config` verb; the `defaultStartLocation` + `evacuationFallback` knobs that retired `config/constants.ts`
 
 ## Development Commands
 

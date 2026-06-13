@@ -7,9 +7,7 @@ config category, alongside per-player `settings`
 ([shell-environment.md](./shell-environment.md)), per-Stuff `Propertied`
 ([properties.md](./properties.md)), and server-persisted client-UI-state.
 
-Source of truth for this subsystem. Built from
-[app-settings-requirements.md](../requirements/app-settings-requirements.md)
-/ [app-settings-plan.md](../plans/app-settings-plan.md).
+Source of truth for this subsystem.
 
 ## Shape
 
@@ -179,3 +177,15 @@ la `SettingsSchemaEntry`); more app-wide knobs (MOTD, world feature flags,
 the lounge distribution dials); and the further `AppApi` operations
 (`shutdown()` etc.). All land with their own builds; v1 is the two
 start-location knobs and the read/write/verb surface.
+
+## History
+
+The build first shipped (`6897f4dd`) with the values in a code constants
+map (`lib/config/keys.ts`'s `AppSettingDefaults`) that `AppSettings.loadOrSeed`
+copied into the DB, with `AppApi.setting` falling back to the map. MR
+review (`b8785c38`) replaced that with the current model: the values live
+only in the DB, seeded from `mud/config/app-settings.yaml` by a backend
+`AppSettingsSeeder` (a code defaults map was a redundant second on-disk copy
+of what the seeder already guarantees). `keys.ts` was deleted (the key
+vocabulary folded into `AppSettings.ts`), `loadOrSeed` became the cache-only
+`warm`, and the `setting` fallback was dropped.
